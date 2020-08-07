@@ -92,7 +92,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
         .radius_session_id = radius_session_id};
     auto tgpp_context           = TgppContext{};
     auto session                = std::make_unique<SessionState>(
-        imsi, session_id, core_session_id, cfg, *rule_store, tgpp_context);
+        imsi, session_id, cfg, *rule_store, tgpp_context);
     return std::move(session);
   }
 

@@ -714,8 +714,8 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   CreateSessionResponse response;
   create_credit_update_response(
       imsi, 1, 1024, true, response.mutable_credits()->Add());
-  auto session_state = new SessionState(
-      imsi, session_id, session_id, test_cfg_, *rule_store, tgpp_ctx);
+  auto session_state =
+      new SessionState(imsi, session_id, test_cfg_, *rule_store, tgpp_ctx);
 
   // manually place revalidation timer
   SessionStateUpdateCriteria uc;
