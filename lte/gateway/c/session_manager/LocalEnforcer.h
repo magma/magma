@@ -213,6 +213,11 @@ class LocalEnforcer {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
   };
+  struct RedirectInstallInfo {
+    std::string imsi;
+    std::string session_id;
+    magma::lte::RedirectServer redirect_server;
+  };
   std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
@@ -485,9 +490,15 @@ class LocalEnforcer {
   /**
    * Install flow for redirection through pipelined
    */
-  void install_redirect_flow(
-      const std::unique_ptr<ServiceAction>& action,
+  void start_redirect_flow_install(
+      SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
       SessionUpdate& session_update);
+
+  void complete_redirect_flow_install(
+      Status status, DirectoryField resp,
+      const RedirectInstallInfo redirect_info);
+
+  PolicyRule create_redirect_rule(const RedirectInstallInfo& info);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
