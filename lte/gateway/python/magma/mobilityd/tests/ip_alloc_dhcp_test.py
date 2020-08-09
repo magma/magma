@@ -91,7 +91,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         # wait for DHCP release
         threading.Event().wait(7)
         mac1 = create_mac_from_sid(sid1)
-        dhcp_state1 = dhcp_store.get(mac1.as_redis_key())
+        dhcp_state1 = dhcp_store.get(mac1.as_redis_key(None))
 
         self.assertEqual(dhcp_state1.state_requested, DHCPState.RELEASE)
 
@@ -132,7 +132,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         # wait for DHCP release
         threading.Event().wait(7)
         mac4 = create_mac_from_sid(sid4)
-        dhcp_state = dhcp_store.get(mac4.as_redis_key())
+        dhcp_state = dhcp_store.get(mac4.as_redis_key(None))
 
         self.assertEqual(dhcp_state.state_requested, DHCPState.RELEASE)
         ip4_2 = self._dhcp_allocator.alloc_ip_address(sid4)
