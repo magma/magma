@@ -286,13 +286,15 @@ the form
 deployment by visiting the master NMS organization at e.g.
 <code>https://master.nms.yoursubdomain.yourdomain.com</code> and logging in with the
 <code>ADMIN_USER_EMAIL</code> and <code>ADMIN_USER_PASSWORD</code> provided above.</p>
-<p>NOTE: the <code>https://</code> is required. If you self-signed certs above, the browser will
-rightfully complain. Either ignore the browser warnings at your own risk (some
-versions of Chrome won't allow this at all), or e.g.
+<p>NOTE: the <code>https://</code> is required. If you self-signed certs above, the browser
+will rightfully complain. Either ignore the browser warnings at your own risk
+(some versions of Chrome won't allow this at all), or e.g.
 <a href="https://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate">import the root CA from above on a per-browser basis
 </a></p>
-<p>You can also visit the AWS endpoints directly. The relevant services are
-<code>nginx-proxy</code> for NMS and <code>orc8r-proxy</code> for Orchestrator API.
+<p>For interacting with the Orchestrator REST API, a good starting point is the
+Swagger UI available at <code>https://api.yoursubdomain.yourdomain.com/apidocs/v1/</code>.</p>
+<p>If desired, you can also visit the AWS endpoints directly. The relevant
+services are <code>nginx-proxy</code> for NMS and <code>orc8r-proxy</code> for Orchestrator API.
 Remember to include <code>https://</code>, as well as the port number for non-standard
 TLS ports.</p>
 <pre><code class="hljs css language-bash">$ kubectl get services
