@@ -145,6 +145,10 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return ret, err
 	}
+	liUes, err := getPipelineDLiUes(nwConfig.LiUes)
+	if err != nil {
+		return ret, err
+	}
 	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IPDRExportDst)
 	if err != nil {
 		return ret, err
@@ -169,7 +173,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		DefaultRuleId:   swag.StringValue(nwConfig.DefaultRuleID),
 		Services:        pipelineDServices,
 		AllowedGrePeers: allowedGrePeers,
-		LiImsis:         gwConfig.LiImsis,
+		LiUes:           liUes,
 		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &ltemconfig.SessionD{
@@ -250,4 +254,17 @@ func getHealthServiceGrePeers(pipelinedPeers []*ltemconfig.PipelineD_AllowedGreP
 		healthPeers = append(healthPeers, healthPeer)
 	}
 	return healthPeers
+}
+
+func getPipelineDLiUes(liUes *models.LiUes) (*ltemconfig.PipelineD_LiUes, error) {
+	if liUes == nil {
+		return nil, nil
+	}
+	dst := &ltemconfig.PipelineD_LiUes{
+		Imsis:   liUes.Imsis,
+		Msisdns: liUes.Msisdns,
+		Macs:    liUes.Macs,
+		Ips:     liUes.Ips,
+	}
+	return dst, nil
 }

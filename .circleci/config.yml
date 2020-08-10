@@ -714,14 +714,14 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
+      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
     steps:
       - checkout
       - docker/install-dc
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           command: |
-            cd ${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
+            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
             docker-compose build magmalte
       - tag-push-docker:
           project: magmalte
@@ -821,6 +821,18 @@ jobs:
             docker build --tag goradius -f radius/src/Dockerfile ./
       - tag-push-docker:
           images: 'goradius'
+          tag: <<parameters.tag>>
+          registry: $DOCKER_MAGMA_REGISTRY
+      - run:
+          name: Load openvswitch kernel module for xwf integ test
+          command: sudo modprobe openvswitch
+      - run:
+          name: Build xwfm-integ-tests
+          command: |
+            cd ${MAGMA_ROOT}
+            docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
+      - tag-push-docker:
+          images: 'xwfm-integ-tests'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
       - magma_slack_notify

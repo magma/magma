@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/access"
@@ -27,6 +28,10 @@ import (
 
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
+)
+
+const (
+	reverseProxyRefreshPeriod = 1 * time.Minute
 )
 
 func Start() {
@@ -106,10 +111,29 @@ func Start() {
 		e.Use(access.Middleware)
 	}
 
-	e, err = reverse_proxy.AddReverseProxyPaths(e)
+	reverseProxyHandler := reverse_proxy.NewReverseProxyHandler()
+	pathPrefixesByAddr, err := reverse_proxy.GetEchoServerAddressToPathPrefixes()
+	if err != nil {
+		log.Fatalf("Error querying service registry for reverse proxy paths: %s", err)
+	}
+	e, err = reverseProxyHandler.AddReverseProxyPaths(e, pathPrefixesByAddr)
 	if err != nil {
 		log.Fatalf("Error adding reverse proxy paths: %s", err)
 	}
+	go func() {
+		for {
+			<-time.After(reverseProxyRefreshPeriod)
+			pathPrefixesByAddr, err := reverse_proxy.GetEchoServerAddressToPathPrefixes()
+			if err != nil {
+				log.Printf("Error querying service registry for reverse proxy paths: %s", err)
+				continue
+			}
+			e, err = reverseProxyHandler.AddReverseProxyPaths(e, pathPrefixesByAddr)
+			if err != nil {
+				log.Printf("An error occurred while updating reverse proxy paths: %s", err)
+			}
+		}
+	}()
 
 	if obsidian.TLS {
 		err = e.StartServer(e.TLSServer)

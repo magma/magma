@@ -94,7 +94,7 @@ class TestNasNonDeliverySmc(unittest.TestCase):
 
         # Reset the nas non delivery flag
         nas_non_del = s1ap_types.UeNasNonDel()
-        nas_non_del.ue_id = req.ue_id
+        nas_non_del.ue_Id = req.ue_id
         nas_non_del.flag = 0
         nas_non_del.causeType = (
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_RADIONW.value

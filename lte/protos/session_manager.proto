@@ -62,7 +62,6 @@ message LocalCreateSessionRequest {
 
 message CommonSessionContext {
   SubscriberID sid = 1;
-  string session_id = 2;  // Left blank for new sessions
   string ue_ipv4 = 3;
   string apn = 4;
   bytes msisdn = 5;
@@ -87,7 +86,7 @@ message LTESessionContext {
 }
 
 message WLANSessionContext {
-  bytes hardware_addr = 1;
+  bytes mac_addr_binary = 1;
   string mac_addr = 2;
   string radius_session_id = 3;
 }

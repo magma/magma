@@ -333,7 +333,8 @@ func createSessionOnSessionManager(mac net.HardwareAddr, subscriberId *lte_proto
 		RatSpecificContext: &lte_protos.RatSpecificContext{
 			Context: &lte_protos.RatSpecificContext_WlanContext{
 				WlanContext: &lte_protos.WLANSessionContext{
-					HardwareAddr:    mac,
+					MacAddrBinary:   mac,
+					MacAddr:         aaaCtx.GetMacAddr(),
 					RadiusSessionId: aaaCtx.GetSessionId(),
 				},
 			},

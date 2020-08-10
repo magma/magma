@@ -339,8 +339,24 @@ States with traffic tests enabled:
 		> "Check for upgrade" pings slack, 1 minute
 */
 
-func startNewTest(*enodebdE2ETestStateMachine, *models.EnodebdTestConfig) (string, time.Duration, error) {
-	return checkForUpgradeState, time.Minute, nil
+func startNewTest(machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
+	states := []string{
+		checkForUpgradeState,
+		rebootEnodeb1State,
+		reconfigEnodebState1,
+		restoreEnodebConfigState1,
+		subscriberInactiveState,
+		subscriberActiveState,
+	}
+	if config.StartState != "" {
+		if !find(states, config.StartState) {
+			// Invalid state, default to check_for_upgrade
+			return checkForUpgradeState, time.Minute, errors.Errorf("Invalid starting state. Defaulting to check_for_upgrade")
+		}
+	} else {
+		return checkForUpgradeState, time.Minute, nil
+	}
+	return config.StartState, time.Minute, nil
 }
 
 func makeSubscriberStateHandler(desiredState string, successState string) handlerFunc {
@@ -359,12 +375,12 @@ func subscriberState(desiredState string, successState string, machine *enodebdE
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
 
-	newConfig, ok := cfg.(*subscribermodels.LteSubscription)
+	newConfig, ok := cfg.(*subscribermodels.SubscriberConfig)
 	if !ok {
-		glog.Errorf("got data of type %T but wanted LteSubscription", cfg)
+		glog.Errorf("got data of type %T but wanted SubscriberConfig", cfg)
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
-	newConfig.State = desiredState
+	newConfig.Lte.State = desiredState
 	err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, newConfig)
 	if err != nil {
 		// Restore subscriber to original config before erroring out
@@ -611,6 +627,14 @@ func verifyUpgrade(stateNumber int, successState string, machine *enodebdE2ETest
 }
 
 // State handler helpers
+func find(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
+}
 
 func getLatestRepoMagmaVersion(client HttpClient, url string, releaseChannel string) (string, error) {
 	url = fmt.Sprintf("%s/dists/%s/main/binary-amd64/Packages", url, releaseChannel)

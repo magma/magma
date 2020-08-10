@@ -184,13 +184,9 @@ class SessionState {
 
   std::string get_session_id() const;
 
-  std::string get_core_session_id() const { return core_session_id_; };
-
   SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
 
   bool is_radius_cwf_session() const;
-
-  bool is_same_config(const SessionConfig& new_config) const;
 
   void get_session_info(SessionState::SessionInfo& info);
 
@@ -377,13 +373,12 @@ class SessionState {
                       uint64_t used_rx, SessionStateUpdateCriteria &uc);
 
   void set_monitor(
-    const std::string &key, std::unique_ptr<Monitor> monitor,
-    SessionStateUpdateCriteria &uc);
+      const std::string& key, Monitor monitor, SessionStateUpdateCriteria& uc);
 
   bool reset_reporting_monitor(
     const std::string &key, SessionStateUpdateCriteria &uc);
 
-  std::unique_ptr<std::string> get_session_level_key() const;
+  void set_session_level_key(const std::string new_key);
  private:
   std::string imsi_;
   std::string session_id_;
@@ -428,7 +423,7 @@ class SessionState {
   */
   CreditMap credit_map_;
   MonitorMap monitor_map_;
-  std::unique_ptr<std::string> session_level_key_;
+  std::string session_level_key_;
 
  private:
   /**

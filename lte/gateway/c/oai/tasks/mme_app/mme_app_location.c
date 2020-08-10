@@ -243,6 +243,8 @@ int mme_app_handle_s6a_update_location_ans(
             "Failed to handle Un-successful ULA message for ue_id (%u)\n",
             ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      } else {
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       }
     }
   } else {

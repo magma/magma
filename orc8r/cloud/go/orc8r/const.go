@@ -37,5 +37,5 @@ const (
 	StateIndexerTypesAnnotation            = "orc8r.io/state_indexer_types"
 	StreamProviderStreamsAnnotation        = "orc8r.io/stream_provider_streams"
 
-	AnnotationListSeparator = ","
+	AnnotationFieldSeparator = ","
 )

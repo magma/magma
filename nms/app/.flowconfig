@@ -38,17 +38,11 @@
 .*/test/build/downstream-flow-fixture/.*
 .*/_batfish_site/.*
 
-; graphql has flow errors that dont match our version. fixed in master,
-; remove this when we update it
-.*/node_modules/express-graphql/.*
-.*/node_modules/graphql/.*
-
 [untyped]
-.*/node_modules/express-graphql/.*
-.*/node_modules/graphql/.*
 .*/node_modules/mapbox-gl/src/.*
 // TODO - fix flow error in core packages
 .*/node_modules/@fbcnms/ui/insights/Alarms/AlarmApi.js
+.*/node_modules/@fbcnms/babel-register
 
 [options]
 esproposal.optional_chaining=enable
@@ -58,8 +52,6 @@ node_modules/mapbox-gl/flow-typed
 node_modules/mapbox-gl/dist/mapbox-gl.js.flow
 
 [declarations]
-<PROJECT_ROOT>/fbcnms-projects/inventory/node_modules/relay-runtime/.*
-<PROJECT_ROOT>/fbcnms-packages/fbcnms-ui/node_modules/relay-runtime/.*
 <PROJECT_ROOT>/node_modules/relay-runtime/.*
 .*/node_modules/react-beautiful-dnd/.*
 

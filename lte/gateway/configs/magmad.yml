@@ -117,6 +117,7 @@ metricsd:
     - enodebd
     - pipelined
     - state
+    - sessiond
 
 generic_command_config:
   module: magma.magmad.generic_command.shell_command_executor

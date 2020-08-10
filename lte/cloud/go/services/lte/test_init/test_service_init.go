@@ -38,7 +38,7 @@ func StartTestService(t *testing.T) {
 		orc8r.StreamProviderLabel: "true",
 	}
 	annotations := map[string]string{
-		orc8r.StreamProviderStreamsAnnotation: strings.Join(streams, orc8r.AnnotationListSeparator),
+		orc8r.StreamProviderStreamsAnnotation: strings.Join(streams, orc8r.AnnotationFieldSeparator),
 	}
 	srv, lis := test_utils.NewTestOrchestratorService(t, lte.ModuleName, lte_service.ServiceName, labels, annotations)
 	protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewLTEStreamProviderServicer())

@@ -1281,6 +1281,9 @@ definitions:
         type: integer
         format: uint32
         example: 0
+      dhcp_server_enabled:
+        type: boolean
+        example: true
       records:
         $ref: '#/definitions/network_dns_records'
 

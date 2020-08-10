@@ -17,6 +17,9 @@ import (
 // swagger:model network_dns_config
 type NetworkDNSConfig struct {
 
+	// dhcp server enabled
+	DhcpServerEnabled bool `json:"dhcp_server_enabled,omitempty"`
+
 	// enable caching
 	// Required: true
 	EnableCaching *bool `json:"enable_caching"`
