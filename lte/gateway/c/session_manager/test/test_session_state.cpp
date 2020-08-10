@@ -232,45 +232,6 @@ TEST_F(SessionStateTest, test_insert_credit) {
       1024);
 }
 
-TEST_F(SessionStateTest, test_can_complete_termination) {
-  MockSessionReporter reporter;
-
-  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
-  EXPECT_EQ(true, session_state->active_monitored_rules_exist());
-  EXPECT_TRUE(
-      std::find(
-          update_criteria.static_rules_to_install.begin(),
-          update_criteria.static_rules_to_install.end(),
-          "rule1") != update_criteria.static_rules_to_install.end());
-  // Have not received credit
-  EXPECT_EQ(update_criteria.monitor_credit_map.size(), 0);
-
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-
-  session_state->start_termination(update_criteria);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-
-  // If the rule is still being reported, termination should not be completed.
-  auto _uc = get_default_update_criteria();
-  session_state->new_report(_uc);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-  session_state->add_rule_usage("rule1", 100, 100, update_criteria);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-  EXPECT_EQ(update_criteria.monitor_credit_map.size(), 0);
-  session_state->finish_report(_uc);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-
-  // The rule is not reported, termination can be completed.
-  session_state->new_report(_uc);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-  session_state->finish_report(_uc);
-  EXPECT_EQ(session_state->can_complete_termination(), true);
-
-  // Termination should only be completed once.
-  session_state->complete_termination(reporter, update_criteria);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-}
-
 TEST_F(SessionStateTest, test_add_rule_usage) {
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   insert_rule(2, "m2", "dyn_rule1", DYNAMIC, 0, 0);

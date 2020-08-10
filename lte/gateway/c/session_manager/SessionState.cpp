@@ -160,18 +160,6 @@ static UsageMonitorUpdate make_usage_monitor_update(
   return update;
 }
 
-void SessionState::new_report(SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATING_FLOW_ACTIVE) {
-    set_fsm_state(SESSION_TERMINATING_AGGREGATING_STATS, update_criteria);
-  }
-}
-
-void SessionState::finish_report(SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
-    set_fsm_state(SESSION_TERMINATING_FLOW_DELETED, update_criteria);
-  }
-}
-
 SessionCreditUpdateCriteria* SessionState::get_credit_uc(
     const CreditKey& key, SessionStateUpdateCriteria& uc) {
   if (uc.charging_credit_map.find(key) == uc.charging_credit_map.end()) {
@@ -183,10 +171,6 @@ SessionCreditUpdateCriteria* SessionState::get_credit_uc(
 void SessionState::add_rule_usage(
     const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
     SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
-    set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
-  }
-
   CreditKey charging_key;
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, &charging_key) ||
       static_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
@@ -234,10 +218,10 @@ SessionFsmState SessionState::get_state() {
 }
 
 bool SessionState::is_terminating() {
-  if (is_active() || curr_state_ == SESSION_TERMINATION_SCHEDULED) {
-    return false;
+  if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED) {
+    return true;
   }
-  return true;
+  return false;
 }
 
 void SessionState::get_monitor_updates(
@@ -288,15 +272,6 @@ void SessionState::get_updates(
   get_event_trigger_updates(update_request_out, actions_out, update_criteria);
 }
 
-void SessionState::start_termination(
-    SessionStateUpdateCriteria& update_criteria) {
-  set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
-}
-
-bool SessionState::can_complete_termination() const {
-  return curr_state_ == SESSION_TERMINATING_FLOW_DELETED;
-}
-
 void SessionState::mark_as_awaiting_termination(
     SessionStateUpdateCriteria& update_criteria) {
   set_fsm_state(SESSION_TERMINATION_SCHEDULED, update_criteria);
@@ -310,15 +285,14 @@ void SessionState::complete_termination(
     SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria) {
   switch (curr_state_) {
     case SESSION_ACTIVE:
-      MLOG(MERROR) << imsi_ << " Encountered unexpected state 'ACTIVE' when "
-                   << "forcefully completing termination. ";
+      MLOG(MERROR) << session_id_ << " Encountered unexpected state 'ACTIVE' when "
+                   << "forcefully completing termination. Not terminating...";
       return;
     case SESSION_TERMINATED:
       // session is already terminated. Do nothing.
       return;
-    case SESSION_TERMINATING_FLOW_ACTIVE:
-    case SESSION_TERMINATING_AGGREGATING_STATS:
-      MLOG(MINFO) << imsi_ << " Forcefully terminating session since it did "
+    case SESSION_RELEASED:
+      MLOG(MINFO) << session_id_ << " Forcefully terminating session since it did "
                   << "not receive usage from pipelined in time.";
     default:  // Continue termination but no logs are necessary for other states
       break;

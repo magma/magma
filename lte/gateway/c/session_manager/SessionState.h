@@ -75,22 +75,6 @@ class SessionState {
       std::time_t current_time, SessionStateUpdateCriteria& update_criteria);
 
   /**
-   * notify_new_report_for_sessions sets the state of terminating session to
-   * aggregating, to tell if
-   * flows for the terminating session is in the latest report.
-   * Should be called before add_rule_usage.
-   */
-  void new_report(SessionStateUpdateCriteria& update_criteria);
-
-  /**
-   * notify_finish_report_for_sessions updates the state of aggregating session
-   * not included report
-   * to specify its flows are deleted and termination can be completed.
-   * Should be called after notify_new_report_for_sessions and add_rule_usage.
-   */
-  void finish_report(SessionStateUpdateCriteria& update_criteria);
-
-  /**
    * add_rule_usage adds used TX/RX bytes to a particular rule
    */
   void add_rule_usage( const std::string& rule_id, uint64_t used_tx,
@@ -109,14 +93,6 @@ class SessionState {
       SessionStateUpdateCriteria& update_criteria);
 
   /**
-   * start_termination starts the termination process for the session.
-   * The session state transitions from SESSION_ACTIVE to
-   * SESSION_TERMINATING_FLOW_ACTIVE.
-   * When termination completes, the call back function is executed.
-   */
-  void start_termination(SessionStateUpdateCriteria& update_criteria);
-
-  /**
    * mark_as_awaiting_termination transitions the session state from
    * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
    */
@@ -124,14 +100,6 @@ class SessionState {
       SessionStateUpdateCriteria& update_criteria);
 
   bool is_terminating();
-
-  /**
-   * can_complete_termination returns whether the termination for the session
-   * can be completed.
-   * For this to be true, start_termination needs to be called for the session,
-   * and the flows for the session needs to be deleted.
-   */
-  bool can_complete_termination() const;
 
   /**
    * complete_termination collects final usages for all credits into a

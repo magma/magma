@@ -80,16 +80,12 @@ std::string session_fsm_state_to_str(SessionFsmState state) {
   switch (state) {
     case SESSION_ACTIVE:
       return "SESSION_ACTIVE";
-    case SESSION_TERMINATING_FLOW_ACTIVE:
-      return "SESSION_TERMINATING_FLOW_ACTIVE";
-    case SESSION_TERMINATING_AGGREGATING_STATS:
-      return "SESSION_TERMINATING_AGGREGATING_STATS";
-    case SESSION_TERMINATING_FLOW_DELETED:
-      return "SESSION_TERMINATING_FLOW_DELETED";
     case SESSION_TERMINATED:
       return "SESSION_TERMINATED";
     case SESSION_TERMINATION_SCHEDULED:
       return "SESSION_TERMINATION_SCHEDULED";
+    case SESSION_RELEASED:
+      return "SESSION_RELEASED";
     default:
       return "INVALID SESSION FSM STATE";
   }

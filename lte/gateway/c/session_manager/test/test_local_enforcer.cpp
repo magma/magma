@@ -799,7 +799,7 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   // SESSION_TERMINATION_SCHEDULED -> SESSION_TERMINATING_FLOW_ACTIVE
   session_map            = session_store->read_sessions(SessionRead{imsi});
   auto updated_fsm_state = session_map[imsi].front()->get_state();
-  EXPECT_EQ(updated_fsm_state, SESSION_TERMINATING_FLOW_ACTIVE);
+  EXPECT_EQ(updated_fsm_state, SESSION_RELEASED);
 }
 
 TEST_F(LocalEnforcerTest, test_final_unit_handling) {

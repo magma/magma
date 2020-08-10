@@ -114,27 +114,18 @@ enum GrantTrackingType {
  *       |                     /
  *       |                    /
  *       V                   V
- * SESSION_TERMINATING_FLOW_ACTIVE <----------
- *       |                                   |
- *       | (notify_new_report_for_sessions)  | (add_used_credit)
- *       V                                   |
- * SESSION_TERMINATING_AGGREGATING_STATS -----
+ * SESSION_RELEASED
  *       |
- *       | (notify_finish_report_for_sessions)
- *       V
- * SESSION_TERMINATING_FLOW_DELETED
- *       |
- *       | (complete_termination)
+ *       | (PipelineD enforcement flows get deleted OR forced timeout)
+ *       |      -> complete_termination
  *       V
  * SESSION_TERMINATED
  */
 enum SessionFsmState {
   SESSION_ACTIVE                        = 0,
-  SESSION_TERMINATING_FLOW_ACTIVE       = 1,
-  SESSION_TERMINATING_AGGREGATING_STATS = 2,
-  SESSION_TERMINATING_FLOW_DELETED      = 3,
   SESSION_TERMINATED                    = 4,
-  SESSION_TERMINATION_SCHEDULED         = 5
+  SESSION_TERMINATION_SCHEDULED         = 5,
+  SESSION_RELEASED                      = 6,
 };
 
 struct StoredSessionCredit {
