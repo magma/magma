@@ -61,7 +61,7 @@
     "flow-bin": "0.128.0",
     "identity-obj-proxy": "^3.0.0",
     "json-server": "^0.16.1",
-    "nodemon": "^1.18.10",
+    "nodemon": "^2.0.4",
     "postcss-flexbugs-fixes": "^4.2.1",
     "postcss-loader": "^3.0.0",
     "react-hot-loader": "^4.8.0",
