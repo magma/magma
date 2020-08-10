@@ -82,8 +82,6 @@ std::string session_fsm_state_to_str(SessionFsmState state) {
       return "SESSION_ACTIVE";
     case SESSION_TERMINATED:
       return "SESSION_TERMINATED";
-    case SESSION_TERMINATION_SCHEDULED:
-      return "SESSION_TERMINATION_SCHEDULED";
     case SESSION_RELEASED:
       return "SESSION_RELEASED";
     default:

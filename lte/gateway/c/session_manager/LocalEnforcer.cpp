@@ -173,10 +173,6 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
     const auto& imsi = it.first;
     for (auto& session : it.second) {
       auto& uc = session_update[it.first][session->get_session_id()];
-      // Reschedule termination if it was pending before
-      if (session->get_state() == SESSION_TERMINATION_SCHEDULED) {
-        imsis_to_terminate.insert(imsi);
-      }
       // Reschedule Revalidation Timer if it was pending before
       auto triggers   = session->get_event_triggers();
       auto trigger_it = triggers.find(REVALIDATION_TIMEOUT);
@@ -228,6 +224,10 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         if (lifetime.deactivation_time > current_time) {
           schedule_dynamic_rule_deactivation(imsi, rule_install);
         }
+      }
+      // Re-evaluate if subscriber wallet is exhausted
+      if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
+        imsis_to_terminate.insert(imsi);
       }
     }
   }
@@ -1016,9 +1016,6 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
   if (is_exhausted) {
     handle_subscriber_quota_state_change(
         imsi, session_state, SubscriberQuotaUpdate_Type_NO_QUOTA);
-    // Schedule a session termination for a configured number of seconds after
-    // session create
-    session_state.mark_as_awaiting_termination(_);
     MLOG(MINFO) << imsi << " Scheduling session for subscriber "
                 << "to be terminated in "
                 << quota_exhaustion_termination_on_init_ms_ << " ms";

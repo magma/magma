@@ -719,59 +719,6 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   EXPECT_EQ(events[REVALIDATION_TIMEOUT], true);
 }
 
-// Make sure sessions that are scheduled to be terminated before sync are
-// correctly scheduled to be terminated again.
-TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
-  CreateSessionResponse response;
-  std::vector<std::string> rules_to_install;
-  const std::string imsi       = "IMSI1";
-  const std::string session_id = "1234";
-  rules_to_install.push_back("rule1");
-  insert_static_rule(0, "m1", "rule1");
-
-  // Create a CreateSessionResponse with one Gx monitor:m1 and one rule:rule1
-  create_session_create_response(imsi, "m1", rules_to_install, &response);
-
-  local_enforcer->init_session_credit(
-      session_map, imsi, session_id, test_cfg_, response);
-
-  EXPECT_EQ(session_map[imsi].size(), 1);
-  bool success =
-      session_store->create_sessions(imsi, std::move(session_map[imsi]));
-  EXPECT_TRUE(success);
-
-  auto session_map    = session_store->read_sessions(SessionRead{imsi});
-  auto session_update = session_store->get_default_session_update(session_map);
-  EXPECT_EQ(session_map[imsi].size(), 1);
-
-  // Update session to have SESSION_TERMINATION_SCHEDULED
-  auto& uc = session_update[imsi][session_id];
-  session_map[imsi].front()->mark_as_awaiting_termination(uc);
-  EXPECT_EQ(uc.is_fsm_updated, true);
-  EXPECT_EQ(uc.updated_fsm_state, SESSION_TERMINATION_SCHEDULED);
-
-  success = session_store->update_sessions(session_update);
-  EXPECT_TRUE(success);
-
-  // Syncing will schedule a termination for this IMSI
-  local_enforcer->sync_sessions_on_restart(std::time_t(0));
-
-  // Terminate subscriber is the only thing on the event queue, and
-  // quota_exhaust_termination_on_init_ms is set to 0
-  // We expect the termination to take place once we run evb->loopOnce()
-  EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules(
-          "IMSI1", CheckCount(1), testing::_, RequestOriginType::GX));
-  evb->loopOnce();
-
-  // At this point, the state should have transitioned from
-  // SESSION_TERMINATION_SCHEDULED -> SESSION_TERMINATING_FLOW_ACTIVE
-  session_map            = session_store->read_sessions(SessionRead{imsi});
-  auto updated_fsm_state = session_map[imsi].front()->get_state();
-  EXPECT_EQ(updated_fsm_state, SESSION_RELEASED);
-}
-
 TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   CreateSessionResponse response;
   create_credit_update_response(
@@ -1422,7 +1369,8 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   SessionConfig test_volte_cfg;
   test_volte_cfg.common_context =
       build_common_context("", "127.0.0.1", "", "IMS", TGPP_LTE);
-  const auto& lte_context = build_lte_context("", "", "", "", "", 1, &test_qos_info);
+  const auto& lte_context =
+      build_lte_context("", "", "", "", "", 1, &test_qos_info);
   test_volte_cfg.rat_specific_context.mutable_lte_context()->CopyFrom(
       lte_context);
 

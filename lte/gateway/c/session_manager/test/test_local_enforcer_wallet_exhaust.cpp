@@ -49,8 +49,8 @@ class LocalEnforcerTest : public ::testing::Test {
     events_reporter   = std::make_shared<MockEventsReporter>();
     local_enforcer    = std::make_unique<LocalEnforcer>(
         reporter, rule_store, *session_store, pipelined_client,
-        directoryd_client, events_reporter, spgw_client,
-        aaa_client, 0, 0, mconfig);
+        directoryd_client, events_reporter, spgw_client, aaa_client, 0, 0,
+        mconfig);
     evb = folly::EventBaseManager::get()->getEventBase();
     local_enforcer->attachEventBase(evb);
     session_map = SessionMap{};
@@ -110,6 +110,62 @@ MATCHER_P2(CheckQuotaUpdateState, size, expected_states, "") {
     }
   }
   return true;
+}
+
+MATCHER_P(CheckCount, count, "") {
+  int arg_count = arg.size();
+  return arg_count == count;
+}
+
+// Make sure sessions that are scheduled to be terminated before sync are
+// correctly scheduled to be terminated again.
+TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
+  SetUpWithMConfig(get_mconfig_gx_rule_wallet_exhaust());
+  insert_static_rule(0, "m1", "static_1");
+  insert_static_rule(0, "", "static_2");
+  const std::string imsi       = "IMSI1";
+  const std::string session_id = "1234";
+
+  std::vector<std::string> static_rules{"static_1", "static_2"};
+  SessionConfig test_cwf_cfg;
+  test_cwf_cfg.common_context.set_rat_type(RATType::TGPP_WLAN);
+  CreateSessionResponse response;
+  create_session_create_response(imsi, "m1", static_rules, &response);
+
+  local_enforcer->init_session_credit(
+      session_map, imsi, session_id, test_cwf_cfg, response);
+
+  EXPECT_EQ(session_map[imsi].size(), 1);
+  bool success =
+      session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+
+  // Remove the Gx tracked rule manually
+  auto session_map    = session_store->read_sessions(SessionRead{imsi});
+  auto session_update = session_store->get_default_session_update(session_map);
+  EXPECT_EQ(session_map[imsi].size(), 1);
+
+  auto& uc                     = session_update[imsi][session_id];
+  uc.static_rules_to_uninstall = {"static_1"};
+
+  success = session_store->update_sessions(session_update);
+  EXPECT_TRUE(success);
+
+  // Syncing will schedule a termination for this IMSI
+  local_enforcer->sync_sessions_on_restart(std::time_t(0));
+
+  // Terminate subscriber is the only thing on the event queue, and
+  // quota_exhaust_termination_on_init_ms is set to 0
+  // We expect the termination to take place once we run evb->loopOnce()
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          "IMSI1", CheckCount(1), testing::_, RequestOriginType::GX));
+  evb->loopOnce();
+
+  session_map            = session_store->read_sessions(SessionRead{imsi});
+  auto updated_fsm_state = session_map[imsi].front()->get_state();
+  EXPECT_EQ(updated_fsm_state, SESSION_RELEASED);
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {

@@ -547,11 +547,6 @@ void SessionState::get_updates(
   get_event_trigger_updates(update_request_out, actions_out, update_criteria);
 }
 
-void SessionState::mark_as_awaiting_termination(
-    SessionStateUpdateCriteria& update_criteria) {
-  set_fsm_state(SESSION_TERMINATION_SCHEDULED, update_criteria);
-}
-
 SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
   return subscriber_quota_state_;
 }
