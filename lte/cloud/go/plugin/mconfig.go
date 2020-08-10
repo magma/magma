@@ -114,6 +114,7 @@ func (s *LteMconfigBuilderServicer) Build(
 			LogLevel:        protos.LogLevel_INFO,
 			IpBlock:         gwEpc.IPBlock,
 			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
+			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
 		},
 		"mme": &mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -402,4 +403,11 @@ func getMobilityDIPAllocator(epc *models2.NetworkEpcConfigs) mconfig.MobilityD_I
 	}
 	// for other modes set IP pool allocator.
 	return mconfig.MobilityD_IP_POOL
+}
+
+func getMobilityDStaticIPAllocation(epc *models2.NetworkEpcConfigs) bool {
+	if epc.Mobility == nil {
+		return false
+	}
+	return epc.Mobility.EnableStaticIPAssignments
 }
