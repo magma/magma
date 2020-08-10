@@ -19,13 +19,13 @@ import type {TimeRange} from '@fbcnms/ui/insights/AsyncMetric';
 import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
 import Text from '../../theme/design-system/Text';
 import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
@@ -97,7 +97,7 @@ export default function () {
 
   return (
     <>
-      <CardTitleFilterRow
+      <CardTitleRow
         icon={DataUsageIcon}
         label="Gateway Check-Ins"
         filter={Filter}

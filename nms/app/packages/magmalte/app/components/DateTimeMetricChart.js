@@ -17,13 +17,13 @@
 import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
+import CardTitleRow from './layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Text from '../theme/design-system/Text';
 import moment from 'moment';
 
-import {CardTitleFilterRow} from './layout/CardTitleRow';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -86,11 +86,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
 
   return (
     <>
-      <CardTitleFilterRow
-        icon={DataUsageIcon}
-        label={props.title}
-        filter={Filter}
-      />
+      <CardTitleRow icon={DataUsageIcon} label={props.title} filter={Filter} />
       <Card elevation={0}>
         <CardHeader
           title={<Text variant="body2">Frequency of {props.title}</Text>}

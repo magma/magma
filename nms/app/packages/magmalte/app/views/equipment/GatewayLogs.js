@@ -17,6 +17,7 @@ import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
@@ -27,7 +28,6 @@ import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
@@ -293,7 +293,7 @@ export default function GatewayLogs() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <CardTitleFilterRow
+          <CardTitleRow
             icon={ListAltIcon}
             label={`Logs (${logCount})`}
             filter={LogsFilter}

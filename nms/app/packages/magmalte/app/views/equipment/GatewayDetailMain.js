@@ -16,6 +16,7 @@
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
@@ -40,7 +41,6 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';

@@ -17,6 +17,7 @@
 import type {RowData} from './TabbedTable';
 import type {prom_firing_alert} from '@fbcnms/magma-api';
 
+import CardTitleRow from './layout/CardTitleRow';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
@@ -25,7 +26,6 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {Alarm} from '@material-ui/icons';
-import {CardTitleRow} from './layout/CardTitleRow';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 type AlertTable = {[string]: Array<RowData>};

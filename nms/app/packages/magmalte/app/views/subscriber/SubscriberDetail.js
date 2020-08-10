@@ -17,6 +17,7 @@ import type {DataRows} from '../../components/DataGrid';
 import type {subscriber} from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DataGrid from '../../components/DataGrid';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
@@ -34,7 +35,6 @@ import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
