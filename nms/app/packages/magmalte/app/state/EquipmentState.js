@@ -304,7 +304,7 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
 export type GatewayCommandProps = {
   networkId: network_id,
   gatewayId: gateway_id,
-  command: string,
+  command: 'reboot' | 'ping' | 'generic',
   pingRequest?: ping_request,
   params?: generic_command_params,
 };
