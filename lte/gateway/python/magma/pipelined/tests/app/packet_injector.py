@@ -14,7 +14,7 @@ limitations under the License.
 import abc
 import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import sendp, srp, wrpcap
+from scapy.all import sendp, srp, wrpcap, rdpcap
 
 
 class PacketInjector(metaclass=abc.ABCMeta):
@@ -55,6 +55,12 @@ class ScapyPacketInjector(PacketInjector):
         if self._pcap_filename:
             wrpcap(self._pcap_filename, pkt, append=True)
         sendp(pkt, iface=self._iface, count=count, verbose=False)
+
+    def send_pcap(self, name):
+        pkts = rdpcap(name)
+        if self._pcap_filename:
+            wrpcap(self._pcap_filename, pkts, append=True)
+        sendp(pkts, iface=self._iface, verbose=False)
 
     def get_response(self, pkt, timeout=1.5):
         packets = srp(pkt, iface=self._iface, timeout=timeout, verbose=False)
