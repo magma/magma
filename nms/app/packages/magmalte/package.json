@@ -32,7 +32,7 @@
     "chart.js": "^2.7.3",
     "classnames": "^2.2.5",
     "css-loader": "^1.0.1",
-    "dotenv": "^6.0.0",
+    "dotenv": "^8.2.0",
     "lodash": "^4.17.11",
     "mapbox-gl": "^0.53.0",
     "mariadb": "^2.3.1",
