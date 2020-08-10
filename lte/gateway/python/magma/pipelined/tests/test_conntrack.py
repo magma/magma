@@ -14,6 +14,7 @@ limitations under the License.
 import unittest
 import warnings
 from concurrent.futures import Future
+import pathlib
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.conntrack import ConntrackController
@@ -121,8 +122,11 @@ class ConntrackTest(unittest.TestCase):
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
+        current_path = \
+            str(pathlib.Path(__file__).parent.absolute())
+
         with isolator, snapshot_verifier:
-            pkt_sender.send_pcap("pcaps/http_download.cap")
+            pkt_sender.send_pcap(current_path + "/pcaps/http_download.cap")
 
 
 if __name__ == "__main__":
