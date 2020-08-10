@@ -336,9 +336,6 @@ class RpcTests(unittest.TestCase):
                          grpc.StatusCode.NOT_FOUND)
 
     def test_get_gw_info(self):
-        gw_info = self._stub.GetGatewayInfo(Void())
-        gw_ip_get = str(ipaddress.ip_address(gw_info.ip.address))
-
         def_gw_cmd = shlex.split("ip route show")
         p = subprocess.Popen(def_gw_cmd, stdout=subprocess.PIPE)
         output = p.stdout.read().decode("utf-8")
@@ -349,7 +346,13 @@ class RpcTests(unittest.TestCase):
                 def_ip = tokens[2]
                 break
 
-        self.assertEqual(def_ip, gw_ip_get)
+        gw_info_list = self._stub.ListGatewayInfo(Void())
+        for gw_info in gw_info_list.gw_list:
+            gw_ip_get = str(ipaddress.ip_address(gw_info.ip.address))
+            if gw_ip_get == def_ip:
+                return
+
+        assert 0
 
     def test_set_gw_info(self):
         mac1 = "22:22:c6:d0:02:3c"
@@ -358,13 +361,61 @@ class RpcTests(unittest.TestCase):
         gwinfo_msg.ip.version = IPBlock.IPV4
         gwinfo_msg.ip.address = ipaddr1.packed
         gwinfo_msg.mac = mac1
+        gwinfo_msg.vlan = ""
 
         self._stub.SetGatewayInfo(gwinfo_msg)
-        gw_info = self._stub.GetGatewayInfo(Void())
-        gw_ip_get = ipaddress.ip_address(gw_info.ip.address)
+        gw_info_list = self._stub.ListGatewayInfo(Void())
+        for gw_info in gw_info_list.gw_list:
+            gw_ip_get = ipaddress.ip_address(gw_info.ip.address)
+            self.assertEqual(ipaddr1, gw_ip_get)
+            self.assertEqual(mac1, gw_info.mac)
 
-        self.assertEqual(ipaddr1, gw_ip_get)
-        self.assertEqual(mac1, gw_info.mac)
+    def test_set_gw_info_vlan(self):
+        mac1 = "22:22:c6:d0:02:3c"
+        ipaddr1 = ipaddress.ip_address("10.1.1.11")
+        gwinfo_msg = GWInfo(ip=IPAddress(version=IPAddress.IPV4,
+                                          address=ipaddr1.packed),
+                            mac=mac1, vlan="1")
+
+        self._stub.SetGatewayInfo(gwinfo_msg)
+        gw_info_list = self._stub.ListGatewayInfo(Void())
+        for gw_info in gw_info_list.gw_list:
+            if gw_info.vlan == "1":
+                gw_ip_get = ipaddress.ip_address(gw_info.ip.address)
+                self.assertEqual(ipaddr1, gw_ip_get)
+                self.assertEqual(mac1, gw_info.mac)
+                return
+
+        assert 0
+
+    def test_set_gw_info_vlan2(self):
+        mac1 = "22:22:c6:d0:02:3c"
+        ipaddr1 = ipaddress.ip_address("10.1.1.11")
+        gwinfo_msg1 = GWInfo(ip=IPAddress(version=IPAddress.IPV4,
+                                          address=ipaddr1.packed),
+                             mac=mac1, vlan="1")
+
+        self._stub.SetGatewayInfo(gwinfo_msg1)
+
+        mac2 = "33:22:c6:d0:02:3c"
+        ipaddr2 = ipaddress.ip_address("20.1.1.11")
+        gwinfo_msg2 = GWInfo(ip=IPAddress(version=IPAddress.IPV4,
+                                          address=ipaddr2.packed),
+                             mac=mac2, vlan="2")
+
+        self._stub.SetGatewayInfo(gwinfo_msg2)
+
+        gw_info_list = self._stub.ListGatewayInfo(Void())
+        count1 = 0
+        count2 = 0
+        for gw_info in gw_info_list.gw_list:
+            if gw_info == gwinfo_msg1:
+                count1 = count1 + 1
+            if gw_info == gwinfo_msg2:
+                count2 = count2 + 1
+
+        self.assertEqual(count1, 1)
+        self.assertEqual(count2, 1)
 
     def test_get_subscriber_id_from_ip(self):
         """ test GetSubscriberIDFromIP """

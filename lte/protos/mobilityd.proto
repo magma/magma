@@ -121,6 +121,12 @@ message RemoveIPBlockResponse {
 message GWInfo {
   IPAddress ip = 1;
   string mac = 2;
+  string vlan = 3;
+}
+
+message ListGWInfoResponse {
+  // List of IP addresses allocated from a given IP block
+  repeated GWInfo gw_list = 1;
 }
 
 service MobilityService {
@@ -168,8 +174,8 @@ service MobilityService {
   // regardless of whether any IPs have been allocated.
   rpc RemoveIPBlock (RemoveIPBlockRequest) returns (RemoveIPBlockResponse);
 
-  // Get default Internet Gateway mac addresss
-  rpc GetGatewayInfo (magma.orc8r.Void) returns (GWInfo);
+  // Get Internet Gateway and  mac addresss
+  rpc ListGatewayInfo (magma.orc8r.Void) returns (ListGWInfoResponse);
 
   // Set ip and mac address of def Internet Gateway
   rpc SetGatewayInfo(GWInfo) returns (magma.orc8r.Void);
