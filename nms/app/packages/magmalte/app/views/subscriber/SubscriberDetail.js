@@ -195,8 +195,8 @@ function Overview(props: {subscriberInfo: subscriber}) {
           <DateTimeMetricChart
             title={CHART_TITLE}
             queries={[
-              `ue_traffic{imsi="${props.subscriberInfo.id}",direction="down"}`,
-              `ue_traffic{imsi="${props.subscriberInfo.id}",direction="up"}`,
+              `ue_traffic{IMSI="${props.subscriberInfo.id}",direction="down"}`,
+              `ue_traffic{IMSI="${props.subscriberInfo.id}",direction="up"}`,
             ]}
             legendLabels={['Download', 'Upload']}
           />
