@@ -32,6 +32,7 @@ from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.ifaces import monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
+from magma.pipelined.ng_services import NGServices 
 from lte.protos.mconfig import mconfigs_pb2
 
 
@@ -81,6 +82,12 @@ def main():
         service.config['monitored_ifaces'],
         service.loop),
     )
+
+    # Initilize the 5G services
+    if service.config.get('5G_support_flag') == True:
+        # Initialize the node instance 
+        ng_instance = NGServices(service)
+        ng_instance.ng_services_start()
 
     manager = AppManager.get_instance()
     # Add pipelined rpc servicer
