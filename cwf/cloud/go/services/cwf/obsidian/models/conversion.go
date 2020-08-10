@@ -202,27 +202,23 @@ func (m *NetworkCarrierWifiConfigs) GetFromNetwork(network configurator.Network)
 	return orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
 }
 
-func (m *LiImsis) FromBackendModels(networkID string, gatewayID string) error {
-	carrierWifi := &GatewayCwfConfigs{}
-	err := carrierWifi.FromBackendModels(networkID, gatewayID)
-	if err != nil {
-		return err
+func (m *LiUes) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	networkConfig := orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
+	if networkConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, merrors.ErrNotFound
 	}
-	*m = carrierWifi.LiImsis
-
-	return nil
+	networkConfig.(*NetworkCarrierWifiConfigs).LiUes = m
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, cwf.CwfNetworkType, networkConfig), nil
 }
 
-func (m *LiImsis) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
-	carrierWifi := &GatewayCwfConfigs{}
-	err := carrierWifi.FromBackendModels(networkID, gatewayID)
-	if err != nil {
-		return nil, err
+func (m *LiUes) GetFromNetwork(network configurator.Network) interface{} {
+	networkConfig := orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
+	if networkConfig == nil {
+		return nil
 	}
-	carrierWifi.LiImsis = *m
-	return carrierWifi.ToUpdateCriteria(networkID, gatewayID)
+	return networkConfig.(*NetworkCarrierWifiConfigs).LiUes
 }
 
-func (m *LiImsis) ValidateModel() error {
+func (m *LiUes) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

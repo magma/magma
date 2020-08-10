@@ -26,9 +26,6 @@ type GatewayCwfConfigs struct {
 
 	// ipdr export dst
 	IPDRExportDst *IPDRExportDst `json:"ipdr_export_dst,omitempty"`
-
-	// li imsis
-	LiImsis LiImsis `json:"li_imsis,omitempty"`
 }
 
 // Validate validates this gateway cwf configs
@@ -44,10 +41,6 @@ func (m *GatewayCwfConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateIPDRExportDst(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateLiImsis(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -104,22 +97,6 @@ func (m *GatewayCwfConfigs) validateIPDRExportDst(formats strfmt.Registry) error
 			}
 			return err
 		}
-	}
-
-	return nil
-}
-
-func (m *GatewayCwfConfigs) validateLiImsis(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.LiImsis) { // not required
-		return nil
-	}
-
-	if err := m.LiImsis.Validate(formats); err != nil {
-		if ve, ok := err.(*errors.Validation); ok {
-			return ve.ValidateName("li_imsis")
-		}
-		return err
 	}
 
 	return nil
