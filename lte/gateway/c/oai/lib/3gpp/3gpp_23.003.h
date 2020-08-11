@@ -62,6 +62,20 @@ typedef struct plmn_s {
   uint8_t mnc_digit1 : 4;
 } plmn_t;
 
+// 19.4.2.3  Tracking Area Identity (TAI) - defining a new TAI here because it needs an extra field for PLMN
+                                            //and doing so in TrackingAreaIdentity.h might disrupt the code
+
+typedef uint16_t tac_t; /*!< \brief  Tracking Area Code (TAC) is a fixed length
+                           code (of 2 octets) identifying a Tracking Area within
+                           a PLMN. This part of the tracking area identification
+                                     shall be coded using a full hexadecimal
+                           representation. The following are reserved
+                           hexadecimal values of the TAC: 0000, and FFFE.   */
+
+typedef struct TAI_s {
+  plmn_t plmn; /*!< \brief  <MCC> + <MNC>        */
+  tac_t tac;
+} TAI_t;
 //------------------------------------------------------------------------------
 // 12.2  CN Domain Identifier
 // 12.3  CN Identifier
@@ -381,8 +395,6 @@ typedef struct imeisv_s {
 // 19.4.2  Fully Qualified Domain Names (FQDNs)
 //..............................................................................
 // 19.4.2.2 Access Point Name FQDN (APN-FQDN)
-
-// 19.4.2.3  Tracking Area Identity (TAI)
 
 // 19.4.2.4  Mobility Management Entity (MME)
 // 19.4.2.5  Routing Area Identity (RAI) - EPC
