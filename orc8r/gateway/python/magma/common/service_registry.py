@@ -148,7 +148,8 @@ class ServiceRegistry:
         if destination == ServiceRegistry.LOCAL:
             # Connect to the local service directly
             (ip, port) = ServiceRegistry.get_service_address(service)
-            channel = create_grpc_channel(ip, port, authority, grpc_options)
+            channel = create_grpc_channel(ip, port, authority,
+                                          options=grpc_options)
         elif should_use_proxy:
             # Connect to the cloud via local control proxy
             try:
@@ -157,14 +158,15 @@ class ServiceRegistry:
             except ValueError as err:
                 logging.error(err)
                 (ip, port) = ('127.0.0.1', proxy_config['local_port'])
-            channel = create_grpc_channel(ip, port, authority, grpc_options)
+            channel = create_grpc_channel(ip, port, authority,
+                                          options=grpc_options)
         else:
             # Connect to the cloud directly
             ip = proxy_config['cloud_address']
             port = proxy_config['cloud_port']
             ssl_creds = get_ssl_creds()
             channel = create_grpc_channel(ip, port, authority, ssl_creds,
-                                          grpc_options)
+                                          options=grpc_options)
         if should_reuse_channel:
             ServiceRegistry._CHANNELS_CACHE[authority] = channel
         return channel
@@ -266,9 +268,9 @@ def create_grpc_channel(ip, port, authority, ssl_creds=None, options=None):
         channel = grpc.secure_channel(
             target='%s:%s' % (ip, port),
             credentials=ssl_creds,
-            options=[grpc_options])
+            options=grpc_options)
     else:
         channel = grpc.insecure_channel(
             target='%s:%s' % (ip, port),
-            options=[grpc_options])
+            options=grpc_options)
     return channel

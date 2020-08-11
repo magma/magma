@@ -63,7 +63,8 @@ class MetricsCollector(object):
         """
         if self._samples:
             chan = ServiceRegistry.get_rpc_channel('metricsd',
-                                                   ServiceRegistry.CLOUD)
+                                                   ServiceRegistry.CLOUD,
+                                                   grpc_options=self._grpc_options)
             client = MetricsControllerStub(chan)
             if self.post_processing_fn:
                 # If services wants to, let it run a postprocessing function
@@ -94,7 +95,7 @@ class MetricsCollector(object):
             logging.error("Metrics upload error! [%s] %s",
                           err.code(), err.details())
         else:
-            logging.debug("Metrics upload success")
+            logging.info("Metrics upload success")
 
     def collect(self, service_name):
         """
