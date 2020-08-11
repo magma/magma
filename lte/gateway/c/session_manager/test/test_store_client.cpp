@@ -54,11 +54,6 @@ TEST_F(StoreClientTest, test_read_and_write) {
   auto sid3                   = id_gen_.gen_session_id(imsi3);
   std::string core_session_id = "asdf";
   SessionConfig cfg           = {
-      .spgw_ipv4         = "",
-      .imei              = "",
-      .plmn_id           = "",
-      .imsi_plmn_id      = "",
-      .user_location     = "",
       .mac_addr          = "0f:10:2e:12:3a:55",
       .hardware_addr     = hardware_addr_bytes,
       .radius_session_id = radius_session_id};

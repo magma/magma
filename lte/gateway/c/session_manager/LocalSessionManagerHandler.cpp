@@ -196,20 +196,9 @@ static CreateSessionRequest make_create_session_request(
 SessionConfig LocalSessionManagerHandlerImpl::build_session_config(
     const LocalCreateSessionRequest& request) {
   SessionConfig cfg = {
-      .spgw_ipv4         = request.spgw_ipv4(),
-      .imei              = request.imei(),
-      .plmn_id           = request.plmn_id(),
-      .imsi_plmn_id      = request.imsi_plmn_id(),
-      .user_location     = request.user_location(),
       .mac_addr          = convert_mac_addr_to_str(request.hardware_addr()),
       .hardware_addr     = request.hardware_addr(),
-      .radius_session_id = request.radius_session_id(),
-      .bearer_id         = request.bearer_id()};
-  QoSInfo qos_info = {.enabled = request.has_qos_info()};
-  if (request.has_qos_info()) {
-    qos_info.qci = request.qos_info().qos_class_id();
-  }
-  cfg.qos_info = qos_info;
+      .radius_session_id = request.radius_session_id()};
 
   // TODO @themarwhal The fields above in SessionConfig will be replaced by
   //  the bundled fields below
@@ -278,17 +267,20 @@ void LocalSessionManagerHandlerImpl::send_create_session(
             status = Status(
                 grpc::FAILED_PRECONDITION, "Failed to initialize session");
           } else {
+            auto lte_context   = cfg.rat_specific_context.lte_context();
             bool write_success = session_store_.create_sessions(
                 imsi, std::move((*session_map_ptr)[imsi]));
             if (write_success) {
               MLOG(MINFO) << "Successfully initialized new session " << sid
                           << " in sessiond for subscriber " << imsi
-                          << " with default bearer id " << cfg.bearer_id;
+                          << " with default bearer id "
+                          << lte_context.bearer_id();
               add_session_to_directory_record(imsi, sid);
             } else {
               MLOG(MINFO) << "Failed to initialize new session " << sid
                           << " in sessiond for subscriber " << imsi
-                          << " with default bearer id " << cfg.bearer_id
+                          << " with default bearer id "
+                          << lte_context.bearer_id()
                           << " due to failure writing to SessionStore."
                           << " An earlier update may have invalidated it.";
               status = Status(

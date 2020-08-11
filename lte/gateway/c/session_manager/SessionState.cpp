@@ -341,15 +341,18 @@ SessionTerminateRequest SessionState::make_termination_request(
   req.set_request_number(request_number_);
   req.set_ue_ipv4(config_.common_context.ue_ipv4());
   req.set_msisdn(config_.common_context.msisdn());
-  req.set_spgw_ipv4(config_.spgw_ipv4);
   req.set_apn(config_.common_context.apn());
-  req.set_imei(config_.imei);
-  req.set_plmn_id(config_.plmn_id);
-  req.set_imsi_plmn_id(config_.imsi_plmn_id);
-  req.set_user_location(config_.user_location);
   req.set_hardware_addr(config_.hardware_addr);
   req.set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
+  if (config_.rat_specific_context.has_lte_context()) {
+    auto lte_context = config_.rat_specific_context.lte_context();
+    req.set_spgw_ipv4(lte_context.spgw_ipv4());
+    req.set_imei(lte_context.imei());
+    req.set_plmn_id(lte_context.plmn_id());
+    req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
+    req.set_user_location(lte_context.user_location());
+  }
   // gx monitors
   for (auto& credit_pair : monitor_map_) {
     auto credit_uc = get_monitor_uc(credit_pair.first, update_criteria);
@@ -943,15 +946,18 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
   req.set_sid(imsi_);
   req.set_msisdn(config_.common_context.msisdn());
   req.set_ue_ipv4(config_.common_context.ue_ipv4());
-  req.set_spgw_ipv4(config_.spgw_ipv4);
   req.set_apn(config_.common_context.apn());
-  req.set_imei(config_.imei);
-  req.set_plmn_id(config_.plmn_id);
-  req.set_imsi_plmn_id(config_.imsi_plmn_id);
-  req.set_user_location(config_.user_location);
   req.set_hardware_addr(config_.hardware_addr);
   req.set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
+  if (config_.rat_specific_context.has_lte_context()) {
+    auto lte_context = config_.rat_specific_context.lte_context();
+    req.set_spgw_ipv4(lte_context.spgw_ipv4());
+    req.set_imei(lte_context.imei());
+    req.set_plmn_id(lte_context.plmn_id());
+    req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
+    req.set_user_location(lte_context.user_location());
+  }
   req.mutable_usage()->CopyFrom(usage);
   return req;
 }
