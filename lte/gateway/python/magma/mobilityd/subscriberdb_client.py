@@ -33,7 +33,7 @@ class SubscriberDbClient:
         ip_addr = None
         try:
             if '.' in sid:
-                imsi, apn_name = sid.split('.')
+                imsi, apn_name = sid.split('.', maxsplit=1)
             else:
                 imsi, apn_name = sid, ''
 
