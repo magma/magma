@@ -13,7 +13,7 @@
     "@babel/preset-env": "^7.3.4",
     "@babel/preset-flow": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
-    "@babel/register": "^7.0.0",
+    "@babel/register": "^7.10.5",
     "@babel/runtime": "^7.3.4",
     "@fbcnms/util": "^0.1.0",
     "babel-plugin-fbt": "^0.10.4",
