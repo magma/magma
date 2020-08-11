@@ -107,7 +107,7 @@ func (srv *CentralSessionControllers) CreateSession(
 	ctx context.Context,
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
-	subs := request.GetSubscriber()
+	subs := request.GetCommonContext().GetSid()
 	if subs == nil || len(subs.GetId()) == 0 {
 		return nil, fmt.Errorf("Create Session Request Request malformed. Missing Subscriber.id")
 	}

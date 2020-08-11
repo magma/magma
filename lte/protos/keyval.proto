@@ -41,10 +41,17 @@ message IPDesc {
     RESERVED = 4;
   }
 
+  enum IPType {
+    STATIC = 0;
+    IP_POOL = 1;
+    DHCP = 3;
+  }
+
   IPAddress ip = 1;
   IPBlock ip_block = 2;
   IPState state = 3;
   SubscriberID sid = 4;
+  IPType type = 5;
 }
 
 // --------------------------------------------------------------------------

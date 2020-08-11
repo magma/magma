@@ -14,15 +14,19 @@ limitations under the License.
 from magma.common.service import MagmaService
 from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 from lte.protos.mconfig import mconfigs_pb2
+from magma.common.service_registry import ServiceRegistry
+from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
 
 def main():
     """ main() for MobilityD """
     service = MagmaService('mobilityd', mconfigs_pb2.MobilityD())
 
+    chan = ServiceRegistry.get_rpc_channel('subscriberdb', ServiceRegistry.LOCAL)
+
     # Add all servicers to the server
     mobility_service_servicer = MobilityServiceRpcServicer(
-        service.mconfig, service.config)
+        service.mconfig, service.config, SubscriberDBStub(chan))
     mobility_service_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop

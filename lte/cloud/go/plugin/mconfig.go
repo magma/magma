@@ -111,8 +111,10 @@ func (s *LteMconfigBuilderServicer) Build(
 			EnbConfigsBySerial:  enbConfigsBySerial,
 		},
 		"mobilityd": &mconfig.MobilityD{
-			LogLevel: protos.LogLevel_INFO,
-			IpBlock:  gwEpc.IPBlock,
+			LogLevel:        protos.LogLevel_INFO,
+			IpBlock:         gwEpc.IPBlock,
+			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
+			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
 		},
 		"mme": &mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -390,4 +392,22 @@ func getSubProfiles(epc *models2.NetworkEpcConfigs) map[string]*mconfig.Subscrib
 		}
 	}
 	return ret
+}
+
+func getMobilityDIPAllocator(epc *models2.NetworkEpcConfigs) mconfig.MobilityD_IpAllocatorType {
+	if epc.Mobility == nil {
+		return mconfig.MobilityD_IP_POOL
+	}
+	if epc.Mobility.IPAllocationMode == models2.DHCPBroadcastAllocationMode {
+		return mconfig.MobilityD_DHCP
+	}
+	// for other modes set IP pool allocator.
+	return mconfig.MobilityD_IP_POOL
+}
+
+func getMobilityDStaticIPAllocation(epc *models2.NetworkEpcConfigs) bool {
+	if epc.Mobility == nil {
+		return false
+	}
+	return epc.Mobility.EnableStaticIPAssignments
 }

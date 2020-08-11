@@ -226,8 +226,10 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			EnbConfigsBySerial:  nil,
 		},
 		"mobilityd": &mconfig.MobilityD{
-			LogLevel: protos.LogLevel_INFO,
-			IpBlock:  "192.168.128.0/24",
+			LogLevel:        protos.LogLevel_INFO,
+			IpBlock:         "192.168.128.0/24",
+			IpAllocatorType: mconfig.MobilityD_IP_POOL,
+			StaticIpEnabled: false,
 		},
 		"mme": &mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -275,6 +277,59 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	err := builder.Build("n1", "gw1", graph, nw, actual)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+
+	setEPCNetworkIPAllocator(&nw, models2.DHCPBroadcastAllocationMode, false)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+
+	expected["mobilityd"] = &mconfig.MobilityD{
+		LogLevel:        protos.LogLevel_INFO,
+		IpBlock:         "192.168.128.0/24",
+		IpAllocatorType: mconfig.MobilityD_DHCP,
+		StaticIpEnabled: false,
+	}
+
+	assert.Equal(t, expected, actual)
+
+	setEPCNetworkIPAllocator(&nw, models2.NATAllocationMode, false)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+
+	expected["mobilityd"] = &mconfig.MobilityD{
+		LogLevel:        protos.LogLevel_INFO,
+		IpBlock:         "192.168.128.0/24",
+		IpAllocatorType: mconfig.MobilityD_IP_POOL,
+		StaticIpEnabled: false,
+	}
+
+	assert.Equal(t, expected, actual)
+
+	setEPCNetworkIPAllocator(&nw, models2.NATAllocationMode, true)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+
+	expected["mobilityd"] = &mconfig.MobilityD{
+		LogLevel:        protos.LogLevel_INFO,
+		IpBlock:         "192.168.128.0/24",
+		IpAllocatorType: mconfig.MobilityD_IP_POOL,
+		StaticIpEnabled: true,
+	}
+
+	assert.Equal(t, expected, actual)
+
+	setEPCNetworkIPAllocator(&nw, models2.DHCPBroadcastAllocationMode, true)
+	err = builder.Build("n1", "gw1", graph, nw, actual)
+	assert.NoError(t, err)
+
+	expected["mobilityd"] = &mconfig.MobilityD{
+		LogLevel:        protos.LogLevel_INFO,
+		IpBlock:         "192.168.128.0/24",
+		IpAllocatorType: mconfig.MobilityD_DHCP,
+		StaticIpEnabled: true,
+	}
+
+	assert.Equal(t, expected, actual)
+
 }
 
 func TestBuilder_Build_BaseCase(t *testing.T) {
@@ -561,6 +616,17 @@ func setEPCNetworkServices(services []string, nw *configurator.Network) {
 	inwConfig := nw.Configs[lte.CellularNetworkType]
 	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
 	cellularNwConfig.Epc.NetworkServices = services
+
+	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
+}
+
+func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip bool) {
+	inwConfig := nw.Configs[lte.CellularNetworkType]
+	cellularNwConfig := inwConfig.(*models2.NetworkCellularConfigs)
+	cellularNwConfig.Epc.Mobility = &models2.NetworkEpcConfigsMobility{
+		IPAllocationMode:        mode,
+		EnableStaticIPAssignments: static_ip,
+	}
 
 	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
 }

@@ -46,6 +46,7 @@ from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
 from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.access_control import AccessControlController
+from magma.pipelined.app.conntrack import ConntrackController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
@@ -256,6 +257,7 @@ class ServiceManager:
     TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
     IPFIX_SERVICE_NAME = 'ipfix'
+    CONNTRACK_SERVICE_NAME = 'conntrack'
     RYU_REST_SERVICE_NAME = 'ryu_rest_service'
     RYU_REST_APP_NAME = 'ryu_rest_app'
     STARTUP_FLOWS_RECIEVER_CONTROLLER = 'startup_flows'
@@ -345,6 +347,12 @@ class ServiceManager:
                 type=CheckQuotaController.APP_TYPE,
                 order_priority=300),
         ],
+        CONNTRACK_SERVICE_NAME: [
+            App(name=ConntrackController.APP_NAME,
+                module=ConntrackController.__module__,
+                type=ConntrackController.APP_TYPE,
+                order_priority=700),
+        ],
         IPFIX_SERVICE_NAME: [
             App(name=IPFIXController.APP_NAME,
                 module=IPFIXController.__module__,
@@ -418,7 +426,7 @@ class ServiceManager:
         static_services = self._magma_service.config['static_services']
         nat_enabled = self._magma_service.config.get('nat_enabled', False)
         setup_type = self._magma_service.config.get('setup_type', None)
-        if nat_enabled is False and setup_type == 'LTE':
+        if setup_type == 'LTE':
             static_services.append(self.__class__.UPLINK_BRIDGE_NAME)
             logging.info("added uplink bridge controller")
 

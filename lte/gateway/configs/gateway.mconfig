@@ -64,7 +64,7 @@
        ],
       "allowedGrePeers": [
        ],
-      "liImsis": []
+      "liUes": {}
     },
     "subscriberdb": {
       "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",
@@ -76,7 +76,8 @@
       "@type": "type.googleapis.com/magma.mconfig.DnsD",
       "logLevel": "INFO",
       "enableCaching": false,
-      "localTTL": 0
+      "localTTL": 0,
+      "dhcpServerEnabled": true
     },
     "lighttpd": {
       "@type": "type.googleapis.com/magma.mconfig.LighttpD",

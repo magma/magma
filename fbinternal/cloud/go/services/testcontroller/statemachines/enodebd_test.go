@@ -762,7 +762,7 @@ func Test_EnodebdE2ETestStateMachine_DynamicStartState(t *testing.T) {
 	testConfig := GetEnodebTestConfig()
 	testConfig.StartState = "reboot_enodeb_1"
 	cli := &mockClient{}
-	mockMagmad, _:= GetMockObjects()
+	mockMagmad, _ := GetMockObjects()
 
 	// New test
 	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
@@ -789,7 +789,6 @@ func Test_EnodebdE2ETestStateMachine_DynamicStartState(t *testing.T) {
 	assert.EqualError(t, err, "Invalid starting state. Defaulting to check_for_upgrade")
 	assert.Equal(t, "check_for_upgrade", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
-
 
 	cli.AssertExpectations(t)
 	mockMagmad.AssertExpectations(t)
@@ -848,12 +847,14 @@ func RegisterAGW(t *testing.T) {
 				Key:         "IMSI1234567890",
 				Name:        "subscriber1",
 				Description: "mock subscriber",
-				Config: &subscribermodels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: "default",
+				Config: &subscribermodels.SubscriberConfig{
+					Lte: &subscribermodels.LteSubscription{
+						AuthAlgo:   "MILENAGE",
+						AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+						AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+						State:      "ACTIVE",
+						SubProfile: "default",
+					},
 				},
 			},
 		},
@@ -887,7 +888,7 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 			TransmitEnabled:        swag.Bool(true),
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
-		StartState: "check_for_upgrade",
+		StartState:   "check_for_upgrade",
 	}
 	return testConfig
 }
