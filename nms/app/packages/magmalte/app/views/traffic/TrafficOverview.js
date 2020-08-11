@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {policy_rule} from '@fbcnms/magma-api';
+import type {apn, policy_rule} from '@fbcnms/magma-api';
 
 import ApnOverview from './ApnOverview';
 import AppBar from '@material-ui/core/AppBar';
@@ -31,6 +31,7 @@ import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
+import {ApnJsonConfig} from './ApnOverview';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {PolicyJsonConfig} from './PolicyOverview';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -106,8 +107,8 @@ export default function TrafficDashboard() {
   const {relativePath, relativeUrl, match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const [policies, setPolicies] = useState<{[string]: policy_rule}>({});
-
-  const {isLoading} = useMagmaAPI(
+  const [apns, setApns] = useState<{[string]: apn}>({});
+  const {isLoading: policyLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull,
     {
       networkId: networkId,
@@ -116,7 +117,17 @@ export default function TrafficDashboard() {
       setPolicies(response);
     }, []),
   );
-  if (isLoading) {
+
+  const {isLoading: apnLoading} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdApns,
+    {
+      networkId: networkId,
+    },
+    useCallback(response => {
+      setApns(response);
+    }, []),
+  );
+  if (policyLoading || apnLoading) {
     return <LoadingFiller />;
   }
   return (
@@ -166,10 +177,22 @@ export default function TrafficDashboard() {
           )}
         />
         <Route
+          path={relativePath('/apn/:apnId/json')}
+          render={() => (
+            <ApnJsonConfig
+              apns={apns}
+              onSave={apn => setApns({...apns, [apn.apn_name]: apn})}
+            />
+          )}
+        />
+        <Route
           path={relativePath('/policy')}
           render={() => <PolicyOverview policies={policies} />}
         />
-        <Route path={relativePath('/apn')} component={ApnOverview} />
+        <Route
+          path={relativePath('/apn')}
+          render={() => <ApnOverview apns={apns} />}
+        />
         <Redirect to={relativeUrl('/policy')} />
       </Switch>
     </>
