@@ -174,6 +174,7 @@ class DHCPClient:
             wait_time = self._lease_renew_wait_min
             with self._dhcp_notify:
                 for dhcp_record in self.dhcp_client_state.values():
+                    logging.debug("monitor state: %s", dhcp_record)
                     # Only process active records.
                     if dhcp_record.state != DHCPState.ACK and \
                        dhcp_record.state != DHCPState.REQUEST:
@@ -182,6 +183,7 @@ class DHCPClient:
                     if dhcp_record.state == DHCPState.RELEASE:
                         continue
                     now = datetime.datetime.now()
+                    logging.debug("monitor time: %s", now)
                     request_state = DHCPState.REQUEST
                     # in case of lost DHCP lease rediscover it.
                     if now >= dhcp_record.lease_expiration_time:
