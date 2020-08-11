@@ -13,9 +13,12 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+
 import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
@@ -39,14 +42,16 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
-import {CardTitleRow} from '../../components/layout/CardTitleRow';
 import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {RunGatewayCommands} from '../../state/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -98,6 +103,44 @@ const useStyles = makeStyles(theme => ({
     padding: theme.spacing(10),
   },
 }));
+
+function GatewayRebootButtonInternal(props: WithAlert) {
+  const classes = useStyles();
+  const {match} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+  const gatewayId: string = nullthrows(match.params.gatewayId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const handleClick = () => {
+    props
+      .confirm(`Are you sure you want to reboot ${gatewayId}?`)
+      .then(async confirmed => {
+        if (!confirmed) {
+          return;
+        }
+        try {
+          await RunGatewayCommands({networkId, gatewayId, command: 'reboot'});
+          enqueueSnackbar('gateway reboot triggered successfully', {
+            variant: 'success',
+          });
+        } catch (e) {
+          enqueueSnackbar(e.response?.data?.message ?? e.message, {
+            variant: 'error',
+          });
+        }
+      });
+  };
+
+  return (
+    <Button
+      variant="contained"
+      className={classes.appBarBtn}
+      onClick={handleClick}>
+      Reboot
+    </Button>
+  );
+}
+const GatewayRebootButton = withAlert(GatewayRebootButtonInternal);
 
 export function GatewayDetail() {
   const classes = useStyles();
@@ -171,14 +214,7 @@ export function GatewayDetail() {
             alignItems="center">
             <Grid container justify="flex-end" alignItems="center" spacing={2}>
               <Grid item>
-                <Button variant="text" className={classes.appBarBtnSecondary}>
-                  Secondary Action
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button variant="contained" className={classes.appBarBtn}>
-                  Reboot
-                </Button>
+                <GatewayRebootButton />
               </Grid>
             </Grid>
           </Grid>

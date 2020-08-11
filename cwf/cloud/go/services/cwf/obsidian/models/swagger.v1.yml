@@ -30,6 +30,8 @@ magma-gen-meta:
       filename: allowed_gre_peers_swaggergen.go
     - go-struct-name: ipdrExportDst
       filename: ip_d_r_export_dst_swaggergen.go
+    - go-struct-name: liUes
+      filename: li_ues_swaggergen.go
     - go-struct-name: CwfSubscriberDirectoryRecord
       filename: cwf_subscriber_directory_record_swaggergen.go
     - go-struct-name: GatewayHealthConfigs
@@ -231,6 +233,37 @@ paths:
       - Carrier Wifi Networks
       parameters:
       - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/li_ues:
+    get:
+      summary: Get monitored LI UEs for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Monitored LI UEs
+          schema:
+            $ref: '#/definitions/li_ues'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update monitored LI UEs for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: description
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/li_ues'
       responses:
         '204':
           description: Success
@@ -562,39 +595,6 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /cwf/{network_id}/gateways/{gateway_id}/li_imsis:
-    get:
-      summary: Get monitored LI IMSIs for Carrier Wifi network
-      tags:
-      - Carrier Wifi Gateways
-      parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
-      responses:
-        '200':
-          description: List of LI IMSIs
-          schema:
-            $ref: '#/definitions/li_imsis'
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-    put:
-      summary: Update monitored LI IMSIs for Carrier Wifi network
-      tags:
-      - Carrier Wifi Gateways
-      parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
-      - name: description
-        in: body
-        required: true
-        schema:
-          $ref: '#/definitions/li_imsis'
-      responses:
-        '204':
-          description: Success
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-
   /cwf/{network_id}/gateways/{gateway_id}/device:
     get:
       summary: Get the physical device for a carrier wifi gateway
@@ -885,6 +885,8 @@ definitions:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
       aaa_server:
         $ref: './feg-swagger.yml#/definitions/aaa_server'
+      li_ues:
+        $ref: '#/definitions/li_ues'
   allowed_gre_peer:
     type: object
     required:
@@ -905,10 +907,30 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/allowed_gre_peer'
-  li_imsis:
-    type: array
-    items:
-      type: string
+  li_ues:
+    type: object
+    required:
+      - imsis
+      - msisdns
+      - macs
+      - ips
+    properties:
+      imsis:
+        type: array
+        items:
+          type: string
+      msisdns:
+        type: array
+        items:
+          type: string
+      macs:
+        type: array
+        items:
+          type: string
+      ips:
+        type: array
+        items:
+          type: string
   ipdr_export_dst:
     type: object
     required:
@@ -933,8 +955,6 @@ definitions:
     properties:
       allowed_gre_peers:
         $ref: '#/definitions/allowed_gre_peers'
-      li_imsis:
-        $ref: '#/definitions/li_imsis'
       ipdr_export_dst:
         $ref: '#/definitions/ipdr_export_dst'
       gateway_health_configs:

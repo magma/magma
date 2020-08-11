@@ -27,6 +27,17 @@ import (
 	"github.com/golang/glog"
 )
 
+// sendInitialGxRequestOrGenerateEmptyResponse generates an empty response in case Gx is disabled.
+// otherwise it sends the inital request to PCRF
+func (srv *CentralSessionController) sendInitialGxRequestOrGenerateEmptyResponse(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
+	if srv.cfg.DisableGx {
+		return generateGxLessCCAInit()
+	} else {
+		return srv.sendInitialGxRequest(imsi, pReq)
+	}
+}
+
+// sendInitialGxRequest sends the inital request to PCRF. Returns a response
 func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
 	common := pReq.GetCommonContext()
 	ratType := common.GetRatType()
@@ -64,6 +75,22 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 	}
 
 	return getGxAnswerOrError(request, srv.policyClient, srv.cfg.PCRFConfig, srv.cfg.RequestTimeout)
+}
+
+// generateGxLessCCAInit generates a creditControlAnswer for the case Gx is disabled.
+func generateGxLessCCAInit() (*gx.CreditControlAnswer, error) {
+	return &gx.CreditControlAnswer{
+		ResultCode:             uint32(diameter.SuccessCode),
+		ExperimentalResultCode: 0,
+		SessionID:              "",
+		OriginHost:             "gx-less.magma.com",
+		RequestNumber:          0,
+		RuleInstallAVP:         []*gx.RuleInstallAVP{},
+		RuleRemoveAVP:          []*gx.RuleRemoveAVP{},
+		UsageMonitors:          []*gx.UsageMonitoringInfo{},
+		EventTriggers:          []gx.EventTrigger{},
+		RevalidationTime:       nil,
+	}, nil
 }
 
 func (srv *CentralSessionController) sendTerminationGxRequest(pRequest *protos.SessionTerminateRequest) (*gx.CreditControlAnswer, error) {

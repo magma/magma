@@ -30,6 +30,7 @@ var defaultConfig = Config{
 		},
 	},
 	Gx: &GxConfig{
+		DisableGx: false,
 		Servers: []*DiamClientConfig{
 			{
 				Protocol:         "tcp",
@@ -43,6 +44,7 @@ var defaultConfig = Config{
 		},
 	},
 	Gy: &GyConfig{
+		DisableGy: false,
 		Servers: []*DiamClientConfig{
 			{
 				Protocol:         "tcp",

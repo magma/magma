@@ -46,6 +46,12 @@ class ServiceAction {
     return *this;
   }
 
+  ServiceAction &set_session_id(const std::string &session_id)
+  {
+    session_id_ = std::make_unique<std::string>(session_id);
+    return *this;
+  }
+
   ServiceAction &set_ip_addr(const std::string &ip_addr)
   {
     ip_addr_ = std::make_unique<std::string>(ip_addr);
@@ -69,6 +75,12 @@ class ServiceAction {
    * exception if there is none stored
    */
   const std::string &get_imsi() const { return *imsi_; }
+
+  /**
+   * get_imsi returns the associated IMSI for the action, or throws a nullptr
+   * exception if there is none stored
+   */
+  const std::string &get_session_id() const { return *session_id_; }
 
   /**
    * get_ip_addr returns the associated subscriber's ip_addr for the action,
@@ -100,6 +112,7 @@ class ServiceAction {
  private:
   ServiceActionType action_type_;
   std::unique_ptr<std::string> imsi_;
+  std::unique_ptr<std::string> session_id_;
   std::unique_ptr<std::string> ip_addr_;
   CreditKey credit_key_;
   std::vector<std::string> rule_ids_;
