@@ -97,13 +97,14 @@ class StaticIPAllocationTests(unittest.TestCase):
             'recycling_interval': recycling_interval,
             'persist_to_redis': False,
             'redis_port': 6379,
-            'static_ip_enabled': True,
         }
-        self._allocator = IPAddressManager(
-            recycling_interval=recycling_interval,
-            allocator_type=MobilityD.IP_POOL,
-            subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-            config=config)
+        mconfig = MobilityD(ip_allocator_type=MobilityD.IP_POOL,
+                            static_ip_enabled=True)
+
+        self._allocator = IPAddressManager(recycling_interval=recycling_interval,
+                                           subscriberdb_rpc_stub=MockedSubscriberDBStub(),
+                                           config=config,
+                                           mconfig=mconfig)
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
