@@ -131,16 +131,6 @@ class StoredStateTest : public ::testing::Test {
   }
 };
 
-TEST_F(StoredStateTest, test_stored_qos_info) {
-  auto stored = get_stored_qos_info();
-
-  auto serialized   = serialize_stored_qos_info(stored);
-  auto deserialized = deserialize_stored_qos_info(serialized);
-
-  EXPECT_EQ(deserialized.enabled, true);
-  EXPECT_EQ(deserialized.qci, 123);
-}
-
 TEST_F(StoredStateTest, test_stored_session_config) {
   auto stored = get_stored_session_config();
 
