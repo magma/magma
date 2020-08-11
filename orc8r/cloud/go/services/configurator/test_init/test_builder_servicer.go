@@ -19,9 +19,8 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
-	mconfig_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/test_utils"
-	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes/any"
 )
@@ -38,29 +37,17 @@ func StartNewTestBuilder(t *testing.T, builder mconfig.Builder) {
 	}
 	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, "test_mconfig_builder_service", labels, nil)
 	servicer := &builderServicer{builder: builder}
-	mconfig_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicer)
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicer)
 	go srv.RunTest(lis)
 }
 
-func (b builderServicer) Build(ctx context.Context, request *mconfig_protos.BuildRequest) (*mconfig_protos.BuildResponse, error) {
-	ret := &mconfig_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
-	var err error
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (ret *builder_protos.BuildResponse, err error) {
+	ret = &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
 
-	// TODO(8/5/20): revert defer (and changes to above) once we send proto descriptors from mconfig_builders
-	defer func() {
-		if err != nil {
-			return
-		}
-		for k, v := range ret.ConfigsByKey {
-			b, err := protos.MarshalJSON(v)
-			if err != nil {
-				return
-			}
-			ret.JsonConfigsByKey[k] = b
-		}
-	}()
+	// TODO(T71525030): revert defer, above changes, and fn signature changes
+	defer func() { err = ret.FillJSONConfigs(err) }()
 
-	ret.ConfigsByKey, err = b.builder.Build(request.Network, request.Graph, request.GatewayId)
+	ret.ConfigsByKey, err = s.builder.Build(request.Network, request.Graph, request.GatewayId)
 	if err != nil {
 		return nil, err
 	}

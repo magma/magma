@@ -62,7 +62,7 @@ func (r *remoteBuilder) getBuilderClient() (protos.MconfigBuilderClient, error) 
 	return protos.NewMconfigBuilderClient(conn), nil
 }
 
-// TODO(8/5/20): can remove remoteBuilderBytes once we send proto descriptors from mconfig_builders
+// TODO(T71525030): can remove remoteBuilderBytes once we send proto descriptors from mconfig_builders
 type remoteBuilderBytes struct {
 	service string
 }

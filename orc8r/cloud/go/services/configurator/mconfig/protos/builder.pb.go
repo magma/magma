@@ -87,8 +87,9 @@ func (m *BuildRequest) GetGatewayId() string {
 type BuildResponse struct {
 	// configs_by_key contains the partial mconfig from this mconfig builder
 	ConfigsByKey map[string]*any.Any `protobuf:"bytes,1,rep,name=configs_by_key,json=configsByKey,proto3" json:"configs_by_key,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"`
-	// json_configs_by_key contains the partial mconfig from this mconfig builder
-	// TODO(8/5/20): revert json_configs_by_key once we send proto descriptors from mconfig_builders
+	// json_configs_by_key contains JSON-serialized partial mconfig
+	// These configs should be semantically equivalent to configs_by_key
+	// TODO(T71525030): revert json_configs_by_key once we send proto descriptors from mconfig_builders
 	JsonConfigsByKey     map[string][]byte `protobuf:"bytes,2,rep,name=json_configs_by_key,json=jsonConfigsByKey,proto3" json:"json_configs_by_key,omitempty" protobuf_key:"bytes,1,opt,name=key,proto3" protobuf_val:"bytes,2,opt,name=value,proto3"` // Deprecated: Do not use.
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
 	XXX_unrecognized     []byte            `json:"-"`

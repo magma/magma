@@ -59,7 +59,7 @@ func CreateMconfig(network *storage.Network, graph *storage.EntityGraph, gateway
 	return mconfig, nil
 }
 
-// TODO(8/5/20): revert CreateMconfigBytes once we send proto descriptors from mconfig_builders
+// TODO(T71525030): revert CreateMconfigBytes once we send proto descriptors from mconfig_builders
 
 func CreateMconfigBytes(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (*protos.GatewayConfigs, error) {
 	builders, err := GetBuildersBytes()

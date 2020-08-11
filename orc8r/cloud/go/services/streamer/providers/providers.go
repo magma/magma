@@ -14,10 +14,10 @@ limitations under the License.
 package providers
 
 import (
-	"bytes"
 	"encoding/json"
-	"fmt"
 	"time"
+
+	"github.com/golang/glog"
 
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/streamer"
@@ -43,7 +43,7 @@ func (p *MconfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*p
 		return nil, errors.Wrap(err, "get mconfig from configurator")
 	}
 
-	// TODO(8/5/20): revert below once we send proto descriptors from mconfig_builders
+	// TODO(T71525030): revert below once we send proto descriptors from mconfig_builders
 
 	//if extraArgs != nil {
 	//	// Currently, only use of extraArgs is mconfig hash
@@ -75,17 +75,12 @@ func mconfigToUpdate(configs *protos.GatewayConfigs, logicalID string, digest st
 	return []*protos.DataUpdate{{Key: logicalID, Value: marshaledConfig}}, nil
 }
 
-// TODO(8/5/20): revert below once we send proto descriptors from mconfig_builders
+// TODO(T71525030): revert below once we send proto descriptors from mconfig_builders
 
-const gatewayConfigsTemplate = `
-{
-  "configsByKey": {
-	  %s
-  },
-  "metadata": {
-    "createdAt": "%v"
-  }
-}`
+type mconfigTemplate struct {
+	ConfigsByKey map[string]json.RawMessage    `json:"configsByKey"`
+	Metadata     protos.GatewayConfigsMetadata `json:"metadata"`
+}
 
 // bytesMconfigToUpdate creates a GatewayConfigs data update by manually
 // constructing the JSON-marshaled bytes for the data update.
@@ -93,7 +88,7 @@ const gatewayConfigsTemplate = `
 // library APIv2, which has built-in support for dynamic any.Any resolution,
 // which is required to marshal an any.Any proto to JSON.
 func bytesMconfigToUpdate(configs *protos.GatewayConfigs, logicalID string) ([]*protos.DataUpdate, error) {
-	configsByKey := map[string][]byte{}
+	configsByKey := map[string]json.RawMessage{}
 
 	for k, v := range configs.ConfigsByKey {
 		bytesVal := &wrappers.BytesValue{}
@@ -103,25 +98,16 @@ func bytesMconfigToUpdate(configs *protos.GatewayConfigs, logicalID string) ([]*
 		}
 		configsByKey[k] = bytesVal.Value
 	}
-	jsonConfig, err := getJSONConfig(configsByKey)
+
+	mconfig := &mconfigTemplate{
+		ConfigsByKey: configsByKey,
+		Metadata:     protos.GatewayConfigsMetadata{CreatedAt: uint64(time.Now().Unix())},
+	}
+	marshaledMconfig, err := json.Marshal(mconfig)
 	if err != nil {
 		return nil, err
 	}
+	glog.Errorf("hcg marshaled mconfig --------- %s", marshaledMconfig) // hcg remove
 
-	var marshaledConfig json.RawMessage = []byte(fmt.Sprintf(gatewayConfigsTemplate, jsonConfig, uint64(time.Now().Unix())))
-	prettyConfig, err := json.MarshalIndent(marshaledConfig, "", "  ")
-	if err != nil {
-		return nil, err
-	}
-
-	return []*protos.DataUpdate{{Key: logicalID, Value: prettyConfig}}, nil
-}
-
-func getJSONConfig(jsonByKey map[string][]byte) ([]byte, error) {
-	var configs [][]byte
-	for k, v := range jsonByKey {
-		configs = append(configs, []byte(fmt.Sprintf(`"%s": %s`, k, v)))
-	}
-	joined := bytes.Join(configs, []byte(",\n"))
-	return joined, nil
+	return []*protos.DataUpdate{{Key: logicalID, Value: marshaledMconfig}}, nil
 }

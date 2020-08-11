@@ -25,7 +25,10 @@ message GetMconfigRequest {
 message GetMconfigResponse {
     GatewayConfigs configs = 1;
     string logicalID = 2;
-    // TODO(8/5/20): revert json_configs once we send proto descriptors from mconfig_builders
+
+    // json_configs_by_key contains JSON-serialized partial mconfig
+    // These configs should be semantically equivalent to the GatewayConfigs
+    // TODO(T71525030): revert json_configs once we send proto descriptors from mconfig_builders
     bytes json_configs = 3 [deprecated=true]; // deprecated
 }
 

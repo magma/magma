@@ -33,7 +33,7 @@ func GetBuilders() ([]Builder, error) {
 	return builders, nil
 }
 
-// TODO(8/5/20): revert GetBuildersBytes once we send proto descriptors from mconfig_builders
+// TODO(T71525030): revert GetBuildersBytes once we send proto descriptors from mconfig_builders
 
 func GetBuildersBytes() ([]Builder, error) {
 	services := registry.FindServices(orc8r.MconfigBuilderLabel)

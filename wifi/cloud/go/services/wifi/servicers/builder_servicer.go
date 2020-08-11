@@ -19,7 +19,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	merrors "magma/orc8r/lib/go/errors"
-	"magma/orc8r/lib/go/protos"
 	"magma/wifi/cloud/go/protos/mconfig"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
@@ -35,23 +34,11 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 	return &builderServicer{}
 }
 
-func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
-	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
-	var err error
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (ret *builder_protos.BuildResponse, err error) {
+	ret = &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
 
-	// TODO(8/5/20): revert defer (and changes to above) once we send proto descriptors from mconfig_builders
-	defer func() {
-		if err != nil {
-			return
-		}
-		for k, v := range ret.ConfigsByKey {
-			b, err := protos.MarshalJSON(v)
-			if err != nil {
-				return
-			}
-			ret.JsonConfigsByKey[k] = b
-		}
-	}()
+	// TODO(T71525030): revert defer, above changes, and fn signature changes
+	defer func() { err = ret.FillJSONConfigs(err) }()
 
 	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {

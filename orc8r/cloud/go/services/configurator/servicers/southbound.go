@@ -110,7 +110,7 @@ func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID st
 	// error on commit is fine for a readonly tx
 	storage.CommitLogOnError(store)
 
-	// TODO(8/5/20): revert to normal CreateMconfig once we send proto descriptors from mconfig_builders
+	// TODO(T71525030): revert to normal CreateMconfig once we send proto descriptors from mconfig_builders
 	//ret, err := mconfig.CreateMconfig(nwLoad.Networks[0], &graph, gatewayID)
 	ret, err := mconfig.CreateMconfigBytes(nwLoad.Networks[0], &graph, gatewayID)
 	if err != nil {

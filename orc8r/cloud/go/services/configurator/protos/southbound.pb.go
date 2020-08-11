@@ -67,7 +67,9 @@ func (m *GetMconfigRequest) GetHardwareID() string {
 type GetMconfigResponse struct {
 	Configs   *protos.GatewayConfigs `protobuf:"bytes,1,opt,name=configs,proto3" json:"configs,omitempty"`
 	LogicalID string                 `protobuf:"bytes,2,opt,name=logicalID,proto3" json:"logicalID,omitempty"`
-	// TODO(8/5/20): revert json_configs once we send proto descriptors from mconfig_builders
+	// json_configs_by_key contains JSON-serialized partial mconfig
+	// These configs should be semantically equivalent to the GatewayConfigs
+	// TODO(T71525030): revert json_configs once we send proto descriptors from mconfig_builders
 	JsonConfigs          []byte   `protobuf:"bytes,3,opt,name=json_configs,json=jsonConfigs,proto3" json:"json_configs,omitempty"` // Deprecated: Do not use.
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`

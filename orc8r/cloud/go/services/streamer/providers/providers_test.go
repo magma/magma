@@ -60,7 +60,7 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	assert.NoError(t, err)
 	streamerClient := protos.NewStreamerClient(conn)
 
-	// TODO(8/5/20): revert below (and remove bytes version) once we send proto descriptors from mconfig_builders
+	// TODO(T71525030): revert below (and remove bytes version) once we send proto descriptors from mconfig_builders
 
 	t.Run("normal stream update (bytes)", func(t *testing.T) {
 		stream, err := streamerClient.GetUpdates(context.Background(), &protos.StreamRequest{GatewayId: "hw1", StreamName: "configs"})
