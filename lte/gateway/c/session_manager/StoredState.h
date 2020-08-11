@@ -31,15 +31,11 @@ struct QoSInfo {
 };
 
 struct SessionConfig {
-  std::string ue_ipv4;
   std::string spgw_ipv4;
-  std::string msisdn;
-  std::string apn;
   std::string imei;
   std::string plmn_id;
   std::string imsi_plmn_id;
   std::string user_location;
-  RATType rat_type;
   std::string mac_addr;      // MAC Address for WLAN
   std::string hardware_addr; // MAC Address for WLAN (binary)
   std::string radius_session_id;

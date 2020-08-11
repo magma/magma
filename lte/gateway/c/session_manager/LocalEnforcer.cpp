@@ -161,11 +161,11 @@ bool LocalEnforcer::setup(
       session_infos.push_back(session_info);
       auto ue_mac_addr = session->get_config().mac_addr;
       ue_mac_addrs.push_back(ue_mac_addr);
-      auto msisdn = session->get_config().msisdn;
+      auto msisdn = session->get_config().common_context.msisdn();
       msisdns.push_back(msisdn);
       std::string apn_mac_addr;
       std::string apn_name;
-      auto apn = session->get_config().apn;
+      auto apn = session->get_config().common_context.apn();
       if (!parse_apn(apn, apn_mac_addr, apn_name)) {
         MLOG(MWARNING) << "Failed mac/name parsiong for apn " << apn;
         apn_mac_addr = "";
@@ -216,7 +216,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       }
 
       session->sync_rules_to_time(current_time, uc);
-      auto ip_addr = session->get_config().ue_ipv4;
+      auto ip_addr = session->get_config().common_context.ue_ipv4();
 
       for (std::string rule_id : session->get_static_rules()) {
         auto lifetime = session->get_rule_lifetime(rule_id);
@@ -439,7 +439,8 @@ void LocalEnforcer::remove_all_rules_for_termination(
 void LocalEnforcer::notify_termination_to_access_service(
     const std::string& imsi, const std::string& session_id,
     const SessionConfig& config) {
-  switch (config.rat_type) {
+  auto common_context = config.common_context;
+  switch (common_context.rat_type()) {
     case TGPP_WLAN: {
       // tell AAA service to terminate radius session if necessary
       auto radius_session_id = config.radius_session_id;
@@ -451,13 +452,15 @@ void LocalEnforcer::notify_termination_to_access_service(
     case TGPP_LTE: {
       // Deleting the PDN session by triggering network issued default bearer
       // deactivation
+      auto lte_context = config.rat_specific_context.lte_context();
       spgw_client_->delete_default_bearer(
-          imsi, config.ue_ipv4, config.bearer_id);
+          imsi, common_context.ue_ipv4(), lte_context.bearer_id());
       break;
     }
     default:
+      // Should not get here
       MLOG(MWARNING) << session_id << " has an invalid RAT Type "
-                     << config.rat_type;
+                     << config.common_context.rat_type();
       return;
   }
 }
@@ -712,7 +715,7 @@ void LocalEnforcer::schedule_static_rule_activation(
                            << static_rule.rule_id();
           } else {
             for (const auto& session : it->second) {
-              if (session->get_config().ue_ipv4 == ip_addr) {
+              if (session->get_config().common_context.ue_ipv4() == ip_addr) {
                 auto& uc = session_update[imsi][session->get_session_id()];
                 session->install_scheduled_static_rule(
                     static_rule.rule_id(), uc);
@@ -753,7 +756,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
                            << dynamic_rule.policy_rule().id();
           } else {
             for (const auto& session : it->second) {
-              if (session->get_config().ue_ipv4 == ip_addr) {
+              if (session->get_config().common_context.ue_ipv4() == ip_addr) {
                 auto& uc = session_update[imsi][session->get_session_id()];
                 session->install_scheduled_dynamic_rule(
                     dynamic_rule.policy_rule().id(), uc);
@@ -871,7 +874,7 @@ bool LocalEnforcer::handle_session_init_rule_updates(
     SessionMap& session_map, const std::string& imsi,
     SessionState& session_state, const CreateSessionResponse& response,
     std::unordered_set<uint32_t>& charging_credits_received) {
-  auto ip_addr = session_state.get_config().ue_ipv4;
+  auto ip_addr = session_state.get_config().common_context.ue_ipv4();
 
   RulesToProcess rules_to_activate;
   RulesToProcess rules_to_deactivate;
@@ -1209,7 +1212,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
           to_vec(usage_monitor_resp.dynamic_rules_to_install()),
           rules_to_activate, rules_to_deactivate, update_criteria);
 
-      auto ip_addr            = session->get_config().ue_ipv4;
+      auto ip_addr            = session->get_config().common_context.ue_ipv4();
       bool deactivate_success = true;
       bool activate_success   = true;
 
@@ -1297,7 +1300,7 @@ void LocalEnforcer::terminate_session(
   for (const auto& session : it->second) {
     auto config     = session->get_config();
     auto session_id = session->get_session_id();
-    if (config.apn == apn) {
+    if (config.common_context.apn() == apn) {
       SessionStateUpdateCriteria& update_criteria =
           session_update[imsi][session_id];
       MLOG(MINFO) << "Starting externally triggered termination for "
@@ -1457,7 +1460,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
       to_vec(request.dynamic_rules_to_install()), rules_to_activate,
       rules_to_deactivate, update_criteria);
 
-  auto ip_addr = session->get_config().ue_ipv4;
+  auto ip_addr = session->get_config().common_context.ue_ipv4();
   if (rules_to_process_is_not_empty(rules_to_deactivate)) {
     deactivate_success = pipelined_client_->deactivate_flows_for_rules(
         request.imsi(), rules_to_deactivate.static_rules,
@@ -1562,7 +1565,7 @@ void LocalEnforcer::process_rules_to_install(
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& update_criteria) {
   std::time_t current_time = time(NULL);
-  std::string ip_addr      = session.get_config().ue_ipv4;
+  std::string ip_addr      = session.get_config().common_context.ue_ipv4();
   for (const auto& rule_install : static_rule_installs) {
     const auto& id = rule_install.rule_id();
     if (session.is_static_rule_installed(id)) {
@@ -1748,7 +1751,8 @@ void LocalEnforcer::create_bearer(
   if (request.qos_info().qci() != default_qci) {
     MLOG(MDEBUG) << "QCI sent in RAR is different from default QCI";
     spgw_client_->create_dedicated_bearer(
-        request.imsi(), config.ue_ipv4, config.bearer_id, dynamic_rules);
+        request.imsi(), config.common_context.ue_ipv4(), config.bearer_id,
+        dynamic_rules);
   }
   return;
 }

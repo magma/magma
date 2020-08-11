@@ -196,15 +196,11 @@ static CreateSessionRequest make_create_session_request(
 SessionConfig LocalSessionManagerHandlerImpl::build_session_config(
     const LocalCreateSessionRequest& request) {
   SessionConfig cfg = {
-      .ue_ipv4           = request.ue_ipv4(),
       .spgw_ipv4         = request.spgw_ipv4(),
-      .msisdn            = request.msisdn(),
-      .apn               = request.apn(),
       .imei              = request.imei(),
       .plmn_id           = request.plmn_id(),
       .imsi_plmn_id      = request.imsi_plmn_id(),
       .user_location     = request.user_location(),
-      .rat_type          = request.rat_type(),
       .mac_addr          = convert_mac_addr_to_str(request.hardware_addr()),
       .hardware_addr     = request.hardware_addr(),
       .radius_session_id = request.radius_session_id(),
@@ -238,7 +234,8 @@ void LocalSessionManagerHandlerImpl::CreateSession(
 
         SessionConfig cfg = build_session_config(request_cpy);
         auto session_map  = get_sessions_for_creation(imsi);
-        switch (cfg.rat_type) {
+        auto rat_type     = cfg.common_context.rat_type();
+        switch (rat_type) {
           case TGPP_WLAN:
             handle_create_session_cwf(
                 session_map, request_cpy, sid, cfg, response_callback);
@@ -249,11 +246,11 @@ void LocalSessionManagerHandlerImpl::CreateSession(
             return;
           default:
             std::ostringstream failure_stream;
-            failure_stream << "Received an invalid RAT type " << cfg.rat_type;
+            failure_stream << "Received an invalid RAT type " << rat_type;
             std::string failure_msg = failure_stream.str();
             MLOG(MERROR) << failure_msg;
             events_reporter_->session_create_failure(
-                imsi, cfg.apn, cfg.mac_addr, failure_msg);
+                imsi, cfg.common_context.apn(), cfg.mac_addr, failure_msg);
             auto status = Status(grpc::FAILED_PRECONDITION, "Invalid RAT type");
             send_local_create_session_response(status, sid, response_callback);
             return;
@@ -307,7 +304,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
           std::string failure_msg = failure_stream.str();
           MLOG(MERROR) << failure_msg;
           events_reporter_->session_create_failure(
-              imsi, cfg.apn, cfg.mac_addr, failure_msg);
+              imsi, cfg.common_context.apn(), cfg.mac_addr, failure_msg);
         }
         send_local_create_session_response(status, sid, cb);
       });
@@ -380,21 +377,24 @@ void LocalSessionManagerHandlerImpl::handle_create_session_lte(
       // transition for termination) AND it should have the exact same
       // configuration.
       MLOG(MINFO) << "Found an active completely duplicated session with IMSI "
-                  << imsi << " and APN " << cfg.apn << ", and same "
-                  << "configuration. Recycling the existing session " << sid;
+                  << imsi << " and APN " << cfg.common_context.apn()
+                  << ", and same configuration. Recycling the existing session "
+                  << sid;
       send_local_create_session_response(grpc::Status::OK, sid, cb);
       return;  // Return early
     }
+    auto apn = cfg.common_context.apn();
     // At this point, we have session with same IMSI, but not identical config
-    if (session->get_config().apn == cfg.apn && session->is_active()) {
+    if (session->get_config().common_context.apn() == apn &&
+        session->is_active()) {
       // If we have found an active session with the same IMSI+APN, but NOT
       // identical context, we should terminate the existing session.
       MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
-                  << " and APN " << cfg.apn << ", but different "
+                  << " and APN " << apn << ", but different "
                   << "configuration. Ending the existing session, "
                   << "and requesting a new session";
       end_session(
-          session_map, request.sid(), cfg.apn,
+          session_map, request.sid(), apn,
           [&](grpc::Status status, LocalEndSessionResponse response) {});
       // All sessions are unique by IMSI+APN
       break;
