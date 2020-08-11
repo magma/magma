@@ -214,6 +214,12 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
         return false;
       }
     }
+    if (!flow_match_rule->ipv6_dst().empty()) {
+      flags |= TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
+      if (!fillIpv6(pf_content, flow_match_rule->ipv6_dst())) {
+        return false;
+      }
+    }
     if (flow_match_rule->tcp_src() != 0) {
       flags |= TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG;
       pf_content->singlelocalport = flow_match_rule->tcp_src();
@@ -292,6 +298,31 @@ bool SpgwServiceImpl::fillIpv4(
       pf_content->ipv4remoteaddr[2].addr, pf_content->ipv4remoteaddr[3].addr,
       pf_content->ipv4remoteaddr[0].mask, pf_content->ipv4remoteaddr[1].mask,
       pf_content->ipv4remoteaddr[2].mask, pf_content->ipv4remoteaddr[3].mask);
+  return true;
+}
+
+bool SpgwServiceImpl::fillIpv6(
+    packet_filter_contents_t* pf_content, const std::string ipv6addr) {
+  struct in6_addr in6addr;
+  if (inet_pton(AF_INET6, ipv6addr.c_str(), &in6addr) != 1) {
+    OAILOG_ERROR(LOG_UTIL, "Invalid address string %s \n", ipv6addr.c_str());
+    return false;
+  }
+  for (int i = 0; i < TRAFFIC_FLOW_TEMPLATE_IPV6_ADDR_SIZE; i++) {
+    pf_content->ipv6remoteaddr[i].addr = in6addr.s6_addr[i];
+  }
+
+  OAILOG_DEBUG(
+      LOG_UTIL,
+      "Network Address: %x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x:%x\n",
+      pf_content->ipv6remoteaddr[0].addr, pf_content->ipv6remoteaddr[1].addr,
+      pf_content->ipv6remoteaddr[2].addr, pf_content->ipv6remoteaddr[3].addr,
+      pf_content->ipv6remoteaddr[4].addr, pf_content->ipv6remoteaddr[5].addr,
+      pf_content->ipv6remoteaddr[6].addr, pf_content->ipv6remoteaddr[7].addr,
+      pf_content->ipv6remoteaddr[8].addr, pf_content->ipv6remoteaddr[9].addr,
+      pf_content->ipv6remoteaddr[10].addr, pf_content->ipv6remoteaddr[11].addr,
+      pf_content->ipv6remoteaddr[12].addr, pf_content->ipv6remoteaddr[13].addr,
+      pf_content->ipv6remoteaddr[14].addr, pf_content->ipv6remoteaddr[15].addr);
   return true;
 }
 
