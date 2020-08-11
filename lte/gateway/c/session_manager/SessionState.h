@@ -53,8 +53,8 @@ class SessionState {
  public:
   SessionState(
       const std::string& imsi, const std::string& session_id,
-      const std::string& core_session_id, const SessionConfig& cfg,
-      StaticRuleStore& rule_store, const magma::lte::TgppContext& tgpp_context);
+      const SessionConfig& cfg, StaticRuleStore& rule_store,
+      const magma::lte::TgppContext& tgpp_context);
 
   SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -382,7 +382,6 @@ class SessionState {
  private:
   std::string imsi_;
   std::string session_id_;
-  std::string core_session_id_;
   uint32_t request_number_;
   SessionFsmState curr_state_;
   SessionConfig config_;
