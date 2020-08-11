@@ -7,6 +7,9 @@ hide_title: true
 
 This page walks through a full, vanilla Orchestrator install.
 
+If you want to install a specific release version, check out the relevant notes
+in the [deployment intro](./deploy_intro.md).
+
 ## Prerequisites
 
 This walkthrough assumes you already have the following

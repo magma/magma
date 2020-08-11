@@ -44,8 +44,8 @@ aaa::add_sessions_request create_add_sessions_req(
       ctx.set_session_id(config.radius_session_id);
       ctx.set_acct_session_id(session->get_session_id());
       ctx.set_mac_addr(config.mac_addr);
-      ctx.set_msisdn(config.msisdn);
-      ctx.set_apn(config.apn);
+      ctx.set_msisdn(config.common_context.msisdn());
+      ctx.set_apn(config.common_context.apn());
       auto mutable_sessions = req.mutable_sessions();
       mutable_sessions->Add()->CopyFrom(ctx);
     }

@@ -25,27 +25,11 @@
 #include "CreditKey.h"
 
 namespace magma {
-struct QoSInfo {
-  bool enabled;
-  uint32_t qci;
-};
-
 struct SessionConfig {
-  std::string ue_ipv4;
-  std::string spgw_ipv4;
-  std::string msisdn;
-  std::string apn;
-  std::string imei;
-  std::string plmn_id;
-  std::string imsi_plmn_id;
-  std::string user_location;
-  RATType rat_type;
   std::string mac_addr;      // MAC Address for WLAN
   std::string hardware_addr; // MAC Address for WLAN (binary)
   std::string radius_session_id;
-  uint32_t bearer_id;
   // TODO The fields above will be replaced by the bundled fields below
-  QoSInfo qos_info;
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
 
@@ -260,10 +244,6 @@ struct SessionStateUpdateCriteria {
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();
-
-std::string serialize_stored_qos_info(const QoSInfo &stored);
-
-QoSInfo deserialize_stored_qos_info(const std::string &serialized);
 
 std::string serialize_stored_session_config(const SessionConfig &stored);
 

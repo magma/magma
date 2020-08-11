@@ -13,7 +13,10 @@
 
 package test_utils
 
-import "magma/feg/cloud/go/services/feg/obsidian/models"
+import (
+	"magma/feg/cloud/go/services/feg/obsidian/models"
+	"github.com/go-openapi/swag"
+)
 
 func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 	// GyInitMethod_PER_SESSION
@@ -32,6 +35,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			},
 		},
 		Gx: &models.Gx{
+			DisableGx: swag.Bool(false),
 			Servers: []*models.DiameterClientConfigs{
 				{
 					Protocol:         "tcp",
@@ -45,6 +49,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			},
 		},
 		Gy: &models.Gy{
+			DisableGy: swag.Bool(false),
 			Servers: []*models.DiameterClientConfigs{
 				{
 					Protocol:         "tcp",

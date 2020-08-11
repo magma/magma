@@ -24,13 +24,11 @@
 using ::testing::Test;
 
 namespace magma {
-const SessionConfig test_sstate_cfg = {
-    .ue_ipv4   = "127.0.0.1",
-    .spgw_ipv4 = "128.0.0.1"};
 
 class SessionStateTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
+    SessionConfig test_sstate_cfg;
     auto tgpp_ctx = TgppContext();
     create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
     rule_store    = std::make_shared<StaticRuleStore>();
