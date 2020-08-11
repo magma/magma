@@ -15,6 +15,7 @@
 #include <memory>
 
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <experimental/optional>
 
 #include "CreditKey.h"
 
@@ -58,15 +59,19 @@ class ServiceAction {
     return *this;
   }
 
-  ServiceAction &set_credit_key(const CreditKey &credit_key)
-  {
+  ServiceAction &set_credit_key(const CreditKey &credit_key) {
     credit_key_ = credit_key;
     return *this;
   }
 
-  ServiceAction &set_redirect_server(const RedirectServer &redirect_server)
-  {
+  ServiceAction& set_redirect_server(const RedirectServer& redirect_server) {
     redirect_server_ = std::make_unique<RedirectServer>(redirect_server);
+    return *this;
+  }
+
+  ServiceAction& set_ambr(
+      const std::experimental::optional<AggregatedMaximumBitrate> ambr) {
+    ambr_ = ambr;
     return *this;
   }
 
@@ -74,7 +79,7 @@ class ServiceAction {
    * get_imsi returns the associated IMSI for the action, or throws a nullptr
    * exception if there is none stored
    */
-  const std::string &get_imsi() const { return *imsi_; }
+  const std::string& get_imsi() const { return *imsi_; }
 
   /**
    * get_imsi returns the associated IMSI for the action, or throws a nullptr
@@ -97,16 +102,18 @@ class ServiceAction {
     return rule_definitions_;
   }
 
-  std::vector<std::string> *get_mutable_rule_ids() { return &rule_ids_; }
+  std::vector<std::string>* get_mutable_rule_ids() { return &rule_ids_; }
 
-  std::vector<PolicyRule> *get_mutable_rule_definitions()
-  {
+  std::vector<PolicyRule>* get_mutable_rule_definitions() {
     return &rule_definitions_;
   }
 
-  const RedirectServer &get_redirect_server() const
-  {
+  const RedirectServer& get_redirect_server() const {
     return *redirect_server_;
+  }
+
+  const std::experimental::optional<AggregatedMaximumBitrate> get_ambr() const {
+    return ambr_;
   }
 
  private:
@@ -118,6 +125,7 @@ class ServiceAction {
   std::vector<std::string> rule_ids_;
   std::vector<PolicyRule> rule_definitions_;
   std::unique_ptr<RedirectServer> redirect_server_;
+  std::experimental::optional<AggregatedMaximumBitrate> ambr_;
 };
 
 } // namespace magma

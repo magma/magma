@@ -320,6 +320,21 @@ class LocalEnforcer {
       SessionStateUpdateCriteria& update_criteria);
 
   /**
+   * propagate_rule_updates_to_pipelined calls the PipelineD RPC calls to
+   * install/uninstall flows
+   * @param imsi
+   * @param config
+   * @param rules_to_activate
+   * @param rules_to_deactivate
+   * @param always_send_activate : if this is set activate call will be sent
+   * even if rules_to_activate is empty
+   */
+  void propagate_rule_updates_to_pipelined(
+      const std::string& imsi, const SessionConfig& config,
+      const RulesToProcess& rules_to_activate,
+      const RulesToProcess& rules_to_deactivate, bool always_send_activate);
+
+  /**
    * For the matching session ID, activate and/or deactivate the specified
    * rules.
    * Also create a bearer for the session.
@@ -395,6 +410,7 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
+      std::experimental::optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
@@ -483,6 +499,10 @@ class LocalEnforcer {
    */
   void terminate_multiple_services(
       SessionMap& session_map, const std::unordered_set<std::string>& imsis,
+      SessionUpdate& session_update);
+
+  void handle_activate_service_action(
+      SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
       SessionUpdate& session_update);
 
   /**
