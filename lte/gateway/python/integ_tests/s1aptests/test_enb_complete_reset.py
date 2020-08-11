@@ -19,7 +19,6 @@ import s1ap_wrapper
 
 
 class TestEnbCompleteReset(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -33,13 +32,16 @@ class TestEnbCompleteReset(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            print("************************* Calling attach for UE id ",
-                  req.ue_id)
+            print(
+                "************************* Calling attach for UE id ",
+                req.ue_id,
+            )
             self._s1ap_wrapper.s1_util.attach(
                 req.ue_id,
                 s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+                s1ap_types.ueAttachAccept_t,
+            )
             ue_ids.append(req.ue_id)
 
             # Wait on EMM Information from MME
@@ -54,24 +56,40 @@ class TestEnbCompleteReset(unittest.TestCase):
         reset_req = s1ap_types.ResetReq()
         reset_req.rstType = s1ap_types.resetType.COMPLETE_RESET.value
         reset_req.cause = s1ap_types.ResetCause()
-        reset_req.cause.causeType = \
+        reset_req.cause.causeType = (
             s1ap_types.NasNonDelCauseType.TFW_CAUSE_MISC.value
+        )
         # Set the cause to MISC.hardware-failure
         reset_req.cause.causeVal = 3
         reset_req.r = s1ap_types.R()
         reset_req.r.completeRst = s1ap_types.CompleteReset()
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.RESET_REQ, reset_req)
+            s1ap_types.tfwCmd.RESET_REQ, reset_req
+        )
         response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
+        self.assertEqual(response.msg_type, s1ap_types.tfwCmd.RESET_ACK.value)
+
+        # The sleep is added here because sometimes the test case was seen to
+        # get stuck during sanity. The reason for the issue is that when Detach
+        # request and ENB complete reset requests are handled simultaneously
+        # for a particular UE, there is a chance of cleaning the context
+        # implicitely and without sending the UE context release complete msg
+        # to S1APTester and S1APTester gets stuck waiting for the response. The
+        # issues should not be present with the real ENB and UE in the network,
+        # hence adding the sleep here to remove this issue.
+        print(
+            "************************* Waiting for 3 seconds for the ENB"
+            " Complete Reset request to get processed"
+        )
+        time.sleep(3)
 
         # Note - S1APTester is not sending detach after receiving reset.
         # Reported the issue to S1APTester team.
         for ue in ue_ids:
             print("************************* Calling detach for UE id ", ue)
             self._s1ap_wrapper.s1_util.detach(
-                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True)
+                ue, s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value, True
+            )
 
 
 if __name__ == "__main__":
