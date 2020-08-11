@@ -165,6 +165,7 @@ definitions:
     required:
       - id
       - lte
+      - config
     properties:
       id:
         $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
@@ -174,6 +175,8 @@ definitions:
         example: 'Jane Doe'
       lte:
         $ref: '#/definitions/lte_subscription'
+      config:
+        $ref: '#/definitions/subscriber_config'
       active_base_names:
         type: array
         items:
@@ -223,6 +226,8 @@ definitions:
         example:
           - 'base_name_1'
           - 'base_name_2'
+      static_ips:
+        $ref: '#/definitions/subscriber_static_ips'
       active_policies:
         type: array
         items:
@@ -234,6 +239,25 @@ definitions:
           - 'rule2'
       active_apns:
         $ref: '#/definitions/apn_list'
+
+  subscriber_config:
+    type: object
+    required:
+      - lte
+    properties:
+      lte:
+        $ref: '#/definitions/lte_subscription'
+      static_ips:
+        $ref: '#/definitions/subscriber_static_ips'
+
+  subscriber_static_ips:
+    type: object
+    description: Mapping of APN ID to static IP address to allocate for the subscriber at the edge
+    additionalProperties:
+      type: string
+      format: ipv4
+      minLength: 1
+      example: '192.168.100.1'
 
   lte_subscription:
     type: object

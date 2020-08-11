@@ -77,34 +77,44 @@ class DhcpClient(unittest.TestCase):
 
     @unittest.skipIf(os.getuid(), reason="needs root user")
     def test_dhcp_lease1(self):
+        self.pkt_list_lock = threading.Condition()
+
         self._setup_sniffer()
         mac1 = MacAddress("11:22:33:44:55:66")
-        dhcp1 = self._alloc_ip_address_from_dhcp(mac1)
-        self.assertEqual(dhcp1.state_requested, DHCPState.REQUEST)
-        assert (dhcp1.state == DHCPState.OFFER or dhcp1.state == DHCPState.ACK)
+        self._alloc_ip_address_from_dhcp(mac1)
+        self._validate_req_state(mac1, DHCPState.REQUEST)
+        self._validate_state_as_current(mac1)
 
         # trigger lease reneval before deadline
         time1 = datetime.datetime.now() + datetime.timedelta(seconds=100)
         self._start_sniffer()
         with freeze_time(time1):
-            time.sleep(PKT_CAPTURE_WAIT)
             self._stop_sniffer_and_check(DHCPState.REQUEST, mac1)
-            self.assertEqual(dhcp1.state_requested, DHCPState.REQUEST)
-            assert (dhcp1.state == DHCPState.OFFER or dhcp1.state == DHCPState.ACK)
+            self._validate_req_state(mac1, DHCPState.REQUEST)
+            self._validate_state_as_current(mac1)
 
             # trigger lease after deadline
             time2 = datetime.datetime.now() + datetime.timedelta(seconds=200)
             self._start_sniffer()
             with freeze_time(time2):
-                time.sleep(PKT_CAPTURE_WAIT)
+                LOG.debug("check discover after lease loss")
                 self._stop_sniffer_and_check(DHCPState.DISCOVER, mac1)
-                self.assertEqual(dhcp1.state_requested, DHCPState.REQUEST)
-                assert (dhcp1.state == DHCPState.OFFER or dhcp1.state == DHCPState.ACK)
+                self._validate_req_state(mac1, DHCPState.REQUEST)
+                self._validate_state_as_current(mac1)
 
         self._dhcp_client.release_ip_address(mac1)
+        time.sleep(PKT_CAPTURE_WAIT)
+        self._validate_req_state(mac1, DHCPState.RELEASE)
 
-        dhcp1 = self.dhcp_store.get(mac1.as_redis_key())
-        self.assertEqual(dhcp1.state_requested, DHCPState.RELEASE)
+    def _validate_req_state(self, mac: MacAddress, state: DHCPState):
+        with self.dhcp_wait:
+            dhcp1 = self.dhcp_store.get(mac.as_redis_key())
+            self.assertEqual(dhcp1.state_requested, state)
+
+    def _validate_state_as_current(self, mac: MacAddress):
+        with self.dhcp_wait:
+            dhcp1 = self.dhcp_store.get(mac.as_redis_key())
+            assert (dhcp1.state == DHCPState.OFFER or dhcp1.state == DHCPState.ACK)
 
     def _alloc_ip_address_from_dhcp(self, mac: MacAddress) -> DHCPDescriptor:
         retry_count = 0
@@ -124,7 +134,8 @@ class DhcpClient(unittest.TestCase):
     def _handle_dhcp_req_packet(self, packet):
         if DHCP not in packet:
             return
-        self.pkt_list.append(packet)
+        with self.pkt_list_lock:
+            self.pkt_list.append(packet)
 
     def _setup_sniffer(self):
         self._sniffer = AsyncSniffer(iface=DHCP_IFACE,
@@ -134,14 +145,18 @@ class DhcpClient(unittest.TestCase):
     def _start_sniffer(self):
         self.pkt_list = []
         self._sniffer.start()
-        time.sleep(.5)
+        time.sleep(PKT_CAPTURE_WAIT)
 
     def _stop_sniffer_and_check(self, state: DHCPState, mac: MacAddress):
-        self._sniffer.stop()
-        for pkt in self.pkt_list:
-            logging.debug("pkt: %s " % pkt.summary())
-            if DHCP in pkt:
-                if pkt[DHCP].options[0][1] == int(state) and \
-                        pkt[Ether].src == str(mac):
-                    return
+        for x in range(30):
+            time.sleep(PKT_CAPTURE_WAIT)
+            with self.pkt_list_lock:
+                for pkt in self.pkt_list:
+                    LOG.debug("DHCP pkt %s", pkt.show(dump=True))
+                    if DHCP in pkt:
+                        if pkt[DHCP].options[0][1] == int(state) and \
+                                pkt[Ether].src == str(mac):
+                            self._sniffer.stop()
+                            return None
+
         assert 0

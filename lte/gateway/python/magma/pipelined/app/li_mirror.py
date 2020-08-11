@@ -130,8 +130,9 @@ class LIMirrorController(MagmaController):
         Main thread that polls config updates and updates LI mirror flows
         """
         while True:
-            mconfg_li_imsis = load_service_mconfig('pipelined',
-                                            mconfigs_pb2.PipelineD()).li_imsis
+            mconfg_li_imsis = load_service_mconfig(
+                'pipelined', mconfigs_pb2.PipelineD()).li_ues.imsis
+            
             li_imsis = []
             for imsi in mconfg_li_imsis:
                 if any(i.isdigit() for i in imsi):

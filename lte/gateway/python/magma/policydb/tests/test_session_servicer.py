@@ -17,8 +17,10 @@ from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2 import RatingGroup
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest, \
-    CreditUpdateResponse, CreditLimitType
-from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription
+    CreditUpdateResponse, CreditLimitType, RatSpecificContext, \
+    LTESessionContext, CommonSessionContext
+from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription, \
+    SubscriberID
 from orc8r.protos.common_pb2 import NetworkID
 from magma.policydb.servicers.session_servicer import SessionRpcServicer
 
@@ -92,9 +94,19 @@ class SessionRpcServicerTest(unittest.TestCase):
             Two dynamic rules are installed for traffic from UE to captive
             portal and vice versa
         """
-        msg = CreateSessionRequest()
-        msg.session_id = '1234'
-        msg.imsi_plmn_id = '00101'
+        msg = CreateSessionRequest(
+            session_id = '1234',
+            common_context = CommonSessionContext(
+                sid = SubscriberID(
+                    id = 'IMSI1234',
+                )
+            ),
+            rat_specific_context = RatSpecificContext(
+                lte_context = LTESessionContext(
+                    imsi_plmn_id = '00101',
+                ),
+            ),
+        )
         resp = self.servicer.CreateSession(msg, None)
 
         # There should be a static rule installed for the redirection

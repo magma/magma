@@ -419,21 +419,6 @@ SessionState::TotalCreditUsage SessionState::get_total_credit_usage() {
   return usage;
 }
 
-bool SessionState::is_same_config(const SessionConfig& new_config) const {
-  return config_.ue_ipv4.compare(new_config.ue_ipv4) == 0 &&
-         config_.spgw_ipv4.compare(new_config.spgw_ipv4) == 0 &&
-         config_.msisdn.compare(new_config.msisdn) == 0 &&
-         config_.apn.compare(new_config.apn) == 0 &&
-         config_.imei.compare(new_config.imei) == 0 &&
-         config_.plmn_id.compare(new_config.plmn_id) == 0 &&
-         config_.imsi_plmn_id.compare(new_config.imsi_plmn_id) == 0 &&
-         config_.user_location.compare(new_config.user_location) == 0 &&
-         config_.rat_type == new_config.rat_type &&
-         config_.hardware_addr.compare(new_config.hardware_addr) == 0 &&
-         config_.radius_session_id.compare(new_config.radius_session_id) == 0 &&
-         config_.bearer_id == new_config.bearer_id;
-}
-
 std::string SessionState::get_session_id() const {
   return session_id_;
 }
@@ -1019,6 +1004,7 @@ void SessionState::get_charging_updates(
         action->set_credit_key(key);
         action->set_imsi(imsi_);
         action->set_ip_addr(config_.ue_ipv4);
+        action->set_session_id(session_id_);
         static_rules_.get_rule_ids_for_charging_key(
             key, *action->get_mutable_rule_ids());
         dynamic_rules_.get_rule_definitions_for_charging_key(
