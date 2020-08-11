@@ -34,8 +34,8 @@ class MetricsCollector(object):
     _services = []
 
     def __init__(self, services, collect_interval,
-                 sync_interval, grpc_timeout, queue_length, loop=None,
-                 post_processing_fn=None):
+                 sync_interval, grpc_timeout, grpc_msg_size,
+                 queue_length, loop=None, post_processing_fn=None):
         self.sync_interval = sync_interval
         self.collect_interval = collect_interval
         self.grpc_timeout = grpc_timeout
@@ -44,6 +44,7 @@ class MetricsCollector(object):
         self._loop = loop if loop else asyncio.get_event_loop()
         self._retry_queue = []
         self._samples = []
+        self._grpc_options = _get_metrics_chan_grpc_options(grpc_msg_size)
         # @see example_metrics_postprocessor_fn
         self.post_processing_fn = post_processing_fn
 
@@ -105,9 +106,10 @@ class MetricsCollector(object):
         client = Service303Stub(chan)
         future = client.GetMetrics.future(Void(), self.grpc_timeout)
         future.add_done_callback(lambda future:
-            self._loop.call_soon_threadsafe(
-                self.collect_done, service_name, future))
-        self._loop.call_later(self.collect_interval, self.collect, service_name)
+                                 self._loop.call_soon_threadsafe(
+                                     self.collect_done, service_name, future))
+        self._loop.call_later(self.collect_interval, self.collect,
+                              service_name)
 
     def collect_done(self, service_name, get_metrics_future):
         """
@@ -181,6 +183,16 @@ def _get_uptime_metric(service_name, start_time):
     metric_proto.label.add(name="service", value=service_name)
     family_proto.metric.extend([metric_proto])
     return family_proto
+
+
+def _get_metrics_chan_grpc_options(msg_size: int):
+    """
+    Returns a list of gRPC options for metricsd cloud grpc channel
+    :param msg_size: msg size in MBs
+    :return:
+    """
+    return [('grpc.max_send_message_length', msg_size * 1024 * 1024),
+            ('grpc.max_receive_message_length', msg_size * 1024 * 1024)]
 
 
 def example_metrics_postprocessor_fn(

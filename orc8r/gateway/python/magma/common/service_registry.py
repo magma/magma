@@ -104,7 +104,8 @@ class ServiceRegistry:
         return create_grpc_channel(ip, port, authority, ssl_creds)
 
     @staticmethod
-    def get_rpc_channel(service, destination, proxy_cloud_connections=True):
+    def get_rpc_channel(service, destination, proxy_cloud_connections=True,
+                        grpc_options=None):
         """
         Returns a RPC channel to the service. The connection params
         are obtained from the service registry and used.
@@ -115,6 +116,7 @@ class ServiceRegistry:
             service (string): Name of the service
             destination (string): ServiceRegistry.LOCAL or ServiceRegistry.CLOUD
             proxy_cloud_connections (bool): Override to connect direct to cloud
+            grpc_options (list): list of gRPC options params for the channel
         Returns:
             grpc channel
         Raises:
@@ -146,7 +148,7 @@ class ServiceRegistry:
         if destination == ServiceRegistry.LOCAL:
             # Connect to the local service directly
             (ip, port) = ServiceRegistry.get_service_address(service)
-            channel = create_grpc_channel(ip, port, authority)
+            channel = create_grpc_channel(ip, port, authority, grpc_options)
         elif should_use_proxy:
             # Connect to the cloud via local control proxy
             try:
@@ -155,14 +157,14 @@ class ServiceRegistry:
             except ValueError as err:
                 logging.error(err)
                 (ip, port) = ('127.0.0.1', proxy_config['local_port'])
-            channel = create_grpc_channel(ip, port, authority)
+            channel = create_grpc_channel(ip, port, authority, grpc_options)
         else:
             # Connect to the cloud directly
             ip = proxy_config['cloud_address']
             port = proxy_config['cloud_port']
             ssl_creds = get_ssl_creds()
-            channel = create_grpc_channel(ip, port, authority, ssl_creds)
-
+            channel = create_grpc_channel(ip, port, authority, ssl_creds,
+                                          grpc_options)
         if should_reuse_channel:
             ServiceRegistry._CHANNELS_CACHE[authority] = channel
         return channel
@@ -243,7 +245,7 @@ def get_ssl_creds():
     return ssl_creds
 
 
-def create_grpc_channel(ip, port, authority, ssl_creds=None):
+def create_grpc_channel(ip, port, authority, ssl_creds=None, options=None):
     """
     Helper function to create a grpc channel.
 
@@ -252,17 +254,21 @@ def create_grpc_channel(ip, port, authority, ssl_creds=None):
        port: port of the remote endpoint
        authority: HTTP header that control proxy uses for routing
        ssl_creds: Enables SSL
+       options: configuration options for gRPC channel
     Returns:
         grpc channel
     """
+    grpc_options = [('grpc.default_authority', authority)]
+    if options is not None:
+        grpc_options.extend(options)
     if ssl_creds is not None:
         set_grpc_cipher_suites()
         channel = grpc.secure_channel(
-            '%s:%s' % (ip, port),
-            ssl_creds,
-            options=[('grpc.default_authority', authority)])
+            target='%s:%s' % (ip, port),
+            credentials=ssl_creds,
+            options=[grpc_options])
     else:
         channel = grpc.insecure_channel(
-            '%s:%s' % (ip, port),
-            options=[('grpc.default_authority', authority)])
+            target='%s:%s' % (ip, port),
+            options=[grpc_options])
     return channel
