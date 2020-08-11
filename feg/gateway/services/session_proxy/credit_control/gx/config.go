@@ -176,7 +176,8 @@ func GetGxGlobalConfig() *GxGlobalConfig {
 		return &GxGlobalConfig{}
 	}
 	return &GxGlobalConfig{
-		PCFROverwriteApn: configsPtr.GetGx().OverwriteApn,
+		PCFROverwriteApn: configsPtr.GetGx().GetOverwriteApn(),
+		DisableGx:        configsPtr.GetGx().GetDisableGx(),
 	}
 
 }
