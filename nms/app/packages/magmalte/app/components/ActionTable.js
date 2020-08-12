@@ -116,6 +116,7 @@ export type ActionTableProps<T> = {
   actions?: Array<{}>,
   data: Array<T> | (ActionQuery => {}),
   options: ActionTableOptions,
+  detailPanel?: Array<{}>,
 };
 
 export function PaperComponent(props: {}) {
@@ -228,6 +229,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
             : props.actions
         }
         options={props.options}
+        detailPanel={props.detailPanel}
       />
     </>
   );

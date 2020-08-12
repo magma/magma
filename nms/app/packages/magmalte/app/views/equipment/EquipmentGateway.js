@@ -291,9 +291,13 @@ function GatewayTableRaw(props: WithAlert) {
                 </Link>
               ),
             },
-            {title: 'enodeBs', field: 'num_enodeb', type: 'numeric'},
-            {title: 'Subscribers', field: 'num_subscribers', type: 'numeric'},
-            {title: 'Health', field: 'health'},
+            {
+              title: 'enodeBs',
+              field: 'num_enodeb',
+              width: 100,
+            },
+            {title: 'Subscribers', field: 'num_subscribers', width: 100},
+            {title: 'Health', field: 'health', width: 100},
             {title: 'Check In Time', field: 'checkInTime', type: 'datetime'},
           ]}
           handleCurrRow={(row: EquipmentGatewayRowType) => setCurrRow(row)}
