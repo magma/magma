@@ -94,40 +94,6 @@ LocalEnforcer::LocalEnforcer(
       retry_timeout_(2),
       mconfig_(mconfig) {}
 
-void LocalEnforcer::notify_new_report_for_sessions(
-    SessionMap& session_map, SessionUpdate& session_update) {
-  for (const auto& session_pair : session_map) {
-    for (const auto& session : session_pair.second) {
-      session->new_report(
-          session_update[session_pair.first][session->get_session_id()]);
-    }
-  }
-}
-
-void LocalEnforcer::notify_finish_report_for_sessions(
-    SessionMap& session_map, SessionUpdate& session_update) {
-  // Iterate through sessions and notify that report has finished. Terminate any
-  // sessions that can be terminated.
-  std::vector<std::pair<std::string, std::string>> imsi_to_terminate;
-  for (const auto& session_pair : session_map) {
-    for (const auto& session : session_pair.second) {
-      session->finish_report(
-          session_update[session_pair.first][session->get_session_id()]);
-      if (session->can_complete_termination()) {
-        imsi_to_terminate.push_back(
-            std::make_pair(session_pair.first, session->get_session_id()));
-      }
-    }
-  }
-  for (const auto& imsi_sid_pair : imsi_to_terminate) {
-    SessionStateUpdateCriteria& update_criteria =
-        session_update[imsi_sid_pair.first][imsi_sid_pair.second];
-    complete_termination(
-        session_map, imsi_sid_pair.first, imsi_sid_pair.second,
-        update_criteria);
-  }
-}
-
 void LocalEnforcer::start() {
   evb_->loopForever();
 }
@@ -274,8 +240,10 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
 void LocalEnforcer::aggregate_records(
     SessionMap& session_map, const RuleRecordTable& records,
     SessionUpdate& session_update) {
-  // unmark all credits
-  notify_new_report_for_sessions(session_map, session_update);
+  // TODO We should have a more granular identifier for sessions here
+  // Insert the IMSIs for which we received a rule record into a set for easy
+  // access
+  std::unordered_set<std::string> sessions_with_active_flows;
   for (const RuleRecord& record : records.records()) {
     auto it = session_map.find(record.sid());
     if (it == session_map.end()) {
@@ -283,8 +251,8 @@ void LocalEnforcer::aggregate_records(
                    << " during record aggregation";
       continue;
     }
+    sessions_with_active_flows.insert(record.sid());
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
-      MLOG(MINFO) << "";
       MLOG(MINFO) << record.sid() << " used " << record.bytes_tx()
                   << " tx bytes and " << record.bytes_rx()
                   << " rx bytes for rule " << record.rule_id();
@@ -297,7 +265,35 @@ void LocalEnforcer::aggregate_records(
           record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
     }
   }
-  notify_finish_report_for_sessions(session_map, session_update);
+  complete_termination_for_released_sessions(
+      session_map, sessions_with_active_flows, session_update);
+}
+
+void LocalEnforcer::complete_termination_for_released_sessions(
+    SessionMap& session_map, std::unordered_set<std::string> sessions_with_active_flows,
+    SessionUpdate& session_update) {
+  // Iterate through sessions and notify that report has finished. Terminate any
+  // sessions that can be terminated.
+  std::vector<std::pair<std::string, std::string>> imsi_to_terminate;
+  for (const auto& session_pair : session_map) {
+    const std::string imsi = session_pair.first;
+    for (const auto& session : session_pair.second) {
+      const std::string session_id = session->get_session_id();
+      // If we did not receive a rule record for the session, this means
+      // PipelineD has reported all usage for the session
+      if (session->get_state() == SESSION_RELEASED &&
+          sessions_with_active_flows.find(imsi) == sessions_with_active_flows.end()) {
+        imsi_to_terminate.push_back(std::make_pair(imsi, session_id));
+      }
+    }
+  }
+  for (const auto& imsi_sid_pair : imsi_to_terminate) {
+    auto imsi       = imsi_sid_pair.first;
+    auto session_id = imsi_sid_pair.second;
+    SessionStateUpdateCriteria& update_criteria =
+        session_update[imsi][session_id];
+    complete_termination(session_map, imsi, session_id, update_criteria);
+  }
 }
 
 void LocalEnforcer::execute_actions(
@@ -364,7 +360,7 @@ void LocalEnforcer::start_session_termination(
   auto session_id = session->get_session_id();
   if (session->is_terminating()) {
     // If the session is terminating already, do nothing.
-    MLOG(MDEBUG) << "Session " << session_id << " is already terminating, "
+    MLOG(MINFO) << "Session " << session_id << " is already terminating, "
                  << "ignoring termination request";
     return;
   }
@@ -372,7 +368,7 @@ void LocalEnforcer::start_session_termination(
 
   remove_all_rules_for_termination(imsi, session, update_criteria);
 
-  session->set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
+  session->set_fsm_state(SESSION_RELEASED, update_criteria);
   auto config = session->get_config();
   if (notify_access) {
     notify_termination_to_access_service(imsi, session_id, config);
