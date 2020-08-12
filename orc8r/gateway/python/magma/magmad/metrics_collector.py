@@ -95,7 +95,7 @@ class MetricsCollector(object):
             logging.error("Metrics upload error! [%s] %s",
                           err.code(), err.details())
         else:
-            logging.info("Metrics upload success")
+            logging.debug("Metrics upload success")
 
     def collect(self, service_name):
         """
