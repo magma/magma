@@ -16,6 +16,10 @@
       "access_token": "$SCUBA_ACCESS_TOKEN",
       "partner_shortname": "$PARTNER_SHORTNAME"
     }
+    "census": {
+      "disable_stats": false,
+      "stat_views": ["proc"]
+    }
   },
   "server": {
     "sessionStorage": {
