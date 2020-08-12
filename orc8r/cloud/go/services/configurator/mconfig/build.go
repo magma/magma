@@ -20,16 +20,57 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/golang/protobuf/ptypes"
+	"github.com/golang/protobuf/ptypes/any"
+	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/pkg/errors"
 )
 
-func CreateMconfig(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (*protos.GatewayConfigs, error) {
+// TODO(T71525030): restore CreateMconfig and remove CreateMconfigJSON
+
+//func CreateMconfig(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (*protos.GatewayConfigs, error) {
+//	builders, err := GetBuilders()
+//	if err != nil {
+//		return nil, err
+//	}
+//
+//	configs := ConfigsByKey{}
+//	for _, b := range builders {
+//		partialConfig, err := b.Build(network, graph, gatewayID)
+//		if err != nil {
+//			return nil, errors.Wrapf(err, "mconfig builder %+v error", b)
+//		}
+//		for key, config := range partialConfig {
+//			_, ok := configs[key]
+//			if ok {
+//				return nil, fmt.Errorf("received partial config for key %v from multiple mconfig builders", key)
+//			}
+//			configs[key] = config
+//		}
+//	}
+//
+//	mconfig := &protos.GatewayConfigs{
+//		Metadata: &protos.GatewayConfigsMetadata{
+//			CreatedAt: uint64(time.Now().Unix()),
+//			Digest:    &protos.GatewayConfigsDigest{},
+//		},
+//		ConfigsByKey: configs,
+//	}
+//	mconfig.Metadata.Digest.Md5HexDigest, err = mconfig.GetMconfigDigest()
+//	if err != nil {
+//		return nil, errors.Wrap(err, "generate mconfig digest")
+//	}
+//
+//	return mconfig, nil
+//}
+
+func CreateMconfigJSON(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (*protos.GatewayConfigs, error) {
 	builders, err := GetBuilders()
 	if err != nil {
 		return nil, err
 	}
 
-	configs := ConfigsByKey{}
+	configs := map[string]*any.Any{}
 	for _, b := range builders {
 		partialConfig, err := b.Build(network, graph, gatewayID)
 		if err != nil {
@@ -40,45 +81,12 @@ func CreateMconfig(network *storage.Network, graph *storage.EntityGraph, gateway
 			if ok {
 				return nil, fmt.Errorf("received partial config for key %v from multiple mconfig builders", key)
 			}
-			configs[key] = config
-		}
-	}
-
-	mconfig := &protos.GatewayConfigs{
-		Metadata: &protos.GatewayConfigsMetadata{
-			CreatedAt: uint64(time.Now().Unix()),
-			Digest:    &protos.GatewayConfigsDigest{},
-		},
-		ConfigsByKey: configs,
-	}
-	mconfig.Metadata.Digest.Md5HexDigest, err = mconfig.GetMconfigDigest()
-	if err != nil {
-		return nil, errors.Wrap(err, "generate mconfig digest")
-	}
-
-	return mconfig, nil
-}
-
-// TODO(T71525030): revert CreateMconfigBytes once we send proto descriptors from mconfig_builders
-
-func CreateMconfigBytes(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (*protos.GatewayConfigs, error) {
-	builders, err := GetBuildersBytes()
-	if err != nil {
-		return nil, err
-	}
-
-	configs := ConfigsByKey{}
-	for _, b := range builders {
-		partialConfig, err := b.Build(network, graph, gatewayID)
-		if err != nil {
-			return nil, errors.Wrapf(err, "mconfig builder %+v error", b)
-		}
-		for key, config := range partialConfig {
-			_, ok := configs[key]
-			if ok {
-				return nil, fmt.Errorf("received partial config for key %v from multiple mconfig builders", key)
+			configBytes := &wrappers.BytesValue{Value: config}
+			configAny, err := ptypes.MarshalAny(configBytes)
+			if err != nil {
+				return nil, err
 			}
-			configs[key] = config
+			configs[key] = configAny
 		}
 	}
 

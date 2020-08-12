@@ -30,8 +30,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -432,47 +430,24 @@ func buildBaseOrchestrator(network *configurator.Network, graph *configurator.En
 		return nil, err
 	}
 
-	configs := map[string]proto.Message{}
+	configs, err := mconfig.UnmarshalConfigs(res)
+	if err != nil {
+		return nil, err
+	}
 
-	magmadIConfig, ok := res["magmad"]
+	// Only return configs relevant to base orc8r
+	ret := map[string]proto.Message{
+		"control_proxy": configs["control_proxy"],
+		"metricsd":      configs["metricsd"],
+	}
+	_, ok := configs["magmad"]
 	if ok {
-		magmadConfig := &mconfig_protos.MagmaD{}
-		err = ptypes.UnmarshalAny(magmadIConfig, magmadConfig)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		configs["magmad"] = magmadConfig
-
-		fluentBitConfig := &mconfig_protos.FluentBit{}
-		err = ptypes.UnmarshalAny(res["td-agent-bit"], fluentBitConfig)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		configs["td-agent-bit"] = fluentBitConfig
-
-		eventdConfig := &mconfig_protos.EventD{}
-		err = ptypes.UnmarshalAny(res["eventd"], eventdConfig)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		configs["eventd"] = eventdConfig
+		ret["magmad"] = configs["magmad"]
+		ret["td-agent-bit"] = configs["td-agent-bit"]
+		ret["eventd"] = configs["eventd"]
 	}
 
-	controlProxyConfig := &mconfig_protos.ControlProxy{}
-	err = ptypes.UnmarshalAny(res["control_proxy"], controlProxyConfig)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	configs["control_proxy"] = controlProxyConfig
-
-	metricsdConfig := &mconfig_protos.MetricsD{}
-	err = ptypes.UnmarshalAny(res["metricsd"], metricsdConfig)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
-	configs["metricsd"] = metricsdConfig
-
-	return configs, nil
+	return ret, nil
 }
 
 func buildDnsd(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
@@ -490,13 +465,15 @@ func buildDnsd(network *configurator.Network, graph *configurator.EntityGraph, g
 		return nil, err
 	}
 
-	configs := map[string]proto.Message{}
-
-	dnsdConfig := &mconfig_protos.DnsD{}
-	err = ptypes.UnmarshalAny(res["dnsd"], dnsdConfig)
+	configs, err := mconfig.UnmarshalConfigs(res)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
-	configs["dnsd"] = dnsdConfig
-	return configs, nil
+
+	// Only return configs relevant to dnsd
+	ret := map[string]proto.Message{
+		"dnsd": configs["dnsd"],
+	}
+
+	return ret, nil
 }

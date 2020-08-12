@@ -17,10 +17,7 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/golang/glog"
-
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/streamer"
 	"magma/orc8r/lib/go/definitions"
 	"magma/orc8r/lib/go/protos"
 
@@ -43,8 +40,7 @@ func (p *MconfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*p
 		return nil, errors.Wrap(err, "get mconfig from configurator")
 	}
 
-	// TODO(T71525030): revert below once we send proto descriptors from mconfig_builders
-
+	// TODO(T71525030): add back below support for mconfig digests
 	//if extraArgs != nil {
 	//	// Currently, only use of extraArgs is mconfig hash
 	//	receivedDigest := &protos.GatewayConfigsDigest{}
@@ -58,36 +54,41 @@ func (p *MconfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*p
 	//	}
 	//}
 	//
-	//return mconfigToUpdate(res.Configs, res.LogicalID, "")
 
-	return bytesMconfigToUpdate(res.Configs, res.LogicalID)
+	return mconfigToUpdate(res.Configs, res.LogicalID, "")
 }
 
 func mconfigToUpdate(configs *protos.GatewayConfigs, logicalID string, digest string) ([]*protos.DataUpdate, error) {
+	// TODO(T71525030): add back the digest equality check, and generally revert this fn
+
 	// Early/empty return if gateway already has this config
-	if digest == configs.Metadata.Digest.Md5HexDigest {
-		return []*protos.DataUpdate{}, streamer.EAGAIN // do not close the stream, there were no changes in configs
-	}
-	marshaledConfig, err := protos.MarshalJSON(configs)
+	//if digest == configs.Metadata.Digest.Md5HexDigest {
+	//	return []*protos.DataUpdate{}, nil
+	//}
+
+	//marshaledConfig, err := protos.MarshalJSON(configs)
+	//if err != nil {
+	//	return nil, errors.Wrap(err, "marshal gateway mconfig")
+	//}
+
+	marshaledConfig, err := marshalJSONConfigs(configs)
 	if err != nil {
-		return nil, errors.Wrap(err, "marshal gateway mconfig")
+		return nil, err
 	}
 	return []*protos.DataUpdate{{Key: logicalID, Value: marshaledConfig}}, nil
 }
-
-// TODO(T71525030): revert below once we send proto descriptors from mconfig_builders
 
 type mconfigTemplate struct {
 	ConfigsByKey map[string]json.RawMessage    `json:"configsByKey"`
 	Metadata     protos.GatewayConfigsMetadata `json:"metadata"`
 }
 
-// bytesMconfigToUpdate creates a GatewayConfigs data update by manually
-// constructing the JSON-marshaled bytes for the data update.
+// marshalJSONConfigs marshals gateway configs by "manually" constructing the
+// JSON-marshaled bytes for the data update.
 // This hack is a temporary workaround until we upgrade to Go's protobuf
 // library APIv2, which has built-in support for dynamic any.Any resolution,
 // which is required to marshal an any.Any proto to JSON.
-func bytesMconfigToUpdate(configs *protos.GatewayConfigs, logicalID string) ([]*protos.DataUpdate, error) {
+func marshalJSONConfigs(configs *protos.GatewayConfigs) ([]byte, error) {
 	configsByKey := map[string]json.RawMessage{}
 
 	for k, v := range configs.ConfigsByKey {
@@ -107,7 +108,6 @@ func bytesMconfigToUpdate(configs *protos.GatewayConfigs, logicalID string) ([]*
 	if err != nil {
 		return nil, err
 	}
-	glog.Errorf("hcg marshaled mconfig --------- %s", marshaledMconfig) // hcg remove
 
-	return []*protos.DataUpdate{{Key: logicalID, Value: marshaledMconfig}}, nil
+	return marshaledMconfig, nil
 }

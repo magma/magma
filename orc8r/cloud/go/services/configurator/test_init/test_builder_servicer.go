@@ -21,8 +21,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/test_utils"
-
-	"github.com/golang/protobuf/ptypes/any"
 )
 
 type builderServicer struct {
@@ -41,16 +39,12 @@ func StartNewTestBuilder(t *testing.T, builder mconfig.Builder) {
 	go srv.RunTest(lis)
 }
 
-func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (ret *builder_protos.BuildResponse, err error) {
-	ret = &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
-
-	// TODO(T71525030): revert defer, above changes, and fn signature changes
-	defer func() { err = ret.FillJSONConfigs(err) }()
-
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
+	var err error
 	ret.ConfigsByKey, err = s.builder.Build(request.Network, request.Graph, request.GatewayId)
 	if err != nil {
 		return nil, err
 	}
-
 	return ret, nil
 }

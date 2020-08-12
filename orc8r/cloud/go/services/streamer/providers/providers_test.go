@@ -42,13 +42,14 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	streamer_test_init.StartTestService(t)
 	orchestrator_test_init.StartTestServiceInternal(t, nil, nil, servicers.NewProviderServicer())
 
-	msg := &test_protos.Message1{Field: "hello"}
-	msgAny, err := ptypes.MarshalAny(msg)
+	vals := map[string]proto.Message{
+		"some_service": &test_protos.Message1{Field: "hello"},
+	}
+	marshaledConfigs, err := mconfig.MarshalConfigs(vals)
 	assert.NoError(t, err)
-	out := mconfig.ConfigsByKey{"new_builder": msgAny}
 
 	mockBuilder := &mocks.Builder{}
-	mockBuilder.On("Build", mock.Anything, mock.Anything, "gw1").Return(out, nil)
+	mockBuilder.On("Build", mock.Anything, mock.Anything, "gw1").Return(marshaledConfigs, nil)
 	configurator_test_init.StartNewTestBuilder(t, mockBuilder)
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
@@ -60,14 +61,14 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	assert.NoError(t, err)
 	streamerClient := protos.NewStreamerClient(conn)
 
-	// TODO(T71525030): revert below (and remove bytes version) once we send proto descriptors from mconfig_builders
+	// TODO(T71525030): revert below and restore further below
 
-	t.Run("normal stream update (bytes)", func(t *testing.T) {
+	t.Run("normal stream update (JSON from builders)", func(t *testing.T) {
 		stream, err := streamerClient.GetUpdates(context.Background(), &protos.StreamRequest{GatewayId: "hw1", StreamName: "configs"})
 		assert.NoError(t, err)
 
 		expectedProtos := map[string]proto.Message{
-			"new_builder": &test_protos.Message1{Field: "hello"},
+			"some_service": &test_protos.Message1{Field: "hello"},
 		}
 		expected := make(map[string]*any.Any, len(expectedProtos))
 		for k, v := range expectedProtos {
@@ -95,7 +96,7 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	//	assert.NoError(t, err)
 	//
 	//	expectedProtos := map[string]proto.Message{
-	//		"new_builder": &test_protos.Message1{Field: "hello"},
+	//		"some_service": &test_protos.Message1{Field: "hello"},
 	//	}
 	//	expected := make(map[string]*any.Any, len(expectedProtos))
 	//	for k, v := range expectedProtos {

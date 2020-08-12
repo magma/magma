@@ -23,13 +23,15 @@ message GetMconfigRequest {
 }
 
 message GetMconfigResponse {
+    // configs contains the mconfigs for the requested hardware ID
+    // The contained configs_by_key should be str->any.Any, where the any.Any
+    // is a BytesValue wrapper containing the the config.
+    // Each config is (1) marshaled to an any.Any then (2) JSON-serialized
+    // before being placed into the BytesValue wrapper.
+    // TODO(T71525030): revert configs.configs_by_key to containing each config just marshaled to any.Any (not additionally serialized to JSON)
     GatewayConfigs configs = 1;
+    // logicalID is the entity ID of the gateway in the configurator graph
     string logicalID = 2;
-
-    // json_configs_by_key contains JSON-serialized partial mconfig
-    // These configs should be semantically equivalent to the GatewayConfigs
-    // TODO(T71525030): revert json_configs once we send proto descriptors from mconfig_builders
-    bytes json_configs = 3 [deprecated=true]; // deprecated
 }
 
 service SouthboundConfigurator {

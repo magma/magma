@@ -30,13 +30,11 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
-var builders = []mconfig.Builder{
+var localBuilders = []mconfig.Builder{
 	&baseOrchestratorBuilder{},
 	&dnsdBuilder{},
 }
@@ -47,13 +45,10 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 	return &builderServicer{}
 }
 
-func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (ret *builder_protos.BuildResponse, err error) {
-	ret = &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	// TODO(T71525030): revert defer, above changes, and fn signature changes
-	defer func() { err = ret.FillJSONConfigs(err) }()
-
-	for _, b := range builders {
+	for _, b := range localBuilders {
 		partialConfig, err := b.Build(request.Network, request.Graph, request.GatewayId)
 		if err != nil {
 			return nil, errors.Wrapf(err, "sub-builder %+v error", b)
@@ -101,12 +96,9 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 	vals["control_proxy"] = &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	vals["metricsd"] = &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO}
 
-	configs := mconfig.ConfigsByKey{}
-	for k, v := range vals {
-		configs[k], err = ptypes.MarshalAny(v)
-		if err != nil {
-			return nil, err
-		}
+	configs, err := mconfig.MarshalConfigs(vals)
+	if err != nil {
+		return nil, err
 	}
 
 	return configs, nil
@@ -193,7 +185,7 @@ func getEventdMconfig(gatewayConfig *models.MagmadGatewayConfigs) *mconfig_proto
 type dnsdBuilder struct{}
 
 func (b *dnsdBuilder) Build(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (mconfig.ConfigsByKey, error) {
-	configs := mconfig.ConfigsByKey{}
+	vals := map[string]proto.Message{}
 
 	nativeNetwork, err := (configurator.Network{}).FromStorageProto(network)
 	if err != nil {
@@ -203,7 +195,11 @@ func (b *dnsdBuilder) Build(network *storage.Network, graph *storage.EntityGraph
 	iConfig, found := nativeNetwork.Configs[orc8r.DnsdNetworkType]
 	if !found {
 		// Fill out the dnsd mconfig with an empty struct if no network config
-		configs["dnsd"], err = ptypes.MarshalAny(&mconfig_protos.DnsD{})
+		vals["dnsd"] = &mconfig_protos.DnsD{}
+		configs, err := mconfig.MarshalConfigs(vals)
+		if err != nil {
+			return nil, err
+		}
 		return configs, err
 	}
 
@@ -224,6 +220,11 @@ func (b *dnsdBuilder) Build(network *storage.Network, graph *storage.EntityGraph
 		dnsConfigProto.Records = append(dnsConfigProto.Records, recordProto)
 	}
 
-	configs["dnsd"], err = ptypes.MarshalAny(dnsConfigProto)
+	vals["dnsd"] = dnsConfigProto
+	configs, err := mconfig.MarshalConfigs(vals)
+	if err != nil {
+		return nil, err
+	}
+
 	return configs, err
 }

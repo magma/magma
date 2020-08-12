@@ -19,10 +19,11 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
-	"magma/lte/cloud/go/protos/mconfig"
+	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
@@ -31,8 +32,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
 )
 
@@ -42,11 +41,8 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 	return &builderServicer{}
 }
 
-func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (ret *builder_protos.BuildResponse, err error) {
-	ret = &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
-
-	// TODO(T71525030): revert defer, above changes, and fn signature changes
-	defer func() { err = ret.FillJSONConfigs(err) }()
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
 	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
@@ -100,7 +96,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
 
 	vals := map[string]proto.Message{
-		"enodebd": &mconfig.EnodebD{
+		"enodebd": &lte_mconfig.EnodebD{
 			LogLevel:            protos.LogLevel_INFO,
 			Pci:                 int32(gwRan.Pci),
 			FddConfig:           getFddConfig(nwRan.FddConfig),
@@ -113,13 +109,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Arfcn_2G:            nonEPSServiceMconfig.arfcn_2g,
 			EnbConfigsBySerial:  enbConfigsBySerial,
 		},
-		"mobilityd": &mconfig.MobilityD{
+		"mobilityd": &lte_mconfig.MobilityD{
 			LogLevel:        protos.LogLevel_INFO,
 			IpBlock:         gwEpc.IPBlock,
 			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
 			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
 		},
-		"mme": &mconfig.MME{
+		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
 			Mcc:                      nwEpc.Mcc,
 			Mnc:                      nwEpc.Mnc,
@@ -138,37 +134,35 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			DnsSecondary:             gwEpc.DNSSecondary,
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 		},
-		"pipelined": &mconfig.PipelineD{
+		"pipelined": &lte_mconfig.PipelineD{
 			LogLevel:      protos.LogLevel_INFO,
 			UeIpBlock:     gwEpc.IPBlock,
 			NatEnabled:    swag.BoolValue(gwEpc.NatEnabled),
 			DefaultRuleId: nwEpc.DefaultRuleID,
 			Services:      pipelineDServices,
 		},
-		"subscriberdb": &mconfig.SubscriberDB{
+		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
 			LteAuthOp:    nwEpc.LteAuthOp,
 			LteAuthAmf:   nwEpc.LteAuthAmf,
 			SubProfiles:  getSubProfiles(nwEpc),
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
 		},
-		"policydb": &mconfig.PolicyDB{
+		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
-		"sessiond": &mconfig.SessionD{
+		"sessiond": &lte_mconfig.SessionD{
 			LogLevel:     protos.LogLevel_INFO,
 			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
-			WalletExhaustDetection: &mconfig.WalletExhaustDetection{
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
 		},
 	}
 
-	for k, v := range vals {
-		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
-		if err != nil {
-			return nil, err
-		}
+	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
+	if err != nil {
+		return nil, err
 	}
 
 	return ret, nil
@@ -206,9 +200,9 @@ func shouldEnableDNSCaching(network configurator.Network) bool {
 }
 
 type nonEPSServiceMconfigFields struct {
-	csfbRat              mconfig.EnodebD_CSFBRat
+	csfbRat              lte_mconfig.EnodebD_CSFBRat
 	arfcn_2g             []int32
-	nonEpsServiceControl mconfig.MME_NonEPSServiceControl
+	nonEpsServiceControl lte_mconfig.MME_NonEPSServiceControl
 	csfbMcc              string
 	csfbMnc              string
 	lac                  int32
@@ -217,9 +211,9 @@ type nonEPSServiceMconfigFields struct {
 func getNonEPSServiceMconfigFields(gwNonEpsService *lte_models.GatewayNonEpsConfigs) nonEPSServiceMconfigFields {
 	if gwNonEpsService == nil {
 		return nonEPSServiceMconfigFields{
-			csfbRat:              mconfig.EnodebD_CSFBRAT_2G,
+			csfbRat:              lte_mconfig.EnodebD_CSFBRAT_2G,
 			arfcn_2g:             []int32{},
-			nonEpsServiceControl: mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			nonEpsServiceControl: lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
 			csfbMcc:              "",
 			csfbMnc:              "",
 			lac:                  1,
@@ -231,9 +225,9 @@ func getNonEPSServiceMconfigFields(gwNonEpsService *lte_models.GatewayNonEpsConf
 		}
 
 		return nonEPSServiceMconfigFields{
-			csfbRat:              mconfig.EnodebD_CSFBRat(swag.Uint32Value(gwNonEpsService.CsfbRat)),
+			csfbRat:              lte_mconfig.EnodebD_CSFBRat(swag.Uint32Value(gwNonEpsService.CsfbRat)),
 			arfcn_2g:             arfcn2g,
-			nonEpsServiceControl: mconfig.MME_NonEPSServiceControl(swag.Uint32Value(gwNonEpsService.NonEpsServiceControl)),
+			nonEpsServiceControl: lte_mconfig.MME_NonEPSServiceControl(swag.Uint32Value(gwNonEpsService.NonEpsServiceControl)),
 			csfbMcc:              gwNonEpsService.CsfbMcc,
 			csfbMnc:              gwNonEpsService.CsfbMnc,
 			lac:                  int32(swag.Uint32Value(gwNonEpsService.Lac)),
@@ -241,20 +235,20 @@ func getNonEPSServiceMconfigFields(gwNonEpsService *lte_models.GatewayNonEpsConf
 	}
 }
 
-var networkServicesByName = map[string]mconfig.PipelineD_NetworkServices{
-	"metering":           mconfig.PipelineD_METERING,
-	"dpi":                mconfig.PipelineD_DPI,
-	"policy_enforcement": mconfig.PipelineD_ENFORCEMENT,
+var networkServicesByName = map[string]lte_mconfig.PipelineD_NetworkServices{
+	"metering":           lte_mconfig.PipelineD_METERING,
+	"dpi":                lte_mconfig.PipelineD_DPI,
+	"policy_enforcement": lte_mconfig.PipelineD_ENFORCEMENT,
 }
 
 // move this out of this package eventually
-func getPipelineDServicesConfig(networkServices []string) ([]mconfig.PipelineD_NetworkServices, error) {
+func getPipelineDServicesConfig(networkServices []string) ([]lte_mconfig.PipelineD_NetworkServices, error) {
 	if networkServices == nil || len(networkServices) == 0 {
-		return []mconfig.PipelineD_NetworkServices{
-			mconfig.PipelineD_ENFORCEMENT,
+		return []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
 		}, nil
 	}
-	apps := make([]mconfig.PipelineD_NetworkServices, 0, len(networkServices))
+	apps := make([]lte_mconfig.PipelineD_NetworkServices, 0, len(networkServices))
 	for _, service := range networkServices {
 		mc, found := networkServicesByName[service]
 		if !found {
@@ -265,30 +259,30 @@ func getPipelineDServicesConfig(networkServices []string) ([]mconfig.PipelineD_N
 	return apps, nil
 }
 
-func getFddConfig(fddConfig *lte_models.NetworkRanConfigsFddConfig) *mconfig.EnodebD_FDDConfig {
+func getFddConfig(fddConfig *lte_models.NetworkRanConfigsFddConfig) *lte_mconfig.EnodebD_FDDConfig {
 	if fddConfig == nil {
 		return nil
 	}
-	return &mconfig.EnodebD_FDDConfig{
+	return &lte_mconfig.EnodebD_FDDConfig{
 		Earfcndl: int32(fddConfig.Earfcndl),
 		Earfcnul: int32(fddConfig.Earfcnul),
 	}
 }
 
-func getTddConfig(tddConfig *lte_models.NetworkRanConfigsTddConfig) *mconfig.EnodebD_TDDConfig {
+func getTddConfig(tddConfig *lte_models.NetworkRanConfigsTddConfig) *lte_mconfig.EnodebD_TDDConfig {
 	if tddConfig == nil {
 		return nil
 	}
 
-	return &mconfig.EnodebD_TDDConfig{
+	return &lte_mconfig.EnodebD_TDDConfig{
 		Earfcndl:               int32(tddConfig.Earfcndl),
 		SubframeAssignment:     int32(tddConfig.SubframeAssignment),
 		SpecialSubframePattern: int32(tddConfig.SpecialSubframePattern),
 	}
 }
 
-func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*mconfig.EnodebD_EnodebConfig {
-	ret := make(map[string]*mconfig.EnodebD_EnodebConfig, len(enodebs))
+func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*lte_mconfig.EnodebD_EnodebConfig {
+	ret := make(map[string]*lte_mconfig.EnodebD_EnodebConfig, len(enodebs))
 	for _, ent := range enodebs {
 		serial := ent.Key
 		ienbConfig := ent.Config
@@ -297,7 +291,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 		}
 
 		cellularEnbConfig := ienbConfig.(*lte_models.EnodebConfiguration)
-		enbMconfig := &mconfig.EnodebD_EnodebConfig{
+		enbMconfig := &lte_mconfig.EnodebD_EnodebConfig{
 			Earfcndl:               int32(cellularEnbConfig.Earfcndl),
 			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
 			SpecialSubframePattern: int32(cellularEnbConfig.SpecialSubframePattern),
@@ -338,7 +332,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 	return ret
 }
 
-func getEnodebTacs(enbConfigsBySerial map[string]*mconfig.EnodebD_EnodebConfig) []int32 {
+func getEnodebTacs(enbConfigsBySerial map[string]*lte_mconfig.EnodebD_EnodebConfig) []int32 {
 	ret := make([]int32, 0, len(enbConfigsBySerial))
 	for _, enbConfig := range enbConfigsBySerial {
 		ret = append(ret, enbConfig.Tac)
@@ -347,14 +341,14 @@ func getEnodebTacs(enbConfigsBySerial map[string]*mconfig.EnodebD_EnodebConfig) 
 	return ret
 }
 
-func getSubProfiles(epc *lte_models.NetworkEpcConfigs) map[string]*mconfig.SubscriberDB_SubscriptionProfile {
+func getSubProfiles(epc *lte_models.NetworkEpcConfigs) map[string]*lte_mconfig.SubscriberDB_SubscriptionProfile {
 	if epc.SubProfiles == nil {
-		return map[string]*mconfig.SubscriberDB_SubscriptionProfile{}
+		return map[string]*lte_mconfig.SubscriberDB_SubscriptionProfile{}
 	}
 
-	ret := map[string]*mconfig.SubscriberDB_SubscriptionProfile{}
+	ret := map[string]*lte_mconfig.SubscriberDB_SubscriptionProfile{}
 	for name, profile := range epc.SubProfiles {
-		ret[name] = &mconfig.SubscriberDB_SubscriptionProfile{
+		ret[name] = &lte_mconfig.SubscriberDB_SubscriptionProfile{
 			MaxUlBitRate: profile.MaxUlBitRate,
 			MaxDlBitRate: profile.MaxDlBitRate,
 		}
@@ -362,15 +356,15 @@ func getSubProfiles(epc *lte_models.NetworkEpcConfigs) map[string]*mconfig.Subsc
 	return ret
 }
 
-func getMobilityDIPAllocator(epc *lte_models.NetworkEpcConfigs) mconfig.MobilityD_IpAllocatorType {
+func getMobilityDIPAllocator(epc *lte_models.NetworkEpcConfigs) lte_mconfig.MobilityD_IpAllocatorType {
 	if epc.Mobility == nil {
-		return mconfig.MobilityD_IP_POOL
+		return lte_mconfig.MobilityD_IP_POOL
 	}
 	if epc.Mobility.IPAllocationMode == lte_models.DHCPBroadcastAllocationMode {
-		return mconfig.MobilityD_DHCP
+		return lte_mconfig.MobilityD_DHCP
 	}
 	// For other modes set IP pool allocator
-	return mconfig.MobilityD_IP_POOL
+	return lte_mconfig.MobilityD_IP_POOL
 }
 
 func getMobilityDStaticIPAllocation(epc *lte_models.NetworkEpcConfigs) bool {

@@ -30,8 +30,6 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -269,24 +267,16 @@ func build(network *configurator.Network, graph *configurator.EntityGraph, gatew
 	if err != nil {
 		return nil, err
 	}
+
 	builder := mconfig.NewRemoteBuilder(feg_service.ServiceName)
 	res, err := builder.Build(networkProto, graphProto, gatewayID)
 	if err != nil {
 		return nil, err
 	}
 
-	configs := map[string]proto.Message{}
-
-	for k, v := range res {
-		mconfigProto, err := ptypes.Empty(v)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		err = ptypes.UnmarshalAny(v, mconfigProto)
-		if err != nil {
-			return nil, errors.WithStack(err)
-		}
-		configs[k] = mconfigProto
+	configs, err := mconfig.UnmarshalConfigs(res)
+	if err != nil {
+		return nil, err
 	}
 
 	return configs, nil

@@ -23,8 +23,6 @@ import (
 	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/wrappers"
 )
 
 // remoteBuilder identifies a remote mconfig builder.
@@ -53,49 +51,6 @@ func (r *remoteBuilder) Build(network *storage.Network, graph *storage.EntityGra
 }
 
 func (r *remoteBuilder) getBuilderClient() (protos.MconfigBuilderClient, error) {
-	conn, err := registry.GetConnection(r.service)
-	if err != nil {
-		initErr := merrors.NewInitError(err, r.service)
-		glog.Error(initErr)
-		return nil, initErr
-	}
-	return protos.NewMconfigBuilderClient(conn), nil
-}
-
-// TODO(T71525030): can remove remoteBuilderBytes once we send proto descriptors from mconfig_builders
-type remoteBuilderBytes struct {
-	service string
-}
-
-func NewRemoteBuilderBytes(serviceName string) Builder {
-	return &remoteBuilderBytes{service: strings.ToLower(serviceName)}
-}
-
-func (r *remoteBuilderBytes) Build(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (ConfigsByKey, error) {
-	c, err := r.getBuilderClient()
-	if err != nil {
-		return nil, err
-	}
-
-	res, err := c.Build(context.Background(), &protos.BuildRequest{Network: network, Graph: graph, GatewayId: gatewayID})
-	if err != nil {
-		return nil, err
-	}
-
-	ret := ConfigsByKey{}
-	for k, v := range res.JsonConfigsByKey {
-		bytesVal := &wrappers.BytesValue{Value: v}
-		anyVal, err := ptypes.MarshalAny(bytesVal)
-		if err != nil {
-			return nil, err
-		}
-		ret[k] = anyVal
-	}
-
-	return ret, nil
-}
-
-func (r *remoteBuilderBytes) getBuilderClient() (protos.MconfigBuilderClient, error) {
 	conn, err := registry.GetConnection(r.service)
 	if err != nil {
 		initErr := merrors.NewInitError(err, r.service)

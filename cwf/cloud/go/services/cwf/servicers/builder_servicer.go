@@ -23,6 +23,7 @@ import (
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -31,8 +32,6 @@ import (
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
 )
 
@@ -52,11 +51,8 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 	return &builderServicer{}
 }
 
-func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (ret *builder_protos.BuildResponse, err error) {
-	ret = &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
-
-	// TODO(T71525030): revert defer, above changes, and fn signature changes
-	defer func() { err = ret.FillJSONConfigs(err) }()
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
 	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
@@ -88,12 +84,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
-	for k, v := range vals {
-		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
-		if err != nil {
-			return nil, err
-		}
+	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
+	if err != nil {
+		return nil, err
 	}
+
 	return ret, nil
 }
 

@@ -15,11 +15,9 @@ package mconfig
 
 import (
 	"magma/orc8r/cloud/go/services/configurator/storage"
-
-	"github.com/golang/protobuf/ptypes/any"
 )
 
-type ConfigsByKey map[string]*any.Any
+type ConfigsByKey map[string][]byte
 
 // Builder creates a partial mconfig for a gateway within a network.
 type Builder interface {

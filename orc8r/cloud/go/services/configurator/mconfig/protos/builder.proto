@@ -37,10 +37,9 @@ message BuildRequest {
 
 message BuildResponse {
   // configs_by_key contains the partial mconfig from this mconfig builder
-  map<string, google.protobuf.Any> configs_by_key = 1;
-
-  // json_configs_by_key contains JSON-serialized partial mconfig
-  // These configs should be semantically equivalent to configs_by_key
-  // TODO(T71525030): revert json_configs_by_key once we send proto descriptors from mconfig_builders
-  map<string, bytes> json_configs_by_key = 2 [deprecated=true]; // deprecated
+  // Each config value contains a proto which is
+  //  - first serialized to an any.Any proto
+  //  - then serialized to JSON
+  // TODO(T71525030): remove the need to serialize to JSON by sending proto descriptors
+  map<string, bytes> configs_by_key = 1;
 }

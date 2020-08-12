@@ -17,15 +17,14 @@ import (
 	"context"
 
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	merrors "magma/orc8r/lib/go/errors"
-	"magma/wifi/cloud/go/protos/mconfig"
+	wifi_mconfig "magma/wifi/cloud/go/protos/mconfig"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
 
 	"github.com/golang/protobuf/proto"
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
 )
 
 type builderServicer struct{}
@@ -34,11 +33,8 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 	return &builderServicer{}
 }
 
-func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (ret *builder_protos.BuildResponse, err error) {
-	ret = &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
-
-	// TODO(T71525030): revert defer, above changes, and fn signature changes
-	defer func() { err = ret.FillJSONConfigs(err) }()
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
 	network, err := (configurator.Network{}).FromStorageProto(request.Network)
 	if err != nil {
@@ -87,7 +83,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	meshPeerGatewayIds := getMeshPeerIDs(mesh)
 
 	vals := map[string]proto.Message{
-		"hostapd": &mconfig.Hostapd{
+		"hostapd": &wifi_mconfig.Hostapd{
 			Ssid:                     apConfig.ssid,
 			Password:                 apConfig.password,
 			VlSsid:                   meshConfig.VlSsid,
@@ -98,26 +94,26 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			ClientChannel:            wifiGwConfig.ClientChannel,
 			XwfEnabled:               xwfConfig.xwfEnabled,
 		},
-		"linkstatsd": &mconfig.Linkstatsd{
+		"linkstatsd": &wifi_mconfig.Linkstatsd{
 			PingHostList:    wifiNwConfig.PingHostList,
 			PingNumPackets:  wifiNwConfig.PingNumPackets,
 			PingTimeoutSecs: wifiNwConfig.PingTimeoutSecs,
 		},
-		"meshd": &mconfig.Meshd{
+		"meshd": &wifi_mconfig.Meshd{
 			MeshRssiThreshold: wifiGwConfig.MeshRssiThreshold,
 			MeshSsid:          meshConfig.MeshSsid,
 			MeshFrequency:     meshConfig.MeshFrequency,
 			MeshChannelType:   meshConfig.MeshChannelType,
 		},
-		"openr": &mconfig.Openr{
+		"openr": &wifi_mconfig.Openr{
 			OpenrEnabled: wifiNwConfig.OpenrEnabled,
 		},
-		"openvpn": &mconfig.Openvpn{
+		"openvpn": &wifi_mconfig.Openvpn{
 			MgmtVpnEnabled: wifiNwConfig.MgmtVpnEnabled,
 			MgmtVpnProto:   wifiNwConfig.MgmtVpnProto,
 			MgmtVpnRemote:  wifiNwConfig.MgmtVpnRemote,
 		},
-		"wifimetadata": &mconfig.WifiMetadata{
+		"wifimetadata": &wifi_mconfig.WifiMetadata{
 			Info:               wifiGwConfig.Info,
 			Latitude:           wifiGwConfig.Latitude,
 			Longitude:          wifiGwConfig.Longitude,
@@ -127,7 +123,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			MeshPeerGatewayIds: meshPeerGatewayIds,
 			IsProduction:       wifiGwConfig.IsProduction,
 		},
-		"xwfchilli": &mconfig.Xwfchilli{
+		"xwfchilli": &wifi_mconfig.Xwfchilli{
 			XwfEnabled:            xwfConfig.xwfEnabled,
 			XwfRadiusServer:       xwfConfig.xwfRadiusServer,
 			XwfConfig:             xwfConfig.xwfConfig,
@@ -142,7 +138,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			MeshId:                mesh.Key,
 			GatewayId:             gatewayID,
 		},
-		"wifiproperties": &mconfig.WifiProperties{
+		"wifiproperties": &wifi_mconfig.WifiProperties{
 			Info:               wifiGwConfig.Info,
 			NetworkId:          network.ID,
 			MeshId:             mesh.Key,
@@ -154,11 +150,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		},
 	}
 
-	for k, v := range vals {
-		ret.ConfigsByKey[k], err = ptypes.MarshalAny(v)
-		if err != nil {
-			return nil, err
-		}
+	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
+	if err != nil {
+		return nil, err
 	}
 
 	return ret, nil

@@ -16,14 +16,13 @@ package servicers
 import (
 	"context"
 
-	"github.com/golang/protobuf/ptypes"
-	"github.com/golang/protobuf/ptypes/any"
-	"github.com/pkg/errors"
+	"github.com/golang/protobuf/proto"
 
 	"magma/devmand/cloud/go/devmand"
-	"magma/devmand/cloud/go/protos/mconfig"
+	devmand_mconfig "magma/devmand/cloud/go/protos/mconfig"
 	"magma/devmand/cloud/go/services/devmand/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	merrors "magma/orc8r/lib/go/errors"
 )
@@ -34,11 +33,8 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 	return &builderServicer{}
 }
 
-func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (ret *builder_protos.BuildResponse, err error) {
-	ret = &builder_protos.BuildResponse{ConfigsByKey: map[string]*any.Any{}, JsonConfigsByKey: map[string][]byte{}}
-
-	// TODO(T71525030): revert defer, above changes, and fn signature changes
-	defer func() { err = ret.FillJSONConfigs(err) }()
+func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
+	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
 	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
 	if err != nil {
@@ -57,25 +53,25 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return nil, err
 	}
 
-	managedDevices := map[string]*mconfig.ManagedDevice{}
+	managedDevices := map[string]*devmand_mconfig.ManagedDevice{}
 	for _, device := range devices {
 		deviceConfig := device.Config.(*models.SymphonyDeviceConfig)
-		var channels *mconfig.Channels
+		var channels *devmand_mconfig.Channels
 
 		if deviceConfig.Channels != nil {
-			var snmpConfig *mconfig.SNMPChannel
+			var snmpConfig *devmand_mconfig.SNMPChannel
 			if deviceConfig.Channels.SnmpChannel != nil {
 				snmpModel := deviceConfig.Channels.SnmpChannel
-				snmpConfig = &mconfig.SNMPChannel{
+				snmpConfig = &devmand_mconfig.SNMPChannel{
 					Community: snmpModel.Community,
 					Version:   snmpModel.Version,
 				}
 			}
 
-			var frinxConfig *mconfig.FrinxChannel
+			var frinxConfig *devmand_mconfig.FrinxChannel
 			if deviceConfig.Channels.FrinxChannel != nil {
 				frinxModel := deviceConfig.Channels.FrinxChannel
-				frinxConfig = &mconfig.FrinxChannel{
+				frinxConfig = &devmand_mconfig.FrinxChannel{
 					Authorization: frinxModel.Authorization,
 					DeviceType:    frinxModel.DeviceType,
 					DeviceVersion: frinxModel.DeviceVersion,
@@ -88,10 +84,10 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 				}
 			}
 
-			var cambiumConfig *mconfig.CambiumChannel
+			var cambiumConfig *devmand_mconfig.CambiumChannel
 			if deviceConfig.Channels.CambiumChannel != nil {
 				cambiumModel := deviceConfig.Channels.CambiumChannel
-				cambiumConfig = &mconfig.CambiumChannel{
+				cambiumConfig = &devmand_mconfig.CambiumChannel{
 					ClientId:     cambiumModel.ClientID,
 					ClientIp:     cambiumModel.ClientIP,
 					ClientMac:    cambiumModel.ClientMac,
@@ -99,14 +95,14 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 				}
 			}
 
-			var otherConfig *mconfig.OtherChannel
+			var otherConfig *devmand_mconfig.OtherChannel
 			if deviceConfig.Channels.OtherChannel != nil {
-				otherConfig = &mconfig.OtherChannel{
+				otherConfig = &devmand_mconfig.OtherChannel{
 					ChannelProps: deviceConfig.Channels.OtherChannel.ChannelProps,
 				}
 			}
 
-			channels = &mconfig.Channels{
+			channels = &devmand_mconfig.Channels{
 				SnmpChannel:    snmpConfig,
 				FrinxChannel:   frinxConfig,
 				CambiumChannel: cambiumConfig,
@@ -114,7 +110,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			}
 		}
 
-		deviceMconfig := &mconfig.ManagedDevice{
+		deviceMconfig := &devmand_mconfig.ManagedDevice{
 			DeviceConfig: deviceConfig.DeviceConfig,
 			Host:         deviceConfig.Host,
 			DeviceType:   deviceConfig.DeviceType,
@@ -124,10 +120,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		managedDevices[device.Key] = deviceMconfig
 	}
 
-	devmandMconfig := &mconfig.DevmandGatewayConfig{ManagedDevices: managedDevices}
-	ret.ConfigsByKey["devmand"], err = ptypes.MarshalAny(devmandMconfig)
+	vals := map[string]proto.Message{
+		"devmand": &devmand_mconfig.DevmandGatewayConfig{ManagedDevices: managedDevices},
+	}
+	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
 	if err != nil {
-		return nil, errors.WithStack(err)
+		return nil, err
 	}
 
 	return ret, nil
