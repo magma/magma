@@ -114,7 +114,7 @@ class StoredStateTest : public ::testing::Test {
     stored.imsi                   = "IMSI1";
     stored.session_id             = "session_id";
     stored.subscriber_quota_state = SubscriberQuotaUpdate_Type_VALID_QUOTA;
-    stored.fsm_state              = SESSION_TERMINATING_FLOW_DELETED;
+    stored.fsm_state              = SESSION_RELEASED;
 
     magma::lte::TgppContext tgpp_context;
     tgpp_context.set_gx_dest_host("gx");
@@ -293,7 +293,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored.session_id, "session_id");
   EXPECT_EQ(
       stored.subscriber_quota_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
-  EXPECT_EQ(stored.fsm_state, SESSION_TERMINATING_FLOW_DELETED);
+  EXPECT_EQ(stored.fsm_state, SESSION_RELEASED);
 
   EXPECT_EQ(stored.tgpp_context.gx_dest_host(), "gx");
   EXPECT_EQ(stored.tgpp_context.gy_dest_host(), "gy");
