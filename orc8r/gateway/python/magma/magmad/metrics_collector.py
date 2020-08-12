@@ -192,8 +192,10 @@ def _get_metrics_chan_grpc_options(msg_size: int):
     :param msg_size: msg size in MBs
     :return:
     """
-    return [('grpc.max_send_message_length', msg_size * 1024 * 1024),
-            ('grpc.max_receive_message_length', msg_size * 1024 * 1024)]
+    grpc_max_msg_size_bytes = msg_size * 1024 * 1024
+    logging.debug('Setting metricsd gRPC chan Max Message Size to: %s bytes',
+                  grpc_max_msg_size_bytes)
+    return [('grpc.max_send_message_length', grpc_max_msg_size_bytes)]
 
 
 def example_metrics_postprocessor_fn(
