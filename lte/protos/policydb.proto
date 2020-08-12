@@ -131,6 +131,7 @@ message FlowMatch {
   }
   Direction direction = 8;
   string app_name = 9;
+  string ipv6_dst = 10;
 }
 
 message QosArp {
