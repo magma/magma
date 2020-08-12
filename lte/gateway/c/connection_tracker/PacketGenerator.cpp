@@ -17,18 +17,21 @@ namespace magma {
 
 using namespace Tins;
 
-PacketGenerator::PacketGenerator(std::string iface_name)
-    : iface_name_(iface_name) {
+PacketGenerator::PacketGenerator(
+    std::string iface_name, std::string pkt_dst_mac, std::string pkt_src_mac)
+    : iface_name_(iface_name),
+      pkt_dst_mac_(pkt_dst_mac),
+      pkt_src_mac_(pkt_src_mac) {
   iface_ = NetworkInterface(iface_name_);
   MLOG(MINFO) << "Using interface " << iface_name_.c_str()
-              << "for pkt generation";
+              << " for pkt generation";
 }
 
 bool PacketGenerator::send_packet(struct flow_information* flow) {
   PacketSender sender;
 
   // Random mac header for our internal packets
-  EthernetII eth_("33:aa:99:33:aa:00", "55:11:44:ee:00:00");
+  EthernetII eth_(pkt_dst_mac_, pkt_src_mac_);
   eth_ /= IP(IPv4Address(flow->saddr), IPv4Address(flow->daddr));
 
   if (flow->l4_proto == 6) {

@@ -35,7 +35,8 @@ namespace magma {
 
 class PacketGenerator {
  public:
-  PacketGenerator(std::string iface_name);
+  PacketGenerator(
+      std::string iface_name, std::string pkt_dst_mac, std::string pkt_src_mac);
   /**
    * Send packet based on provided flow information
    * @param flow_information - flow_information
@@ -45,6 +46,8 @@ class PacketGenerator {
 
  private:
   std::string iface_name_;
+  std::string pkt_dst_mac_;
+  std::string pkt_src_mac_;
   Tins::NetworkInterface iface_;
 };
 

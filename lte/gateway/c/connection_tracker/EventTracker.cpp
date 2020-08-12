@@ -39,13 +39,11 @@ static void parse_ip(const struct nlattr* nest, struct flow_information* flow) {
   if (tb[CTA_IP_V4_SRC]) {
     struct in_addr* in =
         (struct in_addr*) mnl_attr_get_payload(tb[CTA_IP_V4_SRC]);
-    // printf("src=%s ", inet_ntoa(*in));
     flow->saddr = in->s_addr;
   }
   if (tb[CTA_IP_V4_DST]) {
     struct in_addr* in =
         (struct in_addr*) mnl_attr_get_payload(tb[CTA_IP_V4_DST]);
-    // printf("dst=%s ", inet_ntoa(*in));
     flow->daddr = in->s_addr;
   }
 }
@@ -84,26 +82,14 @@ static void parse_proto(
 
   mnl_attr_parse_nested(nest, parse_proto_cb, tb);
   if (tb[CTA_PROTO_NUM]) {
-    // printf("proto=%u ", mnl_attr_get_u8(tb[CTA_PROTO_NUM]));
     flow->l4_proto = mnl_attr_get_u8(tb[CTA_PROTO_NUM]);
   }
   if (tb[CTA_PROTO_SRC_PORT]) {
-    // printf("sport=%u ", ntohs(mnl_attr_get_u16(tb[CTA_PROTO_SRC_PORT])));
     flow->sport = mnl_attr_get_u8(tb[CTA_PROTO_NUM]);
   }
   if (tb[CTA_PROTO_DST_PORT]) {
-    // printf("dport=%u ", ntohs(mnl_attr_get_u16(tb[CTA_PROTO_DST_PORT])));
     flow->dport = mnl_attr_get_u8(tb[CTA_PROTO_NUM]);
   }
-  //  if (tb[CTA_PROTO_ICMP_ID]) {
-  //    printf("id=%u ", ntohs(mnl_attr_get_u16(tb[CTA_PROTO_ICMP_ID])));
-  //  }
-  //  if (tb[CTA_PROTO_ICMP_TYPE]) {
-  //    printf("type=%u ", mnl_attr_get_u8(tb[CTA_PROTO_ICMP_TYPE]));
-  //  }
-  //  if (tb[CTA_PROTO_ICMP_CODE]) {
-  //    printf("code=%u ", mnl_attr_get_u8(tb[CTA_PROTO_ICMP_CODE]));
-  //  }
 }
 
 static int parse_tuple_cb(const struct nlattr* attr, void* data) {
@@ -176,9 +162,9 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
   struct in_addr src_ip;
   struct in_addr dst_ip;
 
-  //  if ((nlh->nlmsg_type & 0xFF) != IPCTNL_MSG_CT_DELETE) {
-  //    return 0;
-  //  }
+  if ((nlh->nlmsg_type & 0xFF) != IPCTNL_MSG_CT_DELETE) {
+    return 0;
+  }
 
   mnl_attr_parse(nlh, sizeof(*nfg), data_attr_cb, tb);
   if (tb[CTA_TUPLE_ORIG]) {
@@ -203,6 +189,11 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
                   << ntohs(flow.dport) << " proto=" << flow.l4_proto;
       break;
   }
+
+  if (tb[CTA_MARK]) {
+    MLOG(MINFO) << "From zone " << mnl_attr_get_u16(tb[CTA_ZONE]);
+  }
+
   ((magma::PacketGenerator*) data)->send_packet(&flow);
 
   return MNL_CB_OK;

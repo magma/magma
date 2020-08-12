@@ -77,13 +77,14 @@ int main(void) {
   MLOG(MINFO) << "Starting Connection Tracker";
 
   std::string interface_name = config["interface_name"].as<std::string>();
-  MLOG(MINFO) << "TODO" << interface_name;
+  std::string pkt_dst_mac = config["pkt_dst_mac"].as<std::string>();
+  std::string pkt_src_mac = config["pkt_src_mac"].as<std::string>();
 
   magma::service303::MagmaService server(
       CONNECTION_SERVICE, CONNECTIOND_VERSION);
   server.Start();
 
-  auto pkt_generator = std::make_shared<magma::PacketGenerator>(interface_name);
+  auto pkt_generator = std::make_shared<magma::PacketGenerator>(interface_name, pkt_dst_mac, pkt_src_mac);
 
   auto event_tracker = std::make_shared<magma::EventTracker>(pkt_generator);
 
