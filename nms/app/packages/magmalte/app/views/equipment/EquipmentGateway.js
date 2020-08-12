@@ -228,15 +228,22 @@ function GatewayTableRaw(props: WithAlert) {
                 </Link>
               ),
             },
-            {title: 'Hardware ID', field: 'hardwareId', editable: 'never'},
+            {
+              title: 'Hardware ID',
+              field: 'hardwareId',
+              editable: 'never',
+              width: 250,
+            },
             {
               title: 'Current Version',
               field: 'currentVersion',
               editable: 'never',
+              width: 250,
             },
             {
               title: 'Tier',
               field: 'tier',
+              width: 100,
               editComponent: props => (
                 <SelectEditComponent
                   {...props}
