@@ -61,9 +61,9 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 	assert.NoError(t, err)
 	streamerClient := protos.NewStreamerClient(conn)
 
-	// TODO(T71525030): revert below and restore further below
+	// TODO(#2310): add back test for matching digest => empty data updates
 
-	t.Run("normal stream update (JSON from builders)", func(t *testing.T) {
+	t.Run("normal stream update", func(t *testing.T) {
 		stream, err := streamerClient.GetUpdates(context.Background(), &protos.StreamRequest{GatewayId: "hw1", StreamName: "configs"})
 		assert.NoError(t, err)
 
@@ -84,54 +84,4 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Equal(t, expected, actual.ConfigsByKey)
 	})
-
-	//t.Run("normal stream update", func(t *testing.T) {
-	//	extraArgs := &protos.GatewayConfigsDigest{Md5HexDigest: "useless_digest"}
-	//	serializedExtraArgs, err := ptypes.MarshalAny(extraArgs)
-	//	assert.NoError(t, err)
-	//	stream, err := streamerClient.GetUpdates(
-	//		context.Background(),
-	//		&protos.StreamRequest{GatewayId: "hw1", StreamName: "configs", ExtraArgs: serializedExtraArgs},
-	//	)
-	//	assert.NoError(t, err)
-	//
-	//	expectedProtos := map[string]proto.Message{
-	//		"some_service": &test_protos.Message1{Field: "hello"},
-	//	}
-	//	expected := make(map[string]*any.Any, len(expectedProtos))
-	//	for k, v := range expectedProtos {
-	//		anyV, err := ptypes.MarshalAny(v)
-	//		assert.NoError(t, err)
-	//		expected[k] = anyV
-	//	}
-	//
-	//	actualMarshaled, err := stream.Recv()
-	//	assert.NoError(t, err)
-	//	actual := &protos.GatewayConfigs{}
-	//	err = protos.Unmarshal(actualMarshaled.Updates[0].Value, actual)
-	//	assert.NoError(t, err)
-	//	assert.Equal(t, expected, actual.ConfigsByKey)
-	//})
-	//
-	//t.Run("empty batch for matching config digest", func(t *testing.T) {
-	//	ctx := context.Background()
-	//	streamA, err := streamerClient.GetUpdates(ctx, &protos.StreamRequest{GatewayId: "hw1", StreamName: "configs"})
-	//	assert.NoError(t, err)
-	//
-	//	fullMarshaled, err := streamA.Recv()
-	//	assert.NoError(t, err)
-	//	full := &protos.GatewayConfigs{}
-	//	err = protos.Unmarshal(fullMarshaled.Updates[0].Value, full)
-	//	assert.NoError(t, err)
-	//
-	//	extraArgs := &protos.GatewayConfigsDigest{Md5HexDigest: full.Metadata.Digest.Md5HexDigest}
-	//	serializedExtraArgs, err := ptypes.MarshalAny(extraArgs)
-	//	assert.NoError(t, err)
-	//	streamB, err := streamerClient.GetUpdates(ctx, &protos.StreamRequest{GatewayId: "hw1", StreamName: "configs", ExtraArgs: serializedExtraArgs})
-	//	assert.NoError(t, err)
-	//
-	//	actual, err := streamB.Recv()
-	//	assert.NoError(t, err)
-	//	assert.Empty(t, actual.Updates)
-	//})
 }

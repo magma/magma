@@ -40,37 +40,12 @@ func (p *MconfigProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*p
 		return nil, errors.Wrap(err, "get mconfig from configurator")
 	}
 
-	// TODO(T71525030): add back below support for mconfig digests
-	//if extraArgs != nil {
-	//	// Currently, only use of extraArgs is mconfig hash
-	//	receivedDigest := &protos.GatewayConfigsDigest{}
-	//	if err := ptypes.UnmarshalAny(extraArgs, receivedDigest); err == nil {
-	//		glog.V(2).Infof(
-	//			"Received, generated config digests: %v, %v\n",
-	//			receivedDigest,
-	//			res.Configs.Metadata.Digest.Md5HexDigest,
-	//		)
-	//		return mconfigToUpdate(res.Configs, res.LogicalID, receivedDigest.Md5HexDigest)
-	//	}
-	//}
-	//
+	// TODO(#2310): add back support for extracting and comparing mconfig digest
 
 	return mconfigToUpdate(res.Configs, res.LogicalID, "")
 }
 
 func mconfigToUpdate(configs *protos.GatewayConfigs, logicalID string, digest string) ([]*protos.DataUpdate, error) {
-	// TODO(T71525030): add back the digest equality check, and generally revert this fn
-
-	// Early/empty return if gateway already has this config
-	//if digest == configs.Metadata.Digest.Md5HexDigest {
-	//	return []*protos.DataUpdate{}, nil
-	//}
-
-	//marshaledConfig, err := protos.MarshalJSON(configs)
-	//if err != nil {
-	//	return nil, errors.Wrap(err, "marshal gateway mconfig")
-	//}
-
 	marshaledConfig, err := marshalJSONConfigs(configs)
 	if err != nil {
 		return nil, err

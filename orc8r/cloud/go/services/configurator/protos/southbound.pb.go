@@ -70,7 +70,7 @@ type GetMconfigResponse struct {
 	// is a BytesValue wrapper containing the the config.
 	// Each config is (1) marshaled to an any.Any then (2) JSON-serialized
 	// before being placed into the BytesValue wrapper.
-	// TODO(T71525030): revert configs.configs_by_key to containing each config just marshaled to any.Any (not additionally serialized to JSON)
+	// TODO(#2310): revert configs.configs_by_key to containing each config just marshaled to any.Any (not additionally serialized to JSON)
 	Configs *protos.GatewayConfigs `protobuf:"bytes,1,opt,name=configs,proto3" json:"configs,omitempty"`
 	// logicalID is the entity ID of the gateway in the configurator graph
 	LogicalID            string   `protobuf:"bytes,2,opt,name=logicalID,proto3" json:"logicalID,omitempty"`

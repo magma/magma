@@ -26,44 +26,10 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TODO(T71525030): restore CreateMconfig and remove CreateMconfigJSON
-
-//func CreateMconfig(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (*protos.GatewayConfigs, error) {
-//	builders, err := GetBuilders()
-//	if err != nil {
-//		return nil, err
-//	}
-//
-//	configs := ConfigsByKey{}
-//	for _, b := range builders {
-//		partialConfig, err := b.Build(network, graph, gatewayID)
-//		if err != nil {
-//			return nil, errors.Wrapf(err, "mconfig builder %+v error", b)
-//		}
-//		for key, config := range partialConfig {
-//			_, ok := configs[key]
-//			if ok {
-//				return nil, fmt.Errorf("received partial config for key %v from multiple mconfig builders", key)
-//			}
-//			configs[key] = config
-//		}
-//	}
-//
-//	mconfig := &protos.GatewayConfigs{
-//		Metadata: &protos.GatewayConfigsMetadata{
-//			CreatedAt: uint64(time.Now().Unix()),
-//			Digest:    &protos.GatewayConfigsDigest{},
-//		},
-//		ConfigsByKey: configs,
-//	}
-//	mconfig.Metadata.Digest.Md5HexDigest, err = mconfig.GetMconfigDigest()
-//	if err != nil {
-//		return nil, errors.Wrap(err, "generate mconfig digest")
-//	}
-//
-//	return mconfig, nil
-//}
-
+// CreateMconfigJSON assembles the mconfig for the requested gateway ID.
+// The full mconfig is assembled by merging the partial configs received from
+// each registered mconfig builder.
+// TODO(#2310): revert to CreateMconfig, without JSON aspects
 func CreateMconfigJSON(network *storage.Network, graph *storage.EntityGraph, gatewayID string) (*protos.GatewayConfigs, error) {
 	builders, err := GetBuilders()
 	if err != nil {

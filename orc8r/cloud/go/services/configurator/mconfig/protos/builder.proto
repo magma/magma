@@ -40,6 +40,6 @@ message BuildResponse {
   // Each config value contains a proto which is
   //  - first serialized to an any.Any proto
   //  - then serialized to JSON
-  // TODO(T71525030): remove the need to serialize to JSON by sending proto descriptors
+  // TODO(#2310): remove the need to serialize to JSON by sending proto descriptors
   map<string, bytes> configs_by_key = 1;
 }

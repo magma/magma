@@ -110,8 +110,6 @@ func (srv *sbConfiguratorServicer) getMconfigImpl(networkID string, gatewayID st
 	// error on commit is fine for a readonly tx
 	storage.CommitLogOnError(store)
 
-	// TODO(T71525030): revert to CreateMconfig
-	//ret, err := mconfig.CreateMconfig(nwLoad.Networks[0], &graph, gatewayID)
 	ret, err := mconfig.CreateMconfigJSON(nwLoad.Networks[0], &graph, gatewayID)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "failed to build mconfig: %s", err)
