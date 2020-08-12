@@ -34,6 +34,15 @@ message UEConfig {
 
     // Sequence Number (SEQ).
     uint64 seq = 4;
+
+    // MSISDN
+    string msisdn = 5;
+
+    // APN
+    string apn = 6;
+
+    //RAT
+    uint32 rat = 7;
 }
 
 message AuthenticateRequest {
@@ -58,8 +67,8 @@ message GenTrafficRequest {
     string imsi = 1;
     google.protobuf.StringValue volume = 2;
     google.protobuf.StringValue bitrate = 3;
-    uint64 timeInSecs = 4;    
-    uint64 reportingIntervalInSecs = 5;    
+    uint64 timeInSecs = 4;
+    uint64 reportingIntervalInSecs = 5;
     bool reverseMode = 6;
     // Configure a max timeout iperf client will run
     uint32 timeout = 7;

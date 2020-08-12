@@ -44,6 +44,9 @@ const (
 	DefaultMaxBreakSecs         = 5
 	DefaultTrafficGenLengthSecs = 60
 	DefaultRadiusSecret         = "123456"
+	DefaultApn                  = "test"
+	DefaultMsisdn               = "123456789"
+	DefaultRatType              = 6
 )
 
 var (
@@ -284,6 +287,9 @@ func getConfiguredSubscribers() ([]*protos.UEConfig, error) {
 
 func createUeConfig(imsi string, auth_key []byte, seq_num uint64) (*protos.UEConfig, error) {
 	var op string
+	var msisdn, apn string = DefaultMsisdn, DefaultApn
+	var rat uint32 = DefaultRatType
+	var ok bool
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
 	if err != nil {
 		op = DefaultOp
@@ -296,12 +302,37 @@ func createUeConfig(imsi string, auth_key []byte, seq_num uint64) (*protos.UECon
 	if err != nil {
 		return nil, fmt.Errorf("could not generate OPc for subscriber: %s: %s", imsi, err)
 	}
+	ues, err := uecfg.GetMap("subscribers")
+	if err == nil {
+		ue, res := ues[imsi].(map[interface{}]interface{})
+		if res {
+			msisdn, ok = ue["msisdn"].(string)
+			if !ok {
+				glog.Infof("MSISDN not set for Imsi[%s], setting default MSISDN %s ", imsi, DefaultMsisdn)
+			}
+			apn, ok = ue["apn"].(string)
+			if !ok {
+				glog.Infof("APN not set for Imsi[%s], setting default apn 'test'", imsi)
+			}
+			rat, ok = ue["rat"].(uint32)
+			if !ok {
+				glog.Infof("RAT-Type not set for Imsi[%s], setting default rat 'NON_3GPP_EPS'", imsi)
+			}
+		}
+	}
+
+	glog.Infof("Creating UE with IMSI:[%s] MSISDN[%s] APN[%s] RAT[%d] ", imsi, msisdn, apn, rat)
+
 	return &protos.UEConfig{
 		Imsi:    imsi,
 		AuthKey: auth_key,
 		AuthOpc: opc[:],
 		Seq:     seq_num,
+		Msisdn:  msisdn,
+		Apn:     apn,
+		Rat:     rat,
 	}, nil
+
 }
 
 func getRadiusSecret() string {

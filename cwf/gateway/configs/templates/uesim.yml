@@ -1,0 +1,9 @@
+---
+radius_address: "127.0.0.1:1812"
+radius_auth_address: "127.0.0.1:1812"
+radius_acct_address: "127.0.0.1:1813"
+radius_secret: "888888"
+amf: "0000"
+subscribers:
+        "001010000000081": {msisdn: "9890971088", apn: "wifi", rat: 6}
+        "001010000000082": {msisdn: "9890971089", apn: "test"}
