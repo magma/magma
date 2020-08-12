@@ -21,9 +21,13 @@ old client will not be unintentionally routed to a new client until the old
 TCP connection expires.
 
 We have plug in design for IP address allocator. today we have two allocator
-1. Static allocator, which allocates IP address from block of IP address
+1. IP_POOL allocator, which allocates IP address from block of IP address
 2. DHCP IP allocator. This allocates IP address assigned by DHCP server
    in network. This is typically used in Non NAT GW environment.
+
+IP allocator supports static IP allocation for sub set of subscribers.
+When static Ip mode is enabled, mobilityD would check subscriberDB for
+assigned IP address before allocating Ip from configured allocator.
 
 To support this semantic, an IP address can have the following states
 during it's life cycle in the IP allocator:
@@ -39,8 +43,6 @@ during it's life cycle in the IP allocator:
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from argparse import ArgumentError
-
 import logging
 import threading
 from collections import defaultdict
@@ -49,12 +51,15 @@ from typing import List, Optional, Tuple
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 
 from magma.mobilityd import mobility_store as store
-from magma.mobilityd.ip_descriptor import IPDesc, IPState
+
+from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
 from magma.common.redis.client import get_default_client
 
 from .ip_allocator_dhcp import IPAllocatorDHCP
-from .ip_allocator_static import IpAllocatorStatic
+from .ip_allocator_pool import IpAllocatorPool
+from .ip_allocator_static import IPAllocatorStaticWrapper
+
 from .ip_descriptor_map import IpDescriptorMap
 from .uplink_gw import UplinkGatewayInfo
 
@@ -112,7 +117,8 @@ class IPAddressManager:
     def __init__(self,
                  *,
                  config,
-                 allocator_type,
+                 mconfig,
+                 subscriberdb_rpc_stub=None,
                  recycling_interval: int = DEFAULT_IP_RECYCLE_INTERVAL):
         """ Initializes a new IP allocator
 
@@ -127,18 +133,19 @@ class IPAddressManager:
         persist_to_redis = config.get('persist_to_redis', True)
         redis_port = config.get('redis_port', 6379)
 
-        self.allocator_type = allocator_type
+        self.allocator_type = mconfig.ip_allocator_type
         logging.debug('Persist to Redis: %s', persist_to_redis)
         self._lock = threading.RLock()  # re-entrant locks
 
         self._recycle_timer = None  # reference to recycle timer
         self._recycling_interval_seconds = recycling_interval
+        self.static_ip_enabled = mconfig.static_ip_enabled
 
         if not persist_to_redis:
             self._assigned_ip_blocks = set()  # {ip_block}
             self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
             self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
-
+            self._dhcp_store = {}  # mac => DHCP_State
         else:
             if not redis_port:
                 raise ValueError(
@@ -147,25 +154,31 @@ class IPAddressManager:
             self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
             self.sid_ips_map = store.IPDescDict(client)
             self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
+            self._dhcp_store = store.MacToIP()  # mac => DHCP_State
 
         self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
         logging.info("Using allocator: %s", self.allocator_type)
 
         if self.allocator_type == MobilityD.IP_POOL:
             self._dhcp_gw_info.read_default_gw()
-            self.ip_allocator = IpAllocatorStatic(self._assigned_ip_blocks,
-                                                  self.ip_state_map,
-                                                  self.sid_ips_map)
+            ip_allocator = IpAllocatorPool(self._assigned_ip_blocks,
+                                           self.ip_state_map,
+                                           self.sid_ips_map)
         elif self.allocator_type == MobilityD.DHCP:
-            dhcp_store = store.MacToIP()  # mac => DHCP_State
             iface = config.get('dhcp_iface', 'dhcp0')
             retry_limit = config.get('retry_limit', 300)
-            self.ip_allocator = IPAllocatorDHCP(self._assigned_ip_blocks,
-                                                self.ip_state_map,
-                                                iface=iface,
-                                                retry_limit=retry_limit,
-                                                dhcp_store=dhcp_store,
-                                                gw_info=self._dhcp_gw_info)
+            ip_allocator = IPAllocatorDHCP(self._assigned_ip_blocks,
+                                           self.ip_state_map,
+                                           iface=iface,
+                                           retry_limit=retry_limit,
+                                           dhcp_store=self._dhcp_store,
+                                           gw_info=self._dhcp_gw_info)
+
+        if self.static_ip_enabled:
+            self.ip_allocator = IPAllocatorStaticWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+                                                         ip_allocator=ip_allocator)
+        else:
+            self.ip_allocator = ip_allocator
 
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
@@ -301,8 +314,6 @@ class IPAddressManager:
 
             # Now try to allocate it from underlying allocator.
             ip_desc = self.ip_allocator.alloc_ip_address(sid)
-            ip_desc.sid = sid
-            ip_desc.state = IPState.ALLOCATED
             self.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc, IPState.ALLOCATED)
             self.sid_ips_map[sid] = ip_desc
 
@@ -393,13 +404,9 @@ class IPAddressManager:
         with self._lock:
             for ip in self.ip_state_map.list_ips(IPState.REAPED):
                 ip_desc = self.ip_state_map.mark_ip_state(ip, IPState.FREE)
-                sid = ip_desc.sid
-                ip_block = ip_desc.ip_block
-                ip_desc.sid = None
-
+                self.ip_allocator.release_ip(ip_desc)
                 # update SID-IP map
-                del self.sid_ips_map[sid]
-                self.ip_allocator.release_ip(sid, ip, ip_block)
+                del self.sid_ips_map[ip_desc.sid]
 
             # Set timer for the next round of recycling
             self._recycle_timer = None

@@ -78,6 +78,10 @@ class StateMachineManager:
     def get_ip_of_serial(self, enb_serial: str) -> str:
         return self._ip_serial_mapping.get_ip(enb_serial)
 
+    def get_serial_of_ip(self, client_ip: str) -> str:
+        serial = self._ip_serial_mapping.get_serial(client_ip)
+        return serial or 'default'
+
     def _get_handler(
         self,
         client_ip: str,
@@ -216,8 +220,8 @@ class IpToSerialMapping:
     def get_ip(self, serial: str) -> str:
         return self.ip_by_enb_serial[serial]
 
-    def get_serial(self, ip: str) -> str:
-        return self.enb_serial_by_ip[ip]
+    def get_serial(self, ip: str) -> Optional[str]:
+        return self.enb_serial_by_ip.get(ip, None)
 
     def has_ip(self, ip: str) -> bool:
         return ip in self.enb_serial_by_ip

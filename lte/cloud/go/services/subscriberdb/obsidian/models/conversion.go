@@ -29,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
@@ -37,7 +38,13 @@ import (
 func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByID state_types.StatesByID) *Subscriber {
 	m.ID = policymodels.SubscriberID(ent.Key)
 	m.Name = ent.Name
-	m.Lte = ent.Config.(*LteSubscription)
+
+	// TODO(v1.3.0+): For backwards compatibility we maintain the 'lte' field
+	// on the sub. We can remove this after the next minor version
+	config := ent.Config.(*SubscriberConfig)
+	m.Lte = config.Lte
+	m.Config = config
+
 	// If no profile in backend, return "default"
 	if m.Lte.SubProfile == "" {
 		m.Lte.SubProfile = "default"
@@ -94,6 +101,33 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByI
 		})
 	}
 	return m
+}
+
+func (m *MutableSubscriber) ToNetworkEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType,
+		Key:  string(m.ID),
+		Name: m.Name,
+		Config: &SubscriberConfig{
+			Lte:       m.Lte,
+			StaticIps: m.StaticIps,
+		},
+		Associations: m.ActiveApns.ToAssocs(),
+	}
+}
+
+func (m *MutableSubscriber) ToUpdateCriteria(id string) []configurator.EntityUpdateCriteria {
+	uc := configurator.EntityUpdateCriteria{
+		Key:     id,
+		Type:    lte.SubscriberEntityType,
+		NewName: swag.String(m.Name),
+		NewConfig: &SubscriberConfig{
+			Lte:       m.Lte,
+			StaticIps: m.StaticIps,
+		},
+		AssociationsToSet: m.ActiveApns.ToAssocs(),
+	}
+	return []configurator.EntityUpdateCriteria{uc}
 }
 
 // We expect something along the lines of:

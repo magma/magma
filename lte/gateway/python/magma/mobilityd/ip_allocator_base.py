@@ -48,7 +48,7 @@ class IPAllocator(ABC):
         ...
 
     @abstractmethod
-    def release_ip(self, sid: str, ip: ip_address, ip_block: ip_network):
+    def release_ip(self, ip_desc: IPDesc):
         ...
 
 

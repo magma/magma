@@ -1592,6 +1592,7 @@ void mme_app_handle_mobile_reachability_timer_expiry(
         ue_context_p->mme_ue_s1ap_id);
     ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
   } else {
+    ue_context_p->time_implicit_detach_timer_started = time(NULL);
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Started Implicit Detach timer for UE id: " MME_UE_S1AP_ID_FMT "\n",
@@ -1619,6 +1620,7 @@ void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64) {
   }
   *imsi64                                = ue_context_p->emm_context._imsi64;
   ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->time_implicit_detach_timer_started = 0;
   // Initiate Implicit Detach for the UE
   nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_MME_APP);

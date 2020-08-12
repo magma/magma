@@ -173,13 +173,19 @@ std::string RedisStoreClient::serialize_session_vec(
 
 std::vector<std::unique_ptr<SessionState>>
 RedisStoreClient::deserialize_session_vec(std::string serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
-  folly::dynamic marshaled = folly::parseJson(folly_serialized);
   std::vector<std::unique_ptr<SessionState>> session_vec;
-  for (auto& it : marshaled) {
-    auto stored_session = deserialize_stored_session(it.getString());
-    session_vec.push_back(
-        SessionState::unmarshal(stored_session, *rule_store_));
+  auto folly_serialized = folly::StringPiece(serialized);
+  try {
+    folly::dynamic marshaled = folly::parseJson(folly_serialized);
+    for (auto& it : marshaled) {
+      auto stored_session = deserialize_stored_session(it.getString());
+      session_vec.push_back(
+          SessionState::unmarshal(stored_session, *rule_store_));
+    }
+  } catch (std::exception const& e) {
+    // Very rare but we've seen a crash here
+    MLOG(MERROR) << "Exception " << e.what()
+                 << " parsing serialized states as JSON " << folly_serialized;
   }
   return session_vec;
 }

@@ -15,6 +15,42 @@
 
 namespace magma {
 
+void build_common_context(
+    const std::string& imsi,  // assumes IMSI prefix
+    const std::string& ue_ipv4, const std::string& apn,
+    const std::string& msisdn, const RATType rat_type,
+    CommonSessionContext* common_context) {
+  common_context->mutable_sid()->set_id(imsi);
+  common_context->set_ue_ipv4(ue_ipv4);
+  common_context->set_apn(apn);
+  common_context->set_msisdn(msisdn);
+  common_context->set_rat_type(rat_type);
+}
+
+void build_lte_context(
+    const std::string& spgw_ipv4, const std::string& imei,
+    const std::string& plmn_id, const std::string& imsi_plmn_id,
+    const std::string& user_location, uint32_t bearer_id,
+    QosInformationRequest* qos_info, LTESessionContext* lte_context) {
+  lte_context->set_spgw_ipv4(spgw_ipv4);
+  lte_context->set_imei(imei);
+  lte_context->set_plmn_id(plmn_id);
+  lte_context->set_imsi_plmn_id(imsi_plmn_id);
+  lte_context->set_user_location(user_location);
+  lte_context->set_bearer_id(bearer_id);
+  if (qos_info != nullptr) {
+    lte_context->mutable_qos_info()->CopyFrom(*qos_info);
+  }
+}
+
+void build_wlan_context(
+    const std::string& mac_addr,
+    const std::string& radius_session_id,
+    WLANSessionContext* wlan_context) {
+  wlan_context->set_mac_addr(mac_addr);
+  wlan_context->set_radius_session_id(radius_session_id);
+}
+
 void create_rule_record(
     const std::string& imsi, const std::string& rule_id, uint64_t bytes_rx,
     uint64_t bytes_tx, RuleRecord* rule_record) {

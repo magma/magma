@@ -27,6 +27,7 @@ import (
 
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
+	"github.com/go-openapi/swag"
 )
 
 func TestBuilder_Build(t *testing.T) {
@@ -97,6 +98,7 @@ func TestBuilder_Build(t *testing.T) {
 		"session_proxy": &mconfig.SessionProxyConfig{
 			LogLevel: 1,
 			Gx: &mconfig.GxConfig{
+				DisableGx: true,
 				Server: &mconfig.DiamClientConfig{
 					Protocol:         "tcp",
 					Address:          "",
@@ -133,6 +135,7 @@ func TestBuilder_Build(t *testing.T) {
 				OverwriteApn: "apnGx.magma-fedgw.magma.com",
 			},
 			Gy: &mconfig.GyConfig{
+				DisableGy: true,
 				Server: &mconfig.DiamClientConfig{
 					Protocol:         "tcp",
 					Address:          "",
@@ -267,6 +270,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		},
 	},
 	Gx: &models.Gx{
+		DisableGx: swag.Bool(true),
 		Server: &models.DiameterClientConfigs{
 			Protocol:         "tcp",
 			Retransmits:      3,
@@ -290,6 +294,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		OverwriteApn: "apnGx.magma-fedgw.magma.com",
 	},
 	Gy: &models.Gy{
+		DisableGy: swag.Bool(true),
 		Server: &models.DiameterClientConfigs{
 			Protocol:         "tcp",
 			Retransmits:      3,

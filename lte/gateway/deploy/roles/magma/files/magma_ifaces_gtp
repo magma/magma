@@ -33,7 +33,7 @@ iface patch-up inet manual
     ovs_extra set interface ${IFACE} ofport_request=2
 
 allow-ovs uplink_br0
-iface uplink_br0 inet manual
+iface uplink_br0 inet dhcp
     ovs_type OVSBridge
     ovs_ports dhcp0 patch-agw
 

@@ -59,7 +59,7 @@ void EventsReporterImpl::session_created(
   event_value[IMSI] = session_info.imsi;
   event_value[SESSION_ID] = session->get_session_id();
   event_value[MAC_ADDR] = session_cfg.mac_addr;
-  event_value[APN] = session_cfg.apn;
+  event_value[APN] = session_cfg.common_context.apn();
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
 
@@ -118,7 +118,7 @@ void EventsReporterImpl::session_updated(std::unique_ptr<SessionState>& session)
   event_value[IMSI] = session_info.imsi;
   event_value[IP_ADDR] = session_info.ip_addr;
   event_value[MAC_ADDR] = session_cfg.mac_addr;
-  event_value[APN] = session_cfg.apn;
+  event_value[APN] = session_cfg.common_context.apn();
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
 
@@ -149,7 +149,7 @@ void EventsReporterImpl::session_update_failure(
   event_value[IMSI] = session_info.imsi;
   event_value[IP_ADDR] = session_info.ip_addr;
   event_value[MAC_ADDR] = session_cfg.mac_addr;
-  event_value[APN] = session_cfg.apn;
+  event_value[APN] = session_cfg.common_context.apn();
   event_value[FAILURE_REASON] = failure_reason;
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
@@ -182,7 +182,7 @@ void EventsReporterImpl::session_terminated(
   event_value[IP_ADDR] = session_info.ip_addr;
   event_value[SESSION_ID] = session->get_session_id();
   event_value[MAC_ADDR] = session_cfg.mac_addr;
-  event_value[APN] = session_cfg.apn;
+  event_value[APN] = session_cfg.common_context.apn();
   SessionState::TotalCreditUsage usage = session->get_total_credit_usage();
   event_value[CHARGING_TX]             = usage.charging_tx;
   event_value[CHARGING_RX]             = usage.charging_rx;

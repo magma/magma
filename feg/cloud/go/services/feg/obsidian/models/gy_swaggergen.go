@@ -20,6 +20,9 @@ import (
 // swagger:model gy
 type Gy struct {
 
+	// disable gy
+	DisableGy *bool `json:"disableGy,omitempty"`
+
 	// init method
 	// Enum: [1 2]
 	InitMethod *uint32 `json:"init_method,omitempty"`

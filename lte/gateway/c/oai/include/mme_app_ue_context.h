@@ -414,6 +414,7 @@ typedef struct ue_mm_context_s {
    * Stop when UE moves to connected state
    */
   struct mme_app_timer_t implicit_detach_timer;
+  time_t time_implicit_detach_timer_started;
   /* Initial Context Setup Procedure Guard timer */
   struct mme_app_timer_t initial_context_setup_rsp_timer;
   /* UE Context Modification Procedure Guard timer */

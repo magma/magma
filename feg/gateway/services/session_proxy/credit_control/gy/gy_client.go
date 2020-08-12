@@ -60,6 +60,7 @@ type GyClient struct {
 type GyGlobalConfig struct {
 	OCSOverwriteApn      string
 	OCSServiceIdentifier string
+	DisableGy            bool
 }
 
 var (
@@ -163,11 +164,17 @@ func (gyClient *GyClient) IgnoreAnswer(request *CreditControlRequest) {
 }
 
 func (gyClient *GyClient) EnableConnections() error {
+	if gyClient.globalConfig.DisableGy {
+		return nil
+	}
 	gyClient.diamClient.EnableConnectionCreation()
 	return gyClient.diamClient.BeginConnection(gyClient.serverCfg)
 }
 
 func (gyClient *GyClient) DisableConnections(period time.Duration) {
+	if gyClient.globalConfig.DisableGy {
+		return
+	}
 	gyClient.diamClient.DisableConnectionCreation(period)
 }
 

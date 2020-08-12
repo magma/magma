@@ -80,7 +80,7 @@ class SessionRpcServicer(CentralSessionControllerServicer):
 
         NOTE: truncate the 'IMSI' prefix
         """
-        imsi = request.subscriber.id
+        imsi = request.common_context.sid.id
         imsi_number = imsi[4:]
         logging.info('Creating a session for subscriber ID: %s', imsi)
         return CreateSessionResponse(
