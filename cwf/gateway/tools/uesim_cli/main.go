@@ -312,11 +312,11 @@ func createUeConfig(imsi string, auth_key []byte, seq_num uint64) (*protos.UECon
 			}
 			apn, ok = ue["apn"].(string)
 			if !ok {
-				glog.Infof("APN not set for Imsi[%s], setting default apn 'test'", imsi)
+				glog.Infof("APN not set for Imsi[%s], setting default APN %s", imsi, DefaultApn)
 			}
 			rat, ok = ue["rat"].(uint32)
 			if !ok {
-				glog.Infof("RAT-Type not set for Imsi[%s], setting default rat 'NON_3GPP_EPS'", imsi)
+				glog.Infof("RAT-Type not set for Imsi[%s], setting default Rat-Type %d", imsi, DefaultRatType)
 			}
 		}
 	}
