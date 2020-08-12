@@ -1,0 +1,9 @@
+---
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+- name: include the vars for deployment from /etc/xwfwhoami make sure you copy configure_me.yml to /etc/xwfwhoami
+  include_vars: "/etc/xwfwhoami"
+

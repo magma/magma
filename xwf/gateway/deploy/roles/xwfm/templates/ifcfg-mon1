@@ -1,0 +1,6 @@
+DEVICE=mon1
+ONBOOT=yes
+DEVICETYPE=ovs
+TYPE=OVSIntPort
+OVS_BRIDGE=cwag_br0
+HOTPLUG=no

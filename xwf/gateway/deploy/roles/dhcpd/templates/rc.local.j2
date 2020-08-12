@@ -1,0 +1,5 @@
+#!/bin/sh -e
+iptables --table nat --append POSTROUTING --out-interface {{ nat_interface }} -j MASQUERADE
+iptables -t mangle -A FORWARD -o gw0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss {{ mss }}
+iptables -t mangle -A FORWARD -i gw0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss {{ mss }}
+service dhcpd restart

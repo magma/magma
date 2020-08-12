@@ -1,0 +1,35 @@
+---
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+- name: install python modules
+  shell: pip3 install jsonpickle
+
+- name: touch snowflake
+  shell: touch /etc/snowflake
+
+- name: retrieve hwid
+  shell: docker exec magmad show_gateway_info.py | sed '3q;d' 
+  register: gateway_hwid
+
+- name: copy the admin certificate key
+  copy: content={{ rest_admin_key }} dest=/var/opt/magma/certs/rest_admin.key mode='400'
+
+- name: copy the admin certificate
+  copy: content={{ rest_admin_crt }} dest=/var/opt/magma/certs/rest_admin.crt mode='400'
+
+- name: provision gateway
+  script: xwfm_provision.py --partner {{ partner }} --hwid {{ gateway_hwid.stdout }} --portal {{ portal_url }}
+  register: output
+
+- name: display script output
+  debug:
+    msg: "{{ output }}"
+
+- name: remove certificates
+  shell: rm -f /var/opt/magma/certs/rest_admin.key && \
+        rm -f /var/opt/magma/certs/rest_admin.crt
+        
+
