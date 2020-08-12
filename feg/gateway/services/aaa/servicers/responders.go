@@ -23,7 +23,6 @@ import (
 	"google.golang.org/grpc/codes"
 
 	fegprotos "magma/feg/cloud/go/protos"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/events"
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/protos"
@@ -111,16 +110,8 @@ func (srv *accountingService) AbortSession(
 		directoryd.DeleteRecord(deleteRequest)
 	}
 	srv.sessions.RemoveSession(sid)
-	conn, err := registry.GetConnection(registry.RADIUS)
-	if err != nil {
-		errMsg := fmt.Sprintf("Error getting Radius RPC Connection: %v", err)
-		if srv.config.GetEventLoggingEnabled() {
-			events.LogSessionTerminationFailedEvent(sctx, events.AbortSession, errMsg)
-		}
-		return res, Errorf(codes.Unavailable, errMsg)
-	}
-	radcli := protos.NewAuthorizationClient(conn)
-	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
+
+	err := srv.dae.Disconnect(sctx)
 	if err != nil {
 		res.Code = lteprotos.AbortSessionResult_RADIUS_SERVER_ERROR
 		res.ErrorMessage = fmt.Sprintf(
@@ -204,16 +195,8 @@ func (srv *accountingService) TerminateRegistration(
 	}
 
 	srv.sessions.RemoveSession(sid)
-	conn, err := registry.GetConnection(registry.RADIUS)
-	if err != nil {
-		errMsg := fmt.Sprintf("Error getting Radius RPC Connection: %v", err)
-		if srv.config.GetEventLoggingEnabled() {
-			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, errMsg)
-		}
-		return res, Errorf(codes.Unavailable, errMsg)
-	}
-	radcli := protos.NewAuthorizationClient(conn)
-	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
+
+	err := srv.dae.Disconnect(sctx)
 	if err != nil {
 		if srv.config.GetEventLoggingEnabled() {
 			events.LogSessionTerminationFailedEvent(sctx, events.RegistrationTermination, err.Error())
