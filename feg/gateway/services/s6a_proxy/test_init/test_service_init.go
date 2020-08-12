@@ -54,6 +54,7 @@ func StartTestService(t *testing.T) error {
 				"@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
 				"logLevel": "INFO",
 				"gx": {
+					"disableGx": false,
 					"server": {
 						 "protocol": "tcp",
 						 "address": "",
@@ -66,6 +67,7 @@ func StartTestService(t *testing.T) error {
 					}
 				},
 				"gy": {
+					"disableGy": false,
 					"server": {
 						 "protocol": "tcp",
 						 "address": "",

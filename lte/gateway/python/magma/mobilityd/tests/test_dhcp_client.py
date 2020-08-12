@@ -35,7 +35,7 @@ LOG.isEnabledFor(logging.DEBUG)
 
 logging.basicConfig(stream=sys.stderr, level=logging.DEBUG)
 SCRIPT_PATH = "/home/vagrant/magma/lte/gateway/python/magma/mobilityd/"
-DHCP_IFACE = "t0uplink_p0"
+DHCP_IFACE = "cl1_dhcp0"
 PKT_CAPTURE_WAIT = 2
 
 """
@@ -45,19 +45,19 @@ Test dhclient class independent of IP allocator.
 
 class DhcpClient(unittest.TestCase):
     def setUp(self):
-        self._br = "t_up_br0"
+        self._br = "dh_br0"
         try:
             subprocess.check_call(["pkill", "dnsmasq"])
         except subprocess.CalledProcessError:
             pass
 
         setup_dhcp_server = SCRIPT_PATH + "scripts/setup-test-dhcp-srv.sh"
-        subprocess.check_call([setup_dhcp_server, "t0"])
+        subprocess.check_call([setup_dhcp_server, "cl1"])
 
         setup_uplink_br = [SCRIPT_PATH + "scripts/setup-uplink-br.sh",
                            self._br,
-                           DHCP_IFACE,
-                           "8A:00:00:00:00:01"]
+                           "cl1uplink_p0",
+                           DHCP_IFACE]
         subprocess.check_call(setup_uplink_br)
 
         self.dhcp_wait = threading.Condition()
@@ -67,7 +67,7 @@ class DhcpClient(unittest.TestCase):
         self._dhcp_client = DHCPClient(dhcp_wait=self.dhcp_wait,
                                        dhcp_store=self.dhcp_store,
                                        gw_info=self.gw_info,
-                                       iface="t_dhcp0",
+                                       iface=DHCP_IFACE,
                                        lease_renew_wait_min=1)
         self._dhcp_client.run()
 

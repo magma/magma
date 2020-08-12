@@ -176,6 +176,8 @@ message MobilityD {
     // ip allocation type, either dhcp or ip_pool
     // default is ip_pool
     IpAllocatorType ip_allocator_type = 3;
+    // Enable Static IP from subscriberDB
+    bool static_ip_enabled = 4;
 }
 
 //------------------------------------------------------------------------------

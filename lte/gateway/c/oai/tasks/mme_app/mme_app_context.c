@@ -102,6 +102,9 @@ static bool mme_app_recover_timers_for_ue(
 static void mme_app_resume_mobile_reachability_timer(
     struct ue_mm_context_s* const ue_mm_context_pP);
 
+static void mme_app_resume_implicit_detach_timer(
+    struct ue_mm_context_s* const ue_mm_context_pP);
+
 static void _directoryd_report_location(uint64_t imsi, uint8_t imsi_len) {
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi, imsi_str, imsi_len);
@@ -1538,6 +1541,7 @@ void mme_ue_context_update_ue_sig_connection_state(
         free_wrapper((void**) &timer_argP);
       }
       ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
+      ue_context_p->time_implicit_detach_timer_started = 0;
     }
     // Update Stats
     update_mme_app_stats_connected_ue_add();
@@ -2304,27 +2308,37 @@ static bool mme_app_recover_timers_for_ue(
       ue_mm_context_pP->time_mobile_reachability_timer_started) {
     mme_app_resume_mobile_reachability_timer(ue_mm_context_pP);
   }
+  if (ue_mm_context_pP &&
+      ue_mm_context_pP->time_implicit_detach_timer_started) {
+    mme_app_resume_implicit_detach_timer(ue_mm_context_pP);
+  }
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }
 
+// Resumes mobile reachability timer on MME restart
 static void mme_app_resume_mobile_reachability_timer(
     struct ue_mm_context_s* const ue_mm_context_pP) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   time_t current_time = time(NULL);
   time_t lapsed_time =
       current_time - ue_mm_context_pP->time_mobile_reachability_timer_started;
-  ue_mm_context_pP->mobile_reachability_timer.sec =
-      (((mme_config.nas_config.t3412_min) +
-        MME_APP_DELTA_T3412_REACHABILITY_TIMER) *
-       60) -
-      lapsed_time;
 
+  /* Below condition validates whether timer has expired before MME recovers
+   * from restart, so MME shall handle as timer expiry
+   */
+  if (ue_mm_context_pP->mobile_reachability_timer.sec <= lapsed_time) {
+    mme_app_handle_mobile_reachability_timer_expiry(
+        (void*) &(ue_mm_context_pP->mme_ue_s1ap_id));
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  uint32_t remaining_time_in_seconds =
+      ue_mm_context_pP->mobile_reachability_timer.sec - lapsed_time;
   OAILOG_DEBUG(
       LOG_MME_APP,
-      "Current_time :%ld time mobile reachability timer "
-      "started:%ld lapsed time:%ld remaining time:%ld\n",
+      "Current_time :%ld mobile reachability timer start time :%ld "
+      "lapsed time:%ld remaining time:%d \n",
       current_time, ue_mm_context_pP->time_mobile_reachability_timer_started,
-      lapsed_time, ue_mm_context_pP->mobile_reachability_timer.sec);
+      lapsed_time, remaining_time_in_seconds);
 
   // Start Mobile reachability timer only for remaining duration
   nas_itti_timer_arg_t timer_callback_arg = {0};
@@ -2333,20 +2347,69 @@ static void mme_app_resume_mobile_reachability_timer(
   timer_callback_arg.nas_timer_callback_arg =
       (void*) &(ue_mm_context_pP->mme_ue_s1ap_id);
   if (timer_setup(
-          ue_mm_context_pP->mobile_reachability_timer.sec, 0, TASK_MME_APP,
-          INSTANCE_DEFAULT, TIMER_ONE_SHOT, &timer_callback_arg,
-          sizeof(timer_callback_arg),
+          remaining_time_in_seconds, 0, TASK_MME_APP, INSTANCE_DEFAULT,
+          TIMER_ONE_SHOT, &timer_callback_arg, sizeof(timer_callback_arg),
           &(ue_mm_context_pP->mobile_reachability_timer.id)) < 0) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
         "Failed to start Mobile Reachability timer for UE id "
-        " " MME_UE_S1AP_ID_FMT "\n",
+        "" MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context_pP->mme_ue_s1ap_id);
     ue_mm_context_pP->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   } else {
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
-        "Started Mobile Reachability timer for UE id  " MME_UE_S1AP_ID_FMT "\n",
+        "Started Mobile Reachability timer for UE id " MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context_pP->mme_ue_s1ap_id);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+// Resumes implicit detach timer on MME restart
+static void mme_app_resume_implicit_detach_timer(
+    struct ue_mm_context_s* const ue_mm_context_pP) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  time_t current_time = time(NULL);
+  time_t lapsed_time =
+      current_time - ue_mm_context_pP->time_implicit_detach_timer_started;
+
+  /* Below condition validates whether timer has expired before MME recovers
+   * from restart, so MME shall handle as timer expiry
+   */
+  if (ue_mm_context_pP->implicit_detach_timer.sec <= lapsed_time) {
+    mme_app_handle_implicit_detach_timer_expiry(
+        (void*) &(ue_mm_context_pP->mme_ue_s1ap_id));
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  uint32_t remaining_time_in_seconds =
+      ue_mm_context_pP->implicit_detach_timer.sec - lapsed_time;
+  OAILOG_DEBUG(
+      LOG_MME_APP,
+      "Current_time :%ld imiplcit detach timer start time:%ld "
+      "lapsed time:%ld remaining time:%d \n",
+      current_time, ue_mm_context_pP->time_implicit_detach_timer_started,
+      lapsed_time, remaining_time_in_seconds);
+
+  // Start Implicit detach timer only for remaining duration
+  nas_itti_timer_arg_t timer_callback_arg = {0};
+  timer_callback_arg.nas_timer_callback =
+      mme_app_handle_implicit_detach_timer_expiry;
+  timer_callback_arg.nas_timer_callback_arg =
+      (void*) &(ue_mm_context_pP->mme_ue_s1ap_id);
+  if (timer_setup(
+          remaining_time_in_seconds, 0, TASK_MME_APP, INSTANCE_DEFAULT,
+          TIMER_ONE_SHOT, &timer_callback_arg, sizeof(timer_callback_arg),
+          &(ue_mm_context_pP->implicit_detach_timer.id)) < 0) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
+        "Failed to start Implicit Detach timer for UE id "
+        "" MME_UE_S1AP_ID_FMT "\n",
+        ue_mm_context_pP->mme_ue_s1ap_id);
+    ue_mm_context_pP->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  } else {
+    OAILOG_DEBUG_UE(
+        LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
+        "Started Implicit Detach timer for UE id " MME_UE_S1AP_ID_FMT "\n",
         ue_mm_context_pP->mme_ue_s1ap_id);
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
