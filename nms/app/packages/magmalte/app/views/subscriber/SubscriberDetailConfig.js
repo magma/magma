@@ -19,21 +19,66 @@ import type {subscriber} from '@fbcnms/magma-api';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
-import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
+import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import SubscriberContext from '../../components/context/SubscriberContext';
+import nullthrows from '@fbcnms/util/nullthrows';
 
 import {EditSubscriberButton} from './SubscriberAddDialog';
+import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useState} from 'react';
+import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
     flexGrow: 1,
   },
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
 }));
+
+export function SubscriberJsonConfig() {
+  const {match} = useRouter();
+  const [error, setError] = useState('');
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+
+  return (
+    <JsonEditor
+      content={subscriberInfo}
+      error={error}
+      onSave={async subscriber => {
+        try {
+          await ctx.setState(subscriber.id, {...subscriber});
+          enqueueSnackbar('Subscriber saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
+  );
+}
 
 export default function SubscriberDetailConfig({
   subscriberInfo,
@@ -41,36 +86,51 @@ export default function SubscriberDetailConfig({
   subscriberInfo: subscriber,
 }) {
   const classes = useStyles();
-
+  const {history, relativeUrl} = useRouter();
   function TrafficFilter() {
     return <Button variant="text">Edit</Button>;
+  }
+
+  function ConfigFilter() {
+    return (
+      <Button
+        className={classes.appBarBtn}
+        onClick={() => {
+          history.push(relativeUrl('/json'));
+        }}>
+        Edit JSON
+      </Button>
+    );
   }
 
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
-        <Grid item xs={12} md={6}>
-          <CardTitleRow
-            icon={SettingsIcon}
-            label="Config"
-            filter={EditSubscriberButton}
-          />
-          <SubscriberInfoConfig
-            readOnly={true}
-            subscriberInfo={subscriberInfo}
-          />
-        </Grid>
+        <Grid item xs={12}>
+          <Grid item xs={12}>
+            <CardTitleRow
+              icon={SettingsIcon}
+              label="Config"
+              filter={ConfigFilter}
+            />
+          </Grid>
+          <Grid container spacing={4}>
+            <Grid item xs={12} md={6}>
+              <CardTitleRow label="Subscriber" filter={EditSubscriberButton} />
+              <SubscriberInfoConfig
+                readOnly={true}
+                subscriberInfo={subscriberInfo}
+              />
+            </Grid>
 
-        <Grid item xs={12} md={6}>
-          <CardTitleRow
-            icon={GraphicEqIcon}
-            label="Traffic Policy"
-            filter={TrafficFilter}
-          />
-          <SubscriberConfigTrafficPolicy
-            readOnly={true}
-            subscriberInfo={subscriberInfo}
-          />
+            <Grid item xs={12} md={6}>
+              <CardTitleRow label="Traffic Policy" filter={TrafficFilter} />
+              <SubscriberConfigTrafficPolicy
+                readOnly={true}
+                subscriberInfo={subscriberInfo}
+              />
+            </Grid>
+          </Grid>
         </Grid>
       </Grid>
     </div>

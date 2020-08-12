@@ -18,6 +18,7 @@ import subprocess
 import sys
 import threading
 import unittest
+import unittest.mock
 
 from ipaddress import ip_network
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
@@ -57,18 +58,20 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         setup_uplink_br = [SCRIPT_PATH + "scripts/setup-uplink-br.sh",
                            self._br,
                            "t0uplink_p0",
-                           "8A:00:00:00:00:01"]
+                           "t0_dhcp1"]
         subprocess.check_call(setup_uplink_br)
 
         config = {
-            'dhcp_iface': 't_dhcp0',
+            'dhcp_iface': 't0uplink_p0',
             'retry_limit': 50,
-            'allocator_type': 'dhcp',
             'persist_to_redis': False,
         }
+        mconfig = MobilityD(ip_allocator_type=MobilityD.DHCP,
+                            static_ip_enabled=False)
+
         self._dhcp_allocator = IPAddressManager(recycling_interval=2,
-                                                allocator_type=MobilityD.DHCP,
-                                                config=config)
+                                                config=config,
+                                                mconfig=mconfig)
 
     def tearDown(self):
         self._dhcp_allocator.ip_allocator.stop_dhcp_sniffer()

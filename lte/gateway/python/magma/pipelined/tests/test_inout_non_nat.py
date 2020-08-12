@@ -52,18 +52,20 @@ class InOutNonNatTest(unittest.TestCase):
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP = '192.168.128.1'
     SCRIPT_PATH = "/home/vagrant/magma/lte/gateway/python/magma/mobilityd/"
-    UPLINK_BR = "t_up_br0"
-    NON_NAT_ARP_EGRESS_PORT = "t1uplink_p0"
+    UPLINK_BR = "up_inout_br0"
+    NON_NAT_ARP_EGRESS_PORT = "tinouplink_p0"
+    DHCP_PORT = "tino_dhcp"
 
     @classmethod
     def setup_uplink_br(cls):
         setup_dhcp_server = cls.SCRIPT_PATH + "scripts/setup-test-dhcp-srv.sh"
-        subprocess.check_call([setup_dhcp_server, "t1"])
+        subprocess.check_call([setup_dhcp_server, "tino"])
 
         BridgeTools.destroy_bridge(cls.UPLINK_BR)
         setup_uplink_br = [cls.SCRIPT_PATH + "scripts/setup-uplink-br.sh",
                            cls.UPLINK_BR,
-                           cls.NON_NAT_ARP_EGRESS_PORT]
+                           cls.NON_NAT_ARP_EGRESS_PORT,
+                           cls.DHCP_PORT]
         subprocess.check_call(setup_uplink_br)
         inout.get_mobilityd_gw_info = mocked_get_mobilityd_gw_info
         inout.set_mobilityd_gw_info = mocked_set_mobilityd_gw_info

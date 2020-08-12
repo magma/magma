@@ -852,6 +852,10 @@ definitions:
     type: object
     description: gx configuration
     properties:
+      disableGx:
+        type: boolean
+        example: false
+        default: false
       server:
         $ref: '#/definitions/diameter_client_configs'
       servers:
@@ -862,11 +866,13 @@ definitions:
         type: string
         example: ""
 
-
-
   gy:
     type: object
     properties:
+      disableGy:
+        type: boolean
+        example: false
+        default: false
       server:
         $ref: '#/definitions/diameter_client_configs'
       servers:

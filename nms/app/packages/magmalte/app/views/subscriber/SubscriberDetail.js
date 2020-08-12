@@ -34,6 +34,7 @@ import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
+import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 
 import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
@@ -147,6 +148,10 @@ export default function SubscriberDetail(props: {
         </Grid>
       </AppBar>
       <Switch>
+        <Route
+          path={relativePath('/config/json')}
+          render={() => <SubscriberJsonConfig />}
+        />
         <Route
           path={relativePath('/config')}
           render={() => (

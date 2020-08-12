@@ -118,7 +118,8 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
 
   std::vector<std::string> static_rules{"static_1"};
   SessionConfig test_cwf_cfg;
-  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  build_common_context(
+      "IMSI1", "", "", "", TGPP_WLAN, &test_cwf_cfg.common_context);
   CreateSessionResponse response;
   create_session_create_response("IMSI1", "m1", static_rules, &response);
 
@@ -144,7 +145,8 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
 
   std::vector<std::string> static_rules{};  // no rule installs
   SessionConfig test_cwf_cfg;
-  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  build_common_context(
+      "IMSI1", "", "", "", TGPP_WLAN, &test_cwf_cfg.common_context);
   CreateSessionResponse response;
   create_session_create_response("IMSI1", "m1", static_rules, &response);
 
@@ -166,7 +168,8 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
 
   std::vector<std::string> static_rules{"static_1"};
   SessionConfig test_cwf_cfg;
-  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  build_common_context(
+      "IMSI1", "", "", "", TGPP_WLAN, &test_cwf_cfg.common_context);
   CreateSessionResponse response;
   create_session_create_response("IMSI1", "m1", static_rules, &response);
   local_enforcer->init_session_credit(
@@ -200,7 +203,8 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
 
   std::vector<std::string> static_rules{"static_1", "static_2"};
   SessionConfig test_cwf_cfg;
-  test_cwf_cfg.rat_type = RATType::TGPP_WLAN;
+  build_common_context(
+      "IMSI1", "", "", "", TGPP_WLAN, &test_cwf_cfg.common_context);
   CreateSessionResponse response;
   create_session_create_response("IMSI1", "m1", static_rules, &response);
   local_enforcer->init_session_credit(

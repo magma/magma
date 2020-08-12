@@ -28,6 +28,7 @@ import (
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/any"
 	"github.com/pkg/errors"
+	"github.com/go-openapi/swag"
 )
 
 type Builder struct{}
@@ -90,6 +91,7 @@ func (s *FegMconfigBuilderServicer) Build(
 		// Servers include the content of server
 		if gxc != nil {
 			mc.Gx = &mconfig.GxConfig{
+				DisableGx:    swag.BoolValue(gxc.DisableGx),
 				OverwriteApn: gxc.OverwriteApn,
 				Servers:      models.ToMultipleServersMconfig(gxc.Server, gxc.Servers),
 			}
@@ -100,6 +102,7 @@ func (s *FegMconfigBuilderServicer) Build(
 		}
 		if gyc != nil {
 			mc.Gy = &mconfig.GyConfig{
+				DisableGy:    swag.BoolValue(gyc.DisableGy),
 				InitMethod:   getGyInitMethod(gyc.InitMethod),
 				OverwriteApn: gyc.OverwriteApn,
 				Servers:      models.ToMultipleServersMconfig(gyc.Server, gyc.Servers),

@@ -11,9 +11,6 @@ services:
   ofredirector:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/ofredirector
 
-  app:
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/app
-
   httpserver:
     image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/httpserver
 
