@@ -274,25 +274,48 @@ export default function () {
           indicatorColor="primary"
           textColor="inherit"
           className={classes.tabs}>
-          <Tab component={NestedRouteLink} label="Gateways" to="/gateways" />
-          <Tab component={NestedRouteLink} label="Network" to="/network" />
-          <Tab component={NestedRouteLink} label="Internal" to="/internal" />
-          {grafanaEnabled && (
+          {!grafanaEnabled ? (
+            <>
+              <Tab
+                component={NestedRouteLink}
+                label="Gateways"
+                to="/gateways"
+              />
+              <Tab component={NestedRouteLink} label="Network" to="/network" />
+              <Tab
+                component={NestedRouteLink}
+                label="Internal"
+                to="/internal"
+              />
+            </>
+          ) : (
             <Tab component={NestedRouteLink} label="Grafana" to="/grafana" />
           )}
         </Tabs>
       </AppBar>
       <Switch>
-        <Route
-          path={relativePath('/gateways')}
-          component={GatewayMetricsGraphs}
-        />
-        <Route path={relativePath('/network')} component={NetworkKPIs} />
-        <Route path={relativePath('/internal')} component={InternalMetrics} />
-        {grafanaEnabled && (
-          <Route path={relativePath('/grafana')} component={GrafanaDashboard} />
+        {!grafanaEnabled ? (
+          <>
+            <Route
+              path={relativePath('/gateways')}
+              component={GatewayMetricsGraphs}
+            />
+            <Route path={relativePath('/network')} component={NetworkKPIs} />
+            <Route
+              path={relativePath('/internal')}
+              component={InternalMetrics}
+            />
+            <Redirect to={relativeUrl('/gateways')} />
+          </>
+        ) : (
+          <>
+            <Route
+              path={relativePath('/grafana')}
+              component={GrafanaDashboard}
+            />
+            <Redirect to={relativeUrl('/grafana')} />
+          </>
         )}
-        <Redirect to={relativeUrl('/gateways')} />
       </Switch>
     </>
   );
