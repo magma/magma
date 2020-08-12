@@ -236,12 +236,6 @@ int mme_app_send_s11_create_session_req(
     session_request_p->msisdn.length = 0;
   }
   session_request_p->rat_type = RAT_EUTRAN;
-  /*
-   * Copy the subscribed ambr to the sgw create session request message
-   */
-  memcpy(
-      &session_request_p->ambr, &ue_mm_context->subscribed_ue_ambr,
-      sizeof(ambr_t));
 
   // default bearer already created by NAS
   bearer_context_t* bc = mme_app_get_bearer_context(
@@ -296,6 +290,13 @@ int mme_app_send_s11_create_session_req(
   memcpy(
       session_request_p->apn, selected_apn_config_p->service_selection,
       selected_apn_config_p->service_selection_length);
+
+  /*
+   * Copy the APN AMBR to the sgw create session request message
+   */
+  memcpy(
+      &session_request_p->ambr, &selected_apn_config_p->ambr,
+      sizeof(ambr_t));
   /*
    * Set PDN type for pdn_type and PAA even if this IE is redundant
    */
