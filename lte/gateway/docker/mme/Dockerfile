@@ -220,7 +220,7 @@ RUN ldconfig && \
 # Prepare config file
 RUN apt-get install -y python3-pip && \
     pip3 install jinja2-cli && \
-    cd $MAGMA_ROOT/lte/gateway/configs/docker/ && \
+    cd $MAGMA_ROOT/lte/gateway/docker/mme/configs/ && \
     echo '{ \n' \
     '"realm": "magma.com",	 \n'\
     '"use_stateless": "", \n'\
@@ -244,18 +244,18 @@ RUN apt-get install -y python3-pip && \
     '"attachedEnodebTacs": [], \n'\
     '"attached_enodeb_tacs": [1] }' \
     > mme_vars.json && \
-    jinja2 ../templates/mme.conf.template mme_vars.json --format=json  > mme.conf
+    jinja2 ../../../configs/templates/mme.conf.template mme_vars.json --format=json  > mme.conf
 
 # For developer's to have the same run env as in target image to debug
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /conv-mme/etc
-RUN cp $MAGMA_ROOT/lte/gateway/configs/docker/mme.conf .
-RUN cp $MAGMA_ROOT/lte/gateway/configs/docker/mme_fd.conf .
+RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
+RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
 
 # Create running dirs
 WORKDIR /var/opt/magma
 WORKDIR /usr/local/etc/redis
-RUN cp $MAGMA_ROOT/lte/gateway/configs/docker/redis_for_container.conf redis.conf
+RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 
 WORKDIR /etc/magma
 RUN cp $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
