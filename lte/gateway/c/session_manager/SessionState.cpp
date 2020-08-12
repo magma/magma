@@ -168,6 +168,174 @@ SessionCreditUpdateCriteria* SessionState::get_credit_uc(
   return &(uc.charging_credit_map[key]);
 }
 
+bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
+  SessionStateUpdateCriteria _;
+  if (uc.is_fsm_updated) {
+    curr_state_ = uc.updated_fsm_state;
+  }
+
+  if (uc.is_pending_event_triggers_updated) {
+    for (auto it : uc.pending_event_triggers) {
+      pending_event_triggers_[it.first] = it.second;
+      if (it.first == REVALIDATION_TIMEOUT) {
+        revalidation_time_ = uc.revalidation_time;
+      }
+    }
+  }
+  // Config
+  if (uc.is_config_updated) {
+    config_ = uc.updated_config;
+  }
+
+  // Static rules
+  for (const auto& rule_id : uc.static_rules_to_install) {
+    if (is_static_rule_installed(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because static rule already installed: " << rule_id
+                   << std::endl;
+      return false;
+    }
+    if (uc.new_rule_lifetimes.find(rule_id) != uc.new_rule_lifetimes.end()) {
+      auto lifetime = uc.new_rule_lifetimes[rule_id];
+      activate_static_rule(rule_id, lifetime, _);
+    } else if (is_static_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because rule lifetime is unspecified: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.static_rules_to_uninstall) {
+    if (is_static_rule_installed(rule_id)) {
+      deactivate_static_rule(rule_id, _);
+    } else if (is_static_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+      deactivate_static_rule(rule_id, _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because static rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.new_scheduled_static_rules) {
+    if (is_static_rule_scheduled(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because static rule already scheduled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+    auto lifetime = uc.new_rule_lifetimes[rule_id];
+    schedule_static_rule(rule_id, lifetime, _);
+  }
+
+  // Dynamic rules
+  for (const auto& rule : uc.dynamic_rules_to_install) {
+    if (is_dynamic_rule_installed(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because dynamic rule already installed: " << rule.id()
+                   << std::endl;
+      return false;
+    }
+    if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
+      auto lifetime = uc.new_rule_lifetimes[rule.id()];
+      insert_dynamic_rule(rule, lifetime, _);
+    } else if (is_dynamic_rule_scheduled(rule.id())) {
+      install_scheduled_dynamic_rule(rule.id(), _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because rule lifetime is unspecified: " << rule.id()
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.dynamic_rules_to_uninstall) {
+    if (is_dynamic_rule_installed(rule_id)) {
+      dynamic_rules_.remove_rule(rule_id, NULL);
+    } else if (is_dynamic_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+      dynamic_rules_.remove_rule(rule_id, NULL);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because dynamic rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule : uc.new_scheduled_dynamic_rules) {
+    if (is_dynamic_rule_scheduled(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because dynamic rule already scheduled: " << rule.id()
+                   << std::endl;
+      return false;
+    }
+    auto lifetime = uc.new_rule_lifetimes[rule.id()];
+    schedule_dynamic_rule(rule, lifetime, _);
+  }
+
+  // Gy Dynamic rules
+  for (const auto& rule : uc.gy_dynamic_rules_to_install) {
+    if (is_gy_dynamic_rule_installed(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because gy dynamic rule already installed: "
+                   << rule.id() << std::endl;
+      return false;
+    }
+    if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
+      auto lifetime = uc.new_rule_lifetimes[rule.id()];
+      insert_gy_dynamic_rule(rule, lifetime, _);
+      MLOG(MERROR) << "Merge: " << session_id_
+                   << " gy dynamic rule " << rule.id() << std::endl;
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because gy dynamic rule lifetime is not found"
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.gy_dynamic_rules_to_uninstall) {
+    if (is_gy_dynamic_rule_installed(rule_id)) {
+      gy_dynamic_rules_.remove_rule(rule_id, NULL);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because gy dynamic rule already uninstalled: "
+                   << rule_id << std::endl;
+      return false;
+    }
+  }
+
+  // Charging credit
+  for (const auto& it : uc.charging_credit_map) {
+    auto key           = it.first;
+    auto credit_update = it.second;
+    apply_charging_credit_update(key, credit_update);
+  }
+  for (const auto& it : uc.charging_credit_to_install) {
+    auto key           = it.first;
+    auto stored_credit = it.second;
+    credit_map_[key] = std::make_unique<ChargingGrant>(stored_credit);
+  }
+
+  // Monitoring credit
+  if (uc.is_session_level_key_updated) {
+    set_session_level_key(uc.updated_session_level_key);
+  }
+  for (const auto& it : uc.monitor_credit_map) {
+    auto key           = it.first;
+    auto credit_update = it.second;
+    apply_monitor_updates(key, credit_update);
+  }
+  for (const auto& it : uc.monitor_credit_to_install) {
+    auto key            = it.first;
+    auto stored_monitor = it.second;
+    set_monitor(key, Monitor(stored_monitor), _);
+    monitor_map_[key] = std::make_unique<Monitor>(stored_monitor);
+  }
+  return true;
+}
+
 void SessionState::add_rule_usage(
     const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
     SessionStateUpdateCriteria& update_criteria) {
@@ -871,7 +1039,7 @@ ReAuthResult SessionState::reauth_all(
   return res;
 }
 
-void SessionState::merge_charging_credit_update(
+void SessionState::apply_charging_credit_update(
     const CreditKey& key, SessionCreditUpdateCriteria& credit_update) {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
@@ -1032,7 +1200,7 @@ bool SessionState::receive_monitor(
   return true;
 }
 
-void SessionState::merge_monitor_updates(
+void SessionState::apply_monitor_updates(
     const std::string& key, SessionCreditUpdateCriteria& update) {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {

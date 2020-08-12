@@ -136,9 +136,6 @@ class SessionState {
 
   ReAuthResult reauth_all(SessionStateUpdateCriteria &update_criteria);
 
-  void merge_charging_credit_update(
-    const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
-
   void set_charging_credit(const CreditKey &key,
     ChargingGrant charging_grant, SessionStateUpdateCriteria &uc);
 
@@ -182,10 +179,6 @@ class SessionState {
   bool is_gy_dynamic_rule_installed(const std::string& rule_id);
 
   bool is_static_rule_installed(const std::string& rule_id);
-
-  bool is_dynamic_rule_scheduled(const std::string& rule_id);
-
-  bool is_static_rule_scheduled(const std::string& rule_id);
 
   /**
    * Add a dynamic rule to the session which is currently active.
@@ -326,15 +319,6 @@ class SessionState {
   bool receive_monitor(const UsageMonitoringUpdateResponse &update,
                        SessionStateUpdateCriteria &uc);
 
-  /**
-   * Apply SessionCreditUpdateCriteria, a per-credit diff of an update, into
-   * the SessionState object
-   * @param key : monitoring key for the update
-   * @param update : the diff that needs to be applied
-   */
-  void merge_monitor_updates(
-    const std::string &key, SessionCreditUpdateCriteria &update);
-
   uint64_t get_monitor(const std::string &key, Bucket bucket) const;
 
   bool add_to_monitor(const std::string &key, uint64_t used_tx,
@@ -347,6 +331,8 @@ class SessionState {
     const std::string &key, SessionStateUpdateCriteria &uc);
 
   void set_session_level_key(const std::string new_key);
+
+  bool apply_update_criteria(SessionStateUpdateCriteria& uc);
  private:
   std::string imsi_;
   std::string session_id_;
@@ -405,6 +391,9 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
 
+  void apply_charging_credit_update(
+      const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
+
   /**
    * Receive the credit grant if the credit update was successful
    *
@@ -436,6 +425,15 @@ class SessionState {
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
+
+  /**
+   * Apply SessionCreditUpdateCriteria, a per-credit diff of an update, into
+   * the SessionState object
+   * @param key : monitoring key for the update
+   * @param update : the diff that needs to be applied
+   */
+  void apply_monitor_updates(
+      const std::string &key, SessionCreditUpdateCriteria &update);
 
   void add_common_fields_to_usage_monitor_update(UsageMonitoringUpdateRequest* req);
 
@@ -474,6 +472,10 @@ class SessionState {
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria& update_criteria);
+
+  bool is_static_rule_scheduled(const std::string& rule_id);
+
+  bool is_dynamic_rule_scheduled(const std::string& rule_id);
 };
 
 }  // namespace magma

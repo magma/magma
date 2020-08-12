@@ -360,7 +360,7 @@ void LocalEnforcer::start_session_termination(
   auto session_id = session->get_session_id();
   if (session->is_terminating()) {
     // If the session is terminating already, do nothing.
-    MLOG(MDEBUG) << "Session " << session_id << " is already terminating, "
+    MLOG(MINFO) << "Session " << session_id << " is already terminating, "
                  << "ignoring termination request";
     return;
   }
