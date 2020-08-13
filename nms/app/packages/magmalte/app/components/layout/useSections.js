@@ -45,8 +45,6 @@ export default function useSections(): SectionsConfigs {
   const {isFeatureEnabled} = useContext(AppContext);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const alertsEnabled = isFeatureEnabled('alerts');
-  const logsEnabled = isFeatureEnabled('logs');
-  const dashboardV2Enabled = isFeatureEnabled('dashboard_v2');
 
   useEffect(() => {
     if (networkId) {
@@ -74,6 +72,6 @@ export default function useSections(): SectionsConfigs {
       return getFEGSections();
     case LTE:
     default:
-      return getLteSections(alertsEnabled, logsEnabled, dashboardV2Enabled);
+      return getLteSections();
   }
 }
