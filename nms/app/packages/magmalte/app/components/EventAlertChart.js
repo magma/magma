@@ -13,6 +13,8 @@
  * @flow strict-local
  * @format
  */
+import type {ChartStyle} from '@fbcnms/ui/insights/AsyncMetric';
+
 import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -20,11 +22,20 @@ import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import Text from '../theme/design-system/Text';
 import moment from 'moment';
-import type {ChartStyle} from '@fbcnms/ui/insights/AsyncMetric';
+
+import {colors} from '../theme/default';
 
 type Props = {
   startEnd: [moment, moment],
 };
+const CHART_COLORS = [
+  colors.secondary.dodgerBlue,
+  colors.data.flamePea,
+  'green',
+  'yellow',
+  'purple',
+  'black',
+];
 
 const isValid = (start, end): boolean => {
   return start.isValid() && end.isValid() && moment.min(start, end) === start;
@@ -78,6 +89,7 @@ export default function ({startEnd}: Props) {
               timeRange={'3_hours'}
               startEnd={isValid(start, end) ? startEnd : undefined}
               legendLabels={state.legendLabels}
+              chartColors={CHART_COLORS}
             />
           }
         />
