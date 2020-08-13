@@ -9,8 +9,6 @@ ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
 
 RUN mkdir -p $C_BUILD
-# Add Converged MME sources to the container
-COPY ./ $MAGMA_ROOT
 
 RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
     apt-get update && \
@@ -164,16 +162,6 @@ RUN git clone https://gitlab.eurecom.fr/oai/asn1c.git && \
     make -j4 && \
     make install
 
-##### FreeDiameter
-RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \ 
-    cd freediameter && \
-    patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
-    mkdir build && \
-    cd build && \
-    cmake ../ && \
-    make -j4 && \
-    make install
-
 ##### Facebook Folly C++ lib
 WORKDIR /
 RUN echo "Install fmtlib required by Folly" && \
@@ -189,6 +177,21 @@ RUN echo "Install fmtlib required by Folly" && \
     mkdir _build && \
     cd _build && \
     cmake -DBUILD_SHARED_LIBS=ON -Wno-dev .. && \
+    make -j4 && \
+    make install
+
+
+# Add Converged MME sources to the container
+COPY ./ $MAGMA_ROOT
+
+##### FreeDiameter
+RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \ 
+    cd freediameter && \
+    patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
+    mkdir build && \
+    cd build && \
+    cmake ../ && \
+    awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
     make -j4 && \
     make install
     
@@ -345,13 +348,13 @@ COPY --from=conv-builder $C_BUILD/sctpd/sctpd .
 
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /conv-mme/etc
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/docker/mme.conf .
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/docker/mme_fd.conf .
+COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
+COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
 
 # Create running dirs
 WORKDIR /var/opt/magma
 WORKDIR /usr/local/etc/redis
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/docker/redis_for_container.conf redis.conf
+COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 
 WORKDIR /etc/magma
 COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
