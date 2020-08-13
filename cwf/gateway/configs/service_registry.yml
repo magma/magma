@@ -82,6 +82,3 @@ services:
   dpid:
     ip_address: 127.0.0.1
     port: 50077
-  connectiond:
-    ip_address: 127.0.0.1
-    port: 50078

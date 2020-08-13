@@ -214,13 +214,6 @@ services:
       - directoryd
     command: /usr/local/bin/sessiond
 
-  connectiond:
-    <<: *ltecservice
-    container_name: connectiond
-    depends_on:
-      - pipelined
-    command: /usr/local/bin/connectiond
-
   state:
     <<: *pyservice
     container_name: state
