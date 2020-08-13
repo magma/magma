@@ -17,9 +17,9 @@ BUILD_TYPE ?= Debug
 FEATURES ?= agw_of
 # EXCLUSIVE_FEATURE_LIST : list of primary features that cannot be requested
 # together.
-EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of
+EXCLUSIVE_FEATURE_LIST = mme agw_gtpnl agw_of mme_oai
 # AVAILABLE_FEATURE_LIST : every feature not in this list will trigger an error.
-AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of
+AVAILABLE_FEATURE_LIST = s6a_fd mme agw_gtpnl agw_of mme_oai
 REQUESTED_FEATURE_LIST = $(sort $(FEATURES))
 
 ifneq ($(words $(strip $(filter-out $(AVAILABLE_FEATURE_LIST),$(REQUESTED_FEATURE_LIST)))), 0)
@@ -43,8 +43,10 @@ endif
 
 ifeq ($(MAIN_FEATURE),mme)
 # Here force S6A to use freeDiameter
-# Set DS6A_OVER_GRPC=False if using OAI-HSS
 OAI_FLAGS = -DS6A_OVER_GRPC=True
+else ifeq ($(MAIN_FEATURE),mme_oai)
+# Set DS6A_OVER_GRPC=False if using OAI-HSS
+OAI_FLAGS = -DS6A_OVER_GRPC=False
 else ifeq ($(MAIN_FEATURE),agw_gtpnl)
 OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=False -DSPGW_ENABLE_SESSIOND_AND_MOBILITYD=False
 else ifeq ($(MAIN_FEATURE),agw_of)
