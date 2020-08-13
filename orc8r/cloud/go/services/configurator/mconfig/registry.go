@@ -11,15 +11,15 @@
  limitations under the License.
 */
 
+// File registry.go provides an mconfig builder registry by forwarding calls to
+// the service registry.
+
 package mconfig
 
 import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/registry"
 )
-
-// File registry.go provides an mconfig builder registry by forwarding calls to
-// the service registry.
 
 // GetBuilders returns all registered mconfig builders.
 func GetBuilders() ([]Builder, error) {

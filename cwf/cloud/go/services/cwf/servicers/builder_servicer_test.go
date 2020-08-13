@@ -113,8 +113,11 @@ func TestBuilder_Build(t *testing.T) {
 					{Ip: "1.2.3.4/24"},
 					{Ip: "1.1.1.1/24", Key: 111},
 				},
-				LiImsis: []string{
-					"IMSI001010000000013",
+				LiUes: &lte_mconfig.PipelineD_LiUes{
+					Imsis:   []string{"IMSI001010000000013"},
+					Ips:     []string{"192.16.8.1"},
+					Macs:    []string{"00:33:bb:aa:cc:33"},
+					Msisdns: []string{"57192831"},
 				},
 				IpdrExportDst: &lte_mconfig.PipelineD_IPDRExportDst{
 					Ip:   "192.168.128.88",
@@ -193,16 +196,19 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 		CreateSessionOnAuth:  false,
 	},
 	NetworkServices: []string{"dpi", "policy_enforcement"},
-	DefaultRuleID:   swag.String(""),
+	LiUes: &models.LiUes{
+		Imsis:   []string{"IMSI001010000000013"},
+		Ips:     []string{"192.16.8.1"},
+		Macs:    []string{"00:33:bb:aa:cc:33"},
+		Msisdns: []string{"57192831"},
+	},
+	DefaultRuleID: swag.String(""),
 }
 
 var defaultgwConfig = &models.GatewayCwfConfigs{
 	AllowedGrePeers: models.AllowedGrePeers{
 		{IP: "1.2.3.4/24"},
 		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
-	},
-	LiImsis: []string{
-		"IMSI001010000000013",
 	},
 	IPDRExportDst: &models.IPDRExportDst{
 		IP:   "192.168.128.88",

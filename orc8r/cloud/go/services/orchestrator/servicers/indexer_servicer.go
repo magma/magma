@@ -41,7 +41,7 @@ type indexerServicer struct{}
 
 // NewIndexerServicer returns the state indexer for directoryd.
 //
-// TODO(7/30/20): move this indexer to the directoryd service
+// TODO(7/30/20): move this indexer to the directoryd service once directoryd is moved to an lte (non-core) service
 //
 // The directoryd indexer performs the following indexing functions:
 //	- sidToIMSI: map session ID to IMSI

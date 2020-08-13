@@ -1,20 +1,16 @@
 /*
- Copyright 2020 The Magma Authors.
+ Copyright (c) Facebook, Inc. and its affiliates.
+ All rights reserved.
 
  This source code is licensed under the BSD-style license found in the
  LICENSE file in the root directory of this source tree.
-
- Unless required by applicable law or agreed to in writing, software
- distributed under the License is distributed on an "AS IS" BASIS,
- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- See the License for the specific language governing permissions and
- limitations under the License.
 */
 
 package servicers
 
 import (
 	"context"
+	"log"
 	"strings"
 
 	"magma/cwf/cloud/go/cwf"
@@ -30,13 +26,12 @@ import (
 	orc8r_mconfig "magma/orc8r/lib/go/protos/mconfig"
 
 	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
 )
 
 const (
-	defaultUeIpBlock = "192.168.128.0/24"
+	DefaultUeIpBlock = "192.168.128.0/24"
 )
 
 var networkServicesByName = map[string]lte_mconfig.PipelineD_NetworkServices{
@@ -69,7 +64,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return ret, nil
 	}
 	nwConfig := inwConfig.(*models.NetworkCarrierWifiConfigs)
-	gwConfig, err := graph.GetEntity(cwf.CwfGatewayType, request.GatewayId)
+	gwConfig, err := graph.GetEntity(cwf.CwfGatewayType, request.GetGatewayId())
 	if err == merrors.ErrNotFound {
 		return ret, nil
 	}
@@ -105,6 +100,10 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return nil, err
 	}
+	liUes, err := getPipelineDLiUes(nwConfig.LiUes)
+	if err != nil {
+		return nil, err
+	}
 	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IPDRExportDst)
 	if err != nil {
 		return nil, err
@@ -124,12 +123,12 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	}
 	ret["pipelined"] = &lte_mconfig.PipelineD{
 		LogLevel:        protos.LogLevel_INFO,
-		UeIpBlock:       defaultUeIpBlock, // unused by CWF
+		UeIpBlock:       DefaultUeIpBlock, // Unused by CWF
 		NatEnabled:      false,
 		DefaultRuleId:   swag.StringValue(nwConfig.DefaultRuleID),
 		Services:        pipelineDServices,
 		AllowedGrePeers: allowedGrePeers,
-		LiImsis:         gwConfig.LiImsis,
+		LiUes:           liUes,
 		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &lte_mconfig.SessionD{
@@ -191,7 +190,7 @@ func getPipelineDServicesConfig(networkServices []string) ([]lte_mconfig.Pipelin
 	for _, service := range networkServices {
 		mc, found := networkServicesByName[strings.ToLower(service)]
 		if !found {
-			glog.Infof("CWAG: unknown network service name %s", service)
+			log.Printf("CWAG: unknown network service name %s", service)
 		} else {
 			apps = append(apps, mc)
 		}
@@ -211,4 +210,17 @@ func getHealthServiceGrePeers(pipelinedPeers []*lte_mconfig.PipelineD_AllowedGre
 		healthPeers = append(healthPeers, healthPeer)
 	}
 	return healthPeers
+}
+
+func getPipelineDLiUes(liUes *models.LiUes) (*lte_mconfig.PipelineD_LiUes, error) {
+	if liUes == nil {
+		return nil, nil
+	}
+	dst := &lte_mconfig.PipelineD_LiUes{
+		Imsis:   liUes.Imsis,
+		Msisdns: liUes.Msisdns,
+		Macs:    liUes.Macs,
+		Ips:     liUes.Ips,
+	}
+	return dst, nil
 }
