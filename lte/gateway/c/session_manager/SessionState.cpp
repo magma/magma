@@ -505,7 +505,16 @@ void SessionState::get_monitor_updates(
   for (auto& monitor_pair : monitor_map_) {
     auto mkey    = monitor_pair.first;
     auto& credit = monitor_pair.second->credit;
-    if (!credit.is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
+
+    bool is_partially_exhausted = credit.is_quota_exhausted(
+        SessionCredit::USAGE_REPORTING_THRESHOLD);
+    bool is_totally_exhausted = credit.is_quota_exhausted(1);
+
+    if (!is_partially_exhausted ||
+        (!is_totally_exhausted && credit.current_grant_contains_zero())){
+      // The update will be skipped in case we havent used enough data yet
+      // OR in the case the monitor got a 0 grant and it is not exhausted
+      // (we will only send the last update when it is totally exhausted)
       continue;
     }
     MLOG(MDEBUG) << "Session " << session_id_ << " monitoring key " << mkey
@@ -1180,6 +1189,8 @@ void SessionState::apply_charging_credit_update(
   // Credit merging
   credit.set_grant_tracking_type(
       credit_update.grant_tracking_type, credit_update);
+  credit.set_received_granted_units(credit_update.received_granted_units,
+                                    credit_update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     credit.add_credit(
@@ -1193,6 +1204,7 @@ void SessionState::apply_charging_credit_update(
   charging_grant->expiry_time       = credit_update.expiry_time;
   charging_grant->reauth_state      = credit_update.reauth_state;
   charging_grant->service_state     = credit_update.service_state;
+
 }
 
 void SessionState::set_charging_credit(
@@ -1306,6 +1318,17 @@ bool SessionState::receive_monitor(
   }
   auto mkey = update.credit().monitoring_key();
   auto it = monitor_map_.find(mkey);
+
+  if (update_criteria.monitor_credit_map.find(mkey) !=
+      update_criteria.monitor_credit_map.end() &&
+      update_criteria.monitor_credit_map[mkey].deleted){
+    // This will only happen if the PCRF responds back with more credit when
+    // the monitor has already been set to be terminated
+    MLOG(MDEBUG) <<"Ignoring Monitor update" << mkey << " update because it "
+                                                  "has been set for deletion";
+    return false;
+  }
+
   if (it == monitor_map_.end()) {
     // new credit
     return init_new_monitor(update, update_criteria);
@@ -1316,15 +1339,9 @@ bool SessionState::receive_monitor(
     return false;
   }
 
-  if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
-    MLOG(MINFO) << "Erasing monitor " << mkey << " from DISABLE instruction";
-    monitor_map_.erase(mkey);
-    credit_uc->deleted = true;
-  } else {
-    MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
-    const auto& gsu = update.credit().granted_units();
-    it->second->credit.receive_credit(gsu, credit_uc);
-  }
+  MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
+  const auto& gsu = update.credit().granted_units();
+  it->second->credit.receive_credit(gsu, credit_uc);
   return true;
 }
 
@@ -1334,10 +1351,11 @@ void SessionState::apply_monitor_updates(
   if (it == monitor_map_.end()) {
     return;
   }
-  if (update.deleted) {
-    monitor_map_.erase(key);
-    return;
-  }
+
+  auto& credit = it->second->credit;
+  // Credit merging
+  credit.set_grant_tracking_type(update.grant_tracking_type, update);
+  credit.set_received_granted_units(update.received_granted_units,update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     it->second->credit.add_credit(
@@ -1363,8 +1381,20 @@ bool SessionState::add_to_monitor(
                  << " not found, not adding the usage";
     return false;
   }
+
   auto credit_uc = get_monitor_uc(key, uc);
-  it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+  // add credit or delete monitor
+  if (it->second->should_delete_monitor() ){
+    MLOG(MINFO) << "Erasing monitor " << key << " due to quota exhausted";
+    if (it->second->level == MonitoringLevel::SESSION_LEVEL){
+      uc.is_session_level_key_updated = true;
+      uc.updated_session_level_key = "";
+    }
+    credit_uc->deleted = true;
+    monitor_map_.erase(key);
+  } else {
+    it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+  }
   return true;
 }
 

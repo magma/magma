@@ -31,15 +31,16 @@ SessionCredit::SessionCredit(ServiceState start_state)
 
 SessionCredit::SessionCredit(
     ServiceState start_state, CreditLimitType credit_limit_type)
-    : buckets_{},
+    : buckets_{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
       reporting_(false),
       credit_limit_type_(credit_limit_type),
-      grant_tracking_type_(TOTAL_ONLY) {}
+      grant_tracking_type_(TRACKING_UNSET) {}
 
 SessionCredit::SessionCredit(const StoredSessionCredit& marshaled) {
-  reporting_           = marshaled.reporting;
-  credit_limit_type_   = marshaled.credit_limit_type;
-  grant_tracking_type_ = marshaled.grant_tracking_type;
+  reporting_              = marshaled.reporting;
+  credit_limit_type_      = marshaled.credit_limit_type;
+  grant_tracking_type_    = marshaled.grant_tracking_type;
+  received_granted_units_ = marshaled.received_granted_units;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
@@ -51,9 +52,10 @@ SessionCredit::SessionCredit(const StoredSessionCredit& marshaled) {
 
 StoredSessionCredit SessionCredit::marshal() {
   StoredSessionCredit marshaled{};
-  marshaled.reporting           = reporting_;
-  marshaled.credit_limit_type   = credit_limit_type_;
-  marshaled.grant_tracking_type = grant_tracking_type_;
+  marshaled.reporting              = reporting_;
+  marshaled.credit_limit_type      = credit_limit_type_;
+  marshaled.grant_tracking_type    = grant_tracking_type_;
+  marshaled.received_granted_units = received_granted_units_;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket             = static_cast<Bucket>(bucket_int);
@@ -64,8 +66,10 @@ StoredSessionCredit SessionCredit::marshal() {
 
 SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   SessionCreditUpdateCriteria uc{};
-  uc.deleted = false;
-  uc.grant_tracking_type = grant_tracking_type_;
+  uc.deleted                = false;
+  uc.grant_tracking_type    = grant_tracking_type_;
+  uc.received_granted_units = received_granted_units_;
+
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket            = static_cast<Bucket>(bucket_int);
     uc.bucket_deltas[bucket] = 0;
@@ -107,21 +111,24 @@ void SessionCredit::mark_failure(
 
 void SessionCredit::receive_credit(
     const GrantedUnits& gsu, SessionCreditUpdateCriteria* uc) {
+  // only decide the grant tracking type on the very first refill
+  if (grant_tracking_type_ == TRACKING_UNSET) {
+    grant_tracking_type_ = determine_grant_tracking_type(gsu);
+  }
+  received_granted_units_ = gsu;
 
-  grant_tracking_type_ = determine_grant_tracking_type(gsu);
-
-  // Floor represent the previous value of ALLOWED counters before grant is applied
-  // They will only be updated if a valid grant is received
-  uint64_t delta_allowed_floor_total =
-      calculate_delta_allowed_floor(gsu.total(), ALLOWED_TOTAL, ALLOWED_FLOOR_TOTAL);
+  // Floor represent the previous value of ALLOWED counters before grant is
+  // applied They will only be updated if a valid grant is received
+  uint64_t delta_allowed_floor_total = calculate_delta_allowed_floor(
+      gsu.total(), ALLOWED_TOTAL, ALLOWED_FLOOR_TOTAL);
   uint64_t delta_allowed_floor_tx =
       calculate_delta_allowed_floor(gsu.total(), ALLOWED_TX, ALLOWED_FLOOR_TX);
   uint64_t delta_allowed_floor_rx =
       calculate_delta_allowed_floor(gsu.total(), ALLOWED_RX, ALLOWED_FLOOR_RX);
 
-  buckets_[ALLOWED_FLOOR_TOTAL] +=  delta_allowed_floor_total;
-  buckets_[ALLOWED_FLOOR_TX] +=     delta_allowed_floor_tx;
-  buckets_[ALLOWED_FLOOR_RX] +=     delta_allowed_floor_rx;
+  buckets_[ALLOWED_FLOOR_TOTAL] += delta_allowed_floor_total;
+  buckets_[ALLOWED_FLOOR_TX] += delta_allowed_floor_tx;
+  buckets_[ALLOWED_FLOOR_RX] += delta_allowed_floor_rx;
 
   // Clear invalid values
   uint64_t total_volume = gsu.total().is_valid() ? gsu.total().volume() : 0;
@@ -134,10 +141,8 @@ void SessionCredit::receive_credit(
   buckets_[ALLOWED_RX] += rx_volume;
 
   MLOG(MINFO) << "Received the following credit"
-              << " total_volume=" << total_volume
-              << " tx_volume=" << tx_volume
-              << " rx_volume=" << rx_volume
-              << " grant_tracking_type="
+              << " total_volume=" << total_volume << " tx_volume=" << tx_volume
+              << " rx_volume=" << rx_volume << " grant_tracking_type="
               << grant_type_to_str(grant_tracking_type_);
 
   // Update reporting/reported bytes
@@ -145,7 +150,8 @@ void SessionCredit::receive_credit(
   buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
 
   if (uc != NULL) {
-    uc->grant_tracking_type = grant_tracking_type_;
+    uc->received_granted_units = gsu;
+    uc->grant_tracking_type    = grant_tracking_type_;
 
     uc->bucket_deltas[ALLOWED_TOTAL] += total_volume;
     uc->bucket_deltas[ALLOWED_TX] += tx_volume;
@@ -163,16 +169,17 @@ void SessionCredit::receive_credit(
   log_quota_and_usage();
 }
 
-uint64_t SessionCredit::calculate_delta_allowed_floor(CreditUnit cu, Bucket allowed, Bucket floor){
-  if (cu.is_valid() && cu.volume() !=0 ) {
+uint64_t SessionCredit::calculate_delta_allowed_floor(
+    CreditUnit cu, Bucket allowed, Bucket floor) {
+  if (cu.is_valid() && cu.volume() != 0) {
     // only advance floor when there is a new grant
-    if (buckets_[allowed]<buckets_[floor]){
+    if (buckets_[allowed] < buckets_[floor]) {
       MLOG(MERROR) << "Error in calculate_delta_allowed_floor, "
                       "floor bigger than allowed "
                    << buckets_[floor] << ">" << buckets_[allowed];
       return 0;
     }
-    return buckets_[allowed]-buckets_[floor];
+    return buckets_[allowed] - buckets_[floor];
   }
   return 0;
 }
@@ -183,19 +190,22 @@ bool SessionCredit::is_quota_exhausted(float threshold) const {
   }
 
   bool rx_exhausted = compute_quota_exhausted(
-      buckets_[ALLOWED_RX],  buckets_[USED_RX],
-      threshold,
+      buckets_[ALLOWED_RX], buckets_[USED_RX], threshold,
       buckets_[ALLOWED_FLOOR_RX]);
   bool tx_exhausted = compute_quota_exhausted(
-      buckets_[ALLOWED_TX],  buckets_[USED_TX],
-      threshold,
+      buckets_[ALLOWED_TX], buckets_[USED_TX], threshold,
       buckets_[ALLOWED_FLOOR_TX]);
   bool total_exhausted = compute_quota_exhausted(
-      buckets_[ALLOWED_TOTAL], buckets_[USED_TX] + buckets_[USED_RX],
-      threshold, buckets_[ALLOWED_FLOOR_TOTAL]);
+      buckets_[ALLOWED_TOTAL], buckets_[USED_TX] + buckets_[USED_RX], threshold,
+      buckets_[ALLOWED_FLOOR_TOTAL]);
 
   bool is_exhausted = false;
   switch (grant_tracking_type_) {
+    case TRACKING_UNSET:
+      // in case we haven't even initialized the credit at all but we have
+      // received traffic, then the session should be marked as exhausted
+      is_exhausted = true;
+      break;
     case ALL_TOTAL_TX_RX:
       is_exhausted = rx_exhausted || tx_exhausted || total_exhausted;
       break;
@@ -314,8 +324,8 @@ uint64_t SessionCredit::compute_reporting_limit(
 }
 
 bool SessionCredit::compute_quota_exhausted(
-    const uint64_t allowed, const uint64_t used,
-    float threshold_ratio, const uint64_t floor) const {
+    const uint64_t allowed, const uint64_t used, float threshold_ratio,
+    const uint64_t floor) const {
   // current_granted_units: difference between current allowed and past
   // allowed (floor). This value is equivalent to the grant received.
   // Credit will be considered exhausted if the remaining credit is below
@@ -324,23 +334,23 @@ bool SessionCredit::compute_quota_exhausted(
   if (floor > allowed) {
     // This should never happen because floor should always be the previous
     // allowed value
-    MLOG(MERROR) << "Error: Floor value is higher than allowed value "
-        << floor << ">" << allowed ;
+    MLOG(MERROR) << "Error: Floor value is higher than allowed value " << floor
+                 << ">" << allowed;
     return true;
   }
 
-  if (used >= allowed){
+  if (used >= allowed) {
     // if we used more that we are allowed, we are for sure out of quota
     return true;
   }
 
-  uint64_t remaining_credit = allowed - used;
+  uint64_t remaining_credit      = allowed - used;
   uint64_t current_granted_units = allowed - floor;
   // this step is necessary to avoid precision issues of float
   int integer_threshold_ratio = 100 - int(threshold_ratio * 100);
-  uint64_t threshold  = (current_granted_units * integer_threshold_ratio)/100;
+  uint64_t threshold = (current_granted_units * integer_threshold_ratio) / 100;
 
-  return  remaining_credit <= threshold;
+  return remaining_credit <= threshold;
 }
 
 bool SessionCredit::is_reporting() const {
@@ -357,6 +367,12 @@ void SessionCredit::set_grant_tracking_type(
   uc.grant_tracking_type = g_type;
 }
 
+void SessionCredit::set_received_granted_units(
+    GrantedUnits& rgu, SessionCreditUpdateCriteria& uc) {
+  received_granted_units_   = rgu;
+  uc.received_granted_units = rgu;
+}
+
 void SessionCredit::add_credit(
     uint64_t credit, Bucket bucket,
     SessionCreditUpdateCriteria& update_criteria) {
@@ -367,12 +383,11 @@ void SessionCredit::add_credit(
 // Determine the grant's tracking type by looking at which values are valid.
 GrantTrackingType SessionCredit::determine_grant_tracking_type(
     const GrantedUnits& grant) {
+  bool total_valid = grant.total().is_valid() && grant.total().volume() !=0;
+  bool tx_valid    = grant.tx().is_valid() && grant.tx().volume() !=0;
+  bool rx_valid    = grant.rx().is_valid() && grant.rx().volume() !=0;
 
-  bool total_valid = grant.total().is_valid();
-  bool tx_valid = grant.tx().is_valid();
-  bool rx_valid = grant.rx().is_valid();
-
-  if (total_valid && tx_valid && rx_valid){
+  if (total_valid && tx_valid && rx_valid) {
     return ALL_TOTAL_TX_RX;
   }
   if (total_valid) {
@@ -391,6 +406,46 @@ GrantTrackingType SessionCredit::determine_grant_tracking_type(
   }
 }
 
+bool SessionCredit::current_grant_contains_zero() const {
+  switch (grant_tracking_type_) {
+    case ALL_TOTAL_TX_RX:
+      // Monitors should not have this mode enabled
+      MLOG(MWARNING) << "Possible monitor with ALL_TOTAL_TX_RX enabled";
+      return
+          is_received_grented_unit_zero(received_granted_units_.total()) ||
+          is_received_grented_unit_zero(received_granted_units_.tx()) ||
+          is_received_grented_unit_zero(received_granted_units_.rx());
+      break;
+    case RX_ONLY:
+      return is_received_grented_unit_zero(received_granted_units_.rx());
+      break;
+    case TX_ONLY:
+      return is_received_grented_unit_zero(received_granted_units_.tx());
+      break;
+    case TX_AND_RX:
+      return
+             is_received_grented_unit_zero(received_granted_units_.tx()) ||
+             is_received_grented_unit_zero(received_granted_units_.rx());
+      break;
+    case TOTAL_ONLY:
+      return is_received_grented_unit_zero(received_granted_units_.total());
+      break;
+    default:
+      MLOG(MERROR) << "Can't determine if grant has zeroes. "
+                      "tracking type is probably unexpected: "
+                   << grant_tracking_type_;
+      return true;
+      break;
+  }
+}
+
+bool SessionCredit::is_received_grented_unit_zero(const CreditUnit& cu) const{
+  if (!cu.is_valid() || cu.volume() == 0){
+    return true;
+  }
+  return false;
+}
+
 void SessionCredit::log_quota_and_usage() const {
   MLOG(MDEBUG) << "===> Used     Tx: " << buckets_[USED_TX]
                << " Rx: " << buckets_[USED_RX]
@@ -405,10 +460,14 @@ void SessionCredit::log_quota_and_usage() const {
                << grant_type_to_str(grant_tracking_type_)
                << ",  Reporting: " << reporting_;
   // TODO: delete once we tested it works for both credit and monitors
-  MLOG(MDEBUG) << "===> Current Granted Units (tx/rx/total) "
+  MLOG(MDEBUG) << "===> Current Grant being used (ALLOWED_FLOOR) (tx/rx/total) "
                << buckets_[ALLOWED_TX] - buckets_[ALLOWED_FLOOR_TX] << "/"
                << buckets_[ALLOWED_RX] - buckets_[ALLOWED_FLOOR_RX] << "/"
                << buckets_[ALLOWED_TOTAL] - buckets_[ALLOWED_FLOOR_TOTAL];
+  MLOG(MDEBUG) << "===> Last Granted Units Received (tx/rx/total) "
+               << received_granted_units_.tx().volume() << "/"
+               << received_granted_units_.rx().volume()<< "/"
+               << received_granted_units_.total().volume();
 }
 
 void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {

@@ -160,6 +160,8 @@ std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
   marshaled["buckets"]           = folly::dynamic::object();
   marshaled["grant_tracking_type"] =
       static_cast<int>(stored.grant_tracking_type);
+  marshaled["received_granted_units"] =
+      stored.received_granted_units.SerializeAsString();
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     marshaled["buckets"][std::to_string(bucket_int)] =
@@ -181,6 +183,11 @@ StoredSessionCredit deserialize_stored_session_credit(
       static_cast<CreditLimitType>(marshaled["credit_limit_type"].getInt());
   stored.grant_tracking_type =
       static_cast<GrantTrackingType>(marshaled["grant_tracking_type"].getInt());
+
+  GrantedUnits received_granted_units;
+  received_granted_units.ParseFromString(marshaled["received_granted_units"].getString());
+  stored.received_granted_units = received_granted_units;
+
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket          = static_cast<Bucket>(bucket_int);
     stored.buckets[bucket] = static_cast<uint64_t>(std::stoul(
