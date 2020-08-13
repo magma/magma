@@ -497,15 +497,16 @@ static int32_t _spgw_build_and_send_s11_deactivate_bearer_req(
 
 //------------------------------------------------------------------------------
 int spgw_send_nw_init_activate_bearer_rsp(
-    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id) {
+    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
+    uint8_t default_bearer_id, char* policy_rule_name) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint32_t rc = RETURNok;
 
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
       "To be implemented: Sending Create Bearer Rsp to PCRF with EBI %d with "
-      "cause :%d \n",
-      eps_bearer_id, cause);
+      "cause: %d linked bearer id: %d policy rule name: %s\n",
+      eps_bearer_id, cause, default_bearer_id, policy_rule_name);
   // Send Create Bearer Rsp to PCRF
   // TODO-Uncomment once implemented at PCRF
   /* rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi,
@@ -632,6 +633,8 @@ static int _create_temporary_dedicated_bearer_context(
   memcpy(
       &eps_bearer_ctxt_p->eps_bearer_qos, &bearer_req_p->eps_bearer_qos,
       sizeof(bearer_qos_t));
+  // Save Policy Rule Name
+  strcpy(eps_bearer_ctxt_p->policy_rule_name, bearer_req_p->policy_rule_name);
 
   OAILOG_INFO_UE(
       LOG_SPGW_APP, spgw_ctxt_p->sgw_eps_bearer_context_information.imsi64,
