@@ -25,16 +25,27 @@ import (
 	"github.com/golang/glog"
 )
 
+const (
+	defaultCategoryID = "magma"
+)
+
 func main() {
 	srv, err := service.NewOrchestratorService(fbinternal.ModuleName, fbinternal_service.ServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating orc8r service for fbinternal: %s", err)
 	}
-
+	var categoryID string
+	categoryIDEnv := os.Getenv("FACEBOOK_APP_CATEGORY_ID")
+	if len(categoryIDEnv) != 0 {
+		categoryID = categoryIDEnv
+	} else {
+		categoryID = defaultCategoryID
+	}
 	exporterServicer := servicers.NewExporterServicer(
 		os.Getenv("METRIC_EXPORT_URL"),
 		os.Getenv("FACEBOOK_APP_ID"),
 		os.Getenv("FACEBOOK_APP_SECRET"),
+		categoryID,
 		os.Getenv("METRICS_PREFIX"),
 		servicers.ODSMetricsQueueLength,
 		servicers.ODSMetricsExportInterval,
