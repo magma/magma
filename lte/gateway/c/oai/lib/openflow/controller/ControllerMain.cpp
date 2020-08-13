@@ -49,7 +49,10 @@ int start_of_controller(bool persist_state) {
   static openflow::GTPApplication gtp_app(
       std::string(bdata(spgw_config.sgw_config.ovs_config.uplink_mac)),
       spgw_config.sgw_config.ovs_config.gtp_port_num,
-      spgw_config.sgw_config.ovs_config.mtr_port_num, uplink_port_num_);
+      spgw_config.sgw_config.ovs_config.mtr_port_num,
+      spgw_config.sgw_config.ovs_config.internal_sampling_port_num,
+      spgw_config.sgw_config.ovs_config.internal_sampling_fwd_tbl_num,
+      uplink_port_num_);
   // Base app registers first, because it deletes/creates default flow
   ctrl.register_for_event(&base_app, openflow::EVENT_SWITCH_UP);
   ctrl.register_for_event(&base_app, openflow::EVENT_ERROR);
@@ -57,6 +60,7 @@ int start_of_controller(bool persist_state) {
   ctrl.register_for_event(&paging_app, openflow::EVENT_SWITCH_UP);
   ctrl.register_for_event(&paging_app, openflow::EVENT_ADD_PAGING_RULE);
   ctrl.register_for_event(&paging_app, openflow::EVENT_DELETE_PAGING_RULE);
+  ctrl.register_for_event(&gtp_app, openflow::EVENT_SWITCH_UP);
   ctrl.register_for_event(&gtp_app, openflow::EVENT_ADD_GTP_TUNNEL);
   ctrl.register_for_event(&gtp_app, openflow::EVENT_DELETE_GTP_TUNNEL);
   ctrl.register_for_event(&gtp_app, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL);

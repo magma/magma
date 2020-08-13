@@ -36,10 +36,13 @@ const std::string GTPApplication::GTP_PORT_MAC = "02:00:00:00:00:01";
 
 GTPApplication::GTPApplication(
     const std::string& uplink_mac, uint32_t gtp_port_num, uint32_t mtr_port_num,
+    uint32_t internal_sampling_port_num, uint32_t internal_sampling_fwd_tbl_num,
     uint32_t uplink_port_num)
     : uplink_mac_(uplink_mac),
       gtp_port_num_(gtp_port_num),
       mtr_port_num_(mtr_port_num),
+      internal_sampling_port_num_(internal_sampling_port_num),
+      internal_sampling_fwd_tbl_num_(internal_sampling_fwd_tbl_num),
       uplink_port_num_(uplink_port_num) {}
 
 void GTPApplication::event_callback(
@@ -72,7 +75,28 @@ void GTPApplication::event_callback(
     forward_downlink_tunnel_flow(
         forward_tunnel_flow, messenger, uplink_port_num_);
     forward_downlink_tunnel_flow(forward_tunnel_flow, messenger, mtr_port_num_);
+  } else if (ev.get_type() == EVENT_SWITCH_UP) {
+    install_internal_pkt_fwd_flow(
+        ev.get_connection(), messenger, internal_sampling_port_num_,
+        internal_sampling_fwd_tbl_num_);
   }
+}
+
+void GTPApplication::install_internal_pkt_fwd_flow(
+    fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger,
+    uint32_t port, uint32_t next_table) {
+  of13::FlowMod fm =
+      messenger.create_default_flow_mod(0, of13::OFPFC_ADD, LOW_PRIORITY);
+
+  // Set match on the internal pkt sampling port
+  of13::InPort port_match(port);
+  fm.add_oxm_field(port_match);
+
+  // Output to next table
+  of13::GoToTable inst(next_table);
+  fm.add_instruction(inst);
+  messenger.send_of_msg(fm, ofconn);
+  OAILOG_DEBUG(LOG_GTPV1U, "Session tracker forward flow added\n");
 }
 
 /*
