@@ -1200,10 +1200,13 @@ int send_mbr_for_active_pdns(
 
   OAILOG_FUNC_IN(LOG_MME_APP);
   int rc                               = RETURNok;
-  uint8_t bc_idx = 0;
+  uint8_t bc_to_be_mod_idx = 0;
+  uint8_t bc_to_be_removed_idx = 0;
+  bool bearer_found = false;
 
   for (uint8_t pid = 0; pid < ue_context_p->emm_context.esm_ctx.n_pdns; pid++) {
-    bc_idx = 0;
+    bc_to_be_mod_idx = 0;
+    bc_to_be_removed_idx = 0;
     if (!ue_context_p->pdn_contexts[pid]) {
       continue;
     }
@@ -1229,22 +1232,24 @@ int send_mbr_for_active_pdns(
       if (idx < 0) {
         continue;
       }
+      bearer_found = false;
       for (uint8_t item = 0; item < initial_ctxt_setup_rsp_pP->no_of_e_rabs; item++) {
         if ((ue_context_p->bearer_contexts[idx]) && (ue_context_p->bearer_contexts[idx]->ebi == initial_ctxt_setup_rsp_pP->e_rab_id[item])) {
+          bearer_found = true;
     OAILOG_ERROR(
         LOG_MME_APP,
         "Filling ebi %u for S11 Modify Bearer Request \n",
         initial_ctxt_setup_rsp_pP->e_rab_id[item]);
           s11_modify_bearer_request->bearer_contexts_to_be_modified
-            .bearer_contexts[bc_idx]
+            .bearer_contexts[bc_to_be_mod_idx]
             .eps_bearer_id = initial_ctxt_setup_rsp_pP->e_rab_id[item];
           s11_modify_bearer_request->bearer_contexts_to_be_modified
-            .bearer_contexts[bc_idx]
+            .bearer_contexts[bc_to_be_mod_idx]
             .s1_eNB_fteid.teid = initial_ctxt_setup_rsp_pP->gtp_teid[item];
           s11_modify_bearer_request->bearer_contexts_to_be_modified
-            .bearer_contexts[bc_idx]
+            .bearer_contexts[bc_to_be_mod_idx]
             .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
-          if (!bc_idx) {
+          if (!bc_to_be_mod_idx) {
             ue_context_p->pdn_contexts[pid]->s_gw_address_s11_s4.address.ipv4_address.s_addr =
               mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
 
@@ -1258,11 +1263,11 @@ int send_mbr_for_active_pdns(
             blength(initial_ctxt_setup_rsp_pP->transport_layer_address[item])) {
 
             s11_modify_bearer_request->bearer_contexts_to_be_modified
-              .bearer_contexts[bc_idx]
+              .bearer_contexts[bc_to_be_mod_idx]
               .s1_eNB_fteid.ipv4 = 1;
             memcpy(
               &s11_modify_bearer_request->bearer_contexts_to_be_modified
-                .bearer_contexts[bc_idx]
+                .bearer_contexts[bc_to_be_mod_idx]
                 .s1_eNB_fteid.ipv4_address,
               initial_ctxt_setup_rsp_pP->transport_layer_address[item]->data,
               blength(initial_ctxt_setup_rsp_pP->transport_layer_address[item]));
@@ -1270,18 +1275,18 @@ int send_mbr_for_active_pdns(
         LOG_MME_APP,
         "Filling ipv4 addr %x for S11 Modify Bearer Request idx %d\n",
         s11_modify_bearer_request->bearer_contexts_to_be_modified
-                .bearer_contexts[bc_idx]
-                .s1_eNB_fteid.ipv4_address.s_addr, bc_idx);
+                .bearer_contexts[bc_to_be_mod_idx]
+                .s1_eNB_fteid.ipv4_address.s_addr, bc_to_be_mod_idx);
 
           } else if (
             16 ==
             blength(initial_ctxt_setup_rsp_pP->transport_layer_address[item])) {
             s11_modify_bearer_request->bearer_contexts_to_be_modified
-            .bearer_contexts[bc_idx]
+            .bearer_contexts[bc_to_be_mod_idx]
             .s1_eNB_fteid.ipv6 = 1;
             memcpy(
               &s11_modify_bearer_request->bearer_contexts_to_be_modified
-              .bearer_contexts[bc_idx]
+              .bearer_contexts[bc_to_be_mod_idx]
               .s1_eNB_fteid.ipv6_address,
               initial_ctxt_setup_rsp_pP->transport_layer_address[item]->data,
             blength(initial_ctxt_setup_rsp_pP->transport_layer_address[item]));
@@ -1295,16 +1300,21 @@ int send_mbr_for_active_pdns(
              OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
            }
            bdestroy_wrapper(&initial_ctxt_setup_rsp_pP->transport_layer_address[item]);
-           bc_idx++;
+           bc_to_be_mod_idx++;
            break;
         } //if
       }// item
+      if (!bearer_found && ue_context_p->bearer_contexts[idx]) {
+        s11_modify_bearer_request->bearer_contexts_to_be_removed.bearer_contexts[bc_to_be_removed_idx].eps_bearer_id =
+        ue_context_p->bearer_contexts[idx]->ebi;
+        bc_to_be_removed_idx ++;
+      }
     }//bid
     s11_modify_bearer_request->bearer_contexts_to_be_modified.num_bearer_context =
-      bc_idx;
+      bc_to_be_mod_idx;
 
     s11_modify_bearer_request->bearer_contexts_to_be_removed.num_bearer_context =
-      0;
+      bc_to_be_removed_idx;
 
     s11_modify_bearer_request->mme_fq_csid.node_id_type =
       GLOBAL_UNICAST_IPv4;                          // TODO
@@ -3471,11 +3481,9 @@ void mme_app_handle_modify_bearer_rsp(
     ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   /* If modify bearer failure is received from spgw, initiate bearer deactivation for each bearer*/
-  if (s11_modify_bearer_response->cause.cause_value ==
-      CONTEXT_NOT_FOUND) {
-    for (uint8_t idx=0; idx < s11_modify_bearer_response->bearer_contexts_marked_for_removal.num_bearer_context; idx++) {
-        emm_cn_deactivate_dedicated_bearer_req_t deactivate_ded_bearer_req = {0};
-
+  for (uint8_t idx=0; idx < s11_modify_bearer_response->bearer_contexts_marked_for_removal.num_bearer_context; idx++) {
+    if (s11_modify_bearer_response->bearer_contexts_marked_for_removal.bearer_contexts[idx].cause == CONTEXT_NOT_FOUND) {
+      emm_cn_deactivate_dedicated_bearer_req_t deactivate_ded_bearer_req = {0};
       deactivate_ded_bearer_req.ue_id = ue_context_p->mme_ue_s1ap_id;
       deactivate_ded_bearer_req.no_of_bearers = 1;
       deactivate_ded_bearer_req.ebi[0] = s11_modify_bearer_response->bearer_contexts_marked_for_removal.bearer_contexts[idx].eps_bearer_id;
