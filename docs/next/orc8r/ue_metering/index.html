@@ -113,12 +113,14 @@ policy to the subscriber you wish to meter for.</p>
       <span class="hljs-attr">"action"</span>: <span class="hljs-string">"PERMIT"</span>,
       <span class="hljs-attr">"match"</span>: {
         <span class="hljs-attr">"direction"</span>: <span class="hljs-string">"UPLINK"</span>,
+        <span class="hljs-attr">"ip_proto"</span>: <span class="hljs-string">"IPPROTO_IP"</span>
       }
     },
     {
       <span class="hljs-attr">"action"</span>: <span class="hljs-string">"PERMIT"</span>,
       <span class="hljs-attr">"match"</span>: {
         <span class="hljs-attr">"direction"</span>: <span class="hljs-string">"DOWNLINK"</span>,
+        <span class="hljs-attr">"ip_proto"</span>: <span class="hljs-string">"IPPROTO_IP"</span>
       }
     }
   ],
