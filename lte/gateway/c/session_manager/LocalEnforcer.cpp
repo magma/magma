@@ -920,6 +920,12 @@ bool LocalEnforcer::handle_session_init_rule_updates(
   // when no rule is provided as the parameter.
   propagate_rule_updates_to_pipelined(
       imsi, config, rules_to_activate, rules_to_deactivate, true);
+
+  if (config.common_context.rat_type() == TGPP_LTE) {
+    const auto update = session_state.get_dedicated_bearer_updates(
+        rules_to_activate, rules_to_deactivate, uc);
+    propagate_bearer_updates_to_mme(update);
+  }
   return true;
 }
 
@@ -1206,6 +1212,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
     for (const auto& session : it->second) {
       auto& update_criteria = session_update[imsi][session->get_session_id()];
+      const auto& config    = session->get_config();
       session->receive_monitor(usage_monitor_resp, update_criteria);
       session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), update_criteria);
 
@@ -1222,8 +1229,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
           rules_to_activate, rules_to_deactivate, update_criteria);
       
       propagate_rule_updates_to_pipelined(
-          imsi, session->get_config(), rules_to_activate, rules_to_deactivate,
-          false);
+          imsi, config, rules_to_activate, rules_to_deactivate, false);
 
       if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
         subscribers_to_terminate.insert(imsi);
@@ -1242,6 +1248,12 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         imsis_with_revalidation.insert(imsi);
         schedule_revalidation(
             imsi, *session, revalidation_time, update_criteria);
+      }
+
+      if (config.common_context.rat_type() == TGPP_LTE) {
+        const auto update = session->get_dedicated_bearer_updates(
+            rules_to_activate, rules_to_deactivate, update_criteria);
+        propagate_bearer_updates_to_mme(update);
       }
     }
   }
@@ -1446,7 +1458,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
     start_session_termination(imsi, session, true, update_criteria);
     return;
   }
-  if (!session->is_radius_cwf_session()) {
+  if (session->get_config().common_context.rat_type() == TGPP_LTE) {
     create_bearer(
         activate_success, session, request, rules_to_activate.dynamic_rules);
   }
@@ -1629,7 +1641,6 @@ bool LocalEnforcer::revalidation_required(
   return it != event_triggers.end();
 }
 
-// Todo support scheduling revalidation for different sessions for a IMSI
 void LocalEnforcer::schedule_revalidation(
     const std::string& imsi, SessionState& session,
     const google::protobuf::Timestamp& revalidation_time,
@@ -1748,9 +1759,16 @@ void LocalEnforcer::create_bearer(
   auto default_qci = QCI(lte_context.qos_info().qos_class_id());
   if (request.qos_info().qci() != default_qci) {
     MLOG(MDEBUG) << "QCI sent in RAR is different from default QCI";
-    spgw_client_->create_dedicated_bearer(
-        request.imsi(), config.common_context.ue_ipv4(),
-        lte_context.bearer_id(), dynamic_rules);
+    CreateBearerRequest req;
+    req.mutable_sid()->CopyFrom(config.common_context.sid());
+    req.set_ip_addr(config.common_context.ue_ipv4());
+    req.set_link_bearer_id(lte_context.bearer_id());
+
+    auto req_policy_rules = req.mutable_policy_rules();
+    for (const auto& rule : dynamic_rules) {
+      req_policy_rules->Add()->CopyFrom(rule);
+    }
+    spgw_client_->create_dedicated_bearer(req);
   }
   return;
 }
@@ -1758,29 +1776,40 @@ void LocalEnforcer::create_bearer(
 void LocalEnforcer::update_ipfix_flow(
     const std::string& imsi, const SessionConfig& config,
     const uint64_t pdp_start_time) {
-    MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
-    SubscriberID sid;
-    sid.set_id(imsi);
-    std::string apn_mac_addr;
-    std::string apn_name;
-    if (!parse_apn(config.common_context.apn(), apn_mac_addr, apn_name)) {
-      MLOG(MWARNING) << "Failed mac/name parsiong for apn " << config.common_context.apn();
-      apn_mac_addr = "";
-      apn_name     = config.common_context.apn();
-    }
+  MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
+  SubscriberID sid;
+  sid.set_id(imsi);
+  std::string apn_mac_addr;
+  std::string apn_name;
+  if (!parse_apn(config.common_context.apn(), apn_mac_addr, apn_name)) {
+    MLOG(MWARNING) << "Failed mac/name parsiong for apn "
+                   << config.common_context.apn();
+    apn_mac_addr = "";
+    apn_name     = config.common_context.apn();
+  }
 
-    // MacAddr is only relevant for WLAN
-    const auto& rat_specific = config.rat_specific_context;
-    std::string ue_mac_addr = "11:11:11:11:11:11";
-    if (rat_specific.has_wlan_context()) {
-      ue_mac_addr = rat_specific.wlan_context().mac_addr();
-    }
-    bool update_ipfix_flow_success = pipelined_client_->update_ipfix_flow(
-        sid, ue_mac_addr, config.common_context.msisdn(), apn_mac_addr,
-        apn_name, pdp_start_time);
-    if (!update_ipfix_flow_success) {
-      MLOG(MERROR) << "Failed to update IPFIX flow for subscriber " << imsi;
-    }
+  // MacAddr is only relevant for WLAN
+  const auto& rat_specific = config.rat_specific_context;
+  std::string ue_mac_addr  = "11:11:11:11:11:11";
+  if (rat_specific.has_wlan_context()) {
+    ue_mac_addr = rat_specific.wlan_context().mac_addr();
+  }
+  bool update_ipfix_flow_success = pipelined_client_->update_ipfix_flow(
+      sid, ue_mac_addr, config.common_context.msisdn(), apn_mac_addr, apn_name,
+      pdp_start_time);
+  if (!update_ipfix_flow_success) {
+    MLOG(MERROR) << "Failed to update IPFIX flow for subscriber " << imsi;
+  }
+}
+
+void LocalEnforcer::propagate_bearer_updates_to_mme(
+    const BearerUpdate& updates) {
+  if (updates.needs_creation) {
+    spgw_client_->create_dedicated_bearer(updates.create_req);
+  }
+  if (updates.needs_deletion) {
+    spgw_client_->delete_dedicated_bearer(updates.delete_req);
+  }
 }
 
 void LocalEnforcer::handle_cwf_roaming(

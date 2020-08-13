@@ -17,6 +17,7 @@
 #include <utility>
 
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/spgw_service.grpc.pb.h>
 
 #include "RuleStore.h"
 #include "SessionReporter.h"
@@ -31,6 +32,20 @@ typedef std::unordered_map<CreditKey, std::unique_ptr<ChargingGrant>,
                  decltype(&ccHash), decltype(&ccEqual)> CreditMap;
 typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
+
+struct RulesToProcess {
+  std::vector<std::string> static_rules;
+  std::vector<PolicyRule> dynamic_rules;
+};
+
+struct BearerUpdate {
+  bool needs_creation;
+  CreateBearerRequest create_req;  // only valid if needs_creation is true
+  bool needs_deletion;
+  DeleteBearerRequest delete_req;  // only valid if needs_deletion is true
+  BearerUpdate() : needs_creation(false), needs_deletion(false) {}
+};
+
 /**
  * SessionState keeps track of a current UE session in the PCEF, recording
  * usage and allowance for all charging keys
@@ -56,8 +71,7 @@ class SessionState {
   SessionState(
       const std::string& imsi, const std::string& session_id,
       const SessionConfig& cfg, StaticRuleStore& rule_store,
-      const magma::lte::TgppContext& tgpp_context,
-      uint64_t pdp_start_time);
+      const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time);
 
   SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -337,11 +351,26 @@ class SessionState {
       const std::string& key, Monitor monitor, SessionStateUpdateCriteria& uc);
 
   bool reset_reporting_monitor(
-    const std::string &key, SessionStateUpdateCriteria &uc);
+      const std::string& key, SessionStateUpdateCriteria& uc);
 
   void set_session_level_key(const std::string new_key);
 
   bool apply_update_criteria(SessionStateUpdateCriteria& uc);
+
+  // QoS Management
+  /**
+   * get_dedicated_bearer_updates processes the two rule update inputs and
+   * produces a BearerUpdate based on whether a bearer has to be create/deleted.
+   * @param rules_to_activate
+   * @param rules_to_deactivate
+   * @param uc: update criteria needs to be updated if the bearer mapping is
+   * modified
+   * @return BearerUpdate with Create/DeleteBearerRequest
+   */
+  BearerUpdate get_dedicated_bearer_updates(
+      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+      SessionStateUpdateCriteria& uc);
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -380,14 +409,17 @@ class SessionState {
   // reschedule triggers
   google::protobuf::Timestamp revalidation_time_;
   /*
-  * ChargingCreditPool manages a pool of credits for OCS-based charging. It is
-  * keyed by rating groups & service Identity (uint32, [uint32]) and receives
-  * CreditUpdateResponses to update
-  * credit
-  */
+   * ChargingCreditPool manages a pool of credits for OCS-based charging. It is
+   * keyed by rating groups & service Identity (uint32, [uint32]) and receives
+   * CreditUpdateResponses to update
+   * credit
+   */
   CreditMap credit_map_;
   MonitorMap monitor_map_;
   std::string session_level_key_;
+
+  // PolicyID->DedicatedBearerID used for 4G bearer/QoS management
+  BearerIDByPolicyID bearer_id_by_policy_;
 
  private:
   /**
@@ -480,13 +512,52 @@ class SessionState {
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 
   void get_event_trigger_updates(
-    UpdateSessionRequest& update_request_out,
-    std::vector<std::unique_ptr<ServiceAction>>* actions_out,
-    SessionStateUpdateCriteria& update_criteria);
+      UpdateSessionRequest& update_request_out,
+      std::vector<std::unique_ptr<ServiceAction>>* actions_out,
+      SessionStateUpdateCriteria& update_criteria);
 
   bool is_static_rule_scheduled(const std::string& rule_id);
 
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
+
+  /**
+   * Check if a new bearer has to be created for the given policy. If a creation
+   * is needed, fill in the BearerUpdate with required info.
+   * @param policy_type
+   * @param rule_id
+   * @param update
+   */
+  void update_bearer_creation_req(
+      const PolicyType policy_type, const std::string& rule_id,
+      const SessionConfig& config, BearerUpdate& update);
+
+  /**
+   * Check if a bearer has to be deleted for the given policy. If a deletion is
+   * needed, fill in the BearerUpdate with required info.
+   * @param policy_type
+   * @param rule_id
+   * @param update
+   */
+  void update_bearer_deletion_req(
+      const PolicyType policy_type, const std::string& rule_id,
+      const SessionConfig& config, BearerUpdate& update,
+      SessionStateUpdateCriteria& uc);
+
+  /**
+   * Set bearer_id_by_policy_ to the input
+   * @param bearer_id_by_policy
+   */
+  void set_bearer_map(BearerIDByPolicyID bearer_id_by_policy) {
+    bearer_id_by_policy_ = bearer_id_by_policy;
+  }
+  /**
+   * @param policy_type
+   * @param rule_id
+   * @return true if the policy definition includes a QoS field
+   */
+  bool policy_has_qos(
+      const PolicyType policy_type, const std::string& rule_id,
+      PolicyRule* rule_out);
 };
 
 }  // namespace magma
