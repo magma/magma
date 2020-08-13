@@ -1,28 +1,31 @@
 /*
- * Copyright 2020 The Magma Authors.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ Copyright 2020 The Magma Authors.
 
-package plugin_test
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package servicers_test
 
 import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	orc8rplugin "magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/storage"
-	"magma/wifi/cloud/go/plugin"
-	"magma/wifi/cloud/go/protos/mconfig"
+	wifi_plugin "magma/wifi/cloud/go/plugin"
+	wifi_mconfig "magma/wifi/cloud/go/protos/mconfig"
+	wifi_service "magma/wifi/cloud/go/services/wifi"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
+	wifi_test_init "magma/wifi/cloud/go/services/wifi/test_init"
 	"magma/wifi/cloud/go/wifi"
 
 	"github.com/golang/protobuf/proto"
@@ -30,33 +33,33 @@ import (
 )
 
 func TestBuilder_Build_BaseCases(t *testing.T) {
-	orc8rplugin.RegisterPluginForTests(t, &plugin.WifiOrchestratorPlugin{})
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &wifi_plugin.WifiOrchestratorPlugin{}))
+	wifi_test_init.StartTestService(t)
 
-	// empty case: no nw config
+	// Empty case: no nw config
 	nw := configurator.Network{ID: "n1"}
 	gw := configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "gw1"}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	// add nw config but no gw config
+	// Add nw config but no gw config
 	nw.Configs = map[string]interface{}{
 		wifi.WifiNetworkType: &models.NetworkWifiConfigs{
 			AdditionalProps: map[string]string{"foo": "bar"},
 		},
 	}
-	err = builder.Build("n1", "gw1", graph, nw, actual)
+
+	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	// nw config, gw config, no mesh
+	// Nw config, gw config, no mesh
 	wifigw := configurator.NetworkEntity{
 		Type: wifi.WifiGatewayType,
 		Key:  "gw1",
@@ -70,15 +73,17 @@ func TestBuilder_Build_BaseCases(t *testing.T) {
 	graph.Edges = []configurator.GraphEdge{
 		{From: gw.GetTypeAndKey(), To: wifigw.GetTypeAndKey()},
 	}
-	err = builder.Build("n1", "gw1", graph, nw, actual)
+
+	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build(t *testing.T) {
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &wifi_plugin.WifiOrchestratorPlugin{}))
+	wifi_test_init.StartTestService(t)
 
-	// empty case: no nw config
+	// Empty case: no nw config
 	wifiNetworkConfigs := newDefaultNWConfig()
 	wifiNetworkConfigs.VlAuthServerAddr = "20.1.1.8"
 	wifiNetworkConfigs.VlAuthServerPort = 555
@@ -142,9 +147,8 @@ func TestBuilder_Build(t *testing.T) {
 		},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
-		"hostapd": &mconfig.Hostapd{
+		"hostapd": &wifi_mconfig.Hostapd{
 			Ssid:                     "NewSsid",
 			Password:                 "NewPassword",
 			VlSsid:                   "NewVlSsid",
@@ -155,24 +159,24 @@ func TestBuilder_Build(t *testing.T) {
 			ClientChannel:            "4",
 			XwfEnabled:               true,
 		},
-		"linkstatsd": &mconfig.Linkstatsd{
+		"linkstatsd": &wifi_mconfig.Linkstatsd{
 			PingHostList:    []string{"172.16.0.1", "www.facebook.com"},
 			PingNumPackets:  5,
 			PingTimeoutSecs: 6,
 		},
-		"meshd": &mconfig.Meshd{
+		"meshd": &wifi_mconfig.Meshd{
 			MeshRssiThreshold: -80,
 			MeshSsid:          "OCP",
 			MeshFrequency:     1987,
 			MeshChannelType:   "ED209",
 		},
-		"openr": &mconfig.Openr{
+		"openr": &wifi_mconfig.Openr{
 			OpenrEnabled: false,
 		},
-		"openvpn": &mconfig.Openvpn{
+		"openvpn": &wifi_mconfig.Openvpn{
 			MgmtVpnEnabled: false,
 		},
-		"wifimetadata": &mconfig.WifiMetadata{
+		"wifimetadata": &wifi_mconfig.WifiMetadata{
 			Info:               "",
 			Latitude:           1.2,
 			Longitude:          -4.4,
@@ -182,7 +186,7 @@ func TestBuilder_Build(t *testing.T) {
 			MeshPeerGatewayIds: []string{"gw1", "gw2nd"},
 			IsProduction:       true,
 		},
-		"xwfchilli": &mconfig.Xwfchilli{
+		"xwfchilli": &wifi_mconfig.Xwfchilli{
 			XwfEnabled:            true,
 			XwfRadiusServer:       "vl.expresswifi.com",
 			XwfConfig:             "config line 1d\nconfig line 2d",
@@ -197,7 +201,7 @@ func TestBuilder_Build(t *testing.T) {
 			MeshId:                "m1",
 			GatewayId:             "gw1",
 		},
-		"wifiproperties": &mconfig.WifiProperties{
+		"wifiproperties": &wifi_mconfig.WifiProperties{
 			Info:               "",
 			NetworkId:          "n1",
 			MeshId:             "m1",
@@ -208,15 +212,17 @@ func TestBuilder_Build(t *testing.T) {
 			GatewayProps:       map[string]string{"gw1": "gwval1", "gw2": "gwval2"},
 		},
 	}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build_OverrideSsid(t *testing.T) {
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &wifi_plugin.WifiOrchestratorPlugin{}))
+	wifi_test_init.StartTestService(t)
 
-	// empty case: no nw config
+	// Empty case: no nw config
 	wifiNetworkConfigs := newDefaultNWConfig()
 	wifiNetworkConfigs.VlAuthServerAddr = "20.1.1.8"
 	wifiNetworkConfigs.VlAuthServerPort = 555
@@ -242,7 +248,7 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 	wifiGwConfigs.ClientChannel = "4"
 	wifiGwConfigs.Latitude = 1.2
 	wifiGwConfigs.Longitude = -4.4
-	// test override ssid
+	// Test override ssid
 	wifiGwConfigs.UseOverrideSsid = true
 	wifiGwConfigs.OverrideSsid = "overridden ssid"
 	wifiGwConfigs.OverridePassword = "overridden password"
@@ -280,9 +286,8 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 		},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
-		"hostapd": &mconfig.Hostapd{
+		"hostapd": &wifi_mconfig.Hostapd{
 			Ssid:                     "overridden ssid",
 			Password:                 "overridden password",
 			VlSsid:                   "NewVlSsid",
@@ -293,24 +298,24 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 			ClientChannel:            "4",
 			XwfEnabled:               true,
 		},
-		"linkstatsd": &mconfig.Linkstatsd{
+		"linkstatsd": &wifi_mconfig.Linkstatsd{
 			PingHostList:    []string{"172.16.0.1", "www.facebook.com"},
 			PingNumPackets:  5,
 			PingTimeoutSecs: 6,
 		},
-		"meshd": &mconfig.Meshd{
+		"meshd": &wifi_mconfig.Meshd{
 			MeshRssiThreshold: -80,
 			MeshSsid:          "OCP",
 			MeshFrequency:     1987,
 			MeshChannelType:   "ED209",
 		},
-		"openr": &mconfig.Openr{
+		"openr": &wifi_mconfig.Openr{
 			OpenrEnabled: false,
 		},
-		"openvpn": &mconfig.Openvpn{
+		"openvpn": &wifi_mconfig.Openvpn{
 			MgmtVpnEnabled: false,
 		},
-		"wifimetadata": &mconfig.WifiMetadata{
+		"wifimetadata": &wifi_mconfig.WifiMetadata{
 			Info:               "",
 			Latitude:           1.2,
 			Longitude:          -4.4,
@@ -320,7 +325,7 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 			MeshPeerGatewayIds: []string{"gw1"},
 			IsProduction:       false,
 		},
-		"xwfchilli": &mconfig.Xwfchilli{
+		"xwfchilli": &wifi_mconfig.Xwfchilli{
 			XwfEnabled:            true,
 			XwfRadiusServer:       "vl.expresswifi.com",
 			XwfConfig:             "config line 1d\nconfig line 2d",
@@ -335,7 +340,7 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 			MeshId:                "m1",
 			GatewayId:             "gw1",
 		},
-		"wifiproperties": &mconfig.WifiProperties{
+		"wifiproperties": &wifi_mconfig.WifiProperties{
 			Info:               "",
 			NetworkId:          "n1",
 			MeshId:             "m1",
@@ -346,15 +351,17 @@ func TestBuilder_Build_OverrideSsid(t *testing.T) {
 			GatewayProps:       nil,
 		},
 	}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build_OverrideXwf(t *testing.T) {
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &wifi_plugin.WifiOrchestratorPlugin{}))
+	wifi_test_init.StartTestService(t)
 
-	// empty case: no nw config
+	// Empty case: no nw config
 	wifiNetworkConfigs := newDefaultNWConfig()
 	wifiNetworkConfigs.VlAuthServerAddr = "20.1.1.8"
 	wifiNetworkConfigs.VlAuthServerPort = 555
@@ -380,7 +387,7 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 	wifiGwConfigs.ClientChannel = "4"
 	wifiGwConfigs.Latitude = 1.2
 	wifiGwConfigs.Longitude = -4.4
-	// test override xwf configs
+	// Test override xwf configs
 	wifiGwConfigs.UseOverrideXwf = true
 	wifiGwConfigs.OverrideXwfEnabled = true
 	wifiGwConfigs.OverrideXwfRadiusServer = "override radius"
@@ -426,9 +433,8 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 		},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{
-		"hostapd": &mconfig.Hostapd{
+		"hostapd": &wifi_mconfig.Hostapd{
 			Ssid:                     "NewSsid",
 			Password:                 "NewPassword",
 			VlSsid:                   "NewVlSsid",
@@ -439,24 +445,24 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 			ClientChannel:            "4",
 			XwfEnabled:               true,
 		},
-		"linkstatsd": &mconfig.Linkstatsd{
+		"linkstatsd": &wifi_mconfig.Linkstatsd{
 			PingHostList:    []string{"172.16.0.1", "www.facebook.com"},
 			PingNumPackets:  5,
 			PingTimeoutSecs: 6,
 		},
-		"meshd": &mconfig.Meshd{
+		"meshd": &wifi_mconfig.Meshd{
 			MeshRssiThreshold: -80,
 			MeshSsid:          "OCP",
 			MeshFrequency:     1987,
 			MeshChannelType:   "ED209",
 		},
-		"openr": &mconfig.Openr{
+		"openr": &wifi_mconfig.Openr{
 			OpenrEnabled: false,
 		},
-		"openvpn": &mconfig.Openvpn{
+		"openvpn": &wifi_mconfig.Openvpn{
 			MgmtVpnEnabled: false,
 		},
-		"wifimetadata": &mconfig.WifiMetadata{
+		"wifimetadata": &wifi_mconfig.WifiMetadata{
 			Info:               "",
 			Latitude:           1.2,
 			Longitude:          -4.4,
@@ -466,7 +472,7 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 			MeshPeerGatewayIds: []string{"gw1"},
 			IsProduction:       false,
 		},
-		"xwfchilli": &mconfig.Xwfchilli{
+		"xwfchilli": &wifi_mconfig.Xwfchilli{
 			XwfEnabled:            true,
 			XwfRadiusServer:       "override radius",
 			XwfConfig:             "override config\n2\n3",
@@ -481,7 +487,7 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 			MeshId:                "m1",
 			GatewayId:             "gw1",
 		},
-		"wifiproperties": &mconfig.WifiProperties{
+		"wifiproperties": &wifi_mconfig.WifiProperties{
 			Info:               "",
 			NetworkId:          "n1",
 			MeshId:             "m1",
@@ -492,9 +498,34 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 			GatewayProps:       nil,
 		},
 	}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+}
+
+func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+	networkProto, err := network.ToStorageProto()
+	if err != nil {
+		return nil, err
+	}
+	graphProto, err := graph.ToStorageProto()
+	if err != nil {
+		return nil, err
+	}
+
+	builder := mconfig.NewRemoteBuilder(wifi_service.ServiceName)
+	res, err := builder.Build(networkProto, graphProto, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+
+	configs, err := mconfig.UnmarshalConfigs(res)
+	if err != nil {
+		return nil, err
+	}
+
+	return configs, nil
 }
 
 func newDefaultNWConfig() *models.NetworkWifiConfigs {

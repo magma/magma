@@ -1,0 +1,94 @@
+diff --git a/extensions/dict_S6as6d/dict_S6as6d.c b/extensions/dict_S6as6d/dict_S6as6d.c
+index c39b75d..6c8cfcb 100644
+--- a/extensions/dict_S6as6d/dict_S6as6d.c
++++ b/extensions/dict_S6as6d/dict_S6as6d.c
+@@ -317,8 +317,32 @@ static int dict_s6as6d_load_defs(char * conffile)
+ 				CMD_FLAG_PROXIABLE,	/* Fixed flag values */
+ 			};
+ 
++      CHECK_dict_new( DICT_COMMAND, &data , app_id16777251, &cmd)
++    }
++    /* Notify-Request (NOR) Command - 3GPP TS 29.272 #7.2.17 */
++    {
++      struct dict_object * cmd;
++      struct dict_cmd_data data = {
++        323,          /* Code */
++        "Notify-Request",       /* Name */
++        CMD_FLAG_REQUEST | CMD_FLAG_PROXIABLE | CMD_FLAG_ERROR,   /* Fixed flags */
++        CMD_FLAG_REQUEST | CMD_FLAG_PROXIABLE             /* Fixed flag values */
++      };
++
+ 			CHECK_dict_new( DICT_COMMAND, &data , app_id16777251, &cmd)
+ 		}
++    /* Notify-Answer (NOA) Command - 3GPP TS 29.272 #7.2.18 */
++    {
++      struct dict_object * cmd;
++      struct dict_cmd_data data = {
++        323,          /* Code */
++        "Notify-Answer",      /* Name */
++        CMD_FLAG_REQUEST | CMD_FLAG_PROXIABLE | CMD_FLAG_ERROR,   /* Fixed flags */
++        CMD_FLAG_PROXIABLE            /* Fixed flag values */
++      };
++      CHECK_dict_new( DICT_COMMAND, &data , app_id16777251, &cmd)
++    }
++
+ 
+    }
+ 
+@@ -695,7 +719,55 @@ static int dict_s6as6d_load_rules(char * conffile)
+ 		};
+ 		PARSE_loc_rules(rules, cmd);
+ 	  }
+-
++	  /* Notify-Request (NOR) Command - 3GPP TS 29.272 #7.2.17 */
++    {
++      struct dict_object * cmd;
++      CHECK_dict_search( DICT_COMMAND, CMD_BY_NAME, "Notify-Request", &cmd)
++      struct local_rules_definition rules[] =
++      {
++          { { .avp_vendor = 0, .avp_name = "Session-Id"}, RULE_FIXED_HEAD, -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "Vendor-Specific-Application-Id"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "Auth-Session-State"}, RULE_REQUIRED,   -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "Origin-Host"}, RULE_REQUIRED,   -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "Origin-Realm"}, RULE_REQUIRED,   -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "Destination-Host"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "Destination-Realm"}, RULE_REQUIRED,   -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "User-Name"}, RULE_REQUIRED,   -1,  1 },
++          { { .avp_vendor = 10415, .avp_name = "Supported-Features"}, RULE_OPTIONAL,   -1, -1 },
++          { { .avp_vendor = 10415, .avp_name = "Terminal-Information"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "MIP6-Agent-Info"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 10415, .avp_name = "Visited-Network-Identifier"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 10415, .avp_name = "Context-Identifier"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 10415, .avp_name = "Service-Selection"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 10415, .avp_name = "Alert-Reason"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 10415, .avp_name = "UE-SRVCC-Capability"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 10415, .avp_name = "NOR-Flags"}, RULE_OPTIONAL,   -1,  1 },
++          { { .avp_vendor = 0, .avp_name = "Proxy-Info"}, RULE_OPTIONAL,   -1, -1 },
++          { { .avp_vendor = 0, .avp_name = "Route-Record"}, RULE_OPTIONAL,   -1, -1 }
++      };
++      PARSE_loc_rules( rules, cmd );
++    }
++
++    /* Notify-Answer (NOA) Command - 3GPP TS 29.272 #7.2.18 */
++    {
++      struct dict_object * cmd;
++      CHECK_dict_search( DICT_COMMAND, CMD_BY_NAME, "Notify-Answer", &cmd)
++      struct local_rules_definition rules[] =
++      {
++         { { .avp_vendor = 0, .avp_name = "Session-Id"},               RULE_FIXED_HEAD, -1,  1 },
++        { { .avp_vendor = 0, .avp_name = "Vendor-Specific-Application-Id"},   RULE_OPTIONAL,   -1,  1 },
++        { { .avp_vendor = 0, .avp_name = "Result-Code"},              RULE_OPTIONAL,   -1,  1 },
++        { { .avp_vendor = 0, .avp_name = "Experimental-Result"},          RULE_OPTIONAL,   -1,  1 },
++        { { .avp_vendor = 0, .avp_name = "Auth-Session-State"},           RULE_REQUIRED,   -1,  1 },
++        { { .avp_vendor = 0, .avp_name = "Origin-Host"},              RULE_REQUIRED,   -1,  1 },
++        { { .avp_vendor = 0, .avp_name = "Origin-Realm"},             RULE_REQUIRED,   -1,  1 },
++        { { .avp_vendor = 10415, .avp_name = "Supported-Features"},           RULE_OPTIONAL,   -1, -1 },
++        { { .avp_vendor = 0, .avp_name = "Failed-AVP"},               RULE_OPTIONAL,   -1, -1 },
++        { { .avp_vendor = 0, .avp_name = "Proxy-Info"},               RULE_OPTIONAL,   -1, -1 },
++        { { .avp_vendor = 0, .avp_name = "Route-Record"},             RULE_OPTIONAL,   -1, -1 }
++      };
++      PARSE_loc_rules( rules, cmd );
++    }
+    }
+ 
+    LOG_D( "Extension 'Dictionary definitions for S6as6d (e30)' initialized");

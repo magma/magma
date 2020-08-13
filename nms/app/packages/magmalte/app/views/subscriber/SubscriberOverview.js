@@ -45,8 +45,7 @@ const TITLE = 'Subscribers';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
-    margin: theme.spacing(3),
-    flexGrow: 1,
+    margin: theme.spacing(5),
   },
   topBar: {
     backgroundColor: colors.primary.mirage,
@@ -227,14 +226,11 @@ function SubscriberDashboardInternal({
       <div className={classes.dashboardRoot}>
         <Grid container spacing={4}>
           <Grid item xs={12}>
-            <Grid container>
-              <Grid item xs={6}>
-                <CardTitleRow icon={PeopleIcon} label={TITLE} />
-              </Grid>
-              <Grid container item xs={6} justify="flex-end">
-                <AddSubscriberButton />
-              </Grid>
-            </Grid>
+            <CardTitleRow
+              icon={PeopleIcon}
+              label={TITLE}
+              filter={AddSubscriberButton}
+            />
 
             {subscriberMap ? (
               <ActionTable
@@ -253,7 +249,6 @@ function SubscriberDashboardInternal({
                 })}
                 columns={[
                   {title: 'Name', field: 'name'},
-                  {title: '', field: ''},
                   {
                     title: 'IMSI',
                     field: 'imsi',
@@ -268,13 +263,14 @@ function SubscriberDashboardInternal({
                       </Link>
                     ),
                   },
-                  {title: 'Service', field: 'service'},
-                  {title: 'Current Usage', field: 'currentUsage'},
-                  {title: 'Daily Average', field: 'dailyAvg'},
+                  {title: 'Service', field: 'service', width: 100},
+                  {title: 'Current Usage', field: 'currentUsage', width: 175},
+                  {title: 'Daily Average', field: 'dailyAvg', width: 175},
                   {
                     title: 'Last Reported Time',
                     field: 'lastReportedTime',
                     type: 'datetime',
+                    width: 200,
                   },
                 ]}
                 handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
