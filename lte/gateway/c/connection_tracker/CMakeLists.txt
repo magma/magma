@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.0.2)
 
 PROJECT(ConnectionTracker)
 
-#add_compile_options(-std=c++14)
+add_compile_options(-std=c++14 -g -O0)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 

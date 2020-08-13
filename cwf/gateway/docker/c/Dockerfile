@@ -108,8 +108,8 @@ ARG BUILD_TYPE=RelWithDebInfo
 ENV BUILD_TYPE=$BUILD_TYPE
 RUN make -C $MAGMA_ROOT/lte/gateway/ build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 
-
-RUN make -C $MAGMA_ROOT/lte/gateway/c/connection_tracker build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
+ARG BUILD_TYPE_DEBUG=DEBUG
+RUN make -C $MAGMA_ROOT/lte/gateway/ build_connection_tracker BUILD_TYPE="${BUILD_TYPE_DEBUG}"
 
 # -----------------------------------------------------------------------------
 # Dev/Production image
@@ -164,7 +164,7 @@ RUN apt-get -y update && apt-get -y install \
 
 # Copy the build artifacts.
 COPY --from=builder /build/c/session_manager/sessiond /usr/local/bin/sessiond
-COPY --from=builder /build/c/cont/connection_tracker  /usr/local/bin/connection_tracker
+COPY --from=builder /build/c/connection_tracker/connectiond  /usr/local/bin/connectiond
 
 # Copy the configs.
 COPY lte/gateway/configs /etc/magma

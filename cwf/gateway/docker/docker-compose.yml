@@ -214,12 +214,12 @@ services:
       - directoryd
     command: /usr/local/bin/sessiond
 
-  connection_tracker:
+  connectiond:
     <<: *ltecservice
-    container_name: connection_tracker
+    container_name: connectiond
     depends_on:
       - pipelined
-    command: /usr/local/bin/connection_tracker
+    command: /usr/local/bin/connectiond
 
   state:
     <<: *pyservice
