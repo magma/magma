@@ -20,7 +20,8 @@ import (
 	"magma/lte/cloud/go/services/lte/servicers"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/services/streamer/protos"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	provider_protos "magma/orc8r/cloud/go/services/streamer/protos"
 
 	"github.com/golang/glog"
 )
@@ -28,13 +29,16 @@ import (
 func main() {
 	srv, err := service.NewOrchestratorService(lte.ModuleName, lte_service.ServiceName)
 	if err != nil {
-		glog.Fatalf("Error creating LTE service: %s", err)
+		glog.Fatalf("Error creating lte service: %s", err)
 	}
 
-	protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewLTEStreamProviderServicer())
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
+
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	provider_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
+
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error while running LTE service and echo server: %s", err)
+		glog.Fatalf("Error while running lte service and echo server: %s", err)
 	}
 }
