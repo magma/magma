@@ -14,7 +14,7 @@ import asyncio
 import calendar
 import logging
 import time
-import typing
+from typing import Callable, List, Optional
 
 import snowflake
 import metrics_pb2
@@ -33,9 +33,14 @@ class MetricsCollector(object):
     """
     _services = []
 
-    def __init__(self, services, collect_interval,
-                 sync_interval, grpc_timeout, grpc_msg_size,
-                 queue_length, loop=None, post_processing_fn=None):
+    def __init__(self, services: List[str],
+                 collect_interval: int,
+                 sync_interval: int,
+                 grpc_timeout: int,
+                 grpc_max_msg_size_mb: int,
+                 queue_length: int,
+                 loop: Optional[asyncio.AbstractEventLoop] = None,
+                 post_processing_fn: Optional[Callable] = None):
         self.sync_interval = sync_interval
         self.collect_interval = collect_interval
         self.grpc_timeout = grpc_timeout
@@ -44,107 +49,113 @@ class MetricsCollector(object):
         self._loop = loop if loop else asyncio.get_event_loop()
         self._retry_queue = []
         self._samples = []
-        self._grpc_options = _get_metrics_chan_grpc_options(grpc_msg_size)
+        self._grpc_options = _get_metrics_chan_grpc_options(grpc_max_msg_size_mb)
         # @see example_metrics_postprocessor_fn
         self.post_processing_fn = post_processing_fn
 
-    def run(self):
-        """
-        Starts the service metric collection loop, and the cloud sync loop.
-        """
-        logging.info("Starting collector...")
-        self._loop.call_later(self.sync_interval, self.sync)
-        for s in self._services:
-            self._loop.call_soon(self.collect, s)
 
-    def sync(self):
-        """
-        Synchronizes sample queue to cloud and reschedules sync loop
-        """
-        if self._samples:
-            chan = ServiceRegistry.get_rpc_channel('metricsd',
-                                                   ServiceRegistry.CLOUD,
-                                                   grpc_options=self._grpc_options)
-            client = MetricsControllerStub(chan)
-            if self.post_processing_fn:
-                # If services wants to, let it run a postprocessing function
-                # If we throw an exception here, we'll have no idea whether
-                # something was postprocessed or not, so I guess try and make it
-                # idempotent?  #m sevchicken
-                self.post_processing_fn(self._samples)
-            samples = self._retry_queue + self._samples
-            metrics_container = MetricsContainer(
-                gatewayId=snowflake.snowflake(),
-                family=samples
-            )
-            future = client.Collect.future(metrics_container, self.grpc_timeout)
-            future.add_done_callback(lambda future:
-                self._loop.call_soon_threadsafe(
-                    self.sync_done, samples, future))
-            self._retry_queue.clear()
-            self._samples.clear()
-        self._loop.call_later(self.sync_interval, self.sync)
+def run(self):
+    """
+    Starts the service metric collection loop, and the cloud sync loop.
+    """
+    logging.info("Starting collector...")
+    self._loop.call_later(self.sync_interval, self.sync)
+    for s in self._services:
+        self._loop.call_soon(self.collect, s)
 
-    def sync_done(self, samples, collect_future):
-        """
-        Sync callback to handle exceptions
-        """
-        err = collect_future.exception()
-        if err:
-            self._retry_queue = samples[-self.queue_length:]
-            logging.error("Metrics upload error! [%s] %s",
-                          err.code(), err.details())
-        else:
-            logging.debug("Metrics upload success")
 
-    def collect(self, service_name):
-        """
-        Calls into Service303 to get service metrics samples and
-        rescheudle collection.
-        """
-        chan = ServiceRegistry.get_rpc_channel(service_name,
-                                               ServiceRegistry.LOCAL)
-        client = Service303Stub(chan)
-        future = client.GetMetrics.future(Void(), self.grpc_timeout)
+def sync(self):
+    """
+    Synchronizes sample queue to cloud and reschedules sync loop
+    """
+    if self._samples:
+        chan = ServiceRegistry.get_rpc_channel('metricsd',
+                                               ServiceRegistry.CLOUD,
+                                               grpc_options=self._grpc_options)
+        client = MetricsControllerStub(chan)
+        if self.post_processing_fn:
+            # If services wants to, let it run a postprocessing function
+            # If we throw an exception here, we'll have no idea whether
+            # something was postprocessed or not, so I guess try and make it
+            # idempotent?  #m sevchicken
+            self.post_processing_fn(self._samples)
+        samples = self._retry_queue + self._samples
+        metrics_container = MetricsContainer(
+            gatewayId=snowflake.snowflake(),
+            family=samples
+        )
+        future = client.Collect.future(metrics_container, self.grpc_timeout)
         future.add_done_callback(lambda future:
                                  self._loop.call_soon_threadsafe(
-                                     self.collect_done, service_name, future))
-        self._loop.call_later(self.collect_interval, self.collect,
-                              service_name)
+                                     self.sync_done, samples, future))
+        self._retry_queue.clear()
+        self._samples.clear()
+    self._loop.call_later(self.sync_interval, self.sync)
 
-    def collect_done(self, service_name, get_metrics_future):
-        """
-        Collect callback to add sample results to queue or handle exceptions
-        """
-        err = get_metrics_future.exception()
-        if err:
-            logging.warning("Collect %s Error! [%s] %s",
-                            service_name, err.code(), err.details())
-            self._samples.append(
-                _get_collect_success_metric(service_name, False))
-        else:
-            container = get_metrics_future.result()
-            logging.debug("Collected %d from %s...",
-                          len(container.family), service_name)
-            for family in container.family:
-                for sample in family.metric:
-                    sample.label.add(name="service", value=service_name)
-                self._samples.append(family)
-                if _is_start_time_metric(family):
-                    self._add_uptime_metric(service_name, family)
-            self._samples.append(
-                _get_collect_success_metric(service_name, True))
 
-    def _add_uptime_metric(self, service_name, family):
-        if (not family.metric
-                or len(family.metric) == 0
-                or not family.metric[0].gauge.value):
-            logging.error("Could not parse start time metric: %s", family)
-            return
-        start_time = family.metric[0].gauge.value
-        uptime = _get_uptime_metric(service_name, start_time)
-        if uptime is not None:
-            self._samples.append(uptime)
+def sync_done(self, samples, collect_future):
+    """
+    Sync callback to handle exceptions
+    """
+    err = collect_future.exception()
+    if err:
+        self._retry_queue = samples[-self.queue_length:]
+        logging.error("Metrics upload error! [%s] %s",
+                      err.code(), err.details())
+    else:
+        logging.debug("Metrics upload success")
+
+
+def collect(self, service_name):
+    """
+    Calls into Service303 to get service metrics samples and
+    rescheudle collection.
+    """
+    chan = ServiceRegistry.get_rpc_channel(service_name,
+                                           ServiceRegistry.LOCAL)
+    client = Service303Stub(chan)
+    future = client.GetMetrics.future(Void(), self.grpc_timeout)
+    future.add_done_callback(lambda future:
+                             self._loop.call_soon_threadsafe(
+                                 self.collect_done, service_name, future))
+    self._loop.call_later(self.collect_interval, self.collect,
+                          service_name)
+
+
+def collect_done(self, service_name, get_metrics_future):
+    """
+    Collect callback to add sample results to queue or handle exceptions
+    """
+    err = get_metrics_future.exception()
+    if err:
+        logging.warning("Collect %s Error! [%s] %s",
+                        service_name, err.code(), err.details())
+        self._samples.append(
+            _get_collect_success_metric(service_name, False))
+    else:
+        container = get_metrics_future.result()
+        logging.debug("Collected %d from %s...",
+                      len(container.family), service_name)
+        for family in container.family:
+            for sample in family.metric:
+                sample.label.add(name="service", value=service_name)
+            self._samples.append(family)
+            if _is_start_time_metric(family):
+                self._add_uptime_metric(service_name, family)
+        self._samples.append(
+            _get_collect_success_metric(service_name, True))
+
+
+def _add_uptime_metric(self, service_name, family):
+    if (not family.metric
+            or len(family.metric) == 0
+            or not family.metric[0].gauge.value):
+        logging.error("Could not parse start time metric: %s", family)
+        return
+    start_time = family.metric[0].gauge.value
+    uptime = _get_uptime_metric(service_name, start_time)
+    if uptime is not None:
+        self._samples.append(uptime)
 
 
 def _get_collect_success_metric(service_name, gw_up):
@@ -186,20 +197,20 @@ def _get_uptime_metric(service_name, start_time):
     return family_proto
 
 
-def _get_metrics_chan_grpc_options(msg_size: int):
+def _get_metrics_chan_grpc_options(msg_size_mb: int):
     """
     Returns a list of gRPC options for metricsd cloud grpc channel
-    :param msg_size: msg size in MBs
-    :return:
+    :param msg_size_mb: msg size in MBs
+    :return: list of tuples containing grpc options for channel
     """
-    grpc_max_msg_size_bytes = msg_size * 1024 * 1024
+    grpc_max_msg_size_bytes = msg_size_mb * 1024 * 1024
     logging.debug('Setting metricsd gRPC chan Max Message Size to: %s bytes',
                   grpc_max_msg_size_bytes)
     return [('grpc.max_send_message_length', grpc_max_msg_size_bytes)]
 
 
 def example_metrics_postprocessor_fn(
-    samples: typing.List[metrics_pb2.MetricFamily]
+        samples: typing.List[metrics_pb2.MetricFamily]
 ) -> None:
     """
     An example metrics postprocessor function for MetricsCollector
@@ -233,6 +244,6 @@ def example_metrics_postprocessor_fn(
 
 
 def do_nothing_metrics_postprocessor(
-    _samples: typing.List[metrics_pb2.MetricFamily]
+        _samples: typing.List[metrics_pb2.MetricFamily]
 ) -> None:
     """This metrics post processor does nothing for config examples"""
