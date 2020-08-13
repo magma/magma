@@ -16,6 +16,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include "ProtobufCreators.h"
 #include "StoredState.h"
 #include "magma_logging.h"
 
@@ -25,29 +26,16 @@ namespace magma {
 
 class StoredStateTest : public ::testing::Test {
  protected:
-  QoSInfo get_stored_qos_info() {
-    QoSInfo stored;
-    stored.enabled = true;
-    stored.qci     = 123;
-    return stored;
-  }
-
   SessionConfig get_stored_session_config() {
     SessionConfig stored;
-    stored.ue_ipv4           = "192.168.0.1";
-    stored.spgw_ipv4         = "192.168.0.2";
-    stored.msisdn            = "a";
-    stored.apn               = "b";
-    stored.imei              = "c";
-    stored.plmn_id           = "d";
-    stored.imsi_plmn_id      = "e";
-    stored.user_location     = "f";
-    stored.rat_type          = RATType::TGPP_WLAN;
     stored.mac_addr          = "g";  // MAC Address for WLAN
     stored.hardware_addr     = "h";  // MAC Address for WLAN (binary)
     stored.radius_session_id = "i";
-    stored.bearer_id         = 321;
-    stored.qos_info          = get_stored_qos_info();
+    build_common_context(
+        "IMSI1", "ue_ipv4", "apn", "msisdn", TGPP_WLAN, &stored.common_context);
+    build_lte_context(
+        "192.168.0.2", "imei", "plmn_id", "imsi_plmn_id", "user_location", 321,
+        nullptr, stored.rat_specific_context.mutable_lte_context());
     return stored;
   }
 
@@ -125,9 +113,8 @@ class StoredStateTest : public ::testing::Test {
     stored.session_level_key      = "session_level_key";
     stored.imsi                   = "IMSI1";
     stored.session_id             = "session_id";
-    stored.core_session_id        = "core_session_id";
     stored.subscriber_quota_state = SubscriberQuotaUpdate_Type_VALID_QUOTA;
-    stored.fsm_state              = SESSION_TERMINATING_FLOW_DELETED;
+    stored.fsm_state              = SESSION_RELEASED;
 
     magma::lte::TgppContext tgpp_context;
     tgpp_context.set_gx_dest_host("gx");
@@ -143,37 +130,24 @@ class StoredStateTest : public ::testing::Test {
   }
 };
 
-TEST_F(StoredStateTest, test_stored_qos_info) {
-  auto stored = get_stored_qos_info();
-
-  auto serialized   = serialize_stored_qos_info(stored);
-  auto deserialized = deserialize_stored_qos_info(serialized);
-
-  EXPECT_EQ(deserialized.enabled, true);
-  EXPECT_EQ(deserialized.qci, 123);
-}
-
 TEST_F(StoredStateTest, test_stored_session_config) {
   auto stored = get_stored_session_config();
 
   std::string serialized     = serialize_stored_session_config(stored);
   SessionConfig deserialized = deserialize_stored_session_config(serialized);
 
-  EXPECT_EQ(deserialized.ue_ipv4, "192.168.0.1");
-  EXPECT_EQ(deserialized.spgw_ipv4, "192.168.0.2");
-  EXPECT_EQ(deserialized.msisdn, "a");
-  EXPECT_EQ(deserialized.apn, "b");
-  EXPECT_EQ(deserialized.imei, "c");
-  EXPECT_EQ(deserialized.plmn_id, "d");
-  EXPECT_EQ(deserialized.imsi_plmn_id, "e");
-  EXPECT_EQ(deserialized.user_location, "f");
-  EXPECT_EQ(deserialized.rat_type, RATType::TGPP_WLAN);
   EXPECT_EQ(deserialized.mac_addr, "g");
   EXPECT_EQ(deserialized.hardware_addr, "h");
   EXPECT_EQ(deserialized.radius_session_id, "i");
-  EXPECT_EQ(deserialized.bearer_id, 321);
-  EXPECT_EQ(deserialized.qos_info.enabled, true);
-  EXPECT_EQ(deserialized.qos_info.qci, 123);
+
+  // compare the serialized objects
+  auto original_common       = stored.common_context.SerializeAsString();
+  auto original_rat_specific = stored.rat_specific_context.SerializeAsString();
+  auto recovered_common      = deserialized.common_context.SerializeAsString();
+  auto recovered_rat_specific =
+      deserialized.rat_specific_context.SerializeAsString();
+  EXPECT_EQ(original_common, recovered_common);
+  EXPECT_EQ(original_rat_specific, recovered_rat_specific);
 }
 
 TEST_F(StoredStateTest, test_stored_final_action_info) {
@@ -276,21 +250,9 @@ TEST_F(StoredStateTest, test_stored_session) {
   auto deserialized = deserialize_stored_session(serialized);
 
   auto config = deserialized.config;
-  EXPECT_EQ(config.ue_ipv4, "192.168.0.1");
-  EXPECT_EQ(config.spgw_ipv4, "192.168.0.2");
-  EXPECT_EQ(config.msisdn, "a");
-  EXPECT_EQ(config.apn, "b");
-  EXPECT_EQ(config.imei, "c");
-  EXPECT_EQ(config.plmn_id, "d");
-  EXPECT_EQ(config.imsi_plmn_id, "e");
-  EXPECT_EQ(config.user_location, "f");
-  EXPECT_EQ(config.rat_type, RATType::TGPP_WLAN);
   EXPECT_EQ(config.mac_addr, "g");
   EXPECT_EQ(config.hardware_addr, "h");
   EXPECT_EQ(config.radius_session_id, "i");
-  EXPECT_EQ(config.bearer_id, 321);
-  EXPECT_EQ(config.qos_info.enabled, true);
-  EXPECT_EQ(config.qos_info.qci, 123);
 
   auto stored_charging_credit = deserialized.credit_map[CreditKey(1, 2)];
   // test charging grant fields
@@ -329,10 +291,9 @@ TEST_F(StoredStateTest, test_stored_session) {
 
   EXPECT_EQ(stored.imsi, "IMSI1");
   EXPECT_EQ(stored.session_id, "session_id");
-  EXPECT_EQ(stored.core_session_id, "core_session_id");
   EXPECT_EQ(
       stored.subscriber_quota_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
-  EXPECT_EQ(stored.fsm_state, SESSION_TERMINATING_FLOW_DELETED);
+  EXPECT_EQ(stored.fsm_state, SESSION_RELEASED);
 
   EXPECT_EQ(stored.tgpp_context.gx_dest_host(), "gx");
   EXPECT_EQ(stored.tgpp_context.gy_dest_host(), "gy");

@@ -86,21 +86,13 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
         "AA-AA-AA-AA-AA-AA:TESTAP__"
         "0F-10-2E-12-3A-55";
     std::string core_session_id = "asdf";
-    SessionConfig cfg           = {.ue_ipv4           = "",
-                         .spgw_ipv4         = "",
-                         .msisdn            = msisdn,
-                         .apn               = "",
-                         .imei              = "",
-                         .plmn_id           = "",
-                         .imsi_plmn_id      = "",
-                         .user_location     = "",
-                         .rat_type          = RATType::TGPP_WLAN,
-                         .mac_addr          = "0f:10:2e:12:3a:55",
-                         .hardware_addr     = hardware_addr_bytes,
-                         .radius_session_id = radius_session_id};
+    SessionConfig cfg           = {
+        .mac_addr          = "0f:10:2e:12:3a:55",
+        .hardware_addr     = hardware_addr_bytes,
+        .radius_session_id = radius_session_id};
     auto tgpp_context           = TgppContext{};
     auto session                = std::make_unique<SessionState>(
-        imsi, session_id, core_session_id, cfg, *rule_store, tgpp_context);
+        imsi, session_id, cfg, *rule_store, tgpp_context);
     return std::move(session);
   }
 

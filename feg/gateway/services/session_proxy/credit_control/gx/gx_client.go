@@ -62,6 +62,7 @@ type GxClient struct {
 
 type GxGlobalConfig struct {
 	PCFROverwriteApn string
+	DisableGx        bool
 }
 
 // NewConnectedGxClient contructs a new GxClient with the magma diameter settings
@@ -149,11 +150,17 @@ func (gxClient *GxClient) IgnoreAnswer(request *CreditControlRequest) {
 }
 
 func (gxClient *GxClient) EnableConnections() error {
+	if gxClient.globalConfig.DisableGx {
+		return nil
+	}
 	gxClient.diamClient.EnableConnectionCreation()
 	return gxClient.diamClient.BeginConnection(gxClient.serverCfg)
 }
 
 func (gxClient *GxClient) DisableConnections(period time.Duration) {
+	if gxClient.globalConfig.DisableGx {
+		return
+	}
 	gxClient.diamClient.DisableConnectionCreation(period)
 }
 

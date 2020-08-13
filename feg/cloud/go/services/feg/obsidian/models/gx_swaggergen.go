@@ -18,6 +18,9 @@ import (
 // swagger:model gx
 type Gx struct {
 
+	// disable gx
+	DisableGx *bool `json:"disableGx,omitempty"`
+
 	// overwrite apn
 	OverwriteApn string `json:"overwrite_apn,omitempty"`
 

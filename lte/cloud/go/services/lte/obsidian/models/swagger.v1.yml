@@ -1522,6 +1522,9 @@ definitions:
               - 'DHCP_PASSTHROUGH'
               - 'DHCP_BROADCAST'
             example: 'NAT'
+          enable_static_ip_assignments:
+            type: boolean
+            example: true
           reserved_addresses:
             type: array
             items:

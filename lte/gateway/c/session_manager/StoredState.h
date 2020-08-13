@@ -25,27 +25,11 @@
 #include "CreditKey.h"
 
 namespace magma {
-struct QoSInfo {
-  bool enabled;
-  uint32_t qci;
-};
-
 struct SessionConfig {
-  std::string ue_ipv4;
-  std::string spgw_ipv4;
-  std::string msisdn;
-  std::string apn;
-  std::string imei;
-  std::string plmn_id;
-  std::string imsi_plmn_id;
-  std::string user_location;
-  RATType rat_type;
   std::string mac_addr;      // MAC Address for WLAN
   std::string hardware_addr; // MAC Address for WLAN (binary)
   std::string radius_session_id;
-  uint32_t bearer_id;
   // TODO The fields above will be replaced by the bundled fields below
-  QoSInfo qos_info;
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
 
@@ -130,27 +114,18 @@ enum GrantTrackingType {
  *       |                     /
  *       |                    /
  *       V                   V
- * SESSION_TERMINATING_FLOW_ACTIVE <----------
- *       |                                   |
- *       | (notify_new_report_for_sessions)  | (add_used_credit)
- *       V                                   |
- * SESSION_TERMINATING_AGGREGATING_STATS -----
+ * SESSION_RELEASED
  *       |
- *       | (notify_finish_report_for_sessions)
- *       V
- * SESSION_TERMINATING_FLOW_DELETED
- *       |
- *       | (complete_termination)
+ *       | (PipelineD enforcement flows get deleted OR forced timeout)
+ *       |      -> complete_termination
  *       V
  * SESSION_TERMINATED
  */
 enum SessionFsmState {
   SESSION_ACTIVE                        = 0,
-  SESSION_TERMINATING_FLOW_ACTIVE       = 1,
-  SESSION_TERMINATING_AGGREGATING_STATS = 2,
-  SESSION_TERMINATING_FLOW_DELETED      = 3,
   SESSION_TERMINATED                    = 4,
-  SESSION_TERMINATION_SCHEDULED         = 5
+  SESSION_TERMINATION_SCHEDULED         = 5,
+  SESSION_RELEASED                      = 6,
 };
 
 struct StoredSessionCredit {
@@ -191,7 +166,6 @@ struct StoredSessionState {
   std::string session_level_key; // "" maps to nullptr
   std::string imsi;
   std::string session_id;
-  std::string core_session_id;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;
@@ -260,10 +234,6 @@ struct SessionStateUpdateCriteria {
 };
 
 SessionStateUpdateCriteria get_default_update_criteria();
-
-std::string serialize_stored_qos_info(const QoSInfo &stored);
-
-QoSInfo deserialize_stored_qos_info(const std::string &serialized);
 
 std::string serialize_stored_session_config(const SessionConfig &stored);
 

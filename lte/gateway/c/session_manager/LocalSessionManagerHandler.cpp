@@ -46,15 +46,15 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   auto& request_cpy = *request;
   if (request_cpy.records_size() > 0) {
     MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
-
-    enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+  }
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
       auto session_map = get_sessions_for_reporting(request_cpy);
       SessionUpdate update =
           SessionStore::get_default_session_update(session_map);
       enforcer_->aggregate_records(session_map, request_cpy, update);
       check_usage_for_reporting(std::move(session_map), update);
     });
-  }
+
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
     MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows";
@@ -196,24 +196,9 @@ static CreateSessionRequest make_create_session_request(
 SessionConfig LocalSessionManagerHandlerImpl::build_session_config(
     const LocalCreateSessionRequest& request) {
   SessionConfig cfg = {
-      .ue_ipv4           = request.ue_ipv4(),
-      .spgw_ipv4         = request.spgw_ipv4(),
-      .msisdn            = request.msisdn(),
-      .apn               = request.apn(),
-      .imei              = request.imei(),
-      .plmn_id           = request.plmn_id(),
-      .imsi_plmn_id      = request.imsi_plmn_id(),
-      .user_location     = request.user_location(),
-      .rat_type          = request.rat_type(),
       .mac_addr          = convert_mac_addr_to_str(request.hardware_addr()),
       .hardware_addr     = request.hardware_addr(),
-      .radius_session_id = request.radius_session_id(),
-      .bearer_id         = request.bearer_id()};
-  QoSInfo qos_info = {.enabled = request.has_qos_info()};
-  if (request.has_qos_info()) {
-    qos_info.qci = request.qos_info().qos_class_id();
-  }
-  cfg.qos_info = qos_info;
+      .radius_session_id = request.radius_session_id()};
 
   // TODO @themarwhal The fields above in SessionConfig will be replaced by
   //  the bundled fields below
@@ -238,7 +223,8 @@ void LocalSessionManagerHandlerImpl::CreateSession(
 
         SessionConfig cfg = build_session_config(request_cpy);
         auto session_map  = get_sessions_for_creation(imsi);
-        switch (cfg.rat_type) {
+        auto rat_type     = cfg.common_context.rat_type();
+        switch (rat_type) {
           case TGPP_WLAN:
             handle_create_session_cwf(
                 session_map, request_cpy, sid, cfg, response_callback);
@@ -249,11 +235,11 @@ void LocalSessionManagerHandlerImpl::CreateSession(
             return;
           default:
             std::ostringstream failure_stream;
-            failure_stream << "Received an invalid RAT type " << cfg.rat_type;
+            failure_stream << "Received an invalid RAT type " << rat_type;
             std::string failure_msg = failure_stream.str();
             MLOG(MERROR) << failure_msg;
             events_reporter_->session_create_failure(
-                imsi, cfg.apn, cfg.mac_addr, failure_msg);
+                imsi, cfg.common_context.apn(), cfg.mac_addr, failure_msg);
             auto status = Status(grpc::FAILED_PRECONDITION, "Invalid RAT type");
             send_local_create_session_response(status, sid, response_callback);
             return;
@@ -281,17 +267,20 @@ void LocalSessionManagerHandlerImpl::send_create_session(
             status = Status(
                 grpc::FAILED_PRECONDITION, "Failed to initialize session");
           } else {
+            auto lte_context   = cfg.rat_specific_context.lte_context();
             bool write_success = session_store_.create_sessions(
                 imsi, std::move((*session_map_ptr)[imsi]));
             if (write_success) {
               MLOG(MINFO) << "Successfully initialized new session " << sid
                           << " in sessiond for subscriber " << imsi
-                          << " with default bearer id " << cfg.bearer_id;
+                          << " with default bearer id "
+                          << lte_context.bearer_id();
               add_session_to_directory_record(imsi, sid);
             } else {
               MLOG(MINFO) << "Failed to initialize new session " << sid
                           << " in sessiond for subscriber " << imsi
-                          << " with default bearer id " << cfg.bearer_id
+                          << " with default bearer id "
+                          << lte_context.bearer_id()
                           << " due to failure writing to SessionStore."
                           << " An earlier update may have invalidated it.";
               status = Status(
@@ -307,7 +296,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
           std::string failure_msg = failure_stream.str();
           MLOG(MERROR) << failure_msg;
           events_reporter_->session_create_failure(
-              imsi, cfg.apn, cfg.mac_addr, failure_msg);
+              imsi, cfg.common_context.apn(), cfg.mac_addr, failure_msg);
         }
         send_local_create_session_response(status, sid, cb);
       });
@@ -380,21 +369,24 @@ void LocalSessionManagerHandlerImpl::handle_create_session_lte(
       // transition for termination) AND it should have the exact same
       // configuration.
       MLOG(MINFO) << "Found an active completely duplicated session with IMSI "
-                  << imsi << " and APN " << cfg.apn << ", and same "
-                  << "configuration. Recycling the existing session " << sid;
+                  << imsi << " and APN " << cfg.common_context.apn()
+                  << ", and same configuration. Recycling the existing session "
+                  << sid;
       send_local_create_session_response(grpc::Status::OK, sid, cb);
       return;  // Return early
     }
+    auto apn = cfg.common_context.apn();
     // At this point, we have session with same IMSI, but not identical config
-    if (session->get_config().apn == cfg.apn && session->is_active()) {
+    if (session->get_config().common_context.apn() == apn &&
+        session->is_active()) {
       // If we have found an active session with the same IMSI+APN, but NOT
       // identical context, we should terminate the existing session.
       MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
-                  << " and APN " << cfg.apn << ", but different "
+                  << " and APN " << apn << ", but different "
                   << "configuration. Ending the existing session, "
                   << "and requesting a new session";
       end_session(
-          session_map, request.sid(), cfg.apn,
+          session_map, request.sid(), apn,
           [&](grpc::Status status, LocalEndSessionResponse response) {});
       // All sessions are unique by IMSI+APN
       break;
@@ -483,7 +475,7 @@ void LocalSessionManagerHandlerImpl::end_session(
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
   try {
     auto update = SessionStore::get_default_session_update(session_map);
-    enforcer_->terminate_subscriber(session_map, sid.id(), apn, update);
+    enforcer_->terminate_session(session_map, sid.id(), apn, update);
 
     bool update_success = session_store_.update_sessions(update);
     if (update_success) {

@@ -117,7 +117,7 @@ class IPAddressManager:
     def __init__(self,
                  *,
                  config,
-                 allocator_type,
+                 mconfig,
                  subscriberdb_rpc_stub=None,
                  recycling_interval: int = DEFAULT_IP_RECYCLE_INTERVAL):
         """ Initializes a new IP allocator
@@ -133,18 +133,19 @@ class IPAddressManager:
         persist_to_redis = config.get('persist_to_redis', True)
         redis_port = config.get('redis_port', 6379)
 
-        self.allocator_type = allocator_type
+        self.allocator_type = mconfig.ip_allocator_type
         logging.debug('Persist to Redis: %s', persist_to_redis)
         self._lock = threading.RLock()  # re-entrant locks
 
         self._recycle_timer = None  # reference to recycle timer
         self._recycling_interval_seconds = recycling_interval
-        self.static_ip_enabled = config.get('static_ip_enabled', False)
+        self.static_ip_enabled = mconfig.static_ip_enabled
 
         if not persist_to_redis:
             self._assigned_ip_blocks = set()  # {ip_block}
             self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
             self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
+            self._dhcp_store = {}  # mac => DHCP_State
         else:
             if not redis_port:
                 raise ValueError(
@@ -153,6 +154,7 @@ class IPAddressManager:
             self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
             self.sid_ips_map = store.IPDescDict(client)
             self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
+            self._dhcp_store = store.MacToIP()  # mac => DHCP_State
 
         self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
         logging.info("Using allocator: %s", self.allocator_type)
@@ -163,14 +165,13 @@ class IPAddressManager:
                                            self.ip_state_map,
                                            self.sid_ips_map)
         elif self.allocator_type == MobilityD.DHCP:
-            dhcp_store = store.MacToIP()  # mac => DHCP_State
             iface = config.get('dhcp_iface', 'dhcp0')
             retry_limit = config.get('retry_limit', 300)
             ip_allocator = IPAllocatorDHCP(self._assigned_ip_blocks,
                                            self.ip_state_map,
                                            iface=iface,
                                            retry_limit=retry_limit,
-                                           dhcp_store=dhcp_store,
+                                           dhcp_store=self._dhcp_store,
                                            gw_info=self._dhcp_gw_info)
 
         if self.static_ip_enabled:

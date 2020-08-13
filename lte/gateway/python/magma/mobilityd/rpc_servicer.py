@@ -58,7 +58,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
 
         self._ipv4_allocator = IPAddressManager(config=config,
                                                 subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                allocator_type=mconfig.ip_allocator_type)
+                                                mconfig=mconfig)
 
         # Load IP block from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates

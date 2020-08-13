@@ -18,17 +18,16 @@
 namespace magma {
 
 bool SessionConfig::operator==(const SessionConfig& config) const {
-  return ue_ipv4.compare(config.ue_ipv4) == 0 &&
-         spgw_ipv4.compare(config.spgw_ipv4) == 0 &&
-         msisdn.compare(config.msisdn) == 0 && apn.compare(config.apn) == 0 &&
-         imei.compare(config.imei) == 0 &&
-         plmn_id.compare(config.plmn_id) == 0 &&
-         imsi_plmn_id.compare(config.imsi_plmn_id) == 0 &&
-         user_location.compare(config.user_location) == 0 &&
-         rat_type == config.rat_type &&
-         hardware_addr.compare(config.hardware_addr) == 0 &&
-         radius_session_id.compare(config.radius_session_id) == 0 &&
-         bearer_id == config.bearer_id;
+  auto common1 = common_context.SerializeAsString();
+  auto common2 = config.common_context.SerializeAsString();
+  if (common1 != common2) {
+    return false;
+  }
+  std::string current_rat_specific =
+      rat_specific_context.SerializeAsString();
+  std::string new_rat_specific =
+      config.rat_specific_context.SerializeAsString();
+  return current_rat_specific == new_rat_specific;
 }
 
 SessionStateUpdateCriteria get_default_update_criteria() {
@@ -44,42 +43,11 @@ SessionStateUpdateCriteria get_default_update_criteria() {
   return uc;
 }
 
-std::string serialize_stored_qos_info(const QoSInfo& stored) {
-  folly::dynamic marshaled = folly::dynamic::object;
-  marshaled["enabled"]     = stored.enabled;
-  marshaled["qci"]         = std::to_string(stored.qci);
-
-  std::string serialized = folly::toJson(marshaled);
-  return serialized;
-}
-
-QoSInfo deserialize_stored_qos_info(const std::string& serialized) {
-  auto folly_serialized    = folly::StringPiece(serialized);
-  folly::dynamic marshaled = folly::parseJson(folly_serialized);
-
-  auto stored    = QoSInfo{};
-  stored.enabled = marshaled["enabled"].getBool();
-  stored.qci = static_cast<uint32_t>(std::stoul(marshaled["qci"].getString()));
-
-  return stored;
-}
-
 std::string serialize_stored_session_config(const SessionConfig& stored) {
   folly::dynamic marshaled       = folly::dynamic::object;
-  marshaled["ue_ipv4"]           = stored.ue_ipv4;
-  marshaled["spgw_ipv4"]         = stored.spgw_ipv4;
-  marshaled["msisdn"]            = stored.msisdn;
-  marshaled["apn"]               = stored.apn;
-  marshaled["imei"]              = stored.imei;
-  marshaled["plmn_id"]           = stored.plmn_id;
-  marshaled["imsi_plmn_id"]      = stored.imsi_plmn_id;
-  marshaled["user_location"]     = stored.user_location;
-  marshaled["rat_type"]          = static_cast<int>(stored.rat_type);
   marshaled["mac_addr"]          = stored.mac_addr;
   marshaled["hardware_addr"]     = stored.hardware_addr;
   marshaled["radius_session_id"] = stored.radius_session_id;
-  marshaled["bearer_id"]         = std::to_string(stored.bearer_id);
-  marshaled["qos_info"]          = serialize_stored_qos_info(stored.qos_info);
 
   marshaled["common_context"] = stored.common_context.SerializeAsString();
   marshaled["rat_specific_context"] =
@@ -94,22 +62,9 @@ SessionConfig deserialize_stored_session_config(const std::string& serialized) {
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored          = SessionConfig{};
-  stored.ue_ipv4       = marshaled["ue_ipv4"].getString();
-  stored.spgw_ipv4     = marshaled["spgw_ipv4"].getString();
-  stored.msisdn        = marshaled["msisdn"].getString();
-  stored.apn           = marshaled["apn"].getString();
-  stored.imei          = marshaled["imei"].getString();
-  stored.plmn_id       = marshaled["plmn_id"].getString();
-  stored.imsi_plmn_id  = marshaled["imsi_plmn_id"].getString();
-  stored.user_location = marshaled["user_location"].getString();
-  stored.rat_type      = static_cast<RATType>(marshaled["rat_type"].getInt());
   stored.mac_addr      = marshaled["mac_addr"].getString();
   stored.hardware_addr = marshaled["hardware_addr"].getString();
   stored.radius_session_id = marshaled["radius_session_id"].getString();
-  stored.bearer_id =
-      static_cast<uint32_t>(std::stoul(marshaled["bearer_id"].getString()));
-  stored.qos_info =
-      deserialize_stored_qos_info(marshaled["qos_info"].getString());
 
   magma::lte::CommonSessionContext common_context;
   common_context.ParseFromString(marshaled["common_context"].getString());
@@ -370,7 +325,6 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   marshaled["session_level_key"] = stored.session_level_key;
   marshaled["imsi"]              = stored.imsi;
   marshaled["session_id"]        = stored.session_id;
-  marshaled["core_session_id"]   = stored.core_session_id;
   marshaled["subscriber_quota_state"] =
       static_cast<int>(stored.subscriber_quota_state);
 
@@ -427,7 +381,6 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
   stored.session_level_key = marshaled["session_level_key"].getString();
   stored.imsi              = marshaled["imsi"].getString();
   stored.session_id        = marshaled["session_id"].getString();
-  stored.core_session_id   = marshaled["core_session_id"].getString();
   stored.subscriber_quota_state =
       static_cast<magma::lte::SubscriberQuotaUpdate_Type>(
           marshaled["subscriber_quota_state"].getInt());

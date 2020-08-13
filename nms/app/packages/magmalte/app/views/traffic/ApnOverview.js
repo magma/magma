@@ -13,20 +13,23 @@
  * @flow strict-local
  * @format
  */
+import type {apn} from '@fbcnms/magma-api';
+
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import JsonEditor from '../../components/JsonEditor';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const APN_TITLE = 'APNs';
 const useStyles = makeStyles(theme => ({
@@ -96,19 +99,15 @@ type ApnRowType = {
   added: Date,
 };
 
-export default function ApnOverview() {
+type APNType = {
+  apns: {[string]: apn},
+};
+export default function ApnOverview(props: APNType) {
   const classes = useStyles();
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const {response, isLoading} = useMagmaAPI(MagmaV1API.getLteByNetworkIdApns, {
-    networkId: networkId,
-  });
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-  const apnRows: Array<ApnRowType> = response
-    ? Object.keys(response).map((apn: string) => {
+  const {history, relativeUrl} = useRouter();
+  const [currRow, setCurrRow] = useState<ApnRowType>({});
+  const apnRows: Array<ApnRowType> = props.apns
+    ? Object.keys(props.apns).map((apn: string) => {
         return {
           apnID: apn,
           description: 'Test APN description',
@@ -146,7 +145,17 @@ export default function ApnOverview() {
               {title: 'Qos Profile', field: 'qosProfile', type: 'numeric'},
               {title: 'Added', field: 'added', type: 'datetime'},
             ]}
-            menuItems={[{name: 'Edit'}, {name: 'Deactivate'}, {name: 'Remove'}]}
+            handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
+            menuItems={[
+              {
+                name: 'Edit JSON',
+                handleFunc: () => {
+                  history.push(relativeUrl('/' + currRow.apnID + '/json'));
+                },
+              },
+              {name: 'Deactivate'},
+              {name: 'Remove'},
+            ]}
             options={{
               actionsColumnIndex: -1,
               pageSizeOptions: [5, 10],
@@ -155,5 +164,39 @@ export default function ApnOverview() {
         </Grid>
       </Grid>
     </div>
+  );
+}
+
+type Props = {
+  apns: {[string]: apn},
+  onSave?: apn => void,
+};
+export function ApnJsonConfig(props: Props) {
+  const {match} = useRouter();
+  const [error, setError] = useState('');
+  const networkId: string = nullthrows(match.params.networkId);
+  const apnName: string = nullthrows(match.params.apnId);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  return (
+    <JsonEditor
+      content={props.apns[apnName]}
+      error={error}
+      onSave={async apn => {
+        try {
+          await MagmaV1API.putLteByNetworkIdApnsByApnName({
+            networkId: networkId,
+            apn: apn,
+            apnName: apnName,
+          });
+          enqueueSnackbar('APN saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+          props.onSave?.(apn);
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
   );
 }

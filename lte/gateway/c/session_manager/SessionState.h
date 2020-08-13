@@ -53,8 +53,8 @@ class SessionState {
  public:
   SessionState(
       const std::string& imsi, const std::string& session_id,
-      const std::string& core_session_id, const SessionConfig& cfg,
-      StaticRuleStore& rule_store, const magma::lte::TgppContext& tgpp_context);
+      const SessionConfig& cfg, StaticRuleStore& rule_store,
+      const magma::lte::TgppContext& tgpp_context);
 
   SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -75,22 +75,6 @@ class SessionState {
       std::time_t current_time, SessionStateUpdateCriteria& update_criteria);
 
   /**
-   * notify_new_report_for_sessions sets the state of terminating session to
-   * aggregating, to tell if
-   * flows for the terminating session is in the latest report.
-   * Should be called before add_rule_usage.
-   */
-  void new_report(SessionStateUpdateCriteria& update_criteria);
-
-  /**
-   * notify_finish_report_for_sessions updates the state of aggregating session
-   * not included report
-   * to specify its flows are deleted and termination can be completed.
-   * Should be called after notify_new_report_for_sessions and add_rule_usage.
-   */
-  void finish_report(SessionStateUpdateCriteria& update_criteria);
-
-  /**
    * add_rule_usage adds used TX/RX bytes to a particular rule
    */
   void add_rule_usage( const std::string& rule_id, uint64_t used_tx,
@@ -109,14 +93,6 @@ class SessionState {
       SessionStateUpdateCriteria& update_criteria);
 
   /**
-   * start_termination starts the termination process for the session.
-   * The session state transitions from SESSION_ACTIVE to
-   * SESSION_TERMINATING_FLOW_ACTIVE.
-   * When termination completes, the call back function is executed.
-   */
-  void start_termination(SessionStateUpdateCriteria& update_criteria);
-
-  /**
    * mark_as_awaiting_termination transitions the session state from
    * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
    */
@@ -124,14 +100,6 @@ class SessionState {
       SessionStateUpdateCriteria& update_criteria);
 
   bool is_terminating();
-
-  /**
-   * can_complete_termination returns whether the termination for the session
-   * can be completed.
-   * For this to be true, start_termination needs to be called for the session,
-   * and the flows for the session needs to be deleted.
-   */
-  bool can_complete_termination() const;
 
   /**
    * complete_termination collects final usages for all credits into a
@@ -167,9 +135,6 @@ class SessionState {
                                SessionStateUpdateCriteria &update_criteria);
 
   ReAuthResult reauth_all(SessionStateUpdateCriteria &update_criteria);
-
-  void merge_charging_credit_update(
-    const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
 
   void set_charging_credit(const CreditKey &key,
     ChargingGrant charging_grant, SessionStateUpdateCriteria &uc);
@@ -214,10 +179,6 @@ class SessionState {
   bool is_gy_dynamic_rule_installed(const std::string& rule_id);
 
   bool is_static_rule_installed(const std::string& rule_id);
-
-  bool is_dynamic_rule_scheduled(const std::string& rule_id);
-
-  bool is_static_rule_scheduled(const std::string& rule_id);
 
   /**
    * Add a dynamic rule to the session which is currently active.
@@ -358,15 +319,6 @@ class SessionState {
   bool receive_monitor(const UsageMonitoringUpdateResponse &update,
                        SessionStateUpdateCriteria &uc);
 
-  /**
-   * Apply SessionCreditUpdateCriteria, a per-credit diff of an update, into
-   * the SessionState object
-   * @param key : monitoring key for the update
-   * @param update : the diff that needs to be applied
-   */
-  void merge_monitor_updates(
-    const std::string &key, SessionCreditUpdateCriteria &update);
-
   uint64_t get_monitor(const std::string &key, Bucket bucket) const;
 
   bool add_to_monitor(const std::string &key, uint64_t used_tx,
@@ -379,10 +331,11 @@ class SessionState {
     const std::string &key, SessionStateUpdateCriteria &uc);
 
   void set_session_level_key(const std::string new_key);
+
+  bool apply_update_criteria(SessionStateUpdateCriteria& uc);
  private:
   std::string imsi_;
   std::string session_id_;
-  std::string core_session_id_;
   uint32_t request_number_;
   SessionFsmState curr_state_;
   SessionConfig config_;
@@ -438,6 +391,9 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
 
+  void apply_charging_credit_update(
+      const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
+
   /**
    * Receive the credit grant if the credit update was successful
    *
@@ -469,6 +425,15 @@ class SessionState {
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
+
+  /**
+   * Apply SessionCreditUpdateCriteria, a per-credit diff of an update, into
+   * the SessionState object
+   * @param key : monitoring key for the update
+   * @param update : the diff that needs to be applied
+   */
+  void apply_monitor_updates(
+      const std::string &key, SessionCreditUpdateCriteria &update);
 
   void add_common_fields_to_usage_monitor_update(UsageMonitoringUpdateRequest* req);
 
@@ -507,6 +472,10 @@ class SessionState {
     UpdateSessionRequest& update_request_out,
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria& update_criteria);
+
+  bool is_static_rule_scheduled(const std::string& rule_id);
+
+  bool is_dynamic_rule_scheduled(const std::string& rule_id);
 };
 
 }  // namespace magma
