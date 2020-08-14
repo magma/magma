@@ -116,6 +116,10 @@
     "dpid": {
       "@type": "type.googleapis.com/magma.mconfig.DPID",
       "logLevel": "INFO"
+    },
+    "connectiond": {
+      "@type": "type.googleapis.com/magma.mconfig.ConnectionD",
+      "logLevel": "INFO"
     }
   }
 }
