@@ -64,6 +64,7 @@ export default function CustomHistogram(props: HistogramProps) {
   return (
     <>
       <Bar
+        height={300}
         data={{labels: props.labels, datasets: props.dataset}}
         options={{
           maintainAspectRatio: false,

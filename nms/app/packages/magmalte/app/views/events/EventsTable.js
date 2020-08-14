@@ -276,6 +276,7 @@ export default function EventsTable({
     <>
       {sz === 'sm' && (
         <ActionTable
+          height={300}
           title=""
           tableRef={tableRef}
           data={(query: ActionQuery) => {
