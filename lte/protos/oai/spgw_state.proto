@@ -134,6 +134,8 @@ message SgwEpsBearerContext {
 
     uint32 num_sdf = 25;
     repeated uint32 sdf_ids = 26;
+
+    string policy_rule_name = 27;
 }
 
 // traffic_flow_template
@@ -216,4 +218,3 @@ message SpgwState {
     repeated uint64 ipv4_list_allocated = 6;
     GTPV1uData gtpv1u_data = 7;
 }
-
