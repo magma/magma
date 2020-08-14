@@ -16,19 +16,20 @@ import snowflake
 from google.protobuf.json_format import MessageToDict
 from magma.eventd.eventd_client import log_event
 from orc8r.protos.eventd_pb2 import Event
-from orc8r.swagger.models.processed_updates import ProcessedUpdates
 from orc8r.swagger.models.restarted_services import RestartedServices
 
 
-def processed_updates(updates):
-    # Convert updates to dicts for JSON serializability
-    dict_updates = [MessageToDict(u) for u in updates]
+def processed_updates(configs_by_service):
+    # Convert to dicts for JSON serializability
+    configs = {}
+    for srv, config in configs_by_service.items():
+        configs[srv] = MessageToDict(config)
     log_event(
         Event(
             stream_name="magmad",
             event_type="processed_updates",
             tag=snowflake.snowflake(),
-            value=json.dumps(ProcessedUpdates(updates=dict_updates).to_dict()),
+            value=json.dumps(configs),
         )
     )
 

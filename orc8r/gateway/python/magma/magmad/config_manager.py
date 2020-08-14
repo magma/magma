@@ -123,4 +123,9 @@ class ConfigManager(StreamerClient.Callback):
 
         self._mconfig = mconfig
 
-        magmad_events.processed_updates(updates)
+        configs_by_key = {}
+        for srv in self._services:
+            if srv in mconfig.configs_by_key:
+                configs_by_key[srv] = mconfig.configs_by_key.get(srv)
+
+        magmad_events.processed_updates(configs_by_key)
