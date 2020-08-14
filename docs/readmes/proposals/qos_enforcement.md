@@ -93,7 +93,7 @@ DELETE  /feg_lte/{network_id}/policy_qos_profiles/{qos_name}
 
 
 
-APN Configuration
+APNs 
 
 GET     /lte/{network_id}/apns
 POST    /lte/{network_id}/apns
@@ -226,14 +226,15 @@ subscriber:
   id: string
   name: string
   ...
+  # The subscriber has access to the default bearer for all APNs listed here
+  active_apns: array[string]
   active_base_names: array[base_name]
   # Policy IDs listed in active_policies define which policies will be installed
   # for every APN of the subscriber
   active_policies: array[string]
   # Keyed by APN IDs, and values list out the policy IDs
-  # Keys present define the APNs that the subscriber has access to
   # policy IDs define what policies will be installed for the subscriber for 
-  # each APN
+  # each APN beyond default bearers
   active_policies_by_apn: dict[string, array[string]]
   ...
 ```
