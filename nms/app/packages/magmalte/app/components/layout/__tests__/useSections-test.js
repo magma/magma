@@ -55,6 +55,7 @@ const testCases: {[string]: TestCase} = {
       'subscribers',
       'traffic',
       'metrics',
+      'alerts',
     ],
   },
   feg_lte: {
@@ -66,6 +67,7 @@ const testCases: {[string]: TestCase} = {
       'subscribers',
       'traffic',
       'metrics',
+      'alerts',
     ],
   },
   mesh: {

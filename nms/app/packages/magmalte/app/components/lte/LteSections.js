@@ -16,6 +16,8 @@
 
 import type {SectionsConfigs} from '../layout/Section';
 
+import AlarmIcon from '@material-ui/icons/Alarm';
+import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import LteDashboard from './LteDashboard';
@@ -69,6 +71,12 @@ export function getLteSections(): SectionsConfigs {
         label: 'Metrics',
         icon: <ShowChartIcon />,
         component: LteMetrics,
+      },
+      {
+        path: 'alerts',
+        label: 'Alerts',
+        icon: <AlarmIcon />,
+        component: Alarms,
       },
     ],
   ];
