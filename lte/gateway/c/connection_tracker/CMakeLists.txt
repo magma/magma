@@ -13,7 +13,7 @@ cmake_minimum_required(VERSION 3.0.2)
 
 PROJECT(ConnectionTracker)
 
-add_compile_options(-std=c++14)
+add_compile_options(-std=c++14 -g -O0)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
@@ -23,7 +23,7 @@ if (NOT BUILD_TESTS)
       "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   set (CMAKE_LINKER_FLAGS_DEBUG
       "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-  # Add LeakSanitizer (lsan) support to the release build of ConnectionD so that
+  # Add LeakSanitizer (lsan) support to the release build of SessionD so that
   # we can find memory leaks in production.
   set(CMAKE_C_FLAGS_RELWITHDEBINFO
      "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
@@ -82,11 +82,7 @@ set(SMGR_CWF_CPP_PROTOS accounting context)
 generate_cwf_cpp_protos("${SMGR_CWF_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${CWF_PROTO_DIR} ${CWF_CPP_OUT_DIR})
 
-message("Proto_srcs are ${PROTO_SRCS}")
-
-
 link_directories(
-  ${MAGMA_LIB_DIR}/async_grpc
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service303
   ${MAGMA_LIB_DIR}/service_registry)
@@ -100,7 +96,7 @@ add_library(CONNECTION_TRACKER
     ${PROTO_HDRS})
 
 target_link_libraries(CONNECTION_TRACKER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG
+  SERVICE303_LIB SERVICE_REGISTRY CONFIG
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie mnl tins
   )
