@@ -13,17 +13,17 @@ cmake_minimum_required(VERSION 3.0.2)
 
 PROJECT(ConnectionTracker)
 
-add_compile_options(-std=c++14 -g -O0)
+add_compile_options(-std=c++14)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
 if (NOT BUILD_TESTS)
-  # Add AddressSanitizer (asan) support for debug builds of SessionD
+  # Add AddressSanitizer (asan) support for debug builds of ConnectionD
   set (CMAKE_CXX_FLAGS_DEBUG
       "${CMAKE_CXX_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   set (CMAKE_LINKER_FLAGS_DEBUG
       "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
-  # Add LeakSanitizer (lsan) support to the release build of SessionD so that
+  # Add LeakSanitizer (lsan) support to the release build of ConnectionD so that
   # we can find memory leaks in production.
   set(CMAKE_C_FLAGS_RELWITHDEBINFO
      "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
@@ -49,9 +49,6 @@ include_directories(${MAGMA_LIB_DIR}/service303)
 include_directories(${MAGMA_LIB_DIR}/service_registry)
 include_directories(${MAGMA_LIB_DIR}/async_grpc)
 include_directories(${MAGMA_LIB_DIR}/config)
-include_directories(${MAGMA_LIB_DIR}/datastore)
-include_directories(${MAGMA_LIB_DIR}/policydb)
-include_directories(${MAGMA_LIB_DIR}/eventd)
 
 include($ENV{MAGMA_ROOT}/orc8r/gateway/c/common/CMakeProtoMacros.txt)
 
@@ -76,7 +73,7 @@ list(APPEND PROTO_SRCS "")
 list(APPEND PROTO_HDRS "")
 
 
-set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb policydb
+set(SMGR_LTE_CPP_PROTOS session_manager subscriberdb
   pipelined spgw_service mconfig/mconfigs)
 generate_cpp_protos("${SMGR_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_CPP_OUT_DIR})
@@ -92,9 +89,6 @@ link_directories(
   ${MAGMA_LIB_DIR}/async_grpc
   ${MAGMA_LIB_DIR}/config
   ${MAGMA_LIB_DIR}/service303
-  ${MAGMA_LIB_DIR}/datastore
-  ${MAGMA_LIB_DIR}/policydb
-  ${MAGMA_LIB_DIR}/eventd
   ${MAGMA_LIB_DIR}/service_registry)
 
 add_library(CONNECTION_TRACKER
@@ -106,8 +100,7 @@ add_library(CONNECTION_TRACKER
     ${PROTO_HDRS})
 
 target_link_libraries(CONNECTION_TRACKER
-  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
-  DATASTORE
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG
   glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
   prometheus-cpp tacopie mnl tins
   )

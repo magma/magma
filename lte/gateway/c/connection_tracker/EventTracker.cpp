@@ -11,7 +11,29 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <iostream>
+
+#include <libmnl/libmnl.h>
+#include <linux/netfilter/nfnetlink.h>
+#include <linux/netfilter/nfnetlink_conntrack.h>
+
+#include <linux/if_packet.h>
+#include <string.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <net/if.h>
+#include <netinet/ether.h>
+#include <linux/ip.h>
+#include <memory>
+
 #include "EventTracker.h"
+
+#include "magma_logging.h"
 
 static int parse_ip_cb(const struct nlattr* attr, void* data) {
   const struct nlattr** tb = (const struct nlattr**) data;
@@ -194,12 +216,13 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
     MLOG(MINFO) << "From zone " << mnl_attr_get_u16(tb[CTA_ZONE]);
   }
 
-  ((magma::PacketGenerator*) data)->send_packet(&flow);
+  ((magma::lte::PacketGenerator*) data)->send_packet(&flow);
 
   return MNL_CB_OK;
 }
 
 namespace magma {
+namespace lte {
 
 EventTracker::EventTracker(std::shared_ptr<PacketGenerator> pkt_gen)
     : pkt_gen_(pkt_gen) {}
@@ -243,4 +266,5 @@ int EventTracker::init_conntrack_event_loop(void) {
   return 0;
 }
 
-}  // namespace magma
+} // namespace lte
+} // namespace magma

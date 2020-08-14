@@ -10,7 +10,7 @@
 # limitations under the License.
 #
 [Unit]
-Description=Magma session manager service
+Description=Magma connection tracking service
 PartOf=magma@mme.service
 Before=magma@mme.service
 After=magma@pipelined.service

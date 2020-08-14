@@ -11,14 +11,24 @@
  * limitations under the License.
  */
 
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <cassert>
+#include <iostream>
+#include <string>
+
+#include <tins/tins.h>
+
 #include "PacketGenerator.h"
 
 namespace magma {
+namespace lte {
 
 using namespace Tins;
 
 PacketGenerator::PacketGenerator(
-    std::string iface_name, std::string pkt_dst_mac, std::string pkt_src_mac)
+    std::string& iface_name, std::string& pkt_dst_mac, std::string& pkt_src_mac)
     : iface_name_(iface_name),
       pkt_dst_mac_(pkt_dst_mac),
       pkt_src_mac_(pkt_src_mac) {
@@ -48,4 +58,5 @@ bool PacketGenerator::send_packet(struct flow_information* flow) {
   return true;
 }
 
-}  // namespace magma
+} // namespace lte
+} // namespace magma

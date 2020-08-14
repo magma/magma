@@ -84,9 +84,9 @@ int main(void) {
       CONNECTION_SERVICE, CONNECTIOND_VERSION);
   server.Start();
 
-  auto pkt_generator = std::make_shared<magma::PacketGenerator>(interface_name, pkt_dst_mac, pkt_src_mac);
+  auto pkt_generator = std::make_shared<magma::lte::PacketGenerator>(interface_name, pkt_dst_mac, pkt_src_mac);
 
-  auto event_tracker = std::make_shared<magma::EventTracker>(pkt_generator);
+  auto event_tracker = std::make_shared<magma::lte::EventTracker>(pkt_generator);
 
   event_tracker->init_conntrack_event_loop();
 
