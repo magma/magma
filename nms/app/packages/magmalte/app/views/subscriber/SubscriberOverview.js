@@ -17,21 +17,17 @@ import type {subscriber} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
-import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
@@ -46,30 +42,6 @@ const TITLE = 'Subscribers';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
-  },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
   },
   appBarBtn: {
     color: colors.primary.white,
@@ -177,51 +149,35 @@ function SubscriberDashboardInternal({
 
   return (
     <>
-      <div className={classes.topBar}>
-        <Text color="light" weight="medium">
-          {TITLE}
-        </Text>
-      </div>
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container direction="row" justify="flex-end" alignItems="center">
-          <Grid item xs={6}>
-            <Tabs
-              value={0}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Subscribers"
-                component={NestedRouteLink}
-                label={<SubscriberTabLabel />}
-                to="/subscribersv2"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-          <Grid
-            item
-            xs={6}
-            direction="row"
-            justify="flex-end"
-            alignItems="center">
-            <Grid container justify="flex-end" alignItems="center" spacing={2}>
-              <Grid item>
-                {/* TODO: these button styles need to be localized */}
-                <Button variant="text" className={classes.appBarBtnSecondary}>
-                  Secondary Action
-                </Button>
+      <TopBar
+        header={TITLE}
+        tabs={[
+          {
+            label: 'Subscribers',
+            to: '/subscribersv2',
+            icon: PeopleIcon,
+            filters: (
+              <Grid
+                container
+                justify="flex-end"
+                alignItems="center"
+                spacing={2}>
+                <Grid item>
+                  {/* TODO: these button styles need to be localized */}
+                  <Button variant="text" className={classes.appBarBtnSecondary}>
+                    Secondary Action
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button variant="contained" className={classes.appBarBtn}>
+                    Primary Action
+                  </Button>
+                </Grid>
               </Grid>
-              <Grid item>
-                <Button variant="contained" className={classes.appBarBtn}>
-                  Primary Action
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </AppBar>
+            ),
+          },
+        ]}
+      />
 
       <div className={classes.dashboardRoot}>
         <Grid container spacing={4}>
@@ -301,15 +257,5 @@ function SubscriberDashboardInternal({
         </Grid>
       </div>
     </>
-  );
-}
-
-function SubscriberTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <PeopleIcon className={classes.tabIconLabel} /> {TITLE}
-    </div>
   );
 }

@@ -256,20 +256,24 @@ public:
                     const std::vector<PolicyRule> &));
 };
 
-class MockEventsReporter : public EventsReporter{
+class MockEventsReporter : public EventsReporter {
  public:
-  MOCK_METHOD1(session_created,
-               void(const std::unique_ptr<SessionState> &));
-  MOCK_METHOD4(session_create_failure,
-               void(const std::string &, const std::string &,
-                   const std::string &, const std::string &));
-  MOCK_METHOD1(session_updated,
-               void(std::unique_ptr<SessionState> &));
-  MOCK_METHOD2(session_update_failure,
-               void(const std::string &,
-                   const std::unique_ptr<SessionState> &));
-  MOCK_METHOD1(session_terminated,
-               void(const std::unique_ptr<SessionState> &));
+  MOCK_METHOD3(
+      session_created,
+      void(const std::string&, const std::string&, const SessionConfig&));
+  MOCK_METHOD3(
+      session_create_failure,
+      void(const std::string&, const SessionConfig&, const std::string&));
+  MOCK_METHOD3(
+      session_updated,
+      void(const std::string&, const std::string&, const SessionConfig&));
+  MOCK_METHOD4(
+      session_update_failure, void(
+                                  const std::string&, const std::string&,
+                                  const SessionConfig&, const std::string&));
+  MOCK_METHOD2(
+      session_terminated,
+      void(const std::string&, const std::unique_ptr<SessionState>&));
 };
 
 } // namespace magma
