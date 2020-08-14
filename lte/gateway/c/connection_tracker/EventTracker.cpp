@@ -35,6 +35,58 @@
 
 #include "magma_logging.h"
 
+
+static int data_cb(const struct nlmsghdr* nlh, void* data);
+
+namespace magma {
+namespace lte {
+
+EventTracker::EventTracker(std::shared_ptr<PacketGenerator> pkt_gen)
+    : pkt_gen_(pkt_gen) {}
+
+int EventTracker::init_conntrack_event_loop(void) {
+  struct mnl_socket* nl;
+  char buf[MNL_SOCKET_BUFFER_SIZE];
+  int ret;
+
+  nl = mnl_socket_open(NETLINK_NETFILTER);
+  if (nl == NULL) {
+    perror("mnl_socket_open");
+    exit(EXIT_FAILURE);
+  }
+
+  if (mnl_socket_bind(
+          nl,
+          NF_NETLINK_CONNTRACK_NEW |
+              // NF_NETLINK_CONNTRACK_UPDATE |
+              NF_NETLINK_CONNTRACK_DESTROY,
+          MNL_SOCKET_AUTOPID) < 0) {
+    perror("mnl_socket_bind");
+    exit(EXIT_FAILURE);
+  }
+
+  while (1) {
+    ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
+    if (ret == -1) {
+      perror("mnl_socket_recvfrom");
+      exit(EXIT_FAILURE);
+    }
+    ret = mnl_cb_run(buf, ret, 0, 0, data_cb, (void*) pkt_gen_.get());
+    if (ret == -1) {
+      perror("mnl_cb_run");
+      exit(EXIT_FAILURE);
+    }
+  }
+
+  mnl_socket_close(nl);
+
+  return 0;
+}
+
+} // namespace lte
+} // namespace magma
+
+
 static int parse_ip_cb(const struct nlattr* attr, void* data) {
   const struct nlattr** tb = (const struct nlattr**) data;
   int type                 = mnl_attr_get_type(attr);
@@ -220,51 +272,3 @@ static int data_cb(const struct nlmsghdr* nlh, void* data) {
 
   return MNL_CB_OK;
 }
-
-namespace magma {
-namespace lte {
-
-EventTracker::EventTracker(std::shared_ptr<PacketGenerator> pkt_gen)
-    : pkt_gen_(pkt_gen) {}
-
-int EventTracker::init_conntrack_event_loop(void) {
-  struct mnl_socket* nl;
-  char buf[MNL_SOCKET_BUFFER_SIZE];
-  int ret;
-
-  nl = mnl_socket_open(NETLINK_NETFILTER);
-  if (nl == NULL) {
-    perror("mnl_socket_open");
-    exit(EXIT_FAILURE);
-  }
-
-  if (mnl_socket_bind(
-          nl,
-          NF_NETLINK_CONNTRACK_NEW |
-              // NF_NETLINK_CONNTRACK_UPDATE |
-              NF_NETLINK_CONNTRACK_DESTROY,
-          MNL_SOCKET_AUTOPID) < 0) {
-    perror("mnl_socket_bind");
-    exit(EXIT_FAILURE);
-  }
-
-  while (1) {
-    ret = mnl_socket_recvfrom(nl, buf, sizeof(buf));
-    if (ret == -1) {
-      perror("mnl_socket_recvfrom");
-      exit(EXIT_FAILURE);
-    }
-    ret = mnl_cb_run(buf, ret, 0, 0, data_cb, (void*) pkt_gen_.get());
-    if (ret == -1) {
-      perror("mnl_cb_run");
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  mnl_socket_close(nl);
-
-  return 0;
-}
-
-} // namespace lte
-} // namespace magma
