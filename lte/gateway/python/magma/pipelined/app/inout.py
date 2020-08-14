@@ -18,7 +18,7 @@ from ipaddress import IPv4Address
 
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
-from scapy.arch import get_if_hwaddr
+from scapy.arch import get_if_hwaddr, get_if_addr
 from scapy.data import ETHER_BROADCAST, ETH_P_ARP
 from scapy.error import Scapy_Exception
 from scapy.layers.l2 import ARP, Ether
@@ -268,9 +268,13 @@ class InOutController(MagmaController):
             self.logger.debug("sending arp via egress: %s",
                               self.config.non_nat_arp_egress_port)
             eth_mac_src = get_if_hwaddr(self.config.non_nat_arp_egress_port)
+            psrc = "0.0.0.0"
+            egress_port_ip = get_if_addr(self.config.non_nat_arp_egress_port)
+            if egress_port_ip:
+                psrc = egress_port_ip
 
             pkt = Ether(dst=ETHER_BROADCAST, src=eth_mac_src)
-            pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc="0.0.0.0")
+            pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc=psrc)
             self.logger.debug("ARP Req pkt %s", pkt.show(dump=True))
 
             res = srp1(pkt,
