@@ -79,12 +79,14 @@ policy to the subscriber you wish to meter for.
       "action": "PERMIT",
       "match": {
         "direction": "UPLINK",
+        "ip_proto": "IPPROTO_IP"
       }
     },
     {
       "action": "PERMIT",
       "match": {
         "direction": "DOWNLINK",
+        "ip_proto": "IPPROTO_IP"
       }
     }
   ],

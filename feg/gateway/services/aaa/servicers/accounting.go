@@ -26,12 +26,12 @@ import (
 	"google.golang.org/grpc/status"
 
 	"magma/feg/cloud/go/protos/mconfig"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa"
 	"magma/feg/gateway/services/aaa/events"
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/pipelined"
 	"magma/feg/gateway/services/aaa/protos"
+	"magma/feg/gateway/services/aaa/radius/dae"
 	"magma/feg/gateway/services/aaa/session_manager"
 	"magma/gateway/directoryd"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -42,6 +42,7 @@ type accountingService struct {
 	sessions    aaa.SessionTable
 	config      *mconfig.AAAConfig
 	sessionTout time.Duration // Idle Session Timeout
+	dae         dae.DAE
 }
 
 const (
@@ -54,6 +55,7 @@ func NewAccountingService(sessions aaa.SessionTable, cfg *mconfig.AAAConfig) (*a
 		sessions:    sessions,
 		config:      cfg,
 		sessionTout: GetIdleSessionTimeout(cfg),
+		dae:         dae.NewDAEServicer(cfg.GetRadiusConfig()),
 	}, nil
 }
 
@@ -204,15 +206,9 @@ func (srv *accountingService) TerminateSession(
 		return &protos.AcctResp{}, Errorf(
 			codes.InvalidArgument, "Mismatched IMSI: %s != %s of session %s", req.GetImsi(), imsi, sid)
 	}
-
-	conn, err := registry.GetConnection(registry.RADIUS)
+	err := srv.dae.Disconnect(sctx)
 	if err != nil {
-		return &protos.AcctResp{}, Errorf(codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
-	}
-	radcli := protos.NewAuthorizationClient(conn)
-	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
-	if err != nil {
-		err = Error(codes.Internal, err)
+		err = Errorf(codes.Internal, "Terminate Session Radius Disconnect error: %v", err)
 	}
 	return &protos.AcctResp{}, err
 }
@@ -228,7 +224,7 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 		return status.Errorf(codes.InvalidArgument, errMsg)
 	}
 	var err, radErr error
-
+	glog.V(1).Infof("AAA session timeout for SID: %s, IMSI: %s", aaaCtx.SessionId, aaaCtx.Imsi)
 	if srv.config.GetAccountingEnabled() {
 		req := &lte_protos.LocalEndSessionRequest{
 			Sid: makeSID(aaaCtx.GetImsi()),
@@ -242,14 +238,7 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 		}
 		directoryd.DeleteRecord(deleteRequest)
 	}
-
-	conn, radErr := registry.GetConnection(registry.RADIUS)
-	if radErr != nil {
-		radErr = status.Errorf(codes.Unavailable, "Session Timeout Notification Radius Connection Error: %v", radErr)
-	} else {
-		_, radErr = protos.NewAuthorizationClient(conn).Disconnect(
-			context.Background(), &protos.DisconnectRequest{Ctx: aaaCtx})
-	}
+	radErr = srv.dae.Disconnect(aaaCtx)
 	if radErr != nil {
 		if err != nil {
 			err = Errorf(

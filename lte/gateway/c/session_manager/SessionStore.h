@@ -123,11 +123,6 @@ class SessionStore {
   bool update_sessions(const SessionUpdate& update_criteria);
 
  private:
-  static bool merge_into_session(
-      std::unique_ptr<SessionState>& session,
-      SessionStateUpdateCriteria& update_criteria);
-
- private:
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<StoreClient> store_client_;
   std::shared_ptr<MeteringReporter> metering_reporter_;
