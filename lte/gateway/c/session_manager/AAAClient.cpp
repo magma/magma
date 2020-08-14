@@ -37,17 +37,22 @@ aaa::add_sessions_request create_add_sessions_req(
       if (!session->is_radius_cwf_session()) {
         continue;
       }
-      auto config = session->get_config();
+      const auto& config = session->get_config();
+      if (!config.rat_specific_context.has_wlan_context()) {
+        MLOG(MWARNING) << "Session " << session->get_session_id() << " does not"
+                       << " have WLAN specific session context";
+        continue;
+      }
+      const auto& wlan_context = config.rat_specific_context.wlan_context();
       magma::SessionState::SessionInfo session_info;
       session->get_session_info(session_info);
       ctx.set_imsi(session_info.imsi);
-      ctx.set_session_id(config.radius_session_id);
+      ctx.set_session_id(wlan_context.radius_session_id());
       ctx.set_acct_session_id(session->get_session_id());
-      ctx.set_mac_addr(config.mac_addr);
+      ctx.set_mac_addr(wlan_context.mac_addr());
       ctx.set_msisdn(config.common_context.msisdn());
       ctx.set_apn(config.common_context.apn());
-      auto mutable_sessions = req.mutable_sessions();
-      mutable_sessions->Add()->CopyFrom(ctx);
+      req.mutable_sessions()->Add()->CopyFrom(ctx);
     }
   }
   return req;

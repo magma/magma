@@ -26,13 +26,11 @@
 
 namespace magma {
 struct SessionConfig {
-  std::string mac_addr;      // MAC Address for WLAN
-  std::string hardware_addr; // MAC Address for WLAN (binary)
-  std::string radius_session_id;
-  // TODO The fields above will be replaced by the bundled fields below
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
 
+  SessionConfig() {};
+  SessionConfig(const LocalCreateSessionRequest& request);
   bool operator== (const SessionConfig& config) const;
 };
 
