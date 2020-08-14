@@ -238,21 +238,19 @@ class LocalEnforcer {
 
  private:
   /**
-   * notify_new_report_for_sessions notifies all sessions that a new usage
-   * report is going to be
-   * aggregated.
+   * complete_termination_for_released_sessions completes the termination
+   * process for sessions whose flows have been removed in PipelineD. Since
+   * PipelineD reports all rule records that exist in PipelineD with each
+   * report, if the session is not included, that means the enforcement flows
+   * have been removed.
+   * @param session_map
+   * @param sessions_with_active_flows: a set of IMSIs whose rules were reported
+   * @param session_update
    */
-  void notify_new_report_for_sessions(
-      SessionMap& session_map, SessionUpdate& session_update);
-
-  /**
-   * notify_finish_report_for_sessions notifies all sessions that the
-   * aggregation of the usage
-   * report is finished. For sessions that are terminating, complete the
-   * termination if the session is not included in the report.
-   */
-  void notify_finish_report_for_sessions(
-      SessionMap& session_map, SessionUpdate& session_update);
+  void complete_termination_for_released_sessions(
+      SessionMap& session_map,
+      std::unordered_set<std::string> sessions_with_active_flows,
+      SessionUpdate& session_update);
 
   void filter_rule_installs(
       std::vector<StaticRuleInstall>& static_rule_installs,

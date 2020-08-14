@@ -18,7 +18,6 @@ import type {lte_gateway, network_ran_configs, tier} from '@fbcnms/magma-api';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
-import AppBar from '@material-ui/core/AppBar';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import Enodeb from './EquipmentEnodeb';
 import EnodebContext from '../../components/context/EnodebContext';
@@ -30,16 +29,12 @@ import GatewayTierContext from '../../components/context/GatewayTierContext';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Text from '../../theme/design-system/Text';
+import TopBar from '../../components/TopBar';
 import UpgradeButton from './UpgradeTiersDialog';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {
   InitEnodeState,
   InitTierState,
@@ -49,54 +44,9 @@ import {
   UpdateGateway,
 } from '../../state/EquipmentState';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {colors, typography} from '../../theme/default';
-import {makeStyles} from '@material-ui/styles';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-
-const useStyles = makeStyles(theme => ({
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
-  },
-  appBarBtn: {
-    color: colors.primary.white,
-    background: colors.primary.comet,
-    fontFamily: typography.button.fontFamily,
-    fontWeight: typography.button.fontWeight,
-    fontSize: typography.button.fontSize,
-    lineHeight: typography.button.lineHeight,
-    letterSpacing: typography.button.letterSpacing,
-
-    '&:hover': {
-      background: colors.primary.mirage,
-    },
-  },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
-}));
 
 function EquipmentDashboard() {
   const {match, relativePath, relativeUrl} = useRouter();
@@ -202,85 +152,46 @@ function EquipmentDashboard() {
 }
 
 function EquipmentDashboardInternal() {
-  const classes = useStyles();
-  const {relativePath, relativeUrl, match} = useRouter();
-  const tabPos = GetCurrentTabPos(match.url, ['gateway', 'enodeb']);
+  const {relativePath, relativeUrl} = useRouter();
 
   return (
     <>
-      <div className={classes.topBar}>
-        <Text variant="body2">Equipment</Text>
-      </div>
-
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container direction="row" justify="flex-end" alignItems="center">
-          <Grid item xs={6}>
-            <Tabs
-              value={tabPos}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Gateways"
-                component={NestedRouteLink}
-                label={<GatewayTabLabel />}
-                to="/gateway"
-                className={classes.tab}
-              />
-              <Tab
-                key="EnodeBs"
-                component={NestedRouteLink}
-                label={<EnodebTabLabel />}
-                to="/enodeb"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-          <Grid item xs={6}>
-            <Grid container justify="flex-end" alignItems="center" spacing={2}>
-              <Grid item>
-                {/* TODO: these button styles need to be localized */}
-                {tabPos == 0 && <UpgradeButton />}
-              </Grid>
-              <Grid item>
-                {tabPos == 0 && (
+      <TopBar
+        header="Equipment"
+        tabs={[
+          {
+            label: 'Gateways',
+            to: '/gateway',
+            icon: CellWifiIcon,
+            filters: (
+              <Grid
+                container
+                justify="flex-end"
+                alignItems="center"
+                spacing={2}>
+                <Grid item>
+                  <UpgradeButton />
+                </Grid>
+                <Grid item>
                   <AddEditGatewayButton title="Add New" isLink={false} />
-                )}
-                {tabPos == 1 && (
-                  <AddEditEnodeButton title="Add New" isLink={false} />
-                )}
+                </Grid>
               </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </AppBar>
+            ),
+          },
+          {
+            label: 'eNodeB',
+            to: '/enodeb',
+            icon: SettingsInputAntennaIcon,
+            filters: <AddEditEnodeButton title="Add New" isLink={false} />,
+          },
+        ]}
+      />
       <Switch>
         <Route path={relativePath('/gateway')} render={() => <Gateway />} />
         <Route path={relativePath('/enodeb')} render={() => <Enodeb />} />
         <Redirect to={relativeUrl('/gateway')} />
       </Switch>
     </>
-  );
-}
-
-function GatewayTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <CellWifiIcon className={classes.tabIconLabel} /> Gateway
-    </div>
-  );
-}
-
-function EnodebTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <SettingsInputAntennaIcon className={classes.tabIconLabel} /> eNodeB
-    </div>
   );
 }
 

@@ -275,7 +275,6 @@ export default function DataGrid(props: Props) {
       ))}
     </Grid>
   ));
-  console.log(props.testID);
   return (
     <Card elevation={0}>
       <Grid

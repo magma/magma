@@ -228,15 +228,22 @@ function GatewayTableRaw(props: WithAlert) {
                 </Link>
               ),
             },
-            {title: 'Hardware ID', field: 'hardwareId', editable: 'never'},
+            {
+              title: 'Hardware ID',
+              field: 'hardwareId',
+              editable: 'never',
+              width: 250,
+            },
             {
               title: 'Current Version',
               field: 'currentVersion',
               editable: 'never',
+              width: 250,
             },
             {
               title: 'Tier',
               field: 'tier',
+              width: 100,
               editComponent: props => (
                 <SelectEditComponent
                   {...props}
@@ -291,9 +298,13 @@ function GatewayTableRaw(props: WithAlert) {
                 </Link>
               ),
             },
-            {title: 'enodeBs', field: 'num_enodeb', type: 'numeric'},
-            {title: 'Subscribers', field: 'num_subscribers', type: 'numeric'},
-            {title: 'Health', field: 'health'},
+            {
+              title: 'enodeBs',
+              field: 'num_enodeb',
+              width: 100,
+            },
+            {title: 'Subscribers', field: 'num_subscribers', width: 100},
+            {title: 'Health', field: 'health', width: 100},
             {title: 'Check In Time', field: 'checkInTime', type: 'datetime'},
           ]}
           handleCurrRow={(row: EquipmentGatewayRowType) => setCurrRow(row)}

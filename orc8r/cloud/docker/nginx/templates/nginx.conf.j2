@@ -88,6 +88,9 @@ http {
       grpc_set_header x-magma-client-cert-serial $ssl_client_serial;
       grpc_set_header Host $srv-{{ backend }}:$srvport;
     }
+
+    # Setting max allowed size for client requests body to 50MB
+    client_max_body_size 50M;
   }
 
   # Server block for bootstrapper and any other non-clientcert services

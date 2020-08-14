@@ -13,75 +13,204 @@
  * @flow strict-local
  * @format
  */
-import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
+import type {Dataset} from './CustomMetrics';
+import type {network_id} from '@fbcnms/magma-api';
+
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-import Grid from '@material-ui/core/Grid';
+import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
-import Text from '../theme/design-system/Text';
 import moment from 'moment';
-import type {ChartStyle} from '@fbcnms/ui/insights/AsyncMetric';
+import nullthrows from '@fbcnms/util/nullthrows';
+
+import {CustomLineChart, getStep, getStepString} from './CustomMetrics';
+import {colors} from '../theme/default';
+import {useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 type Props = {
   startEnd: [moment, moment],
 };
 
-const isValid = (start, end): boolean => {
-  return start.isValid() && end.isValid() && moment.min(start, end) === start;
+type DatasetFetchProps = {
+  networkId: network_id,
+  start: moment,
+  end: moment,
+  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
 };
 
-export default function ({startEnd}: Props) {
-  const [start, end] = startEnd;
-  const state = {
-    title: 'Frequency of Alerts and Events',
-    legendLabels: ['Alerts', 'Events'],
-  };
-  const chartStyle: ChartStyle = {
-    data: {
+async function getEventAlertDataset(props: DatasetFetchProps) {
+  const {start, end, networkId} = props;
+  const [delta, unit, format] = getStep(start, end);
+  let requestError = '';
+  const queries = [];
+  const labels = [];
+
+  let s = start.clone();
+  while (end.diff(s) >= 0) {
+    labels.push(s.format(format));
+    const e = s.clone();
+    e.add(delta, unit);
+    queries.push([s, e]);
+    s = e.clone();
+  }
+
+  const requests = queries.map(async (query, _) => {
+    try {
+      const [s, e] = query;
+      const response = await MagmaV1API.getEventsByNetworkIdAboutCount({
+        networkId: networkId,
+        start: s.toISOString(),
+        end: e.toISOString(),
+      });
+      return response;
+    } catch (error) {
+      requestError = error;
+    }
+    return null;
+  });
+
+  // get events data
+  const eventData = await Promise.all(requests)
+    .then(allResponses => {
+      return allResponses.map((r, index) => {
+        const [s] = queries[index];
+
+        if (r === null || r === undefined) {
+          return {
+            t: s.unix(),
+            y: 0,
+          };
+        }
+        return {
+          t: s.unix(),
+          y: r,
+        };
+      });
+    })
+    .catch(error => {
+      requestError = error;
+      return [];
+    });
+
+  if (requestError) {
+    props.enqueueSnackbar('Error getting event counts', {
+      variant: 'error',
+    });
+  }
+
+  const alertPromResp = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
+    {
+      networkId: networkId,
+      start: start.toISOString(),
+      end: end.toISOString(),
+      step: getStepString(delta, unit),
+      query: 'sum(ALERTS)',
+    },
+  );
+
+  const alertsData = [];
+  alertPromResp.data.result.forEach(it =>
+    it['values']?.map(i => {
+      alertsData.push({
+        t: parseInt(i[0]) * 1000,
+        y: parseFloat(i[1]),
+      });
+    }),
+  );
+
+  return [
+    {
+      label: 'Events',
+      fill: false,
+      backgroundColor: colors.secondary.dodgerBlue,
+      borderColor: colors.secondary.dodgerBlue,
+      borderWidth: 1,
+      hoverBackgroundColor: colors.secondary.dodgerBlue,
+      hoverBorderColor: 'black',
+      data: eventData,
+    },
+    {
+      label: 'Alerts',
+      fill: false,
       lineTension: 0.2,
+      pointHitRadius: 10,
       pointRadius: 0.1,
+      borderWidth: 2,
+      backgroundColor: colors.data.flamePea,
+      borderColor: colors.data.flamePea,
+      hoverBackgroundColor: colors.data.flamePea,
+      hoverBorderColor: 'black',
+      data: alertsData,
     },
-    options: {
-      xAxes: {
-        gridLines: {
-          display: false,
-        },
-        ticks: {
-          maxTicksLimit: 10,
-        },
-      },
-      yAxes: {
-        gridLines: {
-          drawBorder: true,
-        },
-        ticks: {
-          maxTicksLimit: 1,
-        },
-      },
-    },
-    legend: {
-      position: 'top',
-      align: 'end',
-    },
-  };
+    labels,
+  ];
+}
+
+export default function EventAlertChart(props: Props) {
+  const {match} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+  const [start, end] = props.startEnd;
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [labels, setLabels] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  const [eventDataset, setEventDataset] = useState<Dataset>({
+    label: 'Events',
+    backgroundColor: colors.secondary.dodgerBlue,
+    borderColor: colors.secondary.dodgerBlue,
+    borderWidth: 1,
+    hoverBackgroundColor: colors.secondary.malibu,
+    hoverBorderColor: 'black',
+    data: [],
+    fill: false,
+  });
+
+  const [alertDataset, setAlertDataset] = useState<Dataset>({
+    label: 'Alerts',
+    backgroundColor: colors.data.flamePea,
+    borderColor: colors.data.flamePea,
+    borderWidth: 1,
+    hoverBackgroundColor: colors.data.flamePea,
+    hoverBorderColor: 'black',
+    data: [],
+    fill: false,
+  });
+
+  useEffect(() => {
+    // fetch queries
+    const fetchAllData = async () => {
+      const [eventDataset, alertDataset, labels] = await getEventAlertDataset({
+        start,
+        end,
+        networkId,
+        enqueueSnackbar,
+      });
+      setEventDataset(eventDataset);
+      setAlertDataset(alertDataset);
+      setLabels(labels);
+      setIsLoading(false);
+    };
+
+    fetchAllData();
+  }, [start, end, enqueueSnackbar, networkId]);
+
+  if (isLoading) {
+    return <LoadingFiller />;
+  }
+
   return (
-    <Grid>
-      <Card elevation={0}>
-        <CardHeader
-          title={<Text variant="body2">{state.title}</Text>}
-          subheader={
-            <AsyncMetric
-              style={chartStyle}
-              label={state.title}
-              unit=""
-              queries={['sum(ALERTS)']}
-              timeRange={'3_hours'}
-              startEnd={isValid(start, end) ? startEnd : undefined}
-              legendLabels={state.legendLabels}
-            />
-          }
-        />
-      </Card>
-    </Grid>
+    <Card elevation={0}>
+      <CardHeader
+        subheader={
+          <CustomLineChart
+            dataset={[eventDataset, alertDataset]}
+            labels={labels}
+          />
+        }
+      />
+    </Card>
   );
 }

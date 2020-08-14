@@ -155,6 +155,7 @@ func (st *memSessionTable) AddSession(
 	apn := s.GetApn()
 	st.rwl.Unlock()
 
+	glog.V(1).Infof("setting timeout of %f seconds for session: %s", tout.Seconds(), sid)
 	setTimeoutUnsafe(st, sid, tout, s, notifier)
 	if !isExistingSession {
 		updateSessionMetricsForNewSession(apn, imsi, sid)

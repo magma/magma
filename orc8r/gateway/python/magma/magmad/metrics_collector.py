@@ -14,7 +14,7 @@ import asyncio
 import calendar
 import logging
 import time
-import typing
+from typing import Callable, List, Optional
 
 import snowflake
 import metrics_pb2
@@ -33,9 +33,14 @@ class MetricsCollector(object):
     """
     _services = []
 
-    def __init__(self, services, collect_interval,
-                 sync_interval, grpc_timeout, queue_length, loop=None,
-                 post_processing_fn=None):
+    def __init__(self, services: List[str],
+                 collect_interval: int,
+                 sync_interval: int,
+                 grpc_timeout: int,
+                 grpc_max_msg_size_mb: int,
+                 queue_length: int,
+                 loop: Optional[asyncio.AbstractEventLoop] = None,
+                 post_processing_fn: Optional[Callable] = None):
         self.sync_interval = sync_interval
         self.collect_interval = collect_interval
         self.grpc_timeout = grpc_timeout
@@ -44,6 +49,7 @@ class MetricsCollector(object):
         self._loop = loop if loop else asyncio.get_event_loop()
         self._retry_queue = []
         self._samples = []
+        self._grpc_options = _get_metrics_chan_grpc_options(grpc_max_msg_size_mb)
         # @see example_metrics_postprocessor_fn
         self.post_processing_fn = post_processing_fn
 
@@ -62,7 +68,8 @@ class MetricsCollector(object):
         """
         if self._samples:
             chan = ServiceRegistry.get_rpc_channel('metricsd',
-                                                   ServiceRegistry.CLOUD)
+                                                   ServiceRegistry.CLOUD,
+                                                   grpc_options=self._grpc_options)
             client = MetricsControllerStub(chan)
             if self.post_processing_fn:
                 # If services wants to, let it run a postprocessing function
@@ -77,8 +84,8 @@ class MetricsCollector(object):
             )
             future = client.Collect.future(metrics_container, self.grpc_timeout)
             future.add_done_callback(lambda future:
-                self._loop.call_soon_threadsafe(
-                    self.sync_done, samples, future))
+                                     self._loop.call_soon_threadsafe(
+                                         self.sync_done, samples, future))
             self._retry_queue.clear()
             self._samples.clear()
         self._loop.call_later(self.sync_interval, self.sync)
@@ -105,9 +112,10 @@ class MetricsCollector(object):
         client = Service303Stub(chan)
         future = client.GetMetrics.future(Void(), self.grpc_timeout)
         future.add_done_callback(lambda future:
-            self._loop.call_soon_threadsafe(
-                self.collect_done, service_name, future))
-        self._loop.call_later(self.collect_interval, self.collect, service_name)
+                                 self._loop.call_soon_threadsafe(
+                                     self.collect_done, service_name, future))
+        self._loop.call_later(self.collect_interval, self.collect,
+                              service_name)
 
     def collect_done(self, service_name, get_metrics_future):
         """
@@ -183,9 +191,20 @@ def _get_uptime_metric(service_name, start_time):
     return family_proto
 
 
+def _get_metrics_chan_grpc_options(msg_size_mb: int):
+    """
+    Returns a list of gRPC options for metricsd cloud grpc channel
+    :param msg_size_mb: msg size in MBs
+    :return: list of tuples containing grpc options for channel
+    """
+    grpc_max_msg_size_bytes = msg_size_mb * 1024 * 1024
+    logging.debug('Setting metricsd gRPC chan Max Message Size to: %s bytes',
+                  grpc_max_msg_size_bytes)
+    return [('grpc.max_send_message_length', grpc_max_msg_size_bytes)]
+
+
 def example_metrics_postprocessor_fn(
-    samples: typing.List[metrics_pb2.MetricFamily]
-) -> None:
+        samples: List[metrics_pb2.MetricFamily]) -> None:
     """
     An example metrics postprocessor function for MetricsCollector
 
@@ -218,6 +237,5 @@ def example_metrics_postprocessor_fn(
 
 
 def do_nothing_metrics_postprocessor(
-    _samples: typing.List[metrics_pb2.MetricFamily]
-) -> None:
+        _samples: List[metrics_pb2.MetricFamily]) -> None:
     """This metrics post processor does nothing for config examples"""

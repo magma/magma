@@ -41,6 +41,15 @@ const useStyles = makeStyles(_ => ({
   },
 }));
 
+const CHART_COLORS = [
+  colors.secondary.dodgerBlue,
+  colors.data.flamePea,
+  'green',
+  'yellow',
+  'purple',
+  'black',
+];
+
 export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
   const classes = useStyles();
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
@@ -92,6 +101,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
           title={<Text variant="body2">Frequency of {props.title}</Text>}
           subheader={
             <AsyncMetric
+              height={300}
               style={{
                 data: {
                   lineTension: 0.2,
@@ -126,6 +136,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
               timeRange={'3_hours'}
               startEnd={[startDate, endDate]}
               legendLabels={props.legendLabels}
+              chartColors={CHART_COLORS}
             />
           }
         />

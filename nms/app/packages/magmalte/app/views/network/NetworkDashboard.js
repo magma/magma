@@ -20,26 +20,21 @@ import type {
 } from '@fbcnms/magma-api';
 
 import AddEditNetworkButton from './NetworkEdit';
-import AppBar from '@material-ui/core/AppBar';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
 import NetworkKPI from './NetworkKPIs';
 import NetworkRanConfig from './NetworkRanConfig';
 import React from 'react';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useCallback, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -48,69 +43,26 @@ const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
-  },
 }));
 
 export default function NetworkDashboard() {
-  const classes = useStyles();
   const {relativePath, relativeUrl} = useRouter();
 
   return (
     <>
-      <div className={classes.topBar}>
-        <Text color="light">Network</Text>
-      </div>
-
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container justify="flex-end" alignItems="center">
-          <Grid item xs>
-            <Tabs
-              value={0}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Network"
-                component={NestedRouteLink}
-                label={<NetworkDashboardTabLabel />}
-                to="/network"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-          <Grid item xs>
-            <Grid container justify="flex-end" alignItems="center" spacing={2}>
-              <Grid item>
-                <AddEditNetworkButton title={'Add Network'} isLink={false} />
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </AppBar>
+      <TopBar
+        header="Network"
+        tabs={[
+          {
+            label: 'Network',
+            to: '/network',
+            icon: NetworkCheck,
+            filters: (
+              <AddEditNetworkButton title={'Add Network'} isLink={false} />
+            ),
+          },
+        ]}
+      />
 
       <Switch>
         <Route
@@ -286,16 +238,6 @@ function NetworkDashboardInternal() {
           </Grid>
         </Grid>
       </Grid>
-    </div>
-  );
-}
-
-function NetworkDashboardTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <NetworkCheck className={classes.tabIconLabel} /> Network
     </div>
   );
 }
