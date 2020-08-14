@@ -192,7 +192,7 @@ func (srv *stateServicer) SyncStates(ctx context.Context, req *protos.SyncStates
 	return &protos.SyncStatesResponse{UnsyncedStates: unsyncedStates}, nil
 }
 
-func (srv *stateServicer) getStates(ctx context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
+func (srv *stateServicer) getStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, internalErr(err, "GetStates (get) blobstore start transaction")
@@ -213,14 +213,18 @@ func (srv *stateServicer) getStates(ctx context.Context, req *protos.GetStatesRe
 	return &protos.GetStatesResponse{States: blobsToStates(blobs)}, nil
 }
 
-func (srv *stateServicer) searchStates(ctx context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
+func (srv *stateServicer) searchStates(_ context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
 		return nil, internalErr(err, "GetStates (search) blobstore start transaction")
 	}
 
+	var idPrefix *string
+	if req.IdPrefix != "" {
+		idPrefix = &req.IdPrefix
+	}
 	searchResults, err := store.Search(
-		blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter, nil),
+		blobstore.CreateSearchFilter(&req.NetworkID, req.TypeFilter, req.IdFilter, idPrefix),
 		blobstore.LoadCriteria{LoadValue: req.LoadValues},
 	)
 	if err != nil {

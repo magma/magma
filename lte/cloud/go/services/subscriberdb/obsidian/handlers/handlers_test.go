@@ -31,6 +31,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
+	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
@@ -380,6 +381,8 @@ func TestListSubscribers(t *testing.T) {
 	}
 	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
 	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
+	directoryState := directoryd.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
+	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -428,6 +431,9 @@ func TestListSubscribers(t *testing.T) {
 							Apn: "oai.ipv4",
 							IP:  "192.168.128.174",
 						},
+					},
+					Directory: &subscriberModels.SubscriberDirectoryRecord{
+						LocationHistory: []string{"foo", "bar"},
 					},
 				},
 			},
@@ -577,6 +583,8 @@ func TestGetSubscriber(t *testing.T) {
 	}
 	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
 	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
+	directoryState := directoryd.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
+	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -625,6 +633,9 @@ func TestGetSubscriber(t *testing.T) {
 						Apn: "oai.ipv4",
 						IP:  "192.168.128.174",
 					},
+				},
+				Directory: &subscriberModels.SubscriberDirectoryRecord{
+					LocationHistory: []string{"foo", "bar"},
 				},
 			},
 		},
