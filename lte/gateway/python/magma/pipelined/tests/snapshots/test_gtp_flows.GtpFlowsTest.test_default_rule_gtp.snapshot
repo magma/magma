@@ -1,0 +1,1 @@
+ priority=0 actions=resubmit(,ingress(main_table))

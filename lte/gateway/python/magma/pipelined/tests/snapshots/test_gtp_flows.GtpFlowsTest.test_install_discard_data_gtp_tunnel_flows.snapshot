@@ -1,0 +1,2 @@
+ cookie=0x1, priority=11,tun_id=0x3,in_port=32768 actions=drop
+ priority=0 actions=resubmit(,ingress(main_table))

@@ -103,7 +103,7 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
 
 def add_flow(datapath, table, match, actions=None, instructions=None,
              priority=MINIMUM_PRIORITY, retries=3, cookie=0x0, idle_timeout=0,
-             hard_timeout=0):
+             hard_timeout=0, goto_table=0):
     """
     Add a flow based on provided args.
 
@@ -135,16 +135,31 @@ def add_flow(datapath, table, match, actions=None, instructions=None,
 
     if actions is None:
         actions = []
-    reset_scratch_reg_actions = [
-        parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
-        for reg in SCRATCH_REGS]
-    actions = actions + reset_scratch_reg_actions
+    # As 4G GTP tunnel, Register value is not used.
+    # if use for default flow, 4G traffic is dropping.
+    if goto_table != 1:
+        reset_scratch_reg_actions = [
+             parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
+             for reg in SCRATCH_REGS]
+        actions = actions + reset_scratch_reg_actions
 
     inst = __get_instructions_for_actions(ofproto, parser,
                                           actions, instructions)
+
+    # For 5G GTP tunnel, goto_table is used for downlink and uplink
+    if goto_table:
+        inst.append(parser.OFPInstructionGotoTable(goto_table))
+
     ryu_match = parser.OFPMatch(**match.ryu_match)
 
-    mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+    # cookie value is used for discard and forward data for GTP
+    if cookie > 0:
+        mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+                            match=ryu_match,table_id=table,
+                            out_group=ofproto.OFPG_ANY, out_port=ofproto.OFPP_ANY,
+                            cookie=cookie)
+    else:
+        mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
                             match=ryu_match, instructions=inst,
                             table_id=table, cookie=cookie,
                             idle_timeout=idle_timeout,
@@ -563,3 +578,4 @@ def _check_resubmit_action(actions, parser):
         raise Exception(
             'Actions list should not contain NXActionResubmitTable',
         )
+

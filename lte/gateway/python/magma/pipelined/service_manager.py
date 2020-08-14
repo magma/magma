@@ -72,6 +72,7 @@ from ryu.base.app_manager import AppManager
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
+from magma.pipelined.app.gtp_flows import GtpFlows, GTP
 
 # Type is either Physical or Logical, highest order_priority is at zero
 App = namedtuple('App', ['name', 'module', 'type', 'order_priority'])
@@ -132,7 +133,7 @@ class _TableManager:
     TableManager maintains an internal mapping between apps to their
     main and scratch tables.
     """
-
+    GTP_TABLE_NUM = 0
     INGRESS_TABLE_NUM = 1
     PHYSICAL_TO_LOGICAL_TABLE_NUM = 10
     EGRESS_TABLE_NUM = 20
@@ -144,6 +145,7 @@ class _TableManager:
 
     def __init__(self):
         self._table_ranges = {
+            ControllerType.SPECIAL:  TableRange(self.GTP_TABLE_NUM, self.GTP_TABLE_NUM+1),
             ControllerType.PHYSICAL: TableRange(self.INGRESS_TABLE_NUM + 1,
                                                 self.PHYSICAL_TO_LOGICAL_TABLE_NUM),
             ControllerType.LOGICAL:
@@ -231,7 +233,7 @@ class _TableManager:
         resp = OrderedDict(sorted(self._tables_by_app.items(),
                                   key=lambda kv: (kv[1].main_table, kv[0])))
         # Include table 0 when it is managed by the EPC, for completeness.
-        if not any(table in ['ue_mac', 'xwf_passthru'] for table in self._tables_by_app):
+        if not any(table in ['gtp_flows', 'ue_mac', 'xwf_passthru'] for table in self._tables_by_app):
             resp['mme'] = Tables(main_table=0, type=None)
             resp.move_to_end('mme', last=False)
         return resp
@@ -265,6 +267,7 @@ class ServiceManager:
     LI_MIRROR_SERVICE_NAME = 'li_mirror'
     XWF_PASSTHRU_NAME = 'xwf_passthru'
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
+    GTP_FLOWS_NAME = 'gtp_flows'
 
     INTERNAL_APP_SET_TABLE_NUM = 201
     INTERNAL_IMSI_SET_TABLE_NUM = 202
@@ -377,6 +380,12 @@ class ServiceManager:
                 type=UplinkBridgeController.APP_TYPE,
                 order_priority=0),
         ],
+        GTP_FLOWS_NAME: [
+                App(name=GtpFlows.APP_NAME,
+                    module=GtpFlows.__module__,
+                    type=GtpFlows.APP_TYPE,
+                    order_priority=0),
+        ],
 
     }
 
@@ -390,6 +399,7 @@ class ServiceManager:
 
     def __init__(self, magma_service: MagmaService):
         self._magma_service = magma_service
+        self._5G_flag_enable = self._magma_service.config.get('5G_support_flag', False)
         # inout is a mandatory app and it occupies:
         #   table 1(for ingress)
         #   table 10(for middle)
@@ -398,11 +408,12 @@ class ServiceManager:
                           module=InOutController.__module__,
                           type=None,
                           order_priority=0)]
+        
         self._table_manager = _TableManager()
 
         self.rule_id_mapper = RuleIDToNumMapper()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
-
+        
         apps = self._get_static_apps()
         apps.extend(self._get_dynamic_apps())
         apps.sort(key=lambda x: x.order_priority)
@@ -416,6 +427,10 @@ class ServiceManager:
             if app.name in [self.UE_MAC_ADDRESS_SERVICE_NAME, self.XWF_PASSTHRU_NAME]:
                 self._table_manager.register_apps_for_table0_service([app])
                 continue
+            if self._5G_flag_enable:
+                if app.name in [self.GTP_FLOWS_NAME]:
+                    self._table_manager.register_apps_for_table0_service([app])
+                    continue
             self._table_manager.register_apps_for_service([app])
 
     def _get_static_apps(self):
@@ -429,11 +444,12 @@ class ServiceManager:
         if setup_type == 'LTE':
             static_services.append(self.__class__.UPLINK_BRIDGE_NAME)
             logging.info("added uplink bridge controller")
-
+        if self._5G_flag_enable:
+            static_services.append(self.__class__.GTP_FLOWS_NAME)
+            logging.info("Added GTP flows App")
         static_apps = \
             [app for service in static_services for app in
              self.STATIC_SERVICE_TO_APPS[service]]
-
         return static_apps
 
     def _get_dynamic_apps(self):

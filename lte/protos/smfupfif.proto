@@ -1,0 +1,235 @@
+syntax = "proto3";
+
+package magma.lte;
+
+option go_package = "magma/lte/cloud/go/protos";
+
+message NodeID {
+    enum NodeIDType {
+         NONE = 0;
+         IPv4 = 1;
+         IPv6 = 2;
+         FQDN = 3;
+    }
+
+    NodeIDType nodetype = 1;
+    string node_id = 2;
+}
+
+///////////////////////////////////////////////////////////////
+/////////////////SMF proto header files
+///////////////////////////////////////////////////////////////
+
+//CPFseid message
+message CpFSeid {
+  uint64 f_seid = 1;
+  NodeID node_id = 2;
+}
+
+message OuterHeadRemoval {                //conditional PDR Message Structures
+  uint32 o_hd_remo_descr= 1;
+}
+
+message LocalFTeid {                      //not sure about the message structure
+ uint32 teid = 1;
+ string ipv4_adr = 2; //doubt
+}
+
+message SdfFilters {                               //8.2.5
+  FlowDescriptor fd = 1;
+  bytes ttc = 3;
+  bytes spi = 4;
+  bytes fl = 5;
+  uint32 sdf_id = 6;
+}
+
+message FlowDescriptor {
+FlowMatchSMF match = 1;
+  enum Action {
+    PERMIT = 0;
+    DENY = 1;
+  }
+  Action action = 2;
+}
+
+message FlowMatchSMF {
+  string ipv4_src = 1;
+  string ipv4_dst = 2;
+  uint32 tcp_src = 3;
+  uint32 tcp_dst = 4;
+  uint32 udp_src = 5;
+  uint32 udp_dst = 6;
+
+}
+
+message MacAddress {            //8.2.93
+  bytes mac_src_value = 1;
+  bytes mac_dst_value = 2;
+  bytes upper_mac_src_value = 3;
+  bytes upper_mac_dst_value = 4;
+ }
+
+//Table 7.5.2.2-3: Ethernet Packet Filter IE within PFCP Session Establishment Request
+message EthPackFilter {
+  uint32 eth_filt_id = 1;
+  uint32 eth_filt_prop = 2;
+  MacAddress mac_addr = 3;
+  uint32 c_tag = 4;                                   //not verified the tag values
+  uint32 s_tag = 5;
+  SdfFilters sdf_filters = 6;
+  uint32 ethertype = 7;
+}
+
+message ApplyAction {               //8.2.26
+  enum Action{
+    DROP = 0;
+    FORW = 1;
+    BUFF = 2;
+    NOCP = 3;
+    DUPL = 4;
+  }
+  repeated Action apply_action= 1;
+}
+
+message RedirectInfo {                //8.2.20
+  enum RedirectAddrType {
+    IPV4 = 0;
+    IPV6 = 1;
+    URL = 2;
+    SIPURI = 3;
+    IPV4V6 = 4;
+  }
+  RedirectAddrType red_add_type = 1;
+  string red_server_addr = 2;
+}
+
+message OuterHeaderCreation {
+  uint32 o_teid = 1;
+  string ipv4_adr = 2;
+  uint32 port_no = 3;
+}
+
+//Table 7.5.2.3-2: Forwarding Parameters IE in FAR
+message FwdParam {
+  uint32 dest_iface = 1;
+  string net_instace = 2;
+  RedirectInfo redirect_info = 3;
+
+  OuterHeaderCreation ohdrcr = 4;             //not including as per MVC
+  //TransportLevelMarking = ;          //will be populated as and when required
+  //ForwardingPolicy = ;
+  //HeaderEnrichment = ;
+  //LinkedTrafficEpId = ;
+  //Proxying = ;
+  //DestInterface ;
+}
+
+//Table 7.5.2.3-3: Duplicating Parameters IE in FAR
+message DupParam {
+  uint32 dest_iface = 1;
+  //OuterHeaderCreation = ;           //will be populated as and when required
+  //TransportLevelMarking = ;
+  //ForwardingPolicy =  ;
+}
+
+//PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request
+message PDI {
+  uint32 src_interface = 1;
+  LocalFTeid local_f_teid = 2;        //optional and conditionals
+  string net_instance = 3;
+  string ue_ip_adr = 4;
+  bytes tr_ep_id = 5;                //8.2.92
+  SdfFilters sdf_filters = 6;
+  bytes app_id = 7;
+  bool eth_pdu_ses_inf = 8;         //8.2.102   //doubt
+  EthPackFilter eth_pack_filter = 9;
+  uint32 qfi = 10;
+  bytes frame_route = 11;
+  uint32 frame_routing = 12;
+  bytes frame_ipv6_route = 13;
+  bytes src_intface_type = 14;
+}
+
+//******************************************************************************************
+//Group Type messages - Currently Includes -> 1. PDR 2. FAR
+
+//PDR message Table 7.5.2.2-1: Create PDR IE within PFCP Session Establishment Request
+message SetGroupPDR {
+  uint32 pdr_id = 1;
+  int32 sess_ver_no = 2;
+  uint32 precedence = 3;
+  PDI pdi = 4;
+  OuterHeadRemoval o_h_remo_desc = 5;
+  uint32 far_id = 6;
+  uint32 urr_id = 7;
+  uint32 qer_id = 8;
+  uint32 bar_id = 9;
+  string activ_pred_rules = 10;
+}
+
+//FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment Request
+message SetGroupFAR {
+  uint32 far_id = 1;              //FAR ID should be less than 2^32
+  int32 sess_ver_no = 2;
+  ApplyAction apply_action = 3;
+  FwdParam fwd_parm = 4;
+  DupParam du_param = 5;
+  uint32 bar_id = 6;
+}
+
+// ToDO  SetGroupQER   write
+// ToDo  SetGroupBAR   write
+
+
+//******************************************************************************************
+//Not part of MVC, as and when required will populate the proto
+
+//Create Traffic Endpoint message (7.5.2)
+message TrafficEndPoint {
+  uint32 tr_ep_id = 1;
+//Not part of MVC, also has extra fields
+}
+
+//PDN Type
+message PdnType{
+//Not part of MVC, also has extra fields
+}
+
+
+//User Plane Inactivity Timer Type
+message UserPlId {
+//Not part of MVC, also has extra fields
+}
+
+//User UI Type
+message UserId {
+//Not part of MVC, also has extra fields
+}
+
+//Trace Information Type
+message TraceInfo {
+//Not part of MVC, also has extra fields
+}
+
+//APN/DNN Type
+message ApnDnn {
+//Not part of MVC, also has extra fields
+}
+
+//SET message - SMF to Upf Session Requests
+message SessionSet {
+  string seid = 1;
+  int32 sess_ver_no = 2;
+  NodeID node_id = 3;
+  CpFSeid f_seid = 4;
+  repeated SetGroupPDR set_gr_pdr = 5;
+  repeated SetGroupFAR set_gr_far = 6;
+  //repeated SetGroupQER set_gr_qer = 7;
+  //repeated SetGroupBAR set_gr_bar = 8;
+  TrafficEndPoint tr_ep = 9;
+  PdnType pdn_type = 10;
+  //UserPlId user_pl_id = 11;
+  //UserId user_id = 12;
+  //TraceInfo tr_info = 13;
+  //ApnDnn apn_dnn = 14;
+}

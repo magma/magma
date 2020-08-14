@@ -112,7 +112,9 @@ class PipelinedController(Enum):
     Conntrack = Controller(
         'magma.pipelined.app.conntrack', 'conntrack'
     )
-
+    GtpFlows = Controller(
+        'magma.pipelined.app.gtp_flows', 'gtp_flows'
+   )
 
 def assert_pipelined_not_running():
     """
