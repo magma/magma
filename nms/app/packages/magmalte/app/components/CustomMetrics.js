@@ -17,7 +17,11 @@
 import React from 'react';
 import moment from 'moment';
 
-import {Bar} from 'react-chartjs-2';
+import {Bar, Line} from 'react-chartjs-2';
+
+export function getStepString(delta: number, unit: string) {
+  return delta.toString() + unit[0];
+}
 
 export function getStep(start: moment, end: moment): [number, string, string] {
   const d = moment.duration(end.diff(start));
@@ -45,6 +49,11 @@ export function getStep(start: moment, end: moment): [number, string, string] {
   return [1, 'months', 'DD-MM-YYYY'];
 }
 
+export type DatasetType = {
+  t: number,
+  y: number,
+};
+
 export type Dataset = {
   label: string,
   borderWidth: number,
@@ -52,15 +61,15 @@ export type Dataset = {
   borderColor: string,
   hoverBorderColor: string,
   hoverBackgroundColor: string,
-  data: Array<number>,
+  data: Array<DatasetType>,
 };
 
-type HistogramProps = {
+type Props = {
   labels: Array<string>,
   dataset: Array<Dataset>,
 };
 
-export default function CustomHistogram(props: HistogramProps) {
+export default function CustomHistogram(props: Props) {
   return (
     <>
       <Bar
@@ -87,6 +96,82 @@ export default function CustomHistogram(props: HistogramProps) {
                 },
               },
             ],
+          },
+        }}
+      />
+    </>
+  );
+}
+
+export function CustomLineChart(props: Props) {
+  return (
+    <>
+      <Line
+        height={300}
+        data={{
+          labels: props.labels,
+          datasets: props.dataset,
+        }}
+        legend={{
+          display: true,
+          position: 'bottom',
+          align: 'center',
+          labels: {
+            boxWidth: 12,
+          },
+        }}
+        options={{
+          maintainAspectRatio: false,
+          scaleShowValues: true,
+          scales: {
+            xAxes: {
+              gridLines: {
+                display: true,
+              },
+              ticks: {
+                maxTicksLimit: 10,
+              },
+              type: 'time',
+              time: {
+                round: 'second',
+                tooltipFormat: 'YYYY/MM/DD h:mm:ss a',
+              },
+              scaleLabel: {
+                display: true,
+                labelString: 'Date',
+              },
+            },
+            yAxes: [
+              {
+                gridLines: {
+                  drawBorder: true,
+                },
+                ticks: {
+                  maxTicksLimit: 3,
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: '',
+                },
+                position: 'left',
+              },
+            ],
+          },
+          tooltips: {
+            enabled: true,
+            mode: 'nearest',
+            callbacks: {
+              label: (tooltipItem, data) => {
+                const x =
+                  data.datasets[tooltipItem.datasetIndex].label +
+                  ': ' +
+                  tooltipItem.yLabel +
+                  ' ' +
+                  (data.datasets[tooltipItem.datasetIndex].unit ?? '');
+                console.log('tooltip ', x);
+                return x;
+              },
+            },
           },
         }}
       />
