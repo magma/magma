@@ -27,5 +27,5 @@ class EventTracker {
   std::shared_ptr<PacketGenerator> pkt_gen_;
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

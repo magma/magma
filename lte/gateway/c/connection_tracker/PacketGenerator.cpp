@@ -28,7 +28,8 @@ namespace lte {
 using namespace Tins;
 
 PacketGenerator::PacketGenerator(
-    std::string& iface_name, std::string& pkt_dst_mac, std::string& pkt_src_mac)
+    const std::string& iface_name, const std::string& pkt_dst_mac,
+    const std::string& pkt_src_mac)
     : iface_name_(iface_name),
       pkt_dst_mac_(pkt_dst_mac),
       pkt_src_mac_(pkt_src_mac) {
@@ -58,5 +59,5 @@ bool PacketGenerator::send_packet(struct flow_information* flow) {
   return true;
 }
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

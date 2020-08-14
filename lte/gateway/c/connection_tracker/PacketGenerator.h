@@ -30,7 +30,8 @@ namespace lte {
 class PacketGenerator {
  public:
   PacketGenerator(
-      std::string& iface_name, std::string& pkt_dst_mac, std::string& pkt_src_mac);
+      const std::string& iface_name, const std::string& pkt_dst_mac,
+      const std::string& pkt_src_mac);
   /**
    * Send packet based on provided flow information
    * @param flow_information - flow_information
@@ -45,5 +46,5 @@ class PacketGenerator {
   Tins::NetworkInterface iface_;
 };
 
-} // namespace lte
-} // namespace magma
+}  // namespace lte
+}  // namespace magma

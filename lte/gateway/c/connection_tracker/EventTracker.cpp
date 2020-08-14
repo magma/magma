@@ -35,7 +35,6 @@
 
 #include "magma_logging.h"
 
-
 static int data_cb(const struct nlmsghdr* nlh, void* data);
 
 namespace magma {
@@ -83,9 +82,8 @@ int EventTracker::init_conntrack_event_loop(void) {
   return 0;
 }
 
-} // namespace lte
-} // namespace magma
-
+}  // namespace lte
+}  // namespace magma
 
 static int parse_ip_cb(const struct nlattr* attr, void* data) {
   const struct nlattr** tb = (const struct nlattr**) data;
