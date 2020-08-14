@@ -257,6 +257,13 @@ export default createMuiTheme({
         },
       },
     },
+    MuiCheckbox: {
+      colorSecondary: {
+        '&$checked': {
+          color: colors.secondary.dodgerBlue,
+        },
+      },
+    },
     MuiDivider: {
       root: {
         backgroundColor: colors.primary.concrete,
