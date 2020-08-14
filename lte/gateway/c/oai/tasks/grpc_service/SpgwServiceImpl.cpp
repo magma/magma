@@ -78,9 +78,8 @@ Status SpgwServiceImpl::CreateBearer(
     // Copy the policy rule name
     std::string policy_rule_name = policy_rule.id();
     // Truncate to maximum allowed in ITTI message
-    uint8_t truncated_len = policy_rule_name.size() <= POLICY_RULE_NAME_MAXLEN ?
-                                policy_rule_name.size() :
-                                POLICY_RULE_NAME_MAXLEN;
+    uint8_t truncated_len =
+        std::min(policy_rule_name.size(), (std::size_t) POLICY_RULE_NAME_MAXLEN);
     strncpy(itti_msg.policy_rule_name, policy_rule_name.c_str(), truncated_len);
     itti_msg.policy_rule_name[truncated_len] = '\0';
     itti_msg.policy_rule_name_length = truncated_len;
