@@ -21,6 +21,7 @@ import (
 	"magma/fbinternal/cloud/go/services/fbinternal/servicers"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/metricsd/protos"
+	"magma/orc8r/lib/go/definitions"
 
 	"github.com/golang/glog"
 )
@@ -34,13 +35,7 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating orc8r service for fbinternal: %s", err)
 	}
-	var categoryID string
-	categoryIDEnv := os.Getenv("FACEBOOK_APP_CATEGORY_ID")
-	if len(categoryIDEnv) != 0 {
-		categoryID = categoryIDEnv
-	} else {
-		categoryID = defaultCategoryID
-	}
+	categoryID := definitions.GetEnvWithDefault("FACEBOOK_APP_CATEGORY_ID", defaultCategoryID)
 	exporterServicer := servicers.NewExporterServicer(
 		os.Getenv("METRIC_EXPORT_URL"),
 		os.Getenv("FACEBOOK_APP_ID"),
