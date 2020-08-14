@@ -14,11 +14,8 @@
 - name: install python modules
   shell: pip3 install jsonpickle
 
-- name: touch snowflake
-  shell: touch /etc/snowflake
-
 - name: retrieve hwid
-  shell: docker exec magmad show_gateway_info.py | sed '3q;d' 
+  shell: cat /etc/snowflake 
   register: gateway_hwid
 
 - name: copy the admin certificate key
