@@ -197,24 +197,27 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
       [this, context, response_callback, request_cpy]() {
-        const auto& imsi = request_cpy.sid().id();
+        const auto& imsi = request_cpy.common_context().sid().id();
         const auto& sid  = id_gen_.gen_session_id(imsi);
-        const auto& apn  = request_cpy.apn();
-        MLOG(MDEBUG) << "Received a CreateSessionRequest for " << imsi
-                     << " apn: " << apn << " plmn_id: " << request_cpy.plmn_id()
-                     << " imsi_plmn_id: " << request_cpy.imsi_plmn_id();
+        const auto& apn  = request_cpy.common_context().apn();
+        std::string create_message =
+            "Received a CreateSessionRequest for " + imsi + " " + apn;
+        if (request_cpy.rat_specific_context().has_lte_context()) {
+          const auto& lte = request_cpy.rat_specific_context().lte_context();
+          create_message += " plmn_id " + lte.plmn_id() + " imsi_plmn_id " +
+                            lte.imsi_plmn_id();
+        }
+        MLOG(MINFO) << create_message;
 
         SessionConfig cfg(request_cpy);
         auto session_map     = get_sessions_for_creation(imsi);
         const auto& rat_type = cfg.common_context.rat_type();
         switch (rat_type) {
           case TGPP_WLAN:
-            handle_create_session_cwf(
-                session_map, request_cpy, sid, cfg, response_callback);
+            handle_create_session_cwf(session_map, sid, cfg, response_callback);
             return;
           case TGPP_LTE:
-            handle_create_session_lte(
-                session_map, request_cpy, sid, cfg, response_callback);
+            handle_create_session_lte(session_map, sid, cfg, response_callback);
             return;
           default:
             std::ostringstream failure_stream;
@@ -286,10 +289,9 @@ void LocalSessionManagerHandlerImpl::send_create_session(
 }
 
 void LocalSessionManagerHandlerImpl::handle_create_session_cwf(
-    SessionMap& session_map, const LocalCreateSessionRequest& request,
-    const std::string& sid, SessionConfig cfg,
+    SessionMap& session_map, const std::string& sid, SessionConfig cfg,
     std::function<void(Status, LocalCreateSessionResponse)> cb) {
-  auto imsi = request.sid().id();
+  auto imsi = cfg.common_context.sid().id();
 
   auto it = session_map.find(imsi);
   if (it != session_map.end()) {
@@ -334,10 +336,9 @@ void LocalSessionManagerHandlerImpl::recycle_cwf_session(
 }
 
 void LocalSessionManagerHandlerImpl::handle_create_session_lte(
-    SessionMap& session_map, const LocalCreateSessionRequest& request,
-    const std::string& sid, SessionConfig cfg,
+    SessionMap& session_map, const std::string& sid, SessionConfig cfg,
     std::function<void(Status, LocalCreateSessionResponse)> cb) {
-  auto imsi = request.sid().id();
+  auto imsi = cfg.common_context.sid().id();
 
   // If there are no existing sessions for the IMSI, just create a new one
   auto it = session_map.find(imsi);
@@ -369,7 +370,7 @@ void LocalSessionManagerHandlerImpl::handle_create_session_lte(
                   << "configuration. Ending the existing session, "
                   << "and requesting a new session";
       end_session(
-          session_map, request.sid(), apn,
+          session_map, cfg.common_context.sid(), apn,
           [&](grpc::Status status, LocalEndSessionResponse response) {});
       // All sessions are unique by IMSI+APN
       break;

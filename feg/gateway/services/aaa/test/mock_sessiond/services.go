@@ -57,7 +57,7 @@ func (c *MockSessionManager) CreateSession(ctx context.Context, in *protos.Local
 	}
 
 	out := &protos.LocalCreateSessionResponse{
-		SessionId: fmt.Sprintf("%s-12345678", in.Sid.Id),
+		SessionId: fmt.Sprintf("%s-12345678", in.CommonContext.Sid.Id),
 	}
 	return out, nil
 }
