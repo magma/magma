@@ -86,12 +86,12 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.PUT, HandlerFunc: handlers.UpdateDNSRecord},
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.DELETE, HandlerFunc: handlers.DeleteDNSRecord},
 
-		handlers.GetListGatewaysHandler(ListGatewaysPath, lte.CellularGatewayType, makeLTEGateways),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, lte.CellularGatewayEntityType, makeLTEGateways),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
-		handlers.GetDeleteGatewayHandler(ManageGatewayPath, lte.CellularGatewayType),
+		handlers.GetDeleteGatewayHandler(ManageGatewayPath, lte.CellularGatewayEntityType),
 
 		{Path: ListEnodebsPath, Methods: obsidian.GET, HandlerFunc: listEnodebs},
 		{Path: ListEnodebsPath, Methods: obsidian.POST, HandlerFunc: createEnodeb},
@@ -120,7 +120,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8r_models.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8r_models.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(orc8r_models.NetworkDNSRecords), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularPath, &lte_models.NetworkCellularConfigs{}, lte.CellularNetworkType)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularPath, &lte_models.NetworkCellularConfigs{}, lte.CellularNetworkConfigType)...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &lte_models.NetworkEpcConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &lte_models.NetworkRanConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(lte_models.FegNetworkID), "")...)
@@ -160,7 +160,7 @@ func getGateway(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
-		nid, lte.CellularGatewayType, gid,
+		nid, lte.CellularGatewayEntityType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 	)
 	if err != nil {
@@ -181,7 +181,7 @@ func getGateway(c echo.Context) error {
 	}
 
 	for _, tk := range ent.Associations {
-		if tk.Type == lte.CellularEnodebType {
+		if tk.Type == lte.CellularEnodebEntityType {
 			ret.ConnectedEnodebSerials = append(ret.ConnectedEnodebSerials, tk.Key)
 		}
 	}
@@ -219,7 +219,7 @@ func makeLTEGateways(
 		switch ent.Type {
 		case orc8r.MagmadGatewayType:
 			existing.magmadGateway = ent
-		case lte.CellularGatewayType:
+		case lte.CellularGatewayEntityType:
 			existing.cellularGateway = ent
 		}
 	}
@@ -243,7 +243,7 @@ func listEnodebs(c echo.Context) error {
 	}
 
 	ents, err := configurator.LoadAllEntitiesInNetwork(
-		nid, lte.CellularEnodebType,
+		nid, lte.CellularEnodebEntityType,
 		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
 	)
 	if err != nil {
@@ -275,7 +275,7 @@ func createEnodeb(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(nid, configurator.NetworkEntity{
-		Type:        lte.CellularEnodebType,
+		Type:        lte.CellularEnodebEntityType,
 		Key:         payload.Serial,
 		Name:        payload.Name,
 		Description: payload.Description,
@@ -296,7 +296,7 @@ func getEnodeb(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
-		nid, lte.CellularEnodebType, eid,
+		nid, lte.CellularEnodebEntityType, eid,
 		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
 	)
 	switch {
@@ -343,7 +343,7 @@ func deleteEnodeb(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(nid, lte.CellularEnodebType, eid)
+	err := configurator.DeleteEntity(nid, lte.CellularEnodebEntityType, eid)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -420,7 +420,7 @@ func listApns(c echo.Context) error {
 		return nerr
 	}
 
-	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.ApnEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.APNEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -447,7 +447,7 @@ func createApn(c echo.Context) error {
 	}
 
 	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
-		Type:   lte.ApnEntityType,
+		Type:   lte.APNEntityType,
 		Key:    string(payload.ApnName),
 		Config: payload.ApnConfiguration,
 	})
@@ -464,7 +464,7 @@ func getApnConfiguration(c echo.Context) error {
 		return nerr
 	}
 
-	ent, err := configurator.LoadEntity(networkID, lte.ApnEntityType, apnName, configurator.EntityLoadCriteria{LoadConfig: true})
+	ent, err := configurator.LoadEntity(networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{LoadConfig: true})
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -490,7 +490,7 @@ func updateApnConfiguration(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.LoadEntity(networkID, lte.ApnEntityType, apnName, configurator.EntityLoadCriteria{})
+	_, err := configurator.LoadEntity(networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{})
 	switch {
 	case err == merrors.ErrNotFound:
 		return echo.ErrNotFound
@@ -498,7 +498,7 @@ func updateApnConfiguration(c echo.Context) error {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load existing APN"), http.StatusInternalServerError)
 	}
 
-	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.ApnEntityType, apnName, payload.ApnConfiguration)
+	err = configurator.CreateOrUpdateEntityConfig(networkID, lte.APNEntityType, apnName, payload.ApnConfiguration)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -511,7 +511,7 @@ func deleteApnConfiguration(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.ApnEntityType, apnName)
+	err := configurator.DeleteEntity(networkID, lte.APNEntityType, apnName)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
