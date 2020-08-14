@@ -447,6 +447,7 @@ func injectOmnipresentRules(srv *CentralSessionController, gxCCAInit *gx.CreditC
 	}
 	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
 	if len(omnipresentRuleIDs) > 0 || len(omnipresentBaseNames) > 0 {
+		glog.V(2).Infof("Adding omnipresent rules %v and omnipresent rule base %v", omnipresentRuleIDs, omnipresentBaseNames)
 		omniRuleInstallAVPRuleInstallAVP := &gx.RuleInstallAVP{
 			RuleNames:            omnipresentRuleIDs,
 			RuleBaseNames:        omnipresentBaseNames,

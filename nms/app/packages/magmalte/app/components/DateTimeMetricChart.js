@@ -101,6 +101,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
           title={<Text variant="body2">Frequency of {props.title}</Text>}
           subheader={
             <AsyncMetric
+              height={300}
               style={{
                 data: {
                   lineTension: 0.2,

@@ -31,7 +31,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
-import {getStep} from '../../components/CustomHistogram';
+import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';

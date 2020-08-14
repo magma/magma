@@ -15,7 +15,7 @@
  */
 import 'jest-dom/extend-expect';
 
-import * as customHistogram from '../../../components/CustomHistogram';
+import * as customHistogram from '../../../components/CustomMetrics';
 import GatewayLogs from '../GatewayLogs';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MomentUtils from '@date-io/moment';

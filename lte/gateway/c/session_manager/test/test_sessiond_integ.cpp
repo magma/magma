@@ -274,9 +274,11 @@ TEST_F(SessiondTest, end_to_end_success) {
         CreateSession(testing::_, CheckCreateSession("IMSI1"), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
-          testing::SetArgPointee<2>(create_response),
-          testing::Return(grpc::Status::OK)));
-    EXPECT_CALL(*events_reporter, session_created(testing::_)).Times(1);
+            testing::SetArgPointee<2>(create_response),
+            testing::Return(grpc::Status::OK)));
+    EXPECT_CALL(
+        *events_reporter, session_created("IMSI1", testing::_, testing::_))
+        .Times(1);
 
     // Temporary fix for pipelined client in sessiond introduces separate calls
     // for static and dynamic rules. So here is the call for static rules.
@@ -290,7 +292,9 @@ TEST_F(SessiondTest, end_to_end_success) {
         ActivateFlows(testing::_, CheckActivateFlows("IMSI1", 0), testing::_))
         .Times(1);
 
-    EXPECT_CALL(*events_reporter, session_updated(testing::_)).Times(1);
+    EXPECT_CALL(
+        *events_reporter, session_updated("IMSI1", testing::_, testing::_))
+        .Times(1);
     CreditUsageUpdate expected_update;
     create_usage_update(
         "IMSI1", 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
@@ -321,9 +325,10 @@ TEST_F(SessiondTest, end_to_end_success) {
         TerminateSession(testing::_, CheckTerminate("IMSI1"), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
-          testing::SetArgPointee<2>(terminate_response),
-          SetEndPromise(&end_promise, Status::OK)));
-    EXPECT_CALL(*events_reporter, session_terminated(testing::_)).Times(1);
+            testing::SetArgPointee<2>(terminate_response),
+            SetEndPromise(&end_promise, Status::OK)));
+    EXPECT_CALL(*events_reporter, session_terminated("IMSI1", testing::_))
+        .Times(1);
   }
 
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(

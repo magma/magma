@@ -19,20 +19,18 @@
 namespace magma {
 using namespace lte;
 
-void build_common_context(
+CommonSessionContext build_common_context(
     const std::string& imsi, const std::string& ue_ipv4, const std::string& apn,
-    const std::string& msisdn, const RATType rat_type,
-    CommonSessionContext* common_context);
+    const std::string& msisdn, const RATType rat_type);
 
-void build_lte_context(
+LTESessionContext build_lte_context(
     const std::string& spgw_ipv4, const std::string& imei,
     const std::string& plmn_id, const std::string& imsi_plmn_id,
     const std::string& user_location, uint32_t bearer_id,
-    QosInformationRequest* qos_info, LTESessionContext* lte_context);
+    QosInformationRequest* qos_info);
 
-void build_wlan_context(
-    const std::string& mac_addr, const std::string& radius_session_id,
-    WLANSessionContext* wlan_context);
+WLANSessionContext build_wlan_context(
+    const std::string& mac_addr, const std::string& radius_session_id);
 
 void create_rule_record(
     const std::string& imsi, const std::string& rule_id, uint64_t bytes_rx,
