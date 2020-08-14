@@ -13,9 +13,9 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// IPDRExportDst ipdr export dst
+// IpdrExportDst ipdr export dst
 // swagger:model ipdr_export_dst
-type IPDRExportDst struct {
+type IpdrExportDst struct {
 
 	// ip
 	// Required: true
@@ -28,7 +28,7 @@ type IPDRExportDst struct {
 }
 
 // Validate validates this ipdr export dst
-func (m *IPDRExportDst) Validate(formats strfmt.Registry) error {
+func (m *IpdrExportDst) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateIP(formats); err != nil {
@@ -45,7 +45,7 @@ func (m *IPDRExportDst) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *IPDRExportDst) validateIP(formats strfmt.Registry) error {
+func (m *IpdrExportDst) validateIP(formats strfmt.Registry) error {
 
 	if err := validate.Required("ip", "body", strfmt.IPv4(m.IP)); err != nil {
 		return err
@@ -58,7 +58,7 @@ func (m *IPDRExportDst) validateIP(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *IPDRExportDst) validatePort(formats strfmt.Registry) error {
+func (m *IpdrExportDst) validatePort(formats strfmt.Registry) error {
 
 	if err := validate.Required("port", "body", uint32(m.Port)); err != nil {
 		return err
@@ -68,7 +68,7 @@ func (m *IPDRExportDst) validatePort(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *IPDRExportDst) MarshalBinary() ([]byte, error) {
+func (m *IpdrExportDst) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -76,8 +76,8 @@ func (m *IPDRExportDst) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *IPDRExportDst) UnmarshalBinary(b []byte) error {
-	var res IPDRExportDst
+func (m *IpdrExportDst) UnmarshalBinary(b []byte) error {
+	var res IpdrExportDst
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

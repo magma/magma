@@ -8,10 +8,10 @@ FROM ${baseImage} as base
 RUN apt-get update && \
     apt-get install -y curl make git gcc bzr unzip vim
 
-# Install Golang 1.12
+# Install Golang 1.13
 WORKDIR /usr/local
-RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.12.linux-amd64.tar.gz -O && \
-    tar xf go1.12.linux-amd64.tar.gz && \
+RUN curl https://facebookconnectivity.jfrog.io/artifactory/generic/go1.13.4.linux-amd64.tar.gz -O && \
+    tar xf go1.13.4.linux-amd64.tar.gz && \
     cp -r go/bin/* /usr/local/bin/
 ENV GO111MODULE on
 

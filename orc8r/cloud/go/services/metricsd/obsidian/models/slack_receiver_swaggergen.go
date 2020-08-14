@@ -15,12 +15,12 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// SLACKReceiver slack receiver
+// SlackReceiver slack receiver
 // swagger:model slack_receiver
-type SLACKReceiver struct {
+type SlackReceiver struct {
 
 	// actions
-	Actions []*SLACKAction `json:"actions"`
+	Actions []*SlackAction `json:"actions"`
 
 	// api url
 	// Required: true
@@ -39,7 +39,7 @@ type SLACKReceiver struct {
 	Fallback string `json:"fallback,omitempty"`
 
 	// fields
-	Fields []*SLACKField `json:"fields"`
+	Fields []*SlackField `json:"fields"`
 
 	// footer
 	Footer string `json:"footer,omitempty"`
@@ -76,7 +76,7 @@ type SLACKReceiver struct {
 }
 
 // Validate validates this slack receiver
-func (m *SLACKReceiver) Validate(formats strfmt.Registry) error {
+func (m *SlackReceiver) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateActions(formats); err != nil {
@@ -97,7 +97,7 @@ func (m *SLACKReceiver) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKReceiver) validateActions(formats strfmt.Registry) error {
+func (m *SlackReceiver) validateActions(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.Actions) { // not required
 		return nil
@@ -122,7 +122,7 @@ func (m *SLACKReceiver) validateActions(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKReceiver) validateAPIURL(formats strfmt.Registry) error {
+func (m *SlackReceiver) validateAPIURL(formats strfmt.Registry) error {
 
 	if err := validate.Required("api_url", "body", m.APIURL); err != nil {
 		return err
@@ -131,7 +131,7 @@ func (m *SLACKReceiver) validateAPIURL(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKReceiver) validateFields(formats strfmt.Registry) error {
+func (m *SlackReceiver) validateFields(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.Fields) { // not required
 		return nil
@@ -157,7 +157,7 @@ func (m *SLACKReceiver) validateFields(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *SLACKReceiver) MarshalBinary() ([]byte, error) {
+func (m *SlackReceiver) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -165,8 +165,8 @@ func (m *SLACKReceiver) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *SLACKReceiver) UnmarshalBinary(b []byte) error {
-	var res SLACKReceiver
+func (m *SlackReceiver) UnmarshalBinary(b []byte) error {
+	var res SlackReceiver
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
