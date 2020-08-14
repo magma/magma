@@ -82,6 +82,7 @@ export default function ({startEnd}: Props) {
           title={<Text variant="body2">{state.title}</Text>}
           subheader={
             <AsyncMetric
+              height={300}
               style={chartStyle}
               label={state.title}
               unit=""
