@@ -19,12 +19,12 @@ After=openvswitch-switch.service
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStart=/usr/local/bin/conntrackd
-ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py conntrackd
+ExecStart=/usr/local/bin/connectiond
+ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py connectiond
 MemoryAccounting=yes
 StandardOutput=syslog
 StandardError=syslog
-SyslogIdentifier=conntrackd
+SyslogIdentifier=connectiond
 User=root
 Restart=always
 RestartSec=5
