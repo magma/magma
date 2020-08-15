@@ -20,49 +20,60 @@ option go_package = "magma/orc8r/lib/go/protos";
 
 
 // --------------------------------------------------------------------------
-// The ServiceRegistry interface implements a set of functionalities that can
-// be used for service discovery.
+// ServiceRegistry supports dynamic service discovery.
 // --------------------------------------------------------------------------
 service ServiceRegistry {
 
   // ListAllServices returns the service name of all services in the registry.
-  rpc ListAllServices (Void) returns (ServiceList) {}
+  rpc ListAllServices (Void) returns (ListAllServicesResponse) {}
 
   // FindServices returns the names of all services that have the passed label.
-  rpc FindServices (FindServicesRequest) returns (ServiceList) {}
+  rpc FindServices (FindServicesRequest) returns (FindServicesResponse) {}
 
   // GetServiceAddress returns the service address of a given service.
-  rpc GetServiceAddress (ServiceRequest) returns (ServiceAddressResponse) {}
+  rpc GetServiceAddress (GetServiceAddressRequest) returns (GetServiceAddressResponse) {}
 
   // GetHttpServerAddress returns the address for a service's HTTP server.
-  rpc GetHttpServerAddress (ServiceRequest) returns (ServiceAddressResponse) {}
+  rpc GetHttpServerAddress (GetHttpServerAddressRequest) returns (GetHttpServerAddressResponse) {}
 
-  // GetAnnotations returns a list of values for the passed annotation
+  // GetAnnotation returns the annotation value for the passed annotation
   // name.
-  rpc GetAnnotations(GetAnnotationsRequest) returns (AnnotationList) {}
+  rpc GetAnnotation(GetAnnotationRequest) returns (GetAnnotationResponse) {}
 }
 
-message ServiceList {
+message ListAllServicesResponse {
   repeated string services = 1;
-}
-
-message ServiceRequest {
-  string service = 1;
-}
-
-message ServiceAddressResponse {
-  string address = 1;
 }
 
 message FindServicesRequest {
   string label = 1;
 }
 
-message GetAnnotationsRequest {
+message FindServicesResponse {
+  repeated string services = 1;
+}
+
+message GetServiceAddressRequest {
+  string service = 1;
+}
+
+message GetServiceAddressResponse {
+  string address = 1;
+}
+
+message GetHttpServerAddressRequest {
+  string service = 1;
+}
+
+message GetHttpServerAddressResponse {
+  string address = 1;
+}
+
+message GetAnnotationRequest {
   string service = 1;
   string annotation = 2;
 }
 
-message AnnotationList {
-  repeated string annotations = 1;
+message GetAnnotationResponse {
+  string annotation_value = 1;
 }

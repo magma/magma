@@ -24,121 +24,43 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion3 // please upgrade the proto package
 
-type ServiceList struct {
+type ListAllServicesResponse struct {
 	Services             []string `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *ServiceList) Reset()         { *m = ServiceList{} }
-func (m *ServiceList) String() string { return proto.CompactTextString(m) }
-func (*ServiceList) ProtoMessage()    {}
-func (*ServiceList) Descriptor() ([]byte, []int) {
+func (m *ListAllServicesResponse) Reset()         { *m = ListAllServicesResponse{} }
+func (m *ListAllServicesResponse) String() string { return proto.CompactTextString(m) }
+func (*ListAllServicesResponse) ProtoMessage()    {}
+func (*ListAllServicesResponse) Descriptor() ([]byte, []int) {
 	return fileDescriptor_59363d5d975fb49f, []int{0}
 }
 
-func (m *ServiceList) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ServiceList.Unmarshal(m, b)
+func (m *ListAllServicesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_ListAllServicesResponse.Unmarshal(m, b)
 }
-func (m *ServiceList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ServiceList.Marshal(b, m, deterministic)
+func (m *ListAllServicesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_ListAllServicesResponse.Marshal(b, m, deterministic)
 }
-func (m *ServiceList) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceList.Merge(m, src)
+func (m *ListAllServicesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_ListAllServicesResponse.Merge(m, src)
 }
-func (m *ServiceList) XXX_Size() int {
-	return xxx_messageInfo_ServiceList.Size(m)
+func (m *ListAllServicesResponse) XXX_Size() int {
+	return xxx_messageInfo_ListAllServicesResponse.Size(m)
 }
-func (m *ServiceList) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceList.DiscardUnknown(m)
+func (m *ListAllServicesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_ListAllServicesResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_ServiceList proto.InternalMessageInfo
+var xxx_messageInfo_ListAllServicesResponse proto.InternalMessageInfo
 
-func (m *ServiceList) GetServices() []string {
+func (m *ListAllServicesResponse) GetServices() []string {
 	if m != nil {
 		return m.Services
 	}
 	return nil
-}
-
-type ServiceRequest struct {
-	Service              string   `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ServiceRequest) Reset()         { *m = ServiceRequest{} }
-func (m *ServiceRequest) String() string { return proto.CompactTextString(m) }
-func (*ServiceRequest) ProtoMessage()    {}
-func (*ServiceRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_59363d5d975fb49f, []int{1}
-}
-
-func (m *ServiceRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ServiceRequest.Unmarshal(m, b)
-}
-func (m *ServiceRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ServiceRequest.Marshal(b, m, deterministic)
-}
-func (m *ServiceRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceRequest.Merge(m, src)
-}
-func (m *ServiceRequest) XXX_Size() int {
-	return xxx_messageInfo_ServiceRequest.Size(m)
-}
-func (m *ServiceRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceRequest.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ServiceRequest proto.InternalMessageInfo
-
-func (m *ServiceRequest) GetService() string {
-	if m != nil {
-		return m.Service
-	}
-	return ""
-}
-
-type ServiceAddressResponse struct {
-	Address              string   `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
-	XXX_NoUnkeyedLiteral struct{} `json:"-"`
-	XXX_unrecognized     []byte   `json:"-"`
-	XXX_sizecache        int32    `json:"-"`
-}
-
-func (m *ServiceAddressResponse) Reset()         { *m = ServiceAddressResponse{} }
-func (m *ServiceAddressResponse) String() string { return proto.CompactTextString(m) }
-func (*ServiceAddressResponse) ProtoMessage()    {}
-func (*ServiceAddressResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_59363d5d975fb49f, []int{2}
-}
-
-func (m *ServiceAddressResponse) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_ServiceAddressResponse.Unmarshal(m, b)
-}
-func (m *ServiceAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_ServiceAddressResponse.Marshal(b, m, deterministic)
-}
-func (m *ServiceAddressResponse) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_ServiceAddressResponse.Merge(m, src)
-}
-func (m *ServiceAddressResponse) XXX_Size() int {
-	return xxx_messageInfo_ServiceAddressResponse.Size(m)
-}
-func (m *ServiceAddressResponse) XXX_DiscardUnknown() {
-	xxx_messageInfo_ServiceAddressResponse.DiscardUnknown(m)
-}
-
-var xxx_messageInfo_ServiceAddressResponse proto.InternalMessageInfo
-
-func (m *ServiceAddressResponse) GetAddress() string {
-	if m != nil {
-		return m.Address
-	}
-	return ""
 }
 
 type FindServicesRequest struct {
@@ -152,7 +74,7 @@ func (m *FindServicesRequest) Reset()         { *m = FindServicesRequest{} }
 func (m *FindServicesRequest) String() string { return proto.CompactTextString(m) }
 func (*FindServicesRequest) ProtoMessage()    {}
 func (*FindServicesRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_59363d5d975fb49f, []int{3}
+	return fileDescriptor_59363d5d975fb49f, []int{1}
 }
 
 func (m *FindServicesRequest) XXX_Unmarshal(b []byte) error {
@@ -180,7 +102,202 @@ func (m *FindServicesRequest) GetLabel() string {
 	return ""
 }
 
-type GetAnnotationsRequest struct {
+type FindServicesResponse struct {
+	Services             []string `protobuf:"bytes,1,rep,name=services,proto3" json:"services,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *FindServicesResponse) Reset()         { *m = FindServicesResponse{} }
+func (m *FindServicesResponse) String() string { return proto.CompactTextString(m) }
+func (*FindServicesResponse) ProtoMessage()    {}
+func (*FindServicesResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59363d5d975fb49f, []int{2}
+}
+
+func (m *FindServicesResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_FindServicesResponse.Unmarshal(m, b)
+}
+func (m *FindServicesResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_FindServicesResponse.Marshal(b, m, deterministic)
+}
+func (m *FindServicesResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_FindServicesResponse.Merge(m, src)
+}
+func (m *FindServicesResponse) XXX_Size() int {
+	return xxx_messageInfo_FindServicesResponse.Size(m)
+}
+func (m *FindServicesResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_FindServicesResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_FindServicesResponse proto.InternalMessageInfo
+
+func (m *FindServicesResponse) GetServices() []string {
+	if m != nil {
+		return m.Services
+	}
+	return nil
+}
+
+type GetServiceAddressRequest struct {
+	Service              string   `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetServiceAddressRequest) Reset()         { *m = GetServiceAddressRequest{} }
+func (m *GetServiceAddressRequest) String() string { return proto.CompactTextString(m) }
+func (*GetServiceAddressRequest) ProtoMessage()    {}
+func (*GetServiceAddressRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59363d5d975fb49f, []int{3}
+}
+
+func (m *GetServiceAddressRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetServiceAddressRequest.Unmarshal(m, b)
+}
+func (m *GetServiceAddressRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetServiceAddressRequest.Marshal(b, m, deterministic)
+}
+func (m *GetServiceAddressRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetServiceAddressRequest.Merge(m, src)
+}
+func (m *GetServiceAddressRequest) XXX_Size() int {
+	return xxx_messageInfo_GetServiceAddressRequest.Size(m)
+}
+func (m *GetServiceAddressRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetServiceAddressRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetServiceAddressRequest proto.InternalMessageInfo
+
+func (m *GetServiceAddressRequest) GetService() string {
+	if m != nil {
+		return m.Service
+	}
+	return ""
+}
+
+type GetServiceAddressResponse struct {
+	Address              string   `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetServiceAddressResponse) Reset()         { *m = GetServiceAddressResponse{} }
+func (m *GetServiceAddressResponse) String() string { return proto.CompactTextString(m) }
+func (*GetServiceAddressResponse) ProtoMessage()    {}
+func (*GetServiceAddressResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59363d5d975fb49f, []int{4}
+}
+
+func (m *GetServiceAddressResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetServiceAddressResponse.Unmarshal(m, b)
+}
+func (m *GetServiceAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetServiceAddressResponse.Marshal(b, m, deterministic)
+}
+func (m *GetServiceAddressResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetServiceAddressResponse.Merge(m, src)
+}
+func (m *GetServiceAddressResponse) XXX_Size() int {
+	return xxx_messageInfo_GetServiceAddressResponse.Size(m)
+}
+func (m *GetServiceAddressResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetServiceAddressResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetServiceAddressResponse proto.InternalMessageInfo
+
+func (m *GetServiceAddressResponse) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+type GetHttpServerAddressRequest struct {
+	Service              string   `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetHttpServerAddressRequest) Reset()         { *m = GetHttpServerAddressRequest{} }
+func (m *GetHttpServerAddressRequest) String() string { return proto.CompactTextString(m) }
+func (*GetHttpServerAddressRequest) ProtoMessage()    {}
+func (*GetHttpServerAddressRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59363d5d975fb49f, []int{5}
+}
+
+func (m *GetHttpServerAddressRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetHttpServerAddressRequest.Unmarshal(m, b)
+}
+func (m *GetHttpServerAddressRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetHttpServerAddressRequest.Marshal(b, m, deterministic)
+}
+func (m *GetHttpServerAddressRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetHttpServerAddressRequest.Merge(m, src)
+}
+func (m *GetHttpServerAddressRequest) XXX_Size() int {
+	return xxx_messageInfo_GetHttpServerAddressRequest.Size(m)
+}
+func (m *GetHttpServerAddressRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetHttpServerAddressRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetHttpServerAddressRequest proto.InternalMessageInfo
+
+func (m *GetHttpServerAddressRequest) GetService() string {
+	if m != nil {
+		return m.Service
+	}
+	return ""
+}
+
+type GetHttpServerAddressResponse struct {
+	Address              string   `protobuf:"bytes,1,opt,name=address,proto3" json:"address,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetHttpServerAddressResponse) Reset()         { *m = GetHttpServerAddressResponse{} }
+func (m *GetHttpServerAddressResponse) String() string { return proto.CompactTextString(m) }
+func (*GetHttpServerAddressResponse) ProtoMessage()    {}
+func (*GetHttpServerAddressResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59363d5d975fb49f, []int{6}
+}
+
+func (m *GetHttpServerAddressResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetHttpServerAddressResponse.Unmarshal(m, b)
+}
+func (m *GetHttpServerAddressResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetHttpServerAddressResponse.Marshal(b, m, deterministic)
+}
+func (m *GetHttpServerAddressResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetHttpServerAddressResponse.Merge(m, src)
+}
+func (m *GetHttpServerAddressResponse) XXX_Size() int {
+	return xxx_messageInfo_GetHttpServerAddressResponse.Size(m)
+}
+func (m *GetHttpServerAddressResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetHttpServerAddressResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetHttpServerAddressResponse proto.InternalMessageInfo
+
+func (m *GetHttpServerAddressResponse) GetAddress() string {
+	if m != nil {
+		return m.Address
+	}
+	return ""
+}
+
+type GetAnnotationRequest struct {
 	Service              string   `protobuf:"bytes,1,opt,name=service,proto3" json:"service,omitempty"`
 	Annotation           string   `protobuf:"bytes,2,opt,name=annotation,proto3" json:"annotation,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
@@ -188,91 +305,94 @@ type GetAnnotationsRequest struct {
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *GetAnnotationsRequest) Reset()         { *m = GetAnnotationsRequest{} }
-func (m *GetAnnotationsRequest) String() string { return proto.CompactTextString(m) }
-func (*GetAnnotationsRequest) ProtoMessage()    {}
-func (*GetAnnotationsRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_59363d5d975fb49f, []int{4}
+func (m *GetAnnotationRequest) Reset()         { *m = GetAnnotationRequest{} }
+func (m *GetAnnotationRequest) String() string { return proto.CompactTextString(m) }
+func (*GetAnnotationRequest) ProtoMessage()    {}
+func (*GetAnnotationRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59363d5d975fb49f, []int{7}
 }
 
-func (m *GetAnnotationsRequest) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_GetAnnotationsRequest.Unmarshal(m, b)
+func (m *GetAnnotationRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetAnnotationRequest.Unmarshal(m, b)
 }
-func (m *GetAnnotationsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_GetAnnotationsRequest.Marshal(b, m, deterministic)
+func (m *GetAnnotationRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetAnnotationRequest.Marshal(b, m, deterministic)
 }
-func (m *GetAnnotationsRequest) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_GetAnnotationsRequest.Merge(m, src)
+func (m *GetAnnotationRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetAnnotationRequest.Merge(m, src)
 }
-func (m *GetAnnotationsRequest) XXX_Size() int {
-	return xxx_messageInfo_GetAnnotationsRequest.Size(m)
+func (m *GetAnnotationRequest) XXX_Size() int {
+	return xxx_messageInfo_GetAnnotationRequest.Size(m)
 }
-func (m *GetAnnotationsRequest) XXX_DiscardUnknown() {
-	xxx_messageInfo_GetAnnotationsRequest.DiscardUnknown(m)
+func (m *GetAnnotationRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetAnnotationRequest.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_GetAnnotationsRequest proto.InternalMessageInfo
+var xxx_messageInfo_GetAnnotationRequest proto.InternalMessageInfo
 
-func (m *GetAnnotationsRequest) GetService() string {
+func (m *GetAnnotationRequest) GetService() string {
 	if m != nil {
 		return m.Service
 	}
 	return ""
 }
 
-func (m *GetAnnotationsRequest) GetAnnotation() string {
+func (m *GetAnnotationRequest) GetAnnotation() string {
 	if m != nil {
 		return m.Annotation
 	}
 	return ""
 }
 
-type AnnotationList struct {
-	Annotations          []string `protobuf:"bytes,1,rep,name=annotations,proto3" json:"annotations,omitempty"`
+type GetAnnotationResponse struct {
+	AnnotationValue      string   `protobuf:"bytes,1,opt,name=annotation_value,json=annotationValue,proto3" json:"annotation_value,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
 }
 
-func (m *AnnotationList) Reset()         { *m = AnnotationList{} }
-func (m *AnnotationList) String() string { return proto.CompactTextString(m) }
-func (*AnnotationList) ProtoMessage()    {}
-func (*AnnotationList) Descriptor() ([]byte, []int) {
-	return fileDescriptor_59363d5d975fb49f, []int{5}
+func (m *GetAnnotationResponse) Reset()         { *m = GetAnnotationResponse{} }
+func (m *GetAnnotationResponse) String() string { return proto.CompactTextString(m) }
+func (*GetAnnotationResponse) ProtoMessage()    {}
+func (*GetAnnotationResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_59363d5d975fb49f, []int{8}
 }
 
-func (m *AnnotationList) XXX_Unmarshal(b []byte) error {
-	return xxx_messageInfo_AnnotationList.Unmarshal(m, b)
+func (m *GetAnnotationResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetAnnotationResponse.Unmarshal(m, b)
 }
-func (m *AnnotationList) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
-	return xxx_messageInfo_AnnotationList.Marshal(b, m, deterministic)
+func (m *GetAnnotationResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetAnnotationResponse.Marshal(b, m, deterministic)
 }
-func (m *AnnotationList) XXX_Merge(src proto.Message) {
-	xxx_messageInfo_AnnotationList.Merge(m, src)
+func (m *GetAnnotationResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetAnnotationResponse.Merge(m, src)
 }
-func (m *AnnotationList) XXX_Size() int {
-	return xxx_messageInfo_AnnotationList.Size(m)
+func (m *GetAnnotationResponse) XXX_Size() int {
+	return xxx_messageInfo_GetAnnotationResponse.Size(m)
 }
-func (m *AnnotationList) XXX_DiscardUnknown() {
-	xxx_messageInfo_AnnotationList.DiscardUnknown(m)
+func (m *GetAnnotationResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetAnnotationResponse.DiscardUnknown(m)
 }
 
-var xxx_messageInfo_AnnotationList proto.InternalMessageInfo
+var xxx_messageInfo_GetAnnotationResponse proto.InternalMessageInfo
 
-func (m *AnnotationList) GetAnnotations() []string {
+func (m *GetAnnotationResponse) GetAnnotationValue() string {
 	if m != nil {
-		return m.Annotations
+		return m.AnnotationValue
 	}
-	return nil
+	return ""
 }
 
 func init() {
-	proto.RegisterType((*ServiceList)(nil), "magma.orc8r.ServiceList")
-	proto.RegisterType((*ServiceRequest)(nil), "magma.orc8r.ServiceRequest")
-	proto.RegisterType((*ServiceAddressResponse)(nil), "magma.orc8r.ServiceAddressResponse")
+	proto.RegisterType((*ListAllServicesResponse)(nil), "magma.orc8r.ListAllServicesResponse")
 	proto.RegisterType((*FindServicesRequest)(nil), "magma.orc8r.FindServicesRequest")
-	proto.RegisterType((*GetAnnotationsRequest)(nil), "magma.orc8r.GetAnnotationsRequest")
-	proto.RegisterType((*AnnotationList)(nil), "magma.orc8r.AnnotationList")
+	proto.RegisterType((*FindServicesResponse)(nil), "magma.orc8r.FindServicesResponse")
+	proto.RegisterType((*GetServiceAddressRequest)(nil), "magma.orc8r.GetServiceAddressRequest")
+	proto.RegisterType((*GetServiceAddressResponse)(nil), "magma.orc8r.GetServiceAddressResponse")
+	proto.RegisterType((*GetHttpServerAddressRequest)(nil), "magma.orc8r.GetHttpServerAddressRequest")
+	proto.RegisterType((*GetHttpServerAddressResponse)(nil), "magma.orc8r.GetHttpServerAddressResponse")
+	proto.RegisterType((*GetAnnotationRequest)(nil), "magma.orc8r.GetAnnotationRequest")
+	proto.RegisterType((*GetAnnotationResponse)(nil), "magma.orc8r.GetAnnotationResponse")
 }
 
 func init() {
@@ -280,30 +400,33 @@ func init() {
 }
 
 var fileDescriptor_59363d5d975fb49f = []byte{
-	// 361 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x53, 0x4f, 0x4b, 0xfb, 0x30,
-	0x18, 0xde, 0x7e, 0xe3, 0xa7, 0xee, 0x9d, 0x6c, 0x2c, 0x4e, 0xe9, 0x3a, 0x90, 0x92, 0x5d, 0xa6,
-	0x42, 0x0b, 0xf3, 0xe2, 0xd1, 0x79, 0x70, 0x1e, 0x76, 0xb1, 0x03, 0x85, 0x5d, 0xa4, 0x5b, 0x5f,
-	0x46, 0xa0, 0x6d, 0x66, 0x12, 0x05, 0x3f, 0x93, 0x5f, 0x52, 0xd6, 0x26, 0x5b, 0x23, 0x45, 0x2f,
-	0x9e, 0xca, 0xfb, 0x3e, 0x7f, 0xd2, 0x3c, 0x0f, 0x81, 0x21, 0x17, 0xab, 0x1b, 0x11, 0x6c, 0x04,
-	0x57, 0x5c, 0x06, 0x12, 0xc5, 0x3b, 0x5b, 0xe1, 0x8b, 0xc0, 0x35, 0x93, 0x4a, 0x7c, 0xf8, 0xf9,
-	0x9e, 0xb4, 0xd2, 0x68, 0x9d, 0x46, 0x7e, 0x4e, 0x75, 0xfb, 0x96, 0x62, 0xc5, 0xd3, 0x94, 0x67,
-	0x05, 0x8f, 0x5e, 0x40, 0x6b, 0x5e, 0x38, 0xcc, 0x98, 0x54, 0xc4, 0x85, 0x23, 0x6d, 0x28, 0x9d,
-	0xba, 0xd7, 0x18, 0x35, 0xc3, 0xdd, 0x4c, 0x2f, 0xa1, 0xad, 0xa9, 0x21, 0xbe, 0xbe, 0xa1, 0x54,
-	0xc4, 0x81, 0x43, 0x8d, 0x3a, 0x75, 0xaf, 0x3e, 0x6a, 0x86, 0x66, 0xa4, 0x63, 0x38, 0xd3, 0xdc,
-	0x49, 0x1c, 0x0b, 0x94, 0x32, 0x44, 0xb9, 0xe1, 0x99, 0xc4, 0xad, 0x26, 0x2a, 0x56, 0x46, 0xa3,
-	0x47, 0x7a, 0x05, 0x27, 0xf7, 0x2c, 0x8b, 0xb5, 0x4e, 0x9a, 0x43, 0x7a, 0xf0, 0x3f, 0x89, 0x96,
-	0x98, 0x68, 0x7a, 0x31, 0xd0, 0x47, 0x38, 0x9d, 0xa2, 0x9a, 0x64, 0x19, 0x57, 0x91, 0x62, 0x3c,
-	0x93, 0xbf, 0xfe, 0x13, 0x39, 0x07, 0x88, 0x76, 0x7c, 0xe7, 0x5f, 0x0e, 0x96, 0x36, 0x74, 0x0c,
-	0xed, 0xbd, 0x5f, 0x9e, 0x86, 0x07, 0xad, 0x3d, 0x6e, 0x02, 0x29, 0xaf, 0xc6, 0x9f, 0x0d, 0xe8,
-	0xec, 0x42, 0x29, 0x0a, 0x20, 0xb7, 0xd0, 0xd9, 0xaa, 0x27, 0x49, 0x62, 0xae, 0x42, 0xba, 0x7e,
-	0xa9, 0x0e, 0xff, 0x89, 0xb3, 0xd8, 0x75, 0xac, 0x55, 0xa9, 0x03, 0x5a, 0x23, 0x33, 0x38, 0x2e,
-	0x27, 0x41, 0x3c, 0x8b, 0x5b, 0x11, 0xd2, 0x8f, 0x6e, 0xcf, 0xd0, 0x9d, 0xa2, 0xb2, 0xeb, 0x20,
-	0x83, 0x2a, 0x81, 0x71, 0x1b, 0x56, 0x81, 0xdf, 0x8a, 0xa4, 0x35, 0xb2, 0x80, 0xde, 0x14, 0xd5,
-	0x83, 0x52, 0x9b, 0x2d, 0x05, 0xc5, 0x5f, 0x7a, 0xcf, 0xa1, 0x6d, 0xf7, 0x4b, 0xa8, 0x25, 0xac,
-	0x2c, 0xdf, 0xb5, 0x4f, 0xb6, 0xdb, 0xa4, 0xb5, 0xbb, 0xc1, 0xa2, 0x9f, 0xe3, 0x41, 0xf1, 0x1e,
-	0x12, 0xb6, 0x0c, 0xd6, 0x5c, 0x3f, 0x8b, 0xe5, 0x41, 0xfe, 0xbd, 0xfe, 0x0a, 0x00, 0x00, 0xff,
-	0xff, 0xb3, 0xa8, 0x0a, 0x32, 0x5f, 0x03, 0x00, 0x00,
+	// 404 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0x8c, 0x54, 0x4b, 0x6b, 0xea, 0x40,
+	0x14, 0xbe, 0x5e, 0xb9, 0xd7, 0xeb, 0xb9, 0x2d, 0xd6, 0xa9, 0xa5, 0x31, 0x96, 0xa2, 0xd3, 0x07,
+	0x4a, 0x21, 0x01, 0x5b, 0xa9, 0x5b, 0x5d, 0xd4, 0x2e, 0x5c, 0x94, 0x94, 0x4a, 0xe9, 0x46, 0xa2,
+	0x19, 0x64, 0x20, 0xc9, 0xd8, 0x99, 0x51, 0xe8, 0x0f, 0xee, 0xff, 0x28, 0x26, 0x93, 0x68, 0xe2,
+	0x73, 0x15, 0xce, 0x97, 0xef, 0x11, 0x72, 0x3e, 0x0e, 0x5c, 0x31, 0x3e, 0x6e, 0x73, 0x73, 0xca,
+	0x99, 0x64, 0xc2, 0x14, 0x84, 0xcf, 0xe9, 0x98, 0x0c, 0x39, 0x99, 0x50, 0x21, 0xf9, 0x97, 0x11,
+	0xe0, 0xe8, 0xbf, 0x67, 0x4f, 0x3c, 0xdb, 0x08, 0xa8, 0x7a, 0x39, 0xa1, 0x18, 0x33, 0xcf, 0x63,
+	0x7e, 0xc8, 0xc3, 0x2d, 0x38, 0xef, 0x53, 0x21, 0x3b, 0xae, 0xfb, 0x1a, 0x1a, 0x09, 0x8b, 0x88,
+	0x29, 0xf3, 0x05, 0x41, 0x3a, 0xfc, 0x53, 0xe6, 0x42, 0xcb, 0x54, 0xb3, 0xf5, 0xbc, 0x15, 0xcf,
+	0xf8, 0x0e, 0x4e, 0x9f, 0xa8, 0xef, 0x2c, 0x35, 0x9f, 0x33, 0x22, 0x24, 0x2a, 0xc1, 0x1f, 0xd7,
+	0x1e, 0x11, 0x57, 0xcb, 0x54, 0x33, 0xf5, 0xbc, 0x15, 0x0e, 0xb8, 0x09, 0xa5, 0x24, 0xf9, 0x80,
+	0x80, 0x07, 0xd0, 0x7a, 0x44, 0x2a, 0x49, 0xc7, 0x71, 0x38, 0x11, 0x71, 0x8a, 0x06, 0x39, 0xc5,
+	0x53, 0x39, 0xd1, 0x88, 0x5b, 0x50, 0xde, 0xa0, 0x52, 0x71, 0x1a, 0xe4, 0xec, 0x10, 0x8a, 0x64,
+	0x6a, 0xc4, 0x8f, 0x50, 0xe9, 0x11, 0xf9, 0x2c, 0xe5, 0x74, 0x21, 0x25, 0xfc, 0xe0, 0xbc, 0x36,
+	0x5c, 0x6c, 0x16, 0xee, 0x8d, 0x7c, 0x81, 0x52, 0x8f, 0xc8, 0x8e, 0xef, 0x33, 0x69, 0x4b, 0xca,
+	0xfc, 0xbd, 0x59, 0xe8, 0x12, 0xc0, 0x8e, 0xe9, 0xda, 0xef, 0xe0, 0xe5, 0x0a, 0x82, 0xbb, 0x70,
+	0x96, 0x72, 0x54, 0x1f, 0xd1, 0x80, 0x93, 0x25, 0x6d, 0x38, 0xb7, 0xdd, 0x59, 0xe4, 0x5d, 0x58,
+	0xe2, 0x83, 0x05, 0xdc, 0xfc, 0xce, 0x42, 0x41, 0xfd, 0x3d, 0x4b, 0xf5, 0x09, 0xf5, 0xa1, 0x90,
+	0x6a, 0x08, 0x2a, 0x1a, 0x2b, 0xed, 0x32, 0x06, 0x8c, 0x3a, 0xfa, 0x75, 0x02, 0xda, 0x52, 0x29,
+	0xfc, 0x0b, 0xbd, 0xc1, 0xd1, 0x6a, 0x17, 0x50, 0x35, 0xa1, 0xdb, 0xd0, 0x29, 0xbd, 0xb6, 0x83,
+	0x11, 0xdb, 0x3a, 0x50, 0x5c, 0x5b, 0x3c, 0xba, 0x49, 0x28, 0xb7, 0xd5, 0x49, 0xbf, 0xdd, 0x47,
+	0x8b, 0x53, 0xbc, 0x60, 0x69, 0x6b, 0xeb, 0x46, 0xf5, 0xb4, 0xc3, 0xb6, 0x2a, 0xe9, 0x8d, 0x03,
+	0x98, 0x71, 0xdc, 0x3b, 0x1c, 0x27, 0x36, 0x8a, 0x6a, 0x69, 0xf5, 0x5a, 0x7f, 0x74, 0xbc, 0x8b,
+	0x12, 0x39, 0x77, 0x2b, 0x1f, 0xe5, 0x80, 0x66, 0x86, 0x87, 0xc1, 0xa5, 0x23, 0x73, 0xc2, 0xd4,
+	0x7d, 0x18, 0xfd, 0x0d, 0x9e, 0xf7, 0x3f, 0x01, 0x00, 0x00, 0xff, 0xff, 0x4a, 0x9b, 0xa1, 0x12,
+	0x68, 0x04, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -319,16 +442,16 @@ const _ = grpc.SupportPackageIsVersion6
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://godoc.org/google.golang.org/grpc#ClientConn.NewStream.
 type ServiceRegistryClient interface {
 	// ListAllServices returns the service name of all services in the registry.
-	ListAllServices(ctx context.Context, in *Void, opts ...grpc.CallOption) (*ServiceList, error)
+	ListAllServices(ctx context.Context, in *Void, opts ...grpc.CallOption) (*ListAllServicesResponse, error)
 	// FindServices returns the names of all services that have the passed label.
-	FindServices(ctx context.Context, in *FindServicesRequest, opts ...grpc.CallOption) (*ServiceList, error)
+	FindServices(ctx context.Context, in *FindServicesRequest, opts ...grpc.CallOption) (*FindServicesResponse, error)
 	// GetServiceAddress returns the service address of a given service.
-	GetServiceAddress(ctx context.Context, in *ServiceRequest, opts ...grpc.CallOption) (*ServiceAddressResponse, error)
+	GetServiceAddress(ctx context.Context, in *GetServiceAddressRequest, opts ...grpc.CallOption) (*GetServiceAddressResponse, error)
 	// GetHttpServerAddress returns the address for a service's HTTP server.
-	GetHttpServerAddress(ctx context.Context, in *ServiceRequest, opts ...grpc.CallOption) (*ServiceAddressResponse, error)
-	// GetAnnotations returns a list of values for the passed annotation
+	GetHttpServerAddress(ctx context.Context, in *GetHttpServerAddressRequest, opts ...grpc.CallOption) (*GetHttpServerAddressResponse, error)
+	// GetAnnotation returns the annotation value for the passed annotation
 	// name.
-	GetAnnotations(ctx context.Context, in *GetAnnotationsRequest, opts ...grpc.CallOption) (*AnnotationList, error)
+	GetAnnotation(ctx context.Context, in *GetAnnotationRequest, opts ...grpc.CallOption) (*GetAnnotationResponse, error)
 }
 
 type serviceRegistryClient struct {
@@ -339,8 +462,8 @@ func NewServiceRegistryClient(cc grpc.ClientConnInterface) ServiceRegistryClient
 	return &serviceRegistryClient{cc}
 }
 
-func (c *serviceRegistryClient) ListAllServices(ctx context.Context, in *Void, opts ...grpc.CallOption) (*ServiceList, error) {
-	out := new(ServiceList)
+func (c *serviceRegistryClient) ListAllServices(ctx context.Context, in *Void, opts ...grpc.CallOption) (*ListAllServicesResponse, error) {
+	out := new(ListAllServicesResponse)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.ServiceRegistry/ListAllServices", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -348,8 +471,8 @@ func (c *serviceRegistryClient) ListAllServices(ctx context.Context, in *Void, o
 	return out, nil
 }
 
-func (c *serviceRegistryClient) FindServices(ctx context.Context, in *FindServicesRequest, opts ...grpc.CallOption) (*ServiceList, error) {
-	out := new(ServiceList)
+func (c *serviceRegistryClient) FindServices(ctx context.Context, in *FindServicesRequest, opts ...grpc.CallOption) (*FindServicesResponse, error) {
+	out := new(FindServicesResponse)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.ServiceRegistry/FindServices", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -357,8 +480,8 @@ func (c *serviceRegistryClient) FindServices(ctx context.Context, in *FindServic
 	return out, nil
 }
 
-func (c *serviceRegistryClient) GetServiceAddress(ctx context.Context, in *ServiceRequest, opts ...grpc.CallOption) (*ServiceAddressResponse, error) {
-	out := new(ServiceAddressResponse)
+func (c *serviceRegistryClient) GetServiceAddress(ctx context.Context, in *GetServiceAddressRequest, opts ...grpc.CallOption) (*GetServiceAddressResponse, error) {
+	out := new(GetServiceAddressResponse)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.ServiceRegistry/GetServiceAddress", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -366,8 +489,8 @@ func (c *serviceRegistryClient) GetServiceAddress(ctx context.Context, in *Servi
 	return out, nil
 }
 
-func (c *serviceRegistryClient) GetHttpServerAddress(ctx context.Context, in *ServiceRequest, opts ...grpc.CallOption) (*ServiceAddressResponse, error) {
-	out := new(ServiceAddressResponse)
+func (c *serviceRegistryClient) GetHttpServerAddress(ctx context.Context, in *GetHttpServerAddressRequest, opts ...grpc.CallOption) (*GetHttpServerAddressResponse, error) {
+	out := new(GetHttpServerAddressResponse)
 	err := c.cc.Invoke(ctx, "/magma.orc8r.ServiceRegistry/GetHttpServerAddress", in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -375,9 +498,9 @@ func (c *serviceRegistryClient) GetHttpServerAddress(ctx context.Context, in *Se
 	return out, nil
 }
 
-func (c *serviceRegistryClient) GetAnnotations(ctx context.Context, in *GetAnnotationsRequest, opts ...grpc.CallOption) (*AnnotationList, error) {
-	out := new(AnnotationList)
-	err := c.cc.Invoke(ctx, "/magma.orc8r.ServiceRegistry/GetAnnotations", in, out, opts...)
+func (c *serviceRegistryClient) GetAnnotation(ctx context.Context, in *GetAnnotationRequest, opts ...grpc.CallOption) (*GetAnnotationResponse, error) {
+	out := new(GetAnnotationResponse)
+	err := c.cc.Invoke(ctx, "/magma.orc8r.ServiceRegistry/GetAnnotation", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -387,36 +510,36 @@ func (c *serviceRegistryClient) GetAnnotations(ctx context.Context, in *GetAnnot
 // ServiceRegistryServer is the server API for ServiceRegistry service.
 type ServiceRegistryServer interface {
 	// ListAllServices returns the service name of all services in the registry.
-	ListAllServices(context.Context, *Void) (*ServiceList, error)
+	ListAllServices(context.Context, *Void) (*ListAllServicesResponse, error)
 	// FindServices returns the names of all services that have the passed label.
-	FindServices(context.Context, *FindServicesRequest) (*ServiceList, error)
+	FindServices(context.Context, *FindServicesRequest) (*FindServicesResponse, error)
 	// GetServiceAddress returns the service address of a given service.
-	GetServiceAddress(context.Context, *ServiceRequest) (*ServiceAddressResponse, error)
+	GetServiceAddress(context.Context, *GetServiceAddressRequest) (*GetServiceAddressResponse, error)
 	// GetHttpServerAddress returns the address for a service's HTTP server.
-	GetHttpServerAddress(context.Context, *ServiceRequest) (*ServiceAddressResponse, error)
-	// GetAnnotations returns a list of values for the passed annotation
+	GetHttpServerAddress(context.Context, *GetHttpServerAddressRequest) (*GetHttpServerAddressResponse, error)
+	// GetAnnotation returns the annotation value for the passed annotation
 	// name.
-	GetAnnotations(context.Context, *GetAnnotationsRequest) (*AnnotationList, error)
+	GetAnnotation(context.Context, *GetAnnotationRequest) (*GetAnnotationResponse, error)
 }
 
 // UnimplementedServiceRegistryServer can be embedded to have forward compatible implementations.
 type UnimplementedServiceRegistryServer struct {
 }
 
-func (*UnimplementedServiceRegistryServer) ListAllServices(ctx context.Context, req *Void) (*ServiceList, error) {
+func (*UnimplementedServiceRegistryServer) ListAllServices(ctx context.Context, req *Void) (*ListAllServicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListAllServices not implemented")
 }
-func (*UnimplementedServiceRegistryServer) FindServices(ctx context.Context, req *FindServicesRequest) (*ServiceList, error) {
+func (*UnimplementedServiceRegistryServer) FindServices(ctx context.Context, req *FindServicesRequest) (*FindServicesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method FindServices not implemented")
 }
-func (*UnimplementedServiceRegistryServer) GetServiceAddress(ctx context.Context, req *ServiceRequest) (*ServiceAddressResponse, error) {
+func (*UnimplementedServiceRegistryServer) GetServiceAddress(ctx context.Context, req *GetServiceAddressRequest) (*GetServiceAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetServiceAddress not implemented")
 }
-func (*UnimplementedServiceRegistryServer) GetHttpServerAddress(ctx context.Context, req *ServiceRequest) (*ServiceAddressResponse, error) {
+func (*UnimplementedServiceRegistryServer) GetHttpServerAddress(ctx context.Context, req *GetHttpServerAddressRequest) (*GetHttpServerAddressResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetHttpServerAddress not implemented")
 }
-func (*UnimplementedServiceRegistryServer) GetAnnotations(ctx context.Context, req *GetAnnotationsRequest) (*AnnotationList, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetAnnotations not implemented")
+func (*UnimplementedServiceRegistryServer) GetAnnotation(ctx context.Context, req *GetAnnotationRequest) (*GetAnnotationResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetAnnotation not implemented")
 }
 
 func RegisterServiceRegistryServer(s *grpc.Server, srv ServiceRegistryServer) {
@@ -460,7 +583,7 @@ func _ServiceRegistry_FindServices_Handler(srv interface{}, ctx context.Context,
 }
 
 func _ServiceRegistry_GetServiceAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServiceRequest)
+	in := new(GetServiceAddressRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -472,13 +595,13 @@ func _ServiceRegistry_GetServiceAddress_Handler(srv interface{}, ctx context.Con
 		FullMethod: "/magma.orc8r.ServiceRegistry/GetServiceAddress",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceRegistryServer).GetServiceAddress(ctx, req.(*ServiceRequest))
+		return srv.(ServiceRegistryServer).GetServiceAddress(ctx, req.(*GetServiceAddressRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _ServiceRegistry_GetHttpServerAddress_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(ServiceRequest)
+	in := new(GetHttpServerAddressRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -490,25 +613,25 @@ func _ServiceRegistry_GetHttpServerAddress_Handler(srv interface{}, ctx context.
 		FullMethod: "/magma.orc8r.ServiceRegistry/GetHttpServerAddress",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceRegistryServer).GetHttpServerAddress(ctx, req.(*ServiceRequest))
+		return srv.(ServiceRegistryServer).GetHttpServerAddress(ctx, req.(*GetHttpServerAddressRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ServiceRegistry_GetAnnotations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetAnnotationsRequest)
+func _ServiceRegistry_GetAnnotation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetAnnotationRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ServiceRegistryServer).GetAnnotations(ctx, in)
+		return srv.(ServiceRegistryServer).GetAnnotation(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.orc8r.ServiceRegistry/GetAnnotations",
+		FullMethod: "/magma.orc8r.ServiceRegistry/GetAnnotation",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ServiceRegistryServer).GetAnnotations(ctx, req.(*GetAnnotationsRequest))
+		return srv.(ServiceRegistryServer).GetAnnotation(ctx, req.(*GetAnnotationRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -534,8 +657,8 @@ var _ServiceRegistry_serviceDesc = grpc.ServiceDesc{
 			Handler:    _ServiceRegistry_GetHttpServerAddress_Handler,
 		},
 		{
-			MethodName: "GetAnnotations",
-			Handler:    _ServiceRegistry_GetAnnotations_Handler,
+			MethodName: "GetAnnotation",
+			Handler:    _ServiceRegistry_GetAnnotation_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
