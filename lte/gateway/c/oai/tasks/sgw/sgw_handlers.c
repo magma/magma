@@ -489,7 +489,9 @@ int sgw_handle_sgi_endpoint_updated(
       ;
 
       struct in_addr ue = {.s_addr = 0};
-      ue.s_addr         = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+      ue.s_addr = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+      int vlan = eps_bearer_ctxt_p->paa.vlan;
+
       Imsi_t imsi =
           new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
       /* UE is switching back to EPS services after the CS Fallback
@@ -508,7 +510,7 @@ int sgw_handle_sgi_endpoint_updated(
         }
       } else {
         rv = gtpv1u_add_tunnel(
-            ue, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
         if (rv < 0) {
           OAILOG_ERROR_UE(
@@ -1433,7 +1435,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           enb.s_addr = eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address
                            .ipv4_address.s_addr;
           struct in_addr ue = {.s_addr = 0};
-          ue.s_addr         = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
+          int vlan = eps_bearer_ctxt_entry_p->paa.vlan;
+          ue.s_addr = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
           Imsi_t imsi = spgw_context->sgw_eps_bearer_context_information.imsi;
           strcpy(policy_rule_name, eps_bearer_ctxt_entry_p->policy_rule_name);
           // Iterate of packet filter rules
@@ -1509,7 +1512,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
               }
             }
             rc = gtpv1u_add_tunnel(
-                ue, enb, eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
+                ue, vlan, enb, eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_entry_p->enb_teid_S1u, imsi, &dlflow,
                 eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
                     .eval_precedence);

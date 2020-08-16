@@ -43,7 +43,7 @@ using magma::lte::MobilityServiceClient;
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
-    const grpc::Status& status, struct in_addr inaddr, const char* imsi,
+    const grpc::Status& status, struct in_addr inaddr, int vlan, const char* imsi,
     const char* apn, const char* pdn_type,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
 
@@ -65,9 +65,9 @@ int pgw_handle_allocate_ipv4_address(
       subscriber_id, apn,
       [=, &s5_response](const Status& status, AllocateIPAddressResponse ip_msg) {
         memcpy(addr, ip_msg.mutable_ip_addr()->mutable_address()->c_str(), sizeof(in_addr));
-
+        int vlan = atoi(ip_msg.mutable_vlan()->c_str());
         auto sgi_resp = handle_allocate_ipv4_address_status(
-            status, *addr, subscriber_id, apn, pdn_type,
+            status, *addr, vlan, subscriber_id, apn, pdn_type,
             sgi_create_endpoint_resp);
 
         if (sgi_resp.status == SGI_STATUS_OK) {
@@ -99,7 +99,7 @@ int pgw_handle_allocate_ipv4_address(
 }
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
-    const Status& status, struct in_addr inaddr, const char* imsi,
+    const Status& status, struct in_addr inaddr, int vlan, const char* imsi,
     const char* apn, const char* pdn_type,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp) {
   if (status.ok()) {
@@ -107,6 +107,7 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
         "ue_pdn_connection", 1, 2, "pdn_type", pdn_type, "result", "success");
     sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
     sgi_create_endpoint_resp.paa.pdn_type     = IPv4;
+    sgi_create_endpoint_resp.paa.vlan         = vlan;
     OAILOG_DEBUG(
         LOG_UTIL, "Allocated IPv4 address for imsi <%s>, apn <%s>\n", imsi,
         apn);
