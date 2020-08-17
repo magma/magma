@@ -1,10 +1,14 @@
 """
-Copyright (c) 2016-present, Facebook, Inc.
-All rights reserved.
+Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree. An additional grant
-of patent rights can be found in the PATENTS file in the same directory.
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 """
 
 import unittest
@@ -75,7 +79,7 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value)
 
         # Delay by 6 minutes to ensure Mobile reachability timer expires.
-        # MOBILE REACHABILITY TIMER VALUE = 1 minute (conf file) + delta value
+        # Mobile Reachability Timer value = 1 minute (conf file) + delta value
         # at mme (4 minute)
         print(
             "************************* Waiting for Mobile Reachability Timer"
@@ -85,7 +89,7 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
         while timeSlept < 360:
             time.sleep(10)
             timeSlept += 10
-            print("*********** Slept for " + str(timeSlept) + " seconds")
+            print("*********** Slept for", timeSlept, "seconds")
 
         print("************************* Restarting MME service on",
               "gateway")
@@ -100,12 +104,12 @@ class TestImplicitDetachTimerWithMmeRestart(unittest.TestCase):
         # Service Reject as UE contexts are already deleted
         # Implicit detach timer = Mobile reachability timer
         print("************************* Waiting for Implicit Detach Timer"
-              "to expire 6 minutes")
+              " to expire 6 minutes")
         timeSlept = 0
         while timeSlept < 360:
             time.sleep(10)
             timeSlept += 10
-            print("*********** Slept for " + str(timeSlept) + " seconds")
+            print("*********** Slept for", timeSlept, "seconds")
 
         print("************************* Sending Service request for UE id ",
               ue_id)
