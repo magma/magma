@@ -805,7 +805,7 @@ static int _emm_tracking_area_update_accept(
 
         OAILOG_INFO(
             LOG_NAS_EMM,
-            "EMM-PROC  - Timer T3450 (%ld) expires in %d"
+            "EMM-PROC  - Timer T3450 %ld expires in %u"
             " seconds (TAU)",
             tau_proc->T3450.id, tau_proc->T3450.sec);
       } else {
