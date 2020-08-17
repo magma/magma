@@ -2328,7 +2328,8 @@ static void mme_app_resume_mobile_reachability_timer(
    */
   if (ue_mm_context_pP->mobile_reachability_timer.sec <= lapsed_time) {
     mme_app_handle_mobile_reachability_timer_expiry(
-        (void*) &(ue_mm_context_pP->mme_ue_s1ap_id));
+        (void*) &(ue_mm_context_pP->mme_ue_s1ap_id),
+        &(ue_mm_context_pP->emm_context._imsi64));
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   uint32_t remaining_time_in_seconds =
@@ -2378,7 +2379,8 @@ static void mme_app_resume_implicit_detach_timer(
    */
   if (ue_mm_context_pP->implicit_detach_timer.sec <= lapsed_time) {
     mme_app_handle_implicit_detach_timer_expiry(
-        (void*) &(ue_mm_context_pP->mme_ue_s1ap_id));
+        (void*) &(ue_mm_context_pP->mme_ue_s1ap_id),
+        &(ue_mm_context_pP->emm_context._imsi64));
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   uint32_t remaining_time_in_seconds =
