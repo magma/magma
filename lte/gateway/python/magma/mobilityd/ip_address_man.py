@@ -157,7 +157,8 @@ class IPAddressManager:
             self._dhcp_store = store.MacToIP()  # mac => DHCP_State
 
         self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
-        logging.info("Using allocator: %s", self.allocator_type)
+        logging.info("Using allocator: %s static ip: %s",
+                     self.allocator_type, self.static_ip_enabled)
 
         if self.allocator_type == MobilityD.IP_POOL:
             self._dhcp_gw_info.read_default_gw()

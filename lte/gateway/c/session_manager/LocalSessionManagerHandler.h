@@ -182,8 +182,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void handle_setup_callback(
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
 
-  SessionConfig build_session_config(const LocalCreateSessionRequest& request);
-
   /**
    * Get the most recently written state of sessions for Creation
    * Does not get any other sessions.

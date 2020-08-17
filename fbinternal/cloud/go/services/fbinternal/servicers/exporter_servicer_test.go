@@ -41,6 +41,7 @@ func TestODSSubmit(t *testing.T) {
 		"",
 		"",
 		"magma",
+		"magma",
 		2,
 		time.Second*10,
 	)
@@ -71,6 +72,7 @@ func TestExport(t *testing.T) {
 		"",
 		"",
 		"",
+		"100",
 		"magma",
 		2,
 		time.Second*10,
@@ -101,7 +103,7 @@ func TestExport(t *testing.T) {
 	expectedDatapoints := `[{"entity":"magma.testId1.testId2","key":"test","value":"0","time":0,"tags":["Tag1","Tag2"]}]`
 	assert.Equal(t, expectedDatapoints, string(datapointsJson))
 
-	client.On("PostForm", mock.AnythingOfType("string"), url.Values{"datapoints": {string(datapointsJson)}, "category": {"magma"}}).Return(resp, nil)
+	client.On("PostForm", mock.AnythingOfType("string"), url.Values{"datapoints": {string(datapointsJson)}, "category": {"100"}}).Return(resp, nil)
 
 	// Export called on empty queue
 	err = exporterSrv.Export(client)
@@ -127,7 +129,7 @@ func TestExport(t *testing.T) {
 	datapoints = append(datapoints, datapoints...)
 	datapointsJson, err = json.Marshal(datapoints)
 	assert.NoError(t, err)
-	client.On("PostForm", mock.Anything, url.Values{"datapoints": {string(datapointsJson)}, "category": {"magma"}}).Return(resp, nil)
+	client.On("PostForm", mock.Anything, url.Values{"datapoints": {string(datapointsJson)}, "category": {"100"}}).Return(resp, nil)
 
 	err = exporterSrv.Export(client)
 	assert.NoError(t, err)

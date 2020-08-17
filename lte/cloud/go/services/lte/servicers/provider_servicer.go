@@ -25,13 +25,13 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-type lteStreamProviderServicer struct{}
+type providerServicer struct{}
 
-func NewLTEStreamProviderServicer() streamer_protos.StreamProviderServer {
-	return &lteStreamProviderServicer{}
+func NewProviderServicer() streamer_protos.StreamProviderServer {
+	return &providerServicer{}
 }
 
-func (s *lteStreamProviderServicer) GetUpdates(ctx context.Context, req *protos.StreamRequest) (*protos.DataUpdateBatch, error) {
+func (s *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamRequest) (*protos.DataUpdateBatch, error) {
 	var streamer providers.StreamProvider
 	switch req.GetStreamName() {
 	case lte.SubscriberStreamName:

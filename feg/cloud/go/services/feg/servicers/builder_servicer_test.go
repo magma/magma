@@ -1,53 +1,55 @@
 /*
- * Copyright 2020 The Magma Authors.
- *
- * This source code is licensed under the BSD-style license found in the
- * LICENSE file in the root directory of this source tree.
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
+ Copyright 2020 The Magma Authors.
 
-package plugin_test
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
+package servicers_test
 
 import (
 	"testing"
 
 	"magma/feg/cloud/go/feg"
-	"magma/feg/cloud/go/plugin"
-	"magma/feg/cloud/go/protos/mconfig"
+	feg_plugin "magma/feg/cloud/go/plugin"
+	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
+	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
+	feg_test_init "magma/feg/cloud/go/services/feg/test_init"
 	"magma/orc8r/cloud/go/orc8r"
-	orc8rplugin "magma/orc8r/cloud/go/plugin"
+	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
-	"github.com/go-openapi/swag"
 )
 
 func TestBuilder_Build(t *testing.T) {
-	orc8rplugin.RegisterPluginForTests(t, &plugin.FegOrchestratorPlugin{})
-	builder := &plugin.Builder{}
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &feg_plugin.FegOrchestratorPlugin{}))
+	feg_test_init.StartTestService(t)
 
-	// empty case: no feg associated to magmad gateway
+	// Empty case: no feg associated to magmad gateway
 	nw := configurator.Network{ID: "n1"}
 	gw := configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "gw1"}
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{gw},
 	}
 
-	actual := map[string]proto.Message{}
 	expected := map[string]proto.Message{}
-	err := builder.Build("n1", "gw1", graph, nw, actual)
+	actual, err := build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	// no GW config but network config exists
+	// No GW config but network config exists
 	nw.Configs = map[string]interface{}{
 		feg.FegNetworkType: defaultConfig,
 	}
@@ -63,11 +65,11 @@ func TestBuilder_Build(t *testing.T) {
 			{From: storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "gw1"}, To: storage.TypeAndKey{Type: feg.FegGatewayType, Key: "gw1"}},
 		},
 	}
-	actual = map[string]proto.Message{}
+
 	expected = map[string]proto.Message{
-		"s6a_proxy": &mconfig.S6AConfig{
+		"s6a_proxy": &feg_mconfig.S6AConfig{
 			LogLevel: 1,
-			Server: &mconfig.DiamClientConfig{
+			Server: &feg_mconfig.DiamClientConfig{
 				Protocol:         "sctp",
 				Address:          "",
 				Retransmits:      0x3,
@@ -80,26 +82,26 @@ func TestBuilder_Build(t *testing.T) {
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
 		},
-		"hss": &mconfig.HSSConfig{
-			Server: &mconfig.DiamServerConfig{
+		"hss": &feg_mconfig.HSSConfig{
+			Server: &feg_mconfig.DiamServerConfig{
 				Protocol:  "tcp",
 				DestHost:  "magma.com",
 				DestRealm: "magma.com",
 			},
 			LteAuthOp:  []byte("EREREREREREREREREREREQ=="),
 			LteAuthAmf: []byte("gA"),
-			DefaultSubProfile: &mconfig.HSSConfig_SubscriptionProfile{
+			DefaultSubProfile: &feg_mconfig.HSSConfig_SubscriptionProfile{
 				MaxUlBitRate: 100000000, // 100 Mbps
 				MaxDlBitRate: 200000000, // 200 Mbps
 			},
 			SubProfiles:       nil,
 			StreamSubscribers: false,
 		},
-		"session_proxy": &mconfig.SessionProxyConfig{
+		"session_proxy": &feg_mconfig.SessionProxyConfig{
 			LogLevel: 1,
-			Gx: &mconfig.GxConfig{
+			Gx: &feg_mconfig.GxConfig{
 				DisableGx: true,
-				Server: &mconfig.DiamClientConfig{
+				Server: &feg_mconfig.DiamClientConfig{
 					Protocol:         "tcp",
 					Address:          "",
 					Retransmits:      0x3,
@@ -110,8 +112,8 @@ func TestBuilder_Build(t *testing.T) {
 					Host:             "magma-fedgw.magma.com",
 				},
 				// Expect 2, one coming from server and one from serverS
-				Servers: []*mconfig.DiamClientConfig{
-					&mconfig.DiamClientConfig{
+				Servers: []*feg_mconfig.DiamClientConfig{
+					{
 						Protocol:         "tcp",
 						Address:          "",
 						Retransmits:      0x3,
@@ -121,7 +123,7 @@ func TestBuilder_Build(t *testing.T) {
 						Realm:            "magma.com",
 						Host:             "magma-fedgw.magma.com",
 					},
-					&mconfig.DiamClientConfig{
+					{
 						Protocol:         "tcp",
 						Address:          "",
 						Retransmits:      0x3,
@@ -134,9 +136,9 @@ func TestBuilder_Build(t *testing.T) {
 				},
 				OverwriteApn: "apnGx.magma-fedgw.magma.com",
 			},
-			Gy: &mconfig.GyConfig{
+			Gy: &feg_mconfig.GyConfig{
 				DisableGy: true,
-				Server: &mconfig.DiamClientConfig{
+				Server: &feg_mconfig.DiamClientConfig{
 					Protocol:         "tcp",
 					Address:          "",
 					Retransmits:      0x3,
@@ -147,8 +149,8 @@ func TestBuilder_Build(t *testing.T) {
 					Host:             "magma-fedgw.magma.com",
 				},
 				// Expect 2, one coming from server and one from serverS
-				Servers: []*mconfig.DiamClientConfig{
-					&mconfig.DiamClientConfig{
+				Servers: []*feg_mconfig.DiamClientConfig{
+					{
 						Protocol:         "tcp",
 						Address:          "",
 						Retransmits:      0x3,
@@ -158,7 +160,7 @@ func TestBuilder_Build(t *testing.T) {
 						Realm:            "magma.com",
 						Host:             "magma-fedgw.magma.com",
 					},
-					&mconfig.DiamClientConfig{
+					{
 						Protocol:         "tcp",
 						Address:          "",
 						Retransmits:      0x3,
@@ -169,15 +171,15 @@ func TestBuilder_Build(t *testing.T) {
 						Host:             "magma-fedgw.magma.com",
 					},
 				},
-				InitMethod:   mconfig.GyInitMethod_PER_SESSION,
+				InitMethod:   feg_mconfig.GyInitMethod_PER_SESSION,
 				OverwriteApn: "apnGy.magma-fedgw.magma.com",
 			},
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
 		},
-		"swx_proxy": &mconfig.SwxConfig{
+		"swx_proxy": &feg_mconfig.SwxConfig{
 			LogLevel: 1,
-			Server: &mconfig.DiamClientConfig{
+			Server: &feg_mconfig.DiamClientConfig{
 				Protocol:         "sctp",
 				Address:          "",
 				Retransmits:      0x3,
@@ -188,8 +190,8 @@ func TestBuilder_Build(t *testing.T) {
 				Host:             "magma-fedgw.magma.com",
 			},
 			// Expect 2, one coming from server and one from serverS
-			Servers: []*mconfig.DiamClientConfig{
-				&mconfig.DiamClientConfig{
+			Servers: []*feg_mconfig.DiamClientConfig{
+				{
 					Protocol:         "sctp",
 					Address:          "",
 					Retransmits:      0x3,
@@ -199,7 +201,7 @@ func TestBuilder_Build(t *testing.T) {
 					Realm:            "magma.com",
 					Host:             "magma-fedgw.magma.com",
 				},
-				&mconfig.DiamClientConfig{
+				{
 					Protocol:         "sctp",
 					Address:          "",
 					Retransmits:      0x3,
@@ -213,8 +215,8 @@ func TestBuilder_Build(t *testing.T) {
 			VerifyAuthorization: false,
 			CacheTTLSeconds:     10800,
 		},
-		"eap_aka": &mconfig.EapAkaConfig{LogLevel: 1,
-			Timeout: &mconfig.EapAkaConfig_Timeouts{
+		"eap_aka": &feg_mconfig.EapAkaConfig{LogLevel: 1,
+			Timeout: &feg_mconfig.EapAkaConfig_Timeouts{
 				ChallengeMs:            20000,
 				ErrorNotificationMs:    10000,
 				SessionMs:              43200000,
@@ -222,12 +224,12 @@ func TestBuilder_Build(t *testing.T) {
 			},
 			PlmnIds: nil,
 		},
-		"aaa_server": &mconfig.AAAConfig{LogLevel: 1,
+		"aaa_server": &feg_mconfig.AAAConfig{LogLevel: 1,
 			IdleSessionTimeoutMs: 21600000,
 			AccountingEnabled:    false,
 			CreateSessionOnAuth:  false,
 		},
-		"health": &mconfig.GatewayHealthConfig{
+		"health": &feg_mconfig.GatewayHealthConfig{
 			RequiredServices:          []string{"SWX_PROXY", "SESSION_PROXY"},
 			UpdateIntervalSecs:        10,
 			UpdateFailureThreshold:    3,
@@ -235,26 +237,53 @@ func TestBuilder_Build(t *testing.T) {
 			LocalDisconnectPeriodSecs: 1,
 		},
 
-		"csfb": &mconfig.CsfbConfig{LogLevel: 1,
-			Client: &mconfig.SCTPClientConfig{
+		"csfb": &feg_mconfig.CsfbConfig{LogLevel: 1,
+			Client: &feg_mconfig.SCTPClientConfig{
 				LocalAddress:  "",
 				ServerAddress: ""},
 		},
 	}
 
-	err = builder.Build("n1", "gw1", graph, nw, actual)
+	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	// put a config on the gw, erase the network config
+	// Put a config on the gw, erase the network config
 	nw.Configs = map[string]interface{}{}
 	fegw.Config = (*models.GatewayFederationConfigs)(defaultConfig)
 	graph.Entities = []configurator.NetworkEntity{fegw, gw}
 
-	actual = map[string]proto.Message{}
-	err = builder.Build("n1", "gw1", graph, nw, actual)
+	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+}
+
+func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
+	networkProto, err := network.ToStorageProto()
+	if err != nil {
+		return nil, err
+	}
+	graphProto, err := graph.ToStorageProto()
+	if err != nil {
+		return nil, err
+	}
+
+	builder := mconfig.NewRemoteBuilder(feg_service.ServiceName)
+	res, err := builder.Build(networkProto, graphProto, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+
+	configs, err := mconfig.UnmarshalConfigs(res)
+	if err != nil {
+		return nil, err
+	}
+
+	return configs, nil
+}
+
+func uint32Ptr(i uint32) *uint32 {
+	return &i
 }
 
 var defaultConfig = &models.NetworkFederationConfigs{
@@ -281,7 +310,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Realm:            "magma.com",
 		},
 		Servers: []*models.DiameterClientConfigs{
-			&models.DiameterClientConfigs{
+			{
 				Protocol:         "tcp",
 				Retransmits:      3,
 				WatchdogInterval: 1,
@@ -305,7 +334,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Realm:            "magma.com",
 		},
 		Servers: []*models.DiameterClientConfigs{
-			&models.DiameterClientConfigs{
+			{
 				Protocol:         "tcp",
 				Retransmits:      3,
 				WatchdogInterval: 1,
@@ -344,7 +373,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Realm:            "magma.com",
 		},
 		Servers: []*models.DiameterClientConfigs{
-			&models.DiameterClientConfigs{
+			{
 				Protocol:         "sctp",
 				Retransmits:      3,
 				WatchdogInterval: 1,
@@ -389,8 +418,4 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			ServerAddress: "",
 		},
 	},
-}
-
-func uint32Ptr(i uint32) *uint32 {
-	return &i
 }
