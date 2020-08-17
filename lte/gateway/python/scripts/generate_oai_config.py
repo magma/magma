@@ -168,6 +168,9 @@ def _get_context():
     context["use_stateless"] = get_service_config_value("mme", "use_stateless", "")
     context["attached_enodeb_tacs"] = _get_attached_enodeb_tacs()
     context["enable_nat"] = _get_enable_nat()
+    context["mme_gid"] = get_service_config_value("mme", "mme_gid", "1")
+    context["mme_code"] = get_service_config_value("mme", "mme_code", "1")
+
     # set ovs params
     for key in (
         "ovs_bridge_name",

@@ -68,7 +68,7 @@ MME :
     # MME code DEFAULT  size = 8 bits
     # MME GROUP ID size = 16 bits
     GUMMEI_LIST = (
-         { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; MME_GID="{{ mmeGid }}" ; MME_CODE="{{ mmeCode }}"; }
+         { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; MME_GID="{{ mme_gid }}" ; MME_CODE="{{ mme_code }}"; }
     );
 
     # ------- MME served TAIs
