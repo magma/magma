@@ -1,4 +1,4 @@
----
+#/bin/bash
 #
 # Copyright 2020 The Magma Authors.
 
@@ -11,10 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Install openvswitch and dependencies
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-  include_tasks: debian.yml
-
-- name: Install openvswitch and dependencies
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
-  include_tasks: redhat.yml
+ovs-vsctl -- --columns=name,ofport list interface

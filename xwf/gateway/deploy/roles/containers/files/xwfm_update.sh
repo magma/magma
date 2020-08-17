@@ -1,4 +1,4 @@
----
+#!/bin/bash
 #
 # Copyright 2020 The Magma Authors.
 
@@ -11,10 +11,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Install openvswitch and dependencies
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-  include_tasks: debian.yml
+RUNNING_TAG=$(docker ps --filter name=magmad --format "{{.Image}}" | cut -d ":" -f 2)
 
-- name: Install openvswitch and dependencies
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
-  include_tasks: redhat.yml
+source /var/opt/magma/docker/.env
+
+# If tag running is equal to .env, then do nothing
+if [ "$RUNNING_TAG" == "$IMAGE_VERSION" ]; then
+  exit
+fi
+
+# Otherwise recreate containers with the new image
+cd /var/opt/magma/docker || exit
+/usr/local/bin/docker-compose down && /usr/local/bin/docker-compose up -d
+# Remove all stopped containers and dangling images
+docker system prune -af

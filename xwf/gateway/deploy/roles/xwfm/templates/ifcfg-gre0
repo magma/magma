@@ -1,0 +1,7 @@
+DEVICE=gre0
+ONBOOT=yes
+DEVICETYPE=ovs
+TYPE=OVSTunnel
+OVS_BRIDGE=cwag_br0
+OVS_TUNNEL_TYPE=gre
+OVS_TUNNEL_OPTIONS="ofport_request=32768 options:remote_ip=flow"

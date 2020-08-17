@@ -1,4 +1,4 @@
----
+#!/bin/bash
 #
 # Copyright 2020 The Magma Authors.
 
@@ -11,10 +11,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Install openvswitch and dependencies
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-  include_tasks: debian.yml
-
-- name: Install openvswitch and dependencies
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
-  include_tasks: redhat.yml
+echo "Calling-Station-Id = aa:bb:33:44:cc:ff, Called-Station-Id = 11:11:11:11:11:12, User-Name = aa:bb:33:44:cc:ff, NAS-IP-Address = 192.168.1.1, NAS-Identifier = blabla" | radclient -x 127.0.0.1 auth 123456

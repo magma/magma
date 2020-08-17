@@ -11,10 +11,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Install openvswitch and dependencies
-  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
-  include_tasks: debian.yml
+- name: include the vars for deployment from /etc/xwfwhoami make sure you copy configure_me.yml to /etc/xwfwhoami
+  include_vars: "/etc/xwfwhoami"
 
-- name: Install openvswitch and dependencies
-  when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
-  include_tasks: redhat.yml
