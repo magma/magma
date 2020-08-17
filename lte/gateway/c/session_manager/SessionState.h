@@ -54,7 +54,8 @@ class SessionState {
   SessionState(
       const std::string& imsi, const std::string& session_id,
       const SessionConfig& cfg, StaticRuleStore& rule_store,
-      const magma::lte::TgppContext& tgpp_context);
+      const magma::lte::TgppContext& tgpp_context,
+      uint64_t pdp_start_time);
 
   SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -170,6 +171,8 @@ class SessionState {
   bool active_monitored_rules_exist();
 
   uint32_t get_request_number();
+
+  uint64_t get_pdp_start_time();
 
   void increment_request_number(uint32_t incr);
 
@@ -339,6 +342,7 @@ class SessionState {
   uint32_t request_number_;
   SessionFsmState curr_state_;
   SessionConfig config_;
+  uint64_t pdp_start_time_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;

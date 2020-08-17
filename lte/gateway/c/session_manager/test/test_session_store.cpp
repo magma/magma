@@ -72,8 +72,9 @@ class SessionStoreTest : public ::testing::Test {
     const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context = TgppContext{};
+    auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context);
+        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
   }
 
   UsageMonitoringUpdateResponse* get_monitoring_update() {

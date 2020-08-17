@@ -924,8 +924,11 @@ bool LocalEnforcer::init_session_credit(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
+  auto now = std::chrono::system_clock::now();
+  uint64_t epoch = std::chrono::duration_cast<std::chrono::seconds>(
+    now.time_since_epoch()).count();
   auto session_state = std::make_unique<SessionState>(
-      imsi, session_id, cfg, *rule_store_, response.tgpp_ctx());
+      imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(), epoch);
 
   std::unordered_set<uint32_t> charging_credits_received;
   for (const auto& credit : response.credits()) {

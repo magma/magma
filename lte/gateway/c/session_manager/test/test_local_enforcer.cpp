@@ -712,12 +712,13 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
 TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   const std::string imsi       = "IMSI1";
   const std::string session_id = "1234";
+  auto pdp_start_time = 12345;
   magma::lte::TgppContext tgpp_ctx;
   CreateSessionResponse response;
   create_credit_update_response(
       imsi, 1, 1024, true, response.mutable_credits()->Add());
   auto session_state =
-      new SessionState(imsi, session_id, test_cfg_, *rule_store, tgpp_ctx);
+      new SessionState(imsi, session_id, test_cfg_, *rule_store, tgpp_ctx, pdp_start_time);
 
   // manually place revalidation timer
   SessionStateUpdateCriteria uc;
