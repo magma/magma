@@ -13,6 +13,7 @@
 #pragma once
 
 #include <functional>
+#include <experimental/optional>
 #include <utility>
 
 #include <lte/protos/session_manager.grpc.pb.h>
@@ -42,6 +43,7 @@ class SessionState {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
+    std::experimental::optional<AggregatedMaximumBitrate> ambr;
   };
   struct TotalCreditUsage {
     uint64_t monitoring_tx;

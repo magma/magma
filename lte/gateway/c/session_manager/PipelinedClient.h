@@ -84,6 +84,7 @@ class PipelinedClient {
   virtual bool activate_flows_for_rules(
     const std::string& imsi,
     const std::string& ip_addr,
+    const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules,
     std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
@@ -194,6 +195,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool activate_flows_for_rules(
     const std::string& imsi,
     const std::string& ip_addr,
+    const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules,
     std::function<void(Status status, ActivateFlowsResult)> callback);

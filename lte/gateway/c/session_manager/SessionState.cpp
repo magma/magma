@@ -590,6 +590,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
+  info.ambr = config_.get_apn_ambr();
 }
 
 void SessionState::set_tgpp_context(
@@ -1154,8 +1155,9 @@ void SessionState::get_charging_updates(
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
-      case TERMINATE_SERVICE:
       case ACTIVATE_SERVICE:
+        action->set_ambr(config_.get_apn_ambr());
+      case TERMINATE_SERVICE:
       case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " action type " << action_type;
