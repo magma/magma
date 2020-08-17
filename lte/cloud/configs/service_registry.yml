@@ -16,6 +16,7 @@ services:
     echo_port: 10113
     proxy_type: "clientcert"
     labels:
+      orc8r.io/mconfig_builder: "true"
       orc8r.io/stream_provider: "true"
       orc8r.io/obsidian_handlers: "true"
     annotations:

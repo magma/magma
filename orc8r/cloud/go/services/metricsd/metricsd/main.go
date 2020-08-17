@@ -29,14 +29,20 @@ import (
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_model/go"
+	"google.golang.org/grpc"
 )
 
 const (
 	CloudMetricsCollectInterval = time.Second * 20
+	// Setting Max Received Message gRPC size to 50MB
+	CloudMetricsCollectMaxMsgSize = 50 * 1024 * 1024
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, metricsd.ServiceName)
+	srv, err := service.NewOrchestratorService(orc8r.ModuleName,
+		metricsd.ServiceName,
+		grpc.MaxRecvMsgSize(CloudMetricsCollectMaxMsgSize))
+
 	if err != nil {
 		glog.Fatalf("Error creating orc8r service for metricsd: %s", err)
 	}

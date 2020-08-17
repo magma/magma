@@ -144,7 +144,7 @@ function EnodebTableRaw(props: WithAlert) {
           ),
         },
         {title: 'Session State Name', field: 'sessionName'},
-        {title: 'Health', field: 'health'},
+        {title: 'Health', field: 'health', width: 100},
         {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
       ]}
       handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}

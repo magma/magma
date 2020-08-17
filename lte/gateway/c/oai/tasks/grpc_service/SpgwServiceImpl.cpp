@@ -75,6 +75,14 @@ Status SpgwServiceImpl::CreateBearer(
   traffic_flow_template_t* ul_tft = &itti_msg.ul_tft;
   traffic_flow_template_t* dl_tft = &itti_msg.dl_tft;
   for (const auto& policy_rule : request->policy_rules()) {
+    // Copy the policy rule name
+    std::string policy_rule_name = policy_rule.id();
+    // Truncate to maximum allowed in ITTI message
+    uint8_t truncated_len =
+        std::min(policy_rule_name.size(), (std::size_t) POLICY_RULE_NAME_MAXLEN);
+    strncpy(itti_msg.policy_rule_name, policy_rule_name.c_str(), truncated_len);
+    itti_msg.policy_rule_name[truncated_len] = '\0';
+    itti_msg.policy_rule_name_length = truncated_len;
     // Copy the QoS vector specified in the policy rule
     qos->pci       = policy_rule.qos().arp().pre_capability();
     qos->pl        = policy_rule.qos().arp().priority_level();

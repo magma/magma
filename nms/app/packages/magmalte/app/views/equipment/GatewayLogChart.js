@@ -13,11 +13,11 @@
  * @flow strict-local
  * @format
  */
-import type {Dataset} from '../../components/CustomHistogram';
+import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-import CustomHistogram from '../../components/CustomHistogram';
+import CustomHistogram from '../../components/CustomMetrics';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
@@ -89,11 +89,18 @@ export default function LogChart(props: Props) {
 
     Promise.all(requests)
       .then(allResponses => {
-        const logData: Array<number> = allResponses.map(r => {
+        const data: Array<DatasetType> = allResponses.map((r, index) => {
+          const [s] = queries[index];
           if (r === null || r === undefined) {
-            return 0;
+            return {
+              t: s.unix(),
+              y: 0,
+            };
           }
-          return r;
+          return {
+            t: s.unix(),
+            y: r,
+          };
         });
 
         const ds: Dataset = {
@@ -103,10 +110,10 @@ export default function LogChart(props: Props) {
           borderWidth: 1,
           hoverBackgroundColor: colors.secondary.dodgerBlue,
           hoverBorderColor: 'black',
-          data: logData,
+          data: data,
         };
         setDataset(ds);
-        setLogCount(logData.reduce((a, b) => a + b, 0));
+        setLogCount(data.reduce((a, b) => a + b.y, 0));
         setIsLoading(false);
       })
       .catch(error => {

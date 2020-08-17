@@ -46,15 +46,15 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
   auto& request_cpy = *request;
   if (request_cpy.records_size() > 0) {
     MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
-
-    enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+  }
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
       auto session_map = get_sessions_for_reporting(request_cpy);
       SessionUpdate update =
           SessionStore::get_default_session_update(session_map);
       enforcer_->aggregate_records(session_map, request_cpy, update);
       check_usage_for_reporting(std::move(session_map), update);
     });
-  }
+
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
     MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows";
@@ -87,7 +87,6 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
   // Before reporting and returning control to the event loop, increment the
   // request numbers stored for the sessions in SessionStore
   session_store_.sync_request_numbers(session_update);
-
   // report to cloud
   // NOTE: It is not possible to construct a std::function from a move-only type
   //       So because of this, we can't directly move session_map into the
@@ -183,28 +182,12 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 
 static CreateSessionRequest make_create_session_request(
     const SessionConfig& cfg, const std::string& sid) {
-  auto common       = cfg.common_context;
-  auto rat_specific = cfg.rat_specific_context;
-
   CreateSessionRequest create_request;
   create_request.set_session_id(sid);
-  create_request.mutable_common_context()->CopyFrom(common);
-  create_request.mutable_rat_specific_context()->CopyFrom(rat_specific);
+  create_request.mutable_common_context()->CopyFrom(cfg.common_context);
+  create_request.mutable_rat_specific_context()->CopyFrom(
+      cfg.rat_specific_context);
   return create_request;
-}
-
-SessionConfig LocalSessionManagerHandlerImpl::build_session_config(
-    const LocalCreateSessionRequest& request) {
-  SessionConfig cfg = {
-      .mac_addr          = convert_mac_addr_to_str(request.hardware_addr()),
-      .hardware_addr     = request.hardware_addr(),
-      .radius_session_id = request.radius_session_id()};
-
-  // TODO @themarwhal The fields above in SessionConfig will be replaced by
-  //  the bundled fields below
-  cfg.common_context       = request.common_context();
-  cfg.rat_specific_context = request.rat_specific_context();
-  return cfg;
 }
 
 void LocalSessionManagerHandlerImpl::CreateSession(
@@ -214,16 +197,16 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
       [this, context, response_callback, request_cpy]() {
-        auto imsi = request_cpy.sid().id();
-        auto sid  = id_gen_.gen_session_id(imsi);
-        auto apn  = request_cpy.apn();
+        const auto& imsi = request_cpy.sid().id();
+        const auto& sid  = id_gen_.gen_session_id(imsi);
+        const auto& apn  = request_cpy.apn();
         MLOG(MDEBUG) << "Received a CreateSessionRequest for " << imsi
                      << " apn: " << apn << " plmn_id: " << request_cpy.plmn_id()
                      << " imsi_plmn_id: " << request_cpy.imsi_plmn_id();
 
-        SessionConfig cfg = build_session_config(request_cpy);
-        auto session_map  = get_sessions_for_creation(imsi);
-        auto rat_type     = cfg.common_context.rat_type();
+        SessionConfig cfg(request_cpy);
+        auto session_map     = get_sessions_for_creation(imsi);
+        const auto& rat_type = cfg.common_context.rat_type();
         switch (rat_type) {
           case TGPP_WLAN:
             handle_create_session_cwf(
@@ -238,10 +221,10 @@ void LocalSessionManagerHandlerImpl::CreateSession(
             failure_stream << "Received an invalid RAT type " << rat_type;
             std::string failure_msg = failure_stream.str();
             MLOG(MERROR) << failure_msg;
-            events_reporter_->session_create_failure(
-                imsi, cfg.common_context.apn(), cfg.mac_addr, failure_msg);
-            auto status = Status(grpc::FAILED_PRECONDITION, "Invalid RAT type");
-            send_local_create_session_response(status, sid, response_callback);
+            events_reporter_->session_create_failure(imsi, cfg, failure_msg);
+            send_local_create_session_response(
+                Status(grpc::FAILED_PRECONDITION, "Invalid RAT type"), sid,
+                response_callback);
             return;
         }
       });
@@ -250,7 +233,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
 void LocalSessionManagerHandlerImpl::send_create_session(
     SessionMap& session_map, const std::string& sid, const SessionConfig& cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> cb) {
-  auto imsi       = cfg.common_context.sid().id();
+  const auto& imsi       = cfg.common_context.sid().id();
   auto create_req = make_create_session_request(cfg, sid);
   reporter_->report_create_session(
       create_req,
@@ -267,20 +250,21 @@ void LocalSessionManagerHandlerImpl::send_create_session(
             status = Status(
                 grpc::FAILED_PRECONDITION, "Failed to initialize session");
           } else {
-            auto lte_context   = cfg.rat_specific_context.lte_context();
+            std::string bearer_id = "";
+            if (cfg.rat_specific_context.has_lte_context()) {
+              bearer_id = cfg.rat_specific_context.lte_context().bearer_id();
+            }
             bool write_success = session_store_.create_sessions(
                 imsi, std::move((*session_map_ptr)[imsi]));
             if (write_success) {
               MLOG(MINFO) << "Successfully initialized new session " << sid
                           << " in sessiond for subscriber " << imsi
-                          << " with default bearer id "
-                          << lte_context.bearer_id();
+                          << " with default bearer id " << bearer_id;
               add_session_to_directory_record(imsi, sid);
             } else {
               MLOG(MINFO) << "Failed to initialize new session " << sid
                           << " in sessiond for subscriber " << imsi
-                          << " with default bearer id "
-                          << lte_context.bearer_id()
+                          << " with default bearer id " << bearer_id
                           << " due to failure writing to SessionStore."
                           << " An earlier update may have invalidated it.";
               status = Status(
@@ -295,8 +279,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
                          << status.error_message();
           std::string failure_msg = failure_stream.str();
           MLOG(MERROR) << failure_msg;
-          events_reporter_->session_create_failure(
-              imsi, cfg.common_context.apn(), cfg.mac_addr, failure_msg);
+          events_reporter_->session_create_failure(imsi, cfg, failure_msg);
         }
         send_local_create_session_response(status, sid, cb);
       });
@@ -527,7 +510,8 @@ void LocalSessionManagerHandlerImpl::report_session_update_event(
       auto updates    = session_update.find(it.first)->second;
       auto session_id = (*session)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
-        events_reporter_->session_updated(*session);
+        events_reporter_->session_updated(
+            imsi, session_id, (*session)->get_config());
       }
       ++session;
     }
@@ -549,7 +533,8 @@ void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
                        << failure_reason;
         std::string failure_msg = failure_stream.str();
         MLOG(MERROR) << failure_msg;
-        events_reporter_->session_update_failure(failure_msg, *session);
+        events_reporter_->session_update_failure(
+            imsi, session_id, (*session)->get_config(), failure_msg);
       }
       ++session;
     }

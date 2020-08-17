@@ -67,6 +67,7 @@ class MetricsCollectorTests(unittest.TestCase):
         self.timeout = 1
         self._collector = MetricsCollector(self._services, 5, 10,
                                            self.timeout,
+                                           grpc_max_msg_size_mb=4,
                                            queue_length=self.queue_length,
                                            loop=asyncio.new_event_loop())
 
