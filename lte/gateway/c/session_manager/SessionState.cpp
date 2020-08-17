@@ -138,13 +138,14 @@ SessionState::SessionState(
 SessionState::SessionState(
     const std::string& imsi, const std::string& session_id,
     const SessionConfig& cfg, StaticRuleStore& rule_store,
-    const magma::lte::TgppContext& tgpp_context)
+    const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time)
     : imsi_(imsi),
       session_id_(session_id),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
       config_(cfg),
+      pdp_start_time_(pdp_start_time),
       tgpp_context_(tgpp_context),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
@@ -605,6 +606,10 @@ void SessionState::fill_protos_tgpp_context(
 
 uint32_t SessionState::get_request_number() {
   return request_number_;
+}
+
+uint64_t SessionState::get_pdp_start_time() {
+  return pdp_start_time_;
 }
 
 void SessionState::increment_request_number(uint32_t incr) {

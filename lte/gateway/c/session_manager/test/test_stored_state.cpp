@@ -118,6 +118,7 @@ class StoredStateTest : public ::testing::Test {
     tgpp_context.set_gx_dest_host("gx");
     tgpp_context.set_gy_dest_host("gy");
     stored.tgpp_context = tgpp_context;
+    stored.pdp_start_time = 12345;
 
     stored.pending_event_triggers[REVALIDATION_TIMEOUT] = READY;
     stored.revalidation_time.set_seconds(32);
@@ -279,6 +280,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 
   EXPECT_EQ(stored.imsi, "IMSI1");
+  EXPECT_EQ(stored.pdp_start_time, 12345);
   EXPECT_EQ(stored.session_id, "session_id");
   EXPECT_EQ(
       stored.subscriber_quota_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
