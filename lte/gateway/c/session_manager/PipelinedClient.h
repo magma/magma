@@ -109,7 +109,8 @@ class PipelinedClient {
     const std::string &ue_mac_addr,
     const std::string &msisdn,
     const std::string &ap_mac_addr,
-    const std::string &ap_name) = 0;
+    const std::string &ap_name,
+    const uint64_t& pdp_start_time) = 0;
 
   /**
    * Send the MAC address of UE and the subscriberID
@@ -220,7 +221,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& ue_mac_addr,
     const std::string& msisdn,
     const std::string& ap_mac_addr,
-    const std::string& ap_name);
+    const std::string& ap_name,
+    const uint64_t& pdp_start_time);
 
   /**
    * Propagate whether a subscriber has quota / no quota / or terminated
@@ -270,7 +272,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     std::function<void(Status, FlowResponse)> callback);
 
   void update_ipfix_flow_rpc(
-    const UEMacFlowRequest& request,
+    const IPFIXFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback);
 
   void update_subscriber_quota_state_rpc(

@@ -524,6 +524,10 @@ class LocalEnforcer {
       const std::string& imsi, const std::string& ue_mac_addr,
       const SubscriberQuotaUpdate_Type state);
 
+  void update_ipfix_flow(
+      const std::string& imsi, const SessionConfig& config,
+      const uint64_t pdp_start_time);
+
   /**
    * [CWF-ONLY]
    * If the session has active monitored rules attached to it, then propagate

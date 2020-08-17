@@ -80,6 +80,20 @@ magma::UEMacFlowRequest create_add_ue_mac_flow_req(
   return req;
 }
 
+magma::IPFIXFlowRequest create_update_ipfix_flow_req(
+    const magma::SubscriberID& sid, const std::string& ue_mac_addr,
+    const std::string& msisdn, const std::string& ap_mac_addr,
+    const std::string& ap_name, const std::uint64_t& pdp_start_time) {
+  magma::IPFIXFlowRequest req;
+  req.mutable_sid()->CopyFrom(sid);
+  req.set_mac_addr(ue_mac_addr);
+  req.set_msisdn(msisdn);
+  req.set_ap_mac_addr(ap_mac_addr);
+  req.set_ap_name(ap_name);
+  req.set_pdp_start_time(pdp_start_time);
+  return req;
+}
+
 magma::UEMacFlowRequest create_delete_ue_mac_flow_req(
     const magma::SubscriberID& sid, const std::string& ue_mac_addr) {
   magma::UEMacFlowRequest req;
@@ -254,9 +268,9 @@ bool AsyncPipelinedClient::add_ue_mac_flow(
 bool AsyncPipelinedClient::update_ipfix_flow(
     const SubscriberID& sid, const std::string& ue_mac_addr,
     const std::string& msisdn, const std::string& ap_mac_addr,
-    const std::string& ap_name) {
-  auto req = create_add_ue_mac_flow_req(
-      sid, ue_mac_addr, msisdn, ap_mac_addr, ap_name);
+    const std::string& ap_name, const uint64_t& pdp_start_time) {
+  auto req = create_update_ipfix_flow_req(
+      sid, ue_mac_addr, msisdn, ap_mac_addr, ap_name, pdp_start_time);
   update_ipfix_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not update ipfix flow for subscriber with MAC"
@@ -373,7 +387,7 @@ void AsyncPipelinedClient::add_ue_mac_flow_rpc(
 }
 
 void AsyncPipelinedClient::update_ipfix_flow_rpc(
-    const UEMacFlowRequest& request,
+    const IPFIXFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback) {
   auto local_resp = new AsyncLocalResponse<FlowResponse>(
       std::move(callback), RESPONSE_TIMEOUT);

@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import time
 import shlex
 import subprocess
 from typing import NamedTuple, Dict
@@ -184,7 +183,8 @@ class IPFIXController(MagmaController):
             resubmit_table=self.next_main_table)
 
     def add_ue_sample_flow(self, imsi: str, msisdn: str,
-                           apn_mac_addr: str, apn_name: str) -> None:
+                           apn_mac_addr: str, apn_name: str,
+                           pdp_start_time: int) -> None:
         """
         Install a flow to sample packets for IPFIX for specific imsi
 
@@ -209,7 +209,6 @@ class IPFIXController(MagmaController):
             apn_mac_bytes = [0, 0, 0, 0, 0, 0]
         else:
             apn_mac_bytes = [int(a, 16) for a in apn_mac_addr.split('-')]
-        pdp_start_epoch = int(time.time())
 
         actions = [parser.NXActionSample2(
             probability=self.ipfix_config.probability,
@@ -219,7 +218,7 @@ class IPFIXController(MagmaController):
             apn_mac_addr=apn_mac_bytes,
             msisdn=msisdn,
             apn_name=apn_name,
-            pdp_start_epoch=pdp_start_epoch,
+            pdp_start_epoch=pdp_start_time,
             sampling_port=self.ipfix_config.sampling_port)]
 
         if self._dpi_enabled:

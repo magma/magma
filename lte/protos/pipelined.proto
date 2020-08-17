@@ -166,6 +166,24 @@ message UEMacFlowRequest {
   string ap_name = 5;
 }
 
+message IPFIXFlowRequest {
+  SubscriberID sid = 1;
+
+  // UE MAC address
+  string mac_addr = 2;
+
+  string msisdn = 3;
+
+  // AP MAC address
+  string ap_mac_addr = 4;
+
+  // AP Name
+  string ap_name = 5;
+
+  // PDP Start time
+  uint64 pdp_start_time = 6;
+}
+
 message SubscriberQuotaUpdate{
   SubscriberID sid = 1;
   enum Type {
@@ -262,7 +280,7 @@ service Pipelined {
   // -----------
 
   // Update subscriber IPFIX flows
-  rpc UpdateIPFIXFlow (UEMacFlowRequest) returns (FlowResponse) {}
+  rpc UpdateIPFIXFlow (IPFIXFlowRequest) returns (FlowResponse) {}
 
   // --------
   // Debugging:

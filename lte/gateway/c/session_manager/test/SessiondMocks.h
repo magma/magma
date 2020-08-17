@@ -70,9 +70,8 @@ public:
         .WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
-    ON_CALL(*this, update_ipfix_flow(_, _, _, _, _))
+    ON_CALL(*this, update_ipfix_flow(_, _, _, _, _, _))
         .WillByDefault(Return(true));
-    ON_CALL(*this, update_ipfix_flow(_, _, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, add_gy_final_action_flow(_, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_subscriber_quota_state(_))
         .WillByDefault(Return(true));
@@ -123,14 +122,15 @@ public:
     bool(
       const SubscriberID &sid,
       const std::string &ue_mac_addr));
-  MOCK_METHOD5(
+  MOCK_METHOD6(
     update_ipfix_flow,
     bool(
       const SubscriberID &sid,
       const std::string &ue_mac_addr,
       const std::string &msisdn,
       const std::string &ap_mac_addr,
-      const std::string &ap_name));
+      const std::string &ap_name,
+      const uint64_t &pdp_start_time));
   MOCK_METHOD4(
     add_gy_final_action_flow,
     bool(

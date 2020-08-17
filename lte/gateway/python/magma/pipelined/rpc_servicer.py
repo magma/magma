@@ -282,7 +282,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             # Install trace flow
             self._loop.call_soon_threadsafe(
                 self._ipfix_app.add_ue_sample_flow, request.sid.id,
-                request.msisdn, request.ap_mac_addr, request.ap_name)
+                request.msisdn, request.ap_mac_addr, request.ap_name,
+                request.pdp_start_time)
 
         resp = FlowResponse()
         return resp
@@ -359,12 +360,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                       fut: 'Future(SetupFlowsResult)'
                       ) -> SetupFlowsResult:
         res = self._ue_mac_app.handle_restart(request.requests)
-
-        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            for req in request.requests:
-                self._ipfix_app.add_ue_sample_flow(req.sid.id, req.msisdn,
-                                                   req.ap_mac_addr,
-                                                   req.ap_name)
 
         fut.set_result(res)
 

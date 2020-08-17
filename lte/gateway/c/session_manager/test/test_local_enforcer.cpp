@@ -132,6 +132,14 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
       .Times(1)
       .WillOnce(testing::Return(true));
 
+  EXPECT_CALL(
+      *pipelined_client,
+      update_ipfix_flow(
+          testing::_, testing::_, testing::_, testing::_, testing::_,
+          testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
   SessionConfig test_cwf_cfg;
   const auto& mac_addr          = "00:00:00:00:00:00";
   const auto& radius_session_id = "1234567";
