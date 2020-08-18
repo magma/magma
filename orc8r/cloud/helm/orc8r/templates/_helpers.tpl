@@ -15,7 +15,7 @@ limitations under the License.
 app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: helm
-app.kubernetes.io/part-of: magma
+app.kubernetes.io/part-of: orc8r
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 {{- end -}}
 

@@ -1,4 +1,3 @@
-{{/*
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -9,23 +8,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-*/}}
 
-{{- include "modulelib.service" (list . "analytics.service") -}}
-{{- define "analytics.service" -}}
-metadata:
-  name: {{ .Release.Name }}-analytics
-  labels:
-    {{- with .Values.analytics.service.labels }}
-{{ toYaml . | indent 4}}
-    {{- end}}
-  {{- with .Values.analytics.service.annotations }}
-  annotations:
-{{ toYaml . | indent 4}}
-  {{- end }}
-spec:
-  ports:
-    - name: grpc
-      port: 9200
-      targetPort: 9200
-{{- end -}}
+apiVersion: v2
+appVersion: "1.0"
+description: A Helm chart for magma orchestrator's cwf module
+name: cwf-orc8r
+version: 0.1.0
+engine: gotpl
+sources:
+  - https://github.com/magma/magma
+keywords:
+  - magma
+  - or8cr
+  - cwf-orc8r
+
+# Library chart for common orchestrator module components
+dependencies:
+- name: modulelib
+  version: 0.1.0
+  repository: file://../../../../orc8r/cloud/helm/modulelib

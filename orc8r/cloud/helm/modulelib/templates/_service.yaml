@@ -27,8 +27,8 @@ spec:
       port: 9180
       targetPort: 9180
     - name: http
-      port: 10180
-      targetPort:  10180
+      port: 8080
+      targetPort:  8080
 {{- end }}
 {{- define "modulelib.service" -}}
 {{- include "modulelib.util.merge" (append . "modulelib.service.tpl") -}}

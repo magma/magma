@@ -26,9 +26,9 @@ metadata:
 spec:
   ports:
     - name: grpc
-      port: 9115
+      port: 9180
       targetPort: 9115
     - name: http
-      port: 10115
+      port: 8080
       targetPort:  10115
 {{- end -}}
