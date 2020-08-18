@@ -276,12 +276,13 @@ func (srv *accountingService) AddSessions(ctx context.Context, sessions *protos.
 // installMacFlow installs a new mac flow if it is a brand new session or
 // Note that the existence of a core session will trigger a recylce process on sessiond too
 func installMacFlowOrRecycleSession(sid *lte_protos.SubscriberID, aaaCtx *protos.Context, sessions aaa.SessionTable) error {
-	if isSessionAlreadyStored(aaaCtx.GetImsi(), sessions) == false {
-		// (new session) install MAC flows for new session
-		glog.V(2).Infof("Install new  mac flows for %s", aaaCtx.GetImsi())
-		return pipelined.AddUeMacFlow(sid, aaaCtx)
+	if isSessionAlreadyStored(aaaCtx.GetImsi(), sessions) {
+		return nil
 	}
-    // for recycled session it will be modified by store in memory it self
+
+	// (new session) install MAC flows for new session
+	glog.V(2).Infof("Install new  mac flows for %s", aaaCtx.GetImsi())
+	return pipelined.AddUeMacFlow(sid, aaaCtx)
 }
 
 func isSessionAlreadyStored(imsi string, sessions aaa.SessionTable) bool {

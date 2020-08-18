@@ -119,6 +119,7 @@ bool LocalEnforcer::setup(
   std::vector<std::string> ue_mac_addrs;
   std::vector<std::string> apn_mac_addrs;
   std::vector<std::string> apn_names;
+  std::vector<std::uint64_t> pdp_start_times;
   bool cwf = false;
   for (auto it = session_map.begin(); it != session_map.end(); it++) {
     for (const auto& session : it->second) {
@@ -138,6 +139,7 @@ bool LocalEnforcer::setup(
       }
       apn_mac_addrs.push_back(apn_mac_addr);
       apn_names.push_back(apn_name);
+      pdp_start_times.push_back(session->get_pdp_start_time());
 
       if (session->is_radius_cwf_session()) {
         cwf                      = true;
@@ -155,7 +157,7 @@ bool LocalEnforcer::setup(
   if (cwf) {
     return pipelined_client_->setup_cwf(
         session_infos, quota_updates, ue_mac_addrs, msisdns, apn_mac_addrs,
-        apn_names, epoch, callback);
+        apn_names, pdp_start_times, epoch, callback);
   } else {
     return pipelined_client_->setup_lte(session_infos, epoch, callback);
   }
@@ -1763,8 +1765,12 @@ void LocalEnforcer::update_ipfix_flow(
       apn_name     = config.common_context.apn();
     }
 
-    const auto& wlan_context = config.rat_specific_context.wlan_context();
-    const auto& ue_mac_addr  = wlan_context.mac_addr();
+    // MacAddr is only relevant for WLAN
+    const auto& rat_specific = config.rat_specific_context;
+    std::string ue_mac_addr = "11:11:11:11:11:11";
+    if (rat_specific.has_wlan_context()) {
+      ue_mac_addr = rat_specific.wlan_context().mac_addr();
+    }
     bool update_ipfix_flow_success = pipelined_client_->update_ipfix_flow(
         sid, ue_mac_addr, config.common_context.msisdn(), apn_mac_addr,
         apn_name, pdp_start_time);

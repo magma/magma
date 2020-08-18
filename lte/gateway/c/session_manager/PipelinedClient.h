@@ -46,6 +46,7 @@ class PipelinedClient {
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
     const std::vector<std::string> apn_names,
+    const std::vector<std::uint64_t> pdp_start_times,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
@@ -158,6 +159,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
     const std::vector<std::string> apn_names,
+    const std::vector<std::uint64_t> pdp_start_times,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback);
 
@@ -272,7 +274,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     std::function<void(Status, FlowResponse)> callback);
 
   void update_ipfix_flow_rpc(
-    const IPFIXFlowRequest& request,
+    const UEMacFlowRequest& request,
     std::function<void(Status, FlowResponse)> callback);
 
   void update_subscriber_quota_state_rpc(

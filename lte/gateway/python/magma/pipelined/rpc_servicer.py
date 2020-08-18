@@ -361,6 +361,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                       ) -> SetupFlowsResult:
         res = self._ue_mac_app.handle_restart(request.requests)
 
+        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
+            for req in request.requests:
+                self._ipfix_app.add_ue_sample_flow(req.sid.id, req.msisdn,
+                                                   req.ap_mac_addr,
+                                                   req.ap_name,
+                                                   req.pdp_start_time)
+
         fut.set_result(res)
 
     def AddUEMacFlow(self, request, context):
@@ -386,11 +393,6 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _add_ue_mac_flow(self, request, fut: 'Future(FlowResponse)'):
         res = self._ue_mac_app.add_ue_mac_flow(request.sid.id, request.mac_addr)
-
-        # Install IPFIX trace flow if app is enabled
-        if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
-            self._ipfix_app.add_ue_sample_flow(request.sid.id, request.msisdn,
-                request.ap_mac_addr, request.ap_name)
 
         fut.set_result(res)
 
