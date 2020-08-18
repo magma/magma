@@ -11,7 +11,7 @@
 # limitations under the License.
 */}}
 
-{{- include "modulelib.service" (list . "cwf.service") -}}
+{{- include "orc8rlib.service" (list . "cwf.service") -}}
 {{- define "cwf.service" -}}
 metadata:
   name: {{ .Release.Name }}-cwf

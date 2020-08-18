@@ -11,12 +11,12 @@
 
 analytics:
   service:
-    annotations: {}
     labels: {}
+    annotations: {}
 
 cwf:
   service:
-    annotations:
-      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/cwf"
     labels:
       orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/cwf"

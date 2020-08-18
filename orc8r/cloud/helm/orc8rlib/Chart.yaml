@@ -12,7 +12,7 @@
 apiVersion: v2
 appVersion: 1.0.0
 description: A Helm library chart for orchestrator modules
-name: modulelib
+name: orc8rlib
 version: 0.1.0
 type: library
 engine: gotpl
@@ -20,4 +20,4 @@ sources:
   - https://github.com/magma/magma
 keywords:
   - magma
-  - or8cr
+  - orc8rlib

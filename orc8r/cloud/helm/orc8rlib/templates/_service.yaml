@@ -10,7 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */}}
-{{- define "modulelib.service.tpl" -}}
+{{- define "orc8rlib.service.tpl" -}}
 apiVersion: v1
 kind: Service
 metadata:
@@ -30,6 +30,6 @@ spec:
       port: 8080
       targetPort:  8080
 {{- end }}
-{{- define "modulelib.service" -}}
-{{- include "modulelib.util.merge" (append . "modulelib.service.tpl") -}}
+{{- define "orc8rlib.service" -}}
+{{- include "orc8rlib.util.merge" (append . "orc8rlib.service.tpl") -}}
 {{- end -}}

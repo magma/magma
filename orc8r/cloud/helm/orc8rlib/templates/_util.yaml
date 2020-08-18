@@ -11,13 +11,13 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-modulelib.util.merge will merge two YAML templates and output the result.
+orc8rlib.util.merge will merge two YAML templates and output the result.
 This takes an array of three values:
 - the top context
 - the template name of the overrides (destination)
 - the template name of the base (source)
 */ -}}
-{{- define "modulelib.util.merge" -}}
+{{- define "orc8rlib.util.merge" -}}
 {{- $top := first . -}}
 {{- $overrides := fromYaml (include (index . 1) $top) | default (dict ) -}}
 {{- $tpl := fromYaml (include (index . 2) $top) | default (dict ) -}}
