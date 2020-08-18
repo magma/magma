@@ -32,7 +32,7 @@ def get_mobilityd_gw_info() -> List[GWInfo]:
 
     client = MobilityServiceStub(chan)
     try:
-        return client.ListGatewayInfo(Void())
+        return client.ListGatewayInfo(Void()).gw_list
     except grpc.RpcError as err:
         logging.error(
             "ListGatewayInfo error[%s] %s",
