@@ -19,6 +19,7 @@
 
 #include "LocalEnforcer.h"
 #include "MagmaService.h"
+#include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
@@ -92,8 +93,9 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context = TgppContext{};
+    auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context);
+        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
   }
 
   UsageMonitoringUpdateResponse* get_monitoring_update() {
@@ -221,7 +223,9 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   std::cout << "Andrei: Calling PolicyReAuth" << std::endl;
   auto request = get_policy_reauth_request();
   grpc::ServerContext create_context;
-  EXPECT_CALL(*pipelined_client, activate_flows_for_rules(_, _, _, _, _))
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(imsi, _, _, CheckCount(1), _, _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, request,

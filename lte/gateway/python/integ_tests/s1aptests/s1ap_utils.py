@@ -608,6 +608,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
+                    id="rar_rule_1",
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,

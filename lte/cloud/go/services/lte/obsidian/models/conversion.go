@@ -44,9 +44,9 @@ func (m *LteNetwork) ToConfiguratorNetwork() configurator.Network {
 		Name:        string(m.Name),
 		Description: string(m.Description),
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType:     m.Cellular,
-			orc8r.DnsdNetworkType:       m.DNS,
-			orc8r.NetworkFeaturesConfig: m.Features,
+			lte.CellularNetworkConfigType: m.Cellular,
+			orc8r.DnsdNetworkType:         m.DNS,
+			orc8r.NetworkFeaturesConfig:   m.Features,
 		},
 	}
 }
@@ -57,9 +57,9 @@ func (m *LteNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 		NewName:        swag.String(string(m.Name)),
 		NewDescription: swag.String(string(m.Description)),
 		ConfigsToAddOrUpdate: map[string]interface{}{
-			lte.CellularNetworkType:     m.Cellular,
-			orc8r.DnsdNetworkType:       m.DNS,
-			orc8r.NetworkFeaturesConfig: m.Features,
+			lte.CellularNetworkConfigType: m.Cellular,
+			orc8r.DnsdNetworkType:         m.DNS,
+			orc8r.NetworkFeaturesConfig:   m.Features,
 		},
 	}
 }
@@ -68,7 +68,7 @@ func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 	m.ID = models.NetworkID(n.ID)
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
-	if cfg := n.Configs[lte.CellularNetworkType]; cfg != nil {
+	if cfg := n.Configs[lte.CellularNetworkConfigType]; cfg != nil {
 		m.Cellular = cfg.(*NetworkCellularConfigs)
 	}
 	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
@@ -84,24 +84,24 @@ func (m *LteNetwork) FromConfiguratorNetwork(n configurator.Network) interface{}
 }
 
 func (m *NetworkCellularConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, m), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkConfigType, m), nil
 }
 
 func (m *NetworkCellularConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	return orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
+	return orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
 }
 
 func (m FegNetworkID) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).FegNetworkID = m
-	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkConfigType, iCellularConfig), nil
 }
 
 func (m FegNetworkID) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
 	if iCellularConfig == nil {
 		return nil
 	}
@@ -109,16 +109,16 @@ func (m FegNetworkID) GetFromNetwork(network configurator.Network) interface{} {
 }
 
 func (m *NetworkEpcConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).Epc = m
-	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkConfigType, iCellularConfig), nil
 }
 
 func (m *NetworkEpcConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
 	if iCellularConfig == nil {
 		return nil
 	}
@@ -126,16 +126,16 @@ func (m *NetworkEpcConfigs) GetFromNetwork(network configurator.Network) interfa
 }
 
 func (m *NetworkRanConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
 	if iCellularConfig == nil {
 		return configurator.NetworkUpdateCriteria{}, fmt.Errorf("No cellular network config found")
 	}
 	iCellularConfig.(*NetworkCellularConfigs).Ran = m
-	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkType, iCellularConfig), nil
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.CellularNetworkConfigType, iCellularConfig), nil
 }
 
 func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkType)
+	iCellularConfig := orc8rModels.GetNetworkConfig(network, lte.CellularNetworkConfigType)
 	if iCellularConfig == nil {
 		return nil
 	}
@@ -160,7 +160,7 @@ func (m *LteGateway) FromBackendModels(
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
 	for _, tk := range cellularGateway.Associations {
-		if tk.Type == lte.CellularEnodebType {
+		if tk.Type == lte.CellularEnodebEntityType {
 			m.ConnectedEnodebSerials = append(m.ConnectedEnodebSerials, tk.Key)
 		}
 	}
@@ -202,14 +202,14 @@ func (m *MutableLteGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
 
 func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
 	ent := configurator.NetworkEntity{
-		Type:        lte.CellularGatewayType,
+		Type:        lte.CellularGatewayEntityType,
 		Key:         string(m.ID),
 		Name:        string(m.Name),
 		Description: string(m.Description),
 		Config:      m.Cellular,
 	}
 	for _, enbSerial := range m.ConnectedEnodebSerials {
-		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
+		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enbSerial})
 	}
 
 	return []configurator.EntityWriteOperation{
@@ -217,13 +217,13 @@ func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 		configurator.EntityUpdateCriteria{
 			Type:              orc8r.MagmadGatewayType,
 			Key:               string(m.ID),
-			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: string(m.ID)}},
+			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}},
 		},
 	}
 }
 
 func (m *MutableLteGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: gatewayID}}
+	return []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: gatewayID}}
 }
 
 func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
@@ -231,13 +231,13 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
 	ret := []configurator.EntityWriteOperation{}
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: lte.CellularGatewayType, Key: gatewayID}]
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: gatewayID}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
 
 	entUpdate := configurator.EntityUpdateCriteria{
-		Type:      lte.CellularGatewayType,
+		Type:      lte.CellularGatewayEntityType,
 		Key:       string(m.ID),
 		NewConfig: m.Cellular,
 	}
@@ -249,7 +249,7 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 	}
 
 	for _, enbSerial := range m.ConnectedEnodebSerials {
-		entUpdate.AssociationsToSet = append(entUpdate.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enbSerial})
+		entUpdate.AssociationsToSet = append(entUpdate.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enbSerial})
 	}
 
 	ret = append(ret, entUpdate)
@@ -257,7 +257,7 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 }
 
 func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	cellularConfig, err := configurator.LoadEntityConfig(networkID, lte.CellularGatewayType, gatewayID)
+	cellularConfig, err := configurator.LoadEntityConfig(networkID, lte.CellularGatewayEntityType, gatewayID)
 	if err != nil {
 		return err
 	}
@@ -268,7 +268,7 @@ func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID s
 func (m *GatewayCellularConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
 		{
-			Type: lte.CellularGatewayType, Key: gatewayID,
+			Type: lte.CellularGatewayEntityType, Key: gatewayID,
 			NewConfig: m,
 		},
 	}, nil
@@ -335,13 +335,13 @@ func (m *GatewayNonEpsConfigs) ToUpdateCriteria(networkID string, gatewayID stri
 }
 
 func (m *EnodebSerials) FromBackendModels(networkID string, gatewayID string) error {
-	cellularGatewayEntity, err := configurator.LoadEntity(networkID, lte.CellularGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	cellularGatewayEntity, err := configurator.LoadEntity(networkID, lte.CellularGatewayEntityType, gatewayID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
 	if err != nil {
 		return err
 	}
 	enodebSerials := EnodebSerials{}
 	for _, assoc := range cellularGatewayEntity.Associations {
-		if assoc.Type == lte.CellularEnodebType {
+		if assoc.Type == lte.CellularEnodebEntityType {
 			enodebSerials = append(enodebSerials, assoc.Key)
 		}
 	}
@@ -352,11 +352,11 @@ func (m *EnodebSerials) FromBackendModels(networkID string, gatewayID string) er
 func (m *EnodebSerials) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
 	enodebSerials := []storage.TypeAndKey{}
 	for _, enodebSerial := range *m {
-		enodebSerials = append(enodebSerials, storage.TypeAndKey{Type: lte.CellularEnodebType, Key: enodebSerial})
+		enodebSerials = append(enodebSerials, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enodebSerial})
 	}
 	return []configurator.EntityUpdateCriteria{
 		{
-			Type:              lte.CellularGatewayType,
+			Type:              lte.CellularGatewayEntityType,
 			Key:               gatewayID,
 			AssociationsToSet: enodebSerials,
 		},
@@ -365,15 +365,15 @@ func (m *EnodebSerials) ToUpdateCriteria(networkID string, gatewayID string) ([]
 
 func (m *EnodebSerials) ToDeleteUpdateCriteria(networkID, gatewayID, enodebID string) configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
-		Type: lte.CellularGatewayType, Key: gatewayID,
-		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.CellularEnodebType, Key: enodebID}},
+		Type: lte.CellularGatewayEntityType, Key: gatewayID,
+		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enodebID}},
 	}
 }
 
 func (m *EnodebSerials) ToCreateUpdateCriteria(networkID, gatewayID, enodebID string) configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
-		Type: lte.CellularGatewayType, Key: gatewayID,
-		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularEnodebType, Key: enodebID}},
+		Type: lte.CellularGatewayEntityType, Key: gatewayID,
+		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: enodebID}},
 	}
 }
 
@@ -385,7 +385,7 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 		m.Config = ent.Config.(*EnodebConfiguration)
 	}
 	for _, tk := range ent.ParentAssociations {
-		if tk.Type == lte.CellularGatewayType {
+		if tk.Type == lte.CellularGatewayEntityType {
 			m.AttachedGatewayID = tk.Key
 		}
 	}
@@ -394,7 +394,7 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 
 func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	return configurator.EntityUpdateCriteria{
-		Type:           lte.CellularEnodebType,
+		Type:           lte.CellularEnodebEntityType,
 		Key:            m.Serial,
 		NewName:        swag.String(m.Name),
 		NewDescription: swag.String(m.Description),
@@ -412,7 +412,7 @@ func (m ApnList) ToAssocs() []storage.TypeAndKey {
 	return funk.Map(
 		m,
 		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.ApnEntityType, Key: rn}
+			return storage.TypeAndKey{Type: lte.APNEntityType, Key: rn}
 		},
 	).([]storage.TypeAndKey)
 }

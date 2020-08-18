@@ -118,6 +118,7 @@ class InOutNonNatTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+        subprocess.Popen(["ifconfig", cls.UPLINK_BR, "192.168.128.41"]).wait()
         cls.thread = start_ryu_app_thread(test_setup)
 
         cls.inout_controller = inout_controller_reference.result()

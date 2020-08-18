@@ -138,13 +138,14 @@ SessionState::SessionState(
 SessionState::SessionState(
     const std::string& imsi, const std::string& session_id,
     const SessionConfig& cfg, StaticRuleStore& rule_store,
-    const magma::lte::TgppContext& tgpp_context)
+    const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time)
     : imsi_(imsi),
       session_id_(session_id),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
       config_(cfg),
+      pdp_start_time_(pdp_start_time),
       tgpp_context_(tgpp_context),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
@@ -589,6 +590,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
+  info.ambr = config_.get_apn_ambr();
 }
 
 void SessionState::set_tgpp_context(
@@ -605,6 +607,10 @@ void SessionState::fill_protos_tgpp_context(
 
 uint32_t SessionState::get_request_number() {
   return request_number_;
+}
+
+uint64_t SessionState::get_pdp_start_time() {
+  return pdp_start_time_;
 }
 
 void SessionState::increment_request_number(uint32_t incr) {
@@ -1149,8 +1155,9 @@ void SessionState::get_charging_updates(
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
-      case TERMINATE_SERVICE:
       case ACTIVATE_SERVICE:
+        action->set_ambr(config_.get_apn_ambr());
+      case TERMINATE_SERVICE:
       case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " action type " << action_type;

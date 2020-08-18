@@ -70,7 +70,7 @@ static const char* _emm_sgs_detach_type_str[] = {"EPS",
 /*
  *  Detach Proc: Timer handler
  */
-void _detach_t3422_handler(void*);
+void _detach_t3422_handler(void*, imsi64_t* imsi64);
 
 typedef struct {
   unsigned int ue_id;
@@ -98,7 +98,7 @@ typedef struct {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void _detach_t3422_handler(void* args) {
+void _detach_t3422_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   nw_detach_data_t* data = (nw_detach_data_t*) (args);
 
@@ -107,6 +107,10 @@ void _detach_t3422_handler(void* args) {
   mme_ue_s1ap_id_t ue_id = data->ue_id;
   uint8_t detach_type    = data->detach_type;
 
+  emm_context_t* emm_ctx = emm_context_get(&_emm_data, ue_id);
+  if (emm_ctx) {
+    *imsi64 = emm_ctx->_imsi64;
+  }
   /*
    * Increment the retransmission counter
    */
