@@ -36,7 +36,7 @@ class DHCPState(IntEnum):
 
 class DHCPDescriptor:
     def __init__(self, mac: MacAddress, ip: str,
-                 state_requested: DHCPState,
+                 state_requested: DHCPState, vlan: str,
                  state: DHCPState = DHCPState.UNKNOWN,
                  subnet: str = None, server_ip: str = None,
                  router_ip: str = None, lease_expiration_time: int = 0,
@@ -50,6 +50,7 @@ class DHCPDescriptor:
             ip: Allocated IP if IP is assigned by DHCP server
             state: Last known protocol state on server
             state_requested: Last requested state by client
+            vlan: track vlan id if MAC is allocated in a VLAN
             subnet: subnet of IP from DHCP offer or ACK
             server_ip: DHCP server IP address
             router_ip: GW IP address
@@ -58,6 +59,7 @@ class DHCPDescriptor:
         """
         self.mac = mac
         self.ip = ip
+        self.vlan = vlan
         self.subnet = subnet
         self.state = state
         self.state_requested = state_requested
@@ -72,13 +74,13 @@ class DHCPDescriptor:
             self.lease_renew_deadline = datetime.now()
 
     def __str__(self):
-        return "state: {:8s} requested state: {:8s} mac {} ip {} subnet {}" \
+        return "state: {:8s} requested state: {:8s} mac {} ip {} subnet {} " \
                "DHCP: {} router {} " \
-               "lease time {}, renew {} xid {}" \
+               "lease time {}, renew {} xid {} vlan {}" \
             .format(self.state.name, self.state_requested.name,
                     str(self.mac), self.ip, self.subnet,
                     self.server_ip, self.router_ip, self.lease_expiration_time,
-                    self.lease_renew_deadline, self.xid)
+                    self.lease_renew_deadline, self.xid, self.vlan)
 
     def get_ip_address(self) -> Optional[str]:
         """

@@ -23,9 +23,9 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-// A network represents a tenant. Networks can be configured in a hierarchical
-// manner - network-level configurations are assumed to apply across multiple
-// entities within the network.
+// Network partitions a set of entities. Networks can be configured in a
+// hierarchical manner - network-level configurations are assumed to apply
+// across multiple entities within the network.
 type Network struct {
 	ID string
 	// Specifies the type of network. (lte, wifi, etc)

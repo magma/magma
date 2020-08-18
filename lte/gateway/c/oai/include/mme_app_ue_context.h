@@ -107,7 +107,7 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
 /* Timer structure */
 struct mme_app_timer_t {
   long id;  /* The timer identifier                 */
-  long sec; /* The timer interval value in seconds  */
+  uint32_t sec; /* The timer interval value in seconds  */
 };
 
 /** @struct bearer_context_t
@@ -414,6 +414,7 @@ typedef struct ue_mm_context_s {
    * Stop when UE moves to connected state
    */
   struct mme_app_timer_t implicit_detach_timer;
+  time_t time_implicit_detach_timer_started;
   /* Initial Context Setup Procedure Guard timer */
   struct mme_app_timer_t initial_context_setup_rsp_timer;
   /* UE Context Modification Procedure Guard timer */

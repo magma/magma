@@ -168,12 +168,16 @@ static void mme_app_send_sgs_eps_detach_indication(
 }
 
 // handle the SGS EPS detach timer expiry
-void mme_app_handle_sgs_eps_detach_timer_expiry(void* args) {
+void mme_app_handle_sgs_eps_detach_timer_expiry(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs eps detach timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->sgs_context == NULL) {
@@ -184,6 +188,7 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(void* args) {
         mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64 = ue_context_p->emm_context._imsi64;
   /*
    * Increment the retransmission counter
    */
@@ -217,12 +222,17 @@ void mme_app_handle_sgs_eps_detach_timer_expiry(void* args) {
 }
 
 // handle the SGS Implicit EPS detach timer expiry
-void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(void* args) {
+void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id      = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "sgs implicit eps detach timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -234,6 +244,7 @@ void mme_app_handle_sgs_implicit_eps_detach_timer_expiry(void* args) {
         mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64 = ue_context_p->emm_context._imsi64;
   /*
    * Increment the retransmission counter
    */
@@ -369,12 +380,16 @@ void mme_app_send_sgs_imsi_detach_indication(
 }
 
 /* handle the SGS IMSI detach timer expiry. */
-void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args) {
+void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "sgs imsi detach timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->sgs_context == NULL) {
@@ -385,6 +400,7 @@ void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args) {
         mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64 = ue_context_p->emm_context._imsi64;
   /*
    * Increment the retransmission counter
    */
@@ -441,12 +457,17 @@ void mme_app_handle_sgs_imsi_detach_timer_expiry(void* args) {
 }
 
 /* handle the SGS Implicit IMSI detach timer expiry. */
-void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(void* args) {
+void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id      = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
       mme_ue_s1ap_id, "sgs implicit imsi detach timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   if (ue_context_p->sgs_context == NULL) {
@@ -458,6 +479,7 @@ void mme_app_handle_sgs_implicit_imsi_detach_timer_expiry(void* args) {
         mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64 = ue_context_p->emm_context._imsi64;
   /*
    * Increment the retransmission counter
    */

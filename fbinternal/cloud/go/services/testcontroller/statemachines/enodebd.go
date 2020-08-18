@@ -375,12 +375,12 @@ func subscriberState(desiredState string, successState string, machine *enodebdE
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
 
-	newConfig, ok := cfg.(*subscribermodels.LteSubscription)
+	newConfig, ok := cfg.(*subscribermodels.SubscriberConfig)
 	if !ok {
-		glog.Errorf("got data of type %T but wanted LteSubscription", cfg)
+		glog.Errorf("got data of type %T but wanted SubscriberConfig", cfg)
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
-	newConfig.State = desiredState
+	newConfig.Lte.State = desiredState
 	err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, newConfig)
 	if err != nil {
 		// Restore subscriber to original config before erroring out
@@ -628,12 +628,12 @@ func verifyUpgrade(stateNumber int, successState string, machine *enodebdE2ETest
 
 // State handler helpers
 func find(slice []string, val string) bool {
-    for _, item := range slice {
-        if item == val {
-            return true
-        }
-    }
-    return false
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
 }
 
 func getLatestRepoMagmaVersion(client HttpClient, url string, releaseChannel string) (string, error) {

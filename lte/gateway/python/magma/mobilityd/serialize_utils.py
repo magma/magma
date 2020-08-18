@@ -21,6 +21,18 @@ from lte.protos.mobilityd_pb2 import IPAddress, IPBlock
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from orc8r.protos.redis_pb2 import RedisState
 
+type_str_to_proto_map = {
+    ip_descriptor.IPType.STATIC: IPDesc.STATIC,
+    ip_descriptor.IPType.IP_POOL: IPDesc.IP_POOL,
+    ip_descriptor.IPType.DHCP: IPDesc.DHCP,
+}
+
+type_proto_to_str_map = {
+    IPDesc.STATIC: ip_descriptor.IPType.STATIC,
+    IPDesc.IP_POOL: ip_descriptor.IPType.IP_POOL,
+    IPDesc.DHCP: ip_descriptor.IPType.DHCP,
+}
+
 
 def _ip_version_int_to_proto(version):
     proto = {4: IPBlock.IPV4, 6: IPBlock.IPV6}[version]
@@ -51,6 +63,14 @@ def _desc_state_proto_to_str(proto):
     return state
 
 
+def _desc_type_str_to_proto(ip_type):
+    return type_str_to_proto_map[ip_type]
+
+
+def _desc_type_proto_to_str(proto):
+    return type_proto_to_str_map[proto]
+
+
 def _ip_desc_to_proto(desc):
     """
     Convert an IP descriptor to protobuf.
@@ -74,8 +94,8 @@ def _ip_desc_to_proto(desc):
         id=desc.sid,
         type=SubscriberID.IMSI,
     )
-    proto = IPDesc(ip=ip, ip_block=ip_block, state=state, sid=sid)
-    return proto
+    ip_type = _desc_type_str_to_proto(desc.type)
+    return IPDesc(ip=ip, ip_block=ip_block, state=state, sid=sid, type=ip_type)
 
 
 def _ip_desc_from_proto(proto):
@@ -93,8 +113,9 @@ def _ip_desc_from_proto(proto):
         ip_block_addr, proto.ip_block.prefix_len))
     state = _desc_state_proto_to_str(proto.state)
     sid = proto.sid.id
-    desc = ip_descriptor.IPDesc(ip=ip, ip_block=ip_block, state=state, sid=sid)
-    return desc
+    ip_type = _desc_type_proto_to_str(proto.type)
+    return ip_descriptor.IPDesc(ip=ip, ip_block=ip_block, state=state,
+                                sid=sid, ip_type=ip_type)
 
 
 def serialize_ip_block(block):

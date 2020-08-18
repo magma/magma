@@ -1,0 +1,79 @@
+/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
+syntax = "proto3";
+package magma.orc8r;
+
+import "orc8r/protos/common.proto";
+
+option go_package = "magma/orc8r/lib/go/protos";
+
+
+// --------------------------------------------------------------------------
+// ServiceRegistry supports dynamic service discovery.
+// --------------------------------------------------------------------------
+service ServiceRegistry {
+
+  // ListAllServices returns the service name of all services in the registry.
+  rpc ListAllServices (Void) returns (ListAllServicesResponse) {}
+
+  // FindServices returns the names of all services that have the passed label.
+  rpc FindServices (FindServicesRequest) returns (FindServicesResponse) {}
+
+  // GetServiceAddress returns the service address of a given service.
+  rpc GetServiceAddress (GetServiceAddressRequest) returns (GetServiceAddressResponse) {}
+
+  // GetHttpServerAddress returns the address for a service's HTTP server.
+  rpc GetHttpServerAddress (GetHttpServerAddressRequest) returns (GetHttpServerAddressResponse) {}
+
+  // GetAnnotation returns the annotation value for the passed annotation
+  // name.
+  rpc GetAnnotation(GetAnnotationRequest) returns (GetAnnotationResponse) {}
+}
+
+message ListAllServicesResponse {
+  repeated string services = 1;
+}
+
+message FindServicesRequest {
+  string label = 1;
+}
+
+message FindServicesResponse {
+  repeated string services = 1;
+}
+
+message GetServiceAddressRequest {
+  string service = 1;
+}
+
+message GetServiceAddressResponse {
+  string address = 1;
+}
+
+message GetHttpServerAddressRequest {
+  string service = 1;
+}
+
+message GetHttpServerAddressResponse {
+  string address = 1;
+}
+
+message GetAnnotationRequest {
+  string service = 1;
+  string annotation = 2;
+}
+
+message GetAnnotationResponse {
+  string annotation_value = 1;
+}

@@ -78,18 +78,6 @@ services:
       - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
       - ODS_ENTITY=ofredirector
     logging: *logging_anchor
-  app:
-    container_name: ofapp
-    privileged: true
-    environment:
-      - DEBUG=1
-      - PORT=80
-      - HOST=0.0.0.0
-      - DHCP=${DHCP}
-      - METER=1
-    networks:
-      - control
-    logging: *logging_anchor
   httpserver:
     container_name: httpserver
     ports:

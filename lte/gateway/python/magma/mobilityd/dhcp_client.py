@@ -22,7 +22,7 @@ from typing import Optional, MutableMapping
 from ipaddress import IPv4Network, ip_address
 from scapy.all import AsyncSniffer
 from scapy.layers.dhcp import BOOTP, DHCP
-from scapy.layers.l2 import Ether
+from scapy.layers.l2 import Ether, Dot1Q
 from scapy.layers.inet import IP, UDP
 from scapy.sendrecv import sendp
 from threading import Condition
@@ -82,7 +82,8 @@ class DHCPClient:
         self._sniffer.stop()
         self._monitor_thread_event.set()
 
-    def send_dhcp_packet(self, mac: MacAddress, state: DHCPState,
+    def send_dhcp_packet(self, mac: MacAddress, vlan: str,
+                         state: DHCPState,
                          dhcp_desc: DHCPDescriptor = None):
         """
         Send DHCP packet and record state in dhcp_client_state.
@@ -98,7 +99,7 @@ class DHCPClient:
         # generate DHCP request packet
         if state == DHCPState.DISCOVER:
             dhcp_opts = [("message-type", "discover")]
-            dhcp_desc = DHCPDescriptor(mac=mac, ip="",
+            dhcp_desc = DHCPDescriptor(mac=mac, ip="", vlan=vlan,
                                        state_requested=DHCPState.DISCOVER)
             self._msg_xid = self._msg_xid + 1
             pkt_xid = self._msg_xid
@@ -123,9 +124,11 @@ class DHCPClient:
         dhcp_opts.append("end")
 
         with self._dhcp_notify:
-            self.dhcp_client_state[mac.as_redis_key()] = dhcp_desc
+            self.dhcp_client_state[mac.as_redis_key(vlan)] = dhcp_desc
 
         pkt = Ether(src=str(mac), dst="ff:ff:ff:ff:ff:ff")
+        if vlan:
+            pkt /= Dot1Q(vlan=int(vlan))
         pkt /= IP(src="0.0.0.0", dst="255.255.255.255")
         pkt /= UDP(sport=68, dport=67)
         pkt /= BOOTP(op=1, chaddr=mac.as_hex(), xid=pkt_xid, ciaddr=ciaddr)
@@ -134,37 +137,39 @@ class DHCPClient:
 
         sendp(pkt, iface=self._dhcp_interface, verbose=0)
 
-    def get_dhcp_desc(self, mac: MacAddress) -> Optional[DHCPDescriptor]:
+    def get_dhcp_desc(self, mac: MacAddress, vlan: str) -> Optional[DHCPDescriptor]:
         """
                 Get DHCP description for given MAC.
         Args:
             mac: Mac address of the client
+            vlan: vlan id if the IP allocated in a VLAN
 
         Returns: Current DHCP info.
         """
 
-        key = mac.as_redis_key()
+        key = mac.as_redis_key(vlan)
         if key in self.dhcp_client_state:
             return self.dhcp_client_state[key]
 
-        LOG.debug("lookup error for %s", str(mac))
+        LOG.debug("lookup error for %s", str(key))
         return None
 
-    def release_ip_address(self, mac: MacAddress):
+    def release_ip_address(self, mac: MacAddress, vlan: str):
         """
                 Release DHCP allocated IP.
         Args:
             mac: MAC address of the IP allocated.
+            vlan: vlan id if the IP allocated in a VLAN
 
         Returns: None
         """
-
-        if mac.as_redis_key() not in self.dhcp_client_state:
-            LOG.error("Unallocated DHCP release for MAC: %s", str(mac))
+        key = mac.as_redis_key(vlan)
+        if key not in self.dhcp_client_state:
+            LOG.error("Unallocated DHCP release for MAC: %s", key)
             return
 
-        dhcp_desc = self.dhcp_client_state[mac.as_redis_key()]
-        self.send_dhcp_packet(mac, DHCPState.RELEASE, dhcp_desc)
+        dhcp_desc = self.dhcp_client_state[key]
+        self.send_dhcp_packet(mac, dhcp_desc.vlan, DHCPState.RELEASE, dhcp_desc)
 
     def _monitor_dhcp_state(self):
         """
@@ -174,6 +179,7 @@ class DHCPClient:
             wait_time = self._lease_renew_wait_min
             with self._dhcp_notify:
                 for dhcp_record in self.dhcp_client_state.values():
+                    logging.debug("monitor: %s", dhcp_record)
                     # Only process active records.
                     if dhcp_record.state != DHCPState.ACK and \
                        dhcp_record.state != DHCPState.REQUEST:
@@ -182,6 +188,7 @@ class DHCPClient:
                     if dhcp_record.state == DHCPState.RELEASE:
                         continue
                     now = datetime.datetime.now()
+                    logging.debug("monitor time: %s", now)
                     request_state = DHCPState.REQUEST
                     # in case of lost DHCP lease rediscover it.
                     if now >= dhcp_record.lease_expiration_time:
@@ -189,8 +196,10 @@ class DHCPClient:
 
                     if now >= dhcp_record.lease_renew_deadline:
                         logging.debug("sending lease renewal")
-                        self.send_dhcp_packet(dhcp_record.mac, request_state, dhcp_record)
+                        self.send_dhcp_packet(dhcp_record.mac, dhcp_record.vlan,
+                                              request_state, dhcp_record)
                     else:
+                        # Find next renewal wait time.
                         time_to_renew = dhcp_record.lease_renew_deadline - now
                         wait_time = min(wait_time, time_to_renew.total_seconds())
 
@@ -210,7 +219,10 @@ class DHCPClient:
 
     def _process_dhcp_pkt(self, packet, state: DHCPState):
         mac_addr = create_mac_from_sid(packet[Ether].dst)
-        mac_addr_key = mac_addr.as_redis_key()
+        vlan = ""
+        if Dot1Q in packet:
+            vlan = str(packet[Dot1Q].vlan)
+        mac_addr_key = mac_addr.as_redis_key(vlan)
 
         with self._dhcp_notify:
             if mac_addr_key in self.dhcp_client_state:
@@ -232,13 +244,14 @@ class DHCPClient:
                 dhcp_state = DHCPDescriptor(mac=mac_addr,
                                              ip=ip_offered,
                                              state=state,
+                                             vlan=vlan,
                                              state_requested=state_requested,
                                              subnet=str(ip_subnet),
                                              server_ip=packet[IP].src,
                                              router_ip=router_ip_addr,
                                              lease_expiration_time=lease_expiration_time,
                                              xid=packet[BOOTP].xid)
-                LOG.info("Record mac %s IP %s", mac_addr_key, dhcp_state)
+                LOG.info("Record DHCP for: %s state: %s", mac_addr_key, dhcp_state)
 
                 self.dhcp_client_state[mac_addr_key] = dhcp_state
 
@@ -248,7 +261,7 @@ class DHCPClient:
                 if state == DHCPState.OFFER:
                     #  let other thread work on fulfilling IP allocation request.
                     threading.Event().wait(self.THREAD_YIELD_TIME)
-                    self.send_dhcp_packet(mac_addr, DHCPState.REQUEST, dhcp_state)
+                    self.send_dhcp_packet(mac_addr, vlan, DHCPState.REQUEST, dhcp_state)
             else:
                 LOG.debug("Unknown MAC: %s " % packet.summary())
                 return

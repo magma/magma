@@ -11,7 +11,9 @@
 # limitations under the License.
 #
 interface={{ enodeb_interface }}
+{% if dhcp_server_enabled is sameas true %}
 dhcp-range={{ dhcp_range.lower }},{{ dhcp_range.upper }},12h
+{% endif %}
 local-ttl={{ localTTL }}
 {% if addresses is defined and addresses is iterable %}
 {% for address in addresses -%}

@@ -113,7 +113,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   bool restart_pipelined(const std::uint64_t& epoch);
 
   void end_session(
-      SessionMap& session_map, const LocalEndSessionRequest& request,
+      SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
   std::string convert_mac_addr_to_str(const std::string& mac_addr);
@@ -122,27 +122,65 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       const std::string& imsi, const std::string& session_id);
 
   /**
+   * handle_create_session_cwf handles a sequence of actions needed for the
+   * RATType=WLAN case. It is responsible for responding to the original
+   * LocalCreateSession request.
+   * If there is an existing session for the IMSI that is ACTIVE, we will
+   * simply update its SessionConfig with the new context. In this case, we will
+   * NOT send a CreateSession request into FeG/PolicyDB.
+   * Otherwise, we will go through the procedure of creating a new context.
+   * @param session_map - SessionMap that contains all sessions with IMSI
+   * @param request - the original request coming in from AAA
+   * @param sid - newly created SessionID
+   * @param cfg - newly created SessionConfig from the LocalCreateSessionRequest
+   * @param cb - callback needed to respond to the original
+   * LocalCreateSessionRequest
+   */
+  void handle_create_session_cwf(
+      SessionMap& session_map, const LocalCreateSessionRequest& request,
+      const std::string& sid, SessionConfig cfg,
+      std::function<void(Status, LocalCreateSessionResponse)> cb);
+
+  /**
+   * Handle the logic to recycle an existing CWF session. This involves updating
+   * the existing SessionConfig with the new one. This function is responsible
+   * for responding to the original LocalCreateSession call with the cb.
+   */
+  void recycle_cwf_session(
+      const std::string& imsi, const std::string& sid, const SessionConfig& cfg,
+      SessionMap& session_map,
+      std::function<void(Status, LocalCreateSessionResponse)> cb);
+  /**
+   * handle_create_session_lte handles a sequence of actions needed for the
+   * RATType=LTE case. It is responsible for responding to the original
+   * LocalCreateSession request.
+   * If there is an existing identical session, same SessionConfig, for the IMSI
+   * that is ACTIVE, we will reuse this session. In this case, we will NOT send
+   * a CreateSession request into FeG/PolicyDB.
+   * Otherwise, we will go through the procedure of creating a new context.
+   * @param session_map - SessionMap that contains all sessions with IMSI
+   * @param request - the original request coming in from MMS
+   * @param sid - newly created SessionID
+   * @param cfg - newly created SessionConfig from the LocalCreateSessionRequest
+   * @param cb - callback needed to respond to the original
+   * LocalCreateSessionRequest
+   */
+  void handle_create_session_lte(
+      SessionMap& session_map, const LocalCreateSessionRequest& request,
+      const std::string& sid, SessionConfig cfg,
+      std::function<void(Status, LocalCreateSessionResponse)> cb);
+
+  /**
    * Send session creation request to the CentralSessionController.
    * If it is successful, create a session in session_map, and respond to
    * gRPC caller.
    */
   void send_create_session(
-      SessionMap& session_map, const CreateSessionRequest& request,
-      const std::string& imsi, const std::string& sid, const SessionConfig& cfg,
-      std::function<void(grpc::Status, LocalCreateSessionResponse)>
-          response_callback);
+      SessionMap& session_map, const std::string& sid, const SessionConfig& cfg,
+      std::function<void(grpc::Status, LocalCreateSessionResponse)> cb);
 
   void handle_setup_callback(
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
-
-  SessionConfig build_session_config(const LocalCreateSessionRequest& request);
-
-  void recycle_session(
-      SessionMap& session_map, const LocalCreateSessionRequest& request,
-      const std::string& imsi, const std::string& sid,
-      const std::string& core_sid, SessionConfig cfg, const bool is_wifi,
-      std::function<void(Status, LocalCreateSessionResponse)>
-          response_callback);
 
   /**
    * Get the most recently written state of sessions for Creation
@@ -151,8 +189,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * NOTE: Call only from the main EventBase thread, otherwise there will
    *       be undefined behavior.
    */
-  SessionMap get_sessions_for_creation(
-      const LocalCreateSessionRequest& request);
+  SessionMap get_sessions_for_creation(const std::string& imsi);
 
   /**
    * Get the most recently written state of sessions for reporting usage.
@@ -170,7 +207,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * NOTE: Call only from the main EventBase thread, otherwise there will
    *       be undefined behavior.
    */
-  SessionMap get_sessions_for_deletion(const LocalEndSessionRequest& request);
+  SessionMap get_sessions_for_deletion(const std::string& imsi);
 
   void report_session_update_event(
       SessionMap& session_map, SessionUpdate& session_update);
@@ -178,6 +215,11 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void report_session_update_event_failure(
       SessionMap& session_map, SessionUpdate& session_update,
       const std::string& failure_reason);
+
+  void send_local_create_session_response(
+      Status status, const std::string& sid,
+      std::function<void(Status, LocalCreateSessionResponse)>
+          response_callback);
 };
 
 }  // namespace magma

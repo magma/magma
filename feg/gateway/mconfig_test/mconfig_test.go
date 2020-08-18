@@ -143,6 +143,7 @@ const testMmconfigJsonV2 = `{
       "@type": "type.googleapis.com/magma.mconfig.SessionProxyConfig",
       "logLevel": "INFO",
       "gx": {
+		"disableGx": false,
         "server": {
            "protocol": "tcp",
            "address": "",
@@ -167,6 +168,7 @@ const testMmconfigJsonV2 = `{
 		]
       },
       "gy": {
+        "disableGy": false,
         "server": {
            "protocol": "tcp",
            "address": "",
@@ -271,6 +273,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 		&fegmcfg.SessionProxyConfig{
 			LogLevel: 1,
 			Gx: &fegmcfg.GxConfig{
+				DisableGx: false,
 				Server: &fegmcfg.DiamClientConfig{
 					Protocol:         "tcp",
 					Address:          "",
@@ -295,6 +298,7 @@ func TestGatewayMconfigRefresh(t *testing.T) {
 				},
 			},
 			Gy: &fegmcfg.GyConfig{
+				DisableGy: false,
 				Server: &fegmcfg.DiamClientConfig{
 					Protocol:         "tcp",
 					Address:          "",

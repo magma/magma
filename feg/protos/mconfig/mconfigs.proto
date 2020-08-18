@@ -58,6 +58,7 @@ message GxConfig {
     DiamClientConfig server = 1;
     string OverwriteApn = 2;
     repeated DiamClientConfig servers = 3;
+    bool DisableGx = 4;
 }
 
 enum GyInitMethod {
@@ -71,6 +72,7 @@ message GyConfig {
     GyInitMethod init_method = 2;
     string OverwriteApn = 3;
     repeated DiamClientConfig servers = 4;
+    bool DisableGy = 5;
 }
 
 message SessionProxyConfig {
@@ -138,6 +140,8 @@ message RadiusConfig {
     string AuthAddr = 3;
     // Accounting Radius server address
     string AcctAddr = 4;
+    // DAE server Address
+    string DAEAddr = 5;
 }
 
 message GatewayHealthConfig {

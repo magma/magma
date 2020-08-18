@@ -37,7 +37,6 @@
 #ifndef INTERTASK_INTERFACE_H_
 #define INTERTASK_INTERFACE_H_
 
-#include <sys/epoll.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
@@ -47,8 +46,6 @@
 #include "intertask_interface_conf.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
-
-struct epoll_event;
 
 #define ITTI_MSG_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.messageId)
 #define ITTI_MSG_ORIGIN_ID(mSGpTR) ((mSGpTR)->ittiMsgHeader.originTaskId)

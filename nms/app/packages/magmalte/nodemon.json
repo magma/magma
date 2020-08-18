@@ -1,0 +1,10 @@
+{
+  "verbose": true,
+  "watch": [
+    "../../packages/fbcnms-magma-api",
+    "config/",
+    "scripts/",
+    "server/"
+  ],
+  "exec": "node -r '@fbcnms/babel-register'"
+}

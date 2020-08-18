@@ -44,7 +44,7 @@ the registry using the `-u` and `-p` flags, as shown above.
 While we're here, build and publish NMS images as well
 
 ```bash
-cd magma/symphony/app/fbcnms-projects/magmalte
+cd magma/symphony/app/packages/magmalte
 docker-compose build magmalte
 COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG}
 ```

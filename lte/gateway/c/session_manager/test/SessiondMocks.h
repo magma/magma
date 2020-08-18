@@ -66,7 +66,7 @@ public:
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _, _))
       .WillByDefault(Return(true));
-    ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _))
+    ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _)).WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
@@ -101,13 +101,13 @@ public:
       const std::vector<std::string>& rule_ids,
       const std::vector<PolicyRule>& dynamic_rules,
       const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD5(
-    activate_flows_for_rules,
-    bool(
-      const std::string& imsi,
-      const std::string& ip_addr,
-      const std::vector<std::string>& static_rules,
-      const std::vector<PolicyRule>& dynamic_rules,
+  MOCK_METHOD6(
+      activate_flows_for_rules,
+      bool(
+          const std::string& imsi, const std::string& ip_addr,
+          const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
+          const std::vector<std::string>& static_rules,
+          const std::vector<PolicyRule>& dynamic_rules,
       std::function<void(Status status, ActivateFlowsResult)> callback));
   MOCK_METHOD6(
     add_ue_mac_flow,
@@ -256,20 +256,24 @@ public:
                     const std::vector<PolicyRule> &));
 };
 
-class MockEventsReporter : public EventsReporter{
+class MockEventsReporter : public EventsReporter {
  public:
-  MOCK_METHOD1(session_created,
-               void(const std::unique_ptr<SessionState> &));
-  MOCK_METHOD4(session_create_failure,
-               void(const std::string &, const std::string &,
-                   const std::string &, const std::string &));
-  MOCK_METHOD1(session_updated,
-               void(std::unique_ptr<SessionState> &));
-  MOCK_METHOD2(session_update_failure,
-               void(const std::string &,
-                   const std::unique_ptr<SessionState> &));
-  MOCK_METHOD1(session_terminated,
-               void(const std::unique_ptr<SessionState> &));
+  MOCK_METHOD3(
+      session_created,
+      void(const std::string&, const std::string&, const SessionConfig&));
+  MOCK_METHOD3(
+      session_create_failure,
+      void(const std::string&, const SessionConfig&, const std::string&));
+  MOCK_METHOD3(
+      session_updated,
+      void(const std::string&, const std::string&, const SessionConfig&));
+  MOCK_METHOD4(
+      session_update_failure, void(
+                                  const std::string&, const std::string&,
+                                  const SessionConfig&, const std::string&));
+  MOCK_METHOD2(
+      session_terminated,
+      void(const std::string&, const std::unique_ptr<SessionState>&));
 };
 
 } // namespace magma

@@ -145,11 +145,15 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * Starts the termination process for the session. When termination completes,
-   * the call back function is executed.
-   * @param imsi - imsi of the subscirber
+   * terminate_session handles externally triggered session termination.
+   * This assumes that the termination is coming from the access component, so
+   * it does not notify the termination back to the access component.
+   * @param session_map
+   * @param imsi
+   * @param apn
+   * @param session_update
    */
-  void terminate_subscriber(
+  void terminate_session(
       SessionMap& session_map, const std::string& imsi, const std::string& apn,
       SessionUpdate& session_update);
 
@@ -184,25 +188,6 @@ class LocalEnforcer {
       SessionMap& session_map, PolicyReAuthRequest request,
       PolicyReAuthAnswer& answer_out, SessionUpdate& session_update);
 
-  bool session_with_imsi_exists(
-      SessionMap& session_map, const std::string& imsi) const;
-
-  bool session_with_apn_exists(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& apn) const;
-
-  bool is_session_active(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& core_session_id) const;
-
-  bool get_core_sid_of_active_session(
-      SessionMap& session_map, const std::string& imsi,
-      std::string* core_session_id) const;
-
-  bool get_core_sid_of_session_with_same_config(
-      SessionMap& session_map, const std::string& imsi,
-      const magma::SessionConfig& config, std::string* core_session_id) const;
-
   /**
    * Set session config for the IMSI.
    * Should be only used for WIFI as it will apply it to all sessions with the
@@ -228,6 +213,11 @@ class LocalEnforcer {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
   };
+  struct RedirectInstallInfo {
+    std::string imsi;
+    std::string session_id;
+    magma::lte::RedirectServer redirect_server;
+  };
   std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
@@ -248,21 +238,19 @@ class LocalEnforcer {
 
  private:
   /**
-   * notify_new_report_for_sessions notifies all sessions that a new usage
-   * report is going to be
-   * aggregated.
+   * complete_termination_for_released_sessions completes the termination
+   * process for sessions whose flows have been removed in PipelineD. Since
+   * PipelineD reports all rule records that exist in PipelineD with each
+   * report, if the session is not included, that means the enforcement flows
+   * have been removed.
+   * @param session_map
+   * @param sessions_with_active_flows: a set of IMSIs whose rules were reported
+   * @param session_update
    */
-  void notify_new_report_for_sessions(
-      SessionMap& session_map, SessionUpdate &session_update);
-
-  /**
-   * notify_finish_report_for_sessions notifies all sessions that the
-   * aggregation of the usage
-   * report is finished. For sessions that are terminating, complete the
-   * termination if the session is not included in the report.
-   */
-  void notify_finish_report_for_sessions(
-      SessionMap& session_map, SessionUpdate& session_update);
+  void complete_termination_for_released_sessions(
+      SessionMap& session_map,
+      std::unordered_set<std::string> sessions_with_active_flows,
+      SessionUpdate& session_update);
 
   void filter_rule_installs(
       std::vector<StaticRuleInstall>& static_rule_installs,
@@ -332,6 +320,21 @@ class LocalEnforcer {
       SessionStateUpdateCriteria& update_criteria);
 
   /**
+   * propagate_rule_updates_to_pipelined calls the PipelineD RPC calls to
+   * install/uninstall flows
+   * @param imsi
+   * @param config
+   * @param rules_to_activate
+   * @param rules_to_deactivate
+   * @param always_send_activate : if this is set activate call will be sent
+   * even if rules_to_activate is empty
+   */
+  void propagate_rule_updates_to_pipelined(
+      const std::string& imsi, const SessionConfig& config,
+      const RulesToProcess& rules_to_activate,
+      const RulesToProcess& rules_to_deactivate, bool always_send_activate);
+
+  /**
    * For the matching session ID, activate and/or deactivate the specified
    * rules.
    * Also create a bearer for the session.
@@ -343,8 +346,8 @@ class LocalEnforcer {
 
   /**
    * Completes the session termination and executes the callback function
-   * registered in terminate_subscriber.
-   * complete_termination is called some time after terminate_subscriber
+   * registered in terminate_session.
+   * complete_termination is called some time after terminate_session
    * when the flows no longer appear in the usage report, meaning that they have
    * been deleted.
    * It is also called after a timeout to perform forced termination.
@@ -396,35 +399,99 @@ class LocalEnforcer {
       const google::protobuf::RepeatedField<int>& event_triggers);
 
   void schedule_revalidation(
-      const std::string& imsi,
-      SessionState& session,
+      const std::string& imsi, SessionState& session,
       const google::protobuf::Timestamp& revalidation_time,
       SessionStateUpdateCriteria& update_criteria);
 
   void handle_add_ue_mac_flow_callback(
-    const SubscriberID& sid,
-    const std::string& ue_mac_addr,
-    const std::string& msisdn,
-    const std::string& ap_mac_addr,
-    const std::string& ap_name,
-    Status status, FlowResponse resp);
+      const SubscriberID& sid, const std::string& ue_mac_addr,
+      const std::string& msisdn, const std::string& ap_mac_addr,
+      const std::string& ap_name, Status status, FlowResponse resp);
 
   void handle_activate_ue_flows_callback(
-    const std::string& imsi,
-    const std::string& ip_addr,
-    const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules,
-    Status status, ActivateFlowsResult resp);
+      const std::string& imsi, const std::string& ip_addr,
+      std::experimental::optional<AggregatedMaximumBitrate> ambr,
+      const std::vector<std::string>& static_rules,
+      const std::vector<PolicyRule>& dynamic_rules, Status status,
+      ActivateFlowsResult resp);
 
   /**
-   * Deactivate rules for certain IMSI.
-   * Notify AAA service if the session is a CWF session.
+   * find_and_terminate_session call start_session_termination on a session with
+   * IMSI + session id.
+   * @return true if start_session_termination was called, false if session was
+   * not found
    */
-  void terminate_service(
+  bool find_and_terminate_session(
       SessionMap& session_map, const std::string& imsi,
-      const std::vector<std::string>& rule_ids,
-      const std::vector<PolicyRule>& dynamic_rules,
-      SessionUpdate& session_update);
+      const std::string& session_id, SessionUpdate& session_update);
+
+  /**
+   * start_session_termination starts the termination process. This includes:
+   * 1. Update the Session FSM State to Terminating
+   * 2. Remove all policies attached to the session
+   * 3. If notify_access param is set, communicate to the access component
+   * 4. Propagate subscriber wallet status
+   * 5. Schedule a callback to force termination if termination is not completed
+   *    in a set amount of time
+   * @param imsi
+   * @param session
+   * @param notify_access: bool to determine whether the access component needs
+   * notification
+   * @param update_criteria
+   */
+  void start_session_termination(
+      const std::string& imsi, const std::unique_ptr<SessionState>& session,
+      bool notify_access, SessionStateUpdateCriteria& update_criteria);
+
+  /**
+   * handle_force_termination_timeout is scheduled to run when a termination
+   * process starts. If the session did not terminate itself properly within the
+   * timeout, this function will force the termination to complete.
+   * @param imsi
+   * @param session_id
+   */
+  void handle_force_termination_timeout(
+      const std::string& imsi, const std::string& session_id);
+
+  /**
+   * remove_all_rules_for_termination talks to PipelineD and removes all rules
+   * attached to the session
+   * @param imsi
+   * @param session
+   * @param update_criteria
+   */
+  void remove_all_rules_for_termination(
+      const std::string& imsi, const std::unique_ptr<SessionState>& session,
+      SessionStateUpdateCriteria& update_criteria);
+
+  /**
+   * notify_termination_to_access_service cases on the session's rat type and
+   * communicates to the appropriate access client to notify the session's
+   * termination.
+   * LTE -> MME, WLAN -> AAA
+   * @param imsi
+   * @param session_id
+   * @param config
+   */
+  void notify_termination_to_access_service(
+      const std::string& imsi, const std::string& session_id,
+      const SessionConfig& config);
+  /**
+   * handle_subscriber_quota_state_change will update the session's wallet state
+   * to the desired new_state and propagate that state PipelineD.
+   * @param imsi
+   * @param session
+   * @param new_state
+   * @param update_criteria
+   */
+  void handle_subscriber_quota_state_change(
+      const std::string& imsi, SessionState& session,
+      SubscriberQuotaUpdate_Type new_state,
+      SessionStateUpdateCriteria& update_criteria);
+
+  void handle_subscriber_quota_state_change(
+      const std::string& imsi, SessionState& session,
+      SubscriberQuotaUpdate_Type new_state);
 
   /**
    * Deactivate rules for multiple IMSIs.
@@ -434,12 +501,22 @@ class LocalEnforcer {
       SessionMap& session_map, const std::unordered_set<std::string>& imsis,
       SessionUpdate& session_update);
 
+  void handle_activate_service_action(
+      SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
+      SessionUpdate& session_update);
+
   /**
    * Install flow for redirection through pipelined
    */
-  void install_redirect_flow(
-      const std::unique_ptr<ServiceAction>& action,
-      SessionUpdate &session_update);
+  void start_redirect_flow_install(
+      SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
+      SessionUpdate& session_update);
+
+  void complete_redirect_flow_install(
+      Status status, DirectoryField resp,
+      const RedirectInstallInfo redirect_info);
+
+  PolicyRule create_redirect_rule(const RedirectInstallInfo& info);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 

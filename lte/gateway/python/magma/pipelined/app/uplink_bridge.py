@@ -69,6 +69,7 @@ class UplinkBridgeController(MagmaController):
     def initialize_on_connect(self, datapath):
         if self.config.enable_nat is True:
             self._delete_all_flows()
+            self._del_eth_port()
             return
 
         self._delete_all_flows()
@@ -77,8 +78,8 @@ class UplinkBridgeController(MagmaController):
 
         # 1. DHCP traffic
         match = "in_port=%s,ip,udp,tp_dst=68" % self.config.uplink_eth_port_name
-        actions = "output:%s,output:%s" % (self.config.dhcp_port,
-                                           self.config.uplink_patch)
+        actions = "output:%s,output:%s,output:LOCAL" % (self.config.dhcp_port,
+                                                     self.config.uplink_patch)
         self._install_flow(2000, match, actions)
 
         # 2.a. all egress traffic
@@ -141,14 +142,10 @@ class UplinkBridgeController(MagmaController):
             raise Exception('Error: %s failed with: %s' % (ovs_add_port, ex))
 
     def _del_eth_port(self):
-        if self.config.enable_nat is True or \
-                self.config.uplink_eth_port_name is None:
-            return
-
         ovs_rem_port = "ovs-vsctl --if-exists del-port %s %s" \
                        % (self.config.uplink_bridge, self.config.uplink_eth_port_name)
         self.logger.info("Remove ovs uplink port: %s", ovs_rem_port)
         try:
             subprocess.Popen(ovs_rem_port, shell=True).wait()
         except subprocess.CalledProcessError as ex:
-            raise Exception('Error: %s failed with: %s' % (ovs_rem_port, ex))
+            self.logger.debug("ignore port del error: %s ", ex)
