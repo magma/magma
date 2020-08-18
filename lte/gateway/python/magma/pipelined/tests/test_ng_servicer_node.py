@@ -91,7 +91,7 @@ class NGServiceControllerTest(unittest.TestCase):
             loop=None,
             service_manager=self.service_manager,
             integ_test=False,
-            rpc_stubs=None
+            rpc_stubs={'sessiond_setinterface': MagicMock()}
         )
 
         BridgeTools.create_bridge(self.BRIDGE, self.IFACE)
@@ -109,8 +109,8 @@ class NGServiceControllerTest(unittest.TestCase):
         ng_serv = self.ng_services_controller
         node_mgr = ng_serv._ng_node_mgr
 
-        node_mgr.smf_assoc_version = version
-        node_mgr.assoc_message_count = msg_count
+        node_mgr._smf_assoc_version = version
+        node_mgr._assoc_message_count = msg_count
         node_mgr._send_messsage_wrapper = mock_func
         node_message = node_mgr.get_node_assoc_message()
 
@@ -122,30 +122,34 @@ class NGServiceControllerTest(unittest.TestCase):
 
         assoc_message = self._default_settings(mocked_send_node_state_message_success)
         node_mgr._send_association_request_message(assoc_message)
-        TestCase().assertEqual(node_mgr.smf_assoc_version, 1)
-        TestCase().assertEqual(node_mgr.assoc_message_count, 1)
+        TestCase().assertEqual(node_mgr._smf_assoc_version, 1)
+        TestCase().assertEqual(node_mgr._assoc_message_count, 1)
 
     def test_association_release_message (self):
         ng_serv = self.ng_services_controller
         node_mgr = ng_serv._ng_node_mgr
 
-        # Assume that the Association is establised
-        node_mgr.assoc_state = UPFAssociationState.ESTABLISHED
+        # Assume that the Association is established
+        node_mgr._smf_assoc_state = UPFAssociationState.ESTABLISHED
 
         self._default_settings(mocked_send_node_state_message_success, 1, 1)
         node_mgr.send_association_release_message()
-        TestCase().assertEqual(node_mgr.smf_assoc_version, 0)
-        TestCase().assertEqual(node_mgr.assoc_message_count, 2)
+        TestCase().assertEqual(node_mgr._smf_assoc_version, 0)
+        TestCase().assertEqual(node_mgr._assoc_message_count, 2)
 
     def test_association_setup_message_request_failure (self):
         ng_serv = self.ng_services_controller
         node_mgr = ng_serv._ng_node_mgr
 
+        # Assume that the Association is established
+        node_mgr._smf_assoc_state = UPFAssociationState.ESTABLISHED
+
         assoc_message = self._default_settings(mocked_send_node_state_message_failure)
-        node_mgr._send_association_request_message(assoc_message)
-        TestCase().assertEqual(node_mgr.smf_assoc_version, 0)
-        TestCase().assertEqual(node_mgr.assoc_message_count, 0)
-        TestCase().assertEqual(node_mgr.assoc_state, UPFAssociationState.STARTED)
+        node_mgr.send_association_release_message()
+
+        TestCase().assertEqual(node_mgr._smf_assoc_version, 0)
+        TestCase().assertEqual(node_mgr._assoc_message_count, 0)
+        TestCase().assertEqual(node_mgr._smf_assoc_state, UPFAssociationState.RELEASE)
 
 if __name__ == "__main__":
     unittest.main()

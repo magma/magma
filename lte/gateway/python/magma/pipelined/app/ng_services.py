@@ -12,9 +12,6 @@ limitations under the License.
 """
 from .base import MagmaController, ControllerType
 from magma.pipelined.ng_manager.node_state_manager import NodeStateManager
-from magma.common.service_registry import ServiceRegistry
-
-SESSION_SERVICE_NAME = "sessiond"
 
 class NGServiceController(MagmaController):
     """
@@ -33,14 +30,14 @@ class NGServiceController(MagmaController):
         self.config = kwargs['config']
 
         #Get SessionD Channel
-        self.sessiond_chan = \
-             ServiceRegistry.get_rpc_channel(SESSION_SERVICE_NAME, ServiceRegistry.LOCAL)
+        self.sessiond_setinterface = kwargs['rpc_stubs']['sessiond_setinterface']
 
         # Initialize ng services
-        self._ng_node_mgr = NodeStateManager(self.loop, self.sessiond_chan, self.config)
+        self._ng_node_mgr = NodeStateManager(self.loop, self.sessiond_setinterface,
+                                             self.config)
         self._ng_sess_mgr = None
 
-    def initialize_on_connect(self, datapath):
+    def initialize_on_connect(self, _):
         """
         Initialize node_state and session_state manager
         with datapath connect event.
@@ -50,7 +47,7 @@ class NGServiceController(MagmaController):
         """
         self._ng_node_mgr.send_association_setup_message()
 
-    def cleanup_on_disconnect(self, datapath):
+    def cleanup_on_disconnect(self, _):
         """
         Send notification to sessiond about association
         release
@@ -59,7 +56,7 @@ class NGServiceController(MagmaController):
         """
         self._ng_node_mgr.send_association_release_message()
 
-    def delete_all_flows(self, datapath):
+    def delete_all_flows(self, _):
         # in case the stored sesson manager to call delete from tunnel
         pass
 

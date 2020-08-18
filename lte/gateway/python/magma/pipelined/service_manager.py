@@ -42,7 +42,9 @@ from typing import List
 import aioeventlet
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
+from lte.protos.session_manager_pb2_grpc import (
+    LocalSessionManagerStub,
+    SetInterfaceForUserPlaneStub)
 from magma.pipelined.app.base import ControllerType
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.app.access_control import AccessControlController
@@ -409,7 +411,6 @@ class ServiceManager:
                 module=Classifier.__module__,
                 type=Classifier.APP_TYPE,
                 order_priority=0),
-
         ],
         # 5G Related services
         NG_SERVICE_CONTROLLER_NAME: [
@@ -483,9 +484,7 @@ class ServiceManager:
             logging.info("added uplink bridge controller")
         if self._5G_flag_enable:
             static_services.append(self.__class__.CLASSIFIER_NAME)
-
             static_services.append(self.__class__.NG_SERVICE_CONTROLLER_NAME)
-
             logging.info("added classifier and ng service controller")
 
         static_apps = \
@@ -559,6 +558,10 @@ class ServiceManager:
             'mobilityd': MobilityServiceStub(mobilityd_chan),
             'sessiond': LocalSessionManagerStub(sessiond_chan),
         }
+
+        if self._5G_flag_enable:
+            contexts['rpc_stubs'].update({'sessiond_setinterface': \
+                                            SetInterfaceForUserPlaneStub(sessiond_chan)})
 
         # Instantiate and schedule apps
         for app in manager.instantiate_apps(**contexts):

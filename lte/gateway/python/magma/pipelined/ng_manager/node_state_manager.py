@@ -37,24 +37,25 @@ class NodeStateManager:
     TEID_RANGE_VALUE = 0
     ASSOC_MAX_RETRIES = 40
 
-    GetLocalConfig = NamedTuple(
-        'GetLocalConfig',
+    LocalNodeConfig = NamedTuple(
+        'LocalNodeConfig',
         [('downlink_ip', str), ('node_identifier', str)])
 
-    def __init__(self, loop, sessiond_chan, config):
-        self._loop = loop
+    def __init__(self, loop, sessiond_setinterface, config):
         self.config = self._get_config(config)
-        self._sessiond_chan = sessiond_chan
+        self._loop = loop
 
-        #Fill the node ID for UPF
+        #setinterface for sending node association message
+        self._sessiond_setinterface = sessiond_setinterface
+
+        #Local counters and state information
+        self._smf_assoc_version = 1
+        self._assoc_message_count = 0
+        self._smf_assoc_state = UPFAssociationState.STARTED
+
+        #Fill the node ID for sending association message
         self._node_id=self.config.node_identifier
         self._assoc_mon_thread = None
-
-        self.smf_assoc_version = 1
-        self.assoc_message_count = 0
-        self._assoc_established = False
-
-        self.assoc_state = UPFAssociationState.STARTED
         self._recovery_timestamp = Timestamp()
 
         logging.info(" NGServicer : Node state manager launched ")
@@ -73,30 +74,27 @@ class NodeStateManager:
                 return ng_params['node_identifier']
             return get_enodeb_if_ip(config_dict['enodeb_iface'])
 
-        return self.GetLocalConfig(
+        return self.LocalNodeConfig(
             downlink_ip=get_enodeb_if_ip(config_dict['enodeb_iface']),
             node_identifier=get_node_identifier(config_dict['5G_feature_set'])
         )
 
     def _send_messsage_wrapper(self, node_message):
         return send_node_state_association_request(node_message,\
-                                                  self._sessiond_chan)
+                                                   self._sessiond_setinterface)
 
     def _send_association_request_message(self, assoc_message):
-
         #Build the message
         node_message=UPFNodeState(upf_id=self._node_id)
         node_message.associaton_state.CopyFrom(assoc_message)
 
         if self._send_messsage_wrapper(node_message) == True:
-            self.assoc_state = assoc_message.assoc_state
+            self._smf_assoc_state = assoc_message.assoc_state
 
-            if self.assoc_state == UPFAssociationState.RELEASE:
-                self.smf_assoc_version = 0
-            else:
-                self.smf_assoc_version += 1
+            if self._smf_assoc_state != UPFAssociationState.RELEASE:
+                self._smf_assoc_version += 1
 
-            self.assoc_message_count += 1
+            self._assoc_message_count += 1
             return True
 
         return False
@@ -109,7 +107,7 @@ class NodeStateManager:
         #Create Node association setup message
         assoc_message= \
            UPFAssociationState(
-                           state_version=self.smf_assoc_version,
+                           state_version=self._smf_assoc_version,
                            assoc_state=UPFAssociationState.ESTABLISHED,
                            feature_set=UPFFeatureSet(f_teid=True),
                            recovery_time_stamp=self._recovery_timestamp.GetCurrentTime(),
@@ -121,7 +119,7 @@ class NodeStateManager:
 
         self._assoc_mon_thread = hub.spawn(self._monitor_association, assoc_message)
 
-    def _monitor_association(self, assoc_message, poll_interval=3):
+    def _monitor_association(self, assoc_message: UPFAssociationState, poll_interval: int = 3):
         """
         Polling to establish smf association
         """
@@ -143,17 +141,18 @@ class NodeStateManager:
                 hub.sleep(poll_interval)
 
     def send_association_release_message(self):
-
         # If setup is not established no need to release
-        if self.assoc_state != UPFAssociationState.ESTABLISHED:
+        if self._smf_assoc_state != UPFAssociationState.ESTABLISHED:
             return
 
         #Create Node association release message
         assoc_message=UPFAssociationState(
-                            state_version=self.smf_assoc_version+1,
+                            state_version=self._smf_assoc_version+1,
                             assoc_state=UPFAssociationState.RELEASE)
 
         self._send_association_request_message(assoc_message)
+        self._smf_assoc_state = UPFAssociationState.RELEASE
+        self._smf_assoc_version = 0
 
     #In case of restarts
     def get_node_assoc_message(self):
@@ -165,7 +164,7 @@ class NodeStateManager:
         #Create Node association setup message
         assoc_message = \
            UPFAssociationState(
-                           state_version=self.smf_assoc_version,
+                           state_version=self._smf_assoc_version,
                            assoc_state=UPFAssociationState.ESTABLISHED,
                            feature_set=UPFFeatureSet(f_teid=True),
                            recovery_time_stamp=self._recovery_timestamp.GetCurrentTime(),

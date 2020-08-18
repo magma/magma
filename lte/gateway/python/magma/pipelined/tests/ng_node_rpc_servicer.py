@@ -87,7 +87,7 @@ class RpcTests(unittest.TestCase):
 
         # Create a rpc stub
         channel = grpc.insecure_channel('0.0.0.0:{}'.format(port))
-        self._channel = channel
+        sessiod_interface_stub = SetInterfaceForUserPlaneStub(channel)
 
         config_mock ={
                    'enodeb_iface': 'eth1',
@@ -97,7 +97,7 @@ class RpcTests(unittest.TestCase):
                    'bridge_name': self.BRIDGE,
                }
 
-        self._ng_node_mgr = NodeStateManager(loop_mock, channel, config_mock)
+        self._ng_node_mgr = NodeStateManager(loop_mock, sessiod_interface_stub, config_mock)
 
     def tearDown(self):
         self._rpc_server.stop(0)
@@ -112,8 +112,9 @@ class RpcTests(unittest.TestCase):
         if node_mgr._assoc_mon_thread:
             hub.kill(node_mgr._assoc_mon_thread)
 
-        node_mgr._monitor_association()
-        TestCase().assertEqual(node_mgr.assoc_message_count, 1)
+        upf_node_assoc_message = node_mgr.get_node_assoc_message()
+        node_mgr._monitor_association(upf_node_assoc_message.associaton_state)
+        TestCase().assertEqual(node_mgr._assoc_message_count, 1)
 
     def test_assoc_setup_message_request_fail_attempt(self):
         node_mgr = self._ng_node_mgr
@@ -121,12 +122,12 @@ class RpcTests(unittest.TestCase):
         if node_mgr._assoc_mon_thread:
             hub.kill(node_mgr._assoc_mon_thread)
 
-        # Change the mock function to see if the send is failed
-        node_mgr._sessiond_chan = None
-        node_mgr._send_association_request_message(node_mgr._assoc_message)
-        TestCase().assertEqual(node_mgr.assoc_message_count, 0)
+        # Change the mock function to see if the send is passing
+        upf_node_assoc_message = node_mgr.get_node_assoc_message()
+        node_mgr._send_association_request_message(upf_node_assoc_message.associaton_state)
+        TestCase().assertEqual(node_mgr._assoc_message_count, 1)
 
-        # Change the mock function to see if the send is successfull
-        node_mgr._sessiond_chan = self._channel
-        node_mgr._send_association_request_message(node_mgr._assoc_message)
-        TestCase().assertEqual(node_mgr.assoc_message_count, 1)
+        # Stop the rpc server and check if send is failing
+        self._rpc_server.stop(0)
+        node_mgr._send_association_request_message(upf_node_assoc_message.associaton_state)
+        TestCase().assertEqual(node_mgr._assoc_message_count, 1)
