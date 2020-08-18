@@ -739,30 +739,37 @@ int s1ap_mme_handle_initial_context_setup_response(
     eRABSetupItemCtxtSURes_p =
         (S1ap_E_RABSetupItemCtxtSURes_t*) initialContextSetupResponseIEs_p
             ->e_RABSetupListCtxtSURes.s1ap_E_RABSetupItemCtxtSURes.array[item];
-    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.item[item].e_rab_id =
-        eRABSetupItemCtxtSURes_p->e_RAB_ID;
-    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.item[item].gtp_teid =
+    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+        .e_rab_setup_list.item[item]
+        .e_rab_id = eRABSetupItemCtxtSURes_p->e_RAB_ID;
+    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+        .e_rab_setup_list.item[item]
+        .gtp_teid =
         htonl(*((uint32_t*) eRABSetupItemCtxtSURes_p->gTP_TEID.buf));
-    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_setup_list.item[item].transport_layer_address =
-        blk2bstr(
-            eRABSetupItemCtxtSURes_p->transportLayerAddress.buf,
-            eRABSetupItemCtxtSURes_p->transportLayerAddress.size);
+    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+        .e_rab_setup_list.item[item]
+        .transport_layer_address = blk2bstr(
+        eRABSetupItemCtxtSURes_p->transportLayerAddress.buf,
+        eRABSetupItemCtxtSURes_p->transportLayerAddress.size);
   }
   // Failed bearers
-  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_failed_to_setup_list.no_of_items =
+  MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+      .e_rab_failed_to_setup_list.no_of_items =
       initialContextSetupResponseIEs_p->e_RABFailedToSetupListCtxtSURes
           .s1ap_E_RABItem.count;
   for (int item = 0;
        item < initialContextSetupResponseIEs_p->e_RABFailedToSetupListCtxtSURes
                   .s1ap_E_RABItem.count;
        item++) {
-    S1ap_E_RABItem_t *erab_item =
+    S1ap_E_RABItem_t* erab_item =
         (S1ap_E_RABItem_t*) initialContextSetupResponseIEs_p
             ->e_RABFailedToSetupListCtxtSURes.s1ap_E_RABItem.array[item];
-    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_failed_to_setup_list.item[item].e_rab_id =
-        erab_item->e_RAB_ID;
-    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).e_rab_failed_to_setup_list.item[item].cause =
-        erab_item->cause;
+    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+        .e_rab_failed_to_setup_list.item[item]
+        .e_rab_id = erab_item->e_RAB_ID;
+    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+        .e_rab_failed_to_setup_list.item[item]
+        .cause = erab_item->cause;
   }
   message_p->ittiMsgHeader.imsi = imsi64;
   rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);

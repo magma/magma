@@ -416,14 +416,16 @@ static void sgw_populate_mbr_bearer_contexts_not_found(
     itti_s11_modify_bearer_response_t* modify_response_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint8_t rsp_idx = 0;
-    for (uint8_t idx = 0; idx < resp_pP->num_bearers_not_found; idx++) {
-      modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[rsp_idx]
-          .eps_bearer_id = resp_pP->bearer_contexts_not_found[idx].eps_bearer_id;
-      modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[rsp_idx]
-          .cause.cause_value = CONTEXT_NOT_FOUND;
-      modify_response_p->bearer_contexts_marked_for_removal
-          .num_bearer_context += 1;
-    }
+  for (uint8_t idx = 0; idx < resp_pP->num_bearers_not_found; idx++) {
+    modify_response_p->bearer_contexts_marked_for_removal
+        .bearer_contexts[rsp_idx]
+        .eps_bearer_id = resp_pP->bearer_contexts_not_found[idx].eps_bearer_id;
+    modify_response_p->bearer_contexts_marked_for_removal
+        .bearer_contexts[rsp_idx]
+        .cause.cause_value = CONTEXT_NOT_FOUND;
+    modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context +=
+        1;
+  }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 //------------------------------------------------------------------------------
@@ -431,34 +433,39 @@ static void sgw_populate_mbr_bearer_contexts_removed(
     const itti_sgi_update_end_point_response_t* const resp_pP,
     itti_s11_modify_bearer_response_t* modify_response_p,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-    imsi64_t imsi64 ) {
+    imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  uint8_t rsp_idx = 0;
+  uint8_t rsp_idx                          = 0;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
-     for (uint8_t idx = 0; idx < resp_pP->num_bearers_removed; idx++) {
-      eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+  for (uint8_t idx = 0; idx < resp_pP->num_bearers_removed; idx++) {
+    eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
         &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
              .pdn_connection,
         resp_pP->bearer_contexts_to_be_removed[idx].eps_bearer_id);
 
-      if (NULL != eps_bearer_ctxt_p) {
-        sgw_free_eps_bearer_context(
-          &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection
-            .sgw_eps_bearers_array[EBI_TO_INDEX(eps_bearer_ctxt_p->eps_bearer_id)]);
-        modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[rsp_idx]
-            .eps_bearer_id = resp_pP->bearer_contexts_to_be_removed[idx].eps_bearer_id;
-        modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[rsp_idx]
-            .cause.cause_value = REQUEST_ACCEPTED;
-        modify_response_p->bearer_contexts_marked_for_removal
-            .num_bearer_context += 1;
-        rsp_idx ++;
-      } else {
-        OAILOG_DEBUG_UE(
-            LOG_SPGW_APP, imsi64,
-            "Rx SGI_UPDATE_ENDPOINT_RESPONSE: eps_bearer_ctxt_p not found for bearer to be removed ebi %u\n",
-            resp_pP->bearer_contexts_to_be_removed[idx].eps_bearer_id);
-      }
+    if (NULL != eps_bearer_ctxt_p) {
+      sgw_free_eps_bearer_context(
+          &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+               .pdn_connection.sgw_eps_bearers_array[EBI_TO_INDEX(
+                   eps_bearer_ctxt_p->eps_bearer_id)]);
+      modify_response_p->bearer_contexts_marked_for_removal
+          .bearer_contexts[rsp_idx]
+          .eps_bearer_id =
+          resp_pP->bearer_contexts_to_be_removed[idx].eps_bearer_id;
+      modify_response_p->bearer_contexts_marked_for_removal
+          .bearer_contexts[rsp_idx]
+          .cause.cause_value = REQUEST_ACCEPTED;
+      modify_response_p->bearer_contexts_marked_for_removal
+          .num_bearer_context += 1;
+      rsp_idx++;
+    } else {
+      OAILOG_DEBUG_UE(
+          LOG_SPGW_APP, imsi64,
+          "Rx SGI_UPDATE_ENDPOINT_RESPONSE: eps_bearer_ctxt_p not found for "
+          "bearer to be removed ebi %u\n",
+          resp_pP->bearer_contexts_to_be_removed[idx].eps_bearer_id);
     }
+  }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 //------------------------------------------------------------------------------
@@ -466,81 +473,83 @@ static void sgw_populate_mbr_bearer_contexts_modified(
     const itti_sgi_update_end_point_response_t* const resp_pP,
     itti_s11_modify_bearer_response_t* modify_response_p,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
-    imsi64_t imsi64 ) {
+    imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  uint8_t rsp_idx = 0;
-  int rv                                               = RETURNok;
+  uint8_t rsp_idx                          = 0;
+  int rv                                   = RETURNok;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
-    for (uint8_t idx = 0; idx < resp_pP->num_bearers_modified; idx++) {
-      eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+  for (uint8_t idx = 0; idx < resp_pP->num_bearers_modified; idx++) {
+    eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
         &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-          .pdn_connection,
-          resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id);
+             .pdn_connection,
+        resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id);
 
-      if (NULL != eps_bearer_ctxt_p) {
-        OAILOG_DEBUG_UE(
+    if (NULL != eps_bearer_ctxt_p) {
+      OAILOG_DEBUG_UE(
           LOG_SPGW_APP, imsi64,
           "Rx SGI_UPDATE_ENDPOINT_RESPONSE: REQUEST_ACCEPTED\n");
 
-        modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx]
-          .eps_bearer_id = resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id;
-        modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx]
+      modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx]
+          .eps_bearer_id =
+          resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id;
+      modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx]
           .cause.cause_value = REQUEST_ACCEPTED;
-        modify_response_p->bearer_contexts_modified.num_bearer_context += 1;
-        // if default bearer
-        //#pragma message  "TODO define constant for default eps_bearer id"
+      modify_response_p->bearer_contexts_modified.num_bearer_context += 1;
+      // if default bearer
+      //#pragma message  "TODO define constant for default eps_bearer id"
 
-        // setup GTPv1-U tunnel
-        struct in_addr enb = {.s_addr = 0};
-        enb.s_addr =
-            eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+      // setup GTPv1-U tunnel
+      struct in_addr enb = {.s_addr = 0};
+      enb.s_addr =
+          eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-        struct in_addr ue = {.s_addr = 0};
-        ue.s_addr         = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
-        Imsi_t imsi =
-            new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
-        /* UE is switching back to EPS services after the CS Fallback
-         * If Modify bearer Request is received in UE suspended mode, Resume PS
-         * data
-         */
-        if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+      struct in_addr ue = {.s_addr = 0};
+      ue.s_addr         = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+      Imsi_t imsi =
+          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
+      /* UE is switching back to EPS services after the CS Fallback
+       * If Modify bearer Request is received in UE suspended mode, Resume PS
+       * data
+       */
+      if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
               .pdn_connection.ue_suspended_for_ps_handover) {
-          rv = gtp_tunnel_ops->forward_data_on_tunnel(
-              ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
-              DEFAULT_PRECEDENCE);
-          if (rv < 0) {
-            OAILOG_ERROR_UE(
-                LOG_SPGW_APP, imsi64,
-                "ERROR in forwarding data on TUNNEL err=%d\n", rv);
-          }
-        } else {
-          OAILOG_ERROR(
-          LOG_SPGW_APP, "Adding tunnel gtpv1u_add_tunnel for bearer %u\n", resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id);
-          rv = gtpv1u_add_tunnel(
+        rv = gtp_tunnel_ops->forward_data_on_tunnel(
+            ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
+            DEFAULT_PRECEDENCE);
+        if (rv < 0) {
+          OAILOG_ERROR_UE(
+              LOG_SPGW_APP, imsi64,
+              "ERROR in forwarding data on TUNNEL err=%d\n", rv);
+        }
+      } else {
+        OAILOG_ERROR(
+            LOG_SPGW_APP, "Adding tunnel gtpv1u_add_tunnel for bearer %u\n",
+            resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id);
+        rv = gtpv1u_add_tunnel(
             ue, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
-          if (rv < 0) {
-            OAILOG_ERROR_UE(
-                LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
-          }
+        if (rv < 0) {
+          OAILOG_ERROR_UE(
+              LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
         }
-        // may be removed
-        if (TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX >
-          eps_bearer_ctxt_p->num_sdf) {
-          int i = 0;
-          while ((i < eps_bearer_ctxt_p->num_sdf) &&
-             (SDF_ID_NGBR_DEFAULT != eps_bearer_ctxt_p->sdf_id[i]))
-            i++;
-          if (i >= eps_bearer_ctxt_p->num_sdf) {
-              eps_bearer_ctxt_p->sdf_id[eps_bearer_ctxt_p->num_sdf] =
-                SDF_ID_NGBR_DEFAULT;
-              eps_bearer_ctxt_p->num_sdf += 1;
-          }
-        }
-        rsp_idx += 1;;
       }
+      // may be removed
+      if (TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX >
+          eps_bearer_ctxt_p->num_sdf) {
+        int i = 0;
+        while ((i < eps_bearer_ctxt_p->num_sdf) &&
+               (SDF_ID_NGBR_DEFAULT != eps_bearer_ctxt_p->sdf_id[i]))
+          i++;
+        if (i >= eps_bearer_ctxt_p->num_sdf) {
+          eps_bearer_ctxt_p->sdf_id[eps_bearer_ctxt_p->num_sdf] =
+              SDF_ID_NGBR_DEFAULT;
+          eps_bearer_ctxt_p->num_sdf += 1;
+        }
+      }
+      rsp_idx += 1;
     }
+  }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 //------------------------------------------------------------------------------
@@ -554,8 +563,7 @@ int sgw_handle_sgi_endpoint_updated(
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, imsi64,
-      "Rx SGI_UPDATE_ENDPOINT_RESPONSE, Context teid " TEID_FMT
-      " status %d\n",
+      "Rx SGI_UPDATE_ENDPOINT_RESPONSE, Context teid " TEID_FMT " status %d\n",
       resp_pP->context_teid, resp_pP->status);
   message_p = itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
 
@@ -569,17 +577,20 @@ int sgw_handle_sgi_endpoint_updated(
       sgw_cm_get_spgw_context(resp_pP->context_teid);
   if (new_bearer_ctxt_info_p) {
     modify_response_p->teid =
-        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-            .mme_teid_S11;
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.mme_teid_S11;
     modify_response_p->cause.cause_value = REQUEST_ACCEPTED;
     modify_response_p->trxn =
         new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.trxn;
-    message_p->ittiMsgHeader.imsi        = imsi64;
+    message_p->ittiMsgHeader.imsi = imsi64;
 
-    sgw_populate_mbr_bearer_contexts_modified(resp_pP, modify_response_p, new_bearer_ctxt_info_p, imsi64);
-    sgw_populate_mbr_bearer_contexts_removed(resp_pP, modify_response_p, new_bearer_ctxt_info_p, imsi64);
+    sgw_populate_mbr_bearer_contexts_modified(
+        resp_pP, modify_response_p, new_bearer_ctxt_info_p, imsi64);
+    sgw_populate_mbr_bearer_contexts_removed(
+        resp_pP, modify_response_p, new_bearer_ctxt_info_p, imsi64);
     sgw_populate_mbr_bearer_contexts_not_found(resp_pP, modify_response_p);
-    OAILOG_ERROR(LOG_SPGW_APP, "Sending successful MBRsp for bearer" TEID_FMT "\n", resp_pP->context_teid);
+    OAILOG_ERROR(
+        LOG_SPGW_APP, "Sending successful MBRsp for bearer" TEID_FMT "\n",
+        resp_pP->context_teid);
     rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
@@ -714,54 +725,39 @@ int sgw_handle_sgi_endpoint_deleted(
 
 //------------------------------------------------------------------------------
 static int handle_sgi_end_point_update(
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
-  const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
-  itti_sgi_update_end_point_response_t *sgi_update_end_point_resp,
-  uint8_t *sgi_rsp_idx,
-  uint8_t *idx,
-  imsi64_t imsi64) {
-
-  int rv                                               = RETURNok;
+    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
+    const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
+    itti_sgi_update_end_point_response_t* sgi_update_end_point_resp,
+    uint8_t* sgi_rsp_idx, uint8_t* idx, imsi64_t imsi64) {
+  int rv = RETURNok;
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
-  struct in_addr ue  = eps_bearer_ctxt_p->paa.ipv4_address;
-
-  OAILOG_DEBUG_UE(
-		  LOG_SPGW_APP, imsi64, "Delete GTPv1-U tunnel for sgw_teid : %d\n",
-		  eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
-  // delete GTPv1-U tunnel
-  OAILOG_ERROR(LOG_SPGW_APP, "deleting TUNNEL for ebi %u\n", eps_bearer_ctxt_p->eps_bearer_id);
-  rv = gtp_tunnel_ops->del_tunnel(
-		  ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-		  eps_bearer_ctxt_p->enb_teid_S1u, NULL);
   if (rv < 0) {
-	  OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
+    OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
   }
   FTEID_T_2_IP_ADDRESS_T(
-		(&modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[*idx]
-		 .s1_eNB_fteid),
-		(&eps_bearer_ctxt_p->enb_ip_address_S1u));
+      (&modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[*idx]
+            .s1_eNB_fteid),
+      (&eps_bearer_ctxt_p->enb_ip_address_S1u));
   eps_bearer_ctxt_p->enb_teid_S1u =
-    modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[*idx]
-    .s1_eNB_fteid.teid;
-  sgi_update_end_point_resp->bearer_contexts_to_be_modified[*sgi_rsp_idx].sgw_S1u_teid =
-    eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
-  sgi_update_end_point_resp->bearer_contexts_to_be_modified[*sgi_rsp_idx].enb_S1u_teid =
-    eps_bearer_ctxt_p->enb_teid_S1u;
-  sgi_update_end_point_resp->bearer_contexts_to_be_modified[*sgi_rsp_idx].eps_bearer_id =
-    eps_bearer_ctxt_p->eps_bearer_id;
-  sgi_update_end_point_resp->num_bearers_modified ++;
+      modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[*idx]
+          .s1_eNB_fteid.teid;
+  sgi_update_end_point_resp->bearer_contexts_to_be_modified[*sgi_rsp_idx]
+      .sgw_S1u_teid = eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up;
+  sgi_update_end_point_resp->bearer_contexts_to_be_modified[*sgi_rsp_idx]
+      .enb_S1u_teid = eps_bearer_ctxt_p->enb_teid_S1u;
+  sgi_update_end_point_resp->bearer_contexts_to_be_modified[*sgi_rsp_idx]
+      .eps_bearer_id = eps_bearer_ctxt_p->eps_bearer_id;
+  sgi_update_end_point_resp->num_bearers_modified++;
 
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 
-
 //------------------------------------------------------------------------------
 static int send_mbr_failure(
-  const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
-  imsi64_t imsi64) {
-
-  int rv                                               = RETURNok;
+    const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
+    imsi64_t imsi64) {
+  int rv = RETURNok;
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   MessageDef* message_p =
       itti_alloc_new_message(TASK_SPGW_APP, S11_MODIFY_BEARER_RESPONSE);
@@ -770,10 +766,13 @@ static int send_mbr_failure(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
 
-  itti_s11_modify_bearer_response_t* modify_response_p = &message_p->ittiMsg.s11_modify_bearer_response;
+  itti_s11_modify_bearer_response_t* modify_response_p =
+      &message_p->ittiMsg.s11_modify_bearer_response;
 
-  for (uint8_t idx = 0; idx < modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context;
-     idx ++) {
+  for (uint8_t idx = 0;
+       idx <
+       modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context;
+       idx++) {
     modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[idx]
         .eps_bearer_id =
         modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx]
@@ -781,8 +780,7 @@ static int send_mbr_failure(
     modify_response_p->bearer_contexts_marked_for_removal.bearer_contexts[idx]
         .cause.cause_value = CONTEXT_NOT_FOUND;
   }
-  modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context +=
-      1;
+  modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context += 1;
   modify_response_p->cause.cause_value = CONTEXT_NOT_FOUND;
   modify_response_p->trxn              = modify_bearer_pP->trxn;
   OAILOG_DEBUG_UE(
@@ -801,9 +799,9 @@ int sgw_handle_modify_bearer_request(
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     imsi64_t imsi64) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p             = NULL;
-  int rv                                               = RETURNok;
-  uint8_t idx = 0;
+  sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p                       = NULL;
+  int rv                                                         = RETURNok;
+  uint8_t idx                                                    = 0;
   itti_sgi_update_end_point_response_t sgi_update_end_point_resp = {0};
   struct in_addr enb = {.s_addr = 0};
 
@@ -814,7 +812,6 @@ int sgw_handle_modify_bearer_request(
       LOG_SPGW_APP, "Rx MODIFY_BEARER_REQUEST, teid " TEID_FMT "\n",
       modify_bearer_pP->teid);
 
-
   s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(modify_bearer_pP->teid);
   if (new_bearer_ctxt_info_p) {
@@ -824,63 +821,97 @@ int sgw_handle_modify_bearer_request(
             .eps_bearer_id;
     new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.trxn =
         modify_bearer_pP->trxn;
-   OAILOG_ERROR(
-      LOG_SPGW_APP, "In sgw_handle_modify_bearer_request num_bearer_context %d\n",
-      modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context);
+    OAILOG_ERROR(
+        LOG_SPGW_APP,
+        "In sgw_handle_modify_bearer_request num_bearer_context %d\n",
+        modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context);
 
     sgi_update_end_point_resp.context_teid = modify_bearer_pP->teid;
-    sgi_update_end_point_resp.status = 0x00;
-   uint8_t sgi_rsp_idx = 0;
-   for (idx = 0; idx < modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context;
-      idx ++) {
-     eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-        &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-             .pdn_connection,
-        modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx]
-            .eps_bearer_id);
+    sgi_update_end_point_resp.status       = 0x00;
+    uint8_t sgi_rsp_idx                    = 0;
+    for (idx = 0;
+         idx <
+         modify_bearer_pP->bearer_contexts_to_be_modified.num_bearer_context;
+         idx++) {
+      eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+          &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+               .pdn_connection,
+          modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx]
+              .eps_bearer_id);
 
-     if (NULL == eps_bearer_ctxt_p) {
-       sgi_update_end_point_resp.bearer_contexts_not_found[sgi_rsp_idx].eps_bearer_id =
-         modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx].eps_bearer_id;
-       sgi_update_end_point_resp.num_bearers_not_found ++;
-       sgi_rsp_idx ++;
-      } else { //eps_bearer_ctxt_p found
-     // different
-      OAILOG_ERROR(
-        LOG_SPGW_APP, "pruthvi eps_bearer_ctxt_p ebi %u in sgw_handle_modify_bearer_request\n",eps_bearer_ctxt_p->eps_bearer_id
-        );
-      OAILOG_ERROR(
-        LOG_SPGW_APP, "pruthvi ipv4 addr in sgw_handle_modify_bearer_request %x idx %d\n", modify_bearer_pP->bearer_contexts_to_be_modified.bearer_contexts[idx].s1_eNB_fteid.ipv4_address.s_addr, idx
-      );
-      enb.s_addr =
+      if (NULL == eps_bearer_ctxt_p) {
+        sgi_update_end_point_resp.bearer_contexts_not_found[sgi_rsp_idx]
+            .eps_bearer_id = modify_bearer_pP->bearer_contexts_to_be_modified
+                                 .bearer_contexts[idx]
+                                 .eps_bearer_id;
+        sgi_update_end_point_resp.num_bearers_not_found++;
+        sgi_rsp_idx++;
+      } else {  // eps_bearer_ctxt_p found
+        // different
+        OAILOG_ERROR(
+            LOG_SPGW_APP,
+            "pruthvi eps_bearer_ctxt_p ebi %u in "
+            "sgw_handle_modify_bearer_request\n",
+            eps_bearer_ctxt_p->eps_bearer_id);
+        OAILOG_ERROR(
+            LOG_SPGW_APP,
+            "pruthvi ipv4 addr in sgw_handle_modify_bearer_request %x idx %d\n",
+            modify_bearer_pP->bearer_contexts_to_be_modified
+                .bearer_contexts[idx]
+                .s1_eNB_fteid.ipv4_address.s_addr,
+            idx);
+        enb.s_addr =
             eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-      if (is_enb_ip_address_same(
-              &modify_bearer_pP->bearer_contexts_to_be_modified
-                   .bearer_contexts[idx]
-                   .s1_eNB_fteid,
-              &eps_bearer_ctxt_p->enb_ip_address_S1u) == false) {
-        if (handle_sgi_end_point_update(eps_bearer_ctxt_p, modify_bearer_pP, &sgi_update_end_point_resp, &sgi_rsp_idx, &idx, imsi64) == RETURNok) {
-        sgi_rsp_idx ++;
+        if (is_enb_ip_address_same(
+                &modify_bearer_pP->bearer_contexts_to_be_modified
+                     .bearer_contexts[idx]
+                     .s1_eNB_fteid,
+                &eps_bearer_ctxt_p->enb_ip_address_S1u) == false) {
+          struct in_addr ue = eps_bearer_ctxt_p->paa.ipv4_address;
+
+          OAILOG_DEBUG_UE(
+              LOG_SPGW_APP, imsi64, "Delete GTPv1-U tunnel for sgw_teid : %d\n",
+              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+          // delete GTPv1-U tunnel
+          OAILOG_ERROR(
+              LOG_SPGW_APP, "deleting TUNNEL for ebi %u\n",
+              eps_bearer_ctxt_p->eps_bearer_id);
+          rv = gtp_tunnel_ops->del_tunnel(
+              ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+              eps_bearer_ctxt_p->enb_teid_S1u, NULL);
+        }
+        if (handle_sgi_end_point_update(
+                eps_bearer_ctxt_p, modify_bearer_pP, &sgi_update_end_point_resp,
+                &sgi_rsp_idx, &idx, imsi64) == RETURNok) {
+          sgi_rsp_idx++;
         }
       }
+    }  // for loop
+    for (idx = 0;
+         idx <
+         modify_bearer_pP->bearer_contexts_to_be_removed.num_bearer_context;
+         idx++) {
+      eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
+          &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+               .pdn_connection,
+          modify_bearer_pP->bearer_contexts_to_be_removed.bearer_contexts[idx]
+              .eps_bearer_id);
+      if (eps_bearer_ctxt_p) {
+        sgi_update_end_point_resp.bearer_contexts_to_be_removed[sgi_rsp_idx]
+            .eps_bearer_id = eps_bearer_ctxt_p->eps_bearer_id;
+        sgi_update_end_point_resp.num_bearers_removed++;
+        sgi_rsp_idx++;
+      }
     }
-   }// for loop
-   for (idx = 0; idx < modify_bearer_pP->bearer_contexts_to_be_removed.num_bearer_context;
-      idx ++) {
-     eps_bearer_ctxt_p = sgw_cm_get_eps_bearer_entry(
-              &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection, modify_bearer_pP->bearer_contexts_to_be_removed.bearer_contexts[idx].eps_bearer_id);
-     if (eps_bearer_ctxt_p) {
-       sgi_update_end_point_resp.bearer_contexts_to_be_removed[sgi_rsp_idx].eps_bearer_id =
-         eps_bearer_ctxt_p->eps_bearer_id;
-       sgi_update_end_point_resp.num_bearers_removed ++;
-       sgi_rsp_idx ++;
-     }
-   }
-  } else { // new_bearer_ctxt_info_p not found
+  } else {  // new_bearer_ctxt_info_p not found
     rv = send_mbr_failure(modify_bearer_pP, imsi64);
-    if (rv != RETURNok){
-      OAILOG_ERROR(LOG_SPGW_APP, "Error in sending modify bearer response to MME App for the failed bearers, teid" TEID_FMT "\n", modify_bearer_pP->teid);
+    if (rv != RETURNok) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Error in sending modify bearer response to MME App for the failed "
+          "bearers, teid" TEID_FMT "\n",
+          modify_bearer_pP->teid);
     }
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   }
@@ -889,11 +920,16 @@ int sgw_handle_modify_bearer_request(
   // This is best effort, ignore return code.
   gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
 
-    for (int i=0;i<sgi_update_end_point_resp.num_bearers_modified;i++) {
-    OAILOG_ERROR(LOG_SPGW_APP, "Sending sgi_endpoint_updated for bearers %u\n", sgi_update_end_point_resp.bearer_contexts_to_be_modified[i].eps_bearer_id);
-    }
-    OAILOG_ERROR(LOG_SPGW_APP, "**************Sending sgi_endpoint_updated ****************\n");
-    sgw_handle_sgi_endpoint_updated(&sgi_update_end_point_resp, imsi64);
+  for (int i = 0; i < sgi_update_end_point_resp.num_bearers_modified; i++) {
+    OAILOG_ERROR(
+        LOG_SPGW_APP, "Sending sgi_endpoint_updated for bearers %u\n",
+        sgi_update_end_point_resp.bearer_contexts_to_be_modified[i]
+            .eps_bearer_id);
+  }
+  OAILOG_ERROR(
+      LOG_SPGW_APP,
+      "**************Sending sgi_endpoint_updated ****************\n");
+  sgw_handle_sgi_endpoint_updated(&sgi_update_end_point_resp, imsi64);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 
@@ -1437,7 +1473,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   }
 
   default_bearer_id = spgw_context->sgw_eps_bearer_context_information
-                       .pdn_connection.default_bearer;
+                          .pdn_connection.default_bearer;
 
   //--------------------------------------
   // EPS bearer entry
@@ -1771,10 +1807,11 @@ bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p) {
     case IPv4:
       if ((ip_p)->address.ipv4_address.s_addr != (fte_p)->ipv4_address.s_addr) {
         rc = false;
-          OAILOG_ERROR(
-              LOG_SPGW_APP,
-              "***** enb ips do not match mbr ip %x (ip_p)->address.ipv4_address.s_addr cntxt ip %x******\n", (ip_p)->address.ipv4_address.s_addr, (fte_p)->ipv4_address.s_addr);
- 
+        OAILOG_ERROR(
+            LOG_SPGW_APP,
+            "***** enb ips do not match mbr ip %x "
+            "(ip_p)->address.ipv4_address.s_addr cntxt ip %x******\n",
+            (ip_p)->address.ipv4_address.s_addr, (fte_p)->ipv4_address.s_addr);
       }
       break;
     case IPv4_AND_v6:

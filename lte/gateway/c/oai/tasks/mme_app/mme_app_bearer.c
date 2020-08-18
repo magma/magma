@@ -1197,128 +1197,149 @@ error_handling_csr_failure:
 static int mme_app_build_modify_bearer_request_message(
     struct ue_mm_context_s* ue_context_p,
     itti_mme_app_initial_context_setup_rsp_t* const initial_ctxt_setup_rsp_pP,
-    itti_s11_modify_bearer_request_t* s11_modify_bearer_request, uint8_t *pid) {
-  uint8_t bc_to_be_mod_idx = 0;
+    itti_s11_modify_bearer_request_t* s11_modify_bearer_request, uint8_t* pid) {
+  uint8_t bc_to_be_mod_idx     = 0;
   uint8_t bc_to_be_removed_idx = 0;
-  bool bearer_found = false;
+  bool bearer_found            = false;
 
-    for (uint8_t bid = 0; bid < BEARERS_PER_UE; bid++) {
-      int idx = ue_context_p->pdn_contexts[*pid]->bearer_contexts[bid];
-      if (idx < 0) {
-        continue;
-      }
-      bearer_found = false;
-      for (uint8_t item = 0; item < initial_ctxt_setup_rsp_pP->e_rab_setup_list.no_of_items; item++) {
-        if ((ue_context_p->bearer_contexts[idx]) && (ue_context_p->bearer_contexts[idx]->ebi ==
+  for (uint8_t bid = 0; bid < BEARERS_PER_UE; bid++) {
+    int idx = ue_context_p->pdn_contexts[*pid]->bearer_contexts[bid];
+    if (idx < 0) {
+      continue;
+    }
+    bearer_found = false;
+    for (uint8_t item = 0;
+         item < initial_ctxt_setup_rsp_pP->e_rab_setup_list.no_of_items;
+         item++) {
+      if ((ue_context_p->bearer_contexts[idx]) &&
+          (ue_context_p->bearer_contexts[idx]->ebi ==
            initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].e_rab_id)) {
-          bearer_found = true;
-    OAILOG_ERROR(
-        LOG_MME_APP,
-        "Filling ebi %u for S11 Modify Bearer Request \n",
-        initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].e_rab_id);
-          s11_modify_bearer_request->bearer_contexts_to_be_modified
+        bearer_found = true;
+        OAILOG_ERROR(
+            LOG_MME_APP, "Filling ebi %u for S11 Modify Bearer Request \n",
+            initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].e_rab_id);
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
             .bearer_contexts[bc_to_be_mod_idx]
-            .eps_bearer_id = initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].e_rab_id;
-          s11_modify_bearer_request->bearer_contexts_to_be_modified
+            .eps_bearer_id =
+            initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].e_rab_id;
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
             .bearer_contexts[bc_to_be_mod_idx]
-            .s1_eNB_fteid.teid = initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].gtp_teid;
-          s11_modify_bearer_request->bearer_contexts_to_be_modified
+            .s1_eNB_fteid.teid =
+            initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].gtp_teid;
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
             .bearer_contexts[bc_to_be_mod_idx]
             .s1_eNB_fteid.interface_type = S1_U_ENODEB_GTP_U;
-          if (!bc_to_be_mod_idx) {
-            ue_context_p->pdn_contexts[*pid]->s_gw_address_s11_s4.address.ipv4_address.s_addr =
+        if (!bc_to_be_mod_idx) {
+          ue_context_p->pdn_contexts[*pid]
+              ->s_gw_address_s11_s4.address.ipv4_address.s_addr =
               mme_config.e_dns_emulation.sgw_ip_addr[0].s_addr;
 
-            s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr.s_addr =
-              ue_context_p->pdn_contexts[*pid]->s_gw_address_s11_s4.address.ipv4_address.s_addr;
-            s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_family = AF_INET;
+          s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_addr.s_addr =
+              ue_context_p->pdn_contexts[*pid]
+                  ->s_gw_address_s11_s4.address.ipv4_address.s_addr;
+          s11_modify_bearer_request->edns_peer_ip.addr_v4.sin_family = AF_INET;
 
-            s11_modify_bearer_request->teid = ue_context_p->pdn_contexts[*pid]->s_gw_teid_s11_s4;
-          }
-          if (4 ==
-            blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].transport_layer_address)) {
-
-            s11_modify_bearer_request->bearer_contexts_to_be_modified
+          s11_modify_bearer_request->teid =
+              ue_context_p->pdn_contexts[*pid]->s_gw_teid_s11_s4;
+        }
+        if (4 == blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item]
+                             .transport_layer_address)) {
+          s11_modify_bearer_request->bearer_contexts_to_be_modified
               .bearer_contexts[bc_to_be_mod_idx]
               .s1_eNB_fteid.ipv4 = 1;
-            memcpy(
+          memcpy(
               &s11_modify_bearer_request->bearer_contexts_to_be_modified
-                .bearer_contexts[bc_to_be_mod_idx]
-                .s1_eNB_fteid.ipv4_address,
-              initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].transport_layer_address->data,
-              blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].transport_layer_address));
-           OAILOG_ERROR(
-        LOG_MME_APP,
-        "Filling ipv4 addr %x for S11 Modify Bearer Request idx %d\n",
-        s11_modify_bearer_request->bearer_contexts_to_be_modified
-                .bearer_contexts[bc_to_be_mod_idx]
-                .s1_eNB_fteid.ipv4_address.s_addr, bc_to_be_mod_idx);
+                   .bearer_contexts[bc_to_be_mod_idx]
+                   .s1_eNB_fteid.ipv4_address,
+              initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item]
+                  .transport_layer_address->data,
+              blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item]
+                          .transport_layer_address));
+          OAILOG_ERROR(
+              LOG_MME_APP,
+              "Filling ipv4 addr %x for S11 Modify Bearer Request idx %d\n",
+              s11_modify_bearer_request->bearer_contexts_to_be_modified
+                  .bearer_contexts[bc_to_be_mod_idx]
+                  .s1_eNB_fteid.ipv4_address.s_addr,
+              bc_to_be_mod_idx);
 
-          } else if (
-            16 ==
-            blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].transport_layer_address)) {
-            s11_modify_bearer_request->bearer_contexts_to_be_modified
-            .bearer_contexts[bc_to_be_mod_idx]
-            .s1_eNB_fteid.ipv6 = 1;
-            memcpy(
-              &s11_modify_bearer_request->bearer_contexts_to_be_modified
+        } else if (
+            16 == blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item]
+                              .transport_layer_address)) {
+          s11_modify_bearer_request->bearer_contexts_to_be_modified
               .bearer_contexts[bc_to_be_mod_idx]
-              .s1_eNB_fteid.ipv6_address,
-              initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].transport_layer_address->data,
-            blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].transport_layer_address));
-          } else {
-            OAILOG_ERROR_UE(
-             LOG_MME_APP, ue_context_p->emm_context._imsi64,
-             "Invalid IP address of %d bytes found for MME UE S1AP "
-             "Id: " MME_UE_S1AP_ID_FMT " (4 or 16 bytes was expected)\n",
-             blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].transport_layer_address),
-             ue_context_p->mme_ue_s1ap_id);
-             OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
-          }
-          bdestroy_wrapper(&initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].transport_layer_address);
-          bc_to_be_mod_idx++;
-          break;
-        } //if
-      }// item
-      if (!bearer_found) {
-        for (uint8_t item = 0; item < initial_ctxt_setup_rsp_pP->e_rab_failed_to_setup_list.no_of_items; item++) {
-          if ((ue_context_p->bearer_contexts[idx]) && (ue_context_p->bearer_contexts[idx]->ebi ==
+              .s1_eNB_fteid.ipv6 = 1;
+          memcpy(
+              &s11_modify_bearer_request->bearer_contexts_to_be_modified
+                   .bearer_contexts[bc_to_be_mod_idx]
+                   .s1_eNB_fteid.ipv6_address,
+              initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item]
+                  .transport_layer_address->data,
+              blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item]
+                          .transport_layer_address));
+        } else {
+          OAILOG_ERROR_UE(
+              LOG_MME_APP, ue_context_p->emm_context._imsi64,
+              "Invalid IP address of %d bytes found for MME UE S1AP "
+              "Id: " MME_UE_S1AP_ID_FMT " (4 or 16 bytes was expected)\n",
+              blength(initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item]
+                          .transport_layer_address),
+              ue_context_p->mme_ue_s1ap_id);
+          OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+        }
+        bdestroy_wrapper(&initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item]
+                              .transport_layer_address);
+        bc_to_be_mod_idx++;
+        break;
+      }  // if
+    }    // item
+    if (!bearer_found) {
+      for (uint8_t item = 0;
+           item <
+           initial_ctxt_setup_rsp_pP->e_rab_failed_to_setup_list.no_of_items;
+           item++) {
+        if ((ue_context_p->bearer_contexts[idx]) &&
+            (ue_context_p->bearer_contexts[idx]->ebi ==
              initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].e_rab_id)) {
-            s11_modify_bearer_request->bearer_contexts_to_be_removed.bearer_contexts[bc_to_be_removed_idx].eps_bearer_id =
+          s11_modify_bearer_request->bearer_contexts_to_be_removed
+              .bearer_contexts[bc_to_be_removed_idx]
+              .eps_bearer_id =
               initial_ctxt_setup_rsp_pP->e_rab_setup_list.item[item].e_rab_id;
-            bc_to_be_removed_idx ++;
-            break;
-          }
+          bc_to_be_removed_idx++;
+          break;
         }
       }
-    }//bid
+    }
+  }  // bid
 
-    s11_modify_bearer_request->bearer_contexts_to_be_modified.num_bearer_context =
+  s11_modify_bearer_request->bearer_contexts_to_be_modified.num_bearer_context =
       bc_to_be_mod_idx;
-    s11_modify_bearer_request->bearer_contexts_to_be_removed.num_bearer_context =
+  s11_modify_bearer_request->bearer_contexts_to_be_removed.num_bearer_context =
       bc_to_be_removed_idx;
-    s11_modify_bearer_request->mme_fq_csid.node_id_type =
-      GLOBAL_UNICAST_IPv4;
-    s11_modify_bearer_request->mme_fq_csid.csid = 0;
-    memset(
+  s11_modify_bearer_request->mme_fq_csid.node_id_type = GLOBAL_UNICAST_IPv4;
+  s11_modify_bearer_request->mme_fq_csid.csid         = 0;
+  memset(
       &s11_modify_bearer_request->indication_flags, 0,
       sizeof(s11_modify_bearer_request->indication_flags));
-    s11_modify_bearer_request->rat_type = RAT_EUTRAN;
-    /*
-     * S11 stack specific parameter. Not used in standalone epc mode
-     */
-    s11_modify_bearer_request->trxn = NULL;
+  s11_modify_bearer_request->rat_type = RAT_EUTRAN;
+  /*
+   * S11 stack specific parameter. Not used in standalone epc mode
+   */
+  s11_modify_bearer_request->trxn = NULL;
 
-    OAILOG_INFO_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
-        initial_ctxt_setup_rsp_pP->ue_id, s11_modify_bearer_request->teid);
-    for(int i=0;i<s11_modify_bearer_request->bearer_contexts_to_be_modified.num_bearer_context;i++) {
-       OAILOG_ERROR(
-       LOG_MME_APP,
-       "Bearer context ebi in S11 Modify Bearer Request %u\n",
-       s11_modify_bearer_request->bearer_contexts_to_be_modified.bearer_contexts[i].eps_bearer_id);
-    }
+  OAILOG_INFO_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "Sending S11 MODIFY BEARER REQ to SPGW for ue_id = (%d), teid = (%u)\n",
+      initial_ctxt_setup_rsp_pP->ue_id, s11_modify_bearer_request->teid);
+  for (int i = 0; i < s11_modify_bearer_request->bearer_contexts_to_be_modified
+                          .num_bearer_context;
+       i++) {
+    OAILOG_ERROR(
+        LOG_MME_APP, "Bearer context ebi in S11 Modify Bearer Request %u\n",
+        s11_modify_bearer_request->bearer_contexts_to_be_modified
+            .bearer_contexts[i]
+            .eps_bearer_id);
+  }
   OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
 }
 
@@ -1326,22 +1347,22 @@ static int mme_app_build_modify_bearer_request_message(
 static int mme_app_send_modify_bearer_request_for_active_pdns(
     struct ue_mm_context_s* ue_context_p,
     itti_mme_app_initial_context_setup_rsp_t* const initial_ctxt_setup_rsp_pP) {
-
   OAILOG_FUNC_IN(LOG_MME_APP);
-  int rc                               = RETURNok;
-  //Send MBR per PDN
+  int rc = RETURNok;
+  // Send MBR per PDN
   for (uint8_t pid = 0; pid < ue_context_p->emm_context.esm_ctx.n_pdns; pid++) {
     if (!ue_context_p->pdn_contexts[pid]) {
       continue;
     }
-    MessageDef* message_p = itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
+    MessageDef* message_p =
+        itti_alloc_new_message(TASK_MME_APP, S11_MODIFY_BEARER_REQUEST);
     if (message_p == NULL) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
           "Failed to allocate new ITTI message for S11 Modify Bearer Request "
           "for MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
           ue_context_p->mme_ue_s1ap_id);
-       OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
     }
     itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
         &message_p->ittiMsg.s11_modify_bearer_request;
@@ -1353,8 +1374,9 @@ static int mme_app_send_modify_bearer_request_for_active_pdns(
 
     message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
     // Add dedicated bearers that belong to the PDN to MBR message
-    if (mme_app_build_modify_bearer_request_message(ue_context_p, initial_ctxt_setup_rsp_pP,
-       s11_modify_bearer_request, &pid) == RETURNok) {
+    if (mme_app_build_modify_bearer_request_message(
+            ue_context_p, initial_ctxt_setup_rsp_pP, s11_modify_bearer_request,
+            &pid) == RETURNok) {
       rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
     } else {
       OAILOG_ERROR_UE(
@@ -1363,7 +1385,7 @@ static int mme_app_send_modify_bearer_request_for_active_pdns(
           "for mme_teid_s11 for default bearer %u\n",
           ue_context_p->pdn_contexts[pid]->default_ebi);
     }
-  }//pid
+  }  // pid
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
@@ -1409,7 +1431,8 @@ void mme_app_handle_initial_context_setup_rsp(
         MME_APP_TIMER_INACTIVE_ID;
   }
 
-  if (mme_app_send_modify_bearer_request_for_active_pdns(ue_context_p, initial_ctxt_setup_rsp_pP) != RETURNok) {
+  if (mme_app_send_modify_bearer_request_for_active_pdns(
+          ue_context_p, initial_ctxt_setup_rsp_pP) != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Failed to send modify bearer request for UE id  %d \n",
@@ -3435,13 +3458,22 @@ void mme_app_handle_modify_bearer_rsp(
     itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
     ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  /* If modify bearer failure is received from spgw, initiate bearer deactivation for each bearer*/
-  for (uint8_t idx=0; idx < s11_modify_bearer_response->bearer_contexts_marked_for_removal.num_bearer_context; idx++) {
-    if (s11_modify_bearer_response->bearer_contexts_marked_for_removal.bearer_contexts[idx].cause.cause_value == CONTEXT_NOT_FOUND) {
+  /* If modify bearer failure is received from spgw, initiate bearer
+   * deactivation for each bearer*/
+  for (uint8_t idx = 0;
+       idx < s11_modify_bearer_response->bearer_contexts_marked_for_removal
+                 .num_bearer_context;
+       idx++) {
+    if (s11_modify_bearer_response->bearer_contexts_marked_for_removal
+            .bearer_contexts[idx]
+            .cause.cause_value == CONTEXT_NOT_FOUND) {
       emm_cn_deactivate_dedicated_bearer_req_t deactivate_ded_bearer_req = {0};
-      deactivate_ded_bearer_req.ue_id = ue_context_p->mme_ue_s1ap_id;
+      deactivate_ded_bearer_req.ue_id         = ue_context_p->mme_ue_s1ap_id;
       deactivate_ded_bearer_req.no_of_bearers = 1;
-      deactivate_ded_bearer_req.ebi[0] = s11_modify_bearer_response->bearer_contexts_marked_for_removal.bearer_contexts[idx].eps_bearer_id;
+      deactivate_ded_bearer_req.ebi[0] =
+          s11_modify_bearer_response->bearer_contexts_marked_for_removal
+              .bearer_contexts[idx]
+              .eps_bearer_id;
       if ((nas_proc_delete_dedicated_bearer(&deactivate_ded_bearer_req)) !=
           RETURNok) {
         OAILOG_ERROR_UE(
@@ -3454,11 +3486,9 @@ void mme_app_handle_modify_bearer_rsp(
             LOG_MME_APP, ue_context_p->emm_context._imsi64,
             "Initiated bearer deactivation for ebi %u"
             "ue_id " MME_UE_S1AP_ID_FMT "\n",
-            deactivate_ded_bearer_req.ebi[0],
-            ue_context_p->mme_ue_s1ap_id);
+            deactivate_ded_bearer_req.ebi[0], ue_context_p->mme_ue_s1ap_id);
       }
     }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
-
