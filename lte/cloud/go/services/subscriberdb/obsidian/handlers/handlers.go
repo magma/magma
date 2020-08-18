@@ -283,7 +283,7 @@ func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscr
 	// Check the sub profiles available on the network if sub profile is not
 	// default (which is always available)
 	if sub.SubProfile != "default" {
-		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkType)
+		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkConfigType)
 		switch {
 		case err == merrors.ErrNotFound:
 			return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusInternalServerError)

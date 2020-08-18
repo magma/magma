@@ -44,7 +44,7 @@ func TestBuilder_Build(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
 				EnableCaching: swag.Bool(true),
 			},
@@ -53,19 +53,19 @@ func TestBuilder_Build(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayType, Key: "gw1"},
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayType, Key: "gw1",
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	enb := configurator.NetworkEntity{
-		Type: lte.CellularEnodebType, Key: "enb1",
+		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultEnodebConfig(),
 		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
 	}
@@ -191,17 +191,17 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
 		},
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayType, Key: "gw1"},
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayType, Key: "gw1",
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             newGatewayConfigNonNat(),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
@@ -337,17 +337,17 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
 		},
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayType, Key: "gw1"},
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayType, Key: "gw1",
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             newDefaultGatewayConfig(),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
@@ -437,7 +437,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
 				EnableCaching: swag.Bool(true),
 			},
@@ -446,19 +446,19 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayType, Key: "gw1"},
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayType, Key: "gw1",
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	enb := configurator.NetworkEntity{
-		Type: lte.CellularEnodebType, Key: "enb1",
+		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config: &lte_models.EnodebConfiguration{
 			CellID:          swag.Uint32(42),
 			DeviceClass:     "Baicells ID TDD/FDD",
@@ -637,20 +637,20 @@ func newDefaultEnodebConfig() *lte_models.EnodebConfiguration {
 }
 
 func setEPCNetworkServices(services []string, nw *configurator.Network) {
-	inwConfig := nw.Configs[lte.CellularNetworkType]
+	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 	cellularNwConfig.Epc.NetworkServices = services
 
-	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
+	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
 }
 
 func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip bool) {
-	inwConfig := nw.Configs[lte.CellularNetworkType]
+	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 	cellularNwConfig.Epc.Mobility = &lte_models.NetworkEpcConfigsMobility{
 		IPAllocationMode:          mode,
 		EnableStaticIPAssignments: static_ip,
 	}
 
-	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
+	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
 }

@@ -60,8 +60,8 @@ func TestCreateSubscriber(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.ApnEntityType, Key: apn1},
-			{Type: lte.ApnEntityType, Key: apn2},
+			{Type: lte.APNEntityType, Key: apn1},
+			{Type: lte.APNEntityType, Key: apn2},
 		},
 	)
 	assert.NoError(t, err)
@@ -105,7 +105,7 @@ func TestCreateSubscriber(t *testing.T) {
 			StaticIps: payload.StaticIps,
 		},
 		GraphID:      "2",
-		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -138,7 +138,7 @@ func TestCreateSubscriber(t *testing.T) {
 
 	// nonexistent sub profile should be 400
 	err = configurator.UpdateNetworkConfig(
-		"n1", lte.CellularNetworkType,
+		"n1", lte.CellularNetworkConfigType,
 		&lteModels.NetworkCellularConfigs{
 			Epc: &lteModels.NetworkEpcConfigs{
 				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
@@ -244,8 +244,8 @@ func TestListSubscribers(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.ApnEntityType, Key: apn1},
-			{Type: lte.ApnEntityType, Key: apn2},
+			{Type: lte.APNEntityType, Key: apn1},
+			{Type: lte.APNEntityType, Key: apn2},
 		},
 	)
 	assert.NoError(t, err)
@@ -275,7 +275,7 @@ func TestListSubscribers(t *testing.T) {
 					},
 					StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1", apn2: "10.10.10.5"},
 				},
-				Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 			},
 			{
 				Type: lte.SubscriberEntityType, Key: "IMSI0987654321",
@@ -288,7 +288,7 @@ func TestListSubscribers(t *testing.T) {
 						SubProfile: "foo",
 					},
 				},
-				Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn1}},
+				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
 			},
 		},
 	)
@@ -476,8 +476,8 @@ func TestGetSubscriber(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.ApnEntityType, Key: apn1},
-			{Type: lte.ApnEntityType, Key: apn2},
+			{Type: lte.APNEntityType, Key: apn1},
+			{Type: lte.APNEntityType, Key: apn2},
 		},
 	)
 	assert.NoError(t, err)
@@ -508,7 +508,7 @@ func TestGetSubscriber(t *testing.T) {
 				},
 				StaticIps: subscriberModels.SubscriberStaticIps{apn1: "192.168.100.1"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
 	)
 	assert.NoError(t, err)
@@ -651,8 +651,8 @@ func TestUpdateSubscriber(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.ApnEntityType, Key: apn1},
-			{Type: lte.ApnEntityType, Key: apn2},
+			{Type: lte.APNEntityType, Key: apn1},
+			{Type: lte.APNEntityType, Key: apn2},
 		},
 	)
 	assert.NoError(t, err)
@@ -683,7 +683,7 @@ func TestUpdateSubscriber(t *testing.T) {
 
 	// Happy path
 	err = configurator.UpdateNetworkConfig(
-		"n1", lte.CellularNetworkType,
+		"n1", lte.CellularNetworkConfigType,
 		&lteModels.NetworkCellularConfigs{
 			Epc: &lteModels.NetworkEpcConfigs{
 				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
@@ -708,7 +708,7 @@ func TestUpdateSubscriber(t *testing.T) {
 					SubProfile: "default",
 				},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
 		},
 	)
 	assert.NoError(t, err)
@@ -747,7 +747,7 @@ func TestUpdateSubscriber(t *testing.T) {
 		Config:       &subscriberModels.SubscriberConfig{Lte: payload.Lte, StaticIps: payload.StaticIps},
 		GraphID:      "2",
 		Version:      1,
-		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -785,8 +785,8 @@ func TestDeleteSubscriber(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.ApnEntityType, Key: apn1},
-			{Type: lte.ApnEntityType, Key: apn2},
+			{Type: lte.APNEntityType, Key: apn1},
+			{Type: lte.APNEntityType, Key: apn2},
 		},
 	)
 	assert.NoError(t, err)
@@ -801,7 +801,7 @@ func TestDeleteSubscriber(t *testing.T) {
 				AuthOpc:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 				State:    "ACTIVE",
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
 	)
 	assert.NoError(t, err)
@@ -840,8 +840,8 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.ApnEntityType, Key: apn1},
-			{Type: lte.ApnEntityType, Key: apn2},
+			{Type: lte.APNEntityType, Key: apn1},
+			{Type: lte.APNEntityType, Key: apn2},
 		},
 	)
 	assert.NoError(t, err)
@@ -856,7 +856,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 				State:    "ACTIVE",
 			},
 		},
-		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	_, err = configurator.CreateEntity("n1", expected)
 	assert.NoError(t, err)
@@ -918,7 +918,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 	err = configurator.UpdateNetworkConfig(
-		"n1", lte.CellularNetworkType,
+		"n1", lte.CellularNetworkConfigType,
 		&lteModels.NetworkCellularConfigs{
 			Epc: &lteModels.NetworkEpcConfigs{
 				SubProfiles: map[string]lteModels.NetworkEpcConfigsSubProfilesAnon{
@@ -937,8 +937,8 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.ApnEntityType, Key: apn1},
-			{Type: lte.ApnEntityType, Key: apn2},
+			{Type: lte.APNEntityType, Key: apn1},
+			{Type: lte.APNEntityType, Key: apn2},
 		},
 	)
 	assert.NoError(t, err)
@@ -955,7 +955,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 					SubProfile: "default",
 				},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
 	)
 	assert.NoError(t, err)
@@ -1020,7 +1020,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		},
 		GraphID:      "2",
 		Version:      1,
-		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 
@@ -1050,7 +1050,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 		},
 		GraphID:      "2",
 		Version:      2,
-		Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: apn2}, {Type: lte.ApnEntityType, Key: apn1}},
+		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
 	assert.Equal(t, expected, actual)
 }

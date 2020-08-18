@@ -50,7 +50,7 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByI
 		m.Lte.SubProfile = "default"
 	}
 	for _, tk := range ent.Associations {
-		if tk.Type == lte.ApnEntityType {
+		if tk.Type == lte.APNEntityType {
 			m.ActiveApns = append(m.ActiveApns, tk.Key)
 		}
 	}
@@ -178,7 +178,7 @@ func (m ApnList) ToAssocs() []storage.TypeAndKey {
 	return funk.Map(
 		m,
 		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.ApnEntityType, Key: rn}
+			return storage.TypeAndKey{Type: lte.APNEntityType, Key: rn}
 		},
 	).([]storage.TypeAndKey)
 }
