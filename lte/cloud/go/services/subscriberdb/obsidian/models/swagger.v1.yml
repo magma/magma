@@ -22,6 +22,8 @@ magma-gen-meta:
       filename: icmp_status_swaggergen.go
     - go-struct-name: MutableSubscriber
       filename: mutable_subscriber_swaggergen.go
+    - go-struct-name: SubscriberDirectoryRecord
+      filename: subscriber_directory_record_swaggergen.go
 
 info:
   title: LTE Subscriber Management
@@ -311,6 +313,8 @@ definitions:
         items:
           $ref: '#/definitions/subscriber_ip_allocation'
         x-omitempty: true
+      directory:
+        $ref: '#/definitions/subscriber_directory_record'
 
   untyped_mme_state:
     type: object
@@ -335,6 +339,16 @@ definitions:
         minLength: 1
         x-nullable: false
 
+  subscriber_directory_record:
+    type: object
+    description: AGW location history for the subscriber
+    required:
+      - location_history
+    properties:
+      location_history:
+        type: array
+        items:
+          type: string
 
   subscriber_status:
     type: object

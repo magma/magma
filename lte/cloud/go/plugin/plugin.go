@@ -59,10 +59,10 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitraryJSON{}),
 
 		// Configurator serdes
-		configurator.NewNetworkConfigSerde(lte.CellularNetworkType, &lte_models.NetworkCellularConfigs{}),
+		configurator.NewNetworkConfigSerde(lte.CellularNetworkConfigType, &lte_models.NetworkCellularConfigs{}),
 		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &policydb_models.NetworkSubscriberConfig{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayType, &lte_models.GatewayCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebType, &lte_models.EnodebConfiguration{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayEntityType, &lte_models.GatewayCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebEntityType, &lte_models.EnodebConfiguration{}),
 
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &policydb_models.PolicyRuleConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policydb_models.BaseNameRecord{}),
@@ -70,7 +70,7 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 
 		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policydb_models.RatingGroup{}),
 
-		configurator.NewNetworkEntityConfigSerde(lte.ApnEntityType, &lte_models.ApnConfiguration{}),
+		configurator.NewNetworkEntityConfigSerde(lte.APNEntityType, &lte_models.ApnConfiguration{}),
 	}
 }
 

@@ -221,8 +221,8 @@ class IPFIXController(MagmaController):
             pdp_start_epoch=pdp_start_time,
             sampling_port=self.ipfix_config.sampling_port)]
 
+        match = MagmaMatch(imsi=encode_imsi(imsi))
         if self._dpi_enabled:
-            match = MagmaMatch(imsi=encode_imsi(imsi))
             flows.add_drop_flow(
                 self._datapath, self._ipfix_sample_tbl_num, match, actions,
                 priority=flows.UE_FLOW_PRIORITY)

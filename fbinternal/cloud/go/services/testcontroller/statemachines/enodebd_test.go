@@ -827,7 +827,7 @@ func RegisterAGW(t *testing.T) {
 				Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			},
 			{
-				Type:       lte.CellularEnodebType,
+				Type:       lte.CellularEnodebEntityType,
 				Key:        "1202000038269KP0037",
 				PhysicalID: "1202000038269KP0037",
 				Config: &ltemodels.EnodebConfiguration{

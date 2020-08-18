@@ -109,10 +109,10 @@ func (m *FegLteNetwork) ToConfiguratorNetwork() configurator.Network {
 		Name:        string(m.Name),
 		Description: string(m.Description),
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType:     m.Cellular,
-			feg.FederatedNetworkType:    m.Federation,
-			orc8r.DnsdNetworkType:       m.DNS,
-			orc8r.NetworkFeaturesConfig: m.Features,
+			lte.CellularNetworkConfigType: m.Cellular,
+			feg.FederatedNetworkType:      m.Federation,
+			orc8r.DnsdNetworkType:         m.DNS,
+			orc8r.NetworkFeaturesConfig:   m.Features,
 		},
 	}
 }
@@ -123,10 +123,10 @@ func (m *FegLteNetwork) ToUpdateCriteria() configurator.NetworkUpdateCriteria {
 		NewName:        swag.String(string(m.Name)),
 		NewDescription: swag.String(string(m.Description)),
 		ConfigsToAddOrUpdate: map[string]interface{}{
-			lte.CellularNetworkType:     m.Cellular,
-			feg.FederatedNetworkType:    m.Federation,
-			orc8r.DnsdNetworkType:       m.DNS,
-			orc8r.NetworkFeaturesConfig: m.Features,
+			lte.CellularNetworkConfigType: m.Cellular,
+			feg.FederatedNetworkType:      m.Federation,
+			orc8r.DnsdNetworkType:         m.DNS,
+			orc8r.NetworkFeaturesConfig:   m.Features,
 		},
 	}
 }
@@ -138,7 +138,7 @@ func (m *FegLteNetwork) FromConfiguratorNetwork(n configurator.Network) interfac
 	if cfg := n.Configs[feg.FederatedNetworkType]; cfg != nil {
 		m.Federation = cfg.(*FederatedNetworkConfigs)
 	}
-	if cfg := n.Configs[lte.CellularNetworkType]; cfg != nil {
+	if cfg := n.Configs[lte.CellularNetworkConfigType]; cfg != nil {
 		m.Cellular = cfg.(*lteModels.NetworkCellularConfigs)
 	}
 	if cfg := n.Configs[orc8r.DnsdNetworkType]; cfg != nil {
