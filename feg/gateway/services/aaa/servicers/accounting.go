@@ -273,20 +273,16 @@ func (srv *accountingService) AddSessions(ctx context.Context, sessions *protos.
 	return &protos.AcctResp{}, nil
 }
 
-// installMacFlowOrIPFIXflow installs a new mac flow if it is a brand new session or
-// reinstalls IPFIX flows in case the CORE session already existed (recycle session)
+// installMacFlow installs a new mac flow if it is a brand new session or
 // Note that the existence of a core session will trigger a recylce process on sessiond too
 func installMacFlowOrRecycleSession(sid *lte_protos.SubscriberID, aaaCtx *protos.Context, sessions aaa.SessionTable) error {
-	if isSessionAlreadyStored(aaaCtx.GetImsi(), sessions) == false {
-		// (new session) install MAC flows for new session
-		glog.V(2).Infof("Install new  mac flows for %s", aaaCtx.GetImsi())
-		return pipelined.AddUeMacFlow(sid, aaaCtx)
-	} else {
-		// (recycle session) reinstall IPFIX flows for an existing session
-		// the session will be modified by store in memory it self
-		glog.V(2).Infof("Update IPFix flows (recycle Session) for %s", aaaCtx.GetImsi())
-		return pipelined.UpdateIPFIXFlow(sid, aaaCtx)
+	if isSessionAlreadyStored(aaaCtx.GetImsi(), sessions) {
+		return nil
 	}
+
+	// (new session) install MAC flows for new session
+	glog.V(2).Infof("Install new  mac flows for %s", aaaCtx.GetImsi())
+	return pipelined.AddUeMacFlow(sid, aaaCtx)
 }
 
 func isSessionAlreadyStored(imsi string, sessions aaa.SessionTable) bool {

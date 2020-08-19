@@ -1,0 +1,6 @@
+DEVICE={{ downlink_if }}
+ONBOOT=yes
+DEVICETYPE=ovs
+TYPE=OVSPort
+OVS_BRIDGE=uplink_br0
+BOOTPROTO=none

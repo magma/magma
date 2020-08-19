@@ -33,6 +33,13 @@ import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const POLICY_TITLE = 'Policies';
+const DEFAULT_POLICY_CONFIG = {
+  flow_list: [],
+  id: '',
+  monitoring_key: '',
+  priority: 1,
+};
+
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -154,7 +161,11 @@ export default function PolicyOverview(props: policiesType) {
             </Grid>
 
             <Grid item>
-              <Button className={classes.appBarBtn}>Create New Policy</Button>
+              <Button
+                className={classes.appBarBtn}
+                onClick={() => history.push(relativeUrl('/json'))}>
+                Create New Policy
+              </Button>
             </Grid>
           </Grid>
         </Grid>
@@ -188,7 +199,6 @@ export default function PolicyOverview(props: policiesType) {
             ]}
             handleCurrRow={(row: PolicyRowType) => setCurrRow(row)}
             menuItems={[
-              {name: 'Edit'},
               {
                 name: 'Edit JSON',
                 handleFunc: () => {
@@ -214,27 +224,39 @@ type Props = {
   onSave?: policy_rule => void,
 };
 export function PolicyJsonConfig(props: Props) {
-  const {match} = useRouter();
+  const {match, history} = useRouter();
   const [error, setError] = useState('');
   const networkId: string = nullthrows(match.params.networkId);
-  const policyID: string = nullthrows(match.params.policyId);
+  const policyID: string = match.params.policyId;
   const enqueueSnackbar = useEnqueueSnackbar();
+  const policy: policy_rule = props.policies[policyID] || DEFAULT_POLICY_CONFIG;
   return (
     <JsonEditor
-      content={props.policies[policyID]}
+      content={policy}
       error={error}
       onSave={async policy => {
         try {
-          await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
-            networkId: networkId,
-            ruleId: policyID,
-            policyRule: (policy: policy_rule),
-          });
-          enqueueSnackbar('eNodeb saved successfully', {
-            variant: 'success',
-          });
+          if (policyID) {
+            await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
+              networkId: networkId,
+              ruleId: policyID,
+              policyRule: (policy: policy_rule),
+            });
+            enqueueSnackbar('Policy saved successfully', {
+              variant: 'success',
+            });
+          } else {
+            await MagmaV1API.postNetworksByNetworkIdPoliciesRules({
+              networkId: networkId,
+              policyRule: (policy: policy_rule),
+            });
+            enqueueSnackbar('Policy added successfully', {
+              variant: 'success',
+            });
+          }
           setError('');
           props.onSave?.(policy);
+          history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }

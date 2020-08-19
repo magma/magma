@@ -21,6 +21,7 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 
 #include "LocalEnforcer.h"
+#include "Matchers.h"
 #include "MagmaService.h"
 #include "ProtobufCreators.h"
 #include "ServiceRegistrySingleton.h"
@@ -62,8 +63,11 @@ class LocalEnforcerTest : public ::testing::Test {
   void initialize_lte_test_config() {
     test_cfg_.common_context =
         build_common_context("", "127.0.0.1", "IMS", "", TGPP_LTE);
+    QosInformationRequest qos_info;
+    qos_info.set_apn_ambr_dl(32);
+    qos_info.set_apn_ambr_dl(64);
     const auto& lte_context =
-        build_lte_context("128.0.0.1", "", "", "", "", 0, nullptr);
+        build_lte_context("128.0.0.1", "", "", "", "", 0, &qos_info);
     test_cfg_.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
   }
 
@@ -115,70 +119,24 @@ class LocalEnforcerTest : public ::testing::Test {
   folly::EventBase* evb;
 };
 
-MATCHER_P(CheckCount, count, "") {
-  int arg_count = arg.size();
-  return arg_count == count;
-}
-
-MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
-  auto req = static_cast<const UpdateSessionRequest>(arg);
-  return req.updates().size() == chargingCount &&
-         req.usage_monitors().size() == monitorCount;
-}
-
-MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
-  auto req = static_cast<const SessionTerminateRequest>(arg);
-  return req.sid() == imsi && req.credit_usages().size() == chargingCount &&
-         req.monitor_usages().size() == monitorCount;
-}
-
-MATCHER_P2(CheckActivateFlows, imsi, rule_count, "") {
-  auto request = static_cast<const ActivateFlowsRequest*>(arg);
-  return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
-}
-
-MATCHER_P4(
-    CheckSessionInfos, imsi_list, ip_address_list, static_rule_lists,
-    dynamic_rule_ids_lists, "") {
-  auto infos = static_cast<const std::vector<SessionState::SessionInfo>>(arg);
-
-  if (infos.size() != imsi_list.size()) return false;
-
-  for (size_t i = 0; i < infos.size(); i++) {
-    if (infos[i].imsi != imsi_list[i]) return false;
-    if (infos[i].ip_addr != ip_address_list[i]) return false;
-    if (infos[i].static_rules.size() != static_rule_lists[i].size())
-      return false;
-    if (infos[i].dynamic_rules.size() != dynamic_rule_ids_lists[i].size())
-      return false;
-    for (size_t r_index = 0; i < infos[i].static_rules.size(); i++) {
-      if (infos[i].static_rules[r_index] != static_rule_lists[i][r_index])
-        return false;
-    }
-    for (size_t r_index = 0; i < infos[i].dynamic_rules.size(); i++) {
-      if (infos[i].dynamic_rules[r_index].id() !=
-          dynamic_rule_ids_lists[i][r_index])
-        return false;
-    }
-  }
-  return true;
-}
-
-MATCHER_P(CheckEventType, expectedEventType, "") {
-  return (arg.event_type() == expectedEventType);
-}
-
 TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
   insert_static_rule(1, "", "rule1");
 
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
   create_credit_update_response("IMSI1", 1, 1024, credits->Add());
+  EXPECT_CALL(
+      *pipelined_client, activate_flows_for_rules(
+                             "IMSI1", testing::_, testing::_, CheckCount(0),
+                             CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
 
   EXPECT_CALL(
       *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(0), CheckCount(0), testing::_))
+      update_ipfix_flow(
+          testing::_, testing::_, testing::_, testing::_, testing::_,
+          testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -211,9 +169,9 @@ TEST_F(LocalEnforcerTest, test_init_infinite_metered_credit) {
 
   // Expect rule1 to be activated
   EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(1), CheckCount(0), testing::_))
+      *pipelined_client, activate_flows_for_rules(
+                             testing::_, testing::_, testing::_, CheckCount(1),
+                             CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
@@ -238,9 +196,9 @@ TEST_F(LocalEnforcerTest, test_init_no_credit) {
 
   // Expect rule1 to not be activated
   EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(0), CheckCount(0), testing::_))
+      *pipelined_client, activate_flows_for_rules(
+                             testing::_, testing::_, testing::_, CheckCount(0),
+                             CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
@@ -259,9 +217,9 @@ TEST_F(LocalEnforcerTest, test_init_session_credit) {
   create_credit_update_response("IMSI1", 1, 1024, credits->Add());
 
   EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(0), CheckCount(0), testing::_))
+      *pipelined_client, activate_flows_for_rules(
+                             testing::_, testing::_, testing::_, CheckCount(0),
+                             CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
@@ -712,12 +670,13 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
 TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   const std::string imsi       = "IMSI1";
   const std::string session_id = "1234";
+  auto pdp_start_time = 12345;
   magma::lte::TgppContext tgpp_ctx;
   CreateSessionResponse response;
   create_credit_update_response(
       imsi, 1, 1024, true, response.mutable_credits()->Add());
   auto session_state =
-      new SessionState(imsi, session_id, test_cfg_, *rule_store, tgpp_ctx);
+      new SessionState(imsi, session_id, test_cfg_, *rule_store, tgpp_ctx, pdp_start_time);
 
   // manually place revalidation timer
   SessionStateUpdateCriteria uc;
@@ -1060,9 +1019,9 @@ TEST_F(LocalEnforcerTest, test_re_auth) {
   // when next update is collected, this should trigger an action to activate
   // the flow in pipelined
   EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, testing::_, testing::_, testing::_))
+      *pipelined_client, activate_flows_for_rules(
+                             testing::_, testing::_, testing::_, testing::_,
+                             testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   actions.clear();
@@ -1129,9 +1088,9 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
 
   // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
   EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(2), CheckCount(1), testing::_))
+      *pipelined_client, activate_flows_for_rules(
+                             testing::_, testing::_, testing::_, CheckCount(2),
+                             CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1210,29 +1169,32 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   // dynamic rules: rule1, rule3
   // static rules: rule4, rule6
   EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(2), CheckCount(2), testing::_))
+      *pipelined_client, activate_flows_for_rules(
+                             "IMSI1", testing::_, testing::_, CheckCount(2),
+                             CheckCount(2), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // expect calling activate_flows_for_rules for activating a static rule later
   // static rules: rule5
   EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(1), CheckCount(0), testing::_))
+      *pipelined_client, activate_flows_for_rules(
+                             "IMSI1", testing::_, testing::_, CheckCount(1),
+                             CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // expect calling activate_flows_for_rules for activating a dynamic rule later
   // dynamic rules: rule2
   EXPECT_CALL(
-      *pipelined_client,
-      activate_flows_for_rules(
-          testing::_, testing::_, CheckCount(0), CheckCount(1), testing::_))
+      *pipelined_client, activate_flows_for_rules(
+                             "IMSI1", testing::_, testing::_, CheckCount(0),
+                             CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
       session_map, "IMSI1", "1234", test_cfg_, response);
+  bool success =
+      session_store->create_sessions("IMSI1", std::move(session_map["IMSI1"]));
+  EXPECT_TRUE(success);
 }
 
 TEST_F(LocalEnforcerTest, test_usage_monitors) {
@@ -1360,8 +1322,8 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
-          "IMSI1", testing::_, std::vector<std::string>{"pcrf_only"},
-          CheckCount(0), testing::_))
+          "IMSI1", testing::_, testing::_,
+          std::vector<std::string>{"pcrf_only"}, CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(
@@ -1773,12 +1735,12 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
       "03-21-00-02-00-20", "01-a1-20-c2-0f-bb"};
   std::vector<std::string> apn_names = {"Magma", "CWC_OFFLOAD"};
   EXPECT_CALL(
-      *pipelined_client,
-      setup_cwf(
-          CheckSessionInfos(
-              imsi_list, ip_address_list, static_rule_list, dynamic_rule_list),
-          testing::_, ue_mac_addrs, msisdns, apn_mac_addrs, apn_names,
-          testing::_, testing::_))
+      *pipelined_client, setup_cwf(
+                             CheckSessionInfos(
+                                 imsi_list, ip_address_list, test_cwf_cfg2,
+                                 static_rule_list, dynamic_rule_list),
+                             testing::_, ue_mac_addrs, msisdns, apn_mac_addrs,
+                             apn_names, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1828,11 +1790,11 @@ TEST_F(LocalEnforcerTest, test_pipelined_lte_setup) {
       "03-21-00-02-00-20", "01-a1-20-c2-0f-bb"};
   std::vector<std::string> apn_names = {"Magma", "CWC_OFFLOAD"};
   EXPECT_CALL(
-      *pipelined_client,
-      setup_lte(
-          CheckSessionInfos(
-              imsi_list, ip_address_list, static_rule_list, dynamic_rule_list),
-          testing::_, testing::_))
+      *pipelined_client, setup_lte(
+                             CheckSessionInfos(
+                                 imsi_list, ip_address_list, test_cfg_,
+                                 static_rule_list, dynamic_rule_list),
+                             testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1870,7 +1832,8 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
   EXPECT_CALL(
       *pipelined_client, setup_cwf(
                              testing::_, testing::_, ue_mac_addrs, msisdns,
-                             apn_mac_addrs, apn_names, epoch, testing::_))
+                             apn_mac_addrs, apn_names, testing::_, epoch,
+                             testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1909,7 +1872,8 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
   EXPECT_CALL(
       *pipelined_client, setup_cwf(
                              testing::_, testing::_, ue_mac_addrs, msisdns,
-                             apn_mac_addrs, apn_names, epoch, testing::_))
+                             apn_mac_addrs, apn_names, testing::_, epoch,
+                             testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 

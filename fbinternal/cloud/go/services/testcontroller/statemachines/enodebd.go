@@ -406,7 +406,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 	pretext := fmt.Sprintf(reconfigPretextFmt, *config.EnodebSN, "SUCCEEDED")
 	fallback := "Reconfig enodeb notification"
 	_, err := configurator.UpdateEntity(*config.NetworkID, configurator.EntityUpdateCriteria{
-		Type:      lte.CellularEnodebType,
+		Type:      lte.CellularEnodebEntityType,
 		Key:       *config.EnodebSN,
 		NewConfig: config.EnodebConfig,
 	})

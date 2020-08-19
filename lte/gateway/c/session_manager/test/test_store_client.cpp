@@ -60,6 +60,7 @@ TEST_F(StoreClientTest, test_read_and_write) {
   cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
   auto rule_store   = std::make_shared<StaticRuleStore>();
   auto tgpp_context = TgppContext{};
+  auto pdp_start_time = 12345;
 
   auto store_client = new MemoryStoreClient(rule_store);
 
@@ -69,11 +70,11 @@ TEST_F(StoreClientTest, test_read_and_write) {
 
   auto uc = get_default_update_criteria();
   auto session =
-      std::make_unique<SessionState>(imsi, sid, cfg, *rule_store, tgpp_context);
+      std::make_unique<SessionState>(imsi, sid, cfg, *rule_store, tgpp_context, pdp_start_time);
   auto session2 = std::make_unique<SessionState>(
-      imsi2, sid2, cfg, *rule_store, tgpp_context);
+      imsi2, sid2, cfg, *rule_store, tgpp_context, pdp_start_time);
   auto session3 = std::make_unique<SessionState>(
-      imsi3, sid3, cfg, *rule_store, tgpp_context);
+      imsi3, sid3, cfg, *rule_store, tgpp_context, pdp_start_time);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session2->get_session_id(), sid2);
 

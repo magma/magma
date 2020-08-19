@@ -45,7 +45,7 @@ func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) (
 		return nil, err
 	}
 	// Collect all APNs in one RPC call
-	apnEnts, err := configurator.LoadAllEntitiesInNetwork(ent.NetworkID, lte.ApnEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	apnEnts, err := configurator.LoadAllEntitiesInNetwork(ent.NetworkID, lte.APNEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
 	// Create a map to avoid for loops in function calls to populate subscriber data from subscriber associations
 	apnConfigMap := make(map[string]*lte_models.ApnConfiguration, len(apnEnts))
 	for _, apnEnt := range apnEnts {

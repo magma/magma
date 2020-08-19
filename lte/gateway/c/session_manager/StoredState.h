@@ -13,6 +13,7 @@
 #pragma once
 
 #include <functional>
+#include <experimental/optional>
 
 #include <folly/Format.h>
 #include <folly/dynamic.h>
@@ -29,9 +30,10 @@ struct SessionConfig {
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
 
-  SessionConfig() {};
+  SessionConfig(){};
   SessionConfig(const LocalCreateSessionRequest& request);
-  bool operator== (const SessionConfig& config) const;
+  bool operator==(const SessionConfig& config) const;
+  std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
 };
 
 // Session Credit
@@ -164,6 +166,7 @@ struct StoredSessionState {
   std::string session_level_key; // "" maps to nullptr
   std::string imsi;
   std::string session_id;
+  uint64_t pdp_start_time;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;

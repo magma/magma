@@ -608,10 +608,10 @@ func TestFederatedLteNetworks(t *testing.T) {
 		Name:        "updated foobar",
 		Description: "Updated Foo Bar",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType:     models3.NewDefaultFDDNetworkConfig(),
-			feg.FederatedNetworkType:    models2.NewDefaultFederatedNetworkConfigs(),
-			orc8r.DnsdNetworkType:       payloadN1.DNS,
-			orc8r.NetworkFeaturesConfig: payloadN1.Features,
+			lte.CellularNetworkConfigType: models3.NewDefaultFDDNetworkConfig(),
+			feg.FederatedNetworkType:      models2.NewDefaultFederatedNetworkConfigs(),
+			orc8r.DnsdNetworkType:         payloadN1.DNS,
+			orc8r.NetworkFeaturesConfig:   payloadN1.Features,
 		},
 		Version: 1,
 	}
@@ -698,10 +698,10 @@ func seedFederatedLteNetworks(t *testing.T) {
 				Name:        "foobar",
 				Description: "Foo Bar",
 				Configs: map[string]interface{}{
-					feg.FederatedNetworkType:    models2.NewDefaultFederatedNetworkConfigs(),
-					lte.CellularNetworkType:     models3.NewDefaultTDDNetworkConfig(),
-					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
-					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
+					feg.FederatedNetworkType:      models2.NewDefaultFederatedNetworkConfigs(),
+					lte.CellularNetworkConfigType: models3.NewDefaultTDDNetworkConfig(),
+					orc8r.NetworkFeaturesConfig:   models.NewDefaultFeaturesConfig(),
+					orc8r.DnsdNetworkType:         models.NewDefaultDNSConfig(),
 				},
 			},
 			{
