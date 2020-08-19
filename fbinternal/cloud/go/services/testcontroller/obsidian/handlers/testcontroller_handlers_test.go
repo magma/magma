@@ -328,7 +328,7 @@ func defaultEnodebdTestConfig() *models.EnodebdTestConfig {
 			ReleaseChannel:  swag.String("beta"),
 			TargetGatewayID: swag.String("gw1"),
 			TargetTier:      swag.String("default"),
-			SLACKWebhook:    swag.String("foo.com"),
+			SlackWebhook:    swag.String("foo.com"),
 		},
 		EnodebSN:        swag.String("1202000038269KP0037"),
 		RunTrafficTests: swag.Bool(true),
@@ -346,7 +346,7 @@ func defaultEnodebdTestConfig() *models.EnodebdTestConfig {
 			TransmitEnabled:        swag.Bool(true),
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
-		StartState: "check_for_upgrade",
+		StartState:   "check_for_upgrade",
 	}
 }
 
@@ -357,7 +357,7 @@ func enodebdNoTrafficTestConfig() *models.EnodebdTestConfig {
 			ReleaseChannel:  swag.String("beta"),
 			TargetGatewayID: swag.String("gw1"),
 			TargetTier:      swag.String("default"),
-			SLACKWebhook:    swag.String("foo.com"),
+			SlackWebhook:    swag.String("foo.com"),
 		},
 		EnodebSN:        swag.String("1202000038269KP0037"),
 		RunTrafficTests: swag.Bool(false),
@@ -375,7 +375,7 @@ func enodebdNoTrafficTestConfig() *models.EnodebdTestConfig {
 			TransmitEnabled:        swag.Bool(true),
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
-		StartState: "check_for_upgrade",
+		StartState:   "check_for_upgrade",
 	}
 }
 

@@ -396,7 +396,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 		PlmnIds: []string{},
 	},
 	AaaServer: &models.AaaServer{
-		IDLESessionTimeoutMs: 21600000,
+		IdleSessionTimeoutMs: 21600000,
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
 	},

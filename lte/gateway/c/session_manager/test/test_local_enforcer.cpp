@@ -132,6 +132,14 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
       .Times(1)
       .WillOnce(testing::Return(true));
 
+  EXPECT_CALL(
+      *pipelined_client,
+      update_ipfix_flow(
+          testing::_, testing::_, testing::_, testing::_, testing::_,
+          testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
   SessionConfig test_cwf_cfg;
   const auto& mac_addr          = "00:00:00:00:00:00";
   const auto& radius_session_id = "1234567";
@@ -1732,7 +1740,7 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
                                  imsi_list, ip_address_list, test_cwf_cfg2,
                                  static_rule_list, dynamic_rule_list),
                              testing::_, ue_mac_addrs, msisdns, apn_mac_addrs,
-                             apn_names, testing::_, testing::_))
+                             apn_names, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1824,7 +1832,8 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
   EXPECT_CALL(
       *pipelined_client, setup_cwf(
                              testing::_, testing::_, ue_mac_addrs, msisdns,
-                             apn_mac_addrs, apn_names, epoch, testing::_))
+                             apn_mac_addrs, apn_names, testing::_, epoch,
+                             testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1863,7 +1872,8 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
   EXPECT_CALL(
       *pipelined_client, setup_cwf(
                              testing::_, testing::_, ue_mac_addrs, msisdns,
-                             apn_mac_addrs, apn_names, epoch, testing::_))
+                             apn_mac_addrs, apn_names, testing::_, epoch,
+                             testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 

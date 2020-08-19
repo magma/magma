@@ -7,6 +7,7 @@ package models
 
 import (
 	"encoding/json"
+	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	"strconv"
 
 	strfmt "github.com/go-openapi/strfmt"
@@ -22,7 +23,7 @@ type NetworkCarrierWifiConfigs struct {
 
 	// aaa server
 	// Required: true
-	AaaServer *AaaServer `json:"aaa_server"`
+	AaaServer *models2.AaaServer `json:"aaa_server"`
 
 	// default rule id
 	// Required: true
@@ -30,7 +31,7 @@ type NetworkCarrierWifiConfigs struct {
 
 	// eap aka
 	// Required: true
-	EapAka *EapAka `json:"eap_aka"`
+	EapAka *models2.EapAka `json:"eap_aka"`
 
 	// li ues
 	LiUes *LiUes `json:"li_ues,omitempty"`

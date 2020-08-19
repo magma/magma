@@ -371,7 +371,7 @@ func subscriberState(desiredState string, successState string, machine *enodebdE
 	cfg, err := configurator.LoadEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID)
 	if err != nil {
 		pretext = fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "FAILED")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
 
@@ -389,10 +389,10 @@ func subscriberState(desiredState string, successState string, machine *enodebdE
 			glog.Error(err)
 		}
 		pretext = fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "FAILED")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
-	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 	return successState, 10 * time.Minute, nil
 }
 
@@ -406,7 +406,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 	pretext := fmt.Sprintf(reconfigPretextFmt, *config.EnodebSN, "SUCCEEDED")
 	fallback := "Reconfig enodeb notification"
 	_, err := configurator.UpdateEntity(*config.NetworkID, configurator.EntityUpdateCriteria{
-		Type:      lte.CellularEnodebType,
+		Type:      lte.CellularEnodebEntityType,
 		Key:       *config.EnodebSN,
 		NewConfig: config.EnodebConfig,
 	})
@@ -418,7 +418,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 			if successState == trafficTest4State1 {
 				pretext = fmt.Sprintf(restoreConfigPretextFmt, *config.EnodebSN, "FAILED")
 			}
-			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 10 * time.Minute, err
 		}
 		switch successState {
@@ -430,7 +430,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 			return checkForUpgradeState, 10 * time.Minute, err
 		}
 	}
-	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 	return successState, 10 * time.Minute, nil
 }
 
@@ -477,12 +477,12 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 	if resp == nil || err != nil || !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
 		if successState == subscriberActiveState {
 			pretext = fmt.Sprintf(trafficInactiveSubPretextFmt, *config.SubscriberID, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "SUCCEEDED")
-			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return successState, 1 * time.Minute, nil
 		}
 		if stateNumber >= maxTrafficStateCount {
 			pretext = fmt.Sprintf(trafficPretextFmt, trafficTestNumber, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "FAILED")
-			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 1 * time.Minute, errors.Errorf("Traffic test number %d failed on gwID %s after %d tries", trafficTestNumber, trafficGWID, maxTrafficStateCount)
 		}
 		if !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
@@ -492,10 +492,10 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 	}
 	if successState == subscriberActiveState {
 		pretext = fmt.Sprintf(trafficInactiveSubPretextFmt, *config.SubscriberID, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "FAILED")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 		return checkForUpgradeState, 1 * time.Minute, errors.Errorf("Traffic test number %d should not have succeeded on gwID %s", trafficTestNumber, trafficGWID)
 	}
-	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 	return successState, 1 * time.Minute, nil
 }
 
@@ -514,7 +514,7 @@ func rebootEnodebStateHandler(stateNumber int, gatewayClient GatewayClient, mach
 		if stateNumber >= maxRebootEnodebStateCount {
 			pretext := fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "FAILED")
 			fallback := "Reboot enodeb notification"
-			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 15 * time.Minute, errors.Errorf("enodeb %s did not reboot within %d tries", enodebSN, maxRebootEnodebStateCount)
 		}
 		return fmt.Sprintf(rebootEnodebStateFmt, stateNumber+1), 5 * time.Minute, err
@@ -536,20 +536,20 @@ func verifyConnectivity(successState string, machine *enodebdE2ETestStateMachine
 
 	resp, err := getEnodebStatus(*config.NetworkID, enodebSN)
 	if resp == nil || err != nil {
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Wrap(err, "error getting enodeb status")
 	}
 	if !*resp.EnodebConnected {
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Errorf("Error Enodeb is not connected")
 	}
 	if !*resp.RfTxDesired || !*resp.RfTxOn {
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Errorf("Error RF TX on/desired are not both set to true")
 	}
 
 	pretext = fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "SUCCEEDED")
-	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 	return successState, 15 * time.Minute, nil
 }
 
@@ -613,13 +613,13 @@ func verifyUpgrade(stateNumber int, successState string, machine *enodebdE2ETest
 	// If equal, transition to reboot enodeb state
 	if string(tierCfg.Version) == currentVersion {
 		pretext := fmt.Sprintf(autoupgradePretextFmt, targetGWID, "SUCCEEDED", "")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, string(tierCfg.Version), "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, string(tierCfg.Version), "")
 		return successState, 20 * time.Minute, nil
 	}
 
 	if stateNumber >= maxVerifyUpgradeStateCount {
 		pretext := fmt.Sprintf(autoupgradePretextFmt, targetGWID, "FAILED", "")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, string(tierCfg.Version), "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, string(tierCfg.Version), "")
 		return checkForUpgradeState, 20 * time.Minute, errors.Errorf("gateway %s did not upgrade within %d tries", targetGWID, maxVerifyUpgradeStateCount)
 	} else {
 		return fmt.Sprintf(verifyUpgradeStateFmt, stateNumber+1), 10 * time.Minute, nil

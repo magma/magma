@@ -119,6 +119,7 @@ bool LocalEnforcer::setup(
   std::vector<std::string> ue_mac_addrs;
   std::vector<std::string> apn_mac_addrs;
   std::vector<std::string> apn_names;
+  std::vector<std::uint64_t> pdp_start_times;
   bool cwf = false;
   for (auto it = session_map.begin(); it != session_map.end(); it++) {
     for (const auto& session : it->second) {
@@ -138,6 +139,7 @@ bool LocalEnforcer::setup(
       }
       apn_mac_addrs.push_back(apn_mac_addr);
       apn_names.push_back(apn_name);
+      pdp_start_times.push_back(session->get_pdp_start_time());
 
       if (session->is_radius_cwf_session()) {
         cwf                      = true;
@@ -155,7 +157,7 @@ bool LocalEnforcer::setup(
   if (cwf) {
     return pipelined_client_->setup_cwf(
         session_infos, quota_updates, ue_mac_addrs, msisdns, apn_mac_addrs,
-        apn_names, epoch, callback);
+        apn_names, pdp_start_times, epoch, callback);
   } else {
     return pipelined_client_->setup_lte(session_infos, epoch, callback);
   }
@@ -945,6 +947,8 @@ bool LocalEnforcer::init_session_credit(
 
   auto rule_update_success = handle_session_init_rule_updates(
       session_map, imsi, *session_state, response, charging_credits_received);
+
+  update_ipfix_flow(imsi, cfg, epoch);
 
   if (session_state->is_radius_cwf_session()) {
     if (terminate_on_wallet_exhaust()) {
@@ -1747,6 +1751,34 @@ void LocalEnforcer::create_bearer(
   return;
 }
 
+void LocalEnforcer::update_ipfix_flow(
+    const std::string& imsi, const SessionConfig& config,
+    const uint64_t pdp_start_time) {
+    MLOG(MDEBUG) << "Updating IPFIX flow for subscriber " << imsi;
+    SubscriberID sid;
+    sid.set_id(imsi);
+    std::string apn_mac_addr;
+    std::string apn_name;
+    if (!parse_apn(config.common_context.apn(), apn_mac_addr, apn_name)) {
+      MLOG(MWARNING) << "Failed mac/name parsiong for apn " << config.common_context.apn();
+      apn_mac_addr = "";
+      apn_name     = config.common_context.apn();
+    }
+
+    // MacAddr is only relevant for WLAN
+    const auto& rat_specific = config.rat_specific_context;
+    std::string ue_mac_addr = "11:11:11:11:11:11";
+    if (rat_specific.has_wlan_context()) {
+      ue_mac_addr = rat_specific.wlan_context().mac_addr();
+    }
+    bool update_ipfix_flow_success = pipelined_client_->update_ipfix_flow(
+        sid, ue_mac_addr, config.common_context.msisdn(), apn_mac_addr,
+        apn_name, pdp_start_time);
+    if (!update_ipfix_flow_success) {
+      MLOG(MERROR) << "Failed to update IPFIX flow for subscriber " << imsi;
+    }
+}
+
 void LocalEnforcer::handle_cwf_roaming(
     SessionMap& session_map, const std::string& imsi,
     const SessionConfig& config, SessionUpdate& session_update) {
@@ -1758,6 +1790,7 @@ void LocalEnforcer::handle_cwf_roaming(
       update_criteria.is_config_updated = true;
       update_criteria.updated_config    = session->get_config();
       // TODO Check for event triggers and send updates to the core if needed
+      update_ipfix_flow(imsi, config, session->get_pdp_start_time());
     }
   }
 }

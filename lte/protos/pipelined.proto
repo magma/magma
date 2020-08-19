@@ -164,6 +164,9 @@ message UEMacFlowRequest {
 
   // AP Name
   string ap_name = 5;
+
+  // PDP Start time
+  uint64 pdp_start_time = 6;
 }
 
 message SubscriberQuotaUpdate{
