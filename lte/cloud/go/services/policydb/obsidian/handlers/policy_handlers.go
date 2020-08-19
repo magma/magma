@@ -30,8 +30,9 @@ import (
 )
 
 const (
-	baseNameParam = "base_name"
-	ruleIDParam   = "rule_id"
+	baseNameParam   = "base_name"
+	ruleIDParam     = "rule_id"
+	qosProfileParam = "profile_id"
 )
 
 // Base names
@@ -110,7 +111,7 @@ func CreateBaseName(c echo.Context) error {
 }
 
 func GetBaseName(c echo.Context) error {
-	networkID, baseName, nerr := getNetworkIDAndBaseName(c)
+	networkID, baseName, nerr := getNetworkAndParam(c, baseNameParam)
 	if nerr != nil {
 		return nerr
 	}
@@ -132,7 +133,7 @@ func GetBaseName(c echo.Context) error {
 }
 
 func UpdateBaseName(c echo.Context) error {
-	networkID, baseName, nerr := getNetworkIDAndBaseName(c)
+	networkID, baseName, nerr := getNetworkAndParam(c, baseNameParam)
 	if nerr != nil {
 		return nerr
 	}
@@ -153,7 +154,7 @@ func UpdateBaseName(c echo.Context) error {
 		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
 	)
 	if err == merrors.ErrNotFound {
-		return obsidian.HttpError(errors.Wrap(err, "Failed to check if base name exists"), http.StatusInternalServerError)
+		return obsidian.HttpError(errors.Wrap(err, "failed to check if base name exists"), http.StatusInternalServerError)
 	}
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -227,7 +228,7 @@ func getTypeAndKeyDiff(a []storage.TypeAndKey, b []storage.TypeAndKey) []storage
 }
 
 func DeleteBaseName(c echo.Context) error {
-	networkID, baseName, nerr := getNetworkIDAndBaseName(c)
+	networkID, baseName, nerr := getNetworkAndParam(c, baseNameParam)
 	if nerr != nil {
 		return nerr
 	}
@@ -314,7 +315,7 @@ func CreateRule(c echo.Context) error {
 }
 
 func GetRule(c echo.Context) error {
-	networkID, ruleID, nerr := getNetworkAndRuleIDs(c)
+	networkID, ruleID, nerr := getNetworkAndParam(c, ruleIDParam)
 	if nerr != nil {
 		return nerr
 	}
@@ -336,7 +337,7 @@ func GetRule(c echo.Context) error {
 }
 
 func UpdateRule(c echo.Context) error {
-	networkID, ruleID, nerr := getNetworkAndRuleIDs(c)
+	networkID, ruleID, nerr := getNetworkAndParam(c, ruleIDParam)
 	if nerr != nil {
 		return nerr
 	}
@@ -408,7 +409,7 @@ func UpdateRule(c echo.Context) error {
 }
 
 func DeleteRule(c echo.Context) error {
-	networkID, ruleID, nerr := getNetworkAndRuleIDs(c)
+	networkID, ruleID, nerr := getNetworkAndParam(c, ruleIDParam)
 	if nerr != nil {
 		return nerr
 	}
@@ -420,16 +421,65 @@ func DeleteRule(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func getNetworkIDAndBaseName(c echo.Context) (string, string, *echo.HTTPError) {
-	vals, err := obsidian.GetParamValues(c, "network_id", baseNameParam)
-	if err != nil {
-		return "", "", err
+// QoS profiles
+
+func ListQoSProfiles(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
 	}
-	return vals[0], vals[1], nil
+
+	ids, err := configurator.ListEntityKeys(networkID, lte.PolicyQoSProfileEntityType)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	sort.Strings(ids)
+	return c.JSON(http.StatusOK, ids)
 }
 
-func getNetworkAndRuleIDs(c echo.Context) (string, string, *echo.HTTPError) {
-	vals, err := obsidian.GetParamValues(c, "network_id", ruleIDParam)
+func CreateQoSProfile(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	profile := &models.PolicyQosProfile{}
+	if err := c.Bind(profile); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := profile.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+
+	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyQoSProfileEntityType, *profile.ID)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	if exists {
+		return echo.ErrNotFound
+	}
+
+	_, err = configurator.CreateEntity(networkID, profile.ToEntity())
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusCreated, *profile.ID)
+}
+
+func DeleteQoSProfile(c echo.Context) error {
+	networkID, profileID, nerr := getNetworkAndParam(c, qosProfileParam)
+	if nerr != nil {
+		return nerr
+	}
+
+	err := configurator.DeleteEntity(networkID, lte.PolicyQoSProfileEntityType, profileID)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getNetworkAndParam(c echo.Context, paramName string) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", paramName)
 	if err != nil {
 		return "", "", err
 	}

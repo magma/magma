@@ -15,6 +15,7 @@ package models
 
 import (
 	"encoding/base64"
+	"errors"
 	"fmt"
 
 	"magma/lte/cloud/go/lte"
@@ -313,4 +314,44 @@ func (m *NetworkSubscriberConfig) GetFromNetwork(network configurator.Network) i
 
 func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
 	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, lte.NetworkSubscriberConfigType, m), nil
+}
+
+func (m *PolicyQosProfile) FromBackendModels(networkID string, key string) error {
+	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key)
+	if err != nil {
+		return err
+	}
+	*m = *config.(*PolicyQosProfile)
+	return nil
+}
+
+func (m *PolicyQosProfile) ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error) {
+	if key != *m.ID {
+		return nil, errors.New("id field is read-only")
+	}
+
+	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyQoSProfileEntityType, key)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.New("profile does not exist")
+	}
+
+	ret := []configurator.EntityUpdateCriteria{
+		{
+			Type:      lte.PolicyQoSProfileEntityType,
+			Key:       key,
+			NewConfig: m,
+		},
+	}
+	return ret, nil
+}
+
+func (m *PolicyQosProfile) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:   lte.PolicyQoSProfileEntityType,
+		Key:    *m.ID,
+		Config: m,
+	}
 }

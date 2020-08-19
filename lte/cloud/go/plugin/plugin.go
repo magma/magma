@@ -61,16 +61,16 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkConfigType, &lte_models.NetworkCellularConfigs{}),
 		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &policydb_models.NetworkSubscriberConfig{}),
+
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayEntityType, &lte_models.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebEntityType, &lte_models.EnodebConfiguration{}),
 
+		configurator.NewNetworkEntityConfigSerde(lte.SubscriberEntityType, &subscriberdb_models.SubscriberConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &policydb_models.PolicyRuleConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policydb_models.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(lte.SubscriberEntityType, &subscriberdb_models.SubscriberConfig{}),
-
 		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policydb_models.RatingGroup{}),
-
 		configurator.NewNetworkEntityConfigSerde(lte.APNEntityType, &lte_models.ApnConfiguration{}),
+		configurator.NewNetworkEntityConfigSerde(lte.PolicyQoSProfileEntityType, &policydb_models.PolicyQosProfile{}),
 	}
 }
 

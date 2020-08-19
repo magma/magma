@@ -26,7 +26,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/test_init"
+	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/swag"
@@ -38,7 +38,7 @@ import (
 func TestPolicyDBHandlersBasic(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -505,7 +505,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 func TestPolicyHandlersAssociations(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -719,6 +719,229 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	)
 }
 
+func TestQoSProfileHandlers(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lteplugin.LteOrchestratorPlugin{}))
+	configurator_test_init.StartTestService(t)
+	e := echo.New()
+
+	obsidianHandlers := handlers.GetHandlers()
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType})
+	assert.NoError(t, err)
+
+	listProfiles := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles", obsidian.GET).HandlerFunc
+	createProfile := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles", obsidian.POST).HandlerFunc
+	updateProfile := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles/:profile_id", obsidian.PUT).HandlerFunc
+	getProfile := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles/:profile_id", obsidian.GET).HandlerFunc
+	deleteProfile := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles/:profile_id", obsidian.DELETE).HandlerFunc
+
+	// Get all profiles, initially empty
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listProfiles,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get nonexistent profile
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        getProfile,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put nonexistent profile
+	profileX := getDefaultTestProfile()
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/:policy_id",
+		Payload:        profileX,
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        updateProfile,
+		ExpectedStatus: 400,
+		ExpectedError:  "profile does not exist",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete nonexistent profile
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        deleteProfile,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post malformed profile
+	profileXa := getDefaultTestProfile()
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    "/magma/v1/lte/:network_id/policy_qos_profiles",
+		Payload:                profileXa,
+		MalformedPayload:       true,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		Handler:                createProfile,
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "Syntax error",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post invalid profile
+	profileXb := getDefaultTestProfile()
+	profileXb.Arp.PriorityLevel = swag.Uint32(16) // invalid
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    "/magma/v1/lte/:network_id/policy_qos_profiles",
+		Payload:                profileXb,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		Handler:                createProfile,
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "validation failure list",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post profile
+	profile0 := getDefaultTestProfile()
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		Payload:        profile0,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createProfile,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler("profile0"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post existing profile
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    "/magma/v1/lte/:network_id/policy_qos_profiles",
+		Payload:                profile0,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n1"},
+		Handler:                createProfile,
+		ExpectedStatus:         404,
+		ExpectedErrorSubstring: "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get existing profile
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        getProfile,
+		ExpectedStatus: 200,
+		ExpectedResult: profile0,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put existing profile
+	profile0a := getDefaultTestProfile()
+	profile0a.ClassID = 5
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/:policy_id",
+		Payload:        profile0a,
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        updateProfile,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put invalid ID
+	profileX = getDefaultTestProfile()
+	profileX.ID = swag.String("xxx")
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/:policy_id",
+		Payload:        profileX,
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        updateProfile,
+		ExpectedStatus: 400,
+		ExpectedError:  "id field is read-only",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get existing profile, put succeeded
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        getProfile,
+		ExpectedStatus: 200,
+		ExpectedResult: profile0a,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all profiles, no longer empty
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listProfiles,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{"profile0"}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete profile
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        deleteProfile,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get existing profile, delete succeeded
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        getProfile,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all profiles, empty
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listProfiles,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 // config will be filled from the expected model
 func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expectedModel *policyModels.PolicyRule, expectedEnt configurator.NetworkEntity) {
 	expectedEnt.Config = getExpectedRuleConfig(expectedModel)
@@ -764,4 +987,21 @@ func validateBaseName(t *testing.T, e *echo.Echo, getName echo.HandlerFunc, expe
 		ExpectedStatus: 200,
 	}
 	tests.RunUnitTest(t, e, tc)
+}
+
+func getDefaultTestProfile() *policyModels.PolicyQosProfile {
+	ret := &policyModels.PolicyQosProfile{
+		Arp: &policyModels.Arp{
+			PreemptionCapability:    swag.Bool(true),
+			PreemptionVulnerability: swag.Bool(false),
+			PriorityLevel:           swag.Uint32(5),
+		},
+		ClassID: 3,
+		Gbr: &policyModels.Gbr{
+			Downlink: swag.Uint32(42),
+			Uplink:   swag.Uint32(420),
+		},
+		ID: swag.String("profile0"),
+	}
+	return ret
 }

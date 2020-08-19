@@ -27,6 +27,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	plugin3 "magma/lte/cloud/go/plugin"
 	models3 "magma/lte/cloud/go/services/lte/obsidian/models"
+	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -34,7 +35,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
@@ -50,7 +51,7 @@ import (
 func TestFederationNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	testHealthServicer, err := healthTestInit.StartTestService(t)
 	assert.NoError(t, err)
@@ -264,7 +265,7 @@ func TestFederationGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	testHealthServicer, err := healthTestInit.StartTestService(t)
@@ -478,7 +479,7 @@ func TestFederatedLteNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin3.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -654,6 +655,87 @@ func TestFederatedLteNetworks(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+// Main in LTE module, this just ensures the handlers are attached
+func TestQoSProfileHandlers(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{}))
+	configuratorTestInit.StartTestService(t)
+	e := echo.New()
+
+	obsidianHandlers := handlers.GetHandlers()
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: feg.FederatedLteNetworkType})
+	assert.NoError(t, err)
+
+	listProfiles := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg_lte/:network_id/policy_qos_profiles", obsidian.GET).HandlerFunc
+	createProfile := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg_lte/:network_id/policy_qos_profiles", obsidian.POST).HandlerFunc
+	updateProfile := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg_lte/:network_id/policy_qos_profiles/:profile_id", obsidian.PUT).HandlerFunc
+	getProfile := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg_lte/:network_id/policy_qos_profiles/:profile_id", obsidian.GET).HandlerFunc
+	deleteProfile := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/feg_lte/:network_id/policy_qos_profiles/:profile_id", obsidian.DELETE).HandlerFunc
+
+	// Post
+	profile0 := getDefaultTestQoSProfile()
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		Payload:        profile0,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createProfile,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler("profile0"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        getProfile,
+		ExpectedStatus: 200,
+		ExpectedResult: profile0,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put
+	profile0a := getDefaultTestQoSProfile()
+	profile0a.ClassID = 5
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/:policy_id",
+		Payload:        profile0a,
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        updateProfile,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listProfiles,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler([]string{"profile0"}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		ParamNames:     []string{"network_id", "profile_id"},
+		ParamValues:    []string{"n1", "profile0"},
+		Handler:        deleteProfile,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 // n1, n3 are feg networks, n2 is not
 func seedFederationNetworks(t *testing.T) {
 	_, err := configurator.CreateNetworks(
@@ -756,4 +838,21 @@ func seedFederationGateway(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
+}
+
+func getDefaultTestQoSProfile() *policydbModels.PolicyQosProfile {
+	ret := &policydbModels.PolicyQosProfile{
+		Arp: &policydbModels.Arp{
+			PreemptionCapability:    swag.Bool(true),
+			PreemptionVulnerability: swag.Bool(false),
+			PriorityLevel:           swag.Uint32(5),
+		},
+		ClassID: 3,
+		Gbr: &policydbModels.Gbr{
+			Downlink: swag.Uint32(42),
+			Uplink:   swag.Uint32(420),
+		},
+		ID: swag.String("profile0"),
+	}
+	return ret
 }

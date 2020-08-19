@@ -38,7 +38,7 @@ import (
 const (
 	LteNetworks                         = "lte"
 	ListNetworksPath                    = obsidian.V1Root + LteNetworks
-	ManageNetworkPath                   = ListNetworksPath + "/:network_id"
+	ManageNetworkPath                   = ListNetworksPath + obsidian.UrlSep + ":network_id"
 	ManageNetworkNamePath               = ManageNetworkPath + obsidian.UrlSep + "name"
 	ManageNetworkDescriptionPath        = ManageNetworkPath + obsidian.UrlSep + "description"
 	ManageNetworkFeaturesPath           = ManageNetworkPath + obsidian.UrlSep + "features"

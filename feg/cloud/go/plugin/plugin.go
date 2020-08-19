@@ -20,6 +20,8 @@ import (
 	"magma/feg/cloud/go/feg"
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
+	"magma/lte/cloud/go/lte"
+	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -53,6 +55,7 @@ func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &models.NetworkFederationConfigs{}),
 		configurator.NewNetworkConfigSerde(feg.FederatedNetworkType, &models.FederatedNetworkConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &models.GatewayFederationConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.PolicyQoSProfileEntityType, &policydb_models.PolicyQosProfile{}),
 	}
 }
 

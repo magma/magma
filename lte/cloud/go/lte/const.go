@@ -48,13 +48,14 @@ const (
 	NetworkSubscriberConfigType = "network_subscriber_config"
 
 	// APNEntityType etc. are configurator network entity types.
-	APNEntityType             = "apn"
-	BaseNameEntityType        = "base_name"
-	CellularEnodebEntityType  = "cellular_enodeb"
-	CellularGatewayEntityType = "cellular_gateway"
-	PolicyRuleEntityType      = "policy"
-	RatingGroupEntityType     = "rating_group"
-	SubscriberEntityType      = "subscriber"
+	APNEntityType              = "apn"
+	BaseNameEntityType         = "base_name"
+	CellularEnodebEntityType   = "cellular_enodeb"
+	CellularGatewayEntityType  = "cellular_gateway"
+	PolicyQoSProfileEntityType = "policy_qos_profile"
+	PolicyRuleEntityType       = "policy"
+	RatingGroupEntityType      = "rating_group"
+	SubscriberEntityType       = "subscriber"
 
 	// BaseNameStreamName etc. are streamer stream names.
 	BaseNameStreamName         = "base_names"

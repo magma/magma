@@ -50,6 +50,8 @@ basePath: /magma/v1
 tags:
   - name: Federated LTE Networks
     description: Endpoints related to Federated LTE networks
+  - name: Federated LTE Policies
+    description: Endpoints related to network policy management in federated LTE networks
   - name: Federation Networks
     description:
   - name: Federation Gateways

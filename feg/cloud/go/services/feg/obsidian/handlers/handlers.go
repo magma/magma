@@ -21,6 +21,7 @@ import (
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
+	policydbHandlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -62,6 +63,9 @@ const (
 	ManageFegLteNetworkRuleNamesPath  = ManageFegLteNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
 	ManageFegLteNetworkBaseNamePath   = ManageFegLteNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
 	ManageFegLteNetworkRuleNamePath   = ManageFegLteNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
+
+	qosProfileRootPath   = ManageFegLteNetworkPath + obsidian.UrlSep + "policy_qos_profiles"
+	qosProfileManagePath = qosProfileRootPath + obsidian.UrlSep + ":profile_id"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -84,6 +88,10 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageFegLteNetworkRuleNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberRuleName},
 		{Path: ManageFegLteNetworkBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberBaseName},
 		{Path: ManageFegLteNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
+
+		{Path: qosProfileRootPath, Methods: obsidian.GET, HandlerFunc: policydbHandlers.ListQoSProfiles},
+		{Path: qosProfileRootPath, Methods: obsidian.POST, HandlerFunc: policydbHandlers.CreateQoSProfile},
+		{Path: qosProfileManagePath, Methods: obsidian.DELETE, HandlerFunc: policydbHandlers.DeleteQoSProfile},
 	}
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegModels.FegNetwork{})...)
@@ -94,10 +102,13 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayFederationPath, &fegModels.GatewayFederationConfigs{})...)
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegLteNetworksPath, ManageFegLteNetworkPath, feg.FederatedLteNetworkType, &fegModels.FegLteNetwork{})...)
+
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkFederationPath, &fegModels.FederatedNetworkConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
+
+	ret = append(ret, handlers.GetPartialEntityHandlers(qosProfileManagePath, "profile_id", &policyModels.PolicyQosProfile{})...)
 
 	return ret
 }
