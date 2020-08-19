@@ -588,9 +588,6 @@ int sgw_handle_sgi_endpoint_updated(
     sgw_populate_mbr_bearer_contexts_removed(
         resp_pP, modify_response_p, new_bearer_ctxt_info_p, imsi64);
     sgw_populate_mbr_bearer_contexts_not_found(resp_pP, modify_response_p);
-    OAILOG_ERROR(
-        LOG_SPGW_APP, "Sending successful MBRsp for bearer" TEID_FMT "\n",
-        resp_pP->context_teid);
     rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
   }
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
@@ -863,6 +860,8 @@ int sgw_handle_modify_bearer_request(
         enb.s_addr =
             eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
+        // Send end marker to eNB and then delete the tunnel if enb_ip is
+        // different
         if (is_enb_ip_address_same(
                 &modify_bearer_pP->bearer_contexts_to_be_modified
                      .bearer_contexts[idx]
@@ -880,6 +879,8 @@ int sgw_handle_modify_bearer_request(
           rv = gtp_tunnel_ops->del_tunnel(
               ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
+          // This is best effort, ignore return code.
+          gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
         }
         if (handle_sgi_end_point_update(
                 eps_bearer_ctxt_p, modify_bearer_pP, &sgi_update_end_point_resp,
@@ -915,20 +916,6 @@ int sgw_handle_modify_bearer_request(
     }
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
   }
-
-  // Send end marker to eNB and then delete the tunnel if enb_ip is
-  // This is best effort, ignore return code.
-  gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
-
-  for (int i = 0; i < sgi_update_end_point_resp.num_bearers_modified; i++) {
-    OAILOG_ERROR(
-        LOG_SPGW_APP, "Sending sgi_endpoint_updated for bearers %u\n",
-        sgi_update_end_point_resp.bearer_contexts_to_be_modified[i]
-            .eps_bearer_id);
-  }
-  OAILOG_ERROR(
-      LOG_SPGW_APP,
-      "**************Sending sgi_endpoint_updated ****************\n");
   sgw_handle_sgi_endpoint_updated(&sgi_update_end_point_resp, imsi64);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }

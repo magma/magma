@@ -714,13 +714,6 @@ int s1ap_mme_handle_initial_context_setup_response(
         (uint32_t) initialContextSetupResponseIEs_p->eNB_UE_S1AP_ID);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-#if 0
-  if (initialContextSetupResponseIEs_p->e_RABSetupListCtxtSURes
-          .s1ap_E_RABSetupItemCtxtSURes.count != 1) {
-    OAILOG_WARNING_UE(LOG_S1AP, imsi64, "E-RAB creation has failed\n");
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
-#endif
   ue_ref_p->s1_ue_state = S1AP_UE_CONNECTED;
   message_p =
       itti_alloc_new_message(TASK_S1AP, MME_APP_INITIAL_CONTEXT_SETUP_RSP);
