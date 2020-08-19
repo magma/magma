@@ -13,9 +13,9 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// SLACKConfirmField slack confirm field
+// SlackConfirmField slack confirm field
 // swagger:model slack_confirm_field
-type SLACKConfirmField struct {
+type SlackConfirmField struct {
 
 	// dismiss text
 	// Required: true
@@ -35,7 +35,7 @@ type SLACKConfirmField struct {
 }
 
 // Validate validates this slack confirm field
-func (m *SLACKConfirmField) Validate(formats strfmt.Registry) error {
+func (m *SlackConfirmField) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateDismissText(formats); err != nil {
@@ -60,7 +60,7 @@ func (m *SLACKConfirmField) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKConfirmField) validateDismissText(formats strfmt.Registry) error {
+func (m *SlackConfirmField) validateDismissText(formats strfmt.Registry) error {
 
 	if err := validate.Required("dismiss_text", "body", m.DismissText); err != nil {
 		return err
@@ -69,7 +69,7 @@ func (m *SLACKConfirmField) validateDismissText(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKConfirmField) validateOkText(formats strfmt.Registry) error {
+func (m *SlackConfirmField) validateOkText(formats strfmt.Registry) error {
 
 	if err := validate.Required("ok_text", "body", m.OkText); err != nil {
 		return err
@@ -78,7 +78,7 @@ func (m *SLACKConfirmField) validateOkText(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKConfirmField) validateText(formats strfmt.Registry) error {
+func (m *SlackConfirmField) validateText(formats strfmt.Registry) error {
 
 	if err := validate.Required("text", "body", m.Text); err != nil {
 		return err
@@ -87,7 +87,7 @@ func (m *SLACKConfirmField) validateText(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKConfirmField) validateTitle(formats strfmt.Registry) error {
+func (m *SlackConfirmField) validateTitle(formats strfmt.Registry) error {
 
 	if err := validate.Required("title", "body", m.Title); err != nil {
 		return err
@@ -97,7 +97,7 @@ func (m *SLACKConfirmField) validateTitle(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *SLACKConfirmField) MarshalBinary() ([]byte, error) {
+func (m *SlackConfirmField) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -105,8 +105,8 @@ func (m *SLACKConfirmField) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *SLACKConfirmField) UnmarshalBinary(b []byte) error {
-	var res SLACKConfirmField
+func (m *SlackConfirmField) UnmarshalBinary(b []byte) error {
+	var res SlackConfirmField
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

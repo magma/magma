@@ -13,9 +13,9 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// SLACKField slack field
+// SlackField slack field
 // swagger:model slack_field
-type SLACKField struct {
+type SlackField struct {
 
 	// short
 	Short bool `json:"short,omitempty"`
@@ -30,7 +30,7 @@ type SLACKField struct {
 }
 
 // Validate validates this slack field
-func (m *SLACKField) Validate(formats strfmt.Registry) error {
+func (m *SlackField) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateTitle(formats); err != nil {
@@ -47,7 +47,7 @@ func (m *SLACKField) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKField) validateTitle(formats strfmt.Registry) error {
+func (m *SlackField) validateTitle(formats strfmt.Registry) error {
 
 	if err := validate.Required("title", "body", m.Title); err != nil {
 		return err
@@ -56,7 +56,7 @@ func (m *SLACKField) validateTitle(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKField) validateValue(formats strfmt.Registry) error {
+func (m *SlackField) validateValue(formats strfmt.Registry) error {
 
 	if err := validate.Required("value", "body", m.Value); err != nil {
 		return err
@@ -66,7 +66,7 @@ func (m *SLACKField) validateValue(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *SLACKField) MarshalBinary() ([]byte, error) {
+func (m *SlackField) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -74,8 +74,8 @@ func (m *SLACKField) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *SLACKField) UnmarshalBinary(b []byte) error {
-	var res SLACKField
+func (m *SlackField) UnmarshalBinary(b []byte) error {
+	var res SlackField
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

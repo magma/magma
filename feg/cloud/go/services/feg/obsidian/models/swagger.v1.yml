@@ -15,8 +15,12 @@ magma-gen-meta:
       filename: diameter_client_configs_swaggergen.go
     - go-struct-name: DiameterServerConfigs
       filename: diameter_server_configs_swaggergen.go
+    - go-struct-name: AaaServer
+      filename: aaa_server_swaggergen.go
     - go-struct-name: EapAkaTimeouts
       filename: eap_aka_timeouts_swaggergen.go
+    - go-struct-name: EapAka
+      filename: eap_aka_swaggergen.go
     - go-struct-name: NetworkFederationConfigs
       filename: network_federation_configs_swaggergen.go
     - go-struct-name: SubscriptionProfile

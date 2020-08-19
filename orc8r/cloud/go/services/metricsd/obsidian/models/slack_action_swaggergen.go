@@ -13,12 +13,12 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// SLACKAction slack action
+// SlackAction slack action
 // swagger:model slack_action
-type SLACKAction struct {
+type SlackAction struct {
 
 	// confirm
-	Confirm *SLACKConfirmField `json:"confirm,omitempty"`
+	Confirm *SlackConfirmField `json:"confirm,omitempty"`
 
 	// name
 	Name string `json:"name,omitempty"`
@@ -43,7 +43,7 @@ type SLACKAction struct {
 }
 
 // Validate validates this slack action
-func (m *SLACKAction) Validate(formats strfmt.Registry) error {
+func (m *SlackAction) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateConfirm(formats); err != nil {
@@ -68,7 +68,7 @@ func (m *SLACKAction) Validate(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKAction) validateConfirm(formats strfmt.Registry) error {
+func (m *SlackAction) validateConfirm(formats strfmt.Registry) error {
 
 	if swag.IsZero(m.Confirm) { // not required
 		return nil
@@ -86,7 +86,7 @@ func (m *SLACKAction) validateConfirm(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKAction) validateText(formats strfmt.Registry) error {
+func (m *SlackAction) validateText(formats strfmt.Registry) error {
 
 	if err := validate.Required("text", "body", m.Text); err != nil {
 		return err
@@ -95,7 +95,7 @@ func (m *SLACKAction) validateText(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKAction) validateType(formats strfmt.Registry) error {
+func (m *SlackAction) validateType(formats strfmt.Registry) error {
 
 	if err := validate.Required("type", "body", m.Type); err != nil {
 		return err
@@ -104,7 +104,7 @@ func (m *SLACKAction) validateType(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *SLACKAction) validateURL(formats strfmt.Registry) error {
+func (m *SlackAction) validateURL(formats strfmt.Registry) error {
 
 	if err := validate.Required("url", "body", m.URL); err != nil {
 		return err
@@ -114,7 +114,7 @@ func (m *SLACKAction) validateURL(formats strfmt.Registry) error {
 }
 
 // MarshalBinary interface implementation
-func (m *SLACKAction) MarshalBinary() ([]byte, error) {
+func (m *SlackAction) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -122,8 +122,8 @@ func (m *SLACKAction) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *SLACKAction) UnmarshalBinary(b []byte) error {
-	var res SLACKAction
+func (m *SlackAction) UnmarshalBinary(b []byte) error {
+	var res SlackAction
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

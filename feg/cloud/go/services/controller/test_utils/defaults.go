@@ -14,8 +14,8 @@
 package test_utils
 
 import (
-	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"github.com/go-openapi/swag"
+	"magma/feg/cloud/go/services/feg/obsidian/models"
 )
 
 func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
@@ -103,7 +103,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 			PlmnIds: []string{},
 		},
 		AaaServer: &models.AaaServer{
-			IDLESessionTimeoutMs: 21600000,
+			IdleSessionTimeoutMs: 21600000,
 			AccountingEnabled:    false,
 			CreateSessionOnAuth:  false,
 		},
