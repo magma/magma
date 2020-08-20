@@ -36,6 +36,8 @@ export function getStep(start: moment, end: moment): [number, string, string] {
     return [1, 'hour', 'HH:mm'];
   } else if (d.asHours() <= 24.5) {
     return [2, 'hour', 'HH:mm'];
+  } else if (d.asDays() <= 1.5) {
+    return [3, 'hour', 'DD-MM-YY HH:mm'];
   } else if (d.asDays() <= 3.5) {
     return [6, 'hour', 'DD-MM-YY HH:mm'];
   } else if (d.asDays() <= 7.5) {
