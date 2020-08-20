@@ -135,6 +135,7 @@ func TestBuilder_Build(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
+			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
@@ -202,7 +203,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat(),
+                Config:             newGatewayConfigNonNat(""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
@@ -259,6 +260,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
+			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
@@ -326,6 +328,32 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+                Config:             newGatewayConfigNonNat("30"),
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan: "30",
+	}
+
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
 }
 
 func TestBuilder_Build_BaseCase(t *testing.T) {
@@ -532,6 +560,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
+			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
@@ -601,7 +630,7 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 	}
 }
 
-func newGatewayConfigNonNat() *lte_models.GatewayCellularConfigs {
+func newGatewayConfigNonNat(vlan string) *lte_models.GatewayCellularConfigs {
 	return &lte_models.GatewayCellularConfigs{
 		Ran: &lte_models.GatewayRanConfigs{
 			Pci:             260,
@@ -610,6 +639,7 @@ func newGatewayConfigNonNat() *lte_models.GatewayCellularConfigs {
 		Epc: &lte_models.GatewayEpcConfigs{
 			NatEnabled: swag.Bool(false),
 			IPBlock:    "192.168.128.0/24",
+			SgiManagementIfaceVlan: vlan,
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
