@@ -16,4 +16,4 @@ replace (
 	magma/orc8r/lib/go/protos => ../../../../orc8r/lib/go/protos
 )
 
-go 1.13
+go 1.12
