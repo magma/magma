@@ -17,7 +17,7 @@ import logging
 import grpc
 from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
     ListAddedIPBlocksResponse, ListAllocatedIPsResponse, RemoveIPBlockResponse, \
-    SubscriberIPTable, GWInfo, ListGWInfoResponse
+    SubscriberIPTable, GWInfo, ListGWInfoResponse, AllocateIPAddressResponse
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
     add_MobilityServiceServicer_to_server
 from lte.protos.subscriberdb_pb2 import SubscriberID
@@ -162,9 +162,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
 
     def AllocateIPAddress(self, request, context):
         """ Allocate an IP address from the free IP pool """
-        resp = IPAddress()
         if request.version == AllocateIPRequest.IPV4:
             try:
+                ip_addr = IPAddress()
                 composite_sid = SIDUtils.to_str(request.sid)
                 if request.apn:
                     composite_sid = composite_sid + "." + request.apn
@@ -172,8 +172,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 ip = self._ipv4_allocator.alloc_ip_address(composite_sid)
                 logging.info("Allocated IPv4 %s for sid %s for apn %s"
                              % (ip, SIDUtils.to_str(request.sid), request.apn))
-                resp.version = IPAddress.IPV4
-                resp.address = ip.packed
+                ip_addr.version = IPAddress.IPV4
+                ip_addr.address = ip.packed
+                return AllocateIPAddressResponse(ip_addr=ip_addr)
             except NoAvailableIPError:
                 context.set_details('No free IPv4 IP available')
                 context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
@@ -182,7 +183,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 context.set_code(grpc.StatusCode.ALREADY_EXISTS)
         else:
             self._unimplemented_ip_version_error(context)
-        return resp
+        return AllocateIPAddressResponse()
 
     @return_void
     def ReleaseIPAddress(self, request, context):
