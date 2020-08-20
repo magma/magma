@@ -55,7 +55,7 @@ const CONFIGS: Array<MetricGraphConfig> = [
   {
     basicQueryConfigs: [
       {
-        metric: 'ue_registered',
+        metric: 'ue_connected',
         filters: [{name: 'service', value: 'mme'}],
       },
     ],
