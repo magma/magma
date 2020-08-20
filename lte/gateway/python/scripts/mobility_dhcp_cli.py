@@ -49,8 +49,8 @@ class DhcpClientCLI:
             print("mac: %s DHCP state: %s" % (k.replace('_', ':'), str(v)))
 
         gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
-        print("Default GW: %s" % gw_info.getIP())
-        print("GW Mac address: %s" % gw_info.getMac())
+        print("Default GW: %s" % gw_info.get_gw_ip())
+        print("GW Mac address: %s" % gw_info.get_gw_mac())
 
     def add_record(self, args):
         """
@@ -98,7 +98,7 @@ class DhcpClientCLI:
         gw_ip = ip_address(args.ip)
         gw_info = UplinkGatewayInfo()
         gw_info.update_ip(str(gw_ip))
-        print("set Default gw IP to %s" % gw_info.getIP())
+        print("set Default gw IP to %s" % gw_info.get_gw_ip())
 
     def set_deafult_gw_mac(self, args):
         """
@@ -112,7 +112,7 @@ class DhcpClientCLI:
         gw_info = UplinkGatewayInfo()
         gw_info.update_mac(str(gw_mac))
 
-        print("set Default gw mac to %s" % gw_info.getMac())
+        print("set Default gw mac to %s" % gw_info.get_gw_mac())
 
 
 def main():

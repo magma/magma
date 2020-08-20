@@ -85,7 +85,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
         dhcp_store = self._dhcp_allocator._dhcp_store
 
-        self.assertEqual(str(dhcp_gw_info.getIP()), "192.168.128.211")
+        self.assertEqual(str(dhcp_gw_info.get_gw_ip()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)
 
         # wait for DHCP release
