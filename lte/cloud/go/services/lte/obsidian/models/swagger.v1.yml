@@ -1525,6 +1525,9 @@ definitions:
           enable_static_ip_assignments:
             type: boolean
             example: true
+          enable_multi_apn_ip_allocation:
+            type: boolean
+            example: true
           reserved_addresses:
             type: array
             items:

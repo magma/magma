@@ -295,6 +295,9 @@ func (m *NetworkEpcConfigs) UnmarshalBinary(b []byte) error {
 // swagger:model NetworkEpcConfigsMobility
 type NetworkEpcConfigsMobility struct {
 
+	// enable multi apn ip allocation
+	EnableMultiApnIPAllocation bool `json:"enable_multi_apn_ip_allocation,omitempty"`
+
 	// enable static ip assignments
 	EnableStaticIPAssignments bool `json:"enable_static_ip_assignments,omitempty"`
 
