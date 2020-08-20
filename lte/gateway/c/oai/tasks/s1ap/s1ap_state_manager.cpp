@@ -177,7 +177,7 @@ s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
   return s1ap_imsi_map_;
 }
 
-void S1apStateManager::put_s1ap_imsi_map() {
+void S1apStateManager::write_s1ap_imsi_map_to_db() {
   if(!persist_state_enabled) {
     return;
   }
