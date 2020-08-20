@@ -37,6 +37,7 @@ using grpc::CreateChannel;
 using grpc::InsecureChannelCredentials;
 using grpc::Status;
 using magma::lte::IPAddress;
+using magma::lte::AllocateIPAddressResponse;
 using magma::lte::MobilityServiceClient;
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
@@ -62,8 +63,8 @@ int pgw_handle_allocate_ipv4_address(
     s5_create_session_response_t s5_response) {
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id, apn,
-      [=, &s5_response](const Status& status, IPAddress ip_msg) {
-        memcpy(addr, ip_msg.mutable_address()->c_str(), sizeof(in_addr));
+      [=, &s5_response](const Status& status, AllocateIPAddressResponse ip_msg) {
+        memcpy(addr, ip_msg.mutable_ip_addr()->mutable_address()->c_str(), sizeof(in_addr));
 
         auto sgi_resp = handle_allocate_ipv4_address_status(
             status, *addr, subscriber_id, apn, pdn_type,
