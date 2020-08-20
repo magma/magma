@@ -104,7 +104,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
         query: 'sum(ALERTS)',
       },
     );
-    alertPromResp.data.result.forEach(it =>
+    alertPromResp.data?.result.forEach(it =>
       it['values']?.map(i => {
         alertsData.push({
           t: parseInt(i[0]) * 1000,
@@ -114,7 +114,6 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
     );
   } catch (error) {
     requestError = error;
-    return [];
   }
 
   if (requestError) {
@@ -122,7 +121,6 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       variant: 'error',
     });
   }
-
   return [
     {
       label: 'Alerts',

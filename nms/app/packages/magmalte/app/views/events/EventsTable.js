@@ -283,7 +283,7 @@ export default function EventsTable({
           ]}
           options={{
             actionsColumnIndex: -1,
-            pageSizeOptions: [5],
+            pageSizeOptions: [10],
             toolbar: false,
           }}
           detailPanel={[

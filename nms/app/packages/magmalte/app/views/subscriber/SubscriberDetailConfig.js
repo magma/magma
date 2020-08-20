@@ -80,7 +80,7 @@ export function SubscriberJsonConfig() {
       error={error}
       onSave={async (subscriber: mutable_subscriber) => {
         try {
-          await ctx.setState(subscriber.id, subscriber);
+          await ctx.setState?.(subscriber.id, subscriber);
           enqueueSnackbar('Subscriber saved successfully', {
             variant: 'success',
           });

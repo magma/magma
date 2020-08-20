@@ -20,11 +20,11 @@ import React from 'react';
 
 type EnodebState = {
   enbInfo: {[string]: EnodebInfo},
-  lteRanConfigs?: network_ran_configs,
 };
 
 export type EnodebContextType = {
   state: EnodebState,
+  lteRanConfigs?: network_ran_configs,
   setState: (key: string, val?: EnodebInfo) => Promise<void>,
 };
 
