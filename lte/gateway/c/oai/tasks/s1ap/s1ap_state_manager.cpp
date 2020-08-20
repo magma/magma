@@ -165,10 +165,12 @@ void S1apStateManager::create_s1ap_imsi_map()
   s1ap_imsi_map_->mme_ue_id_imsi_htbl =
     hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
 
-  gateway::s1ap::S1apImsiMap imsi_proto = gateway::s1ap::S1apImsiMap();
-  redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
+  if(persist_state_enabled) {
+    oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
+    redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
 
-  S1apStateConverter::proto_to_s1ap_imsi_map(imsi_proto, s1ap_imsi_map_);
+    S1apStateConverter::proto_to_s1ap_imsi_map(imsi_proto, s1ap_imsi_map_);
+  }
 }
 
 void S1apStateManager::clear_s1ap_imsi_map() {
@@ -177,7 +179,13 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   }
   hashtable_uint64_ts_destroy(s1ap_imsi_map_->mme_ue_id_imsi_htbl);
 
-  free_wrapper((void **) &s1ap_imsi_map_);
+  free_wrapper((void**) &s1ap_imsi_map_);
+
+  if(persist_state_enabled) {
+    std::vector<std::string> keys_to_del;
+    keys_to_del.emplace_back(S1AP_IMSI_MAP_TABLE_NAME);
+    redis_client->clear_keys(keys_to_del);
+  }
 }
 
 s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map()
@@ -185,8 +193,11 @@ s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map()
   return s1ap_imsi_map_;
 }
 
-void S1apStateManager::put_s1ap_imsi_map() {
-  gateway::s1ap::S1apImsiMap imsi_proto = gateway::s1ap::S1apImsiMap();
+void S1apStateManager::write_s1ap_imsi_map_to_db() {
+  if(!persist_state_enabled) {
+    return;
+  }
+  oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
   S1apStateConverter::s1ap_imsi_map_to_proto(s1ap_imsi_map_, &imsi_proto);
   redis_client->write_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
 }

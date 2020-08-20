@@ -120,7 +120,7 @@ uint64_t s1ap_get_comp_s1ap_id(
 }
 
 void put_s1ap_imsi_map() {
-  S1apStateManager::getInstance().put_s1ap_imsi_map();
+  S1apStateManager::getInstance().write_s1ap_imsi_map_to_db();
 }
 
 s1ap_imsi_map_t* get_s1ap_imsi_map() {
