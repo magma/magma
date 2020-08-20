@@ -116,7 +116,18 @@ export default function TrafficDashboard() {
         />
         <Route
           path={relativePath('/policy')}
-          render={() => <PolicyOverview policies={policies} />}
+          render={() => (
+            <PolicyOverview
+              policies={policies}
+              onDelete={policyId => {
+                const {
+                  [policyId]: _deletedPolicy,
+                  ...updatedPolicies
+                } = policies;
+                setPolicies(updatedPolicies);
+              }}
+            />
+          )}
         />
         <Route
           path={relativePath('/apn')}

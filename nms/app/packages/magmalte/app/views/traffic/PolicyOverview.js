@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {policy_rule} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
@@ -25,6 +26,7 @@ import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -112,14 +114,17 @@ type PolicyRowType = {
   trackingType: string,
 };
 
-type policiesType = {
+type Props = WithAlert & {
   policies: {[string]: policy_rule},
+  onDelete?: string => void,
 };
-export default function PolicyOverview(props: policiesType) {
+
+export function PolicyOverview(props: Props) {
   const classes = useStyles();
-  // this for enabling edit, deactivate actions
+  const enqueueSnackbar = useEnqueueSnackbar();
   const [currRow, setCurrRow] = useState<PolicyRowType>({});
-  const {history, relativeUrl} = useRouter();
+  const {history, match, relativeUrl} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
   const policyRows: Array<PolicyRowType> = props.policies
     ? Object.keys(props.policies).map((policyID: string) => {
         const policyRule = props.policies[policyID];
@@ -206,7 +211,37 @@ export default function PolicyOverview(props: policiesType) {
                 },
               },
               {name: 'Deactivate'},
-              {name: 'Remove'},
+              {
+                name: 'Remove',
+                handleFunc: () => {
+                  props
+                    .confirm(
+                      `Are you sure you want to delete ${currRow.policyID}?`,
+                    )
+                    .then(async confirmed => {
+                      if (!confirmed) {
+                        return;
+                      }
+
+                      try {
+                        await MagmaV1API.deleteNetworksByNetworkIdPoliciesRulesByRuleId(
+                          {
+                            networkId: networkId,
+                            ruleId: currRow.policyID,
+                          },
+                        );
+                        props.onDelete?.(currRow.policyID);
+                      } catch (e) {
+                        enqueueSnackbar(
+                          'failed deleting policy ' + currRow.policyID,
+                          {
+                            variant: 'error',
+                          },
+                        );
+                      }
+                    });
+                },
+              },
             ]}
             options={{
               actionsColumnIndex: -1,
@@ -218,12 +253,11 @@ export default function PolicyOverview(props: policiesType) {
     </div>
   );
 }
-
-type Props = {
+type JsonConfigType = {
   policies: {[string]: policy_rule},
   onSave?: policy_rule => void,
 };
-export function PolicyJsonConfig(props: Props) {
+export function PolicyJsonConfig(props: JsonConfigType) {
   const {match, history} = useRouter();
   const [error, setError] = useState('');
   const networkId: string = nullthrows(match.params.networkId);
@@ -264,3 +298,5 @@ export function PolicyJsonConfig(props: Props) {
     />
   );
 }
+
+export default withAlert(PolicyOverview);
