@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+import type {ChartData, ChartTooltipItem} from 'react-chartjs-2';
 
 import React from 'react';
 import moment from 'moment';
@@ -26,27 +27,21 @@ export function getStepString(delta: number, unit: string) {
 export function getStep(start: moment, end: moment): [number, string, string] {
   const d = moment.duration(end.diff(start));
   if (d.asMinutes() <= 60.5) {
-    return [5, 'minutes', 'HH:mm'];
+    return [5, 'minute', 'HH:mm'];
   } else if (d.asHours() <= 3.5) {
-    return [15, 'minutes', 'HH:mm'];
+    return [15, 'minute', 'HH:mm'];
   } else if (d.asHours() <= 6.5) {
-    return [15, 'minutes', 'HH:mm'];
+    return [15, 'minute', 'HH:mm'];
   } else if (d.asHours() <= 12.5) {
-    return [1, 'hours', 'HH:mm'];
+    return [1, 'hour', 'HH:mm'];
   } else if (d.asHours() <= 24.5) {
-    return [2, 'hours', 'HH:mm'];
+    return [2, 'hour', 'HH:mm'];
   } else if (d.asDays() <= 3.5) {
-    return [6, 'hours', 'DD-MM-YY HH:mm'];
+    return [6, 'hour', 'DD-MM-YY HH:mm'];
   } else if (d.asDays() <= 7.5) {
-    return [12, 'hours', 'DD-MM-YY HH:mm'];
-  } else if (d.asDays() <= 14.5) {
-    return [1, 'days', 'DD-MM-YYYY'];
-  } else if (d.asDays() <= 30.5) {
-    return [1, 'days', 'DD-MM-YYYY'];
-  } else if (d.asMonths() <= 3.5) {
-    return [7, 'days', 'DD-MM-YYYY'];
+    return [12, 'hour', 'DD-MM-YY HH:mm'];
   }
-  return [1, 'months', 'DD-MM-YYYY'];
+  return [24, 'hour', 'DD-MM-YYYY'];
 }
 
 export type DatasetType = {
@@ -65,8 +60,11 @@ export type Dataset = {
 };
 
 type Props = {
-  labels: Array<string>,
   dataset: Array<Dataset>,
+  labels?: Array<string>,
+  unit?: string,
+  yLabel?: string,
+  tooltipHandler?: (ChartTooltipItem, ChartData) => string,
 };
 
 export default function CustomHistogram(props: Props) {
@@ -74,28 +72,63 @@ export default function CustomHistogram(props: Props) {
     <>
       <Bar
         height={300}
-        data={{labels: props.labels, datasets: props.dataset}}
+        data={{datasets: props.dataset}}
         options={{
           maintainAspectRatio: false,
           scaleShowValues: true,
           scales: {
             xAxes: [
               {
+                stacked: true,
                 gridLines: {
                   display: false,
+                },
+                type: 'time',
+                ticks: {
+                  source: 'data',
+                },
+                time: {
+                  unit: props?.unit,
+                  round: 'second',
+                  tooltipFormat: 'YYYY/MM/DD h:mm:ss a',
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Date',
                 },
               },
             ],
             yAxes: [
               {
+                stacked: true,
                 gridLines: {
                   drawBorder: true,
                 },
                 ticks: {
                   maxTicksLimit: 3,
                 },
+                scaleLabel: {
+                  display: true,
+                  labelString: props?.yLabel ?? '',
+                },
               },
             ],
+          },
+          tooltips: {
+            enabled: true,
+            mode: 'nearest',
+            callbacks: {
+              label: (tooltipItem, data) => {
+                return (
+                  props.tooltipHandler?.(tooltipItem, data) ??
+                  data.datasets[tooltipItem.datasetIndex].label +
+                    ': ' +
+                    tooltipItem.yLabel +
+                    ' ' +
+                    (data.datasets[tooltipItem.datasetIndex].unit ?? '')
+                );
+              },
+            },
           },
         }}
       />
@@ -114,8 +147,8 @@ export function CustomLineChart(props: Props) {
         }}
         legend={{
           display: true,
-          position: 'bottom',
-          align: 'center',
+          position: 'top',
+          align: 'end',
           labels: {
             boxWidth: 12,
           },
@@ -124,34 +157,37 @@ export function CustomLineChart(props: Props) {
           maintainAspectRatio: false,
           scaleShowValues: true,
           scales: {
-            xAxes: {
-              gridLines: {
-                display: true,
+            xAxes: [
+              {
+                gridLines: {
+                  display: false,
+                },
+                ticks: {
+                  maxTicksLimit: 10,
+                },
+                type: 'time',
+                time: {
+                  unit: props?.unit,
+                  round: 'second',
+                  tooltipFormat: 'YYYY/MM/DD h:mm:ss a',
+                },
+                scaleLabel: {
+                  display: true,
+                  labelString: 'Date',
+                },
               },
-              ticks: {
-                maxTicksLimit: 10,
-              },
-              type: 'time',
-              time: {
-                round: 'second',
-                tooltipFormat: 'YYYY/MM/DD h:mm:ss a',
-              },
-              scaleLabel: {
-                display: true,
-                labelString: 'Date',
-              },
-            },
+            ],
             yAxes: [
               {
                 gridLines: {
                   drawBorder: true,
                 },
                 ticks: {
-                  maxTicksLimit: 3,
+                  maxTicksLimit: 5,
                 },
                 scaleLabel: {
                   display: true,
-                  labelString: '',
+                  labelString: props?.yLabel ?? '',
                 },
                 position: 'left',
               },
@@ -162,14 +198,14 @@ export function CustomLineChart(props: Props) {
             mode: 'nearest',
             callbacks: {
               label: (tooltipItem, data) => {
-                const x =
+                return (
+                  props.tooltipHandler?.(tooltipItem, data) ??
                   data.datasets[tooltipItem.datasetIndex].label +
-                  ': ' +
-                  tooltipItem.yLabel +
-                  ' ' +
-                  (data.datasets[tooltipItem.datasetIndex].unit ?? '');
-                console.log('tooltip ', x);
-                return x;
+                    ': ' +
+                    tooltipItem.yLabel +
+                    ' ' +
+                    (data.datasets[tooltipItem.datasetIndex].unit ?? '')
+                );
               },
             },
           },

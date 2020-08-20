@@ -17,8 +17,14 @@ import type {subscriber} from '@fbcnms/magma-api';
 
 import React from 'react';
 
+export type Metrics = {
+  currentUsage: string,
+  dailyAvg: string,
+};
+
 export type SubscriberContextType = {
   state: {[string]: subscriber},
+  metrics: {[string]: Metrics},
   setState: (key: string, val: subscriber) => Promise<void>,
 };
 
