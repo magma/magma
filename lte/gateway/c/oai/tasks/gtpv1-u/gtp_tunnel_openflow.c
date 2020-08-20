@@ -53,10 +53,10 @@ int openflow_reset(void) {
 }
 
 int openflow_add_tunnel(
-    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
     Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl) {
   return openflow_controller_add_gtp_tunnel(
-      ue, enb, i_tei, o_tei, (const char*) imsi.digit, flow_dl,
+      ue, vlan, enb, i_tei, o_tei, (const char*) imsi.digit, flow_dl,
       flow_precedence_dl);
 }
 

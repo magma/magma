@@ -1677,6 +1677,12 @@ definitions:
         minLength: 5
         maxLength: 45
         example: '8.8.4.4'
+      sgi_management_iface_vlan:
+        type: string
+        description: VLAN ID for management interface traffic on the AGW
+        minLength: 1
+        maxLength: 4
+
 
   gateway_non_eps_configs:
     description: Non-EPS service configuration for a gateway

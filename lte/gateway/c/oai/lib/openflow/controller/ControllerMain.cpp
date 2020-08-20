@@ -82,16 +82,16 @@ static void* external_event_callback(std::shared_ptr<void> data) {
 }
 
 int openflow_controller_add_gtp_tunnel(
-    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
     const char* imsi, struct ipv4flow_dl* flow_dl,
     uint32_t flow_precedence_dl) {
   if (flow_dl) {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-        ue, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl);
+        ue, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   } else {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-        ue, enb, i_tei, o_tei, imsi);
+        ue, vlan, enb, i_tei, o_tei, imsi);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   }
   return 0;

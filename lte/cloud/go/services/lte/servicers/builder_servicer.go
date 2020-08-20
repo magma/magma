@@ -140,6 +140,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			NatEnabled:    swag.BoolValue(gwEpc.NatEnabled),
 			DefaultRuleId: nwEpc.DefaultRuleID,
 			Services:      pipelineDServices,
+			SgiManagementIfaceVlan: gwEpc.SgiManagementIfaceVlan,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,

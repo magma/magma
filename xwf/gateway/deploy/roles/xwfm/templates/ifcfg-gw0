@@ -13,3 +13,4 @@ DEVICETYPE=ovs
 OVS_BRIDGE=uplink_br0
 BOOTPROTO=none
 HOTPLUG=no
+OVS_EXTRA="set interface $DEVICE ofport=1"

@@ -44,19 +44,19 @@ export function getLteSections(): SectionsConfigs {
       },
       {
         path: 'equipment',
-        label: 'EquipmentV2',
+        label: 'Equipment',
         icon: <RouterIcon />,
         component: EquipmentDashboard,
       },
       {
         path: 'network',
-        label: 'NetworkV2',
+        label: 'Network',
         icon: <NetworkCheckIcon />,
         component: NetworkDashboard,
       },
       {
         path: 'subscribers',
-        label: 'SubscriberV2',
+        label: 'Subscriber',
         icon: <PeopleIcon />,
         component: SubscriberDashboard,
       },

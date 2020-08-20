@@ -112,7 +112,13 @@ export default function TopBar(props: Props) {
             </Tabs>
           </Grid>
           {props.tabs.map((tab, i) => (
-            <>{currentTab === i ? <Grid item>{tab.filters}</Grid> : null}</>
+            <>
+              {currentTab === i ? (
+                <Grid key={i} item>
+                  {tab.filters}
+                </Grid>
+              ) : null}
+            </>
           ))}
         </Grid>
       </AppBar>

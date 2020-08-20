@@ -89,10 +89,26 @@ void ExternalEvent::set_of_connection(fluid_base::OFConnection* ofconn) {
   ofconn_ = ofconn;
 }
 
-AddGTPTunnelEvent::AddGTPTunnelEvent(
-    const struct in_addr ue_ip, const struct in_addr enb_ip,
-    const uint32_t in_tei, const uint32_t out_tei, const char* imsi)
+UeNetworkInfo::UeNetworkInfo(const struct in_addr ue_ip)
     : ue_ip_(ue_ip),
+      vlan_(0) {}
+
+UeNetworkInfo::UeNetworkInfo(const struct in_addr ue_ip, int vlan)
+    : ue_ip_(ue_ip),
+      vlan_(vlan) {}
+
+const struct in_addr& UeNetworkInfo::get_ip() const {
+  return ue_ip_;
+}
+
+const int UeNetworkInfo::get_vlan() const {
+  return vlan_;
+}
+
+AddGTPTunnelEvent::AddGTPTunnelEvent(
+    const struct in_addr ue_ip, int vlan, const struct in_addr enb_ip,
+    const uint32_t in_tei, const uint32_t out_tei, const char* imsi)
+    : ue_info_(ue_ip, vlan),
       enb_ip_(enb_ip),
       in_tei_(in_tei),
       out_tei_(out_tei),
@@ -103,10 +119,10 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       ExternalEvent(EVENT_ADD_GTP_TUNNEL) {}
 
 AddGTPTunnelEvent::AddGTPTunnelEvent(
-    const struct in_addr ue_ip, const struct in_addr enb_ip,
+    const struct in_addr ue_ip, int vlan,  const struct in_addr enb_ip,
     const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
     const struct ipv4flow_dl* dl_flow, const uint32_t dl_flow_precedence)
-    : ue_ip_(ue_ip),
+    : ue_info_(ue_ip, vlan),
       enb_ip_(enb_ip),
       in_tei_(in_tei),
       out_tei_(out_tei),
@@ -117,7 +133,11 @@ AddGTPTunnelEvent::AddGTPTunnelEvent(
       ExternalEvent(EVENT_ADD_GTP_TUNNEL) {}
 
 const struct in_addr& AddGTPTunnelEvent::get_ue_ip() const {
-  return ue_ip_;
+  return ue_info_.get_ip();
+}
+
+const struct UeNetworkInfo& AddGTPTunnelEvent::get_ue_info() const {
+  return ue_info_;
 }
 
 const struct in_addr& AddGTPTunnelEvent::get_enb_ip() const {
@@ -151,7 +171,7 @@ const uint32_t AddGTPTunnelEvent::get_dl_flow_precedence() const {
 DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
     const struct in_addr ue_ip, const uint32_t in_tei,
     const struct ipv4flow_dl* dl_flow)
-    : ue_ip_(ue_ip),
+    : ue_info_(ue_ip),
       in_tei_(in_tei),
       dl_flow_valid_(true),
       dl_flow_(*dl_flow),
@@ -159,14 +179,14 @@ DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
 
 DeleteGTPTunnelEvent::DeleteGTPTunnelEvent(
     const struct in_addr ue_ip, const uint32_t in_tei)
-    : ue_ip_(ue_ip),
+    : ue_info_(ue_ip),
       in_tei_(in_tei),
       dl_flow_valid_(false),
       dl_flow_(),
       ExternalEvent(EVENT_DELETE_GTP_TUNNEL) {}
 
 const struct in_addr& DeleteGTPTunnelEvent::get_ue_ip() const {
-  return ue_ip_;
+  return ue_info_.get_ip();
 }
 
 const uint32_t DeleteGTPTunnelEvent::get_in_tei() const {
@@ -185,17 +205,18 @@ HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
     const struct in_addr ue_ip, const uint32_t in_tei,
     const ControllerEventType event_type, const struct ipv4flow_dl* dl_flow,
     const uint32_t dl_flow_precedence)
-    : ue_ip_(ue_ip),
+    : ue_info_(ue_ip),
       in_tei_(in_tei),
       dl_flow_valid_(true),
       dl_flow_(*dl_flow),
       dl_flow_precedence_(dl_flow_precedence),
       ExternalEvent(event_type) {}
 
+
 HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
     const struct in_addr ue_ip, const uint32_t in_tei,
     const ControllerEventType event_type)
-    : ue_ip_(ue_ip),
+    : ue_info_(ue_ip),
       in_tei_(in_tei),
       dl_flow_valid_(false),
       dl_flow_(),
@@ -203,7 +224,7 @@ HandleDataOnGTPTunnelEvent::HandleDataOnGTPTunnelEvent(
       ExternalEvent(event_type) {}
 
 const struct in_addr& HandleDataOnGTPTunnelEvent::get_ue_ip() const {
-  return ue_ip_;
+  return ue_info_.get_ip();
 }
 
 const uint32_t HandleDataOnGTPTunnelEvent::get_in_tei() const {
@@ -223,17 +244,17 @@ const uint32_t HandleDataOnGTPTunnelEvent::get_dl_flow_precedence() const {
 }
 
 AddPagingRuleEvent::AddPagingRuleEvent(const struct in_addr ue_ip)
-    : ue_ip_(ue_ip), ExternalEvent(EVENT_ADD_PAGING_RULE) {}
+    : ue_info_(ue_ip), ExternalEvent(EVENT_ADD_PAGING_RULE) {}
 
 const struct in_addr& AddPagingRuleEvent::get_ue_ip() const {
-  return ue_ip_;
+  return ue_info_.get_ip();
 }
 
 DeletePagingRuleEvent::DeletePagingRuleEvent(const struct in_addr ue_ip)
-    : ue_ip_(ue_ip), ExternalEvent(EVENT_DELETE_PAGING_RULE) {}
+    : ue_info_(ue_ip), ExternalEvent(EVENT_DELETE_PAGING_RULE) {}
 
 const struct in_addr& DeletePagingRuleEvent::get_ue_ip() const {
-  return ue_ip_;
+  return ue_info_.get_ip();
 }
 
 }  // namespace openflow
