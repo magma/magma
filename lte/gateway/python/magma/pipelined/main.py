@@ -58,6 +58,9 @@ def main():
     enable_nat = service.config.get('enable_nat', service.mconfig.nat_enabled)
     service.config['enable_nat'] = enable_nat
     logging.info("Nat: %s", enable_nat)
+    vlan_tag = service.config.get('sgi_management_iface_vlan',
+                                  service.mconfig.sgi_management_iface_vlan)
+    service.config['sgi_management_iface_vlan'] = vlan_tag
 
     # Load the ryu apps
     service_manager = ServiceManager(service)
