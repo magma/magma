@@ -26,6 +26,7 @@ import (
 	models3 "magma/feg/cloud/go/services/feg/obsidian/models"
 	plugin4 "magma/lte/cloud/go/plugin"
 	"magma/orc8r/cloud/go/clock"
+	models5 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
@@ -71,6 +72,11 @@ func TestCwfNetworks(t *testing.T) {
 	getClusterStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/cluster_status", obsidian.GET).HandlerFunc
 	getCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.GET).HandlerFunc
 	updateCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.PUT).HandlerFunc
+	listHaPairs := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs", obsidian.GET).HandlerFunc
+	createHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs", obsidian.POST).HandlerFunc
+	getHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.GET).HandlerFunc
+	updateHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.PUT).HandlerFunc
+	deleteHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.DELETE).HandlerFunc
 
 	// Test ListNetworks
 	tc := tests.Test{
@@ -247,7 +253,8 @@ func TestCwfNetworks(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	seedCwfGateway(t)
+	seedCwfGateway(t, "g1", "hw1")
+	seedCwfGateway(t, "g2", "hw2")
 
 	reqRecord := &directoryd.DirectoryRecord{
 		LocationHistory: []string{"hw1"},
@@ -285,6 +292,103 @@ func TestCwfNetworks(t *testing.T) {
 	expectedRes := &models2.CarrierWifiNetworkClusterStatus{
 		ActiveGateway: "g1",
 	}
+
+	// Test HA Pairs
+	// Test List HA Pairs empty
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/ha_pairs",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listHaPairs,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(make(map[string]*models2.CwfHaPair, 0)),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	cwfHaPair := &models2.CwfHaPair{
+		HaPairID:   "pair1",
+		GatewayID1: "g1",
+		GatewayID2: "g2",
+		Config: &models2.CwfHaPairConfigs{
+			TransportVirtualIP: "10.10.10.11",
+		},
+	}
+	// Create HA Pair
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/cwf/n1/ha_pairs",
+		Payload:        tests.JSONMarshaler(cwfHaPair),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createHaPair,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler("pair1"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get HA Pair
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        getHaPair,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(cwfHaPair),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Update HA Pair
+	cwfHaPair.Config.TransportVirtualIP = "127.0.0.1"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
+		Payload:        tests.JSONMarshaler(cwfHaPair),
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        updateHaPair,
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// List HA Pairs
+	expectedMap := map[string]*models2.CwfHaPair{
+		"pair1": cwfHaPair,
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/ha_pairs",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listHaPairs,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedMap),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete HA Pair
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        deleteHaPair,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Ensure HA Pair is deleted
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        getHaPair,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
 
 	// Test Get Network HA status
 	tc = tests.Test{
@@ -827,17 +931,17 @@ func reportGatewayHealthStatus(t *testing.T, ctx context.Context, gatewayID stri
 	assert.NoError(t, err)
 }
 
-func seedCwfGateway(t *testing.T) {
+func seedCwfGateway(t *testing.T, id string, hwId string) {
 	e := echo.New()
 	obsidianHandlers := handlers.GetHandlers()
 	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
 
 	payload := &models2.MutableCwfGateway{
 		Device: &models.GatewayDevice{
-			HardwareID: "hw1",
+			HardwareID: hwId,
 			Key:        &models.ChallengeKey{KeyType: "ECHO"},
 		},
-		ID:          "g1",
+		ID:          models5.GatewayID(id),
 		Name:        "foobar",
 		Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
