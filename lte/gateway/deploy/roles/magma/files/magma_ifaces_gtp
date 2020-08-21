@@ -19,7 +19,7 @@ iface gtp0 inet manual
 
 allow-gtp_br0 mtr0
 iface mtr0 inet static
-    address 10.0.2.10
+    address 10.1.0.1
     netmask 255.255.255.0
     ovs_bridge gtp_br0
     ovs_type OVSIntPort
