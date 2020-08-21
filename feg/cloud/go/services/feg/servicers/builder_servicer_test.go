@@ -135,8 +135,8 @@ func TestBuilder_Build(t *testing.T) {
 					},
 				},
 				OverwriteApn: "apnGx.magma-fedgw.magma.com",
-				VirtualApnRules: []*mconfig.VirtualApnRule{
-					&mconfig.VirtualApnRule{
+				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
+					&feg_mconfig.VirtualApnRule{
 						ApnFilter:    ".*",
 						ApnOverwrite: "vApnGx.magma-fedgw.magma.com",
 					},
@@ -179,8 +179,8 @@ func TestBuilder_Build(t *testing.T) {
 				},
 				InitMethod:   feg_mconfig.GyInitMethod_PER_SESSION,
 				OverwriteApn: "apnGy.magma-fedgw.magma.com",
-				VirtualApnRules: []*mconfig.VirtualApnRule{
-					&mconfig.VirtualApnRule{
+				VirtualApnRules: []*feg_mconfig.VirtualApnRule{
+					&feg_mconfig.VirtualApnRule{
 						ApnFilter:    ".*",
 						ApnOverwrite: "vApnGy.magma-fedgw.magma.com",
 					},
