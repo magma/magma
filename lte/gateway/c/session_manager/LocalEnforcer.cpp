@@ -25,6 +25,7 @@
 #include "EnumToString.h"
 #include "LocalEnforcer.h"
 #include "ServiceRegistrySingleton.h"
+#include "MetricsHelpers.h"
 #include "magma_logging.h"
 
 namespace {
@@ -250,6 +251,7 @@ void LocalEnforcer::aggregate_records(
   // Insert the IMSIs for which we received a rule record into a set for easy
   // access
   std::unordered_set<std::string> sessions_with_active_flows;
+      const char* LABEL_IMSI       = "IMSI";
   for (const RuleRecord& record : records.records()) {
     auto it = session_map.find(record.sid());
     if (it == session_map.end()) {
@@ -257,11 +259,14 @@ void LocalEnforcer::aggregate_records(
                    << " during record aggregation";
       continue;
     }
+    std::string imsi = record.sid().substr(0, record.sid().find('-'));
     sessions_with_active_flows.insert(record.sid());
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
       MLOG(MINFO) << record.sid() << " used " << record.bytes_tx()
                   << " tx bytes and " << record.bytes_rx()
                   << " rx bytes for rule " << record.rule_id();
+      increment_counter("ue_reported_tx", record.bytes_tx(), size_t(1), LABEL_IMSI, imsi.c_str());
+      increment_counter("ue_reported_rx", record.bytes_rx(), size_t(1), LABEL_IMSI, imsi.c_str());
     }
     // Update sessions
     for (const auto& session : it->second) {
