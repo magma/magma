@@ -541,4 +541,17 @@ void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
   }
 }
 
+void BindPolicy2Bearer(
+    ServerContext* context, const PolicyBearerBindingRequest* request,
+    std::function<void(Status, PolicyBearerBindingResponse)>
+        response_callback) {
+  auto& request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  // TO DO:
+  // Check if response has a non-zero dedicated bearer ID:
+  // Update the policy to bearer map if non-zero
+  // Delete the policy rule if zero
+  response_callback(Status::OK, PolicyBearerBindingResponse());
+}
+
 }  // namespace magma

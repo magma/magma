@@ -94,6 +94,14 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       ServerContext* context, const LocalEndSessionRequest* request,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
+  /**
+   * Bind the returned bearer id to the policy for which it is created; if
+   * the returned bearer id is 0 then the dedicated bearer request is rejected
+   */
+  void BindPolicy2Bearer(
+      ServerContext* context, const PolicyBearerBindingRequest* request,
+      std::function<void(Status, PolicyBearerBindingResponse)> response_callback);
+
  private:
   SessionStore& session_store_;
   std::shared_ptr<LocalEnforcer> enforcer_;

@@ -103,6 +103,15 @@ message LocalEndSessionRequest {
 message LocalEndSessionResponse {
 }
 
+message PolicyBearerBindingRequest {
+  SubscriberID sid = 1;
+  string policy_rule_id = 2;
+  uint32 bearer_id = 3;
+}
+
+message PolicyBearerBindingResponse {
+}
+
 message ChargingReAuthRequest {
   string session_id = 1;
   uint32 charging_key = 2;
@@ -258,6 +267,8 @@ service LocalSessionManager {
   rpc CreateSession(LocalCreateSessionRequest) returns (LocalCreateSessionResponse) {}
 
   rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
+
+  rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
 }
 
 service SessionProxyResponder {

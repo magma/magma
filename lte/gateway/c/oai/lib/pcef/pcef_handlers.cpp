@@ -153,6 +153,12 @@ bool pcef_end_session(char* imsi, char* apn) {
   return true;
 }
 
+void pcef_send_policy2bearer_binding(
+    const char* imsi, uint8_t default_bearer_id, char* policy_rule_name,
+    uint8_t eps_bearer_id) {
+  return;
+}
+
 /*
  * Converts ascii values in [0,9] to [48,57]=['0','9']
  * else if they are in [48,57] keep them the same
