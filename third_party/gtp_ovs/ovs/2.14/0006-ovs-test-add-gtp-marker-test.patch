@@ -1,7 +1,7 @@
-From ffa9f5ac1426fecaeb4949fb5887caeb4d070287 Mon Sep 17 00:00:00 2001
+From 28d7e42c2f08afffe7ecb16261641af4cf748652 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 29 Jun 2020 06:54:04 +0000
-Subject: [PATCH 19/19] ovs: test: add gtp marker test
+Subject: [PATCH 6/8] ovs: test: add gtp marker test
 
 ---
  tests/system-layer3-tunnels.at | 60 ++++++++++++++++++++++++++++++++++
