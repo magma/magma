@@ -378,6 +378,10 @@ void LocalEnforcer::start_session_termination(
     return;
   }
   MLOG(MINFO) << "Initiating session termination for " << session_id;
+  auto now = std::chrono::system_clock::now();
+  uint64_t epoch = std::chrono::duration_cast<std::chrono::seconds>(
+    now.time_since_epoch()).count();
+  session->set_pdp_end_time(epoch);
 
   remove_all_rules_for_termination(imsi, session, update_criteria);
   
@@ -973,7 +977,7 @@ bool LocalEnforcer::init_session_credit(
     session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
   }
   if (session_state->is_radius_cwf_session() == false) {
-    events_reporter_->session_created(imsi, session_id, cfg);
+    events_reporter_->session_created(imsi, session_id, cfg, session_state);
   }
   session_map[imsi].push_back(std::move(session_state));
 
