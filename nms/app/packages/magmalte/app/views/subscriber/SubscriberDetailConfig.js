@@ -14,6 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
+import type {mutable_subscriber} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
@@ -59,14 +60,27 @@ export function SubscriberJsonConfig() {
   const subscriberId = nullthrows(match.params.subscriberId);
   const ctx = useContext(SubscriberContext);
   const subscriberInfo = ctx.state?.[subscriberId];
+  const {
+    config,
+    monitoring: _unused_monitoring,
+    state: _unused_state,
+    ...subscriberInfoPartial
+  } = subscriberInfo;
+  const mutableSubscriber: mutable_subscriber = {
+    ...subscriberInfoPartial,
+  };
+
+  if (config?.static_ips) {
+    mutableSubscriber.static_ips = config.static_ips;
+  }
 
   return (
     <JsonEditor
-      content={subscriberInfo}
+      content={mutableSubscriber}
       error={error}
-      onSave={async subscriber => {
+      onSave={async (subscriber: mutable_subscriber) => {
         try {
-          await ctx.setState(subscriber.id, {...subscriber});
+          await ctx.setState(subscriber.id, subscriber);
           enqueueSnackbar('Subscriber saved successfully', {
             variant: 'success',
           });
