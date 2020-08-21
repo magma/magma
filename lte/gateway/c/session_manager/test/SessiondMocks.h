@@ -259,9 +259,10 @@ public:
 
 class MockEventsReporter : public EventsReporter {
  public:
-  MOCK_METHOD3(
+  MOCK_METHOD4(
       session_created,
-      void(const std::string&, const std::string&, const SessionConfig&));
+      void(const std::string&, const std::string&, const SessionConfig&,
+           const std::unique_ptr<SessionState>& session));
   MOCK_METHOD3(
       session_create_failure,
       void(const std::string&, const SessionConfig&, const std::string&));
