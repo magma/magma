@@ -140,15 +140,16 @@ export async function parseFileAndSave(
   }
   const failureIDs = [];
   const results = await Promise.all(
-    validSubs.map(subscriber =>
-      MagmaV1API.postLteByNetworkIdSubscribers({
+    validSubs.map(subscriber => {
+      const {config: _, ...mutableSubscriber} = subscriber;
+      return MagmaV1API.postLteByNetworkIdSubscribers({
         networkId: match.params.networkId || '',
-        subscriber,
+        subscriber: mutableSubscriber,
       }).catch(e => {
         failureIDs.push(subscriber.id);
         return e;
-      }),
-    ),
+      });
+    }),
   );
   const successIDs = [];
   results.forEach(result => {
@@ -178,21 +179,26 @@ function getSubscriberFromRow(row: Array<string>): ?subscriber {
     return;
   }
 
+  const lteValue = {
+    state,
+    auth_algo: 'MILENAGE', // default auth algo,
+    auth_key: isValidHex(data[LTE_AUTH_KEY])
+      ? hexToBase64(data[LTE_AUTH_KEY])
+      : data[LTE_AUTH_KEY],
+    auth_opc:
+      data[LTE_AUTH_OPC] && isValidHex(data[LTE_AUTH_OPC])
+        ? hexToBase64(data[LTE_AUTH_OPC])
+        : data[LTE_AUTH_OPC],
+    sub_profile: data[SUB_PROFILE] || 'default',
+  };
+
   return {
     id: 'IMSI' + data[IMSI].replace(/"/g, ''), // strip surrounding quotes
-    lte: {
-      state,
-      auth_algo: 'MILENAGE', // default auth algo,
-      auth_key: isValidHex(data[LTE_AUTH_KEY])
-        ? hexToBase64(data[LTE_AUTH_KEY])
-        : data[LTE_AUTH_KEY],
-      auth_opc:
-        data[LTE_AUTH_OPC] && isValidHex(data[LTE_AUTH_OPC])
-          ? hexToBase64(data[LTE_AUTH_OPC])
-          : data[LTE_AUTH_OPC],
-      sub_profile: data[SUB_PROFILE] || 'default',
-    },
+    lte: lteValue,
     active_apns: data[APN_LIST]?.split(';'),
+    config: {
+      lte: lteValue,
+    },
   };
 }
 

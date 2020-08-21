@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {subscriber} from '@fbcnms/magma-api';
+import type {mutable_subscriber, subscriber} from '@fbcnms/magma-api';
 
 import React from 'react';
 
@@ -25,7 +25,7 @@ export type Metrics = {
 export type SubscriberContextType = {
   state: {[string]: subscriber},
   metrics: {[string]: Metrics},
-  setState: (key: string, val: subscriber) => Promise<void>,
+  setState: (key: string, val: mutable_subscriber) => Promise<void>,
 };
 
 export default React.createContext<SubscriberContextType>({});

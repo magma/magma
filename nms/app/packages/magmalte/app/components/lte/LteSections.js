@@ -48,6 +48,7 @@ export function getLteSections(
   logsEnabled: boolean,
   dashboardV2Enabled: boolean,
 ): SectionsConfigs {
+  console.log('xxxx', dashboardV2Enabled);
   if (dashboardV2Enabled) {
     return getLteSectionsV2(alertsEnabled);
   }
