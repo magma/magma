@@ -1,7 +1,7 @@
-From 281349544ce3c346fa94da56ffa16d38239549c6 Mon Sep 17 00:00:00 2001
+From 7277a58d96d7a56316a0c7d878124aeb165ccfb0 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 29 Jun 2020 02:45:36 +0000
-Subject: [PATCH 18/19] OVS: gtp echo handling
+Subject: [PATCH 5/8] OVS: gtp echo handling
 
 This uses OVS BFD module to send ech msgs.
 
@@ -23,7 +23,9 @@ testing done using ./tests/test-gtp 1.11.1.1 3201000a0000000000010000ff0003000a0
  tests/automake.mk              |   3 +
  tests/system-common-macros.at  |  19 +++
  tests/system-layer3-tunnels.at | 273 ++++++++++++++++++++++++++-------
- 16 files changed, 704 insertions(+), 82 deletions(-)
+ tests/test-gtp.c               | 111 ++++++++++++++
+ 17 files changed, 815 insertions(+), 82 deletions(-)
+ create mode 100644 tests/test-gtp.c
 
 diff --git a/include/openvswitch/packets.h b/include/openvswitch/packets.h
 index 236ae26cc..2f3fa3191 100644
@@ -53,7 +55,7 @@ index 236ae26cc..2f3fa3191 100644
  }
  #endif
 diff --git a/lib/bfd.c b/lib/bfd.c
-index cc8c6857a..d89d35010 100644
+index 3c965699a..8433de86a 100644
 --- a/lib/bfd.c
 +++ b/lib/bfd.c
 @@ -15,6 +15,7 @@
@@ -64,7 +66,7 @@ index cc8c6857a..d89d35010 100644
  #include <sys/types.h>
  #include <netinet/in.h>
  #include <arpa/inet.h>
-@@ -518,6 +519,7 @@ long long int
+@@ -521,6 +522,7 @@ long long int
  bfd_wake_time(const struct bfd *bfd) OVS_EXCLUDED(mutex)
  {
      long long int retval;
@@ -72,7 +74,7 @@ index cc8c6857a..d89d35010 100644
  
      if (!bfd) {
          return LLONG_MAX;
-@@ -527,9 +529,14 @@ bfd_wake_time(const struct bfd *bfd) OVS_EXCLUDED(mutex)
+@@ -530,9 +532,14 @@ bfd_wake_time(const struct bfd *bfd) OVS_EXCLUDED(mutex)
      if (bfd->flags & FLAG_FINAL) {
          retval = 0;
      } else {
@@ -90,7 +92,7 @@ index cc8c6857a..d89d35010 100644
          }
      }
      ovs_mutex_unlock(&mutex);
-@@ -571,20 +578,26 @@ bfd_should_send_packet(const struct bfd *bfd) OVS_EXCLUDED(mutex)
+@@ -574,20 +581,26 @@ bfd_should_send_packet(const struct bfd *bfd) OVS_EXCLUDED(mutex)
  {
      bool ret;
      ovs_mutex_lock(&mutex);
@@ -120,7 +122,7 @@ index cc8c6857a..d89d35010 100644
  
      ovs_mutex_lock(&mutex);
      if (bfd->next_tx) {
-@@ -609,6 +622,25 @@ bfd_put_packet(struct bfd *bfd, struct dp_packet *p,
+@@ -612,6 +625,25 @@ bfd_put_packet(struct bfd *bfd, struct dp_packet *p,
          ? eth_addr_bfd : bfd->local_eth_dst;
      eth->eth_type = htons(ETH_TYPE_IP);
  
@@ -146,7 +148,7 @@ index cc8c6857a..d89d35010 100644
      ip = dp_packet_put_zeros(p, sizeof *ip);
      ip->ip_ihl_ver = IP_IHL_VER(5, 4);
      ip->ip_tot_len = htons(sizeof *ip + sizeof *udp + sizeof *msg);
-@@ -647,13 +679,20 @@ bfd_put_packet(struct bfd *bfd, struct dp_packet *p,
+@@ -650,13 +682,20 @@ bfd_put_packet(struct bfd *bfd, struct dp_packet *p,
      msg->min_rx = htonl(min_rx * 1000);
  
      bfd->flags &= ~FLAG_FINAL;
@@ -169,7 +171,7 @@ index cc8c6857a..d89d35010 100644
  }
  
  bool
-@@ -661,6 +700,14 @@ bfd_should_process_flow(const struct bfd *bfd_, const struct flow *flow,
+@@ -664,6 +703,14 @@ bfd_should_process_flow(const struct bfd *bfd_, const struct flow *flow,
                          struct flow_wildcards *wc)
  {
      struct bfd *bfd = CONST_CAST(struct bfd *, bfd_);
@@ -184,7 +186,7 @@ index cc8c6857a..d89d35010 100644
  
      if (!eth_addr_is_zero(bfd->rmt_eth_dst)) {
          memset(&wc->masks.dl_dst, 0xff, sizeof wc->masks.dl_dst);
-@@ -698,15 +745,21 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
+@@ -708,15 +755,21 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
      enum flags flags;
      uint8_t version;
      struct msg *msg;
@@ -209,7 +211,7 @@ index cc8c6857a..d89d35010 100644
      /* Increments the decay rx counter. */
      bfd->decay_rx_ctl++;
  
-@@ -716,7 +769,6 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
+@@ -726,7 +779,6 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
          /* XXX Should drop in the kernel to prevent DOS. */
          goto out;
      }
@@ -217,7 +219,7 @@ index cc8c6857a..d89d35010 100644
      msg = dp_packet_at(p, l7 - (uint8_t *)dp_packet_data(p), BFD_PACKET_LEN);
      if (!msg) {
          VLOG_INFO_RL(&rl, "%s: Received too-short BFD control message (only "
-@@ -878,6 +930,7 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
+@@ -888,6 +940,7 @@ bfd_process_packet(struct bfd *bfd, const struct flow *flow,
  
  out:
      bfd_forwarding__(bfd);
@@ -225,7 +227,7 @@ index cc8c6857a..d89d35010 100644
      ovs_mutex_unlock(&mutex);
  }
  
-@@ -956,6 +1009,10 @@ bfd_in_poll(const struct bfd *bfd) OVS_REQUIRES(mutex)
+@@ -966,6 +1019,10 @@ bfd_in_poll(const struct bfd *bfd) OVS_REQUIRES(mutex)
  static void
  bfd_poll(struct bfd *bfd) OVS_REQUIRES(mutex)
  {
@@ -252,10 +254,10 @@ index 9d32327fb..fcbd8554d 100644
  bool bfd_should_process_flow(const struct bfd *, const struct flow *,
                               struct flow_wildcards *);
 diff --git a/lib/netdev-provider.h b/lib/netdev-provider.h
-index 6f509424b..d3d411c21 100644
+index 73dce2fca..d6adcedc8 100644
 --- a/lib/netdev-provider.h
 +++ b/lib/netdev-provider.h
-@@ -833,6 +833,14 @@ struct netdev_class {
+@@ -834,6 +834,14 @@ struct netdev_class {
      /* Get a block_id from the netdev.
       * Returns the block_id or 0 if none exists for netdev. */
      uint32_t (*get_block_id)(struct netdev *);
@@ -283,7 +285,7 @@ index d89a28c66..3c82d5837 100644
  
  int netdev_vport_construct(struct netdev *);
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index 012e8034f..28e73d711 100644
+index e7ddf1547..be5707e8c 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -29,6 +29,7 @@
@@ -592,10 +594,10 @@ index 012e8034f..28e73d711 100644
      }
  }
 diff --git a/lib/netdev.c b/lib/netdev.c
-index 8c44eee8e..403d91c55 100644
+index 91e91955c..1bc5abfc8 100644
 --- a/lib/netdev.c
 +++ b/lib/netdev.c
-@@ -2280,3 +2280,41 @@ netdev_free_custom_stats_counters(struct netdev_custom_stats *custom_stats)
+@@ -2297,3 +2297,41 @@ netdev_free_custom_stats_counters(struct netdev_custom_stats *custom_stats)
          }
      }
  }
@@ -638,10 +640,10 @@ index 8c44eee8e..403d91c55 100644
 +    return EOPNOTSUPP;
 +}
 diff --git a/lib/netdev.h b/lib/netdev.h
-index 28e700098..4af645993 100644
+index c01fa026e..8704255d6 100644
 --- a/lib/netdev.h
 +++ b/lib/netdev.h
-@@ -325,6 +325,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
+@@ -327,6 +327,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
                              unsigned int *queue_id, struct smap *details);
  int netdev_queue_dump_done(struct netdev_queue_dump *);
  
@@ -693,10 +695,10 @@ index bb0e49091..42bf211e9 100644
                  MSEC_TO_PRIO(next_wake_time));
  }
 diff --git a/ofproto/ofproto-dpif-xlate.c b/ofproto/ofproto-dpif-xlate.c
-index 2a637a921..c157c86d6 100644
+index e0ede2cab..6b5f8051a 100644
 --- a/ofproto/ofproto-dpif-xlate.c
 +++ b/ofproto/ofproto-dpif-xlate.c
-@@ -7912,17 +7912,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
+@@ -7954,17 +7954,14 @@ xlate_resume(struct ofproto_dpif *ofproto,
   * May modify 'packet'.
   * Returns 0 if successful, otherwise a positive errno value. */
  int
@@ -717,7 +719,7 @@ index 2a637a921..c157c86d6 100644
      flow_extract(packet, &flow);
      flow.in_port.ofp_port = OFPP_NONE;
  
-@@ -7931,19 +7928,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
+@@ -7973,19 +7970,31 @@ xlate_send_packet(const struct ofport_dpif *ofport, bool oam,
          return EINVAL;
      }
  
@@ -770,10 +772,10 @@ index 3426a27b2..5d1bd84d5 100644
  void xlate_mac_learning_update(const struct ofproto_dpif *ofproto,
                                 ofp_port_t in_port, struct eth_addr dl_src,
 diff --git a/ofproto/ofproto-dpif.c b/ofproto/ofproto-dpif.c
-index d3cb39207..a3beddbff 100644
+index 4f0638f23..7c6c1ea77 100644
 --- a/ofproto/ofproto-dpif.c
 +++ b/ofproto/ofproto-dpif.c
-@@ -5228,6 +5228,23 @@ ofproto_dpif_send_packet(const struct ofport_dpif *ofport, bool oam,
+@@ -5265,6 +5265,23 @@ ofproto_dpif_send_packet(const struct ofport_dpif *ofport, bool oam,
      ovs_mutex_unlock(&ofproto->stats_mutex);
      return error;
  }
@@ -798,10 +800,10 @@ index d3cb39207..a3beddbff 100644
  /* Return the version string of the datapath that backs up
   * this 'ofproto'.
 diff --git a/ofproto/ofproto-dpif.h b/ofproto/ofproto-dpif.h
-index c9d5df34b..e36ce9f04 100644
+index 1f5794f03..c57ec5a35 100644
 --- a/ofproto/ofproto-dpif.h
 +++ b/ofproto/ofproto-dpif.h
-@@ -365,6 +365,8 @@ void ofproto_dpif_send_async_msg(struct ofproto_dpif *,
+@@ -370,6 +370,8 @@ void ofproto_dpif_send_async_msg(struct ofproto_dpif *,
                                   struct ofproto_async_msg *);
  int ofproto_dpif_send_packet(const struct ofport_dpif *, bool oam,
                               struct dp_packet *);
@@ -811,10 +813,10 @@ index c9d5df34b..e36ce9f04 100644
      struct ofproto_dpif *, const struct ofputil_flow_mod *,
      struct ofproto_flow_mod *);
 diff --git a/tests/automake.mk b/tests/automake.mk
-index 86e006426..2a6cbb33e 100644
+index f0bb79966..a7588cee0 100644
 --- a/tests/automake.mk
 +++ b/tests/automake.mk
-@@ -486,6 +486,9 @@ tests_test_strtok_r_SOURCES = tests/test-strtok_r.c
+@@ -502,6 +502,9 @@ tests_test_strtok_r_SOURCES = tests/test-strtok_r.c
  noinst_PROGRAMS += tests/test-type-props
  tests_test_type_props_SOURCES = tests/test-type-props.c
  
@@ -1142,6 +1144,123 @@ index 141a7afb4..4bbb2198e 100644
 +
 +OVS_TRAFFIC_VSWITCHD_STOP
 +AT_CLEANUP
+diff --git a/tests/test-gtp.c b/tests/test-gtp.c
+new file mode 100644
+index 000000000..aede93daf
+--- /dev/null
++++ b/tests/test-gtp.c
+@@ -0,0 +1,111 @@
++#include <config.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#include <string.h>
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++
++#define DST_PORT  2152
++#define SRC_PORT  2152
++
++
++static int
++charToHex(char ch)
++{
++        if (ch >= 'A' && ch <= 'F') {
++                return 10 + (ch - 'A');
++        }
++        if (ch >= 'a' && ch <= 'f') {
++                return 10 + (ch - 'a');
++        }
++        if (ch >= '0' && ch <= '9') {
++                return ch - '0';
++        }
++        return -1;
++}
++
++int
++main(int argc, char *argv[])
++{
++    struct sockaddr_in addr, srcaddr;
++    int fd;
++    unsigned char *msg;
++    char *str_buf;
++    char *dst_ip;
++    int len, i, j;
++
++    if (argc != 3) {
++        printf("two param expected\n");
++        exit(1);
++    }
++
++    dst_ip = argv[1];
++    printf("dst IP %s\n", dst_ip);
++    str_buf = argv[2];
++    len = strlen(str_buf);
++
++    if (len % 2) {
++        printf("len should be multiple of 2\n");
++        exit (1);
++    }
++
++    msg = calloc(1, len);
++    if (!msg) {
++        exit(1);
++    }
++    j = 0;
++    for (i = 0; i < len; i+=2) {
++
++        int d1 = charToHex(str_buf[i]);
++        if (d1 < 0) {
++                printf("buf parse error\n");
++                exit (1);
++        }
++        int d2 = charToHex(str_buf[i+1]);
++        if (d2 < 0) {
++                printf("buf parse error\n");
++                exit (1);
++        }
++        msg[j++] = (d1 << 4) | d2;
++    }
++    len = len / 2;
++
++#if 0
++    printf("%d: ", len);
++    for (i = 0; i < len; i++) {
++        printf("%x", (int)msg[i]);
++    }
++    printf("\n");
++#endif
++
++    if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
++        perror("socket");
++        exit(1);
++    }
++
++    memset(&addr, 0, sizeof(addr));
++    addr.sin_family = AF_INET;
++    addr.sin_addr.s_addr = inet_addr(dst_ip);
++    addr.sin_port = htons(DST_PORT);
++
++    memset(&srcaddr, 0, sizeof(srcaddr));
++    srcaddr.sin_family = AF_INET;
++    srcaddr.sin_addr.s_addr = htonl(INADDR_ANY);
++    srcaddr.sin_port = htons(SRC_PORT);
++
++    if (bind(fd, (struct sockaddr *) &srcaddr, sizeof(srcaddr)) < 0) {
++        perror("bind");
++        exit(1);
++    }
++
++    if (sendto(fd, msg, len, 0, (struct sockaddr *) &addr,
++                sizeof(addr)) < 0) {
++        perror("sendto");
++    }
++    printf("done\n");
++    close(fd);
++    return 0;
++}
 -- 
 2.17.1
 
