@@ -65,18 +65,8 @@ func main() {
 
 	calculations := getAnalyticsCalculations()
 	promAPIClient := getPrometheusClient()
-	shouldExportData, _ := srv.Config.GetBool("exportMetrics")
-	var exporter analytics.Exporter
-	if shouldExportData {
-		glog.Errorf("Creating CWF Analytics Exporter")
-		exporter = analytics.NewWWWExporter(
-			srv.Config.MustGetString("metricsPrefix"),
-			srv.Config.MustGetString("appSecret"),
-			srv.Config.MustGetString("appID"),
-			srv.Config.MustGetString("metricExportURL"),
-			srv.Config.MustGetString("categoryName"),
-		)
-	}
+	exporter := getExporterIfRequired(srv)
+
 	analyzer := analytics.NewPrometheusAnalyzer(promAPIClient, calculations, exporter)
 	err = analyzer.Schedule(analysisSchedule)
 	if err != nil {
@@ -90,6 +80,21 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error running service: %s", err)
 	}
+}
+
+func getExporterIfRequired(srv *service.OrchestratorService) analytics.Exporter {
+	shouldExportData, _ := srv.Config.GetBool("exportMetrics")
+	if shouldExportData {
+		glog.Infof("Creating CWF Analytics Exporter")
+		return analytics.NewWWWExporter(
+			srv.Config.MustGetString("metricsPrefix"),
+			srv.Config.MustGetString("appSecret"),
+			srv.Config.MustGetString("appID"),
+			srv.Config.MustGetString("metricExportURL"),
+			srv.Config.MustGetString("categoryName"),
+		)
+	}
+	return nil
 }
 
 func getAnalyticsCalculations() []analytics.Calculation {
