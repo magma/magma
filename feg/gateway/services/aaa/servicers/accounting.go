@@ -145,7 +145,7 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 		}
 		directoryd.DeleteRecord(deleteRequest)
 	}
-	metrics.AcctStop.WithLabelValues(apn, imsi, msisdn)
+	metrics.AcctStop.WithLabelValues(apn, imsi, msisdn).Inc()
 
 	if err != nil && srv.config.GetEventLoggingEnabled() {
 		events.LogSessionTerminationFailedEvent(req.GetCtx(), events.AccountingStop, err.Error())
