@@ -733,7 +733,7 @@ index 000000000..20467d2ea
 +			    ip4_dst_hoplimit(&rt->dst),
 +			    0,
 +			    gtp->gtph_port, gtp->gtph_port,
-+			    true, false);
++			    false, false);
 +
 +	return NETDEV_TX_OK;
 +err_rt:
@@ -2017,13 +2017,13 @@ index 000000000..4fb3e98a1
 +++ b/datapath/vport-gtp.c
 @@ -0,0 +1,147 @@
 +/*
- * Copyright 2020 The Magma Authors.
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version
- * 2 of the License, or (at your option) any later version.
- */
++ * Copyright 2020 The Magma Authors.
++ *
++ * This program is free software; you can redistribute it and/or
++ * modify it under the terms of the GNU General Public License
++ * as published by the Free Software Foundation; either version
++ * 2 of the License, or (at your option) any later version.
++ */
 +
 +#define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
 +

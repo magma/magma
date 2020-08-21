@@ -640,7 +640,7 @@ static netdev_tx_t gtp_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 				    ip4_dst_hoplimit(&pktinfo.rt->dst),
 				    0,
 				    pktinfo.gtph_port, pktinfo.gtph_port,
-				    true, false);
+				    false, false);
 		break;
 	}
 
@@ -1599,7 +1599,7 @@ static int __init gtp_init(void)
 	if (err < 0)
 		goto unreg_genl_family;
 
-	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes)\n",
+	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) v2\n",
 		sizeof(struct pdp_ctx));
 	return 0;
 
@@ -1619,7 +1619,7 @@ static void __exit gtp_fini(void)
 	genl_unregister_family(&gtp_genl_family);
 	rtnl_link_unregister(&gtp_link_ops);
 
-	pr_info("Flow-based GTP module unloaded\n");
+	pr_info("Flow-based GTP module unloaded v2\n");
 }
 module_exit(gtp_fini);
 
