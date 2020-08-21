@@ -301,5 +301,6 @@ func updateSessionMetricsForRemovedSession(apn string, imsi string, sid string, 
 func updateSessionMetricsForTimedOutSession(apn string, imsi string, sid string, msisdn string) {
 	imsi = metrics.DecorateIMSI(imsi)
 	metrics.Sessions.WithLabelValues(apn, imsi, sid, msisdn).Dec()
+	metrics.SessionStop.WithLabelValues(apn, imsi, sid, msisdn).Inc()
 	metrics.SessionTimeouts.WithLabelValues(apn, imsi, msisdn).Inc()
 }
