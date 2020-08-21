@@ -14,7 +14,11 @@
  * @format
  */
 import type {Metrics} from '../../components/context/SubscriberContext';
-import type {network_id, subscriber} from '@fbcnms/magma-api';
+import type {
+  mutable_subscriber,
+  network_id,
+  subscriber,
+} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
@@ -143,7 +147,7 @@ export default function SubscriberDashboard() {
     fetchData();
   }, [networkId, enqueueSnackbar]);
 
-  const updateSubscriberMap = async (key: string, val: subscriber) => {
+  const updateSubscriberMap = async (key: string, val: mutable_subscriber) => {
     if (key in subscriberMap) {
       await MagmaV1API.putLteByNetworkIdSubscribersBySubscriberId({
         networkId,
@@ -156,7 +160,13 @@ export default function SubscriberDashboard() {
         subscriber: val,
       });
     }
-    setSubscriberMap({...subscriberMap, [key]: val});
+    const subscriber = await MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId(
+      {
+        networkId,
+        subscriberId: key,
+      },
+    );
+    setSubscriberMap({...subscriberMap, [key]: subscriber});
   };
 
   if (isLoading) {
