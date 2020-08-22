@@ -105,8 +105,9 @@ message LocalEndSessionResponse {
 
 message PolicyBearerBindingRequest {
   SubscriberID sid = 1;
-  string policy_rule_id = 2;
-  uint32 bearer_id = 3;
+  uint32 linked_bearer_id = 2;
+  string policy_rule_id = 3;
+  uint32 bearer_id = 4;
 }
 
 message PolicyBearerBindingResponse {

@@ -56,6 +56,14 @@ class LocalSessionManagerHandler {
       ServerContext* context, const LocalEndSessionRequest* request,
       std::function<void(Status, LocalEndSessionResponse)>
           response_callback) = 0;
+
+  /**
+   * Bind the returned bearer id to the policy for which it is created
+   */
+  virtual void BindPolicy2Bearer(
+      ServerContext* context, const PolicyBearerBindingRequest* request,
+      std::function<void(Status, PolicyBearerBindingResponse)>
+          response_callback) = 0;
 };
 
 /**
