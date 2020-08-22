@@ -42,7 +42,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: policyBaseNameManagePath, Methods: obsidian.PUT, HandlerFunc: UpdateBaseName},
 		{Path: policyBaseNameManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteBaseName},
 
-		{Path: qosProfileRootPath, Methods: obsidian.GET, HandlerFunc: ListQoSProfiles},
+		{Path: qosProfileRootPath, Methods: obsidian.GET, HandlerFunc: GetQoSProfiles},
 		{Path: qosProfileRootPath, Methods: obsidian.POST, HandlerFunc: CreateQoSProfile},
 		{Path: qosProfileManagePath, Methods: obsidian.DELETE, HandlerFunc: DeleteQoSProfile},
 

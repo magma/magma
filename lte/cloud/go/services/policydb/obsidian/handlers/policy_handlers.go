@@ -423,18 +423,23 @@ func DeleteRule(c echo.Context) error {
 
 // QoS profiles
 
-func ListQoSProfiles(c echo.Context) error {
+func GetQoSProfiles(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	ids, err := configurator.ListEntityKeys(networkID, lte.PolicyQoSProfileEntityType)
+	profiles, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.PolicyQoSProfileEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	sort.Strings(ids)
-	return c.JSON(http.StatusOK, ids)
+
+	ret := map[string]*models.PolicyQosProfile{}
+	for _, ent := range profiles {
+		ret[ent.Key] = ent.Config.(*models.PolicyQosProfile)
+	}
+
+	return c.JSON(http.StatusOK, ret)
 }
 
 func CreateQoSProfile(c echo.Context) error {
@@ -462,7 +467,7 @@ func CreateQoSProfile(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	return c.JSON(http.StatusCreated, *profile.ID)
+	return c.NoContent(http.StatusCreated)
 }
 
 func DeleteQoSProfile(c echo.Context) error {

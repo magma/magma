@@ -18,12 +18,14 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
-	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	orc8r_models "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/wifi/cloud/go/wifi"
 
 	"github.com/go-openapi/swag"
+	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 )
 
 func (m *WifiNetwork) GetEmptyNetwork() handlers.NetworkModel {
@@ -63,38 +65,76 @@ func (m *WifiNetwork) FromConfiguratorNetwork(n configurator.Network) interface{
 		m.Wifi = cfg.(*NetworkWifiConfigs)
 	}
 	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
-		m.Features = cfg.(*models2.NetworkFeatures)
+		m.Features = cfg.(*orc8r_models.NetworkFeatures)
 	}
 	return m
 }
 
 func (m *NetworkWifiConfigs) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
-	return models2.GetNetworkConfigUpdateCriteria(network.ID, wifi.WifiNetworkType, m), nil
+	return orc8r_models.GetNetworkConfigUpdateCriteria(network.ID, wifi.WifiNetworkType, m), nil
 }
 
 func (m *NetworkWifiConfigs) GetFromNetwork(network configurator.Network) interface{} {
-	return models2.GetNetworkConfig(network, wifi.WifiNetworkType)
+	return orc8r_models.GetNetworkConfig(network, wifi.WifiNetworkType)
 }
 
 func (m *WifiGateway) FromBackendModels(
 	magmadGateway, wifiGateway configurator.NetworkEntity,
-	device *models2.GatewayDevice,
-	status *models2.GatewayStatus,
+	device *orc8r_models.GatewayDevice,
+	status *orc8r_models.GatewayStatus,
 ) handlers.GatewayModel {
-	// delegate most of the fillin to magmad gateway struct
-	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
-	// TODO: we should change this to a reflection based shallow copy
-	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
-
+	magmadGatewayModel := (&orc8r_models.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	copier.Copy(m, magmadGatewayModel)
 	if wifiGateway.Config != nil {
 		m.Wifi = wifiGateway.Config.(*GatewayWifiConfigs)
 	}
-
 	return m
 }
 
-func (m *MutableWifiGateway) GetMagmadGateway() *models2.MagmadGateway {
-	return &models2.MagmadGateway{
+func (m *WifiGateway) Load(networkID, gatewayID string) error {
+	magmadGateway := &orc8r_models.MagmadGateway{}
+	err := magmadGateway.Load(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+
+	ent, err := configurator.LoadEntity(
+		networkID, wifi.WifiGatewayType, gatewayID,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return errors.Wrap(err, "error loading wifi gateway")
+	}
+
+	gateway := &WifiGateway{
+		ID:          magmadGateway.ID,
+		Name:        magmadGateway.Name,
+		Description: magmadGateway.Description,
+		Device:      magmadGateway.Device,
+		Status:      magmadGateway.Status,
+		Tier:        magmadGateway.Tier,
+		Magmad:      magmadGateway.Magmad,
+	}
+	if ent.Config != nil {
+		gateway.Wifi = ent.Config.(*GatewayWifiConfigs)
+	}
+
+	*m = *gateway
+	return nil
+}
+
+func (m *MutableWifiGateway) Load(networkID, gatewayID string) error {
+	gateway := &WifiGateway{}
+	err := gateway.Load(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	copier.Copy(m, gateway)
+	return nil
+}
+
+func (m *MutableWifiGateway) GetMagmadGateway() *orc8r_models.MagmadGateway {
+	return &orc8r_models.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
 		ID:          m.ID,
@@ -125,16 +165,15 @@ func (m *MutableWifiGateway) GetAdditionalWritesOnCreate() []configurator.Entity
 	return updates
 }
 
-func (m *MutableWifiGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: gatewayID}}
+func (m *MutableWifiGateway) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(
-	gatewayID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: wifi.WifiGatewayType, Key: gatewayID}]
+	var ret []configurator.EntityWriteOperation
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: wifi.WifiGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
@@ -161,6 +200,10 @@ func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(
 	}
 
 	return ret, nil
+}
+
+func (m *MutableWifiGateway) GetAdditionalDeletes() []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: string(m.ID)}}
 }
 
 func (m *GatewayWifiConfigs) FromBackendModels(networkID string, gatewayID string) error {

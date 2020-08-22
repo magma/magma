@@ -27,9 +27,9 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
-	"github.com/go-openapi/errors"
-	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
 
@@ -142,50 +142,101 @@ func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interfa
 	return iCellularConfig.(*NetworkCellularConfigs).Ran
 }
 
-func (m *LteGateway) ValidateModel() error {
-	return m.Validate(strfmt.Default)
-}
-
 func (m *LteGateway) FromBackendModels(
+	networkID string,
 	magmadGateway, cellularGateway configurator.NetworkEntity,
 	device *orc8rModels.GatewayDevice,
 	status *orc8rModels.GatewayStatus,
-) handlers.GatewayModel {
-	// delegate most of the fillin to magmad gateway struct
-	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
-	// TODO: we should change this to a reflection based shallow copy
-	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
+) (handlers.GatewayModel, error) {
+	m.ConnectedEnodebSerials = EnodebSerials{}
+	m.ApnResources = ApnResources{}
 
+	magmadGatewayModel := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	err := copier.Copy(m, magmadGatewayModel)
+	if err != nil {
+		return nil, err
+	}
 	if cellularGateway.Config != nil {
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
+
 	for _, tk := range cellularGateway.Associations {
-		if tk.Type == lte.CellularEnodebEntityType {
+		switch tk.Type {
+		case lte.CellularEnodebEntityType:
 			m.ConnectedEnodebSerials = append(m.ConnectedEnodebSerials, tk.Key)
+		case lte.APNResourceEntityType:
+			r := &ApnResource{}
+			err := r.Load(networkID, tk.Key)
+			if err != nil {
+				return nil, errors.Wrap(err, "error loading apn resource entity")
+			}
+			m.ApnResources[string(r.ApnName)] = *r
 		}
 	}
 	sort.Strings(m.ConnectedEnodebSerials)
 
-	return m
+	return m, nil
 }
 
-func (m *MutableLteGateway) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
+func (m *LteGateway) Load(networkID, gatewayID string) error {
+	magmadGateway := &orc8rModels.MagmadGateway{}
+	err := magmadGateway.Load(networkID, gatewayID)
+	if err != nil {
 		return err
 	}
 
-	// Custom validation only for cellular and device
-	var res []error
-	if err := m.Cellular.ValidateModel(); err != nil {
-		res = append(res, err)
-	}
-	if err := m.Device.ValidateModel(); err != nil {
-		res = append(res, err)
+	cellularEnt, err := configurator.LoadEntity(
+		networkID, lte.CellularGatewayEntityType, gatewayID,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return errors.Wrap(err, "error loading cellular gateway")
 	}
 
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
+	gateway := &LteGateway{
+		ID:                     magmadGateway.ID,
+		Name:                   magmadGateway.Name,
+		Description:            magmadGateway.Description,
+		Device:                 magmadGateway.Device,
+		Status:                 magmadGateway.Status,
+		Tier:                   magmadGateway.Tier,
+		Magmad:                 magmadGateway.Magmad,
+		ApnResources:           ApnResources{},
+		ConnectedEnodebSerials: EnodebSerials{},
 	}
+
+	if cellularEnt.Config != nil {
+		gateway.Cellular = cellularEnt.Config.(*GatewayCellularConfigs)
+	}
+	for _, tk := range cellularEnt.Associations {
+		switch tk.Type {
+		case lte.CellularEnodebEntityType:
+			gateway.ConnectedEnodebSerials = append(gateway.ConnectedEnodebSerials, tk.Key)
+		case lte.APNResourceEntityType:
+			r := &ApnResource{}
+			err := r.Load(networkID, tk.Key)
+			if err != nil {
+				return errors.Wrap(err, "error loading apn resource entity")
+			}
+			gateway.ApnResources[string(r.ApnName)] = *r
+		}
+	}
+
+	*m = *gateway
+	return nil
+}
+
+func (m *MutableLteGateway) Load(networkID, gatewayID string) error {
+	gateway := &LteGateway{}
+	err := gateway.Load(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	err = copier.Copy(m, gateway)
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -201,59 +252,128 @@ func (m *MutableLteGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
 }
 
 func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityWriteOperation {
-	ent := configurator.NetworkEntity{
+	var writes []configurator.EntityWriteOperation
+
+	for _, r := range m.ApnResources {
+		writes = append(writes, r.ToEntity())
+	}
+
+	cellularGateway := configurator.NetworkEntity{
 		Type:        lte.CellularGatewayEntityType,
 		Key:         string(m.ID),
 		Name:        string(m.Name),
 		Description: string(m.Description),
 		Config:      m.Cellular,
 	}
-	for _, enbSerial := range m.ConnectedEnodebSerials {
-		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enbSerial})
+	for _, s := range m.ConnectedEnodebSerials {
+		cellularGateway.Associations = append(cellularGateway.Associations, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: s})
 	}
+	for _, r := range m.ApnResources {
+		cellularGateway.Associations = append(cellularGateway.Associations, storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: r.ID})
+	}
+	writes = append(writes, cellularGateway)
 
-	return []configurator.EntityWriteOperation{
-		ent,
-		configurator.EntityUpdateCriteria{
-			Type:              orc8r.MagmadGatewayType,
-			Key:               string(m.ID),
-			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}},
-		},
+	linkGateways := configurator.EntityUpdateCriteria{
+		Type:              orc8r.MagmadGatewayType,
+		Key:               string(m.ID),
+		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}},
 	}
+	writes = append(writes, linkGateways)
+
+	return writes
 }
 
-func (m *MutableLteGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: gatewayID}}
+func (m *MutableLteGateway) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+	ret := []storage.TypeAndKey{
+		{Type: lte.CellularGatewayEntityType, Key: string(m.ID)},
+	}
+	for _, r := range m.ApnResources {
+		ret = append(ret, storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: r.ID})
+	}
+	return ret
 }
 
 func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
-	gatewayID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: gatewayID}]
+	var writes []configurator.EntityWriteOperation
+
+	existingGateway, ok := loadedEntities[storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: string(m.ID)}]
 	if !ok {
-		return ret, merrors.ErrNotFound
+		return writes, merrors.ErrNotFound
 	}
 
-	entUpdate := configurator.EntityUpdateCriteria{
-		Type:      lte.CellularGatewayEntityType,
-		Key:       string(m.ID),
-		NewConfig: m.Cellular,
+	apnResourceWrites, newAPNResourceTKs, err := m.getAPNResourceChanges(existingGateway, loadedEntities)
+	if err != nil {
+		return nil, err
 	}
-	if string(m.Name) != existingEnt.Name {
-		entUpdate.NewName = swag.String(string(m.Name))
-	}
-	if string(m.Description) != existingEnt.Description {
-		entUpdate.NewDescription = swag.String(string(m.Description))
-	}
+	writes = append(writes, apnResourceWrites...)
 
+	gatewayUpdate := configurator.EntityUpdateCriteria{
+		Type:              lte.CellularGatewayEntityType,
+		Key:               string(m.ID),
+		NewConfig:         m.Cellular,
+		AssociationsToAdd: newAPNResourceTKs,
+	}
+	if string(m.Name) != existingGateway.Name {
+		gatewayUpdate.NewName = swag.String(string(m.Name))
+	}
+	if string(m.Description) != existingGateway.Description {
+		gatewayUpdate.NewDescription = swag.String(string(m.Description))
+	}
 	for _, enbSerial := range m.ConnectedEnodebSerials {
-		entUpdate.AssociationsToSet = append(entUpdate.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enbSerial})
+		gatewayUpdate.AssociationsToSet = append(gatewayUpdate.AssociationsToSet, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enbSerial})
+	}
+	writes = append(writes, gatewayUpdate)
+
+	return writes, nil
+}
+
+func (m *MutableLteGateway) GetAdditionalDeletes() []storage.TypeAndKey {
+	tks := []storage.TypeAndKey{
+		{Type: lte.CellularGatewayEntityType, Key: string(m.ID)},
+	}
+	for _, r := range m.ApnResources {
+		tks = append(tks, r.GetTK())
+	}
+	return tks
+}
+
+// getAPNResourceChanges returns required writes, as well as the TKs of the
+// new entities.
+func (m *MutableLteGateway) getAPNResourceChanges(
+	existingGateway configurator.NetworkEntity,
+	loaded map[storage.TypeAndKey]configurator.NetworkEntity,
+) ([]configurator.EntityWriteOperation, []storage.TypeAndKey, error) {
+	var writes []configurator.EntityWriteOperation
+
+	oldIDs := storage.GetKeys(storage.Filter(existingGateway.Associations, lte.APNResourceEntityType))
+
+	oldByAPN := ApnResources{}
+	err := oldByAPN.Load(existingGateway.NetworkID, oldIDs)
+	if err != nil {
+		return nil, nil, errors.Wrap(err, "error loading existing APN resources")
+	}
+	oldResources := oldByAPN.GetByID()
+	newResources := m.ApnResources.GetByID()
+
+	newIDs := funk.Keys(newResources).([]string)
+	newTKs := storage.MakeTKs(lte.APNResourceEntityType, newIDs)
+
+	deletes, creates := funk.DifferenceString(oldIDs, newIDs)
+	updates := funk.JoinString(oldIDs, newIDs, funk.InnerJoinString)
+
+	for _, w := range deletes {
+		writes = append(writes, oldResources[w].ToDeleteCriteria())
+	}
+	for _, w := range creates {
+		writes = append(writes, newResources[w].ToEntity())
+	}
+	for _, w := range updates {
+		writes = append(writes, newResources[w].ToUpdateCriteria())
 	}
 
-	ret = append(ret, entUpdate)
-	return ret, nil
+	return writes, newTKs, nil
 }
 
 func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID string) error {
@@ -415,4 +535,96 @@ func (m ApnList) ToAssocs() []storage.TypeAndKey {
 			return storage.TypeAndKey{Type: lte.APNEntityType, Key: rn}
 		},
 	).([]storage.TypeAndKey)
+}
+
+func (m *ApnResources) Load(networkID string, ids []string) error {
+	if len(ids) == 0 {
+		return nil
+	}
+
+	ents, notFound, err := configurator.LoadEntities(
+		networkID,
+		nil, nil, nil,
+		storage.MakeTKs(lte.APNResourceEntityType, ids),
+		configurator.EntityLoadCriteria{LoadConfig: true},
+	)
+	if err != nil {
+		return err
+	}
+	if len(notFound) != 0 {
+		return fmt.Errorf("error loading apn resources: could not find following entities: %v", notFound)
+	}
+
+	model := ApnResources{}
+	for _, ent := range ents {
+		r := (&ApnResource{}).FromEntity(ent)
+		model[string(r.ApnName)] = *r
+	}
+
+	*m = model
+	return nil
+}
+
+func (m *ApnResources) GetByID() map[string]*ApnResource {
+	byID := map[string]*ApnResource{}
+	for _, r := range *m {
+		byID[r.ID] = &r
+	}
+	return byID
+}
+
+func (m *ApnResources) GetTKs() []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for _, r := range *m {
+		tks = append(tks, r.GetTK())
+	}
+	return tks
+}
+
+func (m *ApnResource) GetTK() storage.TypeAndKey {
+	return storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: m.ID}
+}
+
+func (m *ApnResource) Load(networkID string, id string) error {
+	ent, err := configurator.LoadEntity(networkID, lte.APNResourceEntityType, id, configurator.EntityLoadCriteria{LoadConfig: true})
+	if err != nil {
+		return err
+	}
+	*m = *m.FromEntity(ent)
+	return nil
+}
+
+func (m *ApnResource) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:         lte.APNResourceEntityType,
+		Key:          m.ID,
+		Config:       m,
+		Associations: m.getAssocs(),
+	}
+}
+
+func (m *ApnResource) FromEntity(ent configurator.NetworkEntity) *ApnResource {
+	return ent.Config.(*ApnResource)
+}
+
+func (m *ApnResource) ToUpdateCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:              lte.APNResourceEntityType,
+		Key:               m.ID,
+		NewConfig:         m,
+		AssociationsToSet: m.getAssocs(),
+	}
+}
+
+func (m *ApnResource) ToDeleteCriteria() configurator.EntityUpdateCriteria {
+	return configurator.EntityUpdateCriteria{
+		Type:         lte.APNResourceEntityType,
+		Key:          m.ID,
+		DeleteEntity: true,
+	}
+}
+
+func (m *ApnResource) getAssocs() []storage.TypeAndKey {
+	apnAssoc := []storage.TypeAndKey{{Type: lte.APNEntityType, Key: string(m.ApnName)}}
+	return apnAssoc
 }

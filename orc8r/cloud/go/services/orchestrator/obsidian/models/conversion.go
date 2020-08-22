@@ -19,6 +19,8 @@ import (
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/device"
+	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
@@ -100,6 +102,39 @@ func (m NetworkDNSRecords) ToUpdateCriteria(network configurator.Network) (confi
 	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.DnsdNetworkType, iNetworkDnsConfig), nil
 }
 
+func (m *MagmadGateway) Load(networkID, gatewayID string) error {
+	ent, err := configurator.LoadEntity(
+		networkID, orc8r.MagmadGatewayType, gatewayID,
+		configurator.EntityLoadCriteria{
+			LoadMetadata:     true,
+			LoadConfig:       true,
+			LoadAssocsToThis: true,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	devI, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, ent.PhysicalID)
+	if err != nil && err != merrors.ErrNotFound {
+		return err
+	}
+	status, err := getGatewayStatus(networkID, ent.PhysicalID)
+	if err != nil && err != merrors.ErrNotFound {
+		return err
+	}
+
+	// If the gateway/network is malformed, we could get no corresponding
+	// device for the gateway
+	var dev *GatewayDevice
+	if devI != nil {
+		dev = devI.(*GatewayDevice)
+	}
+
+	m.FromBackendModels(ent, dev, status)
+	return nil
+}
+
 func (m *MagmadGateway) GetMagmadGateway() *MagmadGateway {
 	return m
 }
@@ -117,15 +152,14 @@ func (m *MagmadGateway) GetAdditionalWritesOnCreate() []configurator.EntityWrite
 	}
 }
 
-func (m *MagmadGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: gatewayID}}
+func (m *MagmadGateway) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MagmadGateway) GetAdditionalWritesOnUpdate(
-	gatewayID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
+	var ret []configurator.EntityWriteOperation
 	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
@@ -168,6 +202,10 @@ func (m *MagmadGateway) GetAdditionalWritesOnUpdate(
 	// do the tier update to delete the old assoc first
 	ret = append(ret, gatewayUpdate)
 	return ret, nil
+}
+
+func (m *MagmadGateway) GetAdditionalDeletes() []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MagmadGateway) ToConfiguratorEntities() []configurator.NetworkEntity {
@@ -511,4 +549,22 @@ func getGatewayIDs(gatewayTKs []storage.TypeAndKey) []models.GatewayID {
 		func(tk storage.TypeAndKey) models.GatewayID {
 			return models.GatewayID(tk.Key)
 		}).([]models.GatewayID)
+}
+
+// getGatewayStatus returns the status for an indicated gateway.
+func getGatewayStatus(networkID string, deviceID string) (*GatewayStatus, error) {
+	st, err := state.GetState(networkID, orc8r.GatewayStateType, deviceID)
+	if err != nil {
+		return nil, err
+	}
+	if st.ReportedState == nil {
+		return nil, merrors.ErrNotFound
+	}
+
+	gwStatus := st.ReportedState.(*GatewayStatus)
+	gwStatus.CheckinTime = st.TimeMs
+	gwStatus.CertExpirationTime = st.CertExpirationTime
+	gwStatus.HardwareID = st.ReporterID
+
+	return gwStatus, nil
 }

@@ -89,9 +89,10 @@ func GetHandlers() []obsidian.Handler {
 		handlers.GetListGatewaysHandler(ListGatewaysPath, lte.CellularGatewayEntityType, makeLTEGateways),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
-		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
-		handlers.GetDeleteGatewayHandler(ManageGatewayPath, lte.CellularGatewayEntityType),
+
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: handlers.GetDeleteGatewayHandler(&lte_models.MutableLteGateway{})},
+		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 
 		{Path: ListEnodebsPath, Methods: obsidian.GET, HandlerFunc: listEnodebs},
 		{Path: ListEnodebsPath, Methods: obsidian.POST, HandlerFunc: createEnodeb},
@@ -124,68 +125,48 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularEpcPath, &lte_models.NetworkEpcConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularRanPath, &lte_models.NetworkRanConfigs{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCellularFegNetworkID, new(lte_models.FegNetworkID), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policydb_models.NetworkSubscriberConfig{}, "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policydb_models.RuleNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policydb_models.BaseNames), "")...)
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8r_models.MagmadGatewayConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8r_models.TierID))...)
-	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularPath, &lte_models.GatewayCellularConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularEpcPath, &lte_models.GatewayEpcConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularRanPath, &lte_models.GatewayRanConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &lte_models.GatewayNonEpsConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConnectedEnodebsPath, &lte_models.EnodebSerials{})...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policydb_models.NetworkSubscriberConfig{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policydb_models.RuleNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policydb_models.BaseNames), "")...)
+
+	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
+
 	return ret
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &lte_models.MutableLteGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &lte_models.MutableLteGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
 }
 
 func getGateway(c echo.Context) error {
-	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGatewayModel(nid, gid)
-	if nerr != nil {
-		return nerr
+	gateway := &lte_models.LteGateway{}
+	err := gateway.Load(networkID, gatewayID)
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
 	}
-
-	ent, err := configurator.LoadEntity(
-		nid, lte.CellularGatewayEntityType, gid,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-	)
 	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to load cellular gateway"), http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := &lte_models.LteGateway{
-		ID:          magmadModel.ID,
-		Name:        magmadModel.Name,
-		Description: magmadModel.Description,
-		Device:      magmadModel.Device,
-		Status:      magmadModel.Status,
-		Tier:        magmadModel.Tier,
-		Magmad:      magmadModel.Magmad,
-	}
-	if ent.Config != nil {
-		ret.Cellular = ent.Config.(*lte_models.GatewayCellularConfigs)
-	}
-
-	for _, tk := range ent.Associations {
-		if tk.Type == lte.CellularEnodebEntityType {
-			ret.ConnectedEnodebSerials = append(ret.ConnectedEnodebSerials, tk.Key)
-		}
-	}
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, gateway)
 }
 
 func updateGateway(c echo.Context) error {
@@ -193,7 +174,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &lte_models.MutableLteGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &lte_models.MutableLteGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -204,10 +185,11 @@ type cellularAndMagmadGateway struct {
 }
 
 func makeLTEGateways(
+	networkID string,
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8r_models.GatewayStatus,
-) map[string]handlers.GatewayModel {
+) (handlers.GatewayModels, error) {
 	gatewayEntsByKey := map[string]*cellularAndMagmadGateway{}
 	for tk, ent := range entsByTK {
 		existing, found := gatewayEntsByKey[tk.Key]
@@ -224,16 +206,20 @@ func makeLTEGateways(
 		}
 	}
 
-	ret := make(map[string]handlers.GatewayModel, len(gatewayEntsByKey))
+	cellularGateways := handlers.GatewayModels{}
+	var err error
 	for key, ents := range gatewayEntsByKey {
 		hwID := ents.magmadGateway.PhysicalID
 		var devCasted *orc8r_models.GatewayDevice
 		if devicesByID[hwID] != nil {
 			devCasted = devicesByID[hwID].(*orc8r_models.GatewayDevice)
 		}
-		ret[key] = (&lte_models.LteGateway{}).FromBackendModels(ents.magmadGateway, ents.cellularGateway, devCasted, statusesByID[hwID])
+		cellularGateways[key], err = (&lte_models.LteGateway{}).FromBackendModels(networkID, ents.magmadGateway, ents.cellularGateway, devCasted, statusesByID[hwID])
+		if err != nil {
+			return nil, err
+		}
 	}
-	return ret
+	return cellularGateways, nil
 }
 
 func listEnodebs(c echo.Context) error {
@@ -511,10 +497,29 @@ func deleteApnConfiguration(c echo.Context) error {
 		return nerr
 	}
 
-	err := configurator.DeleteEntity(networkID, lte.APNEntityType, apnName)
+	// First cascade deletes to APN resources
+	ent, err := configurator.LoadEntity(networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+	var resourceTKs []storage.TypeAndKey
+	for _, assoc := range ent.ParentAssociations {
+		if assoc.Type == lte.APNResourceEntityType {
+			resourceTKs = append(resourceTKs, assoc)
+		}
+	}
+	if len(resourceTKs) != 0 {
+		err := configurator.DeleteEntities(networkID, resourceTKs)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+	}
+
+	err = configurator.DeleteEntity(networkID, lte.APNEntityType, apnName)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 

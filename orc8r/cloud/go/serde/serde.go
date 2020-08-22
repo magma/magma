@@ -40,7 +40,7 @@ type Serde interface {
 	Deserialize(in []byte) (interface{}, error)
 }
 
-// ValidateableModel implements a ValidateModel() function that returns whether
+// ValidatableModel implements a ValidateModel() function that returns whether
 // the instance is valid.
 type ValidatableModel interface {
 	ValidateModel() error

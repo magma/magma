@@ -70,6 +70,8 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policydb_models.BaseNameRecord{}),
 		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policydb_models.RatingGroup{}),
 		configurator.NewNetworkEntityConfigSerde(lte.APNEntityType, &lte_models.ApnConfiguration{}),
+		configurator.NewNetworkEntityConfigSerde(lte.APNResourceEntityType, &lte_models.ApnResource{}),
+
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyQoSProfileEntityType, &policydb_models.PolicyQosProfile{}),
 	}
 }

@@ -21,7 +21,6 @@ import (
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
-	policydbHandlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
@@ -32,7 +31,6 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -63,9 +61,6 @@ const (
 	ManageFegLteNetworkRuleNamesPath  = ManageFegLteNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
 	ManageFegLteNetworkBaseNamePath   = ManageFegLteNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
 	ManageFegLteNetworkRuleNamePath   = ManageFegLteNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
-
-	qosProfileRootPath   = ManageFegLteNetworkPath + obsidian.UrlSep + "policy_qos_profiles"
-	qosProfileManagePath = qosProfileRootPath + obsidian.UrlSep + ":profile_id"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -74,7 +69,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
-		handlers.GetDeleteGatewayHandler(ManageGatewayPath, feg.FegGatewayType),
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: handlers.GetDeleteGatewayHandler(&fegModels.MutableFederationGateway{})},
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
@@ -88,10 +83,6 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageFegLteNetworkRuleNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberRuleName},
 		{Path: ManageFegLteNetworkBaseNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberBaseName},
 		{Path: ManageFegLteNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
-
-		{Path: qosProfileRootPath, Methods: obsidian.GET, HandlerFunc: policydbHandlers.ListQoSProfiles},
-		{Path: qosProfileRootPath, Methods: obsidian.POST, HandlerFunc: policydbHandlers.CreateQoSProfile},
-		{Path: qosProfileManagePath, Methods: obsidian.DELETE, HandlerFunc: policydbHandlers.DeleteQoSProfile},
 	}
 
 	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegModels.FegNetwork{})...)
@@ -108,48 +99,32 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
 
-	ret = append(ret, handlers.GetPartialEntityHandlers(qosProfileManagePath, "profile_id", &policyModels.PolicyQosProfile{})...)
-
 	return ret
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &fegModels.MutableFederationGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &fegModels.MutableFederationGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
 }
 
 func getGateway(c echo.Context) error {
-	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGatewayModel(nid, gid)
-	if nerr != nil {
-		return nerr
+	gateway := &fegModels.FederationGateway{}
+	err := gateway.Load(networkID, gatewayID)
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
 	}
-
-	ent, err := configurator.LoadEntity(
-		nid, feg.FegGatewayType, gid,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-	)
 	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to load federation gateway"), http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := &fegModels.FederationGateway{
-		ID:          magmadModel.ID,
-		Name:        magmadModel.Name,
-		Description: magmadModel.Description,
-		Device:      magmadModel.Device,
-		Status:      magmadModel.Status,
-		Tier:        magmadModel.Tier,
-		Magmad:      magmadModel.Magmad,
-		Federation:  ent.Config.(*fegModels.GatewayFederationConfigs),
-	}
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, gateway)
 }
 
 func updateGateway(c echo.Context) error {
@@ -157,7 +132,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &fegModels.MutableFederationGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &fegModels.MutableFederationGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -168,10 +143,11 @@ type federationAndMagmadGateway struct {
 }
 
 func makeFederationGateways(
+	networkID string,
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rModels.GatewayStatus,
-) map[string]handlers.GatewayModel {
+) (handlers.GatewayModels, error) {
 	gatewayEntsByKey := map[string]*federationAndMagmadGateway{}
 	for tk, ent := range entsByTK {
 		existing, found := gatewayEntsByKey[tk.Key]
@@ -188,16 +164,20 @@ func makeFederationGateways(
 		}
 	}
 
-	ret := make(map[string]handlers.GatewayModel, len(gatewayEntsByKey))
+	fegs := handlers.GatewayModels{}
+	var err error
 	for key, ents := range gatewayEntsByKey {
 		hwID := ents.magmadGateway.PhysicalID
 		var devCasted *orc8rModels.GatewayDevice
 		if devicesByID[hwID] != nil {
 			devCasted = devicesByID[hwID].(*orc8rModels.GatewayDevice)
 		}
-		ret[key] = (&fegModels.FederationGateway{}).FromBackendModels(ents.magmadGateway, ents.federationGateway, devCasted, statusesByID[hwID])
+		fegs[key], err = (&fegModels.FederationGateway{}).FromBackendModels(ents.magmadGateway, ents.federationGateway, devCasted, statusesByID[hwID])
+		if err != nil {
+			return nil, err
+		}
 	}
-	return ret
+	return fegs, nil
 }
 
 func getClusterStatusHandler(c echo.Context) error {

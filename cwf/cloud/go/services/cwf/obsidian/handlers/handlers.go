@@ -35,7 +35,6 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
-	"github.com/pkg/errors"
 )
 
 const (
@@ -79,7 +78,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
-		handlers.GetDeleteGatewayHandler(ManageGatewayPath, cwf.CwfGatewayType),
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: handlers.GetDeleteGatewayHandler(&cwfModels.MutableCwfGateway{})},
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
@@ -116,45 +115,28 @@ func GetHandlers() []obsidian.Handler {
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &cwfModels.MutableCwfGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &cwfModels.MutableCwfGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
 }
 
 func getGateway(c echo.Context) error {
-	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGatewayModel(nid, gid)
-	if nerr != nil {
-		return nerr
+	gateway := &cwfModels.CwfGateway{}
+	err := gateway.Load(networkID, gatewayID)
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
 	}
-
-	ent, err := configurator.LoadEntity(
-		nid, cwf.CwfGatewayType, gid,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: false},
-	)
 	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to load cwf gateway"), http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := &cwfModels.CwfGateway{
-		ID:          magmadModel.ID,
-		Name:        magmadModel.Name,
-		Description: magmadModel.Description,
-		Device:      magmadModel.Device,
-		Status:      magmadModel.Status,
-		Tier:        magmadModel.Tier,
-		Magmad:      magmadModel.Magmad,
-	}
-	if ent.Config != nil {
-		ret.CarrierWifi = ent.Config.(*cwfModels.GatewayCwfConfigs)
-	}
-
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, gateway)
 }
 
 func updateGateway(c echo.Context) error {
@@ -162,7 +144,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &cwfModels.MutableCwfGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &cwfModels.MutableCwfGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -173,10 +155,11 @@ type cwfAndMagmadGateway struct {
 }
 
 func makeCwfGateways(
+	networkID string,
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rModels.GatewayStatus,
-) map[string]handlers.GatewayModel {
+) (handlers.GatewayModels, error) {
 	gatewayEntsByKey := map[string]*cwfAndMagmadGateway{}
 	for tk, ent := range entsByTK {
 		existing, found := gatewayEntsByKey[tk.Key]
@@ -193,16 +176,20 @@ func makeCwfGateways(
 		}
 	}
 
-	ret := make(map[string]handlers.GatewayModel, len(gatewayEntsByKey))
+	cwfGateways := handlers.GatewayModels{}
+	var err error
 	for key, ents := range gatewayEntsByKey {
 		hwID := ents.magmadGateway.PhysicalID
 		var devCasted *orc8rModels.GatewayDevice
 		if devicesByID[hwID] != nil {
 			devCasted = devicesByID[hwID].(*orc8rModels.GatewayDevice)
 		}
-		ret[key] = (&cwfModels.CwfGateway{}).FromBackendModels(ents.magmadGateway, ents.cwfGateway, devCasted, statusesByID[hwID])
+		cwfGateways[key], err = (&cwfModels.CwfGateway{}).FromBackendModels(ents.magmadGateway, ents.cwfGateway, devCasted, statusesByID[hwID])
+		if err != nil {
+			return nil, err
+		}
 	}
-	return ret
+	return cwfGateways, nil
 }
 
 func getSubscriberDirectoryHandler(c echo.Context) error {

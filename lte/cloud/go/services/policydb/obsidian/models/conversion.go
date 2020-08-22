@@ -349,9 +349,10 @@ func (m *PolicyQosProfile) ToUpdateCriteria(networkID string, key string) ([]con
 }
 
 func (m *PolicyQosProfile) ToEntity() configurator.NetworkEntity {
-	return configurator.NetworkEntity{
+	ret := configurator.NetworkEntity{
 		Type:   lte.PolicyQoSProfileEntityType,
 		Key:    *m.ID,
 		Config: m,
 	}
+	return ret
 }

@@ -56,6 +56,32 @@ func (tk TypeAndKey) String() string {
 	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
 }
 
+func Filter(tks []TypeAndKey, typ string) []TypeAndKey {
+	var filtered []TypeAndKey
+	for _, tk := range tks {
+		if tk.Type == typ {
+			filtered = append(filtered, tk)
+		}
+	}
+	return filtered
+}
+
+func GetKeys(tks []TypeAndKey) []string {
+	var keys []string
+	for _, tk := range tks {
+		keys = append(keys, tk.Key)
+	}
+	return keys
+}
+
+func MakeTKs(typ string, keys []string) []TypeAndKey {
+	var tks []TypeAndKey
+	for _, key := range keys {
+		tks = append(tks, TypeAndKey{Type: typ, Key: key})
+	}
+	return tks
+}
+
 func IsTKLessThan(a TypeAndKey, b TypeAndKey) bool {
 	return a.String() < b.String()
 }

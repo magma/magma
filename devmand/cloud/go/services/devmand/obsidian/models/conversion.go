@@ -21,12 +21,14 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
-	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	orc8r_models "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/go-openapi/swag"
+	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 )
 
 func (m *SymphonyNetwork) GetEmptyNetwork() handlers.NetworkModel {
@@ -61,13 +63,23 @@ func (m *SymphonyNetwork) FromConfiguratorNetwork(n configurator.Network) interf
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
 	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
-		m.Features = cfg.(*models2.NetworkFeatures)
+		m.Features = cfg.(*orc8r_models.NetworkFeatures)
 	}
 	return m
 }
 
-func (m *MutableSymphonyAgent) GetMagmadGateway() *models2.MagmadGateway {
-	return &models2.MagmadGateway{
+func (m *MutableSymphonyAgent) Load(networkID, gatewayID string) error {
+	agent := &SymphonyAgent{}
+	err := agent.Load(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	copier.Copy(m, agent)
+	return nil
+}
+
+func (m *MutableSymphonyAgent) GetMagmadGateway() *orc8r_models.MagmadGateway {
+	return &orc8r_models.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
 		ID:          models.GatewayID(m.ID),
@@ -97,22 +109,22 @@ func (m *MutableSymphonyAgent) GetAdditionalWritesOnCreate() []configurator.Enti
 	return writes
 }
 
-func (m *MutableSymphonyAgent) GetAdditionalEntitiesToLoadOnUpdate(agentID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: agentID}}
+func (m *MutableSymphonyAgent) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: string(m.ID)}}
 }
 
 func (m *MutableSymphonyAgent) GetAdditionalWritesOnUpdate(
-	agentID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	_, ok := loadedEntities[storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: agentID}]
+	var ret []configurator.EntityWriteOperation
+	_, ok := loadedEntities[storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: string(m.ID)}]
 	if !ok {
 		return nil, merrors.ErrNotFound
 	}
 
 	update := configurator.EntityUpdateCriteria{
-		Type: devmand.SymphonyAgentType, Key: agentID,
+		Type:              devmand.SymphonyAgentType,
+		Key:               string(m.ID),
 		AssociationsToSet: []storage.TypeAndKey{},
 	}
 	for _, dID := range m.ManagedDevices {
@@ -121,6 +133,10 @@ func (m *MutableSymphonyAgent) GetAdditionalWritesOnUpdate(
 	ret = append(ret, update)
 
 	return ret, nil
+}
+
+func (m *MutableSymphonyAgent) GetAdditionalDeletes() []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: string(m.ID)}}
 }
 
 func (m *MutableSymphonyAgent) ToConfiguratorEntity() configurator.NetworkEntity {
@@ -136,11 +152,11 @@ func (m *MutableSymphonyAgent) ToConfiguratorEntity() configurator.NetworkEntity
 
 func (m *SymphonyAgent) FromBackendModels(
 	magmadEnt, agentEnt configurator.NetworkEntity,
-	device *models2.GatewayDevice,
-	status *models2.GatewayStatus,
+	device *orc8r_models.GatewayDevice,
+	status *orc8r_models.GatewayStatus,
 ) handlers.GatewayModel {
-	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadEnt, device, status)
-	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
+	magmadGateway := (&orc8r_models.MagmadGateway{}).FromBackendModels(magmadEnt, device, status)
+	copier.Copy(m, magmadGateway)
 
 	for _, tk := range agentEnt.Associations {
 		if tk.Type == devmand.SymphonyDeviceType {
@@ -150,6 +166,37 @@ func (m *SymphonyAgent) FromBackendModels(
 	sort.Strings(m.ManagedDevices)
 
 	return m
+}
+
+func (m *SymphonyAgent) Load(networkID, agentID string) error {
+	magmadGateway := &orc8r_models.MagmadGateway{}
+	err := magmadGateway.Load(networkID, agentID)
+	if err != nil {
+		return err
+	}
+
+	ent, err := configurator.LoadEntity(networkID, devmand.SymphonyAgentType, agentID, configurator.FullEntityLoadCriteria())
+	if err != nil {
+		return errors.Wrap(err, "error loading symphony agent")
+	}
+
+	agent := &SymphonyAgent{
+		ID:          magmadGateway.ID,
+		Name:        magmadGateway.Name,
+		Description: magmadGateway.Description,
+		Device:      magmadGateway.Device,
+		Tier:        magmadGateway.Tier,
+		Magmad:      magmadGateway.Magmad,
+	}
+
+	for _, tk := range ent.Associations {
+		if tk.Type == devmand.SymphonyDeviceType {
+			agent.ManagedDevices = append(agent.ManagedDevices, tk.Key)
+		}
+	}
+
+	*m = *agent
+	return nil
 }
 
 func (m *ManagedDevices) FromBackendModels(networkID string, agentID string) error {
@@ -293,7 +340,7 @@ func (m *SymphonyDeviceConfig) FromBackendModels(networkID, deviceID string) err
 
 func (m *SymphonyDeviceConfig) ToUpdateCriteria(networkID, deviceID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{
+		{
 			Type:      devmand.SymphonyDeviceType,
 			Key:       deviceID,
 			NewConfig: m,

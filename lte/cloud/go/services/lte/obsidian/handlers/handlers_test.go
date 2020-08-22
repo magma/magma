@@ -26,6 +26,7 @@ import (
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
+	models2 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
@@ -33,7 +34,7 @@ import (
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -50,10 +51,14 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func init() {
+	//_ = flag.Set("alsologtostderr", "true") // uncomment to view logs during test
+}
+
 func TestListNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -87,7 +92,7 @@ func TestListNetworks(t *testing.T) {
 func TestCreateNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -154,7 +159,7 @@ func TestCreateNetwork(t *testing.T) {
 func TestGetNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -229,7 +234,7 @@ func TestGetNetwork(t *testing.T) {
 func TestUpdateNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -352,7 +357,7 @@ func TestUpdateNetwork(t *testing.T) {
 func TestDeleteNetwork(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -400,7 +405,7 @@ func TestDeleteNetwork(t *testing.T) {
 func TestCellularPartialGet(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte"
@@ -529,7 +534,7 @@ func TestCellularPartialGet(t *testing.T) {
 func TestCellularPartialUpdate(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte"
@@ -697,7 +702,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 func TestCellularDelete(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/lte"
@@ -725,7 +730,7 @@ func TestCellularDelete(t *testing.T) {
 func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -802,7 +807,7 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -1025,7 +1030,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 func TestCreateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
@@ -1146,7 +1151,7 @@ func TestCreateGateway(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		ExpectedStatus: 500,
-		ExpectedError:  "failed to create gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\" key:\"dne\" ]",
+		ExpectedError:  "error creating gateway: rpc error: code = Internal desc = could not find entities matching [type:\"cellular_enodeb\" key:\"dne\" ]",
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1219,7 +1224,7 @@ func TestListAndGetGateways(t *testing.T) {
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
@@ -1315,7 +1320,9 @@ func TestListAndGetGateways(t *testing.T) {
 				Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
-			Status: models.NewDefaultGatewayStatus("hw1"),
+			Status:                 models.NewDefaultGatewayStatus("hw1"),
+			ConnectedEnodebSerials: lteModels.EnodebSerials{},
+			ApnResources:           lteModels.ApnResources{},
 		},
 		"g2": {
 			ID:   "g2",
@@ -1332,6 +1339,7 @@ func TestListAndGetGateways(t *testing.T) {
 				Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 			},
 			ConnectedEnodebSerials: []string{"enb1", "enb2"},
+			ApnResources:           lteModels.ApnResources{},
 		},
 	}
 	expected["g1"].Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
@@ -1366,7 +1374,9 @@ func TestListAndGetGateways(t *testing.T) {
 			Epc: &lteModels.GatewayEpcConfigs{NatEnabled: swag.Bool(true), IPBlock: "192.168.0.0/24"},
 			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 		},
-		Status: models.NewDefaultGatewayStatus("hw1"),
+		Status:                 models.NewDefaultGatewayStatus("hw1"),
+		ConnectedEnodebSerials: lteModels.EnodebSerials{},
+		ApnResources:           lteModels.ApnResources{},
 	}
 	expectedGet.Status.CheckinTime = uint64(time.Unix(1000000, 0).UnixNano() / (int64(time.Millisecond) / int64(time.Nanosecond)))
 	expectedGet.Status.CertExpirationTime = time.Unix(1000000, 0).Add(time.Hour * 4).Unix()
@@ -1396,6 +1406,7 @@ func TestListAndGetGateways(t *testing.T) {
 			Ran: &lteModels.GatewayRanConfigs{Pci: 260, TransmitEnabled: swag.Bool(true)},
 		},
 		ConnectedEnodebSerials: []string{"enb1", "enb2"},
+		ApnResources:           lteModels.ApnResources{},
 	}
 	tc = tests.Test{
 		Method:         "GET",
@@ -1415,7 +1426,7 @@ func TestUpdateGateway(t *testing.T) {
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
@@ -1494,6 +1505,7 @@ func TestUpdateGateway(t *testing.T) {
 			Ran: &lteModels.GatewayRanConfigs{Pci: 123, TransmitEnabled: swag.Bool(false)},
 		},
 		ConnectedEnodebSerials: []string{"enb1", "enb3"},
+		ApnResources:           lteModels.ApnResources{},
 	}
 
 	tc := tests.Test{
@@ -1559,7 +1571,7 @@ func TestDeleteGateway(t *testing.T) {
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
@@ -1643,7 +1655,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
@@ -1753,7 +1765,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
@@ -2077,7 +2089,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
@@ -2217,7 +2229,7 @@ func TestCreateEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
@@ -2309,7 +2321,7 @@ func TestUpdateEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
@@ -2423,7 +2435,7 @@ func TestDeleteEnodeb(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
@@ -2473,9 +2485,9 @@ func TestGetEnodebState(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
-	deviceTestInit.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -2538,7 +2550,7 @@ func TestCreateApn(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -2548,21 +2560,7 @@ func TestCreateApn(t *testing.T) {
 	createApn := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.POST).HandlerFunc
 
 	// default apn profile should always succeed
-	payload := &lteModels.Apn{
-		ApnName: "foo",
-		ApnConfiguration: &lteModels.ApnConfiguration{
-			Ambr: &lteModels.AggregatedMaximumBitrate{
-				MaxBandwidthDl: swag.Uint32(100),
-				MaxBandwidthUl: swag.Uint32(100),
-			},
-			QosProfile: &lteModels.QosProfile{
-				ClassID:                 swag.Int32(9),
-				PreemptionCapability:    swag.Bool(true),
-				PreemptionVulnerability: swag.Bool(false),
-				PriorityLevel:           swag.Uint32(15),
-			},
-		},
-	}
+	payload := newAPN("foo")
 	tc := tests.Test{
 		Method:         "POST",
 		URL:            testURLRoot,
@@ -2590,7 +2588,7 @@ func TestListApns(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -2694,7 +2692,7 @@ func TestGetApn(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -2764,7 +2762,7 @@ func TestUpdateApn(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -2851,7 +2849,7 @@ func TestDeleteApn(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
 
@@ -2932,6 +2930,284 @@ func TestDeleteApn(t *testing.T) {
 	assert.Equal(t, expected, actual[0])
 }
 
+func TestAPNResource(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
+
+	configuratorTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"})
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	urlBase := "/magma/v1/lte/:network_id/gateways"
+	urlManage := urlBase + "/:gateway_id"
+	allHandlers := handlers.GetHandlers()
+	getAllGateways := tests.GetHandlerByPathAndMethod(t, allHandlers, urlBase, obsidian.GET).HandlerFunc
+	postGateway := tests.GetHandlerByPathAndMethod(t, allHandlers, urlBase, obsidian.POST).HandlerFunc
+	putGateway := tests.GetHandlerByPathAndMethod(t, allHandlers, urlManage, obsidian.PUT).HandlerFunc
+	getGateway := tests.GetHandlerByPathAndMethod(t, allHandlers, urlManage, obsidian.GET).HandlerFunc
+	deleteGateway := tests.GetHandlerByPathAndMethod(t, allHandlers, urlManage, obsidian.DELETE).HandlerFunc
+
+	postAPN := tests.GetHandlerByPathAndMethod(t, allHandlers, "/magma/v1/lte/:network_id/apns", obsidian.POST).HandlerFunc
+	deleteAPN := tests.GetHandlerByPathAndMethod(t, allHandlers, "/magma/v1/lte/:network_id/apns/:apn_name", obsidian.DELETE).HandlerFunc
+
+	gw := newMutableGateway("gw0")
+
+	// Get all, initially empty
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Handler:        getAllGateways,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]lteModels.MutableLteGateway{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post err, APN names don't match
+	gw.ApnResources = lteModels.ApnResources{"apn0": {ApnName: "apn1", ID: "res0", VlanID: 4}}
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    "/magma/v1/lte/n0/gateways",
+		Payload:                gw,
+		Handler:                postGateway,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n0"},
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "APN resources key (apn0) and APN name (apn1) must match",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post err, APN doesn't exist
+	gw.ApnResources = lteModels.ApnResources{"apn0": {ApnName: "apn0", ID: "res0", VlanID: 4}}
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    "/magma/v1/lte/n0/gateways",
+		Payload:                gw,
+		Handler:                postGateway,
+		ParamNames:             []string{"network_id"},
+		ParamValues:            []string{"n0"},
+		ExpectedStatus:         500, // this would actually make more sense as a 400, but it's a non-trivial fix
+		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apn0" ]`,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post APNs
+	apn0 := newAPN("apn0")
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/:network_id/apns",
+		Payload:        apn0,
+		Handler:        postAPN,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+	apn1 := newAPN("apn1")
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/:network_id/apns",
+		Payload:        apn1,
+		Handler:        postAPN,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post, successful
+	gw.ApnResources = lteModels.ApnResources{"apn0": {ApnName: "apn0", ID: "res0", VlanID: 4}}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Payload:        gw,
+		Handler:        postGateway,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all, posted gateway found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Handler:        getAllGateways,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.MutableLteGateway{"gw0": gw}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put err, APN doesn't exist
+	gw.ApnResources = lteModels.ApnResources{"apn1": {ApnName: "apnXXX", ID: "res0", VlanID: 4}}
+	tc = tests.Test{
+		Method:                 "PUT",
+		URL:                    "/magma/v1/lte/n0/gateways/gw0",
+		Payload:                gw,
+		ParamNames:             []string{"network_id", "gateway_id"},
+		ParamValues:            []string{"n0", "gw0"},
+		Handler:                putGateway,
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "APN resources key (apn1) and APN name (apnXXX) must match",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put err, request has duplicate resource IDs
+	gw.ApnResources = lteModels.ApnResources{
+		"apn0": {ApnName: "apn0", ID: "res0"},
+		"apn1": {ApnName: "apn1", ID: "res0"},
+	}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		Payload:        gw,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        putGateway,
+		ExpectedStatus: 400,
+		ExpectedError:  "duplicate APN resource ID in request: res0",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put, point to new APN
+	gw.ApnResources = lteModels.ApnResources{"apn1": {ApnName: "apn1", ID: "res0", VlanID: 4}}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		Payload:        gw,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        putGateway,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post err, resource ID already exists
+	gw1 := newMutableGateway("gw1")
+	gw1.ApnResources = lteModels.ApnResources{"apn0": {ApnName: "apn0", ID: "res0"}}
+	tc = tests.Test{
+		Method:                 "POST",
+		URL:                    "/magma/v1/lte/n0/gateways",
+		Payload:                gw1,
+		ParamNames:             []string{"network_id", "gateway_id"},
+		ParamValues:            []string{"n0", "gw1"},
+		Handler:                postGateway,
+		ExpectedStatus:         500, // TODO(8/21/20): this should really be a 400
+		ExpectedErrorSubstring: "an entity (apn_resource-res0) already exists",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put, create new APN resource
+	gw.ApnResources = lteModels.ApnResources{"apn1": {ApnName: "apn1", ID: "res1", VlanID: 4}}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		Payload:        gw,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        putGateway,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Configurator confirms old APN resource was deleted
+	exists, err := configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res0")
+	assert.NoError(t, err)
+	assert.False(t, exists)
+
+	// Get, changes are reflected
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        getGateway,
+		ExpectedStatus: 200,
+		ExpectedResult: gw,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        deleteGateway,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get err, not found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        getGateway,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Configurator confirms APN resource was deleted
+	exists, err = configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res1")
+	assert.NoError(t, err)
+	assert.False(t, exists)
+
+	// Post, add gateway back
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Payload:        gw,
+		Handler:        postGateway,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete linked APN
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            "/magma/v1/lte/n0/apns/apn1",
+		Handler:        deleteAPN,
+		ParamNames:     []string{"network_id", "apn_name"},
+		ParamValues:    []string{"n0", "apn1"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get, APN resource is gone due to cascading delete
+	gw.ApnResources = lteModels.ApnResources{}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        getGateway,
+		ExpectedStatus: 200,
+		ExpectedResult: gw,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Configurator confirms APN resource was deleted
+	exists, err = configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res1")
+	assert.NoError(t, err)
+	assert.False(t, exists)
+}
+
 func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *lteModels.EnodebState) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
@@ -3005,4 +3281,51 @@ func newDefaultGatewayConfig() *lteModels.GatewayCellularConfigs {
 			NonEpsServiceControl: swag.Uint32(0),
 		},
 	}
+}
+
+func newAPN(name string) *lteModels.Apn {
+	apn := &lteModels.Apn{
+		ApnName: lteModels.ApnName(name),
+		ApnConfiguration: &lteModels.ApnConfiguration{
+			Ambr: &lteModels.AggregatedMaximumBitrate{
+				MaxBandwidthDl: swag.Uint32(100),
+				MaxBandwidthUl: swag.Uint32(100),
+			},
+			QosProfile: &lteModels.QosProfile{
+				ClassID:                 swag.Int32(9),
+				PreemptionCapability:    swag.Bool(true),
+				PreemptionVulnerability: swag.Bool(false),
+				PriorityLevel:           swag.Uint32(15),
+			},
+		},
+	}
+
+	return apn
+}
+
+func newMutableGateway(id string) *lteModels.MutableLteGateway {
+	gw := &lteModels.MutableLteGateway{
+		Device: &models.GatewayDevice{
+			HardwareID: id + "_hwid",
+			Key:        &models.ChallengeKey{KeyType: "ECHO"},
+		},
+		ID:          models2.GatewayID(id),
+		Name:        "foobar",
+		Description: "foo bar",
+		Magmad: &models.MagmadGatewayConfigs{
+			CheckinInterval:         15,
+			CheckinTimeout:          10,
+			AutoupgradePollInterval: 300,
+			AutoupgradeEnabled:      swag.Bool(true),
+		},
+		Cellular:               newDefaultGatewayConfig(),
+		ConnectedEnodebSerials: []string{},
+		Tier:                   "t0",
+		ApnResources:           lteModels.ApnResources{},
+	}
+	return gw
+}
+
+func getTKs(ent configurator.NetworkEntity) []storage.TypeAndKey {
+	return []storage.TypeAndKey{ent.GetTypeAndKey()}
 }

@@ -738,19 +738,19 @@ func TestQoSProfileHandlers(t *testing.T) {
 	// Get all profiles, initially empty
 	tc := tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles",
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        listProfiles,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.PolicyQosProfile{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
 	// Get nonexistent profile
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
 		Handler:        getProfile,
@@ -763,7 +763,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	profileX := getDefaultTestProfile()
 	tc = tests.Test{
 		Method:         "PUT",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/:policy_id",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		Payload:        profileX,
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
@@ -776,7 +776,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	// Delete nonexistent profile
 	tc = tests.Test{
 		Method:         "DELETE",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
 		Handler:        deleteProfile,
@@ -788,7 +788,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	profileXa := getDefaultTestProfile()
 	tc = tests.Test{
 		Method:                 "POST",
-		URL:                    "/magma/v1/lte/:network_id/policy_qos_profiles",
+		URL:                    "/magma/v1/lte/n1/policy_qos_profiles",
 		Payload:                profileXa,
 		MalformedPayload:       true,
 		ParamNames:             []string{"network_id"},
@@ -804,7 +804,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	profileXb.Arp.PriorityLevel = swag.Uint32(16) // invalid
 	tc = tests.Test{
 		Method:                 "POST",
-		URL:                    "/magma/v1/lte/:network_id/policy_qos_profiles",
+		URL:                    "/magma/v1/lte/n1/policy_qos_profiles",
 		Payload:                profileXb,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n1"},
@@ -818,20 +818,19 @@ func TestQoSProfileHandlers(t *testing.T) {
 	profile0 := getDefaultTestProfile()
 	tc = tests.Test{
 		Method:         "POST",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles",
 		Payload:        profile0,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        createProfile,
 		ExpectedStatus: 201,
-		ExpectedResult: tests.JSONMarshaler("profile0"),
 	}
 	tests.RunUnitTest(t, e, tc)
 
 	// Post existing profile
 	tc = tests.Test{
 		Method:                 "POST",
-		URL:                    "/magma/v1/lte/:network_id/policy_qos_profiles",
+		URL:                    "/magma/v1/lte/n1/policy_qos_profiles",
 		Payload:                profile0,
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n1"},
@@ -844,7 +843,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	// Get existing profile
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
 		Handler:        getProfile,
@@ -858,7 +857,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	profile0a.ClassID = 5
 	tc = tests.Test{
 		Method:         "PUT",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/:policy_id",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		Payload:        profile0a,
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
@@ -872,7 +871,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	profileX.ID = swag.String("xxx")
 	tc = tests.Test{
 		Method:         "PUT",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/:policy_id",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		Payload:        profileX,
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
@@ -885,7 +884,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	// Get existing profile, put succeeded
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
 		Handler:        getProfile,
@@ -897,19 +896,19 @@ func TestQoSProfileHandlers(t *testing.T) {
 	// Get all profiles, no longer empty
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles",
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        listProfiles,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{"profile0"}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.PolicyQosProfile{"profile0": profile0a}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
 	// Delete profile
 	tc = tests.Test{
 		Method:         "DELETE",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
 		Handler:        deleteProfile,
@@ -920,7 +919,7 @@ func TestQoSProfileHandlers(t *testing.T) {
 	// Get existing profile, delete succeeded
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles/profile0",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles/profile0",
 		ParamNames:     []string{"network_id", "profile_id"},
 		ParamValues:    []string{"n1", "profile0"},
 		Handler:        getProfile,
@@ -932,12 +931,12 @@ func TestQoSProfileHandlers(t *testing.T) {
 	// Get all profiles, empty
 	tc = tests.Test{
 		Method:         "GET",
-		URL:            "/magma/v1/lte/:network_id/policy_qos_profiles",
+		URL:            "/magma/v1/lte/n1/policy_qos_profiles",
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        listProfiles,
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler([]string{}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*policyModels.PolicyQosProfile{}),
 	}
 	tests.RunUnitTest(t, e, tc)
 }

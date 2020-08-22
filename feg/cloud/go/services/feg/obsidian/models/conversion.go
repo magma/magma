@@ -30,6 +30,8 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
+	"github.com/jinzhu/copier"
+	"github.com/pkg/errors"
 )
 
 func (m *FegNetwork) ValidateModel() error {
@@ -166,17 +168,63 @@ func (m *FederationGateway) FromBackendModels(
 	magmadGateway, federationGateway configurator.NetworkEntity,
 	device *orc8rModels.GatewayDevice,
 	status *orc8rModels.GatewayStatus,
-) handlers.GatewayModel {
-	// delegate most of the fillin to magmad gateway struct
-	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
-	// TODO: we should change this to a reflection based shallow copy
-	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
+) (handlers.GatewayModel, error) {
+	magmadGatewayModel := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	err := copier.Copy(m, magmadGatewayModel)
+	if err != nil {
+		return nil, err
+	}
 	m.Federation = federationGateway.Config.(*GatewayFederationConfigs)
-	return m
+
+	return m, nil
+}
+
+func (m *FederationGateway) Load(networkID, gatewayID string) error {
+	magmadGateway := &orc8rModels.MagmadGateway{}
+	err := magmadGateway.Load(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+
+	ent, err := configurator.LoadEntity(
+		networkID, feg.FegGatewayType, gatewayID,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return errors.Wrap(err, "error loading federation gateway")
+	}
+
+	gateway := &FederationGateway{
+		ID:          magmadGateway.ID,
+		Name:        magmadGateway.Name,
+		Description: magmadGateway.Description,
+		Device:      magmadGateway.Device,
+		Status:      magmadGateway.Status,
+		Tier:        magmadGateway.Tier,
+		Magmad:      magmadGateway.Magmad,
+		Federation:  ent.Config.(*GatewayFederationConfigs),
+	}
+
+	*m = *gateway
+	return nil
 }
 
 func (m *MutableFederationGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableFederationGateway) Load(networkID, gatewayID string) error {
+	gateway := &FederationGateway{}
+	err := gateway.Load(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	err = copier.Copy(m, gateway)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (m *MutableFederationGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
@@ -207,16 +255,15 @@ func (m *MutableFederationGateway) GetAdditionalWritesOnCreate() []configurator.
 	}
 }
 
-func (m *MutableFederationGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: gatewayID}}
+func (m *MutableFederationGateway) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(
-	gatewayID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: gatewayID}]
+	var ret []configurator.EntityWriteOperation
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
@@ -235,6 +282,10 @@ func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(
 
 	ret = append(ret, entUpdate)
 	return ret, nil
+}
+
+func (m *MutableFederationGateway) GetAdditionalDeletes() []storage.TypeAndKey {
+	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}}
 }
 
 func (m *FederatedNetworkConfigs) GetFromNetwork(network configurator.Network) interface{} {

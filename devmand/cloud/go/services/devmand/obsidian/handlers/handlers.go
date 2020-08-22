@@ -103,10 +103,11 @@ type agentAndMagmadGatewayEntities struct {
 }
 
 func makeSymphonyAgents(
+	networkID string,
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rmodels.GatewayStatus,
-) map[string]handlers.GatewayModel {
+) (handlers.GatewayModels, error) {
 	agentEntsByKey := map[string]*agentAndMagmadGatewayEntities{}
 	for tk, ent := range entsByTK {
 		existing, found := agentEntsByKey[tk.Key]
@@ -122,16 +123,16 @@ func makeSymphonyAgents(
 		}
 	}
 
-	ret := make(map[string]handlers.GatewayModel, len(agentEntsByKey))
+	agents := handlers.GatewayModels{}
 	for key, aMEnts := range agentEntsByKey {
 		hwID := aMEnts.magmadEnt.PhysicalID
 		var devCasted *orc8rmodels.GatewayDevice
 		if devicesByID[hwID] != nil {
 			devCasted = devicesByID[hwID].(*orc8rmodels.GatewayDevice)
 		}
-		ret[key] = (&symphonymodels.SymphonyAgent{}).FromBackendModels(aMEnts.magmadEnt, aMEnts.agentEnt, devCasted, statusesByID[hwID])
+		agents[key] = (&symphonymodels.SymphonyAgent{}).FromBackendModels(aMEnts.magmadEnt, aMEnts.agentEnt, devCasted, statusesByID[hwID])
 	}
-	return ret
+	return agents, nil
 }
 
 func listNetworks(c echo.Context) error {
@@ -256,45 +257,28 @@ func listAgents(c echo.Context) error {
 }
 
 func createAgent(c echo.Context) error {
-	if err := handlers.CreateMagmadGatewayFromModel(c, &symphonymodels.MutableSymphonyAgent{}); err != nil {
+	if err := handlers.CreateGateway(c, &symphonymodels.MutableSymphonyAgent{}); err != nil {
 		return err
 	}
 	return c.NoContent(http.StatusCreated)
 }
 
 func getAgent(c echo.Context) error {
-	nid, aid, nerr := GetNetworkAndAgentIDs(c)
+	networkID, agentID, nerr := GetNetworkAndAgentIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	magmadGWModel, nerr := handlers.LoadMagmadGatewayModel(nid, aid)
-	if nerr != nil {
-		return nerr
+	agent := &symphonymodels.SymphonyAgent{}
+	err := agent.Load(networkID, agentID)
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
 	}
-
-	ent, err := configurator.LoadEntity(
-		nid, devmand.SymphonyAgentType, aid, configurator.FullEntityLoadCriteria(),
-	)
 	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "failed to load symphony agent"), http.StatusInternalServerError)
+		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := &symphonymodels.SymphonyAgent{
-		ID:          magmadGWModel.ID,
-		Name:        magmadGWModel.Name,
-		Description: magmadGWModel.Description,
-		Device:      magmadGWModel.Device,
-		Tier:        magmadGWModel.Tier,
-		Magmad:      magmadGWModel.Magmad,
-	}
-
-	for _, tk := range ent.Associations {
-		if tk.Type == devmand.SymphonyDeviceType {
-			ret.ManagedDevices = append(ret.ManagedDevices, tk.Key)
-		}
-	}
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, agent)
 }
 
 func updateAgent(c echo.Context) error {
@@ -302,7 +286,7 @@ func updateAgent(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, aid, &symphonymodels.MutableSymphonyAgent{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, aid, &symphonymodels.MutableSymphonyAgent{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
