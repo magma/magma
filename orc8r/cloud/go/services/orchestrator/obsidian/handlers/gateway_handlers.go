@@ -237,7 +237,7 @@ func listGatewaysHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	entsByTK := ents.ToEntitiesByID()
+	entsByTK := ents.MakeByTK()
 
 	// For each magmad gateway, we have to load its corresponding device and
 	// its reported status
@@ -330,7 +330,7 @@ func deleteGatewayHandler(c echo.Context) error {
 
 func getUpdateWrites(payload GatewaySubtype, loadedEnts configurator.NetworkEntities) ([]configurator.EntityWriteOperation, *echo.HTTPError) {
 	var writes []configurator.EntityWriteOperation
-	loadedEntsByID := loadedEnts.ToEntitiesByID()
+	loadedEntsByID := loadedEnts.MakeByTK()
 
 	mdGwWrites, err := payload.GetMagmadGateway().GetAdditionalWritesOnUpdate(loadedEntsByID)
 	switch {

@@ -68,7 +68,6 @@ func TestListNetworks(t *testing.T) {
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte",
-		Payload:        nil,
 		Handler:        listNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{}),
@@ -81,7 +80,6 @@ func TestListNetworks(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte",
-		Payload:        nil,
 		Handler:        listNetworks,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler([]string{"n1", "n3"}),
@@ -169,7 +167,6 @@ func TestGetNetwork(t *testing.T) {
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n1",
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getNetwork,
@@ -190,7 +187,6 @@ func TestGetNetwork(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n1",
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getNetwork,
@@ -203,7 +199,6 @@ func TestGetNetwork(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n2",
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
 		Handler:        getNetwork,
@@ -221,7 +216,6 @@ func TestGetNetwork(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n3",
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n3"},
 		Handler:        getNetwork,
@@ -367,7 +361,6 @@ func TestDeleteNetwork(t *testing.T) {
 	tc := tests.Test{
 		Method:         "DELETE",
 		URL:            "/magma/v1/lte/n1",
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        deleteNetwork,
@@ -388,7 +381,6 @@ func TestDeleteNetwork(t *testing.T) {
 	tc = tests.Test{
 		Method:         "DELETE",
 		URL:            "/magma/v1/lte/n2",
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
 		Handler:        deleteNetwork,
@@ -426,7 +418,6 @@ func TestCellularPartialGet(t *testing.T) {
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/cellular/", testURLRoot, "n1"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getCellular,
@@ -440,7 +431,6 @@ func TestCellularPartialGet(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/cellular/", testURLRoot, "n2"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
 		Handler:        getCellular,
@@ -453,7 +443,6 @@ func TestCellularPartialGet(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/cellular/epc/", testURLRoot, "n1"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getEpc,
@@ -467,7 +456,6 @@ func TestCellularPartialGet(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/cellular/epc/", testURLRoot, "n2"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
 		Handler:        getEpc,
@@ -480,7 +468,6 @@ func TestCellularPartialGet(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/cellular/ran/", testURLRoot, "n1"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getRan,
@@ -494,7 +481,6 @@ func TestCellularPartialGet(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/cellular/ran/", testURLRoot, "n2"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n2"},
 		Handler:        getRan,
@@ -520,7 +506,6 @@ func TestCellularPartialGet(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/cellular/feg_network_id/", testURLRoot, "n1"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getFegNetworkID,
@@ -746,7 +731,6 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 	tc := tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/subscriber_config/", testURLRoot, "n1"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getSubscriberConfig,
@@ -765,7 +749,6 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/subscriber_config/", testURLRoot, "n1"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getSubscriberConfig,
@@ -779,7 +762,6 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/subscriber_config/base_names/", testURLRoot, "n1"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getBaseNames,
@@ -793,7 +775,6 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            fmt.Sprintf("%s/%s/subscriber_config/rule_names/", testURLRoot, "n1"),
-		Payload:        nil,
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n1"},
 		Handler:        getRuleNames,
@@ -1825,7 +1806,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 
 	entities, _, err := configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	modifiedCellularConfig := newDefaultGatewayConfig()
 	modifiedCellularConfig.Epc.NatEnabled = swag.Bool(false)
@@ -1858,7 +1839,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	modifiedCellularConfig.Ran.TransmitEnabled = swag.Bool(false)
 	tc = tests.Test{
@@ -1890,7 +1871,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	// validation failure
 	modifiedCellularConfig.NonEpsService.NonEpsServiceControl = swag.Uint32(1)
@@ -1938,7 +1919,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	// connected enodeBs - happy case
 	tc = tests.Test{
@@ -1974,7 +1955,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularEnodebEntityType, Key: "enb3"})
 	assert.NoError(t, err)
@@ -2014,7 +1995,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	// happy case
 	tc = tests.Test{
@@ -2050,7 +2031,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	// Clear enb serial list
 	tc = tests.Test{
@@ -2082,7 +2063,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
 	assert.NoError(t, err)
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 }
 
 func TestListAndGetEnodebs(t *testing.T) {
@@ -3047,6 +3028,20 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Put err, APN doesn't exist
+	gw.ApnResources = lteModels.ApnResources{"apnXXX": {ApnName: "apnXXX", ID: "res0", VlanID: 4}}
+	tc = tests.Test{
+		Method:                 "PUT",
+		URL:                    "/magma/v1/lte/n0/gateways/gw0",
+		Payload:                gw,
+		ParamNames:             []string{"network_id", "gateway_id"},
+		ParamValues:            []string{"n0", "gw0"},
+		Handler:                putGateway,
+		ExpectedStatus:         404,
+		ExpectedErrorSubstring: "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put err, mismatched APN names
 	gw.ApnResources = lteModels.ApnResources{"apn1": {ApnName: "apnXXX", ID: "res0", VlanID: 4}}
 	tc = tests.Test{
 		Method:                 "PUT",
@@ -3127,7 +3122,6 @@ func TestAPNResource(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
-		Payload:        nil,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,
@@ -3151,7 +3145,6 @@ func TestAPNResource(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
-		Payload:        nil,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,
@@ -3193,7 +3186,6 @@ func TestAPNResource(t *testing.T) {
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
-		Payload:        nil,
 		ParamNames:     []string{"network_id", "gateway_id"},
 		ParamValues:    []string{"n0", "gw0"},
 		Handler:        getGateway,

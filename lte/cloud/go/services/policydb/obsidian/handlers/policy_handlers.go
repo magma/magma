@@ -418,12 +418,13 @@ func DeleteRule(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 
 // QoS profiles
 
-func GetQoSProfiles(c echo.Context) error {
+func getQoSProfiles(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -442,7 +443,7 @@ func GetQoSProfiles(c echo.Context) error {
 	return c.JSON(http.StatusOK, ret)
 }
 
-func CreateQoSProfile(c echo.Context) error {
+func createQoSProfile(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -470,7 +471,7 @@ func CreateQoSProfile(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-func DeleteQoSProfile(c echo.Context) error {
+func deleteQoSProfile(c echo.Context) error {
 	networkID, profileID, nerr := getNetworkAndParam(c, qosProfileParam)
 	if nerr != nil {
 		return nerr

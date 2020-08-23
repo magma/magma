@@ -497,25 +497,17 @@ func deleteApnConfiguration(c echo.Context) error {
 		return nerr
 	}
 
-	// First cascade deletes to APN resources
 	ent, err := configurator.LoadEntity(networkID, lte.APNEntityType, apnName, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	var resourceTKs []storage.TypeAndKey
-	for _, assoc := range ent.ParentAssociations {
-		if assoc.Type == lte.APNResourceEntityType {
-			resourceTKs = append(resourceTKs, assoc)
-		}
-	}
-	if len(resourceTKs) != 0 {
-		err := configurator.DeleteEntities(networkID, resourceTKs)
-		if err != nil {
-			return obsidian.HttpError(err, http.StatusInternalServerError)
-		}
-	}
 
-	err = configurator.DeleteEntity(networkID, lte.APNEntityType, apnName)
+	// Cascade deletes
+	var deletes []storage.TypeAndKey
+	deletes = append(deletes, ent.ParentAssociations.MultiFilter(lte.APNResourceEntityType, lte.APNPolicyProfileEntityType)...)
+	deletes = append(deletes, ent.GetTypeAndKey())
+
+	err = configurator.DeleteEntities(networkID, deletes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

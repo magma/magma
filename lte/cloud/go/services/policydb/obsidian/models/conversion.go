@@ -30,6 +30,11 @@ import (
 	"github.com/thoas/go-funk"
 )
 
+// TODO(8/21/20): provide entity-wise namespacing support from configurator
+// Configurator only provides network-level namespacing. There's not a
+// quick way to fix this, we we'll go with this hack for now.
+var magicNamespaceSeparator = "___TWFnbWEgcm9ja3M=___"
+
 func (m *RuleNames) GetFromNetwork(network configurator.Network) interface{} {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)
 	if iNetworkSubscriberConfig == nil {
@@ -180,6 +185,41 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.AppName = cfg.AppName
 	m.AppServiceType = cfg.AppServiceType
 	return m
+}
+
+func (m PolicyIdsByApn) ToTKs(subscriberID string) []storage.TypeAndKey {
+	var tks []storage.TypeAndKey
+	for apnName := range m {
+		tks = append(tks, storage.TypeAndKey{Type: lte.APNPolicyProfileEntityType, Key: makeAPNPolicyKey(subscriberID, apnName)})
+	}
+	return tks
+}
+
+func (m PolicyIdsByApn) ToEntities(subscriberID string) []configurator.NetworkEntity {
+	var ents []configurator.NetworkEntity
+	for apnName, policyIDs := range m {
+		// Each apn_policy_profile has 1 edge to an apn and n edges to a policy_rule
+		ent := configurator.NetworkEntity{
+			Type:         lte.APNPolicyProfileEntityType,
+			Key:          makeAPNPolicyKey(subscriberID, apnName),
+			Associations: getAPNPolicyAssocs(apnName, policyIDs),
+		}
+		ents = append(ents, ent)
+	}
+	return ents
+}
+
+func makeAPNPolicyKey(subscriberID, apnName string) string {
+	return subscriberID + magicNamespaceSeparator + apnName
+}
+
+func getAPNPolicyAssocs(apnName string, policyIDs PolicyIds) []storage.TypeAndKey {
+	var assocs []storage.TypeAndKey
+	assocs = append(assocs, storage.TypeAndKey{Type: lte.APNEntityType, Key: apnName})
+	for _, policyID := range policyIDs {
+		assocs = append(assocs, storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: string(policyID)})
+	}
+	return assocs
 }
 
 func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {

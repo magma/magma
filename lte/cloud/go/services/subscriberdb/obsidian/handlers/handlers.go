@@ -14,22 +14,17 @@
 package handlers
 
 import (
+	"fmt"
 	"net/http"
-	"regexp"
 
 	"magma/lte/cloud/go/lte"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/state"
-	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 
-	"github.com/go-openapi/swag"
-	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -57,64 +52,16 @@ func GetHandlers() []obsidian.Handler {
 	return ret
 }
 
-var subscriberStateTypes = []string{
-	lte.ICMPStateType,
-	lte.S1APStateType,
-	lte.MMEStateType,
-	lte.SPGWStateType,
-	lte.MobilitydStateType,
-	orc8r.DirectoryRecordType,
-}
-
-// mobilityd states are keyed as <ISMI>.<APN>. This captures just the imsi
-// portion in a named match group
-var mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
-
-const mobilitydStateExpectedMatchCount = 2
-
-var subscriberLoadCriteria = configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true}
-
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-
-	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, subscriberLoadCriteria)
+	subs, err := (&subscribermodels.Subscriber{}).LoadAll(networkID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-
-	subStates, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	// Each entry in this map contains all the states that the SID cares about.
-	// The DeviceID fields of the state IDs in the nested maps do not have to
-	// match the SID, as in the case of mobilityd state for example.
-	statesBySid := map[string]state_types.StatesByID{}
-	for stateID, st := range subStates {
-		sidKey := stateID.DeviceID
-		if stateID.Type == lte.MobilitydStateType {
-			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
-			if len(matches) != mobilitydStateExpectedMatchCount {
-				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
-				continue
-			}
-			sidKey = matches[1]
-		}
-
-		if _, exists := statesBySid[sidKey]; !exists {
-			statesBySid[sidKey] = state_types.StatesByID{}
-		}
-		statesBySid[sidKey][stateID] = st
-	}
-
-	ret := make(map[string]*subscribermodels.Subscriber, len(ents))
-	for _, ent := range ents {
-		ret[ent.Key] = (&subscribermodels.Subscriber{}).FromBackendModels(ent, statesBySid[ent.Key])
-	}
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, subs)
 }
 
 func createSubscriber(c echo.Context) error {
@@ -130,12 +77,11 @@ func createSubscriber(c echo.Context) error {
 	if err := payload.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-
 	if nerr := validateSubscriberProfile(networkID, payload.Lte); nerr != nil {
 		return nerr
 	}
 
-	_, err := configurator.CreateEntity(networkID, payload.ToNetworkEntity())
+	err := payload.Create(networkID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -148,23 +94,11 @@ func getSubscriber(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, subscriberLoadCriteria)
-	switch {
-	case err == merrors.ErrNotFound:
-		return echo.ErrNotFound
-	case err != nil:
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-
-	keyPrefix := swag.String(ent.Key)
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, keyPrefix)
+	subs, err := (&subscribermodels.Subscriber{}).Load(networkID, subscriberID)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return makeErr(err)
 	}
-
-	ret := (&subscribermodels.Subscriber{}).FromBackendModels(ent, states)
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, subs)
 }
 
 func updateSubscriber(c echo.Context) error {
@@ -180,23 +114,20 @@ func updateSubscriber(c echo.Context) error {
 	if err := payload.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-
-	_, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, subscriberID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
-	switch {
-	case err == merrors.ErrNotFound:
-		return echo.ErrNotFound
-	case err != nil:
-		return obsidian.HttpError(errors.Wrap(err, "failed to load existing subscriber"), http.StatusInternalServerError)
+	if string(payload.ID) != subscriberID {
+		err := fmt.Errorf("subscriber ID from parameters (%s) and payload (%s) must match", subscriberID, payload.ID)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	if nerr := validateSubscriberProfile(networkID, payload.Lte); nerr != nil {
 		return nerr
 	}
 
-	_, err = configurator.UpdateEntities(networkID, payload.ToUpdateCriteria(subscriberID))
+	err := payload.Update(networkID)
 	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+		return makeErr(err)
 	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 
@@ -205,8 +136,10 @@ func deleteSubscriber(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-
-	err := configurator.DeleteEntity(networkID, lte.SubscriberEntityType, subscriberID)
+	err := (&subscribermodels.MutableSubscriber{}).Delete(networkID, subscriberID)
+	if err == merrors.ErrNotFound {
+		return c.NoContent(http.StatusNoContent)
+	}
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -228,11 +161,8 @@ func updateSubscriberProfile(c echo.Context) error {
 	}
 
 	currentCfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID)
-	switch {
-	case err == merrors.ErrNotFound:
-		return echo.ErrNotFound
-	case err != nil:
-		return obsidian.HttpError(errors.Wrap(err, "could not load subscriber"), http.StatusInternalServerError)
+	if err != nil {
+		return makeErr(err)
 	}
 
 	desiredCfg := currentCfg.(*subscribermodels.SubscriberConfig)
@@ -256,11 +186,8 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 		}
 
 		cfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID)
-		switch {
-		case err == merrors.ErrNotFound:
-			return echo.ErrNotFound
-		case err != nil:
-			return obsidian.HttpError(errors.Wrap(err, "failed to load existing subscriber"), http.StatusInternalServerError)
+		if err != nil {
+			return makeErr(err)
 		}
 
 		newConfig := cfg.(*subscribermodels.SubscriberConfig)
@@ -300,4 +227,11 @@ func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscr
 		}
 	}
 	return nil
+}
+
+func makeErr(err error) *echo.HTTPError {
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
+	}
+	return obsidian.HttpError(err, http.StatusInternalServerError)
 }

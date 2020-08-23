@@ -291,7 +291,7 @@ func Test_Tiers(t *testing.T) {
 			Version:      0,
 		},
 	}
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	// happy case update
 	tier.Name = "new name!"
@@ -339,7 +339,7 @@ func Test_Tiers(t *testing.T) {
 			ParentAssociations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}},
 		},
 	}
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 
 	// happy case read
 	tc = tests.Test{
@@ -406,7 +406,7 @@ func Test_Tiers(t *testing.T) {
 			Version: 0,
 		},
 	}
-	assert.Equal(t, expected, entities.ToEntitiesByID())
+	assert.Equal(t, expected, entities.MakeByTK())
 }
 
 func TestPartialTierReads(t *testing.T) {

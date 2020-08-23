@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/lib/go/definitions"
 
 	"github.com/google/uuid"
+	"github.com/thoas/go-funk"
 )
 
 var (
@@ -32,6 +33,8 @@ type TypeAndKey struct {
 	Type string
 	Key  string
 }
+
+type TKs []TypeAndKey
 
 type IsolationLevel int
 
@@ -56,8 +59,9 @@ func (tk TypeAndKey) String() string {
 	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
 }
 
-func Filter(tks []TypeAndKey, typ string) []TypeAndKey {
-	var filtered []TypeAndKey
+// Filter returns the tks which match the passed type.
+func (tks TKs) Filter(typ string) TKs {
+	var filtered TKs
 	for _, tk := range tks {
 		if tk.Type == typ {
 			filtered = append(filtered, tk)
@@ -66,7 +70,29 @@ func Filter(tks []TypeAndKey, typ string) []TypeAndKey {
 	return filtered
 }
 
-func GetKeys(tks []TypeAndKey) []string {
+// MultiFilter returns the tks which match any of the passed types.
+func (tks TKs) MultiFilter(types ...string) TKs {
+	var filtered TKs
+	for _, tk := range tks {
+		if funk.ContainsString(types, tk.Type) {
+			filtered = append(filtered, tk)
+		}
+	}
+	return filtered
+}
+
+// GetFirst returns the first TK with the passed type.
+func (tks TKs) GetFirst(typ string) (TypeAndKey, error) {
+	for _, tk := range tks {
+		if tk.Type == typ {
+			return tk, nil
+		}
+	}
+	return TypeAndKey{}, fmt.Errorf("no TK of type %s found in %v", typ, tks)
+}
+
+// Keys returns the keys of the TKs.
+func (tks TKs) Keys() []string {
 	var keys []string
 	for _, tk := range tks {
 		keys = append(keys, tk.Key)
@@ -74,8 +100,8 @@ func GetKeys(tks []TypeAndKey) []string {
 	return keys
 }
 
-func MakeTKs(typ string, keys []string) []TypeAndKey {
-	var tks []TypeAndKey
+func MakeTKs(typ string, keys []string) TKs {
+	var tks TKs
 	for _, key := range keys {
 		tks = append(tks, TypeAndKey{Type: typ, Key: key})
 	}

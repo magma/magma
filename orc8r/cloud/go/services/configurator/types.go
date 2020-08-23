@@ -14,6 +14,8 @@
 package configurator
 
 import (
+	"fmt"
+
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator/storage"
 	storage2 "magma/orc8r/cloud/go/storage"
@@ -144,12 +146,12 @@ type NetworkEntity struct {
 	GraphID string
 
 	// Associations are the directed edges originating from this entity.
-	Associations []storage2.TypeAndKey
+	Associations storage2.TKs
 
 	// ParentAssociations are the directed edges ending at this entity.
 	// This is a read-only field and will be ignored if set during entity
 	// creation.
-	ParentAssociations []storage2.TypeAndKey
+	ParentAssociations storage2.TKs
 
 	// Note that we are not exposing permissions in the client API at this
 	// time
@@ -214,12 +216,21 @@ func (ent NetworkEntity) isEntityWriteOperation() {}
 
 type NetworkEntities []NetworkEntity
 
-func (ne NetworkEntities) ToEntitiesByID() map[storage2.TypeAndKey]NetworkEntity {
+func (ne NetworkEntities) MakeByTK() map[storage2.TypeAndKey]NetworkEntity {
 	ret := make(map[storage2.TypeAndKey]NetworkEntity, len(ne))
 	for _, ent := range ne {
 		ret[ent.GetTypeAndKey()] = ent
 	}
 	return ret
+}
+
+func (ne NetworkEntities) GetFirst(typ string) (NetworkEntity, error) {
+	for _, e := range ne {
+		if e.Type == typ {
+			return e, nil
+		}
+	}
+	return NetworkEntity{}, fmt.Errorf("no network entity of type %s found in %v", typ, ne)
 }
 
 // EntityGraph represents a DAG of associated network entities

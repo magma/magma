@@ -253,7 +253,7 @@ func GetListGatewaysHandler(path string, gatewayType string, makeTypedGateways M
 			for _, g := range gwEnts {
 				ents = append(ents, g)
 			}
-			entsByTK := ents.ToEntitiesByID()
+			entsByTK := ents.MakeByTK()
 
 			// for each magmad gateway, we have to load its corresponding device and
 			// its reported status

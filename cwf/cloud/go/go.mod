@@ -28,6 +28,7 @@ require (
 	github.com/go-openapi/validate v0.19.3
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
+	github.com/jinzhu/copier v0.0.0-20190924061706-b57f9002281a
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.2.1

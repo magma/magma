@@ -334,7 +334,7 @@ func (m *MutableLteGateway) GetAdditionalDeletes() []storage.TypeAndKey {
 		{Type: lte.CellularGatewayEntityType, Key: string(m.ID)},
 	}
 	for _, r := range m.ApnResources {
-		tks = append(tks, r.GetTK())
+		tks = append(tks, r.ToTK())
 	}
 	return tks
 }
@@ -347,7 +347,7 @@ func (m *MutableLteGateway) getAPNResourceChanges(
 ) ([]configurator.EntityWriteOperation, []storage.TypeAndKey, error) {
 	var writes []configurator.EntityWriteOperation
 
-	oldIDs := storage.GetKeys(storage.Filter(existingGateway.Associations, lte.APNResourceEntityType))
+	oldIDs := existingGateway.Associations.Filter(lte.APNResourceEntityType).Keys()
 
 	oldByAPN := ApnResources{}
 	err := oldByAPN.Load(existingGateway.NetworkID, oldIDs)
@@ -573,15 +573,15 @@ func (m *ApnResources) GetByID() map[string]*ApnResource {
 	return byID
 }
 
-func (m *ApnResources) GetTKs() []storage.TypeAndKey {
+func (m *ApnResources) ToTKs() []storage.TypeAndKey {
 	var tks []storage.TypeAndKey
 	for _, r := range *m {
-		tks = append(tks, r.GetTK())
+		tks = append(tks, r.ToTK())
 	}
 	return tks
 }
 
-func (m *ApnResource) GetTK() storage.TypeAndKey {
+func (m *ApnResource) ToTK() storage.TypeAndKey {
 	return storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: m.ID}
 }
 

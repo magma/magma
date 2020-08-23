@@ -49,6 +49,7 @@ const (
 
 	// APNEntityType etc. are configurator network entity types.
 	APNEntityType              = "apn"
+	APNPolicyProfileEntityType = "apn_policy_profile"
 	APNResourceEntityType      = "apn_resource"
 	BaseNameEntityType         = "base_name"
 	CellularEnodebEntityType   = "cellular_enodeb"
