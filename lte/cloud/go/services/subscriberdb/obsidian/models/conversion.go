@@ -295,7 +295,11 @@ func (m *MutableSubscriber) Update(networkID string) error {
 }
 
 func (m *MutableSubscriber) Delete(networkID, key string) error {
-	sub, err := (&MutableSubscriber{}).Load(networkID, key)
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	if err != nil {
+		return err
+	}
+	sub, err := m.FromEnt(ent)
 	if err != nil {
 		return err
 	}
@@ -317,23 +321,30 @@ func (m *MutableSubscriber) ToTK() storage.TypeAndKey {
 }
 
 func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity) (*MutableSubscriber, error) {
-	config := ent.Config.(*SubscriberConfig)
 	model := &MutableSubscriber{
 		ActivePoliciesByApn: policymodels.PolicyIdsByApn{},
 		ID:                  policymodels.SubscriberID(ent.Key),
-		Lte:                 config.Lte,
 		Name:                ent.Name,
-		StaticIps:           config.StaticIps,
 	}
 
-	// If no profile in backend, return "default"
-	// TODO(8/21/20): enforce this at the API layer (and include data migration)
-	if model.Lte.SubProfile == "" {
-		model.Lte.SubProfile = "default"
+	if ent.Config != nil {
+		config := ent.Config.(*SubscriberConfig)
+		model.Lte = config.Lte
+		model.StaticIps = config.StaticIps
+		// If no profile in backend, return "default"
+		// TODO(8/21/20): enforce this at the API layer (and include data migration)
+		if model.Lte.SubProfile == "" {
+			model.Lte.SubProfile = "default"
+		}
 	}
 
 	for _, tk := range ent.Associations.Filter(lte.APNEntityType) {
 		model.ActiveApns = append(model.ActiveApns, tk.Key)
+	}
+
+	policyProfileAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType)
+	if len(policyProfileAssocs) == 0 {
+		return model, nil
 	}
 
 	// Need to load the policy profile ents to determine their edges.
@@ -342,7 +353,7 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity) (*MutableSub
 	// separate calls.
 	policyProfileEnts, _, err := configurator.LoadEntities(
 		ent.NetworkID, nil, nil, nil,
-		ent.Associations.Filter(lte.APNPolicyProfileEntityType),
+		policyProfileAssocs,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
 	)
 	if err != nil {

@@ -111,40 +111,47 @@ func (m RuleNames) ToAssocs() []storage.TypeAndKey {
 }
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
-	ret := configurator.NetworkEntity{
+	ent := configurator.NetworkEntity{
 		Type:   lte.PolicyRuleEntityType,
 		Key:    string(m.ID),
 		Config: m.getConfig(),
 	}
 	// ParentAssociations treated as read-only by configurator
 	for _, sid := range m.AssignedSubscribers {
-		ret.ParentAssociations = append(ret.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+		ent.ParentAssociations = append(ent.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
-	return ret
+	if m.QosProfile != "" {
+		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.PolicyQoSProfileEntityType, Key: m.QosProfile})
+	}
+	return ent
 }
 
 func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
 	m.ID = PolicyID(ent.Key)
 	m.fillFromConfig(ent.Config)
-	for _, assoc := range ent.ParentAssociations {
-		if assoc.Type == lte.SubscriberEntityType {
-			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(assoc.Key))
-		}
+
+	for _, assoc := range ent.ParentAssociations.Filter(lte.SubscriberEntityType) {
+		m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(assoc.Key))
 	}
+	qosProfile, err := ent.Associations.GetFirst(lte.PolicyQoSProfileEntityType)
+	if err == nil {
+		m.QosProfile = qosProfile.Key
+	}
+
 	return m
 }
 
 func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	ret := configurator.EntityUpdateCriteria{
+	update := configurator.EntityUpdateCriteria{
 		Type:      lte.PolicyRuleEntityType,
 		Key:       string(m.ID),
 		NewConfig: m.getConfig(),
 	}
-	return ret
+	return update
 }
 
 func (m *PolicyRule) GetParentAssociations() []storage.TypeAndKey {
-	allAssocs := []storage.TypeAndKey{}
+	var allAssocs []storage.TypeAndKey
 	for _, sid := range m.AssignedSubscribers {
 		allAssocs = append(allAssocs, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
@@ -156,7 +163,6 @@ func (m *PolicyRule) getConfig() *PolicyRuleConfig {
 		FlowList:       m.FlowList,
 		MonitoringKey:  m.MonitoringKey,
 		Priority:       m.Priority,
-		Qos:            m.Qos,
 		RatingGroup:    m.RatingGroup,
 		Redirect:       m.Redirect,
 		TrackingType:   m.TrackingType,
@@ -178,7 +184,6 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.FlowList = cfg.FlowList
 	m.MonitoringKey = monKey
 	m.Priority = cfg.Priority
-	m.Qos = cfg.Qos
 	m.RatingGroup = cfg.RatingGroup
 	m.Redirect = cfg.Redirect
 	m.TrackingType = cfg.TrackingType
@@ -224,7 +229,7 @@ func getAPNPolicyAssocs(apnName string, policyIDs PolicyIds) []storage.TypeAndKe
 
 func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 	var (
-		protoMKey = []byte{}
+		protoMKey []byte
 		err       error
 	)
 	if len(m.MonitoringKey) > 0 {
@@ -318,14 +323,8 @@ func (m *RatingGroup) ToProto() *protos.RatingGroup {
 	return rule
 }
 
-func (m *RatingGroup) FromEntity(ent configurator.NetworkEntity) (*RatingGroup, error) {
-	ratingGroupID, err := swag.ConvertUint32(ent.Key)
-	if err != nil {
-		return nil, err
-	}
-	m.ID = RatingGroupID(ratingGroupID)
-	m = ent.Config.(*RatingGroup)
-	return m, nil
+func (m *RatingGroup) FromEntity(ent configurator.NetworkEntity) *RatingGroup {
+	return ent.Config.(*RatingGroup)
 }
 
 func (m *MutableRatingGroup) ToEntityUpdateCriteria(id uint32) configurator.EntityUpdateCriteria {
@@ -366,7 +365,7 @@ func (m *PolicyQosProfile) FromBackendModels(networkID string, key string) error
 }
 
 func (m *PolicyQosProfile) ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error) {
-	if key != *m.ID {
+	if key != m.ID {
 		return nil, errors.New("id field is read-only")
 	}
 
@@ -391,7 +390,7 @@ func (m *PolicyQosProfile) ToUpdateCriteria(networkID string, key string) ([]con
 func (m *PolicyQosProfile) ToEntity() configurator.NetworkEntity {
 	ret := configurator.NetworkEntity{
 		Type:   lte.PolicyQoSProfileEntityType,
-		Key:    *m.ID,
+		Key:    m.ID,
 		Config: m,
 	}
 	return ret

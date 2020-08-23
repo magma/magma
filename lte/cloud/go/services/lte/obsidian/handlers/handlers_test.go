@@ -2926,15 +2926,15 @@ func TestAPNResource(t *testing.T) {
 	e := echo.New()
 	urlBase := "/magma/v1/lte/:network_id/gateways"
 	urlManage := urlBase + "/:gateway_id"
-	allHandlers := handlers.GetHandlers()
-	getAllGateways := tests.GetHandlerByPathAndMethod(t, allHandlers, urlBase, obsidian.GET).HandlerFunc
-	postGateway := tests.GetHandlerByPathAndMethod(t, allHandlers, urlBase, obsidian.POST).HandlerFunc
-	putGateway := tests.GetHandlerByPathAndMethod(t, allHandlers, urlManage, obsidian.PUT).HandlerFunc
-	getGateway := tests.GetHandlerByPathAndMethod(t, allHandlers, urlManage, obsidian.GET).HandlerFunc
-	deleteGateway := tests.GetHandlerByPathAndMethod(t, allHandlers, urlManage, obsidian.DELETE).HandlerFunc
+	lteHandlers := handlers.GetHandlers()
+	getAllGateways := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlBase, obsidian.GET).HandlerFunc
+	postGateway := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlBase, obsidian.POST).HandlerFunc
+	putGateway := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlManage, obsidian.PUT).HandlerFunc
+	getGateway := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlManage, obsidian.GET).HandlerFunc
+	deleteGateway := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlManage, obsidian.DELETE).HandlerFunc
 
-	postAPN := tests.GetHandlerByPathAndMethod(t, allHandlers, "/magma/v1/lte/:network_id/apns", obsidian.POST).HandlerFunc
-	deleteAPN := tests.GetHandlerByPathAndMethod(t, allHandlers, "/magma/v1/lte/:network_id/apns/:apn_name", obsidian.DELETE).HandlerFunc
+	postAPN := tests.GetHandlerByPathAndMethod(t, lteHandlers, "/magma/v1/lte/:network_id/apns", obsidian.POST).HandlerFunc
+	deleteAPN := tests.GetHandlerByPathAndMethod(t, lteHandlers, "/magma/v1/lte/:network_id/apns/:apn_name", obsidian.DELETE).HandlerFunc
 
 	gw := newMutableGateway("gw0")
 
@@ -3036,8 +3036,8 @@ func TestAPNResource(t *testing.T) {
 		ParamNames:             []string{"network_id", "gateway_id"},
 		ParamValues:            []string{"n0", "gw0"},
 		Handler:                putGateway,
-		ExpectedStatus:         404,
-		ExpectedErrorSubstring: "Not Found",
+		ExpectedStatus:         500, // would make more sense as 400
+		ExpectedErrorSubstring: `could not find entities matching [type:"apn" key:"apnXXX" ]`,
 	}
 	tests.RunUnitTest(t, e, tc)
 

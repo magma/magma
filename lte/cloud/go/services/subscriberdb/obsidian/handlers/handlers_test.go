@@ -809,6 +809,7 @@ func TestDeleteSubscriber(t *testing.T) {
 		"n1",
 		configurator.NetworkEntity{
 			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			// Intentionally populate with invalid config
 			Config: &subscriberModels.LteSubscription{
 				AuthAlgo: "MILENAGE",
 				AuthKey:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),

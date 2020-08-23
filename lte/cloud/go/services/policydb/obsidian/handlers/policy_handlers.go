@@ -252,7 +252,7 @@ func ListRules(c echo.Context) error {
 	if strings.ToLower(view) == "full" {
 		rules, err := configurator.LoadAllEntitiesInNetwork(
 			networkID, lte.PolicyRuleEntityType,
-			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 		)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -279,7 +279,7 @@ func CreateRule(c echo.Context) error {
 		return nerr
 	}
 
-	rule := new(models.PolicyRule)
+	rule := &models.PolicyRule{}
 	if err := c.Bind(rule); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -324,7 +324,7 @@ func GetRule(c echo.Context) error {
 		networkID,
 		lte.PolicyRuleEntityType,
 		ruleID,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true},
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 	)
 	switch {
 	case err == merrors.ErrNotFound:
@@ -456,7 +456,7 @@ func createQoSProfile(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyQoSProfileEntityType, *profile.ID)
+	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyQoSProfileEntityType, profile.ID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

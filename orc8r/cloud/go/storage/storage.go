@@ -82,6 +82,7 @@ func (tks TKs) MultiFilter(types ...string) TKs {
 }
 
 // GetFirst returns the first TK with the passed type.
+// Returns err only on tk not found.
 func (tks TKs) GetFirst(typ string) (TypeAndKey, error) {
 	for _, tk := range tks {
 		if tk.Type == typ {

@@ -27,7 +27,6 @@ import (
 	"magma/lte/cloud/go/lte"
 	plugin3 "magma/lte/cloud/go/plugin"
 	models3 "magma/lte/cloud/go/services/lte/obsidian/models"
-	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -757,21 +756,4 @@ func seedFederationGateway(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
-}
-
-func getDefaultTestQoSProfile() *policydbModels.PolicyQosProfile {
-	ret := &policydbModels.PolicyQosProfile{
-		Arp: &policydbModels.Arp{
-			PreemptionCapability:    swag.Bool(true),
-			PreemptionVulnerability: swag.Bool(false),
-			PriorityLevel:           swag.Uint32(5),
-		},
-		ClassID: 3,
-		Gbr: &policydbModels.Gbr{
-			Downlink: swag.Uint32(42),
-			Uplink:   swag.Uint32(420),
-		},
-		ID: swag.String("profile0"),
-	}
-	return ret
 }
