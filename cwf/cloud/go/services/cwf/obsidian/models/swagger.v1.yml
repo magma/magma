@@ -29,7 +29,7 @@ magma-gen-meta:
     - go-struct-name: allowedGrePeers
       filename: allowed_gre_peers_swaggergen.go
     - go-struct-name: ipdrExportDst
-      filename: ip_d_r_export_dst_swaggergen.go
+      filename: ipdr_export_dst_swaggergen.go
     - go-struct-name: liUes
       filename: li_ues_swaggergen.go
     - go-struct-name: CwfSubscriberDirectoryRecord

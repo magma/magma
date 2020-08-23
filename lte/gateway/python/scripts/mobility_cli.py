@@ -163,10 +163,10 @@ def get_subscriber_ip_table_handler(client, args):
 
 @grpc_wrapper
 def get_gw_info_handler(client, args):
-    info = client.GetGatewayInfo(Void())
-    ip = ipaddress.ip_address(info.ip.address)
-    print("GW IP: %s" % ip)
-    print("GW MAC: %s" % info.mac)
+    gw_info_list = client.ListGatewayInfo(Void())
+    for info in gw_info_list.gw_list:
+        ip = ipaddress.ip_address(info.ip.address)
+        print("GW IP {:8s} MAC: {:17s} vlan {:8s}".format(str(ip), info.mac, info.vlan))
 
 
 @grpc_wrapper
@@ -185,7 +185,12 @@ def set_gw_ip_addressk_handler(client, args):
         return
 
     gwinfo_msg.ip.address = ipaddr.packed
-    gwinfo_msg.mac = ""
+    if args.gw_mac:
+        gwinfo_msg.mac = args.gw_mac
+    if args.gw_vlan:
+        gwinfo_msg.vlan = args.gw_vlan
+    else:
+        gwinfo_msg.vlan = ""
     client.SetGatewayInfo(gwinfo_msg)
 
 
@@ -251,14 +256,19 @@ def main():
     # GW info CLI
     # GetGatewayIPInfo
     subparser = subparsers.add_parser(
-        'get_def_gw', help='Get default gw info')
+        'get_def_gw', help='Get gw info')
     subparser.set_defaults(func=get_gw_info_handler)
 
     # SetGatewayIpAddress
     subparser = subparsers.add_parser(
         'set_def_gw', help='set default gw IP address')
-    subparser.add_argument('gwip', help='Default gw IP addresses,'
+    subparser.add_argument('gwip', help='GW IP address,'
                            ' e.g.  "10.0.0.1"')
+    subparser.add_argument('gw_mac', help='GW MAC address,'
+                                        ' e.g.  "11:22:33:44:55:66"')
+    subparser.add_argument('gw_vlan', help='SGi vlan for the GW,'
+                                          ' e.g.  "1"')
+
     subparser.set_defaults(func=set_gw_ip_addressk_handler)
 
     # Parse the args

@@ -146,6 +146,7 @@ SessionState::SessionState(
       curr_state_(SESSION_ACTIVE),
       config_(cfg),
       pdp_start_time_(pdp_start_time),
+      pdp_end_time_(0),
       tgpp_context_(tgpp_context),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
@@ -611,6 +612,14 @@ uint32_t SessionState::get_request_number() {
 
 uint64_t SessionState::get_pdp_start_time() {
   return pdp_start_time_;
+}
+
+uint64_t SessionState::get_pdp_end_time() {
+  return pdp_end_time_;
+}
+
+void SessionState::set_pdp_end_time(uint64_t epoch) {
+  pdp_end_time_ = epoch;
 }
 
 void SessionState::increment_request_number(uint32_t incr) {

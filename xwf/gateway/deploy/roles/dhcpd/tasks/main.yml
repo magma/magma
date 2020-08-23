@@ -22,7 +22,6 @@
   template:
     src: dhcpd.conf.j2
     dest: /etc/dhcp/dhcpd.conf
-  notify: restart dhcp
 
 - name: Copy dhcpd default interface file
   become: true
@@ -41,6 +40,8 @@
     name: dhcpd
     state: restarted
     daemon_reload: yes
+  tags:
+    - no_ci
   become: true
 
 - name: make rc local file so firewall rules persist reboots
@@ -48,11 +49,15 @@
      src: rc.local.j2
      dest: /etc/rc.local
      mode: 0775
+  tags:
+    - no_ci
   become: true
   when: gateway_mode == 'gateway'
 
 - name: execute the rc.local file
   shell: /etc/rc.local
   when: gateway_mode == 'gateway'
+  tags:
+    - no_ci
 
   

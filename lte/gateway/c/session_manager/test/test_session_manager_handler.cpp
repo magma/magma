@@ -347,7 +347,8 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
   SessionRead req  = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);
-  EXPECT_CALL(*events_reporter, session_created("IMSI1", sid, testing::_))
+  EXPECT_CALL(*events_reporter, session_created("IMSI1", sid, testing::_,
+      testing::_))
       .Times(1);
   local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
   bool write_success =

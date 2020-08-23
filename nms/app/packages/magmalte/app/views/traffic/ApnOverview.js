@@ -32,6 +32,21 @@ import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const APN_TITLE = 'APNs';
+const DEFAULT_APN_CONFIG = {
+  apn_configuration: {
+    ambr: {
+      max_bandwidth_dl: 1000000,
+      max_bandwidth_ul: 1000000,
+    },
+    qos_profile: {
+      class_id: 9,
+      preemption_capability: false,
+      preemption_vulnerability: false,
+      priority_level: 15,
+    },
+  },
+  apn_name: '',
+};
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -132,7 +147,11 @@ export default function ApnOverview(props: APNType) {
             justify="flex-end"
             alignItems="center"
             spacing={2}>
-            <Button className={classes.appBarBtn}>Add New APN</Button>
+            <Button
+              className={classes.appBarBtn}
+              onClick={() => history.push(relativeUrl('/json'))}>
+              Add New APN
+            </Button>
           </Grid>
         </Grid>
 
@@ -172,27 +191,44 @@ type Props = {
   onSave?: apn => void,
 };
 export function ApnJsonConfig(props: Props) {
-  const {match} = useRouter();
+  const {match, history} = useRouter();
   const [error, setError] = useState('');
   const networkId: string = nullthrows(match.params.networkId);
-  const apnName: string = nullthrows(match.params.apnId);
+  const apnName: string = match.params.apnId;
   const enqueueSnackbar = useEnqueueSnackbar();
+  const apn: apn = props.apns[apnName] || DEFAULT_APN_CONFIG;
   return (
     <JsonEditor
-      content={props.apns[apnName]}
+      content={apn}
       error={error}
       onSave={async apn => {
         try {
-          await MagmaV1API.putLteByNetworkIdApnsByApnName({
-            networkId: networkId,
-            apn: apn,
-            apnName: apnName,
-          });
-          enqueueSnackbar('APN saved successfully', {
-            variant: 'success',
-          });
+          if (apn.apn_name === '') {
+            throw Error('Invalid Name');
+          }
+          if (apnName) {
+            await MagmaV1API.putLteByNetworkIdApnsByApnName({
+              networkId: networkId,
+              apn: apn,
+              apnName: apnName,
+            });
+            enqueueSnackbar('APN saved successfully', {
+              variant: 'success',
+            });
+            setError('');
+            props.onSave?.(apn);
+          } else {
+            await MagmaV1API.postLteByNetworkIdApns({
+              networkId: networkId,
+              apn: (apn: apn),
+            });
+            enqueueSnackbar('APN added successfully', {
+              variant: 'success',
+            });
+          }
           setError('');
           props.onSave?.(apn);
+          history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }

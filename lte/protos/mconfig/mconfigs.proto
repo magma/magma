@@ -115,6 +115,7 @@ message PipelineD {
     }
     LiUes li_ues = 12;
 
+    string sgi_management_iface_vlan = 13;
     // DEPRECATED
     reserved 4, 11;
     // repeated string apps = 4;

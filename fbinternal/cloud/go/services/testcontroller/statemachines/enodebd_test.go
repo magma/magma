@@ -867,7 +867,7 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 		AgwConfig: &models.AgwTestConfig{
 			PackageRepo:     swag.String("https://packages.magma.etagecom.io"),
 			ReleaseChannel:  swag.String("stretch-beta"),
-			SLACKWebhook:    swag.String("https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"),
+			SlackWebhook:    swag.String("https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"),
 			TargetGatewayID: swag.String("g1"),
 			TargetTier:      swag.String("t1"),
 		},

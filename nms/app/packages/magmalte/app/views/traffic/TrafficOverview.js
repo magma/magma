@@ -106,6 +106,15 @@ export default function TrafficDashboard() {
           )}
         />
         <Route
+          path={relativePath('/apn/json')}
+          render={() => (
+            <ApnJsonConfig
+              apns={apns}
+              onSave={apn => setApns({...apns, [apn.apn_name]: apn})}
+            />
+          )}
+        />
+        <Route
           path={relativePath('/policy')}
           render={() => <PolicyOverview policies={policies} />}
         />

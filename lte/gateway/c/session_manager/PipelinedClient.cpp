@@ -70,13 +70,14 @@ magma::ActivateFlowsRequest create_activate_req(
 magma::UEMacFlowRequest create_add_ue_mac_flow_req(
     const magma::SubscriberID& sid, const std::string& ue_mac_addr,
     const std::string& msisdn, const std::string& ap_mac_addr,
-    const std::string& ap_name) {
+    const std::string& ap_name, const std::uint64_t& pdp_start_time) {
   magma::UEMacFlowRequest req;
   req.mutable_sid()->CopyFrom(sid);
   req.set_mac_addr(ue_mac_addr);
   req.set_msisdn(msisdn);
   req.set_ap_mac_addr(ap_mac_addr);
   req.set_ap_name(ap_name);
+  req.set_pdp_start_time(pdp_start_time);
   return req;
 }
 
@@ -119,7 +120,9 @@ magma::SetupUEMacRequest create_setup_ue_mac_req(
     const std::vector<std::string> ue_mac_addrs,
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
-    const std::vector<std::string> apn_names, const std::uint64_t& epoch) {
+    const std::vector<std::string> apn_names,
+    const std::vector<std::uint64_t> pdp_start_times,
+    const std::uint64_t& epoch) {
   magma::SetupUEMacRequest req;
   std::vector<magma::UEMacFlowRequest> activation_reqs;
 
@@ -127,7 +130,8 @@ magma::SetupUEMacRequest create_setup_ue_mac_req(
     magma::SubscriberID sid;
     sid.set_id(infos[i].imsi);
     auto activate_req = create_add_ue_mac_flow_req(
-        sid, ue_mac_addrs[i], msisdns[i], apn_mac_addrs[i], apn_names[i]);
+        sid, ue_mac_addrs[i], msisdns[i], apn_mac_addrs[i], apn_names[i],
+        pdp_start_times[i]);
     activation_reqs.push_back(activate_req);
   }
   auto mut_requests = req.mutable_requests();
@@ -166,13 +170,16 @@ bool AsyncPipelinedClient::setup_cwf(
     const std::vector<std::string> ue_mac_addrs,
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
-    const std::vector<std::string> apn_names, const std::uint64_t& epoch,
+    const std::vector<std::string> apn_names,
+    const std::vector<std::uint64_t> pdp_start_times,
+    const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) {
   SetupPolicyRequest setup_policy_req = create_setup_policy_req(infos, epoch);
   setup_policy_rpc(setup_policy_req, callback);
 
   SetupUEMacRequest setup_ue_mac_req = create_setup_ue_mac_req(
-      infos, ue_mac_addrs, msisdns, apn_mac_addrs, apn_names, epoch);
+      infos, ue_mac_addrs, msisdns, apn_mac_addrs, apn_names,
+      pdp_start_times, epoch);
   setup_ue_mac_rpc(setup_ue_mac_req, callback);
 
   update_subscriber_quota_state(quota_updates);
@@ -246,7 +253,7 @@ bool AsyncPipelinedClient::add_ue_mac_flow(
     const std::string& ap_name,
     std::function<void(Status status, FlowResponse)> callback) {
   auto req = create_add_ue_mac_flow_req(
-      sid, ue_mac_addr, msisdn, ap_mac_addr, ap_name);
+      sid, ue_mac_addr, msisdn, ap_mac_addr, ap_name, 0);
   add_ue_mac_flow_rpc(req, callback);
   return true;
 }
@@ -254,9 +261,9 @@ bool AsyncPipelinedClient::add_ue_mac_flow(
 bool AsyncPipelinedClient::update_ipfix_flow(
     const SubscriberID& sid, const std::string& ue_mac_addr,
     const std::string& msisdn, const std::string& ap_mac_addr,
-    const std::string& ap_name) {
+    const std::string& ap_name, const uint64_t& pdp_start_time) {
   auto req = create_add_ue_mac_flow_req(
-      sid, ue_mac_addr, msisdn, ap_mac_addr, ap_name);
+      sid, ue_mac_addr, msisdn, ap_mac_addr, ap_name, pdp_start_time);
   update_ipfix_flow_rpc(req, [ue_mac_addr](Status status, FlowResponse resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not update ipfix flow for subscriber with MAC"

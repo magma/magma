@@ -209,6 +209,7 @@ typedef struct paa_s {
   struct in6_addr ipv6_address;
   /* Note in rel.8 the ipv6 prefix length has a fixed value of /64 */
   uint8_t ipv6_prefix_length;
+  int vlan;
 } paa_t;
 
 void copy_paa(paa_t* paa_dst, paa_t* paa_src);

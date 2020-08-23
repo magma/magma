@@ -567,7 +567,8 @@ function EditSubscriberDetails(props: DialogProps) {
           return;
         }
       }
-      await ctx.setState(subscriberState.id, subscriberState);
+      const {config: _, ...mutableSubscriber} = {...subscriberState};
+      await ctx.setState(subscriberState.id, mutableSubscriber);
     } catch (e) {
       const errMsg = e.response.data?.message ?? e.message;
       setError('error saving ' + subscriberState.id + ' : ' + errMsg);

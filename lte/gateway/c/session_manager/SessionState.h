@@ -176,6 +176,10 @@ class SessionState {
 
   uint64_t get_pdp_start_time();
 
+  void set_pdp_end_time(uint64_t epoch);
+
+  uint64_t get_pdp_end_time();
+
   void increment_request_number(uint32_t incr);
 
   // Methods related to the session's static and dynamic rules
@@ -345,6 +349,7 @@ class SessionState {
   SessionFsmState curr_state_;
   SessionConfig config_;
   uint64_t pdp_start_time_;
+  uint64_t pdp_end_time_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;

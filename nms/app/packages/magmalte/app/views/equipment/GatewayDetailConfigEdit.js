@@ -25,16 +25,21 @@ import type {
 } from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
+import EnodebContext from '../../components/context/EnodebContext';
 import FormLabel from '@material-ui/core/FormLabel';
 import GatewayContext from '../../components/context/GatewayContext';
 import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
+import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -110,6 +115,9 @@ const useStyles = makeStyles(_ => ({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
+  },
+  selectMenu: {
+    maxHeight: '200px',
   },
 }));
 
@@ -627,14 +635,14 @@ export function EPCEdit(props: Props) {
 }
 
 export function RanEdit(props: Props) {
+  const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
-
+  const enbsCtx = useContext(EnodebContext);
   const handleRanChange = (key: string, val) => {
     setRanConfig({...ranConfig, [key]: val});
   };
-
   const [ranConfig, setRanConfig] = useState<gateway_ran_configs>(
     props.gateway?.cellular.ran || DEFAULT_GATEWAY_CONFIG.cellular.ran,
   );
@@ -643,7 +651,6 @@ export function RanEdit(props: Props) {
     props.gateway?.connected_enodeb_serials ||
       DEFAULT_GATEWAY_CONFIG.connected_enodeb_serials,
   );
-
   const onSave = async () => {
     try {
       const gateway = {
@@ -688,20 +695,29 @@ export function RanEdit(props: Props) {
               }
             />
           </AltFormField>
-          <AltFormField label={'Connected eNodeBs'}>
-            <OutlinedInput
-              data-testid="enbs"
-              type="string"
+          <AltFormField label={'Registered eNodeBs'}>
+            <Select
+              multiple
+              variant={'outlined'}
               fullWidth={true}
-              value={connectedEnodebs.toString()}
+              value={connectedEnodebs}
               onChange={({target}) => {
-                setConnectedEnodebs(
-                  target.value !== ''
-                    ? target.value.replace(' ', '').split(',')
-                    : [],
-                );
+                setConnectedEnodebs(Array.from(target.value));
               }}
-            />
+              data-testid="networkType"
+              MenuProps={{classes: {paper: classes.selectMenu}}}
+              renderValue={selected => selected.join(', ')}
+              input={<OutlinedInput />}>
+              {Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
+                <MenuItem key={enbSerial} value={enbSerial}>
+                  <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
+                  <ListItemText
+                    primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
+                    secondary={enbSerial}
+                  />
+                </MenuItem>
+              ))}
+            </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>
             <Switch

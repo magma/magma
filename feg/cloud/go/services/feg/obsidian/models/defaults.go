@@ -33,7 +33,7 @@ func NewDefaultModifiedNetworkFederationConfigs() *NetworkFederationConfigs {
 	configs.AaaServer = &AaaServer{
 		AccountingEnabled:    true,
 		CreateSessionOnAuth:  true,
-		IDLESessionTimeoutMs: 11600000,
+		IdleSessionTimeoutMs: 11600000,
 	}
 	return configs
 }
@@ -64,7 +64,7 @@ func newDefaultAaaServer() *AaaServer {
 	return &AaaServer{
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
-		IDLESessionTimeoutMs: 21600000,
+		IdleSessionTimeoutMs: 21600000,
 	}
 }
 

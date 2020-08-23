@@ -277,7 +277,8 @@ TEST_F(SessiondTest, end_to_end_success) {
             testing::SetArgPointee<2>(create_response),
             testing::Return(grpc::Status::OK)));
     EXPECT_CALL(
-        *events_reporter, session_created("IMSI1", testing::_, testing::_))
+        *events_reporter, session_created("IMSI1", testing::_, testing::_,
+            testing::_))
         .Times(1);
 
     // Temporary fix for pipelined client in sessiond introduces separate calls

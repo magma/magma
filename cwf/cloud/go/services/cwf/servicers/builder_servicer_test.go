@@ -23,6 +23,7 @@ import (
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	cwf_test_init "magma/cwf/cloud/go/services/cwf/test_init"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
+	fegmodels "magma/feg/cloud/go/services/feg/obsidian/models"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -181,8 +182,8 @@ func build(network *configurator.Network, graph *configurator.EntityGraph, gatew
 }
 
 var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
-	EapAka: &models.EapAka{
-		Timeout: &models.EapAkaTimeout{
+	EapAka: &fegmodels.EapAka{
+		Timeout: &fegmodels.EapAkaTimeouts{
 			ChallengeMs:            20000,
 			ErrorNotificationMs:    10000,
 			SessionMs:              43200000,
@@ -190,8 +191,8 @@ var defaultnwConfig = &models.NetworkCarrierWifiConfigs{
 		},
 		PlmnIds: nil,
 	},
-	AaaServer: &models.AaaServer{
-		IDLESessionTimeoutMs: 21600000,
+	AaaServer: &fegmodels.AaaServer{
+		IdleSessionTimeoutMs: 21600000,
 		AccountingEnabled:    false,
 		CreateSessionOnAuth:  false,
 	},
@@ -210,7 +211,7 @@ var defaultgwConfig = &models.GatewayCwfConfigs{
 		{IP: "1.2.3.4/24"},
 		{IP: "1.1.1.1/24", Key: swag.Uint32(111)},
 	},
-	IPDRExportDst: &models.IPDRExportDst{
+	IpdrExportDst: &models.IpdrExportDst{
 		IP:   "192.168.128.88",
 		Port: 2040,
 	},

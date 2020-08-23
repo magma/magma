@@ -225,8 +225,6 @@ class LocalEnforcer {
   std::shared_ptr<EventsReporter> events_reporter_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
-  std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
-      session_map_;
   SessionStore& session_store_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
@@ -523,6 +521,10 @@ class LocalEnforcer {
   void report_subscriber_state_to_pipelined(
       const std::string& imsi, const std::string& ue_mac_addr,
       const SubscriberQuotaUpdate_Type state);
+
+  void update_ipfix_flow(
+      const std::string& imsi, const SessionConfig& config,
+      const uint64_t pdp_start_time);
 
   /**
    * [CWF-ONLY]

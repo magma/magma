@@ -30,9 +30,13 @@
     - role: xwfm
     - role: dhcpd
       when: uplink_if is not defined
-
-    - role: docker 
+    - role: docker
       tags:
          - install_docker
+         - no_ci
     - role: containers
+      tags:
+         - no_ci
     - role: provision
+      tags:
+         - no_ci

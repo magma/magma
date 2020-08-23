@@ -104,7 +104,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return nil, err
 	}
-	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IPDRExportDst)
+	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IpdrExportDst)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +174,7 @@ func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*lte
 	return ues, nil
 }
 
-func getPipelineDIpdrExportDst(ipdrExportDst *models.IPDRExportDst) (*lte_mconfig.PipelineD_IPDRExportDst, error) {
+func getPipelineDIpdrExportDst(ipdrExportDst *models.IpdrExportDst) (*lte_mconfig.PipelineD_IPDRExportDst, error) {
 	if ipdrExportDst == nil {
 		return nil, nil
 	}

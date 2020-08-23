@@ -14,6 +14,7 @@ limitations under the License.
 import logging
 import os
 import re
+import subprocess
 
 from collections import namedtuple
 from concurrent.futures import Future
@@ -509,3 +510,21 @@ class SnapshotVerifier:
         assert_bridge_snapshot_match(self._test_case, self._bridge_name,
                                      self._service_manager,
                                      self._snapshot_name, self._include_stats)
+
+
+def get_ovsdb_port_tag(port_name: str) -> str:
+    dump1 = subprocess.Popen(["ovsdb-client", "dump", "Port", "name", "tag"],
+                             stdout=subprocess.PIPE)
+    for port in dump1.stdout.readlines():
+        if port_name not in str(port):
+            continue
+        try:
+            tokens = str(port).strip().split()
+            port_name = tokens[0]
+            tag = tokens[1]
+            if port_name == port_name:
+                return str(tag).split('\\')[0]
+        except ValueError:
+            pass
+
+
