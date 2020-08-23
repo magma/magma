@@ -17,17 +17,35 @@
 
 namespace magma {
 
+SessionConfig::SessionConfig(const LocalCreateSessionRequest& request) {
+  common_context = request.common_context();
+  rat_specific_context = request.rat_specific_context();
+}
+
 bool SessionConfig::operator==(const SessionConfig& config) const {
   auto common1 = common_context.SerializeAsString();
   auto common2 = config.common_context.SerializeAsString();
   if (common1 != common2) {
     return false;
   }
-  std::string current_rat_specific =
-      rat_specific_context.SerializeAsString();
+  std::string current_rat_specific = rat_specific_context.SerializeAsString();
   std::string new_rat_specific =
       config.rat_specific_context.SerializeAsString();
   return current_rat_specific == new_rat_specific;
+}
+
+std::experimental::optional<AggregatedMaximumBitrate>
+SessionConfig::get_apn_ambr() const {
+  if (rat_specific_context.has_lte_context() &&
+      rat_specific_context.lte_context().has_qos_info()) {
+    AggregatedMaximumBitrate max_bitrate;
+
+    const auto& qos_info = rat_specific_context.lte_context().qos_info();
+    max_bitrate.set_max_bandwidth_ul(qos_info.apn_ambr_ul());
+    max_bitrate.set_max_bandwidth_dl(qos_info.apn_ambr_dl());
+    return max_bitrate;
+  }
+  return {};
 }
 
 SessionStateUpdateCriteria get_default_update_criteria() {
@@ -45,10 +63,6 @@ SessionStateUpdateCriteria get_default_update_criteria() {
 
 std::string serialize_stored_session_config(const SessionConfig& stored) {
   folly::dynamic marshaled       = folly::dynamic::object;
-  marshaled["mac_addr"]          = stored.mac_addr;
-  marshaled["hardware_addr"]     = stored.hardware_addr;
-  marshaled["radius_session_id"] = stored.radius_session_id;
-
   marshaled["common_context"] = stored.common_context.SerializeAsString();
   marshaled["rat_specific_context"] =
       stored.rat_specific_context.SerializeAsString();
@@ -62,10 +76,6 @@ SessionConfig deserialize_stored_session_config(const std::string& serialized) {
   folly::dynamic marshaled = folly::parseJson(folly_serialized);
 
   auto stored          = SessionConfig{};
-  stored.mac_addr      = marshaled["mac_addr"].getString();
-  stored.hardware_addr = marshaled["hardware_addr"].getString();
-  stored.radius_session_id = marshaled["radius_session_id"].getString();
-
   magma::lte::CommonSessionContext common_context;
   common_context.ParseFromString(marshaled["common_context"].getString());
   stored.common_context = common_context;
@@ -331,6 +341,7 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   std::string tgpp_context;
   stored.tgpp_context.SerializeToString(&tgpp_context);
   marshaled["tgpp_context"] = tgpp_context;
+  marshaled["pdp_start_time"] = std::to_string(stored.pdp_start_time);
 
   marshaled["pending_event_triggers"] =
       serialize_pending_event_triggers(stored.pending_event_triggers);
@@ -413,6 +424,9 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
 
   stored.request_number = static_cast<uint32_t>(
       std::stoul(marshaled["request_number"].getString()));
+
+  stored.pdp_start_time = static_cast<uint64_t>(
+      std::stoul(marshaled["pdp_start_time"].getString()));
 
   return stored;
 }

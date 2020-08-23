@@ -64,19 +64,19 @@ describe('<EventAlertChart/>', () => {
     {
       startDate: moment().subtract(2, 'hours'),
       endDate: moment(),
-      step: '30s',
+      step: '15m',
       valid: true,
     },
     {
       startDate: moment().subtract(10, 'day'),
       endDate: moment(),
-      step: '4h',
+      step: '24h',
       valid: true,
     },
     {
       startDate: moment(),
       endDate: moment().subtract(10, 'day'),
-      step: '4h',
+      step: '24h',
       valid: false,
     },
   ];
@@ -118,7 +118,7 @@ describe('<EventAlertChart/>', () => {
         ).toEqual(tc.step);
       } else {
         // negative test for invalid start end use default timerange
-        const defaultStep = '30s';
+        const defaultStep = '5m';
         expect(
           MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange.mock
             .calls[0][0].step,

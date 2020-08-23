@@ -1,0 +1,50 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: Install OVS Dependencies for Red Hat
+  yum:
+    state: present
+    name:
+      - graphviz
+      - bzip2
+      - openssl
+      - procps
+      - python-six
+      - yum-plugin-versionlock
+
+- name: Install patched OVS v2.13.0 from Magma's pkgrepo
+  yum:
+     state: present
+     name:
+       - openvswitch-all
+       
+- name: Ensure OVS switch will not auto-upgrade
+  shell: yum versionlock openvswitch-all
+  args:
+    warn: false
+
+- name: Load the ovs kernel module
+  # currently running userspace openvswitch -- disable until
+  # kernel module supported
+  become: true
+  when: false
+  script: reload_ovs_kmod.sh
+  tags:
+      - kernel_module_reload
+
+- name: Start OVS
+  service:
+    name: openvswitch
+    state: started
+    enabled: yes
+  become: true

@@ -18,11 +18,13 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
+	"magma/orc8r/cloud/go/services/orchestrator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -69,10 +71,9 @@ func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
 	}
 }
 
-func (*BaseOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{
-		&BaseOrchestratorMconfigBuilder{},
-		&DnsdMconfigBuilder{},
+func (*BaseOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
+	return []mconfig.Builder{
+		mconfig.NewRemoteBuilder(orchestrator.ServiceName),
 	}
 }
 
@@ -91,9 +92,7 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 }
 
 func (*BaseOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
-	// TODO(hcgatewood): fix this once k8s polling is enabled -- for now, hard-coding this single indexer as the only remote indexer
 	return []indexer.Indexer{
-		// From orc8r/cloud/go/services/directoryd/servicers/indexer_servicer.go
 		indexer.NewRemoteIndexer(directoryd.ServiceName, 1, orc8r.DirectoryRecordType),
 	}
 }

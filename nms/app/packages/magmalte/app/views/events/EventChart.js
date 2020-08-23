@@ -13,11 +13,11 @@
  * @flow strict-local
  * @format
  */
-import type {Dataset} from '../../components/CustomHistogram';
+import type {Dataset, DatasetType} from '../../components/CustomMetrics';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
-import CustomHistogram from '../../components/CustomHistogram';
+import CustomHistogram from '../../components/CustomMetrics';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
@@ -45,7 +45,6 @@ export default function EventChart(props: Props) {
   const networkId: string = nullthrows(match.params.networkId);
   const {start, end, delta, format, unit, streams, tags, setEventCount} = props;
   const enqueueSnackbar = useEnqueueSnackbar();
-  const [labels, setLabels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dataset, setDataset] = useState<Dataset>({
     label: 'Event Counts',
@@ -61,16 +60,13 @@ export default function EventChart(props: Props) {
     // build queries
     let requestError = '';
     const queries = [];
-    const logLabels = [];
     let s = start.clone();
     while (end.diff(s) >= 0) {
-      logLabels.push(s.format(format));
       const e = s.clone();
       e.add(delta, unit);
       queries.push([s, e]);
       s = e.clone();
     }
-    setLabels(logLabels);
 
     const requests = queries.map(async (query, _) => {
       try {
@@ -91,11 +87,18 @@ export default function EventChart(props: Props) {
 
     Promise.all(requests)
       .then(allResponses => {
-        const logData: Array<number> = allResponses.map(r => {
+        const data: Array<DatasetType> = allResponses.map((r, index) => {
+          const [s] = queries[index];
           if (r === null || r === undefined) {
-            return 0;
+            return {
+              t: s.unix() * 1000,
+              y: 0,
+            };
           }
-          return r;
+          return {
+            t: s.unix() * 1000,
+            y: r,
+          };
         });
 
         const ds: Dataset = {
@@ -105,10 +108,10 @@ export default function EventChart(props: Props) {
           borderWidth: 1,
           hoverBackgroundColor: colors.secondary.dodgerBlue,
           hoverBorderColor: 'black',
-          data: logData,
+          data: data,
         };
         setDataset(ds);
-        setEventCount(logData.reduce((a, b) => a + b, 0));
+        setEventCount(data.reduce((a, b) => a + b.y, 0));
         setIsLoading(false);
       })
       .catch(error => {
@@ -140,9 +143,7 @@ export default function EventChart(props: Props) {
 
   return (
     <Card elevation={0}>
-      <CardHeader
-        subheader={<CustomHistogram dataset={[dataset]} labels={labels} />}
-      />
+      <CardHeader subheader={<CustomHistogram dataset={[dataset]} />} />
     </Card>
   );
 }

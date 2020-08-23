@@ -4,7 +4,8 @@
       "@type": "type.googleapis.com/magma.mconfig.MobilityD",
       "logLevel": "INFO",
       "ipBlock": "192.168.128.0/24",
-      "ip_allocator_type": "IP_POOL"
+      "ip_allocator_type": "IP_POOL",
+      "static_ip_enabled": true
     },
     "mme": {
       "@type": "type.googleapis.com/magma.mconfig.MME",

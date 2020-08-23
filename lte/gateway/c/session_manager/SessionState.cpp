@@ -138,13 +138,15 @@ SessionState::SessionState(
 SessionState::SessionState(
     const std::string& imsi, const std::string& session_id,
     const SessionConfig& cfg, StaticRuleStore& rule_store,
-    const magma::lte::TgppContext& tgpp_context)
+    const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time)
     : imsi_(imsi),
       session_id_(session_id),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
       config_(cfg),
+      pdp_start_time_(pdp_start_time),
+      pdp_end_time_(0),
       tgpp_context_(tgpp_context),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
@@ -425,9 +427,12 @@ void SessionState::add_common_fields_to_usage_monitor_update(
   req->set_request_number(request_number_);
   req->set_sid(imsi_);
   req->set_ue_ipv4(config_.common_context.ue_ipv4());
-  req->set_hardware_addr(config_.hardware_addr);
   req->set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req->mutable_tgpp_ctx());
+  if (config_.rat_specific_context.has_wlan_context()) {
+    const auto& wlan_context = config_.rat_specific_context.wlan_context();
+    req->set_hardware_addr(wlan_context.mac_addr_binary());
+  }
 }
 
 void SessionState::get_updates(
@@ -481,17 +486,20 @@ SessionTerminateRequest SessionState::make_termination_request(
   req.set_ue_ipv4(config_.common_context.ue_ipv4());
   req.set_msisdn(config_.common_context.msisdn());
   req.set_apn(config_.common_context.apn());
-  req.set_hardware_addr(config_.hardware_addr);
   req.set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   if (config_.rat_specific_context.has_lte_context()) {
-    auto lte_context = config_.rat_specific_context.lte_context();
+    const auto& lte_context = config_.rat_specific_context.lte_context();
     req.set_spgw_ipv4(lte_context.spgw_ipv4());
     req.set_imei(lte_context.imei());
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
+  } else if (config_.rat_specific_context.has_wlan_context()) {
+    const auto& wlan_context = config_.rat_specific_context.wlan_context();
+    req.set_hardware_addr(wlan_context.mac_addr_binary());
   }
+
   // gx monitors
   for (auto& credit_pair : monitor_map_) {
     auto credit_uc = get_monitor_uc(credit_pair.first, update_criteria);
@@ -583,6 +591,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
+  info.ambr = config_.get_apn_ambr();
 }
 
 void SessionState::set_tgpp_context(
@@ -599,6 +608,18 @@ void SessionState::fill_protos_tgpp_context(
 
 uint32_t SessionState::get_request_number() {
   return request_number_;
+}
+
+uint64_t SessionState::get_pdp_start_time() {
+  return pdp_start_time_;
+}
+
+uint64_t SessionState::get_pdp_end_time() {
+  return pdp_end_time_;
+}
+
+void SessionState::set_pdp_end_time(uint64_t epoch) {
+  pdp_end_time_ = epoch;
 }
 
 void SessionState::increment_request_number(uint32_t incr) {
@@ -1086,16 +1107,18 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
   req.set_msisdn(config_.common_context.msisdn());
   req.set_ue_ipv4(config_.common_context.ue_ipv4());
   req.set_apn(config_.common_context.apn());
-  req.set_hardware_addr(config_.hardware_addr);
   req.set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   if (config_.rat_specific_context.has_lte_context()) {
-    auto lte_context = config_.rat_specific_context.lte_context();
+    const auto& lte_context = config_.rat_specific_context.lte_context();
     req.set_spgw_ipv4(lte_context.spgw_ipv4());
     req.set_imei(lte_context.imei());
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
+  } else if (config_.rat_specific_context.has_wlan_context()) {
+    const auto& wlan_context = config_.rat_specific_context.wlan_context();
+    req.set_hardware_addr(wlan_context.mac_addr_binary());
   }
   req.mutable_usage()->CopyFrom(usage);
   return req;
@@ -1141,8 +1164,9 @@ void SessionState::get_charging_updates(
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
-      case TERMINATE_SERVICE:
       case ACTIVATE_SERVICE:
+        action->set_ambr(config_.get_apn_ambr());
+      case TERMINATE_SERVICE:
       case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " action type " << action_type;

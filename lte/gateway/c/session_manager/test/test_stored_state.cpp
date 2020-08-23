@@ -28,14 +28,12 @@ class StoredStateTest : public ::testing::Test {
  protected:
   SessionConfig get_stored_session_config() {
     SessionConfig stored;
-    stored.mac_addr          = "g";  // MAC Address for WLAN
-    stored.hardware_addr     = "h";  // MAC Address for WLAN (binary)
-    stored.radius_session_id = "i";
-    build_common_context(
-        "IMSI1", "ue_ipv4", "apn", "msisdn", TGPP_WLAN, &stored.common_context);
-    build_lte_context(
+    stored.common_context =
+        build_common_context("IMSI1", "ue_ipv4", "apn", "msisdn", TGPP_WLAN);
+    const auto& lte_context = build_lte_context(
         "192.168.0.2", "imei", "plmn_id", "imsi_plmn_id", "user_location", 321,
-        nullptr, stored.rat_specific_context.mutable_lte_context());
+        nullptr);
+    stored.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
     return stored;
   }
 
@@ -120,6 +118,7 @@ class StoredStateTest : public ::testing::Test {
     tgpp_context.set_gx_dest_host("gx");
     tgpp_context.set_gy_dest_host("gy");
     stored.tgpp_context = tgpp_context;
+    stored.pdp_start_time = 12345;
 
     stored.pending_event_triggers[REVALIDATION_TIMEOUT] = READY;
     stored.revalidation_time.set_seconds(32);
@@ -135,10 +134,6 @@ TEST_F(StoredStateTest, test_stored_session_config) {
 
   std::string serialized     = serialize_stored_session_config(stored);
   SessionConfig deserialized = deserialize_stored_session_config(serialized);
-
-  EXPECT_EQ(deserialized.mac_addr, "g");
-  EXPECT_EQ(deserialized.hardware_addr, "h");
-  EXPECT_EQ(deserialized.radius_session_id, "i");
 
   // compare the serialized objects
   auto original_common       = stored.common_context.SerializeAsString();
@@ -249,11 +244,6 @@ TEST_F(StoredStateTest, test_stored_session) {
   auto serialized   = serialize_stored_session(stored);
   auto deserialized = deserialize_stored_session(serialized);
 
-  auto config = deserialized.config;
-  EXPECT_EQ(config.mac_addr, "g");
-  EXPECT_EQ(config.hardware_addr, "h");
-  EXPECT_EQ(config.radius_session_id, "i");
-
   auto stored_charging_credit = deserialized.credit_map[CreditKey(1, 2)];
   // test charging grant fields
   EXPECT_EQ(stored_charging_credit.is_final, true);
@@ -290,6 +280,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 
   EXPECT_EQ(stored.imsi, "IMSI1");
+  EXPECT_EQ(stored.pdp_start_time, 12345);
   EXPECT_EQ(stored.session_id, "session_id");
   EXPECT_EQ(
       stored.subscriber_quota_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);

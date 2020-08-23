@@ -23,7 +23,9 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	policymodels "magma/lte/cloud/go/services/policydb/obsidian/models"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
@@ -50,7 +52,7 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByI
 		m.Lte.SubProfile = "default"
 	}
 	for _, tk := range ent.Associations {
-		if tk.Type == lte.ApnEntityType {
+		if tk.Type == lte.APNEntityType {
 			m.ActiveApns = append(m.ActiveApns, tk.Key)
 		}
 	}
@@ -62,6 +64,9 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByI
 
 	for stateID, stateVal := range statesByID {
 		switch stateID.Type {
+		case orc8r.DirectoryRecordType:
+			reportedState := stateVal.ReportedState.(*directoryd.DirectoryRecord)
+			m.State.Directory = &SubscriberDirectoryRecord{LocationHistory: reportedState.LocationHistory}
 		case lte.ICMPStateType:
 			reportedState := stateVal.ReportedState.(*IcmpStatus)
 			// reported time is unix timestamp in seconds, so divide ms by 1k
@@ -178,7 +183,7 @@ func (m ApnList) ToAssocs() []storage.TypeAndKey {
 	return funk.Map(
 		m,
 		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.ApnEntityType, Key: rn}
+			return storage.TypeAndKey{Type: lte.APNEntityType, Key: rn}
 		},
 	).([]storage.TypeAndKey)
 }

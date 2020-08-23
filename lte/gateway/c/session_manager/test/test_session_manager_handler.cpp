@@ -112,23 +112,19 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
 
   LocalCreateSessionRequest request;
   CreateSessionResponse response;
-  std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  std::string imsi                = "IMSI1";
-  std::string msisdn              = "5100001234";
-  std::string radius_session_id =
+  const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
+  const std::string& imsi                = "IMSI1";
+  const std::string& msisdn              = "5100001234";
+  const std::string& radius_session_id =
       "AA-AA-AA-AA-AA-AA:TESTAP__"
       "0F-10-2E-12-3A-55";
-  std::string mac_addr = "0f:10:2e:12:3a:55";
-  auto sid             = id_gen_.gen_session_id(imsi);
-  SessionConfig cfg    = {
-      .mac_addr          = mac_addr,
-      .hardware_addr     = hardware_addr_bytes,
-      .radius_session_id = radius_session_id};
-  build_common_context(
-      imsi, "", "apn1", msisdn, TGPP_WLAN, &cfg.common_context);
-  build_wlan_context(
-      mac_addr, radius_session_id,
-      cfg.rat_specific_context.mutable_wlan_context());
+  const std::string& mac_addr = "0f:10:2e:12:3a:55";
+  const auto& sid             = id_gen_.gen_session_id(imsi);
+  SessionConfig cfg;
+  cfg.common_context =
+      build_common_context(imsi, "", "apn1", msisdn, TGPP_WLAN);
+  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+  cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   response.set_session_id(sid);
   // Only the active sessions are not recycled, to ensure that
@@ -159,11 +155,10 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   request.set_msisdn(msisdn);
   request.set_radius_session_id(radius_session_id);
   request.set_apn("apn2");  // Update APN
-  build_common_context(
-      imsi, "", "apn2", msisdn, TGPP_WLAN, request.mutable_common_context());
-  build_wlan_context(
-      mac_addr, radius_session_id,
-      request.mutable_rat_specific_context()->mutable_wlan_context());
+  auto common = build_common_context(imsi, "", "apn2", msisdn, TGPP_WLAN);
+  request.mutable_common_context()->CopyFrom(common);
+  request.mutable_rat_specific_context()->mutable_wlan_context()->CopyFrom(
+      wlan); // use same WLAN config as previous
 
   // Ensure session is not reported as its a duplicate
   EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
@@ -194,10 +189,10 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   std::string msisdn = "5100001234";
   auto sid           = id_gen_.gen_session_id(imsi);
   SessionConfig cfg;
-  build_common_context(imsi, "", "apn1", msisdn, TGPP_LTE, &cfg.common_context);
-  build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr,
-      cfg.rat_specific_context.mutable_lte_context());
+  cfg.common_context = build_common_context(imsi, "", "apn1", msisdn, TGPP_LTE);
+  auto lte_context  = build_lte_context(
+      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
+  cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
 
   response.set_session_id(sid);
   create_session_create_response(imsi, monitoring_key, static_rules, &response);
@@ -231,11 +226,12 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   request.set_imei("imei");
   request.set_plmn_id("plmn_id");
   request.set_imsi_plmn_id("imsi_plmn_id");
-  build_common_context(
-      imsi, "", "apn1", msisdn, TGPP_LTE, request.mutable_common_context());
-  build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr,
-      request.mutable_rat_specific_context()->mutable_lte_context());
+  auto common = build_common_context(imsi, "", "apn1", msisdn, TGPP_LTE);
+  request.mutable_common_context()->CopyFrom(common);
+  lte_context = build_lte_context(
+      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
+  request.mutable_rat_specific_context()->mutable_lte_context()->CopyFrom(
+      lte_context);
 
   // Ensure session is not reported as its a duplicate
   EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
@@ -269,12 +265,13 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   request2.set_rat_type(RATType::TGPP_LTE);
   request2.set_msisdn(msisdn + "magma :)");  // different msisdn
   request2.set_apn("apn1");
-  build_common_context(
-      imsi, "", "apn1", msisdn + "magma :)", TGPP_LTE,
-      request2.mutable_common_context());
-  build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr,
-      request2.mutable_rat_specific_context()->mutable_lte_context());
+  common =
+      build_common_context(imsi, "", "apn1", msisdn + "magma :)", TGPP_LTE);
+  request2.mutable_common_context()->CopyFrom(common);
+  lte_context = build_lte_context(
+      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
+  request2.mutable_rat_specific_context()->mutable_lte_context()->CopyFrom(
+      lte_context);
 
   // Ensure a create session for the new session is sent, the old one is
   // terminated
@@ -339,21 +336,20 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(
       "IMSI1", 1, 1025, response.mutable_credits()->Add());
-  std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  std::string imsi                = "IMSI1";
-  std::string msisdn              = "5100001234";
-  std::string radius_session_id =
-      "AA-AA-AA-AA-AA-AA:TESTAP__"
-      "0F-10-2E-12-3A-55";
-  auto sid          = id_gen_.gen_session_id(imsi);
-  SessionConfig cfg = {
-      .mac_addr          = "0f:10:2e:12:3a:55",
-      .hardware_addr     = hardware_addr_bytes,
-      .radius_session_id = radius_session_id};
-
+  std::string imsi   = "IMSI1";
+  std::string msisdn = "5100001234";
+  auto sid           = id_gen_.gen_session_id(imsi);
+  SessionConfig cfg  = {};
+  cfg.common_context =
+      build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_LTE);
+  const auto& lte_context = build_lte_context(
+      "127.0.0.1", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
+  cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
   SessionRead req  = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);
-  EXPECT_CALL(*events_reporter, session_created(testing::_)).Times(1);
+  EXPECT_CALL(*events_reporter, session_created("IMSI1", sid, testing::_,
+      testing::_))
+      .Times(1);
   local_enforcer->init_session_credit(session_map, imsi, sid, cfg, response);
   bool write_success =
       session_store->create_sessions(imsi, std::move(session_map[imsi]));
@@ -390,24 +386,19 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(
       "IMSI1", 1, 1025, response.mutable_credits()->Add());
-  std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  std::string imsi                = "IMSI1";
-  std::string msisdn              = "5100001234";
-  std::string radius_session_id =
+  const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
+  const std::string& imsi                = "IMSI1";
+  const std::string& msisdn              = "5100001234";
+  const std::string& radius_session_id =
       "AA-AA-AA-AA-AA-AA:TESTAP__"
       "0F-10-2E-12-3A-55";
-  std::string apn   = "apn1";
-  std::string mac_addr = "0f:10:2e:12:3a:55";
-  auto sid          = id_gen_.gen_session_id(imsi);
-  SessionConfig cfg = {
-      .mac_addr          = mac_addr,
-      .hardware_addr     = hardware_addr_bytes,
-      .radius_session_id = radius_session_id};
-
-  build_common_context(imsi, "", apn, msisdn, TGPP_WLAN, &cfg.common_context);
-  build_wlan_context(
-      mac_addr, radius_session_id,
-      cfg.rat_specific_context.mutable_wlan_context());
+  const std::string& apn      = "apn1";
+  const std::string& mac_addr = "0f:10:2e:12:3a:55";
+  auto sid                    = id_gen_.gen_session_id(imsi);
+  SessionConfig cfg;
+  cfg.common_context = build_common_context(imsi, "", apn, msisdn, TGPP_WLAN);
+  const auto& wlan          = build_wlan_context(mac_addr, radius_session_id);
+  cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   SessionRead req  = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);

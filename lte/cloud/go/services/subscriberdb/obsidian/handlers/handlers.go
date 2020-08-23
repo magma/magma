@@ -22,6 +22,7 @@ import (
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -62,6 +63,7 @@ var subscriberStateTypes = []string{
 	lte.MMEStateType,
 	lte.SPGWStateType,
 	lte.MobilitydStateType,
+	orc8r.DirectoryRecordType,
 }
 
 // mobilityd states are keyed as <ISMI>.<APN>. This captures just the imsi
@@ -283,7 +285,7 @@ func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscr
 	// Check the sub profiles available on the network if sub profile is not
 	// default (which is always available)
 	if sub.SubProfile != "default" {
-		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkType)
+		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkConfigType)
 		switch {
 		case err == merrors.ErrNotFound:
 			return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusInternalServerError)

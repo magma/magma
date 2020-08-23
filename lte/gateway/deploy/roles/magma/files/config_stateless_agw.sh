@@ -1,6 +1,6 @@
 #!/bin/bash
 SRC_DIR=$MAGMA_ROOT/lte/gateway/deploy/roles/magma/files
-SERVICE_LIST=("mme" "mobilityd" "pipelined" "sessiond")
+SERVICE_LIST=("mme" "mobilityd" "pipelined" "sctpd" "sessiond")
 RETURN_STATELESS=0
 RETURN_STATEFUL=1
 RETURN_CORRUPT=2
@@ -21,6 +21,14 @@ function check_stateless_agw {
     return $RETURN_STATEFUL
   fi
   return $RETURN_CORRUPT
+}
+
+function stop_and_clear_state {
+  # Remove all stored state from Redis
+  sudo service magma@* stop
+  sudo service magma@redis start
+  redis-cli -p 6380 FLUSHALL
+  sudo service magma@redis stop
 }
 
 if [[ $1 == "check" ]]; then
@@ -46,7 +54,7 @@ elif [[ $1 == "disable" ]]; then
   echo "Disabling stateless AGW config"
   for service_name in "${SERVICE_LIST[@]}"
   do
-    sudo "$SRC_DIR/config_stateless_$service_name.sh" disable
+    sudo -E "$SRC_DIR/config_stateless_$service_name.sh" disable
   done
 elif [[ $1 == "enable" ]]; then
   if check_stateless_agw; then      # Checks whether return was success, i.e. 0
@@ -56,8 +64,28 @@ elif [[ $1 == "enable" ]]; then
   echo "Enabling stateless AGW config"
   for service_name in "${SERVICE_LIST[@]}"
   do
-    sudo "$SRC_DIR/config_stateless_$service_name.sh" enable
+    sudo -E "$SRC_DIR/config_stateless_$service_name.sh" enable
   done
+elif [[ $1 == "sctpd_pre" ]]; then
+  # In stateless mode, clear Redis state before sctpd starts
+  check_stateless_agw; ret_check=$?
+  if [[ $ret_check -eq 1 ]]; then
+    echo "AGW is stateful."
+    exit $RETURN_STATEFUL
+  fi
+  stop_and_clear_state
+  exit $RETURN_STATELESS
+elif [[ $1 == "sctpd_post" ]]; then
+  # In stateless mode, start magmad after sctpd starts
+  check_stateless_agw; ret_check=$?
+  if [[ $ret_check -eq 1 ]]; then
+    echo "AGW is stateful."
+    exit $RETURN_STATEFUL
+  fi
+  sudo service magma@magmad start
+  # Sleep for a bit so OVS and Magma services come up before proceeding
+  sleep 15
+  exit $RETURN_STATELESS
 else
   echo "Invalid argument. Use one of the following"
   echo "check: Run a check whether AGW is stateless or not"
@@ -66,19 +94,10 @@ else
   exit $RETURN_INVALID
 fi
 
-sudo service magma@* stop
-
-# Remove all stored state from redis
-sudo service magma@redis start
-redis-cli -p 6380 FLUSHALL
-sudo service magma@redis stop
-
-# force restart sctpd so that eNB connections are reset
+# Force restart sctpd so that eNB connections are reset and
+# local state is cleared before sctpd starts
 sudo service sctpd restart
 
-sudo service magma@magmad start
-# Sleep for a bit so OVS and Magma services come up before proceeding
-sleep 15
 echo "Config complete"
 
 check_stateless_agw; ret_check=$?

@@ -84,6 +84,9 @@ message ActivateFlowsRequest {
 
   // Activate flow source (GX/GY)
   RequestOriginType request_origin = 5;
+
+  // APN AMBR info, passed at the time of session creation
+  magma.lte.AggregatedMaximumBitrate apn_ambr = 6;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -161,6 +164,9 @@ message UEMacFlowRequest {
 
   // AP Name
   string ap_name = 5;
+
+  // PDP Start time
+  uint64 pdp_start_time = 6;
 }
 
 message SubscriberQuotaUpdate{

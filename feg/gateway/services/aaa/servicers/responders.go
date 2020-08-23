@@ -102,7 +102,7 @@ func (srv *accountingService) AbortSession(
 			Apn: sctx.GetApn(),
 		}
 		session_manager.EndSession(req)
-		metrics.EndSession.WithLabelValues(sctx.GetApn(), metrics.DecorateIMSI(sctx.GetImsi())).Inc()
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), metrics.DecorateIMSI(sctx.GetImsi()), sctx.GetMsisdn()).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: imsi,
@@ -191,7 +191,7 @@ func (srv *accountingService) TerminateRegistration(
 			Apn: sctx.GetApn(),
 		}
 		session_manager.EndSession(req)
-		metrics.EndSession.WithLabelValues(sctx.GetApn(), sid.Id).Inc()
+		metrics.EndSession.WithLabelValues(sctx.GetApn(), sid.Id, sctx.GetMsisdn()).Inc()
 	}
 
 	srv.sessions.RemoveSession(sid)

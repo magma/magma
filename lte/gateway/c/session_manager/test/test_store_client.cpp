@@ -17,6 +17,7 @@
 #include <gtest/gtest.h>
 
 #include "MemoryStoreClient.h"
+#include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "SessionID.h"
 #include "SessionState.h"
@@ -52,12 +53,14 @@ TEST_F(StoreClientTest, test_read_and_write) {
   auto sid                    = id_gen_.gen_session_id(imsi);
   auto sid2                   = id_gen_.gen_session_id(imsi2);
   auto sid3                   = id_gen_.gen_session_id(imsi3);
-  SessionConfig cfg           = {
-      .mac_addr          = "0f:10:2e:12:3a:55",
-      .hardware_addr     = hardware_addr_bytes,
-      .radius_session_id = radius_session_id};
+  SessionConfig cfg;
+  cfg.common_context =
+      build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_WLAN);
+  const auto& wlan = build_wlan_context("0f:10:2e:12:3a:55", radius_session_id);
+  cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
   auto rule_store   = std::make_shared<StaticRuleStore>();
   auto tgpp_context = TgppContext{};
+  auto pdp_start_time = 12345;
 
   auto store_client = new MemoryStoreClient(rule_store);
 
@@ -67,11 +70,11 @@ TEST_F(StoreClientTest, test_read_and_write) {
 
   auto uc = get_default_update_criteria();
   auto session =
-      std::make_unique<SessionState>(imsi, sid, cfg, *rule_store, tgpp_context);
+      std::make_unique<SessionState>(imsi, sid, cfg, *rule_store, tgpp_context, pdp_start_time);
   auto session2 = std::make_unique<SessionState>(
-      imsi2, sid2, cfg, *rule_store, tgpp_context);
+      imsi2, sid2, cfg, *rule_store, tgpp_context, pdp_start_time);
   auto session3 = std::make_unique<SessionState>(
-      imsi3, sid3, cfg, *rule_store, tgpp_context);
+      imsi3, sid3, cfg, *rule_store, tgpp_context, pdp_start_time);
   EXPECT_EQ(session->get_session_id(), sid);
   EXPECT_EQ(session2->get_session_id(), sid2);
 

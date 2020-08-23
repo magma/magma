@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import AppBar from '@material-ui/core/AppBar';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -23,18 +22,14 @@ import EnodebContext from '../../components/context/EnodebContext';
 import GatewayLogs from './GatewayLogs';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
-import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Tab from '@material-ui/core/Tab';
-import Tabs from '@material-ui/core/Tabs';
-import Text from '../../theme/design-system/Text';
+import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
-import {GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -44,30 +39,6 @@ import {useRouter} from '@fbcnms/ui/hooks';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
-  },
-  topBar: {
-    backgroundColor: colors.primary.mirage,
-    padding: '20px 40px 20px 40px',
-    color: colors.primary.white,
-  },
-  tabBar: {
-    backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
-  },
-  tabs: {
-    color: colors.primary.white,
-  },
-  tab: {
-    fontSize: '18px',
-    textTransform: 'none',
-  },
-  tabLabel: {
-    padding: '16px 0 16px 0',
-    display: 'flex',
-    alignItems: 'center',
-  },
-  tabIconLabel: {
-    marginRight: '8px',
   },
   appBarBtn: {
     color: colors.primary.white,
@@ -85,10 +56,6 @@ const useStyles = makeStyles(theme => ({
   appBarBtnSecondary: {
     color: colors.primary.white,
   },
-  paper: {
-    textAlign: 'center',
-    padding: theme.spacing(10),
-  },
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
@@ -101,51 +68,58 @@ export function EnodebDetail() {
 
   return (
     <>
-      <div className={classes.topBar}>
-        <Text variant="body2">Equipment/{enbInfo.enb.name}</Text>
-      </div>
+      <TopBar
+        header={`Equipment/${enbInfo.enb.name}`}
+        tabs={[
+          {
+            label: 'Overview',
+            to: '/overview',
+            icon: DashboardIcon,
+            filters: (
+              <Grid
+                container
+                justify="flex-end"
+                alignItems="center"
+                spacing={2}>
+                <Grid item>
+                  <Button className={classes.appBarBtnSecondary}>
+                    Secondary Action
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button className={classes.appBarBtn} variant="contained">
+                    Reboot
+                  </Button>
+                </Grid>
+              </Grid>
+            ),
+          },
+          {
+            label: 'Config',
+            to: '/config',
+            icon: SettingsIcon,
+            filters: (
+              <Grid
+                container
+                justify="flex-end"
+                alignItems="center"
+                spacing={2}>
+                <Grid item>
+                  <Button className={classes.appBarBtnSecondary}>
+                    Secondary Action
+                  </Button>
+                </Grid>
+                <Grid item>
+                  <Button className={classes.appBarBtn} variant="contained">
+                    Reboot
+                  </Button>
+                </Grid>
+              </Grid>
+            ),
+          },
+        ]}
+      />
 
-      <AppBar position="static" color="default" className={classes.tabBar}>
-        <Grid container direction="row" justify="flex-end" alignItems="center">
-          <Grid item xs={6}>
-            <Tabs
-              value={GetCurrentTabPos(match.url, ['overview', 'config'])}
-              indicatorColor="primary"
-              TabIndicatorProps={{style: {height: '5px'}}}
-              textColor="inherit"
-              className={classes.tabs}>
-              <Tab
-                key="Overview"
-                component={NestedRouteLink}
-                label={<OverviewTabLabel />}
-                to="/overview"
-                className={classes.tab}
-              />
-              <Tab
-                key="Config"
-                component={NestedRouteLink}
-                label={<ConfigTabLabel />}
-                to="/config"
-                className={classes.tab}
-              />
-            </Tabs>
-          </Grid>
-          <Grid item xs={6}>
-            <Grid container justify="flex-end" alignItems="center" spacing={2}>
-              <Grid item>
-                <Button className={classes.appBarBtnSecondary}>
-                  Secondary Action
-                </Button>
-              </Grid>
-              <Grid item>
-                <Button className={classes.appBarBtn} variant="contained">
-                  Reboot
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-        </Grid>
-      </AppBar>
       <Switch>
         <Route path={relativePath('/overview')} component={Overview} />
         <Route
@@ -196,25 +170,6 @@ function Overview() {
           />
         </Grid>
       </Grid>
-    </div>
-  );
-}
-
-function OverviewTabLabel() {
-  const classes = useStyles();
-  return (
-    <div className={classes.tabLabel}>
-      <DashboardIcon className={classes.tabIconLabel} /> Overview
-    </div>
-  );
-}
-
-function ConfigTabLabel() {
-  const classes = useStyles();
-
-  return (
-    <div className={classes.tabLabel}>
-      <SettingsIcon className={classes.tabIconLabel} /> Config
     </div>
   );
 }

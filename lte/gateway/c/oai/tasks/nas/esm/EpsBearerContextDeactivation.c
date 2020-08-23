@@ -59,7 +59,7 @@
 /*
    Timer handlers
 */
-static void _eps_bearer_deactivate_t3495_handler(void*);
+static void _eps_bearer_deactivate_t3495_handler(void*, imsi64_t* imsi64);
 
 /* Maximum value of the deactivate EPS bearer context request
    retransmission counter */
@@ -392,7 +392,7 @@ pdn_cid_t esm_proc_eps_bearer_context_deactivate_accept(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _eps_bearer_deactivate_t3495_handler(void* args) {
+static void _eps_bearer_deactivate_t3495_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
   bool delete_default_bearer = false;
@@ -418,6 +418,7 @@ static void _eps_bearer_deactivate_t3495_handler(void* args) {
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
         esm_ebr_timer_data->count);
 
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < EPS_BEARER_DEACTIVATE_COUNTER_MAX) {
       /*
        * Re-send deactivate EPS bearer context request message to the UE

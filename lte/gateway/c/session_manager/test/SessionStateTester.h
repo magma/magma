@@ -30,10 +30,11 @@ class SessionStateTest : public ::testing::Test {
   virtual void SetUp() {
     SessionConfig test_sstate_cfg;
     auto tgpp_ctx = TgppContext();
+    auto pdp_start_time = 12345;
     create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
-        "imsi", "session", test_sstate_cfg, *rule_store, tgpp_ctx);
+        "imsi", "session", test_sstate_cfg, *rule_store, tgpp_ctx, pdp_start_time);
     update_criteria = get_default_update_criteria();
   }
   enum RuleType {

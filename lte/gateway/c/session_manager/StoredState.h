@@ -13,6 +13,7 @@
 #pragma once
 
 #include <functional>
+#include <experimental/optional>
 
 #include <folly/Format.h>
 #include <folly/dynamic.h>
@@ -26,14 +27,13 @@
 
 namespace magma {
 struct SessionConfig {
-  std::string mac_addr;      // MAC Address for WLAN
-  std::string hardware_addr; // MAC Address for WLAN (binary)
-  std::string radius_session_id;
-  // TODO The fields above will be replaced by the bundled fields below
   CommonSessionContext common_context;
   RatSpecificContext rat_specific_context;
 
-  bool operator== (const SessionConfig& config) const;
+  SessionConfig(){};
+  SessionConfig(const LocalCreateSessionRequest& request);
+  bool operator==(const SessionConfig& config) const;
+  std::experimental::optional<AggregatedMaximumBitrate> get_apn_ambr() const;
 };
 
 // Session Credit
@@ -166,6 +166,7 @@ struct StoredSessionState {
   std::string session_level_key; // "" maps to nullptr
   std::string imsi;
   std::string session_id;
+  uint64_t pdp_start_time;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;

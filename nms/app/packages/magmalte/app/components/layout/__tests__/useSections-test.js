@@ -47,25 +47,27 @@ type TestCase = {
 
 const testCases: {[string]: TestCase} = {
   lte: {
-    default: 'dashboard',
+    default: 'map',
     sections: [
-      'dashboard',
-      'equipment',
-      'network',
-      'subscribers',
-      'traffic',
+      'map',
       'metrics',
+      'subscribers',
+      'gateways',
+      'enodebs',
+      'configure',
+      'alerts',
     ],
   },
   feg_lte: {
-    default: 'dashboard',
+    default: 'map',
     sections: [
-      'dashboard',
-      'equipment',
-      'network',
-      'subscribers',
-      'traffic',
+      'map',
       'metrics',
+      'subscribers',
+      'gateways',
+      'enodebs',
+      'configure',
+      'alerts',
     ],
   },
   mesh: {
@@ -121,7 +123,7 @@ AllNetworkTypes.forEach(networkType => {
       // in act
       await waitForNextUpdate();
     });
-    console.log('result', result.current[0]);
+
     expect(result.current[0]).toBe(testCase.default);
 
     const paths = result.current[1].map(r => r.path);

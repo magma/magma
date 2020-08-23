@@ -31,6 +31,11 @@ message IPAddress {
   bytes address = 2; // network byte order
 }
 
+message AllocateIPAddressResponse {
+  IPAddress ip_addr = 1;
+  string vlan = 2;
+}
+
 message IPLookupRequest {
   SubscriberID sid = 1;
   string apn = 2;
@@ -121,6 +126,12 @@ message RemoveIPBlockResponse {
 message GWInfo {
   IPAddress ip = 1;
   string mac = 2;
+  string vlan = 3;
+}
+
+message ListGWInfoResponse {
+  // List of IP addresses allocated from a given IP block
+  repeated GWInfo gw_list = 1;
 }
 
 service MobilityService {
@@ -145,7 +156,7 @@ service MobilityService {
   // Throws RESOURCE_EXHAUSTED if no free IP available
   // Throws ALREADY_EXISTS if an IP has been allocated for the subscriber
   //
-  rpc AllocateIPAddress (AllocateIPRequest) returns (IPAddress);
+  rpc AllocateIPAddress (AllocateIPRequest) returns (AllocateIPAddressResponse);
 
   // Release and recycle an allocated IP address
   // Throws NOT_FOUND if the requested (SID, IP) pair is not found
@@ -168,8 +179,8 @@ service MobilityService {
   // regardless of whether any IPs have been allocated.
   rpc RemoveIPBlock (RemoveIPBlockRequest) returns (RemoveIPBlockResponse);
 
-  // Get default Internet Gateway mac addresss
-  rpc GetGatewayInfo (magma.orc8r.Void) returns (GWInfo);
+  // Get Internet Gateway and  mac addresss
+  rpc ListGatewayInfo (magma.orc8r.Void) returns (ListGWInfoResponse);
 
   // Set ip and mac address of def Internet Gateway
   rpc SetGatewayInfo(GWInfo) returns (magma.orc8r.Void);

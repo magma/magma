@@ -19,6 +19,7 @@
 
 #include "LocalEnforcer.h"
 #include "MagmaService.h"
+#include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "ServiceRegistrySingleton.h"
@@ -85,15 +86,16 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     std::string radius_session_id =
         "AA-AA-AA-AA-AA-AA:TESTAP__"
         "0F-10-2E-12-3A-55";
-    std::string core_session_id = "asdf";
-    SessionConfig cfg           = {
-        .mac_addr          = "0f:10:2e:12:3a:55",
-        .hardware_addr     = hardware_addr_bytes,
-        .radius_session_id = radius_session_id};
-    auto tgpp_context           = TgppContext{};
-    auto session                = std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context);
-    return std::move(session);
+    std::string mac_addr        = "0f:10:2e:12:3a:55";
+    SessionConfig cfg;
+    cfg.common_context =
+        build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_WLAN);
+    const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+    cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
+    auto tgpp_context = TgppContext{};
+    auto pdp_start_time = 12345;
+    return std::make_unique<SessionState>(
+        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
   }
 
   UsageMonitoringUpdateResponse* get_monitoring_update() {
@@ -221,7 +223,9 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   std::cout << "Andrei: Calling PolicyReAuth" << std::endl;
   auto request = get_policy_reauth_request();
   grpc::ServerContext create_context;
-  EXPECT_CALL(*pipelined_client, activate_flows_for_rules(_, _, _, _, _))
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(imsi, _, _, CheckCount(1), _, _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, request,

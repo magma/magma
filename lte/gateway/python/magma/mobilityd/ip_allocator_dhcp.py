@@ -96,12 +96,13 @@ class IPAllocatorDHCP(IPAllocator):
         return [ip for ip in self._ip_state_map.list_ips(IPState.ALLOCATED)
                 if ip in ipblock]
 
-    def alloc_ip_address(self, sid: str) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan: str = "") -> IPDesc:
         """
         Assumption: one-to-one mappings between SID and IP.
 
         Args:
             sid (string): universal subscriber id
+            vlan: vlan of the APN
 
         Returns:
             ipaddress.ip_address: IP address allocated
@@ -112,11 +113,11 @@ class IPAllocatorDHCP(IPAllocator):
         mac = create_mac_from_sid(sid)
         LOG.debug("allocate IP for %s mac %s", sid, mac)
 
-        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac)
+        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan)
         LOG.debug("got IP from redis: %s", dhcp_desc)
 
         if dhcp_allocated_ip(dhcp_desc) is not True:
-            dhcp_desc = self._alloc_ip_address_from_dhcp(mac)
+            dhcp_desc = self._alloc_ip_address_from_dhcp(mac, vlan)
 
         if dhcp_allocated_ip(dhcp_desc):
             ip_block = ip_network(dhcp_desc.subnet)
@@ -129,7 +130,7 @@ class IPAllocatorDHCP(IPAllocator):
         else:
             raise NoAvailableIPError("No available IP addresses From DHCP")
 
-    def release_ip(self, ip_desc: IPDesc):
+    def release_ip(self, ip_desc: IPDesc, vlan: str = ""):
         """
         Release IP address, this involves following steps.
         1. send DHCP protocol packet to release the IP.
@@ -138,13 +139,13 @@ class IPAllocatorDHCP(IPAllocator):
 
         Args:
             ip_desc, release needs following info from IPDesc.
-            sid: SID, used to get mac address.
-            ip: IP assigned to this SID
-            ip_block: IP block of the IP address.
-
+                sid: SID, used to get mac address.
+                ip: IP assigned to this SID
+                ip_block: IP block of the IP address.
+            vlan: vlan id of the APN.
         Returns: None
         """
-        self._dhcp_client.release_ip_address(create_mac_from_sid(ip_desc.sid))
+        self._dhcp_client.release_ip_address(create_mac_from_sid(ip_desc.sid), vlan)
         # Remove the IP from free IP list, since DHCP is the
         # owner of this IP
         self._ip_state_map.remove_ip_from_state(ip_desc.ip, IPState.FREE)
@@ -164,7 +165,7 @@ class IPAllocatorDHCP(IPAllocator):
     def stop_dhcp_sniffer(self):
         self._dhcp_client.stop()
 
-    def _alloc_ip_address_from_dhcp(self, mac: MacAddress) -> DHCPDescriptor:
+    def _alloc_ip_address_from_dhcp(self, mac: MacAddress, vlan: str) -> DHCPDescriptor:
         retry_count = 0
         with self.dhcp_wait:
             dhcp_desc = None
@@ -172,10 +173,10 @@ class IPAllocatorDHCP(IPAllocator):
                    dhcp_allocated_ip(dhcp_desc) is not True):
 
                 if retry_count % DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY == 0:
-                    self._dhcp_client.send_dhcp_packet(mac, DHCPState.DISCOVER)
+                    self._dhcp_client.send_dhcp_packet(mac, vlan, DHCPState.DISCOVER)
                 self.dhcp_wait.wait(timeout=DEFAULT_DHCP_REQUEST_RETRY_DELAY)
 
-                dhcp_desc = self._dhcp_client.get_dhcp_desc(mac)
+                dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan)
 
                 retry_count = retry_count + 1
 
