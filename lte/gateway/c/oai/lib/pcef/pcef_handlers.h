@@ -70,7 +70,7 @@ void pcef_create_session(
 bool pcef_end_session(char* imsi, char* apn);
 
 /**
- * pcef_end_session is an asynchronous call that binds policy rule id
+ * pcef_send_policy2bearer_binding is an asynchronous call that binds policy rule id
  * to the newly created bearer id for a particular session that is uniquely
  * identified by imsi and default bearer id.
  */

@@ -1343,7 +1343,6 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   bearer_context_within_create_bearer_response_t bearer_context = {0};
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
   ebi_t default_bearer_id;
-  const char* imsi;
 
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
@@ -1368,7 +1367,6 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
 
   default_bearer_id = spgw_context->sgw_eps_bearer_context_information
                        .pdn_connection.default_bearer;
-  imsi = (char *) spgw_context->sgw_eps_bearer_context_information.imsi.digit;
 
   //--------------------------------------
   // EPS bearer entry
@@ -1553,7 +1551,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   }
   // Send ACTIVATE_DEDICATED_BEARER_RSP to PCRF
   rc = spgw_send_nw_init_activate_bearer_rsp(
-      cause, imsi64, imsi, bearer_context.eps_bearer_id, default_bearer_id,
+      cause, imsi64, bearer_context.eps_bearer_id, default_bearer_id,
       policy_rule_name);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
@@ -1730,8 +1728,7 @@ static void _handle_failed_create_bearer_response(
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
   ebi_t default_bearer_id = spgw_context->sgw_eps_bearer_context_information
                                 .pdn_connection.default_bearer;
-  char* imsi =
-      (char*) spgw_context->sgw_eps_bearer_context_information.imsi.digit;
+
   if (spgw_context) {
     pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(spgw_context);
     if (((pgw_ni_cbr_proc) &&
@@ -1764,7 +1761,7 @@ static void _handle_failed_create_bearer_response(
     }
   }
   int rc = spgw_send_nw_init_activate_bearer_rsp(
-      cause, imsi64, imsi, eps_bearer_id, default_bearer_id, policy_rule_name);
+      cause, imsi64, eps_bearer_id, default_bearer_id, policy_rule_name);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
