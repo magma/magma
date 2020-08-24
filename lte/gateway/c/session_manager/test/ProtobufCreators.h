@@ -32,6 +32,11 @@ LTESessionContext build_lte_context(
 WLANSessionContext build_wlan_context(
     const std::string& mac_addr, const std::string& radius_session_id);
 
+RuleSet create_rule_set(
+    const bool apply_subscriber_wide, const std::string& apn,
+    std::vector<std::string> static_rules,
+    std::vector<PolicyRule> dynamic_rules);
+
 void create_rule_record(
     const std::string& imsi, const std::string& rule_id, uint64_t bytes_rx,
     uint64_t bytes_tx, RuleRecord* rule_record);

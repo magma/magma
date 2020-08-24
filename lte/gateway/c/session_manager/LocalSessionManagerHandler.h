@@ -119,6 +119,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
 
   /**
    * Update active rules for session
+   * Get the SessionMap for the updates, apply the set rules and update the
+   * store. The rule updates should be also propagated to PipelineD
    */
   void SetSessionRules(
       ServerContext* context, const SessionRules* request,

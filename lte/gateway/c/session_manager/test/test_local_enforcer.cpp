@@ -1478,6 +1478,111 @@ TEST_F(LocalEnforcerTest, test_session_init_create_dedicated_bearer) {
   // TODO test receiving a bearerID association && bearer removal
 }
 
+// Test the handle_set_session_rules function to apply rules to sessions
+// We will test a case where a subscriber has 2 separate sessions
+TEST_F(LocalEnforcerTest, test_set_session_rules) {
+  SessionConfig config1, config2;
+  const std::string imsi        = "IMSI1";
+  const std::string session_id1 = "1234";
+  const std::string session_id2 = "5678";
+  const std::string ip1         = "127.0.0.1";
+  const std::string ip2         = "127.0.0.2";
+
+  // Set Session1 + Session2 to be LTE session with default QoS
+  QosInformationRequest qos_info;
+  qos_info.set_apn_ambr_dl(32);
+  qos_info.set_apn_ambr_dl(64);
+  qos_info.set_qos_class_id(1);
+  const auto& lte_context =
+      build_lte_context("128.0.0.1", "", "", "", "", 0, &qos_info);
+  config1.common_context =
+      build_common_context(imsi, ip1, "apn1", "msisdn1", TGPP_LTE);
+  config1.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
+  config2.common_context =
+      build_common_context(imsi, ip2, "apn2", "msisdn1", TGPP_LTE);
+  config2.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
+
+  // Initialize 3 static rules in RuleStore and create 2 dynamic rules
+  insert_static_rule_with_qos(0, "m1", "static1", 2);
+  insert_static_rule(0, "m1", "static2");
+  insert_static_rule_with_qos(0, "m1", "static3", 3);
+  PolicyRule dynamic_1, dynamic_2;
+  create_policy_rule("dynamic1", "m1", 0, &dynamic_1);
+  create_policy_rule("dynamic2", "m1", 0, &dynamic_2);
+
+  // Create a session with static1/static2/dynamic1
+  CreateSessionResponse response;
+  response.mutable_static_rules()->Add()->set_rule_id("static1");
+  response.mutable_static_rules()->Add()->set_rule_id("static2");
+  response.mutable_dynamic_rules()->Add()->mutable_policy_rule()->CopyFrom(
+      dynamic_1);
+
+  local_enforcer->init_session_credit(
+      session_map, imsi, session_id1, config1, response);
+  local_enforcer->init_session_credit(
+      session_map, imsi, session_id2, config2, response);
+  // Assert the rules exist
+  EXPECT_TRUE(session_map[imsi][0]->is_static_rule_installed("static1"));
+  EXPECT_TRUE(session_map[imsi][0]->is_static_rule_installed("static2"));
+  EXPECT_TRUE(session_map[imsi][0]->is_dynamic_rule_installed("dynamic1"));
+
+  bool success =
+      session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(success);
+
+  // Apply a set rule of
+  // apn1 -> static1,static3,dynamic2
+  // apn2 -> static2
+  // subscriber_wide -> dynamic2
+  // This should lead to the following actions:
+  // apn1 -> (add static3,dynamic_2 + remove static2,dynamic_1)
+  // apn2 -> (add dynamic_2 + remove static2,dynamic_1)
+  SessionRules session_rules;
+  auto rule_set_per_sub = session_rules.mutable_rules_per_subscriber()->Add();
+  rule_set_per_sub->set_imsi(imsi);
+  rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
+      create_rule_set(false, "apn1", {"static1", "static3"}, {dynamic_2}));
+  rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
+      create_rule_set(false, "apn2", {"static1"}, {}));
+  rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
+      create_rule_set(true, "", {}, {dynamic_2}));
+
+  // PipelineD expectations for Session1
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          imsi, ip1, testing::_, std::vector<std::string>{"static3"},
+          CheckCount(1), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  // PipelineD expectations for Session2
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          imsi, ip2, testing::_, CheckCount(0), CheckCount(1), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  // For both Session1 + Session2
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          imsi, std::vector<std::string>{"static2"}, CheckCount(1), testing::_))
+      .Times(2)
+      .WillOnce(testing::Return(true));
+
+  // Since static3 is also a QoS rule with a new QCI (not equal to default), we
+  // should also expect a create bearer request here
+  EXPECT_CALL(
+      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(imsi, 1)))
+.Times(1)
+.WillOnce(testing::Return(true));
+
+
+session_map = session_store->read_sessions(SessionRead{imsi});
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->handle_set_session_rules(session_map, session_rules, update);
+}
+
 TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
   // verify session validity by passing in an invalid IMSI
   PolicyReAuthRequest rar;
@@ -1902,10 +2007,10 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
       "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay"};
 
   EXPECT_CALL(
-      *pipelined_client, setup_cwf(
-                             testing::_, testing::_, ue_mac_addrs, msisdns,
-                             apn_mac_addrs, apn_names, testing::_, epoch,
-                             testing::_))
+      *pipelined_client,
+      setup_cwf(
+          testing::_, testing::_, ue_mac_addrs, msisdns, apn_mac_addrs,
+          apn_names, testing::_, epoch, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 

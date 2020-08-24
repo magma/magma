@@ -1332,6 +1332,50 @@ uint64_t LocalEnforcer::get_monitor_credit(
   return 0;
 }
 
+void LocalEnforcer::handle_set_session_rules(
+    SessionMap& session_map, const SessionRules& rules,
+    SessionUpdate& session_update) {
+  for (const auto& rules_per_sub : rules.rules_per_subscriber()) {
+    const auto& imsi = rules_per_sub.imsi();
+    auto session_it  = session_map.find(imsi);
+    if (session_it == session_map.end()) {
+      MLOG(MERROR) << "Could not find session for subscriber " << imsi
+                   << " during set session rule update";
+      return;
+    }
+    // Convert proto into a more convenient structure
+    RuleSetBySubscriber rule_set_by_sub(rules_per_sub);
+
+    for (const auto& session : session_it->second) {
+      RulesToProcess rules_to_activate;
+      RulesToProcess rules_to_deactivate;
+      const auto& config = session->get_config();
+
+      const auto& apn = config.common_context.apn();
+      auto rule_set   = rule_set_by_sub.get_combined_rule_set_for_apn(apn);
+      if (!rule_set) {
+        // No rule change needed for this APN
+        continue;
+      }
+
+      auto& uc = session_update[imsi][session->get_session_id()];
+      // Process the rule sets and get rules that need to be
+      // activated/deactivated
+      session->apply_session_rule_set(
+          *rule_set, rules_to_activate, rules_to_deactivate, uc);
+
+      // Propagate these rule changes to PipelineD and MME (if 4G)
+      propagate_rule_updates_to_pipelined(
+          imsi, config, rules_to_activate, rules_to_deactivate, false);
+      if (config.common_context.rat_type() == TGPP_LTE) {
+        const auto update = session->get_dedicated_bearer_updates(
+            rules_to_activate, rules_to_deactivate, uc);
+        propagate_bearer_updates_to_mme(update);
+      }
+    }
+  }
+}
+
 ReAuthResult LocalEnforcer::init_charging_reauth(
     SessionMap& session_map, ChargingReAuthRequest request,
     SessionUpdate& session_update) {

@@ -47,12 +47,28 @@ LTESessionContext build_lte_context(
 }
 
 WLANSessionContext build_wlan_context(
-    const std::string& mac_addr,
-    const std::string& radius_session_id) {
+    const std::string& mac_addr, const std::string& radius_session_id) {
   WLANSessionContext wlan_context;
   wlan_context.set_mac_addr(mac_addr);
   wlan_context.set_radius_session_id(radius_session_id);
   return wlan_context;
+}
+
+RuleSet create_rule_set(
+    const bool apply_subscriber_wide, const std::string& apn,
+    std::vector<std::string> static_rules,
+    std::vector<PolicyRule> dynamic_rules) {
+  RuleSet rule_set;
+  rule_set.set_apply_subscriber_wide(apply_subscriber_wide);
+  rule_set.set_apn(apn);
+  for (const auto& rule : static_rules) {
+    rule_set.mutable_static_rules()->Add()->set_rule_id(rule);
+  }
+  for (const auto& rule : dynamic_rules) {
+    rule_set.mutable_dynamic_rules()->Add()->mutable_policy_rule()->CopyFrom(
+        rule);
+  }
+  return rule_set;
 }
 
 void create_rule_record(
