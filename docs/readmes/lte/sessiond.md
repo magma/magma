@@ -22,7 +22,7 @@ SessionD interfaces with three distinct external components.
  reports usage accordingly.
  
 ### Internal Architecture 
-![Internal Architecture Diagram](SessionD_Architecture.png)
+![Internal Architecture Diagram](https://github.com/magma/magma/blob/master/docs/readmes/assets/SessionD_Architecture.png)
 
 ## Configurations (Not Exhaustive)
 - FeG Relay <br>
