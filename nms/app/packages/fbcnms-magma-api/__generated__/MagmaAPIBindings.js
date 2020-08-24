@@ -413,6 +413,7 @@ export type gateway_epc_configs = {
     dns_secondary ? : string,
     ip_block: string,
     nat_enabled: boolean,
+    sgi_management_iface_vlan ? : string,
 };
 export type gateway_federation_configs = {
     aaa_server: aaa_server,
@@ -1129,12 +1130,17 @@ export type subscriber_config = {
     lte: lte_subscription,
     static_ips ? : subscriber_static_ips,
 };
+export type subscriber_directory_record = {
+    location_history: Array < string >
+        ,
+};
 export type subscriber_id = string;
 export type subscriber_ip_allocation = {
     apn: string,
     ip: string,
 };
 export type subscriber_state = {
+    directory ? : subscriber_directory_record,
     mme ? : untyped_mme_state,
     mobility ? : Array < subscriber_ip_allocation >
         ,
