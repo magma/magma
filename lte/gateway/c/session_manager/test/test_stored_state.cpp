@@ -124,6 +124,7 @@ class StoredStateTest : public ::testing::Test {
     stored.revalidation_time.set_seconds(32);
 
     stored.request_number = 1;
+    stored.pdp_start_time = 123;
 
     return stored;
   }
@@ -280,7 +281,6 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 
   EXPECT_EQ(stored.imsi, "IMSI1");
-  EXPECT_EQ(stored.pdp_start_time, 12345);
   EXPECT_EQ(stored.session_id, "session_id");
   EXPECT_EQ(
       stored.subscriber_quota_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
@@ -294,6 +294,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored.revalidation_time.seconds(), 32);
 
   EXPECT_EQ(stored.request_number, 1);
+  EXPECT_EQ(stored.pdp_start_time, 123);
 }
 
 int main(int argc, char** argv) {

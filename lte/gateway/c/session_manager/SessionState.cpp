@@ -43,6 +43,8 @@ StoredSessionState SessionState::marshal() {
   marshaled.subscriber_quota_state = subscriber_quota_state_;
   marshaled.tgpp_context           = tgpp_context_;
   marshaled.request_number         = request_number_;
+  marshaled.pdp_start_time         = pdp_start_time_;
+  marshaled.pdp_end_time           = pdp_end_time_;
   marshaled.pending_event_triggers = pending_event_triggers_;
   marshaled.revalidation_time      = revalidation_time_;
 
@@ -94,6 +96,8 @@ SessionState::SessionState(
       request_number_(marshaled.request_number),
       curr_state_(marshaled.fsm_state),
       config_(marshaled.config),
+      pdp_start_time_(marshaled.pdp_start_time),
+      pdp_end_time_(marshaled.pdp_end_time),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
       static_rules_(rule_store),
