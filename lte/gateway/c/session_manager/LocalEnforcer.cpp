@@ -25,13 +25,9 @@
 #include "EnumToString.h"
 #include "LocalEnforcer.h"
 #include "ServiceRegistrySingleton.h"
-#include "MetricsHelpers.h"
 #include "magma_logging.h"
 
 namespace {
-
-const char* LABEL_IMSI = "imsi";
-const char* LABEL_APN = "apn";
 
 std::chrono::milliseconds time_difference_from_now(
     const google::protobuf::Timestamp& timestamp) {
@@ -50,7 +46,6 @@ uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY = 2000;
 
 using google::protobuf::RepeatedPtrField;
 using google::protobuf::util::TimeUtil;
-using service303::increment_counter;
 
 using namespace std::placeholders;
 
