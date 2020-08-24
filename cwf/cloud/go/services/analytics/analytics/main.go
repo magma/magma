@@ -98,11 +98,11 @@ func getExporterIfRequired(srv *service.OrchestratorService) analytics.Exporter 
 	return nil
 }
 
-func getAnalyticsCalculations() []analytics.Calculation {
-	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{analytics.DaysLabel, metrics.NetworkLabelName})
-	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, []string{analytics.DaysLabel, metrics.NetworkLabelName, analytics.DirectionLabel})
-	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{analytics.DaysLabel, metrics.NetworkLabelName, analytics.DirectionLabel})
-	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, []string{analytics.DaysLabel, metrics.NetworkLabelName, analytics.DirectionLabel, analytics.APNLabel})
+func getAnalyticsCalculations() []calculations.Calculation {
+	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName})
+	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
+	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
+	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, calculations.APNLabel})
 	prometheus.MustRegister(xapGauge, userThroughputGauge, userConsumptionGauge, apThroughputGauge)
 
 	allCalculations := make([]calculations.Calculation, 0)
