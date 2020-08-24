@@ -49,9 +49,6 @@ type PolicyRule struct {
 	// ID of the QoS profile associated with this policy
 	QosProfile string `json:"qos_profile,omitempty"`
 
-	// ID of the QoS profile associated with this policy
-	QosProfile string `json:"qos_profile,omitempty"`
-
 	// rating group
 	RatingGroup uint32 `json:"rating_group,omitempty"`
 

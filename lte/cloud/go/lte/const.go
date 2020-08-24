@@ -18,20 +18,34 @@ limitations under the License.
 	are reproduced and annotated below.
 	Note: starred Swagger models also have mutable versions of the model.
 
-	Configurator type    Swagger model       Edges out           Notes
-	-----------------    -------------       ---------           -----
-	apn                  apn                                     Stored as apn_configuration
-	base_name            base_name_record    policy, subscriber
-	cellular_enodeb      enodeb                                  Stored as enodeb_configuration
-	cellular_gateway     *lte_gateway        cellular_enodeb     Stored as gateway_cellular_configs
-	policy               policy_rule         subscriber          Stored as policy_rule_config
-	rating_group         *rating_group
-	subscriber           *subscriber         apn
+	Configurator type     Swagger model         Edges out                                  Notes
+	-----------------     -------------         ---------                                  -----
+	apn                   apn                                                              Stored as apn_configuration
+	apn_policy_profile    apn_policy_profile    apn,policy                                 Internal-only
+	apn_resource          apn_resource          apn
+	base_name             base_name_record      policy
+	cellular_enodeb       enodeb                                                           Stored as enodeb_configuration
+	cellular_gateway      *lte_gateway          cellular_enodeb,apn_resource               Stored as gateway_cellular_configs
+	policy                policy_rule           policy_qos_profile                         Stored as policy_rule_config
+	policy_qos_profile    policy_qos_profile
+	rating_group          *rating_group
+	subscriber            *subscriber           apn,policy,base_name,apn_policy_profile
 
 	Resulting DAG
 
-	cellular_gateway -> cellular_enodeb
-	base_name -> (policy ->) subscriber -> apn
+	cellular_gateway -.-> cellular_enodeb
+	                  '-> apn_resource -> apn*
+	subscriber -.-> apn_policy_profile -.-> apn*
+	            '-> apn*                '-> policy*
+	            '-> policy*
+	            '-> base_name -> policy*
+	*policy -> policy_qos_profile
+
+	Notes
+
+	Where possible, keep cellular_gateway and subscriber as sources rather
+	than sinks. This reduces the number of data migrations required to
+	reorganize the graph into a set of acyclic relations.
 */
 
 package lte

@@ -172,7 +172,7 @@ func (m *FederationGateway) FromBackendModels(
 	magmadGatewayModel := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	err := copier.Copy(m, magmadGatewayModel)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	m.Federation = federationGateway.Config.(*GatewayFederationConfigs)
 
@@ -221,7 +221,7 @@ func (m *MutableFederationGateway) Load(networkID, gatewayID string) error {
 	}
 	err = copier.Copy(m, gateway)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil
@@ -349,7 +349,7 @@ func (m *SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_SubscriptionProfile
 }
 
 func ToVirtualApnRuleMconfig(rules []*VirtualApnRule) []*mconfig.VirtualApnRule {
-  virtualApnRuleConfigs := make([]*mconfig.VirtualApnRule, 0, len(rules)+1)
+	virtualApnRuleConfigs := make([]*mconfig.VirtualApnRule, 0, len(rules)+1)
 	for _, ruleProto := range rules {
 		apnConf := &mconfig.VirtualApnRule{}
 		protos.FillIn(ruleProto, apnConf)

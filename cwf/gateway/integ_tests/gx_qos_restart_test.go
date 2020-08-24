@@ -25,6 +25,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
+	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -99,8 +100,10 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	ruleKey := fmt.Sprintf("static-ULQos-%d", ki)
 
 	uplinkBwMax := uint32(100000)
-	qos := &models.FlowQos{MaxReqBwUl: &uplinkBwMax}
-	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
+	rule := getStaticPassAll(
+		ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
+		&lteprotos.FlowQos{MaxReqBwUl: &uplinkBwMax},
+	)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)

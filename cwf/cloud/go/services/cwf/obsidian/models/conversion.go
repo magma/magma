@@ -108,7 +108,7 @@ func (m *CwfGateway) FromBackendModels(
 	magmadGatewayModel := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	err := copier.Copy(m, magmadGatewayModel)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	if cwfGateway.Config != nil {
 		m.CarrierWifi = cwfGateway.Config.(*GatewayCwfConfigs)
@@ -161,7 +161,7 @@ func (m *MutableCwfGateway) Load(networkID, gatewayID string) error {
 	}
 	err = copier.Copy(m, gateway)
 	if err != nil {
-		return err
+		return errors.WithStack(err)
 	}
 
 	return nil

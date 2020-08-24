@@ -74,7 +74,10 @@ func (m *MutableSymphonyAgent) Load(networkID, gatewayID string) error {
 	if err != nil {
 		return err
 	}
-	copier.Copy(m, agent)
+	err = copier.Copy(m, agent)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	return nil
 }
 
@@ -82,7 +85,7 @@ func (m *MutableSymphonyAgent) GetMagmadGateway() *orc8r_models.MagmadGateway {
 	return &orc8r_models.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
-		ID:          models.GatewayID(m.ID),
+		ID:          m.ID,
 		Magmad:      m.Magmad,
 		Name:        m.Name,
 		Tier:        m.Tier,
@@ -156,7 +159,10 @@ func (m *SymphonyAgent) FromBackendModels(
 	status *orc8r_models.GatewayStatus,
 ) handlers.GatewayModel {
 	magmadGateway := (&orc8r_models.MagmadGateway{}).FromBackendModels(magmadEnt, device, status)
-	copier.Copy(m, magmadGateway)
+	err := copier.Copy(m, magmadGateway)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 
 	for _, tk := range agentEnt.Associations {
 		if tk.Type == devmand.SymphonyDeviceType {

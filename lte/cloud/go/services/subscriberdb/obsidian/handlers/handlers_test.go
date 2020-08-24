@@ -1101,6 +1101,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	deletePolicy := tests.GetHandlerByPathAndMethod(t, policydbHandlers.GetHandlers(), "/magma/v1/networks/:network_id/policies/rules/:rule_id", obsidian.DELETE).HandlerFunc
 
 	imsi := "IMSI1234567890"
+	imsi1 := "IMSI1234567800"
 	mutableSub := newMutableSubscriber(imsi)
 	sub, err := (&subscriberModels.Subscriber{}).FromMutable(mutableSub)
 	assert.NoError(t, err)
@@ -1374,6 +1375,26 @@ func TestAPNPolicyProfile(t *testing.T) {
 	profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
 	assert.NoError(t, err)
 	assert.Len(t, profiles, 1)
+
+	// Post, add sub1, no namespacing issues
+	mutableSub1 := newMutableSubscriber(imsi1)
+	mutableSub1.ActivePoliciesByApn = policydbModels.PolicyIdsByApn{"apn1": policydbModels.PolicyIds{"rule1", "rule2"}}
+	mutableSub1.ActiveApns = subscriberModels.ApnList{"apn1"}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/n0/subscribers",
+		Payload:        mutableSub1,
+		Handler:        postSubscriber,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Configurator non-shared apn_policy_profile
+	profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+	assert.NoError(t, err)
+	assert.Len(t, profiles, 2)
 }
 
 func f32Ptr(f float32) *float32 {
@@ -1392,7 +1413,7 @@ func newMutableSubscriber(id string) *subscriberModels.MutableSubscriber {
 			SubProfile: "default",
 		},
 		StaticIps: subscriberModels.SubscriberStaticIps{
-			"apn0": "192.168.100.1",
+			"apn1": "192.168.100.1",
 		},
 		ActiveApns: subscriberModels.ApnList{"apn0", "apn1"},
 	}

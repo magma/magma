@@ -84,7 +84,10 @@ func (m *WifiGateway) FromBackendModels(
 	status *orc8r_models.GatewayStatus,
 ) handlers.GatewayModel {
 	magmadGatewayModel := (&orc8r_models.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
-	copier.Copy(m, magmadGatewayModel)
+	err := copier.Copy(m, magmadGatewayModel)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	if wifiGateway.Config != nil {
 		m.Wifi = wifiGateway.Config.(*GatewayWifiConfigs)
 	}
@@ -129,7 +132,10 @@ func (m *MutableWifiGateway) Load(networkID, gatewayID string) error {
 	if err != nil {
 		return err
 	}
-	copier.Copy(m, gateway)
+	err = copier.Copy(m, gateway)
+	if err != nil {
+		return errors.WithStack(err)
+	}
 	return nil
 }
 

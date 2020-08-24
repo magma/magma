@@ -227,7 +227,7 @@ func getAPNPolicyAssocs(apnName string, policyIDs PolicyIds) []storage.TypeAndKe
 	return assocs
 }
 
-func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
+func (m *PolicyRuleConfig) ToProto(id string, qos *protos.FlowQos) *protos.PolicyRule {
 	var (
 		protoMKey []byte
 		err       error
@@ -248,12 +248,10 @@ func (m *PolicyRuleConfig) ToProto(id string) *protos.PolicyRule {
 		AppName:        protos.PolicyRule_AppName(protos.PolicyRule_AppName_value[m.AppName]),
 		AppServiceType: protos.PolicyRule_AppServiceType(protos.PolicyRule_AppServiceType_value[m.AppServiceType]),
 		HardTimeout:    0,
+		Qos:            qos,
 	}
 	if m.Redirect != nil {
 		rule.Redirect = m.Redirect.ToProto()
-	}
-	if m.Qos != nil {
-		rule.Qos = m.Qos.ToProto()
 	}
 	if m.FlowList != nil {
 		flowList := make([]*protos.FlowDescription, 0, len(m.FlowList))
@@ -377,21 +375,46 @@ func (m *PolicyQosProfile) ToUpdateCriteria(networkID string, key string) ([]con
 		return nil, errors.New("profile does not exist")
 	}
 
-	ret := []configurator.EntityUpdateCriteria{
+	updates := []configurator.EntityUpdateCriteria{
 		{
 			Type:      lte.PolicyQoSProfileEntityType,
 			Key:       key,
 			NewConfig: m,
 		},
 	}
-	return ret, nil
+	return updates, nil
 }
 
 func (m *PolicyQosProfile) ToEntity() configurator.NetworkEntity {
-	ret := configurator.NetworkEntity{
+	ent := configurator.NetworkEntity{
 		Type:   lte.PolicyQoSProfileEntityType,
 		Key:    m.ID,
 		Config: m,
 	}
-	return ret
+	return ent
+}
+
+func (m *PolicyQosProfile) FromEntity(ent configurator.NetworkEntity) *PolicyQosProfile {
+	return ent.Config.(*PolicyQosProfile)
+}
+
+func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
+	proto := &protos.FlowQos{
+		MaxReqBwUl: swag.Uint32Value(m.MaxReqBwUl),
+		MaxReqBwDl: swag.Uint32Value(m.MaxReqBwDl),
+		GbrUl:      swag.Uint32Value(m.Gbr.Uplink),
+		GbrDl:      swag.Uint32Value(m.Gbr.Downlink),
+		Qci:        protos.FlowQos_Qci(m.ClassID),
+	}
+	if m.Arp != nil {
+		arp := &protos.QosArp{PriorityLevel: swag.Uint32Value(m.Arp.PriorityLevel)}
+		if swag.BoolValue(m.Arp.PreemptionCapability) {
+			arp.PreCapability = 1
+		}
+		if swag.BoolValue(m.Arp.PreemptionVulnerability) {
+			arp.PreVulnerability = 1
+		}
+		proto.Arp = arp
+	}
+	return proto
 }

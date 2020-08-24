@@ -115,7 +115,7 @@ func SetAssocDirections(builder squirrel.StatementBuilderType, edges []AssocDire
 
 	glog.Infof("Flipping %d assocs", len(assocs))
 	for _, assoc := range assocs {
-		err := FlipAssocDirection(builder, assoc)
+		err := flipAssocDirection(builder, assoc)
 		if err != nil {
 			return err
 		}
@@ -124,7 +124,7 @@ func SetAssocDirections(builder squirrel.StatementBuilderType, edges []AssocDire
 	return nil
 }
 
-func FlipAssocDirection(builder squirrel.StatementBuilderType, assoc assocPair) error {
+func flipAssocDirection(builder squirrel.StatementBuilderType, assoc assocPair) error {
 	b := builder.
 		Update(entityAssocTable).
 		Set(aFrCol, assoc.toPk).
