@@ -95,6 +95,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 				DisableGx:    swag.BoolValue(gxc.DisableGx),
 				OverwriteApn: gxc.OverwriteApn,
 				Servers:      models.ToMultipleServersMconfig(gxc.Server, gxc.Servers),
+				VirtualApnRules: models.ToVirtualApnRuleMconfig(gxc.VirtualApnRules),
 			}
 			// TODO(uri200): 5/7/20 remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfig
 			if len(mc.Gx.Servers) > 0 {
@@ -107,6 +108,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 				InitMethod:   getGyInitMethod(gyc.InitMethod),
 				OverwriteApn: gyc.OverwriteApn,
 				Servers:      models.ToMultipleServersMconfig(gyc.Server, gyc.Servers),
+				VirtualApnRules: models.ToVirtualApnRuleMconfig(gyc.VirtualApnRules),
 			}
 			// TODO(uri200): 5/7/20 remove this once backwards compatibility is not needed for the field server, remove server from swagger and mconfig
 			if len(mc.Gy.Servers) > 0 {

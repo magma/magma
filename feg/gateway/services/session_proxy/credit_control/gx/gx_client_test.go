@@ -60,7 +60,7 @@ var (
 func TestGxClient(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	globalConfig := getGxGlobalConfig("")
+	globalConfig := getGxGlobalConfig("", "")
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -197,8 +197,9 @@ func TestGxClient(t *testing.T) {
 func TestGxClientWithGyGlobalConf(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	overWriteApn := "gx.overwritten.Apn.magma.com"
-	globalConfig := getGxGlobalConfig(overWriteApn)
+	matchApn := ".*\\.magma.*"
+	overwriteApn := "gx.overwritten.Apn.magma.com"
+	globalConfig := getGxGlobalConfig(matchApn, overwriteApn)
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -227,13 +228,13 @@ func TestGxClientWithGyGlobalConf(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
-	assertReceivedAPNonPCRF(t, pcrf, overWriteApn)
+	assertReceivedAPNonPCRF(t, pcrf, overwriteApn)
 }
 
 func TestGxClientUsageMonitoring(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	globalConfig := getGxGlobalConfig("")
+	globalConfig := getGxGlobalConfig("", "")
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -321,7 +322,7 @@ func TestGxReAuthRemoveRules(t *testing.T) {
 	}
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	globalConfig := getGxGlobalConfig("")
+	globalConfig := getGxGlobalConfig("", "")
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -376,7 +377,7 @@ func TestDefaultFramedIpv4Addr(t *testing.T) {
 
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	globalConfig := getGxGlobalConfig("")
+	globalConfig := getGxGlobalConfig("", "")
 	pcrf := startServer(clientConfig, &serverConfig)
 	seedAccountConfigurations(pcrf)
 
@@ -423,9 +424,14 @@ func getClientConfig() *diameter.DiameterClientConfig {
 	}
 }
 
-func getGxGlobalConfig(pcrfOverwriteApn string) *gx.GxGlobalConfig {
+func getGxGlobalConfig(apnFilter, apnOverwrite string) *gx.GxGlobalConfig {
+	rules := []*credit_control.VirtualApnRule{}
+	rule, err := credit_control.GetVirtualApnRule(apnFilter, apnOverwrite)
+	if err == nil {
+		rules = append(rules, rule)
+	}
 	return &gx.GxGlobalConfig{
-		PCFROverwriteApn: pcrfOverwriteApn,
+		VirtualApnRules: rules,
 	}
 }
 
