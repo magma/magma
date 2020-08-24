@@ -130,7 +130,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         if not self._qos_mgr:
             return
 
-        qos_impl = self._qos_mgr.qos_impl
+        qos_impl = self._qos_mgr.impl
         if qos_impl and isinstance(qos_impl, MeterManager):
             qos_impl.handle_meter_config_stats(ev.msg.body)
 
@@ -139,7 +139,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         if not self._qos_mgr:
             return
 
-        qos_impl = self._qos_mgr.qos_impl
+        qos_impl = self._qos_mgr.impl
         if qos_impl and isinstance(qos_impl, MeterManager):
             qos_impl.handle_meter_feature_stats(ev.msg.body)
 
@@ -199,7 +199,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             return self.MIN_ENFORCE_PROGRAMMED_FLOW
         return self.MAX_ENFORCE_PRIORITY - precedence
 
-    def _get_rule_match_flow_msgs(self, imsi, rule):
+    def _get_rule_match_flow_msgs(self, imsi, ip_addr, apn_ambr, rule):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -216,8 +216,9 @@ class EnforcementController(PolicyMixin, MagmaController):
         for flow in rule.flow_list:
             try:
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
-                    imsi, flow, rule_num, priority, rule.qos, rule.hard_timeout,
-                    rule.id, rule.app_name, rule.app_service_type))
+                    imsi, ip_addr, apn_ambr, flow, rule_num, priority,
+                    rule.qos, rule.hard_timeout, rule.id, rule.app_name,
+                    rule.app_service_type))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
@@ -226,7 +227,7 @@ class EnforcementController(PolicyMixin, MagmaController):
                 raise err
         return flow_adds
 
-    def _install_flow_for_rule(self, imsi, ip_addr, rule):
+    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -247,7 +248,7 @@ class EnforcementController(PolicyMixin, MagmaController):
 
         flow_adds = []
         try:
-            flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
+            flow_adds = self._get_rule_match_flow_msgs(imsi, ip_addr, apn_ambr, rule)
         except FlowMatchError:
             return RuleModResult.FAILURE
 
@@ -272,8 +273,8 @@ class EnforcementController(PolicyMixin, MagmaController):
                 return fail(result.exception())
         return RuleModResult.SUCCESS
 
-    def _get_classify_rule_flow_msgs(self, imsi, flow, rule_num, priority,
-                                     qos, hard_timeout, rule_id,
+    def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
+                                     priority, qos, hard_timeout, rule_id,
                                      app_name, app_service_type):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
@@ -283,7 +284,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         flow_match = flow_match_to_magma_match(flow.match)
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions, instructions = self._get_classify_rule_of_actions(
-            flow, rule_num, imsi, qos, rule_id)
+            flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id)
         msgs = []
         if app_name:
             # We have to allow initial traffic to pass through, before it gets
@@ -355,10 +356,9 @@ class EnforcementController(PolicyMixin, MagmaController):
             )
             return RuleModResult.FAILURE
 
-    def _get_classify_rule_of_actions(self, flow, rule_num, imsi, qos,
-                                      rule_id):
+    def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ip_addr,
+                                      apn_ambr, qos, rule_id):
         parser = self._datapath.ofproto_parser
-
         instructions = []
 
         # encode the rule id in hex
@@ -367,20 +367,25 @@ class EnforcementController(PolicyMixin, MagmaController):
         if flow.action == flow.DENY:
             return actions, instructions
 
-        ul_qos = qos.max_req_bw_ul
-        dl_qos = qos.max_req_bw_dl
+        mbr_ul = qos.max_req_bw_ul
+        mbr_dl = qos.max_req_bw_dl
         qos_info = None
         d = flow.match.direction
-        if ul_qos != 0 and d == flow.match.UPLINK:
-            qos_info = QosInfo(gbr=None, mbr=ul_qos)
-        elif dl_qos != 0 and d == flow.match.DOWNLINK:
-            qos_info = QosInfo(gbr=None, mbr=dl_qos)
+        if d == flow.match.UPLINK:
+            ambr = apn_ambr.max_bandwidth_ul
+            if mbr_ul != 0:
+                qos_info = QosInfo(gbr=qos.gbr_ul, mbr=mbr_ul)
 
-        if qos_info:
-            action, inst = self._qos_mgr.add_subscriber_qos(imsi, rule_num, d,
-                                                            qos_info)
-            self.logger.debug("adding Actions %s instruction %s ", action,
-                              inst)
+        if d == flow.match.DOWNLINK:
+            ambr =  apn_ambr.max_bandwidth_dl
+            if mbr_dl != 0:
+                qos_info = QosInfo(gbr=qos.gbr_dl, mbr=mbr_dl)
+
+        if qos_info or ambr:
+            action, inst = self._qos_mgr.add_subscriber_qos(
+                imsi, ip_addr, ambr, rule_num, d, qos_info)
+
+            self.logger.debug("adding Actions %s instruction %s ", action, inst)
             if action:
                 actions.append(action)
 
