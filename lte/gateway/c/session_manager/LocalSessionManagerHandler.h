@@ -64,6 +64,12 @@ class LocalSessionManagerHandler {
       ServerContext* context, const PolicyBearerBindingRequest* request,
       std::function<void(Status, PolicyBearerBindingResponse)>
           response_callback) = 0;
+  /**
+   * Update active rules for session
+   */
+  virtual void SetSessionRules(
+      ServerContext* context, const SessionRules* request,
+      std::function<void(Status, Void)> response_callback) = 0;
 };
 
 /**
@@ -108,7 +114,15 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   void BindPolicy2Bearer(
       ServerContext* context, const PolicyBearerBindingRequest* request,
-      std::function<void(Status, PolicyBearerBindingResponse)> response_callback);
+      std::function<void(Status, PolicyBearerBindingResponse)>
+          response_callback);
+
+  /**
+   * Update active rules for session
+   */
+  void SetSessionRules(
+      ServerContext* context, const SessionRules* request,
+      std::function<void(Status, Void)> response_callback);
 
  private:
   SessionStore& session_store_;
