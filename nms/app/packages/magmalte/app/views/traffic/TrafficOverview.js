@@ -120,7 +120,15 @@ export default function TrafficDashboard() {
         />
         <Route
           path={relativePath('/apn')}
-          render={() => <ApnOverview apns={apns} />}
+          render={() => (
+            <ApnOverview
+              apns={apns}
+              onDelete={apnId => {
+                const {[apnId]: _deletedApn, ...updatedApns} = apns;
+                setApns(updatedApns);
+              }}
+            />
+          )}
         />
         <Redirect to={relativeUrl('/policy')} />
       </Switch>
