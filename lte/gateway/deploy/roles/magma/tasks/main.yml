@@ -234,6 +234,15 @@
   service: name=lighttpd state=stopped enabled=no
   when: preburn
 
+- name: Install openvpn
+  apt: pkg=openvpn state=presetn update_cache=yes
+  retries: 5
+  when: preburn
+
+- name: Stop openvpn
+  service: name=openvpn state=stopped enabled=no
+  when: preburn
+
 - name: Restart networking to bring up linux bridge
   service:
     name: networking
