@@ -203,7 +203,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-                Config:             newGatewayConfigNonNat(""),
+		Config:             newGatewayConfigNonNat(""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
@@ -331,7 +331,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-                Config:             newGatewayConfigNonNat("30"),
+		Config:             newGatewayConfigNonNat("30"),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
@@ -637,8 +637,8 @@ func newGatewayConfigNonNat(vlan string) *lte_models.GatewayCellularConfigs {
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lte_models.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(false),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:             swag.Bool(false),
+			IPBlock:                "192.168.128.0/24",
 			SgiManagementIfaceVlan: vlan,
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{

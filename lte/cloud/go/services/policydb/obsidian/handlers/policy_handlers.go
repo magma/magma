@@ -286,9 +286,29 @@ func CreateRule(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.CreateEntity(networkID, rule.ToEntity())
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	// Verify that subscribers and policies exist
+	allAssocs := rule.GetParentAssociations()
+	doAssignedAssocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
+	if !doAssignedAssocsExist {
+		return obsidian.HttpError(errors.New("failed to create policy: one or more subscribers do not exist"), http.StatusInternalServerError)
+	}
+
+	// In one transaction, create the policy rule and associate subscribers
+	// to it. Succeeds or fails in its entirety.
+	// Create entity
+	createdEntity := rule.ToEntity()
+	writes := []configurator.EntityWriteOperation{}
+	writes = append(writes, createdEntity)
+	// Update entity operations for subscribers and policies to point
+	for _, tk := range allAssocs {
+		writes = append(writes, configurator.EntityUpdateCriteria{
+			Type:              lte.SubscriberEntityType,
+			Key:               tk.Key,
+			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: createdEntity.Key}},
+		})
+	}
+	if err := configurator.WriteEntities(networkID, writes...); err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to create policy"), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusCreated)
 }
@@ -303,7 +323,7 @@ func GetRule(c echo.Context) error {
 		networkID,
 		lte.PolicyRuleEntityType,
 		ruleID,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true},
 	)
 	switch {
 	case err == merrors.ErrNotFound:
@@ -332,19 +352,58 @@ func UpdateRule(c echo.Context) error {
 		return obsidian.HttpError(errors.New("rule ID in body does not match URL param"), http.StatusBadRequest)
 	}
 
-	// 404 if rule doesn't exist
-	exists, err := configurator.DoesEntityExist(networkID, lte.PolicyRuleEntityType, ruleID)
-	if err != nil {
-		return obsidian.HttpError(errors.Wrap(err, "Failed to check if rule exists"), http.StatusInternalServerError)
+	// 404 if the rule doesn't exist
+	prevPolicyEnt, err := configurator.LoadEntity(
+		networkID,
+		lte.PolicyRuleEntityType,
+		ruleID,
+		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
+	)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to check if policy exists"), http.StatusInternalServerError)
 	}
-	if !exists {
-		return echo.ErrNotFound
-	}
-
-	_, err = configurator.UpdateEntity(networkID, rule.ToEntityUpdateCriteria())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+	prevPolicy := (&models.PolicyRule{}).FromEntity(prevPolicyEnt)
+
+	// Verify that associated subscribers and policies exist
+	allAssocs := rule.GetParentAssociations()
+	doAssignedAssocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
+	if !doAssignedAssocsExist {
+		return obsidian.HttpError(errors.New("failed to update policy rule: one or more subscribers do not exist"), http.StatusInternalServerError)
+	}
+
+	// In one transaction, modify the policy rule, and change associations
+	// from subscribers.
+	// Succeeds or fails in its entirety.
+	writes := []configurator.EntityWriteOperation{}
+	writes = append(writes, rule.ToEntityUpdateCriteria())
+	prevAssocs := prevPolicy.GetParentAssociations()
+	assocsToRemove := getTypeAndKeyDiff(prevAssocs, allAssocs)
+	for _, tk := range assocsToRemove {
+		if tk.Type == lte.SubscriberEntityType {
+			writes = append(writes, configurator.EntityUpdateCriteria{
+				Type:                 lte.SubscriberEntityType,
+				Key:                  tk.Key,
+				AssociationsToDelete: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
+			})
+		}
+	}
+	assocsToAdd := getTypeAndKeyDiff(allAssocs, prevAssocs)
+	for _, tk := range assocsToAdd {
+		if tk.Type == lte.SubscriberEntityType {
+			writes = append(writes, configurator.EntityUpdateCriteria{
+				Type:              lte.SubscriberEntityType,
+				Key:               tk.Key,
+				AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: ruleID}},
+			})
+		}
+	}
+	if err = configurator.WriteEntities(networkID, writes...); err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to update policy rule"), http.StatusInternalServerError)
+	}
+
 	return c.NoContent(http.StatusNoContent)
 }
 

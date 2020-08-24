@@ -135,11 +135,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
-			LogLevel:      protos.LogLevel_INFO,
-			UeIpBlock:     gwEpc.IPBlock,
-			NatEnabled:    swag.BoolValue(gwEpc.NatEnabled),
-			DefaultRuleId: nwEpc.DefaultRuleID,
-			Services:      pipelineDServices,
+			LogLevel:               protos.LogLevel_INFO,
+			UeIpBlock:              gwEpc.IPBlock,
+			NatEnabled:             swag.BoolValue(gwEpc.NatEnabled),
+			DefaultRuleId:          nwEpc.DefaultRuleID,
+			Services:               pipelineDServices,
 			SgiManagementIfaceVlan: gwEpc.SgiManagementIfaceVlan,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{

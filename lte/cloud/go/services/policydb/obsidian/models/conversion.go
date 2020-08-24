@@ -110,8 +110,9 @@ func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 		Key:    string(m.ID),
 		Config: m.getConfig(),
 	}
+	// ParentAssociations treated as read-only by configurator
 	for _, sid := range m.AssignedSubscribers {
-		ret.Associations = append(ret.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+		ret.ParentAssociations = append(ret.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
 	return ret
 }
@@ -119,7 +120,7 @@ func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
 	m.ID = PolicyID(ent.Key)
 	m.fillFromConfig(ent.Config)
-	for _, assoc := range ent.Associations {
+	for _, assoc := range ent.ParentAssociations {
 		if assoc.Type == lte.SubscriberEntityType {
 			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(assoc.Key))
 		}
@@ -133,10 +134,15 @@ func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria 
 		Key:       string(m.ID),
 		NewConfig: m.getConfig(),
 	}
-	for _, sid := range m.AssignedSubscribers {
-		ret.AssociationsToSet = append(ret.AssociationsToSet, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
-	}
 	return ret
+}
+
+func (m *PolicyRule) GetParentAssociations() []storage.TypeAndKey {
+	allAssocs := []storage.TypeAndKey{}
+	for _, sid := range m.AssignedSubscribers {
+		allAssocs = append(allAssocs, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+	}
+	return allAssocs
 }
 
 func (m *PolicyRule) getConfig() *PolicyRuleConfig {
