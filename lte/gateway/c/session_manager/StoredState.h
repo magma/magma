@@ -200,6 +200,7 @@ struct StoredSessionState {
   std::string imsi;
   std::string session_id;
   uint64_t pdp_start_time;
+  uint64_t pdp_end_time;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;

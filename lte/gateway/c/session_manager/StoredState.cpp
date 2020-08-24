@@ -371,6 +371,7 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   stored.tgpp_context.SerializeToString(&tgpp_context);
   marshaled["tgpp_context"] = tgpp_context;
   marshaled["pdp_start_time"] = std::to_string(stored.pdp_start_time);
+  marshaled["pdp_end_time"] = std::to_string(stored.pdp_end_time);
 
   marshaled["pending_event_triggers"] =
       serialize_pending_event_triggers(stored.pending_event_triggers);
@@ -462,6 +463,8 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
 
   stored.pdp_start_time = static_cast<uint64_t>(
       std::stoul(marshaled["pdp_start_time"].getString()));
+  stored.pdp_end_time = static_cast<uint64_t>(
+      std::stoul(marshaled["pdp_end_time"].getString()));
 
   return stored;
 }

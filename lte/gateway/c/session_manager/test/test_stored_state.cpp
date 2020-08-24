@@ -125,7 +125,8 @@ class StoredStateTest : public ::testing::Test {
     tgpp_context.set_gx_dest_host("gx");
     tgpp_context.set_gy_dest_host("gy");
     stored.tgpp_context = tgpp_context;
-    stored.pdp_start_time = 12345;
+    stored.pdp_start_time = 112233;
+    stored.pdp_end_time = 332211;
 
     stored.pending_event_triggers[REVALIDATION_TIMEOUT] = READY;
     stored.revalidation_time.set_seconds(32);
@@ -302,7 +303,6 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 
-  EXPECT_EQ(stored.pdp_start_time, 12345);
   EXPECT_EQ(deserialized.imsi, "IMSI1");
   EXPECT_EQ(deserialized.session_id, "session_id");
   EXPECT_EQ(
@@ -320,6 +320,8 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(deserialized.bearer_id_by_policy.size(), 2);
 
   EXPECT_EQ(deserialized.request_number, 1);
+  EXPECT_EQ(deserialized.pdp_start_time, 112233);
+  EXPECT_EQ(deserialized.pdp_end_time, 332211);
 }
 
 int main(int argc, char** argv) {
