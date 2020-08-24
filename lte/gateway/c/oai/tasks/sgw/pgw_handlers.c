@@ -59,6 +59,7 @@
 #include "sgw_ie_defs.h"
 #include "pgw_procedures.h"
 #include "spgw_types.h"
+#include "conversions.h"
 
 extern spgw_config_t spgw_config;
 extern void print_bearer_ids_helper(const ebi_t*, uint32_t);
@@ -504,13 +505,15 @@ int spgw_send_nw_init_activate_bearer_rsp(
 
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
-      "To be implemented: Sending Create Bearer Rsp to PCRF with EBI %d with "
+      "Sending Create Bearer Rsp to PCRF with EBI %d with "
       "cause: %d linked bearer id: %d policy rule name: %s\n",
       eps_bearer_id, cause, default_bearer_id, policy_rule_name);
-  // Send Create Bearer Rsp to PCRF
-  // TODO-Uncomment once implemented at PCRF
-  /* rc = send_dedicated_bearer_actv_rsp(act_ded_bearer_rsp->ebi,
-       act_ded_bearer_rsp->cause);*/
+  // Send Dedicated Bearer ID and Policy Rule ID binding to PCRF
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+  pcef_send_policy2bearer_binding(
+      imsi_str, default_bearer_id, policy_rule_name, eps_bearer_id);
+
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
 

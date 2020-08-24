@@ -541,4 +541,21 @@ void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
   }
 }
 
+void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
+    ServerContext* context, const PolicyBearerBindingRequest* request,
+    std::function<void(Status, PolicyBearerBindingResponse)>
+        response_callback) {
+  auto& request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  MLOG(INFO) << "imsi: " << request->sid().id()
+             << " default bearer: " << request->linked_bearer_id()
+             << " policy rule: " << request->policy_rule_id()
+             << " created bearer: " << request->bearer_id();
+  // TO DO:
+  // Check if response has a non-zero dedicated bearer ID:
+  // Update the policy to bearer map if non-zero
+  // Delete the policy rule if zero
+  response_callback(Status::OK, PolicyBearerBindingResponse());
+}
+
 }  // namespace magma

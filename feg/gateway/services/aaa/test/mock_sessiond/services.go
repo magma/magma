@@ -69,6 +69,13 @@ func (c *MockSessionManager) EndSession(ctx context.Context, in *protos.LocalEnd
 	return &protos.LocalEndSessionResponse{}, nil
 }
 
+func (c *MockSessionManager) BindPolicy2Bearer(ctx context.Context, in *protos.PolicyBearerBindingRequest) (*protos.PolicyBearerBindingResponse, error) {
+	if c.returnErrors {
+		return nil, fmt.Errorf("BindPolicy2Bearer returnErrors enabled")
+	}
+	return &protos.PolicyBearerBindingResponse{}, nil
+}
+
 func (c *MockSessionManager) ReturnErrors(enable bool) {
 	c.returnErrors = enable
 }
