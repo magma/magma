@@ -67,15 +67,16 @@ func (m *BaseNames) ToUpdateCriteria(network configurator.Network) (configurator
 
 func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
 	return configurator.NetworkEntity{
-		Type:         lte.BaseNameEntityType,
-		Key:          string(m.Name),
-		Associations: m.getAssociations(),
+		Type: lte.BaseNameEntityType,
+		Key:  string(m.Name),
+		// This field is considered read-only by configurator
+		ParentAssociations: m.GetParentAssociations(),
 	}
 }
 
 func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
 	m.Name = BaseName(ent.Key)
-	for _, tk := range ent.Associations {
+	for _, tk := range ent.ParentAssociations {
 		if tk.Type == lte.PolicyRuleEntityType {
 			m.RuleNames = append(m.RuleNames, tk.Key)
 		} else if tk.Type == lte.SubscriberEntityType {
@@ -85,15 +86,7 @@ func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRec
 	return m
 }
 
-func (m *BaseNameRecord) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
-	return configurator.EntityUpdateCriteria{
-		Type:              lte.BaseNameEntityType,
-		Key:               string(m.Name),
-		AssociationsToSet: m.getAssociations(),
-	}
-}
-
-func (m *BaseNameRecord) getAssociations() []storage.TypeAndKey {
+func (m *BaseNameRecord) GetParentAssociations() []storage.TypeAndKey {
 	allAssocs := make([]storage.TypeAndKey, 0, len(m.RuleNames)+len(m.AssignedSubscribers))
 	allAssocs = append(allAssocs, m.RuleNames.ToAssocs()...)
 	for _, sid := range m.AssignedSubscribers {

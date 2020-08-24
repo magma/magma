@@ -108,19 +108,19 @@ func getRuleUpdateForDisableRule(ruleID string, subscriberID string) configurato
 
 func getBaseNameUpdateForEnable(baseName string, subscriberID string) configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
-		Type: lte.BaseNameEntityType,
-		Key:  baseName,
+		Type:              lte.SubscriberEntityType,
+		Key:               subscriberID,
+		AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
 	}
-	ret.AssociationsToAdd = append(ret.AssociationsToAdd, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: subscriberID})
 	return ret
 }
 
 func getBaseNameUpdateForDisable(baseName string, subscriberID string) configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
-		Type: lte.BaseNameEntityType,
-		Key:  baseName,
+		Type:                 lte.SubscriberEntityType,
+		Key:                  subscriberID,
+		AssociationsToDelete: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
 	}
-	ret.AssociationsToDelete = append(ret.AssociationsToDelete, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: subscriberID})
 	return ret
 }
 

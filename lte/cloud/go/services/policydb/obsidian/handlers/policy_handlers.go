@@ -22,6 +22,7 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
@@ -43,7 +44,7 @@ func ListBaseNames(c echo.Context) error {
 
 	view := c.QueryParam("view")
 	if strings.ToLower(view) == "full" {
-		baseNames, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.BaseNameEntityType, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+		baseNames, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.BaseNameEntityType, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -73,9 +74,37 @@ func CreateBaseName(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	_, err := configurator.CreateEntity(networkID, bnr.ToEntity())
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	// Verify that subscribers and policies exist
+	allAssocs := bnr.GetParentAssociations()
+	doAssignedAssocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
+	if !doAssignedAssocsExist {
+		return obsidian.HttpError(errors.New("failed to create base name: one or more subscribers or policies do not exist"), http.StatusInternalServerError)
+	}
+
+	// In one transaction, create the base name and associate subscribers
+	// and policies to it. Succeeds or fails in its entirety.
+	// Create entity
+	createdEntity := bnr.ToEntity()
+	writes := []configurator.EntityWriteOperation{}
+	writes = append(writes, createdEntity)
+	// Update entity operations for subscribers and policies to point
+	for _, tk := range allAssocs {
+		if tk.Type == lte.PolicyRuleEntityType {
+			writes = append(writes, configurator.EntityUpdateCriteria{
+				Type:              lte.PolicyRuleEntityType,
+				Key:               tk.Key,
+				AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: createdEntity.Key}},
+			})
+		} else if tk.Type == lte.SubscriberEntityType {
+			writes = append(writes, configurator.EntityUpdateCriteria{
+				Type:              lte.SubscriberEntityType,
+				Key:               tk.Key,
+				AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: createdEntity.Key}},
+			})
+		}
+	}
+	if err := configurator.WriteEntities(networkID, writes...); err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to create base name"), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusCreated, string(bnr.Name))
 }
@@ -90,7 +119,7 @@ func GetBaseName(c echo.Context) error {
 		networkID,
 		lte.BaseNameEntityType,
 		baseName,
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
 	)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
@@ -117,19 +146,84 @@ func UpdateBaseName(c echo.Context) error {
 	}
 
 	// 404 if the entity doesn't exist
-	exists, err := configurator.DoesEntityExist(networkID, lte.BaseNameEntityType, baseName)
-	if err != nil {
+	prevBaseNameEnt, err := configurator.LoadEntity(
+		networkID,
+		lte.BaseNameEntityType,
+		baseName,
+		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
+	)
+	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to check if base name exists"), http.StatusInternalServerError)
 	}
-	if !exists {
-		return echo.ErrNotFound
-	}
-
-	_, err = configurator.UpdateEntity(networkID, bnr.ToEntityUpdateCriteria())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+	prevBaseName := (&models.BaseNameRecord{}).FromEntity(prevBaseNameEnt)
+
+	// Verify that associated subscribers and policies exist
+	allAssocs := bnr.GetParentAssociations()
+	doAssignedAssocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
+	if !doAssignedAssocsExist {
+		return obsidian.HttpError(errors.New("failed to update base name: one or more subscribers or policies do not exist"), http.StatusInternalServerError)
+	}
+
+	// In one transaction, modify the base name, and change associations
+	// between subscribers/policies and the base name
+	// Succeeds or fails in its entirety.
+	writes := []configurator.EntityWriteOperation{}
+	prevAssocs := prevBaseName.GetParentAssociations()
+	assocsToRemove := getTypeAndKeyDiff(prevAssocs, allAssocs)
+	for _, tk := range assocsToRemove {
+		if tk.Type == lte.PolicyRuleEntityType {
+			writes = append(writes, configurator.EntityUpdateCriteria{
+				Type:                 lte.PolicyRuleEntityType,
+				Key:                  tk.Key,
+				AssociationsToDelete: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+			})
+		} else if tk.Type == lte.SubscriberEntityType {
+			writes = append(writes, configurator.EntityUpdateCriteria{
+				Type:                 lte.SubscriberEntityType,
+				Key:                  tk.Key,
+				AssociationsToDelete: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+			})
+		}
+	}
+	assocsToAdd := getTypeAndKeyDiff(allAssocs, prevAssocs)
+	for _, tk := range assocsToAdd {
+		if tk.Type == lte.PolicyRuleEntityType {
+			writes = append(writes, configurator.EntityUpdateCriteria{
+				Type:              lte.PolicyRuleEntityType,
+				Key:               tk.Key,
+				AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+			})
+		} else if tk.Type == lte.SubscriberEntityType {
+			writes = append(writes, configurator.EntityUpdateCriteria{
+				Type:              lte.SubscriberEntityType,
+				Key:               tk.Key,
+				AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: baseName}},
+			})
+		}
+	}
+	if err = configurator.WriteEntities(networkID, writes...); err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to update base name"), http.StatusInternalServerError)
+	}
+
 	return c.NoContent(http.StatusNoContent)
+}
+
+func getTypeAndKeyDiff(a []storage.TypeAndKey, b []storage.TypeAndKey) []storage.TypeAndKey {
+	aLessB := map[string]storage.TypeAndKey{}
+	for _, tk := range a {
+		aLessB[tk.String()] = tk
+	}
+	for _, tk := range b {
+		delete(aLessB, tk.String())
+	}
+	ret := []storage.TypeAndKey{}
+	for _, v := range aLessB {
+		ret = append(ret, v)
+	}
+	return ret
 }
 
 func DeleteBaseName(c echo.Context) error {

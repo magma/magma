@@ -180,6 +180,25 @@ func TestPolicyStreamers(t *testing.T) {
 	})
 	assert.NoError(t, err)
 
+	_, err = configurator.UpdateEntities("n1", []configurator.EntityUpdateCriteria{
+		{
+			Type:              lte.PolicyRuleEntityType,
+			Key:               "r1",
+			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: "b1"}},
+		},
+		{
+			Type:              lte.PolicyRuleEntityType,
+			Key:               "r2",
+			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: "b1"}},
+		},
+		{
+			Type:              lte.PolicyRuleEntityType,
+			Key:               "r3",
+			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.BaseNameEntityType, Key: "b2"}},
+		},
+	})
+	assert.NoError(t, err)
+
 	expectedProtos := []*lte_protos.PolicyRule{
 		{
 			Id:            "r1",

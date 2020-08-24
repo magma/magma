@@ -643,7 +643,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 			Type:      lte.BaseNameEntityType,
 			Key:       "b1",
 			GraphID:   "10",
-			Associations: []storage.TypeAndKey{
+			ParentAssociations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "p1"},
 				{Type: lte.SubscriberEntityType, Key: imsi2},
 				{Type: lte.SubscriberEntityType, Key: imsi1},
@@ -675,11 +675,11 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 			Type:      lte.BaseNameEntityType,
 			Key:       "b1",
 			GraphID:   "10",
-			Associations: []storage.TypeAndKey{
+			ParentAssociations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "p2"},
 				{Type: lte.SubscriberEntityType, Key: imsi3},
 			},
-			Version: 1,
+			Version: 0,
 		},
 	)
 
@@ -707,14 +707,14 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 			Type:      lte.BaseNameEntityType,
 			Key:       "b1",
 			GraphID:   "10",
-			Associations: []storage.TypeAndKey{
+			ParentAssociations: []storage.TypeAndKey{
 				{Type: lte.PolicyRuleEntityType, Key: "p1"},
 				{Type: lte.PolicyRuleEntityType, Key: "p2"},
 				{Type: lte.SubscriberEntityType, Key: imsi2},
 				{Type: lte.SubscriberEntityType, Key: imsi3},
 				{Type: lte.SubscriberEntityType, Key: imsi1},
 			},
-			Version: 2,
+			Version: 0,
 		},
 	)
 }
