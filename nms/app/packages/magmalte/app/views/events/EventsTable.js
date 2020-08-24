@@ -33,7 +33,6 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -136,16 +135,7 @@ function ExpandEvent(props: EventDescriptionProps) {
   );
 }
 
-function handleEventQuery(
-  networkId,
-  streams,
-  tags,
-  q,
-  from,
-  start,
-  end,
-  enqueueSnackbar,
-) {
+function handleEventQuery(networkId, streams, tags, q, from, start, end) {
   return new Promise(async (resolve, reject) => {
     try {
       const eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
@@ -189,8 +179,7 @@ function handleEventQuery(
         totalCount: eventCount,
       });
     } catch (e) {
-      enqueueSnackbar(e, {variant: 'error'});
-      reject(e);
+      reject(e?.message ?? 'error retrieving events');
     }
   });
 }
@@ -209,7 +198,6 @@ export default function EventsTable({
   const [endDate, setEndDate] = useState(moment());
   const [eventCount, setEventCount] = useState(0);
   const tableRef = useRef(null);
-  const enqueueSnackbar = useEnqueueSnackbar();
   const {match} = useRouter();
   const networkId = nullthrows(match.params.networkId);
   const streams =
@@ -287,7 +275,6 @@ export default function EventsTable({
               0,
               startDate,
               endDate,
-              enqueueSnackbar,
             );
           }}
           columns={[
@@ -322,7 +309,6 @@ export default function EventsTable({
               0,
               startDate,
               endDate,
-              enqueueSnackbar,
             );
           }}
           columns={[
@@ -376,7 +362,6 @@ export default function EventsTable({
                     0,
                     startDate,
                     endDate,
-                    enqueueSnackbar,
                   );
                 }}
                 columns={[
