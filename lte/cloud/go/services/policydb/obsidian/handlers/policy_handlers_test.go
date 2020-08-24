@@ -1128,7 +1128,9 @@ func newTestQoSProfile() *policyModels.PolicyQosProfile {
 			Downlink: swag.Uint32(42),
 			Uplink:   swag.Uint32(420),
 		},
-		ID: "profile0",
+		ID:         "profile0",
+		MaxReqBwDl: swag.Uint32(42),
+		MaxReqBwUl: swag.Uint32(420),
 	}
 	return profile
 }
