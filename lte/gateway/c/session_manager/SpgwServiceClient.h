@@ -43,31 +43,19 @@ public:
 
   /**
    * Delete a dedicated bearer
-   * @param imsi - msi to identify a UE
-   * @param apn_ip_addr - imsi and apn_ip_addrs identify a default bearer
-   * @param linked_bearer_id - identifier for link bearer
-   * @param eps_bearer_ids - ids of bearers to delete
-   * @return true if the operation was successful
+   * @param DeleteBearerRequest
+   * @return always returns true
    */
-  virtual bool
-  delete_dedicated_bearer(const std::string &imsi,
-                          const std::string &apn_ip_addr,
-                          const uint32_t linked_bearer_id,
-                          const std::vector<uint32_t> &eps_bearer_ids) = 0;
+  virtual bool delete_dedicated_bearer(
+      const magma::DeleteBearerRequest& request) = 0;
 
   /**
    * Create a dedicated bearer
-   * @param imsi - msi to identify a UE
-   * @param apn_ip_addr - imsi and apn_ip_addrs identify a default bearer
-   * @param linked_bearer_id - identifier for link bearer
-   * @param flows - flow information required for a dedicated bearer
-   * @return true if the operation was successful
+   * @param CreateBearerRequest
+   * @return always returns true
    */
-  virtual bool
-  create_dedicated_bearer(const std::string &imsi,
-                          const std::string &apn_ip_addr,
-                          const uint32_t linked_bearer_id,
-                          const std::vector<PolicyRule> &flows) = 0;
+  virtual bool create_dedicated_bearer(
+      const magma::CreateBearerRequest& request) = 0;
 };
 
 /**
@@ -92,45 +80,34 @@ public:
 
   /**
    * Delete a dedicated bearer
-   * @param imsi - msi to identify a UE
-   * @param apn_ip_addr - imsi and apn_ip_addrs identify a default bearer
-   * @param linked_bearer_id - identifier for link bearer
-   * @param flows - flow information required for a dedicated bearer
-   * @return true if the operation was successful
+   * @param DeleteBearerRequest
+   * @return always returns true
    */
-  bool delete_dedicated_bearer(const std::string &imsi,
-                               const std::string &apn_ip_addr,
-                               const uint32_t linked_bearer_id,
-                               const std::vector<uint32_t> &eps_bearer_ids);
+  bool delete_dedicated_bearer(const magma::DeleteBearerRequest& request);
 
   /**
    * Create a dedicated bearer
-   * @param imsi - msi to identify a UE
-   * @param apn_ip_addr - imsi and apn_ip_addrs identify a default bearer
-   * @param linked_bearer_id - identifier for link bearer
-   * @param flows - flow information required for a dedicated bearer
-   * @return true if the operation was successful
+   * @param CreateBearerRequest
+   * @return always returns true
    */
-  bool create_dedicated_bearer(const std::string &imsi,
-                               const std::string &apn_ip_addr,
-                               const uint32_t linked_bearer_id,
-                               const std::vector<PolicyRule> &flows);
+  bool create_dedicated_bearer(const magma::CreateBearerRequest& request);
 
-private:
-  static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
+ private:
+  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
   std::unique_ptr<SpgwService::Stub> stub_;
 
-private:
-  bool delete_bearer(const std::string &imsi, const std::string &apn_ip_addr,
-                     const uint32_t linked_bearer_id,
-                     const std::vector<uint32_t> &eps_bearer_ids);
+ private:
+  bool delete_bearer(
+      const std::string& imsi, const std::string& apn_ip_addr,
+      const uint32_t linked_bearer_id,
+      const std::vector<uint32_t>& eps_bearer_ids);
 
-  void
-  delete_bearer_rpc(const DeleteBearerRequest &request,
-                    std::function<void(Status, DeleteBearerResult)> callback);
+  void delete_bearer_rpc(
+      const DeleteBearerRequest& request,
+      std::function<void(Status, DeleteBearerResult)> callback);
 
   void create_dedicated_bearer_rpc(
-      const CreateBearerRequest &request,
+      const CreateBearerRequest& request,
       std::function<void(Status, CreateBearerResult)> callback);
 };
 

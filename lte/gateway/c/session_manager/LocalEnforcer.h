@@ -209,10 +209,6 @@ class LocalEnforcer {
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
  private:
-  struct RulesToProcess {
-    std::vector<std::string> static_rules;
-    std::vector<PolicyRule> dynamic_rules;
-  };
   struct RedirectInstallInfo {
     std::string imsi;
     std::string session_id;
@@ -542,6 +538,8 @@ class LocalEnforcer {
   bool terminate_on_wallet_exhaust();
 
   void schedule_termination(std::unordered_set<std::string>& imsis);
+
+  void propagate_bearer_updates_to_mme(const BearerUpdate& updates);
 };
 
 }  // namespace magma
