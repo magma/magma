@@ -263,7 +263,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
               MLOG(MINFO) << "Successfully initialized new session " << sid
                           << " in sessiond for subscriber " << imsi
                           << " with default bearer id " << bearer_id;
-              add_session_to_directory_record(imsi, sid);
+              add_session_to_directory_record(imsi, sid,
+                  cfg.common_context.msisdn());
             } else {
               MLOG(MINFO) << "Failed to initialize new session " << sid
                           << " in sessiond for subscriber " << imsi
@@ -394,12 +395,15 @@ void LocalSessionManagerHandlerImpl::send_local_create_session_response(
 }
 
 void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
-    const std::string& imsi, const std::string& session_id) {
+    const std::string& imsi, const std::string& session_id,
+    const std::string& msisdn) {
   UpdateRecordRequest request;
   request.set_id(imsi);
   auto update_fields         = request.mutable_fields();
   std::string session_id_key = "session_id";
   update_fields->insert({session_id_key, session_id});
+  std::string msisdn_id_key = "msisdn";
+  update_fields->insert({msisdn_id_key, msisdn});
   directoryd_client_->update_directoryd_record(
       request, [this, imsi](Status status, Void) {
         if (!status.ok()) {
