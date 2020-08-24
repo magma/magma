@@ -34,7 +34,7 @@ func TestGetXAPCalculations(t *testing.T) {
 }
 
 func TestGetUserThroughputCalculations(t *testing.T) {
-	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
+	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, "hours"})
 	calcs := getUserThroughputCalculations([]int{1, 7, 30}, userThroughputGauge, "metricName")
 	for _, calc := range calcs {
 		c := calc.(*calculations.UserThroughputCalculation)
@@ -43,11 +43,20 @@ func TestGetUserThroughputCalculations(t *testing.T) {
 }
 
 func TestGetUserConsumptionCalculations(t *testing.T) {
-	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
+	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, "hours"})
 	calcs := getUserConsumptionCalculations([]int{1, 7, 30}, userConsumptionGauge, "metricName")
 	for _, calc := range calcs {
 		c := calc.(*calculations.UserConsumptionCalculation)
 		assert.Equal(t, strconv.Itoa(c.Days), c.Labels[calculations.DaysLabel])
+	}
+}
+
+func TestGet1hourUserConsumptionCalculations(t *testing.T) {
+	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
+	calcs := get1hourConsumptionCalculation(userConsumptionGauge, "metricName")
+	for _, calc := range calcs {
+		c := calc.(*calculations.UserConsumptionCalculation)
+		assert.Equal(t, strconv.Itoa(c.Hours), c.Labels["hours"])
 	}
 }
 

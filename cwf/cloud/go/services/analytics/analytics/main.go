@@ -28,7 +28,7 @@ import (
 
 	"github.com/golang/glog"
 	promAPI "github.com/prometheus/client_golang/api"
-	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
+	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/client_golang/prometheus"
 )
 
@@ -38,7 +38,9 @@ const (
 	activeUsersMetricName     = "active_users_over_time"
 	userThroughputMetricName  = "user_throughput"
 	userConsumptionMetricName = "user_consumption"
+	userConsumptionHourlyMetricName = "user_consumption_hourly"
 	apThroughputMetricName    = "throughput_per_ap"
+	authenticationsMetricName = "authentications_over_time"
 
 	defaultAnalysisSchedule = "0 */12 * * *" // Every 12 hours
 )
@@ -102,8 +104,10 @@ func getAnalyticsCalculations() []calculations.Calculation {
 	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName})
 	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
 	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
+	hourlyUserConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionHourlyMetricName}, []string{"hours", metrics.NetworkLabelName, calculations.DirectionLabel})
 	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, calculations.APNLabel})
-	prometheus.MustRegister(xapGauge, userThroughputGauge, userConsumptionGauge, apThroughputGauge)
+	authenticationsGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: authenticationsMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName})
+	prometheus.MustRegister(xapGauge, userThroughputGauge, userConsumptionGauge, hourlyUserConsumptionGauge, apThroughputGauge, authenticationsGauge)
 
 	allCalculations := make([]calculations.Calculation, 0)
 
@@ -118,6 +122,10 @@ func getAnalyticsCalculations() []calculations.Calculation {
 
 	// User Consumption Calculations
 	allCalculations = append(allCalculations, getUserConsumptionCalculations(daysToCalculate, userConsumptionGauge, userConsumptionMetricName)...)
+	allCalculations = append(allCalculations, get1hourConsumptionCalculation(hourlyUserConsumptionGauge, userConsumptionHourlyMetricName)...)
+
+	// Authentication Calculations
+	allCalculations = append(allCalculations, getAuthenticationCalculations(daysToCalculate, authenticationsGauge, authenticationsMetricName)...)
 
 	return allCalculations
 }
@@ -189,6 +197,37 @@ func getUserConsumptionCalculations(daysList []int, gauge *prometheus.GaugeVec, 
 				Direction: dir,
 			})
 		}
+	}
+	return calcs
+}
+
+func get1hourConsumptionCalculation(gauge *prometheus.GaugeVec, metricName string) []calculations.Calculation {
+	calcs := make([]calculations.Calculation, 0)
+	for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
+		calcs = append(calcs, &calculations.UserConsumptionCalculation{
+			CalculationParams: calculations.CalculationParams{
+				RegisteredGauge: gauge,
+				Labels:          prometheus.Labels{"hours": "1"},
+				Name:            metricName,
+			},
+			Direction: dir,
+			Hours:     1,
+		})
+	}
+	return calcs
+}
+
+func getAuthenticationCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []calculations.Calculation {
+	calcs := make([]calculations.Calculation, 0)
+	for _, dayParam := range daysList {
+		calcs = append(calcs, &calculations.AuthenticationsCalculation{
+			CalculationParams: calculations.CalculationParams{
+				Days: dayParam,
+				RegisteredGauge: gauge,
+				Labels: prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+				Name: metricName,
+			},
+		})
 	}
 	return calcs
 }
