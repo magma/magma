@@ -558,4 +558,15 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
   response_callback(Status::OK, PolicyBearerBindingResponse());
 }
 
+void LocalSessionManagerHandlerImpl::SetSessionRules(
+    ServerContext* context, const SessionRules* request,
+    std::function<void(Status, Void)> response_callback) {
+  auto& request_cpy = *request;
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  MLOG(MINFO) << "Received session <-> rule associations";
+  // TODO @themarwhal
+  // Add logic to insert rules into SessionState+PipelineD+PotentiallyBearerMap
+  response_callback(Status::OK, Void());
+}
+
 }  // namespace magma

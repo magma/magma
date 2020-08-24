@@ -262,6 +262,22 @@ message PolicyReAuthAnswer {
   map<string, FailureCode> failed_rules = 3;
 }
 
+message RuleSet {
+  bool apply_subscriber_wide = 1; // Apply the rules to all sessions for IMSI
+  string apn = 2;
+  repeated StaticRuleInstall static_rules = 3;
+  repeated DynamicRuleInstall dynamic_rules = 4;
+}
+
+message RulesPerSubscriber {
+  string imsi = 1;
+  repeated RuleSet rule_set = 3;
+}
+
+message SessionRules {
+  repeated RulesPerSubscriber rules_per_subscriber = 1;
+}
+
 service LocalSessionManager {
   rpc ReportRuleStats(RuleRecordTable) returns (orc8r.Void) {}
 
@@ -270,6 +286,8 @@ service LocalSessionManager {
   rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
 
   rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
+  // A set interface of subscribers -> currently active rules
+  rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
 }
 
 service SessionProxyResponder {
