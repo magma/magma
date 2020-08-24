@@ -273,6 +273,38 @@ class EndSessionCallData :
 };
 
 /**
+ * Class to handle BindPolicy2Bearer requests
+ */
+class BindPolicy2BearerCallData :
+  public AsyncGRPCRequest<
+    LocalSessionManager::AsyncService,
+    PolicyBearerBindingRequest,
+    PolicyBearerBindingResponse> {
+ public:
+  BindPolicy2BearerCallData(
+    ServerCompletionQueue *cq,
+    LocalSessionManager::AsyncService &service,
+    LocalSessionManagerHandler &handler):
+    AsyncGRPCRequest(cq, service),
+    handler_(handler)
+  {
+    service_.RequestBindPolicy2Bearer(
+      &ctx_, &request_, &responder_, cq_, cq_, (void *) this);
+  }
+
+ protected:
+  void clone() override { new BindPolicy2BearerCallData(cq_, service_, handler_); }
+
+  void process() override
+  {
+    handler_.BindPolicy2Bearer(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  LocalSessionManagerHandler &handler_;
+};
+
+/**
  * Class to handle ChargingReauth requests
  */
 class ChargingReAuthCallData :

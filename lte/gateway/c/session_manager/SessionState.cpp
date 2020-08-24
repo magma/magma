@@ -188,6 +188,11 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
       }
     }
   }
+  // QoS Management
+  if (uc.is_bearer_mapping_updated) {
+    bearer_id_by_policy_ = uc.bearer_id_by_policy;
+  }
+
   // Config
   if (uc.is_config_updated) {
     config_ = uc.updated_config;
@@ -1339,6 +1344,30 @@ void SessionState::set_session_level_key(const std::string new_key) {
   session_level_key_ = new_key;
 }
 
+BearerUpdate SessionState::get_dedicated_bearer_updates(
+    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& uc) {
+  BearerUpdate update;
+  // Rule Installs
+  for (const auto& rule_id : rules_to_activate.static_rules) {
+    update_bearer_creation_req(STATIC, rule_id, config_, update);
+  }
+  for (const auto& rule : rules_to_activate.dynamic_rules) {
+    const auto& rule_id = rule.id();
+    update_bearer_creation_req(DYNAMIC, rule_id, config_, update);
+  }
+
+  // Rule Removals
+  for (const auto& rule_id : rules_to_deactivate.static_rules) {
+    update_bearer_deletion_req(STATIC, rule_id, config_, update, uc);
+  }
+  for (const auto& rule : rules_to_deactivate.dynamic_rules) {
+    const auto& rule_id = rule.id();
+    update_bearer_deletion_req(DYNAMIC, rule_id, config_, update, uc);
+  }
+  return update;
+}
+
 SessionCreditUpdateCriteria* SessionState::get_monitor_uc(
     const std::string& key, SessionStateUpdateCriteria& uc) {
   if (uc.monitor_credit_map.find(key) == uc.monitor_credit_map.end()) {
@@ -1423,5 +1452,86 @@ bool SessionState::is_credit_state_redirected(
     return false;
   }
   return it->second->service_state == SERVICE_REDIRECTED;
+}
+
+// QoS/Bearer Management
+bool SessionState::policy_has_qos(
+    const PolicyType policy_type, const std::string& rule_id,
+    PolicyRule* rule_out) {
+  if (policy_type == STATIC) {
+    bool exists = static_rules_.get_rule(rule_id, rule_out);
+    return exists && rule_out->has_qos();
+  }
+  if (policy_type == DYNAMIC) {
+    bool exists = dynamic_rules_.get_rule(rule_id, rule_out);
+    return exists && rule_out->has_qos();
+  }
+  return false;
+}
+
+void SessionState::update_bearer_creation_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update) {
+  if (!config.rat_specific_context.has_lte_context()) {
+    return;
+  }
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) !=
+      bearer_id_by_policy_.end()) {
+    // Policy already has a bearer
+    return;
+  }
+  PolicyRule rule;
+  if (!policy_has_qos(policy_type, rule_id, &rule)) {
+    // Only create a bearer for policies with QoS
+    return;
+  }
+  auto default_qci = FlowQos_Qci(
+      config.rat_specific_context.lte_context().qos_info().qos_class_id());
+  if (rule.qos().qci() == default_qci) {
+    // This QCI is already covered by the default bearer
+    return;
+  }
+
+  // If it is first time filling in the CreationReq, fill in other info
+  if (!update.needs_creation) {
+    update.needs_creation = true;
+    update.create_req.mutable_sid()->CopyFrom(config.common_context.sid());
+    update.create_req.set_ip_addr(config.common_context.ue_ipv4());
+    update.create_req.set_link_bearer_id(
+        config.rat_specific_context.lte_context().bearer_id());
+  }
+  update.create_req.mutable_policy_rules()->Add()->CopyFrom(rule);
+  // We will add the new policyID to bearerID association, once we receive a
+  // message from SGW.
+}
+
+void SessionState::update_bearer_deletion_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update,
+    SessionStateUpdateCriteria& uc) {
+  if (!config.rat_specific_context.has_lte_context()) {
+    return;
+  }
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) ==
+      bearer_id_by_policy_.end()) {
+    return;
+  }
+
+  // map change needs to be propagated to the store
+  bearer_id_by_policy_.erase(PolicyID(policy_type, rule_id));
+  uc.is_bearer_mapping_updated = true;
+  uc.bearer_id_by_policy       = bearer_id_by_policy_;
+
+  // If it is first time filling in the DeletionReq, fill in other info
+  if (!update.needs_deletion) {
+    update.needs_deletion = true;
+    auto& req             = update.delete_req;
+    req.mutable_sid()->CopyFrom(config.common_context.sid());
+    req.set_ip_addr(config.common_context.ue_ipv4());
+    req.set_link_bearer_id(
+        config.rat_specific_context.lte_context().bearer_id());
+  }
+  update.delete_req.mutable_eps_bearer_ids()->Add(
+      bearer_id_by_policy_[PolicyID(policy_type, rule_id)]);
 }
 }  // namespace magma

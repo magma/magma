@@ -1728,6 +1728,7 @@ static void _handle_failed_create_bearer_response(
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
   ebi_t default_bearer_id = spgw_context->sgw_eps_bearer_context_information
                                 .pdn_connection.default_bearer;
+
   if (spgw_context) {
     pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(spgw_context);
     if (((pgw_ni_cbr_proc) &&

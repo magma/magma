@@ -88,4 +88,10 @@ MATCHER_P(CheckEventType, expectedEventType, "") {
   return (arg.event_type() == expectedEventType);
 }
 
+MATCHER_P2(CheckCreateBearerReq, imsi, rule_count, "") {
+  auto request = static_cast<const CreateBearerRequest>(arg);
+  return request.sid().id() == imsi &&
+         request.policy_rules().size() == rule_count;
+}
+
 };  // namespace magma

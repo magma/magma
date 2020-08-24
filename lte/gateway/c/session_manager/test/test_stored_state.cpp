@@ -102,6 +102,13 @@ class StoredStateTest : public ::testing::Test {
     return stored;
   }
 
+  BearerIDByPolicyID get_bearer_id_by_policy() {
+    BearerIDByPolicyID stored;
+    stored[PolicyID(DYNAMIC, "rule1")] = 32;
+    stored[PolicyID(STATIC, "rule1")]  = 64;
+    return stored;
+  }
+
   StoredSessionState get_stored_session() {
     StoredSessionState stored;
 
@@ -122,6 +129,8 @@ class StoredStateTest : public ::testing::Test {
 
     stored.pending_event_triggers[REVALIDATION_TIMEOUT] = READY;
     stored.revalidation_time.set_seconds(32);
+
+    stored.bearer_id_by_policy = get_bearer_id_by_policy();
 
     stored.request_number = 1;
     stored.pdp_start_time = 123;
@@ -162,6 +171,20 @@ TEST_F(StoredStateTest, test_stored_final_action_info) {
   EXPECT_EQ(
       deserialized.redirect_server.redirect_server_address(),
       "redirect_server_address");
+}
+
+TEST_F(StoredStateTest, test_stored_bearer_id_by_policy) {
+  auto stored       = get_bearer_id_by_policy();
+  auto serialized   = serialize_bearer_id_by_policy(stored);
+  auto deserialized = deserialize_bearer_id_by_policy(serialized);
+  EXPECT_EQ(stored[PolicyID(DYNAMIC, "rule1")], 32);
+  EXPECT_EQ(stored.size(), deserialized.size());
+  EXPECT_EQ(
+      stored[PolicyID(DYNAMIC, "rule1")],
+      deserialized[PolicyID(DYNAMIC, "rule1")]);
+  EXPECT_EQ(
+      stored[PolicyID(STATIC, "rule1")],
+      deserialized[PolicyID(STATIC, "rule1")]);
 }
 
 TEST_F(StoredStateTest, test_stored_session_credit) {
@@ -280,21 +303,24 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 
-  EXPECT_EQ(stored.imsi, "IMSI1");
-  EXPECT_EQ(stored.session_id, "session_id");
+  EXPECT_EQ(deserialized.imsi, "IMSI1");
+  EXPECT_EQ(deserialized.session_id, "session_id");
   EXPECT_EQ(
-      stored.subscriber_quota_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
-  EXPECT_EQ(stored.fsm_state, SESSION_RELEASED);
+      deserialized.subscriber_quota_state,
+      SubscriberQuotaUpdate_Type_VALID_QUOTA);
+  EXPECT_EQ(deserialized.fsm_state, SESSION_RELEASED);
 
-  EXPECT_EQ(stored.tgpp_context.gx_dest_host(), "gx");
-  EXPECT_EQ(stored.tgpp_context.gy_dest_host(), "gy");
+  EXPECT_EQ(deserialized.tgpp_context.gx_dest_host(), "gx");
+  EXPECT_EQ(deserialized.tgpp_context.gy_dest_host(), "gy");
 
-  EXPECT_EQ(stored.pending_event_triggers.size(), 1);
-  EXPECT_EQ(stored.pending_event_triggers[REVALIDATION_TIMEOUT], READY);
-  EXPECT_EQ(stored.revalidation_time.seconds(), 32);
+  EXPECT_EQ(deserialized.pending_event_triggers.size(), 1);
+  EXPECT_EQ(deserialized.pending_event_triggers[REVALIDATION_TIMEOUT], READY);
+  EXPECT_EQ(deserialized.revalidation_time.seconds(), 32);
 
-  EXPECT_EQ(stored.request_number, 1);
-  EXPECT_EQ(stored.pdp_start_time, 123);
+  EXPECT_EQ(deserialized.bearer_id_by_policy.size(), 2);
+
+  EXPECT_EQ(deserialized.pdp_start_time, 123);
+  EXPECT_EQ(deserialized.request_number, 1);
 }
 
 int main(int argc, char** argv) {

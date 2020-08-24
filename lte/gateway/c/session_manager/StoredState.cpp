@@ -58,6 +58,7 @@ SessionStateUpdateCriteria get_default_update_criteria() {
       CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),
       decltype(&ccEqual)>(4, &ccHash, &ccEqual);
   uc.is_session_level_key_updated = false;
+  uc.is_bearer_mapping_updated = false;
   return uc;
 }
 
@@ -324,6 +325,34 @@ std::string serialize_pending_event_triggers(
   return serialized;
 }
 
+BearerIDByPolicyID deserialize_bearer_id_by_policy(std::string& serialized) {
+  auto folly_serialized    = folly::StringPiece(serialized);
+  folly::dynamic marshaled = folly::parseJson(folly_serialized);
+
+  auto stored = BearerIDByPolicyID{};
+  for (auto& bearer_id_by_policy : marshaled) {
+    PolicyType policy_type = PolicyType(bearer_id_by_policy["type"].getInt());
+    std::string rule_id    = bearer_id_by_policy["rule_id"].getString();
+    stored[PolicyID(policy_type, rule_id)] =
+        static_cast<uint32_t>(bearer_id_by_policy["bearer_id"].getInt());
+  }
+  return stored;
+}
+
+std::string serialize_bearer_id_by_policy(BearerIDByPolicyID bearer_map) {
+  folly::dynamic marshaled = folly::dynamic::array;
+
+  for (auto& pair : bearer_map) {
+    folly::dynamic bearer_id_by_policy = folly::dynamic::object;
+    bearer_id_by_policy["type"] = static_cast<int>(pair.first.policy_type);
+    bearer_id_by_policy["rule_id"]   = pair.first.rule_id;
+    bearer_id_by_policy["bearer_id"] = static_cast<int>(pair.second);
+    marshaled.push_back(bearer_id_by_policy);
+  }
+  std::string serialized = folly::toJson(marshaled);
+  return serialized;
+}
+
 std::string serialize_stored_session(StoredSessionState& stored) {
   folly::dynamic marshaled = folly::dynamic::object;
   marshaled["fsm_state"]   = static_cast<int>(stored.fsm_state);
@@ -349,6 +378,9 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   std::string revalidation_time;
   stored.revalidation_time.SerializeToString(&revalidation_time);
   marshaled["revalidation_time"] = revalidation_time;
+
+  marshaled["bearer_id_by_policy"] =
+      serialize_bearer_id_by_policy(stored.bearer_id_by_policy);
 
   folly::dynamic static_rule_ids = folly::dynamic::array;
   for (const auto& rule_id : stored.static_rule_ids) {
@@ -402,6 +434,9 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
   stored.revalidation_time      = revalidation_time;
   stored.pending_event_triggers = deserialize_pending_event_triggers(
       marshaled["pending_event_triggers"].getString());
+
+  stored.bearer_id_by_policy = deserialize_bearer_id_by_policy(
+      marshaled["bearer_id_by_policy"].getString());
 
   magma::lte::TgppContext tgpp_context;
   tgpp_context.ParseFromString(marshaled["tgpp_context"].getString());

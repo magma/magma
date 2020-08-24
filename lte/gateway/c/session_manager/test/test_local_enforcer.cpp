@@ -84,6 +84,15 @@ class LocalEnforcerTest : public ::testing::Test {
     rule_store->insert_rule(rule);
   }
 
+  void insert_static_rule_with_qos(
+      uint32_t rating_group, const std::string& m_key,
+      const std::string& rule_id, const int qci) {
+    PolicyRule rule;
+    create_policy_rule(rule_id, m_key, rating_group, &rule);
+    rule.mutable_qos()->set_qci(static_cast<magma::lte::FlowQos_Qci>(qci));
+    rule_store->insert_rule(rule);
+  }
+
   void assert_charging_credit(
       const std::string& imsi, Bucket bucket,
       const std::vector<std::pair<uint32_t, uint64_t>>& volumes) {
@@ -1434,9 +1443,7 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   auto rar_qos_info = rar.mutable_qos_info();
   rar_qos_info->set_qci(QCI_1);
 
-  EXPECT_CALL(
-      *spgw_client,
-      create_dedicated_bearer(testing::_, testing::_, testing::_, testing::_))
+  EXPECT_CALL(*spgw_client, create_dedicated_bearer(testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1444,6 +1451,31 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
   EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+}
+
+TEST_F(LocalEnforcerTest, test_session_init_create_dedicated_bearer) {
+  // Two static rules one with QoS & one without
+  insert_static_rule_with_qos(0, "m1", "rule1", 1);
+  insert_static_rule(0, "m1", "rule2");
+
+  // test_cfg_ is initialized with QoSInfo field
+  test_cfg_.common_context.mutable_sid()->set_id("IMSI1");
+
+  CreateSessionResponse response;
+  response.mutable_static_rules()->Add()->set_rule_id("rule1");
+  response.mutable_static_rules()->Add()->set_rule_id("rule2");
+
+  // expect only 1 rule in the request since only rules with a QoS field
+  // should be mapped to a bearer
+  EXPECT_CALL(
+      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq("IMSI1", 1)))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->init_session_credit(
+      session_map, "IMSI1", "1234", test_cfg_, response);
+
+  // TODO test receiving a bearerID association && bearer removal
 }
 
 TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
