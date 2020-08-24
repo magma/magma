@@ -30,7 +30,8 @@
 
 namespace {
 
-const char* LABEL_IMSI = "IMSI";
+const char* LABEL_IMSI = "imsi";
+const char* LABEL_APN = "apn";
 
 std::chrono::milliseconds time_difference_from_now(
     const google::protobuf::Timestamp& timestamp) {
@@ -266,9 +267,6 @@ void LocalEnforcer::aggregate_records(
       MLOG(MINFO) << record.sid() << " used " << record.bytes_tx()
                   << " tx bytes and " << record.bytes_rx()
                   << " rx bytes for rule " << record.rule_id();
-      std::string imsi = record.sid().substr(0, record.sid().find('-'));
-      increment_counter("ue_reported_tx", record.bytes_tx(), size_t(1), LABEL_IMSI, imsi.c_str());
-      increment_counter("ue_reported_rx", record.bytes_rx(), size_t(1), LABEL_IMSI, imsi.c_str());
     }
     // Update sessions
     for (const auto& session : it->second) {

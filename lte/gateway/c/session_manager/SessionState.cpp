@@ -24,7 +24,16 @@
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
+#include "MetricsHelpers.h"
 #include "magma_logging.h"
+
+namespace {
+const char* LABEL_IMSI   = "IMSI";
+const char* LABEL_APN    = "apn";
+const char* LABEL_MSISDN = "msisdn";
+}  // namespace
+
+using magma::service303::increment_counter;
 
 namespace magma {
 
@@ -383,6 +392,9 @@ void SessionState::add_rule_usage(
   if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
     add_to_monitor(session_level_key_, used_tx, used_rx, update_criteria);
+  }
+  if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
+    update_data_usage_metrics(used_tx, used_rx);
   }
 }
 
@@ -1691,6 +1703,18 @@ RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
     return rule_set_by_apn[apn];
   }
   return {};
+
+void SessionState::update_data_usage_metrics(
+    uint64_t bytes_tx, uint64_t bytes_rx) {
+  auto sid    = get_config().common_context.sid().id();
+  auto msisdn = get_config().common_context.msisdn();
+  auto apn    = get_config().common_context.apn();
+  increment_counter(
+      "ue_reported_tx", bytes_tx, size_t(3), LABEL_IMSI, sid.c_str(), LABEL_APN,
+      apn.c_str(), LABEL_MSISDN, msisdn.c_str());
+  increment_counter(
+      "ue_reported_rx", bytes_rx, size_t(3), LABEL_IMSI, sid.c_str(), LABEL_APN,
+      apn.c_str(), LABEL_MSISDN, msisdn.c_str());
 }
 
 }  // namespace magma
