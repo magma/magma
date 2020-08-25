@@ -203,7 +203,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-                Config:             newGatewayConfigNonNat(""),
+		Config:             newGatewayConfigNonNat(""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
@@ -235,6 +235,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			IpBlock:         "192.168.128.0/24",
 			IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 			StaticIpEnabled: false,
+			MultiApnIpAlloc: false,
 		},
 		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -284,7 +285,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, false)
+	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, false, false)
 	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
@@ -295,7 +296,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, false)
+	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, false, false)
 	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
@@ -306,7 +307,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, true)
+	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, true, false)
 	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
@@ -317,12 +318,25 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, true)
+	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, true, false)
 	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
 		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
 		StaticIpEnabled: true,
+	}
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// validate multi apn mconfig
+	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, true, true)
+	expected["mobilityd"] = &lte_mconfig.MobilityD{
+		LogLevel:        protos.LogLevel_INFO,
+		IpBlock:         "192.168.128.0/24",
+		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
+		StaticIpEnabled: true,
+		MultiApnIpAlloc: true,
 	}
 	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
@@ -331,7 +345,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-                Config:             newGatewayConfigNonNat("30"),
+		Config:             newGatewayConfigNonNat("30"),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
@@ -637,8 +651,8 @@ func newGatewayConfigNonNat(vlan string) *lte_models.GatewayCellularConfigs {
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lte_models.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(false),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:             swag.Bool(false),
+			IPBlock:                "192.168.128.0/24",
 			SgiManagementIfaceVlan: vlan,
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
@@ -674,12 +688,14 @@ func setEPCNetworkServices(services []string, nw *configurator.Network) {
 	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
 }
 
-func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip bool) {
+func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip bool,
+	multi_apn bool) {
 	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 	cellularNwConfig.Epc.Mobility = &lte_models.NetworkEpcConfigsMobility{
-		IPAllocationMode:          mode,
-		EnableStaticIPAssignments: static_ip,
+		IPAllocationMode:           mode,
+		EnableStaticIPAssignments:  static_ip,
+		EnableMultiApnIPAllocation: multi_apn,
 	}
 
 	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig

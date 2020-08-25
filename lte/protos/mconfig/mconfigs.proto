@@ -179,6 +179,8 @@ message MobilityD {
     IpAllocatorType ip_allocator_type = 3;
     // Enable Static IP from subscriberDB
     bool static_ip_enabled = 4;
+    // Enable multi APN IP allocation
+    bool multi_apn_ip_alloc = 5;
 }
 
 //------------------------------------------------------------------------------
