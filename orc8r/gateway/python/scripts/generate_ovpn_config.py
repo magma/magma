@@ -15,7 +15,7 @@ limitations under the License.
 
 import logging
 
-from generate_service_config import generate_template_config
+from .generate_service_config import generate_template_config
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig
 
@@ -35,7 +35,8 @@ def main():
         level=logging.INFO,
         format='[%(asctime)s %(levelname)s %(name)s] %(message)s')
 
-    generate_template_config('ovpn', 'client', CONFIG_OVERRIDE_DIR, get_context())
+    generate_template_config('ovpn', 'ovpn_client', CONFIG_OVERRIDE_DIR,
+                             get_context())
 
 
 if __name__ == '__main__':
