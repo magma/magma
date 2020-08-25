@@ -64,6 +64,13 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		if err = rows.Scan(&pk, &oldConf); err != nil {
 			return nil, errors.Wrap(err, "error scanning subscriber row")
 		}
+		shouldMigrate, err := shouldMigrateConf(oldConf)
+		if err != nil {
+			return nil, err
+		}
+		if !shouldMigrate {
+			continue
+		}
 
 		newConf := SubscriberConfig{Lte: oldConf}
 		newConfBytes, err := json.Marshal(newConf)
@@ -84,4 +91,17 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		}
 	}
 	return nil, nil
+}
+
+// To keep the migration idempotent, we will check to see if it can deserialize
+// into the new config type already.
+func shouldMigrateConf(oldConf []byte) (bool, error) {
+	parsedMessage := map[string]interface{}{}
+	err := json.Unmarshal(oldConf, &parsedMessage)
+	if err != nil {
+		return false, errors.Wrap(err, "could not unmarshal legacy config")
+	}
+
+	_, alreadyMigrated := parsedMessage["lte"]
+	return !alreadyMigrated, nil
 }
