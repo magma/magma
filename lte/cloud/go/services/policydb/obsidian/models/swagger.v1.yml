@@ -620,8 +620,6 @@ definitions:
           - CHAT
           - AUDIO
           - VIDEO
-      qos:
-        $ref: '#/definitions/flow_qos'
       redirect:
         $ref: '#/definitions/redirect_information'
       assigned_subscribers:
@@ -701,8 +699,6 @@ definitions:
           - CHAT
           - AUDIO
           - VIDEO
-      qos:
-        $ref: '#/definitions/flow_qos'
       redirect:
         $ref: '#/definitions/redirect_information'
 
