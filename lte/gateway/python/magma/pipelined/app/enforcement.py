@@ -370,14 +370,17 @@ class EnforcementController(PolicyMixin, MagmaController):
         mbr_ul = qos.max_req_bw_ul
         mbr_dl = qos.max_req_bw_dl
         qos_info = None
+        ambr = None
         d = flow.match.direction
         if d == flow.match.UPLINK:
-            ambr = apn_ambr.max_bandwidth_ul
+            if apn_ambr:
+                ambr = apn_ambr.max_bandwidth_ul
             if mbr_ul != 0:
                 qos_info = QosInfo(gbr=qos.gbr_ul, mbr=mbr_ul)
 
         if d == flow.match.DOWNLINK:
-            ambr =  apn_ambr.max_bandwidth_dl
+            if apn_ambr:
+                ambr = apn_ambr.max_bandwidth_dl
             if mbr_dl != 0:
                 qos_info = QosInfo(gbr=qos.gbr_dl, mbr=mbr_dl)
 

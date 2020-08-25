@@ -21,7 +21,7 @@ from .types import QosInfo
 from .utils import IdManager
 
 LOG = logging.getLogger('pipelined.qos.qos_tc_impl')
-
+#LOG.setLevel(logging.DEBUG)
 
 # this code can run in either a docker container(CWAG) or as a native
 # python process(AG). When we are running as a root there is no need for
@@ -55,13 +55,13 @@ class TrafficClass:
     """
 
     @staticmethod
-    def delete_class(intf: str, qid: int, is_leaf=True, show_error=True) -> None:
+    def delete_class(intf: str, qid: int, show_error=True) -> None:
         qid_hex = hex(qid)
         # delete filter if this is a leaf class
-        if is_leaf:
-            filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 \
-                    handle {qid} fw flowid 1:{qid}".format(intf=intf, qid=qid_hex)
-            run_cmd([filter_cmd], show_error)
+        filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 "
+        filter_cmd += "handle {qid} fw flowid 1:{qid}"
+        filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
+        run_cmd([filter_cmd], show_error)
 
         # delete class
         tc_cmd = "tc class del dev {intf} classid 1:{qid}".format(intf=intf,
@@ -71,7 +71,7 @@ class TrafficClass:
 
     @staticmethod
     def create_class(intf: str, qid: int, max_bw: int, rate=None,
-        parent_qid=None, is_leaf=True, show_error=True) -> None:
+                     parent_qid=None, show_error=True) -> None:
         if not rate:
             rate = DEFAULT_RATE
 
@@ -80,25 +80,25 @@ class TrafficClass:
 
         qid_hex = hex(qid)
         parent_qid_hex = hex(parent_qid)
-        tc_cmd = "tc class add dev {intf} parent 1:{parent_qid} classid 1:{qid} htb \
-            rate {rate} ceil {maxbw}".format(intf=intf, parent_qid=parent_qid_hex,
+        tc_cmd = "tc class add dev {intf} parent 1:{parent_qid} "
+        tc_cmd += "classid 1:{qid} htb rate {rate} ceil {maxbw}"
+        tc_cmd = tc_cmd.format(intf=intf, parent_qid=parent_qid_hex,
             qid=qid_hex, rate=rate, maxbw=max_bw)
 
         # delete if exists
-        TrafficClass.delete_class(intf, qid, is_leaf=is_leaf, show_error=False)
+        TrafficClass.delete_class(intf, qid, show_error=False)
 
-        # create class
         run_cmd([tc_cmd], show_error=show_error)
 
-        if is_leaf:
-            # add fq_codel and filter only to the leaf classes
-            qdisc_cmd = "tc qdisc add dev {intf} parent 1:{qid} \
-                    fq_codel".format(intf=intf, qid=qid_hex)
-            filter_cmd = "tc filter add dev {intf} protocol ip parent 1: prio 1 \
-                    handle {qid} fw flowid 1:{qid}".format(intf=intf, qid=qid_hex)
+        # add fq_codel and filter
+        qdisc_cmd = "tc qdisc add dev {intf} parent 1:{qid} fq_codel"
+        qdisc_cmd = qdisc_cmd.format(intf=intf, qid=qid_hex)
+        filter_cmd = "tc filter add dev {intf} protocol ip parent 1: prio 1 "
+        filter_cmd += "handle {qid} fw flowid 1:{qid}"
+        filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
 
-            # add fq_codel qdisc and filter
-            run_cmd((qdisc_cmd, filter_cmd), show_error)
+        # add fq_codel qdisc and filter
+        run_cmd((qdisc_cmd, filter_cmd), show_error)
 
     @staticmethod
     def init_qdisc(intf: str, show_error=False) -> None:
@@ -108,13 +108,13 @@ class TrafficClass:
             speed = f.read().strip()
 
         qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(intf=intf)
-        parent_q_cmd = "tc class add dev {intf} parent 1: classid 1:{root_qid} htb \
-                rate {speed}Mbit ceil {speed}Mbit".format(intf=intf,
-                root_qid=qid_hex, speed=speed)
-        tc_cmd = "tc class add dev {intf} parent 1:{root_qid} classid 1:1 htb \
-                rate {rate} ceil {speed}Mbit".format(intf=intf,
-                root_qid=qid_hex, rate=DEFAULT_RATE,
-                speed=speed)
+        parent_q_cmd = "tc class add dev {intf} parent 1: classid 1:{root_qid} htb "
+        parent_q_cmd +="rate {speed}Mbit ceil {speed}Mbit"
+        parent_q_cmd = parent_q_cmd.format(intf=intf, root_qid=qid_hex, speed=speed)
+        tc_cmd = "tc class add dev {intf} parent 1:{root_qid} classid 1:1 htb "
+        tc_cmd += "rate {rate} ceil {speed}Mbit"
+        tc_cmd = tc_cmd.format(intf=intf, root_qid=qid_hex, rate=DEFAULT_RATE,
+                               speed=speed)
         run_cmd((qdisc_cmd, parent_q_cmd, tc_cmd), show_error)
 
     @staticmethod
