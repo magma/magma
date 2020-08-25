@@ -221,6 +221,14 @@ class SessionState {
   void increment_request_number(uint32_t incr);
 
   // Methods related to the session's static and dynamic rules
+  /**
+   * Infer the policy's type (STATIC or DYNAMIC)
+   * @param rule_id
+   * @return the type if the rule exists, {} otherwise.
+   */
+  std::experimental::optional<PolicyType> get_policy_type(
+      const std::string& rule_id);
+
   bool is_dynamic_rule_installed(const std::string& rule_id);
 
   bool is_gy_dynamic_rule_installed(const std::string& rule_id);
@@ -405,6 +413,14 @@ class SessionState {
   void apply_session_rule_set(
       RuleSetToApply& rule_set, RulesToProcess& rules_to_activate,
       RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc);
+
+  /**
+   * Add the association of policy -> bearerID into bearer_id_by_policy_
+   * This assumes the bearerID is not 0
+   */
+  void bind_policy_to_bearer(
+      const PolicyBearerBindingRequest& request,
+      SessionStateUpdateCriteria& uc);
 
  private:
   std::string imsi_;
