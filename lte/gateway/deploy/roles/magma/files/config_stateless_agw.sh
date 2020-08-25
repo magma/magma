@@ -1,5 +1,5 @@
 #!/bin/bash
-SRC_DIR=$MAGMA_ROOT/lte/gateway/deploy/roles/magma/files
+SRC_DIR=/usr/local/bin
 SERVICE_LIST=("mme" "mobilityd" "pipelined" "sctpd" "sessiond")
 RETURN_STATELESS=0
 RETURN_STATEFUL=1
