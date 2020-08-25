@@ -235,7 +235,7 @@
   when: preburn
 
 - name: Install openvpn
-  apt: pkg=openvpn state=presetn update_cache=yes
+  apt: pkg=openvpn state=present update_cache=yes
   retries: 5
   when: preburn
 
