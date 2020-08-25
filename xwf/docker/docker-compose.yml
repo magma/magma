@@ -8,6 +8,21 @@ x-logging: &logging_anchor
     max-file: "10"
 
 services:
+  logrouter:
+    container_name: local-fluentbit
+    networks:
+      control:
+        ipv4_address: 10.0.12.217
+    ports:
+      - "24224:24224"
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "localhost", "24224"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+    environment:
+      - SCRIBE_ACCESS_TOKEN=${XWF_SCUBA_ACCESS_TOKEN}
+      - SCUBA_TABLE=perfpipe_xwf_openflow_compose_logs
   ofproxy:
     container_name: ofproxy
     privileged: true
@@ -33,7 +48,10 @@ services:
       - ODS_PREFIX=xwf.openflow
       - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
       - ODS_ENTITY=ofproxy
+      - OFPRADIUS=${OFPRADIUS:-0}
     logging: *logging_anchor
+    depends_on:
+      - logrouter
   ofproxy-mt:
     container_name: ofproxy-mt
     privileged: true
@@ -63,6 +81,8 @@ services:
       - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
       - ODS_ENTITY=ofproxy
     logging: *logging_anchor
+    depends_on:
+      - logrouter
   ofredirector:
     container_name: ofredirector
     privileged: true
@@ -78,6 +98,8 @@ services:
       - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
       - ODS_ENTITY=ofredirector
     logging: *logging_anchor
+    depends_on:
+      - logrouter
   httpserver:
     container_name: httpserver
     ports:
@@ -85,6 +107,8 @@ services:
     networks:
       - control
     logging: *logging_anchor
+    depends_on:
+      - logrouter
   ofpradius:
     container_name: ofpradius
     environment:
@@ -96,7 +120,7 @@ services:
     container_name: radiusserver
     privileged: true
     environment:
-      - AAA_ENDPOINT=${AAA_ENDPOINT:-https://graph.expresswifi.com/radius/authorization}
+      - AAA_ENDPOINT=${APPURL:-https://graph.expresswifi.com}/radius/authorization
       - AAA_ACCESS_TOKEN=${XWF_ACCESSTOKEN}
       - RADIUS_SECRET=${XWF_SECRET}
       - TEMPLATE_ENV=radius.ofpanalytics.config.json.template
@@ -127,11 +151,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     environment:
       - CTRL_IP=${CTRL_IP:-}
+      - ACCESSTOKEN=${XWF_ACCESSTOKEN}
     networks:
       - control
     logging: *logging_anchor
     depends_on:
       - ofproxy
+      - tls-termination
+      - logrouter
     cap_add:
       - ALL
   pipelined:
@@ -140,6 +167,7 @@ services:
     network_mode: service:xwfm
     depends_on:
       - xwfm
+      - logrouter
     volumes:
       - cert:/var/opt/magma/certs
       - configs_override:/var/opt/magma/configs
@@ -157,6 +185,18 @@ services:
     logging: *logging_anchor
     cap_add:
       - ALL
+  tls-termination:
+    container_name: tls-termination
+    networks:
+      - control
+    environment:
+      - OFPROXY_ADDR=ofproxy
+      - OFPROXY_PORT=6653
+      - ACCESS_TOKEN=${XWF_ACCESSTOKEN}
+    depends_on:
+      - ofproxy
+      - logrouter
+    logging: *logging_anchor
   tests:
     container_name: tests
     privileged: true
@@ -175,11 +215,17 @@ services:
       - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY:-}
       - AWS_DEFAULT_REGION=${XWF_AWS_DEFAULT_REGION:-}
       - AWS_ACCOUNT_ID=${XWF_AWS_ACCOUNT_ID:-}
+      - PARTNERNAME=${XWF_PARTNER_SHORT_NAME}
+      - CPURL=${XWF_CPURL}
+      - VPCEndPointID=${XWF_VPCEndPointID}
     logging: *logging_anchor
     depends_on:
       - xwf_client
       - ofproxy
       - xwfm
+      - tls-termination
+      - logrouter
+      - dynamo_db
   xwf_client:
     container_name: xwf_client
     privileged: true
@@ -187,9 +233,10 @@ services:
     dns:
       - 10.100.0.1
     logging: *logging_anchor
+    depends_on:
+      - logrouter
     cap_add:
       - NET_ADMIN
-
   dynamo_db:
     image: amazon/dynamodb-local
     container_name: dynamo_db
@@ -202,15 +249,8 @@ services:
     networks:
       - control
     logging: *logging_anchor
-  dynamodb_init:
-    container_name: dynamo_db_init
-    environment:
-      - ENDPOINT=http://dynamo_db:8000/
-    command:
-      - ./init
-    networks:
-      - control
-    logging: *logging_anchor
+    depends_on:
+      - logrouter
   nlb:
     container_name: nlb
     environment:
@@ -220,6 +260,8 @@ services:
     networks:
       - control
     logging: *logging_anchor
+    depends_on:
+      - logrouter
 
 volumes:
   dynamodata: {}
@@ -234,4 +276,4 @@ networks:
   control:
     ipam:
       config:
-      - subnet: 10.0.12.0/24
+        - subnet: 10.0.12.0/24
