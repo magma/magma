@@ -1,11 +1,25 @@
-package analytics
+/*
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package calculations
 
 import (
 	"fmt"
+	"magma/cwf/cloud/go/services/analytics/query_api"
 	"testing"
 	"time"
 
-	"magma/cwf/cloud/go/services/analytics/mocks"
+	"magma/cwf/cloud/go/services/analytics/query_api/mocks"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -60,7 +74,7 @@ const (
 )
 
 type calculationTestCase struct {
-	client          PrometheusAPI
+	client          query_api.PrometheusAPI
 	calculation     Calculation
 	expectedError   string
 	expectedResults []Result
@@ -113,19 +127,19 @@ func TestXAPCalculation(t *testing.T) {
 			name:          "Client Error",
 			client:        errClient,
 			calculation:   &exampleXAPCalculation,
-			expectedError: "User Consumption query error: query error",
+			expectedError: "user Consumption query error: query error",
 		},
 		{
 			name:          "Unexpected query data",
 			client:        matrixReturnClient,
 			calculation:   &exampleXAPCalculation,
-			expectedError: "User Consumption query error: unexpected ValueType: matrix",
+			expectedError: "user Consumption query error: unexpected ValueType: matrix",
 		},
 		{
 			name:          "No query data",
 			client:        vectorReturnClient,
 			calculation:   &exampleXAPCalculation,
-			expectedError: "User Consumption query error: no data returned from query",
+			expectedError: "user Consumption query error: no data returned from query",
 		},
 		{
 			name:            "Successful query",
@@ -258,19 +272,19 @@ func TestUserThroughputCalculation(t *testing.T) {
 			name:          "Client Error",
 			client:        errClient,
 			calculation:   &exampleUserThroughputCalculation,
-			expectedError: "User Throughput query error: query error",
+			expectedError: "user Throughput query error: query error",
 		},
 		{
 			name:          "Unexpected query data",
 			client:        vectorReturnClient,
 			calculation:   &exampleUserThroughputCalculation,
-			expectedError: "User Throughput query error: unexpected ValueType: vector",
+			expectedError: "user Throughput query error: unexpected ValueType: vector",
 		},
 		{
 			name:          "No query data",
 			client:        matrixReturnClient,
 			calculation:   &exampleUserThroughputCalculation,
-			expectedError: "User Throughput query error: no data returned from query",
+			expectedError: "user Throughput query error: no data returned from query",
 		},
 		{
 			name:            "Successful query",
@@ -318,19 +332,19 @@ func TestUserConsumptionCalculation(t *testing.T) {
 			name:          "Client Error",
 			client:        errClient,
 			calculation:   &exampleUserConsumptionCalculation,
-			expectedError: "User Consumption query error: query error",
+			expectedError: "user Consumption query error: query error",
 		},
 		{
 			name:          "Unexpected query data",
 			client:        matrixReturnClient,
 			calculation:   &exampleUserConsumptionCalculation,
-			expectedError: "User Consumption query error: unexpected ValueType: matrix",
+			expectedError: "user Consumption query error: unexpected ValueType: matrix",
 		},
 		{
 			name:          "No query data",
 			client:        vectorReturnClient,
 			calculation:   &exampleUserConsumptionCalculation,
-			expectedError: "User Consumption query error: no data returned from query",
+			expectedError: "user Consumption query error: no data returned from query",
 		},
 		{
 			name:            "Successful query",
