@@ -1703,12 +1703,13 @@ RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
     return rule_set_by_apn[apn];
   }
   return {};
+}
 
 void SessionState::update_data_usage_metrics(
     uint64_t bytes_tx, uint64_t bytes_rx) {
-  auto sid    = get_config().common_context.sid().id();
-  auto msisdn = get_config().common_context.msisdn();
-  auto apn    = get_config().common_context.apn();
+  const auto& sid    = get_config().common_context.sid().id();
+  const auto& msisdn = get_config().common_context.msisdn();
+  const auto& apn    = get_config().common_context.apn();
   increment_counter(
       "ue_reported_tx", bytes_tx, size_t(3), LABEL_IMSI, sid.c_str(), LABEL_APN,
       apn.c_str(), LABEL_MSISDN, msisdn.c_str());
