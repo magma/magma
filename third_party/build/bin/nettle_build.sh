@@ -26,7 +26,11 @@ PKGNAME=oai-nettle
 WORK_DIR=/tmp/build-${PKGNAME}
 
 function buildrequires() {
-    echo autoconf automake build-essential libgmp-dev
+    if [ "${OS_RELEASE}" == 'centos8' ]; then
+        echo autoconf automake gcc gmp-devel
+    else
+        echo autoconf automake build-essential libgmp-dev
+    fi
 }
 
 if_subcommand_exec

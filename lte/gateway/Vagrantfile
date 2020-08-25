@@ -53,6 +53,39 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     end
   end
 
+  config.vm.define :magma_centos8, primary: false do |magma_centos8|
+    # Get our prepackaged box from the atlas cloud, based on
+    # - debian/contrib-jessie64
+    # - linux kernel from debian jessie backports
+    # - updated vbguest-tool
+    magma_centos8.vm.box = "bento/centos-8"
+    magma_centos8.vm.hostname = "magma-dev-centos8"
+    magma_centos8.vm.box_version = "202008.16.0"
+    magma_centos8.vbguest.auto_update = false
+
+    # Create a private network, which allows host-only access to the machine
+    # using a specific IP.
+    magma_centos8.vm.network "private_network", ip: "192.168.60.142", nic_type: "82540EM"
+    # iperf3 trfserver routable IP.
+    magma_centos8.vm.network "private_network", ip: "192.168.129.1", nic_type: "82540EM"
+
+    magma_centos8.vm.provider "virtualbox" do |vb|
+      vb.name = "magma-dev-centos8"
+      vb.linked_clone = true
+      vb.customize ["modifyvm", :id, "--memory", "6144"]
+      vb.customize ["modifyvm", :id, "--cpus", "4"]
+      vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+    end
+#    magma_centos8.vm.provision "ansible" do |ansible|
+#      ansible.host_key_checking = false
+#      ansible.playbook = "deploy/magma_dev.yml"
+#      ansible.inventory_path = "deploy/hosts"
+#      ansible.raw_arguments = ENV.fetch("ANSIBLE_ARGS", "").split(";") +
+#                              ["--timeout=30"]
+#      ansible.verbose = 'v'
+#    end
+  end
+
   config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
     magma_trfserver.vm.box = "fbcmagma/magma_trfserver"
     magma_trfserver.vm.hostname = "magma-trfserver"

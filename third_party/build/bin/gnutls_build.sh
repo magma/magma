@@ -29,8 +29,14 @@ function buildafter() {
 }
 
 function buildrequires() {
-    echo libtasn1-6-dev libp11-kit-dev \
-         libtspi-dev libtspi1 libidn2-0-dev libidn11-dev
+    if [ "${OS_RELEASE}" == 'centos8' ]; then
+        echo libtasn1-devel p11-kit-devel libidn2
+    else
+        echo libtasn1-6-dev libp11-kit-dev \
+             libtspi-dev libtspi1 libidn2-0-dev libidn11-dev
+    fi
+
+    
 }
 
 if_subcommand_exec
@@ -59,9 +65,15 @@ mkdir -p ${WORK_DIR}/install
 cd ${WORK_DIR}
 
 wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-$PKGVERSION.tar.xz
+
 tar xf gnutls-$PKGVERSION.tar.xz
 cd gnutls-$PKGVERSION/
-./configure --prefix=/usr
+
+if [ "${OS_RELEASE}" == 'centos8' ]; then
+    patch -p1 < "${PATCH_DIR}"/*.centos8
+fi
+
+./configure --prefix=/usr/local
 make -j`nproc`
 make install DESTDIR=${WORK_DIR}/install/
 
@@ -76,6 +88,21 @@ if [ -f ${BUILD_PATH} ]; then
   rm ${BUILD_PATH}
 fi
 
+EXTRA_PACKAGE_ARGS=''
+
+if [ "${PKGFMT}" == 'deb' ]; then
+    EXTRA_PACKAGE_ARGS="${EXTRA_PACKAGE_ARGS} --depends libtspi1"
+else
+    cat <<EOF
+
+==========================================================================================
+ATTENTION!
+libtspi1 NOT PROVIDED on this platform
+==========================================================================================
+
+EOF
+fi
+
 fpm \
     -s dir \
     -t ${PKGFMT} \
@@ -87,6 +114,6 @@ fpm \
     --conflicts ${PKGNAME} \
     --replaces ${PKGNAME} \
     --package ${BUILD_PATH} \
-    --depends "libtspi1" \
+    ${EXTRA_PACKAGE_ARGS} \
     --description 'GnuTLS is a secure communications library implementing the SSL, TLS and DTLS protocols and technologies around them.' \
     -C ${WORK_DIR}/install
