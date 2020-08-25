@@ -20,12 +20,13 @@
     - mobilityd
     - dnsd
     - eventd
+    - pipelined
+    - redirectd
     # Magma OAI services
     - mme
     # Magma third-party services
     - redis
-    - pipelined
-    - redirectd
+    - ovpn
     # Manhattan services
     - lighttpd
     - sessiond
