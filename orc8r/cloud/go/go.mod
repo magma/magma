@@ -20,35 +20,23 @@ replace (
 require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
-	github.com/docker/docker v1.13.1
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805
 	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
-	github.com/go-check/check v0.0.0-20200227125254-8fa46927fb4f // indirect
-	github.com/go-openapi/analysis v0.18.0 // indirect
 	github.com/go-openapi/errors v0.19.2
-	github.com/go-openapi/jsonpointer v0.18.0 // indirect
-	github.com/go-openapi/jsonreference v0.18.0 // indirect
-	github.com/go-openapi/loads v0.18.0 // indirect
-	github.com/go-openapi/spec v0.18.0 // indirect
 	github.com/go-openapi/strfmt v0.19.4
-	github.com/go-openapi/swag v0.18.0
-	github.com/go-openapi/validate v0.18.0
+	github.com/go-openapi/swag v0.19.5
+	github.com/go-openapi/validate v0.19.3
 	github.com/go-sql-driver/mysql v1.4.1
-	github.com/go-swagger/go-swagger v0.18.0
-	github.com/go-swagger/scan-repo-boundary v0.0.0-20180623220736-973b3573c013 // indirect
+	github.com/go-swagger/go-swagger v0.21.0
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/handlers v1.4.0 // indirect
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.11.0
-	github.com/niemeyer/pretty v0.0.0-20200227124842-a10e7caefd8e // indirect
 	github.com/olivere/elastic/v7 v7.0.6
-	github.com/onsi/ginkgo v1.7.0 // indirect
-	github.com/onsi/gomega v1.4.3 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/alertmanager v0.17.0
 	github.com/prometheus/client_golang v1.2.1
@@ -57,10 +45,8 @@ require (
 	github.com/prometheus/procfs v0.0.5
 	github.com/prometheus/prometheus v0.0.0-20190607092147-e23fa22233cf
 	github.com/spf13/cobra v0.0.3
-	github.com/spf13/viper v1.3.1 // indirect
 	github.com/stretchr/testify v1.4.0
-	github.com/thoas/go-funk v0.4.0
-	github.com/toqueteos/webbrowser v1.1.0 // indirect
+	github.com/thoas/go-funk v0.7.0
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e

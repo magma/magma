@@ -16,8 +16,10 @@ package main
 import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	wifi_service "magma/wifi/cloud/go/services/wifi"
 	"magma/wifi/cloud/go/services/wifi/obsidian/handlers"
+	"magma/wifi/cloud/go/services/wifi/servicers"
 	"magma/wifi/cloud/go/wifi"
 
 	"github.com/golang/glog"
@@ -28,7 +30,11 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating wifi service %s", err)
 	}
+
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
+
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error while running service and echo server: %s", err)

@@ -26,10 +26,10 @@ import (
 func GetMetricsExporters() []exporters.Exporter {
 	services := registry.FindServices(orc8r.MetricsExporterLabel)
 
-	var ret []exporters.Exporter
+	var exps []exporters.Exporter
 	for _, s := range services {
-		ret = append(ret, exporters.NewRemoteExporter(s))
+		exps = append(exps, exporters.NewRemoteExporter(s))
 	}
 
-	return ret
+	return exps
 }

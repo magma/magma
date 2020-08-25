@@ -379,6 +379,7 @@ definitions:
       - traffic_gwID
       - enodeb_config
       - run_traffic_tests
+      - subscriberID
     properties:
       network_id:
         description: Network for the test case
@@ -410,6 +411,15 @@ definitions:
         description: Toggle whether or not to run traffic test cases
         type: boolean
         example: false
+      subscriberID:
+        description: SubscriberID that will be used to fetch subscriber state
+        type: string
+        minLength: 1
+      start_state:
+        description: Specify which testcontroller state to begin on
+        type: string
+        minLength: 1
+        example: "check_for_upgrade"
       # TODO: more params (params to flip between)
 
   agw_test_config:

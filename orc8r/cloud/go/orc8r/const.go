@@ -27,6 +27,7 @@ const (
 
 	DnsdNetworkType = "dnsd_network"
 
+	MconfigBuilderLabel   = "orc8r.io/mconfig_builder"
 	MetricsExporterLabel  = "orc8r.io/metrics_exporter"
 	ObsidianHandlersLabel = "orc8r.io/obsidian_handlers"
 	StateIndexerLabel     = "orc8r.io/state_indexer"
@@ -37,5 +38,5 @@ const (
 	StateIndexerTypesAnnotation            = "orc8r.io/state_indexer_types"
 	StreamProviderStreamsAnnotation        = "orc8r.io/stream_provider_streams"
 
-	AnnotationListSeparator = ","
+	AnnotationFieldSeparator = ","
 )

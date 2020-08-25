@@ -29,11 +29,17 @@ magma-gen-meta:
     - go-struct-name: allowedGrePeers
       filename: allowed_gre_peers_swaggergen.go
     - go-struct-name: ipdrExportDst
-      filename: ip_d_r_export_dst_swaggergen.go
+      filename: ipdr_export_dst_swaggergen.go
+    - go-struct-name: liUes
+      filename: li_ues_swaggergen.go
     - go-struct-name: CwfSubscriberDirectoryRecord
       filename: cwf_subscriber_directory_record_swaggergen.go
     - go-struct-name: GatewayHealthConfigs
       filename: gateway_health_configs_swaggergen.go
+    - go-struct-name: CarrierWifiClusterStatus
+      filename: carrier_wifi_network_cluster_status_swaggergen.go
+    - go-struct-anem: CarrierWifiGatewayHealthStatus
+      filename: carrier_wifi_gateway_health_status_swaggergen.go
 
 info:
   title: Carrier Wifi Network Management
@@ -233,6 +239,37 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /cwf/{network_id}/li_ues:
+    get:
+      summary: Get monitored LI UEs for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Monitored LI UEs
+          schema:
+            $ref: '#/definitions/li_ues'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update monitored LI UEs for Carrier Wifi network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - name: description
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/li_ues'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /cwf/{network_id}/subscriber_config:
     get:
       summary: Get a network-wide subscriber config
@@ -397,6 +434,21 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /cwf/{network_id}/cluster_status:
+    get:
+      summary: Retrieve HA cluster status of a Carrier Wifi Network
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Cluster status of Carrier Wifi Network
+          schema:
+            $ref: '#/definitions/carrier_wifi_network_cluster_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /cwf/{network_id}/gateways:
     get:
       summary: List all gateways for a carrier wifi network
@@ -537,39 +589,6 @@ paths:
         required: true
         schema:
           $ref: './orc8r-swagger-common.yml#/definitions/gateway_description'
-      responses:
-        '204':
-          description: Success
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-
-  /cwf/{network_id}/gateways/{gateway_id}/li_imsis:
-    get:
-      summary: Get monitored LI IMSIs for Carrier Wifi network
-      tags:
-      - Carrier Wifi Gateways
-      parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
-      responses:
-        '200':
-          description: List of LI IMSIs
-          schema:
-            $ref: '#/definitions/li_imsis'
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-    put:
-      summary: Update monitored LI IMSIs for Carrier Wifi network
-      tags:
-      - Carrier Wifi Gateways
-      parameters:
-      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
-      - name: description
-        in: body
-        required: true
-        schema:
-          $ref: '#/definitions/li_imsis'
       responses:
         '204':
           description: Success
@@ -727,6 +746,22 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /cwf/{network_id}/gateways/{gateway_id}/health_status:
+    get:
+      summary: Retrieve Health Status of a Carrier Wifi Gateway
+      tags:
+      - Carrier Wifi Gateways
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Health Status of Carrier Wifi Gateway
+          schema:
+            $ref: '#/definitions/carrier_wifi_gateway_health_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 parameters:
   subscriber_id:
     description: Subscriber ID
@@ -850,6 +885,8 @@ definitions:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
       aaa_server:
         $ref: './feg-swagger.yml#/definitions/aaa_server'
+      li_ues:
+        $ref: '#/definitions/li_ues'
   allowed_gre_peer:
     type: object
     required:
@@ -870,10 +907,30 @@ definitions:
     type: array
     items:
       $ref: '#/definitions/allowed_gre_peer'
-  li_imsis:
-    type: array
-    items:
-      type: string
+  li_ues:
+    type: object
+    required:
+      - imsis
+      - msisdns
+      - macs
+      - ips
+    properties:
+      imsis:
+        type: array
+        items:
+          type: string
+      msisdns:
+        type: array
+        items:
+          type: string
+      macs:
+        type: array
+        items:
+          type: string
+      ips:
+        type: array
+        items:
+          type: string
   ipdr_export_dst:
     type: object
     required:
@@ -898,8 +955,6 @@ definitions:
     properties:
       allowed_gre_peers:
         $ref: '#/definitions/allowed_gre_peers'
-      li_imsis:
-        $ref: '#/definitions/li_imsis'
       ipdr_export_dst:
         $ref: '#/definitions/ipdr_export_dst'
       gateway_health_configs:
@@ -945,3 +1000,31 @@ definitions:
         type: integer
         format: uint32
         example: 3
+
+  carrier_wifi_network_cluster_status:
+    description: Status of a Carrier Wifi HA cluster
+    type: object
+    required:
+      - active_gateway
+    properties:
+      active_gateway:
+        type: string
+        x-nullable: false
+        example: 'active_gatewayID'
+
+  carrier_wifi_gateway_health_status:
+    description: Health status of a Carrier Wifi Gateway
+    type: object
+    required:
+      - status
+      - description
+    properties:
+      status:
+        type: string
+        x-nullable: false
+        enum:
+          - "HEALTHY"
+          - "UNHEALTHY"
+      description:
+        type: string
+        x-nullable: false

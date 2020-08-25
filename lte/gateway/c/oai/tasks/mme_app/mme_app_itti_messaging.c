@@ -236,12 +236,6 @@ int mme_app_send_s11_create_session_req(
     session_request_p->msisdn.length = 0;
   }
   session_request_p->rat_type = RAT_EUTRAN;
-  /*
-   * Copy the subscribed ambr to the sgw create session request message
-   */
-  memcpy(
-      &session_request_p->ambr, &ue_mm_context->subscribed_ue_ambr,
-      sizeof(ambr_t));
 
   // default bearer already created by NAS
   bearer_context_t* bc = mme_app_get_bearer_context(
@@ -272,11 +266,9 @@ int mme_app_send_s11_create_session_req(
    * Use the address of ue_context as unique TEID: Need to find better here
    * and will generate unique id only for 32 bits platforms.
    */
-  /* clang-format off */
-  OAI_GCC_DIAG_OFF(pointer-to-int-cast);
-  /* clang-format on */
+  OAI_GCC_DIAG_OFF("-Wpointer-to-int-cast");
   session_request_p->sender_fteid_for_cp.teid = (teid_t) ue_mm_context;
-  OAI_GCC_DIAG_ON(pointer - to - int - cast);
+  OAI_GCC_DIAG_ON("-Wpointer-to-int-cast");
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);
   session_request_p->sender_fteid_for_cp.ipv4_address.s_addr =
@@ -298,6 +290,13 @@ int mme_app_send_s11_create_session_req(
   memcpy(
       session_request_p->apn, selected_apn_config_p->service_selection,
       selected_apn_config_p->service_selection_length);
+
+  /*
+   * Copy the APN AMBR to the sgw create session request message
+   */
+  memcpy(
+      &session_request_p->ambr, &selected_apn_config_p->ambr,
+      sizeof(ambr_t));
   /*
    * Set PDN type for pdn_type and PAA even if this IE is redundant
    */

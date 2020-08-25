@@ -17,8 +17,13 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
+	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/orchestrator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
+	"magma/orc8r/cloud/go/services/orchestrator/servicers"
+	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
+	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
 
 	"github.com/golang/glog"
 )
@@ -28,7 +33,14 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating orchestrator service %s", err)
 	}
+
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
+
+	exporterServicer := servicers.NewPushExporterServicer(srv.Config.MustGetStrings(orchestrator.PrometheusPushAddresses))
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
+	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
+	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
 
 	err = srv.Run()
 	if err != nil {

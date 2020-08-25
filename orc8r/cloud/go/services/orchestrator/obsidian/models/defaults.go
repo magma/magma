@@ -59,7 +59,7 @@ func NewDefaultGatewayStatus(hardwareID string) *GatewayStatus {
 			Time:       1495484735606,
 			CPUUser:    31498,
 			CPUSystem:  8361,
-			CPUIDLE:    1869111,
+			CPUIdle:    1869111,
 			MemTotal:   1016084,
 			MemUsed:    54416,
 			MemFree:    412772,

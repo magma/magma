@@ -243,6 +243,8 @@ int mme_app_handle_s6a_update_location_ans(
             "Failed to handle Un-successful ULA message for ue_id (%u)\n",
             ue_mm_context->mme_ue_s1ap_id);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+      } else {
+        OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
       }
     }
   } else {
@@ -291,7 +293,7 @@ int mme_app_handle_s6a_update_location_ans(
   ue_mm_context->access_restriction_data =
       ula_pP->subscription_data.access_restriction;
   /*
-   * Copy the subscribed ambr to the sgw create session request message
+   * Copy the subscribed UE AMBR (comes from data plan) to UE context
    */
   memcpy(
       &ue_mm_context->subscribed_ue_ambr,

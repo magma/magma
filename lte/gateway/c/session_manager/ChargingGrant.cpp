@@ -19,6 +19,19 @@
 #include "magma_logging.h"
 
 namespace magma {
+ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {
+  credit = SessionCredit(marshaled.credit);
+
+  final_action_info.final_action = marshaled.final_action_info.final_action;
+  final_action_info.redirect_server =
+      marshaled.final_action_info.redirect_server;
+
+  reauth_state   = marshaled.reauth_state;
+  service_state  = marshaled.service_state;
+  expiry_time    = marshaled.expiry_time;
+  is_final_grant = marshaled.is_final;
+}
+
 StoredChargingGrant ChargingGrant::marshal() {
   StoredChargingGrant marshaled{};
   marshaled.is_final                       = is_final_grant;
@@ -30,24 +43,6 @@ StoredChargingGrant ChargingGrant::marshal() {
   marshaled.expiry_time   = expiry_time;
   marshaled.credit        = credit.marshal();
   return marshaled;
-}
-
-ChargingGrant ChargingGrant::unmarshal(const StoredChargingGrant& marshaled) {
-  ChargingGrant charging;
-  charging.credit = SessionCredit::unmarshal(marshaled.credit);
-
-  FinalActionInfo final_action_info;
-  final_action_info.final_action = marshaled.final_action_info.final_action;
-  final_action_info.redirect_server =
-      marshaled.final_action_info.redirect_server;
-  charging.final_action_info = final_action_info;
-
-  charging.reauth_state   = marshaled.reauth_state;
-  charging.service_state  = marshaled.service_state;
-  charging.expiry_time    = marshaled.expiry_time;
-  charging.is_final_grant = marshaled.is_final;
-
-  return charging;
 }
 
 void ChargingGrant::receive_charging_grant(
@@ -66,7 +61,7 @@ void ChargingGrant::receive_charging_grant(
   }
 
   // Expiry Time
-  auto delta_time_sec = p_credit.validity_time();
+  const auto delta_time_sec = p_credit.validity_time();
   if (delta_time_sec == 0) {
     expiry_time = std::numeric_limits<std::time_t>::max();
   } else {

@@ -23,30 +23,32 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
-	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
 	"github.com/prometheus/client_model/go"
+	"google.golang.org/grpc"
 )
 
 const (
 	CloudMetricsCollectInterval = time.Second * 20
+	// Setting Max Received Message gRPC size to 50MB
+	CloudMetricsCollectMaxMsgSize = 50 * 1024 * 1024
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, metricsd.ServiceName)
+	srv, err := service.NewOrchestratorService(orc8r.ModuleName,
+		metricsd.ServiceName,
+		grpc.MaxRecvMsgSize(CloudMetricsCollectMaxMsgSize))
+
 	if err != nil {
 		glog.Fatalf("Error creating orc8r service for metricsd: %s", err)
 	}
 
 	controllerServicer := servicers.NewMetricsControllerServer()
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
-
-	exporterServicer := servicers.NewPushExporterServicer(srv.Config.MustGetStrings(metricsd.PrometheusPushAddresses))
-	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 
 	// Initialize gatherers
 	metricsCh := make(chan *io_prometheus_client.MetricFamily)

@@ -1522,6 +1522,12 @@ definitions:
               - 'DHCP_PASSTHROUGH'
               - 'DHCP_BROADCAST'
             example: 'NAT'
+          enable_static_ip_assignments:
+            type: boolean
+            example: true
+          enable_multi_apn_ip_allocation:
+            type: boolean
+            example: true
           reserved_addresses:
             type: array
             items:
@@ -1565,6 +1571,7 @@ definitions:
       - tier
       - cellular
       - connected_enodeb_serials
+      - apn_resources
     properties:
       device:
         $ref: './orc8r-swagger.yml#/definitions/gateway_device'
@@ -1582,6 +1589,8 @@ definitions:
         $ref: '#/definitions/gateway_cellular_configs'
       connected_enodeb_serials:
         $ref: '#/definitions/enodeb_serials'
+      apn_resources:
+        $ref: '#/definitions/apn_resources'
       status:
         $ref: './orc8r-swagger.yml#/definitions/gateway_status'
 
@@ -1597,6 +1606,7 @@ definitions:
       - tier
       - cellular
       - connected_enodeb_serials
+      - apn_resources
     properties:
       device:
         $ref: './orc8r-swagger.yml#/definitions/gateway_device'
@@ -1614,6 +1624,8 @@ definitions:
         $ref: '#/definitions/gateway_cellular_configs'
       connected_enodeb_serials:
         $ref: '#/definitions/enodeb_serials'
+      apn_resources:
+        $ref: '#/definitions/apn_resources'
 
   gateway_cellular_configs:
     type: object
@@ -1674,6 +1686,12 @@ definitions:
         minLength: 5
         maxLength: 45
         example: '8.8.4.4'
+      sgi_management_iface_vlan:
+        type: string
+        description: VLAN ID for management interface traffic on the AGW
+        minLength: 1
+        maxLength: 4
+
 
   gateway_non_eps_configs:
     description: Non-EPS service configuration for a gateway
@@ -1940,3 +1958,85 @@ definitions:
         $ref: '#/definitions/apn_name'
       apn_configuration:
         $ref: '#/definitions/apn_configuration'
+
+  apn_resources:
+    description: APN resources keyed by APN name
+    type: object
+    additionalProperties:
+      $ref: '#/definitions/apn_resource'
+
+  apn_resource:
+    type: object
+    required:
+      - id
+      - apn_name
+    properties:
+      id:
+        description: APN resource ID must be unique across all gateways in a network
+        type: string
+        minLength: 1
+        x-nullable: false
+      apn_name:
+        $ref: '#/definitions/apn_name'
+      vlan_id:
+        type: integer
+        format: uint16
+
+  qos_class_id:
+    type: integer
+    format: int32
+    example: 9
+    default: 9
+    # Enum values must align 1-1 with policydb.FlowQos proto's Qci enum
+    enum:
+      - 0
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      - 6
+      - 7
+      - 8
+      - 9
+      - 65
+      - 66
+      - 67
+      - 70
+      - 75
+      - 79
+    x-go-custom-tag: 'magma_alt_name:"QCI"'
+
+  gbr:
+    description: Guaranteed bit rate
+    type: object
+    required:
+      - uplink
+      - downlink
+    properties:
+      uplink:
+        type: integer
+        format: uint32
+      downlink:
+        type: integer
+        format: uint32
+
+  arp:
+    description: Allocation and retention priority
+    type: object
+    properties:
+      priority_level:
+        type: integer
+        format: uint32
+        minimum: 0
+        maximum: 15
+        example: 15
+        default: 15
+      preemption_capability:
+        type: boolean
+        example: true
+        default: true
+      preemption_vulnerability:
+        type: boolean
+        example: false
+        default: false

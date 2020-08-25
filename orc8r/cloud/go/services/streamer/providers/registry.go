@@ -18,7 +18,6 @@ package providers
 
 import (
 	"fmt"
-	"strings"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/registry"
@@ -53,7 +52,7 @@ func getServicesForStream(streamName string) []string {
 
 	var ret []string
 	for _, s := range services {
-		streamsVal, err := registry.GetAnnotation(s, orc8r.StreamProviderStreamsAnnotation)
+		streams, err := registry.GetAnnotationList(s, orc8r.StreamProviderStreamsAnnotation)
 		// Ignore annotation errors, since they indicate either
 		//	- service registry contents were recently updated
 		//	- this service has incorrect annotations given its label
@@ -61,7 +60,6 @@ func getServicesForStream(streamName string) []string {
 			glog.Warningf("Received error getting annotation %s for service %s: %v", orc8r.StreamProviderStreamsAnnotation, s, err)
 			continue
 		}
-		streams := strings.Split(streamsVal, orc8r.AnnotationListSeparator)
 		if funk.Contains(streams, streamName) {
 			ret = append(ret, s)
 		}

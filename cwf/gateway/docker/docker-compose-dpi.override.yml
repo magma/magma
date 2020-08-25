@@ -36,7 +36,3 @@ services:
     environment:
       - DPI_LICENSE=/etc/magma/secrets/${DPI_LICENSE_NAME}
     command: /usr/local/bin/dpid
-
-    build:
-      context: ${BUILD_CONTEXT}
-      dockerfile: fb/src/dpi/Dockerfile

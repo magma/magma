@@ -1,28 +1,34 @@
 #!/bin/bash
 
+echo "get controller ip"
 [[ -z "${CTRL_IP}" ]] && CtrlIP="$(getent hosts ofproxy | awk '{ print $1 }')" || CtrlIP="${CTRL_IP}"
+
+echo "start ovs-ctl"
+/usr/share/openvswitch/scripts/ovs-ctl start --system-id=random --no-ovs-vswitchd
+/usr/share/openvswitch/scripts/ovs-ctl stop
+echo "start db server"
+ovsdb-server --pidfile /etc/openvswitch/conf.db -vconsole:emer -vsyslog:err -vfile:info \
+--remote=punix:/var/run/openvswitch/db.sock --private-key=db:Open_vSwitch,SSL,private_key \
+--certificate=db:Open_vSwitch,SSL,certificate --bootstrap-ca-cert=db:Open_vSwitch,SSL,ca_cert --log-file=/var/log/openvswitch/ovsdb-server.log --no-chdir &
+    ovs-vswitchd --pidfile -vconsole:emer -vsyslog:err -vfile:info --mlockall --no-chdir --log-file=/var/log/openvswitch/ovs-vswitchd.log &
 
 # Copy files to /etc/magma it must be here and not in dockerfile because the volume
 # are shared and may be taint on the local host
-cp cwf/gateway/configs/* /etc/magma/
+echo "copy config file"
 cp xwf/gateway/configs/* /etc/magma/
-cp orc8r/gateway/configs/templates/* /etc/magma/
 
-# run the other part of the cwag install ansible here
-ANSIBLE_CONFIG=cwf/gateway/ansible.cfg  ansible-playbook cwf/gateway/deploy/cwag.yml -i "localhost," -c local -v
+echo "get xwfwhoami"
+curl -X POST  https://graph.expresswifi.com/openflow/configxwfm?access_token=$ACCESSTOKEN | jq -r .configxwfm > /etc/xwfwhoami
+sed -i '/^uplink_if/d'  /etc/xwfwhoami # TODO: remove this
 
-# Create the XWF-M lan gateway, we use it as gw, dhcp server and DNS server
-ifconfig gw0 10.100.0.1 netmask 255.255.0.0 up
+echo "run XWF ansible"
+ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP}" xwf/gateway/deploy/xwf.yml -i "localhost," --skip-tags "install,install_docker,no_ci" -c local -v
 
-# remove IPv6 DHCP server
-mv xwf/gateway/deploy/roles/dhcpd/files/isc-dhcp-server xwf/gateway/deploy/roles/dhcpd/files/isc-dhcp-server.back
-sed '/^INTERFACESv6/s/^/#/' xwf/gateway/deploy/roles/dhcpd/files/isc-dhcp-server.back > xwf/gateway/deploy/roles/dhcpd/files/isc-dhcp-server
-
-# run XWF install ansible here
-ANSIBLE_CONFIG=cwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP}" xwf/gateway/deploy/xwf.yml -i "localhost," -c local -v
-
-# run DNS server
+echo "run DNS server"
 dnsmasq
 
-# loop forever
+echo "run DHCP server"
+/usr/sbin/dhcpd -f -cf /etc/dhcp/dhcpd.conf -user dhcpd -group dhcpd --no-pid gw0 &
+
+echo "loop forever"
 tail -f /dev/null

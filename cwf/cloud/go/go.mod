@@ -24,8 +24,8 @@ replace (
 require (
 	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/strfmt v0.19.4
-	github.com/go-openapi/swag v0.18.0
-	github.com/go-openapi/validate v0.18.0
+	github.com/go-openapi/swag v0.19.5
+	github.com/go-openapi/validate v0.19.3
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
@@ -35,9 +35,7 @@ require (
 	github.com/robfig/cron/v3 v3.0.0
 	github.com/stretchr/testify v1.4.0
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
-	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.27.1
-
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
 	magma/lte/cloud/go v0.0.0

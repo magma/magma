@@ -126,15 +126,19 @@ class StatsManager:
     def _get_enb_label_from_request(self, request) -> str:
         label = 'default'
         ip = request.headers.get('X-Forwarded-For')
+
         if ip is None:
-            ip = request.remote_addr
+            peername = request.transport.get_extra_info('peername')
+            if peername is not None:
+                ip, _ = peername
 
         if ip is None:
             return label
 
-        try:
-            label = self.enb_manager.get_serial(ip)
-        except KeyError:
+        label = self.enb_manager.get_serial_of_ip(ip)
+        if label:
+            logger.debug('Found serial %s for ip %s', label, ip)
+        else:
             logger.error("Couldn't find serial for ip", ip)
         return label
 

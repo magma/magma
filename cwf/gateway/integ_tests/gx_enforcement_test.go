@@ -23,19 +23,19 @@ import (
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
+	"math"
 	"math/rand"
 	"testing"
 	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (usage-enforcement-static-pass-all), 250KB of
+//   respond with a rule install (usage-enforcement-static-pass-all), 1MB of
 //   quota.
 //   Generate traffic and assert the CCR-I is received.
 // - Set an expectation for a CCR-U with >80% of data usage to be sent up to
@@ -65,7 +65,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForPoliciesToSync()
 
-	usageMonitorInfo := getUsageInformation("mkey1", 250*KiloBytes)
+	usageMonitorInfo := getUsageInformation("mkey1", 1*MegaBytes)
 
 	initRequest := protos.NewGxCCRequest(imsi, protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGxCCAnswer(diam.Success).
@@ -76,7 +76,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
 	updateRequest1 := protos.NewGxCCRequest(imsi, protos.CCRequestType_UPDATE).
 		SetUsageMonitorReport(usageMonitorInfo).
-		SetUsageReportDelta(250 * KiloBytes * 0.2).
+		SetUsageReportDelta(uint64(math.Round(0.2 * 1 * MegaBytes))).
 		SetEventTrigger(int32(lteProtos.EventTrigger_USAGE_REPORT))
 	updateAnswer1 := protos.NewGxCCAnswer(diam.Success).SetUsageMonitorInfo(usageMonitorInfo)
 	updateExpectation1 := protos.NewGxCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
@@ -86,7 +86,11 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "900K"}}
+	_, err = tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "200K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -100,7 +104,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	if record != nil {
 		// We should not be seeing > 1024k data here
 		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(500*KiloBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+		assert.True(t, record.BytesTx <= uint64(math.Round(1.2*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
 	}
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF

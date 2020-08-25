@@ -39,32 +39,34 @@ import (
 )
 
 const (
-	CwfNetworks                  = "cwf"
-	ListNetworksPath             = obsidian.V1Root + CwfNetworks
-	ManageNetworkPath            = ListNetworksPath + "/:network_id"
-	ManageNetworkNamePath        = ManageNetworkPath + obsidian.UrlSep + "name"
-	ManageNetworkDescriptionPath = ManageNetworkPath + obsidian.UrlSep + "description"
-	ManageNetworkFeaturesPath    = ManageNetworkPath + obsidian.UrlSep + "features"
-	ManageNetworkDNSPath         = ManageNetworkPath + obsidian.UrlSep + "dns"
-	ManageNetworkCarrierWifiPath = ManageNetworkPath + obsidian.UrlSep + "carrier_wifi"
-	ManageNetworkFederationPath  = ManageNetworkPath + obsidian.UrlSep + "federation"
-	ManageNetworkSubscriberPath  = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
-	ManageNetworkBaseNamesPath   = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
-	ManageNetworkRuleNamesPath   = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
-	ManageNetworkBaseNamePath    = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
-	ManageNetworkRuleNamePath    = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
+	CwfNetworks                    = "cwf"
+	ListNetworksPath               = obsidian.V1Root + CwfNetworks
+	ManageNetworkPath              = ListNetworksPath + "/:network_id"
+	ManageNetworkNamePath          = ManageNetworkPath + obsidian.UrlSep + "name"
+	ManageNetworkDescriptionPath   = ManageNetworkPath + obsidian.UrlSep + "description"
+	ManageNetworkFeaturesPath      = ManageNetworkPath + obsidian.UrlSep + "features"
+	ManageNetworkDNSPath           = ManageNetworkPath + obsidian.UrlSep + "dns"
+	ManageNetworkCarrierWifiPath   = ManageNetworkPath + obsidian.UrlSep + "carrier_wifi"
+	ManageNetworkFederationPath    = ManageNetworkPath + obsidian.UrlSep + "federation"
+	ManageNetworkSubscriberPath    = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
+	ManageNetworkBaseNamesPath     = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
+	ManageNetworkRuleNamesPath     = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
+	ManageNetworkBaseNamePath      = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
+	ManageNetworkRuleNamePath      = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
+	ManageNetworkClusterStatusPath = ManageNetworkPath + obsidian.UrlSep + "cluster_status"
+	ManageNetworkLiUesPath         = ManageNetworkPath + obsidian.UrlSep + ":li_ues"
 
-	Gateways                     = "gateways"
-	ListGatewaysPath             = ManageNetworkPath + obsidian.UrlSep + Gateways
-	ManageGatewayPath            = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
-	ManageGatewayNamePath        = ManageGatewayPath + obsidian.UrlSep + "name"
-	ManageGatewayDescriptionPath = ManageGatewayPath + obsidian.UrlSep + "description"
-	ManageGatewayLiImsisPath     = ManageGatewayPath + obsidian.UrlSep + "li_imsis"
-	ManageGatewayConfigPath      = ManageGatewayPath + obsidian.UrlSep + "magmad"
-	ManageGatewayDevicePath      = ManageGatewayPath + obsidian.UrlSep + "device"
-	ManageGatewayStatePath       = ManageGatewayPath + obsidian.UrlSep + "status"
-	ManageGatewayTierPath        = ManageGatewayPath + obsidian.UrlSep + "tier"
-	ManageGatewayCarrierWifiPath = ManageGatewayPath + obsidian.UrlSep + "carrier_wifi"
+	Gateways                      = "gateways"
+	ListGatewaysPath              = ManageNetworkPath + obsidian.UrlSep + Gateways
+	ManageGatewayPath             = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
+	ManageGatewayNamePath         = ManageGatewayPath + obsidian.UrlSep + "name"
+	ManageGatewayDescriptionPath  = ManageGatewayPath + obsidian.UrlSep + "description"
+	ManageGatewayConfigPath       = ManageGatewayPath + obsidian.UrlSep + "magmad"
+	ManageGatewayDevicePath       = ManageGatewayPath + obsidian.UrlSep + "device"
+	ManageGatewayStatePath        = ManageGatewayPath + obsidian.UrlSep + "status"
+	ManageGatewayTierPath         = ManageGatewayPath + obsidian.UrlSep + "tier"
+	ManageGatewayCarrierWifiPath  = ManageGatewayPath + obsidian.UrlSep + "carrier_wifi"
+	ManageGatewayHealthStatusPath = ManageGatewayPath + obsidian.UrlSep + "health_status"
 
 	Subscribers                   = "subscribers"
 	BaseSubscriberPath            = ManageNetworkPath + obsidian.UrlSep + Subscribers + obsidian.UrlSep + ":subscriber_id"
@@ -80,6 +82,8 @@ func GetHandlers() []obsidian.Handler {
 		handlers.GetDeleteGatewayHandler(ManageGatewayPath, cwf.CwfGatewayType),
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
+		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
+		{Path: ManageGatewayHealthStatusPath, Methods: obsidian.GET, HandlerFunc: getHealthStatusHandler},
 		{Path: SubscriberDirectoryRecordPath, Methods: obsidian.GET, HandlerFunc: getSubscriberDirectoryHandler},
 
 		{Path: ManageNetworkBaseNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberBaseName},
@@ -99,10 +103,10 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
 	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkLiUesPath, new(cwfModels.LiUes), "")...)
 
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayLiImsisPath, new(cwfModels.LiImsis))...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rModels.MagmadGatewayConfigs{})...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rModels.TierID))...)
 	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
@@ -246,4 +250,57 @@ func convertDirectoryRecordToSubscriberRecord(iRecord interface{}) (*cwfModels.C
 	}
 	c.LocationHistory = record.LocationHistory
 	return c, nil
+}
+
+func getClusterStatusHandler(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	network, err := configurator.LoadNetwork(nid, true, true)
+	if err == merrors.ErrNotFound {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	if network.Type != cwf.CwfNetworkType {
+		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, cwf.CwfNetworkType))
+	}
+	reportedClusterStatus, err := state.GetState(nid, cwf.CwfClusterHealthType, "cluster")
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	clusterStatus, ok := reportedClusterStatus.ReportedState.(*cwfModels.CarrierWifiNetworkClusterStatus)
+	if !ok {
+		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to ClusterStatus"), http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, clusterStatus)
+}
+
+func getHealthStatusHandler(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	pid, err := configurator.GetPhysicalIDOfEntity(nid, orc8r.MagmadGatewayType, gid)
+	if err == merrors.ErrNotFound || len(pid) == 0 {
+		return c.NoContent(http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	reportedGatewayState, err := state.GetState(nid, cwf.CwfGatewayHealthType, gid)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	healthState, ok := reportedGatewayState.ReportedState.(*cwfModels.CarrierWifiGatewayHealthStatus)
+	if !ok {
+		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to HealthStatus"), http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, healthState)
 }

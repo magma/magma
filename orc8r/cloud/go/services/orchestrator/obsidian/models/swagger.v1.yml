@@ -12,6 +12,8 @@ magma-gen-meta:
       filename: network_swaggergen.go
     - go-struct-name: NetworkDNSConfig
       filename: network_dns_config_swaggergen.go
+    - go-struct-name: NetworkDNSRecords
+      filename: network_dns_records_swaggergen.go
     - go-struct-name: DNSConfigRecord
       filename: dns_config_record_swaggergen.go
     - go-struct-name: NetworkFeatures
@@ -1281,6 +1283,9 @@ definitions:
         type: integer
         format: uint32
         example: 0
+      dhcp_server_enabled:
+        type: boolean
+        example: true
       records:
         $ref: '#/definitions/network_dns_records'
 

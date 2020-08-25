@@ -309,7 +309,7 @@ type multiStreamEventQueryParams struct {
 }
 
 func (m multiStreamEventQueryParams) toElasticBoolQuery() *elastic.BoolQuery {
-	ret := elastic.NewBoolQuery()
+	ret := elastic.NewBoolQuery().Filter(elastic.NewTermQuery(elasticFilterNetworkID, m.networkID))
 	if !funk.IsEmpty(m.streams) {
 		ret.Filter(elastic.NewTermsQuery(elasticFilterStreamName, stringsToInterfaces(m.streams)...))
 	}

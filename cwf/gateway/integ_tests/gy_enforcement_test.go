@@ -17,6 +17,7 @@ package integration
 
 import (
 	"fmt"
+	"math"
 	"testing"
 	"time"
 
@@ -34,7 +35,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
+func ocsAndPcrfCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig) {
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -63,7 +64,7 @@ func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwf
 
 	tr.WaitForPoliciesToSync()
 
-	// Apply a dynamic rule that points to the static rules above
+	// PCRF Setup: apply a dynamic rule that points to the static rules above
 	err = ruleManager.AddRulesToPCRF(ue.Imsi, []string{"static-pass-all-ocs1", "static-pass-all-ocs2"}, nil)
 	assert.NoError(t, err)
 	return tr, ruleManager, ues[0]
@@ -81,7 +82,7 @@ func ocsCreditExhaustionTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwf
 func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionWithCRRU...")
 
-	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	tr, ruleManager, ue := ocsAndPcrfCreditExhaustionTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -95,7 +96,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 			TotalOctets: 5 * MegaBytes,
 		},
 		IsFinalCredit: false,
-		ResultCode:    2001,
+		ResultCode:    diam.Success,
 	}
 	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
@@ -121,7 +122,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 
 	// we need to generate over 80% of the quota to trigger a CCR update
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("5M")}}
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("4.5M")}}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -135,7 +136,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	if record != nil {
 		// We should not be seeing > 1024k data here
 		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(5*MegaBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+		assert.True(t, record.BytesTx <= uint64(math.Round(4.5*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
 	}
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the OCS
@@ -149,6 +150,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// We need to generate over 100% of the quota to trigger a session termination
+	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("5.5M")}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -169,7 +171,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 func TestGyCreditValidityTime(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditValidityTime...")
 
-	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	tr, ruleManager, ue := ocsAndPcrfCreditExhaustionTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -226,7 +228,7 @@ func TestGyCreditValidityTime(t *testing.T) {
 func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionWithoutCRRU...")
 
-	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	tr, ruleManager, ue := ocsAndPcrfCreditExhaustionTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -287,7 +289,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 func TestGyLinksFailureOCStoFEG(t *testing.T) {
 	fmt.Println("\nRunning TestGyLinksFailureOCStoFEG...")
 
-	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	tr, ruleManager, ue := ocsAndPcrfCreditExhaustionTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -331,7 +333,7 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 func TestGyCreditExhaustionRedirect(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionRedirect...")
 
-	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	tr, ruleManager, ue := ocsAndPcrfCreditExhaustionTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())
@@ -447,7 +449,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditUpdateFail...")
 
-	tr, ruleManager, ue := ocsCreditExhaustionTestSetup(t)
+	tr, ruleManager, ue := ocsAndPcrfCreditExhaustionTestSetup(t)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		assert.NoError(t, clearOCSMockDriver())

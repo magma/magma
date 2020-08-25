@@ -536,6 +536,15 @@ jobs:
           deploy: 'False'
 
   cwag-deploy:
+    parameters:
+      tag:
+        description: Containers tag
+        type: string
+        default: ${CIRCLE_SHA1:0:8}
+      images:
+        description: Images to deploy
+        type: string
+        default: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -552,7 +561,8 @@ jobs:
             docker-compose -f docker-compose.yml -f docker-compose.override.yml build --parallel
       - tag-push-docker:
           project: cwf
-          images: 'cwag_go|gateway_go|gateway_python|gateway_sessiond|gateway_pipelined'
+          images: <<parameters.images>>
+          tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
       - persist-githash-version:
           file_prefix: cwag
@@ -704,14 +714,14 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
+      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
     steps:
       - checkout
       - docker/install-dc
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           command: |
-            cd ${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
+            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
             docker-compose build magmalte
       - tag-push-docker:
           project: magmalte
@@ -790,13 +800,45 @@ jobs:
             cd ${MAGMA_ROOT}/xwf/docker/
             docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
 
+  xwfm-deploy:
+    parameters:
+      tag:
+        description: Containers tag
+        type: string
+        default: ${CIRCLE_SHA1:0:8}
+    machine:
+      image: ubuntu-1604:201903-01
+      docker_layer_caching: true
+    environment:
+      - MAGMA_ROOT=/home/circleci/project
+    steps:
+      - checkout
+      - docker/install-dc
+      - run:
+          name: Build xwf go radius
+          command: |
+            cd ${MAGMA_ROOT}/feg
+            docker build --build-arg BUILD_NUM=${CIRCLE_SHA1:0:8} --tag goradius -f radius/src/Dockerfile ./
+      - tag-push-docker:
+          images: 'goradius'
+          tag: <<parameters.tag>>
+          registry: $DOCKER_MAGMA_REGISTRY
+      - run:
+          name: Load openvswitch kernel module for xwf integ test
+          command: sudo modprobe openvswitch
+      - run:
+          name: Build xwfm-integ-tests
+          command: |
+            cd ${MAGMA_ROOT}
+            docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
+      - tag-push-docker:
+          images: 'xwfm-integ-tests'
+          tag: <<parameters.tag>>
+          registry: $DOCKER_MAGMA_REGISTRY
+      - magma_slack_notify
+
 workflows:
   version: 2.1
-
-  xwfm:
-    jobs:
-      - xwfm-test:
-          <<: *only_master
 
   cloud:
     jobs:
@@ -833,11 +875,19 @@ workflows:
       - cwag-precommit
       - cwf-integ-test:
           <<: *only_master
+      - xwfm-test:
+          <<: *only_master
       - cwag-deploy:
           <<: *only_master
           requires:
             - cwag-precommit
             - cwf-integ-test
+      - xwfm-deploy:
+          <<: *only_master
+          requires:
+            - xwfm-test
+            - cwag-deploy
+
 
   cwf_operator:
     jobs:
@@ -845,6 +895,23 @@ workflows:
       - cwf-operator-build:
           requires:
             - cwf-operator-precommit
+
+  hourly_xwfm:
+    triggers:
+      - schedule:
+          cron: "0 * * * *"
+          <<: *only_master
+    jobs:
+      - xwfm-test
+      - xwfm-deploy:
+          requires:
+            - xwfm-test
+          tag: 'hourly'
+      - cwag-deploy:
+          requires:
+            - xwfm-test
+          images: 'gateway_python|gateway_pipelined'
+          tag: 'hourly'
 
   nms:
     jobs:

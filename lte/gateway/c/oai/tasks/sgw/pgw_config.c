@@ -56,6 +56,7 @@
 #endif
 
 #define SYSTEM_CMD_MAX_STR_SIZE 512
+#define MOBILITYD_API_RETRY_LIMIT 100
 
 //------------------------------------------------------------------------------
 void pgw_config_init(pgw_config_t* config_pP) {
@@ -136,14 +137,23 @@ int pgw_config_process(pgw_config_t* config_pP) {
     int rv = 0;
     struct in_addr netaddr;
     uint32_t netmask;
-
+    int retry = 0;
     // Pull IP block configuration from Mobilityd
     // Only ONE IPv4 block supported for now
-    rv = get_assigned_ipv4_block(0, &netaddr, &netmask);
-    if (rv != 0) {
-      OAILOG_CRITICAL(
-          LOG_SPGW_APP, "ERROR in getting assigned IP block from mobilityd\n");
-      return -1;
+    while (1) {
+      rv = get_assigned_ipv4_block(0, &netaddr, &netmask);
+      if (rv != 0) {
+        if (retry++ >= MOBILITYD_API_RETRY_LIMIT) {
+          OAILOG_CRITICAL(
+              LOG_SPGW_APP, "ERROR in getting assigned IP block from mobilityd\n");
+          return -1;
+        } else {
+          OAILOG_DEBUG(LOG_SPGW_APP, "mobilityD IP block read: retry attempt: %d", retry);
+          sleep(1);
+        }
+      } else {
+        break;
+      }
     }
 
 #if (!EMBEDDED_SGW)

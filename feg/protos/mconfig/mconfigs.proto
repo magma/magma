@@ -54,10 +54,17 @@ message S6aConfig {
     uint32 minimum_request_threshold = 7;
 }
 
+message VirtualApnRule {
+    string apn_filter = 1;
+    string apn_overwrite = 2;
+}
+
 message GxConfig {
     DiamClientConfig server = 1;
-    string OverwriteApn = 2;
+    string OverwriteApn = 2; // Deprecated
     repeated DiamClientConfig servers = 3;
+    bool DisableGx = 4;
+    repeated VirtualApnRule virtual_apn_rules = 5;
 }
 
 enum GyInitMethod {
@@ -71,6 +78,8 @@ message GyConfig {
     GyInitMethod init_method = 2;
     string OverwriteApn = 3;
     repeated DiamClientConfig servers = 4;
+    bool DisableGy = 5;
+    repeated VirtualApnRule virtual_apn_rules = 6;
 }
 
 message SessionProxyConfig {
@@ -138,6 +147,8 @@ message RadiusConfig {
     string AuthAddr = 3;
     // Accounting Radius server address
     string AcctAddr = 4;
+    // DAE server Address
+    string DAEAddr = 5;
 }
 
 message GatewayHealthConfig {

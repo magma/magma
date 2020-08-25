@@ -1,7 +1,0 @@
-{
-  "name": "@fbcnms/babel-register",
-  "version": "0.1.0",
-  "dependencies": {
-    "core-js": "^3.2.1"
-  }
-}

@@ -26,6 +26,10 @@ import (
 	"google.golang.org/grpc/keepalive"
 )
 
+const (
+	annotationFieldSeparator = ","
+)
+
 type ServiceRegistry struct {
 	sync.RWMutex
 	ServiceConnections map[string]*grpc.ClientConn
@@ -206,12 +210,33 @@ func (r *ServiceRegistry) GetAnnotation(service, annotationName string) (string,
 	if !ok {
 		return "", fmt.Errorf("service %s not registered", service)
 	}
-	labelValue, ok := location.Annotations[annotationName]
+	annotationValue, ok := location.Annotations[annotationName]
 	if !ok {
 		return "", fmt.Errorf("service %s doesn't have annotation values for %s", service, annotationName)
 	}
 
-	return labelValue, nil
+	return annotationValue, nil
+}
+
+// GetAnnotationList returns the comma-split fields of the value for the passed
+// annotation name.
+// First splits by field separator, then strips all whitespace
+// (including newlines). Empty fields are removed.
+func (r *ServiceRegistry) GetAnnotationList(service, annotationName string) ([]string, error) {
+	annotationValue, err := r.GetAnnotation(service, annotationName)
+	if err != nil {
+		return nil, err
+	}
+
+	var values []string
+	for _, s := range strings.Split(annotationValue, annotationFieldSeparator) {
+		s = strings.Join(strings.Fields(s), "")
+		if s != "" {
+			values = append(values, s)
+		}
+	}
+
+	return values, nil
 }
 
 // GetConnection provides a gRPC connection to a service in the registry.

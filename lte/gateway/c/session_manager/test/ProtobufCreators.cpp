@@ -15,6 +15,62 @@
 
 namespace magma {
 
+CommonSessionContext build_common_context(
+    const std::string& imsi,  // assumes IMSI prefix
+    const std::string& ue_ipv4, const std::string& apn,
+    const std::string& msisdn, const RATType rat_type) {
+  CommonSessionContext common_context;
+  common_context.mutable_sid()->set_id(imsi);
+  common_context.set_ue_ipv4(ue_ipv4);
+  common_context.set_apn(apn);
+  common_context.set_msisdn(msisdn);
+  common_context.set_rat_type(rat_type);
+  return common_context;
+}
+
+LTESessionContext build_lte_context(
+    const std::string& spgw_ipv4, const std::string& imei,
+    const std::string& plmn_id, const std::string& imsi_plmn_id,
+    const std::string& user_location, uint32_t bearer_id,
+    QosInformationRequest* qos_info) {
+  LTESessionContext lte_context;
+  lte_context.set_spgw_ipv4(spgw_ipv4);
+  lte_context.set_imei(imei);
+  lte_context.set_plmn_id(plmn_id);
+  lte_context.set_imsi_plmn_id(imsi_plmn_id);
+  lte_context.set_user_location(user_location);
+  lte_context.set_bearer_id(bearer_id);
+  if (qos_info != nullptr) {
+    lte_context.mutable_qos_info()->CopyFrom(*qos_info);
+  }
+  return lte_context;
+}
+
+WLANSessionContext build_wlan_context(
+    const std::string& mac_addr, const std::string& radius_session_id) {
+  WLANSessionContext wlan_context;
+  wlan_context.set_mac_addr(mac_addr);
+  wlan_context.set_radius_session_id(radius_session_id);
+  return wlan_context;
+}
+
+RuleSet create_rule_set(
+    const bool apply_subscriber_wide, const std::string& apn,
+    std::vector<std::string> static_rules,
+    std::vector<PolicyRule> dynamic_rules) {
+  RuleSet rule_set;
+  rule_set.set_apply_subscriber_wide(apply_subscriber_wide);
+  rule_set.set_apn(apn);
+  for (const auto& rule : static_rules) {
+    rule_set.mutable_static_rules()->Add()->set_rule_id(rule);
+  }
+  for (const auto& rule : dynamic_rules) {
+    rule_set.mutable_dynamic_rules()->Add()->mutable_policy_rule()->CopyFrom(
+        rule);
+  }
+  return rule_set;
+}
+
 void create_rule_record(
     const std::string& imsi, const std::string& rule_id, uint64_t bytes_rx,
     uint64_t bytes_tx, RuleRecord* rule_record) {
@@ -54,6 +110,34 @@ void create_credit_update_response(
     const std::string& imsi, uint32_t charging_key, uint64_t volume,
     bool is_final, CreditUpdateResponse* response) {
   create_charging_credit(volume, is_final, response->mutable_credit());
+  response->set_success(true);
+  response->set_sid(imsi);
+  response->set_charging_key(charging_key);
+}
+
+void create_charging_credit(
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    bool is_final,
+    ChargingCredit* credit)
+{
+  create_granted_units(&total_volume, &tx_volume, &rx_volume, credit->mutable_granted_units());
+  credit->set_type(ChargingCredit::BYTES);
+  credit->set_is_final(is_final);
+}
+
+void create_credit_update_response(
+    const std::string& imsi,
+    uint32_t charging_key,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    bool is_final,
+    CreditUpdateResponse* response)
+{
+  create_charging_credit(
+      total_volume, tx_volume, rx_volume, is_final, response->mutable_credit());
   response->set_success(true);
   response->set_sid(imsi);
   response->set_charging_key(charging_key);

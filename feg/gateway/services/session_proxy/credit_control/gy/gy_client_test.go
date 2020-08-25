@@ -51,7 +51,7 @@ func TestGyClient(t *testing.T) {
 	clientConfig := getClientConfig()
 	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
 	seedAccountConfigurations(ocs)
-	gyGlobalConfig := getGyGlobalConfig("")
+	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		&serverConfig,
@@ -155,8 +155,9 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 	clientConfig := getClientConfig()
 	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
 	seedAccountConfigurations(ocs)
-	overWriteApn := "gy.Apn.magma.com"
-	gyGlobalConfig := getGyGlobalConfig(overWriteApn)
+	matchApn := ".*\\.magma.*"
+	overwriteApn := "gy.Apn.magma.com"
+	gyGlobalConfig := getGyGlobalConfig(matchApn, overwriteApn)
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		&serverConfig,
@@ -180,7 +181,7 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer := gy.GetAnswer(done)
 	log.Printf("Received CCA-Init")
-	assertReceivedAPNonOCS(t, ocs, overWriteApn)
+	assertReceivedAPNonOCS(t, ocs, overwriteApn)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, len(answer.Credits), 0)
 }
@@ -190,7 +191,7 @@ func TestGyClientOutOfCredit(t *testing.T) {
 	clientConfig := getClientConfig()
 	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
 	seedAccountConfigurations(ocs)
-	gyGlobalConfig := getGyGlobalConfig("")
+	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		&serverConfig,
@@ -237,7 +238,7 @@ func TestGyClientPerKeyInit(t *testing.T) {
 	clientConfig := getClientConfig()
 	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
 	seedAccountConfigurations(ocs)
-	gyGlobalConfig := getGyGlobalConfig("")
+	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		&serverConfig,
@@ -290,7 +291,7 @@ func TestGyClientMultipleCredits(t *testing.T) {
 	clientConfig := getClientConfig()
 	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
 	seedAccountConfigurations(ocs)
-	gyGlobalConfig := getGyGlobalConfig("")
+	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		&serverConfig,
@@ -338,7 +339,7 @@ func TestGyReAuth(t *testing.T) {
 	clientConfig := getClientConfig()
 	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
 	seedAccountConfigurations(ocs)
-	gyGlobalConfig := getGyGlobalConfig("")
+	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
 		clientConfig,
 		&serverConfig,
@@ -386,9 +387,14 @@ func getClientConfig() *diameter.DiameterClientConfig {
 	}
 }
 
-func getGyGlobalConfig(ocsOverwriteApn string) *gy.GyGlobalConfig {
+func getGyGlobalConfig(apnFilter, apnOverwrite string) *gy.GyGlobalConfig {
+	rules := []*credit_control.VirtualApnRule{}
+	rule, err := credit_control.GetVirtualApnRule(apnFilter, apnOverwrite)
+	if err == nil {
+		rules = append(rules, rule)
+	}
 	return &gy.GyGlobalConfig{
-		OCSOverwriteApn: ocsOverwriteApn,
+		VirtualApnRules: rules,
 	}
 }
 

@@ -62,7 +62,6 @@ message LocalCreateSessionRequest {
 
 message CommonSessionContext {
   SubscriberID sid = 1;
-  string session_id = 2;  // Left blank for new sessions
   string ue_ipv4 = 3;
   string apn = 4;
   bytes msisdn = 5;
@@ -87,7 +86,7 @@ message LTESessionContext {
 }
 
 message WLANSessionContext {
-  bytes hardware_addr = 1;
+  bytes mac_addr_binary = 1;
   string mac_addr = 2;
   string radius_session_id = 3;
 }
@@ -102,6 +101,16 @@ message LocalEndSessionRequest {
 }
 
 message LocalEndSessionResponse {
+}
+
+message PolicyBearerBindingRequest {
+  SubscriberID sid = 1;
+  uint32 linked_bearer_id = 2;
+  string policy_rule_id = 3;
+  uint32 bearer_id = 4;
+}
+
+message PolicyBearerBindingResponse {
 }
 
 message ChargingReAuthRequest {
@@ -253,12 +262,32 @@ message PolicyReAuthAnswer {
   map<string, FailureCode> failed_rules = 3;
 }
 
+message RuleSet {
+  bool apply_subscriber_wide = 1; // Apply the rules to all sessions for IMSI
+  string apn = 2;
+  repeated StaticRuleInstall static_rules = 3;
+  repeated DynamicRuleInstall dynamic_rules = 4;
+}
+
+message RulesPerSubscriber {
+  string imsi = 1;
+  repeated RuleSet rule_set = 3;
+}
+
+message SessionRules {
+  repeated RulesPerSubscriber rules_per_subscriber = 1;
+}
+
 service LocalSessionManager {
   rpc ReportRuleStats(RuleRecordTable) returns (orc8r.Void) {}
 
   rpc CreateSession(LocalCreateSessionRequest) returns (LocalCreateSessionResponse) {}
 
   rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
+
+  rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
+  // A set interface of subscribers -> currently active rules
+  rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
 }
 
 service SessionProxyResponder {

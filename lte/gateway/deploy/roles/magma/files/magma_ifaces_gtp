@@ -1,6 +1,8 @@
 # Add L3 OVS switch gtp_br0 with gtp0, veth0_ovs, and int_nat_peer
 allow-ovs gtp_br0
-iface gtp_br0 inet manual
+iface gtp_br0 inet static
+    address 192.168.128.1
+    netmask 255.255.255.0
     up sysctl net.ipv4.ip_forward=1
     up iptables -t mangle -A FORWARD -i gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
     up iptables -t mangle -A FORWARD -o gtp_br0 -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss 1400
@@ -17,7 +19,7 @@ iface gtp0 inet manual
 
 allow-gtp_br0 mtr0
 iface mtr0 inet static
-    address 10.0.2.10
+    address 10.1.0.1
     netmask 255.255.255.0
     ovs_bridge gtp_br0
     ovs_type OVSIntPort
@@ -31,7 +33,7 @@ iface patch-up inet manual
     ovs_extra set interface ${IFACE} ofport_request=2
 
 allow-ovs uplink_br0
-iface uplink_br0 inet manual
+iface uplink_br0 inet dhcp
     ovs_type OVSBridge
     ovs_ports dhcp0 patch-agw
 

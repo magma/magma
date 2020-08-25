@@ -37,6 +37,7 @@ class MagmaPyLintTest(unittest.TestCase):
                 # doesn't handle decorators correctly
                 'fixme',  # allow todos
                 'unnecessary-pass',  # triggers when pass is ok
+                'raise-missing-from',
             ],
             show_categories=["warning", "error", "fatal"],
         )

@@ -137,7 +137,7 @@ class GYController(PolicyMixin, MagmaController):
         self._redirect_manager.deactivate_flow_for_rule(self._datapath, imsi,
                                                         num)
 
-    def _install_flow_for_rule(self, imsi, ip_addr, rule):
+    def _install_flow_for_rule(self, imsi, ip_addr, _, rule):
         if rule.redirect.support == rule.redirect.ENABLED:
             self._install_redirect_flow(imsi, ip_addr, rule)
             return RuleModResult.SUCCESS

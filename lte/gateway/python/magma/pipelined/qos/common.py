@@ -10,11 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import List, Dict  # noqa
+
 import asyncio
 import logging
-from collections import defaultdict
 from enum import Enum
-
 from lte.protos.policydb_pb2 import FlowMatch
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TCManager, TrafficClass
@@ -23,14 +23,13 @@ from magma.pipelined.qos.utils import QosStore
 from magma.configuration.service_configs import load_service_config
 
 LOG = logging.getLogger("pipelined.qos.common")
+#LOG.setLevel(logging.DEBUG)
 
-
-def normalizeIMSI(imsi: str) -> str:
+def normalize_imsi(imsi: str) -> str:
     imsi = imsi.lower()
     if imsi.startswith("imsi"):
         imsi = imsi[4:]
     return imsi
-
 
 class QosImplType(Enum):
     LINUX_TC = "linux_tc"
@@ -40,17 +39,102 @@ class QosImplType(Enum):
     def list():
         return list(map(lambda t: t.value, QosImplType))
 
+class SubscriberSession(object):
+    def __init__(self, ip_addr: str):
+        self.ip_addr = ip_addr
+        self.ambr_ul = 0
+        self.ambr_dl = 0
+        self.rules = set()
+
+    def set_ambr(self, d: FlowMatch.Direction, qos_handle: int) -> None:
+        if d == FlowMatch.UPLINK:
+            self.ambr_ul = qos_handle
+        else:
+            self.ambr_dl = qos_handle
+
+    def get_ambr(self, d: FlowMatch.Direction) -> int:
+        if d == FlowMatch.UPLINK:
+            return self.ambr_ul
+        return self.ambr_dl
+
+class SubscriberState(object):
+    def __init__(self, imsi: str, qos_store : Dict):
+        self.imsi = imsi
+        self.rules = {}
+        self.sessions = {}
+        self._qos_store = qos_store
+
+    def check_empty(self,) -> bool:
+        return (not self.rules and not self.sessions)
+
+    def get_or_create_session(self, ip_addr: str):
+        session = self.sessions.get(ip_addr)
+        if not session:
+            session = SubscriberSession(ip_addr)
+            self.sessions[ip_addr] = session
+        return session
+
+    def remove_session(self, ip_addr: str) -> None:
+        del self.sessions[ip_addr]
+
+    def find_session_with_rule(self, rule_num: int) ->SubscriberSession:
+        session_with_rule = None
+        for session in self.sessions.values():
+            if rule_num in session.rules:
+                session_with_rule = session
+                break
+        return session_with_rule
+
+    def update_rule(self, ip_addr: str, rule_num: int, d: FlowMatch.Direction,
+                    qos_handle: int) -> None:
+        k = get_subscriber_key(self.imsi, ip_addr, rule_num, d)
+        self._qos_store[get_json(k)] = qos_handle
+
+        if rule_num not in self.rules:
+            self.rules[rule_num] = []
+
+        session = self.get_or_create_session(ip_addr)
+        session.rules.add(rule_num)
+        self.rules[rule_num].append((d, qos_handle))
+
+    def remove_rule(self, rule_num: int) -> None:
+        session_with_rule = self.find_session_with_rule(rule_num)
+        if session_with_rule:
+            for (d, _) in self.rules[rule_num]:
+                k = get_subscriber_key(self.imsi, session_with_rule.ip_addr,
+                                        rule_num, d)
+                del self._qos_store[get_json(k)]
+
+        del self.rules[rule_num]
+        session_with_rule.rules.remove(rule_num)
+
+    def find_rule(self, rule_num: int):
+        return self.rules.get(rule_num)
+
+    def get_all_rules(self, ) -> List:
+        return self.rules
+
+    def get_all_empty_sessions(self,) -> List:
+        return [ s for s in self.sessions.values() if not s.rules]
+
+    def get_qos_handle(self, rule_num: int, direction: FlowMatch.Direction) -> int:
+        rule = self.rules.get(rule_num)
+        if rule:
+            for d, qos_handle in rule:
+                if d == direction:
+                    return qos_handle
+        return False
 
 class QosManager(object):
     @staticmethod
-    def getqos_impl(datapath, loop, config):
+    def get_impl(datapath, loop, config):
         try:
-            qos_impl_type = QosImplType(config["qos"]["impl"])
+            impl_type = QosImplType(config["qos"]["impl"])
         except ValueError:
-            LOG.error("%s is not a valid qos impl type", qos_impl_type)
+            LOG.error("%s is not a valid qos impl type", impl_type)
             raise
 
-        if qos_impl_type == QosImplType.OVS_METER:
+        if impl_type == QosImplType.OVS_METER:
             return MeterManager(datapath, loop, config)
         else:
             return TCManager(datapath, loop, config)
@@ -72,50 +156,33 @@ class QosManager(object):
                 intf = 'nat_iface' if d == FlowMatch.UPLINK else 'enodeb_iface'
                 TrafficClass.dump_class_state(config[intf], v)
 
-    def redisAvailable(self):
-        try:
-            self._qos_store.client.ping()
-        except ConnectionError:
-            return False
-        return True
-
     def __init__(self, datapath, loop, config):
-        # pylint: disable=unnecessary-lambda
-        self._enable_qos = config["qos"]["enable"]
-        if not self._enable_qos:
+        self._qos_enabled = config["qos"]["enable"]
+        if not self._qos_enabled:
             return
-        self.qos_impl = QosManager.getqos_impl(datapath, loop, config)
-        self._loop = loop
-        self._subscriber_map = defaultdict(lambda: defaultdict())
+
         self._clean_restart = config["clean_restart"]
+        self._subscriber_state = {}
+        self._loop = loop
+        self.impl = QosManager.get_impl(datapath, loop, config)
         self._qos_store = QosStore(self.__class__.__name__)
         self._initialized = False
-        self._redis_conn_retry_secs = 1
 
     def setup(self):
-        if not self._enable_qos:
+        if not self._qos_enabled:
             return
-
-        if self.redisAvailable():
-            return self._setupInternal()
-        else:
-            LOG.info(
-                "failed to connect to redis..retrying in %d secs",
-                self._redis_conn_retry_secs,
-            )
-            self._loop.call_later(self._redis_conn_retry_secs, self.setup)
+        self._setupInternal()
 
     def _setupInternal(self):
-        LOG.info("Qos Setup")
         if self._clean_restart:
-            LOG.info("clean start, wiping out existing state")
-            self.qos_impl.destroy()
+            LOG.info("Qos Setup: clean start")
+            self.impl.destroy()
             self._qos_store.clear()
-            self.qos_impl.setup()
+            self.impl.setup()
             self._initialized = True
         else:
             # read existing state from qos_impl
-            LOG.info("recovering existing state")
+            LOG.info("Qos Setup: recovering existing state")
 
             def callback(fut):
                 LOG.debug("read_all_state complete => \n%s", fut.result())
@@ -129,10 +196,14 @@ class QosManager(object):
                             purge_store_set.add(k)
                             continue
                         in_store_qid.add(v)
-                        _, imsi, rule_num, d = get_key(k)
-                        if rule_num not in self._subscriber_map[imsi]:
-                            self._subscriber_map[imsi][rule_num] = []
-                        self._subscriber_map[imsi][rule_num].append((v, d))
+                        _, imsi, ip_addr, rule_num, d = get_key(k)
+                        subscriber = self.get_or_create_subscriber(imsi)
+                        subscriber.update_rule(ip_addr, rule_num, d, v)
+
+                        qid_state = qos_state[v]
+                        if qid_state['ambr'] != 0:
+                            session = subscriber.get_or_create_session(ip_addr)
+                            session.set_ambr(d, qid_state['ambr'])
 
                     # purge entries from qos_store
                     for k in purge_store_set:
@@ -140,10 +211,11 @@ class QosManager(object):
                         del self._qos_store[k]
 
                     # purge unreferenced qos configs from system
-                    for qos_handle, d in qos_state.items():
+                    for qos_handle in qos_state:
                         if qos_handle not in in_store_qid:
                             LOG.debug("removing qos_handle %d", qos_handle)
-                            self.qos_impl.remove_qos(qos_handle, d, recovery_mode=True)
+                            self.impl.remove_qos(qos_handle,
+                                qos_state[qos_handle]['direction'], recovery_mode=True)
 
                     self._initialized = True
                     LOG.info("init complete with state recovered successfully")
@@ -153,96 +225,124 @@ class QosManager(object):
                     self._clean_restart = True
                     self.setup()
 
-            asyncio.ensure_future(
-                self.qos_impl.read_all_state(), loop=self._loop
-            ).add_done_callback(callback)
+            asyncio.ensure_future(self.impl.read_all_state(), loop=self._loop).add_done_callback(callback)
+
+    def get_or_create_subscriber(self, imsi):
+        subscriber_state = self._subscriber_state.get(imsi)
+        if not subscriber_state:
+            subscriber_state = SubscriberState(imsi, self._qos_store)
+            self._subscriber_state[imsi] = subscriber_state
+        return subscriber_state
+
 
     def add_subscriber_qos(
         self,
         imsi: str,
+        ip_addr: str,
+        apn_ambr : int,
         rule_num: int,
         direction: FlowMatch.Direction,
         qos_info: QosInfo,
     ):
-        if not self._enable_qos or not self._initialized:
-            LOG.error(
-                "add_subscriber_qos failed imsi %s rule_num %d \
-                      direction %d failed qos not enabled or uninitialized",
-                imsi,
-                rule_num,
-                direction,
-            )
+        if not self._qos_enabled or not self._initialized:
+            LOG.error("add_subscriber_qos: not enabled or initialized")
             return (None, None)
 
-        imsi = normalizeIMSI(imsi)
-        LOG.debug("adding qos for imsi %s rule_num %d", imsi, rule_num)
-        k = get_subscriber_key(imsi, rule_num, direction)
-        qos_handle = self._qos_store.get(get_json(k))
+        LOG.debug("adding qos for imsi %s rule_num %d direction %d",
+                   imsi, rule_num, direction)
+
+        imsi = normalize_imsi(imsi)
+
+        # ip_addr identifies a specific subscriber session, each subscriber session
+        # must be associated with a default bearer and can be associated with dedicated
+        # bearers. APN AMBR specifies the aggregate max bit rate for a specific
+        # subscriber across all the bearers. Queues for dedicated bearers will be
+        # children of default bearer Queues. In case the dedicated bearers exceed the
+        # rate, then they borrow from the default bearer queue
+        subscriber_state = self.get_or_create_subscriber(imsi)
+
+        qos_handle = subscriber_state.get_qos_handle(rule_num, direction)
         if qos_handle:
-            LOG.debug("qos handle already exists for %s", k)
-            return self.qos_impl.get_action_instruction(qos_handle)
+            LOG.debug("qos exists for imsi %s rule_num %d direction %d",
+                imsi, rule_num, direction)
+            return self.impl.get_action_instruction(qos_handle)
 
-        qos_handle = self.qos_impl.add_qos(direction, qos_info)
-        if rule_num not in self._subscriber_map[imsi]:
-            self._subscriber_map[imsi][rule_num] = []
+        if apn_ambr > 0:
+            session = subscriber_state.get_or_create_session(ip_addr)
+            ambr_qos_handle = session.get_ambr(direction)
+            if not ambr_qos_handle:
+                ambr_qos_handle = self.impl.add_qos(direction, QosInfo(gbr=0, mbr=apn_ambr))
+                session.set_ambr(direction, ambr_qos_handle)
+                LOG.debug('Adding ambr qos mbr %d direction %d qos_handle %d ',
+                          apn_ambr, direction, ambr_qos_handle)
+            if qos_info:
+                qos_handle = self.impl.add_qos(direction, qos_info, parent=ambr_qos_handle)
+                LOG.debug('Adding qos %s direction %d qos_handle %d ',
+                          qos_info, direction, qos_handle)
+            else:
+                qos_handle = ambr_qos_handle
+        else:
+            qos_handle = self.impl.add_qos(direction, qos_info)
 
-        self._subscriber_map[imsi][rule_num].append((qos_handle, direction))
-        self._qos_store[get_json(k)] = qos_handle
-        return self.qos_impl.get_action_instruction(qos_handle)
+        subscriber_state.update_rule(ip_addr, rule_num, direction, qos_handle)
+        return self.impl.get_action_instruction(qos_handle)
 
     def remove_subscriber_qos(self, imsi: str = "", rule_num: int = -1):
-        if not self._enable_qos or not self._initialized:
-            LOG.error(
-                "remove_subscriber_qos failed imsi %s rule_num %d \
-                      failed qos not enabled or uninitialized",
-                imsi,
-                rule_num,
-            )
+        if not self._qos_enabled or not self._initialized:
+            LOG.error("remove_subscriber_qos: not enabled or initialized")
             return
 
-        imsi = normalizeIMSI(imsi)
         LOG.debug("removing Qos for imsi %s rule_num %d", imsi, rule_num)
-        if imsi:
-            if imsi not in self._subscriber_map:
-                LOG.debug("unable to find imsi %s", imsi)
+        if not imsi:
+            LOG.error('imsi %s invalid, failed removing', imsi)
+            return
+
+        imsi = normalize_imsi(imsi)
+
+        subscriber_state = self._subscriber_state.get(imsi)
+        if not subscriber_state:
+            LOG.error('imsi %s not found, nothing to remove ', imsi)
+            return
+
+        to_be_deleted_rules = []
+        if rule_num == -1:
+            # deleting all rules for the subscriber
+            rules = subscriber_state.get_all_rules()
+            for (rule_num, rule) in rules.items():
+                LOG.debug("removing rule %s %s ", imsi, rule_num)
+                session_with_rule = subscriber_state.find_session_with_rule(rule_num)
+                for (d, qos_handle) in rule:
+                    if session_with_rule.get_ambr(d) != qos_handle:
+                        self.impl.remove_qos(qos_handle, d)
+                to_be_deleted_rules.append(rule_num)
+        else:
+            rule = subscriber_state.find_rule(rule_num)
+            if rule is None:
+                LOG.error("unable to find rule_num %d for imsi %s", rule_num, imsi)
                 return
 
-            if rule_num != -1:
-                # delete queue associated with this rule
-                if rule_num not in self._subscriber_map[imsi]:
-                    LOG.error("unable to find rule_num %d for imsi %s", rule_num, imsi)
-                    return
+            session_with_rule = subscriber_state.find_session_with_rule(rule_num)
+            for (d, qos_handle) in rule:
+                if session_with_rule.get_ambr(d) != qos_handle:
+                    self.impl.remove_qos(qos_handle, d)
+            LOG.debug("removing rule %s %s ", imsi, rule_num)
+            to_be_deleted_rules.append(rule_num)
 
-                for (qos_handle, direction) in self._subscriber_map[imsi][rule_num]:
-                    self.qos_impl.remove_qos(qos_handle, direction)
-                    del self._qos_store[
-                        get_json(get_subscriber_key(imsi, rule_num, direction))
-                    ]
 
-                if len(self._subscriber_map[imsi]) == 1:
-                    del self._subscriber_map[imsi]
-                else:
-                    del self._subscriber_map[imsi][rule_num]
+        for rule_num in to_be_deleted_rules:
+            subscriber_state.remove_rule(rule_num)
 
-            else:
-                # delete all queues associated with this subscriber
-                for rule_num, qd_list in self._subscriber_map[imsi].items():
-                    for (qos_handle, direction) in qd_list:
-                        self.qos_impl.remove_qos(qos_handle, direction)
-                        del self._qos_store[
-                            get_json(get_subscriber_key(imsi, rule_num, direction))
-                        ]
+        # purge sessions with no rules
+        for session in subscriber_state.get_all_empty_sessions():
+            for d in (FlowMatch.UPLINK, FlowMatch.DOWNLINK):
+                ambr_qos_handle = session.get_ambr(d)
+                if ambr_qos_handle:
+                    LOG.debug("removing ambr qos handle %d direction %d", ambr_qos_handle, d)
+                    self.impl.remove_qos(ambr_qos_handle, d)
+            LOG.debug("purging session %s %s ", imsi, session.ip_addr)
+            subscriber_state.remove_session(session.ip_addr)
 
-                self._subscriber_map.pop(imsi)
-        else:
-            # delete Qos queues associated with all subscribers
-            LOG.info("removing Qos for all subscribers")
-            for imsi, rule_map in self._subscriber_map.items():
-                for rule_num, qd_list in rule_map.items():
-                    for (qos_handle, direction) in qd_list:
-                        self.qos_impl.remove_qos(qos_handle, direction)
-                        # delete from qos store
-                        del self._qos_store[
-                            get_json(get_subscriber_key(imsi, rule_num, direction))
-                        ]
-            self._subscriber_map.clear()
+        # purge subscriber state with no rules
+        if subscriber_state.check_empty():
+            LOG.debug("purging subscriber state for %s, empty rules and sessions", imsi)
+            del self._subscriber_state[imsi]

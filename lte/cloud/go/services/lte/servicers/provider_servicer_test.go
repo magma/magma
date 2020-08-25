@@ -20,6 +20,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_service "magma/lte/cloud/go/services/lte"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	subscriber_streamer "magma/lte/cloud/go/services/subscriberdb/streamer"
@@ -28,9 +29,12 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
+	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/registry"
 
+	strfmt "github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	assert "github.com/stretchr/testify/require"
 )
 
@@ -75,14 +79,48 @@ func initSubscriber(t *testing.T, hwID string) {
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type: lte.SubscriberEntityType, Key: "IMSI12345",
-			Config: &models.LteSubscription{
-				State:   "ACTIVE",
-				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			Type: lte.APNEntityType, Key: "apn1",
+			Config: &lte_models.ApnConfiguration{
+				Ambr: &lte_models.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(42),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lte_models.QosProfile{
+					ClassID:                 swag.Int32(1),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(true),
+					PriorityLevel:           swag.Uint32(1),
+				},
 			},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}},
+		{
+			Type: lte.APNEntityType, Key: "apn2",
+			Config: &lte_models.ApnConfiguration{
+				Ambr: &lte_models.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(42),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lte_models.QosProfile{
+					ClassID:                 swag.Int32(2),
+					PreemptionCapability:    swag.Bool(false),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(2),
+				},
+			},
+		},
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI12345",
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{
+					State:   "ACTIVE",
+					AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				},
+				StaticIps: map[string]strfmt.IPv4{"apn1": "192.168.100.1"},
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+		},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 	})
 	assert.NoError(t, err)
 }

@@ -23,12 +23,15 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	policymodels "magma/lte/cloud/go/services/policydb/obsidian/models"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/strfmt"
+	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
@@ -37,13 +40,19 @@ import (
 func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByID state_types.StatesByID) *Subscriber {
 	m.ID = policymodels.SubscriberID(ent.Key)
 	m.Name = ent.Name
-	m.Lte = ent.Config.(*LteSubscription)
+
+	// TODO(v1.3.0+): For backwards compatibility we maintain the 'lte' field
+	// on the sub. We can remove this after the next minor version
+	config := ent.Config.(*SubscriberConfig)
+	m.Lte = config.Lte
+	m.Config = config
+
 	// If no profile in backend, return "default"
 	if m.Lte.SubProfile == "" {
 		m.Lte.SubProfile = "default"
 	}
 	for _, tk := range ent.Associations {
-		if tk.Type == lte.ApnEntityType {
+		if tk.Type == lte.APNEntityType {
 			m.ActiveApns = append(m.ActiveApns, tk.Key)
 		}
 	}
@@ -55,6 +64,9 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByI
 
 	for stateID, stateVal := range statesByID {
 		switch stateID.Type {
+		case orc8r.DirectoryRecordType:
+			reportedState := stateVal.ReportedState.(*directoryd.DirectoryRecord)
+			m.State.Directory = &SubscriberDirectoryRecord{LocationHistory: reportedState.LocationHistory}
 		case lte.ICMPStateType:
 			reportedState := stateVal.ReportedState.(*IcmpStatus)
 			// reported time is unix timestamp in seconds, so divide ms by 1k
@@ -94,6 +106,33 @@ func (m *Subscriber) FromBackendModels(ent configurator.NetworkEntity, statesByI
 		})
 	}
 	return m
+}
+
+func (m *MutableSubscriber) ToNetworkEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType,
+		Key:  string(m.ID),
+		Name: m.Name,
+		Config: &SubscriberConfig{
+			Lte:       m.Lte,
+			StaticIps: m.StaticIps,
+		},
+		Associations: m.ActiveApns.ToAssocs(),
+	}
+}
+
+func (m *MutableSubscriber) ToUpdateCriteria(id string) []configurator.EntityUpdateCriteria {
+	uc := configurator.EntityUpdateCriteria{
+		Key:     id,
+		Type:    lte.SubscriberEntityType,
+		NewName: swag.String(m.Name),
+		NewConfig: &SubscriberConfig{
+			Lte:       m.Lte,
+			StaticIps: m.StaticIps,
+		},
+		AssociationsToSet: m.ActiveApns.ToAssocs(),
+	}
+	return []configurator.EntityUpdateCriteria{uc}
 }
 
 // We expect something along the lines of:
@@ -144,7 +183,7 @@ func (m ApnList) ToAssocs() []storage.TypeAndKey {
 	return funk.Map(
 		m,
 		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.ApnEntityType, Key: rn}
+			return storage.TypeAndKey{Type: lte.APNEntityType, Key: rn}
 		},
 	).([]storage.TypeAndKey)
 }

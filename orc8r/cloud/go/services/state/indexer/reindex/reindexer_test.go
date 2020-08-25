@@ -73,11 +73,11 @@ const (
 	hwid1 = "some_hwid_1"
 	hwid2 = "some_hwid_2"
 
-	id0 = "SOME_INDEXERID_0"
-	id1 = "SOME_INDEXERID_1"
-	id2 = "SOME_INDEXERID_2"
-	id3 = "SOME_INDEXERID_3"
-	id4 = "SOME_INDEXERID_4"
+	id0 = "some_indexerid_0"
+	id1 = "some_indexerid_1"
+	id2 = "some_indexerid_2"
+	id3 = "some_indexerid_3"
+	id4 = "some_indexerid_4"
 
 	zero      indexer.Version = 0
 	version0  indexer.Version = 10

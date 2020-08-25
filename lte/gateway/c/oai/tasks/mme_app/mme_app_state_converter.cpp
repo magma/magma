@@ -504,6 +504,7 @@ void MmeNasStateConverter::proto_to_pdn_context_list(
 
 void MmeNasStateConverter::ue_context_to_proto(
     const ue_mm_context_t* state_ue_context, oai::UeContext* ue_context_proto) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
   ue_context_proto->Clear();
 
   char* msisdn_buffer = bstr2cstr(state_ue_context->msisdn, (char) '?');
@@ -602,11 +603,15 @@ void MmeNasStateConverter::ue_context_to_proto(
       ue_context_proto->mutable_ulr_response_timer());
   ue_context_proto->mutable_time_mobile_reachability_timer_started()
       ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
+  ue_context_proto->mutable_time_implicit_detach_timer_started()->set_seconds(
+      state_ue_context->time_implicit_detach_timer_started);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 void MmeNasStateConverter::proto_to_ue_mm_context(
     const oai::UeContext& ue_context_proto,
     ue_mm_context_t* state_ue_mm_context) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
   state_ue_mm_context->msisdn = bfromcstr(ue_context_proto.msisdn().c_str());
   state_ue_mm_context->ue_context_rel_cause =
       static_cast<enum s1cause>(ue_context_proto.rel_cause());
@@ -690,6 +695,9 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       &state_ue_mm_context->paging_response_timer);
   state_ue_mm_context->time_mobile_reachability_timer_started =
       ue_context_proto.time_mobile_reachability_timer_started().seconds();
+  state_ue_mm_context->time_implicit_detach_timer_started =
+      ue_context_proto.time_implicit_detach_timer_started().seconds();
+  OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 /*********************************************************

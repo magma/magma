@@ -18,14 +18,13 @@ package indexer
 
 import (
 	"strconv"
-	"strings"
 	"testing"
-
-	"github.com/pkg/errors"
-	"github.com/thoas/go-funk"
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/lib/go/registry"
+
+	"github.com/pkg/errors"
+	"github.com/thoas/go-funk"
 )
 
 // GetIndexer returns the remote indexer for a desired service.
@@ -33,24 +32,24 @@ import (
 func GetIndexer(serviceName string) (Indexer, error) {
 	x, err := getIndexer(serviceName)
 	if err != nil {
-		return nil, errors.Wrapf(err, "get indexer for service %s", err)
+		return nil, errors.Wrapf(err, "get indexer for service %s", serviceName)
 	}
 	return x, nil
 }
 
 // GetIndexers returns all registered indexers.
 func GetIndexers() ([]Indexer, error) {
-	indexingServices := registry.FindServices(orc8r.StateIndexerLabel)
+	services := registry.FindServices(orc8r.StateIndexerLabel)
 
-	var ret []Indexer
-	for _, serviceName := range indexingServices {
-		x, err := getIndexer(serviceName)
+	var indexers []Indexer
+	for _, service := range services {
+		x, err := getIndexer(service)
 		if err != nil {
 			return nil, err
 		}
-		ret = append(ret, x)
+		indexers = append(indexers, x)
 	}
-	return ret, nil
+	return indexers, nil
 }
 
 // GetIndexersForState returns all registered indexers which handle the passed
@@ -87,14 +86,9 @@ func getIndexer(serviceName string) (Indexer, error) {
 		return nil, err
 	}
 
-	typesVal, err := registry.GetAnnotation(serviceName, orc8r.StateIndexerTypesAnnotation)
+	types, err := registry.GetAnnotationList(serviceName, orc8r.StateIndexerTypesAnnotation)
 	if err != nil {
 		return nil, err
-	}
-	types := strings.Split(typesVal, orc8r.AnnotationListSeparator)
-	// Splitting an empty string returns len(types) = 1, which we don't want
-	if len(typesVal) == 0 {
-		types = nil
 	}
 
 	return NewRemoteIndexer(serviceName, version, types...), nil

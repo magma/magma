@@ -19,6 +19,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_protos "magma/lte/cloud/go/protos"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
@@ -29,6 +30,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	assert "github.com/stretchr/testify/require"
 	"github.com/thoas/go-funk"
@@ -49,16 +51,52 @@ func TestSubscriberdbStreamer(t *testing.T) {
 
 	// 1 sub without a profile on the backend (should fill as "default"), the
 	// other inactive with a sub profile
+	// 2 APNs active for the active sub, 1 with an assigned static IP and the
+	// other without
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type: lte.SubscriberEntityType, Key: "IMSI12345",
-			Config: &models.LteSubscription{
-				State:   "ACTIVE",
-				AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-				AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			Type: lte.APNEntityType, Key: "apn1",
+			Config: &lte_models.ApnConfiguration{
+				Ambr: &lte_models.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(42),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lte_models.QosProfile{
+					ClassID:                 swag.Int32(1),
+					PreemptionCapability:    swag.Bool(true),
+					PreemptionVulnerability: swag.Bool(true),
+					PriorityLevel:           swag.Uint32(1),
+				},
 			},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}},
+		{
+			Type: lte.APNEntityType, Key: "apn2",
+			Config: &lte_models.ApnConfiguration{
+				Ambr: &lte_models.AggregatedMaximumBitrate{
+					MaxBandwidthDl: swag.Uint32(42),
+					MaxBandwidthUl: swag.Uint32(100),
+				},
+				QosProfile: &lte_models.QosProfile{
+					ClassID:                 swag.Int32(2),
+					PreemptionCapability:    swag.Bool(false),
+					PreemptionVulnerability: swag.Bool(false),
+					PriorityLevel:           swag.Uint32(2),
+				},
+			},
+		},
+		{
+			Type: lte.SubscriberEntityType, Key: "IMSI12345",
+			Config: &models.SubscriberConfig{
+				Lte: &models.LteSubscription{
+					State:   "ACTIVE",
+					AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+				},
+				StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
+			},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+		},
+		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 	})
 	assert.NoError(t, err)
 
@@ -72,10 +110,42 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "default",
+			Non_3Gpp: &lte_protos.Non3GPPUserProfile{
+				ApnConfig: []*lte_protos.APNConfiguration{
+					{
+						ServiceSelection: "apn1",
+						QosProfile: &lte_protos.APNConfiguration_QoSProfile{
+							ClassId:                 1,
+							PriorityLevel:           1,
+							PreemptionCapability:    true,
+							PreemptionVulnerability: true,
+						},
+						Ambr: &lte_protos.AggregatedMaximumBitrate{
+							MaxBandwidthUl: 100,
+							MaxBandwidthDl: 42,
+						},
+						AssignedStaticIp: "192.168.100.1",
+					},
+					{
+						ServiceSelection: "apn2",
+						QosProfile: &lte_protos.APNConfiguration_QoSProfile{
+							ClassId:                 2,
+							PriorityLevel:           2,
+							PreemptionCapability:    false,
+							PreemptionVulnerability: false,
+						},
+						Ambr: &lte_protos.AggregatedMaximumBitrate{
+							MaxBandwidthUl: 100,
+							MaxBandwidthDl: 42,
+						},
+					},
+				},
+			},
 		},
 		{
 			Sid:        &lte_protos.SubscriberID{Id: "67890", Type: lte_protos.SubscriberID_IMSI},
 			Lte:        &lte_protos.LTESubscription{State: lte_protos.LTESubscription_INACTIVE},
+			Non_3Gpp:   &lte_protos.Non3GPPUserProfile{},
 			NetworkId:  &protos.NetworkID{Id: "n1"},
 			SubProfile: "foo",
 		},

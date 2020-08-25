@@ -21,153 +21,11 @@
 #include "SessionState.h"
 #include "SessiondMocks.h"
 #include "magma_logging.h"
+#include "SessionStateTester.h"
 
 using ::testing::Test;
 
 namespace magma {
-const SessionConfig test_sstate_cfg = {.ue_ipv4   = "127.0.0.1",
-                                       .spgw_ipv4 = "128.0.0.1"};
-
-class SessionStateTest : public ::testing::Test {
- protected:
- protected:
-  virtual void SetUp() {
-    auto tgpp_ctx = TgppContext();
-    create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
-    rule_store    = std::make_shared<StaticRuleStore>();
-    session_state = std::make_shared<SessionState>(
-        "imsi", "session", "", test_sstate_cfg, *rule_store, tgpp_ctx);
-    update_criteria = get_default_update_criteria();
-  }
-  enum RuleType {
-    STATIC  = 0,
-    DYNAMIC = 1,
-  };
-
-  void insert_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
-      std::time_t activation_time, std::time_t deactivation_time) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
-    RuleLifetime lifetime{
-        .activation_time   = activation_time,
-        .deactivation_time = deactivation_time,
-    };
-    switch (rule_type) {
-      case STATIC:
-        // insert into list of existing rules
-        rule_store->insert_rule(rule);
-        // mark the rule as active in session
-        session_state->activate_static_rule(rule_id, lifetime, update_criteria);
-        break;
-      case DYNAMIC:
-        session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
-        break;
-    }
-  }
-
-  void schedule_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
-      std::time_t activation_time, std::time_t deactivation_time) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
-    RuleLifetime lifetime{
-        .activation_time   = activation_time,
-        .deactivation_time = deactivation_time,
-    };
-    switch (rule_type) {
-      case STATIC:
-        // insert into list of existing rules
-        rule_store->insert_rule(rule);
-        // mark the rule as scheduled in the session
-        session_state->schedule_static_rule(rule_id, lifetime, update_criteria);
-        break;
-      case DYNAMIC:
-        session_state->schedule_dynamic_rule(rule, lifetime, update_criteria);
-        break;
-    }
-  }
-
-  // TODO: make session_manager.proto and policydb.proto to use common field
-  static RedirectInformation_AddressType address_type_converter(
-      RedirectServer_RedirectAddressType address_type) {
-    switch (address_type) {
-      case RedirectServer_RedirectAddressType_IPV4:
-        return RedirectInformation_AddressType_IPv4;
-      case RedirectServer_RedirectAddressType_IPV6:
-        return RedirectInformation_AddressType_IPv6;
-      case RedirectServer_RedirectAddressType_URL:
-        return RedirectInformation_AddressType_URL;
-      case RedirectServer_RedirectAddressType_SIP_URI:
-        return RedirectInformation_AddressType_SIP_URI;
-      default:
-        return RedirectInformation_AddressType_IPv4;
-    }
-  }
-
-  void insert_gy_redirection_rule(const std::string& rule_id) {
-    PolicyRule redirect_rule;
-    redirect_rule.set_id(rule_id);
-    redirect_rule.set_priority(999);
-
-    RedirectInformation* redirect_info = redirect_rule.mutable_redirect();
-    redirect_info->set_support(RedirectInformation_Support_ENABLED);
-
-    RedirectServer redirect_server;
-    redirect_server.set_redirect_address_type(RedirectServer::URL);
-    redirect_server.set_redirect_server_address("http://www.example.com/");
-
-    redirect_info->set_address_type(
-        address_type_converter(redirect_server.redirect_address_type()));
-    redirect_info->set_server_address(
-        redirect_server.redirect_server_address());
-
-    RuleLifetime lifetime{};
-    session_state->insert_gy_dynamic_rule(
-        redirect_rule, lifetime, update_criteria);
-  }
-
-  void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
-    CreditUpdateResponse charge_resp;
-    create_credit_update_response("IMSI1", rating_group, volume, &charge_resp);
-    session_state->receive_charging_credit(charge_resp, update_criteria);
-  }
-
-  void receive_credit_from_pcrf(
-      const std::string& mkey, uint64_t volume, MonitoringLevel level) {
-    UsageMonitoringUpdateResponse monitor_resp;
-    create_monitor_update_response("IMSI1", mkey, level, volume, &monitor_resp);
-    session_state->receive_monitor(monitor_resp, update_criteria);
-  }
-
-  void activate_rule(
-      uint32_t rating_group, const std::string& m_key,
-      const std::string& rule_id, RuleType rule_type,
-      std::time_t activation_time, std::time_t deactivation_time) {
-    PolicyRule rule;
-    create_policy_rule(rule_id, m_key, rating_group, &rule);
-    RuleLifetime lifetime{
-        .activation_time   = activation_time,
-        .deactivation_time = deactivation_time,
-    };
-    switch (rule_type) {
-      case STATIC:
-        rule_store->insert_rule(rule);
-        session_state->activate_static_rule(rule_id, lifetime, update_criteria);
-        break;
-      case DYNAMIC:
-        session_state->insert_dynamic_rule(rule, lifetime, update_criteria);
-        break;
-    }
-  }
-
- protected:
-  std::shared_ptr<StaticRuleStore> rule_store;
-  std::shared_ptr<SessionState> session_state;
-  SessionStateUpdateCriteria update_criteria;
-};
 
 TEST_F(SessionStateTest, test_session_rules) {
   activate_rule(1, "m1", "rule1", DYNAMIC, 0, 0);
@@ -346,7 +204,7 @@ TEST_F(SessionStateTest, test_marshal_unmarshal) {
   EXPECT_EQ(unmarshaled->get_charging_credit(1, ALLOWED_TOTAL), 1024);
   EXPECT_EQ(unmarshaled->get_monitor("m1", ALLOWED_TOTAL), 1024);
   EXPECT_EQ(unmarshaled->is_static_rule_installed("rule1"), true);
-  EXPECT_EQ(session_state->is_dynamic_rule_installed("rule2"), false);
+  EXPECT_EQ(unmarshaled->is_dynamic_rule_installed("rule2"), false);
 }
 
 TEST_F(SessionStateTest, test_insert_credit) {
@@ -372,45 +230,6 @@ TEST_F(SessionStateTest, test_insert_credit) {
       update_criteria.monitor_credit_to_install["m1"]
           .credit.buckets[ALLOWED_TOTAL],
       1024);
-}
-
-TEST_F(SessionStateTest, test_can_complete_termination) {
-  MockSessionReporter reporter;
-
-  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
-  EXPECT_EQ(true, session_state->active_monitored_rules_exist());
-  EXPECT_TRUE(
-      std::find(
-          update_criteria.static_rules_to_install.begin(),
-          update_criteria.static_rules_to_install.end(),
-          "rule1") != update_criteria.static_rules_to_install.end());
-  // Have not received credit
-  EXPECT_EQ(update_criteria.monitor_credit_map.size(), 0);
-
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-
-  session_state->start_termination(update_criteria);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-
-  // If the rule is still being reported, termination should not be completed.
-  auto _uc = get_default_update_criteria();
-  session_state->new_report(_uc);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-  session_state->add_rule_usage("rule1", 100, 100, update_criteria);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-  EXPECT_EQ(update_criteria.monitor_credit_map.size(), 0);
-  session_state->finish_report(_uc);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-
-  // The rule is not reported, termination can be completed.
-  session_state->new_report(_uc);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
-  session_state->finish_report(_uc);
-  EXPECT_EQ(session_state->can_complete_termination(), true);
-
-  // Termination should only be completed once.
-  session_state->complete_termination(reporter, update_criteria);
-  EXPECT_EQ(session_state->can_complete_termination(), false);
 }
 
 TEST_F(SessionStateTest, test_add_rule_usage) {
@@ -542,15 +361,14 @@ TEST_F(SessionStateTest, test_mixed_tracking_rules) {
 }
 
 TEST_F(SessionStateTest, test_session_level_key) {
-  EXPECT_EQ(nullptr, session_state->get_session_level_key());
-
   receive_credit_from_pcrf("m1", 8000, MonitoringLevel::SESSION_LEVEL);
-  EXPECT_EQ("m1", *session_state->get_session_level_key());
   EXPECT_EQ(session_state->get_monitor("m1", ALLOWED_TOTAL), 8000);
   EXPECT_EQ(
       update_criteria.monitor_credit_to_install["m1"]
           .credit.buckets[ALLOWED_TOTAL],
       8000);
+  EXPECT_TRUE(update_criteria.is_session_level_key_updated);
+  EXPECT_EQ(update_criteria.updated_session_level_key, "m1");
 
   session_state->add_rule_usage("rule1", 5000, 3000, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 5000);
@@ -570,6 +388,13 @@ TEST_F(SessionStateTest, test_session_level_key) {
   EXPECT_EQ(single_update.level(), MonitoringLevel::SESSION_LEVEL);
   EXPECT_EQ(single_update.bytes_rx(), 3000);
   EXPECT_EQ(single_update.bytes_tx(), 5000);
+
+  // Disable session level monitor with 0 grant. Monitor should get deleted and
+  // session level key updated.
+  receive_credit_from_pcrf("m1", 0, MonitoringLevel::SESSION_LEVEL);
+  EXPECT_TRUE(update_criteria.is_session_level_key_updated);
+  EXPECT_EQ(update_criteria.updated_session_level_key, "");
+  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].deleted);
 }
 
 TEST_F(SessionStateTest, test_reauth_key) {
@@ -890,6 +715,141 @@ TEST_F(SessionStateTest, test_empty_credit_grant) {
   session_state->add_rule_usage("rule1", 100, 100, update_criteria);
   auto credit_uc = update_criteria.charging_credit_map[1];
   EXPECT_EQ(credit_uc.service_state, SERVICE_NEEDS_DEACTIVATION);
+}
+
+TEST_F(SessionStateTest, test_multiple_final_action_empty_grant) {
+  // add one rule with credits
+  insert_rule(1, "", "rule1", STATIC, 0, 0);
+  EXPECT_TRUE(
+      std::find(
+          update_criteria.static_rules_to_install.begin(),
+          update_criteria.static_rules_to_install.end(),
+          "rule1") != update_criteria.static_rules_to_install.end());
+
+  receive_credit_from_ocs(1, 3000, 2000, 2000, false);
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_TOTAL],3000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_TX],2000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_RX],2000);
+
+  // add usage for 2 times to go over quota
+  session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
+
+  session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 4000);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 2000);
+
+  // check if we need to report the usage
+  UpdateSessionRequest update;
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  session_state->get_updates(update, &actions, update_criteria);
+  EXPECT_EQ(actions.size(), 0);
+  EXPECT_EQ(update.updates_size(), 1);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[USED_TX],
+      4000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)].bucket_deltas[USED_RX],
+      2000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)].service_state,
+      SERVICE_ENABLED);
+  EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
+  EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
+
+  // recive final unit without grant
+  receive_credit_from_ocs(1, 0, 0, 0, true);
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)]
+          .bucket_deltas[REPORTED_TX],
+      4000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)]
+          .bucket_deltas[REPORTED_RX],
+      2000);
+  EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)].service_state,
+      SERVICE_ENABLED);
+  EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
+
+  // force to check for the state (no traffic sent)
+  session_state->add_rule_usage("rule1", 0, 0, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 4000);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 2000);
+  EXPECT_TRUE(update_criteria.charging_credit_map[CreditKey(1)].is_final);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)].service_state,
+      SERVICE_NEEDS_DEACTIVATION);
+  EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
+}
+
+TEST_F(SessionStateTest, test_apply_session_rule_set) {
+  // populate rule store with 2 static and 2 dynamic rules
+  insert_rule(1, "", "rule-static-1", STATIC, 0, 0);
+  insert_rule(2, "m1", "rule-static-2", STATIC, 0, 0);
+  insert_rule(1, "", "rule-dynamic-1", DYNAMIC, 0, 0);
+  insert_rule(2, "m1", "rule-dynamic-2", DYNAMIC, 0, 0);
+
+  EXPECT_TRUE(session_state->is_static_rule_installed("rule-static-1"));
+  EXPECT_TRUE(session_state->is_static_rule_installed("rule-static-2"));
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-1"));
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-2"));
+
+  // Send a set rule update with
+  // 1 static rule addition: rule-static-3, 1 static rule removal: rule-static-1
+  // 1 dynamic rule removal: rule-dynamic-3, 1 static rule removal:
+  // rule-dynamic-1
+  insert_static_rule_into_store(3, "m2", "rule-static-3");
+  // Should contain all ACTIVE rules, not additional/removal
+  RuleSetToApply rules_to_apply;
+  rules_to_apply.static_rules.insert("rule-static-2");
+  rules_to_apply.static_rules.insert("rule-static-3");
+
+  PolicyRule dynamic_2, dynamic_3;
+  create_policy_rule("rule-dynamic-2", "m1", 2, &dynamic_2);
+  create_policy_rule("rule-dynamic-3", "m1", 3, &dynamic_3);
+  rules_to_apply.dynamic_rules["rule-dynamic-2"] = dynamic_2;
+  rules_to_apply.dynamic_rules["rule-dynamic-3"] = dynamic_3;
+
+  SessionStateUpdateCriteria uc;
+  RulesToProcess to_activate, to_deactivate;
+  session_state->apply_session_rule_set(
+      rules_to_apply, to_activate, to_deactivate, uc);
+
+  // First check the active rules in session
+  EXPECT_TRUE(!session_state->is_static_rule_installed("rule-static-1"));
+  EXPECT_TRUE(session_state->is_static_rule_installed("rule-static-2"));
+  EXPECT_TRUE(session_state->is_static_rule_installed("rule-static-3"));
+  EXPECT_TRUE(!session_state->is_dynamic_rule_installed("rule-dynamic-1"));
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-2"));
+  EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-3"));
+
+  // Check the RulesToProcess is properly filled out
+  EXPECT_EQ(to_activate.static_rules.size(), 1);
+  EXPECT_EQ(to_activate.static_rules[0], "rule-static-3");
+  EXPECT_EQ(to_deactivate.static_rules.size(), 1);
+  EXPECT_EQ(to_deactivate.static_rules[0], "rule-static-1");
+
+  EXPECT_EQ(to_activate.dynamic_rules.size(), 1);
+  EXPECT_EQ(to_activate.dynamic_rules[0].id(), "rule-dynamic-3");
+  EXPECT_EQ(to_deactivate.dynamic_rules.size(), 1);
+  EXPECT_EQ(to_deactivate.dynamic_rules[0].id(), "rule-dynamic-1");
+
+  // Finally assert the changes get applied to the update criteria
+  EXPECT_EQ(uc.static_rules_to_install.size(), 1);
+  EXPECT_EQ(uc.static_rules_to_uninstall.size(), 1);
+  EXPECT_EQ(uc.dynamic_rules_to_install.size(), 1);
+  EXPECT_EQ(uc.dynamic_rules_to_uninstall.size(), 1);
 }
 
 int main(int argc, char** argv) {

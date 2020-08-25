@@ -12,7 +12,6 @@
  */
 
 #include <string>
-#include <google/protobuf/message.h>
 #include "magma_logging.h"
 #include "GrpcMagmaUtils.h"
 
@@ -31,12 +30,13 @@ std::string get_env_var(std::string const& key) {
   return std::string(retval);
 }
 
-void PrintGrpcMessage(const google::protobuf::Message& message) {
+void PrintGrpcMessage(const google::protobuf::Message& msg) {
   if (grpcLoginLevel == "1") {
-    const google::protobuf::Descriptor* desc = message.GetDescriptor();
+    // Lazy log strategy
+    const google::protobuf::Descriptor* desc = msg.GetDescriptor();
     MLOG(MINFO) << "\n"
                 << "  " << desc->full_name().c_str() << " {\n"
-                << indentText(message.DebugString(), 6) << "  }";
+                << indentText(msg.DebugString(), 6) << "  }";
   }
 }
 

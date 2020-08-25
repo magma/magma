@@ -22,6 +22,7 @@ import (
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -62,6 +63,7 @@ var subscriberStateTypes = []string{
 	lte.MMEStateType,
 	lte.SPGWStateType,
 	lte.MobilitydStateType,
+	orc8r.DirectoryRecordType,
 }
 
 // mobilityd states are keyed as <ISMI>.<APN>. This captures just the imsi
@@ -133,13 +135,7 @@ func createSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	_, err := configurator.CreateEntity(networkID, configurator.NetworkEntity{
-		Type:         lte.SubscriberEntityType,
-		Key:          string(payload.ID),
-		Name:         payload.Name,
-		Config:       payload.Lte,
-		Associations: payload.ActiveApns.ToAssocs(),
-	})
+	_, err := configurator.CreateEntity(networkID, payload.ToNetworkEntity())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -197,14 +193,7 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	updateCriteria := configurator.EntityUpdateCriteria{
-		Key:               subscriberID,
-		Type:              lte.SubscriberEntityType,
-		NewName:           swag.String(payload.Name),
-		NewConfig:         payload.Lte,
-		AssociationsToSet: payload.ActiveApns.ToAssocs(),
-	}
-	_, err = configurator.UpdateEntities(networkID, []configurator.EntityUpdateCriteria{updateCriteria})
+	_, err = configurator.UpdateEntities(networkID, payload.ToUpdateCriteria(subscriberID))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -246,9 +235,9 @@ func updateSubscriberProfile(c echo.Context) error {
 		return obsidian.HttpError(errors.Wrap(err, "could not load subscriber"), http.StatusInternalServerError)
 	}
 
-	desiredCfg := currentCfg.(*subscribermodels.LteSubscription)
-	desiredCfg.SubProfile = *payload
-	if nerr := validateSubscriberProfile(networkID, desiredCfg); nerr != nil {
+	desiredCfg := currentCfg.(*subscribermodels.SubscriberConfig)
+	desiredCfg.Lte.SubProfile = *payload
+	if nerr := validateSubscriberProfile(networkID, desiredCfg.Lte); nerr != nil {
 		return nerr
 	}
 
@@ -274,8 +263,8 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 			return obsidian.HttpError(errors.Wrap(err, "failed to load existing subscriber"), http.StatusInternalServerError)
 		}
 
-		newConfig := cfg.(*subscribermodels.LteSubscription)
-		newConfig.State = desiredState
+		newConfig := cfg.(*subscribermodels.SubscriberConfig)
+		newConfig.Lte.State = desiredState
 		err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, newConfig)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -296,7 +285,7 @@ func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscr
 	// Check the sub profiles available on the network if sub profile is not
 	// default (which is always available)
 	if sub.SubProfile != "default" {
-		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkType)
+		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkConfigType)
 		switch {
 		case err == merrors.ErrNotFound:
 			return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusInternalServerError)

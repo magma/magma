@@ -26,7 +26,7 @@
 # Differentiate between the setup type(CWF or LTE)
 setup_type: CWF
 
-log_level: INFO
+log_level: DEBUG
 # Enable the services in PipelineD. Tables will be assigned to the services in
 # the same order as the list. Cloud managed services will be initialized
 # after these static services.
@@ -37,7 +37,7 @@ static_services: [
   'access_control',
   'tunnel_learn',
   'vlan_learn',
-  'li_mirror',
+  #'li_mirror',
   #'ipfix',
   'startup_flows',
   'ryu_rest_service',
