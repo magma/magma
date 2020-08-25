@@ -686,7 +686,7 @@ class TestTrafficClass(unittest.TestCase):
         TrafficClass.init_qdisc(intf, show_error=False)
 
         # create APN level ambr
-        TrafficClass.create_class(intf, qid=parent_qid, max_bw=apn_ambr, is_leaf=False)
+        TrafficClass.create_class(intf, qid=parent_qid, max_bw=apn_ambr)
 
         # create child queue
         TrafficClass.create_class(intf, qid=qid, rate=bearer_gbr, max_bw=bearer_mbr,
@@ -696,9 +696,8 @@ class TestTrafficClass(unittest.TestCase):
         filter_output = subprocess.check_output(['tc', 'filter', 'show', 'dev', 'eth0'])
         filter_list = filter_output.decode('utf-8').split("\n")
         filter_list = [ln for ln in filter_list if 'classid' in ln]
-        assert(len(filter_list) == 1)
-        assert('classid 1:{qid}'.format(qid=qid) in filter_list[0])
-        assert('classid 1:{qid}'.format(qid=parent_qid) not in filter_list[0])
+        assert('classid 1:{qid}'.format(qid=parent_qid) in filter_list[0])
+        assert('classid 1:{qid}'.format(qid=qid) in filter_list[1])
 
         # check if classes are installed with appropriate bandwidth limits
         class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', 'eth0'])
@@ -725,7 +724,22 @@ class TestTrafficClass(unittest.TestCase):
         assert( (qid, parent_qid) in qid_list)
 
         # delete leaf class
-        TrafficClass.delete_class('eth0', 3, is_leaf=True)
+        TrafficClass.delete_class('eth0', 3)
+
+        # check class for qid 3 removed
+        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', 'eth0'])
+        class_list = class_output.decode('utf-8').split("\n")
+        assert( not [info for info in class_list  if 'class htb 1:{qid}'.format(
+            qid=qid) in info])
+
+        # delete APN AMBR class
+        TrafficClass.delete_class('eth0', 2)
+
+        # verify that parent class is removed
+        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', 'eth0'])
+        class_list = class_output.decode('utf-8').split("\n")
+        assert( not [info for info in class_list  if 'class htb 1:{qid}'.format(
+            qid=parent_qid) in info])
 
         # check if no fq_codel nor filter exists
         qdisc_output = subprocess.check_output(['tc', 'qdisc', 'show', 'dev', 'eth0'])
@@ -735,22 +749,6 @@ class TestTrafficClass(unittest.TestCase):
         qdisc_list = qdisc_output.decode('utf-8').split("\n")
         qdisc_list = [ln for ln in qdisc_list if 'fq_codel' in ln]
         assert(not filter_list and not qdisc_list)
-
-        # check class for qid 3 removed
-        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', 'eth0'])
-        class_list = class_output.decode('utf-8').split("\n")
-        assert( not [info for info in class_list  if 'class htb 1:{qid}'.format(
-            qid=qid) in info])
-
-
-        # delete APN AMBR class
-        TrafficClass.delete_class('eth0', 2, is_leaf=False)
-
-        # verify that parent class is removed
-        class_output = subprocess.check_output(['tc', 'class', 'show', 'dev', 'eth0'])
-        class_list = class_output.decode('utf-8').split("\n")
-        assert( not [info for info in class_list  if 'class htb 1:{qid}'.format(
-            qid=parent_qid) in info])
 
         # destroy all qos on eth0
         run_cmd(['tc qdisc del dev {intf} root'.format(intf=intf)])
