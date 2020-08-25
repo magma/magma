@@ -1691,6 +1691,12 @@ definitions:
         description: VLAN ID for management interface traffic on the AGW
         minLength: 1
         maxLength: 4
+      sgi_management_iface_static_ip:
+        type: string
+        format: ipv4
+        description: IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
+        minLength: 5
+        maxLength: 49
 
 
   gateway_non_eps_configs:
