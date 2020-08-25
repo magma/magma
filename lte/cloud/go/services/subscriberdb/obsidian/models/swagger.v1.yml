@@ -189,14 +189,9 @@ definitions:
           - 'base_name_1'
           - 'base_name_2'
       active_policies:
-        type: array
-        items:
-          $ref: './lte-policydb-swagger.yml#/definitions/policy_id'
-        x-omitempty: true
-        description: 'Policies which are active for this subscriber'
-        example:
-          - 'rule1'
-          - 'rule2'
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids'
+      active_policies_by_apn:
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
       monitoring:
@@ -231,14 +226,9 @@ definitions:
       static_ips:
         $ref: '#/definitions/subscriber_static_ips'
       active_policies:
-        type: array
-        items:
-          $ref: './lte-policydb-swagger.yml#/definitions/policy_id'
-        x-omitempty: true
-        description: 'Policies which are active for this subscriber'
-        example:
-          - 'rule1'
-          - 'rule2'
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids'
+      active_policies_by_apn:
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
 
