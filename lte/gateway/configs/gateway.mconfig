@@ -5,7 +5,8 @@
       "logLevel": "INFO",
       "ipBlock": "192.168.128.0/24",
       "ip_allocator_type": "IP_POOL",
-      "static_ip_enabled": true
+      "static_ip_enabled": true,
+      "multi_apn_ip_alloc": true
     },
     "mme": {
       "@type": "type.googleapis.com/magma.mconfig.MME",

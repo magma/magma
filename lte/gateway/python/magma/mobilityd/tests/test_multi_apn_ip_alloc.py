@@ -129,7 +129,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
     def test_get_ip_vlan_for_subscriber(self):
         """ test get_ip_for_sid without any assignment """
         sid = 'IMSI11'
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
 
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
@@ -146,7 +146,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         vlan = 132
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -164,7 +164,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         vlan = 188
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="xyz", ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -183,7 +183,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
 
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -206,7 +206,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip, vlan=vlan_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -225,7 +225,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
 
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -246,7 +246,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="abc", ip=assigned_ip, vlan=vlan_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -262,7 +262,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         sid = imsi + '.' + apn
         MockedSubscriberDBStub.add_incomplete_sub(sid=imsi)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -279,7 +279,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
 
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -298,7 +298,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
 
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -321,7 +321,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip, vlan=vlan_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -343,7 +343,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip, vlan=vlan_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=None, vlan=vlan)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated

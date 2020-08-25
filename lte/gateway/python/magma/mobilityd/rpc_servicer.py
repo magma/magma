@@ -169,12 +169,13 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 if request.apn:
                     composite_sid = composite_sid + "." + request.apn
 
-                ip = self._ipv4_allocator.alloc_ip_address(composite_sid)
+                ip, vlan = self._ipv4_allocator.alloc_ip_address(composite_sid)
                 logging.info("Allocated IPv4 %s for sid %s for apn %s"
                              % (ip, SIDUtils.to_str(request.sid), request.apn))
                 ip_addr.version = IPAddress.IPV4
                 ip_addr.address = ip.packed
-                return AllocateIPAddressResponse(ip_addr=ip_addr)
+                return AllocateIPAddressResponse(ip_addr=ip_addr,
+                                                 vlan=str(vlan))
             except NoAvailableIPError:
                 context.set_details('No free IPv4 IP available')
                 context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)

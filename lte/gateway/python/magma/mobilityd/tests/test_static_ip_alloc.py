@@ -59,7 +59,7 @@ class StaticIPAllocationTests(unittest.TestCase):
     def test_get_ip_for_subscriber(self):
         """ test get_ip_for_sid without any assignment """
         sid = 'IMSI11'
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
 
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
@@ -75,7 +75,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -91,7 +91,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="xyz", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -107,7 +107,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -125,7 +125,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -141,7 +141,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.hh'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -159,7 +159,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="abc", ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -174,7 +174,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         sid = imsi + '.' + apn
         MockedSubscriberDBStub.add_incomplete_sub(sid=imsi)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -188,7 +188,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -204,7 +204,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -222,7 +222,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -239,7 +239,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=None)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
