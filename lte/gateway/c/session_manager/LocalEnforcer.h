@@ -12,6 +12,7 @@
  */
 #pragma once
 
+#include <experimental/optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -204,6 +205,18 @@ class LocalEnforcer {
   void execute_actions(
       SessionMap& session_map,
       const std::vector<std::unique_ptr<ServiceAction>>& actions,
+      SessionUpdate& session_update);
+
+  /**
+   * handle_set_session_rules takes SessionRules, which is a set message that
+   * reflects the desired rule state, and apply the changes. The changes should
+   * be propagated to PipelineD and MME if the session is 4G.
+   * @param session_map
+   * @param updates
+   * @param session_update
+   */
+  void handle_set_session_rules(
+      SessionMap& session_map, const SessionRules& rules,
       SessionUpdate& session_update);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;

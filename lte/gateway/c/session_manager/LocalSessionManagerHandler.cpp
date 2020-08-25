@@ -564,8 +564,25 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   MLOG(MINFO) << "Received session <-> rule associations";
-  // TODO @themarwhal
-  // Add logic to insert rules into SessionState+PipelineD+PotentiallyBearerMap
+
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+    SessionRead req = {};
+    for (const auto& rule_sets : request_cpy.rules_per_subscriber()) {
+      req.insert(rule_sets.imsi());
+    }
+    auto session_map = session_store_.read_sessions(req);
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    enforcer_->handle_set_session_rules(session_map, request_cpy, update);
+    auto update_success = session_store_.update_sessions(update);
+    if (update_success) {
+      MLOG(MDEBUG) << "Succeeded in updating SessionStore after processing "
+                      "session rules set";
+    } else {
+      MLOG(MERROR) << "Failed in updating SessionStore after processing "
+                      "session rules set";
+    }
+  });
   response_callback(Status::OK, Void());
 }
 
