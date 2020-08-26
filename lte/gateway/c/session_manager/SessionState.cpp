@@ -28,9 +28,12 @@
 #include "magma_logging.h"
 
 namespace {
-const char* LABEL_IMSI   = "IMSI";
-const char* LABEL_APN    = "apn";
-const char* LABEL_MSISDN = "msisdn";
+const char* LABEL_IMSI      = "IMSI";
+const char* LABEL_APN       = "apn";
+const char* LABEL_MSISDN    = "msisdn";
+const char* LABEL_DIRECTION = "direction";
+const char* DIRECTION_UP    = "up";
+const char* DIRECTION_DOWN  = "down";
 }  // namespace
 
 using magma::service303::increment_counter;
@@ -1707,15 +1710,17 @@ RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
 
 void SessionState::update_data_usage_metrics(
     uint64_t bytes_tx, uint64_t bytes_rx) {
-  const auto& sid    = get_config().common_context.sid().id();
-  const auto& msisdn = get_config().common_context.msisdn();
-  const auto& apn    = get_config().common_context.apn();
+  const auto sid    = get_config().common_context.sid().id();
+  const auto msisdn = get_config().common_context.msisdn();
+  const auto apn    = get_config().common_context.apn();
   increment_counter(
-      "ue_reported_tx", bytes_tx, size_t(3), LABEL_IMSI, sid.c_str(), LABEL_APN,
-      apn.c_str(), LABEL_MSISDN, msisdn.c_str());
+      "ue_reported_usage", bytes_tx, size_t(4), LABEL_IMSI, sid.c_str(),
+      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_UP);
   increment_counter(
-      "ue_reported_rx", bytes_rx, size_t(3), LABEL_IMSI, sid.c_str(), LABEL_APN,
-      apn.c_str(), LABEL_MSISDN, msisdn.c_str());
+      "ue_reported_usage", bytes_rx, size_t(4), LABEL_IMSI, sid.c_str(),
+      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_DOWN);
 }
 
 }  // namespace magma
