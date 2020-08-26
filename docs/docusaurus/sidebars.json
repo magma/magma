@@ -54,6 +54,9 @@
         ]
       }
     ],
-    "FAQ": ["faq/magma_faq"]
+    "FAQ": ["faq/magma_faq"],
+    "Proposals": [
+      "proposals/vpn_config_from_api"
+    ]
   }
 }

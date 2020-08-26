@@ -55,6 +55,19 @@ const testCases: {[string]: TestCase} = {
       'gateways',
       'enodebs',
       'configure',
+      'alerts',
+    ],
+  },
+  feg_lte: {
+    default: 'map',
+    sections: [
+      'map',
+      'metrics',
+      'subscribers',
+      'gateways',
+      'enodebs',
+      'configure',
+      'alerts',
     ],
   },
   mesh: {

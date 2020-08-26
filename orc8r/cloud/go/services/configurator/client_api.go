@@ -652,6 +652,9 @@ func DoesEntityExist(networkID, entityType, entityKey string) (bool, error) {
 // DoEntitiesExist returns a boolean that indicated whether all entities
 // specified exist in the network
 func DoEntitiesExist(networkID string, ids []storage2.TypeAndKey) (bool, error) {
+	if len(ids) == 0 {
+		return true, nil
+	}
 	found, _, err := LoadEntities(
 		networkID,
 		nil, nil, nil,

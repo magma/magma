@@ -46,5 +46,6 @@ int32_t spgw_handle_nw_initiated_bearer_deactv_req(
     imsi64_t imsi64);
 
 int spgw_send_nw_init_activate_bearer_rsp(
-    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id);
+    gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
+    uint8_t default_bearer_id, char* policy_rule_name);
 #endif /* FILE_PGW_HANDLERS_SEEN */

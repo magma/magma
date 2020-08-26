@@ -22,6 +22,8 @@ magma-gen-meta:
       filename: icmp_status_swaggergen.go
     - go-struct-name: MutableSubscriber
       filename: mutable_subscriber_swaggergen.go
+    - go-struct-name: SubscriberDirectoryRecord
+      filename: subscriber_directory_record_swaggergen.go
 
 info:
   title: LTE Subscriber Management
@@ -187,14 +189,9 @@ definitions:
           - 'base_name_1'
           - 'base_name_2'
       active_policies:
-        type: array
-        items:
-          $ref: './lte-policydb-swagger.yml#/definitions/policy_id'
-        x-omitempty: true
-        description: 'Policies which are active for this subscriber'
-        example:
-          - 'rule1'
-          - 'rule2'
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids'
+      active_policies_by_apn:
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
       monitoring:
@@ -229,14 +226,9 @@ definitions:
       static_ips:
         $ref: '#/definitions/subscriber_static_ips'
       active_policies:
-        type: array
-        items:
-          $ref: './lte-policydb-swagger.yml#/definitions/policy_id'
-        x-omitempty: true
-        description: 'Policies which are active for this subscriber'
-        example:
-          - 'rule1'
-          - 'rule2'
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids'
+      active_policies_by_apn:
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
 
@@ -311,6 +303,8 @@ definitions:
         items:
           $ref: '#/definitions/subscriber_ip_allocation'
         x-omitempty: true
+      directory:
+        $ref: '#/definitions/subscriber_directory_record'
 
   untyped_mme_state:
     type: object
@@ -335,6 +329,16 @@ definitions:
         minLength: 1
         x-nullable: false
 
+  subscriber_directory_record:
+    type: object
+    description: AGW location history for the subscriber
+    required:
+      - location_history
+    properties:
+      location_history:
+        type: array
+        items:
+          type: string
 
   subscriber_status:
     type: object

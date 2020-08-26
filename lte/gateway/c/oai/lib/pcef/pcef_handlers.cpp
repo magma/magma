@@ -67,9 +67,9 @@ static void pcef_fill_create_session_req(
   sreq->mutable_sid()->set_id("IMSI" + imsi);
   sreq->set_rat_type(magma::RATType::TGPP_LTE);
   sreq->set_ue_ipv4(ip);
-  sreq->set_bearer_id(eps_bearer_id);
   sreq->set_apn(session_data->apn);
   sreq->set_msisdn(session_data->msisdn, session_data->msisdn_len);
+  sreq->set_bearer_id(eps_bearer_id);
   sreq->set_spgw_ipv4(session_data->sgw_ip);
   sreq->set_plmn_id(session_data->mcc_mnc, session_data->mcc_mnc_len);
   sreq->set_imsi_plmn_id(
@@ -103,11 +103,11 @@ static void pcef_fill_create_session_req(
   // LTE Context
   auto lte_context =
       sreq->mutable_rat_specific_context()->mutable_lte_context();
+  lte_context->set_bearer_id(eps_bearer_id);
   lte_context->set_spgw_ipv4(session_data->sgw_ip);
   lte_context->set_plmn_id(session_data->mcc_mnc, session_data->mcc_mnc_len);
   lte_context->set_imsi_plmn_id(
       session_data->imsi_mcc_mnc, session_data->imsi_mcc_mnc_len);
-
   if (session_data->imeisv_exists) {
     lte_context->set_imei(session_data->imeisv, IMEISV_DIGITS_MAX);
   }
@@ -151,6 +151,21 @@ bool pcef_end_session(char* imsi, char* apn) {
         return;  // For now, do nothing. TODO: handle errors asynchronously
       });
   return true;
+}
+
+void pcef_send_policy2bearer_binding(
+    const char* imsi, uint8_t default_bearer_id, char* policy_rule_name,
+    uint8_t eps_bearer_id) {
+  magma::PolicyBearerBindingRequest request;
+  request.mutable_sid()->set_id("IMSI" + std::string(imsi));
+  request.set_linked_bearer_id(default_bearer_id);
+  request.set_policy_rule_id(policy_rule_name);
+  request.set_bearer_id(eps_bearer_id);
+  magma::PCEFClient::bind_policy2bearer(
+      request,
+      [&](grpc::Status status, magma::PolicyBearerBindingResponse response) {
+        return;  // For now, do nothing. TODO: handle errors asynchronously
+      });
 }
 
 /*

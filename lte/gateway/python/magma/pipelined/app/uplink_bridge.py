@@ -33,7 +33,8 @@ class UplinkBridgeController(MagmaController):
     UplinkConfig = namedtuple(
         'UplinkBridgeConfig',
         ['uplink_bridge', 'uplink_eth_port_name', 'uplink_patch',
-         'enable_nat', 'virtual_mac', 'dhcp_port'],
+         'enable_nat', 'virtual_mac', 'dhcp_port',
+         'sgi_management_iface_vlan'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -56,7 +57,7 @@ class UplinkBridgeController(MagmaController):
                                                self.DEFAULT_UPLINK_PORT_NANE)
         virtual_mac = config_dict.get('virtual_mac',
                                       self.DEFAULT_UPLINK_MAC)
-
+        sgi_management_iface_vlan = config_dict.get('sgi_management_iface_vlan', "")
         return self.UplinkConfig(
             enable_nat=enable_nat,
             uplink_bridge=bridge_name,
@@ -64,21 +65,24 @@ class UplinkBridgeController(MagmaController):
             virtual_mac=virtual_mac,
             uplink_patch=uplink_patch,
             dhcp_port=dhcp_port,
+            sgi_management_iface_vlan=sgi_management_iface_vlan,
         )
 
     def initialize_on_connect(self, datapath):
         if self.config.enable_nat is True:
             self._delete_all_flows()
+            self._del_eth_port()
             return
 
         self._delete_all_flows()
         self._add_eth_port()
+        self._set_vlan_eth_port()
         # flows to forward traffic between patch port to eth port
 
         # 1. DHCP traffic
         match = "in_port=%s,ip,udp,tp_dst=68" % self.config.uplink_eth_port_name
-        actions = "output:%s,output:%s" % (self.config.dhcp_port,
-                                           self.config.uplink_patch)
+        actions = "output:%s,output:%s,output:LOCAL" % (self.config.dhcp_port,
+                                                     self.config.uplink_patch)
         self._install_flow(2000, match, actions)
 
         # 2.a. all egress traffic
@@ -140,15 +144,29 @@ class UplinkBridgeController(MagmaController):
         except subprocess.CalledProcessError as ex:
             raise Exception('Error: %s failed with: %s' % (ovs_add_port, ex))
 
-    def _del_eth_port(self):
-        if self.config.enable_nat is True or \
-                self.config.uplink_eth_port_name is None:
+    def _set_vlan_eth_port(self):
+        if self.config.uplink_bridge is None:
             return
 
+        if self.config.sgi_management_iface_vlan == '':
+            vlan_cmd = "ovs-vsctl clear port %s tag" \
+                    % self.config.uplink_bridge
+        else:
+            vlan_cmd = "ovs-vsctl set port %s tag=%s" \
+                       % (self.config.uplink_bridge,
+                          self.config.sgi_management_iface_vlan)
+
+        self.logger.info("Vlan set port: %s", vlan_cmd)
+        try:
+            subprocess.Popen(vlan_cmd, shell=True).wait()
+        except subprocess.CalledProcessError as ex:
+            raise Exception('Error: %s failed with: %s' % (vlan_cmd, ex))
+
+    def _del_eth_port(self):
         ovs_rem_port = "ovs-vsctl --if-exists del-port %s %s" \
                        % (self.config.uplink_bridge, self.config.uplink_eth_port_name)
         self.logger.info("Remove ovs uplink port: %s", ovs_rem_port)
         try:
             subprocess.Popen(ovs_rem_port, shell=True).wait()
         except subprocess.CalledProcessError as ex:
-            raise Exception('Error: %s failed with: %s' % (ovs_rem_port, ex))
+            self.logger.debug("ignore port del error: %s ", ex)

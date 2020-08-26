@@ -55,7 +55,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	// other without
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type: lte.ApnEntityType, Key: "apn1",
+			Type: lte.APNEntityType, Key: "apn1",
 			Config: &lte_models.ApnConfiguration{
 				Ambr: &lte_models.AggregatedMaximumBitrate{
 					MaxBandwidthDl: swag.Uint32(42),
@@ -70,7 +70,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			},
 		},
 		{
-			Type: lte.ApnEntityType, Key: "apn2",
+			Type: lte.APNEntityType, Key: "apn2",
 			Config: &lte_models.ApnConfiguration{
 				Ambr: &lte_models.AggregatedMaximumBitrate{
 					MaxBandwidthDl: swag.Uint32(42),
@@ -94,7 +94,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 				},
 				StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: "apn1"}, {Type: lte.ApnEntityType, Key: "apn2"}},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
 		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 	})

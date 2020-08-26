@@ -7,6 +7,9 @@ hide_title: true
 
 This page walks through a full, vanilla Orchestrator install.
 
+If you want to install a specific release version, check out the relevant notes
+in the [deployment intro](./deploy_intro.md).
+
 ## Prerequisites
 
 This walkthrough assumes you already have the following
@@ -309,14 +312,17 @@ deployment by visiting the master NMS organization at e.g.
 `https://master.nms.yoursubdomain.yourdomain.com` and logging in with the
 `ADMIN_USER_EMAIL` and `ADMIN_USER_PASSWORD` provided above.
 
-NOTE: the `https://` is required. If you self-signed certs above, the browser will
-rightfully complain. Either ignore the browser warnings at your own risk (some
-versions of Chrome won't allow this at all), or e.g.
+NOTE: the `https://` is required. If you self-signed certs above, the browser
+will rightfully complain. Either ignore the browser warnings at your own risk
+(some versions of Chrome won't allow this at all), or e.g.
 [import the root CA from above on a per-browser basis
 ](https://stackoverflow.com/questions/7580508/getting-chrome-to-accept-self-signed-localhost-certificate)
 
-You can also visit the AWS endpoints directly. The relevant services are
-`nginx-proxy` for NMS and `orc8r-proxy` for Orchestrator API.
+For interacting with the Orchestrator REST API, a good starting point is the
+Swagger UI available at `https://api.yoursubdomain.yourdomain.com/apidocs/v1/`.
+
+If desired, you can also visit the AWS endpoints directly. The relevant
+services are `nginx-proxy` for NMS and `orc8r-proxy` for Orchestrator API.
 Remember to include `https://`, as well as the port number for non-standard
 TLS ports.
 

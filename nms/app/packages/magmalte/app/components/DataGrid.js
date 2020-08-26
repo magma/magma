@@ -223,7 +223,7 @@ export default function DataGrid(props: Props) {
   const dataGrid = props.data.map((row, i) => (
     <Grid key={i} container direction="row">
       {row.map((data, j) => (
-        <>
+        <React.Fragment key={`data-${i}-${j}`}>
           <Grid
             item
             container
@@ -271,11 +271,10 @@ export default function DataGrid(props: Props) {
               )}
             </Grid>
           </Grid>
-        </>
+        </React.Fragment>
       ))}
     </Grid>
   ));
-  console.log(props.testID);
   return (
     <Card elevation={0}>
       <Grid

@@ -19,6 +19,7 @@ import type {SectionsConfigs} from '../layout/Section';
 import AlarmIcon from '@material-ui/icons/Alarm';
 import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import DashboardIcon from '@material-ui/icons/Dashboard';
 import Enodebs from './Enodebs';
 import EquipmentDashboard from '../../views/equipment/EquipmentDashboard';
 import Gateways from '../Gateways';
@@ -47,6 +48,11 @@ export function getLteSections(
   logsEnabled: boolean,
   dashboardV2Enabled: boolean,
 ): SectionsConfigs {
+  console.log('xxxx', dashboardV2Enabled);
+  if (dashboardV2Enabled) {
+    return getLteSectionsV2(alertsEnabled);
+  }
+
   const sections = [
     'map', // landing path
     [
@@ -86,6 +92,12 @@ export function getLteSections(
         icon: <SettingsCellIcon />,
         component: LteConfigure,
       },
+      {
+        path: 'alerts',
+        label: 'Alerts',
+        icon: <AlarmIcon />,
+        component: Alarms,
+      },
     ],
   ];
   if (logsEnabled) {
@@ -104,36 +116,57 @@ export function getLteSections(
       component: Alarms,
     });
   }
-  if (dashboardV2Enabled) {
+  return sections;
+}
+
+export function getLteSectionsV2(alertsEnabled: boolean): SectionsConfigs {
+  const sections = [
+    'dashboard', // landing path
+    [
+      {
+        path: 'dashboard',
+        label: 'Dashboard',
+        icon: <DashboardIcon />,
+        component: LteDashboard,
+      },
+      {
+        path: 'equipment',
+        label: 'Equipment',
+        icon: <RouterIcon />,
+        component: EquipmentDashboard,
+      },
+      {
+        path: 'network',
+        label: 'Network',
+        icon: <NetworkCheckIcon />,
+        component: NetworkDashboard,
+      },
+      {
+        path: 'subscribers',
+        label: 'Subscriber',
+        icon: <PeopleIcon />,
+        component: SubscriberDashboard,
+      },
+      {
+        path: 'traffic',
+        label: 'Traffic',
+        icon: <WifiTetheringIcon />,
+        component: TrafficDashboard,
+      },
+      {
+        path: 'metrics',
+        label: 'Metrics',
+        icon: <ShowChartIcon />,
+        component: LteMetrics,
+      },
+    ],
+  ];
+  if (alertsEnabled) {
     sections[1].splice(2, 0, {
-      path: 'dashboard',
-      label: 'Dashboard',
-      icon: <ShowChartIcon />,
-      component: LteDashboard,
-    });
-    sections[1].splice(3, 0, {
-      path: 'equipment',
-      label: 'EquipmentV2',
-      icon: <RouterIcon />,
-      component: EquipmentDashboard,
-    });
-    sections[1].splice(4, 0, {
-      path: 'network',
-      label: 'NetworkV2',
-      icon: <NetworkCheckIcon />,
-      component: NetworkDashboard,
-    });
-    sections[1].splice(5, 0, {
-      path: 'subscriberv2',
-      label: 'SubscriberV2',
-      icon: <PeopleIcon />,
-      component: SubscriberDashboard,
-    });
-    sections[1].splice(5, 0, {
-      path: 'traffic',
-      label: 'Traffic',
-      icon: <WifiTetheringIcon />,
-      component: TrafficDashboard,
+      path: 'alerts',
+      label: 'Alerts',
+      icon: <AlarmIcon />,
+      component: Alarms,
     });
   }
   return sections;

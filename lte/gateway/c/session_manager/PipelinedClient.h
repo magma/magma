@@ -46,6 +46,7 @@ class PipelinedClient {
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
     const std::vector<std::string> apn_names,
+    const std::vector<std::uint64_t> pdp_start_times,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback) = 0;
 
@@ -84,6 +85,7 @@ class PipelinedClient {
   virtual bool activate_flows_for_rules(
     const std::string& imsi,
     const std::string& ip_addr,
+    const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules,
     std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
@@ -108,7 +110,8 @@ class PipelinedClient {
     const std::string &ue_mac_addr,
     const std::string &msisdn,
     const std::string &ap_mac_addr,
-    const std::string &ap_name) = 0;
+    const std::string &ap_name,
+    const uint64_t& pdp_start_time) = 0;
 
   /**
    * Send the MAC address of UE and the subscriberID
@@ -156,6 +159,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::vector<std::string> msisdns,
     const std::vector<std::string> apn_mac_addrs,
     const std::vector<std::string> apn_names,
+    const std::vector<std::uint64_t> pdp_start_times,
     const std::uint64_t& epoch,
     std::function<void(Status status, SetupFlowsResult)> callback);
 
@@ -194,6 +198,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool activate_flows_for_rules(
     const std::string& imsi,
     const std::string& ip_addr,
+    const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules,
     std::function<void(Status status, ActivateFlowsResult)> callback);
@@ -218,7 +223,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::string& ue_mac_addr,
     const std::string& msisdn,
     const std::string& ap_mac_addr,
-    const std::string& ap_name);
+    const std::string& ap_name,
+    const uint64_t& pdp_start_time);
 
   /**
    * Propagate whether a subscriber has quota / no quota / or terminated

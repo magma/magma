@@ -40,10 +40,11 @@ StoredSessionState SessionState::marshal() {
   marshaled.config                 = config_;
   marshaled.imsi                   = imsi_;
   marshaled.session_id             = session_id_;
-  marshaled.core_session_id        = core_session_id_;
   marshaled.subscriber_quota_state = subscriber_quota_state_;
   marshaled.tgpp_context           = tgpp_context_;
   marshaled.request_number         = request_number_;
+  marshaled.pdp_start_time         = pdp_start_time_;
+  marshaled.pdp_end_time           = pdp_end_time_;
   marshaled.pending_event_triggers = pending_event_triggers_;
   marshaled.revalidation_time      = revalidation_time_;
 
@@ -92,10 +93,11 @@ SessionState::SessionState(
     const StoredSessionState& marshaled, StaticRuleStore& rule_store)
     : imsi_(marshaled.imsi),
       session_id_(marshaled.session_id),
-      core_session_id_(marshaled.core_session_id),
       request_number_(marshaled.request_number),
       curr_state_(marshaled.fsm_state),
       config_(marshaled.config),
+      pdp_start_time_(marshaled.pdp_start_time),
+      pdp_end_time_(marshaled.pdp_end_time),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
       static_rules_(rule_store),
@@ -139,15 +141,16 @@ SessionState::SessionState(
 
 SessionState::SessionState(
     const std::string& imsi, const std::string& session_id,
-    const std::string& core_session_id, const SessionConfig& cfg,
-    StaticRuleStore& rule_store, const magma::lte::TgppContext& tgpp_context)
+    const SessionConfig& cfg, StaticRuleStore& rule_store,
+    const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time)
     : imsi_(imsi),
       session_id_(session_id),
-      core_session_id_(core_session_id),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
       curr_state_(SESSION_ACTIVE),
       config_(cfg),
+      pdp_start_time_(pdp_start_time),
+      pdp_end_time_(0),
       tgpp_context_(tgpp_context),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
@@ -163,18 +166,6 @@ static UsageMonitorUpdate make_usage_monitor_update(
   return update;
 }
 
-void SessionState::new_report(SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATING_FLOW_ACTIVE) {
-    set_fsm_state(SESSION_TERMINATING_AGGREGATING_STATS, update_criteria);
-  }
-}
-
-void SessionState::finish_report(SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
-    set_fsm_state(SESSION_TERMINATING_FLOW_DELETED, update_criteria);
-  }
-}
-
 SessionCreditUpdateCriteria* SessionState::get_credit_uc(
     const CreditKey& key, SessionStateUpdateCriteria& uc) {
   if (uc.charging_credit_map.find(key) == uc.charging_credit_map.end()) {
@@ -183,13 +174,182 @@ SessionCreditUpdateCriteria* SessionState::get_credit_uc(
   return &(uc.charging_credit_map[key]);
 }
 
+bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
+  SessionStateUpdateCriteria _;
+  if (uc.is_fsm_updated) {
+    curr_state_ = uc.updated_fsm_state;
+  }
+
+  if (uc.is_pending_event_triggers_updated) {
+    for (auto it : uc.pending_event_triggers) {
+      pending_event_triggers_[it.first] = it.second;
+      if (it.first == REVALIDATION_TIMEOUT) {
+        revalidation_time_ = uc.revalidation_time;
+      }
+    }
+  }
+  // QoS Management
+  if (uc.is_bearer_mapping_updated) {
+    bearer_id_by_policy_ = uc.bearer_id_by_policy;
+  }
+
+  // Config
+  if (uc.is_config_updated) {
+    config_ = uc.updated_config;
+  }
+
+  // Static rules
+  for (const auto& rule_id : uc.static_rules_to_install) {
+    if (is_static_rule_installed(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because static rule already installed: " << rule_id
+                   << std::endl;
+      return false;
+    }
+    if (uc.new_rule_lifetimes.find(rule_id) != uc.new_rule_lifetimes.end()) {
+      auto lifetime = uc.new_rule_lifetimes[rule_id];
+      activate_static_rule(rule_id, lifetime, _);
+    } else if (is_static_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because rule lifetime is unspecified: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.static_rules_to_uninstall) {
+    if (is_static_rule_installed(rule_id)) {
+      deactivate_static_rule(rule_id, _);
+    } else if (is_static_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+      deactivate_static_rule(rule_id, _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because static rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.new_scheduled_static_rules) {
+    if (is_static_rule_scheduled(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because static rule already scheduled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+    auto lifetime = uc.new_rule_lifetimes[rule_id];
+    schedule_static_rule(rule_id, lifetime, _);
+  }
+
+  // Dynamic rules
+  for (const auto& rule : uc.dynamic_rules_to_install) {
+    if (is_dynamic_rule_installed(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because dynamic rule already installed: " << rule.id()
+                   << std::endl;
+      return false;
+    }
+    if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
+      auto lifetime = uc.new_rule_lifetimes[rule.id()];
+      insert_dynamic_rule(rule, lifetime, _);
+    } else if (is_dynamic_rule_scheduled(rule.id())) {
+      install_scheduled_dynamic_rule(rule.id(), _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because rule lifetime is unspecified: " << rule.id()
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.dynamic_rules_to_uninstall) {
+    if (is_dynamic_rule_installed(rule_id)) {
+      dynamic_rules_.remove_rule(rule_id, NULL);
+    } else if (is_dynamic_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+      dynamic_rules_.remove_rule(rule_id, NULL);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because dynamic rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule : uc.new_scheduled_dynamic_rules) {
+    if (is_dynamic_rule_scheduled(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because dynamic rule already scheduled: " << rule.id()
+                   << std::endl;
+      return false;
+    }
+    auto lifetime = uc.new_rule_lifetimes[rule.id()];
+    schedule_dynamic_rule(rule, lifetime, _);
+  }
+
+  // Gy Dynamic rules
+  for (const auto& rule : uc.gy_dynamic_rules_to_install) {
+    if (is_gy_dynamic_rule_installed(rule.id())) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because gy dynamic rule already installed: "
+                   << rule.id() << std::endl;
+      return false;
+    }
+    if (uc.new_rule_lifetimes.find(rule.id()) != uc.new_rule_lifetimes.end()) {
+      auto lifetime = uc.new_rule_lifetimes[rule.id()];
+      insert_gy_dynamic_rule(rule, lifetime, _);
+      MLOG(MERROR) << "Merge: " << session_id_
+                   << " gy dynamic rule " << rule.id() << std::endl;
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because gy dynamic rule lifetime is not found"
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.gy_dynamic_rules_to_uninstall) {
+    if (is_gy_dynamic_rule_installed(rule_id)) {
+      gy_dynamic_rules_.remove_rule(rule_id, NULL);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because gy dynamic rule already uninstalled: "
+                   << rule_id << std::endl;
+      return false;
+    }
+  }
+
+  // Charging credit
+  for (const auto& it : uc.charging_credit_map) {
+    auto key           = it.first;
+    auto credit_update = it.second;
+    apply_charging_credit_update(key, credit_update);
+  }
+  for (const auto& it : uc.charging_credit_to_install) {
+    auto key           = it.first;
+    auto stored_credit = it.second;
+    credit_map_[key] = std::make_unique<ChargingGrant>(stored_credit);
+  }
+
+  // Monitoring credit
+  if (uc.is_session_level_key_updated) {
+    set_session_level_key(uc.updated_session_level_key);
+  }
+  for (const auto& it : uc.monitor_credit_map) {
+    auto key           = it.first;
+    auto credit_update = it.second;
+    apply_monitor_updates(key, credit_update);
+  }
+  for (const auto& it : uc.monitor_credit_to_install) {
+    auto key            = it.first;
+    auto stored_monitor = it.second;
+    set_monitor(key, Monitor(stored_monitor), _);
+    monitor_map_[key] = std::make_unique<Monitor>(stored_monitor);
+  }
+  return true;
+}
+
 void SessionState::add_rule_usage(
     const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
     SessionStateUpdateCriteria& update_criteria) {
-  if (curr_state_ == SESSION_TERMINATING_AGGREGATING_STATS) {
-    set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
-  }
-
   CreditKey charging_key;
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, &charging_key) ||
       static_rules_.get_charging_key_for_rule_id(rule_id, &charging_key)) {
@@ -221,6 +381,79 @@ void SessionState::add_rule_usage(
   }
 }
 
+void SessionState::apply_session_rule_set(
+    RuleSetToApply& rule_set, RulesToProcess& rules_to_activate,
+    RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc) {
+  apply_session_static_rule_set(
+      rule_set.static_rules, rules_to_activate, rules_to_deactivate, uc);
+  apply_session_dynamic_rule_set(
+      rule_set.dynamic_rules, rules_to_activate, rules_to_deactivate, uc);
+}
+
+void SessionState::apply_session_static_rule_set(
+    std::unordered_set<std::string> static_rules,
+    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& uc) {
+  // No activation time / deactivation support yet for rule set interface
+  RuleLifetime lifetime{
+      .activation_time   = 0,
+      .deactivation_time = 0,
+  };
+  // Go through the rule set and install any rules not yet installed
+  for (const auto& static_rule_id : static_rules) {
+    if (!is_static_rule_installed(static_rule_id)) {
+      MLOG(MINFO) << "Installing static rule " << static_rule_id << " for "
+                  << session_id_;
+      activate_static_rule(static_rule_id, lifetime, uc);
+      rules_to_activate.static_rules.push_back(static_rule_id);
+    }
+  }
+  std::vector<std::string> static_rules_to_deactivate;
+
+  // Go through the existing rules and uninstall any rule not in the rule set
+  for (const auto static_rule_id : active_static_rules_) {
+    if (static_rules.find(static_rule_id) == static_rules.end()) {
+      rules_to_deactivate.static_rules.push_back(static_rule_id);
+    }
+  }
+  // Do the actual removal separately so we're not modifying the vector while
+  // looping
+  for (const auto static_rule_id : rules_to_deactivate.static_rules) {
+    MLOG(MINFO) << "Removing static rule " << static_rule_id << " for "
+                << session_id_;
+    deactivate_static_rule(static_rule_id, uc);
+  }
+}
+
+void SessionState::apply_session_dynamic_rule_set(
+    std::unordered_map<std::string, PolicyRule> dynamic_rules,
+    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& uc) {
+  // No activation time / deactivation support yet for rule set interface
+  RuleLifetime lifetime{
+      .activation_time   = 0,
+      .deactivation_time = 0,
+  };
+  for (const auto& dynamic_rule_pair : dynamic_rules) {
+    if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
+      MLOG(MINFO) << "installing dynamic rule " << dynamic_rule_pair.first
+                  << " for " << session_id_;
+      insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
+      rules_to_activate.dynamic_rules.push_back(dynamic_rule_pair.second);
+    }
+  }
+  std::vector<PolicyRule> active_dynamic_rules;
+  dynamic_rules_.get_rules(active_dynamic_rules);
+  for (const auto& dynamic_rule : active_dynamic_rules) {
+    if (dynamic_rules.find(dynamic_rule.id()) == dynamic_rules.end()) {
+      MLOG(MINFO) << "Removing dynamic rule " << dynamic_rule.id() << " for "
+                  << session_id_;
+      remove_dynamic_rule(dynamic_rule.id(), nullptr, uc);
+      rules_to_deactivate.dynamic_rules.push_back(dynamic_rule);
+    }
+  }
+}
+
 void SessionState::set_subscriber_quota_state(
     const magma::lte::SubscriberQuotaUpdate_Type state,
     SessionStateUpdateCriteria& update_criteria) {
@@ -237,10 +470,10 @@ SessionFsmState SessionState::get_state() {
 }
 
 bool SessionState::is_terminating() {
-  if (is_active() || curr_state_ == SESSION_TERMINATION_SCHEDULED) {
-    return false;
+  if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED) {
+    return true;
   }
-  return true;
+  return false;
 }
 
 void SessionState::get_monitor_updates(
@@ -275,10 +508,13 @@ void SessionState::add_common_fields_to_usage_monitor_update(
   req->set_session_id(session_id_);
   req->set_request_number(request_number_);
   req->set_sid(imsi_);
-  req->set_ue_ipv4(config_.ue_ipv4);
-  req->set_hardware_addr(config_.hardware_addr);
-  req->set_rat_type(config_.rat_type);
+  req->set_ue_ipv4(config_.common_context.ue_ipv4());
+  req->set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req->mutable_tgpp_ctx());
+  if (config_.rat_specific_context.has_wlan_context()) {
+    const auto& wlan_context = config_.rat_specific_context.wlan_context();
+    req->set_hardware_addr(wlan_context.mac_addr_binary());
+  }
 }
 
 void SessionState::get_updates(
@@ -289,15 +525,6 @@ void SessionState::get_updates(
   get_charging_updates(update_request_out, actions_out, update_criteria);
   get_monitor_updates(update_request_out, actions_out, update_criteria);
   get_event_trigger_updates(update_request_out, actions_out, update_criteria);
-}
-
-void SessionState::start_termination(
-    SessionStateUpdateCriteria& update_criteria) {
-  set_fsm_state(SESSION_TERMINATING_FLOW_ACTIVE, update_criteria);
-}
-
-bool SessionState::can_complete_termination() const {
-  return curr_state_ == SESSION_TERMINATING_FLOW_DELETED;
 }
 
 void SessionState::mark_as_awaiting_termination(
@@ -313,15 +540,14 @@ void SessionState::complete_termination(
     SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria) {
   switch (curr_state_) {
     case SESSION_ACTIVE:
-      MLOG(MERROR) << imsi_ << " Encountered unexpected state 'ACTIVE' when "
-                   << "forcefully completing termination. ";
+      MLOG(MERROR) << session_id_ << " Encountered unexpected state 'ACTIVE' when "
+                   << "forcefully completing termination. Not terminating...";
       return;
     case SESSION_TERMINATED:
       // session is already terminated. Do nothing.
       return;
-    case SESSION_TERMINATING_FLOW_ACTIVE:
-    case SESSION_TERMINATING_AGGREGATING_STATS:
-      MLOG(MINFO) << imsi_ << " Forcefully terminating session since it did "
+    case SESSION_RELEASED:
+      MLOG(MINFO) << session_id_ << " Forcefully terminating session since it did "
                   << "not receive usage from pipelined in time.";
     default:  // Continue termination but no logs are necessary for other states
       break;
@@ -339,17 +565,23 @@ SessionTerminateRequest SessionState::make_termination_request(
   req.set_sid(imsi_);
   req.set_session_id(session_id_);
   req.set_request_number(request_number_);
-  req.set_ue_ipv4(config_.ue_ipv4);
-  req.set_msisdn(config_.msisdn);
-  req.set_spgw_ipv4(config_.spgw_ipv4);
-  req.set_apn(config_.apn);
-  req.set_imei(config_.imei);
-  req.set_plmn_id(config_.plmn_id);
-  req.set_imsi_plmn_id(config_.imsi_plmn_id);
-  req.set_user_location(config_.user_location);
-  req.set_hardware_addr(config_.hardware_addr);
-  req.set_rat_type(config_.rat_type);
+  req.set_ue_ipv4(config_.common_context.ue_ipv4());
+  req.set_msisdn(config_.common_context.msisdn());
+  req.set_apn(config_.common_context.apn());
+  req.set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
+  if (config_.rat_specific_context.has_lte_context()) {
+    const auto& lte_context = config_.rat_specific_context.lte_context();
+    req.set_spgw_ipv4(lte_context.spgw_ipv4());
+    req.set_imei(lte_context.imei());
+    req.set_plmn_id(lte_context.plmn_id());
+    req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
+    req.set_user_location(lte_context.user_location());
+  } else if (config_.rat_specific_context.has_wlan_context()) {
+    const auto& wlan_context = config_.rat_specific_context.wlan_context();
+    req.set_hardware_addr(wlan_context.mac_addr_binary());
+  }
+
   // gx monitors
   for (auto& credit_pair : monitor_map_) {
     auto credit_uc = get_monitor_uc(credit_pair.first, update_criteria);
@@ -432,15 +664,16 @@ void SessionState::set_config(const SessionConfig& config) {
 }
 
 bool SessionState::is_radius_cwf_session() const {
-  return (config_.rat_type == RATType::TGPP_WLAN);
+  return (config_.common_context.rat_type() == RATType::TGPP_WLAN);
 }
 
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi    = imsi_;
-  info.ip_addr = config_.ue_ipv4;
+  info.ip_addr = config_.common_context.ue_ipv4();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
+  info.ambr = config_.get_apn_ambr();
 }
 
 void SessionState::set_tgpp_context(
@@ -457,6 +690,18 @@ void SessionState::fill_protos_tgpp_context(
 
 uint32_t SessionState::get_request_number() {
   return request_number_;
+}
+
+uint64_t SessionState::get_pdp_start_time() {
+  return pdp_start_time_;
+}
+
+uint64_t SessionState::get_pdp_end_time() {
+  return pdp_end_time_;
+}
+
+void SessionState::set_pdp_end_time(uint64_t epoch) {
+  pdp_end_time_ = epoch;
 }
 
 void SessionState::increment_request_number(uint32_t incr) {
@@ -897,7 +1142,7 @@ ReAuthResult SessionState::reauth_all(
   return res;
 }
 
-void SessionState::merge_charging_credit_update(
+void SessionState::apply_charging_credit_update(
     const CreditKey& key, SessionCreditUpdateCriteria& credit_update) {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
@@ -941,17 +1186,22 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
   req.set_session_id(session_id_);
   req.set_request_number(request_number_);
   req.set_sid(imsi_);
-  req.set_msisdn(config_.msisdn);
-  req.set_ue_ipv4(config_.ue_ipv4);
-  req.set_spgw_ipv4(config_.spgw_ipv4);
-  req.set_apn(config_.apn);
-  req.set_imei(config_.imei);
-  req.set_plmn_id(config_.plmn_id);
-  req.set_imsi_plmn_id(config_.imsi_plmn_id);
-  req.set_user_location(config_.user_location);
-  req.set_hardware_addr(config_.hardware_addr);
-  req.set_rat_type(config_.rat_type);
+  req.set_msisdn(config_.common_context.msisdn());
+  req.set_ue_ipv4(config_.common_context.ue_ipv4());
+  req.set_apn(config_.common_context.apn());
+  req.set_rat_type(config_.common_context.rat_type());
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
+  if (config_.rat_specific_context.has_lte_context()) {
+    const auto& lte_context = config_.rat_specific_context.lte_context();
+    req.set_spgw_ipv4(lte_context.spgw_ipv4());
+    req.set_imei(lte_context.imei());
+    req.set_plmn_id(lte_context.plmn_id());
+    req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
+    req.set_user_location(lte_context.user_location());
+  } else if (config_.rat_specific_context.has_wlan_context()) {
+    const auto& wlan_context = config_.rat_specific_context.wlan_context();
+    req.set_hardware_addr(wlan_context.mac_addr_binary());
+  }
   req.mutable_usage()->CopyFrom(usage);
   return req;
 }
@@ -996,14 +1246,16 @@ void SessionState::get_charging_updates(
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
-      case TERMINATE_SERVICE:
       case ACTIVATE_SERVICE:
+        action->set_ambr(config_.get_apn_ambr());
+      case TERMINATE_SERVICE:
       case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " action type " << action_type;
         action->set_credit_key(key);
         action->set_imsi(imsi_);
-        action->set_ip_addr(config_.ue_ipv4);
+        action->set_ip_addr(config_.common_context.ue_ipv4());
+        action->set_session_id(session_id_);
         static_rules_.get_rule_ids_for_charging_key(
             key, *action->get_mutable_rule_ids());
         dynamic_rules_.get_rule_definitions_for_charging_key(
@@ -1054,7 +1306,7 @@ bool SessionState::receive_monitor(
   return true;
 }
 
-void SessionState::merge_monitor_updates(
+void SessionState::apply_monitor_updates(
     const std::string& key, SessionCreditUpdateCriteria& update) {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {
@@ -1165,6 +1417,58 @@ void SessionState::set_session_level_key(const std::string new_key) {
   session_level_key_ = new_key;
 }
 
+BearerUpdate SessionState::get_dedicated_bearer_updates(
+    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& uc) {
+  BearerUpdate update;
+  // Rule Installs
+  for (const auto& rule_id : rules_to_activate.static_rules) {
+    update_bearer_creation_req(STATIC, rule_id, config_, update);
+  }
+  for (const auto& rule : rules_to_activate.dynamic_rules) {
+    const auto& rule_id = rule.id();
+    update_bearer_creation_req(DYNAMIC, rule_id, config_, update);
+  }
+
+  // Rule Removals
+  for (const auto& rule_id : rules_to_deactivate.static_rules) {
+    update_bearer_deletion_req(STATIC, rule_id, config_, update, uc);
+  }
+  for (const auto& rule : rules_to_deactivate.dynamic_rules) {
+    const auto& rule_id = rule.id();
+    update_bearer_deletion_req(DYNAMIC, rule_id, config_, update, uc);
+  }
+  return update;
+}
+
+void SessionState::bind_policy_to_bearer(
+    const PolicyBearerBindingRequest& request, SessionStateUpdateCriteria& uc) {
+  const std::string& rule_id = request.policy_rule_id();
+  auto policy_type           = get_policy_type(rule_id);
+  if (!policy_type) {
+    MLOG(MDEBUG) << "Policy " << rule_id
+                 << " not found, when trying to bind to bearerID "
+                 << request.bearer_id();
+    return;
+  }
+  MLOG(MINFO) << session_id_ << " now has policy " << rule_id
+              << " tied to bearerID " << request.bearer_id();
+  bearer_id_by_policy_[PolicyID(*policy_type, rule_id)] = request.bearer_id();
+  uc.is_bearer_mapping_updated = true;
+  uc.bearer_id_by_policy       = bearer_id_by_policy_;
+}
+
+std::experimental::optional<PolicyType> SessionState::get_policy_type(
+    const std::string& rule_id) {
+  if (is_static_rule_installed(rule_id)) {
+    return STATIC;
+  } else if (is_dynamic_rule_installed(rule_id)) {
+    return DYNAMIC;
+  } else {
+    return {};
+  }
+}
+
 SessionCreditUpdateCriteria* SessionState::get_monitor_uc(
     const std::string& key, SessionStateUpdateCriteria& uc) {
   if (uc.monitor_credit_map.find(key) == uc.monitor_credit_map.end()) {
@@ -1250,4 +1554,138 @@ bool SessionState::is_credit_state_redirected(
   }
   return it->second->service_state == SERVICE_REDIRECTED;
 }
+
+// QoS/Bearer Management
+bool SessionState::policy_has_qos(
+    const PolicyType policy_type, const std::string& rule_id,
+    PolicyRule* rule_out) {
+  if (policy_type == STATIC) {
+    bool exists = static_rules_.get_rule(rule_id, rule_out);
+    return exists && rule_out->has_qos();
+  }
+  if (policy_type == DYNAMIC) {
+    bool exists = dynamic_rules_.get_rule(rule_id, rule_out);
+    return exists && rule_out->has_qos();
+  }
+  return false;
+}
+
+void SessionState::update_bearer_creation_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update) {
+  if (!config.rat_specific_context.has_lte_context()) {
+    return;
+  }
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) !=
+      bearer_id_by_policy_.end()) {
+    // Policy already has a bearer
+    return;
+  }
+  PolicyRule rule;
+  if (!policy_has_qos(policy_type, rule_id, &rule)) {
+    // Only create a bearer for policies with QoS
+    return;
+  }
+  auto default_qci = FlowQos_Qci(
+      config.rat_specific_context.lte_context().qos_info().qos_class_id());
+  if (rule.qos().qci() == default_qci) {
+    // This QCI is already covered by the default bearer
+    return;
+  }
+
+  // If it is first time filling in the CreationReq, fill in other info
+  if (!update.needs_creation) {
+    update.needs_creation = true;
+    update.create_req.mutable_sid()->CopyFrom(config.common_context.sid());
+    update.create_req.set_ip_addr(config.common_context.ue_ipv4());
+    update.create_req.set_link_bearer_id(
+        config.rat_specific_context.lte_context().bearer_id());
+  }
+  update.create_req.mutable_policy_rules()->Add()->CopyFrom(rule);
+  // We will add the new policyID to bearerID association, once we receive a
+  // message from SGW.
+}
+
+void SessionState::update_bearer_deletion_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update,
+    SessionStateUpdateCriteria& uc) {
+  if (!config.rat_specific_context.has_lte_context()) {
+    return;
+  }
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) ==
+      bearer_id_by_policy_.end()) {
+    return;
+  }
+  // map change needs to be propagated to the store
+  const auto bearer_id_to_delete =
+      bearer_id_by_policy_[PolicyID(policy_type, rule_id)];
+  bearer_id_by_policy_.erase(PolicyID(policy_type, rule_id));
+  uc.is_bearer_mapping_updated = true;
+  uc.bearer_id_by_policy       = bearer_id_by_policy_;
+
+  // If it is first time filling in the DeletionReq, fill in other info
+  if (!update.needs_deletion) {
+    update.needs_deletion = true;
+    auto& req             = update.delete_req;
+    req.mutable_sid()->CopyFrom(config.common_context.sid());
+    req.set_ip_addr(config.common_context.ue_ipv4());
+    req.set_link_bearer_id(
+        config.rat_specific_context.lte_context().bearer_id());
+  }
+  update.delete_req.mutable_eps_bearer_ids()->Add(bearer_id_to_delete);
+}
+
+RuleSetToApply::RuleSetToApply(const magma::lte::RuleSet& rule_set) {
+  for (const auto& static_rule_install : rule_set.static_rules()) {
+    static_rules.insert(static_rule_install.rule_id());
+  }
+  for (const auto& dynamic_rule_install : rule_set.dynamic_rules()) {
+    dynamic_rules[dynamic_rule_install.policy_rule().id()] =
+        dynamic_rule_install.policy_rule();
+  }
+}
+
+void RuleSetToApply::combine_rule_set(const RuleSetToApply& other) {
+  for (const auto& static_rule : other.static_rules) {
+    static_rules.insert(static_rule);
+  }
+  for (const auto& dynamic_pair : other.dynamic_rules) {
+    dynamic_rules[dynamic_pair.first] = dynamic_pair.second;
+  }
+}
+
+RuleSetBySubscriber::RuleSetBySubscriber(
+    const RulesPerSubscriber& rules_per_subscriber) {
+  imsi = rules_per_subscriber.imsi();
+  for (const auto& rule_set : rules_per_subscriber.rule_set()) {
+    if (rule_set.apply_subscriber_wide()) {
+      subscriber_wide_rule_set = RuleSetToApply(rule_set);
+    } else {
+      subscriber_wide_rule_set        = {};
+      rule_set_by_apn[rule_set.apn()] = RuleSetToApply(rule_set);
+    }
+  }
+}
+
+std::experimental::optional<RuleSetToApply>
+RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
+  const bool apn_rule_set_exists =
+      rule_set_by_apn.find(apn) != rule_set_by_apn.end();
+  // Apply subscriber wide rule set if it exists. Also apply per-APN rule
+  // set if it exists.
+  if (apn_rule_set_exists && subscriber_wide_rule_set) {
+    auto rule_set_to_apply = rule_set_by_apn[apn];
+    rule_set_to_apply.combine_rule_set(*subscriber_wide_rule_set);
+    return rule_set_to_apply;
+  }
+  if (subscriber_wide_rule_set) {
+    return subscriber_wide_rule_set;
+  }
+  if (apn_rule_set_exists) {
+    return rule_set_by_apn[apn];
+  }
+  return {};
+}
+
 }  // namespace magma

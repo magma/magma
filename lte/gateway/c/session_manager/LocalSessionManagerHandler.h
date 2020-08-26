@@ -56,6 +56,20 @@ class LocalSessionManagerHandler {
       ServerContext* context, const LocalEndSessionRequest* request,
       std::function<void(Status, LocalEndSessionResponse)>
           response_callback) = 0;
+
+  /**
+   * Bind the returned bearer id to the policy for which it is created
+   */
+  virtual void BindPolicy2Bearer(
+      ServerContext* context, const PolicyBearerBindingRequest* request,
+      std::function<void(Status, PolicyBearerBindingResponse)>
+          response_callback) = 0;
+  /**
+   * Update active rules for session
+   */
+  virtual void SetSessionRules(
+      ServerContext* context, const SessionRules* request,
+      std::function<void(Status, Void)> response_callback) = 0;
 };
 
 /**
@@ -93,6 +107,24 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void EndSession(
       ServerContext* context, const LocalEndSessionRequest* request,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
+
+  /**
+   * Bind the returned bearer id to the policy for which it is created; if
+   * the returned bearer id is 0 then the dedicated bearer request is rejected
+   */
+  void BindPolicy2Bearer(
+      ServerContext* context, const PolicyBearerBindingRequest* request,
+      std::function<void(Status, PolicyBearerBindingResponse)>
+          response_callback);
+
+  /**
+   * Update active rules for session
+   * Get the SessionMap for the updates, apply the set rules and update the
+   * store. The rule updates should be also propagated to PipelineD
+   */
+  void SetSessionRules(
+      ServerContext* context, const SessionRules* request,
+      std::function<void(Status, Void)> response_callback);
 
  private:
   SessionStore& session_store_;
@@ -181,8 +213,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
 
   void handle_setup_callback(
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
-
-  SessionConfig build_session_config(const LocalCreateSessionRequest& request);
 
   /**
    * Get the most recently written state of sessions for Creation

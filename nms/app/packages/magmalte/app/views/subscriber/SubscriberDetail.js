@@ -20,7 +20,6 @@ import AppBar from '@material-ui/core/AppBar';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DataGrid from '../../components/DataGrid';
-import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EventsTable from '../../views/events/EventsTable';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
@@ -29,6 +28,8 @@ import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import PersonIcon from '@material-ui/icons/Person';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
+import SubscriberChart from './SubscriberChart';
+import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetailConfig from './SubscriberDetailConfig';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -37,11 +38,12 @@ import nullthrows from '@fbcnms/util/nullthrows';
 
 import {DetailTabItems, GetCurrentTabPos} from '../../components/TabUtils.js';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {SubscriberJsonConfig} from './SubscriberDetailConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const CHART_TITLE = 'Data Usage';
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -95,16 +97,10 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-export default function SubscriberDetail(props: {
-  subscriberMap: ?{[string]: subscriber},
-}) {
+export default function SubscriberDetail() {
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const subscriberId: string = nullthrows(match.params.subscriberId);
-  const subscriberInfo = props.subscriberMap?.[subscriberId];
-  if (!subscriberInfo) {
-    return null;
-  }
 
   return (
     <>
@@ -148,23 +144,18 @@ export default function SubscriberDetail(props: {
       </AppBar>
       <Switch>
         <Route
-          path={relativePath('/config')}
-          render={() => (
-            <SubscriberDetailConfig subscriberInfo={subscriberInfo} />
-          )}
+          path={relativePath('/config/json')}
+          render={() => <SubscriberJsonConfig />}
         />
         <Route
-          path={relativePath('/overview')}
-          render={() => <Overview subscriberInfo={subscriberInfo} />}
+          path={relativePath('/config')}
+          render={() => <SubscriberDetailConfig />}
         />
+        <Route path={relativePath('/overview')} render={() => <Overview />} />
         <Route
           path={relativePath('/event')}
           render={() => (
-            <EventsTable
-              sz="lg"
-              eventStream="SUBSCRIBER"
-              tags={subscriberInfo.id}
-            />
+            <EventsTable sz="lg" eventStream="SUBSCRIBER" tags={subscriberId} />
           )}
         />
         <Redirect to={relativeUrl('/overview')} />
@@ -173,38 +164,38 @@ export default function SubscriberDetail(props: {
   );
 }
 
-function Overview(props: {subscriberInfo: subscriber}) {
+function Overview() {
   const classes = useStyles();
+  const {match} = useRouter();
+  const subscriberId: string = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+  if (!subscriberInfo) {
+    return null;
+  }
 
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Grid container spacing={4}>
-            <Grid item xs={12} md={6} alignItems="center">
+            <Grid item xs={12} md={6}>
               <CardTitleRow icon={PersonIcon} label="Subscriber" />
-              <Info subscriberInfo={props.subscriberInfo} />
+              <Info subscriberInfo={subscriberInfo} />
             </Grid>
-            <Grid item xs={12} md={6} alignItems="center">
+            <Grid item xs={12} md={6}>
               <CardTitleRow icon={GraphicEqIcon} label="Status" />
-              <Status subscriberInfo={props.subscriberInfo} />
+              <Status subscriberInfo={subscriberInfo} />
             </Grid>
           </Grid>
         </Grid>
         <Grid item xs={12}>
-          <DateTimeMetricChart
-            title={CHART_TITLE}
-            queries={[
-              `ue_traffic{IMSI="${props.subscriberInfo.id}",direction="down"}`,
-              `ue_traffic{IMSI="${props.subscriberInfo.id}",direction="up"}`,
-            ]}
-            legendLabels={['Download', 'Upload']}
-          />
+          <SubscriberChart />
         </Grid>
         <Grid item xs={12}>
           <EventsTable
             eventStream="SUBSCRIBER"
-            tags={props.subscriberInfo.id}
+            tags={subscriberInfo.id}
             sz="md"
           />
         </Grid>

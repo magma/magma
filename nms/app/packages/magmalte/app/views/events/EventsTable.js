@@ -19,10 +19,8 @@ import type {event as MagmaEvent} from '@fbcnms/magma-api';
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import EventChart from './EventChart';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
-import ExpansionPanel from '@material-ui/core/ExpansionPanel';
-import ExpansionPanelDetails from '@material-ui/core/ExpansionPanelDetails';
-import ExpansionPanelSummary from '@material-ui/core/ExpansionPanelSummary';
+import ExpandLess from '@material-ui/icons/ExpandLess';
+import ExpandMore from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
@@ -33,9 +31,8 @@ import nullthrows from '@fbcnms/util/nullthrows';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
-import {getStep} from '../../components/CustomHistogram';
+import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -56,9 +53,18 @@ const useStyles = makeStyles(theme => ({
   importButton: {
     marginRight: '8px',
   },
+  eventDetailTable: {
+    // maxWidth: <value>, //TODO: This should be set to the parent table size
+    width: '100%',
+    padding: theme.spacing(1),
+  },
+  eventDetailLabel: {
+    verticalAlign: 'top',
+    fontWeight: 'bold',
+  },
   eventDetailValue: {
-    'max-width': '500px',
-    overflow: 'scroll',
+    overflowWrap: 'break-word',
+    maxWidth: '60vw', //TODO: Remove this when sizing added to `eventDetailTable`.
   },
   dashboardRoot: {
     margin: theme.spacing(5),
@@ -106,50 +112,30 @@ function ExpandEvent(props: EventDescriptionProps) {
     hardware_id: props.rowData.hardwareID,
     tag: props.rowData.tag,
   };
-  const [expanded, setExpanded] = useState(false);
+
   if (props.rowData.value) {
     for (const [key, value] of Object.entries(props.rowData.value)) {
       eventDetails[key] = value;
     }
   }
+
   return (
-    <ExpansionPanel
-      elevation={0}
-      expanded={expanded}
-      onChange={() => setExpanded(!expanded)}>
-      <ExpansionPanelSummary
-        expandIcon={<ExpandMoreIcon />}
-        aria-controls="panel1bh-content">
-        {Object.keys(eventDetails).join(', ')}
-      </ExpansionPanelSummary>
-      <ExpansionPanelDetails>
-        <table>
-          <tbody>
-            {Object.entries(eventDetails).map((entry, i) => (
-              <tr key={i}>
-                <td>{entry[0]}: </td>
-                <td className={classes.eventDetailValue}>
-                  {JSON.stringify(entry[1])}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </ExpansionPanelDetails>
-    </ExpansionPanel>
+    <table className={classes.eventDetailTable}>
+      <tbody>
+        {Object.entries(eventDetails).map((entry, i) => (
+          <tr key={i}>
+            <td className={classes.eventDetailLabel}>{entry[0]}: </td>
+            <td className={classes.eventDetailValue}>
+              {JSON.stringify(entry[1])}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 }
 
-function handleEventQuery(
-  networkId,
-  streams,
-  tags,
-  q,
-  from,
-  start,
-  end,
-  enqueueSnackbar,
-) {
+function handleEventQuery(networkId, streams, tags, q, from, start, end) {
   return new Promise(async (resolve, reject) => {
     try {
       const eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
@@ -193,8 +179,7 @@ function handleEventQuery(
         totalCount: eventCount,
       });
     } catch (e) {
-      enqueueSnackbar(e, {variant: 'error'});
-      reject(e);
+      reject(e?.message ?? 'error retrieving events');
     }
   });
 }
@@ -213,7 +198,6 @@ export default function EventsTable({
   const [endDate, setEndDate] = useState(moment());
   const [eventCount, setEventCount] = useState(0);
   const tableRef = useRef(null);
-  const enqueueSnackbar = useEnqueueSnackbar();
   const {match} = useRouter();
   const networkId = nullthrows(match.params.networkId);
   const streams =
@@ -291,11 +275,10 @@ export default function EventsTable({
               0,
               startDate,
               endDate,
-              enqueueSnackbar,
             );
           }}
           columns={[
-            {title: 'Timestamp', field: 'ts', type: 'datetime'},
+            {title: 'Timestamp', field: 'ts', type: 'datetime', width: 200},
             {title: 'EventType', field: 'eventType'},
           ]}
           options={{
@@ -303,6 +286,15 @@ export default function EventsTable({
             pageSizeOptions: [5],
             toolbar: false,
           }}
+          detailPanel={[
+            {
+              icon: ExpandMore,
+              openIcon: ExpandLess,
+              render: rowData => {
+                return <ExpandEvent rowData={rowData} />;
+              },
+            },
+          ]}
         />
       )}
       {sz === 'md' && (
@@ -317,23 +309,26 @@ export default function EventsTable({
               0,
               startDate,
               endDate,
-              enqueueSnackbar,
             );
           }}
           columns={[
-            {title: 'Timestamp', field: 'ts', type: 'datetime'},
-            {title: 'Event Type', field: 'eventType'},
+            {title: 'Timestamp', field: 'ts', type: 'datetime', width: 200},
+            {title: 'Event Type', field: 'eventType', width: 200},
             {title: 'Event Description', field: 'eventDescription'},
-            {
-              title: 'More Details',
-              field: 'eventDescription',
-              render: rowData => <ExpandEvent rowData={rowData} />,
-            },
           ]}
           options={{
             actionsColumnIndex: -1,
             pageSizeOptions: [10, 20],
           }}
+          detailPanel={[
+            {
+              icon: ExpandMore,
+              openIcon: ExpandLess,
+              render: rowData => {
+                return <ExpandEvent rowData={rowData} />;
+              },
+            },
+          ]}
         />
       )}
       {sz === 'lg' && (
@@ -367,23 +362,31 @@ export default function EventsTable({
                     0,
                     startDate,
                     endDate,
-                    enqueueSnackbar,
                   );
                 }}
                 columns={[
-                  {title: 'Timestamp', field: 'ts', type: 'datetime'},
-                  {title: 'Event Type', field: 'eventType'},
-                  {title: 'Event Description', field: 'eventDescription'},
                   {
-                    title: 'More Details',
-                    field: 'eventDescription',
-                    render: rowData => <ExpandEvent rowData={rowData} />,
+                    title: 'Timestamp',
+                    field: 'ts',
+                    type: 'datetime',
+                    width: 200,
                   },
+                  {title: 'Event Type', field: 'eventType', width: 200},
+                  {title: 'Event Description', field: 'eventDescription'},
                 ]}
                 options={{
                   actionsColumnIndex: -1,
                   pageSizeOptions: [10, 20],
                 }}
+                detailPanel={[
+                  {
+                    icon: ExpandMore,
+                    openIcon: ExpandLess,
+                    render: rowData => {
+                      return <ExpandEvent rowData={rowData} />;
+                    },
+                  },
+                ]}
               />
             </Grid>
           </Grid>

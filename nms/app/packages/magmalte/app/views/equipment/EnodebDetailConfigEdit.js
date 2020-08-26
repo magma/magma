@@ -127,13 +127,13 @@ export default function AddEditEnodeButton(props: ButtonProps) {
         <Link
           data-testid={(props.editProps?.editTable ?? '') + 'EditButton'}
           component="button"
-          variant="body2"
+          variant="text"
           onClick={handleClickOpen}>
           {props.title}
         </Link>
       ) : (
         <Button
-          variant="contained"
+          variant="text"
           className={classes.appBarBtn}
           onClick={handleClickOpen}>
           {props.title}

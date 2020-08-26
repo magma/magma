@@ -444,13 +444,10 @@ class MagmadUtil(object):
 
         """
 
-        config_stateless_script = (
-            "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
-            "config_stateless_agw.sh"
-        )
+        config_stateless_script = "/usr/local/bin/config_stateless_agw.sh"
 
         ret_code = self.exec_command(
-            "sudo -E " + config_stateless_script + " " + cmd.name.lower()
+            "sudo " + config_stateless_script + " " + cmd.name.lower()
         )
 
         if ret_code == 0:
@@ -608,6 +605,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
+                    id="rar_rule_1",
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,

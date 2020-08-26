@@ -17,8 +17,10 @@ import (
 	"magma/devmand/cloud/go/devmand"
 	devmand_service "magma/devmand/cloud/go/services/devmand"
 	"magma/devmand/cloud/go/services/devmand/obsidian/handlers"
+	"magma/devmand/cloud/go/services/devmand/servicers"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
+	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 
 	"github.com/golang/glog"
 )
@@ -28,7 +30,11 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error creating devmand service %s", err)
 	}
+
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
+
+	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
+
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error while running service and echo server: %s", err)

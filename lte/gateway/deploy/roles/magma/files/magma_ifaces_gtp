@@ -19,7 +19,7 @@ iface gtp0 inet manual
 
 allow-gtp_br0 mtr0
 iface mtr0 inet static
-    address 10.0.2.10
+    address 10.1.0.1
     netmask 255.255.255.0
     ovs_bridge gtp_br0
     ovs_type OVSIntPort
@@ -41,7 +41,7 @@ iface patch-up inet manual
     ovs_extra set interface ${IFACE} ofport_request=2
 
 allow-ovs uplink_br0
-iface uplink_br0 inet manual
+iface uplink_br0 inet dhcp
     ovs_type OVSBridge
     ovs_ports dhcp0 patch-agw
 

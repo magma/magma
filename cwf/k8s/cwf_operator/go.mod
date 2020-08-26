@@ -29,13 +29,8 @@ module magma/cwf/k8s/cwf_operator
 go 1.13
 
 require (
-	github.com/OneOfOne/xxhash v1.2.5 // indirect
 	github.com/go-logr/glogr v0.1.0
 	github.com/gorilla/mux v1.7.4 // indirect
-	github.com/hashicorp/go-msgpack v0.5.4 // indirect
-	github.com/hashicorp/go-uuid v1.0.1 // indirect
-	github.com/miekg/dns v1.1.10 // indirect
-	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
 	github.com/stretchr/testify v1.4.0

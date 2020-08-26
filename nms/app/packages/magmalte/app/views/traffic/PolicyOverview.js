@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {policy_rule} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
@@ -25,6 +26,7 @@ import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -33,6 +35,13 @@ import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const POLICY_TITLE = 'Policies';
+const DEFAULT_POLICY_CONFIG = {
+  flow_list: [],
+  id: '',
+  monitoring_key: '',
+  priority: 1,
+};
+
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -105,14 +114,17 @@ type PolicyRowType = {
   trackingType: string,
 };
 
-type policiesType = {
+type Props = WithAlert & {
   policies: {[string]: policy_rule},
+  onDelete?: string => void,
 };
-export default function PolicyOverview(props: policiesType) {
+
+export function PolicyOverview(props: Props) {
   const classes = useStyles();
-  // this for enabling edit, deactivate actions
+  const enqueueSnackbar = useEnqueueSnackbar();
   const [currRow, setCurrRow] = useState<PolicyRowType>({});
-  const {history, relativeUrl} = useRouter();
+  const {history, match, relativeUrl} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
   const policyRows: Array<PolicyRowType> = props.policies
     ? Object.keys(props.policies).map((policyID: string) => {
         const policyRule = props.policies[policyID];
@@ -154,7 +166,11 @@ export default function PolicyOverview(props: policiesType) {
             </Grid>
 
             <Grid item>
-              <Button className={classes.appBarBtn}>Create New Policy</Button>
+              <Button
+                className={classes.appBarBtn}
+                onClick={() => history.push(relativeUrl('/json'))}>
+                Create New Policy
+              </Button>
             </Grid>
           </Grid>
         </Grid>
@@ -188,7 +204,6 @@ export default function PolicyOverview(props: policiesType) {
             ]}
             handleCurrRow={(row: PolicyRowType) => setCurrRow(row)}
             menuItems={[
-              {name: 'Edit'},
               {
                 name: 'Edit JSON',
                 handleFunc: () => {
@@ -196,7 +211,37 @@ export default function PolicyOverview(props: policiesType) {
                 },
               },
               {name: 'Deactivate'},
-              {name: 'Remove'},
+              {
+                name: 'Remove',
+                handleFunc: () => {
+                  props
+                    .confirm(
+                      `Are you sure you want to delete ${currRow.policyID}?`,
+                    )
+                    .then(async confirmed => {
+                      if (!confirmed) {
+                        return;
+                      }
+
+                      try {
+                        await MagmaV1API.deleteNetworksByNetworkIdPoliciesRulesByRuleId(
+                          {
+                            networkId: networkId,
+                            ruleId: currRow.policyID,
+                          },
+                        );
+                        props.onDelete?.(currRow.policyID);
+                      } catch (e) {
+                        enqueueSnackbar(
+                          'failed deleting policy ' + currRow.policyID,
+                          {
+                            variant: 'error',
+                          },
+                        );
+                      }
+                    });
+                },
+              },
             ]}
             options={{
               actionsColumnIndex: -1,
@@ -208,33 +253,44 @@ export default function PolicyOverview(props: policiesType) {
     </div>
   );
 }
-
-type Props = {
+type JsonConfigType = {
   policies: {[string]: policy_rule},
   onSave?: policy_rule => void,
 };
-export function PolicyJsonConfig(props: Props) {
-  const {match} = useRouter();
+export function PolicyJsonConfig(props: JsonConfigType) {
+  const {match, history} = useRouter();
   const [error, setError] = useState('');
   const networkId: string = nullthrows(match.params.networkId);
-  const policyID: string = nullthrows(match.params.policyId);
+  const policyID: string = match.params.policyId;
   const enqueueSnackbar = useEnqueueSnackbar();
+  const policy: policy_rule = props.policies[policyID] || DEFAULT_POLICY_CONFIG;
   return (
     <JsonEditor
-      content={props.policies[policyID]}
+      content={policy}
       error={error}
       onSave={async policy => {
         try {
-          await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
-            networkId: networkId,
-            ruleId: policyID,
-            policyRule: (policy: policy_rule),
-          });
-          enqueueSnackbar('eNodeb saved successfully', {
-            variant: 'success',
-          });
+          if (policyID) {
+            await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
+              networkId: networkId,
+              ruleId: policyID,
+              policyRule: (policy: policy_rule),
+            });
+            enqueueSnackbar('Policy saved successfully', {
+              variant: 'success',
+            });
+          } else {
+            await MagmaV1API.postNetworksByNetworkIdPoliciesRules({
+              networkId: networkId,
+              policyRule: (policy: policy_rule),
+            });
+            enqueueSnackbar('Policy added successfully', {
+              variant: 'success',
+            });
+          }
           setError('');
           props.onSave?.(policy);
+          history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -242,3 +298,5 @@ export function PolicyJsonConfig(props: Props) {
     />
   );
 }
+
+export default withAlert(PolicyOverview);

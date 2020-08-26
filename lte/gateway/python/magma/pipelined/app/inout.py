@@ -14,19 +14,19 @@ import ipaddress
 import threading
 
 from collections import namedtuple
-from ipaddress import IPv4Address
 
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
-from scapy.arch import get_if_hwaddr
-from scapy.data import ETHER_BROADCAST, ETH_P_ARP
+from scapy.arch import get_if_hwaddr, get_if_addr
+from scapy.data import ETHER_BROADCAST, ETH_P_ALL
 from scapy.error import Scapy_Exception
-from scapy.layers.l2 import ARP, Ether
+from scapy.layers.l2 import ARP, Ether, Dot1Q
 from scapy.sendrecv import srp1
 
 from .base import MagmaController
 from magma.pipelined.mobilityd_client import get_mobilityd_gw_info, \
     set_mobilityd_gw_info
+from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.app.li_mirror import LIMirrorController
 from magma.pipelined.openflow import flows
@@ -91,7 +91,7 @@ class InOutController(MagmaController):
         self._egress_tbl_num = self._service_manager.get_table_num(EGRESS)
         # following fields are only used in Non Nat config
         self._gw_mac_monitor = None
-        self._current_upstream_mac = ""
+        self._current_upstream_mac_map = {}  # maps vlan to upstream gw mac
         self._datapath = None
 
     def _get_config(self, config_dict):
@@ -123,13 +123,12 @@ class InOutController(MagmaController):
             enable_nat=enable_nat,
             non_mat_gw_probe_frequency=non_mat_gw_probe_freq,
             non_nat_arp_egress_port=non_nat_arp_egress_port,
-            setup_type=setup_type,
-        )
+            setup_type=setup_type)
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
-        self._install_default_egress_flows(datapath)
         self._install_default_ingress_flows(datapath)
+        self._install_default_egress_flows(datapath)
         self._install_default_middle_flows(datapath)
         self._setup_non_nat_monitoring(datapath)
 
@@ -164,39 +163,69 @@ class InOutController(MagmaController):
                                              resubmit_table=next_tbl)
 
         if self._mtr_service_enabled:
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                               ipv4_dst=self.config.mtr_ip)
-            flows.add_output_flow(dp,
-                                  self._midle_tbl_num, match,
-                                  [], priority=flows.UE_FLOW_PRIORITY,
-                                  output_port=self.config.mtr_port)
+            _install_vlan_egress_flows(dp,
+                                       self._midle_tbl_num,
+                                       self.config.mtr_port,
+                                       self.config.mtr_ip,
+                                       priority=flows.UE_FLOW_PRIORITY)
 
-    def _install_default_egress_flows(self, dp, mac_addr: str = ""):
+    def _install_default_egress_flows(self, dp, mac_addr: str = "", vlan: str = ""):
         """
         Egress table is the last table that a packet touches in the pipeline.
         Output downlink traffic to gtp port, uplink trafic to LOCAL
+        Args:
+            mac_addr: In Non NAT mode, this is upstream internet GW mac address
+            vlan: in multi APN this is vlan_id of the upstream network.
 
         Raises:
             MagmaOFError if any of the default flows fail to install.
         """
-        downlink_match = MagmaMatch(direction=Direction.IN)
-        flows.add_output_flow(dp, self._egress_tbl_num, downlink_match, [],
-                              output_port=self.config.gtp_port)
+        if self.config.setup_type == 'LTE':
+            _install_vlan_egress_flows(dp,
+                                       self._egress_tbl_num,
+                                       self.config.gtp_port,
+                                       "0.0.0.0/0")
+        else:
+            # Use regular match for Non LTE setup.
+            downlink_match = MagmaMatch(direction=Direction.IN)
+            flows.add_output_flow(dp, self._egress_tbl_num, downlink_match, [],
+                                  output_port=self.config.gtp_port)
 
-        uplink_match = MagmaMatch(direction=Direction.OUT)
+        if vlan != "":
+            vid = 0x1000 | int(vlan)
+            uplink_match = MagmaMatch(direction=Direction.OUT,
+                                      vlan_vid=(vid, vid))
+        else:
+            uplink_match = MagmaMatch(direction=Direction.OUT)
+
         actions = []
         # avoid resetting mac address on switch connect event.
         if mac_addr == "":
-            mac_addr = self._current_upstream_mac
+            mac_addr = self._current_upstream_mac_map.get(vlan, "")
+        if mac_addr == "" and self.config.enable_nat is False:
+            mac_addr = "ff:ff:ff:ff:ff:ff"
 
         if mac_addr != "":
             parser = dp.ofproto_parser
-            actions.append(parser.NXActionRegLoad2(dst='eth_dst', value=mac_addr))
+            actions.append(parser.NXActionRegLoad2(dst='eth_dst',
+                                                   value=mac_addr))
+            if self._current_upstream_mac_map.get(vlan, "") != mac_addr:
+                self.logger.info("Using GW: mac: %s match %s actions: %s",
+                                 mac_addr,
+                                 str(uplink_match.ryu_match),
+                                 str(actions))
 
-            self.logger.info("Using GW: %s actions: %s", mac_addr, str(actions))
-            self._current_upstream_mac = mac_addr
+                self._current_upstream_mac_map[vlan] = mac_addr
+
+        if vlan != "":
+            priority = flows.UE_FLOW_PRIORITY
+        elif mac_addr != "":
+            priority = flows.DEFAULT_PRIORITY
+        else:
+            priority = flows.MINIMUM_PRIORITY
 
         flows.add_output_flow(dp, self._egress_tbl_num, uplink_match,
+                              priority=priority,
                               actions=actions,
                               output_port=self._uplink_port)
 
@@ -262,19 +291,25 @@ class InOutController(MagmaController):
                                                  match, actions=actions, priority=flows.DEFAULT_PRIORITY,
                                                  resubmit_table=next_table)
 
-    def _get_gw_mac_address(self, ip: IPv4Address) -> str:
+    def _get_gw_mac_address(self, ip: IPAddress, vlan: str = "") -> str:
         try:
             gw_ip = ipaddress.ip_address(ip.address)
             self.logger.debug("sending arp via egress: %s",
                               self.config.non_nat_arp_egress_port)
             eth_mac_src = get_if_hwaddr(self.config.non_nat_arp_egress_port)
+            psrc = "0.0.0.0"
+            egress_port_ip = get_if_addr(self.config.non_nat_arp_egress_port)
+            if egress_port_ip:
+                psrc = egress_port_ip
 
             pkt = Ether(dst=ETHER_BROADCAST, src=eth_mac_src)
-            pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc="0.0.0.0")
+            if vlan != "":
+                pkt /= Dot1Q(vlan=int(vlan))
+            pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc=psrc)
             self.logger.debug("ARP Req pkt %s", pkt.show(dump=True))
 
             res = srp1(pkt,
-                       type=ETH_P_ARP,
+                       type=ETH_P_ALL,
                        iface=self.config.non_nat_arp_egress_port,
                        timeout=1,
                        verbose=0,
@@ -283,7 +318,16 @@ class InOutController(MagmaController):
 
             if res is not None:
                 self.logger.debug("ARP Res pkt %s", res.show(dump=True))
-                mac = res[ARP].hwsrc
+                if str(res[ARP].psrc) != str(gw_ip):
+                    self.logger.warning("Unexpected ARP response. %s", res.show(dump=True))
+                    return ""
+                if vlan:
+                    if Dot1Q in res and str(res[Dot1Q].vlan) == vlan:
+                        mac = res[ARP].hwsrc
+                    else:
+                        self.logger.warning("Unexpected ARP response. %s", res.show(dump=True))
+                else:
+                    mac = res[ARP].hwsrc
                 return mac
             else:
                 self.logger.debug("Got Null response")
@@ -298,25 +342,24 @@ class InOutController(MagmaController):
 
     def _monitor_and_update(self):
         while True:
-            updated_info = get_mobilityd_gw_info()
-            if updated_info:
-                cached_gw_info = updated_info
-            if cached_gw_info and cached_gw_info.ip:
-                latest_mac_addr = self._get_gw_mac_address(cached_gw_info.ip)
-                if len(latest_mac_addr) == 17 and \
-                        self._current_upstream_mac != latest_mac_addr:
-                    self._install_default_egress_flows(self._datapath, latest_mac_addr)
-                    cached_gw_info.mac = latest_mac_addr
-                    set_gw_info = cached_gw_info
-                    set_mobilityd_gw_info(set_gw_info)
-                elif latest_mac_addr != "":
-                    self.logger.warning("invalid mac: %s", latest_mac_addr)
-            else:
-                self.logger.warning("No default GW found.")
+            gw_info_list = get_mobilityd_gw_info()
+            for gw_info in gw_info_list:
+                if gw_info and gw_info.ip:
+                    latest_mac_addr = self._get_gw_mac_address(gw_info.ip, gw_info.vlan)
+                    self.logger.debug("mac [%s] for vlan %s", latest_mac_addr, gw_info.vlan)
+                    if latest_mac_addr == "":
+                        latest_mac_addr = gw_info.mac
 
-            self.logger.info("non_mat_gw_probe_frequency: %s mac: [%s]",
-                             self.config.non_mat_gw_probe_frequency,
-                             self._current_upstream_mac)
+                    self._install_default_egress_flows(self._datapath,
+                                                       latest_mac_addr,
+                                                       gw_info.vlan)
+                    if latest_mac_addr != "":
+                        set_mobilityd_gw_info(gw_info.ip,
+                                              latest_mac_addr,
+                                              gw_info.vlan)
+                else:
+                    self.logger.warning("No default GW found.")
+
             hub.sleep(self.config.non_mat_gw_probe_frequency)
 
     def _setup_non_nat_monitoring(self, datapath):
@@ -345,3 +388,28 @@ class InOutController(MagmaController):
         self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
 
         threading.Event().wait(1)
+
+
+def _install_vlan_egress_flows(dp, table_no, out_port, ip,
+                               priority=0):
+    # Pass non vlan packet as it is.
+    match = MagmaMatch(direction=Direction.IN,
+                       eth_type=ether_types.ETH_TYPE_IP,
+                       vlan_vid=(0x0000, 0x1000),
+                       ipv4_dst=ip)
+    flows.add_output_flow(dp,
+                          table_no, match,
+                          [], priority=priority,
+                          output_port=out_port)
+
+    # remove vlan header for out_port.
+    match = MagmaMatch(direction=Direction.IN,
+                       eth_type=ether_types.ETH_TYPE_IP,
+                       vlan_vid=(0x1000, 0x1000),
+                       ipv4_dst=ip)
+    actions_vlan_pop = [dp.ofproto_parser.OFPActionPopVlan()]
+    flows.add_output_flow(dp,
+                          table_no, match,
+                          actions_vlan_pop,
+                          priority=priority,
+                          output_port=out_port)

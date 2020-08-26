@@ -1557,7 +1557,8 @@ void mme_app_handle_e_rab_setup_rsp(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_mobile_reachability_timer_expiry(void* args) {
+void mme_app_handle_mobile_reachability_timer_expiry(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id      = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
@@ -1569,6 +1570,7 @@ void mme_app_handle_mobile_reachability_timer_expiry(void* args) {
         mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64 = ue_context_p->emm_context._imsi64;
   ue_context_p->mobile_reachability_timer.id = MME_APP_TIMER_INACTIVE_ID;
   ue_context_p->time_mobile_reachability_timer_started = 0;
 
@@ -1590,6 +1592,7 @@ void mme_app_handle_mobile_reachability_timer_expiry(void* args) {
         ue_context_p->mme_ue_s1ap_id);
     ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
   } else {
+    ue_context_p->time_implicit_detach_timer_started = time(NULL);
     OAILOG_DEBUG_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Started Implicit Detach timer for UE id: " MME_UE_S1AP_ID_FMT "\n",
@@ -1603,7 +1606,7 @@ void mme_app_handle_mobile_reachability_timer_expiry(void* args) {
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 //------------------------------------------------------------------------------
-void mme_app_handle_implicit_detach_timer_expiry(void* args) {
+void mme_app_handle_implicit_detach_timer_expiry(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p =
@@ -1615,14 +1618,17 @@ void mme_app_handle_implicit_detach_timer_expiry(void* args) {
         mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64                                = ue_context_p->emm_context._imsi64;
   ue_context_p->implicit_detach_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->time_implicit_detach_timer_started = 0;
   // Initiate Implicit Detach for the UE
   nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_initial_context_setup_rsp_timer_expiry(void* args) {
+void mme_app_handle_initial_context_setup_rsp_timer_expiry(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id      = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
@@ -1634,6 +1640,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(void* args) {
         mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64 = ue_context_p->emm_context._imsi64;
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is
@@ -1933,15 +1940,20 @@ int mme_app_handle_initial_paging_request(
       ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS);
 }
 
-void mme_app_handle_paging_timer_expiry(void* args) {
+void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Paging timer");
 
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64                                = ue_context_p->emm_context._imsi64;
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   if ((mme_app_paging_request_helper(
           ue_context_p, false, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
@@ -1953,14 +1965,19 @@ void mme_app_handle_paging_timer_expiry(void* args) {
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
-void mme_app_handle_ulr_timer_expiry(void* args) {
+void mme_app_handle_ulr_timer_expiry(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p =
       mme_app_get_ue_context_for_timer(mme_ue_s1ap_id, "Update location timer");
   if (ue_context_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Invalid UE context received, MME UE S1AP Id: " MME_UE_S1AP_ID_FMT "\n",
+        mme_ue_s1ap_id);
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
+  *imsi64                             = ue_context_p->emm_context._imsi64;
   ue_context_p->ulr_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
 
   // Send PDN CONNECTIVITY FAIL message  to NAS layer
@@ -2256,7 +2273,8 @@ int mme_app_handle_nas_extended_service_req(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_handle_ue_context_modification_timer_expiry(void* args) {
+void mme_app_handle_ue_context_modification_timer_expiry(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id      = *((mme_ue_s1ap_id_t*) (args));
   struct ue_mm_context_s* ue_context_p = mme_app_get_ue_context_for_timer(
@@ -2275,6 +2293,7 @@ void mme_app_handle_ue_context_modification_timer_expiry(void* args) {
         ue_context_p, "ue_context_modification_timer_expired",
         UE_CONTEXT_MODIFICATION_PROCEDURE_FAILED);
   }
+  *imsi64 = ue_context_p->emm_context._imsi64;
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

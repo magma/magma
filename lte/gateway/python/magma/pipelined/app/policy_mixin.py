@@ -111,6 +111,8 @@ class PolicyMixin(metaclass=ABCMeta):
         msg_list = []
         for add_flow_req in requests:
             imsi = add_flow_req.sid.id
+            ip_addr = add_flow_req.ip_addr
+            apn_ambr = add_flow_req.apn_ambr
             static_rule_ids = add_flow_req.rule_ids
             dynamic_rules = add_flow_req.dynamic_rules
 
@@ -123,7 +125,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 try:
                     if rule.redirect.support == rule.redirect.ENABLED:
                         continue
-                    flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
+                    flow_adds = self._get_rule_match_flow_msgs(imsi, ip_addr, apn_ambr, rule)
                     msg_list.extend(flow_adds)
                 except FlowMatchError:
                     self.logger.error("Failed to verify rule_id: %s", rule_id)
@@ -132,7 +134,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 try:
                     if rule.redirect.support == rule.redirect.ENABLED:
                         continue
-                    flow_adds = self._get_rule_match_flow_msgs(imsi, rule)
+                    flow_adds = self._get_rule_match_flow_msgs(imsi, ip_addr, apn_ambr, rule)
                     msg_list.extend(flow_adds)
                 except FlowMatchError:
                     self.logger.error("Failed to verify rule_id: %s", rule.id)
@@ -169,7 +171,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 if rule.redirect.support == rule.redirect.ENABLED:
                     self._install_redirect_flow(imsi, ip_addr, rule)
 
-    def activate_rules(self, imsi, ip_addr, static_rule_ids, dynamic_rules):
+    def activate_rules(self, imsi, ip_addr, apn_ambr, static_rule_ids, dynamic_rules):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -194,11 +196,11 @@ class PolicyMixin(metaclass=ABCMeta):
             )
         static_results = []
         for rule_id in static_rule_ids:
-            res = self._install_flow_for_static_rule(imsi, ip_addr, rule_id)
+            res = self._install_flow_for_static_rule(imsi, ip_addr, apn_ambr, rule_id)
             static_results.append(RuleModResult(rule_id=rule_id, result=res))
         dyn_results = []
         for rule in dynamic_rules:
-            res = self._install_flow_for_rule(imsi, ip_addr, rule)
+            res = self._install_flow_for_rule(imsi, ip_addr, apn_ambr, rule)
             dyn_results.append(RuleModResult(rule_id=rule.id, result=res))
 
         # Install a base flow for when no rule is matched.
@@ -208,7 +210,7 @@ class PolicyMixin(metaclass=ABCMeta):
             dynamic_rule_results=dyn_results,
         )
 
-    def _install_flow_for_static_rule(self, imsi, ip_addr, rule_id):
+    def _install_flow_for_static_rule(self, imsi, ip_addr, apn_ambr, rule_id):
         """
         Install a flow to get stats for a particular static rule id. The rule
         will be loaded from Redis and installed.
@@ -222,7 +224,7 @@ class PolicyMixin(metaclass=ABCMeta):
         if rule is None:
             self.logger.error("Could not find rule for rule_id: %s", rule_id)
             return RuleModResult.FAILURE
-        return self._install_flow_for_rule(imsi, ip_addr, rule)
+        return self._install_flow_for_rule(imsi, ip_addr, apn_ambr, rule)
 
     def _wait_for_responses(self, chan, response_count):
         def fail(err):
@@ -238,7 +240,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 return fail(result.exception())
 
     @abstractmethod
-    def _install_flow_for_rule(self, imsi, ip_addr, rule):
+    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):
         """
         Install a flow given a rule. Subclass should implement this.
 
