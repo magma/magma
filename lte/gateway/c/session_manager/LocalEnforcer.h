@@ -157,14 +157,6 @@ class LocalEnforcer {
       SessionMap& session_map, const std::string& imsi, const std::string& apn,
       SessionUpdate& session_update);
 
-  uint64_t get_charging_credit(
-      SessionMap& session_map, const std::string& imsi,
-      const CreditKey& charging_key, Bucket bucket) const;
-
-  uint64_t get_monitor_credit(
-      SessionMap& session_map, const std::string& imsi, const std::string& mkey,
-      Bucket bucket) const;
-
   /**
    * Initialize reauth for a subscriber service. If the subscriber cannot be
    * found, the method returns SESSION_NOT_FOUND
