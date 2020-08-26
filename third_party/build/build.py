@@ -165,7 +165,8 @@ def main(args):
 
     for package in ordered_packages:
         to_install.update(buildrequires(package))
-    subprocess.run([SUDO, packagemanager(), 'install', '-y'] + list(to_install))
+    if to_install:
+        subprocess.run([SUDO, packagemanager(), 'install', '-y'] + list(to_install))
 
     for package in ordered_packages:
         build(package, env=env, install=not args.no_install)
