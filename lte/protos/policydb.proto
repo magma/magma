@@ -227,6 +227,28 @@ message InstalledPolicies {
   repeated string installed_policies = 11;
 }
 
+// ----------------------------------------------------------------------------
+// Subscriber-APN-Policy Mappings
+// ----------------------------------------------------------------------------
+
+// SubscriberPolicySet contains the base names and policy rules currently
+// assigned to a subscriber, keyed by APN
+// NOTE: This does not include the policy used to define the default bearer
+//       flow
+message SubscriberPolicySet {
+	repeated ApnPolicySet rules_per_apn = 2;
+}
+
+// ApnPolicySet contains the base names and policy rules currently assigned to
+// a (subscriber, APN) tuple
+// NOTE: This does not include the policy used to define the default bearer
+//       flow
+message ApnPolicySet {
+	string apn = 1;
+	repeated string assigned_base_names = 2;
+	repeated string assigned_policies = 3;
+}
+
 // --------------------------------------------------------------------------
 // PolicyAssignment controller definition.
 // --------------------------------------------------------------------------

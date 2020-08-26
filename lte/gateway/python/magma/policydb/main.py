@@ -14,7 +14,8 @@ limitations under the License.
 import logging
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2_grpc import PolicyAssignmentControllerStub
-from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
+from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub,\
+    SessionProxyResponderStub
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
@@ -25,8 +26,9 @@ from magma.policydb.reauth_handler import ReAuthHandler
 from magma.policydb.rule_map_store import RuleAssignmentsDict
 from magma.policydb.servicers.policy_servicer import PolicyRpcServicer
 from magma.policydb.servicers.session_servicer import SessionRpcServicer
-from .streamer_callback import PolicyDBStreamerCallback, \
-    RuleMappingsStreamerCallback, RatingGroupsStreamerCallback
+from .streamer_callback import ApnRuleMappingsStreamerCallback,\
+    PolicyDBStreamerCallback, RuleMappingsStreamerCallback,\
+    RatingGroupsStreamerCallback
 
 
 def main():
@@ -38,6 +40,7 @@ def main():
     rating_groups_dict = RatingGroupsDict()
     sessiond_chan = ServiceRegistry.get_rpc_channel('sessiond',
                                                     ServiceRegistry.LOCAL)
+    session_mgr_stub = LocalSessionManagerStub(sessiond_chan)
     sessiond_stub = SessionProxyResponderStub(sessiond_chan)
     reauth_handler = ReAuthHandler(assignments_dict, sessiond_stub)
 
@@ -62,9 +65,16 @@ def main():
         stream = StreamerClient(
             {
                 'policydb': PolicyDBStreamerCallback(),
-                'rule_mappings': RuleMappingsStreamerCallback(reauth_handler,
-                                                              basenames_dict,
-                                                              assignments_dict),
+                'apn_rule_mappings': ApnRuleMappingsStreamerCallback(
+                    session_mgr_stub,
+                    basenames_dict,
+                    assignments_dict,
+                ),
+                'rule_mappings': RuleMappingsStreamerCallback(
+                    reauth_handler,
+                    basenames_dict,
+                    assignments_dict,
+                ),
                 'rating_groups': RatingGroupsStreamerCallback(
                     rating_groups_dict),
 
