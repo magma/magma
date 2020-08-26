@@ -44,16 +44,14 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
-  if (request_cpy.records_size() > 0) {
-    MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
-  }
+  MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = session_store_.read_all_sessions();
     SessionUpdate update =
         SessionStore::get_default_session_update(session_map);
     enforcer_->aggregate_records(session_map, request_cpy, update);
-      check_usage_for_reporting(std::move(session_map), update);
-    });
+    check_usage_for_reporting(std::move(session_map), update);
+  });
 
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
@@ -234,58 +232,52 @@ void LocalSessionManagerHandlerImpl::CreateSession(
 }
 
 void LocalSessionManagerHandlerImpl::send_create_session(
-    SessionMap& session_map, const std::string& sid, const SessionConfig& cfg,
+    SessionMap& session_map, const std::string& session_id,
+    const SessionConfig& cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> cb) {
-  const auto& imsi       = cfg.common_context.sid().id();
-  auto create_req = make_create_session_request(cfg, sid);
+  const auto& imsi = cfg.common_context.sid().id();
+  auto create_req  = make_create_session_request(cfg, session_id);
   reporter_->report_create_session(
       create_req,
-      [this, imsi, sid, cfg, cb,
+      [this, imsi, session_id, cfg, cb,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, CreateSessionResponse response) mutable {
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
-          bool success = enforcer_->init_session_credit(
-              *session_map_ptr, imsi, sid, cfg, response);
-          if (!success) {
-            MLOG(MERROR) << "Failed to initialize session for IMSI " << imsi;
-            status = Status(
-                grpc::FAILED_PRECONDITION, "Failed to initialize session");
+          enforcer_->init_session_credit(
+              *session_map_ptr, imsi, session_id, cfg, response);
+
+          std::string bearer_id = "";
+          if (cfg.rat_specific_context.has_lte_context()) {
+            bearer_id = cfg.rat_specific_context.lte_context().bearer_id();
+          }
+          bool write_success = session_store_.create_sessions(
+              imsi, std::move((*session_map_ptr)[imsi]));
+          if (write_success) {
+            MLOG(MINFO) << "Successfully initialized new session " << session_id
+                        << " in SessionD for subscriber " << imsi
+                        << " with default bearer id " << bearer_id;
+            add_session_to_directory_record(
+                imsi, session_id, cfg.common_context.msisdn());
           } else {
-            std::string bearer_id = "";
-            if (cfg.rat_specific_context.has_lte_context()) {
-              bearer_id = cfg.rat_specific_context.lte_context().bearer_id();
-            }
-            bool write_success = session_store_.create_sessions(
-                imsi, std::move((*session_map_ptr)[imsi]));
-            if (write_success) {
-              MLOG(MINFO) << "Successfully initialized new session " << sid
-                          << " in sessiond for subscriber " << imsi
-                          << " with default bearer id " << bearer_id;
-              add_session_to_directory_record(imsi, sid,
-                  cfg.common_context.msisdn());
-            } else {
-              MLOG(MINFO) << "Failed to initialize new session " << sid
-                          << " in sessiond for subscriber " << imsi
-                          << " with default bearer id " << bearer_id
-                          << " due to failure writing to SessionStore."
-                          << " An earlier update may have invalidated it.";
-              status = Status(
-                  grpc::ABORTED,
-                  "Failed to write session to sessiond storage.");
-            }
+            MLOG(MINFO) << "Failed to initialize new session " << session_id
+                        << " in SessionD for subscriber " << imsi
+                        << " with default bearer id " << bearer_id
+                        << " due to failure writing to SessionStore."
+                        << " An earlier update may have invalidated it.";
+            status = Status(
+                grpc::ABORTED, "Failed to write session to sessiond storage.");
           }
         } else {
           std::ostringstream failure_stream;
           failure_stream << "Failed to initialize session in SessionProxy "
-                         << "for IMSI " << imsi << ": "
-                         << status.error_message();
+                         << "for " << imsi << ": " << status.error_message();
           std::string failure_msg = failure_stream.str();
           MLOG(MERROR) << failure_msg;
           events_reporter_->session_create_failure(imsi, cfg, failure_msg);
         }
-        send_local_create_session_response(status, sid, cb);
+        send_local_create_session_response(status, session_id, cb);
       });
 }
 
