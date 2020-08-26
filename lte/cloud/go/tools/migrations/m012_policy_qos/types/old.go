@@ -15,9 +15,9 @@
 
 package types
 
-// OldPolicyRuleConfig policy rule config
+// PolicyRuleConfig policy rule config
 // swagger:model policy_rule_config
-type OldPolicyRuleConfig struct {
+type PolicyRuleConfig struct {
 
 	// app name
 	// Enum: [NO_APP_NAME FACEBOOK FACEBOOK_MESSENGER INSTAGRAM YOUTUBE GOOGLE GMAIL GOOGLE_DOCS NETFLIX APPLE MICROSOFT REDDIT WHATSAPP GOOGLE_PLAY APPSTORE AMAZON WECHAT TIKTOK TWITTER WIKIPEDIA GOOGLE_MAPS YAHOO IMO]

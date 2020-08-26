@@ -80,7 +80,7 @@ type policyEnt struct {
 	pk      string
 	network string
 	gid     string
-	config  types.OldPolicyRuleConfig
+	config  types.PolicyRuleConfig
 }
 
 func init() {
@@ -115,20 +115,19 @@ func main() {
 func doMigration(tx *sql.Tx) (interface{}, error) {
 	sc := squirrel.NewStmtCache(tx)
 	defer func() { _ = sc.Clear() }()
-	scBuilder := sqorc.GetSqlBuilder().RunWith(sc)
+	builder := sqorc.GetSqlBuilder().RunWith(sc)
 
 	edges := []migrations.AssocDirection{
-		{FromType: policyEntType, ToType: basenameEntType},
-		{FromType: subscriberEntType, ToType: basenameEntType},
-		{FromType: subscriberEntType, ToType: policyEntType},
+		{FromType: subscriberEntType, ToType: basenameEntType}, // subscriber -> base_name
+		{FromType: basenameEntType, ToType: policyEntType},     // base_name -> policy
+		{FromType: subscriberEntType, ToType: policyEntType},   // subscriber -> policy
 	}
 
-	err := migrations.SetAssocDirections(scBuilder, edges)
+	err := migrations.SetAssocDirections(builder, edges)
 	if err != nil {
 		return nil, err
 	}
 
-	builder := sqorc.GetSqlBuilder() // separate builder to support OnConflict
 	err = migratePolicyRules(tx, builder)
 	if err != nil {
 		return nil, err
@@ -144,7 +143,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 // migratePolicyRules derives and creates a policy_qos_profile entity for each
 // existing policy entity.
 // Also removes the Qos field from existing policy entities.
-func migratePolicyRules(tx *sql.Tx, builder sqorc.StatementBuilder) error {
+func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error {
 	// Get all existing policy ents
 	rows, err := builder.
 		Select(entPkCol, entKeyCol, entNidCol, entGidCol, entConfCol).
@@ -174,26 +173,12 @@ func migratePolicyRules(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 		return errors.Wrap(err, "get existing assocs: SQL rows error")
 	}
 
-	// Convert policy configs to {new config, policy_qos_profile ent}
-	updateConfByKey := map[string][]byte{}
+	// Note we are explicitly leaving the old policy as-is, since JSON
+	// marshaling will handle dropping the removed field.
+
 	createProfileByKey := map[string][]byte{}
 	for key, old := range oldByKey {
 		c := old.config
-		newConf := types.PolicyRuleConfig{
-			AppName:        c.AppName,
-			AppServiceType: c.AppServiceType,
-			FlowList:       c.FlowList,
-			MonitoringKey:  c.MonitoringKey,
-			Priority:       c.Priority,
-			RatingGroup:    c.RatingGroup,
-			Redirect:       c.Redirect,
-			TrackingType:   c.TrackingType,
-		}
-		newBytes, err := json.Marshal(newConf)
-		if err != nil {
-			return errors.Wrap(err, "marshal updated policy config")
-		}
-		updateConfByKey[key] = newBytes
 
 		profileConf := types.PolicyQosProfile{
 			Arp:     nil, // previously unused
@@ -212,48 +197,36 @@ func migratePolicyRules(tx *sql.Tx, builder sqorc.StatementBuilder) error {
 		createProfileByKey[key] = profileBytes
 	}
 
-	// Update policy configs, insert new policy_qos_profile ents, and add
-	// policy->policy_qos_profile edge
-	for key := range updateConfByKey {
+	// Insert new policy_qos_profile ents, add policy->policy_qos_profile edge
+	for key := range createProfileByKey {
 		old := oldByKey[key]
 
-		updateConf := updateConfByKey[key]
-		bu := builder.Update(entityTable).Set(entConfCol, updateConf).Where(squirrel.Eq{entPkCol: old.pk})
-		sqlStr, args, _ := bu.ToSql()
-		glog.Infof("[RUN] %s %v", sqlStr, args)
-		_, err = bu.RunWith(tx).Exec()
-		if err != nil {
-			return errors.Wrap(err, "error updating policy ent")
-		}
-
 		// Only insert the policy_qos_profile if the policy rule had a
-		// flow_qos field
+		// flow_qos field. This also provides idempotence.
 		if old.config.Qos == nil {
 			continue
 		}
 
-		qosProfilePK := migrations.MakeDeterministicPK(old.network, qosProfileEntType, key)
+		qosProfilePK := migrations.MakePK()
 		createConf := createProfileByKey[key]
-		bi := builder.
+		b := builder.
 			Insert(entityTable).
 			Columns(entPkCol, entNidCol, entTypeCol, entKeyCol, entGidCol, entConfCol).
-			Values(qosProfilePK, old.network, qosProfileEntType, key, old.gid, createConf).
-			OnConflict(nil, entNidCol, entTypeCol, entKeyCol)
-		sqlStr, args, _ = bi.ToSql()
+			Values(qosProfilePK, old.network, qosProfileEntType, key, old.gid, createConf) // same key different type
+		sqlStr, args, _ := b.ToSql()
 		glog.Infof("[RUN] %s %v", sqlStr, args)
-		_, err = bi.RunWith(tx).Exec()
+		_, err = b.RunWith(tx).Exec()
 		if err != nil {
 			return errors.Wrap(err, "error inserting policy_qos_profile ent")
 		}
 
-		bi = builder.
+		b = builder.
 			Insert(entityAssocTable).
 			Columns(aFrCol, aToCol).
-			Values(old.pk, qosProfilePK).
-			OnConflict(nil, aFrCol, aToCol)
-		sqlStr, args, _ = bi.ToSql()
+			Values(old.pk, qosProfilePK)
+		sqlStr, args, _ = b.ToSql()
 		glog.Infof("[RUN] %s %v", sqlStr, args)
-		_, err = bi.RunWith(tx).Exec()
+		_, err = b.RunWith(tx).Exec()
 		if err != nil {
 			return errors.Wrap(err, "error inserting policy->policy_qos_profile assoc")
 		}

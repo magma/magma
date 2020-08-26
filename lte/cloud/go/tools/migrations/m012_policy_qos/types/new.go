@@ -73,37 +73,3 @@ type Gbr struct {
 	// Required: true
 	Uplink *uint32 `json:"uplink"`
 }
-
-// PolicyRuleConfig policy rule config
-// swagger:model policy_rule_config
-type PolicyRuleConfig struct {
-
-	// app name
-	// Enum: [NO_APP_NAME FACEBOOK FACEBOOK_MESSENGER INSTAGRAM YOUTUBE GOOGLE GMAIL GOOGLE_DOCS NETFLIX APPLE MICROSOFT REDDIT WHATSAPP GOOGLE_PLAY APPSTORE AMAZON WECHAT TIKTOK TWITTER WIKIPEDIA GOOGLE_MAPS YAHOO IMO]
-	AppName string `json:"app_name,omitempty"`
-
-	// app service type
-	// Enum: [NO_SERVICE_TYPE CHAT AUDIO VIDEO]
-	AppServiceType string `json:"app_service_type,omitempty"`
-
-	// flow list
-	// Required: true
-	FlowList []*FlowDescription `json:"flow_list"`
-
-	// monitoring key
-	MonitoringKey string `json:"monitoring_key,omitempty"`
-
-	// priority
-	// Required: true
-	Priority *uint32 `json:"priority"`
-
-	// rating group
-	RatingGroup uint32 `json:"rating_group,omitempty"`
-
-	// redirect
-	Redirect *RedirectInformation `json:"redirect,omitempty"`
-
-	// tracking type
-	// Enum: [ONLY_OCS ONLY_PCRF OCS_AND_PCRF NO_TRACKING]
-	TrackingType string `json:"tracking_type,omitempty"`
-}

@@ -46,9 +46,13 @@ type assocPair struct {
 	toPk   string
 }
 
+func MakePK() string {
+	return uuid.New().String()
+}
+
 // MakeDeterministicPK returns a PK in the expected UUID format, but created
 // deterministically from the (network, type, key) primary key.
-func MakeDeterministicPK(network, typ, key string) uuid.UUID {
+func MakeDeterministicPK(network, typ, key string) string {
 	var in []byte
 	in = append(in, []byte(network)...)
 	in = append(in, []byte(typ)...)
@@ -60,7 +64,7 @@ func MakeDeterministicPK(network, typ, key string) uuid.UUID {
 	// Copied from uuid.NewRandom
 	id[6] = (id[6] & 0x0f) | 0x40 // Version 4
 	id[8] = (id[8] & 0x3f) | 0x80 // Variant is 10
-	return id
+	return id.String()
 }
 
 func SetAssocDirections(builder squirrel.StatementBuilderType, edges []AssocDirection) error {
