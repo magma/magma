@@ -1957,21 +1957,22 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   // Re-transmit Paging message only once
   if (ue_context_p->paging_retx_count < 1) {
-  ue_context_p->paging_retx_count ++;
-  if ((mme_app_paging_request_helper(
-          ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to send Paging Message for ue_id " MME_UE_S1AP_ID_FMT "\n",
-        mme_ue_s1ap_id);
-  }
+    ue_context_p->paging_retx_count++;
+    if ((mme_app_paging_request_helper(
+            ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, ue_context_p->emm_context._imsi64,
+          "Failed to send Paging Message for ue_id " MME_UE_S1AP_ID_FMT "\n",
+          mme_ue_s1ap_id);
+    }
   } else {
     /* If there are any pending dedicated bearer requests to be sent to UE
      * send create_dedicated_bearer_reject to SPGW as UE did not respond
      * to Paging and free the memory*/
-    for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx ++) {
+    for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
       if (ue_context_p->pending_ded_ber_req[idx]) {
-        mme_app_handle_create_dedicated_bearer_rej(ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi);
+        mme_app_handle_create_dedicated_bearer_rej(
+            ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi);
         free_wrapper((void**) &ue_context_p->pending_ded_ber_req[idx]);
       }
     }
@@ -2646,26 +2647,28 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
    * message once UE comes back to ECM_CONNECTED state and all the
    * previous bearers are established*/
   if (ECM_IDLE == ue_context_p->ecm_state) {
-      // Find a free index to save the message
-      for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx ++) {
-        if (!(ue_context_p->pending_ded_ber_req[idx])) {
-          ue_context_p->pending_ded_ber_req[idx] =
+    // Find a free index to save the message
+    for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
+      if (!(ue_context_p->pending_ded_ber_req[idx])) {
+        ue_context_p->pending_ded_ber_req[idx] =
             calloc(1, sizeof(emm_cn_activate_dedicated_bearer_req_t));
-          memcpy(ue_context_p->pending_ded_ber_req[idx], &activate_ded_bearer_req,
+        memcpy(
+            ue_context_p->pending_ded_ber_req[idx], &activate_ded_bearer_req,
             sizeof(emm_cn_activate_dedicated_bearer_req_t));
-          is_msg_saved = true;
-          break;
-        }
+        is_msg_saved = true;
+        break;
       }
-      /* Page the UE if message saving was successful and
-       * UE has not already been paged*/
-      if ((is_msg_saved) && (ue_context_p->paging_response_timer.id ==
-      MME_APP_TIMER_INACTIVE_ID)) {
-        mme_app_paging_request_helper(
+    }
+    /* Page the UE if message saving was successful and
+     * UE has not already been paged*/
+    if ((is_msg_saved) &&
+        (ue_context_p->paging_response_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
+      mme_app_paging_request_helper(
           ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS);
-      } else {
-        mme_app_handle_create_dedicated_bearer_rej(ue_context_p, activate_ded_bearer_req.linked_ebi);
-      }
+    } else {
+      mme_app_handle_create_dedicated_bearer_rej(
+          ue_context_p, activate_ded_bearer_req.linked_ebi);
+    }
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
@@ -3430,22 +3433,26 @@ void mme_app_handle_modify_bearer_rsp(
     }
   }
   // Send pending dedicated bearer activation request
-  for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx ++) {
+  for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
     emm_cn_activate_dedicated_bearer_req_t activate_ded_bearer_req = {0};
     if (ue_context_p->pending_ded_ber_req[idx]) {
-      if (mme_app_get_bearer_context(ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi)) {
-        memcpy(&activate_ded_bearer_req, ue_context_p->pending_ded_ber_req[idx],
-          sizeof(emm_cn_activate_dedicated_bearer_req_t));
+      if (mme_app_get_bearer_context(
+              ue_context_p,
+              ue_context_p->pending_ded_ber_req[idx]->linked_ebi)) {
+        memcpy(
+            &activate_ded_bearer_req, ue_context_p->pending_ded_ber_req[idx],
+            sizeof(emm_cn_activate_dedicated_bearer_req_t));
         if ((nas_proc_create_dedicated_bearer(&activate_ded_bearer_req)) !=
-          RETURNok) {
+            RETURNok) {
           OAILOG_ERROR_UE(
-            LOG_MME_APP, ue_context_p->emm_context._imsi64,
-            "Failed to handle bearer activation at NAS module for "
-            "ue_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_context_p->mme_ue_s1ap_id);
+              LOG_MME_APP, ue_context_p->emm_context._imsi64,
+              "Failed to handle bearer activation at NAS module for "
+              "ue_id " MME_UE_S1AP_ID_FMT "\n",
+              ue_context_p->mme_ue_s1ap_id);
         }
       } else {
-        mme_app_handle_create_dedicated_bearer_rej(ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi);
+        mme_app_handle_create_dedicated_bearer_rej(
+            ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi);
       }
       // Free the saved message
       free_wrapper((void**) &ue_context_p->pending_ded_ber_req[idx]);

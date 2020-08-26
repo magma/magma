@@ -153,7 +153,7 @@ typedef struct esm_pdn_s {
                      * default EPS bearer is defined at index 0 */
 #define ESM_DATA_EPS_BEARER_MAX 4
   esm_bearer_t* bearer[ESM_DATA_EPS_BEARER_MAX];
- esm_pdn_t;
+} esm_pdn_t;
 
 /*
  * Structure of the ESM data
