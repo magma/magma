@@ -179,9 +179,9 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 }
 
 static CreateSessionRequest make_create_session_request(
-    const SessionConfig& cfg, const std::string& sid) {
+    const SessionConfig& cfg, const std::string& session_id) {
   CreateSessionRequest create_request;
-  create_request.set_session_id(sid);
+  create_request.set_session_id(session_id);
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
   create_request.mutable_rat_specific_context()->CopyFrom(
       cfg.rat_specific_context);
@@ -195,27 +195,21 @@ void LocalSessionManagerHandlerImpl::CreateSession(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
       [this, context, response_callback, request_cpy]() {
-        const auto& imsi = request_cpy.common_context().sid().id();
-        const auto& sid  = id_gen_.gen_session_id(imsi);
-        const auto& apn  = request_cpy.common_context().apn();
-        std::string create_message =
-            "Received a CreateSessionRequest for " + imsi + " " + apn;
-        if (request_cpy.rat_specific_context().has_lte_context()) {
-          const auto& lte = request_cpy.rat_specific_context().lte_context();
-          create_message += " plmn_id " + lte.plmn_id() + " imsi_plmn_id " +
-                            lte.imsi_plmn_id();
-        }
-        MLOG(MINFO) << create_message;
-
+        const auto& imsi       = request_cpy.common_context().sid().id();
+        const auto& session_id = id_gen_.gen_session_id(imsi);
         SessionConfig cfg(request_cpy);
-        auto session_map     = get_sessions_for_creation(imsi);
+        log_create_session(cfg);
+
+        auto session_map     = session_store_.read_sessions({imsi});
         const auto& rat_type = cfg.common_context.rat_type();
         switch (rat_type) {
           case TGPP_WLAN:
-            handle_create_session_cwf(session_map, sid, cfg, response_callback);
+            handle_create_session_cwf(
+                session_map, session_id, cfg, response_callback);
             return;
           case TGPP_LTE:
-            handle_create_session_lte(session_map, sid, cfg, response_callback);
+            handle_create_session_lte(
+                session_map, session_id, cfg, response_callback);
             return;
           default:
             std::ostringstream failure_stream;
@@ -224,8 +218,8 @@ void LocalSessionManagerHandlerImpl::CreateSession(
             MLOG(MERROR) << failure_msg;
             events_reporter_->session_create_failure(imsi, cfg, failure_msg);
             send_local_create_session_response(
-                Status(grpc::FAILED_PRECONDITION, "Invalid RAT type"), sid,
-                response_callback);
+                Status(grpc::FAILED_PRECONDITION, "Invalid RAT type"),
+                session_id, response_callback);
             return;
         }
       });
@@ -237,6 +231,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
     std::function<void(grpc::Status, LocalCreateSessionResponse)> cb) {
   const auto& imsi = cfg.common_context.sid().id();
   auto create_req  = make_create_session_request(cfg, session_id);
+  MLOG(MINFO) << "Sending a CreateSessionRequest to fetch policies for "
+              << session_id;
   reporter_->report_create_session(
       create_req,
       [this, imsi, session_id, cfg, cb,
@@ -245,34 +241,30 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
+          MLOG(MINFO) << "Sending a CreateSessionResponse for " << session_id;
           enforcer_->init_session_credit(
               *session_map_ptr, imsi, session_id, cfg, response);
 
-          std::string bearer_id = "";
-          if (cfg.rat_specific_context.has_lte_context()) {
-            bearer_id = cfg.rat_specific_context.lte_context().bearer_id();
-          }
           bool write_success = session_store_.create_sessions(
               imsi, std::move((*session_map_ptr)[imsi]));
           if (write_success) {
             MLOG(MINFO) << "Successfully initialized new session " << session_id
-                        << " in SessionD for subscriber " << imsi
-                        << " with default bearer id " << bearer_id;
+                        << " in SessionD for subscriber " << imsi;
             add_session_to_directory_record(
                 imsi, session_id, cfg.common_context.msisdn());
           } else {
             MLOG(MINFO) << "Failed to initialize new session " << session_id
                         << " in SessionD for subscriber " << imsi
-                        << " with default bearer id " << bearer_id
                         << " due to failure writing to SessionStore."
                         << " An earlier update may have invalidated it.";
             status = Status(
-                grpc::ABORTED, "Failed to write session to sessiond storage.");
+                grpc::ABORTED, "Failed to write session to SessionD storage.");
           }
         } else {
           std::ostringstream failure_stream;
-          failure_stream << "Failed to initialize session in SessionProxy "
-                         << "for " << imsi << ": " << status.error_message();
+          failure_stream << "Failed to initialize session in SessionProxy for "
+                         << imsi << " APN " << cfg.common_context.apn() << ": "
+                         << status.error_message();
           std::string failure_msg = failure_stream.str();
           MLOG(MERROR) << failure_msg;
           events_reporter_->session_create_failure(imsi, cfg, failure_msg);
@@ -282,7 +274,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
 }
 
 void LocalSessionManagerHandlerImpl::handle_create_session_cwf(
-    SessionMap& session_map, const std::string& sid, SessionConfig cfg,
+    SessionMap& session_map, const std::string& session_id, SessionConfig cfg,
     std::function<void(Status, LocalCreateSessionResponse)> cb) {
   auto imsi = cfg.common_context.sid().id();
 
@@ -290,21 +282,17 @@ void LocalSessionManagerHandlerImpl::handle_create_session_cwf(
   if (it != session_map.end()) {
     for (const auto& session : it->second) {
       if (session->is_active()) {
-        recycle_cwf_session(imsi, sid, cfg, session_map, cb);
+        recycle_cwf_session(imsi, session_id, cfg, session_map, cb);
         return;
-      } else {
-        MLOG(MINFO) << "Found a non-active CWF session with the same IMSI "
-                    << imsi << ", requesting a new session";
       }
     }
   }
-  MLOG(MINFO) << "Requesting a new CWF session for" << imsi;
-  send_create_session(session_map, sid, cfg, cb);
+  send_create_session(session_map, session_id, cfg, cb);
 }
 
 void LocalSessionManagerHandlerImpl::recycle_cwf_session(
-    const std::string& imsi, const std::string& sid, const SessionConfig& cfg,
-    SessionMap& session_map,
+    const std::string& imsi, const std::string& session_id,
+    const SessionConfig& cfg, SessionMap& session_map,
     std::function<void(Status, LocalCreateSessionResponse)> cb) {
   // To recycle the session, it has to be active (i.e., not in
   // transition for termination).
@@ -317,30 +305,31 @@ void LocalSessionManagerHandlerImpl::recycle_cwf_session(
   enforcer_->handle_cwf_roaming(session_map, imsi, cfg, session_update);
   bool success = session_store_.update_sessions(session_update);
   if (!success) {
-    MLOG(MINFO) << "Failed to update session config for " << sid
+    MLOG(MINFO) << "Failed to update session config for " << session_id
                 << " in SessionD due to failure writing to SessionStore."
                 << " An earlier update may have invalidated it.";
     auto err_status = Status(grpc::ABORTED, "Failed to update SessionStore");
-    send_local_create_session_response(err_status, sid, cb);
+    send_local_create_session_response(err_status, session_id, cb);
     return;
   }
-  MLOG(MINFO) << "Successfully recycled an existing CWF session " << sid;
-  send_local_create_session_response(grpc::Status::OK, sid, cb);
+  MLOG(MINFO) << "Successfully recycled an existing CWF session " << session_id;
+  send_local_create_session_response(grpc::Status::OK, session_id, cb);
 }
 
 void LocalSessionManagerHandlerImpl::handle_create_session_lte(
-    SessionMap& session_map, const std::string& sid, SessionConfig cfg,
+    SessionMap& session_map, const std::string& session_id, SessionConfig cfg,
     std::function<void(Status, LocalCreateSessionResponse)> cb) {
   auto imsi = cfg.common_context.sid().id();
 
   // If there are no existing sessions for the IMSI, just create a new one
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
-    send_create_session(session_map, sid, cfg, cb);
+    send_create_session(session_map, session_id, cfg, cb);
     return;
   }
 
   for (const auto& session : it->second) {
+    const std::string& existing_session_id = session->get_session_id();
     if (cfg == session->get_config() && session->is_active()) {
       // To recycle the session, it has to be active (i.e., not in
       // transition for termination) AND it should have the exact same
@@ -348,8 +337,9 @@ void LocalSessionManagerHandlerImpl::handle_create_session_lte(
       MLOG(MINFO) << "Found an active completely duplicated session with IMSI "
                   << imsi << " and APN " << cfg.common_context.apn()
                   << ", and same configuration. Recycling the existing session "
-                  << sid;
-      send_local_create_session_response(grpc::Status::OK, sid, cb);
+                  << existing_session_id;
+      send_local_create_session_response(
+          grpc::Status::OK, existing_session_id, cb);
       return;  // Return early
     }
     auto apn = cfg.common_context.apn();
@@ -358,10 +348,10 @@ void LocalSessionManagerHandlerImpl::handle_create_session_lte(
         session->is_active()) {
       // If we have found an active session with the same IMSI+APN, but NOT
       // identical context, we should terminate the existing session.
-      MLOG(MINFO) << "Found an active session with the same IMSI " << imsi
-                  << " and APN " << apn << ", but different "
-                  << "configuration. Ending the existing session, "
-                  << "and requesting a new session";
+      MLOG(MINFO) << "Found an active session " << existing_session_id
+                  << " with same IMSI " << imsi << " and APN " << apn
+                  << ", but different configuration. Ending the existing "
+                  << "session, and requesting a new session";
       end_session(
           session_map, cfg.common_context.sid(), apn,
           [&](grpc::Status status, LocalEndSessionResponse response) {});
@@ -369,15 +359,15 @@ void LocalSessionManagerHandlerImpl::handle_create_session_lte(
       break;
     }
   }
-  send_create_session(session_map, sid, cfg, cb);
+  send_create_session(session_map, session_id, cfg, cb);
 }
 
 void LocalSessionManagerHandlerImpl::send_local_create_session_response(
-    Status status, const std::string& sid,
+    Status status, const std::string& session_id,
     std::function<void(Status, LocalCreateSessionResponse)> response_callback) {
   try {
     LocalCreateSessionResponse resp;
-    resp.set_session_id(sid);
+    resp.set_session_id(session_id);
     response_callback(status, resp);
   } catch (...) {
     std::exception_ptr ep = std::current_exception();
@@ -445,7 +435,7 @@ void LocalSessionManagerHandlerImpl::EndSession(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   enforcer_->get_event_base().runInEventBaseThread(
       [this, sid, apn, response_callback]() {
-        auto session_map = get_sessions_for_deletion(sid.id());
+        auto session_map = session_store_.read_sessions({sid.id()});
         end_session(session_map, sid, apn, response_callback);
       });
 }
@@ -473,29 +463,6 @@ void LocalSessionManagerHandlerImpl::end_session(
     Status status(grpc::FAILED_PRECONDITION, "Session not found");
     response_callback(status, LocalEndSessionResponse());
   }
-}
-
-SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_creation(
-    const std::string& imsi) {
-  SessionRead req = {imsi};
-  return session_store_.read_sessions(req);
-}
-
-SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_reporting(
-    const RuleRecordTable& records) {
-  SessionRead req = {};
-  for (const RuleRecord& record : records.records()) {
-    req.insert(record.sid());
-  }
-  return session_store_.read_sessions(req);
-}
-
-SessionMap LocalSessionManagerHandlerImpl::get_sessions_for_deletion(
-    const std::string& imsi) {
-  // Request numbers are not incremented here, but rather in the 5s delayed
-  // callback when reporting is done.
-  SessionRead req = {imsi};
-  return session_store_.read_sessions(req);
 }
 
 void LocalSessionManagerHandlerImpl::report_session_update_event(
@@ -596,6 +563,23 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
     }
   });
   response_callback(Status::OK, Void());
+}
+
+void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
+  const auto& imsi = cfg.common_context.sid().id();
+  const auto& apn  = cfg.common_context.apn();
+  std::string create_message =
+      "Received a LocalCreateSessionRequest for " + imsi + " with APN:" + apn;
+  if (cfg.rat_specific_context.has_lte_context()) {
+    const auto& lte = cfg.rat_specific_context.lte_context();
+    create_message += ", default bearer ID:" + std::to_string(lte.bearer_id()) +
+                      ", PLMN ID:" + lte.plmn_id() +
+                      ", IMSI PLMN ID:" + lte.imsi_plmn_id();
+  } else if (cfg.rat_specific_context.has_wlan_context()) {
+    create_message +=
+        ", MAC addr:" + cfg.rat_specific_context.wlan_context().mac_addr();
+  }
+  MLOG(MINFO) << create_message;
 }
 
 }  // namespace magma
