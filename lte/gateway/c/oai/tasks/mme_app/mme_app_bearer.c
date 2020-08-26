@@ -1955,12 +1955,26 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
   }
   *imsi64                                = ue_context_p->emm_context._imsi64;
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  // Re-transmit Paging message only once
+  if (ue_context_p->paging_retx_count < 1) {
+  ue_context_p->paging_retx_count ++;
   if ((mme_app_paging_request_helper(
-          ue_context_p, false, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
+          ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Failed to send Paging Message for ue_id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
+  }
+  } else {
+    /* If there are any pending dedicated bearer requests to be sent to UE
+     * send create_dedicated_bearer_reject to SPGW as UE did not respond
+     * to Paging and free the memory*/
+    for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx ++) {
+      if (ue_context_p->pending_ded_ber_req[idx]) {
+        mme_app_handle_create_dedicated_bearer_rej(ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi);
+        free_wrapper((void**) &ue_context_p->pending_ded_ber_req[idx]);
+      }
+    }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -2643,7 +2657,10 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
           break;
         }
       }
-      if (is_msg_saved) {
+      /* Page the UE if message saving was successful and
+       * UE has not already been paged*/
+      if ((is_msg_saved) && (ue_context_p->paging_response_timer.id ==
+      MME_APP_TIMER_INACTIVE_ID)) {
         mme_app_paging_request_helper(
           ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS);
       } else {

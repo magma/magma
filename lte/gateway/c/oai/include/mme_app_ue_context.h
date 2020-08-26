@@ -421,6 +421,7 @@ typedef struct ue_mm_context_s {
   /* UE Context Modification Procedure Guard timer */
   struct mme_app_timer_t ue_context_modification_timer;
   /* Timer for retrying paging messages */
+  uint8_t paging_retx_count;
   struct mme_app_timer_t paging_response_timer;
   /* send_ue_purge_request: If true MME shall send S6a- Purge Req to
    * delete contexts at HSS
