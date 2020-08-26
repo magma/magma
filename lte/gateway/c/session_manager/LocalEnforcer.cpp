@@ -1296,38 +1296,6 @@ void LocalEnforcer::terminate_session(
   }
 }
 
-uint64_t LocalEnforcer::get_charging_credit(
-    SessionMap& session_map, const std::string& imsi,
-    const CreditKey& charging_key, Bucket bucket) const {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    return 0;
-  }
-  for (const auto& session : it->second) {
-    uint64_t credit = session->get_charging_credit(charging_key, bucket);
-    if (credit > 0) {
-      return credit;
-    }
-  }
-  return 0;
-}
-
-uint64_t LocalEnforcer::get_monitor_credit(
-    SessionMap& session_map, const std::string& imsi, const std::string& mkey,
-    Bucket bucket) const {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    return 0;
-  }
-  for (const auto& session : it->second) {
-    uint64_t credit = session->get_monitor(mkey, bucket);
-    if (credit > 0) {
-      return credit;
-    }
-  }
-  return 0;
-}
-
 void LocalEnforcer::handle_set_session_rules(
     SessionMap& session_map, const SessionRules& rules,
     SessionUpdate& session_update) {
