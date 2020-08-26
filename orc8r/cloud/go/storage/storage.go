@@ -109,6 +109,34 @@ func MakeTKs(typ string, keys []string) TKs {
 	return tks
 }
 
+// Difference returns (A-B, B-A), called as A.Difference(B).
+func (tks TKs) Difference(b TKs) (TKs, TKs) {
+	a := tks
+
+	aa := map[TypeAndKey]struct{}{}
+	for _, tk := range a {
+		aa[tk] = struct{}{}
+	}
+	bb := map[TypeAndKey]struct{}{}
+	for _, tk := range b {
+		bb[tk] = struct{}{}
+	}
+
+	var diffA, diffB TKs
+	for tk := range aa {
+		if _, inB := bb[tk]; !inB {
+			diffA = append(diffA, tk)
+		}
+	}
+	for tk := range bb {
+		if _, inA := aa[tk]; !inA {
+			diffB = append(diffB, tk)
+		}
+	}
+
+	return diffA, diffB
+}
+
 func IsTKLessThan(a TypeAndKey, b TypeAndKey) bool {
 	return a.String() < b.String()
 }

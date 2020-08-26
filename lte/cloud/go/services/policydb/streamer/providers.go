@@ -175,9 +175,8 @@ func (p *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]
 	}
 
 	bnEnts, err := configurator.LoadAllEntitiesInNetwork(
-		gwEnt.NetworkID,
-		lte.BaseNameEntityType,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true},
+		gwEnt.NetworkID, lte.BaseNameEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 	)
 	if err != nil {
 		return nil, err

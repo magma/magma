@@ -27,7 +27,6 @@ import (
 
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
 )
 
 // TODO(8/21/20): provide entity-wise namespacing support from configurator
@@ -72,42 +71,52 @@ func (m *BaseNames) ToUpdateCriteria(network configurator.Network) (configurator
 }
 
 func (m *BaseNameRecord) ToEntity() configurator.NetworkEntity {
-	return configurator.NetworkEntity{
-		Type: lte.BaseNameEntityType,
-		Key:  string(m.Name),
-		// This field is considered read-only by configurator
-		ParentAssociations: m.GetParentAssociations(),
+	ent := configurator.NetworkEntity{
+		Type:         lte.BaseNameEntityType,
+		Key:          string(m.Name),
+		Associations: m.GetAssocs(),
 	}
+	return ent
 }
 
 func (m *BaseNameRecord) FromEntity(ent configurator.NetworkEntity) *BaseNameRecord {
 	m.Name = BaseName(ent.Key)
 	for _, tk := range ent.ParentAssociations {
+		if tk.Type == lte.SubscriberEntityType {
+			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(tk.Key))
+		}
+	}
+	for _, tk := range ent.Associations {
 		if tk.Type == lte.PolicyRuleEntityType {
 			m.RuleNames = append(m.RuleNames, tk.Key)
-		} else if tk.Type == lte.SubscriberEntityType {
-			m.AssignedSubscribers = append(m.AssignedSubscribers, SubscriberID(tk.Key))
 		}
 	}
 	return m
 }
 
-func (m *BaseNameRecord) GetParentAssociations() []storage.TypeAndKey {
-	allAssocs := make([]storage.TypeAndKey, 0, len(m.RuleNames)+len(m.AssignedSubscribers))
-	allAssocs = append(allAssocs, m.RuleNames.ToAssocs()...)
-	for _, sid := range m.AssignedSubscribers {
-		allAssocs = append(allAssocs, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+func (m *BaseNameRecord) ToUpdateCriteria() configurator.EntityUpdateCriteria {
+	update := configurator.EntityUpdateCriteria{
+		Type:              lte.BaseNameEntityType,
+		Key:               string(m.Name),
+		AssociationsToSet: m.GetAssocs(),
 	}
-	return allAssocs
+	return update
 }
 
-func (m RuleNames) ToAssocs() []storage.TypeAndKey {
-	return funk.Map(
-		m,
-		func(rn string) storage.TypeAndKey {
-			return storage.TypeAndKey{Type: lte.PolicyRuleEntityType, Key: rn}
-		},
-	).([]storage.TypeAndKey)
+func (m *BaseNameRecord) GetAssocs() storage.TKs {
+	return m.RuleNames.ToTKs()
+}
+
+func (m *BaseNameRecord) GetParentAssocs() []storage.TypeAndKey {
+	var parents storage.TKs
+	for _, sid := range m.AssignedSubscribers {
+		parents = append(parents, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+	}
+	return parents
+}
+
+func (m RuleNames) ToTKs() storage.TKs {
+	return storage.MakeTKs(lte.PolicyRuleEntityType, m)
 }
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
@@ -115,10 +124,6 @@ func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 		Type:   lte.PolicyRuleEntityType,
 		Key:    string(m.ID),
 		Config: m.getConfig(),
-	}
-	// ParentAssociations treated as read-only by configurator
-	for _, sid := range m.AssignedSubscribers {
-		ent.ParentAssociations = append(ent.Associations, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
 	if m.QosProfile != "" {
 		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.PolicyQoSProfileEntityType, Key: m.QosProfile})

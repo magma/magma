@@ -119,8 +119,8 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 
 	edges := []migrations.AssocDirection{
 		{FromType: subscriberEntType, ToType: basenameEntType}, // subscriber -> base_name
-		{FromType: basenameEntType, ToType: policyEntType},     // base_name -> policy
 		{FromType: subscriberEntType, ToType: policyEntType},   // subscriber -> policy
+		{FromType: basenameEntType, ToType: policyEntType},     // base_name -> policy
 	}
 
 	err := migrations.SetAssocDirections(builder, edges)
