@@ -44,9 +44,7 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
-  if (request_cpy.records_size() > 0) {
-    MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
-  }
+  MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = session_store_.read_all_sessions();
     SessionUpdate update =
@@ -246,35 +244,30 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
-          bool success = enforcer_->init_session_credit(
+          enforcer_->init_session_credit(
               *session_map_ptr, imsi, sid, cfg, response);
-          if (!success) {
-            MLOG(MERROR) << "Failed to initialize session for IMSI " << imsi;
-            status = Status(
-                grpc::FAILED_PRECONDITION, "Failed to initialize session");
-          } else {
-            std::string bearer_id = "";
-            if (cfg.rat_specific_context.has_lte_context()) {
-              bearer_id = cfg.rat_specific_context.lte_context().bearer_id();
-            }
-            bool write_success = session_store_.create_sessions(
-                imsi, std::move((*session_map_ptr)[imsi]));
-            if (write_success) {
-              MLOG(MINFO) << "Successfully initialized new session " << sid
-                          << " in sessiond for subscriber " << imsi
-                          << " with default bearer id " << bearer_id;
-              add_session_to_directory_record(imsi, sid);
-            } else {
-              MLOG(MINFO) << "Failed to initialize new session " << sid
-                          << " in sessiond for subscriber " << imsi
-                          << " with default bearer id " << bearer_id
-                          << " due to failure writing to SessionStore."
-                          << " An earlier update may have invalidated it.";
-              status = Status(
-                  grpc::ABORTED,
-                  "Failed to write session to sessiond storage.");
-            }
+
+          std::string bearer_id = "";
+          if (cfg.rat_specific_context.has_lte_context()) {
+            bearer_id = cfg.rat_specific_context.lte_context().bearer_id();
           }
+          bool write_success = session_store_.create_sessions(
+              imsi, std::move((*session_map_ptr)[imsi]));
+          if (write_success) {
+            MLOG(MINFO) << "Successfully initialized new session " << sid
+                        << " in sessiond for subscriber " << imsi
+                        << " with default bearer id " << bearer_id;
+            add_session_to_directory_record(imsi, sid);
+          } else {
+            MLOG(MINFO) << "Failed to initialize new session " << sid
+                        << " in sessiond for subscriber " << imsi
+                        << " with default bearer id " << bearer_id
+                        << " due to failure writing to SessionStore."
+                        << " An earlier update may have invalidated it.";
+            status = Status(
+                grpc::ABORTED, "Failed to write session to sessiond storage.");
+          }
+
         } else {
           std::ostringstream failure_stream;
           failure_stream << "Failed to initialize session in SessionProxy "

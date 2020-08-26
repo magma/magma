@@ -531,17 +531,12 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
   local_enforcer->aggregate_records(session_map, empty_table, update);
   run_evb();
   run_evb();
+  bool success = session_store->update_sessions(update);
+  EXPECT_TRUE(success);
 
   // No longer in system
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
-  EXPECT_EQ(
-      local_enforcer->get_charging_credit(
-          session_map, "IMSI1", 1, ALLOWED_TOTAL),
-      0);
-  EXPECT_EQ(
-      local_enforcer->get_charging_credit(
-          session_map, "IMSI1", 2, ALLOWED_TOTAL),
-      0);
+  EXPECT_EQ(session_map["IMSI1"].size(), 0);
 }
 
 TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
@@ -685,7 +680,8 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   create_credit_update_response(
       imsi, 1, 1024, true, response.mutable_credits()->Add());
   auto session_state =
-      new SessionState(imsi, session_id, test_cfg_, *rule_store, tgpp_ctx, pdp_start_time);
+      new SessionState(imsi, session_id, test_cfg_, *rule_store, tgpp_ctx,
+pdp_start_time);
 
   // manually place revalidation timer
   SessionStateUpdateCriteria uc;
@@ -1422,7 +1418,8 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   SessionConfig test_volte_cfg;
   test_volte_cfg.common_context =
       build_common_context("", "127.0.0.1", "", "IMS", TGPP_LTE);
-  const auto& lte_context = build_lte_context("", "", "", "", "", 1, &test_qos_info);
+  const auto& lte_context = build_lte_context("", "", "", "", "", 1,
+&test_qos_info);
   test_volte_cfg.rat_specific_context.mutable_lte_context()->CopyFrom(
       lte_context);
 
