@@ -306,6 +306,10 @@ int map_sgs_emm_cause(SgsRejectCause_t sgs_cause);
 ue_mm_context_t* mme_app_get_ue_context_for_timer(
     mme_ue_s1ap_id_t mme_ue_s1ap_id, char* timer_name);
 
+void mme_app_handle_modify_bearer_rsp(
+    itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
+    ue_mm_context_t* ue_context_p);
+
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)
 #define INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00
