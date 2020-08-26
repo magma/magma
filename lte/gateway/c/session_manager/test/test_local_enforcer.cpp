@@ -1453,29 +1453,113 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
 }
 
-TEST_F(LocalEnforcerTest, test_session_init_create_dedicated_bearer) {
-  // Two static rules one with QoS & one without
-  insert_static_rule_with_qos(0, "m1", "rule1", 1);
-  insert_static_rule(0, "m1", "rule2");
+// Create multiple rules with QoS and assert dedicated bearers are created
+// Simulate a policy->bearer mapping from MME, both success + failure.
+// Simulate additional rule updates to trigger dedicated bearer deletions
+TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
+  const std::string imsi           = "IMSI1";
+  const std::string session_id     = "1234";
+  const uint32_t default_bearer_id = 5;
+  const uint32_t bearer_1          = 6;
+  const uint32_t bearer_2          = 7;
 
-  // test_cfg_ is initialized with QoSInfo field
-  test_cfg_.common_context.mutable_sid()->set_id("IMSI1");
+  // Three rules with QoS & one without
+  insert_static_rule_with_qos(0, "m1", "rule1", 1);  // QCI=1
+  insert_static_rule_with_qos(0, "m1", "rule2", 2);  // QCI=2
+  insert_static_rule_with_qos(0, "m1", "rule3", 3);  // QCI=3
+  insert_static_rule(0, "m1", "rule4");
+
+  // test_cfg_ is initialized with QoSInfo field w/ QCI 5
+  test_cfg_.common_context.mutable_sid()->set_id(imsi);
+  test_cfg_.common_context.set_apn("apn1");
+  auto lte_context = test_cfg_.rat_specific_context.mutable_lte_context();
+  lte_context->mutable_qos_info()->set_qos_class_id(5);
+  lte_context->set_bearer_id(default_bearer_id);  // linked_bearer_id
 
   CreateSessionResponse response;
   response.mutable_static_rules()->Add()->set_rule_id("rule1");
   response.mutable_static_rules()->Add()->set_rule_id("rule2");
+  response.mutable_static_rules()->Add()->set_rule_id("rule3");
+  response.mutable_static_rules()->Add()->set_rule_id("rule4");
 
   // expect only 1 rule in the request since only rules with a QoS field
   // should be mapped to a bearer
   EXPECT_CALL(
-      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq("IMSI1", 1)))
+      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(imsi, 3)))
       .Times(1)
       .WillOnce(testing::Return(true));
 
   local_enforcer->init_session_credit(
-      session_map, "IMSI1", "1234", test_cfg_, response);
+      session_map, imsi, session_id, test_cfg_, response);
 
-  // TODO test receiving a bearerID association && bearer removal
+  // Test successful creation of dedicated bearer for rule1 + rule2
+  auto bearer_bind_req_success1 =
+      create_policy_bearer_bind_req(imsi, default_bearer_id, "rule1", bearer_1);
+  auto bearer_bind_req_success2 =
+      create_policy_bearer_bind_req(imsi, default_bearer_id, "rule2", bearer_2);
+  std::unordered_set<std::string> rule_ids({"rule1", "rule2"});
+  // Expect NO call to PipelineD for rule1
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          imsi, CheckSubset(rule_ids), CheckCount(0), testing::_))
+      .Times(0);
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->bind_policy_to_bearer(
+      session_map, bearer_bind_req_success1, update);
+  local_enforcer->bind_policy_to_bearer(
+      session_map, bearer_bind_req_success2, update);
+
+  // Test unsuccessful creation of dedicated bearer for rule3 (bearer_id = 0)
+  auto bearer_bind_req_fail =
+      create_policy_bearer_bind_req(imsi, default_bearer_id, "rule3", 0);
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          imsi, std::vector<std::string>{"rule3"}, CheckCount(0), testing::_))
+      .Times(1);
+  local_enforcer->bind_policy_to_bearer(
+      session_map, bearer_bind_req_fail, update);
+
+  // At this point we have rule1 -> bearer1, rule2 -> bearer2 rule3 -> deleted,
+  // and rule4 -> no bearer. When we remove this rule, we expect to see a delete
+  // dedicated bearer request. Use the set rule interface to remove rule1.
+  SessionRules session_rules;
+  auto rule_set_per_sub = session_rules.mutable_rules_per_subscriber()->Add();
+  rule_set_per_sub->set_imsi(imsi);
+  rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
+      create_rule_set(false, "apn1", {"rule2", "rule4"}, {}));
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          imsi, std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
+      .Times(1);
+  EXPECT_CALL(
+      *spgw_client, delete_dedicated_bearer(CheckDeleteOneBearerReq(
+                        imsi, default_bearer_id, bearer_1)))
+      .Times(1);
+  update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->handle_set_session_rules(session_map, session_rules, update);
+
+  // Finally remove rule2 via an update response
+  UpdateSessionResponse update_response;
+  auto monitor_update =
+      update_response.mutable_usage_monitor_responses()->Add();
+  create_monitor_update_response(
+      imsi, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor_update);
+  monitor_update->add_rules_to_remove("rule2");
+
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          imsi, std::vector<std::string>{"rule2"}, CheckCount(0), testing::_))
+      .Times(1);
+  EXPECT_CALL(
+      *spgw_client, delete_dedicated_bearer(CheckDeleteOneBearerReq(
+                        imsi, default_bearer_id, bearer_2)))
+      .Times(1);
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, update);
 }
 
 // Test the handle_set_session_rules function to apply rules to sessions
@@ -1574,11 +1658,10 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
   // should also expect a create bearer request here
   EXPECT_CALL(
       *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(imsi, 1)))
-.Times(1)
-.WillOnce(testing::Return(true));
+      .Times(1)
+      .WillOnce(testing::Return(true));
 
-
-session_map = session_store->read_sessions(SessionRead{imsi});
+  session_map = session_store->read_sessions(SessionRead{imsi});
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->handle_set_session_rules(session_map, session_rules, update);
 }
@@ -1586,15 +1669,8 @@ session_map = session_store->read_sessions(SessionRead{imsi});
 TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
   // verify session validity by passing in an invalid IMSI
   PolicyReAuthRequest rar;
-  std::vector<std::string> rules_to_remove;
-  std::vector<StaticRuleInstall> rules_to_install;
-  std::vector<DynamicRuleInstall> dynamic_rules_to_install;
-  std::vector<EventTrigger> event_triggers{EventTrigger::REVALIDATION_TIMEOUT};
-  std::vector<UsageMonitoringCredit> usage_monitoring_credits;
   create_policy_reauth_request(
-      "session1", "IMSI1", rules_to_remove, rules_to_install,
-      dynamic_rules_to_install, event_triggers, time(NULL),
-      usage_monitoring_credits, &rar);
+      "session1", "IMSI1", {}, {}, {}, {}, time(NULL), {}, &rar);
   PolicyReAuthAnswer raa;
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);

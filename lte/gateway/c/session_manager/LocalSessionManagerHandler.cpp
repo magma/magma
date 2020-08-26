@@ -48,10 +48,10 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   }
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
-      auto session_map = get_sessions_for_reporting(request_cpy);
-      SessionUpdate update =
-          SessionStore::get_default_session_update(session_map);
-      enforcer_->aggregate_records(session_map, request_cpy, update);
+    auto session_map = session_store_.read_all_sessions();
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    enforcer_->aggregate_records(session_map, request_cpy, update);
       check_usage_for_reporting(std::move(session_map), update);
     });
 
@@ -551,10 +551,25 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
              << " default bearer: " << request->linked_bearer_id()
              << " policy rule: " << request->policy_rule_id()
              << " created bearer: " << request->bearer_id();
-  // TO DO:
-  // Check if response has a non-zero dedicated bearer ID:
-  // Update the policy to bearer map if non-zero
-  // Delete the policy rule if zero
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
+    auto session_map = session_store_.read_sessions({request_cpy.sid().id()});
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    auto success =
+        enforcer_->bind_policy_to_bearer(session_map, request_cpy, update);
+    if (!success) {
+      MLOG(MDEBUG) << "Failed to process policy -> bearer binding for "
+                   << request_cpy.policy_rule_id();
+    }
+    auto update_success = session_store_.update_sessions(update);
+    if (update_success) {
+      MLOG(MDEBUG) << "Succeeded in updating SessionStore after processing "
+                      "policy->bearer mapping";
+    } else {
+      MLOG(MERROR) << "Failed in updating SessionStore after processing "
+                      "policy->bearer mapping";
+    }
+  });
   response_callback(Status::OK, PolicyBearerBindingResponse());
 }
 

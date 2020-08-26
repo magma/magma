@@ -219,6 +219,16 @@ class LocalEnforcer {
       SessionMap& session_map, const SessionRules& rules,
       SessionUpdate& session_update);
 
+  /**
+   * Check if PolicyBearerBindingRequest has a non-zero dedicated bearer ID:
+   * Update the policy to bearer map if non-zero
+   * Delete the policy rule if zero
+   * @return true if successfully processed the request
+   */
+  bool bind_policy_to_bearer(
+      SessionMap& session_map, const PolicyBearerBindingRequest& request,
+      SessionUpdate& session_update);
+
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
  private:
@@ -553,6 +563,16 @@ class LocalEnforcer {
   void schedule_termination(std::unordered_set<std::string>& imsis);
 
   void propagate_bearer_updates_to_mme(const BearerUpdate& updates);
+
+  /**
+   * Remove the specified rule from the session and propagate the change to
+   * PipelineD
+   * @param rule_id rule to be deleted
+   * @param uc
+   */
+  void remove_rule_due_to_bearer_creation_failure(
+      const std::string& imsi, SessionState& session,
+      const std::string& rule_id, SessionStateUpdateCriteria& uc);
 };
 
 }  // namespace magma
