@@ -2665,7 +2665,7 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
         (ue_context_p->paging_response_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
       mme_app_paging_request_helper(
           ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS);
-    } else {
+    } else if (!is_msg_saved) {
       mme_app_handle_create_dedicated_bearer_rej(
           ue_context_p, activate_ded_bearer_req.linked_ebi);
     }
@@ -3400,42 +3400,13 @@ void mme_app_handle_modify_bearer_rsp(
     itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
     ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
-  /* If modify bearer failure is received from spgw, initiate bearer
-   * deactivation for bearers for which context was not found*/
-  for (uint8_t idx = 0;
-       idx < s11_modify_bearer_response->bearer_contexts_marked_for_removal
-                 .num_bearer_context;
-       idx++) {
-    if (s11_modify_bearer_response->bearer_contexts_marked_for_removal
-            .bearer_contexts[idx]
-            .cause.cause_value == CONTEXT_NOT_FOUND) {
-      emm_cn_deactivate_dedicated_bearer_req_t deactivate_ded_bearer_req = {0};
-      deactivate_ded_bearer_req.ue_id         = ue_context_p->mme_ue_s1ap_id;
-      deactivate_ded_bearer_req.no_of_bearers = 1;
-      deactivate_ded_bearer_req.ebi[0] =
-          s11_modify_bearer_response->bearer_contexts_marked_for_removal
-              .bearer_contexts[idx]
-              .eps_bearer_id;
-      if ((nas_proc_delete_dedicated_bearer(&deactivate_ded_bearer_req)) !=
-          RETURNok) {
-        OAILOG_ERROR_UE(
-            LOG_MME_APP, ue_context_p->emm_context._imsi64,
-            "Failed to handle bearer deactivation at NAS module for "
-            "ue_id " MME_UE_S1AP_ID_FMT "\n",
-            ue_context_p->mme_ue_s1ap_id);
-      } else {
-        OAILOG_INFO_UE(
-            LOG_MME_APP, ue_context_p->emm_context._imsi64,
-            "Initiated bearer deactivation for ebi %u"
-            "ue_id " MME_UE_S1AP_ID_FMT "\n",
-            deactivate_ded_bearer_req.ebi[0], ue_context_p->mme_ue_s1ap_id);
-      }
-    }
-  }
   // Send pending dedicated bearer activation request
   for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
-    emm_cn_activate_dedicated_bearer_req_t activate_ded_bearer_req = {0};
     if (ue_context_p->pending_ded_ber_req[idx]) {
+      emm_cn_activate_dedicated_bearer_req_t activate_ded_bearer_req = {0};
+      /* Check if context exists for the default bearer for which dedicated
+       * bearer has to be established
+       */
       if (mme_app_get_bearer_context(
               ue_context_p,
               ue_context_p->pending_ded_ber_req[idx]->linked_ebi)) {
@@ -3449,6 +3420,8 @@ void mme_app_handle_modify_bearer_rsp(
               "Failed to handle bearer activation at NAS module for "
               "ue_id " MME_UE_S1AP_ID_FMT "\n",
               ue_context_p->mme_ue_s1ap_id);
+          mme_app_handle_create_dedicated_bearer_rej(
+              ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi);
         }
       } else {
         mme_app_handle_create_dedicated_bearer_rej(
