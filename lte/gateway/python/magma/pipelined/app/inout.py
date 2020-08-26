@@ -91,7 +91,7 @@ class InOutController(MagmaController):
         self._egress_tbl_num = self._service_manager.get_table_num(EGRESS)
         # following fields are only used in Non Nat config
         self._gw_mac_monitor = None
-        self._current_upstream_mac_map = {}   # maps vlan to upstream gw mac
+        self._current_upstream_mac_map = {}  # maps vlan to upstream gw mac
         self._datapath = None
 
     def _get_config(self, config_dict):
@@ -163,12 +163,11 @@ class InOutController(MagmaController):
                                              resubmit_table=next_tbl)
 
         if self._mtr_service_enabled:
-            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                               ipv4_dst=self.config.mtr_ip)
-            flows.add_output_flow(dp,
-                                  self._midle_tbl_num, match,
-                                  [], priority=flows.UE_FLOW_PRIORITY,
-                                  output_port=self.config.mtr_port)
+            _install_vlan_egress_flows(dp,
+                                       self._midle_tbl_num,
+                                       self.config.mtr_port,
+                                       self.config.mtr_ip,
+                                       priority=flows.UE_FLOW_PRIORITY)
 
     def _install_default_egress_flows(self, dp, mac_addr: str = "", vlan: str = ""):
         """
@@ -181,9 +180,16 @@ class InOutController(MagmaController):
         Raises:
             MagmaOFError if any of the default flows fail to install.
         """
-        downlink_match = MagmaMatch(direction=Direction.IN)
-        flows.add_output_flow(dp, self._egress_tbl_num, downlink_match, [],
-                              output_port=self.config.gtp_port)
+        if self.config.setup_type == 'LTE':
+            _install_vlan_egress_flows(dp,
+                                       self._egress_tbl_num,
+                                       self.config.gtp_port,
+                                       "0.0.0.0/0")
+        else:
+            # Use regular match for Non LTE setup.
+            downlink_match = MagmaMatch(direction=Direction.IN)
+            flows.add_output_flow(dp, self._egress_tbl_num, downlink_match, [],
+                                  output_port=self.config.gtp_port)
 
         if vlan != "":
             vid = 0x1000 | int(vlan)
@@ -382,3 +388,28 @@ class InOutController(MagmaController):
         self._gw_mac_monitor = hub.spawn(self._monitor_and_update)
 
         threading.Event().wait(1)
+
+
+def _install_vlan_egress_flows(dp, table_no, out_port, ip,
+                               priority=0):
+    # Pass non vlan packet as it is.
+    match = MagmaMatch(direction=Direction.IN,
+                       eth_type=ether_types.ETH_TYPE_IP,
+                       vlan_vid=(0x0000, 0x1000),
+                       ipv4_dst=ip)
+    flows.add_output_flow(dp,
+                          table_no, match,
+                          [], priority=priority,
+                          output_port=out_port)
+
+    # remove vlan header for out_port.
+    match = MagmaMatch(direction=Direction.IN,
+                       eth_type=ether_types.ETH_TYPE_IP,
+                       vlan_vid=(0x1000, 0x1000),
+                       ipv4_dst=ip)
+    actions_vlan_pop = [dp.ofproto_parser.OFPActionPopVlan()]
+    flows.add_output_flow(dp,
+                          table_no, match,
+                          actions_vlan_pop,
+                          priority=priority,
+                          output_port=out_port)
