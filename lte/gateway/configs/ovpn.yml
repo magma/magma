@@ -1,3 +1,4 @@
+---
 #
 # Copyright 2020 The Magma Authors.
 
@@ -9,19 +10,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-#
-client
+log_level: INFO
 
-dev tunngjrhvuguuijfefukejgtkrcfvjj
-
-proto {{ proto_type }}
-
-ca {{ ca_file }}
-cert {{ cert_file }}
-key {{ key_file }}
-
-tls-auth {{ ta_key_file }} 1
-
-nobind
-
-verb {{ log_level }}
+proto_type: udp
+ca_file: /etc/openvpn/
