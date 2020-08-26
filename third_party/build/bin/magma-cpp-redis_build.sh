@@ -26,7 +26,11 @@ VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-cpp-redis
 
 function buildrequires() {
-    echo g++ make cmake libtool pkg-config
+    if [ "${PKGFMT}" == 'deb' ]; then
+        echo g++ make cmake libtool pkg-config
+    else
+        echo gcc-c++ make cmake libtool pkg-config
+    fi
 }
 
 function buildafter() {
@@ -67,6 +71,9 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release
 make
 make install DESTDIR=${WORK_DIR}/install
+
+# clean up unneeded directory
+rm -rf "${WORK_DIR}"/install/usr/local/bin
 
 # packaging
 PKGFILE="$(pkgfilename)"

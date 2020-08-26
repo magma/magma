@@ -22,7 +22,11 @@ VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-libtacopie
 
 function buildrequires() {
-    echo g++ make cmake libtool pkg-config
+    if [ "${PKGFMT}" == 'deb' ]; then
+        echo g++ make cmake libtool pkg-config
+    else
+        echo gcc-c++ make cmake libtool pkg-config
+    fi
 }
 
 if_subcommand_exec
@@ -62,6 +66,9 @@ mkdir build && cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=${WORK_DIR}/install/usr/local
 make
 make install
+
+# clean up unneeded directory
+rm -rf "${WORK_DIR}"/install/usr/local/bin
 
 # packaging
 PKGFILE="$(pkgfilename)"
