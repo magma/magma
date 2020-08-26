@@ -24,6 +24,13 @@ PKGVERSION=7.1.0
 VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=liblfds710
 
+function buildrequires() {
+    echo git gcc make
+    if [ "${PKGFMT}" == 'rpm' ]; then
+        echo libatomic
+    fi
+}
+
 if_subcommand_exec
 
 WORK_DIR=/tmp/build-${PKGNAME}
