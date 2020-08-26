@@ -15,6 +15,11 @@
 
 br=$1
 prefix=$2
+for pid in $(pgrep -f  "dnsmasq.*vt.*\..*\.")
+do
+        kill $pid
+done
+ip -all netns  delete
 
 set +e
 ip link delete "$prefix"_ul_0
