@@ -90,5 +90,5 @@ func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 		RatingGroup:   ratingGroup,
 	}
 
-	return rule.ToProto(ruleID)
+	return rule.ToProto(ruleID, nil)
 }

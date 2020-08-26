@@ -35,7 +35,7 @@ type ApnResource struct {
 	ID string `json:"id"`
 
 	// vlan id
-	VlanID uint16 `json:"vlan_id,omitempty"`
+	VlanID uint32 `json:"vlan_id,omitempty"`
 }
 
 // Validate validates this apn resource

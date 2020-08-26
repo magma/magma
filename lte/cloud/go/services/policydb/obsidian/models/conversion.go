@@ -30,9 +30,10 @@ import (
 )
 
 // TODO(8/21/20): provide entity-wise namespacing support from configurator
-// Configurator only provides network-level namespacing. There's not a
-// quick way to fix this, we we'll go with this hack for now.
-var magicNamespaceSeparator = "___TWFnbWEgcm9ja3M=___"
+// Configurator only provides network-level namespacing.
+// This is good enough for now, as subscriber IDs are validated to not contain
+// underscores.
+var magicNamespaceSeparator = "___"
 
 func (m *RuleNames) GetFromNetwork(network configurator.Network) interface{} {
 	iNetworkSubscriberConfig := orc8rModels.GetNetworkConfig(network, lte.NetworkSubscriberConfigType)

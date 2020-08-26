@@ -18,6 +18,7 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/protos"
 	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
@@ -503,6 +504,17 @@ func (m *ApnResources) ToTKs() []storage.TypeAndKey {
 	return tks
 }
 
+func (m *ApnResources) ToProto() map[string]*protos.APNConfiguration_APNResource {
+	byAPN := map[string]*protos.APNConfiguration_APNResource{}
+	if m == nil {
+		return nil
+	}
+	for _, r := range *m {
+		byAPN[string(r.ApnName)] = r.ToProto()
+	}
+	return byAPN
+}
+
 func (m *ApnResource) ToTK() storage.TypeAndKey {
 	return storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: m.ID}
 }
@@ -544,6 +556,19 @@ func (m *ApnResource) ToDeleteCriteria() configurator.EntityUpdateCriteria {
 		Key:          m.ID,
 		DeleteEntity: true,
 	}
+}
+
+func (m *ApnResource) ToProto() *protos.APNConfiguration_APNResource {
+	if m == nil {
+		return nil
+	}
+	proto := &protos.APNConfiguration_APNResource{
+		ApnName:    string(m.ApnName),
+		GatewayIp:  m.GatewayIP.String(),
+		GatewayMac: m.GatewayMac.String(),
+		VlanId:     uint32(m.VlanID), // put uint16 in uint32
+	}
+	return proto
 }
 
 func (m *ApnResource) getAssocs() []storage.TypeAndKey {

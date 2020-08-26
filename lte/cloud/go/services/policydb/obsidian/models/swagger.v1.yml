@@ -56,8 +56,6 @@ info:
 basePath: /magma/v1
 
 tags:
-  - name: LTE Policies
-    description: Endpoints related to network policy management in LTE networks
   - name: Policies
     description: Endpoints related to network policy management
   - name: Rating Groups
@@ -348,7 +346,7 @@ paths:
     get:
       summary: Get policy QoS profiles in LTE network
       tags:
-        - LTE Policies
+        - Policies
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
       responses:
@@ -363,7 +361,7 @@ paths:
     post:
       summary: Create policy QoS profile in LTE network
       tags:
-        - LTE Policies
+        - Policies
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - name: policy
@@ -382,7 +380,7 @@ paths:
     get:
       summary: Get policy QoS profile in LTE network
       tags:
-        - LTE Policies
+        - Policies
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/policy_qos_profile_id'
@@ -396,7 +394,7 @@ paths:
     put:
       summary: Update policy QoS profile in LTE network
       tags:
-        - LTE Policies
+        - Policies
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/policy_qos_profile_id'
@@ -414,7 +412,7 @@ paths:
     delete:
       summary: Delete policy QoS profile in LTE network
       tags:
-        - LTE Policies
+        - Policies
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
         - $ref: '#/parameters/policy_qos_profile_id'
