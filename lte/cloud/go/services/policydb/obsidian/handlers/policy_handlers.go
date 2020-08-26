@@ -288,26 +288,35 @@ func CreateRule(c echo.Context) error {
 	}
 
 	// Verify that subscribers and policies exist
-	allAssocs := rule.GetParentAssociations()
-	doAssignedAssocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
-	if !doAssignedAssocsExist {
-		return obsidian.HttpError(errors.New("failed to create policy: one or more subscribers do not exist"), http.StatusInternalServerError)
+	var allAssocs storage.TKs
+	allAssocs = append(allAssocs, rule.GetParentAssocs()...)
+	allAssocs = append(allAssocs, rule.GetAssocs()...)
+	assocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
+	if !assocsExist {
+		return obsidian.HttpError(errors.New("failed to create policy: one or more subscribers or QoS profiles do not exist"), http.StatusInternalServerError)
 	}
 
 	// In one transaction, create the policy rule and associate subscribers
 	// to it. Succeeds or fails in its entirety.
 	// Create entity
 	createdEntity := rule.ToEntity()
-	writes := []configurator.EntityWriteOperation{}
+	var writes []configurator.EntityWriteOperation
 	writes = append(writes, createdEntity)
-	// Update entity operations for subscribers and policies to point
-	for _, tk := range allAssocs {
+
+	for _, tk := range rule.GetParentAssocs().Filter(lte.SubscriberEntityType) {
 		writes = append(writes, configurator.EntityUpdateCriteria{
 			Type:              lte.SubscriberEntityType,
 			Key:               tk.Key,
 			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: createdEntity.Key}},
 		})
 	}
+	childWrites := configurator.EntityUpdateCriteria{
+		Type:              createdEntity.Type,
+		Key:               createdEntity.Key,
+		AssociationsToAdd: rule.GetAssocs(),
+	}
+	writes = append(writes, childWrites)
+
 	if err := configurator.WriteEntities(networkID, writes...); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to create policy"), http.StatusInternalServerError)
 	}
@@ -368,19 +377,22 @@ func UpdateRule(c echo.Context) error {
 	}
 	prevPolicy := (&models.PolicyRule{}).FromEntity(prevPolicyEnt)
 
-	// Verify that associated subscribers and policies exist
-	allAssocs := rule.GetParentAssociations()
-	doAssignedAssocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
-	if !doAssignedAssocsExist {
-		return obsidian.HttpError(errors.New("failed to update policy rule: one or more subscribers do not exist"), http.StatusInternalServerError)
+	// Verify that subscribers and policies exist
+	var allAssocs storage.TKs
+	allAssocs = append(allAssocs, rule.GetParentAssocs()...)
+	allAssocs = append(allAssocs, rule.GetAssocs()...)
+	assocsExist, _ := configurator.DoEntitiesExist(networkID, allAssocs)
+	if !assocsExist {
+		return obsidian.HttpError(errors.New("failed to create policy: one or more subscribers or QoS profiles do not exist"), http.StatusInternalServerError)
 	}
 
-	// In one transaction, modify the policy rule, and change associations
-	// from subscribers.
-	// Succeeds or fails in its entirety.
-	writes := []configurator.EntityWriteOperation{}
+	// In one transaction
+	// 	- modify policy rule
+	// 	- update parent assocs: subscriber
+	//	- update child assocs: policy_qos_profile
+	var writes []configurator.EntityWriteOperation
 	writes = append(writes, rule.ToEntityUpdateCriteria())
-	prevAssocs := prevPolicy.GetParentAssociations()
+	prevAssocs := prevPolicy.GetParentAssocs()
 	assocsToRemove := getTypeAndKeyDiff(prevAssocs, allAssocs)
 	for _, tk := range assocsToRemove {
 		if tk.Type == lte.SubscriberEntityType {

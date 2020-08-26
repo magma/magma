@@ -143,19 +143,28 @@ func (m *PolicyRule) FromEntity(ent configurator.NetworkEntity) *PolicyRule {
 
 func (m *PolicyRule) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	update := configurator.EntityUpdateCriteria{
-		Type:      lte.PolicyRuleEntityType,
-		Key:       string(m.ID),
-		NewConfig: m.getConfig(),
+		Type:              lte.PolicyRuleEntityType,
+		Key:               string(m.ID),
+		NewConfig:         m.getConfig(),
+		AssociationsToAdd: m.GetAssocs(),
 	}
 	return update
 }
 
-func (m *PolicyRule) GetParentAssociations() []storage.TypeAndKey {
-	var allAssocs []storage.TypeAndKey
+func (m *PolicyRule) GetParentAssocs() storage.TKs {
+	var parents []storage.TypeAndKey
 	for _, sid := range m.AssignedSubscribers {
-		allAssocs = append(allAssocs, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
+		parents = append(parents, storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(sid)})
 	}
-	return allAssocs
+	return parents
+}
+
+func (m *PolicyRule) GetAssocs() storage.TKs {
+	var children []storage.TypeAndKey
+	if m.QosProfile != "" {
+		children = append(children, storage.TypeAndKey{Type: lte.PolicyQoSProfileEntityType, Key: m.QosProfile})
+	}
+	return children
 }
 
 func (m *PolicyRule) getConfig() *PolicyRuleConfig {
