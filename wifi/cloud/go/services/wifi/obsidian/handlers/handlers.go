@@ -104,7 +104,7 @@ func makeWifiGateways(
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rmodels.GatewayStatus,
-) (handlers.GatewayModels, error) {
+) (map[string]handlers.GatewayModel, error) {
 	gatewayEntsByKey := map[string]*wifiAndMagmadGatewayEntities{}
 	for tk, ent := range entsByTK {
 		existing, found := gatewayEntsByKey[tk.Key]
@@ -120,16 +120,16 @@ func makeWifiGateways(
 		}
 	}
 
-	wifiGateways := handlers.GatewayModels{}
+	ret := make(map[string]handlers.GatewayModel, len(gatewayEntsByKey))
 	for key, wMEnts := range gatewayEntsByKey {
 		hwID := wMEnts.magmadEnt.PhysicalID
 		var devCasted *orc8rmodels.GatewayDevice
 		if devicesByID[hwID] != nil {
 			devCasted = devicesByID[hwID].(*orc8rmodels.GatewayDevice)
 		}
-		wifiGateways[key] = (&wifimodels.WifiGateway{}).FromBackendModels(wMEnts.magmadEnt, wMEnts.wifiGatewayEnt, devCasted, statusesByID[hwID])
+		ret[key] = (&wifimodels.WifiGateway{}).FromBackendModels(wMEnts.magmadEnt, wMEnts.wifiGatewayEnt, devCasted, statusesByID[hwID])
 	}
-	return wifiGateways, nil
+	return ret, nil
 }
 
 func createGateway(c echo.Context) error {
@@ -140,21 +140,38 @@ func createGateway(c echo.Context) error {
 }
 
 func getGateway(c echo.Context) error {
-	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	gateway := &wifimodels.WifiGateway{}
-	err := gateway.Load(networkID, gatewayID)
-	if err == merrors.ErrNotFound {
-		return echo.ErrNotFound
-	}
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
+	if nerr != nil {
+		return nerr
 	}
 
-	return c.JSON(http.StatusOK, gateway)
+	ent, err := configurator.LoadEntity(
+		nid, wifi.WifiGatewayType, gid,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load wifi gateway"), http.StatusInternalServerError)
+	}
+
+	ret := &wifimodels.WifiGateway{
+		ID:          magmadModel.ID,
+		Name:        magmadModel.Name,
+		Description: magmadModel.Description,
+		Device:      magmadModel.Device,
+		Status:      magmadModel.Status,
+		Tier:        magmadModel.Tier,
+		Magmad:      magmadModel.Magmad,
+	}
+	if ent.Config != nil {
+		ret.Wifi = ent.Config.(*wifimodels.GatewayWifiConfigs)
+	}
+
+	return c.JSON(http.StatusOK, ret)
 }
 
 func updateGateway(c echo.Context) error {

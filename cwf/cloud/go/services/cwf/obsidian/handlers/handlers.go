@@ -35,6 +35,7 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -78,7 +79,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
-		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: handlers.GetDeleteGatewayHandler(&cwfModels.MutableCwfGateway{})},
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
@@ -122,21 +123,38 @@ func createGateway(c echo.Context) error {
 }
 
 func getGateway(c echo.Context) error {
-	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	gateway := &cwfModels.CwfGateway{}
-	err := gateway.Load(networkID, gatewayID)
-	if err == merrors.ErrNotFound {
-		return echo.ErrNotFound
-	}
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
+	if nerr != nil {
+		return nerr
 	}
 
-	return c.JSON(http.StatusOK, gateway)
+	ent, err := configurator.LoadEntity(
+		nid, cwf.CwfGatewayType, gid,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: false},
+	)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load cwf gateway"), http.StatusInternalServerError)
+	}
+
+	ret := &cwfModels.CwfGateway{
+		ID:          magmadModel.ID,
+		Name:        magmadModel.Name,
+		Description: magmadModel.Description,
+		Device:      magmadModel.Device,
+		Status:      magmadModel.Status,
+		Tier:        magmadModel.Tier,
+		Magmad:      magmadModel.Magmad,
+	}
+	if ent.Config != nil {
+		ret.CarrierWifi = ent.Config.(*cwfModels.GatewayCwfConfigs)
+	}
+
+	return c.JSON(http.StatusOK, ret)
 }
 
 func updateGateway(c echo.Context) error {
@@ -150,6 +168,18 @@ func updateGateway(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func deleteGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	err := handlers.DeleteMagmadGateway(nid, gid, storage.TKs{{Type: cwf.CwfGatewayType, Key: gid}})
+	if err != nil {
+		return makeErr(err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 type cwfAndMagmadGateway struct {
 	magmadGateway, cwfGateway configurator.NetworkEntity
 }
@@ -159,7 +189,7 @@ func makeCwfGateways(
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rModels.GatewayStatus,
-) (handlers.GatewayModels, error) {
+) (map[string]handlers.GatewayModel, error) {
 	gatewayEntsByKey := map[string]*cwfAndMagmadGateway{}
 	for tk, ent := range entsByTK {
 		existing, found := gatewayEntsByKey[tk.Key]
@@ -176,20 +206,16 @@ func makeCwfGateways(
 		}
 	}
 
-	cwfGateways := handlers.GatewayModels{}
-	var err error
+	ret := make(map[string]handlers.GatewayModel, len(gatewayEntsByKey))
 	for key, ents := range gatewayEntsByKey {
 		hwID := ents.magmadGateway.PhysicalID
 		var devCasted *orc8rModels.GatewayDevice
 		if devicesByID[hwID] != nil {
 			devCasted = devicesByID[hwID].(*orc8rModels.GatewayDevice)
 		}
-		cwfGateways[key], err = (&cwfModels.CwfGateway{}).FromBackendModels(ents.magmadGateway, ents.cwfGateway, devCasted, statusesByID[hwID])
-		if err != nil {
-			return nil, err
-		}
+		ret[key] = (&cwfModels.CwfGateway{}).FromBackendModels(ents.magmadGateway, ents.cwfGateway, devCasted, statusesByID[hwID])
 	}
-	return cwfGateways, nil
+	return ret, nil
 }
 
 func getSubscriberDirectoryHandler(c echo.Context) error {
@@ -290,4 +316,11 @@ func getHealthStatusHandler(c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to HealthStatus"), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, healthState)
+}
+
+func makeErr(err error) *echo.HTTPError {
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
+	}
+	return obsidian.HttpError(err, http.StatusInternalServerError)
 }

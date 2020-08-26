@@ -24,8 +24,6 @@ import (
 	"magma/wifi/cloud/go/wifi"
 
 	"github.com/go-openapi/swag"
-	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
 )
 
 func (m *WifiNetwork) GetEmptyNetwork() handlers.NetworkModel {
@@ -83,60 +81,14 @@ func (m *WifiGateway) FromBackendModels(
 	device *orc8r_models.GatewayDevice,
 	status *orc8r_models.GatewayStatus,
 ) handlers.GatewayModel {
-	magmadGatewayModel := (&orc8r_models.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
-	err := copier.Copy(m, magmadGatewayModel)
-	if err != nil {
-		return errors.WithStack(err)
-	}
+	// delegate most of the fillin to magmad gateway struct
+	mdGW := (&orc8r_models.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	// TODO: we should change this to a reflection based shallow copy
+	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 	if wifiGateway.Config != nil {
 		m.Wifi = wifiGateway.Config.(*GatewayWifiConfigs)
 	}
 	return m
-}
-
-func (m *WifiGateway) Load(networkID, gatewayID string) error {
-	magmadGateway := &orc8r_models.MagmadGateway{}
-	err := magmadGateway.Load(networkID, gatewayID)
-	if err != nil {
-		return err
-	}
-
-	ent, err := configurator.LoadEntity(
-		networkID, wifi.WifiGatewayType, gatewayID,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-	)
-	if err != nil {
-		return errors.Wrap(err, "error loading wifi gateway")
-	}
-
-	gateway := &WifiGateway{
-		ID:          magmadGateway.ID,
-		Name:        magmadGateway.Name,
-		Description: magmadGateway.Description,
-		Device:      magmadGateway.Device,
-		Status:      magmadGateway.Status,
-		Tier:        magmadGateway.Tier,
-		Magmad:      magmadGateway.Magmad,
-	}
-	if ent.Config != nil {
-		gateway.Wifi = ent.Config.(*GatewayWifiConfigs)
-	}
-
-	*m = *gateway
-	return nil
-}
-
-func (m *MutableWifiGateway) Load(networkID, gatewayID string) error {
-	gateway := &WifiGateway{}
-	err := gateway.Load(networkID, gatewayID)
-	if err != nil {
-		return err
-	}
-	err = copier.Copy(m, gateway)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-	return nil
 }
 
 func (m *MutableWifiGateway) GetMagmadGateway() *orc8r_models.MagmadGateway {
@@ -206,10 +158,6 @@ func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(
 	}
 
 	return ret, nil
-}
-
-func (m *MutableWifiGateway) GetAdditionalDeletes() []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: string(m.ID)}}
 }
 
 func (m *GatewayWifiConfigs) FromBackendModels(networkID string, gatewayID string) error {

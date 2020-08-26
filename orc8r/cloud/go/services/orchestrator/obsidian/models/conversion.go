@@ -19,8 +19,6 @@ import (
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/device"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
@@ -102,39 +100,6 @@ func (m NetworkDNSRecords) ToUpdateCriteria(network configurator.Network) (confi
 	return GetNetworkConfigUpdateCriteria(network.ID, orc8r.DnsdNetworkType, iNetworkDnsConfig), nil
 }
 
-func (m *MagmadGateway) Load(networkID, gatewayID string) error {
-	ent, err := configurator.LoadEntity(
-		networkID, orc8r.MagmadGatewayType, gatewayID,
-		configurator.EntityLoadCriteria{
-			LoadMetadata:     true,
-			LoadConfig:       true,
-			LoadAssocsToThis: true,
-		},
-	)
-	if err != nil {
-		return err
-	}
-
-	devI, err := device.GetDevice(networkID, orc8r.AccessGatewayRecordType, ent.PhysicalID)
-	if err != nil && err != merrors.ErrNotFound {
-		return err
-	}
-	status, err := getGatewayStatus(networkID, ent.PhysicalID)
-	if err != nil && err != merrors.ErrNotFound {
-		return err
-	}
-
-	// If the gateway/network is malformed, we could get no corresponding
-	// device for the gateway
-	var dev *GatewayDevice
-	if devI != nil {
-		dev = devI.(*GatewayDevice)
-	}
-
-	m.FromBackendModels(ent, dev, status)
-	return nil
-}
-
 func (m *MagmadGateway) GetMagmadGateway() *MagmadGateway {
 	return m
 }
@@ -202,10 +167,6 @@ func (m *MagmadGateway) GetAdditionalWritesOnUpdate(
 	// do the tier update to delete the old assoc first
 	ret = append(ret, gatewayUpdate)
 	return ret, nil
-}
-
-func (m *MagmadGateway) GetAdditionalDeletes() []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MagmadGateway) ToConfiguratorEntities() []configurator.NetworkEntity {
@@ -409,7 +370,7 @@ func (m *Tier) FromBackendModel(entity configurator.NetworkEntity) *Tier {
 
 func (m *TierName) ToUpdateCriteria(networkID string, key string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{
+		{
 			Type: orc8r.UpgradeTierEntityType, Key: key, NewName: swag.String(string(*m)),
 		},
 	}, nil
@@ -441,7 +402,7 @@ func (m *TierVersion) ToUpdateCriteria(networkID, key string) ([]configurator.En
 	tier := iConfig.(*Tier)
 	tier.Version = *m
 	return []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier},
+		{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier},
 	}, nil
 }
 
@@ -466,7 +427,7 @@ func (m *TierImages) ToUpdateCriteria(networkID, key string) ([]configurator.Ent
 	tier := iConfig.(*Tier)
 	tier.Images = *m
 	return []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{
+		{
 			Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier,
 		},
 	}, nil
@@ -483,7 +444,7 @@ func (m *TierGateways) FromBackendModels(networkID string, key string) error {
 
 func (m *TierGateways) ToUpdateCriteria(networkID, key string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{
+		{
 			Type: orc8r.UpgradeTierEntityType, Key: key,
 			AssociationsToSet: getGatewayTKs(*m),
 		},
@@ -512,7 +473,7 @@ func (m *TierImage) ToUpdateCriteria(networkID string, key string) ([]configurat
 	tier := iConfig.(*Tier)
 	tier.Images = append(tier.Images, m)
 	return []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier},
+		{Type: orc8r.UpgradeTierEntityType, Key: key, NewConfig: tier},
 	}, nil
 }
 
@@ -549,22 +510,4 @@ func getGatewayIDs(gatewayTKs []storage.TypeAndKey) []models.GatewayID {
 		func(tk storage.TypeAndKey) models.GatewayID {
 			return models.GatewayID(tk.Key)
 		}).([]models.GatewayID)
-}
-
-// getGatewayStatus returns the status for an indicated gateway.
-func getGatewayStatus(networkID string, deviceID string) (*GatewayStatus, error) {
-	st, err := state.GetState(networkID, orc8r.GatewayStateType, deviceID)
-	if err != nil {
-		return nil, err
-	}
-	if st.ReportedState == nil {
-		return nil, merrors.ErrNotFound
-	}
-
-	gwStatus := st.ReportedState.(*GatewayStatus)
-	gwStatus.CheckinTime = st.TimeMs
-	gwStatus.CertExpirationTime = st.CertExpirationTime
-	gwStatus.HardwareID = st.ReporterID
-
-	return gwStatus, nil
 }

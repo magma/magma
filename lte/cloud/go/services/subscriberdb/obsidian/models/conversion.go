@@ -36,7 +36,6 @@ import (
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
-	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -67,10 +66,7 @@ func (m *Subscriber) Load(networkID, key string) (*Subscriber, error) {
 	if err != nil {
 		return nil, err
 	}
-	sub, err := m.FromMutable(mutableSub)
-	if err != nil {
-		return nil, err
-	}
+	sub := m.FromMutable(mutableSub)
 
 	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key)
 	if err != nil {
@@ -117,10 +113,7 @@ func (m *Subscriber) LoadAll(networkID string) (map[string]*Subscriber, error) {
 
 	subs := map[string]*Subscriber{}
 	for _, mutableSub := range mutableSubs {
-		sub, err := m.FromMutable(mutableSub)
-		if err != nil {
-			return nil, err
-		}
+		sub := m.FromMutable(mutableSub)
 		err = sub.FillAugmentedFields(statesBySid[string(sub.ID)])
 		if err != nil {
 			return nil, err
@@ -131,22 +124,29 @@ func (m *Subscriber) LoadAll(networkID string) (map[string]*Subscriber, error) {
 	return subs, nil
 }
 
-func (m *Subscriber) FromMutable(mutable *MutableSubscriber) (*Subscriber, error) {
-	sub := &Subscriber{}
-	err := copier.Copy(sub, mutable)
-	if err != nil {
-		return nil, errors.WithStack(err)
+func (m *Subscriber) FromMutable(mut *MutableSubscriber) *Subscriber {
+	sub := &Subscriber{
+		ActiveApns:          mut.ActiveApns,
+		ActiveBaseNames:     mut.ActiveBaseNames,
+		ActivePolicies:      mut.ActivePolicies,
+		ActivePoliciesByApn: mut.ActivePoliciesByApn,
+		Config:              nil, // handled below
+		ID:                  mut.ID,
+		Lte:                 mut.Lte,
+		Monitoring:          nil, // augmented field
+		Name:                mut.Name,
+		State:               nil, // augmented field
 	}
 
 	// TODO(v1.3.0+): For backwards compatibility we maintain the Lte field
 	// on the sub. We can convert to just storing and exposing the Config
 	// field after the next minor version.
 	sub.Config = &SubscriberConfig{
-		Lte:       mutable.Lte,
-		StaticIps: mutable.StaticIps,
+		Lte:       mut.Lte,
+		StaticIps: mut.StaticIps,
 	}
 
-	return sub, nil
+	return sub
 }
 
 func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {

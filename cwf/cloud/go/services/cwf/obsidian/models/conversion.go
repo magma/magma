@@ -29,8 +29,6 @@ import (
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
-	"github.com/jinzhu/copier"
-	"github.com/pkg/errors"
 )
 
 func (m *CwfNetwork) GetEmptyNetwork() handlers.NetworkModel {
@@ -104,67 +102,19 @@ func (m *CwfGateway) FromBackendModels(
 	magmadGateway, cwfGateway configurator.NetworkEntity,
 	device *orc8rModels.GatewayDevice,
 	status *orc8rModels.GatewayStatus,
-) (handlers.GatewayModel, error) {
-	magmadGatewayModel := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
-	err := copier.Copy(m, magmadGatewayModel)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+) handlers.GatewayModel {
+	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	// TODO: we should change this to a reflection based shallow copy
+	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 	if cwfGateway.Config != nil {
 		m.CarrierWifi = cwfGateway.Config.(*GatewayCwfConfigs)
 	}
 
-	return m, nil
-}
-
-func (m *CwfGateway) Load(networkID, gatewayID string) error {
-	magmadGateway := &orc8rModels.MagmadGateway{}
-	err := magmadGateway.Load(networkID, gatewayID)
-	if err != nil {
-		return err
-	}
-
-	ent, err := configurator.LoadEntity(
-		networkID, cwf.CwfGatewayType, gatewayID,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: false},
-	)
-	if err != nil {
-		return errors.Wrap(err, "error loading cwf gateway")
-	}
-
-	gateway := &CwfGateway{
-		ID:          magmadGateway.ID,
-		Name:        magmadGateway.Name,
-		Description: magmadGateway.Description,
-		Device:      magmadGateway.Device,
-		Status:      magmadGateway.Status,
-		Tier:        magmadGateway.Tier,
-		Magmad:      magmadGateway.Magmad,
-	}
-	if ent.Config != nil {
-		gateway.CarrierWifi = ent.Config.(*GatewayCwfConfigs)
-	}
-
-	*m = *gateway
-	return nil
+	return m
 }
 
 func (m *MutableCwfGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
-}
-
-func (m *MutableCwfGateway) Load(networkID, gatewayID string) error {
-	gateway := &CwfGateway{}
-	err := gateway.Load(networkID, gatewayID)
-	if err != nil {
-		return err
-	}
-	err = copier.Copy(m, gateway)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	return nil
 }
 
 func (m *MutableCwfGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
@@ -222,10 +172,6 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
 
 	ret = append(ret, entUpdate)
 	return ret, nil
-}
-
-func (m *MutableCwfGateway) GetAdditionalDeletes() []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: string(m.ID)}}
 }
 
 func (m *GatewayCwfConfigs) FromBackendModels(networkID string, gatewayID string) error {

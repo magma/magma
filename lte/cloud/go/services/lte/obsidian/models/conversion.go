@@ -28,7 +28,6 @@ import (
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/go-openapi/swag"
-	"github.com/jinzhu/copier"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
 )
@@ -151,93 +150,27 @@ func (m *LteGateway) FromBackendModels(
 	m.ConnectedEnodebSerials = EnodebSerials{}
 	m.ApnResources = ApnResources{}
 
-	magmadGatewayModel := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
-	err := copier.Copy(m, magmadGatewayModel)
-	if err != nil {
-		return nil, errors.WithStack(err)
-	}
+	// delegate most of the fillin to magmad gateway struct
+	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
+	// TODO: we should change this to a reflection based shallow copy
+	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 	if cellularGateway.Config != nil {
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
 
+	err := m.ApnResources.Load(networkID, cellularGateway.Associations.Filter(lte.APNResourceEntityType).Keys())
+	if err != nil {
+		return nil, errors.Wrap(err, "error loading apn resources")
+	}
+
 	for _, tk := range cellularGateway.Associations {
-		switch tk.Type {
-		case lte.CellularEnodebEntityType:
+		if tk.Type == lte.CellularEnodebEntityType {
 			m.ConnectedEnodebSerials = append(m.ConnectedEnodebSerials, tk.Key)
-		case lte.APNResourceEntityType:
-			r := &ApnResource{}
-			err := r.Load(networkID, tk.Key)
-			if err != nil {
-				return nil, errors.Wrap(err, "error loading apn resource entity")
-			}
-			m.ApnResources[string(r.ApnName)] = *r
 		}
 	}
 	sort.Strings(m.ConnectedEnodebSerials)
 
 	return m, nil
-}
-
-func (m *LteGateway) Load(networkID, gatewayID string) error {
-	magmadGateway := &orc8rModels.MagmadGateway{}
-	err := magmadGateway.Load(networkID, gatewayID)
-	if err != nil {
-		return err
-	}
-
-	cellularEnt, err := configurator.LoadEntity(
-		networkID, lte.CellularGatewayEntityType, gatewayID,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
-	)
-	if err != nil {
-		return errors.Wrap(err, "error loading cellular gateway")
-	}
-
-	gateway := &LteGateway{
-		ID:                     magmadGateway.ID,
-		Name:                   magmadGateway.Name,
-		Description:            magmadGateway.Description,
-		Device:                 magmadGateway.Device,
-		Status:                 magmadGateway.Status,
-		Tier:                   magmadGateway.Tier,
-		Magmad:                 magmadGateway.Magmad,
-		ApnResources:           ApnResources{},
-		ConnectedEnodebSerials: EnodebSerials{},
-	}
-
-	if cellularEnt.Config != nil {
-		gateway.Cellular = cellularEnt.Config.(*GatewayCellularConfigs)
-	}
-	for _, tk := range cellularEnt.Associations {
-		switch tk.Type {
-		case lte.CellularEnodebEntityType:
-			gateway.ConnectedEnodebSerials = append(gateway.ConnectedEnodebSerials, tk.Key)
-		case lte.APNResourceEntityType:
-			r := &ApnResource{}
-			err := r.Load(networkID, tk.Key)
-			if err != nil {
-				return errors.Wrap(err, "error loading apn resource entity")
-			}
-			gateway.ApnResources[string(r.ApnName)] = *r
-		}
-	}
-
-	*m = *gateway
-	return nil
-}
-
-func (m *MutableLteGateway) Load(networkID, gatewayID string) error {
-	gateway := &LteGateway{}
-	err := gateway.Load(networkID, gatewayID)
-	if err != nil {
-		return err
-	}
-	err = copier.Copy(m, gateway)
-	if err != nil {
-		return errors.WithStack(err)
-	}
-
-	return nil
 }
 
 func (m *MutableLteGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
@@ -284,13 +217,12 @@ func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 }
 
 func (m *MutableLteGateway) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
-	ret := []storage.TypeAndKey{
-		{Type: lte.CellularGatewayEntityType, Key: string(m.ID)},
-	}
+	var loads storage.TKs
+	loads = append(loads, storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: string(m.ID)})
 	for _, r := range m.ApnResources {
-		ret = append(ret, storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: r.ID})
+		loads = append(loads, storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: r.ID})
 	}
-	return ret
+	return loads
 }
 
 func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
@@ -327,16 +259,6 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 	writes = append(writes, gatewayUpdate)
 
 	return writes, nil
-}
-
-func (m *MutableLteGateway) GetAdditionalDeletes() []storage.TypeAndKey {
-	tks := []storage.TypeAndKey{
-		{Type: lte.CellularGatewayEntityType, Key: string(m.ID)},
-	}
-	for _, r := range m.ApnResources {
-		tks = append(tks, r.ToTK())
-	}
-	return tks
 }
 
 // getAPNResourceChanges returns required writes, as well as the TKs of the
@@ -470,7 +392,7 @@ func (m *EnodebSerials) FromBackendModels(networkID string, gatewayID string) er
 }
 
 func (m *EnodebSerials) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
-	enodebSerials := []storage.TypeAndKey{}
+	enodebSerials := storage.TKs{}
 	for _, enodebSerial := range *m {
 		enodebSerials = append(enodebSerials, storage.TypeAndKey{Type: lte.CellularEnodebEntityType, Key: enodebSerial})
 	}

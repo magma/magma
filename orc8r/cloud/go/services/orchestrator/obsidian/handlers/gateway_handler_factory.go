@@ -55,7 +55,7 @@ type MakeTypedGateways func(
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*models.GatewayStatus,
-) (GatewayModels, error)
+) (map[string]GatewayModel, error)
 
 // GetPartialGatewayHandlers returns both GET and PUT handlers for modifying the portion of a
 // network entity specified by the model.
@@ -279,52 +279,4 @@ func GetListGatewaysHandler(path string, gatewayType string, makeTypedGateways M
 			return c.JSON(http.StatusOK, gateways)
 		},
 	}
-}
-
-func GetDeleteGatewayHandler(gateway GatewaySubtype) func(c echo.Context) error {
-	f := func(c echo.Context) error {
-		nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
-		if nerr != nil {
-			return nerr
-		}
-
-		err := gateway.Load(nid, gid)
-		switch {
-		case err == merrors.ErrNotFound:
-			return echo.ErrNotFound
-		case err != nil:
-			return obsidian.HttpError(errors.Wrap(err, "failed to load gateway"), http.StatusInternalServerError)
-		}
-		magmadGateway := gateway.GetMagmadGateway()
-
-		var toDelete []storage.TypeAndKey
-		toDelete = append(toDelete, magmadGateway.GetAdditionalDeletes()...)
-		switch gateway.(type) {
-		case *models.MagmadGateway:
-			break
-		default:
-			toDelete = append(toDelete, gateway.GetAdditionalDeletes()...)
-		}
-
-		err = configurator.DeleteEntities(nid, toDelete)
-		if err != nil {
-			return obsidian.HttpError(errors.Wrap(err, "error deleting gateway"), http.StatusInternalServerError)
-		}
-
-		// Now we delete the associated device. Even though we error out
-		// request if this fails, failing on this specific step is non-
-		// blocking because gateway registration handles the case where a
-		// device already exists and is unassigned.
-		physicalID := magmadGateway.Device.HardwareID
-		if physicalID != "" {
-			err = device.DeleteDevice(nid, orc8r.AccessGatewayRecordType, physicalID)
-			if err != nil {
-				return obsidian.HttpError(errors.Wrap(err, "failed to delete device for gateway. no further action is required"), http.StatusInternalServerError)
-			}
-		}
-
-		return c.NoContent(http.StatusNoContent)
-	}
-
-	return f
 }

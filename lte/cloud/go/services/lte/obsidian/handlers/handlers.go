@@ -90,8 +90,8 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 
-		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: handlers.GetDeleteGatewayHandler(&lte_models.MutableLteGateway{})},
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 
 		{Path: ListEnodebsPath, Methods: obsidian.GET, HandlerFunc: listEnodebs},
@@ -152,21 +152,54 @@ func createGateway(c echo.Context) error {
 }
 
 func getGateway(c echo.Context) error {
-	networkID, gatewayID, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
 	if nerr != nil {
 		return nerr
 	}
 
-	gateway := &lte_models.LteGateway{}
-	err := gateway.Load(networkID, gatewayID)
-	if err == merrors.ErrNotFound {
-		return echo.ErrNotFound
-	}
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
+	if nerr != nil {
+		return nerr
 	}
 
-	return c.JSON(http.StatusOK, gateway)
+	ent, err := configurator.LoadEntity(
+		nid, lte.CellularGatewayEntityType, gid,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "failed to load cellular gateway"), http.StatusInternalServerError)
+	}
+
+	ret := &lte_models.LteGateway{
+		ID:                     magmadModel.ID,
+		Name:                   magmadModel.Name,
+		Description:            magmadModel.Description,
+		Device:                 magmadModel.Device,
+		Status:                 magmadModel.Status,
+		Tier:                   magmadModel.Tier,
+		Magmad:                 magmadModel.Magmad,
+		ConnectedEnodebSerials: lte_models.EnodebSerials{},
+		ApnResources:           lte_models.ApnResources{},
+	}
+	if ent.Config != nil {
+		ret.Cellular = ent.Config.(*lte_models.GatewayCellularConfigs)
+	}
+
+	for _, tk := range ent.Associations {
+		switch tk.Type {
+		case lte.CellularEnodebEntityType:
+			ret.ConnectedEnodebSerials = append(ret.ConnectedEnodebSerials, tk.Key)
+		case lte.APNResourceEntityType:
+			r := &lte_models.ApnResource{}
+			err := r.Load(nid, tk.Key)
+			if err != nil {
+				return errors.Wrap(err, "error loading apn resource entity")
+			}
+			ret.ApnResources[string(r.ApnName)] = *r
+		}
+	}
+
+	return c.JSON(http.StatusOK, ret)
 }
 
 func updateGateway(c echo.Context) error {
@@ -180,6 +213,31 @@ func updateGateway(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
+func deleteGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	var deletes storage.TKs
+	deletes = append(deletes, storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: gid})
+
+	gw, err := configurator.LoadEntity(
+		nid, lte.CellularGatewayEntityType, gid,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "error loading existing cellular gateway"), http.StatusInternalServerError)
+	}
+	deletes = append(deletes, gw.Associations.Filter(lte.APNResourceEntityType)...)
+
+	err = handlers.DeleteMagmadGateway(nid, gid, deletes)
+	if err != nil {
+		return makeErr(err)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
 type cellularAndMagmadGateway struct {
 	magmadGateway, cellularGateway configurator.NetworkEntity
 }
@@ -189,7 +247,7 @@ func makeLTEGateways(
 	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8r_models.GatewayStatus,
-) (handlers.GatewayModels, error) {
+) (map[string]handlers.GatewayModel, error) {
 	gatewayEntsByKey := map[string]*cellularAndMagmadGateway{}
 	for tk, ent := range entsByTK {
 		existing, found := gatewayEntsByKey[tk.Key]
@@ -206,7 +264,7 @@ func makeLTEGateways(
 		}
 	}
 
-	cellularGateways := handlers.GatewayModels{}
+	cellularGateways := map[string]handlers.GatewayModel{}
 	var err error
 	for key, ents := range gatewayEntsByKey {
 		hwID := ents.magmadGateway.PhysicalID
@@ -649,4 +707,11 @@ func getNetworkAndApnName(c echo.Context) (string, string, *echo.HTTPError) {
 		return "", "", err
 	}
 	return vals[0], vals[1], nil
+}
+
+func makeErr(err error) *echo.HTTPError {
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
+	}
+	return obsidian.HttpError(err, http.StatusInternalServerError)
 }
