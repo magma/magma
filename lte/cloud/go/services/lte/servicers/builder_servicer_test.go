@@ -31,6 +31,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -203,7 +204,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat(""),
+		Config:             newGatewayConfigNonNat("", ""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
@@ -345,7 +346,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("30"),
+		Config:             newGatewayConfigNonNat("30", ""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
@@ -368,6 +369,36 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
+
+	// validate SGi ip address
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("44", "1.2.3.4"),
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan:   "44",
+		SgiManagementIfaceIpAddr: "1.2.3.4",
+	}
+
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
 }
 
 func TestBuilder_Build_BaseCase(t *testing.T) {
@@ -644,16 +675,17 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 	}
 }
 
-func newGatewayConfigNonNat(vlan string) *lte_models.GatewayCellularConfigs {
+func newGatewayConfigNonNat(vlan string, sgi_ip string) *lte_models.GatewayCellularConfigs {
 	return &lte_models.GatewayCellularConfigs{
 		Ran: &lte_models.GatewayRanConfigs{
 			Pci:             260,
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lte_models.GatewayEpcConfigs{
-			NatEnabled:             swag.Bool(false),
-			IPBlock:                "192.168.128.0/24",
-			SgiManagementIfaceVlan: vlan,
+			NatEnabled:                 swag.Bool(false),
+			IPBlock:                    "192.168.128.0/24",
+			SgiManagementIfaceVlan:     vlan,
+			SgiManagementIfaceStaticIP: strfmt.IPv4(sgi_ip),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
