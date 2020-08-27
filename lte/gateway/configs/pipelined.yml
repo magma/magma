@@ -139,7 +139,7 @@ ovs_mtr_port_number: 15577
 # define enable_nat for here debugging only.
 # enable_nat: True
 # Be careful changing these default values
-non_nat_gw_probe_frequency: 60
+non_nat_gw_probe_frequency: 20
 # non_nat_arp_egress_port: dhcp0
 ovs_uplink_port_name: patch-up
 virtual_mac: '02:ff:bb:cc:dd:ee'
