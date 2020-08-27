@@ -62,6 +62,10 @@ def main():
                                   service.mconfig.sgi_management_iface_vlan)
     service.config['sgi_management_iface_vlan'] = vlan_tag
 
+    sgi_ip = service.config.get('sgi_management_iface_ip_addr',
+                                  service.mconfig.sgi_management_iface_ip_addr)
+    service.config['sgi_management_iface_ip_addr'] = sgi_ip
+
     # Load the ryu apps
     service_manager = ServiceManager(service)
     service_manager.load()

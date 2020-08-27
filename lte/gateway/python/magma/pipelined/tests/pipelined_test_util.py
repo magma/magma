@@ -15,6 +15,7 @@ import logging
 import os
 import re
 import subprocess
+import netifaces
 
 from collections import namedtuple
 from concurrent.futures import Future
@@ -543,12 +544,16 @@ def get_ovsdb_port_tag(port_name: str) -> str:
         if port_name not in str(port):
             continue
         try:
-            tokens = str(port).strip().split()
-            port_name = tokens[0]
-            tag = tokens[1]
-            if port_name == port_name:
-                return str(tag).split('\\')[0]
+            tokens = str(port.decode("utf-8")).strip('\"').split()
+            return tokens[1]
         except ValueError:
             pass
 
 
+def get_iface_ipv4(iface: str) -> List[str]:
+    virt_ifaddresses = netifaces.ifaddresses(iface)
+    ip_addr_list = []
+    for ip_rec in virt_ifaddresses[netifaces.AF_INET]:
+        ip_addr_list.append(ip_rec['addr'])
+
+    return ip_addr_list
