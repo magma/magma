@@ -63,7 +63,7 @@ const (
 // GetHandlers returns all obsidian handlers for Wifi
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(BaseGatewaysPath, wifi.WifiGatewayType, makeWifiGateways),
+		handlers.GetListGatewaysHandler(BaseGatewaysPath, &wifimodels.MutableWifiGateway{}, makeWifiGateways),
 		{Path: BaseGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -100,12 +100,12 @@ type wifiAndMagmadGatewayEntities struct {
 }
 
 func makeWifiGateways(
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rmodels.GatewayStatus,
 ) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*wifiAndMagmadGatewayEntities{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, wifi.WifiGatewayType) {
 		existing, found := gatewayEntsByKey[tk.Key]
 		if !found {
 			existing = &wifiAndMagmadGatewayEntities{}
@@ -132,7 +132,7 @@ func makeWifiGateways(
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &wifimodels.MutableWifiGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &wifimodels.MutableWifiGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -144,7 +144,7 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGatewayModel(nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
 	if nerr != nil {
 		return nerr
 	}
@@ -178,7 +178,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &wifimodels.MutableWifiGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &wifimodels.MutableWifiGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)

@@ -21,13 +21,21 @@ type ApnResource struct {
 	// Required: true
 	ApnName ApnName `json:"apn_name"`
 
+	// gateway ip
+	// Format: ipv4
+	GatewayIP strfmt.IPv4 `json:"gateway_ip,omitempty"`
+
+	// gateway mac
+	// Format: mac
+	GatewayMac strfmt.MAC `json:"gateway_mac,omitempty"`
+
 	// APN resource ID must be unique across all gateways in a network
 	// Required: true
 	// Min Length: 1
 	ID string `json:"id"`
 
 	// vlan id
-	VlanID uint16 `json:"vlan_id,omitempty"`
+	VlanID uint32 `json:"vlan_id,omitempty"`
 }
 
 // Validate validates this apn resource
@@ -35,6 +43,14 @@ func (m *ApnResource) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateApnName(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateGatewayIP(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateGatewayMac(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -54,6 +70,32 @@ func (m *ApnResource) validateApnName(formats strfmt.Registry) error {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("apn_name")
 		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *ApnResource) validateGatewayIP(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.GatewayIP) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("gateway_ip", "body", "ipv4", m.GatewayIP.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *ApnResource) validateGatewayMac(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.GatewayMac) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("gateway_mac", "body", "mac", m.GatewayMac.String(), formats); err != nil {
 		return err
 	}
 

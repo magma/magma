@@ -21,6 +21,7 @@ import (
 	"magma/orc8r/lib/go/definitions"
 
 	"github.com/google/uuid"
+	"github.com/thoas/go-funk"
 )
 
 var (
@@ -32,6 +33,8 @@ type TypeAndKey struct {
 	Type string
 	Key  string
 }
+
+type TKs []TypeAndKey
 
 type IsolationLevel int
 
@@ -54,6 +57,84 @@ const (
 
 func (tk TypeAndKey) String() string {
 	return fmt.Sprintf("%s-%s", tk.Type, tk.Key)
+}
+
+// Filter returns the tks which match the passed type.
+func (tks TKs) Filter(typ string) TKs {
+	var filtered TKs
+	for _, tk := range tks {
+		if tk.Type == typ {
+			filtered = append(filtered, tk)
+		}
+	}
+	return filtered
+}
+
+// MultiFilter returns the tks which match any of the passed types.
+func (tks TKs) MultiFilter(types ...string) TKs {
+	var filtered TKs
+	for _, tk := range tks {
+		if funk.ContainsString(types, tk.Type) {
+			filtered = append(filtered, tk)
+		}
+	}
+	return filtered
+}
+
+// GetFirst returns the first TK with the passed type.
+// Returns err only on tk not found.
+func (tks TKs) GetFirst(typ string) (TypeAndKey, error) {
+	for _, tk := range tks {
+		if tk.Type == typ {
+			return tk, nil
+		}
+	}
+	return TypeAndKey{}, fmt.Errorf("no TK of type %s found in %v", typ, tks)
+}
+
+// Keys returns the keys of the TKs.
+func (tks TKs) Keys() []string {
+	var keys []string
+	for _, tk := range tks {
+		keys = append(keys, tk.Key)
+	}
+	return keys
+}
+
+func MakeTKs(typ string, keys []string) TKs {
+	var tks TKs
+	for _, key := range keys {
+		tks = append(tks, TypeAndKey{Type: typ, Key: key})
+	}
+	return tks
+}
+
+// Difference returns (A-B, B-A) when called as A.Difference(B).
+func (tks TKs) Difference(b TKs) (TKs, TKs) {
+	a := tks
+
+	aa := map[TypeAndKey]struct{}{}
+	for _, tk := range a {
+		aa[tk] = struct{}{}
+	}
+	bb := map[TypeAndKey]struct{}{}
+	for _, tk := range b {
+		bb[tk] = struct{}{}
+	}
+
+	var diffA, diffB TKs
+	for tk := range aa {
+		if _, inB := bb[tk]; !inB {
+			diffA = append(diffA, tk)
+		}
+	}
+	for tk := range bb {
+		if _, inA := aa[tk]; !inA {
+			diffB = append(diffB, tk)
+		}
+	}
+
+	return diffA, diffB
 }
 
 func IsTKLessThan(a TypeAndKey, b TypeAndKey) bool {

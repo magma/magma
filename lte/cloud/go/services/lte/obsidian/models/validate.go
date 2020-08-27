@@ -20,7 +20,7 @@ import (
 	"magma/lte/cloud/go/services/cellular/utils"
 	"magma/orc8r/cloud/go/services/configurator"
 
-	errors2 "github.com/go-openapi/errors"
+	oerrors "github.com/go-openapi/errors"
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/go-openapi/validate"
@@ -49,7 +49,7 @@ func (m *LteNetwork) ValidateModel() error {
 	}
 
 	if len(res) > 0 {
-		return errors2.CompositeValidationError(res...)
+		return oerrors.CompositeValidationError(res...)
 	}
 	return nil
 }
@@ -184,6 +184,53 @@ func (m *NetworkEpcConfigsMobility) validateMobility() error {
 	return nil
 }
 
+// validateIPBlocks parses and validates IP networks containing subnet masks.
+// Returns an error in case any IP network in list is invalid.
+func validateIPBlocks(ipBlocks []string) error {
+	for _, ipBlock := range ipBlocks {
+		_, _, err := net.ParseCIDR(ipBlock)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (m *LteGateway) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableLteGateway) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+
+	// Custom validation only for cellular and device
+	var res []error
+	if err := m.Cellular.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+	if err := m.Device.ValidateModel(); err != nil {
+		res = append(res, err)
+	}
+
+	resourceIDs := map[string]struct{}{}
+	for apnName, resource := range m.ApnResources {
+		if apnName != string(resource.ApnName) {
+			return fmt.Errorf("APN resources key (%s) and APN name (%s) must match", apnName, resource.ApnName)
+		}
+		if _, ok := resourceIDs[resource.ID]; ok {
+			return fmt.Errorf("duplicate APN resource ID in request: %s", resource.ID)
+		}
+		resourceIDs[resource.ID] = struct{}{}
+	}
+
+	if len(res) > 0 {
+		return oerrors.CompositeValidationError(res...)
+	}
+	return nil
+}
+
 func (m *GatewayCellularConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
@@ -260,7 +307,7 @@ func (m *GatewayNonEpsConfigs) ValidateModel() error {
 	}
 
 	if len(res) > 0 {
-		return errors2.CompositeValidationError(res...)
+		return oerrors.CompositeValidationError(res...)
 	}
 	return nil
 }
@@ -277,31 +324,10 @@ func (m *EnodebConfiguration) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-const (
-	lteAuthKeyLength = 16
-	lteAuthOpcLength = 16
-)
-
 func (m *EnodebState) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-// validateIPBlocks parses and validates IP networks containing subnet masks.
-// Returns an error in case any IP network in list is invalid.
-func validateIPBlocks(ipBlocks []string) error {
-	for _, ipBlock := range ipBlocks {
-		_, _, err := net.ParseCIDR(ipBlock)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// ValidateModel does standard swagger validation and any custom validation
 func (m *Apn) ValidateModel() error {
-	if err := m.Validate(strfmt.Default); err != nil {
-		return err
-	}
-	return nil
+	return m.Validate(strfmt.Default)
 }

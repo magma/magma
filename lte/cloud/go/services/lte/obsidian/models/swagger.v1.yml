@@ -1986,7 +1986,13 @@ definitions:
         $ref: '#/definitions/apn_name'
       vlan_id:
         type: integer
-        format: uint16
+        format: uint32
+      gateway_ip:
+        type: string
+        format: ipv4
+      gateway_mac:
+        type: string
+        format: mac
 
   qos_class_id:
     type: integer

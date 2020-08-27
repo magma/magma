@@ -96,8 +96,10 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	ruleKey := fmt.Sprintf("static-ULQos-%d", ki)
 
 	uplinkBwMax := uint32(1000000)
-	qos := &models.FlowQos{MaxReqBwUl: &uplinkBwMax}
-	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
+	rule := getStaticPassAll(
+		ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
+		&lteProtos.FlowQos{MaxReqBwUl: &uplinkBwMax},
+	)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
@@ -161,7 +163,7 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	ruleKey := fmt.Sprintf("static-DLQos-%d", ki)
 
 	downlinkBwMax := uint32(1000000)
-	qos := &models.FlowQos{MaxReqBwDl: &downlinkBwMax}
+	qos := lteProtos.FlowQos{MaxReqBwDl: &downlinkBwMax}
 	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
@@ -243,10 +245,10 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	uplinkBwFinal := uint32(500000)
 
 	rule1 := getStaticPassAll(rule1Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 3, &models.FlowQos{MaxReqBwUl: &uplinkBwInitial})
+		models.PolicyRuleTrackingTypeONLYPCRF, 3, &lteProtos.FlowQos{MaxReqBwUl: &uplinkBwInitial})
 
 	rule2 := getStaticPassAll(rule2Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 2, &models.FlowQos{MaxReqBwUl: &uplinkBwFinal})
+		models.PolicyRuleTrackingTypeONLYPCRF, 2, &lteProtos.FlowQos{MaxReqBwUl: &uplinkBwFinal})
 
 	for _, r := range []*lteProtos.PolicyRule{rule1, rule2} {
 		err = ruleManager.AddStaticRuleToDB(r)
@@ -356,10 +358,14 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	rule2Key := fmt.Sprintf("static-RAR-%d", ki)
 	uplinkBwInitial := uint32(2000000)
 	uplinkBwFinal := uint32(500000)
-	rule1 := getStaticPassAll(rule1Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
-		&models.FlowQos{MaxReqBwUl: &uplinkBwInitial})
-	rule2 := getStaticPassAll(rule2Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 1, &models.FlowQos{MaxReqBwUl: &uplinkBwFinal})
+	rule1 := getStaticPassAll(
+		rule1Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
+		&lteProtos.FlowQos{MaxReqBwUl: &uplinkBwInitial},
+	)
+	rule2 := getStaticPassAll(
+		rule2Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 1,
+		&lteProtos.FlowQos{MaxReqBwUl: &uplinkBwFinal},
+	)
 
 	for _, r := range []*lteProtos.PolicyRule{rule1, rule2} {
 		err = ruleManager.AddStaticRuleToDB(r)
