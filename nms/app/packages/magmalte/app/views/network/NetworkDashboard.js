@@ -14,7 +14,7 @@
  * @format
  */
 import type {
-  network,
+  lte_network,
   network_epc_configs,
   network_ran_configs,
 } from '@fbcnms/magma-api';
@@ -68,20 +68,24 @@ export default function NetworkDashboard() {
   const {history, match, relativePath, relativeUrl} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
 
-  const [networkInfo, setNetworkInfo] = useState<network>({});
+  const [networkInfo, setNetworkInfo] = useState<lte_network>({});
+  const [isInfoLoading, setIsInfoLoading] = useState(true);
 
-  const {isLoading: isInfoLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkId,
+  const {error} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkId,
     {
       networkId: networkId,
     },
     useCallback(networkInfo => {
       setNetworkInfo(networkInfo);
+      setIsInfoLoading(false);
     }, []),
   );
-  if (isInfoLoading) {
+
+  if (isInfoLoading && !error) {
     return <LoadingFiller />;
   }
+
   return (
     <>
       <TopBar
@@ -143,8 +147,8 @@ export default function NetworkDashboard() {
 }
 
 type Props = {
-  network: network,
-  onSave?: network => void,
+  network: lte_network,
+  onSave?: lte_network => void,
 };
 
 export function NetworkJsonConfig(props: Props) {
@@ -153,24 +157,18 @@ export function NetworkJsonConfig(props: Props) {
   const networkId: string = nullthrows(match.params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  if (!(Object.keys(props.network).length > 0)) {
-    return <LoadingFiller />;
-  }
   return (
     <JsonEditor
       content={props.network}
       error={error}
-      onSave={async networkInfo => {
+      onSave={async lteNetwork => {
         try {
-          await MagmaV1API.putNetworksByNetworkId({
-            networkId: networkId,
-            network: networkInfo,
-          });
+          await MagmaV1API.putLteByNetworkId({networkId, lteNetwork});
           enqueueSnackbar('Network saved successfully', {
             variant: 'success',
           });
           setError('');
-          props.onSave?.(networkInfo);
+          props.onSave?.(lteNetwork);
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -234,11 +232,11 @@ export function NetworkDashboardInternal(props: Props) {
   }
 
   const editProps = {
-    networkInfo: props.network,
+    lteNetwork: props.network,
     lteRanConfigs: lteRanConfigs,
     epcConfigs: epcConfigs,
-    onSaveNetworkInfo: networkInfo => {
-      props.onSave?.(networkInfo);
+    onSaveNetworkInfo: lteNetwork => {
+      props.onSave?.(lteNetwork);
     },
     onSaveEpcConfigs: setEpcConfigs,
     onSaveLteRanConfigs: setLteRanConfigs,
@@ -293,7 +291,7 @@ export function NetworkDashboardInternal(props: Props) {
           <Grid container spacing={4}>
             <Grid item xs={12}>
               <CardTitleRow label="Network" filter={editNetwork} />
-              <NetworkInfo networkInfo={props.network} />
+              <NetworkInfo lteNetwork={props.network} />
             </Grid>
             <Grid item xs={12}>
               <CardTitleRow label="RAN" filter={editRAN} />
