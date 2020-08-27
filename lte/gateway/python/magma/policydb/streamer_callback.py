@@ -15,11 +15,10 @@ import grpc
 import logging
 from typing import Any, List, Set
 from lte.protos.policydb_pb2 import AssignedPolicies, PolicyRule,\
-    ChargingRuleNameSet, RatingGroup, SubscriberPolicySet, ApnPolicySet,\
-    FlowDescription, FlowMatch
+    ChargingRuleNameSet, RatingGroup, SubscriberPolicySet, ApnPolicySet
 from lte.protos.session_manager_pb2 import PolicyReAuthRequest,\
     StaticRuleInstall, SessionRules, RulesPerSubscriber, RuleSet,\
-    StaticRuleInstall, DynamicRuleInstall
+    DynamicRuleInstall
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
 from magma.common.streamer import StreamerClient
 from orc8r.protos.streamer_pb2 import DataUpdate
@@ -108,6 +107,9 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         self._session_mgr_stub = session_mgr_stub
         self._rules_by_basename = rules_by_basename
         self._apn_rules_by_sid = apn_rules_by_sid
+
+    def get_request_args(self, stream_name: str) -> Any:
+        return None
 
     def process_update(
         self,

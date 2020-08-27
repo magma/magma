@@ -236,9 +236,9 @@ message InstalledPolicies {
 // NOTE: This does not include the policy used to define the default bearer
 //       flow
 message SubscriberPolicySet {
-	repeated ApnPolicySet rules_per_apn = 1;
-    repeated string global_base_names = 2;
-    repeated string global_policies = 3;
+  repeated ApnPolicySet rules_per_apn = 1;
+  repeated string global_base_names = 2;
+  repeated string global_policies = 3;
 }
 
 // ApnPolicySet contains the base names and policy rules currently assigned to
@@ -246,9 +246,9 @@ message SubscriberPolicySet {
 // NOTE: This does not include the policy used to define the default bearer
 //       flow
 message ApnPolicySet {
-	string apn = 1;
-	repeated string assigned_base_names = 2;
-	repeated string assigned_policies = 3;
+  string apn = 1;
+  repeated string assigned_base_names = 2;
+  repeated string assigned_policies = 3;
 }
 
 // --------------------------------------------------------------------------

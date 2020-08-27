@@ -16,7 +16,6 @@ from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2_grpc import PolicyAssignmentControllerStub
 from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub,\
     SessionProxyResponderStub
-from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
@@ -46,13 +45,10 @@ def main():
     reauth_handler = ReAuthHandler(assignments_dict, sessiond_stub)
 
     # Add all servicers to the server
-    chan = ServiceRegistry.get_rpc_channel('subscriberdb',
-                                           ServiceRegistry.LOCAL)
-    subscriberdb_stub = SubscriberDBStub(chan)
     session_servicer = SessionRpcServicer(service.mconfig,
                                           rating_groups_dict,
                                           basenames_dict,
-                                          subscriberdb_stub)
+                                          apn_rules_dict)
     session_servicer.add_to_server(service.rpc_server)
 
     orc8r_chan = ServiceRegistry.get_rpc_channel('policydb',

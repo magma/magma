@@ -14,8 +14,8 @@ limitations under the License.
 import logging
 from typing import List, Set
 from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
-    FlowMatch, RatingGroup, ApnPolicySet, SubscriberPolicySet
+from lte.protos.policydb_pb2 import RatingGroup, ApnPolicySet,\
+    SubscriberPolicySet
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
     UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
