@@ -38,6 +38,8 @@
 #include "emm_proc.h"
 
 #define INVALID_BEARER_INDEX -1
+#define IPV6_ADDRESS_SIZE 16
+#define IPV4_ADDRESS_SIZE 4
 
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
