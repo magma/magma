@@ -52,6 +52,8 @@
 #define SGW_CONFIG_STRING_OVS_BRIDGE_NAME "BRIDGE_NAME"
 #define SGW_CONFIG_STRING_OVS_GTP_PORT_NUM "GTP_PORT_NUM"
 #define SGW_CONFIG_STRING_OVS_MTR_PORT_NUM "MTR_PORT_NUM"
+#define SGW_CONFIG_STRING_OVS_INTERNAL_SAMPLING_PORT_NUM "INTERNAL_SAMPLING_PORT_NUM"
+#define SGW_CONFIG_STRING_OVS_INTERNAL_SAMPLING_FWD_TBL_NUM "INTERNAL_SAMPLING_FWD_TBL_NUM"
 #define SGW_CONFIG_STRING_OVS_UPLINK_PORT_NUM "UPLINK_PORT_NUM"
 #define SGW_CONFIG_STRING_OVS_UPLINK_MAC "UPLINK_MAC"
 
@@ -62,6 +64,8 @@ typedef struct ovs_config_s {
   bstring bridge_name;
   int gtp_port_num;
   int mtr_port_num;
+  int internal_sampling_port_num;
+  int internal_sampling_fwd_tbl_num;
   int uplink_port_num;
   bstring uplink_mac;
 } ovs_config_t;

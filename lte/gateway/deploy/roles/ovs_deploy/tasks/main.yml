@@ -106,6 +106,10 @@
   shell: ifup uplink_br0
   become: yes
 
+- name: Bring up ipfix0
+  shell: ifup ipfix0
+  become: yes
+
 - name: Bring up dhcp0
   shell: ifup dhcp0
   become: yes
