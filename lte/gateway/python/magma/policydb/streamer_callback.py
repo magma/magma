@@ -24,6 +24,7 @@ from lte.protos.session_manager_pb2_grpc import LocalSessionManagerStub
 from magma.common.streamer import StreamerClient
 from orc8r.protos.streamer_pb2 import DataUpdate
 from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
+from magma.policydb.default_rules import get_allow_all_policy_rule
 from magma.policydb.rating_group_store import RatingGroupsDict
 from magma.policydb.reauth_handler import ReAuthHandler
 from magma.policydb.rule_map_store import RuleAssignmentsDict
@@ -160,17 +161,9 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
             # Dynamic rule installs
             dynamic_rules = [] # type: List[DynamicRuleInstall]
             # Build the rule id to be globally unique
-            rule_id_info = {'sid': subscriber_id, 'apn-id': apn_policy_set.apn}
             rule = DynamicRuleInstall(
-                policy_rule=PolicyRule(
-                    # Don't set the rating group
-                    # Don't set the monitoring key
-                    # Don't set the hard timeout
-                    id="allowlist_sid-{sid}-{apn-id}".format(**rule_id_info),
-                    priority=2,
-                    flow_list=self._get_allow_all_flows(),
-                    tracking_type=PolicyRule.TrackingType.Value("NO_TRACKING"),
-                )
+                policy_rule=get_allow_all_policy_rule(subscriber_id,
+                                                      apn_policy_set.apn)
             )
             dynamic_rules.append(rule)
 
@@ -194,33 +187,10 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         desired_rules = set(policies.assigned_policies)
         for basename in policies.assigned_base_names:
             if basename not in self._rules_by_basename:
-                # They will be installed when we get the basename definition
-                # streamed down from orc8r
+                # Eventually, basename definition will be streamed from orc8r
                 continue
             desired_rules.update(self._rules_by_basename[basename].RuleNames)
         return desired_rules
-
-    def _get_allow_all_flows(self) -> List[FlowDescription]:
-        """
-        Returns:
-            Two flows, for outgoing and incoming traffic
-        """
-        return [
-            # Set flow match for ll packets
-            # Don't set the app_name field
-            FlowDescription(  # uplink flow
-                match=FlowMatch(
-                    direction=FlowMatch.Direction.Value("UPLINK"),
-                ),
-                action=FlowDescription.Action.Value("PERMIT"),
-            ),
-            FlowDescription(  # downlink flow
-                match=FlowMatch(
-                    direction=FlowMatch.Direction.Value("DOWNLINK"),
-                ),
-                action=FlowDescription.Action.Value("PERMIT"),
-            ),
-        ]
 
 
 class RuleMappingsStreamerCallback(StreamerClient.Callback):

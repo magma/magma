@@ -25,6 +25,7 @@ from lte.protos.session_manager_pb2_grpc import \
     CentralSessionControllerServicer, \
     add_CentralSessionControllerServicer_to_server
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
+from magma.policydb.default_rules import get_allow_all_policy_rule
 from magma.policydb.rating_group_store import RatingGroupsDict
 from orc8r.protos.common_pb2 import NetworkID
 
@@ -86,7 +87,8 @@ class SessionRpcServicer(CentralSessionControllerServicer):
         return CreateSessionResponse(
             credits=self._get_credits(imsi),
             static_rules=self._get_rules_for_imsi(imsi_number),
-            dynamic_rules=self._get_default_dynamic_rules(imsi_number),
+            dynamic_rules=self._get_default_dynamic_rules(imsi_number,
+                                                          request.apn),
             session_id=request.session_id,
         )
 
@@ -124,59 +126,16 @@ class SessionRpcServicer(CentralSessionControllerServicer):
 
     def _get_default_dynamic_rules(
         self,
-        sid: str,
+        subscriber_id: str,
+        apn: str,
     ) -> List[DynamicRuleInstall]:
         """
-        Get a list of dynamic rules to install for allowlisting.
-        """
-        dynamic_rules = []
-        # Build the rule id to be globally unique
-        rule_id_info = {'sid': sid}
-        rule_id = "allowlist_sid-{sid}".format(**rule_id_info)
-        rule = DynamicRuleInstall(
-            policy_rule=self._get_allow_all_policy_rule(rule_id),
-        )
-        dynamic_rules.append(rule)
-        return dynamic_rules
-
-    def _get_allow_all_policy_rule(
-        self,
-        policy_id: str,
-    ) -> PolicyRule:
-        """
-        This builds a PolicyRule used as a default to allow traffic
-        for an attached subscriber.
-        """
-        return PolicyRule(
-            # Don't set the rating group
-            # Don't set the monitoring key
-            # Don't set the hard timeout
-            id=policy_id,
-            priority=2,
-            flow_list=self._get_allow_all_flows(),
-            tracking_type=PolicyRule.TrackingType.Value("NO_TRACKING"),
-        )
-
-    def _get_allow_all_flows(self) -> List[FlowDescription]:
-        """
-        Returns:
-            Two flows, for outgoing and incoming traffic
+        Get a list of dynamic rules to install
+        Currently only includes a single rule for allow-all of traffic
         """
         return [
-            # Set flow match for ll packets
-            # Don't set the app_name field
-            FlowDescription(  # uplink flow
-                match=FlowMatch(
-                    direction=FlowMatch.Direction.Value("UPLINK"),
-                ),
-                action=FlowDescription.Action.Value("PERMIT"),
-            ),
-            FlowDescription(  # downlink flow
-                match=FlowMatch(
-                    direction=FlowMatch.Direction.Value("DOWNLINK"),
-                ),
-                action=FlowDescription.Action.Value("PERMIT"),
-            ),
+            DynamicRuleInstall(
+                policy_rule=get_allow_all_policy_rule(subscriber_id, apn)),
         ]
 
     def _get_rules_for_imsi(self, imsi: str) -> List[StaticRuleInstall]:
