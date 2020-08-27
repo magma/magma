@@ -18,13 +18,15 @@ import type {ComponentType} from 'react';
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
-import React, {useState} from 'react';
+import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '../theme/design-system/Text';
 
+import {GetCurrentTabPos} from './TabUtils';
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
   topBar: {
@@ -68,8 +70,11 @@ type Props = {header: string, tabs: BarLabel[]};
 
 export default function TopBar(props: Props) {
   const classes = useStyles();
-  const [currentTab, setCurrentTab] = useState(0);
-
+  const {match} = useRouter();
+  const currentTab = GetCurrentTabPos(
+    match.url,
+    props.tabs.map(tab => tab.to.slice(1)),
+  );
   function tabLabel(label, icon) {
     const Icon = icon;
 
@@ -80,7 +85,6 @@ export default function TopBar(props: Props) {
       </div>
     );
   }
-
   return (
     <>
       <div className={classes.topBar}>
@@ -99,9 +103,8 @@ export default function TopBar(props: Props) {
               TabIndicatorProps={{style: {height: '5px'}}}
               textColor="inherit"
               className={classes.tabs}>
-              {props.tabs.map((tab, i) => (
+              {props.tabs.map(tab => (
                 <Tab
-                  onClick={() => setCurrentTab(i)}
                   key={tab.key ?? tab.label}
                   component={NestedRouteLink}
                   label={tabLabel(tab.label, tab.icon)}
