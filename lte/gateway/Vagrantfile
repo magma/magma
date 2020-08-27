@@ -76,6 +76,14 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
       vb.customize ["modifyvm", :id, "--cpus", "4"]
       vb.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
+
+    magma_centos8.vm.provision "shell",
+                               inline: "yum updateinfo; yum install -y python3 python3-setuptools python3-pip libselinux-python3 git"
+    magma_centos8.vm.provision "shell",
+                               inline: "touch /home/vagrant/.profile"
+    magma_centos8.vm.provision "shell",
+                               inline: "yum install -y ruby-devel rpm-build; gem install fpm"
+
 #    magma_centos8.vm.provision "ansible" do |ansible|
 #      ansible.host_key_checking = false
 #      ansible.playbook = "deploy/magma_dev.yml"
