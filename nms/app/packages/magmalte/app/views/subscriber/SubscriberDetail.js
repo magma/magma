@@ -230,15 +230,17 @@ function Info(props: {subscriberInfo: subscriber}) {
   return <DataGrid data={kpiData} />;
 }
 
-function Status() {
+function Status({subscriberInfo}: {subscriberInfo: subscriber}) {
   const featureUnsupported = 'Unsupported';
   const statusUnknown = 'Unknown';
+  const gwId =
+    subscriberInfo?.state?.directory?.location_history?.[0] ?? statusUnknown;
 
   const kpiData: DataRows[] = [
     [
       {
         category: 'Gateway ID',
-        value: featureUnsupported,
+        value: gwId,
         statusCircle: false,
       },
       {

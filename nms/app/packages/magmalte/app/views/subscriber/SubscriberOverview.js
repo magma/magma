@@ -13,34 +13,22 @@
  * @flow strict-local
  * @format
  */
-import type {Metrics} from '../../components/context/SubscriberContext';
-import type {
-  mutable_subscriber,
-  network_id,
-  subscriber,
-} from '@fbcnms/magma-api';
-
 import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import TopBar from '../../components/TopBar';
-import nullthrows from '@fbcnms/util/nullthrows';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
-import {getLabelUnit} from './SubscriberUtils';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useEffect, useState} from 'react';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
+import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const TITLE = 'Subscribers';
@@ -67,140 +55,18 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type InitSubscriberStateProps = {
-  networkId: network_id,
-  setSubscriberMap: ({[string]: subscriber}) => void,
-  setSubscriberMetrics: ({[string]: Metrics}) => void,
-  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
-};
-
-async function InitSubscriberState(props: InitSubscriberStateProps) {
-  const {
-    networkId,
-    setSubscriberMap,
-    setSubscriberMetrics,
-    enqueueSnackbar,
-  } = props;
-
-  let subscribers = {};
-  try {
-    subscribers = await MagmaV1API.getLteByNetworkIdSubscribers({networkId});
-  } catch (e) {
-    enqueueSnackbar('failed fetching subscriber information', {
-      variant: 'error',
-    });
-    return [];
-  }
-  setSubscriberMap(subscribers);
-
-  const subscriberMetrics = {};
-  const queries = {
-    dailyAvg: 'avg (avg_over_time(ue_traffic[24h])) by (IMSI)',
-    currentUsage: 'sum (ue_traffic) by (IMSI)',
-  };
-
-  const requests = Object.keys(queries).map(async (queryType: string) => {
-    try {
-      const resp = await MagmaV1API.getNetworksByNetworkIdPrometheusQuery({
-        networkId,
-        query: queries[queryType],
-      });
-
-      resp?.data?.result?.filter(Boolean).forEach(item => {
-        const imsi = Object.values(item?.metric)?.[0];
-        if (typeof imsi === 'string') {
-          const [value, unit] = getLabelUnit(parseFloat(item?.value?.[1]));
-          if (!(imsi in subscriberMetrics)) {
-            subscriberMetrics[imsi] = {};
-          }
-          subscriberMetrics[imsi][queryType] = `${value}${unit}`;
-        }
-      });
-    } catch (e) {
-      enqueueSnackbar('failed fetching current usage information', {
-        variant: 'error',
-      });
-    }
-  });
-  await Promise.all(requests);
-  setSubscriberMetrics(subscriberMetrics);
-}
-
 export default function SubscriberDashboard() {
-  const {match, relativePath, relativeUrl} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const [subscriberMap, setSubscriberMap] = useState({});
-  const [subscriberMetrics, setSubscriberMetrics] = useState({});
-  const [isLoading, setIsLoading] = useState(true);
-  const enqueueSnackbar = useEnqueueSnackbar();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      await InitSubscriberState({
-        networkId,
-        setSubscriberMap,
-        setSubscriberMetrics,
-        enqueueSnackbar,
-      });
-      setIsLoading(false);
-    };
-    fetchData();
-  }, [networkId, enqueueSnackbar]);
-
-  const updateSubscriberMap = async (key: string, val: mutable_subscriber) => {
-    if (key in subscriberMap) {
-      await MagmaV1API.putLteByNetworkIdSubscribersBySubscriberId({
-        networkId,
-        subscriber: val,
-        subscriberId: key,
-      });
-    } else {
-      await MagmaV1API.postLteByNetworkIdSubscribers({
-        networkId,
-        subscriber: val,
-      });
-    }
-    const subscriber = await MagmaV1API.getLteByNetworkIdSubscribersBySubscriberId(
-      {
-        networkId,
-        subscriberId: key,
-      },
-    );
-    setSubscriberMap({...subscriberMap, [key]: subscriber});
-  };
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
-  const subscriberCtx = {
-    state: subscriberMap,
-    metrics: subscriberMetrics,
-    setState: updateSubscriberMap,
-  };
-
+  const {relativePath, relativeUrl} = useRouter();
   return (
     <Switch>
       <Route
         path={relativePath('/overview/:subscriberId')}
-        render={() => {
-          return (
-            <SubscriberContext.Provider value={subscriberCtx}>
-              <SubscriberDetail />
-            </SubscriberContext.Provider>
-          );
-        }}
+        component={SubscriberDetail}
       />
 
       <Route
         path={relativePath('/overview')}
-        render={() => {
-          return (
-            <SubscriberContext.Provider value={subscriberCtx}>
-              <SubscriberDashboardInternal />
-            </SubscriberContext.Provider>
-          );
-        }}
+        component={SubscriberDashboardInternal}
       />
       <Redirect to={relativeUrl('/overview')} />
     </Switch>
@@ -269,13 +135,13 @@ function SubscriberDashboardInternal() {
               <ActionTable
                 data={Object.keys(subscriberMap).map((imsi: string) => {
                   const subscriberInfo = subscriberMap[imsi];
-                  const metrics = subscriberMetrics[`${imsi}`];
+                  const metrics = subscriberMetrics?.[`${imsi}`];
                   return {
                     name: subscriberInfo.name ?? imsi,
                     imsi: imsi,
                     service: subscriberInfo.lte.state,
-                    currentUsage: metrics?.currentUsage ?? 0,
-                    dailyAvg: metrics?.dailyAvg ?? 0,
+                    currentUsage: metrics?.currentUsage ?? '0',
+                    dailyAvg: metrics?.dailyAvg ?? '0',
                     lastReportedTime: new Date(
                       subscriberInfo.monitoring?.icmp?.last_reported_time ?? 0,
                     ),

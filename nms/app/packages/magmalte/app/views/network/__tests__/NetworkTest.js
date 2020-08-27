@@ -15,10 +15,13 @@
  */
 import 'jest-dom/extend-expect';
 
+import EnodebContext from '../../../components/context/EnodebContext';
+import GatewayContext from '../../../components/context/GatewayContext';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
 import React from 'react';
+import SubscriberContext from '../../../components/context/SubscriberContext';
 import axiosMock from 'axios';
 import defaultTheme from '../../../theme/default.js';
 
@@ -88,40 +91,74 @@ describe('<NetworkDashboard />', () => {
 
   const gateways = {
     test_gateway1: {
+      id: 'test_gw1',
+      name: 'test_gateway',
+      description: 'hello I am a gateway',
+      tier: 'default',
+      device: {
+        key: {key: '', key_type: 'SOFTWARE_ECDSA_SHA256'},
+        hardware_id: '',
+      },
+      magmad: {
+        autoupgrade_enabled: true,
+        autoupgrade_poll_interval: 300,
+        checkin_interval: 60,
+        checkin_timeout: 100,
+        tier: 'tier2',
+      },
+      connected_enodeb_serials: [],
       cellular: {
         epc: {
-          ip_block: '192.168.128.0/24',
+          ip_block: '192.168.0.1/24',
           nat_enabled: true,
         },
         ran: {
-          pci: 260,
-          transmit_enabled: false,
+          pci: 620,
+          transmit_enabled: true,
         },
       },
-      connected_enodeb_serials: null,
-      description: '',
-      device: null,
-      id: '',
-      magmad: null,
-      name: '',
-      tier: '',
+      status: {
+        checkin_time: 0,
+        meta: {
+          gps_latitude: '0',
+          gps_longitude: '0',
+          gps_connected: '0',
+          enodeb_connected: '0',
+          mme_connected: '0',
+        },
+      },
     },
   };
 
-  const enodebs = {
+  const enbInfo = {
     '120200020718CJP0013': {
-      attached_gateway_id: 'mpk_dogfooding_tiplab_1',
-      config: {
-        bandwidth_mhz: 10,
-        cell_id: 6553601,
-        device_class: 'Baicells Nova-233 G2 OD FDD',
-        earfcndl: 9410,
-        pci: 60,
-        tac: 6,
-        transmit_enabled: true,
+      enb: {
+        attached_gateway_id: 'mpk_dogfooding_tiplab_1',
+        config: {
+          bandwidth_mhz: 10,
+          cell_id: 6553601,
+          device_class: 'Baicells Nova-233 G2 OD FDD',
+          earfcndl: 9410,
+          pci: 60,
+          tac: 6,
+          transmit_enabled: true,
+        },
+        name: '',
+        serial: '120200020718CJP0013',
       },
-      name: '',
-      serial: '120200020718CJP0013',
+      enb_state: {
+        enodeb_configured: true,
+        enodeb_connected: true,
+        fsm_state: '',
+        gps_connected: true,
+        gps_latitude: '',
+        gps_longitude: '',
+        mme_connected: true,
+        opstate_enabled: true,
+        ptp_connected: true,
+        rf_tx_desired: true,
+        rf_tx_on: true,
+      },
     },
   };
 
@@ -137,6 +174,15 @@ describe('<NetworkDashboard />', () => {
         auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
         state: 'ACTIVE',
         sub_profile: 'default',
+      },
+      config: {
+        lte: {
+          auth_algo: 'MILENAGE',
+          auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
+          auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
+          state: 'ACTIVE',
+          sub_profile: 'default',
+        },
       },
     },
   };
@@ -178,15 +224,9 @@ describe('<NetworkDashboard />', () => {
     MagmaAPIBindings.getNetworksByNetworkId.mockResolvedValue(testNetwork);
     MagmaAPIBindings.getLteByNetworkIdCellularEpc.mockResolvedValue(epc);
     MagmaAPIBindings.getLteByNetworkIdCellularRan.mockResolvedValue(ran);
-    MagmaAPIBindings.getLteByNetworkIdGateways.mockResolvedValue(gateways);
-    MagmaAPIBindings.getLteByNetworkIdEnodebs.mockResolvedValue(enodebs);
     // eslint-disable-next-line max-len
     MagmaAPIBindings.getNetworksByNetworkIdPoliciesRules.mockResolvedValue(
       rules,
-    );
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getLteByNetworkIdSubscribers.mockResolvedValue(
-      subscribers,
     );
     MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
 
@@ -214,15 +254,42 @@ describe('<NetworkDashboard />', () => {
     MagmaAPIBindings.putLteByNetworkIdCellularRan.mockClear();
   });
 
-  const Wrapper = () => (
-    <MemoryRouter initialEntries={['/nms/test/network']} initialIndex={0}>
-      <MuiThemeProvider theme={defaultTheme}>
-        <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route path="/nms/:networkId/network" component={NetworkDashboard} />
-        </MuiStylesThemeProvider>
-      </MuiThemeProvider>
-    </MemoryRouter>
-  );
+  const Wrapper = () => {
+    const enodebCtx = {
+      state: {enbInfo},
+      setState: async () => {},
+    };
+
+    const gatewayCtx = {
+      state: gateways,
+      setState: async () => {},
+      updateGateway: async () => {},
+    };
+
+    const subscriberCtx = {
+      state: subscribers,
+      gwSubscriberMap: {},
+    };
+
+    return (
+      <MemoryRouter initialEntries={['/nms/test/network']} initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <GatewayContext.Provider value={gatewayCtx}>
+              <EnodebContext.Provider value={enodebCtx}>
+                <SubscriberContext.Provider value={subscriberCtx}>
+                  <Route
+                    path="/nms/:networkId/network"
+                    component={NetworkDashboard}
+                  />
+                </SubscriberContext.Provider>
+              </EnodebContext.Provider>
+            </GatewayContext.Provider>
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
 
   it('Verify Network Dashboard', async () => {
     const {getByTestId, getByLabelText} = render(<Wrapper />);
@@ -237,16 +304,10 @@ describe('<NetworkDashboard />', () => {
     expect(MagmaAPIBindings.getLteByNetworkIdCellularRan).toHaveBeenCalledTimes(
       1,
     );
-    expect(MagmaAPIBindings.getLteByNetworkIdGateways).toHaveBeenCalledTimes(1);
-    expect(MagmaAPIBindings.getLteByNetworkIdEnodebs).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line max-len
     expect(
       MagmaAPIBindings.getNetworksByNetworkIdPoliciesRules,
     ).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line max-len
-    expect(MagmaAPIBindings.getLteByNetworkIdSubscribers).toHaveBeenCalledTimes(
-      1,
-    );
     expect(MagmaAPIBindings.getLteByNetworkIdApns).toHaveBeenCalledTimes(1);
 
     const info = getByTestId('info');

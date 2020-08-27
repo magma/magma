@@ -185,45 +185,33 @@ export function NetworkDashboardInternal(props: Props) {
   const networkId: string = nullthrows(match.params.networkId);
   const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
   const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
-  const {isLoading: isEpcLoading} = useMagmaAPI(
+  const [isEpcLoading, setIsEpcLoading] = useState(true);
+  const [isRanLoading, setIsRanLoading] = useState(true);
+
+  const {error: epcError} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdCellularEpc,
     {
       networkId: networkId,
     },
-    useCallback(epc => setEpcConfigs(epc), []),
+    useCallback(epc => {
+      setEpcConfigs(epc);
+      setIsEpcLoading(false);
+    }, []),
   );
 
-  const {isLoading: isRanLoading} = useMagmaAPI(
+  const {error: ranError} = useMagmaAPI(
     MagmaV1API.getLteByNetworkIdCellularRan,
     {
       networkId: networkId,
     },
-    useCallback(lteRanConfigs => setLteRanConfigs(lteRanConfigs), []),
-  );
-
-  const {response: lteGatwayResp, isLoading: isLteRespLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdGateways,
-    {
-      networkId: networkId,
-    },
-  );
-
-  const {response: enb, isLoading: isEnbRespLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdEnodebs,
-    {
-      networkId: networkId,
-    },
+    useCallback(lteRanConfigs => {
+      setLteRanConfigs(lteRanConfigs);
+      setIsRanLoading(false);
+    }, []),
   );
 
   const {response: policyRules, isLoading: isPolicyLoading} = useMagmaAPI(
     MagmaV1API.getNetworksByNetworkIdPoliciesRules,
-    {
-      networkId: networkId,
-    },
-  );
-
-  const {response: subscriber, isLoading: isSubscriberLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdSubscribers,
     {
       networkId: networkId,
     },
@@ -237,16 +225,14 @@ export function NetworkDashboardInternal(props: Props) {
   );
 
   if (
-    isEpcLoading ||
-    isRanLoading ||
-    isLteRespLoading ||
-    isEnbRespLoading ||
+    (isEpcLoading && !epcError) ||
+    (isRanLoading && !ranError) ||
     isPolicyLoading ||
-    isSubscriberLoading ||
     isAPNsLoading
   ) {
     return <LoadingFiller />;
   }
+
   const editProps = {
     networkInfo: props.network,
     lteRanConfigs: lteRanConfigs,
@@ -301,13 +287,7 @@ export function NetworkDashboardInternal(props: Props) {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <CardTitleRow label="Overview" />
-          <NetworkKPI
-            apns={apns}
-            enb={enb}
-            lteGatwayResp={lteGatwayResp}
-            policyRules={policyRules}
-            subscriber={subscriber}
-          />
+          <NetworkKPI apns={apns} policyRules={policyRules} />
         </Grid>
         <Grid item xs={12} md={6}>
           <Grid container spacing={4}>
