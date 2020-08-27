@@ -102,7 +102,7 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 	uplinkBwMax := uint32(100000)
 	rule := getStaticPassAll(
 		ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
-		&lteprotos.FlowQos{MaxReqBwUl: &uplinkBwMax},
+		&lteprotos.FlowQos{MaxReqBwUl: uplinkBwMax},
 	)
 
 	err = ruleManager.AddStaticRuleToDB(rule)

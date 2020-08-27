@@ -98,7 +98,7 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	uplinkBwMax := uint32(1000000)
 	rule := getStaticPassAll(
 		ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
-		&lteProtos.FlowQos{MaxReqBwUl: &uplinkBwMax},
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwMax},
 	)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
@@ -163,8 +163,8 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	ruleKey := fmt.Sprintf("static-DLQos-%d", ki)
 
 	downlinkBwMax := uint32(1000000)
-	qos := lteProtos.FlowQos{MaxReqBwDl: &downlinkBwMax}
-	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
+	qos := lteProtos.FlowQos{MaxReqBwDl: downlinkBwMax}
+	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, &qos)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
@@ -245,10 +245,10 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	uplinkBwFinal := uint32(500000)
 
 	rule1 := getStaticPassAll(rule1Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 3, &lteProtos.FlowQos{MaxReqBwUl: &uplinkBwInitial})
+		models.PolicyRuleTrackingTypeONLYPCRF, 3, &lteProtos.FlowQos{MaxReqBwUl: uplinkBwInitial})
 
 	rule2 := getStaticPassAll(rule2Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 2, &lteProtos.FlowQos{MaxReqBwUl: &uplinkBwFinal})
+		models.PolicyRuleTrackingTypeONLYPCRF, 2, &lteProtos.FlowQos{MaxReqBwUl: uplinkBwFinal})
 
 	for _, r := range []*lteProtos.PolicyRule{rule1, rule2} {
 		err = ruleManager.AddStaticRuleToDB(r)
@@ -360,11 +360,11 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	uplinkBwFinal := uint32(500000)
 	rule1 := getStaticPassAll(
 		rule1Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
-		&lteProtos.FlowQos{MaxReqBwUl: &uplinkBwInitial},
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwInitial},
 	)
 	rule2 := getStaticPassAll(
 		rule2Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 1,
-		&lteProtos.FlowQos{MaxReqBwUl: &uplinkBwFinal},
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwFinal},
 	)
 
 	for _, r := range []*lteProtos.PolicyRule{rule1, rule2} {
