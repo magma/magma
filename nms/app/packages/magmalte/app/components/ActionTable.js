@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {ComponentType} from 'react';
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import AddBox from '@material-ui/icons/AddBox';
 import ArrowDownward from '@material-ui/icons/ArrowDownward';
@@ -119,7 +119,7 @@ export type ActionQuery = {
 };
 
 export type ActionTableProps<T> = {
-  titleIcon?: ComponentType<SvgIconExports>,
+  titleIcon?: SvgIcon,
   tableRef?: {},
   toolbar?: {},
   editable?: {},

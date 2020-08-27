@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {ComponentType} from 'react';
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
@@ -122,7 +122,7 @@ function StatusIndicator(disabled: boolean, up: boolean, val: string) {
 }
 
 // Data Icon adds an icon to the left of the value
-function DataIcon(icon: ComponentType<SvgIconExports>, val: string) {
+function DataIcon(icon: SvgIcon, val: string) {
   const props = {hasIcon: true};
   const classes = useStyles(props);
   const Icon = icon;
@@ -202,7 +202,7 @@ function DataCollapse(
 }
 
 type Data = {
-  icon?: ComponentType<SvgIconExports>,
+  icon?: SvgIcon,
   category?: string,
   value: number | string,
   obscure?: boolean,
