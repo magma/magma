@@ -1103,7 +1103,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	imsi := "IMSI1234567890"
 	imsi1 := "IMSI1234567800"
 	mutableSub := newMutableSubscriber(imsi)
-	sub := (&subscriberModels.Subscriber{}).FromMutable(mutableSub)
+	sub := mutableSub.ToSubscriber()
 
 	// Get all, initially empty
 	tc := tests.Test{
@@ -1166,7 +1166,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	assert.Len(t, profiles, 1)
 
 	// Get all, posted subscriber found
-	sub = (&subscriberModels.Subscriber{}).FromMutable(mutableSub)
+	sub = mutableSub.ToSubscriber()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -1228,7 +1228,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	assert.Len(t, profiles, 2)
 
 	// Get, changes are reflected
-	sub = (&subscriberModels.Subscriber{}).FromMutable(mutableSub)
+	sub = mutableSub.ToSubscriber()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers/" + imsi,
@@ -1296,7 +1296,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get, successfully added back
-	sub = (&subscriberModels.Subscriber{}).FromMutable(mutableSub)
+	sub = mutableSub.ToSubscriber()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers/" + imsi,

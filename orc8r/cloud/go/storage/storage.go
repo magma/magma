@@ -109,7 +109,7 @@ func MakeTKs(typ string, keys []string) TKs {
 	return tks
 }
 
-// Difference returns (A-B, B-A), called as A.Difference(B).
+// Difference returns (A-B, B-A) when called as A.Difference(B).
 func (tks TKs) Difference(b TKs) (TKs, TKs) {
 	a := tks
 

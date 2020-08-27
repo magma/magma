@@ -190,12 +190,12 @@ func getGateway(c echo.Context) error {
 		case lte.CellularEnodebEntityType:
 			ret.ConnectedEnodebSerials = append(ret.ConnectedEnodebSerials, tk.Key)
 		case lte.APNResourceEntityType:
-			r := &lte_models.ApnResource{}
-			err := r.Load(nid, tk.Key)
+			e, err := configurator.LoadEntity(nid, tk.Type, tk.Key, configurator.EntityLoadCriteria{LoadConfig: true})
 			if err != nil {
 				return errors.Wrap(err, "error loading apn resource entity")
 			}
-			ret.ApnResources[string(r.ApnName)] = *r
+			apnResource := (&lte_models.ApnResource{}).FromEntity(e)
+			ret.ApnResources[string(apnResource.ApnName)] = *apnResource
 		}
 	}
 
@@ -274,7 +274,7 @@ func makeLTEGateways(
 		}
 		cellularGateways[key], err = (&lte_models.LteGateway{}).FromBackendModels(networkID, ents.magmadGateway, ents.cellularGateway, devCasted, statusesByID[hwID])
 		if err != nil {
-			return nil, err
+			return cellularGateways, err
 		}
 	}
 	return cellularGateways, nil
@@ -560,7 +560,7 @@ func deleteApnConfiguration(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	// Cascade deletes
+	// Cascade deletes to all associated apn_resource and apn_policy_profile
 	var deletes []storage.TypeAndKey
 	deletes = append(deletes, ent.ParentAssociations.MultiFilter(lte.APNResourceEntityType, lte.APNPolicyProfileEntityType)...)
 	deletes = append(deletes, ent.GetTypeAndKey())

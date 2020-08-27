@@ -22,8 +22,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/go-openapi/swag"
-
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
@@ -34,18 +32,20 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
 
-// GatewaySubtype represents a subtype of the Magmad gateway.
-// The gateway subtype wraps the base Magmad gateway with additional fields by
-// creating and associating further network entities with the Magmad gateway.
+// MagmadEncompassingGateway represents a subtype of the Magmad gateway.
+// The encompassing gateway wraps the base Magmad gateway with additional
+// fields by creating and associating further network entities with the
+// Magmad gateway.
 //
 // Note: since the default Magmad gateway model implements this interface as
 // well, DO NOT return the base Magmad model from any of the "get additional"
 // methods.
-type GatewaySubtype interface {
+type MagmadEncompassingGateway interface {
 	serde.ValidatableModel
 
 	// GetMagmadGateway returns the Magmad gateways wrapped by the subtype.
@@ -109,7 +109,7 @@ func createGatewayHandler(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-func CreateGateway(c echo.Context, model GatewaySubtype) *echo.HTTPError {
+func CreateGateway(c echo.Context, model MagmadEncompassingGateway) *echo.HTTPError {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -119,7 +119,7 @@ func CreateGateway(c echo.Context, model GatewaySubtype) *echo.HTTPError {
 	if nerr != nil {
 		return nerr
 	}
-	subGateway := payload.(GatewaySubtype)
+	subGateway := payload.(MagmadEncompassingGateway)
 	mdGateway := subGateway.GetMagmadGateway()
 
 	// Must associate to an existing tier
@@ -242,12 +242,12 @@ func updateGatewayHandler(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func UpdateGateway(c echo.Context, nid string, gid string, model GatewaySubtype) *echo.HTTPError {
+func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompassingGateway) *echo.HTTPError {
 	payload, nerr := GetAndValidatePayload(c, model)
 	if nerr != nil {
 		return nerr
 	}
-	subGateway := payload.(GatewaySubtype)
+	subGateway := payload.(MagmadEncompassingGateway)
 	mdGateway := subGateway.GetMagmadGateway()
 
 	if gid != string(mdGateway.ID) {
@@ -294,7 +294,7 @@ func UpdateGateway(c echo.Context, nid string, gid string, model GatewaySubtype)
 	return nil
 }
 
-func getUpdateWrites(payload GatewaySubtype, loadedEnts configurator.NetworkEntities) ([]configurator.EntityWriteOperation, *echo.HTTPError) {
+func getUpdateWrites(payload MagmadEncompassingGateway, loadedEnts configurator.NetworkEntities) ([]configurator.EntityWriteOperation, *echo.HTTPError) {
 	var writes []configurator.EntityWriteOperation
 	loadedEntsByID := loadedEnts.MakeByTK()
 

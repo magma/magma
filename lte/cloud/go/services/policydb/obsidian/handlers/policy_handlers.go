@@ -438,7 +438,7 @@ func createQoSProfile(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	if exists {
-		return echo.ErrNotFound
+		return echo.ErrBadRequest
 	}
 
 	_, err = configurator.CreateEntity(networkID, profile.ToEntity())

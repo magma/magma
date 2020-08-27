@@ -72,8 +72,7 @@ func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnCon
 		apnsByName[ent.Key] = ent.Config.(*lte_models.ApnConfiguration)
 	}
 
-	apnResources := lte_models.ApnResources{}
-	err = apnResources.Load(gateway.NetworkID, gateway.Associations.Filter(lte.APNResourceEntityType).Keys())
+	apnResources, err := lte_models.LoadAPNResources(gateway.NetworkID, gateway.Associations.Filter(lte.APNResourceEntityType).Keys())
 	if err != nil {
 		return nil, nil, err
 	}

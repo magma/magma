@@ -16,15 +16,20 @@ package handlers
 import (
 	"fmt"
 	"net/http"
+	"regexp"
 
 	"magma/lte/cloud/go/lte"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 
+	"github.com/golang/glog"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -52,12 +57,33 @@ func GetHandlers() []obsidian.Handler {
 	return ret
 }
 
+const (
+	mobilitydStateExpectedMatchCount = 2
+)
+
+var (
+	// mobilitydStateKeyRe captures the IMSI portion of mobilityd state keys.
+	// Mobilityd states are keyed as <IMSI>.<APN>.
+	mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
+
+	subscriberLoadCriteria = configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true}
+)
+
+var subscriberStateTypes = []string{
+	lte.ICMPStateType,
+	lte.S1APStateType,
+	lte.MMEStateType,
+	lte.SPGWStateType,
+	lte.MobilitydStateType,
+	orc8r.DirectoryRecordType,
+}
+
 func listSubscribers(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
 	}
-	subs, err := (&subscribermodels.Subscriber{}).LoadAll(networkID)
+	subs, err := loadAllSubscribers(networkID)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -94,7 +120,7 @@ func getSubscriber(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	subs, err := (&subscribermodels.Subscriber{}).Load(networkID, subscriberID)
+	subs, err := loadSubscriber(networkID, subscriberID)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -227,6 +253,89 @@ func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscr
 		}
 	}
 	return nil
+}
+
+func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error) {
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, subscriberLoadCriteria)
+	if err != nil {
+		return nil, err
+	}
+	mutableSub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent)
+	if err != nil {
+		return nil, err
+	}
+	sub := mutableSub.ToSubscriber()
+
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key)
+	if err != nil {
+		return nil, err
+	}
+	err = sub.FillAugmentedFields(states)
+	if err != nil {
+		return nil, err
+	}
+
+	return sub, nil
+}
+
+func loadAllSubscribers(networkID string) (map[string]*subscribermodels.Subscriber, error) {
+	mutableSubs, err := loadAllMutableSubscribers(networkID)
+	if err != nil {
+		return nil, err
+	}
+
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil)
+	if err != nil {
+		return nil, err
+	}
+	// Each entry in this map contains all the states that the SID cares about.
+	// The DeviceID fields of the state IDs in the nested maps do not have to
+	// match the SID, as in the case of mobilityd state for example.
+	statesBySid := map[string]state_types.StatesByID{}
+	for stateID, st := range states {
+		sidKey := stateID.DeviceID
+		if stateID.Type == lte.MobilitydStateType {
+			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
+			if len(matches) != mobilitydStateExpectedMatchCount {
+				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
+				continue
+			}
+			sidKey = matches[1]
+		}
+
+		if _, exists := statesBySid[sidKey]; !exists {
+			statesBySid[sidKey] = state_types.StatesByID{}
+		}
+		statesBySid[sidKey][stateID] = st
+	}
+
+	subs := map[string]*subscribermodels.Subscriber{}
+	for _, mutableSub := range mutableSubs {
+		sub := mutableSub.ToSubscriber()
+		err = sub.FillAugmentedFields(statesBySid[string(sub.ID)])
+		if err != nil {
+			return nil, err
+		}
+		subs[string(sub.ID)] = sub
+	}
+
+	return subs, nil
+}
+
+func loadAllMutableSubscribers(networkID string) (map[string]*subscribermodels.MutableSubscriber, error) {
+	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, subscriberLoadCriteria)
+	if err != nil {
+		return nil, err
+	}
+	subs := map[string]*subscribermodels.MutableSubscriber{}
+	for _, ent := range ents {
+		sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent)
+		if err != nil {
+			return nil, err
+		}
+		subs[ent.Key] = sub
+	}
+	return subs, nil
 }
 
 func makeErr(err error) *echo.HTTPError {

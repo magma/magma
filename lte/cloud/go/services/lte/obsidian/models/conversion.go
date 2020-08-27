@@ -159,7 +159,8 @@ func (m *LteGateway) FromBackendModels(
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
 
-	err := m.ApnResources.Load(networkID, cellularGateway.Associations.Filter(lte.APNResourceEntityType).Keys())
+	var err error
+	m.ApnResources, err = LoadAPNResources(networkID, cellularGateway.Associations.Filter(lte.APNResourceEntityType).Keys())
 	if err != nil {
 		return nil, errors.Wrap(err, "error loading apn resources")
 	}
@@ -271,9 +272,7 @@ func (m *MutableLteGateway) getAPNResourceChanges(
 	var writes []configurator.EntityWriteOperation
 
 	oldIDs := existingGateway.Associations.Filter(lte.APNResourceEntityType).Keys()
-
-	oldByAPN := ApnResources{}
-	err := oldByAPN.Load(existingGateway.NetworkID, oldIDs)
+	oldByAPN, err := LoadAPNResources(existingGateway.NetworkID, oldIDs)
 	if err != nil {
 		return nil, nil, errors.Wrap(err, "error loading existing APN resources")
 	}
@@ -460,9 +459,10 @@ func (m ApnList) ToAssocs() []storage.TypeAndKey {
 	).([]storage.TypeAndKey)
 }
 
-func (m *ApnResources) Load(networkID string, ids []string) error {
+func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
+	ret := ApnResources{}
 	if len(ids) == 0 {
-		return nil
+		return ret, nil
 	}
 
 	ents, notFound, err := configurator.LoadEntities(
@@ -472,10 +472,10 @@ func (m *ApnResources) Load(networkID string, ids []string) error {
 		configurator.EntityLoadCriteria{LoadConfig: true},
 	)
 	if err != nil {
-		return err
+		return ret, err
 	}
 	if len(notFound) != 0 {
-		return fmt.Errorf("error loading apn resources: could not find following entities: %v", notFound)
+		return ret, fmt.Errorf("error loading apn resources: could not find following entities: %v", notFound)
 	}
 
 	model := ApnResources{}
@@ -484,8 +484,7 @@ func (m *ApnResources) Load(networkID string, ids []string) error {
 		model[string(r.ApnName)] = *r
 	}
 
-	*m = model
-	return nil
+	return model, nil
 }
 
 func (m *ApnResources) GetByID() map[string]*ApnResource {
@@ -517,15 +516,6 @@ func (m *ApnResources) ToProto() map[string]*protos.APNConfiguration_APNResource
 
 func (m *ApnResource) ToTK() storage.TypeAndKey {
 	return storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: m.ID}
-}
-
-func (m *ApnResource) Load(networkID string, id string) error {
-	ent, err := configurator.LoadEntity(networkID, lte.APNResourceEntityType, id, configurator.EntityLoadCriteria{LoadConfig: true})
-	if err != nil {
-		return err
-	}
-	*m = *m.FromEntity(ent)
-	return nil
 }
 
 func (m *ApnResource) ToEntity() configurator.NetworkEntity {
@@ -566,7 +556,7 @@ func (m *ApnResource) ToProto() *protos.APNConfiguration_APNResource {
 		ApnName:    string(m.ApnName),
 		GatewayIp:  m.GatewayIP.String(),
 		GatewayMac: m.GatewayMac.String(),
-		VlanId:     uint32(m.VlanID), // put uint16 in uint32
+		VlanId:     m.VlanID,
 	}
 	return proto
 }

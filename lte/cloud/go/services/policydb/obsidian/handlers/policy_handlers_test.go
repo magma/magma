@@ -838,8 +838,8 @@ func TestQoSProfile(t *testing.T) {
 		ParamNames:             []string{"network_id"},
 		ParamValues:            []string{"n1"},
 		Handler:                postProfile,
-		ExpectedStatus:         404,
-		ExpectedErrorSubstring: "Not Found",
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "Bad Request",
 	}
 	tests.RunUnitTest(t, e, tc)
 

@@ -18,7 +18,6 @@ import (
 	"fmt"
 	"net"
 	"net/http"
-	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -40,101 +39,17 @@ import (
 	"github.com/thoas/go-funk"
 )
 
-const (
-	mobilitydStateExpectedMatchCount = 2
-)
-
-var (
-	// mobilitydStateKeyRe captures the IMSI portion of mobilityd state keys.
-	// Mobilityd states are keyed as <IMSI>.<APN>.
-	mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
-
-	subscriberLoadCriteria = configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true}
-)
-
-var subscriberStateTypes = []string{
-	lte.ICMPStateType,
-	lte.S1APStateType,
-	lte.MMEStateType,
-	lte.SPGWStateType,
-	lte.MobilitydStateType,
-	orc8r.DirectoryRecordType,
-}
-
-func (m *Subscriber) Load(networkID, key string) (*Subscriber, error) {
-	mutableSub, err := (&MutableSubscriber{}).Load(networkID, key)
-	if err != nil {
-		return nil, err
-	}
-	sub := m.FromMutable(mutableSub)
-
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key)
-	if err != nil {
-		return nil, err
-	}
-	err = sub.FillAugmentedFields(states)
-	if err != nil {
-		return nil, err
-	}
-
-	return sub, nil
-}
-
-func (m *Subscriber) LoadAll(networkID string) (map[string]*Subscriber, error) {
-	mutableSubs, err := (&MutableSubscriber{}).LoadAll(networkID)
-	if err != nil {
-		return nil, err
-	}
-
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil)
-	if err != nil {
-		return nil, err
-	}
-	// Each entry in this map contains all the states that the SID cares about.
-	// The DeviceID fields of the state IDs in the nested maps do not have to
-	// match the SID, as in the case of mobilityd state for example.
-	statesBySid := map[string]state_types.StatesByID{}
-	for stateID, st := range states {
-		sidKey := stateID.DeviceID
-		if stateID.Type == lte.MobilitydStateType {
-			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
-			if len(matches) != mobilitydStateExpectedMatchCount {
-				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
-				continue
-			}
-			sidKey = matches[1]
-		}
-
-		if _, exists := statesBySid[sidKey]; !exists {
-			statesBySid[sidKey] = state_types.StatesByID{}
-		}
-		statesBySid[sidKey][stateID] = st
-	}
-
-	subs := map[string]*Subscriber{}
-	for _, mutableSub := range mutableSubs {
-		sub := m.FromMutable(mutableSub)
-		err = sub.FillAugmentedFields(statesBySid[string(sub.ID)])
-		if err != nil {
-			return nil, err
-		}
-		subs[string(sub.ID)] = sub
-	}
-
-	return subs, nil
-}
-
-func (m *Subscriber) FromMutable(mut *MutableSubscriber) *Subscriber {
+func (m *MutableSubscriber) ToSubscriber() *Subscriber {
 	sub := &Subscriber{
-		ActiveApns:          mut.ActiveApns,
-		ActiveBaseNames:     mut.ActiveBaseNames,
-		ActivePolicies:      mut.ActivePolicies,
-		ActivePoliciesByApn: mut.ActivePoliciesByApn,
+		ActiveApns:          m.ActiveApns,
+		ActiveBaseNames:     m.ActiveBaseNames,
+		ActivePolicies:      m.ActivePolicies,
+		ActivePoliciesByApn: m.ActivePoliciesByApn,
 		Config:              nil, // handled below
-		ID:                  mut.ID,
-		Lte:                 mut.Lte,
+		ID:                  m.ID,
+		Lte:                 m.Lte,
 		Monitoring:          nil, // augmented field
-		Name:                mut.Name,
+		Name:                m.Name,
 		State:               nil, // augmented field
 	}
 
@@ -142,8 +57,8 @@ func (m *Subscriber) FromMutable(mut *MutableSubscriber) *Subscriber {
 	// on the sub. We can convert to just storing and exposing the Config
 	// field after the next minor version.
 	sub.Config = &SubscriberConfig{
-		Lte:       mut.Lte,
-		StaticIps: mut.StaticIps,
+		Lte:       m.Lte,
+		StaticIps: m.StaticIps,
 	}
 
 	return sub
@@ -202,30 +117,6 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 	return nil
 }
 
-func (m *MutableSubscriber) Load(networkID, key string) (*MutableSubscriber, error) {
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, subscriberLoadCriteria)
-	if err != nil {
-		return nil, err
-	}
-	return m.FromEnt(ent)
-}
-
-func (m *MutableSubscriber) LoadAll(networkID string) (map[string]*MutableSubscriber, error) {
-	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, subscriberLoadCriteria)
-	if err != nil {
-		return nil, err
-	}
-	subs := map[string]*MutableSubscriber{}
-	for _, ent := range ents {
-		sub, err := m.FromEnt(ent)
-		if err != nil {
-			return nil, err
-		}
-		subs[ent.Key] = sub
-	}
-	return subs, nil
-}
-
 func (m *MutableSubscriber) Create(networkID string) error {
 	// New ents
 	//	- active_policies_by_apn
@@ -259,7 +150,10 @@ func (m *MutableSubscriber) Create(networkID string) error {
 func (m *MutableSubscriber) Update(networkID string) error {
 	var writes []configurator.EntityWriteOperation
 
-	existingSub, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, string(m.ID), subscriberLoadCriteria)
+	existingSub, err := configurator.LoadEntity(
+		networkID, lte.SubscriberEntityType, string(m.ID),
+		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
+	)
 	if err != nil {
 		return err
 	}
