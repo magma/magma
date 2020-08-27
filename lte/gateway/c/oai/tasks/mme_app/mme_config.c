@@ -205,6 +205,7 @@ void nas_config_init(nas_config_t *nas_conf)
   nas_conf->t3486_sec = T3486_DEFAULT_VALUE;
   nas_conf->t3489_sec = T3489_DEFAULT_VALUE;
   nas_conf->t3495_sec = T3495_DEFAULT_VALUE;
+  nas_conf->imeisv_request = true;
   nas_conf->force_reject_tau = true;
   nas_conf->force_reject_sr = true;
   nas_conf->disable_esm_information = false;
@@ -1116,6 +1117,10 @@ int mme_config_parse_file(mme_config_t *config_pP)
         config_pP->nas_config.t3495_sec = (uint32_t) aint;
       }
       if ((config_setting_lookup_string(
+            setting, MME_CONFIG_STRING_NAS_IMEISV_REQUEST,(const char **) &astring))) {
+        config_pP->nas_config.imeisv_request = parse_bool(astring);
+      }
+      if ((config_setting_lookup_string(
             setting,
             MME_CONFIG_STRING_NAS_FORCE_REJECT_TAU,
             (const char **) &astring))) {
@@ -1452,6 +1457,10 @@ void mme_config_display(mme_config_t *config_pP)
   OAILOG_INFO(
     LOG_CONFIG, "    T3495 ....: %d sec\n", config_pP->nas_config.t3495_sec);
   OAILOG_INFO(LOG_CONFIG, "    NAS non standard features .:\n");
+   OAILOG_INFO(
+    LOG_CONFIG,
+    "      IMEISV request ............: %s\n",
+    (config_pP->nas_config.imeisv_request )  ? "true" : "false");
   OAILOG_INFO(
     LOG_CONFIG,
     "      Force reject TAU ............: %s\n",

@@ -153,6 +153,7 @@ MME :
         T3486                                 =  8                              # UNUSED in seconds (default is 8s)
         T3489                                 =  4                              # UNUSED in seconds (default is 4s)
         T3495                                 =  8                              # UNUSED in seconds (default is 8s)
+        IMEISV_REQUEST                        = "no" ;
     };
 
     SGS :

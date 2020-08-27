@@ -90,7 +90,7 @@ int s1ap_mme_handle_initial_ue_message(
 {
   S1ap_InitialUEMessage_t *container;
   S1ap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi, *ie_csg_id, *ie_gummei,
-                              *ie_cause;
+                                        *ie_cause ;
   ue_description_t *ue_ref = NULL;
   enb_description_t *eNB_ref = NULL;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
@@ -129,7 +129,7 @@ int s1ap_mme_handle_initial_ue_message(
     tai_t tai = {0};
     gummei_t gummei = {
       .plmn = {0}, .mme_code = 0, .mme_gid = 0}; // initialized after
-    s_tmsi_t s_tmsi = {.mme_code = 0, .m_tmsi = INVALID_M_TMSI};
+   s_tmsi_t s_tmsi = {.mme_code = 0, .m_tmsi = INVALID_M_TMSI};
     ecgi_t ecgi = {.plmn = {0}, .cell_identity = {0}};
     csg_id_t csg_id = 0;
 
@@ -206,12 +206,12 @@ int s1ap_mme_handle_initial_ue_message(
     }
 
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_csg_id,
-                               container, S1ap_ProtocolIE_ID_id_CSG_Id, false);
+                              container, S1ap_ProtocolIE_ID_id_CSG_Id, false);
     if (ie_csg_id) {
       csg_id = BIT_STRING_to_uint32(&ie_csg_id->value.choice.CSG_Id);
     }
     S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_InitialUEMessage_IEs_t, ie_gummei,
-                               container, S1ap_ProtocolIE_ID_id_GUMMEI_ID,
+                              container, S1ap_ProtocolIE_ID_id_GUMMEI_ID,
                                false);
     memset(&gummei, 0, sizeof(gummei));
     if (ie_gummei) {
@@ -221,7 +221,7 @@ int s1ap_mme_handle_initial_ue_message(
                               gummei.mme_gid);
       OCTET_STRING_TO_MME_CODE(
         &ie_gummei->value.choice.GUMMEI.mME_Code,
-                               gummei.mme_code);
+                              gummei.mme_code);
     }
     /*
      * We received the first NAS transport message: initial UE message.
@@ -289,6 +289,12 @@ int s1ap_mme_handle_uplink_nas_transport(
   S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie, container,
                              S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
   mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie_nas_pdu, container,
+                             S1ap_ProtocolIE_ID_id_NAS_PDU, true);
+
+//S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie, container,
+  //                           S1ap_ProtocolIE_ID_id_Cause, true);
 
   if (INVALID_MME_UE_S1AP_ID == ie->value.choice.MME_UE_S1AP_ID) {
     OAILOG_WARNING(
@@ -568,6 +574,8 @@ int s1ap_generate_downlink_nas_transport(
       (char *) bdata(*payload),
       blength(*payload));
     bdestroy_wrapper(payload);
+    *payload = NULL;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
     if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);

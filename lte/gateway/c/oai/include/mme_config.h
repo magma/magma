@@ -141,6 +141,7 @@
 #define MME_CONFIG_STRING_NAS_T3486_TIMER "T3486"
 #define MME_CONFIG_STRING_NAS_T3489_TIMER "T3489"
 #define MME_CONFIG_STRING_NAS_T3495_TIMER "T3495"
+#define MME_CONFIG_STRING_NAS_IMEISV_REQUEST "IMEISV_REQUEST"
 #define MME_CONFIG_STRING_NAS_FORCE_REJECT_TAU "FORCE_REJECT_TAU"
 #define MME_CONFIG_STRING_NAS_FORCE_REJECT_SR "FORCE_REJECT_SR"
 #define MME_CONFIG_STRING_NAS_DISABLE_ESM_INFORMATION_PROCEDURE                \
@@ -239,7 +240,9 @@ typedef struct nas_config_s {
   uint32_t t3486_sec;
   uint32_t t3489_sec;
   uint32_t t3495_sec;
+
   // non standard features
+  bool imeisv_request;
   bool force_reject_tau;
   bool force_reject_sr;
   bool disable_esm_information;

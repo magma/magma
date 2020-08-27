@@ -352,8 +352,14 @@ int emm_proc_security_mode_control(
 
     smc_proc->is_new = security_context_is_new;
 
+
     // always ask for IMEISV (Do it simple now)
-    smc_proc->imeisv_request = true;
+    smc_proc->imeisv_request = mme_config.nas_config.imeisv_request; // S1AP Tester does not support IMEISV so read it from the mme config file
+
+     OAILOG_DEBUG(LOG_NAS_EMM, "IMEISV Request is (%d) \n",
+      smc_proc->imeisv_request);
+     OAILOG_DEBUG(LOG_NAS_EMM, "IMEISV Request in NAS is (%d) \n",
+    mme_config.nas_config.imeisv_request);
     //smc_proc->imeisv_request = (IS_EMM_CTXT_PRESENT_IMEISV(emm_ctx)) ? false:true;
 
     /*
@@ -757,7 +763,7 @@ static int _security_request(nas_emm_smc_proc_t *const smc_proc)
     /*
      * Request for IMEISV from ue, if imeisv_request_enabled is enabled
      */
-    emm_sap.u.emm_as.u.security.imeisv_request_enabled = EMM_IMEISV_REQUESTED;
+    emm_sap.u.emm_as.u.security.imeisv_request_enabled = smc_proc->imeisv_request;
 
     /*
    * Setup EPS NAS security data
