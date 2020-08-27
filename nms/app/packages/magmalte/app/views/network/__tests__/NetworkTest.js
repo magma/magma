@@ -41,18 +41,8 @@ jest
 describe('<NetworkDashboard />', () => {
   const testNetwork = {
     description: 'Test Network Description',
-    dns: {
-      enable_caching: true,
-      local_ttl: 60,
-    },
-    features: {
-      features: {
-        networkType: 'lte',
-      },
-    },
     id: 'test_network',
     name: 'Test Network',
-    type: 'lte',
   };
 
   const epc = {
@@ -221,7 +211,7 @@ describe('<NetworkDashboard />', () => {
   };
 
   beforeEach(() => {
-    MagmaAPIBindings.getNetworksByNetworkId.mockResolvedValue(testNetwork);
+    MagmaAPIBindings.getLteByNetworkId.mockResolvedValue(testNetwork);
     MagmaAPIBindings.getLteByNetworkIdCellularEpc.mockResolvedValue(epc);
     MagmaAPIBindings.getLteByNetworkIdCellularRan.mockResolvedValue(ran);
     // eslint-disable-next-line max-len
@@ -233,7 +223,7 @@ describe('<NetworkDashboard />', () => {
     axiosMock.post.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
-    MagmaAPIBindings.putNetworksByNetworkId.mockImplementation(() =>
+    MagmaAPIBindings.putLteByNetworkId.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
     MagmaAPIBindings.putLteByNetworkIdCellularEpc.mockImplementation(() =>
@@ -247,7 +237,7 @@ describe('<NetworkDashboard />', () => {
   afterEach(() => {
     axiosMock.get.mockClear();
     MagmaAPIBindings.getNetworksByNetworkId.mockClear();
-    MagmaAPIBindings.putNetworksByNetworkId.mockClear();
+    MagmaAPIBindings.putLteByNetworkId.mockClear();
     MagmaAPIBindings.getLteByNetworkIdCellularEpc.mockClear();
     MagmaAPIBindings.putLteByNetworkIdCellularEpc.mockClear();
     MagmaAPIBindings.getLteByNetworkIdCellularRan.mockClear();
@@ -295,7 +285,7 @@ describe('<NetworkDashboard />', () => {
     const {getByTestId, getByLabelText} = render(<Wrapper />);
     await wait();
 
-    expect(MagmaAPIBindings.getNetworksByNetworkId).toHaveBeenCalledTimes(1);
+    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
     // eslint-disable-next-line max-len
     expect(MagmaAPIBindings.getLteByNetworkIdCellularEpc).toHaveBeenCalledTimes(
       1,
@@ -314,7 +304,6 @@ describe('<NetworkDashboard />', () => {
     expect(info).toHaveTextContent('Test Network');
     expect(info).toHaveTextContent('test_network');
     expect(info).toHaveTextContent('Test Network Description');
-    expect(info).toHaveTextContent('lte');
 
     const ran = getByTestId('ran');
     expect(ran).toHaveTextContent('20');
@@ -400,8 +389,6 @@ describe('<NetworkDashboard />', () => {
         name: 'Test LTE Network',
         description: 'LTE test network description',
         networkType: 'lte',
-        fegNetworkID: '',
-        servedNetworkIDs: '',
       },
     });
 
@@ -442,17 +429,11 @@ describe('<NetworkDashboard />', () => {
 
     fireEvent.click(getByText('Save And Continue'));
     await wait();
-    expect(MagmaAPIBindings.putNetworksByNetworkId).toHaveBeenCalledWith({
+    expect(MagmaAPIBindings.putLteByNetworkId).toHaveBeenCalledWith({
       networkId: 'testNetworkID',
-      network: {
+      lteNetwork: {
         name: 'Test LTE Network',
         description: 'New LTE test network description',
-        type: 'lte',
-        dns: {
-          enable_caching: false,
-          local_ttl: 0,
-          records: [],
-        },
         id: 'testNetworkID',
       },
     });
@@ -565,9 +546,9 @@ describe('<NetworkDashboard />', () => {
 
     fireEvent.click(getByText('Save'));
     await wait();
-    expect(MagmaAPIBindings.putNetworksByNetworkId).toHaveBeenCalledWith({
+    expect(MagmaAPIBindings.putLteByNetworkId).toHaveBeenCalledWith({
       networkId: 'test_network',
-      network: {
+      lteNetwork: {
         ...testNetwork,
         description: 'Edit LTE test network description',
       },
