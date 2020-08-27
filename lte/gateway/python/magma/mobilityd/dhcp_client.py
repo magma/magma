@@ -127,7 +127,7 @@ class DHCPClient:
             self.dhcp_client_state[mac.as_redis_key(vlan)] = dhcp_desc
 
         pkt = Ether(src=str(mac), dst="ff:ff:ff:ff:ff:ff")
-        if vlan:
+        if vlan and vlan != "0":
             pkt /= Dot1Q(vlan=int(vlan))
         pkt /= IP(src="0.0.0.0", dst="255.255.255.255")
         pkt /= UDP(sport=68, dport=67)
