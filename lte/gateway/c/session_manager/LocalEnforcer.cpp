@@ -381,7 +381,7 @@ void LocalEnforcer::start_session_termination(
   auto now = std::chrono::system_clock::now();
   uint64_t epoch = std::chrono::duration_cast<std::chrono::seconds>(
     now.time_since_epoch()).count();
-  update_criteria.updated_pdp_end_time_ = epoch;
+  update_criteria.updated_pdp_end_time = epoch;
 
   remove_all_rules_for_termination(imsi, session, update_criteria);
   
