@@ -114,6 +114,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			IpBlock:         gwEpc.IPBlock,
 			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
 			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
+			MultiApnIpAlloc: getMobilityDMultuAPNIPAlloc(nwEpc),
 		},
 		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -135,11 +136,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
-			LogLevel:      protos.LogLevel_INFO,
-			UeIpBlock:     gwEpc.IPBlock,
-			NatEnabled:    swag.BoolValue(gwEpc.NatEnabled),
-			DefaultRuleId: nwEpc.DefaultRuleID,
-			Services:      pipelineDServices,
+			LogLevel:                 protos.LogLevel_INFO,
+			UeIpBlock:                gwEpc.IPBlock,
+			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
+			DefaultRuleId:            nwEpc.DefaultRuleID,
+			Services:                 pipelineDServices,
+			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
+			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP.String(),
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
@@ -372,4 +375,11 @@ func getMobilityDStaticIPAllocation(epc *lte_models.NetworkEpcConfigs) bool {
 		return false
 	}
 	return epc.Mobility.EnableStaticIPAssignments
+}
+
+func getMobilityDMultuAPNIPAlloc(epc *lte_models.NetworkEpcConfigs) bool {
+	if epc.Mobility == nil {
+		return false
+	}
+	return epc.Mobility.EnableMultiApnIPAllocation
 }

@@ -13,13 +13,25 @@
  * @flow strict-local
  * @format
  */
-import type {subscriber} from '@fbcnms/magma-api';
+import type {
+  gateway_id,
+  mutable_subscriber,
+  subscriber,
+  subscriber_id,
+} from '@fbcnms/magma-api';
 
 import React from 'react';
 
+export type Metrics = {
+  currentUsage: string,
+  dailyAvg: string,
+};
+
 export type SubscriberContextType = {
   state: {[string]: subscriber},
-  setState: (key: string, val: subscriber) => Promise<void>,
+  metrics?: {[string]: Metrics},
+  gwSubscriberMap: {[gateway_id]: Array<subscriber_id>},
+  setState?: (key: string, val: mutable_subscriber) => Promise<void>,
 };
 
 export default React.createContext<SubscriberContextType>({});

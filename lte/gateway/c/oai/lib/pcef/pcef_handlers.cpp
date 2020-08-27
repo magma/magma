@@ -62,36 +62,6 @@ static void pcef_fill_create_session_req(
     std::string& imsi, std::string& ip, ebi_t eps_bearer_id,
     const struct pcef_create_session_data* session_data,
     magma::LocalCreateSessionRequest* sreq) {
-  // TODO Remove once we migrate all fields to be handled by
-  // CommonSessionContext and LTESessionContext
-  sreq->mutable_sid()->set_id("IMSI" + imsi);
-  sreq->set_rat_type(magma::RATType::TGPP_LTE);
-  sreq->set_ue_ipv4(ip);
-  sreq->set_apn(session_data->apn);
-  sreq->set_msisdn(session_data->msisdn, session_data->msisdn_len);
-  sreq->set_bearer_id(eps_bearer_id);
-  sreq->set_spgw_ipv4(session_data->sgw_ip);
-  sreq->set_plmn_id(session_data->mcc_mnc, session_data->mcc_mnc_len);
-  sreq->set_imsi_plmn_id(
-      session_data->imsi_mcc_mnc, session_data->imsi_mcc_mnc_len);
-
-  if (session_data->imeisv_exists) {
-    sreq->set_imei(session_data->imeisv, IMEISV_DIGITS_MAX);
-  }
-  if (session_data->uli_exists) {
-    sreq->set_user_location(session_data->uli, ULI_DATA_SIZE);
-  }
-
-  // QoS Info
-  magma::QosInformationRequest qos_info;
-  qos_info.set_apn_ambr_dl(session_data->ambr_dl);
-  qos_info.set_apn_ambr_ul(session_data->ambr_ul);
-  qos_info.set_priority_level(session_data->pl);
-  qos_info.set_preemption_capability(session_data->pci);
-  qos_info.set_preemption_vulnerability(session_data->pvi);
-  qos_info.set_qos_class_id(session_data->qci);
-  sreq->mutable_qos_info()->CopyFrom(qos_info);
-
   // Common Context
   auto common_context = sreq->mutable_common_context();
   common_context->mutable_sid()->set_id("IMSI" + imsi);
@@ -114,6 +84,14 @@ static void pcef_fill_create_session_req(
   if (session_data->uli_exists) {
     lte_context->set_user_location(session_data->uli, ULI_DATA_SIZE);
   }
+  // QoS Info
+  magma::QosInformationRequest qos_info;
+  qos_info.set_apn_ambr_dl(session_data->ambr_dl);
+  qos_info.set_apn_ambr_ul(session_data->ambr_ul);
+  qos_info.set_priority_level(session_data->pl);
+  qos_info.set_preemption_capability(session_data->pci);
+  qos_info.set_preemption_vulnerability(session_data->pvi);
+  qos_info.set_qos_class_id(session_data->qci);
   lte_context->mutable_qos_info()->CopyFrom(qos_info);
 }
 
@@ -151,6 +129,21 @@ bool pcef_end_session(char* imsi, char* apn) {
         return;  // For now, do nothing. TODO: handle errors asynchronously
       });
   return true;
+}
+
+void pcef_send_policy2bearer_binding(
+    const char* imsi, uint8_t default_bearer_id, char* policy_rule_name,
+    uint8_t eps_bearer_id) {
+  magma::PolicyBearerBindingRequest request;
+  request.mutable_sid()->set_id("IMSI" + std::string(imsi));
+  request.set_linked_bearer_id(default_bearer_id);
+  request.set_policy_rule_id(policy_rule_name);
+  request.set_bearer_id(eps_bearer_id);
+  magma::PCEFClient::bind_policy2bearer(
+      request,
+      [&](grpc::Status status, magma::PolicyBearerBindingResponse response) {
+        return;  // For now, do nothing. TODO: handle errors asynchronously
+      });
 }
 
 /*

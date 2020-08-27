@@ -14,15 +14,12 @@
 package analytics
 
 import (
-	"context"
-	"net/http"
-	"time"
-
 	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/api"
 	"github.com/prometheus/client_golang/api/prometheus/v1"
-	"github.com/prometheus/common/model"
 	"github.com/robfig/cron/v3"
+	"magma/cwf/cloud/go/services/analytics/calculations"
+	"magma/cwf/cloud/go/services/analytics/query_api"
+	"net/http"
 )
 
 type Analyzer interface {
@@ -39,17 +36,14 @@ type Analyzer interface {
 // queries/aggregations to calculate various metrics
 type PrometheusAnalyzer struct {
 	Cron             *cron.Cron
-	PrometheusClient PrometheusAPI
-	Calculations     []Calculation
+	PrometheusClient query_api.PrometheusAPI
+	Calculations     []calculations.Calculation
 	Exporter         Exporter
 }
 
-type PrometheusAPI interface {
-	Query(ctx context.Context, query string, ts time.Time) (model.Value, api.Warnings, error)
-	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, api.Warnings, error)
-}
 
-func NewPrometheusAnalyzer(prometheusClient v1.API, calculations []Calculation, exporter Exporter) Analyzer {
+
+func NewPrometheusAnalyzer(prometheusClient v1.API, calculations []calculations.Calculation, exporter Exporter) Analyzer {
 	cronJob := cron.New()
 	return &PrometheusAnalyzer{
 		Cron:             cronJob,
@@ -84,7 +78,7 @@ func (a *PrometheusAnalyzer) Analyze() {
 			if err != nil {
 				glog.Errorf("Error exporting result: %v", err)
 			} else {
-				glog.Infof("Exported %s, %s, %f", res.metricName, res.labels, res.value)
+				glog.Infof("Exported %s, %s, %f", res.MetricName(), res.Labels(), res.Value())
 			}
 		}
 	}

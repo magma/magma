@@ -13,28 +13,22 @@
  * @flow strict-local
  * @format
  */
-import type {subscriber} from '@fbcnms/magma-api';
-
 import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import Link from '@material-ui/core/Link';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import TopBar from '../../components/TopBar';
-import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useState} from 'react';
+import {useContext, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const TITLE = 'Subscribers';
@@ -62,67 +56,17 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export default function SubscriberDashboard() {
-  const {match, relativePath, relativeUrl} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const [subscriberMap, setSubscriberMap] = useState({});
-  const {isLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdSubscribers,
-    {
-      networkId: networkId,
-    },
-    useCallback(response => setSubscriberMap(response), []),
-  );
-
-  const updateSubscriberMap = async (key: string, val: subscriber) => {
-    if (key in subscriberMap) {
-      await MagmaV1API.putLteByNetworkIdSubscribersBySubscriberId({
-        networkId: networkId,
-        subscriber: val,
-        subscriberId: key,
-      });
-    } else {
-      await MagmaV1API.postLteByNetworkIdSubscribers({
-        networkId: networkId,
-        subscriber: val,
-      });
-    }
-    setSubscriberMap({...subscriberMap, [key]: val});
-  };
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-
+  const {relativePath, relativeUrl} = useRouter();
   return (
     <Switch>
       <Route
         path={relativePath('/overview/:subscriberId')}
-        render={() => {
-          return (
-            <SubscriberContext.Provider
-              value={{
-                state: subscriberMap ?? {},
-                setState: updateSubscriberMap,
-              }}>
-              <SubscriberDetail subscriberMap={subscriberMap} />
-            </SubscriberContext.Provider>
-          );
-        }}
+        component={SubscriberDetail}
       />
 
       <Route
         path={relativePath('/overview')}
-        render={() => {
-          return (
-            <SubscriberContext.Provider
-              value={{
-                state: subscriberMap ?? {},
-                setState: updateSubscriberMap,
-              }}>
-              <SubscriberDashboardInternal subscriberMap={subscriberMap} />
-            </SubscriberContext.Provider>
-          );
-        }}
+        component={SubscriberDashboardInternal}
       />
       <Redirect to={relativeUrl('/overview')} />
     </Switch>
@@ -138,14 +82,13 @@ type SubscriberRowType = {
   lastReportedTime: Date,
 };
 
-function SubscriberDashboardInternal({
-  subscriberMap,
-}: {
-  subscriberMap: ?{[string]: subscriber} | void,
-}) {
+function SubscriberDashboardInternal() {
   const classes = useStyles();
   const {history, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<SubscriberRowType>({});
+  const ctx = useContext(SubscriberContext);
+  const subscriberMap = ctx.state;
+  const subscriberMetrics = ctx.metrics;
 
   return (
     <>
@@ -192,12 +135,13 @@ function SubscriberDashboardInternal({
               <ActionTable
                 data={Object.keys(subscriberMap).map((imsi: string) => {
                   const subscriberInfo = subscriberMap[imsi];
+                  const metrics = subscriberMetrics?.[`${imsi}`];
                   return {
                     name: subscriberInfo.name ?? imsi,
                     imsi: imsi,
                     service: subscriberInfo.lte.state,
-                    currentUsage: '0',
-                    dailyAvg: '0',
+                    currentUsage: metrics?.currentUsage ?? '0',
+                    dailyAvg: metrics?.dailyAvg ?? '0',
                     lastReportedTime: new Date(
                       subscriberInfo.monitoring?.icmp?.last_reported_time ?? 0,
                     ),

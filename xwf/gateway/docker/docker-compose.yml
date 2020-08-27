@@ -82,7 +82,7 @@ services:
 
   radius:
     <<: *service
-    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+    image: ${DOCKER_REGISTRY}goradius:${IMAGE_VERSION}
     container_name: radius
     environment:
       - ODS_ACCESS_TOKEN=${ODS_ACCESS_TOKEN}

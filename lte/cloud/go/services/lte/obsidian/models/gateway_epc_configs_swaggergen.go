@@ -36,6 +36,17 @@ type GatewayEpcConfigs struct {
 	// nat enabled
 	// Required: true
 	NatEnabled *bool `json:"nat_enabled"`
+
+	// IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
+	// Max Length: 49
+	// Min Length: 5
+	// Format: ipv4
+	SgiManagementIfaceStaticIP strfmt.IPv4 `json:"sgi_management_iface_static_ip,omitempty"`
+
+	// VLAN ID for management interface traffic on the AGW
+	// Max Length: 4
+	// Min Length: 1
+	SgiManagementIfaceVlan string `json:"sgi_management_iface_vlan,omitempty"`
 }
 
 // Validate validates this gateway epc configs
@@ -55,6 +66,14 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateNatEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSgiManagementIfaceStaticIP(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSgiManagementIfaceVlan(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -118,6 +137,44 @@ func (m *GatewayEpcConfigs) validateIPBlock(formats strfmt.Registry) error {
 func (m *GatewayEpcConfigs) validateNatEnabled(formats strfmt.Registry) error {
 
 	if err := validate.Required("nat_enabled", "body", m.NatEnabled); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateSgiManagementIfaceStaticIP(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SgiManagementIfaceStaticIP) { // not required
+		return nil
+	}
+
+	if err := validate.MinLength("sgi_management_iface_static_ip", "body", string(m.SgiManagementIfaceStaticIP), 5); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("sgi_management_iface_static_ip", "body", string(m.SgiManagementIfaceStaticIP), 49); err != nil {
+		return err
+	}
+
+	if err := validate.FormatOf("sgi_management_iface_static_ip", "body", "ipv4", m.SgiManagementIfaceStaticIP.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateSgiManagementIfaceVlan(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SgiManagementIfaceVlan) { // not required
+		return nil
+	}
+
+	if err := validate.MinLength("sgi_management_iface_vlan", "body", string(m.SgiManagementIfaceVlan), 1); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("sgi_management_iface_vlan", "body", string(m.SgiManagementIfaceVlan), 4); err != nil {
 		return err
 	}
 

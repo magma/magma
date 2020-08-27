@@ -151,7 +151,7 @@ function EnodeEditDialog(props: DialogProps) {
   const ctx = useContext(EnodebContext);
   const enodebSerial: string = match.params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const lteRanConfigs = ctx.state.lteRanConfigs;
+  const lteRanConfigs = ctx.lteRanConfigs;
 
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,

@@ -48,11 +48,55 @@ server.get('/magma/v1/lte/test/gateways', (req, res) => {
   }
 });
 
+server.get('/magma/v1/networks/test/prometheus/query_range', (req, res) => {
+  if (req.method === 'GET') {
+    res.status(200).jsonp({
+      status: 'success',
+      data: {
+        resultType: 'vector',
+        result: [],
+      },
+    });
+  }
+});
+
+server.get('/magma/v1/networks/test/prometheus/query', (req, res) => {
+  if (req.method === 'GET') {
+    res.status(200).jsonp({
+      status: 'success',
+      data: {
+        resultType: 'vector',
+        result: [],
+      },
+    });
+  }
+});
+
+server.get('/magma/v1/events/test/about/count', (req, res) => {
+  if (req.method === 'GET') {
+    res.status(200).jsonp(0);
+  }
+});
+
+server.get('/magma/v1/events/test', (req, res) => {
+  if (req.method === 'GET') {
+    res.status(200).jsonp([]);
+  }
+});
+
 server.get('/magma/v1/lte/test/enodebs', (req, res) => {
   if (req.method === 'GET') {
     res.status(200).jsonp(db['lte']['enodebs']);
   }
 });
+server.get(
+  '/magma/v1/lte/test/enodebs/12020000051696P0013/state',
+  (req, res) => {
+    if (req.method === 'GET') {
+      res.status(200).jsonp(db['lte']['enodebState']['12020000051696P0013']);
+    }
+  },
+);
 server.use('/magma/v1', router);
 
 https

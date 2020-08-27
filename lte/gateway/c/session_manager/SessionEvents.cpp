@@ -27,11 +27,18 @@ const std::string SESSION_TERMINATED_EV = "session_terminated";
 
 const std::string SESSION_ID = "session_id";
 const std::string IMSI = "imsi";
+const std::string IMEI = "imei";
 const std::string IP_ADDR = "ip_addr";
 const std::string MAC_ADDR = "mac_addr";
+const std::string MSISDN = "msisdn";
+const std::string SPGW_IP = "spgw_ip";
 const std::string APN = "apn";
+const std::string PDP_START_TIME = "pdp_start_time";
+const std::string PDP_END_TIME = "pdp_end_time";
 const std::string FAILURE_REASON = "failure_reason";
 
+const std::string TOTAL_TX = "total_tx";
+const std::string TOTAL_RX = "total_rx";
 const std::string CHARGING_TX = "charging_tx";
 const std::string CHARGING_RX = "charging_rx";
 const std::string MONITORING_TX = "monitoring_tx";
@@ -47,17 +54,25 @@ EventsReporterImpl::EventsReporterImpl(AsyncEventdClient& eventd_client)
 
 void EventsReporterImpl::session_created(
     const std::string& imsi, const std::string& session_id,
-const SessionConfig& session_context) {
+    const SessionConfig& session_context,
+    const std::unique_ptr<SessionState>& session) {
   auto event = magma::orc8r::Event();
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_CREATED_EV);
   event.set_tag(imsi);
 
   folly::dynamic event_value = folly::dynamic::object;
-  event_value[IMSI]          = imsi;
-  event_value[SESSION_ID]    = session_id;
-  event_value[APN]           = session_context.common_context.apn();
-  event_value[MAC_ADDR]      = get_mac_addr(session_context);
+  event_value[IMSI]           = imsi;
+  event_value[IP_ADDR]        = session_context.common_context.ue_ipv4();
+  event_value[MSISDN]         = session_context.common_context.msisdn();
+  event_value[APN]            = session_context.common_context.apn();
+  event_value[SESSION_ID]     = session_id;
+  event_value[PDP_START_TIME] = session->get_pdp_start_time();
+  // LTE specific
+  event_value[IMEI]           = get_imei(session_context);
+  event_value[SPGW_IP]        = get_spgw_ipv4(session_context);
+  // CWF specific
+  event_value[MAC_ADDR]       = get_mac_addr(session_context);
 
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
@@ -167,14 +182,24 @@ void EventsReporterImpl::session_terminated(
   folly::dynamic event_value           = folly::dynamic::object;
   event_value[IMSI]                    = imsi;
   event_value[IP_ADDR]                 = session_cfg.common_context.ue_ipv4();
-  event_value[SESSION_ID]              = session->get_session_id();
-  event_value[MAC_ADDR]                = get_mac_addr(session_cfg);
+  event_value[MSISDN]                  = session_cfg.common_context.msisdn();
   event_value[APN]                     = session_cfg.common_context.apn();
+  event_value[SESSION_ID]              = session->get_session_id();
   SessionState::TotalCreditUsage usage = session->get_total_credit_usage();
+  event_value[TOTAL_TX]                = usage.charging_tx + usage.monitoring_tx;
+  event_value[TOTAL_RX]                = usage.charging_rx + usage.monitoring_rx;
   event_value[CHARGING_TX]             = usage.charging_tx;
   event_value[CHARGING_RX]             = usage.charging_rx;
   event_value[MONITORING_TX]           = usage.monitoring_tx;
   event_value[MONITORING_RX]           = usage.monitoring_rx;
+  event_value[PDP_START_TIME]          = session->get_pdp_start_time();
+  event_value[PDP_END_TIME]            = session->get_pdp_end_time();
+  // LTE specific
+  event_value[IMEI]                    = get_imei(session_cfg);
+  event_value[SPGW_IP]                 = get_spgw_ipv4(session_cfg);
+  // CWF specific
+  event_value[MAC_ADDR]                = get_mac_addr(session_cfg);
+
   std::string event_value_string       = folly::toJson(event_value);
   event.set_value(event_value_string);
 
@@ -195,6 +220,26 @@ std::string EventsReporterImpl::get_mac_addr(const SessionConfig& config) {
     mac_addr = rat_specific.wlan_context().mac_addr();
   }
   return mac_addr;
+}
+
+std::string EventsReporterImpl::get_imei(const SessionConfig& config) {
+  // IMEI is only relevant for LTE
+  const auto& rat_specific    = config.rat_specific_context;
+  std::string imei = "";
+  if (rat_specific.has_lte_context()) {
+    imei = rat_specific.lte_context().imei();
+  }
+  return imei;
+}
+
+std::string EventsReporterImpl::get_spgw_ipv4(const SessionConfig& config) {
+  // IMEI is only relevant for LTE
+  const auto& rat_specific    = config.rat_specific_context;
+  std::string spgw_ipv4 = "";
+  if (rat_specific.has_lte_context()) {
+    spgw_ipv4 = rat_specific.lte_context().spgw_ipv4();
+  }
+  return spgw_ipv4;
 }
 
 }  // namespace lte

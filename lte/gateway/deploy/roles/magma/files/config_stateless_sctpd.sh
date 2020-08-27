@@ -1,5 +1,5 @@
 #!/bin/bash
-SRC_DIR=$MAGMA_ROOT/lte/gateway/deploy/roles/magma/files
+SRC_DIR=/usr/local/bin
 PRE_START_CMD="ExecStartPre=$SRC_DIR/config_stateless_agw.sh\ sctpd_pre"
 POST_START_CMD="ExecStartPost=$SRC_DIR/config_stateless_agw.sh\ sctpd_post"
 SYS_FILE=/etc/systemd/system/sctpd.service

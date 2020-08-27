@@ -245,6 +245,8 @@ export default function WifiNetworkConfig() {
       </FormGroup>
       <FormGroup className={classes.formGroup}>
         <KeyValueFields
+          key_label="key"
+          value_label="value"
           keyValuePairs={additionalProps || [['', '']]}
           onChange={setAdditionalProps}
           classes={{inputValue: classes.keyValueFieldsInputValue}}

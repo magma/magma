@@ -4,3 +4,4 @@ DEVICETYPE=ovs
 TYPE=OVSPort
 OVS_BRIDGE=uplink_br0
 BOOTPROTO=none
+OVS_EXTRA="set interface $DEVICE ofport=10"

@@ -35,7 +35,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 type InitTierStateProps = {
   networkId: network_id,
   setTiers: ({[string]: tier}) => void,
-  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
 
 export async function InitTierState(props: InitTierStateProps) {
@@ -44,7 +44,7 @@ export async function InitTierState(props: InitTierStateProps) {
   try {
     tierIdList = await MagmaV1API.getNetworksByNetworkIdTiers({networkId});
   } catch (e) {
-    enqueueSnackbar('failed fetching tier information', {variant: 'error'});
+    enqueueSnackbar?.('failed fetching tier information', {variant: 'error'});
   }
 
   const requests = tierIdList.map(tierId => {
@@ -54,7 +54,7 @@ export async function InitTierState(props: InitTierStateProps) {
         tierId,
       });
     } catch (e) {
-      enqueueSnackbar('failed fetching tier information for ' + tierId, {
+      enqueueSnackbar?.('failed fetching tier information for ' + tierId, {
         variant: 'error',
       });
       return;
@@ -109,7 +109,7 @@ export async function SetTierState(props: TierStateProps) {
 type InitEnodeStateProps = {
   networkId: network_id,
   setEnbInfo: ({[string]: EnodebInfo}) => void,
-  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
 
 export async function InitEnodeState(props: InitEnodeStateProps) {
@@ -118,10 +118,14 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
   try {
     enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
   } catch (e) {
-    enqueueSnackbar('failed fetching enodeb information', {
+    enqueueSnackbar?.('failed fetching enodeb information', {
       variant: 'error',
     });
-    return [];
+    return;
+  }
+
+  if (!enb) {
+    return;
   }
 
   let err = false;
@@ -135,17 +139,13 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
           enodebSerial: serial,
         },
       );
-      return [enb[k], enbSt];
+      return [enb[k], enbSt ?? {}];
     } catch (e) {
       err = true;
       return [enb[k], {}];
     }
   });
-  if (err) {
-    enqueueSnackbar('failed fetching enodeb state information', {
-      variant: 'error',
-    });
-  }
+
   const enbResp = await Promise.all(requests);
   const enbInfo = {};
   enbResp.filter(Boolean).forEach(r => {
@@ -159,6 +159,11 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
       }
     }
   });
+  if (err) {
+    enqueueSnackbar?.('failed fetching enodeb state information', {
+      variant: 'error',
+    });
+  }
   setEnbInfo(enbInfo);
 }
 

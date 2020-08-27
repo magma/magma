@@ -14,7 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {subscriber} from '@fbcnms/magma-api';
+import type {mutable_subscriber} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
@@ -60,14 +60,27 @@ export function SubscriberJsonConfig() {
   const subscriberId = nullthrows(match.params.subscriberId);
   const ctx = useContext(SubscriberContext);
   const subscriberInfo = ctx.state?.[subscriberId];
+  const {
+    config,
+    monitoring: _unused_monitoring,
+    state: _unused_state,
+    ...subscriberInfoPartial
+  } = subscriberInfo;
+  const mutableSubscriber: mutable_subscriber = {
+    ...subscriberInfoPartial,
+  };
+
+  if (config?.static_ips) {
+    mutableSubscriber.static_ips = config.static_ips;
+  }
 
   return (
     <JsonEditor
-      content={subscriberInfo}
+      content={mutableSubscriber}
       error={error}
-      onSave={async subscriber => {
+      onSave={async (subscriber: mutable_subscriber) => {
         try {
-          await ctx.setState(subscriber.id, {...subscriber});
+          await ctx.setState?.(subscriber.id, subscriber);
           enqueueSnackbar('Subscriber saved successfully', {
             variant: 'success',
           });
@@ -80,13 +93,10 @@ export function SubscriberJsonConfig() {
   );
 }
 
-export default function SubscriberDetailConfig({
-  subscriberInfo,
-}: {
-  subscriberInfo: subscriber,
-}) {
+export default function SubscriberDetailConfig() {
   const classes = useStyles();
   const {history, relativeUrl} = useRouter();
+
   function TrafficFilter() {
     return <Button variant="text">Edit</Button>;
   }
@@ -117,18 +127,12 @@ export default function SubscriberDetailConfig({
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
               <CardTitleRow label="Subscriber" filter={EditSubscriberButton} />
-              <SubscriberInfoConfig
-                readOnly={true}
-                subscriberInfo={subscriberInfo}
-              />
+              <SubscriberInfoConfig />
             </Grid>
 
             <Grid item xs={12} md={6}>
               <CardTitleRow label="Traffic Policy" filter={TrafficFilter} />
-              <SubscriberConfigTrafficPolicy
-                readOnly={true}
-                subscriberInfo={subscriberInfo}
-              />
+              <SubscriberConfigTrafficPolicy />
             </Grid>
           </Grid>
         </Grid>
@@ -137,11 +141,12 @@ export default function SubscriberDetailConfig({
   );
 }
 
-function SubscriberConfigTrafficPolicy({
-  subscriberInfo,
-}: {
-  subscriberInfo: subscriber,
-}) {
+function SubscriberConfigTrafficPolicy() {
+  const {match} = useRouter();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+
   function CollapseItems(props) {
     const data: DataRows[] = [
       [
@@ -190,7 +195,12 @@ function SubscriberConfigTrafficPolicy({
   return <DataGrid data={trafficPolicyData} />;
 }
 
-function SubscriberInfoConfig({subscriberInfo}: {subscriberInfo: subscriber}) {
+function SubscriberInfoConfig() {
+  const {match} = useRouter();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+
   const [authKey, _setAuthKey] = useState(subscriberInfo.lte.auth_key);
   const [authOPC, _setAuthOPC] = useState(subscriberInfo.lte.auth_opc ?? false);
   const [dataPlan, _setDataPlan] = useState(subscriberInfo.lte.sub_profile);

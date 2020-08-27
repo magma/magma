@@ -33,6 +33,7 @@ export type DateTimeMetricChartProps = {
   title: string,
   queries: Array<string>,
   legendLabels: Array<string>,
+  unit?: string,
 };
 
 const useStyles = makeStyles(_ => ({
@@ -131,7 +132,7 @@ export default function DateTimeMetricChart(props: DateTimeMetricChartProps) {
                 },
               }}
               label={`Frequency of ${props.title}`}
-              unit=""
+              unit={props.unit ?? ''}
               queries={props.queries}
               timeRange={'3_hours'}
               startEnd={[startDate, endDate]}

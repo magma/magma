@@ -47,12 +47,28 @@ LTESessionContext build_lte_context(
 }
 
 WLANSessionContext build_wlan_context(
-    const std::string& mac_addr,
-    const std::string& radius_session_id) {
+    const std::string& mac_addr, const std::string& radius_session_id) {
   WLANSessionContext wlan_context;
   wlan_context.set_mac_addr(mac_addr);
   wlan_context.set_radius_session_id(radius_session_id);
   return wlan_context;
+}
+
+RuleSet create_rule_set(
+    const bool apply_subscriber_wide, const std::string& apn,
+    std::vector<std::string> static_rules,
+    std::vector<PolicyRule> dynamic_rules) {
+  RuleSet rule_set;
+  rule_set.set_apply_subscriber_wide(apply_subscriber_wide);
+  rule_set.set_apn(apn);
+  for (const auto& rule : static_rules) {
+    rule_set.mutable_static_rules()->Add()->set_rule_id(rule);
+  }
+  for (const auto& rule : dynamic_rules) {
+    rule_set.mutable_dynamic_rules()->Add()->mutable_policy_rule()->CopyFrom(
+        rule);
+  }
+  return rule_set;
 }
 
 void create_rule_record(
@@ -279,5 +295,16 @@ magma::mconfig::SessionD get_default_mconfig() {
   auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
   wallet_config->set_terminate_on_exhaust(false);
   return mconfig;
+}
+
+PolicyBearerBindingRequest create_policy_bearer_bind_req(
+    const std::string& imsi, const uint32_t linked_bearer_id,
+    const std::string& rule_id, const uint32_t bearer_id) {
+  PolicyBearerBindingRequest bearer_bind_req;
+  bearer_bind_req.mutable_sid()->set_id(imsi);
+  bearer_bind_req.set_linked_bearer_id(linked_bearer_id);
+  bearer_bind_req.set_policy_rule_id(rule_id);
+  bearer_bind_req.set_bearer_id(bearer_id);
+  return bearer_bind_req;
 }
 }  // namespace magma

@@ -43,14 +43,12 @@ type DatasetFetchProps = {
 
 async function getEventAlertDataset(props: DatasetFetchProps) {
   const {start, end, networkId} = props;
-  const [delta, unit, format] = getStep(start, end);
+  const [delta, unit] = getStep(start, end);
   let requestError = '';
   const queries = [];
-  const labels = [];
 
   let s = start.clone();
   while (end.diff(s) >= 0) {
-    labels.push(s.format(format));
     const e = s.clone();
     e.add(delta, unit);
     queries.push([s, e]);
@@ -85,7 +83,7 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
           };
         }
         return {
-          t: s.unix(),
+          t: s.unix() * 1000,
           y: r,
         };
       });
@@ -95,43 +93,35 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       return [];
     });
 
+  const alertsData = [];
+  try {
+    const alertPromResp = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
+      {
+        networkId: networkId,
+        start: start.toISOString(),
+        end: end.toISOString(),
+        step: getStepString(delta, unit),
+        query: 'sum(ALERTS)',
+      },
+    );
+    alertPromResp.data?.result.forEach(it =>
+      it['values']?.map(i => {
+        alertsData.push({
+          t: parseInt(i[0]) * 1000,
+          y: parseFloat(i[1]),
+        });
+      }),
+    );
+  } catch (error) {
+    requestError = error;
+  }
+
   if (requestError) {
     props.enqueueSnackbar('Error getting event counts', {
       variant: 'error',
     });
   }
-
-  const alertPromResp = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
-    {
-      networkId: networkId,
-      start: start.toISOString(),
-      end: end.toISOString(),
-      step: getStepString(delta, unit),
-      query: 'sum(ALERTS)',
-    },
-  );
-
-  const alertsData = [];
-  alertPromResp.data.result.forEach(it =>
-    it['values']?.map(i => {
-      alertsData.push({
-        t: parseInt(i[0]) * 1000,
-        y: parseFloat(i[1]),
-      });
-    }),
-  );
-
   return [
-    {
-      label: 'Events',
-      fill: false,
-      backgroundColor: colors.secondary.dodgerBlue,
-      borderColor: colors.secondary.dodgerBlue,
-      borderWidth: 1,
-      hoverBackgroundColor: colors.secondary.dodgerBlue,
-      hoverBorderColor: 'black',
-      data: eventData,
-    },
     {
       label: 'Alerts',
       fill: false,
@@ -145,7 +135,16 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       hoverBorderColor: 'black',
       data: alertsData,
     },
-    labels,
+    {
+      label: 'Events',
+      fill: false,
+      backgroundColor: colors.secondary.dodgerBlue,
+      borderColor: colors.secondary.dodgerBlue,
+      borderWidth: 1,
+      hoverBackgroundColor: colors.secondary.dodgerBlue,
+      hoverBorderColor: 'black',
+      data: eventData,
+    },
   ];
 }
 
@@ -154,7 +153,6 @@ export default function EventAlertChart(props: Props) {
   const networkId: string = nullthrows(match.params.networkId);
   const [start, end] = props.startEnd;
   const enqueueSnackbar = useEnqueueSnackbar();
-  const [labels, setLabels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [eventDataset, setEventDataset] = useState<Dataset>({
@@ -182,7 +180,7 @@ export default function EventAlertChart(props: Props) {
   useEffect(() => {
     // fetch queries
     const fetchAllData = async () => {
-      const [eventDataset, alertDataset, labels] = await getEventAlertDataset({
+      const [eventDataset, alertDataset] = await getEventAlertDataset({
         start,
         end,
         networkId,
@@ -190,7 +188,6 @@ export default function EventAlertChart(props: Props) {
       });
       setEventDataset(eventDataset);
       setAlertDataset(alertDataset);
-      setLabels(labels);
       setIsLoading(false);
     };
 
@@ -207,7 +204,7 @@ export default function EventAlertChart(props: Props) {
         subheader={
           <CustomLineChart
             dataset={[eventDataset, alertDataset]}
-            labels={labels}
+            yLabel={'count'}
           />
         }
       />

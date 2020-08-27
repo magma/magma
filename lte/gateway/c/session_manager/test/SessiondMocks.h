@@ -241,27 +241,23 @@ class MockSpgwServiceClient : public SpgwServiceClient {
 public:
   MockSpgwServiceClient() {
     ON_CALL(*this, delete_default_bearer(_, _, _)).WillByDefault(Return(true));
-    ON_CALL(*this, delete_dedicated_bearer(_, _, _, _))
-        .WillByDefault(Return(true));
-    ON_CALL(*this, create_dedicated_bearer(_, _, _, _))
-        .WillByDefault(Return(true));
+    ON_CALL(*this, delete_dedicated_bearer(_)).WillByDefault(Return(true));
+    ON_CALL(*this, create_dedicated_bearer(_)).WillByDefault(Return(true));
   }
-  MOCK_METHOD3(delete_default_bearer,
-               bool(const std::string &, const std::string &, const uint32_t));
+  MOCK_METHOD3(
+      delete_default_bearer,
+      bool(const std::string&, const std::string&, const uint32_t));
 
-  MOCK_METHOD4(delete_dedicated_bearer,
-               bool(const std::string &, const std::string &, const uint32_t,
-                    const std::vector<uint32_t> &));
-  MOCK_METHOD4(create_dedicated_bearer,
-               bool(const std::string &, const std::string &, const uint32_t,
-                    const std::vector<PolicyRule> &));
+  MOCK_METHOD1(delete_dedicated_bearer, bool(const DeleteBearerRequest&));
+  MOCK_METHOD1(create_dedicated_bearer, bool(const CreateBearerRequest&));
 };
 
 class MockEventsReporter : public EventsReporter {
  public:
-  MOCK_METHOD3(
+  MOCK_METHOD4(
       session_created,
-      void(const std::string&, const std::string&, const SessionConfig&));
+      void(const std::string&, const std::string&, const SessionConfig&,
+           const std::unique_ptr<SessionState>& session));
   MOCK_METHOD3(
       session_create_failure,
       void(const std::string&, const SessionConfig&, const std::string&));

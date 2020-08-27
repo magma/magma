@@ -43,12 +43,14 @@ during it's life cycle in the IP allocator:
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+import ipaddress
 import logging
 import threading
 from collections import defaultdict
 from ipaddress import ip_address, ip_network
 from typing import List, Optional, Tuple
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+from lte.protos.mobilityd_pb2 import GWInfo
 
 from magma.mobilityd import mobility_store as store
 
@@ -378,19 +380,14 @@ class IPAddressManager:
 
             self._try_set_recycle_timer()  # start the timer to recycle
 
-    def get_gateway_ip_adress(self):
+    def list_gateway_info(self) -> List[GWInfo]:
         with self._lock:
-            return self._dhcp_gw_info.getIP()
+            return self._dhcp_gw_info.get_all_router_ips()
 
-    def get_gateway_mac_adress(self):
+    def set_gateway_info(self, info: GWInfo):
+        ip = str(ipaddress.ip_address(info.ip.address))
         with self._lock:
-            return self._dhcp_gw_info.getMac()
-
-    def set_gateway_ip_and_mac(self, ip: str, mac: str):
-        with self._lock:
-            logging.info("set ip %s mac: [%s]" % (ip, mac))
-            self._dhcp_gw_info.update_mac(mac)
-            self._dhcp_gw_info.update_ip(ip)
+            self._dhcp_gw_info.update_mac(ip, info.mac, info.vlan)
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs
