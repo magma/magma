@@ -280,7 +280,7 @@ func Test_Tiers(t *testing.T) {
 
 	entities, _, err := configurator.LoadEntities("n1", swag.String(orc8r.UpgradeTierEntityType), nil, nil, nil, configurator.FullEntityLoadCriteria())
 	assert.NoError(t, err)
-	expected := map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected := configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
@@ -315,7 +315,7 @@ func Test_Tiers(t *testing.T) {
 		{Type: orc8r.UpgradeTierEntityType, Key: "tier1"},
 	}
 	entities, _, err = configurator.LoadEntities("n1", nil, nil, nil, entitiesToQuery, configurator.FullEntityLoadCriteria())
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.UpgradeTierEntityType, Key: "tier1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.UpgradeTierEntityType, Key: "tier1",
@@ -392,7 +392,7 @@ func Test_Tiers(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	entities, _, err = configurator.LoadEntities("n1", nil, nil, nil, entitiesToQuery, configurator.FullEntityLoadCriteria())
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",

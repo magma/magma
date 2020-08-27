@@ -51,10 +51,6 @@ type MagmadEncompassingGateway interface {
 	// GetGatewayType returns the type of the encompassing gateway.
 	GetGatewayType() string
 
-	// LoadFromEntities loads the encompassing gateway from the passed gateway
-	// entities.
-	LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity)
-
 	// GetMagmadGateway returns the Magmad gateways wrapped by the subtype.
 	GetMagmadGateway() *models.MagmadGateway
 

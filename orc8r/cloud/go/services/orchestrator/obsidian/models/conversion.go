@@ -121,10 +121,6 @@ func (m *MagmadGateway) GetGatewayType() string {
 	return orc8r.MagmadGatewayType
 }
 
-func (m *MagmadGateway) LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity) {
-	*m = *(&MagmadGateway{}).FromBackendModels(magmadGateway, nil, nil)
-}
-
 func (m *MagmadGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
 	return nil
 }

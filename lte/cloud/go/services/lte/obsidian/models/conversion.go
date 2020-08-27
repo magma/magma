@@ -174,21 +174,6 @@ func (m *LteGateway) FromBackendModels(
 	return m
 }
 
-func (m *LteGateway) ToMutable() *MutableLteGateway {
-	mut := &MutableLteGateway{
-		ApnResources:           m.ApnResources,
-		Cellular:               m.Cellular,
-		ConnectedEnodebSerials: m.ConnectedEnodebSerials,
-		Description:            m.Description,
-		Device:                 m.Device,
-		ID:                     m.ID,
-		Magmad:                 m.Magmad,
-		Name:                   m.Name,
-		Tier:                   m.Tier,
-	}
-	return mut
-}
-
 func (m *MutableLteGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
 	return &orc8rModels.MagmadGateway{
 		Description: m.Description,
@@ -234,10 +219,6 @@ func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 
 func (m *MutableLteGateway) GetGatewayType() string {
 	return lte.CellularGatewayEntityType
-}
-
-func (m *MutableLteGateway) LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity) {
-	*m = *(&LteGateway{}).FromBackendModels(magmadGateway, encompassingGateway, nil, nil, nil).(*LteGateway).ToMutable()
 }
 
 func (m *MutableLteGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {

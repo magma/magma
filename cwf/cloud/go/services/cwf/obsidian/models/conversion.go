@@ -113,19 +113,6 @@ func (m *CwfGateway) FromBackendModels(
 	return m
 }
 
-func (m *CwfGateway) ToMutable() *MutableCwfGateway {
-	mut := &MutableCwfGateway{
-		CarrierWifi: m.CarrierWifi,
-		Description: m.Description,
-		Device:      m.Device,
-		ID:          m.ID,
-		Magmad:      m.Magmad,
-		Name:        m.Name,
-		Tier:        m.Tier,
-	}
-	return mut
-}
-
 func (m *MutableCwfGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
@@ -160,10 +147,6 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 
 func (m *MutableCwfGateway) GetGatewayType() string {
 	return cwf.CwfGatewayType
-}
-
-func (m *MutableCwfGateway) LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity) {
-	*m = *(&CwfGateway{}).FromBackendModels(magmadGateway, encompassingGateway, nil, nil).(*CwfGateway).ToMutable()
 }
 
 func (m *MutableCwfGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {

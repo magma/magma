@@ -17,14 +17,12 @@ import (
 	"encoding/base64"
 	"fmt"
 	"net"
-	"net/http"
 	"sort"
 	"strings"
 	"time"
 
 	"magma/lte/cloud/go/lte"
 	policymodels "magma/lte/cloud/go/services/policydb/obsidian/models"
-	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/directoryd"
@@ -33,7 +31,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/strfmt"
-	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"github.com/thoas/go-funk"
@@ -112,99 +109,6 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 		sort.Slice(m.State.Mobility, func(i, j int) bool {
 			return m.State.Mobility[i].Apn < m.State.Mobility[j].Apn
 		})
-	}
-
-	return nil
-}
-
-func (m *MutableSubscriber) Create(networkID string) error {
-	// New ents
-	//	- active_policies_by_apn
-	//		- Assocs: policy_rule..., apn
-	//	- subscriber
-	//		- Assocs: active_policies_by_apn
-
-	subEnt := configurator.NetworkEntity{
-		Type: lte.SubscriberEntityType,
-		Key:  string(m.ID),
-		Name: m.Name,
-		Config: &SubscriberConfig{
-			Lte:       m.Lte,
-			StaticIps: m.StaticIps,
-		},
-		Associations: m.GetAssocs(),
-	}
-
-	var ents []configurator.NetworkEntity
-	ents = append(ents, m.ActivePoliciesByApn.ToEntities(subEnt.Key)...)
-	ents = append(ents, subEnt)
-
-	_, err := configurator.CreateEntities(networkID, ents)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *MutableSubscriber) Update(networkID string) error {
-	var writes []configurator.EntityWriteOperation
-
-	existingSub, err := configurator.LoadEntity(
-		networkID, lte.SubscriberEntityType, string(m.ID),
-		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
-	)
-	if err != nil {
-		return err
-	}
-
-	// For simplicity, delete all of subscriber's existing
-	// apn_policy_profile, then add new
-	policyMapTKs := existingSub.Associations.Filter(lte.APNPolicyProfileEntityType)
-	for _, tk := range policyMapTKs {
-		writes = append(writes, configurator.EntityUpdateCriteria{Type: tk.Type, Key: tk.Key, DeleteEntity: true})
-	}
-	for _, e := range m.ActivePoliciesByApn.ToEntities(string(m.ID)) {
-		writes = append(writes, e)
-	}
-
-	subUpdate := configurator.EntityUpdateCriteria{
-		Key:     string(m.ID),
-		Type:    lte.SubscriberEntityType,
-		NewName: swag.String(m.Name),
-		NewConfig: &SubscriberConfig{
-			Lte:       m.Lte,
-			StaticIps: m.StaticIps,
-		},
-		AssociationsToSet: m.GetAssocs(),
-	}
-	writes = append(writes, subUpdate)
-
-	err = configurator.WriteEntities(networkID, writes...)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *MutableSubscriber) Delete(networkID, key string) error {
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
-	if err != nil {
-		return err
-	}
-	sub, err := m.FromEnt(ent)
-	if err != nil {
-		return err
-	}
-
-	var deletes []storage.TypeAndKey
-	deletes = append(deletes, sub.ToTK())
-	deletes = append(deletes, sub.ActivePoliciesByApn.ToTKs(string(sub.ID))...)
-
-	err = configurator.DeleteEntities(networkID, deletes)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
 	return nil

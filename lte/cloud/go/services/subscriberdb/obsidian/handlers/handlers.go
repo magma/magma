@@ -18,6 +18,8 @@ import (
 	"net/http"
 	"regexp"
 
+	"github.com/go-openapi/swag"
+
 	"magma/lte/cloud/go/lte"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
@@ -27,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
+	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/golang/glog"
@@ -45,11 +48,11 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribers},
-		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscriber},
-		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriber},
-		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriber},
-		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriber},
+		{Path: ListSubscribersPath, Methods: obsidian.GET, HandlerFunc: listSubscribersHandler},
+		{Path: ListSubscribersPath, Methods: obsidian.POST, HandlerFunc: createSubscriberHandler},
+		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriberHandler},
+		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler},
+		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriberHandler},
 		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateACTIVE)},
 		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateINACTIVE)},
 		{Path: SubscriberProfilePath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberProfile},
@@ -78,7 +81,7 @@ var subscriberStateTypes = []string{
 	orc8r.DirectoryRecordType,
 }
 
-func listSubscribers(c echo.Context) error {
+func listSubscribersHandler(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -90,7 +93,7 @@ func listSubscribers(c echo.Context) error {
 	return c.JSON(http.StatusOK, subs)
 }
 
-func createSubscriber(c echo.Context) error {
+func createSubscriberHandler(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -107,7 +110,7 @@ func createSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	err := payload.Create(networkID)
+	err := createSubscriber(networkID, payload)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -115,7 +118,7 @@ func createSubscriber(c echo.Context) error {
 	return c.NoContent(http.StatusCreated)
 }
 
-func getSubscriber(c echo.Context) error {
+func getSubscriberHandler(c echo.Context) error {
 	networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
 	if nerr != nil {
 		return nerr
@@ -127,7 +130,7 @@ func getSubscriber(c echo.Context) error {
 	return c.JSON(http.StatusOK, subs)
 }
 
-func updateSubscriber(c echo.Context) error {
+func updateSubscriberHandler(c echo.Context) error {
 	networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
 	if nerr != nil {
 		return nerr
@@ -149,7 +152,7 @@ func updateSubscriber(c echo.Context) error {
 		return nerr
 	}
 
-	err := payload.Update(networkID)
+	err := updateSubscriber(networkID, payload)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -157,12 +160,12 @@ func updateSubscriber(c echo.Context) error {
 	return c.NoContent(http.StatusNoContent)
 }
 
-func deleteSubscriber(c echo.Context) error {
+func deleteSubscriberHandler(c echo.Context) error {
 	networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
 	if nerr != nil {
 		return nerr
 	}
-	err := (&subscribermodels.MutableSubscriber{}).Delete(networkID, subscriberID)
+	err := deleteSubscriber(networkID, subscriberID)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNoContent)
 	}
@@ -336,6 +339,99 @@ func loadAllMutableSubscribers(networkID string) (map[string]*subscribermodels.M
 		subs[ent.Key] = sub
 	}
 	return subs, nil
+}
+
+func createSubscriber(networkID string, sub *subscribermodels.MutableSubscriber) error {
+	// New ents
+	//	- active_policies_by_apn
+	//		- Assocs: policy_rule..., apn
+	//	- subscriber
+	//		- Assocs: active_policies_by_apn
+
+	subEnt := configurator.NetworkEntity{
+		Type: lte.SubscriberEntityType,
+		Key:  string(sub.ID),
+		Name: sub.Name,
+		Config: &subscribermodels.SubscriberConfig{
+			Lte:       sub.Lte,
+			StaticIps: sub.StaticIps,
+		},
+		Associations: sub.GetAssocs(),
+	}
+
+	var ents []configurator.NetworkEntity
+	ents = append(ents, sub.ActivePoliciesByApn.ToEntities(subEnt.Key)...)
+	ents = append(ents, subEnt)
+
+	_, err := configurator.CreateEntities(networkID, ents)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber) error {
+	var writes []configurator.EntityWriteOperation
+
+	existingSub, err := configurator.LoadEntity(
+		networkID, lte.SubscriberEntityType, string(sub.ID),
+		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err != nil {
+		return err
+	}
+
+	// For simplicity, delete all of subscriber's existing
+	// apn_policy_profile, then add new
+	policyMapTKs := existingSub.Associations.Filter(lte.APNPolicyProfileEntityType)
+	for _, tk := range policyMapTKs {
+		writes = append(writes, configurator.EntityUpdateCriteria{Type: tk.Type, Key: tk.Key, DeleteEntity: true})
+	}
+	for _, e := range sub.ActivePoliciesByApn.ToEntities(string(sub.ID)) {
+		writes = append(writes, e)
+	}
+
+	subUpdate := configurator.EntityUpdateCriteria{
+		Key:     string(sub.ID),
+		Type:    lte.SubscriberEntityType,
+		NewName: swag.String(sub.Name),
+		NewConfig: &subscribermodels.SubscriberConfig{
+			Lte:       sub.Lte,
+			StaticIps: sub.StaticIps,
+		},
+		AssociationsToSet: sub.GetAssocs(),
+	}
+	writes = append(writes, subUpdate)
+
+	err = configurator.WriteEntities(networkID, writes...)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func deleteSubscriber(networkID, key string) error {
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	if err != nil {
+		return err
+	}
+	sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent)
+	if err != nil {
+		return err
+	}
+
+	var deletes []storage.TypeAndKey
+	deletes = append(deletes, sub.ToTK())
+	deletes = append(deletes, sub.ActivePoliciesByApn.ToTKs(string(sub.ID))...)
+
+	err = configurator.DeleteEntities(networkID, deletes)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	return nil
 }
 
 func makeErr(err error) *echo.HTTPError {

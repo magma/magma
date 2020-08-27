@@ -238,9 +238,8 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 			var additionalLoads storage.TKs
 			for _, id := range ids {
 				ent := entsByTK[storage.TypeAndKey{Type: gateway.GetGatewayType(), Key: id}]
-				magmadEnt := entsByTK[storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id}]
-				gateway.LoadFromEntities(ent, magmadEnt)
 				magmadGateway := gateway.GetMagmadGateway()
+				magmadEnt := entsByTK[storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id}]
 
 				additionalLoads = append(additionalLoads, gateway.GetAdditionalLoadsOnLoad(ent)...)
 				additionalLoads = append(additionalLoads, magmadGateway.GetAdditionalLoadsOnLoad(magmadEnt)...)

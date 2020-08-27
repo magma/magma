@@ -175,19 +175,6 @@ func (m *FederationGateway) FromBackendModels(
 	return m
 }
 
-func (m *FederationGateway) ToMutable() *MutableFederationGateway {
-	mut := &MutableFederationGateway{
-		Description: m.Description,
-		Device:      m.Device,
-		Federation:  m.Federation,
-		ID:          m.ID,
-		Magmad:      m.Magmad,
-		Name:        m.Name,
-		Tier:        m.Tier,
-	}
-	return mut
-}
-
 func (m *MutableFederationGateway) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
@@ -222,10 +209,6 @@ func (m *MutableFederationGateway) GetAdditionalWritesOnCreate() []configurator.
 
 func (m *MutableFederationGateway) GetGatewayType() string {
 	return feg.FegGatewayType
-}
-
-func (m *MutableFederationGateway) LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity) {
-	*m = *(&FederationGateway{}).FromBackendModels(magmadGateway, encompassingGateway, nil, nil).(*FederationGateway).ToMutable()
 }
 
 func (m *MutableFederationGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
