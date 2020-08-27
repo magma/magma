@@ -1,10 +1,10 @@
-# Magma QoS Policy and Federation API Cleanup
+# Magma Final Unit Action - Service Restriction Feature
 
 *Status: In-Review*\
 *Author: @ymasmoudi*\
 *Last Updated: 08/27*
 
-##Overview 
+## Overview 
 
 Currently, upon exhaustion of subscriber quota, we support two final unit
 actions : 
@@ -19,7 +19,7 @@ according to IP filters definitions or IDs provided in AVPs. This is enabled
 by sending CCA-I/U with a Final-Unit-Action AVP set to RESTRICT\_ACCESS.
 
 
-##Propostion
+## Propostion
 
 FUA-Restrict can be enabled by including either the Restriction-Filter-Rule
 AVP or the Filter-Id AVP in the Credit-Control-Answer message.
@@ -51,7 +51,7 @@ LocalEnforcer will ensure priority in this case.
 As we would like to use any static rule when restriction is enabled, there will
 no change to PolicyRules definition.
 
-##How We Will Change Magma
+## How We Will Change Magma
 
 **PolicyRule**
 
