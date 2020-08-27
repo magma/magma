@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-from typing import List, Callable
+from typing import Callable, Dict, List
 import unittest
 from unittest.mock import Mock
 from lte.protos.policydb_pb2 import AssignedPolicies, ChargingRuleNameSet,\
@@ -35,6 +35,7 @@ class RuleMappingsStreamerCallbackTest(unittest.TestCase):
         accepts the RAR without issue.
         """
         assignments_dict = {}
+        apn_rules_dict = {} # type: Dict[str, SubscriberPolicySet]
         basenames_dict = {
             'bn1': ChargingRuleNameSet(RuleNames=['p5']),
             'bn2': ChargingRuleNameSet(RuleNames=['p6']),
@@ -43,6 +44,7 @@ class RuleMappingsStreamerCallbackTest(unittest.TestCase):
             ReAuthHandler(assignments_dict, MockSessionProxyResponderStub1()),
             basenames_dict,
             assignments_dict,
+            apn_rules_dict,
         )
 
         # Construct a set of updates, keyed by subscriber ID
@@ -83,16 +85,35 @@ class RuleMappingsStreamerCallbackTest(unittest.TestCase):
         self.assertTrue("p3" in s2_policies, 'Policy p3 should be active for '
                                              'subscriber s2')
 
+        # Check the ApnRuleAssignmentsDict too
+        s1_policies = apn_rules_dict["s1"].global_policies
+        s1_base_names = apn_rules_dict["s1"].global_base_names
+        self.assertEqual(len(s1_policies), 2,
+                         'There should be 2 global policies for s1')
+        self.assertTrue("p1" in s1_policies,
+                        'Policy p1 should be global for subscriber s1')
+        self.assertTrue("bn1" in s1_base_names,
+                        'Base name bn1 should be global for subscriber s1')
+
+        s2_policies = apn_rules_dict["s2"].global_policies
+        self.assertEqual(len(s2_policies), 2,
+                         'There should be 2 global policies for s2')
+        self.assertTrue("p3" in s2_policies,
+                        'Policy p3 should be global for subscriber s2')
+
+
     def test_FailedUpdate(self):
         """
         Test when sessiond answers to the RAR with a failure for any re-auth.
         """
         assignments_dict = {}
+        apn_rules_dict = {} # type: Dict[str, SubscriberPolicySet]
         basenames_dict = {}
         callback = RuleMappingsStreamerCallback(
             ReAuthHandler(assignments_dict, MockSessionProxyResponderStub2()),
             basenames_dict,
             assignments_dict,
+            apn_rules_dict,
         )
 
         # Construct a set of updates, keyed by subscriber ID
@@ -126,11 +147,13 @@ class RuleMappingsStreamerCallbackTest(unittest.TestCase):
         Test when sessiond answers to the RAR with a failure for installing p2.
         """
         assignments_dict = {}
+        apn_rules_dict = {} # type: Dict[str, SubscriberPolicySet]
         basenames_dict = {}
         callback = RuleMappingsStreamerCallback(
             ReAuthHandler(assignments_dict, MockSessionProxyResponderStub3()),
             basenames_dict,
             assignments_dict,
+            apn_rules_dict,
         )
 
         # Construct a set of updates, keyed by subscriber ID
@@ -170,11 +193,13 @@ class RuleMappingsStreamerCallbackTest(unittest.TestCase):
         Test consecutive updates
         """
         assignments_dict = {}
+        apn_rules_dict = {} # type: Dict[str, SubscriberPolicySet]
         basenames_dict = {}
         callback = RuleMappingsStreamerCallback(
             ReAuthHandler(assignments_dict, MockSessionProxyResponderStub3()),
             basenames_dict,
             assignments_dict,
+            apn_rules_dict,
         )
 
         # Construct a set of updates, keyed by subscriber ID

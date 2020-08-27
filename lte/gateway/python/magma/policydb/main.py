@@ -76,6 +76,7 @@ def main():
                     reauth_handler,
                     basenames_dict,
                     assignments_dict,
+                    apn_rules_dict,
                 ),
                 'rating_groups': RatingGroupsStreamerCallback(
                     rating_groups_dict),

@@ -215,6 +215,12 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
 
 class RuleMappingsStreamerCallback(StreamerClient.Callback):
     """
+    DEPRECATED (8/27/2020):
+        Rule mappings will no longer be streamed only on a per-subscriber
+        basis. Instead, rule mapping will be streamed from orc8r on a per-APN
+        basis, with some rules and base-names marked specially as being for all
+        APNs of a subscriber.
+
     Callback for the rule mapping streamer policy which persists the policies
     and basenames active for a subscriber.
     """
@@ -223,10 +229,12 @@ class RuleMappingsStreamerCallback(StreamerClient.Callback):
         reauth_handler: ReAuthHandler,
         rules_by_basename: BaseNameDict,
         rules_by_sid: RuleAssignmentsDict,
+        apn_rules_by_sid: ApnRuleAssignmentsDict,
     ):
         self._reauth_handler = reauth_handler
         self._rules_by_basename = rules_by_basename
         self._rules_by_sid = rules_by_sid
+        self._apn_rules_by_sid = apn_rules_by_sid
 
     def get_request_args(self, stream_name: str) -> Any:
         return None
@@ -253,6 +261,14 @@ class RuleMappingsStreamerCallback(StreamerClient.Callback):
         """
         prev_rules = self._get_prev_policies(subscriber_id)
         desired_rules = self._get_desired_rules(assigned_policies)
+
+        self._apn_rules_by_sid[subscriber_id] = SubscriberPolicySet(
+            rules_per_apn=[],
+            global_policies=[
+                rule_id for rule_id in assigned_policies.assigned_policies],
+            global_base_names=[
+                basename for basename in assigned_policies.assigned_base_names],
+        )
 
         rar = self._generate_rar(subscriber_id,
                                  list(desired_rules - prev_rules),
