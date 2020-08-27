@@ -20,6 +20,7 @@ from __future__ import absolute_import, division, print_function, \
 
 from ipaddress import ip_address, ip_network
 from typing import List
+import logging
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.ip_allocator_base import IPAllocator
@@ -28,13 +29,16 @@ from magma.mobilityd.subscriberdb_client import SubscriberDbClient
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
 
-class IPAllocatorStaticWrapper(IPAllocator):
+class IPAllocatorMultiAPNWrapper(IPAllocator):
 
     def __init__(self, subscriberdb_rpc_stub, ip_allocator: IPAllocator):
-        """ Initializes a static IP allocator
+        """ Initializes a Multi APN IP allocator
             This is wrapper around other configured Ip allocator. If subscriber
-            does have static IP, it uses underlying IP allocator to allocate IP
-            for the subscriber.
+            has vlan configured in APN config, it would be used for allocating
+            IP address by underlying IP allocator. For DHCP it means using
+            vlan tag for DHCP request, for IP pool allocator it does not change
+            behaviour.
+            TODO: Add support of per APN IP-POOL
         """
         self._subscriber_client = SubscriberDbClient(subscriberdb_rpc_stub)
         self._ip_allocator = ip_allocator
@@ -62,31 +66,24 @@ class IPAllocatorStaticWrapper(IPAllocator):
         """
         return self._ip_allocator.list_allocated_ips(ipblock)
 
-    def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:
-        """ Check if subscriber has static IP assigned.
-        If it is not allocated use IP allocator to assign an IP.
+    def alloc_ip_address(self, sid: str, vlan_id: int) -> IPDesc:
+        """ Check if subscriber has APN configuration and vlan.
+        once we have APN specific info use IP allocator to assign an IP.
         """
-        ip_desc = self._allocate_static_ip(sid)
-        if ip_desc is None:
-            ip_desc = self._ip_allocator.alloc_ip_address(sid, vlan)
+        vlan_id = self._subscriber_client.get_subscriber_apn_vlan(sid)
+        logging.info("got vlan: [%s]", vlan_id)
+        ip_desc = self._ip_allocator.alloc_ip_address(sid, vlan_id)
+
+        if ip_desc:
+            ip_desc.vlan_id = vlan_id
+        logging.info("sid %s vlan %s", sid, vlan_id)
+
         return ip_desc
 
     def release_ip(self, ip_desc: IPDesc):
         """
-        Statically allocated IPs do not need to do any update on
-        ip release
+        Multi APN allocated IPs do not need to do any update on
+        ip release, let actual IP allocator release the IP.
         """
         if ip_desc.type != IPType.STATIC:
             self._ip_allocator.release_ip(ip_desc)
-
-    def _allocate_static_ip(self, sid: str) -> IPDesc:
-        """
-        Check if static IP allocation is enabled and then check
-        subscriber DB for assigned static IP for the SID
-        """
-        ip_addr = self._subscriber_client.get_subscriber_ip(sid)
-        if ip_addr is None:
-            return None
-        return IPDesc(ip=ip_addr, state=IPState.ALLOCATED,
-                      sid=sid, ip_block=ip_addr, ip_type=IPType.STATIC)
-

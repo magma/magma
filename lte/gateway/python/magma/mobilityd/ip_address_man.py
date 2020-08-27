@@ -61,6 +61,7 @@ from magma.common.redis.client import get_default_client
 from .ip_allocator_dhcp import IPAllocatorDHCP
 from .ip_allocator_pool import IpAllocatorPool
 from .ip_allocator_static import IPAllocatorStaticWrapper
+from .ip_allocator_multi_apn import IPAllocatorMultiAPNWrapper
 
 from .ip_descriptor_map import IpDescriptorMap
 from .uplink_gw import UplinkGatewayInfo
@@ -135,6 +136,7 @@ class IPAddressManager:
         persist_to_redis = config.get('persist_to_redis', True)
         redis_port = config.get('redis_port', 6379)
 
+        self.multi_apn = config.get('multi_apn', False)
         self.allocator_type = mconfig.ip_allocator_type
         logging.debug('Persist to Redis: %s', persist_to_redis)
         self._lock = threading.RLock()  # re-entrant locks
@@ -178,8 +180,12 @@ class IPAddressManager:
                                            gw_info=self._dhcp_gw_info)
 
         if self.static_ip_enabled:
-            self.ip_allocator = IPAllocatorStaticWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                         ip_allocator=ip_allocator)
+            ip_allocator = IPAllocatorStaticWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+                                                    ip_allocator=ip_allocator)
+
+        if self.multi_apn:
+            self.ip_allocator = IPAllocatorMultiAPNWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+                                                           ip_allocator=ip_allocator)
         else:
             self.ip_allocator = ip_allocator
 
@@ -316,7 +322,7 @@ class IPAddressManager:
                 return old_ip_desc.ip
 
             # Now try to allocate it from underlying allocator.
-            ip_desc = self.ip_allocator.alloc_ip_address(sid)
+            ip_desc = self.ip_allocator.alloc_ip_address(sid, 0)
             self.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc, IPState.ALLOCATED)
             self.sid_ips_map[sid] = ip_desc
 
