@@ -143,6 +143,8 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         if subscriber_id not in self._apn_rules_by_sid:
             return True
         prev = self._apn_rules_by_sid[subscriber_id]
+        # TODO: (8/21/2020) repeated fields may not be ordered the same, use a
+        #       different method to compare later
         return subApnPolicies.SerializeToString() != prev.SerializeToString()
 
     def _build_sub_rule_set(
@@ -151,11 +153,16 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         sub_apn_policies: SubscriberPolicySet,
     ) -> RulesPerSubscriber:
         apn_rule_sets = [] # type: List[RuleSet]
+        global_rules = self._get_global_static_rules(sub_apn_policies)
+
         for apn_policy_set in sub_apn_policies.rules_per_apn:
             # Static rule installs
             static_rule_ids = self._get_desired_static_rules(apn_policy_set)
             static_rules = [] # type: List[StaticRuleInstall]
             for rule_id in static_rule_ids:
+                static_rules.append(StaticRuleInstall(rule_id=rule_id))
+            # Add global rules
+            for rule_id in global_rules:
                 static_rules.append(StaticRuleInstall(rule_id=rule_id))
 
             # Dynamic rule installs
@@ -179,6 +186,19 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
             imsi=subscriber_id,
             rule_set=apn_rule_sets,
         )
+
+    def _get_global_static_rules(
+        self,
+        sub_apn_policies: SubscriberPolicySet,
+    ) -> Set[str]:
+        global_rules = set(sub_apn_policies.global_policies)
+        for basename in sub_apn_policies.global_base_names:
+            if basename not in self._rules_by_basename:
+                # Eventually, basename definition will be streamed from orc8r
+                continue
+            global_rules.update(
+                self._rules_by_basename[basename].RuleNames)
+        return global_rules
 
     def _get_desired_static_rules(
         self,

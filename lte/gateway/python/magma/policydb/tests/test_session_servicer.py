@@ -27,6 +27,7 @@ from magma.policydb.servicers.session_servicer import SessionRpcServicer
 
 CSR_STATIC_RULES = '[rule_id: "redirect"]'
 CSR_STATIC_RULES_2 = '[rule_id: "p6"]'
+CSR_STATIC_RULES_3 = '[rule_id: "p5"]'
 
 
 USR = '''
@@ -80,6 +81,17 @@ class SessionRpcServicerTest(unittest.TestCase):
                     ApnPolicySet(
                         apn="apn2",
                         assigned_base_names=["bn2"],
+                        assigned_policies=[],
+                    ),
+                ],
+            ),
+            "IMSI3456": SubscriberPolicySet(
+                global_base_names=["bn1"],
+                global_policies=[],
+                rules_per_apn=[
+                    ApnPolicySet(
+                        apn="apn1",
+                        assigned_base_names=[],
                         assigned_policies=[],
                     ),
                 ],
@@ -154,9 +166,37 @@ class SessionRpcServicerTest(unittest.TestCase):
         )
         resp = self.servicer.CreateSession(msg_2, None)
 
-        # There should be a static rule installed for the redirection
+        # There should be a static rule installed
         static_rules = self._rm_whitespace(str(resp.static_rules))
         expected = self._rm_whitespace(CSR_STATIC_RULES_2)
+        self.assertEqual(static_rules, expected, 'There should be one static '
+                                                 'rule installed.')
+
+        # Credit granted should be unlimited and un-metered
+        credit_limit_type = resp.credits[0].limit_type
+        expected = CreditLimitType.Value("INFINITE_UNMETERED")
+        self.assertEqual(credit_limit_type, expected,
+                         'There should be an infinite, unmetered credit grant')
+
+        msg_3 = CreateSessionRequest(
+            session_id='3456',
+            common_context=CommonSessionContext(
+                sid=SubscriberID(
+                    id='IMSI3456',
+                ),
+                apn='apn1',
+            ),
+            rat_specific_context = RatSpecificContext(
+                lte_context = LTESessionContext(
+                    imsi_plmn_id = '00101',
+                ),
+            ),
+        )
+        resp = self.servicer.CreateSession(msg_3, None)
+
+        # There should be a static rule installed
+        static_rules = self._rm_whitespace(str(resp.static_rules))
+        expected = self._rm_whitespace(CSR_STATIC_RULES_3)
         self.assertEqual(static_rules, expected, 'There should be one static '
                                                  'rule installed.')
 

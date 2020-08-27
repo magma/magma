@@ -15,7 +15,7 @@ import logging
 from typing import List, Set
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.policydb_pb2 import PolicyRule, FlowDescription, \
-    FlowMatch, RatingGroup, ApnPolicySet
+    FlowMatch, RatingGroup, ApnPolicySet, SubscriberPolicySet
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     CreateSessionResponse, UpdateSessionRequest, SessionTerminateResponse, \
     UpdateSessionResponse, StaticRuleInstall, DynamicRuleInstall,\
@@ -159,6 +159,12 @@ class SessionRpcServicer(CentralSessionControllerServicer):
 
         sub_apn_policies = self._apn_rules_by_sid[imsi]
         assigned_static_rules = [] # type: List[StaticRuleInstall]
+        # Add global rules
+        global_rules = self._get_global_static_rules(sub_apn_policies)
+        assigned_static_rules += \
+            list(map(lambda id: StaticRuleInstall(rule_id=id),
+                     global_rules))
+        # Add APN specific rules
         for apn_policy_set in sub_apn_policies.rules_per_apn:
             if apn_policy_set.apn != apn:
                 continue
@@ -170,6 +176,18 @@ class SessionRpcServicer(CentralSessionControllerServicer):
 
         return assigned_static_rules
 
+    def _get_global_static_rules(
+        self,
+        sub_apn_policies: SubscriberPolicySet,
+    ) -> Set[str]:
+        global_rules = set(sub_apn_policies.global_policies)
+        for basename in sub_apn_policies.global_base_names:
+            if basename not in self._rules_by_basename:
+                # Eventually, basename definition will be streamed from orc8r
+                continue
+            global_rules.update(
+                self._rules_by_basename[basename].RuleNames)
+        return global_rules
 
     def _get_static_rules(
         self,

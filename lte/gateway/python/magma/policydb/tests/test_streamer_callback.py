@@ -391,10 +391,12 @@ class ApnRuleMappingsStreamerCallbackTest(unittest.TestCase):
             DataUpdate(
                 key="imsi_2",
                 value=SubscriberPolicySet(
+                    global_base_names=["bn2"],
+                    global_policies=[],
                     rules_per_apn=[
                         ApnPolicySet(
                             apn="apn1",
-                            assigned_base_names=["bn1"],
+                            assigned_base_names=[],
                             assigned_policies=[],
                         ),
                     ],
@@ -416,6 +418,28 @@ class ApnRuleMappingsStreamerCallbackTest(unittest.TestCase):
                                 DynamicRuleInstall(
                                     policy_rule=PolicyRule(
                                         id="allowlist_sid-imsi_1-apn2",
+                                        priority=2,
+                                        flow_list=allow_all_flow_list,
+                                        tracking_type=no_tracking_type,
+                                    )
+                                )
+                            ],
+                        ),
+                    ]
+                ),
+                RulesPerSubscriber(
+                    imsi='imsi_2',
+                    rule_set=[
+                        RuleSet(
+                            apply_subscriber_wide=False,
+                            apn="apn1",
+                            static_rules=[
+                                StaticRuleInstall(rule_id="p6"),
+                            ],
+                            dynamic_rules=[
+                                DynamicRuleInstall(
+                                    policy_rule=PolicyRule(
+                                        id="allowlist_sid-imsi_2-apn1",
                                         priority=2,
                                         flow_list=allow_all_flow_list,
                                         tracking_type=no_tracking_type,
