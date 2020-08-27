@@ -35,6 +35,7 @@ from magma.magmad.metrics import BOOTSTRAP_EXCEPTION
 from orc8r.protos.bootstrapper_pb2 import ChallengeKey, Response
 from orc8r.protos.bootstrapper_pb2_grpc import BootstrapperStub
 from orc8r.protos.certifier_pb2 import CSR
+from orc8r.protos.common_pb2 import Void
 from orc8r.protos.identity_pb2 import AccessGatewayID, Identity
 
 
@@ -83,6 +84,8 @@ class BootstrapManager(SDWatchdogTask):
         self._gateway_key = None
         self._state = BootstrapState.INITIAL
         self._bootstrap_success_cb = bootstrap_success_cb
+
+        self._ovpn_client_conf = service.config['ovpn_config']['client_file']
 
         # give some margin on watchdog check interval
         self.set_timeout(self._interval * 1.1)
@@ -411,3 +414,28 @@ class BootstrapManager(SDWatchdogTask):
         r_bytes = r_int.to_bytes((r_int.bit_length() + 7) // 8, 'big')
         s_bytes = s_int.to_bytes((s_int.bit_length() + 7) // 8, 'big')
         return r_bytes, s_bytes
+
+    async def _request_vpn_cert(self):
+        try:
+            chan = ServiceRegistry.get_bootstrap_rpc_channel()
+        except ValueError as exp:
+            logging.error('Failed to get rpc channel: %s', exp)
+            return
+
+        client = BootstrapperStub(chan)
+        try:
+            result = await grpc_async_wrapper(
+                client.RequestVPNCert.future(Void()),
+                self._loop
+            )
+            await self._get_request_vpn_done_success(result)
+
+        except grpc.RpcError as err:
+            self._get_request_vpn_cert_done_fail(err)
+
+    async def _get_request_vpn_done_success(self, cert):
+        pass
+
+    def _get_request_vpn_cert_done_fail(self, err):
+        pass
+

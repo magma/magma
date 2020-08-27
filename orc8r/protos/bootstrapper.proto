@@ -61,6 +61,10 @@ message Response {
   CSR csr = 6;
 }
 
+message VPNClientCert {
+  bytes client_file = 1;
+}
+
 // Note that the security of this service is dependent on TLS to protect
 // against MITM and replay attacks
 service Bootstrapper {

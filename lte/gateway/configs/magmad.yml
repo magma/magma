@@ -29,6 +29,7 @@ magma_services:
   - policydb
   - state
   - eventd
+  - ovpn
 
 # List of services that don't provide service303 interface
 non_service303_services:
@@ -36,6 +37,7 @@ non_service303_services:
   - dnsd
   - redis
   - td-agent-bit
+  - ovpn
 
 # List of all possible dynamic services (enabled from gateway.mconfig)
 registered_dynamic_services:
@@ -119,6 +121,9 @@ metricsd:
     - pipelined
     - state
     - sessiond
+
+ovpn_config:
+  client_file: /var/opt/magma/tmp/vpn_client.conf
 
 generic_command_config:
   module: magma.magmad.generic_command.shell_command_executor

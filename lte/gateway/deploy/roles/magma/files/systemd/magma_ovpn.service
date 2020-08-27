@@ -15,8 +15,7 @@ Description=Magma %i service
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStartPre=/usr/bin/env python3 /usr/local/bin/generate_ovpn_config.py
-ExecStart=/usr/sbin/openvpn
+ExecStart=/usr/sbin/openvpn /etc/openvpn/client/client.conf
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py ovpn
 StandardOutput=syslog
 StandardError=syslog

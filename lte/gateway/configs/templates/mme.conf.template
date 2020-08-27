@@ -68,11 +68,7 @@ MME :
     # MME code DEFAULT  size = 8 bits
     # MME GROUP ID size = 16 bits
     GUMMEI_LIST = (
-        { MCC: "001"; MNC: "01"; MME_GID: "1"; MME_CODE: "1" },
-        { MCC: "001"; MNC: "02"; MME_GID: "1"; MME_CODE: "1" },
-        { MCC: "001"; MNC: "03"; MME_GID: "1"; MME_CODE: "1" },
-        { MCC: "001"; MNC: "04"; MME_GID: "1"; MME_CODE: "1" },
-        { MCC: "001"; MNC: "05"; MME_GID: "1"; MME_CODE: "1" }
+         { MCC="{{ mcc }}" ; MNC="{{ mnc }}"; MME_GID="{{ mmeGid }}" ; MME_CODE="{{ mmeCode }}"; }
     );
 
     # ------- MME served TAIs
@@ -81,19 +77,19 @@ MME :
     # maximum of 16 TAIs, comma separated
     # !!! Actually use only one PLMN
     TAI_LIST = (
-        { MCC: "001"; MNC: "01"; TAC: "1" },
-        { MCC: "001"; MNC: "02"; TAC: "2" },
-        { MCC: "001"; MNC: "03"; TAC: "3" },
-        { MCC: "001"; MNC: "04"; TAC: "4" },
-        { MCC: "001"; MNC: "05"; TAC: "5" }
+    {% if not attachedEnodebTacs|length %}
+         { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ tac }}"; }
+    {%- else %}
+         {% for enbTac in attachedEnodebTacs -%}
+         { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ enbTac }}"; }{% if not loop.last %},{% endif %}
+         {% endfor -%}
+    {%- endif %}
     );
 
     TAC_LIST = (
-        { MCC: "001"; MNC: "01"; TAC: "1" },
-        { MCC: "001"; MNC: "02"; TAC: "2" },
-        { MCC: "001"; MNC: "03"; TAC: "3" },
-        { MCC: "001"; MNC: "04"; TAC: "4" },
-        { MCC: "001"; MNC: "05"; TAC: "5" }
+         {% for enbTac in attached_enodeb_tacs -%}
+         { MCC="{{ mcc }}" ; MNC="{{ mnc }}" ; TAC="{{ enbTac }}"; }{% if not loop.last %},{% endif %}
+         {% endfor %}
     );
 
     CSFB :
@@ -131,7 +127,7 @@ MME :
         # Initiation of the periodic TAU procedure if the UE is not attached for
         # emergency bearer services. Implicit detach from network if the UE is
         # attached for emergency bearer services.
-        T3412                                 =  1                             # in minutes (default is 54 minutes, network dependent)
+        T3412                                 =  54                             # in minutes (default is 54 minutes, network dependent)
         # T3422 start: DETACH REQUEST sent
         # T3422 stop: DETACH ACCEPT received
         # ON THE 1st, 2nd, 3rd, 4th EXPIRY: Retransmission of DETACH REQUEST
