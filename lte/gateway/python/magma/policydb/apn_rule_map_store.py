@@ -23,6 +23,9 @@ class ApnRuleAssignmentsDict(RedisHashDict):
     ApnRuleAssignmentsDict uses the RedisHashDict collection to store a mapping
     of subscriber IDs to installed base names and static policy rules per APN.
     Setting and deleting items in the dictionary syncs with Redis automatically
+
+    NOTE: keyed by IMSI, with the 'IMSI' prefix,
+          ie. IMSI1234 instead of 1234
     """
     _DICT_HASH = "policydb:apn_installed"
 

@@ -20,6 +20,7 @@ from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.common.streamer import StreamerClient
+from magma.policydb.apn_rule_map_store import ApnRuleAssignmentsDict
 from magma.policydb.basename_store import BaseNameDict
 from magma.policydb.rating_group_store import RatingGroupsDict
 from magma.policydb.reauth_handler import ReAuthHandler
@@ -32,9 +33,9 @@ from .streamer_callback import ApnRuleMappingsStreamerCallback,\
 
 
 def main():
-    """ main() for subscriberdb """
     service = MagmaService('policydb', mconfigs_pb2.PolicyDB())
 
+    apn_rules_dict = ApnRuleAssignmentsDict()
     assignments_dict = RuleAssignmentsDict()
     basenames_dict = BaseNameDict()
     rating_groups_dict = RatingGroupsDict()
@@ -50,6 +51,7 @@ def main():
     subscriberdb_stub = SubscriberDBStub(chan)
     session_servicer = SessionRpcServicer(service.mconfig,
                                           rating_groups_dict,
+                                          basenames_dict,
                                           subscriberdb_stub)
     session_servicer.add_to_server(service.rpc_server)
 
@@ -68,7 +70,7 @@ def main():
                 'apn_rule_mappings': ApnRuleMappingsStreamerCallback(
                     session_mgr_stub,
                     basenames_dict,
-                    assignments_dict,
+                    apn_rules_dict,
                 ),
                 'rule_mappings': RuleMappingsStreamerCallback(
                     reauth_handler,

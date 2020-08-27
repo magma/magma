@@ -12,20 +12,21 @@ limitations under the License.
 """
 
 import unittest
-from typing import List
 from lte.protos.mconfig import mconfigs_pb2
-from lte.protos.policydb_pb2 import RatingGroup
+from lte.protos.policydb_pb2 import RatingGroup, AssignedPolicies,\
+    ChargingRuleNameSet, SubscriberPolicySet, ApnPolicySet, PolicyRule,\
+    FlowDescription, FlowMatch
 from lte.protos.session_manager_pb2 import CreateSessionRequest, \
     UpdateSessionRequest, CreditUsageUpdate, SessionTerminateRequest, \
     CreditUpdateResponse, CreditLimitType, RatSpecificContext, \
     LTESessionContext, CommonSessionContext
 from lte.protos.subscriberdb_pb2 import SubscriberData, LTESubscription, \
     SubscriberID
-from orc8r.protos.common_pb2 import NetworkID
 from magma.policydb.servicers.session_servicer import SessionRpcServicer
 
 
 CSR_STATIC_RULES = '[rule_id: "redirect"]'
+CSR_STATIC_RULES_2 = '[rule_id: "p6"]'
 
 
 USR = '''
@@ -43,21 +44,6 @@ USR = '''
   }'''
 
 
-class MockSubscriberDBStub:
-    def __init__(self):
-        pass
-
-    def ListSubscribers(self) -> List[str]:
-        return ["IMSI001010000000001", "IMSI001010000000002"]
-
-    def GetSubscriberData(self, _: NetworkID) -> SubscriberData:
-        return SubscriberData(
-            lte=LTESubscription(
-                assigned_policies=["redirect"],
-            )
-        )
-
-
 class SessionRpcServicerTest(unittest.TestCase):
     def setUp(self):
         rating_groups_by_id = {
@@ -70,9 +56,39 @@ class SessionRpcServicerTest(unittest.TestCase):
                 limit_type=RatingGroup.INFINITE_METERED,
             ),
         }
+        basenames_dict = {
+            'bn1': ChargingRuleNameSet(RuleNames=['p5']),
+            'bn2': ChargingRuleNameSet(RuleNames=['p6']),
+        }
+        apn_rules_by_sid = {
+            "IMSI1234": SubscriberPolicySet(
+                rules_per_apn=[
+                    ApnPolicySet(
+                        apn="apn1",
+                        assigned_base_names=[],
+                        assigned_policies=["redirect"],
+                    ),
+                ],
+            ),
+            "IMSI2345": SubscriberPolicySet(
+                rules_per_apn=[
+                    ApnPolicySet(
+                        apn="apn1",
+                        assigned_base_names=["bn1"],
+                        assigned_policies=[],
+                    ),
+                    ApnPolicySet(
+                        apn="apn2",
+                        assigned_base_names=["bn2"],
+                        assigned_policies=[],
+                    ),
+                ],
+            ),
+        }
         self.servicer = SessionRpcServicer(self._get_mconfig(),
                                            rating_groups_by_id,
-                                           MockSubscriberDBStub())
+                                           basenames_dict,
+                                           apn_rules_by_sid)
 
     def _get_mconfig(self) -> mconfigs_pb2.PolicyDB:
         return mconfigs_pb2.PolicyDB(
@@ -95,11 +111,12 @@ class SessionRpcServicerTest(unittest.TestCase):
             portal and vice versa
         """
         msg = CreateSessionRequest(
-            session_id = '1234',
-            common_context = CommonSessionContext(
-                sid = SubscriberID(
-                    id = 'IMSI1234',
-                )
+            session_id='1234',
+            common_context=CommonSessionContext(
+                sid=SubscriberID(
+                    id='IMSI1234',
+                ),
+                apn='apn1',
             ),
             rat_specific_context = RatSpecificContext(
                 lte_context = LTESessionContext(
@@ -120,6 +137,34 @@ class SessionRpcServicerTest(unittest.TestCase):
         expected = CreditLimitType.Value("INFINITE_UNMETERED")
         self.assertEqual(credit_limit_type, expected, 'There should be an '
                          'infinite, unmetered credit grant')
+
+        msg_2 = CreateSessionRequest(
+            session_id='2345',
+            common_context=CommonSessionContext(
+                sid=SubscriberID(
+                    id='IMSI2345',
+                ),
+                apn='apn2',
+            ),
+            rat_specific_context = RatSpecificContext(
+                lte_context = LTESessionContext(
+                    imsi_plmn_id = '00101',
+                ),
+            ),
+        )
+        resp = self.servicer.CreateSession(msg_2, None)
+
+        # There should be a static rule installed for the redirection
+        static_rules = self._rm_whitespace(str(resp.static_rules))
+        expected = self._rm_whitespace(CSR_STATIC_RULES_2)
+        self.assertEqual(static_rules, expected, 'There should be one static '
+                                                 'rule installed.')
+
+        # Credit granted should be unlimited and un-metered
+        credit_limit_type = resp.credits[0].limit_type
+        expected = CreditLimitType.Value("INFINITE_UNMETERED")
+        self.assertEqual(credit_limit_type, expected,
+                         'There should be an infinite, unmetered credit grant')
 
     def test_UpdateSession(self):
         """
