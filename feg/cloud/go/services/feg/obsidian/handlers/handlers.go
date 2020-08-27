@@ -66,7 +66,7 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(ListGatewaysPath, feg.FegGatewayType, makeFederationGateways),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, &fegModels.MutableFederationGateway{}, makeFederationGateways),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -169,13 +169,12 @@ type federationAndMagmadGateway struct {
 }
 
 func makeFederationGateways(
-	networkID string,
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rModels.GatewayStatus,
-) (map[string]handlers.GatewayModel, error) {
+) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*federationAndMagmadGateway{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, feg.FegGatewayType) {
 		existing, found := gatewayEntsByKey[tk.Key]
 		if !found {
 			existing = &federationAndMagmadGateway{}
@@ -200,7 +199,7 @@ func makeFederationGateways(
 		ret[key] = (&fegModels.FederationGateway{}).FromBackendModels(ents.magmadGateway, ents.federationGateway, devCasted, statusesByID[hwID])
 	}
 
-	return ret, nil
+	return ret
 }
 
 func getClusterStatusHandler(c echo.Context) error {

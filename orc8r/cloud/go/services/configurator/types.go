@@ -216,7 +216,7 @@ func (ent NetworkEntity) isEntityWriteOperation() {}
 
 type NetworkEntities []NetworkEntity
 
-func (ne NetworkEntities) MakeByTK() map[storage2.TypeAndKey]NetworkEntity {
+func (ne NetworkEntities) MakeByTK() NetworkEntitiesByTK {
 	ret := make(map[storage2.TypeAndKey]NetworkEntity, len(ne))
 	for _, ent := range ne {
 		ret[ent.GetTypeAndKey()] = ent
@@ -231,6 +231,43 @@ func (ne NetworkEntities) GetFirst(typ string) (NetworkEntity, error) {
 		}
 	}
 	return NetworkEntity{}, fmt.Errorf("no network entity of type %s found in %v", typ, ne)
+}
+
+type NetworkEntitiesByTK map[storage2.TypeAndKey]NetworkEntity
+
+// Merge returns A+B when called as A.Merge(B).
+// B overwrites any shared keys with A.
+func (n NetworkEntitiesByTK) Merge(nn NetworkEntitiesByTK) NetworkEntitiesByTK {
+	merged := NetworkEntitiesByTK{}
+	for tk, ent := range n {
+		merged[tk] = ent
+	}
+	for tk, ent := range nn {
+		merged[tk] = ent
+	}
+	return merged
+}
+
+// Filter for TK type.
+func (n NetworkEntitiesByTK) Filter(typ string) NetworkEntitiesByTK {
+	filtered := NetworkEntitiesByTK{}
+	for tk, ent := range n {
+		if typ == tk.Type {
+			filtered[tk] = ent
+		}
+	}
+	return filtered
+}
+
+// MultiFilter for TK types.
+func (n NetworkEntitiesByTK) MultiFilter(types ...string) NetworkEntitiesByTK {
+	filtered := NetworkEntitiesByTK{}
+	for tk, ent := range n {
+		if funk.ContainsString(types, tk.Type) {
+			filtered[tk] = ent
+		}
+	}
+	return filtered
 }
 
 // EntityGraph represents a DAG of associated network entities

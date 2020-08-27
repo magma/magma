@@ -27,7 +27,6 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8rmodels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
-	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/go-openapi/strfmt"
@@ -66,7 +65,7 @@ const (
 // GetHandlers returns all obsidian handlers for Symphony
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(BaseAgentsPath, devmand.SymphonyAgentType, makeSymphonyAgents),
+		handlers.GetListGatewaysHandler(BaseAgentsPath, &symphonymodels.MutableSymphonyAgent{}, makeSymphonyAgents),
 		{Path: BaseAgentsPath, Methods: obsidian.POST, HandlerFunc: createAgent},
 		{Path: ManageAgentPath, Methods: obsidian.GET, HandlerFunc: getAgent},
 		{Path: ManageAgentPath, Methods: obsidian.PUT, HandlerFunc: updateAgent},
@@ -103,13 +102,12 @@ type agentAndMagmadGatewayEntities struct {
 }
 
 func makeSymphonyAgents(
-	networkID string,
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rmodels.GatewayStatus,
-) (map[string]handlers.GatewayModel, error) {
+) map[string]handlers.GatewayModel {
 	agentEntsByKey := map[string]*agentAndMagmadGatewayEntities{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, devmand.SymphonyAgentType) {
 		existing, found := agentEntsByKey[tk.Key]
 		if !found {
 			existing = &agentAndMagmadGatewayEntities{}
@@ -132,7 +130,7 @@ func makeSymphonyAgents(
 		}
 		ret[key] = (&symphonymodels.SymphonyAgent{}).FromBackendModels(aMEnts.magmadEnt, aMEnts.agentEnt, devCasted, statusesByID[hwID])
 	}
-	return ret, nil
+	return ret
 }
 
 func listNetworks(c echo.Context) error {

@@ -48,8 +48,23 @@ import (
 type MagmadEncompassingGateway interface {
 	serde.ValidatableModel
 
+	// GetGatewayType returns the type of the encompassing gateway.
+	GetGatewayType() string
+
+	// LoadFromEntities loads the encompassing gateway from the passed gateway
+	// entities.
+	LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity)
+
 	// GetMagmadGateway returns the Magmad gateways wrapped by the subtype.
 	GetMagmadGateway() *models.MagmadGateway
+
+	// GetAdditionalLoadsOnLoad is a static method that extra TKs to load when
+	// loading this gateway.
+	// The entities loaded during this operation will be passed to the
+	// MakeTypedGateways implementor.
+	// NOTE: unlike with other "get additional" methods, DO NOT return the
+	// gateway itself for this method.
+	GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs
 
 	// GetAdditionalWritesOnCreate returns extra write operations to perform
 	// during creation.
@@ -61,7 +76,7 @@ type MagmadEncompassingGateway interface {
 	// load during an update.
 	// The entities loaded during this operation will be passed to
 	// GetAdditionalWritesOnUpdate.
-	GetAdditionalLoadsOnUpdate() []storage.TypeAndKey
+	GetAdditionalLoadsOnUpdate() storage.TKs
 
 	// GetAdditionalWritesOnUpdate returns extra write operations to perform
 	// during an update.
@@ -69,6 +84,14 @@ type MagmadEncompassingGateway interface {
 	// of the Magmad gateway.
 	GetAdditionalWritesOnUpdate(loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity) ([]configurator.EntityWriteOperation, error)
 }
+
+// MakeTypedGateways is passed the loaded ents and additional objects,
+// and returns encompassing Magmad gateways keyed by gateway ID.
+type MakeTypedGateways func(
+	entsByTK configurator.NetworkEntitiesByTK,
+	devicesByID map[string]interface{},
+	statusesByID map[string]*models.GatewayStatus,
+) map[string]GatewayModel
 
 func listGatewaysHandler(c echo.Context) error {
 	nid, nerr := obsidian.GetNetworkId(c)
@@ -390,12 +413,12 @@ func GetStateHandler(c echo.Context) error {
 }
 
 func makeGateways(
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*models.GatewayStatus,
 ) map[string]*models.MagmadGateway {
 	gatewayEntsByKey := map[string]*models.MagmadGateway{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.Filter(orc8r.MagmadGatewayType) {
 		hwID := ent.PhysicalID
 		var devCasted *models.GatewayDevice
 		if devicesByID[hwID] != nil {

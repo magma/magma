@@ -26,7 +26,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
-	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -49,13 +48,6 @@ type PartialGatewayModel interface {
 	// the change in the model.
 	ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error)
 }
-
-type MakeTypedGateways func(
-	networkID string,
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
-	devicesByID map[string]interface{},
-	statusesByID map[string]*models.GatewayStatus,
-) (map[string]GatewayModel, error)
 
 // GetPartialGatewayHandlers returns both GET and PUT handlers for modifying the portion of a
 // network entity specified by the model.
@@ -212,7 +204,7 @@ func GetUpdateGatewayDeviceHandler(path string) obsidian.Handler {
 	}
 }
 
-func GetListGatewaysHandler(path string, gatewayType string, makeTypedGateways MakeTypedGateways) obsidian.Handler {
+func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, makeTypedGateways MakeTypedGateways) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
 		Methods: obsidian.GET,
@@ -222,41 +214,47 @@ func GetListGatewaysHandler(path string, gatewayType string, makeTypedGateways M
 				return nerr
 			}
 
-			ids, err := configurator.ListEntityKeys(nid, gatewayType)
+			ids, err := configurator.ListEntityKeys(nid, gateway.GetGatewayType())
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
-			// for each ID, we want to load the gateway and the magmad gateway
-			magmadTKs := make([]storage.TypeAndKey, 0, len(ids))
-			for _, id := range ids {
-				magmadTKs = append(
-					magmadTKs,
-					storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id},
-				)
-			}
-			gwTKs := make([]storage.TypeAndKey, 0, len(ids))
-			for _, id := range ids {
-				gwTKs = append(
-					gwTKs,
-					storage.TypeAndKey{Type: gatewayType, Key: id},
-				)
+			if len(ids) == 0 {
+				gateways := makeTypedGateways(nil, nil, nil)
+				return c.JSON(http.StatusOK, gateways)
 			}
 
-			// we need the two calls because LoadEntities only takes one type filter per call
-			// and we need the type filters in case the TKs are empty
-			magmadGWEnts, _, err := configurator.LoadEntities(nid, swag.String(orc8r.MagmadGatewayType), nil, nil, magmadTKs, configurator.FullEntityLoadCriteria())
-			gwEnts, _, err := configurator.LoadEntities(nid, swag.String(gatewayType), nil, nil, gwTKs, configurator.FullEntityLoadCriteria())
-			ents := configurator.NetworkEntities{}
-			for _, m := range magmadGWEnts {
-				ents = append(ents, m)
-			}
-			for _, g := range gwEnts {
-				ents = append(ents, g)
+			// For each ID, we want to load the gateway and the magmad gateway
+			var loads storage.TKs
+			loads = append(loads, storage.MakeTKs(orc8r.MagmadGatewayType, ids)...)
+			loads = append(loads, storage.MakeTKs(gateway.GetGatewayType(), ids)...)
+
+			// Load gateway ents first to access assocs
+			ents, _, err := configurator.LoadEntities(nid, nil, nil, nil, loads, configurator.FullEntityLoadCriteria())
+			if err != nil {
+				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
 			entsByTK := ents.MakeByTK()
 
-			// for each magmad gateway, we have to load its corresponding device and
-			// its reported status
+			var additionalLoads storage.TKs
+			for _, id := range ids {
+				ent := entsByTK[storage.TypeAndKey{Type: gateway.GetGatewayType(), Key: id}]
+				magmadEnt := entsByTK[storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: id}]
+				gateway.LoadFromEntities(ent, magmadEnt)
+				magmadGateway := gateway.GetMagmadGateway()
+
+				additionalLoads = append(additionalLoads, gateway.GetAdditionalLoadsOnLoad(ent)...)
+				additionalLoads = append(additionalLoads, magmadGateway.GetAdditionalLoadsOnLoad(magmadEnt)...)
+			}
+			if len(additionalLoads) != 0 {
+				additionalEnts, _, err := configurator.LoadEntities(nid, nil, nil, nil, additionalLoads, configurator.FullEntityLoadCriteria())
+				if err != nil {
+					return obsidian.HttpError(err, http.StatusInternalServerError)
+				}
+				entsByTK = entsByTK.Merge(additionalEnts.MakeByTK())
+			}
+
+			// For each magmad gateway, we have to load its corresponding
+			// device and its reported status
 			deviceIDs := make([]string, 0, len(ids))
 			for tk, ent := range entsByTK {
 				if tk.Type == orc8r.MagmadGatewayType && ent.PhysicalID != "" {
@@ -272,10 +270,7 @@ func GetListGatewaysHandler(path string, gatewayType string, makeTypedGateways M
 				return obsidian.HttpError(errors.Wrap(err, "failed to load statuses"), http.StatusInternalServerError)
 			}
 
-			gateways, err := makeTypedGateways(nid, entsByTK, devicesByID, statusesByID)
-			if err != nil {
-				return obsidian.HttpError(err, http.StatusInternalServerError)
-			}
+			gateways := makeTypedGateways(entsByTK, devicesByID, statusesByID)
 			return c.JSON(http.StatusOK, gateways)
 		},
 	}

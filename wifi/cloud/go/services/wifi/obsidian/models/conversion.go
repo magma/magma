@@ -91,6 +91,19 @@ func (m *WifiGateway) FromBackendModels(
 	return m
 }
 
+func (m *WifiGateway) ToMutable() *MutableWifiGateway {
+	mut := &MutableWifiGateway{
+		Description: m.Description,
+		Device:      m.Device,
+		ID:          m.ID,
+		Magmad:      m.Magmad,
+		Name:        m.Name,
+		Tier:        m.Tier,
+		Wifi:        m.Wifi,
+	}
+	return mut
+}
+
 func (m *MutableWifiGateway) GetMagmadGateway() *orc8r_models.MagmadGateway {
 	return &orc8r_models.MagmadGateway{
 		Description: m.Description,
@@ -123,7 +136,19 @@ func (m *MutableWifiGateway) GetAdditionalWritesOnCreate() []configurator.Entity
 	return updates
 }
 
-func (m *MutableWifiGateway) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+func (m *MutableWifiGateway) GetGatewayType() string {
+	return wifi.WifiGatewayType
+}
+
+func (m *MutableWifiGateway) LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity) {
+	*m = *(&WifiGateway{}).FromBackendModels(magmadGateway, encompassingGateway, nil, nil).(*WifiGateway).ToMutable()
+}
+
+func (m *MutableWifiGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return nil
+}
+
+func (m *MutableWifiGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
 	return []storage.TypeAndKey{{Type: wifi.WifiGatewayType, Key: string(m.ID)}}
 }
 

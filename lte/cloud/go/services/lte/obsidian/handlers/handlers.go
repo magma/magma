@@ -86,7 +86,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.PUT, HandlerFunc: handlers.UpdateDNSRecord},
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.DELETE, HandlerFunc: handlers.DeleteDNSRecord},
 
-		handlers.GetListGatewaysHandler(ListGatewaysPath, lte.CellularGatewayEntityType, makeLTEGateways),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, &lte_models.MutableLteGateway{}, makeLTEGateways),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -243,19 +243,17 @@ type cellularAndMagmadGateway struct {
 }
 
 func makeLTEGateways(
-	networkID string,
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8r_models.GatewayStatus,
-) (map[string]handlers.GatewayModel, error) {
+) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*cellularAndMagmadGateway{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, lte.CellularGatewayEntityType) {
 		existing, found := gatewayEntsByKey[tk.Key]
 		if !found {
 			existing = &cellularAndMagmadGateway{}
 			gatewayEntsByKey[tk.Key] = existing
 		}
-
 		switch ent.Type {
 		case orc8r.MagmadGatewayType:
 			existing.magmadGateway = ent
@@ -265,19 +263,15 @@ func makeLTEGateways(
 	}
 
 	cellularGateways := map[string]handlers.GatewayModel{}
-	var err error
 	for key, ents := range gatewayEntsByKey {
 		hwID := ents.magmadGateway.PhysicalID
 		var devCasted *orc8r_models.GatewayDevice
 		if devicesByID[hwID] != nil {
 			devCasted = devicesByID[hwID].(*orc8r_models.GatewayDevice)
 		}
-		cellularGateways[key], err = (&lte_models.LteGateway{}).FromBackendModels(networkID, ents.magmadGateway, ents.cellularGateway, devCasted, statusesByID[hwID])
-		if err != nil {
-			return cellularGateways, err
-		}
+		cellularGateways[key] = (&lte_models.LteGateway{}).FromBackendModels(ents.magmadGateway, ents.cellularGateway, entsByTK, devCasted, statusesByID[hwID])
 	}
-	return cellularGateways, nil
+	return cellularGateways
 }
 
 func listEnodebs(c echo.Context) error {

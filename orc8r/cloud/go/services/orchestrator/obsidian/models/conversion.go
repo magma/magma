@@ -117,7 +117,19 @@ func (m *MagmadGateway) GetAdditionalWritesOnCreate() []configurator.EntityWrite
 	}
 }
 
-func (m *MagmadGateway) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+func (m *MagmadGateway) GetGatewayType() string {
+	return orc8r.MagmadGatewayType
+}
+
+func (m *MagmadGateway) LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity) {
+	*m = *(&MagmadGateway{}).FromBackendModels(magmadGateway, nil, nil)
+}
+
+func (m *MagmadGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return nil
+}
+
+func (m *MagmadGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
 	return []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: string(m.ID)}}
 }
 

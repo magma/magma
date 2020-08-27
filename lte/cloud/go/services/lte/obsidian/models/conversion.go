@@ -143,11 +143,11 @@ func (m *NetworkRanConfigs) GetFromNetwork(network configurator.Network) interfa
 }
 
 func (m *LteGateway) FromBackendModels(
-	networkID string,
 	magmadGateway, cellularGateway configurator.NetworkEntity,
+	loadedEntsByTK configurator.NetworkEntitiesByTK,
 	device *orc8rModels.GatewayDevice,
 	status *orc8rModels.GatewayStatus,
-) (handlers.GatewayModel, error) {
+) handlers.GatewayModel {
 	m.ConnectedEnodebSerials = EnodebSerials{}
 	m.ApnResources = ApnResources{}
 
@@ -159,10 +159,9 @@ func (m *LteGateway) FromBackendModels(
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
 
-	var err error
-	m.ApnResources, err = LoadAPNResources(networkID, cellularGateway.Associations.Filter(lte.APNResourceEntityType).Keys())
-	if err != nil {
-		return nil, errors.Wrap(err, "error loading apn resources")
+	for _, ent := range loadedEntsByTK.Filter(lte.APNResourceEntityType) {
+		r := (&ApnResource{}).FromEntity(ent)
+		m.ApnResources[string(r.ApnName)] = *r
 	}
 
 	for _, tk := range cellularGateway.Associations {
@@ -172,7 +171,22 @@ func (m *LteGateway) FromBackendModels(
 	}
 	sort.Strings(m.ConnectedEnodebSerials)
 
-	return m, nil
+	return m
+}
+
+func (m *LteGateway) ToMutable() *MutableLteGateway {
+	mut := &MutableLteGateway{
+		ApnResources:           m.ApnResources,
+		Cellular:               m.Cellular,
+		ConnectedEnodebSerials: m.ConnectedEnodebSerials,
+		Description:            m.Description,
+		Device:                 m.Device,
+		ID:                     m.ID,
+		Magmad:                 m.Magmad,
+		Name:                   m.Name,
+		Tier:                   m.Tier,
+	}
+	return mut
 }
 
 func (m *MutableLteGateway) GetMagmadGateway() *orc8rModels.MagmadGateway {
@@ -218,12 +232,22 @@ func (m *MutableLteGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 	return writes
 }
 
-func (m *MutableLteGateway) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+func (m *MutableLteGateway) GetGatewayType() string {
+	return lte.CellularGatewayEntityType
+}
+
+func (m *MutableLteGateway) LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity) {
+	*m = *(&LteGateway{}).FromBackendModels(magmadGateway, encompassingGateway, nil, nil, nil).(*LteGateway).ToMutable()
+}
+
+func (m *MutableLteGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return gateway.Associations.Filter(lte.APNResourceEntityType)
+}
+
+func (m *MutableLteGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
 	var loads storage.TKs
 	loads = append(loads, storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: string(m.ID)})
-	for _, r := range m.ApnResources {
-		loads = append(loads, storage.TypeAndKey{Type: lte.APNResourceEntityType, Key: r.ID})
-	}
+	loads = append(loads, m.ApnResources.ToTKs()...)
 	return loads
 }
 
@@ -495,8 +519,8 @@ func (m *ApnResources) GetByID() map[string]*ApnResource {
 	return byID
 }
 
-func (m *ApnResources) ToTKs() []storage.TypeAndKey {
-	var tks []storage.TypeAndKey
+func (m *ApnResources) ToTKs() storage.TKs {
+	var tks storage.TKs
 	for _, r := range *m {
 		tks = append(tks, r.ToTK())
 	}

@@ -1787,7 +1787,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expected := map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected := configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
@@ -1821,7 +1821,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
@@ -1853,7 +1853,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
@@ -1901,7 +1901,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
@@ -1933,7 +1933,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
@@ -1972,7 +1972,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
@@ -2009,7 +2009,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",
@@ -2045,7 +2045,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	expected = map[storage.TypeAndKey]configurator.NetworkEntity{
+	expected = configurator.NetworkEntitiesByTK{
 		storage.TypeAndKey{Type: orc8r.MagmadGatewayType, Key: "g1"}: {
 			NetworkID: "n1",
 			Type:      orc8r.MagmadGatewayType, Key: "g1",

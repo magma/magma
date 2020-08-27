@@ -63,7 +63,7 @@ const (
 // GetHandlers returns all obsidian handlers for Wifi
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(BaseGatewaysPath, wifi.WifiGatewayType, makeWifiGateways),
+		handlers.GetListGatewaysHandler(BaseGatewaysPath, &wifimodels.MutableWifiGateway{}, makeWifiGateways),
 		{Path: BaseGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -100,13 +100,12 @@ type wifiAndMagmadGatewayEntities struct {
 }
 
 func makeWifiGateways(
-	networkID string,
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rmodels.GatewayStatus,
-) (map[string]handlers.GatewayModel, error) {
+) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*wifiAndMagmadGatewayEntities{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, wifi.WifiGatewayType) {
 		existing, found := gatewayEntsByKey[tk.Key]
 		if !found {
 			existing = &wifiAndMagmadGatewayEntities{}
@@ -129,7 +128,7 @@ func makeWifiGateways(
 		}
 		ret[key] = (&wifimodels.WifiGateway{}).FromBackendModels(wMEnts.magmadEnt, wMEnts.wifiGatewayEnt, devCasted, statusesByID[hwID])
 	}
-	return ret, nil
+	return ret
 }
 
 func createGateway(c echo.Context) error {

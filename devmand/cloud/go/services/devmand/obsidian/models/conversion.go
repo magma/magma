@@ -97,7 +97,19 @@ func (m *MutableSymphonyAgent) GetAdditionalWritesOnCreate() []configurator.Enti
 	return writes
 }
 
-func (m *MutableSymphonyAgent) GetAdditionalLoadsOnUpdate() []storage.TypeAndKey {
+func (m *MutableSymphonyAgent) GetGatewayType() string {
+	return devmand.SymphonyAgentType
+}
+
+func (m *MutableSymphonyAgent) LoadFromEntities(encompassingGateway, magmadGateway configurator.NetworkEntity) {
+	*m = *(&SymphonyAgent{}).FromBackendModels(magmadGateway, encompassingGateway, nil, nil).(*SymphonyAgent).ToMutable()
+}
+
+func (m *MutableSymphonyAgent) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return nil
+}
+
+func (m *MutableSymphonyAgent) GetAdditionalLoadsOnUpdate() storage.TKs {
 	return []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: string(m.ID)}}
 }
 
@@ -150,6 +162,19 @@ func (m *SymphonyAgent) FromBackendModels(
 	sort.Strings(m.ManagedDevices)
 
 	return m
+}
+
+func (m *SymphonyAgent) ToMutable() *MutableSymphonyAgent {
+	mut := &MutableSymphonyAgent{
+		Description:    m.Description,
+		Device:         m.Device,
+		ID:             m.ID,
+		Magmad:         m.Magmad,
+		ManagedDevices: m.ManagedDevices,
+		Name:           m.Name,
+		Tier:           m.Tier,
+	}
+	return mut
 }
 
 func (m *ManagedDevices) FromBackendModels(networkID string, agentID string) error {
