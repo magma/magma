@@ -344,6 +344,11 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     set_monitor(key, Monitor(stored_monitor), _);
     monitor_map_[key] = std::make_unique<Monitor>(stored_monitor);
   }
+
+  if (uc.updated_pdp_end_time > 0) {
+    pdp_end_time_ = uc.updated_pdp_end_time;
+  }
+
   return true;
 }
 
