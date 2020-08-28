@@ -28,6 +28,7 @@ services:
         network_wide_rules,
         policydb,
         rating_groups,
+        apn_rule_mappings,
         rule_mappings,
         subscriberdb,
 

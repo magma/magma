@@ -21,6 +21,7 @@ import (
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
@@ -206,6 +207,110 @@ func bnsToUpdates(bns []*lte_protos.ChargingRuleBaseNameRecord) ([]*protos.DataU
 	}
 	sortUpdates(ret)
 	return ret, nil
+}
+
+type ApnRuleMappingsProvider struct{}
+
+func (p *ApnRuleMappingsProvider) GetStreamName() string {
+	return lte.ApnRuleMappingsStreamName
+}
+
+// GetUpdates implements GetUpdates for the rule mappings stream provider
+func (p *ApnRuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	if err != nil {
+		return nil, err
+	}
+
+	loadCrit := configurator.EntityLoadCriteria{LoadAssocsFromThis: true}
+	subEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.SubscriberEntityType, loadCrit)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to load subscribers")
+	}
+
+	ret := make([]*protos.DataUpdate, 0, len(subEnts))
+
+	for _, subEnt := range subEnts {
+		subscriberPolicySet, err := p.getSubscriberPolicySet(gwEnt.NetworkID, subEnt)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to build subscriber policy sets")
+		}
+		marshaled, err := proto.Marshal(subscriberPolicySet)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to marshal subscriber policy sets")
+		}
+		ret = append(ret, &protos.DataUpdate{Key: subEnt.Key, Value: marshaled})
+	}
+	return ret, nil
+}
+
+func (p *ApnRuleMappingsProvider) getSubscriberPolicySet(networkID string, subscriberEnt configurator.NetworkEntity) (*lte_protos.SubscriberPolicySet, error) {
+	apnPolicyProfileTks := []storage.TypeAndKey{}
+	globalPolicies := []string{}
+	globalBaseNames := []string{}
+
+	// Get all the TKs of ApnPolicyProfile ents
+	// And also get the global policies and base names
+	for _, tk := range subscriberEnt.Associations {
+		switch tk.Type {
+		case lte.PolicyRuleEntityType:
+			globalPolicies = append(globalPolicies, tk.Key)
+		case lte.BaseNameEntityType:
+			globalBaseNames = append(globalBaseNames, tk.Key)
+		case lte.APNPolicyProfileEntityType:
+			apnPolicyProfileTks = append(apnPolicyProfileTks, tk)
+		}
+	}
+
+	// Load in all the ApnPolicyProfile ents, they only
+	// have incoming/outogoing assocs
+	apnPolicyProfileEnts, err := p.loadApnPolicyProfileEnts(networkID, apnPolicyProfileTks)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fill in per-APN policies/base-names
+	rulesPerApn := []*lte_protos.ApnPolicySet{}
+	for _, ent := range apnPolicyProfileEnts {
+		rulesPerApn = append(rulesPerApn, p.getApnPolicySet(ent))
+	}
+
+	return &lte_protos.SubscriberPolicySet{
+		GlobalPolicies: globalPolicies,
+		GlobalBaseNames: globalBaseNames,
+		RulesPerApn: rulesPerApn,
+	}, nil
+}
+
+func (p *ApnRuleMappingsProvider) loadApnPolicyProfileEnts(networkID string, tks []storage.TypeAndKey) (configurator.NetworkEntities, error) {
+	if len(tks) == 0 {
+		return configurator.NetworkEntities{}, nil
+	}
+	loadCrit := configurator.EntityLoadCriteria{LoadAssocsFromThis: true}
+	typeFilter := lte.APNPolicyProfileEntityType
+	apnPolicyProfileEnts, _, err := configurator.LoadEntities(networkID, &typeFilter, nil, nil, tks, loadCrit)
+	if err != nil {
+		return nil, err
+	}
+	return apnPolicyProfileEnts, nil
+}
+
+func (p *ApnRuleMappingsProvider) getApnPolicySet(apnPolicyProfileEnt configurator.NetworkEntity) *lte_protos.ApnPolicySet {
+	policies := []string{}
+	var apn string
+
+	for _, tk := range apnPolicyProfileEnt.Associations {
+		switch tk.Type {
+		case lte.PolicyRuleEntityType:
+			policies = append(policies, tk.Key)
+		case lte.APNEntityType:
+			apn = tk.Key
+		}
+	}
+	return &lte_protos.ApnPolicySet{
+		Apn: apn,
+		AssignedPolicies: policies,
+	}
 }
 
 type RuleMappingsProvider struct{}
