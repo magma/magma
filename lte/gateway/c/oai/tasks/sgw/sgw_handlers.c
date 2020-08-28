@@ -421,7 +421,7 @@ static void sgw_populate_mbr_bearer_contexts_not_found(
         .bearer_contexts[rsp_idx]
         .eps_bearer_id = resp_pP->bearer_contexts_not_found[idx];
     modify_response_p->bearer_contexts_marked_for_removal
-        .bearer_contexts[rsp_idx]
+        .bearer_contexts[rsp_idx++]
         .cause.cause_value = CONTEXT_NOT_FOUND;
     modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context++;
   }
@@ -455,7 +455,7 @@ static void sgw_populate_mbr_bearer_contexts_removed(
           .bearer_contexts[rsp_idx]
           .cause.cause_value = REQUEST_ACCEPTED;
     } else {
-      OAILOG_DEBUG_UE(
+      OAILOG_ERROR_UE(
           LOG_SPGW_APP, imsi64,
           "Rx SGI_UPDATE_ENDPOINT_RESPONSE: eps_bearer_ctxt_p not found for "
           "bearer to be removed ebi %u\n",
@@ -467,8 +467,7 @@ static void sgw_populate_mbr_bearer_contexts_removed(
     modify_response_p->bearer_contexts_marked_for_removal
         .bearer_contexts[rsp_idx++]
         .eps_bearer_id = resp_pP->bearer_contexts_to_be_removed[idx];
-    modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context +=
-        1;
+    modify_response_p->bearer_contexts_marked_for_removal.num_bearer_context++;
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
@@ -497,9 +496,9 @@ static void sgw_populate_mbr_bearer_contexts_modified(
       modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx]
           .eps_bearer_id =
           resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id;
-      modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx]
+      modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx++]
           .cause.cause_value = REQUEST_ACCEPTED;
-      modify_response_p->bearer_contexts_modified.num_bearer_context += 1;
+      modify_response_p->bearer_contexts_modified.num_bearer_context++;
       // if default bearer
       //#pragma message  "TODO define constant for default eps_bearer id"
 
@@ -509,8 +508,8 @@ static void sgw_populate_mbr_bearer_contexts_modified(
           eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
       struct in_addr ue = {.s_addr = 0};
-      ue.s_addr = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
-      int vlan = eps_bearer_ctxt_p->paa.vlan;
+      ue.s_addr         = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+      int vlan          = eps_bearer_ctxt_p->paa.vlan;
 
       Imsi_t imsi =
           new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
@@ -553,7 +552,6 @@ static void sgw_populate_mbr_bearer_contexts_modified(
           eps_bearer_ctxt_p->num_sdf += 1;
         }
       }
-      rsp_idx += 1;
     }
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
@@ -729,7 +727,7 @@ int sgw_handle_sgi_endpoint_deleted(
 }
 
 //------------------------------------------------------------------------------
-static void handle_sgi_end_point_update(
+static void populate_sgi_end_point_update(
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     const itti_s11_modify_bearer_request_t* const modify_bearer_pP,
     itti_sgi_update_end_point_response_t* sgi_update_end_point_resp,
@@ -864,7 +862,7 @@ int sgw_handle_modify_bearer_request(
           // This is best effort, ignore return code.
           gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
         }
-        handle_sgi_end_point_update(
+        populate_sgi_end_point_update(
             eps_bearer_ctxt_p, modify_bearer_pP, &sgi_update_end_point_resp,
             sgi_rsp_idx, &idx, imsi64);
         sgi_rsp_idx++;
@@ -1509,8 +1507,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           enb.s_addr = eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address
                            .ipv4_address.s_addr;
           struct in_addr ue = {.s_addr = 0};
-          int vlan = eps_bearer_ctxt_entry_p->paa.vlan;
-          ue.s_addr = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
+          int vlan          = eps_bearer_ctxt_entry_p->paa.vlan;
+          ue.s_addr         = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
           Imsi_t imsi = spgw_context->sgw_eps_bearer_context_information.imsi;
           strcpy(policy_rule_name, eps_bearer_ctxt_entry_p->policy_rule_name);
           // Iterate of packet filter rules
