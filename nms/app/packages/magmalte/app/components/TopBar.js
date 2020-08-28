@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {ComponentType} from 'react';
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import AppBar from '@material-ui/core/AppBar';
 import Grid from '@material-ui/core/Grid';
@@ -59,7 +59,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type BarLabel = {
-  icon?: ComponentType<SvgIconExports>,
+  icon?: SvgIcon,
   label: string,
   to: string,
   key?: string,
