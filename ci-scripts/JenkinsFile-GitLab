@@ -77,7 +77,7 @@ pipeline {
     stage ("Retrieve and Prepare Source Code") {
       steps {
         script {
-            checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '${sha1}']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://{{GIT_URL}}.git"]]]    
+            checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '${sha1}']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
             GIT_COMMIT = sh returnStdout: true, script: 'git log -1 --pretty="%H"'
             sh "git clean -x -d -e .cache -e lte/gateway/.vagrant -f > /dev/null 2>&1"
             TEMP_COMMIT = sh returnStdout: true, script: 'git log -n1 --pretty=format:"%H"'
