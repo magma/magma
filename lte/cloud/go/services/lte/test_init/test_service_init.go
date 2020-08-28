@@ -32,7 +32,6 @@ func StartTestService(t *testing.T) {
 		lte.PolicyStreamName,
 		lte.BaseNameStreamName,
 		lte.ApnRuleMappingsStreamName,
-		lte.MappingsStreamName,
 		lte.NetworkWideRulesStreamName,
 		lte.RatingGroupStreamName,
 	}

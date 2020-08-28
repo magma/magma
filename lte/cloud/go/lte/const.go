@@ -76,7 +76,6 @@ const (
 	// BaseNameStreamName etc. are streamer stream names.
 	ApnRuleMappingsStreamName  = "apn_rule_mappings"
 	BaseNameStreamName         = "base_names"
-	MappingsStreamName         = "rule_mappings"
 	NetworkWideRulesStreamName = "network_wide_rules"
 	PolicyStreamName           = "policydb"
 	RatingGroupStreamName      = "rating_groups"

@@ -96,7 +96,6 @@ func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider 
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.PolicyStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.ApnRuleMappingsStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.BaseNameStreamName),
-		providers.NewRemoteProvider(lte_service.ServiceName, lte.MappingsStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.NetworkWideRulesStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.RatingGroupStreamName),
 	}

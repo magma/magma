@@ -29,7 +29,6 @@ services:
         policydb,
         rating_groups,
         apn_rule_mappings,
-        rule_mappings,
         subscriberdb,
 
   subscriberdb:

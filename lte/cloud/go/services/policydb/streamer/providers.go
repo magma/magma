@@ -276,9 +276,9 @@ func (p *ApnRuleMappingsProvider) getSubscriberPolicySet(networkID string, subsc
 	}
 
 	return &lte_protos.SubscriberPolicySet{
-		GlobalPolicies: globalPolicies,
+		GlobalPolicies:  globalPolicies,
 		GlobalBaseNames: globalBaseNames,
-		RulesPerApn: rulesPerApn,
+		RulesPerApn:     rulesPerApn,
 	}, nil
 }
 
@@ -308,85 +308,9 @@ func (p *ApnRuleMappingsProvider) getApnPolicySet(apnPolicyProfileEnt configurat
 		}
 	}
 	return &lte_protos.ApnPolicySet{
-		Apn: apn,
+		Apn:              apn,
 		AssignedPolicies: policies,
 	}
-}
-
-type RuleMappingsProvider struct{}
-
-func (p *RuleMappingsProvider) GetStreamName() string {
-	return lte.MappingsStreamName
-}
-
-// GetUpdates implements GetUpdates for the rule mappings stream provider
-func (p *RuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
-	if err != nil {
-		return nil, err
-	}
-
-	loadCrit := configurator.EntityLoadCriteria{LoadAssocsFromThis: true}
-	ruleEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.PolicyRuleEntityType, loadCrit)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load policy rules")
-	}
-	bnEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.BaseNameEntityType, loadCrit)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to load base names")
-	}
-
-	policiesBySid, err := p.getAssignedPoliciesBySid(ruleEnts, bnEnts)
-	if err != nil {
-		return nil, err
-	}
-
-	ret := make([]*protos.DataUpdate, 0, len(policiesBySid))
-	for sid, policies := range policiesBySid {
-		marshaledPolicies, err := proto.Marshal(policies)
-		if err != nil {
-			return nil, errors.Wrap(err, "failed to marshal active policies")
-		}
-		ret = append(ret, &protos.DataUpdate{Key: sid, Value: marshaledPolicies})
-	}
-	sortUpdates(ret)
-	return ret, nil
-}
-
-func (p *RuleMappingsProvider) getAssignedPoliciesBySid(policyRules []configurator.NetworkEntity, baseNames []configurator.NetworkEntity) (map[string]*lte_protos.AssignedPolicies, error) {
-	allEnts := make([]configurator.NetworkEntity, 0, len(policyRules)+len(baseNames))
-	allEnts = append(allEnts, policyRules...)
-	allEnts = append(allEnts, baseNames...)
-
-	policiesBySid := map[string]*lte_protos.AssignedPolicies{}
-	for _, ent := range allEnts {
-		for _, tk := range ent.Associations {
-			switch tk.Type {
-			case lte.SubscriberEntityType:
-				policies, found := policiesBySid[tk.Key]
-				if !found {
-					policies = &lte_protos.AssignedPolicies{}
-					policiesBySid[tk.Key] = policies
-				}
-
-				switch ent.Type {
-				case lte.PolicyRuleEntityType:
-					policies.AssignedPolicies = append(policies.AssignedPolicies, ent.Key)
-				case lte.BaseNameEntityType:
-					policies.AssignedBaseNames = append(policies.AssignedBaseNames, ent.Key)
-				default:
-					return nil, errors.Errorf("loaded unexpected entity of type %s", ent.Type)
-				}
-			}
-		}
-	}
-
-	for _, policies := range policiesBySid {
-		sort.Strings(policies.AssignedBaseNames)
-		sort.Strings(policies.AssignedPolicies)
-	}
-
-	return policiesBySid, nil
 }
 
 func sortUpdates(updates []*protos.DataUpdate) {
