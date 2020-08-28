@@ -16,10 +16,13 @@ log_level: INFO
 magma_services:
   - control_proxy
   - pipelined
+  - radiusd
+  - radius
 
 # List of services that don't provide service303 interface
 non_service303_services:
   - control_proxy
+  - radius
 
 # list of services that are required to have meta before checking in
 # (meta = data gathered via MagmaService.register_get_status_callback())
@@ -52,6 +55,7 @@ mconfig_modules:
   - orc8r.protos.mconfig.mconfigs_pb2
   - lte.protos.mconfig.mconfigs_pb2
   - feg.protos.mconfig.mconfigs_pb2
+  - cwf.protos.mconfig.mconfigs_pb2
 
 metricsd:
   log_level: INFO
@@ -69,3 +73,4 @@ metricsd:
   services:
     - magmad
     - pipelined
+    - radiusd
