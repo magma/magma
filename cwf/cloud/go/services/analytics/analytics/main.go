@@ -35,12 +35,12 @@ import (
 const (
 	ServiceName = "ANALYTICS"
 
-	activeUsersMetricName     = "active_users_over_time"
-	userThroughputMetricName  = "user_throughput"
-	userConsumptionMetricName = "user_consumption"
+	activeUsersMetricName           = "active_users_over_time"
+	userThroughputMetricName        = "user_throughput"
+	userConsumptionMetricName       = "user_consumption"
 	userConsumptionHourlyMetricName = "user_consumption_hourly"
-	apThroughputMetricName    = "throughput_per_ap"
-	authenticationsMetricName = "authentications_over_time"
+	apThroughputMetricName          = "throughput_per_ap"
+	authenticationsMetricName       = "authentications_over_time"
 
 	defaultAnalysisSchedule = "0 */12 * * *" // Every 12 hours
 )
@@ -222,10 +222,10 @@ func getAuthenticationCalculations(daysList []int, gauge *prometheus.GaugeVec, m
 	for _, dayParam := range daysList {
 		calcs = append(calcs, &calculations.AuthenticationsCalculation{
 			CalculationParams: calculations.CalculationParams{
-				Days: dayParam,
+				Days:            dayParam,
 				RegisteredGauge: gauge,
-				Labels: prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-				Name: metricName,
+				Labels:          prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+				Name:            metricName,
 			},
 		})
 	}

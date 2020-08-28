@@ -44,9 +44,9 @@ type Result struct {
 
 func NewResult(value float64, metricName string, labels prometheus.Labels) Result {
 	return Result{
-		value: value,
+		value:      value,
 		metricName: metricName,
-		labels: labels,
+		labels:     labels,
 	}
 }
 

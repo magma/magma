@@ -25,7 +25,6 @@ import (
 type PrometheusAPI interface {
 	Query(ctx context.Context, query string, ts time.Time) (model.Value, api.Warnings, error)
 	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, api.Warnings, error)
-
 }
 
 // QueryPrometheusVector handles all the error cases of making an instant query
