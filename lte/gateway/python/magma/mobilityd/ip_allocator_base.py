@@ -44,7 +44,7 @@ class IPAllocator(ABC):
         ...
 
     @abstractmethod
-    def alloc_ip_address(self, sid: str) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan_id: int) -> IPDesc:
         ...
 
     @abstractmethod

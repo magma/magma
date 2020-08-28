@@ -115,4 +115,8 @@ void create_granted_units(
     uint64_t* total, uint64_t* tx, uint64_t* rx, GrantedUnits* gsu);
 
 magma::mconfig::SessionD get_default_mconfig();
+
+PolicyBearerBindingRequest create_policy_bearer_bind_req(
+    const std::string& imsi, const uint32_t linked_bearer_id,
+    const std::string& rule_id, const uint32_t bearer_id);
 }  // namespace magma

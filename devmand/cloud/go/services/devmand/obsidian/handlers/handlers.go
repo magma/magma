@@ -27,7 +27,6 @@ import (
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8rmodels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
-	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
 	"github.com/go-openapi/strfmt"
@@ -66,7 +65,7 @@ const (
 // GetHandlers returns all obsidian handlers for Symphony
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(BaseAgentsPath, devmand.SymphonyAgentType, makeSymphonyAgents),
+		handlers.GetListGatewaysHandler(BaseAgentsPath, &symphonymodels.MutableSymphonyAgent{}, makeSymphonyAgents),
 		{Path: BaseAgentsPath, Methods: obsidian.POST, HandlerFunc: createAgent},
 		{Path: ManageAgentPath, Methods: obsidian.GET, HandlerFunc: getAgent},
 		{Path: ManageAgentPath, Methods: obsidian.PUT, HandlerFunc: updateAgent},
@@ -103,12 +102,12 @@ type agentAndMagmadGatewayEntities struct {
 }
 
 func makeSymphonyAgents(
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rmodels.GatewayStatus,
 ) map[string]handlers.GatewayModel {
 	agentEntsByKey := map[string]*agentAndMagmadGatewayEntities{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, devmand.SymphonyAgentType) {
 		existing, found := agentEntsByKey[tk.Key]
 		if !found {
 			existing = &agentAndMagmadGatewayEntities{}
@@ -256,7 +255,7 @@ func listAgents(c echo.Context) error {
 }
 
 func createAgent(c echo.Context) error {
-	if err := handlers.CreateMagmadGatewayFromModel(c, &symphonymodels.MutableSymphonyAgent{}); err != nil {
+	if err := handlers.CreateGateway(c, &symphonymodels.MutableSymphonyAgent{}); err != nil {
 		return err
 	}
 	return c.NoContent(http.StatusCreated)
@@ -268,7 +267,7 @@ func getAgent(c echo.Context) error {
 		return nerr
 	}
 
-	magmadGWModel, nerr := handlers.LoadMagmadGatewayModel(nid, aid)
+	magmadGWModel, nerr := handlers.LoadMagmadGateway(nid, aid)
 	if nerr != nil {
 		return nerr
 	}
@@ -302,7 +301,7 @@ func updateAgent(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, aid, &symphonymodels.MutableSymphonyAgent{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, aid, &symphonymodels.MutableSymphonyAgent{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -456,13 +455,13 @@ func GetDeviceState(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	state, err := state.GetState(nid, devmand.SymphonyDeviceStateType, did)
+	st, err := state.GetState(nid, devmand.SymphonyDeviceStateType, did)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	deviceState := state.ReportedState.(*symphonymodels.SymphonyDeviceState)
+	deviceState := st.ReportedState.(*symphonymodels.SymphonyDeviceState)
 	return c.JSON(http.StatusOK, deviceState)
 }
 

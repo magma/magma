@@ -35,6 +35,7 @@ import (
 	"magma/orc8r/cloud/go/services/magmad"
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -701,7 +702,7 @@ func getCurrentAGWPackageVersion(config *models.EnodebdTestConfig) (string, erro
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to load hwID for target gateway %s", targetGWID)
 	}
-	agwState, err := state.GetGatewayStatus(*config.NetworkID, hwID)
+	agwState, err := wrappers.GetGatewayStatus(*config.NetworkID, hwID)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to load gateway status for %s", targetGWID)
 	}

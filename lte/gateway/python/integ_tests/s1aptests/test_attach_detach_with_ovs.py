@@ -55,8 +55,8 @@ class TestAttachDetachWithOVS(unittest.TestCase):
         print("Checking for default table 0 flows")
         flows = get_flows(datapath, {"table_id": self.SPGW_TABLE,
                                      "priority": 0})
-        self.assertEqual(len(flows), 1,
-                         "There should only be 1 default table 0 flow")
+        self.assertEqual(len(flows), 2,
+                         "There should only be 2 default table 0 flows")
 
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
@@ -125,8 +125,8 @@ class TestAttachDetachWithOVS(unittest.TestCase):
         print("Checking that uplink/downlink flows were deleted")
         flows = get_flows(datapath, {"table_id": self.SPGW_TABLE,
                                      "priority": 0})
-        self.assertEqual(len(flows), 1,
-                         "There should only be 1 default table 0 flow")
+        self.assertEqual(len(flows), 2,
+                         "There should only be 2 default table 0 flows")
 
 
 if __name__ == "__main__":

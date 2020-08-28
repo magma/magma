@@ -162,15 +162,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * NOT send a CreateSession request into FeG/PolicyDB.
    * Otherwise, we will go through the procedure of creating a new context.
    * @param session_map - SessionMap that contains all sessions with IMSI
-   * @param request - the original request coming in from AAA
    * @param sid - newly created SessionID
    * @param cfg - newly created SessionConfig from the LocalCreateSessionRequest
    * @param cb - callback needed to respond to the original
    * LocalCreateSessionRequest
    */
   void handle_create_session_cwf(
-      SessionMap& session_map, const LocalCreateSessionRequest& request,
-      const std::string& sid, SessionConfig cfg,
+      SessionMap& session_map, const std::string& sid, SessionConfig cfg,
       std::function<void(Status, LocalCreateSessionResponse)> cb);
 
   /**
@@ -191,15 +189,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * a CreateSession request into FeG/PolicyDB.
    * Otherwise, we will go through the procedure of creating a new context.
    * @param session_map - SessionMap that contains all sessions with IMSI
-   * @param request - the original request coming in from MMS
    * @param sid - newly created SessionID
    * @param cfg - newly created SessionConfig from the LocalCreateSessionRequest
    * @param cb - callback needed to respond to the original
    * LocalCreateSessionRequest
    */
   void handle_create_session_lte(
-      SessionMap& session_map, const LocalCreateSessionRequest& request,
-      const std::string& sid, SessionConfig cfg,
+      SessionMap& session_map, const std::string& sid, SessionConfig cfg,
       std::function<void(Status, LocalCreateSessionResponse)> cb);
 
   /**

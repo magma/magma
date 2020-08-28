@@ -344,6 +344,11 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     set_monitor(key, Monitor(stored_monitor), _);
     monitor_map_[key] = std::make_unique<Monitor>(stored_monitor);
   }
+
+  if (uc.updated_pdp_end_time > 0) {
+    pdp_end_time_ = uc.updated_pdp_end_time;
+  }
+
   return true;
 }
 
@@ -1441,6 +1446,34 @@ BearerUpdate SessionState::get_dedicated_bearer_updates(
   return update;
 }
 
+void SessionState::bind_policy_to_bearer(
+    const PolicyBearerBindingRequest& request, SessionStateUpdateCriteria& uc) {
+  const std::string& rule_id = request.policy_rule_id();
+  auto policy_type           = get_policy_type(rule_id);
+  if (!policy_type) {
+    MLOG(MDEBUG) << "Policy " << rule_id
+                 << " not found, when trying to bind to bearerID "
+                 << request.bearer_id();
+    return;
+  }
+  MLOG(MINFO) << session_id_ << " now has policy " << rule_id
+              << " tied to bearerID " << request.bearer_id();
+  bearer_id_by_policy_[PolicyID(*policy_type, rule_id)] = request.bearer_id();
+  uc.is_bearer_mapping_updated = true;
+  uc.bearer_id_by_policy       = bearer_id_by_policy_;
+}
+
+std::experimental::optional<PolicyType> SessionState::get_policy_type(
+    const std::string& rule_id) {
+  if (is_static_rule_installed(rule_id)) {
+    return STATIC;
+  } else if (is_dynamic_rule_installed(rule_id)) {
+    return DYNAMIC;
+  } else {
+    return {};
+  }
+}
+
 SessionCreditUpdateCriteria* SessionState::get_monitor_uc(
     const std::string& key, SessionStateUpdateCriteria& uc) {
   if (uc.monitor_credit_map.find(key) == uc.monitor_credit_map.end()) {
@@ -1589,8 +1622,9 @@ void SessionState::update_bearer_deletion_req(
       bearer_id_by_policy_.end()) {
     return;
   }
-
   // map change needs to be propagated to the store
+  const auto bearer_id_to_delete =
+      bearer_id_by_policy_[PolicyID(policy_type, rule_id)];
   bearer_id_by_policy_.erase(PolicyID(policy_type, rule_id));
   uc.is_bearer_mapping_updated = true;
   uc.bearer_id_by_policy       = bearer_id_by_policy_;
@@ -1604,8 +1638,7 @@ void SessionState::update_bearer_deletion_req(
     req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
-  update.delete_req.mutable_eps_bearer_ids()->Add(
-      bearer_id_by_policy_[PolicyID(policy_type, rule_id)]);
+  update.delete_req.mutable_eps_bearer_ids()->Add(bearer_id_to_delete);
 }
 
 RuleSetToApply::RuleSetToApply(const magma::lte::RuleSet& rule_set) {

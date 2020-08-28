@@ -19,14 +19,11 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 
 import CellWifiIcon from '@material-ui/icons/CellWifi';
 import DataGrid from './DataGrid';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import GatewayContext from './context/GatewayContext';
 import React from 'react';
 import isGatewayHealthy from './GatewayUtils';
-import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useContext} from 'react';
 
 function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {
   let upCount = 0;
@@ -41,19 +38,8 @@ function gatewayStatus(gatewaySt: {[string]: lte_gateway}): [number, number] {
 }
 
 export default function GatewayKPIs() {
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const {response: lteGateways, isLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdGateways,
-    {
-      networkId: networkId,
-    },
-  );
-
-  if (isLoading || !lteGateways) {
-    return <LoadingFiller />;
-  }
-  const [upCount, downCount] = gatewayStatus(lteGateways);
+  const gwCtx = useContext(GatewayContext);
+  const [upCount, downCount] = gatewayStatus(gwCtx.state);
 
   const data: DataRows[] = [
     [

@@ -31,7 +31,8 @@ class GTPApplication : public Application {
  public:
   GTPApplication(
       const std::string& uplink_mac, uint32_t gtp_port_num,
-      uint32_t mtr_port_num, uint32_t uplink_port_num);
+      uint32_t mtr_port_num, uint32_t internal_sampling_port_num,
+      uint32_t internal_sampling_fwd_tbl_num, uint32_t uplink_port_num);
 
  private:
   /**
@@ -43,6 +44,10 @@ class GTPApplication : public Application {
    */
   virtual void event_callback(
       const ControllerEvent& ev, const OpenflowMessenger& messenger);
+
+  void install_internal_pkt_fwd_flow(
+      fluid_base::OFConnection* ofconn, const OpenflowMessenger& messenger,
+      uint32_t port, uint32_t next_table);
 
   /*
    * Add uplink flow from UE to internet
@@ -128,12 +133,16 @@ class GTPApplication : public Application {
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
   static const std::string GTP_PORT_MAC;
-  static const uint16_t NEXT_TABLE = 1;
+  static const uint16_t NEXT_TABLE   = 1;
+  static const uint32_t LOW_PRIORITY = 0;
 
   const std::string uplink_mac_;
   const uint32_t gtp_port_num_;
   // Internal port number for monitoring service
   const uint32_t mtr_port_num_;
+  // Internal port for sampling internal ipfix packets
+  const uint32_t internal_sampling_port_num_;
+  const uint32_t internal_sampling_fwd_tbl_num_;
   /* cookie is added to identify the rules enforced for the flow controller
    * Initialising with 1
    */

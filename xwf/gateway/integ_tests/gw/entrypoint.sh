@@ -15,7 +15,9 @@ ovsdb-server --pidfile /etc/openvswitch/conf.db -vconsole:emer -vsyslog:err -vfi
 # Copy files to /etc/magma it must be here and not in dockerfile because the volume
 # are shared and may be taint on the local host
 echo "copy config file"
+cp cwf/gateway/configs/* /etc/magma/
 cp xwf/gateway/configs/* /etc/magma/
+cp orc8r/gateway/configs/templates/* /etc/magma/
 
 echo "get xwfwhoami"
 curl -X POST  https://graph.expresswifi.com/openflow/configxwfm?access_token=$ACCESSTOKEN | jq -r .configxwfm > /etc/xwfwhoami

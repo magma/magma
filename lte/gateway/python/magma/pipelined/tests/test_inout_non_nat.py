@@ -32,7 +32,8 @@ from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
     stop_ryu_app_thread,
     create_service_manager,
-    SnapshotVerifier
+    SnapshotVerifier,
+    assert_bridge_snapshot_match,
 )
 
 from magma.pipelined.app import inout
@@ -100,7 +101,8 @@ class InOutNonNatTest(unittest.TestCase):
         subprocess.check_call([setup_vlan_switch, cls.UPLINK_VLAN_SW, vlan])
 
     def setUpNetworkAndController(self, vlan: str = "",
-                                  non_nat_arp_egress_port: str = None):
+                                  non_nat_arp_egress_port: str = None,
+                                  gw_mac_addr="ff:ff:ff:ff:ff:ff"):
         """
         Starts the thread which launches ryu apps
 
@@ -152,7 +154,8 @@ class InOutNonNatTest(unittest.TestCase):
                 'enable_nat': False,
                 'non_mat_gw_probe_frequency': .2,
                 'non_nat_arp_egress_port': non_nat_arp_egress_port,
-                'ovs_uplink_port_name': 'patch-up'
+                'ovs_uplink_port_name': 'patch-up',
+                'uplink_gw_mac': gw_mac_addr
             },
             mconfig=None,
             loop=None,
@@ -177,7 +180,8 @@ class InOutNonNatTest(unittest.TestCase):
 
     def testFlowSnapshotMatch(self):
         cls = self.__class__
-        self.setUpNetworkAndController(non_nat_arp_egress_port=cls.UPLINK_BR)
+        self.setUpNetworkAndController(non_nat_arp_egress_port=cls.UPLINK_BR,
+                                       gw_mac_addr="33:44:55:ff:ff:ff")
         # wait for atleast one iteration of the ARP probe.
 
         ip_addr = ipaddress.ip_address("192.168.128.211")
@@ -324,6 +328,67 @@ class InOutNonNatTest(unittest.TestCase):
         self.assertEqual(gw_info_map[vlan1].mac, '11:33:44:55:66:77')
         self.assertEqual(gw_info_map[vlan2].mac, '22:33:44:55:66:77')
         self.assertEqual(gw_info_map[""].mac, '00:33:44:55:66:77')
+
+class InOutTestNonNATBasicFlows(unittest.TestCase):
+    BRIDGE = 'testing_br'
+    IFACE = 'testing_br'
+    MAC_DEST = "5e:cc:cc:b1:49:4b"
+    BRIDGE_IP = '192.168.128.1'
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Starts the thread which launches ryu apps
+
+        Create a testing bridge, add a port, setup the port interfaces. Then
+        launch the ryu apps for testing pipelined. Gets the references
+        to apps launched by using futures.
+        """
+        super(InOutTestNonNATBasicFlows, cls).setUpClass()
+        warnings.simplefilter('ignore')
+        cls.service_manager = create_service_manager([])
+
+        inout_controller_reference = Future()
+        testing_controller_reference = Future()
+        test_setup = TestSetup(
+            apps=[PipelinedController.InOut,
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
+            references={
+                PipelinedController.InOut:
+                    inout_controller_reference,
+                PipelinedController.Testing:
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
+            },
+            config={
+                'bridge_name': cls.BRIDGE,
+                'bridge_ip_address': cls.BRIDGE_IP,
+                'ovs_gtp_port_number': 32768,
+                'clean_restart': True,
+                'enable_nat': False,
+                'uplink_gw_mac': '11:22:33:44:55:66'
+            },
+            mconfig=None,
+            loop=None,
+            service_manager=cls.service_manager,
+            integ_test=False,
+        )
+
+        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+
+        cls.thread = start_ryu_app_thread(test_setup)
+        cls.inout_controller = inout_controller_reference.result()
+        cls.testing_controller = testing_controller_reference.result()
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_ryu_app_thread(cls.thread)
+        BridgeTools.destroy_bridge(cls.BRIDGE)
+
+    def testFlowSnapshotMatch(self):
+        assert_bridge_snapshot_match(self, self.BRIDGE, self.service_manager)
 
 if __name__ == "__main__":
     unittest.main()

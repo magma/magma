@@ -304,11 +304,13 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
     if (ovs_settings == NULL) {
       AssertFatal(false, "Couldn't find OVS subsetting in spgw config\n");
     }
-    char* ovs_bridge_name         = NULL;
-    libconfig_int gtp_port_num    = 0;
-    libconfig_int mtr_port_num    = 0;
-    libconfig_int uplink_port_num = 0;
-    char* uplink_mac              = NULL;
+    char* ovs_bridge_name                       = NULL;
+    libconfig_int gtp_port_num                  = 0;
+    libconfig_int mtr_port_num                  = 0;
+    libconfig_int internal_sampling_port_num    = 0;
+    libconfig_int internal_sampling_fwd_tbl_num = 0;
+    libconfig_int uplink_port_num               = 0;
+    char* uplink_mac                            = NULL;
     if (config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_BRIDGE_NAME,
             (const char**) &ovs_bridge_name) &&
@@ -321,10 +323,20 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
             ovs_settings, SGW_CONFIG_STRING_OVS_UPLINK_MAC,
             (const char**) &uplink_mac) &&
         config_setting_lookup_int(
-            ovs_settings, SGW_CONFIG_STRING_OVS_MTR_PORT_NUM, &mtr_port_num)) {
-      config_pP->ovs_config.bridge_name     = bfromcstr(ovs_bridge_name);
-      config_pP->ovs_config.gtp_port_num    = gtp_port_num;
-      config_pP->ovs_config.mtr_port_num    = mtr_port_num;
+            ovs_settings, SGW_CONFIG_STRING_OVS_MTR_PORT_NUM, &mtr_port_num) &&
+        config_setting_lookup_int(
+            ovs_settings, SGW_CONFIG_STRING_OVS_INTERNAL_SAMPLING_PORT_NUM,
+            &internal_sampling_port_num) &&
+        config_setting_lookup_int(
+            ovs_settings, SGW_CONFIG_STRING_OVS_INTERNAL_SAMPLING_FWD_TBL_NUM,
+            &internal_sampling_fwd_tbl_num)) {
+      config_pP->ovs_config.bridge_name  = bfromcstr(ovs_bridge_name);
+      config_pP->ovs_config.gtp_port_num = gtp_port_num;
+      config_pP->ovs_config.mtr_port_num = mtr_port_num;
+      config_pP->ovs_config.internal_sampling_port_num =
+          internal_sampling_port_num;
+      config_pP->ovs_config.internal_sampling_fwd_tbl_num =
+          internal_sampling_fwd_tbl_num;
       config_pP->ovs_config.uplink_port_num = uplink_port_num;
       config_pP->ovs_config.uplink_mac      = bfromcstr(uplink_mac);
     } else {
