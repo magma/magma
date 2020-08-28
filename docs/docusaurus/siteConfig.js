@@ -34,7 +34,7 @@ const siteConfig = {
   projectName: 'magma',
   organizationName: 'magma',  
   url: 'https://lucid-tesla-3ae3ff.netlify.app', // Your website URL
-  baseUrl: '/magma/', // Base URL for your project */
+  baseUrl: '/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
@@ -42,7 +42,7 @@ const siteConfig = {
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
   //   organizationName: 'Facebook'
 
-  docsUrl: 'docs',
+  //docsUrl: 'docs',
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
