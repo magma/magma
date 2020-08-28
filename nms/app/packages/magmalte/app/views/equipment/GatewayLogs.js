@@ -92,10 +92,9 @@ async function searchLogs(networkId, gatewayId, from, size, start, end, q) {
     const src = elastic_hit._source;
     const date = new Date(src['@timestamp'] ?? 0);
     const msg = src['message'];
-
     return {
       date: date,
-      service: src['ident'],
+      service: src['ident'] ?? src['tag'] ?? '-',
       logType: getLogType(msg ?? ''),
       output: msg,
     };
