@@ -145,3 +145,4 @@ ovs_uplink_port_name: patch-up
 virtual_mac: '02:ff:bb:cc:dd:ee'
 uplink_bridge: uplink_br0
 uplink_eth_port_name: uplink_p0
+uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'

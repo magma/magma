@@ -53,4 +53,8 @@ if [[ ! -z $existing_br ]]; then
 	ovs-vsctl del-port "$existing_br" "$prefix"_port
 fi
 
-ovs-vsctl --may-exist add-port "$br_name" "$prefix"_port tag="$tag"
+ovs-vsctl --may-exist add-port "$br_name" "$prefix"_port
+if [[ "$tag" -ne "0" ]]
+then
+	ovs-vsctl set port "$prefix"_port tag="$tag"
+fi
