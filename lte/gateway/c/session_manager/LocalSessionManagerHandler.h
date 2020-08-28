@@ -28,6 +28,8 @@ using grpc::Status;
 
 namespace magma {
 using namespace orc8r;
+typedef std::function<void(Status, LocalCreateSessionResponse)>
+    LocalCreateSessionCB;
 
 class LocalSessionManagerHandler {
  public:
@@ -46,8 +48,7 @@ class LocalSessionManagerHandler {
    */
   virtual void CreateSession(
       ServerContext* context, const LocalCreateSessionRequest* request,
-      std::function<void(Status, LocalCreateSessionResponse)>
-          response_callback) = 0;
+      LocalCreateSessionCB response_callback) = 0;
 
   /**
    * Terminate a session, untracking credit and terminating in the cloud
@@ -98,8 +99,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   void CreateSession(
       ServerContext* context, const LocalCreateSessionRequest* request,
-      std::function<void(Status, LocalCreateSessionResponse)>
-          response_callback);
+      LocalCreateSessionCB response_callback);
 
   /**
    * Terminate a session, untracking credit and terminating in the cloud
@@ -169,7 +169,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   void handle_create_session_cwf(
       SessionMap& session_map, const std::string& sid, SessionConfig cfg,
-      std::function<void(Status, LocalCreateSessionResponse)> cb);
+      LocalCreateSessionCB cb);
 
   /**
    * Handle the logic to recycle an existing CWF session. This involves updating
@@ -178,8 +178,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   void recycle_cwf_session(
       const std::string& imsi, const std::string& sid, const SessionConfig& cfg,
-      SessionMap& session_map,
-      std::function<void(Status, LocalCreateSessionResponse)> cb);
+      SessionMap& session_map, LocalCreateSessionCB cb);
   /**
    * handle_create_session_lte handles a sequence of actions needed for the
    * RATType=LTE case. It is responsible for responding to the original
@@ -196,7 +195,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   void handle_create_session_lte(
       SessionMap& session_map, const std::string& sid, SessionConfig cfg,
-      std::function<void(Status, LocalCreateSessionResponse)> cb);
+      LocalCreateSessionCB cb);
 
   /**
    * Send session creation request to the CentralSessionController.
@@ -205,7 +204,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    */
   void send_create_session(
       SessionMap& session_map, const std::string& sid, const SessionConfig& cfg,
-      std::function<void(grpc::Status, LocalCreateSessionResponse)> cb);
+      LocalCreateSessionCB cb);
 
   void handle_setup_callback(
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
@@ -246,8 +245,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
 
   void send_local_create_session_response(
       Status status, const std::string& sid,
-      std::function<void(Status, LocalCreateSessionResponse)>
-          response_callback);
+      LocalCreateSessionCB response_callback);
+
+  bool write_creating_session_into_store(
+      SessionMap& session_map, const std::string& imsi, const std::string& sid,
+      SessionConfig cfg, LocalCreateSessionCB cb);
+
+  void log_local_create_session(const LocalCreateSessionRequest& request);
 };
 
 }  // namespace magma

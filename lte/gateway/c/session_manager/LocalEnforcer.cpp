@@ -926,6 +926,68 @@ void LocalEnforcer::handle_session_init_rule_updates(
   }
 }
 
+void LocalEnforcer::initialize_creating_session(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, const SessionConfig& cfg) {
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    // First time a session is created for IMSI
+    MLOG(MDEBUG) << "First session for IMSI " << imsi << " with session ID "
+                 << session_id;
+    session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
+  }
+  session_map[imsi].push_back(
+      std::make_unique<SessionState>(imsi, session_id, cfg, *rule_store_));
+}
+
+bool LocalEnforcer::apply_create_session_response(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, const SessionConfig& cfg,
+    const CreateSessionResponse& response, SessionUpdate& session_update) {
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    // log failure
+    return false;
+  }
+  for (const auto& session : it->second) {
+    if (session->get_session_id() != session_id) {
+      continue;
+    }
+    auto& uc                    = session_update[imsi][session_id];
+    const auto time_since_epoch = get_time_in_sec_since_epoch();
+    session->set_pdp_start_time(time_since_epoch);
+    session->set_fsm_state(SESSION_ACTIVE, uc);
+    update_ipfix_flow(imsi, cfg, time_since_epoch);
+
+    std::unordered_set<uint32_t> charging_credits_received;
+    for (const auto& credit : response.credits()) {
+      if (session->receive_charging_credit(credit, uc)) {
+        charging_credits_received.insert(credit.charging_key());
+      }
+    }
+    // We don't have to check 'success' field for monitors because command level
+    // errors are handled in session proxy for the init exchange
+    for (const auto& monitor : response.usage_monitors()) {
+      session->receive_monitor(monitor, uc);
+    }
+    handle_session_init_rule_updates(
+        imsi, *session, response, charging_credits_received);
+    if (session->is_radius_cwf_session()) {
+      if (terminate_on_wallet_exhaust()) {
+        handle_session_init_subscriber_quota_state(imsi, *session);
+      }
+    }
+    if (revalidation_required(response.event_triggers())) {
+      schedule_revalidation(imsi, *session, response.revalidation_time(), uc);
+    }
+    if (session->is_radius_cwf_session() == false) {
+      events_reporter_->session_created(imsi, session_id, cfg, session);
+    }
+    return true;
+  }
+  return false; // failure
+}
+
 void LocalEnforcer::init_session_credit(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, const SessionConfig& cfg,

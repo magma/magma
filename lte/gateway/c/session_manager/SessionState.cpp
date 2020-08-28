@@ -155,6 +155,19 @@ SessionState::SessionState(
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
 
+SessionState::SessionState(
+    const std::string& imsi, const std::string& session_id,
+    const SessionConfig& cfg, StaticRuleStore& rule_store)
+    : imsi_(imsi),
+      session_id_(session_id),
+      // Request number set to 1, because request 0 is INIT call
+      request_number_(1),
+      curr_state_(SESSION_CREATING),
+      config_(cfg),
+      pdp_end_time_(0),
+      static_rules_(rule_store),
+      credit_map_(4, &ccHash, &ccEqual) {}
+
 static UsageMonitorUpdate make_usage_monitor_update(
     const SessionCredit::Usage& usage_in, const std::string& monitoring_key,
     MonitoringLevel level) {
@@ -699,6 +712,10 @@ uint64_t SessionState::get_pdp_start_time() {
 
 uint64_t SessionState::get_pdp_end_time() {
   return pdp_end_time_;
+}
+
+void SessionState::set_pdp_start_time(uint64_t epoch) {
+  pdp_start_time_ = epoch;
 }
 
 void SessionState::set_pdp_end_time(uint64_t epoch) {

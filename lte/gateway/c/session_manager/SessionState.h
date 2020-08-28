@@ -92,10 +92,15 @@ class SessionState {
   };
 
  public:
+  // todo deprecate
   SessionState(
       const std::string& imsi, const std::string& session_id,
       const SessionConfig& cfg, StaticRuleStore& rule_store,
       const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time);
+
+  SessionState(
+      const std::string& imsi, const std::string& session_id,
+      const SessionConfig& cfg, StaticRuleStore& rule_store);
 
   SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
@@ -211,6 +216,8 @@ class SessionState {
   uint64_t get_pdp_start_time();
 
   void set_pdp_end_time(uint64_t epoch);
+
+  void set_pdp_start_time(uint64_t epoch);
 
   uint64_t get_pdp_end_time();
 

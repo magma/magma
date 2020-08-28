@@ -124,6 +124,7 @@ enum GrantTrackingType {
  * SESSION_TERMINATED
  */
 enum SessionFsmState {
+  SESSION_CREATING              = 7,
   SESSION_ACTIVE                = 0,
   SESSION_TERMINATED            = 4,
   SESSION_TERMINATION_SCHEDULED = 5,

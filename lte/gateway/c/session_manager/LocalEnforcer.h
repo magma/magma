@@ -125,6 +125,14 @@ class LocalEnforcer {
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
 
+  void initialize_creating_session(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, const SessionConfig& cfg);
+
+  bool apply_create_session_response(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, const SessionConfig& cfg,
+      const CreateSessionResponse& response, SessionUpdate& session_update);
   /**
    * Initialize credit received from the cloud in the system. This adds all the
    * charging keys to the credit manager for tracking

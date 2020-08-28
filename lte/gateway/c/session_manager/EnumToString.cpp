@@ -78,6 +78,8 @@ std::string grant_type_to_str(GrantTrackingType grant_type) {
 
 std::string session_fsm_state_to_str(SessionFsmState state) {
   switch (state) {
+    case SESSION_CREATING:
+      return "SESSION_CREATING";
     case SESSION_ACTIVE:
       return "SESSION_ACTIVE";
     case SESSION_TERMINATED:
