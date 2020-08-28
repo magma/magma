@@ -381,7 +381,7 @@ void LocalEnforcer::start_session_termination(
   auto now = std::chrono::system_clock::now();
   uint64_t epoch = std::chrono::duration_cast<std::chrono::seconds>(
     now.time_since_epoch()).count();
-  session->set_pdp_end_time(epoch);
+  update_criteria.updated_pdp_end_time = epoch;
 
   remove_all_rules_for_termination(imsi, session, update_criteria);
   
@@ -1332,6 +1332,50 @@ uint64_t LocalEnforcer::get_monitor_credit(
   return 0;
 }
 
+void LocalEnforcer::handle_set_session_rules(
+    SessionMap& session_map, const SessionRules& rules,
+    SessionUpdate& session_update) {
+  for (const auto& rules_per_sub : rules.rules_per_subscriber()) {
+    const auto& imsi = rules_per_sub.imsi();
+    auto session_it  = session_map.find(imsi);
+    if (session_it == session_map.end()) {
+      MLOG(MERROR) << "Could not find session for subscriber " << imsi
+                   << " during set session rule update";
+      return;
+    }
+    // Convert proto into a more convenient structure
+    RuleSetBySubscriber rule_set_by_sub(rules_per_sub);
+
+    for (const auto& session : session_it->second) {
+      RulesToProcess rules_to_activate;
+      RulesToProcess rules_to_deactivate;
+      const auto& config = session->get_config();
+
+      const auto& apn = config.common_context.apn();
+      auto rule_set   = rule_set_by_sub.get_combined_rule_set_for_apn(apn);
+      if (!rule_set) {
+        // No rule change needed for this APN
+        continue;
+      }
+
+      auto& uc = session_update[imsi][session->get_session_id()];
+      // Process the rule sets and get rules that need to be
+      // activated/deactivated
+      session->apply_session_rule_set(
+          *rule_set, rules_to_activate, rules_to_deactivate, uc);
+
+      // Propagate these rule changes to PipelineD and MME (if 4G)
+      propagate_rule_updates_to_pipelined(
+          imsi, config, rules_to_activate, rules_to_deactivate, false);
+      if (config.common_context.rat_type() == TGPP_LTE) {
+        const auto update = session->get_dedicated_bearer_updates(
+            rules_to_activate, rules_to_deactivate, uc);
+        propagate_bearer_updates_to_mme(update);
+      }
+    }
+  }
+}
+
 ReAuthResult LocalEnforcer::init_charging_reauth(
     SessionMap& session_map, ChargingReAuthRequest request,
     SessionUpdate& session_update) {
@@ -1826,6 +1870,68 @@ void LocalEnforcer::handle_cwf_roaming(
       update_ipfix_flow(imsi, config, session->get_pdp_start_time());
     }
   }
+}
+
+bool LocalEnforcer::bind_policy_to_bearer(
+    SessionMap& session_map, const PolicyBearerBindingRequest& request,
+    SessionUpdate& session_update) {
+  const auto& imsi = request.sid().id();
+  auto it          = session_map.find(imsi);
+  if (it == session_map.end()) {
+    MLOG(MERROR) << "Could not bind policy to bearer: session for " << imsi
+                 << " is not found";
+    return false;
+  }
+  for (const auto& session : it->second) {
+    const auto& config = session->get_config();
+    if (!config.rat_specific_context.has_lte_context()) {
+      continue;  // not LTE
+    }
+    const auto& lte_context = config.rat_specific_context.lte_context();
+    if (lte_context.bearer_id() != request.linked_bearer_id()) {
+      continue;
+    }
+    auto& uc = session_update[imsi][session->get_session_id()];
+    if (request.bearer_id() != 0) {
+      session->bind_policy_to_bearer(request, uc);
+      return true;
+    }
+    // if bearer_id is 0, the rule needs to be removed since we cannot honor the
+    // QoS request
+    remove_rule_due_to_bearer_creation_failure(
+        imsi, *session, request.policy_rule_id(), uc);
+  }
+  return false;
+}
+
+void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
+    const std::string& imsi, SessionState& session, const std::string& rule_id,
+    SessionStateUpdateCriteria& uc) {
+  MLOG(MINFO) << "Removing " << rule_id
+              << " since we failed to create a dedicated bearer for it";
+  auto policy_type = session.get_policy_type(rule_id);
+  if (!policy_type) {
+    MLOG(MERROR) << "Unable to remove rule " << rule_id
+                 << " since it is not found";
+    return;
+  }
+  std::vector<std::string> static_rule_to_remove;
+  std::vector<PolicyRule> dynamic_rule_to_remove;
+
+  switch (*policy_type) {
+    case STATIC:
+      session.deactivate_static_rule(rule_id, uc);
+      static_rule_to_remove.push_back(rule_id);
+      break;
+    case DYNAMIC: {
+      PolicyRule rule;
+      session.remove_dynamic_rule(rule_id, &rule, uc);
+      dynamic_rule_to_remove.push_back(rule);
+    }
+  }
+  pipelined_client_->deactivate_flows_for_rules(
+      imsi, static_rule_to_remove, dynamic_rule_to_remove,
+      RequestOriginType::GX);
 }
 
 static void handle_command_level_result_code(

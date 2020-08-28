@@ -323,6 +323,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   update_req[imsi] =
       std::unordered_map<std::string, SessionStateUpdateCriteria>{};
   auto update_criteria  = get_update_criteria();
+  update_criteria.updated_pdp_end_time = 156789;
   update_req[imsi][sid] = update_criteria;
 
   // 7) Commit updates to SessionStore
@@ -378,6 +379,9 @@ TEST_F(SessionStoreTest, test_read_and_write) {
       session_map[imsi].front()->get_monitor(monitoring_key, REPORTED_TX), 7);
   EXPECT_EQ(
       session_map[imsi].front()->get_monitor(monitoring_key, REPORTED_RX), 8);
+
+  // Check pdp end time update
+  EXPECT_EQ(session_map[imsi].front()->get_pdp_end_time(), 156789);
 
   // 11) Delete sessions for IMSI1
   update_req                       = SessionUpdate{};

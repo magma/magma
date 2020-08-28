@@ -1,9 +1,14 @@
 /*
- Copyright (c) Facebook, Inc. and its affiliates.
- All rights reserved.
+ Copyright 2020 The Magma Authors.
 
  This source code is licensed under the BSD-style license found in the
  LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
 */
 
 /*
@@ -42,9 +47,9 @@
 	Run the migration locally, for faster iteration, and against a recent copy
 	of the prod DB, for visibility into the expected changes.
 	- Ask teammate for copy of prod DB, then load it into your local Postgres
-		- (host) $ docker cp ~/.magma/dbs/pgdump-prod-1595044229.sql orc8r_postgres_1:/tmp/
-		- (orc8r_postgres_1) $ createdb -U magma_dev -T template0 prod-1595044229-july-17
-		- (orc8r_postgres_1) $ psql -U magma_dev prod-1595044229-july-17 < /tmp/pgdump-prod-1595044229.sql
+		- (host) $ docker cp ~/.magma/dbs/pgdump-prod-1595044229.sql orc8r_postgres_1:/var/lib/postgresql/data/
+		- (orc8r_postgres_1) $ createdb -U magma_dev -T template0 pgdump-prod-1595044229
+		- (orc8r_postgres_1) $ psql -U magma_dev pgdump-prod-1595044229 < /var/lib/postgresql/data/pgdump-prod-1595044229.sql
 	- Run migration locally, without needing to rebuild all containers
 		- Temporarily comment-out the ip.IsLoopback check in
 		  unary/identity_decorator.go, then rebuild containers

@@ -14,7 +14,7 @@
  * @format
  */
 import type {
-  network,
+  lte_network,
   network_epc_configs,
   network_id,
   network_ran_configs,
@@ -65,10 +65,10 @@ const EditTableType = {
 
 type EditProps = {
   editTable: $Keys<typeof EditTableType>,
-  networkInfo: network,
+  lteNetwork: lte_network,
   epcConfigs: network_epc_configs,
   lteRanConfigs: network_ran_configs,
-  onSaveNetworkInfo: network => void,
+  onSaveNetworkInfo: lte_network => void,
   onSaveEpcConfigs: network_epc_configs => void,
   onSaveLteRanConfigs: network_ran_configs => void,
 };
@@ -127,9 +127,9 @@ export function NetworkEditDialog(props: DialogProps) {
   const {open, editProps} = props;
   const classes = useStyles();
   const [networkId, setNetworkId] = useState<network_id>(
-    editProps?.networkInfo?.id || '',
+    editProps?.lteNetwork?.id || '',
   );
-  const [networkInfo, setNetworkInfo] = useState<network>({});
+  const [lteNetwork, setLteNetwork] = useState<lte_network>({});
   const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
 
   const [tabPos, setTabPos] = React.useState(
@@ -137,7 +137,7 @@ export function NetworkEditDialog(props: DialogProps) {
   );
 
   const onClose = () => {
-    setNetworkInfo({});
+    setLteNetwork({});
     setEpcConfigs({});
     setNetworkId('');
     props.onClose();
@@ -173,19 +173,19 @@ export function NetworkEditDialog(props: DialogProps) {
       {tabPos === 0 && (
         <NetworkInfoEdit
           saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
-          networkInfo={
-            Object.keys(networkInfo).length != 0
-              ? networkInfo
-              : editProps?.networkInfo
+          lteNetwork={
+            Object.keys(lteNetwork).length != 0
+              ? lteNetwork
+              : editProps?.lteNetwork
           }
           onClose={onClose}
-          onSave={(networkInfo: network) => {
-            setNetworkInfo(networkInfo);
+          onSave={(lteNetwork: lte_network) => {
+            setLteNetwork(lteNetwork);
             if (editProps) {
-              editProps.onSaveNetworkInfo(networkInfo);
+              editProps.onSaveNetworkInfo(lteNetwork);
               onClose();
             } else {
-              setNetworkId(networkInfo.id);
+              setNetworkId(lteNetwork.id);
               setTabPos(tabPos + 1);
             }
           }}

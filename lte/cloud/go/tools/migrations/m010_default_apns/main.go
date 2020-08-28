@@ -1,9 +1,14 @@
 /*
- Copyright (c) Facebook, Inc. and its affiliates.
- All rights reserved.
+ Copyright 2020 The Magma Authors.
 
  This source code is licensed under the BSD-style license found in the
  LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
 */
 
 /*
@@ -293,7 +298,7 @@ func ensureAllSubscribersHaveAPN(tx *sql.Tx, builder sqorc.StatementBuilder, net
 		return err
 	}
 
-	err = mergeGraphs(tx, builder, network, allGIDs)
+	err = mergeGraphs(tx, builder, allGIDs)
 	if err != nil {
 		return err
 	}
@@ -377,7 +382,7 @@ func mapSubscribersToAPN(tx *sql.Tx, builder sqorc.StatementBuilder, apnPK strin
 
 // mergeGraphs merges the graphs for all passed graph IDs.
 // Assumes gids is non-empty.
-func mergeGraphs(tx *sql.Tx, builder sqorc.StatementBuilder, network string, gids []string) error {
+func mergeGraphs(tx *sql.Tx, builder sqorc.StatementBuilder, gids []string) error {
 	gids = funk.UniqString(gids)
 	sort.Strings(gids)
 	mergedGID, oldGIDs := gids[0], gids[1:]

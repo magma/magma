@@ -14,73 +14,11 @@ limitations under the License.
 import ipaddress
 import unittest
 
-from magma.mobilityd import subscriberdb_client
-
-from lte.protos.subscriberdb_pb2 import (
-    LTESubscription,
-    SubscriberData,
-    SubscriberState,
-    SubscriberID,
-    SubscriberUpdate,
-    Non3GPPUserProfile,
-    APNConfiguration,
-)
-
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from magma.mobilityd.ip_descriptor import IPDesc, IPType
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
-from magma.subscriberdb.sid import SIDUtils
-
-
-class MockedSubscriberDBStub:
-    # subscriber map
-    subs = {}
-
-    def __init__(self):
-        pass
-
-    def GetSubscriberData(self, sid):
-        cls = self.__class__
-        return cls.subs.get(str(sid), None)
-
-    @classmethod
-    def add_sub(cls, sid: str, apn: str, ip: str):
-        sub_db_sid = SIDUtils.to_pb(sid)
-        lte = LTESubscription()
-        lte.state = LTESubscription.ACTIVE
-        state = SubscriberState()
-        state.lte_auth_next_seq = 1
-        non_3gpp = Non3GPPUserProfile()
-        subs_data = SubscriberData(sid=sub_db_sid, lte=lte, state=state, non_3gpp=non_3gpp)
-
-        cls.subs[str(sub_db_sid)] = subs_data
-        cls.add_sub_ip(sid, apn, ip)
-
-    @classmethod
-    def add_incomplete_sub(cls, sid: str):
-        sub_db_sid = SIDUtils.to_pb(sid)
-        lte = LTESubscription()
-        lte.state = LTESubscription.ACTIVE
-        state = SubscriberState()
-        state.lte_auth_next_seq = 1
-        subs_data = SubscriberData(sid=sub_db_sid, lte=lte, state=state)
-        cls.subs[str(sub_db_sid)] = subs_data
-
-    @classmethod
-    def add_sub_ip(cls, sid: str, apn: str, ip: str):
-        sub_db_sid = SIDUtils.to_pb(sid)
-        apn_config = APNConfiguration()
-        apn_config.context_id = 1
-        apn_config.service_selection = apn
-        apn_config.assigned_static_ip = ip
-
-        subs_data = cls.subs[str(sub_db_sid)]
-        subs_data.non_3gpp.apn_config.extend([apn_config])
-
-    @classmethod
-    def clear_subs(cls):
-        cls.subs = {}
+from magma.mobilityd.tests.test_multi_apn_ip_alloc import MockedSubscriberDBStub
 
 
 class StaticIPAllocationTests(unittest.TestCase):
@@ -121,7 +59,7 @@ class StaticIPAllocationTests(unittest.TestCase):
     def test_get_ip_for_subscriber(self):
         """ test get_ip_for_sid without any assignment """
         sid = 'IMSI11'
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
 
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
@@ -137,7 +75,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -153,7 +91,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="xyz", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -169,7 +107,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -187,7 +125,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -203,7 +141,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.hh'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -221,7 +159,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="abc", ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -236,7 +174,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         sid = imsi + '.' + apn
         MockedSubscriberDBStub.add_incomplete_sub(sid=imsi)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -250,7 +188,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -266,7 +204,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
-        ip0 = self._allocator.alloc_ip_address(sid)
+        ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
 
         # check if retrieved ip is the same as the one allocated
@@ -274,3 +212,37 @@ class StaticIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip0, ipaddress.ip_address(assigned_ip))
         self.check_type(sid, IPType.STATIC)
 
+    def test_get_ip_for_subscriber_with_wildcard_and_no_exact_apn(self):
+        """ test IP assignement from multiple  APNs"""
+        apn = 'magma'
+        imsi = 'IMSI110'
+        sid = imsi + '.' + apn
+        assigned_ip = '1.2.3.4'
+        assigned_ip_wild = '22.22.22.22'
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
+        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip)
+
+        ip0, _ = self._allocator.alloc_ip_address(sid)
+        ip0_returned = self._allocator.get_ip_for_sid(sid)
+
+        # check if retrieved ip is the same as the one allocated
+        self.assertEqual(ip0, ip0_returned)
+        self.assertEqual(ip0, ipaddress.ip_address(assigned_ip_wild))
+        self.check_type(sid, IPType.STATIC)
+
+    def test_get_ip_for_subscriber_with_wildcard_and_exact_apn_no_ip(self):
+        """ test IP assignement from multiple  APNs"""
+        apn = 'magma'
+        imsi = 'IMSI110'
+        sid = imsi + '.' + apn
+        assigned_ip_wild = '22.22.22.22'
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
+        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=None)
+
+        ip0, _ = self._allocator.alloc_ip_address(sid)
+        ip0_returned = self._allocator.get_ip_for_sid(sid)
+
+        # check if retrieved ip is the same as the one allocated
+        self.assertEqual(ip0, ip0_returned)
+        self.assertEqual(ip0, ipaddress.ip_address(assigned_ip_wild))
+        self.check_type(sid, IPType.STATIC)

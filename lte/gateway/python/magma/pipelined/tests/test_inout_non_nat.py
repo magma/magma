@@ -289,7 +289,7 @@ class InOutNonNatTest(unittest.TestCase):
     def testFlowVlanSnapshotMatch_static2(self):
         cls = self.__class__
         # setup network on unused vlan.
-        self.setUpNetworkAndController("1234")
+        self.setUpNetworkAndController("34")
         # statically configured config
 
         vlan1 = "31"

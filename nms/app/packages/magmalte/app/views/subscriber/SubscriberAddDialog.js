@@ -290,7 +290,7 @@ function AddSubscriberDetails(props: DialogProps) {
           subscriber.authOpc !== undefined && isValidHex(subscriber.authOpc)
             ? hexToBase64(subscriber.authOpc)
             : '';
-        await ctx.setState(subscriber.imsi, {
+        await ctx.setState?.(subscriber.imsi, {
           active_apns: subscriber.apns,
           id: subscriber.imsi,
           name: subscriber.name,
@@ -568,7 +568,7 @@ function EditSubscriberDetails(props: DialogProps) {
         }
       }
       const {config: _, ...mutableSubscriber} = {...subscriberState};
-      await ctx.setState(subscriberState.id, mutableSubscriber);
+      await ctx.setState?.(subscriberState.id, mutableSubscriber);
     } catch (e) {
       const errMsg = e.response.data?.message ?? e.message;
       setError('error saving ' + subscriberState.id + ' : ' + errMsg);

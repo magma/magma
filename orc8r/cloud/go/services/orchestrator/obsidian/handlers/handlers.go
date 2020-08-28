@@ -84,11 +84,11 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: ManageNetworkDNSRecordByDomainPath, Methods: obsidian.DELETE, HandlerFunc: DeleteDNSRecord},
 
 		// Magma V1 Gateways
-		{Path: ListGatewaysPath, Methods: obsidian.GET, HandlerFunc: ListGatewaysHandler},
-		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: CreateGatewayHandler},
-		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: GetGatewayHandler},
-		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: UpdateGatewayHandler},
-		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: DeleteGatewayHandler},
+		{Path: ListGatewaysPath, Methods: obsidian.GET, HandlerFunc: listGatewaysHandler},
+		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGatewayHandler},
+		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGatewayHandler},
+		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGatewayHandler},
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGatewayHandler},
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: GetStateHandler},
 
 		// Upgrades

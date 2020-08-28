@@ -334,6 +334,7 @@ ${MAGMA_ROOT}/orc8r/tools/ansible/roles/fluent_bit/files/60-fluent-bit.conf=/etc
 ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
-$(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/)"
+$(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
+$(glob_files "${ANSIBLE_FILES}/config_stateless_*.sh" /usr/local/bin/)"
 
 eval "$BUILDCMD"

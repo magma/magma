@@ -25,6 +25,7 @@ import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {colors} from '../../theme/default';
+import {getQueryRanges} from '../../components/CustomMetrics';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -59,15 +60,7 @@ export default function EventChart(props: Props) {
   useEffect(() => {
     // build queries
     let requestError = '';
-    const queries = [];
-    let s = start.clone();
-    while (end.diff(s) >= 0) {
-      const e = s.clone();
-      e.add(delta, unit);
-      queries.push([s, e]);
-      s = e.clone();
-    }
-
+    const queries = getQueryRanges(start, end, delta, unit);
     const requests = queries.map(async (query, _) => {
       try {
         const [s, e] = query;
@@ -88,15 +81,15 @@ export default function EventChart(props: Props) {
     Promise.all(requests)
       .then(allResponses => {
         const data: Array<DatasetType> = allResponses.map((r, index) => {
-          const [s] = queries[index];
+          const [_, e] = queries[index];
           if (r === null || r === undefined) {
             return {
-              t: s.unix() * 1000,
+              t: e.unix() * 1000,
               y: 0,
             };
           }
           return {
-            t: s.unix() * 1000,
+            t: e.unix() * 1000,
             y: r,
           };
         });

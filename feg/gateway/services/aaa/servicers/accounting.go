@@ -301,16 +301,6 @@ func isSessionAlreadyStored(imsi string, sessions aaa.SessionTable) bool {
 func createSessionOnSessionManager(mac net.HardwareAddr, subscriberId *lte_protos.SubscriberID,
 	aaaCtx *protos.Context) (*lte_protos.LocalCreateSessionResponse, error) {
 	req := &lte_protos.LocalCreateSessionRequest{
-		// TODO deprecate the fields below
-		Sid:             subscriberId,
-		UeIpv4:          aaaCtx.GetIpAddr(),
-		Apn:             aaaCtx.GetApn(),
-		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
-		RatType:         lte_protos.RATType_TGPP_WLAN,
-		HardwareAddr:    mac,
-		RadiusSessionId: aaaCtx.GetSessionId(),
-		// TODO the fields above will be replaced by CommonContext and
-		// RatSpecificContext below.
 		CommonContext: &lte_protos.CommonSessionContext{
 			Sid:     subscriberId,
 			UeIpv4:  aaaCtx.GetIpAddr(),

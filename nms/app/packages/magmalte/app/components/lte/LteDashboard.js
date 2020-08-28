@@ -50,6 +50,7 @@ function LteDashboard() {
   return (
     <>
       <TopBar
+        key="dashboard"
         header="Dashboard"
         tabs={[
           {

@@ -53,6 +53,7 @@ SessionStateUpdateCriteria get_default_update_criteria() {
   uc.is_fsm_updated             = false;
   uc.is_config_updated          = false;
   uc.request_number_increment   = 0;
+  uc.updated_pdp_end_time       = 0;
   uc.charging_credit_to_install = StoredChargingCreditMap(4, &ccHash, &ccEqual);
   uc.charging_credit_map        = std::unordered_map<
       CreditKey, SessionCreditUpdateCriteria, decltype(&ccHash),

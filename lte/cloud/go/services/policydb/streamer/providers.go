@@ -30,14 +30,14 @@ import (
 )
 
 // TODO: need to stream down the infinite credit charging keys from here
+
 type RatingGroupsProvider struct{}
 
 func (p *RatingGroupsProvider) GetStreamName() string {
 	return lte.RatingGroupStreamName
 }
 
-// GetUpdates implements GetUpdates for the policies stream provider
-func (provider *RatingGroupsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
+func (p *RatingGroupsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
 	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (provider *RatingGroupsProvider) GetUpdates(gatewayId string, extraArgs *an
 
 func createRatingGroupProtoFromEnt(ratingGroupEnt configurator.NetworkEntity) (*lte_protos.RatingGroup, error) {
 	if ratingGroupEnt.Config == nil {
-		return nil, fmt.Errorf("Failed to convert to RatingGroup proto")
+		return nil, fmt.Errorf("failed to convert to RatingGroup proto")
 	}
 	cfg := ratingGroupEnt.Config.(*models.RatingGroup)
 	return cfg.ToProto(), nil
@@ -88,30 +88,65 @@ func (p *PoliciesProvider) GetStreamName() string {
 }
 
 func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	gw, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
 	if err != nil {
 		return nil, err
 	}
 
-	ruleEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.PolicyRuleEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	rules, err := configurator.LoadAllEntitiesInNetwork(
+		gw.NetworkID, lte.PolicyRuleEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+	)
+	if err != nil {
+		return nil, err
+	}
+	qosProfiles, err := loadQosProfiles(gw.NetworkID)
 	if err != nil {
 		return nil, err
 	}
 
-	ruleProtos := make([]*lte_protos.PolicyRule, 0, len(ruleEnts))
-	for _, rule := range ruleEnts {
-		ruleProtos = append(ruleProtos, createRuleProtoFromEnt(rule))
+	ruleProtos := make([]*lte_protos.PolicyRule, 0, len(rules))
+	for _, rule := range rules {
+		ruleProtos = append(ruleProtos, createRuleProtoFromEnt(rule, qosProfiles[rule.Key]))
 	}
 	return rulesToUpdates(ruleProtos)
 }
 
-func createRuleProtoFromEnt(ruleEnt configurator.NetworkEntity) *lte_protos.PolicyRule {
-	if ruleEnt.Config == nil {
-		return &lte_protos.PolicyRule{Id: ruleEnt.Key}
+// loadQosProfiles returns all policy_qos_profile ents, keyed by the key of
+// their parent policy rule ent.
+func loadQosProfiles(networkID string) (map[string]configurator.NetworkEntity, error) {
+	profiles, err := configurator.LoadAllEntitiesInNetwork(
+		networkID, lte.PolicyQoSProfileEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true},
+	)
+	if err != nil {
+		return nil, err
 	}
 
-	cfg := ruleEnt.Config.(*models.PolicyRuleConfig)
-	return cfg.ToProto(ruleEnt.Key)
+	byPolicyID := map[string]configurator.NetworkEntity{}
+	for _, prof := range profiles {
+		tk, err := prof.ParentAssociations.GetFirst(lte.PolicyRuleEntityType)
+		if err != nil {
+			return nil, err
+		}
+		byPolicyID[tk.Key] = prof
+	}
+
+	return byPolicyID, nil
+}
+
+func createRuleProtoFromEnt(rule, qosProfile configurator.NetworkEntity) *lte_protos.PolicyRule {
+	if rule.Config == nil {
+		return &lte_protos.PolicyRule{Id: rule.Key}
+	}
+
+	cfg := rule.Config.(*models.PolicyRuleConfig)
+
+	var qos *lte_protos.FlowQos
+	if qosProfile.Config != nil {
+		qos = (&models.PolicyQosProfile{}).FromEntity(qosProfile).ToProto()
+	}
+	return cfg.ToProto(rule.Key, qos)
 }
 
 func rulesToUpdates(rules []*lte_protos.PolicyRule) ([]*protos.DataUpdate, error) {
@@ -140,9 +175,8 @@ func (p *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]
 	}
 
 	bnEnts, err := configurator.LoadAllEntitiesInNetwork(
-		gwEnt.NetworkID,
-		lte.BaseNameEntityType,
-		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		gwEnt.NetworkID, lte.BaseNameEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
 	)
 	if err != nil {
 		return nil, err

@@ -25,7 +25,7 @@ import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 export default function SectionLinks(): React.Node {
-  const [_landingPath, sections] = useSections();
+  const [_landingPath, sections] = useSections(true);
   const {relativeUrl} = useRouter();
   const {networkId} = useContext(NetworkContext);
 

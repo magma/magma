@@ -109,8 +109,8 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
     sgi_create_endpoint_resp.paa.pdn_type     = IPv4;
     sgi_create_endpoint_resp.paa.vlan         = vlan;
     OAILOG_DEBUG(
-        LOG_UTIL, "Allocated IPv4 address for imsi <%s>, apn <%s>\n", imsi,
-        apn);
+        LOG_UTIL, "Allocated IPv4 address for imsi <%s>, apn <%s> vlan %d\n", imsi,
+        apn, vlan);
     sgi_create_endpoint_resp.status = SGI_STATUS_OK;
   } else {
     if (status.error_code() == RPC_STATUS_ALREADY_EXISTS) {

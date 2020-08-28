@@ -23,6 +23,7 @@ from magma.pipelined.qos.utils import QosStore
 from magma.configuration.service_configs import load_service_config
 
 LOG = logging.getLogger("pipelined.qos.common")
+#LOG.setLevel(logging.DEBUG)
 
 def normalize_imsi(imsi: str) -> str:
     imsi = imsi.lower()
@@ -76,6 +77,14 @@ class SubscriberState(object):
     def remove_session(self, ip_addr: str) -> None:
         del self.sessions[ip_addr]
 
+    def find_session_with_rule(self, rule_num: int) ->SubscriberSession:
+        session_with_rule = None
+        for session in self.sessions.values():
+            if rule_num in session.rules:
+                session_with_rule = session
+                break
+        return session_with_rule
+
     def update_rule(self, ip_addr: str, rule_num: int, d: FlowMatch.Direction,
                     qos_handle: int) -> None:
         k = get_subscriber_key(self.imsi, ip_addr, rule_num, d)
@@ -89,12 +98,7 @@ class SubscriberState(object):
         self.rules[rule_num].append((d, qos_handle))
 
     def remove_rule(self, rule_num: int) -> None:
-        session_with_rule = None
-        for session in self.sessions.values():
-            if rule_num in session.rules:
-                session_with_rule = session
-                break
-
+        session_with_rule = self.find_session_with_rule(rule_num)
         if session_with_rule:
             for (d, _) in self.rules[rule_num]:
                 k = get_subscriber_key(self.imsi, session_with_rule.ip_addr,
@@ -269,9 +273,12 @@ class QosManager(object):
             if not ambr_qos_handle:
                 ambr_qos_handle = self.impl.add_qos(direction, QosInfo(gbr=0, mbr=apn_ambr))
                 session.set_ambr(direction, ambr_qos_handle)
-
+                LOG.debug('Adding ambr qos mbr %d direction %d qos_handle %d ',
+                          apn_ambr, direction, ambr_qos_handle)
             if qos_info:
                 qos_handle = self.impl.add_qos(direction, qos_info, parent=ambr_qos_handle)
+                LOG.debug('Adding qos %s direction %d qos_handle %d ',
+                          qos_info, direction, qos_handle)
             else:
                 qos_handle = ambr_qos_handle
         else:
@@ -303,16 +310,21 @@ class QosManager(object):
             rules = subscriber_state.get_all_rules()
             for (rule_num, rule) in rules.items():
                 LOG.debug("removing rule %s %s ", imsi, rule_num)
+                session_with_rule = subscriber_state.find_session_with_rule(rule_num)
                 for (d, qos_handle) in rule:
-                    self.impl.remove_qos(qos_handle, d)
+                    if session_with_rule.get_ambr(d) != qos_handle:
+                        self.impl.remove_qos(qos_handle, d)
                 to_be_deleted_rules.append(rule_num)
         else:
             rule = subscriber_state.find_rule(rule_num)
             if rule is None:
                 LOG.error("unable to find rule_num %d for imsi %s", rule_num, imsi)
                 return
+
+            session_with_rule = subscriber_state.find_session_with_rule(rule_num)
             for (d, qos_handle) in rule:
-                self.impl.remove_qos(qos_handle, d)
+                if session_with_rule.get_ambr(d) != qos_handle:
+                    self.impl.remove_qos(qos_handle, d)
             LOG.debug("removing rule %s %s ", imsi, rule_num)
             to_be_deleted_rules.append(rule_num)
 
@@ -325,6 +337,7 @@ class QosManager(object):
             for d in (FlowMatch.UPLINK, FlowMatch.DOWNLINK):
                 ambr_qos_handle = session.get_ambr(d)
                 if ambr_qos_handle:
+                    LOG.debug("removing ambr qos handle %d direction %d", ambr_qos_handle, d)
                     self.impl.remove_qos(ambr_qos_handle, d)
             LOG.debug("purging session %s %s ", imsi, session.ip_addr)
             subscriber_state.remove_session(session.ip_addr)

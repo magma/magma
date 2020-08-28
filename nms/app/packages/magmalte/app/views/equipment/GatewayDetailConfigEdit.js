@@ -14,6 +14,7 @@
  * @format
  */
 import type {
+  challenge_key,
   enodeb_serials,
   gateway_device,
   gateway_epc_configs,
@@ -74,7 +75,8 @@ const DEFAULT_GATEWAY_CONFIG = {
   device: {
     hardware_id: '',
     key: {
-      key_type: 'ECHO',
+      key: '',
+      key_type: 'SOFTWARE_ECDSA_SHA256',
     },
   },
   id: '',
@@ -327,6 +329,10 @@ export function ConfigEdit(props: Props) {
     props.gateway?.device || DEFAULT_GATEWAY_CONFIG.device,
   );
 
+  const [challengeKey, setChallengeKey] = useState<challenge_key>(
+    props.gateway?.device.key || DEFAULT_GATEWAY_CONFIG.device.key,
+  );
+
   const [gatewayVersion, setGatewayVersion] = useState<VersionType>(
     props.gateway?.status?.platform_info?.packages?.[0].version ||
       DEFAULT_GATEWAY_CONFIG.status?.platform_info?.packages[0]?.version,
@@ -344,7 +350,7 @@ export function ConfigEdit(props: Props) {
             packages: [{version: gatewayVersion}],
           },
         },
-        device: gatewayDevice,
+        device: {...gatewayDevice, key: challengeKey},
       };
       await ctx.setState(gateway.id, gatewayInfos);
       enqueueSnackbar('Gateway saved successfully', {
@@ -414,6 +420,16 @@ export function ConfigEdit(props: Props) {
               value={gateway.description}
               onChange={({target}) =>
                 setGateway({...gateway, description: target.value})
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'Challenge Key'}>
+            <OutlinedInput
+              data-testid="challengeKey"
+              fullWidth={true}
+              value={challengeKey.key}
+              onChange={({target}) =>
+                setChallengeKey({...challengeKey, key: target.value})
               }
             />
           </AltFormField>

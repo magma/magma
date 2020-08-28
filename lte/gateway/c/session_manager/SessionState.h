@@ -28,14 +28,38 @@
 #include "ChargingGrant.h"
 
 namespace magma {
-typedef std::unordered_map<CreditKey, std::unique_ptr<ChargingGrant>,
-                 decltype(&ccHash), decltype(&ccEqual)> CreditMap;
+typedef std::unordered_map<
+    CreditKey, std::unique_ptr<ChargingGrant>, decltype(&ccHash),
+    decltype(&ccEqual)>
+    CreditMap;
 typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 
 struct RulesToProcess {
   std::vector<std::string> static_rules;
   std::vector<PolicyRule> dynamic_rules;
+};
+
+// Used to transform the proto message RuleSet into a more useful structure
+struct RuleSetToApply {
+  std::unordered_map<std::string, PolicyRule> dynamic_rules;
+  std::unordered_set<std::string> static_rules;
+
+  RuleSetToApply() {}
+  RuleSetToApply(const magma::lte::RuleSet& rule_set);
+  void combine_rule_set(const RuleSetToApply& other);
+};
+
+// Used to transform the proto message RulesPerSubscriber into a more useful
+// structure
+struct RuleSetBySubscriber {
+  std::string imsi;
+  std::unordered_map<std::string, RuleSetToApply> rule_set_by_apn;
+  std::experimental::optional<RuleSetToApply> subscriber_wide_rule_set;
+
+  RuleSetBySubscriber(const RulesPerSubscriber& rules_per_subscriber);
+  std::experimental::optional<RuleSetToApply> get_combined_rule_set_for_apn(
+      const std::string& apn);
 };
 
 struct BearerUpdate {
@@ -197,6 +221,14 @@ class SessionState {
   void increment_request_number(uint32_t incr);
 
   // Methods related to the session's static and dynamic rules
+  /**
+   * Infer the policy's type (STATIC or DYNAMIC)
+   * @param rule_id
+   * @return the type if the rule exists, {} otherwise.
+   */
+  std::experimental::optional<PolicyType> get_policy_type(
+      const std::string& rule_id);
+
   bool is_dynamic_rule_installed(const std::string& rule_id);
 
   bool is_gy_dynamic_rule_installed(const std::string& rule_id);
@@ -225,7 +257,7 @@ class SessionState {
    * Remove a currently active dynamic rule to mark it as deactivated.
    *
    * @param rule_id ID of the rule to be removed.
-   * @param rule_out Will point to the removed rule.
+   * @param rule_out Will point to the removed rule if it is not nullptr
    * @param update_criteria Tracks updates to the session. To be passed back to
    *                        the SessionStore to resolve issues of concurrent
    *                        updates to a session.
@@ -369,6 +401,25 @@ class SessionState {
    */
   BearerUpdate get_dedicated_bearer_updates(
       RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+      SessionStateUpdateCriteria& uc);
+
+  /**
+   *
+   * @param rule_set
+   * @param subscriber_wide_rule_set
+   * @param rules_to_activate
+   * @param rules_to_deactivate
+   */
+  void apply_session_rule_set(
+      RuleSetToApply& rule_set, RulesToProcess& rules_to_activate,
+      RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc);
+
+  /**
+   * Add the association of policy -> bearerID into bearer_id_by_policy_
+   * This assumes the bearerID is not 0
+   */
+  void bind_policy_to_bearer(
+      const PolicyBearerBindingRequest& request,
       SessionStateUpdateCriteria& uc);
 
  private:
@@ -519,6 +570,18 @@ class SessionState {
   bool is_static_rule_scheduled(const std::string& rule_id);
 
   bool is_dynamic_rule_scheduled(const std::string& rule_id);
+
+  /** apply static_rules which is the desired state for the session's rules **/
+  void apply_session_static_rule_set(
+      std::unordered_set<std::string> static_rules,
+      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+      SessionStateUpdateCriteria& uc);
+
+  /** apply dynamic_rules which is the desired state for the session's rules **/
+  void apply_session_dynamic_rule_set(
+      std::unordered_map<std::string, PolicyRule> dynamic_rules,
+      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+      SessionStateUpdateCriteria& uc);
 
   /**
    * Check if a new bearer has to be created for the given policy. If a creation
