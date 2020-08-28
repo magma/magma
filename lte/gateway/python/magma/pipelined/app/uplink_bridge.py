@@ -34,7 +34,7 @@ class UplinkBridgeController(MagmaController):
         'UplinkBridgeConfig',
         ['uplink_bridge', 'uplink_eth_port_name', 'uplink_patch',
          'enable_nat', 'virtual_mac', 'dhcp_port',
-         'sgi_management_iface_vlan'],
+         'sgi_management_iface_vlan', 'sgi_management_iface_ip_addr'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -58,6 +58,7 @@ class UplinkBridgeController(MagmaController):
         virtual_mac = config_dict.get('virtual_mac',
                                       self.DEFAULT_UPLINK_MAC)
         sgi_management_iface_vlan = config_dict.get('sgi_management_iface_vlan', "")
+        sgi_management_iface_ip_addr = config_dict.get('sgi_management_iface_ip_addr', "")
         return self.UplinkConfig(
             enable_nat=enable_nat,
             uplink_bridge=bridge_name,
@@ -66,6 +67,7 @@ class UplinkBridgeController(MagmaController):
             uplink_patch=uplink_patch,
             dhcp_port=dhcp_port,
             sgi_management_iface_vlan=sgi_management_iface_vlan,
+            sgi_management_iface_ip_addr=sgi_management_iface_ip_addr,
         )
 
     def initialize_on_connect(self, datapath):
@@ -77,6 +79,7 @@ class UplinkBridgeController(MagmaController):
         self._delete_all_flows()
         self._add_eth_port()
         self._set_vlan_eth_port()
+        self._set_sgi_static_ip()
         # flows to forward traffic between patch port to eth port
 
         # 1. DHCP traffic
@@ -170,3 +173,32 @@ class UplinkBridgeController(MagmaController):
             subprocess.Popen(ovs_rem_port, shell=True).wait()
         except subprocess.CalledProcessError as ex:
             self.logger.debug("ignore port del error: %s ", ex)
+
+    def _set_sgi_static_ip(self):
+        self.logger.debug("self.config.sgi_management_iface_ip_addr %s",
+                         self.config.sgi_management_iface_ip_addr)
+        if self.config.sgi_management_iface_ip_addr is None or \
+                self.config.sgi_management_iface_ip_addr == "":
+            return
+
+        try:
+            # Kill dhclient if running.
+            pgrep_out = subprocess.Popen(["pgrep", "-f",
+                                          "dhclient.*" + self.config.uplink_bridge],
+                                         stdout=subprocess.PIPE)
+            for pid in pgrep_out.stdout.readlines():
+                subprocess.check_call(["kill", pid.strip()])
+
+            flush_ip = ["ip", "addr", "flush",
+                        "dev" , self.config.uplink_bridge]
+            subprocess.check_call(flush_ip)
+
+            set_ip_cmd = ["ip",
+                          "addr", "add",
+                          self.config.sgi_management_iface_ip_addr,
+                          "dev",
+                          self.config.uplink_bridge]
+            subprocess.check_call(set_ip_cmd)
+            self.logger.debug("SGi ip address config: [%s]", set_ip_cmd)
+        except subprocess.SubprocessError as e:
+            self.logger.warning("Error while setting SGi IP: %s", e)
