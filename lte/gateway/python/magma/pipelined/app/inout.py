@@ -60,7 +60,7 @@ class InOutController(MagmaController):
         'InOutConfig',
         ['gtp_port', 'uplink_port_name', 'mtr_ip', 'mtr_port', 'li_port_name',
          'enable_nat', 'non_mat_gw_probe_frequency', 'non_nat_arp_egress_port',
-         'setup_type'],
+         'setup_type', 'uplink_gw_mac'],
     )
     ARP_PROBE_FREQUENCY = 300
     NON_NAT_ARP_EGRESS_PORT = 'uplink_br0'
@@ -113,7 +113,8 @@ class InOutController(MagmaController):
                                                 self.ARP_PROBE_FREQUENCY)
         non_nat_arp_egress_port = config_dict.get('non_nat_arp_egress_port',
                                                   self.NON_NAT_ARP_EGRESS_PORT)
-
+        uplink_gw_mac = config_dict.get('uplink_gw_mac',
+                                        "ff:ff:ff:ff:ff:ff")
         return self.InOutConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
             uplink_port_name=port_name,
@@ -123,7 +124,8 @@ class InOutController(MagmaController):
             enable_nat=enable_nat,
             non_mat_gw_probe_frequency=non_mat_gw_probe_freq,
             non_nat_arp_egress_port=non_nat_arp_egress_port,
-            setup_type=setup_type)
+            setup_type=setup_type,
+            uplink_gw_mac=uplink_gw_mac)
 
     def initialize_on_connect(self, datapath):
         self.delete_all_flows(datapath)
@@ -203,7 +205,7 @@ class InOutController(MagmaController):
         if mac_addr == "":
             mac_addr = self._current_upstream_mac_map.get(vlan, "")
         if mac_addr == "" and self.config.enable_nat is False:
-            mac_addr = "ff:ff:ff:ff:ff:ff"
+            mac_addr = self.config.uplink_gw_mac
 
         if mac_addr != "":
             parser = dp.ofproto_parser
