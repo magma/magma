@@ -27,7 +27,6 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import EnodebContext from '../../components/context/EnodebContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
-import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
@@ -124,13 +123,13 @@ export default function AddEditEnodeButton(props: ButtonProps) {
         editProps={props.editProps}
       />
       {props.isLink ? (
-        <Link
+        <Button
           data-testid={(props.editProps?.editTable ?? '') + 'EditButton'}
           component="button"
           variant="text"
           onClick={handleClickOpen}>
           {props.title}
-        </Link>
+        </Button>
       ) : (
         <Button
           variant="text"
