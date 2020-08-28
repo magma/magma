@@ -359,4 +359,102 @@ describe('use Lte Context testing', () => {
       );
     }
   });
+
+  test('verify subscriber context', async () => {
+    MagmaAPIBindings.getLteByNetworkIdSubscribers.mockResolvedValue(
+      mockSubscribers,
+    );
+
+    const {result, waitForNextUpdate} = renderHook(
+      () => useLteContext('network1', LTE, false),
+      {},
+    );
+    await act(async () => {
+      // State is updated when we wait for the update, so we need this wrapped
+      // in act
+      await waitForNextUpdate();
+    });
+    expect(MagmaAPIBindings.getLteByNetworkIdSubscribers).toHaveBeenCalledTimes(
+      1,
+    );
+
+    if (!result.current) {
+      throw 'result invalid';
+    }
+    let {subscriberCtx} = result.current;
+    expect(subscriberCtx.state).toStrictEqual(mockSubscribers);
+
+    // verify subscriber add
+    const newSubscriber = {
+      active_apns: ['oai.ipv4'],
+      id: 'IMSI722070171001003',
+      lte: {
+        auth_algo: 'MILENAGE',
+        auth_key: 'i69HPy+P0JSHzMvXCXxoYg==',
+        auth_opc: 'jie2rw5pLnUPMmZ6OxRgXQ==',
+        state: 'ACTIVE',
+        sub_profile: 'default',
+      },
+    };
+    MagmaAPIBindings.getLteByNetworkIdSubscribersBySubscriberId.mockResolvedValue(
+      newSubscriber,
+    );
+    MagmaAPIBindings.postLteByNetworkIdSubscribers.mockResolvedValue({
+      success: true,
+    });
+
+    // create subscriber
+    subscriberCtx.setState?.('IMSI722070171001003', newSubscriber);
+    await waitForNextUpdate();
+    expect(
+      MagmaAPIBindings.postLteByNetworkIdSubscribers,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPIBindings.getLteByNetworkIdSubscribersBySubscriberId,
+    ).toHaveBeenCalledTimes(1);
+
+    if (!result.current) {
+      throw 'result invalid';
+    }
+    subscriberCtx = result.current.subscriberCtx;
+    expect(subscriberCtx?.state['IMSI722070171001003']).toBe(newSubscriber);
+    MagmaAPIBindings.getLteByNetworkIdSubscribersBySubscriberId.mockClear();
+
+    // update subscriber
+    newSubscriber.lte.state = 'INACTIVE';
+    subscriberCtx.setState?.('IMSI722070171001003', newSubscriber);
+    MagmaAPIBindings.putLteByNetworkIdSubscribersBySubscriberId.mockResolvedValue(
+      {success: true},
+    );
+    MagmaAPIBindings.getLteByNetworkIdSubscribersBySubscriberId.mockResolvedValue(
+      newSubscriber,
+    );
+    await waitForNextUpdate();
+    expect(
+      MagmaAPIBindings.putLteByNetworkIdSubscribersBySubscriberId,
+    ).toHaveBeenCalledTimes(1);
+    expect(
+      MagmaAPIBindings.getLteByNetworkIdSubscribersBySubscriberId,
+    ).toHaveBeenCalledTimes(1);
+    if (!result.current) {
+      throw 'result invalid';
+    }
+    subscriberCtx = result.current.subscriberCtx;
+    expect(subscriberCtx?.state['IMSI722070171001003']).toBe(newSubscriber);
+
+    // delete subscriber
+    subscriberCtx.setState?.('IMSI722070171001003');
+    MagmaAPIBindings.deleteLteByNetworkIdSubscribersBySubscriberId.mockResolvedValue(
+      {success: true},
+    );
+    await waitForNextUpdate();
+    expect(
+      MagmaAPIBindings.deleteLteByNetworkIdSubscribersBySubscriberId,
+    ).toHaveBeenCalledTimes(1);
+    if (!result.current) {
+      throw 'result invalid';
+    }
+    subscriberCtx = result.current.subscriberCtx;
+    expect('IMSI722070171001003' in subscriberCtx?.state).toBeFalse;
+  });
 });

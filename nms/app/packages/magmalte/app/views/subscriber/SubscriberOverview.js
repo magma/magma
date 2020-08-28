@@ -13,6 +13,8 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+
 import ActionTable from '../../components/ActionTable';
 import AddSubscriberButton from './SubscriberAddDialog';
 import Button from '@material-ui/core/Button';
@@ -24,11 +26,13 @@ import React from 'react';
 import SubscriberContext from '../../components/context/SubscriberContext';
 import SubscriberDetail from './SubscriberDetail';
 import TopBar from '../../components/TopBar';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const TITLE = 'Subscribers';
@@ -84,12 +88,6 @@ type SubscriberRowType = {
 
 function SubscriberDashboardInternal() {
   const classes = useStyles();
-  const {history, relativeUrl} = useRouter();
-  const [currRow, setCurrRow] = useState<SubscriberRowType>({});
-  const ctx = useContext(SubscriberContext);
-  const subscriberMap = ctx.state;
-  const subscriberMetrics = ctx.metrics;
-
   return (
     <>
       <TopBar
@@ -121,85 +119,123 @@ function SubscriberDashboardInternal() {
           },
         ]}
       />
-
-      <div className={classes.dashboardRoot}>
-        <Grid container spacing={4}>
-          <Grid item xs={12}>
-            <CardTitleRow
-              icon={PeopleIcon}
-              label={TITLE}
-              filter={AddSubscriberButton}
-            />
-
-            {subscriberMap ? (
-              <ActionTable
-                data={Object.keys(subscriberMap).map((imsi: string) => {
-                  const subscriberInfo = subscriberMap[imsi];
-                  const metrics = subscriberMetrics?.[`${imsi}`];
-                  return {
-                    name: subscriberInfo.name ?? imsi,
-                    imsi: imsi,
-                    service: subscriberInfo.lte.state,
-                    currentUsage: metrics?.currentUsage ?? '0',
-                    dailyAvg: metrics?.dailyAvg ?? '0',
-                    lastReportedTime: new Date(
-                      subscriberInfo.monitoring?.icmp?.last_reported_time ?? 0,
-                    ),
-                  };
-                })}
-                columns={[
-                  {title: 'Name', field: 'name'},
-                  {
-                    title: 'IMSI',
-                    field: 'imsi',
-                    render: currRow => (
-                      <Link
-                        variant="body2"
-                        component="button"
-                        onClick={() =>
-                          history.push(relativeUrl('/' + currRow.imsi))
-                        }>
-                        {currRow.imsi}
-                      </Link>
-                    ),
-                  },
-                  {title: 'Service', field: 'service', width: 100},
-                  {title: 'Current Usage', field: 'currentUsage', width: 175},
-                  {title: 'Daily Average', field: 'dailyAvg', width: 175},
-                  {
-                    title: 'Last Reported Time',
-                    field: 'lastReportedTime',
-                    type: 'datetime',
-                    width: 200,
-                  },
-                ]}
-                handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
-                menuItems={[
-                  {
-                    name: 'View',
-                    handleFunc: () => {
-                      history.push(relativeUrl('/' + currRow.imsi));
-                    },
-                  },
-                  {
-                    name: 'Edit',
-                    handleFunc: () => {
-                      history.push(relativeUrl('/' + currRow.imsi + '/config'));
-                    },
-                  },
-                  {name: 'Remove'},
-                ]}
-                options={{
-                  actionsColumnIndex: -1,
-                  pageSizeOptions: [5, 10],
-                }}
-              />
-            ) : (
-              '<Text>No Subscribers Found</Text>'
-            )}
-          </Grid>
-        </Grid>
-      </div>
+      <SubscriberTable />
     </>
   );
 }
+
+function SubscriberTableRaw(props: WithAlert) {
+  const classes = useStyles();
+  const {history, relativeUrl} = useRouter();
+  const [currRow, setCurrRow] = useState<SubscriberRowType>({});
+  const ctx = useContext(SubscriberContext);
+  const subscriberMap = ctx.state;
+  const subscriberMetrics = ctx.metrics;
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  return (
+    <div className={classes.dashboardRoot}>
+      <Grid container spacing={4}>
+        <Grid item xs={12}>
+          <CardTitleRow
+            icon={PeopleIcon}
+            label={TITLE}
+            filter={AddSubscriberButton}
+          />
+
+          {subscriberMap ? (
+            <ActionTable
+              data={Object.keys(subscriberMap).map((imsi: string) => {
+                const subscriberInfo = subscriberMap[imsi];
+                const metrics = subscriberMetrics?.[`${imsi}`];
+                return {
+                  name: subscriberInfo.name ?? imsi,
+                  imsi: imsi,
+                  service: subscriberInfo.lte.state,
+                  currentUsage: metrics?.currentUsage ?? '0',
+                  dailyAvg: metrics?.dailyAvg ?? '0',
+                  lastReportedTime: new Date(
+                    subscriberInfo.monitoring?.icmp?.last_reported_time ?? 0,
+                  ),
+                };
+              })}
+              columns={[
+                {title: 'Name', field: 'name'},
+                {
+                  title: 'IMSI',
+                  field: 'imsi',
+                  render: currRow => (
+                    <Link
+                      variant="body2"
+                      component="button"
+                      onClick={() =>
+                        history.push(relativeUrl('/' + currRow.imsi))
+                      }>
+                      {currRow.imsi}
+                    </Link>
+                  ),
+                },
+                {title: 'Service', field: 'service', width: 100},
+                {title: 'Current Usage', field: 'currentUsage', width: 175},
+                {title: 'Daily Average', field: 'dailyAvg', width: 175},
+                {
+                  title: 'Last Reported Time',
+                  field: 'lastReportedTime',
+                  type: 'datetime',
+                  width: 200,
+                },
+              ]}
+              handleCurrRow={(row: SubscriberRowType) => setCurrRow(row)}
+              menuItems={[
+                {
+                  name: 'View',
+                  handleFunc: () => {
+                    history.push(relativeUrl('/' + currRow.imsi));
+                  },
+                },
+                {
+                  name: 'Edit',
+                  handleFunc: () => {
+                    history.push(relativeUrl('/' + currRow.imsi + '/config'));
+                  },
+                },
+                {
+                  name: 'Remove',
+                  handleFunc: () => {
+                    props
+                      .confirm(
+                        `Are you sure you want to delete ${currRow.imsi}?`,
+                      )
+                      .then(async confirmed => {
+                        if (!confirmed) {
+                          return;
+                        }
+
+                        try {
+                          await ctx.setState?.(currRow.imsi);
+                        } catch (e) {
+                          enqueueSnackbar(
+                            'failed deleting subscriber ' + currRow.imsi,
+                            {
+                              variant: 'error',
+                            },
+                          );
+                        }
+                      });
+                  },
+                },
+              ]}
+              options={{
+                actionsColumnIndex: -1,
+                pageSizeOptions: [10, 20],
+              }}
+            />
+          ) : (
+            '<Text>No Subscribers Found</Text>'
+          )}
+        </Grid>
+      </Grid>
+    </div>
+  );
+}
+const SubscriberTable = withAlert(SubscriberTableRaw);
