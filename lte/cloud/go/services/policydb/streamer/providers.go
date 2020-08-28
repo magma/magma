@@ -231,7 +231,7 @@ func (p *ApnRuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.An
 	ret := make([]*protos.DataUpdate, 0, len(subEnts))
 
 	for _, subEnt := range subEnts {
-		subscriberPolicySet, err := p.getSubscriberPolicySet(gwEnt.NetworkID, subEnt)
+		subscriberPolicySet, err := getSubscriberPolicySet(gwEnt.NetworkID, subEnt)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to build subscriber policy sets")
 		}
@@ -244,7 +244,7 @@ func (p *ApnRuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.An
 	return ret, nil
 }
 
-func (p *ApnRuleMappingsProvider) getSubscriberPolicySet(networkID string, subscriberEnt configurator.NetworkEntity) (*lte_protos.SubscriberPolicySet, error) {
+func getSubscriberPolicySet(networkID string, subscriberEnt configurator.NetworkEntity) (*lte_protos.SubscriberPolicySet, error) {
 	apnPolicyProfileTks := []storage.TypeAndKey{}
 	globalPolicies := []string{}
 	globalBaseNames := []string{}
@@ -264,7 +264,7 @@ func (p *ApnRuleMappingsProvider) getSubscriberPolicySet(networkID string, subsc
 
 	// Load in all the ApnPolicyProfile ents, they only
 	// have incoming/outogoing assocs
-	apnPolicyProfileEnts, err := p.loadApnPolicyProfileEnts(networkID, apnPolicyProfileTks)
+	apnPolicyProfileEnts, err := loadApnPolicyProfileEnts(networkID, apnPolicyProfileTks)
 	if err != nil {
 		return nil, err
 	}
@@ -272,7 +272,11 @@ func (p *ApnRuleMappingsProvider) getSubscriberPolicySet(networkID string, subsc
 	// Fill in per-APN policies/base-names
 	rulesPerApn := []*lte_protos.ApnPolicySet{}
 	for _, ent := range apnPolicyProfileEnts {
-		rulesPerApn = append(rulesPerApn, p.getApnPolicySet(ent))
+		apnPolicySet, err := buildApnPolicySet(ent)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to get SubscriberPolicySet")
+		}
+		rulesPerApn = append(rulesPerApn, apnPolicySet)
 	}
 
 	return &lte_protos.SubscriberPolicySet{
@@ -282,7 +286,7 @@ func (p *ApnRuleMappingsProvider) getSubscriberPolicySet(networkID string, subsc
 	}, nil
 }
 
-func (p *ApnRuleMappingsProvider) loadApnPolicyProfileEnts(networkID string, tks []storage.TypeAndKey) (configurator.NetworkEntities, error) {
+func loadApnPolicyProfileEnts(networkID string, tks []storage.TypeAndKey) (configurator.NetworkEntities, error) {
 	if len(tks) == 0 {
 		return configurator.NetworkEntities{}, nil
 	}
@@ -295,9 +299,13 @@ func (p *ApnRuleMappingsProvider) loadApnPolicyProfileEnts(networkID string, tks
 	return apnPolicyProfileEnts, nil
 }
 
-func (p *ApnRuleMappingsProvider) getApnPolicySet(apnPolicyProfileEnt configurator.NetworkEntity) *lte_protos.ApnPolicySet {
+func buildApnPolicySet(apnPolicyProfileEnt configurator.NetworkEntity) (*lte_protos.ApnPolicySet, error) {
 	policies := []string{}
 	var apn string
+	apn, err := models.GetAPN(apnPolicyProfileEnt.Key)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build ApnPolicySet")
+	}
 
 	for _, tk := range apnPolicyProfileEnt.Associations {
 		switch tk.Type {
@@ -310,7 +318,7 @@ func (p *ApnRuleMappingsProvider) getApnPolicySet(apnPolicyProfileEnt configurat
 	return &lte_protos.ApnPolicySet{
 		Apn:              apn,
 		AssignedPolicies: policies,
-	}
+	}, nil
 }
 
 func sortUpdates(updates []*protos.DataUpdate) {
