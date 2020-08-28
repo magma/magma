@@ -39,6 +39,8 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const CHART_COLORS = [colors.secondary.dodgerBlue, colors.data.flamePea];
+
 export default function () {
   const classes = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('3_hours');
@@ -115,6 +117,7 @@ export default function () {
               timeRange={timeRange}
               startEnd={undefined}
               legendLabels={state.legendLabels}
+              chartColors={CHART_COLORS}
             />
           }
         />
