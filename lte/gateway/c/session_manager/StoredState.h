@@ -246,6 +246,7 @@ struct SessionStateUpdateCriteria {
   // revalidation time
   google::protobuf::Timestamp revalidation_time;
   uint32_t request_number_increment;
+  uint64_t updated_pdp_end_time;
 
   std::set<std::string> static_rules_to_install;
   std::set<std::string> static_rules_to_uninstall;

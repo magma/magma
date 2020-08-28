@@ -119,7 +119,8 @@ export async function setSubscriberState(props: SubscriberStateProps) {
       },
     );
     if (subscriber) {
-      setSubscriberMap({...subscriberMap, [key]: subscriber});
+      const newSubscriberMap = {...subscriberMap, [key]: subscriber};
+      setSubscriberMap(newSubscriberMap);
     }
   } else {
     await MagmaV1API.deleteLteByNetworkIdSubscribersBySubscriberId({

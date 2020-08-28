@@ -180,7 +180,7 @@ class IpAllocatorPool(IPAllocator):
                if self._ip_state_map.test_ip_state(ip, IPState.ALLOCATED)]
         return res
 
-    def alloc_ip_address(self, sid: str) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:
         """ Allocate an IP address from the free list
 
         Assumption: one-to-one mappings between SID and IP.

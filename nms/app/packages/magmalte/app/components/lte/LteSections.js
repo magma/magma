@@ -338,7 +338,7 @@ export function getLteSectionsV2(
     ],
   ];
   if (alertsEnabled) {
-    sections[1].splice(2, 0, {
+    sections[1].push({
       path: 'alerts',
       label: 'Alerts',
       icon: <AlarmIcon />,

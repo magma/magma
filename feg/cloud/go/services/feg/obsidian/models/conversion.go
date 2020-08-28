@@ -207,16 +207,23 @@ func (m *MutableFederationGateway) GetAdditionalWritesOnCreate() []configurator.
 	}
 }
 
-func (m *MutableFederationGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: gatewayID}}
+func (m *MutableFederationGateway) GetGatewayType() string {
+	return feg.FegGatewayType
+}
+
+func (m *MutableFederationGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return nil
+}
+
+func (m *MutableFederationGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
+	return []storage.TypeAndKey{{Type: feg.FegGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MutableFederationGateway) GetAdditionalWritesOnUpdate(
-	gatewayID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: gatewayID}]
+	var ret []configurator.EntityWriteOperation
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: feg.FegGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
@@ -298,7 +305,7 @@ func (m *SubscriptionProfile) ToMconfig() *mconfig.HSSConfig_SubscriptionProfile
 }
 
 func ToVirtualApnRuleMconfig(rules []*VirtualApnRule) []*mconfig.VirtualApnRule {
-  virtualApnRuleConfigs := make([]*mconfig.VirtualApnRule, 0, len(rules)+1)
+	virtualApnRuleConfigs := make([]*mconfig.VirtualApnRule, 0, len(rules)+1)
 	for _, ruleProto := range rules {
 		apnConf := &mconfig.VirtualApnRule{}
 		protos.FillIn(ruleProto, apnConf)

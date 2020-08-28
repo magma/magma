@@ -34,15 +34,18 @@ namespace {
  */
 class GTPApplicationTest : public ::testing::Test {
  protected:
-  static constexpr const char* TEST_GTP_MAC = "1.2.3.4.5.6";
-  static const uint32_t TEST_GTP_PORT       = 123;
-  static const uint32_t TEST_MTR_PORT       = 1155;
-  static const uint32_t TEST_UPLINK_PORT    = of13::OFPP_LOCAL;
+  static constexpr const char* TEST_GTP_MAC            = "1.2.3.4.5.6";
+  static const uint32_t TEST_GTP_PORT                  = 123;
+  static const uint32_t TEST_MTR_PORT                  = 1155;
+  static const uint32_t TEST_INTERNAL_SAMPLING_POR     = 1156;
+  static const uint32_t TEST_INTERNAL_SAMPLING_FWD_TBL = 201;
+  static const uint32_t TEST_UPLINK_PORT               = of13::OFPP_LOCAL;
 
  protected:
   virtual void SetUp() {
     gtp_app = new GTPApplication(
-        TEST_GTP_MAC, TEST_GTP_PORT, TEST_MTR_PORT, TEST_UPLINK_PORT);
+        TEST_GTP_MAC, TEST_GTP_PORT, TEST_MTR_PORT, TEST_INTERNAL_SAMPLING_POR,
+        TEST_INTERNAL_SAMPLING_FWD_TBL, TEST_UPLINK_PORT);
     messenger = std::shared_ptr<MockMessenger>(new MockMessenger());
 
     controller = std::unique_ptr<OpenflowController>(

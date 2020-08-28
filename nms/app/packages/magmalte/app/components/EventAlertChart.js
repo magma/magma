@@ -24,7 +24,12 @@ import React from 'react';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CustomLineChart, getStep, getStepString} from './CustomMetrics';
+import {
+  CustomLineChart,
+  getQueryRanges,
+  getStep,
+  getStepString,
+} from './CustomMetrics';
 import {colors} from '../theme/default';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -38,23 +43,16 @@ type DatasetFetchProps = {
   networkId: network_id,
   start: moment,
   end: moment,
+  delta: number,
+  unit: string,
   enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
 };
 
 async function getEventAlertDataset(props: DatasetFetchProps) {
-  const {start, end, networkId} = props;
-  const [delta, unit] = getStep(start, end);
+  const {networkId, start, end, delta, unit} = props;
   let requestError = '';
-  const queries = [];
 
-  let s = start.clone();
-  while (end.diff(s) >= 0) {
-    const e = s.clone();
-    e.add(delta, unit);
-    queries.push([s, e]);
-    s = e.clone();
-  }
-
+  const queries = getQueryRanges(start, end, delta, unit);
   const requests = queries.map(async (query, _) => {
     try {
       const [s, e] = query;
@@ -74,16 +72,16 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
   const eventData = await Promise.all(requests)
     .then(allResponses => {
       return allResponses.map((r, index) => {
-        const [s] = queries[index];
+        const [_, e] = queries[index];
 
         if (r === null || r === undefined) {
           return {
-            t: s.unix(),
+            t: e.unix() * 1000,
             y: 0,
           };
         }
         return {
-          t: s.unix() * 1000,
+          t: e.unix() * 1000,
           y: r,
         };
       });
@@ -177,12 +175,15 @@ export default function EventAlertChart(props: Props) {
     fill: false,
   });
 
+  const [delta, unit] = getStep(start, end);
   useEffect(() => {
     // fetch queries
     const fetchAllData = async () => {
       const [eventDataset, alertDataset] = await getEventAlertDataset({
         start,
         end,
+        delta,
+        unit,
         networkId,
         enqueueSnackbar,
       });
@@ -203,6 +204,10 @@ export default function EventAlertChart(props: Props) {
       <CardHeader
         subheader={
           <CustomLineChart
+            start={start}
+            end={end}
+            delta={delta}
+            unit={unit}
             dataset={[eventDataset, alertDataset]}
             yLabel={'count'}
           />

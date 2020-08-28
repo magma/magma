@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {ComponentType} from 'react';
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
@@ -34,7 +34,7 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type CardTitleRowProps = {
-  icon?: ComponentType<SvgIconExports>,
+  icon?: SvgIcon,
   label: string,
   filter?: () => React$Node,
 };
