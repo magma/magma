@@ -34,7 +34,6 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import EnodebContext from '../../components/context/EnodebContext';
 import FormLabel from '@material-ui/core/FormLabel';
 import GatewayContext from '../../components/context/GatewayContext';
-import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -166,13 +165,13 @@ export default function AddEditGatewayButton(props: ButtonProps) {
         editProps={props.editProps}
       />
       {props.isLink ? (
-        <Link
+        <Button
           data-testid={(props.editProps?.editTable ?? '') + 'EditButton'}
           component="button"
           variant="text"
           onClick={handleClickOpen}>
           {props.title}
-        </Link>
+        </Button>
       ) : (
         <Button
           variant="text"
