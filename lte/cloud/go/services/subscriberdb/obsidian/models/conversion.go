@@ -164,6 +164,7 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity) (*MutableSub
 		if err != nil {
 			return nil, err
 		}
+		model.ActivePoliciesByApn[apn.Key] = policymodels.PolicyIds{} // place apn key in map
 		for _, policyRuleAssoc := range p.Associations.Filter(lte.PolicyRuleEntityType) {
 			model.ActivePoliciesByApn[apn.Key] = append(model.ActivePoliciesByApn[apn.Key], policymodels.PolicyID(policyRuleAssoc.Key))
 		}
