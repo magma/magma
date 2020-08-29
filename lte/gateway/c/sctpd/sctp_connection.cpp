@@ -195,8 +195,7 @@ SctpStatus SctpConnection::HandleClientSock(int sd)
         return HandleAssocChange(sd, &notif->sn_assoc_change);
       }
       default: {
-        MLOG(MWARNING) << "Unhandled notification type "
-                       << std::to_string(notif->sn_header.sn_type);
+        MLOG(MWARNING) << "Unhandled notification type " << std::to_string(notif->sn_header.sn_type);
         return SctpStatus::OK;
       }
     }
@@ -206,8 +205,7 @@ SctpStatus SctpConnection::HandleClientSock(int sd)
     try {
       assoc = _sctp_desc.getAssoc(sinfo.sinfo_assoc_id);
     } catch (std::out_of_range) {
-      MLOG(MERROR) << "Received sctp msg for untracked assoc: "
-                   << std::to_string(sinfo.sinfo_assoc_id);
+      MLOG(MERROR) << "Received sctp msg for untracked assoc: " << std::to_string(sinfo.sinfo_assoc_id);
       // TODO: handle this case
       return SctpStatus::FAILURE;
     }
@@ -227,8 +225,7 @@ SctpStatus SctpConnection::HandleClientSock(int sd)
                  << std::to_string(sinfo.sinfo_assoc_id) << ":"
                  << std::to_string(sinfo.sinfo_stream);
 
-    _handler.HandleRecv(
-      sinfo.sinfo_assoc_id, sinfo.sinfo_stream, std::string(msg, n));
+    _handler.HandleRecv(sinfo.sinfo_ppid, sinfo.sinfo_assoc_id, sinfo.sinfo_stream, std::string(msg, n));
 
     return SctpStatus::OK;
   }
@@ -251,8 +248,7 @@ SctpStatus SctpConnection::HandleAssocChange(
       return HandleComDown(change->sac_assoc_id);
     }
     default:
-      MLOG(MWARNING) << "Unhandled sctp message "
-                     << std::to_string(change->sac_state);
+      MLOG(MWARNING) << "Unhandled sctp message " << std::to_string(change->sac_state);
       return SctpStatus::FAILURE;
   }
 }
@@ -270,6 +266,7 @@ SctpStatus SctpConnection::HandleComUp(int sd, struct sctp_assoc_change *change)
   _sctp_desc.addAssoc(assoc);
 
   _handler.HandleNewAssoc(
+    assoc.ppid,
     change->sac_assoc_id,
     change->sac_inbound_streams,
     change->sac_outbound_streams);
@@ -279,12 +276,11 @@ SctpStatus SctpConnection::HandleComUp(int sd, struct sctp_assoc_change *change)
 
 SctpStatus SctpConnection::HandleComDown(uint32_t assoc_id)
 {
-  MLOG(MDEBUG) << "Sending close connection for assoc_id "
-               << std::to_string(assoc_id);
+  MLOG(MDEBUG) << "Sending close connection for assoc_id " << std::to_string(assoc_id);
 
   _sctp_desc.delAssoc(assoc_id);
 
-  _handler.HandleCloseAssoc(assoc_id, false);
+  _handler.HandleCloseAssoc(_ppid, assoc_id, false);
 
   return SctpStatus::DISCONNECT;
 }
@@ -293,7 +289,7 @@ SctpStatus SctpConnection::HandleReset(uint32_t assoc_id)
 {
   MLOG(MDEBUG) << "Handling sctp reset";
 
-  _handler.HandleCloseAssoc(assoc_id, true);
+  _handler.HandleCloseAssoc(_ppid, assoc_id, true);
 
   return SctpStatus::OK;
 }

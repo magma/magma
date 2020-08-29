@@ -74,10 +74,17 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
       MessageDef* msg;
 
-      msg = itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
-      SCTP_MME_SERVER_INITIALIZED(msg).successful = true;
-
-      send_msg_to_task(&sctp_task_zmq_ctx, TASK_MME_APP, msg);
+       if (received_message_p->ittiMsg.sctpInit.ppid == S1AP) {
+	       	msg = itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
+		SCTP_MME_SERVER_INITIALIZED(msg).successful = true;
+		send_msg_to_task(&sctp_task_zmq_ctx, TASK_MME_APP, msg);
+       }else if (received_message_p->ittiMsg.sctpInit.ppid == NGAP) {
+	       msg = itti_alloc_new_message(TASK_NGAP, SCTP_AMF_SERVER_INITIALIZED);
+	       SCTP_AMF_SERVER_INITIALIZED(msg).successful = true;
+	       send_msg_to_task(&sctp_task_zmq_ctx, TASK_AMF_APP, msg);
+       }else{
+	       OAILOG_ERROR(LOG_SCTP, "received_message_p->ittiMsg.sctpInit.ppid not found ");
+       }
     } break;
 
     case SCTP_CLOSE_ASSOCIATION: {
@@ -88,10 +95,17 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       uint16_t stream   = SCTP_DATA_REQ(received_message_p).stream;
       bstring payload   = SCTP_DATA_REQ(received_message_p).payload;
 
-      if (sctpd_send_dl(assoc_id, stream, payload) < 0) {
-        sctp_itti_send_lower_layer_conf(
-            received_message_p->ittiMsgHeader.originTaskId, assoc_id, stream,
-            SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id, false);
+      if (sctpd_send_dl(ppid ,assoc_id, stream, payload) < 0) {
+	      if (ppid == S1AP) {
+		      sctp_itti_send_lower_layer_conf(received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id, stream,
+				      SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id,	false);
+	      }else if(ppid == NGAP) {
+		      OAILOG_INFO(LOG_SCTP, "ppid NGAP in sctp_itti_send_lower_layer_conf ");
+		      sctp_itti_send_lower_layer_conf(received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id, stream,
+				      SCTP_DATA_REQ(received_message_p).amf_ue_ngap_id, false);
+	      }else{
+		      OAILOG_ERROR(LOG_SCTP, "ppid not matching in sctp_itti_send_lower_layer_conf ");
+	      }
       }
     } break;
 
@@ -119,9 +133,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 //------------------------------------------------------------------------------
 static void* sctp_thread(__attribute__((unused)) void* args_p) {
   itti_mark_task_ready(TASK_SCTP);
-  init_task_context(
-      TASK_SCTP, (task_id_t[]){TASK_MME_APP, TASK_S1AP}, 2, handle_message,
-      &sctp_task_zmq_ctx);
+  init_task_context(TASK_SCTP, (task_id_t[]){TASK_MME_APP, TASK_S1AP}, 2, handle_message, &sctp_task_zmq_ctx);
+  init_task_context(TASK_SCTP, (task_id_t[]){TASK_AMF_APP, TASK_NGAP}, 2, handle_message, &sctp_task_zmq_ctx);
 
   zloop_start(sctp_task_zmq_ctx.event_loop);
   sctp_exit();
