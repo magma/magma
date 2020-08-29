@@ -23,6 +23,7 @@ import type {
   generic_command_params,
   lte_gateway,
   magmad_gateway_configs,
+  mutable_lte_gateway,
   network_id,
   ping_request,
   tier,
@@ -210,7 +211,7 @@ type GatewayStateProps = {
   lteGateways: {[string]: lte_gateway},
   setLteGateways: ({[string]: lte_gateway}) => void,
   key: gateway_id,
-  value?: lte_gateway,
+  value?: mutable_lte_gateway,
 };
 
 export async function SetGatewayState(props: GatewayStateProps) {
@@ -229,6 +230,14 @@ export async function SetGatewayState(props: GatewayStateProps) {
         gateway: value,
       });
       setLteGateways({...lteGateways, [key]: value});
+    }
+    const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
+      networkId: networkId,
+      gatewayId: key,
+    });
+    if (gateway) {
+      const newLteGateways = {...lteGateways, [key]: gateway};
+      setLteGateways(newLteGateways);
     }
   } else {
     await MagmaV1API.deleteLteByNetworkIdGatewaysByGatewayId({
