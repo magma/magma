@@ -123,7 +123,7 @@ class SubscriberState(object):
             for d, qos_handle in rule:
                 if d == direction:
                     return qos_handle
-        return False
+        return 0
 
 class QosManager(object):
     @staticmethod
@@ -272,13 +272,23 @@ class QosManager(object):
             ambr_qos_handle = session.get_ambr(direction)
             if not ambr_qos_handle:
                 ambr_qos_handle = self.impl.add_qos(direction, QosInfo(gbr=0, mbr=apn_ambr))
-                session.set_ambr(direction, ambr_qos_handle)
-                LOG.debug('Adding ambr qos mbr %d direction %d qos_handle %d ',
+                if ambr_qos_handle:
+                    session.set_ambr(direction, ambr_qos_handle)
+                    LOG.debug('Adding ambr qos mbr %u direction %d qos_handle %d ',
                           apn_ambr, direction, ambr_qos_handle)
+                else:
+                    LOG.error('Failed adding ambr qos mbr %u direction %d', apn_ambr,
+                        direction)
+                    return
+
             if qos_info:
                 qos_handle = self.impl.add_qos(direction, qos_info, parent=ambr_qos_handle)
-                LOG.debug('Adding qos %s direction %d qos_handle %d ',
-                          qos_info, direction, qos_handle)
+                if qos_handle:
+                    LOG.debug('Adding qos %s direction %d qos_handle %d ',
+                              qos_info, direction, qos_handle)
+                else:
+                    LOG.error('Failed adding qos %s direction %d', qos_info, direction)
+                    return
             else:
                 qos_handle = ambr_qos_handle
         else:
@@ -301,7 +311,7 @@ class QosManager(object):
 
         subscriber_state = self._subscriber_state.get(imsi)
         if not subscriber_state:
-            LOG.error('imsi %s not found, nothing to remove ', imsi)
+            LOG.debug('imsi %s not found, nothing to remove ', imsi)
             return
 
         to_be_deleted_rules = []
