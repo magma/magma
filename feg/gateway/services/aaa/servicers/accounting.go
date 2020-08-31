@@ -26,12 +26,12 @@ import (
 	"google.golang.org/grpc/status"
 
 	"magma/feg/cloud/go/protos/mconfig"
-	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa"
 	"magma/feg/gateway/services/aaa/events"
 	"magma/feg/gateway/services/aaa/metrics"
 	"magma/feg/gateway/services/aaa/pipelined"
 	"magma/feg/gateway/services/aaa/protos"
+	"magma/feg/gateway/services/aaa/radius/dae"
 	"magma/feg/gateway/services/aaa/session_manager"
 	"magma/gateway/directoryd"
 	lte_protos "magma/lte/cloud/go/protos"
@@ -42,6 +42,7 @@ type accountingService struct {
 	sessions    aaa.SessionTable
 	config      *mconfig.AAAConfig
 	sessionTout time.Duration // Idle Session Timeout
+	dae         dae.DAE
 }
 
 const (
@@ -54,6 +55,7 @@ func NewAccountingService(sessions aaa.SessionTable, cfg *mconfig.AAAConfig) (*a
 		sessions:    sessions,
 		config:      cfg,
 		sessionTout: GetIdleSessionTimeout(cfg),
+		dae:         dae.NewDAEServicer(cfg.GetRadiusConfig()),
 	}, nil
 }
 
@@ -99,8 +101,9 @@ func (srv *accountingService) InterimUpdate(_ context.Context, ur *protos.Update
 	srv.sessions.SetTimeout(sid, srv.sessionTout, srv.timeoutSessionNotifier)
 
 	imsi := metrics.DecorateIMSI(s.GetCtx().GetImsi())
-	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), imsi).Add(float64(ur.GetOctetsIn()))
-	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), imsi).Add(float64(ur.GetOctetsOut()))
+	msisdn := s.GetCtx().GetMsisdn()
+	metrics.OctetsIn.WithLabelValues(s.GetCtx().GetApn(), imsi, msisdn).Add(float64(ur.GetOctetsIn()))
+	metrics.OctetsOut.WithLabelValues(s.GetCtx().GetApn(), imsi, msisdn).Add(float64(ur.GetOctetsOut()))
 
 	return &protos.AcctResp{}, nil
 }
@@ -121,6 +124,7 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 	s.Lock()
 	sessionImsi := s.GetCtx().GetImsi()
 	apn := s.GetCtx().GetApn()
+	msisdn := s.GetCtx().GetMsisdn()
 	s.Unlock()
 
 	imsi := metrics.DecorateIMSI(sessionImsi)
@@ -134,14 +138,14 @@ func (srv *accountingService) Stop(_ context.Context, req *protos.StopRequest) (
 		if err != nil {
 			err = Error(codes.Unavailable, err)
 		}
-		metrics.EndSession.WithLabelValues(apn, imsi).Inc()
+		metrics.EndSession.WithLabelValues(apn, imsi, msisdn).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: sessionImsi,
 		}
 		directoryd.DeleteRecord(deleteRequest)
 	}
-	metrics.AcctStop.WithLabelValues(apn, imsi)
+	metrics.AcctStop.WithLabelValues(apn, imsi, msisdn).Inc()
 
 	if err != nil && srv.config.GetEventLoggingEnabled() {
 		events.LogSessionTerminationFailedEvent(req.GetCtx(), events.AccountingStop, err.Error())
@@ -193,9 +197,10 @@ func (srv *accountingService) TerminateSession(
 	sctx := s.GetCtx()
 	imsi := sctx.GetImsi()
 	apn := sctx.GetApn()
+	msisdn := sctx.GetMsisdn()
 	s.Unlock()
 
-	metrics.SessionTerminate.WithLabelValues(apn, metrics.DecorateIMSI(imsi)).Inc()
+	metrics.SessionTerminate.WithLabelValues(apn, metrics.DecorateIMSI(imsi), msisdn).Inc()
 
 	if !strings.HasPrefix(imsi, imsiPrefix) {
 		imsi = imsiPrefix + imsi
@@ -204,15 +209,9 @@ func (srv *accountingService) TerminateSession(
 		return &protos.AcctResp{}, Errorf(
 			codes.InvalidArgument, "Mismatched IMSI: %s != %s of session %s", req.GetImsi(), imsi, sid)
 	}
-
-	conn, err := registry.GetConnection(registry.RADIUS)
+	err := srv.dae.Disconnect(sctx)
 	if err != nil {
-		return &protos.AcctResp{}, Errorf(codes.Unavailable, "Error getting Radius RPC Connection: %v", err)
-	}
-	radcli := protos.NewAuthorizationClient(conn)
-	_, err = radcli.Disconnect(ctx, &protos.DisconnectRequest{Ctx: sctx})
-	if err != nil {
-		err = Error(codes.Internal, err)
+		err = Errorf(codes.Internal, "Terminate Session Radius Disconnect error: %v", err)
 	}
 	return &protos.AcctResp{}, err
 }
@@ -228,28 +227,21 @@ func (srv *accountingService) EndTimedOutSession(aaaCtx *protos.Context) error {
 		return status.Errorf(codes.InvalidArgument, errMsg)
 	}
 	var err, radErr error
-
+	glog.V(1).Infof("AAA session timeout for SID: %s, IMSI: %s", aaaCtx.SessionId, aaaCtx.Imsi)
 	if srv.config.GetAccountingEnabled() {
 		req := &lte_protos.LocalEndSessionRequest{
 			Sid: makeSID(aaaCtx.GetImsi()),
 			Apn: aaaCtx.GetApn(),
 		}
 		_, err = session_manager.EndSession(req)
-		metrics.EndSession.WithLabelValues(aaaCtx.GetApn(), metrics.DecorateIMSI(aaaCtx.GetImsi())).Inc()
+		metrics.EndSession.WithLabelValues(aaaCtx.GetApn(), metrics.DecorateIMSI(aaaCtx.GetImsi()), aaaCtx.GetMsisdn()).Inc()
 	} else {
 		deleteRequest := &orcprotos.DeleteRecordRequest{
 			Id: aaaCtx.GetImsi(),
 		}
 		directoryd.DeleteRecord(deleteRequest)
 	}
-
-	conn, radErr := registry.GetConnection(registry.RADIUS)
-	if radErr != nil {
-		radErr = status.Errorf(codes.Unavailable, "Session Timeout Notification Radius Connection Error: %v", radErr)
-	} else {
-		_, radErr = protos.NewAuthorizationClient(conn).Disconnect(
-			context.Background(), &protos.DisconnectRequest{Ctx: aaaCtx})
-	}
+	radErr = srv.dae.Disconnect(aaaCtx)
 	if radErr != nil {
 		if err != nil {
 			err = Errorf(
@@ -284,20 +276,16 @@ func (srv *accountingService) AddSessions(ctx context.Context, sessions *protos.
 	return &protos.AcctResp{}, nil
 }
 
-// installMacFlowOrIPFIXflow installs a new mac flow if it is a brand new session or
-// reinstalls IPFIX flows in case the CORE session already existed (recycle session)
+// installMacFlow installs a new mac flow if it is a brand new session or
 // Note that the existence of a core session will trigger a recylce process on sessiond too
 func installMacFlowOrRecycleSession(sid *lte_protos.SubscriberID, aaaCtx *protos.Context, sessions aaa.SessionTable) error {
-	if isSessionAlreadyStored(aaaCtx.GetImsi(), sessions) == false {
-		// (new session) install MAC flows for new session
-		glog.V(2).Infof("Install new  mac flows for %s", aaaCtx.GetImsi())
-		return pipelined.AddUeMacFlow(sid, aaaCtx)
-	} else {
-		// (recycle session) reinstall IPFIX flows for an existing session
-		// the session will be modified by store in memory it self
-		glog.V(2).Infof("Update IPFix flows (recycle Session) for %s", aaaCtx.GetImsi())
-		return pipelined.UpdateIPFIXFlow(sid, aaaCtx)
+	if isSessionAlreadyStored(aaaCtx.GetImsi(), sessions) {
+		return nil
 	}
+
+	// (new session) install MAC flows for new session
+	glog.V(2).Infof("Install new  mac flows for %s", aaaCtx.GetImsi())
+	return pipelined.AddUeMacFlow(sid, aaaCtx)
 }
 
 func isSessionAlreadyStored(imsi string, sessions aaa.SessionTable) bool {
@@ -313,16 +301,6 @@ func isSessionAlreadyStored(imsi string, sessions aaa.SessionTable) bool {
 func createSessionOnSessionManager(mac net.HardwareAddr, subscriberId *lte_protos.SubscriberID,
 	aaaCtx *protos.Context) (*lte_protos.LocalCreateSessionResponse, error) {
 	req := &lte_protos.LocalCreateSessionRequest{
-		// TODO deprecate the fields below
-		Sid:             subscriberId,
-		UeIpv4:          aaaCtx.GetIpAddr(),
-		Apn:             aaaCtx.GetApn(),
-		Msisdn:          ([]byte)(aaaCtx.GetMsisdn()),
-		RatType:         lte_protos.RATType_TGPP_WLAN,
-		HardwareAddr:    mac,
-		RadiusSessionId: aaaCtx.GetSessionId(),
-		// TODO the fields above will be replaced by CommonContext and
-		// RatSpecificContext below.
 		CommonContext: &lte_protos.CommonSessionContext{
 			Sid:     subscriberId,
 			UeIpv4:  aaaCtx.GetIpAddr(),

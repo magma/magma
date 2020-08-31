@@ -16,6 +16,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include "ProtobufCreators.h"
 #include "RuleStore.h"
 #include "SessionID.h"
 #include "SessionState.h"
@@ -64,23 +65,16 @@ class SessionStoreTest : public ::testing::Test {
     std::string radius_session_id =
         "AA-AA-AA-AA-AA-AA:TESTAP__"
         "0F-10-2E-12-3A-55";
-    std::string core_session_id = "asdf";
-    SessionConfig cfg           = {.ue_ipv4           = "",
-                         .spgw_ipv4         = "",
-                         .msisdn            = msisdn,
-                         .apn               = "",
-                         .imei              = "",
-                         .plmn_id           = "",
-                         .imsi_plmn_id      = "",
-                         .user_location     = "",
-                         .rat_type          = RATType::TGPP_WLAN,
-                         .mac_addr          = "0f:10:2e:12:3a:55",
-                         .hardware_addr     = hardware_addr_bytes,
-                         .radius_session_id = radius_session_id};
-    auto tgpp_context           = TgppContext{};
-    auto session                = std::make_unique<SessionState>(
-        imsi, session_id, core_session_id, cfg, *rule_store, tgpp_context);
-    return std::move(session);
+    std::string mac_addr        = "0f:10:2e:12:3a:55";
+    SessionConfig cfg;
+    cfg.common_context =
+        build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_WLAN);
+    const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+    cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
+    auto tgpp_context = TgppContext{};
+    auto pdp_start_time = 12345;
+    return std::make_unique<SessionState>(
+        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
   }
 
   UsageMonitoringUpdateResponse* get_monitoring_update() {
@@ -329,6 +323,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   update_req[imsi] =
       std::unordered_map<std::string, SessionStateUpdateCriteria>{};
   auto update_criteria  = get_update_criteria();
+  update_criteria.updated_pdp_end_time = 156789;
   update_req[imsi][sid] = update_criteria;
 
   // 7) Commit updates to SessionStore
@@ -384,6 +379,9 @@ TEST_F(SessionStoreTest, test_read_and_write) {
       session_map[imsi].front()->get_monitor(monitoring_key, REPORTED_TX), 7);
   EXPECT_EQ(
       session_map[imsi].front()->get_monitor(monitoring_key, REPORTED_RX), 8);
+
+  // Check pdp end time update
+  EXPECT_EQ(session_map[imsi].front()->get_pdp_end_time(), 156789);
 
   // 11) Delete sessions for IMSI1
   update_req                       = SessionUpdate{};

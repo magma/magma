@@ -44,6 +44,7 @@ message S6aConfig {
 message GxConfig {
     DiamClientConfig server = 1;
     repeated DiamClientConfig servers = 2;
+    bool DisableGx = 3;
 }
 
 enum GyInitMethod {
@@ -56,6 +57,7 @@ message GyConfig {
     DiamClientConfig server = 1;
     GyInitMethod init_method = 2;
     repeated DiamClientConfig servers = 3;
+    bool DisableGy = 4;
 }
 
 message SwxConfig {

@@ -25,23 +25,23 @@ import (
 	"magma/orc8r/lib/go/protos"
 )
 
-type lteStreamProviderServicer struct{}
+type providerServicer struct{}
 
-func NewLTEStreamProviderServicer() streamer_protos.StreamProviderServer {
-	return &lteStreamProviderServicer{}
+func NewProviderServicer() streamer_protos.StreamProviderServer {
+	return &providerServicer{}
 }
 
-func (s *lteStreamProviderServicer) GetUpdates(ctx context.Context, req *protos.StreamRequest) (*protos.DataUpdateBatch, error) {
+func (s *providerServicer) GetUpdates(ctx context.Context, req *protos.StreamRequest) (*protos.DataUpdateBatch, error) {
 	var streamer providers.StreamProvider
 	switch req.GetStreamName() {
 	case lte.SubscriberStreamName:
 		streamer = &subscriber_streamer.SubscribersProvider{}
 	case lte.PolicyStreamName:
 		streamer = &policydb_streamer.PoliciesProvider{}
+	case lte.ApnRuleMappingsStreamName:
+		streamer = &policydb_streamer.ApnRuleMappingsProvider{}
 	case lte.BaseNameStreamName:
 		streamer = &policydb_streamer.BaseNamesProvider{}
-	case lte.MappingsStreamName:
-		streamer = &policydb_streamer.RuleMappingsProvider{}
 	case lte.NetworkWideRulesStreamName:
 		streamer = &policydb_streamer.NetworkWideRulesProvider{}
 	case lte.RatingGroupStreamName:

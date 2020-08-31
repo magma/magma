@@ -140,7 +140,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _install_flow_for_rule(self, imsi, ip_addr, rule):
+    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -156,7 +156,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
 
-        msgs = self._get_rule_match_flow_msgs(imsi, rule)
+        msgs = self._get_rule_match_flow_msgs(imsi, ip_addr, apn_ambr, rule)
 
         chan = self._msg_hub.send(msgs, self._datapath)
         for _ in range(len(msgs)):
@@ -177,8 +177,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     def _handle_error(self, ev):
         self._msg_hub.handle_error(ev)
 
-    # pylint: disable=protected-access
-    def _get_rule_match_flow_msgs(self, imsi, rule):
+    # pylint: disable=protected-access,unused-argument
+    def _get_rule_match_flow_msgs(self, imsi, ip_addr, ambr, rule):
         """
         Returns flow add messages used for rule matching.
         """

@@ -491,6 +491,8 @@ int sgw_handle_sgi_endpoint_updated(
       struct in_addr ue = {.s_addr = 0};
       // TODO - Add support for IPv6
       ue.s_addr = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+      int vlan  = eps_bearer_ctxt_p->paa.vlan;
+
       Imsi_t imsi =
           new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
       /* UE is switching back to EPS services after the CS Fallback
@@ -509,7 +511,7 @@ int sgw_handle_sgi_endpoint_updated(
         }
       } else {
         rv = gtpv1u_add_tunnel(
-            ue, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
         if (rv < 0) {
           OAILOG_ERROR_UE(
@@ -1357,6 +1359,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   gtpv2c_cause_value_t cause         = REQUEST_REJECTED;
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc = NULL;
   bearer_context_within_create_bearer_response_t bearer_context = {0};
+  char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
+  ebi_t default_bearer_id;
 
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
@@ -1378,6 +1382,9 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
         bearer_context.eps_bearer_id, bearer_context.s1u_sgw_fteid.teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
   }
+
+  default_bearer_id = spgw_context->sgw_eps_bearer_context_information
+                          .pdn_connection.default_bearer;
 
   //--------------------------------------
   // EPS bearer entry
@@ -1446,8 +1453,10 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           enb.s_addr = eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address
                            .ipv4_address.s_addr;
           struct in_addr ue = {.s_addr = 0};
+          int vlan          = eps_bearer_ctxt_entry_p->paa.vlan;
           ue.s_addr         = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
           Imsi_t imsi = spgw_context->sgw_eps_bearer_context_information.imsi;
+          strcpy(policy_rule_name, eps_bearer_ctxt_entry_p->policy_rule_name);
           // Iterate of packet filter rules
           OAILOG_INFO_UE(
               LOG_SPGW_APP, imsi64, "Number of packet filter rules: %d\n",
@@ -1521,7 +1530,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
               }
             }
             rc = gtpv1u_add_tunnel(
-                ue, enb, eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
+                ue, vlan, enb, eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_entry_p->enb_teid_S1u, imsi, &dlflow,
                 eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
                     .eval_precedence);
@@ -1560,7 +1569,8 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   }
   // Send ACTIVATE_DEDICATED_BEARER_RSP to PCRF
   rc = spgw_send_nw_init_activate_bearer_rsp(
-      cause, imsi64, bearer_context.eps_bearer_id);
+      cause, imsi64, bearer_context.eps_bearer_id, default_bearer_id,
+      policy_rule_name);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
@@ -1733,6 +1743,10 @@ static void _handle_failed_create_bearer_response(
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   pgw_ni_cbr_proc_t* pgw_ni_cbr_proc                            = NULL;
   struct sgw_eps_bearer_entry_wrapper_s* sgw_eps_bearer_entry_p = NULL;
+  char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
+  ebi_t default_bearer_id = spgw_context->sgw_eps_bearer_context_information
+                                .pdn_connection.default_bearer;
+
   if (spgw_context) {
     pgw_ni_cbr_proc = pgw_get_procedure_create_bearer(spgw_context);
     if (((pgw_ni_cbr_proc) &&
@@ -1743,6 +1757,9 @@ static void _handle_failed_create_bearer_response(
       while (sgw_eps_bearer_entry_p) {
         if (teid == sgw_eps_bearer_entry_p->sgw_eps_bearer_entry
                         ->s_gw_teid_S1u_S12_S4_up) {
+          strcpy(
+              policy_rule_name,
+              sgw_eps_bearer_entry_p->sgw_eps_bearer_entry->policy_rule_name);
           // Remove the temporary spgw entry
           LIST_REMOVE(sgw_eps_bearer_entry_p, entries);
           if (sgw_eps_bearer_entry_p->sgw_eps_bearer_entry) {
@@ -1761,7 +1778,8 @@ static void _handle_failed_create_bearer_response(
       pgw_free_procedure_create_bearer((pgw_ni_cbr_proc_t**) &pgw_ni_cbr_proc);
     }
   }
-  int rc = spgw_send_nw_init_activate_bearer_rsp(cause, imsi64, eps_bearer_id);
+  int rc = spgw_send_nw_init_activate_bearer_rsp(
+      cause, imsi64, eps_bearer_id, default_bearer_id, policy_rule_name);
   if (rc != RETURNok) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,

@@ -380,7 +380,7 @@ func (x ChargingReAuthRequest_Type) String() string {
 }
 
 func (ChargingReAuthRequest_Type) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{10, 0}
+	return fileDescriptor_85add0446af78174, []int{12, 0}
 }
 
 type PolicyReAuthAnswer_FailureCode int32
@@ -482,7 +482,7 @@ func (x PolicyReAuthAnswer_FailureCode) String() string {
 }
 
 func (PolicyReAuthAnswer_FailureCode) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{14, 0}
+	return fileDescriptor_85add0446af78174, []int{16, 0}
 }
 
 type RedirectServer_RedirectAddressType int32
@@ -513,7 +513,7 @@ func (x RedirectServer_RedirectAddressType) String() string {
 }
 
 func (RedirectServer_RedirectAddressType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{17, 0}
+	return fileDescriptor_85add0446af78174, []int{22, 0}
 }
 
 type ChargingCredit_UnitType int32
@@ -538,7 +538,7 @@ func (x ChargingCredit_UnitType) String() string {
 }
 
 func (ChargingCredit_UnitType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{18, 0}
+	return fileDescriptor_85add0446af78174, []int{23, 0}
 }
 
 type ChargingCredit_FinalAction int32
@@ -566,7 +566,7 @@ func (x ChargingCredit_FinalAction) String() string {
 }
 
 func (ChargingCredit_FinalAction) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{18, 1}
+	return fileDescriptor_85add0446af78174, []int{23, 1}
 }
 
 type CreditUsage_UpdateType int32
@@ -612,7 +612,7 @@ func (x CreditUsage_UpdateType) String() string {
 }
 
 func (CreditUsage_UpdateType) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{19, 0}
+	return fileDescriptor_85add0446af78174, []int{24, 0}
 }
 
 type UsageMonitoringCredit_Action int32
@@ -637,7 +637,7 @@ func (x UsageMonitoringCredit_Action) String() string {
 }
 
 func (UsageMonitoringCredit_Action) EnumDescriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{23, 0}
+	return fileDescriptor_85add0446af78174, []int{28, 0}
 }
 
 type RuleRecord struct {
@@ -751,6 +751,7 @@ func (m *RuleRecordTable) GetEpoch() uint64 {
 }
 
 type LocalCreateSessionRequest struct {
+<<<<<<< HEAD
 	Sid                  *SubscriberID          `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
 	UeIpv4               string                 `protobuf:"bytes,2,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
 	SpgwIpv4             string                 `protobuf:"bytes,3,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
@@ -772,6 +773,13 @@ type LocalCreateSessionRequest struct {
 	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
 	XXX_unrecognized     []byte                 `json:"-"`
 	XXX_sizecache        int32                  `json:"-"`
+=======
+	CommonContext        *CommonSessionContext `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	RatSpecificContext   *RatSpecificContext   `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+>>>>>>> upstream/master
 }
 
 func (m *LocalCreateSessionRequest) Reset()         { *m = LocalCreateSessionRequest{} }
@@ -798,104 +806,6 @@ func (m *LocalCreateSessionRequest) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_LocalCreateSessionRequest proto.InternalMessageInfo
-
-func (m *LocalCreateSessionRequest) GetSid() *SubscriberID {
-	if m != nil {
-		return m.Sid
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetUeIpv4() string {
-	if m != nil {
-		return m.UeIpv4
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetSpgwIpv4() string {
-	if m != nil {
-		return m.SpgwIpv4
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetApn() string {
-	if m != nil {
-		return m.Apn
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetImei() string {
-	if m != nil {
-		return m.Imei
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetPlmnId() string {
-	if m != nil {
-		return m.PlmnId
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetImsiPlmnId() string {
-	if m != nil {
-		return m.ImsiPlmnId
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetUserLocation() []byte {
-	if m != nil {
-		return m.UserLocation
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetQosInfo() *QosInformationRequest {
-	if m != nil {
-		return m.QosInfo
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetMsisdn() []byte {
-	if m != nil {
-		return m.Msisdn
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetRatType() RATType {
-	if m != nil {
-		return m.RatType
-	}
-	return RATType_TGPP_LTE
-}
-
-func (m *LocalCreateSessionRequest) GetHardwareAddr() []byte {
-	if m != nil {
-		return m.HardwareAddr
-	}
-	return nil
-}
-
-func (m *LocalCreateSessionRequest) GetRadiusSessionId() string {
-	if m != nil {
-		return m.RadiusSessionId
-	}
-	return ""
-}
-
-func (m *LocalCreateSessionRequest) GetBearerId() uint32 {
-	if m != nil {
-		return m.BearerId
-	}
-	return 0
-}
 
 func (m *LocalCreateSessionRequest) GetCommonContext() *CommonSessionContext {
 	if m != nil {
@@ -1335,6 +1245,100 @@ func (m *LocalEndSessionResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_LocalEndSessionResponse proto.InternalMessageInfo
 
+type PolicyBearerBindingRequest struct {
+	Sid                  *SubscriberID `protobuf:"bytes,1,opt,name=sid,proto3" json:"sid,omitempty"`
+	LinkedBearerId       uint32        `protobuf:"varint,2,opt,name=linked_bearer_id,json=linkedBearerId,proto3" json:"linked_bearer_id,omitempty"`
+	PolicyRuleId         string        `protobuf:"bytes,3,opt,name=policy_rule_id,json=policyRuleId,proto3" json:"policy_rule_id,omitempty"`
+	BearerId             uint32        `protobuf:"varint,4,opt,name=bearer_id,json=bearerId,proto3" json:"bearer_id,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}      `json:"-"`
+	XXX_unrecognized     []byte        `json:"-"`
+	XXX_sizecache        int32         `json:"-"`
+}
+
+func (m *PolicyBearerBindingRequest) Reset()         { *m = PolicyBearerBindingRequest{} }
+func (m *PolicyBearerBindingRequest) String() string { return proto.CompactTextString(m) }
+func (*PolicyBearerBindingRequest) ProtoMessage()    {}
+func (*PolicyBearerBindingRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{10}
+}
+
+func (m *PolicyBearerBindingRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PolicyBearerBindingRequest.Unmarshal(m, b)
+}
+func (m *PolicyBearerBindingRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PolicyBearerBindingRequest.Marshal(b, m, deterministic)
+}
+func (m *PolicyBearerBindingRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PolicyBearerBindingRequest.Merge(m, src)
+}
+func (m *PolicyBearerBindingRequest) XXX_Size() int {
+	return xxx_messageInfo_PolicyBearerBindingRequest.Size(m)
+}
+func (m *PolicyBearerBindingRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_PolicyBearerBindingRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PolicyBearerBindingRequest proto.InternalMessageInfo
+
+func (m *PolicyBearerBindingRequest) GetSid() *SubscriberID {
+	if m != nil {
+		return m.Sid
+	}
+	return nil
+}
+
+func (m *PolicyBearerBindingRequest) GetLinkedBearerId() uint32 {
+	if m != nil {
+		return m.LinkedBearerId
+	}
+	return 0
+}
+
+func (m *PolicyBearerBindingRequest) GetPolicyRuleId() string {
+	if m != nil {
+		return m.PolicyRuleId
+	}
+	return ""
+}
+
+func (m *PolicyBearerBindingRequest) GetBearerId() uint32 {
+	if m != nil {
+		return m.BearerId
+	}
+	return 0
+}
+
+type PolicyBearerBindingResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *PolicyBearerBindingResponse) Reset()         { *m = PolicyBearerBindingResponse{} }
+func (m *PolicyBearerBindingResponse) String() string { return proto.CompactTextString(m) }
+func (*PolicyBearerBindingResponse) ProtoMessage()    {}
+func (*PolicyBearerBindingResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{11}
+}
+
+func (m *PolicyBearerBindingResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_PolicyBearerBindingResponse.Unmarshal(m, b)
+}
+func (m *PolicyBearerBindingResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_PolicyBearerBindingResponse.Marshal(b, m, deterministic)
+}
+func (m *PolicyBearerBindingResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_PolicyBearerBindingResponse.Merge(m, src)
+}
+func (m *PolicyBearerBindingResponse) XXX_Size() int {
+	return xxx_messageInfo_PolicyBearerBindingResponse.Size(m)
+}
+func (m *PolicyBearerBindingResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_PolicyBearerBindingResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_PolicyBearerBindingResponse proto.InternalMessageInfo
+
 type ChargingReAuthRequest struct {
 	SessionId            string                     `protobuf:"bytes,1,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
 	ChargingKey          uint32                     `protobuf:"varint,2,opt,name=charging_key,json=chargingKey,proto3" json:"charging_key,omitempty"`
@@ -1350,7 +1354,7 @@ func (m *ChargingReAuthRequest) Reset()         { *m = ChargingReAuthRequest{} }
 func (m *ChargingReAuthRequest) String() string { return proto.CompactTextString(m) }
 func (*ChargingReAuthRequest) ProtoMessage()    {}
 func (*ChargingReAuthRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{10}
+	return fileDescriptor_85add0446af78174, []int{12}
 }
 
 func (m *ChargingReAuthRequest) XXX_Unmarshal(b []byte) error {
@@ -1417,7 +1421,7 @@ func (m *ChargingReAuthAnswer) Reset()         { *m = ChargingReAuthAnswer{} }
 func (m *ChargingReAuthAnswer) String() string { return proto.CompactTextString(m) }
 func (*ChargingReAuthAnswer) ProtoMessage()    {}
 func (*ChargingReAuthAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{11}
+	return fileDescriptor_85add0446af78174, []int{13}
 }
 
 func (m *ChargingReAuthAnswer) XXX_Unmarshal(b []byte) error {
@@ -1465,7 +1469,7 @@ func (m *PolicyReAuthRequest) Reset()         { *m = PolicyReAuthRequest{} }
 func (m *PolicyReAuthRequest) String() string { return proto.CompactTextString(m) }
 func (*PolicyReAuthRequest) ProtoMessage()    {}
 func (*PolicyReAuthRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{12}
+	return fileDescriptor_85add0446af78174, []int{14}
 }
 
 func (m *PolicyReAuthRequest) XXX_Unmarshal(b []byte) error {
@@ -1561,7 +1565,7 @@ func (m *QoSInformation) Reset()         { *m = QoSInformation{} }
 func (m *QoSInformation) String() string { return proto.CompactTextString(m) }
 func (*QoSInformation) ProtoMessage()    {}
 func (*QoSInformation) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{13}
+	return fileDescriptor_85add0446af78174, []int{15}
 }
 
 func (m *QoSInformation) XXX_Unmarshal(b []byte) error {
@@ -1609,7 +1613,7 @@ func (m *PolicyReAuthAnswer) Reset()         { *m = PolicyReAuthAnswer{} }
 func (m *PolicyReAuthAnswer) String() string { return proto.CompactTextString(m) }
 func (*PolicyReAuthAnswer) ProtoMessage()    {}
 func (*PolicyReAuthAnswer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{14}
+	return fileDescriptor_85add0446af78174, []int{16}
 }
 
 func (m *PolicyReAuthAnswer) XXX_Unmarshal(b []byte) error {
@@ -1651,6 +1655,155 @@ func (m *PolicyReAuthAnswer) GetFailedRules() map[string]PolicyReAuthAnswer_Fail
 	return nil
 }
 
+type RuleSet struct {
+	ApplySubscriberWide  bool                  `protobuf:"varint,1,opt,name=apply_subscriber_wide,json=applySubscriberWide,proto3" json:"apply_subscriber_wide,omitempty"`
+	Apn                  string                `protobuf:"bytes,2,opt,name=apn,proto3" json:"apn,omitempty"`
+	StaticRules          []*StaticRuleInstall  `protobuf:"bytes,3,rep,name=static_rules,json=staticRules,proto3" json:"static_rules,omitempty"`
+	DynamicRules         []*DynamicRuleInstall `protobuf:"bytes,4,rep,name=dynamic_rules,json=dynamicRules,proto3" json:"dynamic_rules,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *RuleSet) Reset()         { *m = RuleSet{} }
+func (m *RuleSet) String() string { return proto.CompactTextString(m) }
+func (*RuleSet) ProtoMessage()    {}
+func (*RuleSet) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{17}
+}
+
+func (m *RuleSet) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RuleSet.Unmarshal(m, b)
+}
+func (m *RuleSet) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RuleSet.Marshal(b, m, deterministic)
+}
+func (m *RuleSet) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RuleSet.Merge(m, src)
+}
+func (m *RuleSet) XXX_Size() int {
+	return xxx_messageInfo_RuleSet.Size(m)
+}
+func (m *RuleSet) XXX_DiscardUnknown() {
+	xxx_messageInfo_RuleSet.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RuleSet proto.InternalMessageInfo
+
+func (m *RuleSet) GetApplySubscriberWide() bool {
+	if m != nil {
+		return m.ApplySubscriberWide
+	}
+	return false
+}
+
+func (m *RuleSet) GetApn() string {
+	if m != nil {
+		return m.Apn
+	}
+	return ""
+}
+
+func (m *RuleSet) GetStaticRules() []*StaticRuleInstall {
+	if m != nil {
+		return m.StaticRules
+	}
+	return nil
+}
+
+func (m *RuleSet) GetDynamicRules() []*DynamicRuleInstall {
+	if m != nil {
+		return m.DynamicRules
+	}
+	return nil
+}
+
+type RulesPerSubscriber struct {
+	Imsi                 string     `protobuf:"bytes,1,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	RuleSet              []*RuleSet `protobuf:"bytes,3,rep,name=rule_set,json=ruleSet,proto3" json:"rule_set,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}   `json:"-"`
+	XXX_unrecognized     []byte     `json:"-"`
+	XXX_sizecache        int32      `json:"-"`
+}
+
+func (m *RulesPerSubscriber) Reset()         { *m = RulesPerSubscriber{} }
+func (m *RulesPerSubscriber) String() string { return proto.CompactTextString(m) }
+func (*RulesPerSubscriber) ProtoMessage()    {}
+func (*RulesPerSubscriber) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{18}
+}
+
+func (m *RulesPerSubscriber) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_RulesPerSubscriber.Unmarshal(m, b)
+}
+func (m *RulesPerSubscriber) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_RulesPerSubscriber.Marshal(b, m, deterministic)
+}
+func (m *RulesPerSubscriber) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_RulesPerSubscriber.Merge(m, src)
+}
+func (m *RulesPerSubscriber) XXX_Size() int {
+	return xxx_messageInfo_RulesPerSubscriber.Size(m)
+}
+func (m *RulesPerSubscriber) XXX_DiscardUnknown() {
+	xxx_messageInfo_RulesPerSubscriber.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_RulesPerSubscriber proto.InternalMessageInfo
+
+func (m *RulesPerSubscriber) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *RulesPerSubscriber) GetRuleSet() []*RuleSet {
+	if m != nil {
+		return m.RuleSet
+	}
+	return nil
+}
+
+type SessionRules struct {
+	RulesPerSubscriber   []*RulesPerSubscriber `protobuf:"bytes,1,rep,name=rules_per_subscriber,json=rulesPerSubscriber,proto3" json:"rules_per_subscriber,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
+}
+
+func (m *SessionRules) Reset()         { *m = SessionRules{} }
+func (m *SessionRules) String() string { return proto.CompactTextString(m) }
+func (*SessionRules) ProtoMessage()    {}
+func (*SessionRules) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{19}
+}
+
+func (m *SessionRules) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SessionRules.Unmarshal(m, b)
+}
+func (m *SessionRules) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SessionRules.Marshal(b, m, deterministic)
+}
+func (m *SessionRules) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SessionRules.Merge(m, src)
+}
+func (m *SessionRules) XXX_Size() int {
+	return xxx_messageInfo_SessionRules.Size(m)
+}
+func (m *SessionRules) XXX_DiscardUnknown() {
+	xxx_messageInfo_SessionRules.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SessionRules proto.InternalMessageInfo
+
+func (m *SessionRules) GetRulesPerSubscriber() []*RulesPerSubscriber {
+	if m != nil {
+		return m.RulesPerSubscriber
+	}
+	return nil
+}
+
 type CreditUnit struct {
 	IsValid              bool     `protobuf:"varint,1,opt,name=is_valid,json=isValid,proto3" json:"is_valid,omitempty"`
 	Volume               uint64   `protobuf:"varint,2,opt,name=volume,proto3" json:"volume,omitempty"`
@@ -1663,7 +1816,7 @@ func (m *CreditUnit) Reset()         { *m = CreditUnit{} }
 func (m *CreditUnit) String() string { return proto.CompactTextString(m) }
 func (*CreditUnit) ProtoMessage()    {}
 func (*CreditUnit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{15}
+	return fileDescriptor_85add0446af78174, []int{20}
 }
 
 func (m *CreditUnit) XXX_Unmarshal(b []byte) error {
@@ -1711,7 +1864,7 @@ func (m *GrantedUnits) Reset()         { *m = GrantedUnits{} }
 func (m *GrantedUnits) String() string { return proto.CompactTextString(m) }
 func (*GrantedUnits) ProtoMessage()    {}
 func (*GrantedUnits) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{16}
+	return fileDescriptor_85add0446af78174, []int{21}
 }
 
 func (m *GrantedUnits) XXX_Unmarshal(b []byte) error {
@@ -1765,7 +1918,7 @@ func (m *RedirectServer) Reset()         { *m = RedirectServer{} }
 func (m *RedirectServer) String() string { return proto.CompactTextString(m) }
 func (*RedirectServer) ProtoMessage()    {}
 func (*RedirectServer) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{17}
+	return fileDescriptor_85add0446af78174, []int{22}
 }
 
 func (m *RedirectServer) XXX_Unmarshal(b []byte) error {
@@ -1816,7 +1969,7 @@ func (m *ChargingCredit) Reset()         { *m = ChargingCredit{} }
 func (m *ChargingCredit) String() string { return proto.CompactTextString(m) }
 func (*ChargingCredit) ProtoMessage()    {}
 func (*ChargingCredit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{18}
+	return fileDescriptor_85add0446af78174, []int{23}
 }
 
 func (m *ChargingCredit) XXX_Unmarshal(b []byte) error {
@@ -1895,7 +2048,7 @@ func (m *CreditUsage) Reset()         { *m = CreditUsage{} }
 func (m *CreditUsage) String() string { return proto.CompactTextString(m) }
 func (*CreditUsage) ProtoMessage()    {}
 func (*CreditUsage) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{19}
+	return fileDescriptor_85add0446af78174, []int{24}
 }
 
 func (m *CreditUsage) XXX_Unmarshal(b []byte) error {
@@ -1985,7 +2138,7 @@ func (m *CreditUsageUpdate) Reset()         { *m = CreditUsageUpdate{} }
 func (m *CreditUsageUpdate) String() string { return proto.CompactTextString(m) }
 func (*CreditUsageUpdate) ProtoMessage()    {}
 func (*CreditUsageUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{20}
+	return fileDescriptor_85add0446af78174, []int{25}
 }
 
 func (m *CreditUsageUpdate) XXX_Unmarshal(b []byte) error {
@@ -2144,7 +2297,7 @@ func (m *CreditUpdateResponse) Reset()         { *m = CreditUpdateResponse{} }
 func (m *CreditUpdateResponse) String() string { return proto.CompactTextString(m) }
 func (*CreditUpdateResponse) ProtoMessage()    {}
 func (*CreditUpdateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{21}
+	return fileDescriptor_85add0446af78174, []int{26}
 }
 
 func (m *CreditUpdateResponse) XXX_Unmarshal(b []byte) error {
@@ -2236,7 +2389,7 @@ func (m *UsageMonitorUpdate) Reset()         { *m = UsageMonitorUpdate{} }
 func (m *UsageMonitorUpdate) String() string { return proto.CompactTextString(m) }
 func (*UsageMonitorUpdate) ProtoMessage()    {}
 func (*UsageMonitorUpdate) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{22}
+	return fileDescriptor_85add0446af78174, []int{27}
 }
 
 func (m *UsageMonitorUpdate) XXX_Unmarshal(b []byte) error {
@@ -2300,7 +2453,7 @@ func (m *UsageMonitoringCredit) Reset()         { *m = UsageMonitoringCredit{} }
 func (m *UsageMonitoringCredit) String() string { return proto.CompactTextString(m) }
 func (*UsageMonitoringCredit) ProtoMessage()    {}
 func (*UsageMonitoringCredit) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{23}
+	return fileDescriptor_85add0446af78174, []int{28}
 }
 
 func (m *UsageMonitoringCredit) XXX_Unmarshal(b []byte) error {
@@ -2371,7 +2524,7 @@ func (m *UsageMonitoringUpdateRequest) Reset()         { *m = UsageMonitoringUpd
 func (m *UsageMonitoringUpdateRequest) String() string { return proto.CompactTextString(m) }
 func (*UsageMonitoringUpdateRequest) ProtoMessage()    {}
 func (*UsageMonitoringUpdateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{24}
+	return fileDescriptor_85add0446af78174, []int{29}
 }
 
 func (m *UsageMonitoringUpdateRequest) XXX_Unmarshal(b []byte) error {
@@ -2477,7 +2630,7 @@ func (m *UsageMonitoringUpdateResponse) Reset()         { *m = UsageMonitoringUp
 func (m *UsageMonitoringUpdateResponse) String() string { return proto.CompactTextString(m) }
 func (*UsageMonitoringUpdateResponse) ProtoMessage()    {}
 func (*UsageMonitoringUpdateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{25}
+	return fileDescriptor_85add0446af78174, []int{30}
 }
 
 func (m *UsageMonitoringUpdateResponse) XXX_Unmarshal(b []byte) error {
@@ -2592,7 +2745,7 @@ func (m *QosInformationRequest) Reset()         { *m = QosInformationRequest{} }
 func (m *QosInformationRequest) String() string { return proto.CompactTextString(m) }
 func (*QosInformationRequest) ProtoMessage()    {}
 func (*QosInformationRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{26}
+	return fileDescriptor_85add0446af78174, []int{31}
 }
 
 func (m *QosInformationRequest) XXX_Unmarshal(b []byte) error {
@@ -2668,7 +2821,7 @@ func (m *TgppContext) Reset()         { *m = TgppContext{} }
 func (m *TgppContext) String() string { return proto.CompactTextString(m) }
 func (*TgppContext) ProtoMessage()    {}
 func (*TgppContext) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{27}
+	return fileDescriptor_85add0446af78174, []int{32}
 }
 
 func (m *TgppContext) XXX_Unmarshal(b []byte) error {
@@ -2704,32 +2857,19 @@ func (m *TgppContext) GetGyDestHost() string {
 }
 
 type CreateSessionRequest struct {
-	Subscriber           *SubscriberID          `protobuf:"bytes,1,opt,name=subscriber,proto3" json:"subscriber,omitempty"`
-	SessionId            string                 `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
-	UeIpv4               string                 `protobuf:"bytes,3,opt,name=ue_ipv4,json=ueIpv4,proto3" json:"ue_ipv4,omitempty"`
-	SpgwIpv4             string                 `protobuf:"bytes,4,opt,name=spgw_ipv4,json=spgwIpv4,proto3" json:"spgw_ipv4,omitempty"`
-	Apn                  string                 `protobuf:"bytes,5,opt,name=apn,proto3" json:"apn,omitempty"`
-	Imei                 string                 `protobuf:"bytes,7,opt,name=imei,proto3" json:"imei,omitempty"`
-	PlmnId               string                 `protobuf:"bytes,8,opt,name=plmn_id,json=plmnId,proto3" json:"plmn_id,omitempty"`
-	ImsiPlmnId           string                 `protobuf:"bytes,9,opt,name=imsi_plmn_id,json=imsiPlmnId,proto3" json:"imsi_plmn_id,omitempty"`
-	UserLocation         []byte                 `protobuf:"bytes,10,opt,name=user_location,json=userLocation,proto3" json:"user_location,omitempty"`
-	QosInfo              *QosInformationRequest `protobuf:"bytes,11,opt,name=qos_info,json=qosInfo,proto3" json:"qos_info,omitempty"`
-	Msisdn               []byte                 `protobuf:"bytes,12,opt,name=msisdn,proto3" json:"msisdn,omitempty"`
-	GcId                 string                 `protobuf:"bytes,13,opt,name=gc_id,json=gcId,proto3" json:"gc_id,omitempty"`
-	RatType              RATType                `protobuf:"varint,14,opt,name=rat_type,json=ratType,proto3,enum=magma.lte.RATType" json:"rat_type,omitempty"`
-	HardwareAddr         []byte                 `protobuf:"bytes,15,opt,name=hardware_addr,json=hardwareAddr,proto3" json:"hardware_addr,omitempty"`
-	CommonContext        *CommonSessionContext  `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
-	RatSpecificContext   *RatSpecificContext    `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
-	XXX_NoUnkeyedLiteral struct{}               `json:"-"`
-	XXX_unrecognized     []byte                 `json:"-"`
-	XXX_sizecache        int32                  `json:"-"`
+	SessionId            string                `protobuf:"bytes,2,opt,name=session_id,json=sessionId,proto3" json:"session_id,omitempty"`
+	CommonContext        *CommonSessionContext `protobuf:"bytes,16,opt,name=common_context,json=commonContext,proto3" json:"common_context,omitempty"`
+	RatSpecificContext   *RatSpecificContext   `protobuf:"bytes,17,opt,name=rat_specific_context,json=ratSpecificContext,proto3" json:"rat_specific_context,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}              `json:"-"`
+	XXX_unrecognized     []byte                `json:"-"`
+	XXX_sizecache        int32                 `json:"-"`
 }
 
 func (m *CreateSessionRequest) Reset()         { *m = CreateSessionRequest{} }
 func (m *CreateSessionRequest) String() string { return proto.CompactTextString(m) }
 func (*CreateSessionRequest) ProtoMessage()    {}
 func (*CreateSessionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{28}
+	return fileDescriptor_85add0446af78174, []int{33}
 }
 
 func (m *CreateSessionRequest) XXX_Unmarshal(b []byte) error {
@@ -2750,102 +2890,11 @@ func (m *CreateSessionRequest) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_CreateSessionRequest proto.InternalMessageInfo
 
-func (m *CreateSessionRequest) GetSubscriber() *SubscriberID {
-	if m != nil {
-		return m.Subscriber
-	}
-	return nil
-}
-
 func (m *CreateSessionRequest) GetSessionId() string {
 	if m != nil {
 		return m.SessionId
 	}
 	return ""
-}
-
-func (m *CreateSessionRequest) GetUeIpv4() string {
-	if m != nil {
-		return m.UeIpv4
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetSpgwIpv4() string {
-	if m != nil {
-		return m.SpgwIpv4
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetApn() string {
-	if m != nil {
-		return m.Apn
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetImei() string {
-	if m != nil {
-		return m.Imei
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetPlmnId() string {
-	if m != nil {
-		return m.PlmnId
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetImsiPlmnId() string {
-	if m != nil {
-		return m.ImsiPlmnId
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetUserLocation() []byte {
-	if m != nil {
-		return m.UserLocation
-	}
-	return nil
-}
-
-func (m *CreateSessionRequest) GetQosInfo() *QosInformationRequest {
-	if m != nil {
-		return m.QosInfo
-	}
-	return nil
-}
-
-func (m *CreateSessionRequest) GetMsisdn() []byte {
-	if m != nil {
-		return m.Msisdn
-	}
-	return nil
-}
-
-func (m *CreateSessionRequest) GetGcId() string {
-	if m != nil {
-		return m.GcId
-	}
-	return ""
-}
-
-func (m *CreateSessionRequest) GetRatType() RATType {
-	if m != nil {
-		return m.RatType
-	}
-	return RATType_TGPP_LTE
-}
-
-func (m *CreateSessionRequest) GetHardwareAddr() []byte {
-	if m != nil {
-		return m.HardwareAddr
-	}
-	return nil
 }
 
 func (m *CreateSessionRequest) GetCommonContext() *CommonSessionContext {
@@ -2880,7 +2929,7 @@ func (m *CreateSessionResponse) Reset()         { *m = CreateSessionResponse{} }
 func (m *CreateSessionResponse) String() string { return proto.CompactTextString(m) }
 func (*CreateSessionResponse) ProtoMessage()    {}
 func (*CreateSessionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{29}
+	return fileDescriptor_85add0446af78174, []int{34}
 }
 
 func (m *CreateSessionResponse) XXX_Unmarshal(b []byte) error {
@@ -2971,7 +3020,7 @@ func (m *StaticRuleInstall) Reset()         { *m = StaticRuleInstall{} }
 func (m *StaticRuleInstall) String() string { return proto.CompactTextString(m) }
 func (*StaticRuleInstall) ProtoMessage()    {}
 func (*StaticRuleInstall) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{30}
+	return fileDescriptor_85add0446af78174, []int{35}
 }
 
 func (m *StaticRuleInstall) XXX_Unmarshal(b []byte) error {
@@ -3027,7 +3076,7 @@ func (m *DynamicRuleInstall) Reset()         { *m = DynamicRuleInstall{} }
 func (m *DynamicRuleInstall) String() string { return proto.CompactTextString(m) }
 func (*DynamicRuleInstall) ProtoMessage()    {}
 func (*DynamicRuleInstall) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{31}
+	return fileDescriptor_85add0446af78174, []int{36}
 }
 
 func (m *DynamicRuleInstall) XXX_Unmarshal(b []byte) error {
@@ -3081,7 +3130,7 @@ func (m *UpdateSessionRequest) Reset()         { *m = UpdateSessionRequest{} }
 func (m *UpdateSessionRequest) String() string { return proto.CompactTextString(m) }
 func (*UpdateSessionRequest) ProtoMessage()    {}
 func (*UpdateSessionRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{32}
+	return fileDescriptor_85add0446af78174, []int{37}
 }
 
 func (m *UpdateSessionRequest) XXX_Unmarshal(b []byte) error {
@@ -3128,7 +3177,7 @@ func (m *UpdateSessionResponse) Reset()         { *m = UpdateSessionResponse{} }
 func (m *UpdateSessionResponse) String() string { return proto.CompactTextString(m) }
 func (*UpdateSessionResponse) ProtoMessage()    {}
 func (*UpdateSessionResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{33}
+	return fileDescriptor_85add0446af78174, []int{38}
 }
 
 func (m *UpdateSessionResponse) XXX_Unmarshal(b []byte) error {
@@ -3175,7 +3224,7 @@ func (m *SessionTerminateResponse) Reset()         { *m = SessionTerminateRespon
 func (m *SessionTerminateResponse) String() string { return proto.CompactTextString(m) }
 func (*SessionTerminateResponse) ProtoMessage()    {}
 func (*SessionTerminateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{34}
+	return fileDescriptor_85add0446af78174, []int{39}
 }
 
 func (m *SessionTerminateResponse) XXX_Unmarshal(b []byte) error {
@@ -3236,7 +3285,7 @@ func (m *SessionTerminateRequest) Reset()         { *m = SessionTerminateRequest
 func (m *SessionTerminateRequest) String() string { return proto.CompactTextString(m) }
 func (*SessionTerminateRequest) ProtoMessage()    {}
 func (*SessionTerminateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_85add0446af78174, []int{35}
+	return fileDescriptor_85add0446af78174, []int{40}
 }
 
 func (m *SessionTerminateRequest) XXX_Unmarshal(b []byte) error {
@@ -3393,12 +3442,17 @@ func init() {
 	proto.RegisterType((*LocalCreateSessionResponse)(nil), "magma.lte.LocalCreateSessionResponse")
 	proto.RegisterType((*LocalEndSessionRequest)(nil), "magma.lte.LocalEndSessionRequest")
 	proto.RegisterType((*LocalEndSessionResponse)(nil), "magma.lte.LocalEndSessionResponse")
+	proto.RegisterType((*PolicyBearerBindingRequest)(nil), "magma.lte.PolicyBearerBindingRequest")
+	proto.RegisterType((*PolicyBearerBindingResponse)(nil), "magma.lte.PolicyBearerBindingResponse")
 	proto.RegisterType((*ChargingReAuthRequest)(nil), "magma.lte.ChargingReAuthRequest")
 	proto.RegisterType((*ChargingReAuthAnswer)(nil), "magma.lte.ChargingReAuthAnswer")
 	proto.RegisterType((*PolicyReAuthRequest)(nil), "magma.lte.PolicyReAuthRequest")
 	proto.RegisterType((*QoSInformation)(nil), "magma.lte.QoSInformation")
 	proto.RegisterType((*PolicyReAuthAnswer)(nil), "magma.lte.PolicyReAuthAnswer")
 	proto.RegisterMapType((map[string]PolicyReAuthAnswer_FailureCode)(nil), "magma.lte.PolicyReAuthAnswer.FailedRulesEntry")
+	proto.RegisterType((*RuleSet)(nil), "magma.lte.RuleSet")
+	proto.RegisterType((*RulesPerSubscriber)(nil), "magma.lte.RulesPerSubscriber")
+	proto.RegisterType((*SessionRules)(nil), "magma.lte.SessionRules")
 	proto.RegisterType((*CreditUnit)(nil), "magma.lte.CreditUnit")
 	proto.RegisterType((*GrantedUnits)(nil), "magma.lte.GrantedUnits")
 	proto.RegisterType((*RedirectServer)(nil), "magma.lte.RedirectServer")
@@ -3721,6 +3775,9 @@ type LocalSessionManagerClient interface {
 	ReportRuleStats(ctx context.Context, in *RuleRecordTable, opts ...grpc.CallOption) (*protos.Void, error)
 	CreateSession(ctx context.Context, in *LocalCreateSessionRequest, opts ...grpc.CallOption) (*LocalCreateSessionResponse, error)
 	EndSession(ctx context.Context, in *LocalEndSessionRequest, opts ...grpc.CallOption) (*LocalEndSessionResponse, error)
+	BindPolicy2Bearer(ctx context.Context, in *PolicyBearerBindingRequest, opts ...grpc.CallOption) (*PolicyBearerBindingResponse, error)
+	// A set interface of subscribers -> currently active rules
+	SetSessionRules(ctx context.Context, in *SessionRules, opts ...grpc.CallOption) (*protos.Void, error)
 }
 
 type localSessionManagerClient struct {
@@ -3758,11 +3815,32 @@ func (c *localSessionManagerClient) EndSession(ctx context.Context, in *LocalEnd
 	return out, nil
 }
 
+func (c *localSessionManagerClient) BindPolicy2Bearer(ctx context.Context, in *PolicyBearerBindingRequest, opts ...grpc.CallOption) (*PolicyBearerBindingResponse, error) {
+	out := new(PolicyBearerBindingResponse)
+	err := c.cc.Invoke(ctx, "/magma.lte.LocalSessionManager/BindPolicy2Bearer", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *localSessionManagerClient) SetSessionRules(ctx context.Context, in *SessionRules, opts ...grpc.CallOption) (*protos.Void, error) {
+	out := new(protos.Void)
+	err := c.cc.Invoke(ctx, "/magma.lte.LocalSessionManager/SetSessionRules", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // LocalSessionManagerServer is the server API for LocalSessionManager service.
 type LocalSessionManagerServer interface {
 	ReportRuleStats(context.Context, *RuleRecordTable) (*protos.Void, error)
 	CreateSession(context.Context, *LocalCreateSessionRequest) (*LocalCreateSessionResponse, error)
 	EndSession(context.Context, *LocalEndSessionRequest) (*LocalEndSessionResponse, error)
+	BindPolicy2Bearer(context.Context, *PolicyBearerBindingRequest) (*PolicyBearerBindingResponse, error)
+	// A set interface of subscribers -> currently active rules
+	SetSessionRules(context.Context, *SessionRules) (*protos.Void, error)
 }
 
 // UnimplementedLocalSessionManagerServer can be embedded to have forward compatible implementations.
@@ -3777,6 +3855,12 @@ func (*UnimplementedLocalSessionManagerServer) CreateSession(ctx context.Context
 }
 func (*UnimplementedLocalSessionManagerServer) EndSession(ctx context.Context, req *LocalEndSessionRequest) (*LocalEndSessionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method EndSession not implemented")
+}
+func (*UnimplementedLocalSessionManagerServer) BindPolicy2Bearer(ctx context.Context, req *PolicyBearerBindingRequest) (*PolicyBearerBindingResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method BindPolicy2Bearer not implemented")
+}
+func (*UnimplementedLocalSessionManagerServer) SetSessionRules(ctx context.Context, req *SessionRules) (*protos.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetSessionRules not implemented")
 }
 
 func RegisterLocalSessionManagerServer(s *grpc.Server, srv LocalSessionManagerServer) {
@@ -3837,6 +3921,42 @@ func _LocalSessionManager_EndSession_Handler(srv interface{}, ctx context.Contex
 	return interceptor(ctx, in, info, handler)
 }
 
+func _LocalSessionManager_BindPolicy2Bearer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PolicyBearerBindingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LocalSessionManagerServer).BindPolicy2Bearer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.LocalSessionManager/BindPolicy2Bearer",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LocalSessionManagerServer).BindPolicy2Bearer(ctx, req.(*PolicyBearerBindingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _LocalSessionManager_SetSessionRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SessionRules)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(LocalSessionManagerServer).SetSessionRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.LocalSessionManager/SetSessionRules",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(LocalSessionManagerServer).SetSessionRules(ctx, req.(*SessionRules))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _LocalSessionManager_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "magma.lte.LocalSessionManager",
 	HandlerType: (*LocalSessionManagerServer)(nil),
@@ -3852,6 +3972,14 @@ var _LocalSessionManager_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "EndSession",
 			Handler:    _LocalSessionManager_EndSession_Handler,
+		},
+		{
+			MethodName: "BindPolicy2Bearer",
+			Handler:    _LocalSessionManager_BindPolicy2Bearer_Handler,
+		},
+		{
+			MethodName: "SetSessionRules",
+			Handler:    _LocalSessionManager_SetSessionRules_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -33,8 +33,8 @@ import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
 import Text from '@fbcnms/ui/components/design-system/Text';
+import {AutoCompleteEditComponent} from '../../components/ActionTable';
 
-import {SelectEditComponent} from '../../components/ActionTable';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
@@ -217,9 +217,8 @@ function UpgradeDetails(props: DialogProps) {
               title: 'Software Version',
               field: 'version',
               editComponent: props => (
-                <SelectEditComponent
+                <AutoCompleteEditComponent
                   {...props}
-                  defaultValue={props.value}
                   value={props.value}
                   content={ctx.state.supportedVersions}
                   onChange={value => props.onChange(value)}

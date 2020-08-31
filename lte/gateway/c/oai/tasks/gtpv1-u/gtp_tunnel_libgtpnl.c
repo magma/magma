@@ -149,7 +149,7 @@ int libgtpnl_reset(void) {
 }
 
 int libgtpnl_add_tunnel(
-    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
     Imsi_t imsi, struct ipv4flow_dl* flow_dl) {
   struct gtp_tunnel* t;
   int ret;

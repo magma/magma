@@ -17,6 +17,7 @@ import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
@@ -27,11 +28,10 @@ import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
-import {getStep} from '../../components/CustomHistogram';
+import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
@@ -77,16 +77,7 @@ const getLogType = (msg: string): string => {
   return 'debug';
 };
 
-async function searchLogs(
-  networkId,
-  gatewayId,
-  from,
-  size,
-  start,
-  end,
-  q,
-  enqueueSnackbar,
-) {
+async function searchLogs(networkId, gatewayId, from, size, start, end, q) {
   const logs = await MagmaV1API.getNetworksByNetworkIdLogsSearch({
     networkId: networkId,
     filters: `gateway_id:${gatewayId}`,
@@ -95,31 +86,22 @@ async function searchLogs(
     simpleQuery: q.search ?? '',
     start: start.toISOString(),
     end: end.toISOString(),
-  })
-    .then(searchResp => {
-      const logs = searchResp.filter(Boolean).map(elastic_hit => {
-        const src = elastic_hit._source;
-        const date = new Date(src['@timestamp'] ?? 0);
-        const msg = src['message'];
-        return {
-          date: date,
-          service: src['ident'],
-          logType: getLogType(msg ?? ''),
-          output: msg,
-        };
-      });
-      return logs;
-    })
-    .catch(err => {
-      enqueueSnackbar('Error exporting logs ' + err, {
-        variant: 'error',
-      });
-      return [];
-    });
-  return logs;
+  });
+
+  return logs.filter(Boolean).map(elastic_hit => {
+    const src = elastic_hit._source;
+    const date = new Date(src['@timestamp'] ?? 0);
+    const msg = src['message'];
+    return {
+      date: date,
+      service: src['ident'] ?? src['tag'] ?? '-',
+      logType: getLogType(msg ?? ''),
+      output: msg,
+    };
+  });
 }
 
-function exportLogs(
+async function exportLogs(
   networkId,
   gatewayId,
   from,
@@ -129,76 +111,68 @@ function exportLogs(
   q,
   enqueueSnackbar,
 ) {
-  searchLogs(
-    networkId,
-    gatewayId,
-    0,
-    MAX_PAGE_ROW_COUNT,
-    start,
-    end,
-    q,
-    enqueueSnackbar,
-  ).then(logRows => {
+  try {
+    const logRows = await searchLogs(
+      networkId,
+      gatewayId,
+      0,
+      MAX_PAGE_ROW_COUNT,
+      start,
+      end,
+      q,
+    );
     const data = logRows.map(rowData =>
       LOG_COLUMNS.map(columnDef => rowData[columnDef.field]),
     );
-
     const currTs = Date.now();
     new CsvBuilder(`logs_${currTs}.csv`)
       .setDelimeter(EXPORT_DELIMITER)
       .setColumns(LOG_COLUMNS.map(columnDef => columnDef.title))
       .addRows(data)
       .exportFile();
-  });
+  } catch (e) {
+    enqueueSnackbar(e?.message ?? 'error retrieving logs', {variant: 'error'});
+  }
 }
 
-function handleLogQuery(
-  networkId,
-  gatewayId,
-  from,
-  size,
-  start,
-  end,
-  q,
-  enqueueSnackbar,
-) {
-  return new Promise((resolve, reject) => {
-    const countReq = MagmaV1API.getNetworksByNetworkIdLogsCount({
-      networkId: networkId,
-      start: start.toISOString(),
-      end: end.toISOString(),
-      filters: `gateway_id:${gatewayId}`,
-      simpleQuery: q.search,
-    });
+function handleLogQuery(networkId, gatewayId, from, size, start, end, q) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const countReq = MagmaV1API.getNetworksByNetworkIdLogsCount({
+        networkId: networkId,
+        start: start.toISOString(),
+        end: end.toISOString(),
+        filters: `gateway_id:${gatewayId}`,
+        simpleQuery: q.search,
+      });
 
-    const searchReq = searchLogs(
-      networkId,
-      gatewayId,
-      (q.page * q.pageSize).toString(),
-      q.pageSize.toString(),
-      start,
-      end,
-      q,
-      enqueueSnackbar,
-    );
+      const searchReq = searchLogs(
+        networkId,
+        gatewayId,
+        (q.page * q.pageSize).toString(),
+        q.pageSize.toString(),
+        start,
+        end,
+        q,
+      );
 
-    Promise.all([countReq, searchReq])
-      .then(([countResp, searchResp]) => {
-        let gatewayLogCount = countResp;
-        if (gatewayLogCount > MAX_PAGE_ROW_COUNT) {
-          gatewayLogCount = MAX_PAGE_ROW_COUNT;
-        }
-        const page =
-          gatewayLogCount < q.page * q.pageSize
-            ? gatewayLogCount / q.pageSize
-            : q.page;
-        resolve({
-          data: searchResp,
-          page: page,
-          totalCount: gatewayLogCount,
-        });
-      })
-      .catch(err => reject(err));
+      const [countResp, searchResp] = await Promise.all([countReq, searchReq]);
+      let gatewayLogCount = countResp;
+      if (gatewayLogCount > MAX_PAGE_ROW_COUNT) {
+        gatewayLogCount = MAX_PAGE_ROW_COUNT;
+      }
+      const page =
+        gatewayLogCount < q.page * q.pageSize
+          ? gatewayLogCount / q.pageSize
+          : q.page;
+      resolve({
+        data: searchResp,
+        page: page,
+        totalCount: gatewayLogCount,
+      });
+    } catch (e) {
+      reject(e?.message ?? 'error retrieving logs');
+    }
   });
 }
 
@@ -293,7 +267,7 @@ export default function GatewayLogs() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <CardTitleFilterRow
+          <CardTitleRow
             icon={ListAltIcon}
             label={`Logs (${logCount})`}
             filter={LogsFilter}
@@ -314,13 +288,13 @@ export default function GatewayLogs() {
                 startDate,
                 endDate,
                 query,
-                enqueueSnackbar,
               );
             }}
             columns={LOG_COLUMNS}
             options={{
               actionsColumnIndex: -1,
-              pageSizeOptions: [5, 10],
+              pageSize: 10,
+              pageSizeOptions: [10, 20],
             }}
           />
         </Grid>

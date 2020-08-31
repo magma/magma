@@ -61,7 +61,7 @@ void ChargingGrant::receive_charging_grant(
   }
 
   // Expiry Time
-  auto delta_time_sec = p_credit.validity_time();
+  const auto delta_time_sec = p_credit.validity_time();
   if (delta_time_sec == 0) {
     expiry_time = std::numeric_limits<std::time_t>::max();
   } else {

@@ -43,12 +43,14 @@ during it's life cycle in the IP allocator:
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
+import ipaddress
 import logging
 import threading
 from collections import defaultdict
 from ipaddress import ip_address, ip_network
 from typing import List, Optional, Tuple
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+from lte.protos.mobilityd_pb2 import GWInfo
 
 from magma.mobilityd import mobility_store as store
 
@@ -59,6 +61,7 @@ from magma.common.redis.client import get_default_client
 from .ip_allocator_dhcp import IPAllocatorDHCP
 from .ip_allocator_pool import IpAllocatorPool
 from .ip_allocator_static import IPAllocatorStaticWrapper
+from .ip_allocator_multi_apn import IPAllocatorMultiAPNWrapper
 
 from .ip_descriptor_map import IpDescriptorMap
 from .uplink_gw import UplinkGatewayInfo
@@ -117,7 +120,7 @@ class IPAddressManager:
     def __init__(self,
                  *,
                  config,
-                 allocator_type,
+                 mconfig,
                  subscriberdb_rpc_stub=None,
                  recycling_interval: int = DEFAULT_IP_RECYCLE_INTERVAL):
         """ Initializes a new IP allocator
@@ -133,18 +136,21 @@ class IPAddressManager:
         persist_to_redis = config.get('persist_to_redis', True)
         redis_port = config.get('redis_port', 6379)
 
-        self.allocator_type = allocator_type
+        self.multi_apn = config.get('multi_apn', mconfig.multi_apn_ip_alloc)
+        self.static_ip_enabled = config.get('static_ip', mconfig.static_ip_enabled)
+
+        self.allocator_type = mconfig.ip_allocator_type
         logging.debug('Persist to Redis: %s', persist_to_redis)
         self._lock = threading.RLock()  # re-entrant locks
 
         self._recycle_timer = None  # reference to recycle timer
         self._recycling_interval_seconds = recycling_interval
-        self.static_ip_enabled = config.get('static_ip_enabled', False)
 
         if not persist_to_redis:
             self._assigned_ip_blocks = set()  # {ip_block}
             self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
             self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
+            self._dhcp_store = {}  # mac => DHCP_State
         else:
             if not redis_port:
                 raise ValueError(
@@ -153,9 +159,13 @@ class IPAddressManager:
             self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
             self.sid_ips_map = store.IPDescDict(client)
             self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
+            self._dhcp_store = store.MacToIP()  # mac => DHCP_State
 
         self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
-        logging.info("Using allocator: %s", self.allocator_type)
+        logging.info("Using allocator: %s static ip: %s multi_apn %s",
+                     self.allocator_type,
+                     self.static_ip_enabled,
+                     self.multi_apn)
 
         if self.allocator_type == MobilityD.IP_POOL:
             self._dhcp_gw_info.read_default_gw()
@@ -163,19 +173,23 @@ class IPAddressManager:
                                            self.ip_state_map,
                                            self.sid_ips_map)
         elif self.allocator_type == MobilityD.DHCP:
-            dhcp_store = store.MacToIP()  # mac => DHCP_State
             iface = config.get('dhcp_iface', 'dhcp0')
             retry_limit = config.get('retry_limit', 300)
             ip_allocator = IPAllocatorDHCP(self._assigned_ip_blocks,
                                            self.ip_state_map,
                                            iface=iface,
                                            retry_limit=retry_limit,
-                                           dhcp_store=dhcp_store,
+                                           dhcp_store=self._dhcp_store,
                                            gw_info=self._dhcp_gw_info)
 
         if self.static_ip_enabled:
-            self.ip_allocator = IPAllocatorStaticWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                         ip_allocator=ip_allocator)
+            ip_allocator = IPAllocatorStaticWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+                                                    ip_allocator=ip_allocator,
+                                                    gw_info=self._dhcp_gw_info)
+
+        if self.multi_apn:
+            self.ip_allocator = IPAllocatorMultiAPNWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+                                                           ip_allocator=ip_allocator)
         else:
             self.ip_allocator = ip_allocator
 
@@ -256,7 +270,7 @@ class IPAddressManager:
             res = self.ip_allocator.list_allocated_ips(ipblock)
         return res
 
-    def alloc_ip_address(self, sid: str) -> ip_address:
+    def alloc_ip_address(self, sid: str) -> Tuple[ip_address, int]:
         """ Allocate an IP address from the free list
 
         Assumption: one-to-one mappings between SID and IP.
@@ -309,15 +323,15 @@ class IPAddressManager:
                 logging.info("Allocating the same IP %s for sid %s",
                              old_ip_desc.ip, sid)
                 IP_ALLOCATED_TOTAL.inc()
-                return old_ip_desc.ip
+                return old_ip_desc.ip, old_ip_desc.vlan_id
 
             # Now try to allocate it from underlying allocator.
-            ip_desc = self.ip_allocator.alloc_ip_address(sid)
+            ip_desc = self.ip_allocator.alloc_ip_address(sid, 0)
             self.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc, IPState.ALLOCATED)
             self.sid_ips_map[sid] = ip_desc
 
             IP_ALLOCATED_TOTAL.inc()
-            return ip_desc.ip
+            return ip_desc.ip, ip_desc.vlan_id
 
     def get_sid_ip_table(self) -> List[Tuple[str, ip_address]]:
         """ Return list of tuples (sid, ip) """
@@ -376,19 +390,14 @@ class IPAddressManager:
 
             self._try_set_recycle_timer()  # start the timer to recycle
 
-    def get_gateway_ip_adress(self):
+    def list_gateway_info(self) -> List[GWInfo]:
         with self._lock:
-            return self._dhcp_gw_info.getIP()
+            return self._dhcp_gw_info.get_all_router_ips()
 
-    def get_gateway_mac_adress(self):
+    def set_gateway_info(self, info: GWInfo):
+        ip = str(ipaddress.ip_address(info.ip.address))
         with self._lock:
-            return self._dhcp_gw_info.getMac()
-
-    def set_gateway_ip_and_mac(self, ip: str, mac: str):
-        with self._lock:
-            logging.info("set ip %s mac: [%s]" % (ip, mac))
-            self._dhcp_gw_info.update_mac(mac)
-            self._dhcp_gw_info.update_ip(ip)
+            self._dhcp_gw_info.update_mac(ip, info.mac, info.vlan)
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs

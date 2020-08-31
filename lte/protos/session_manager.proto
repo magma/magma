@@ -42,24 +42,8 @@ enum RATType {
 }
 
 message LocalCreateSessionRequest {
-  SubscriberID sid = 1; // Included in Common ctx
-  string ue_ipv4 = 2; // Included in Common ctx
-  string spgw_ipv4 = 3; // Included in LTE ctx
-  string apn = 4; // Included in Common ctx
-  string imei = 6; // Included in LTE ctx
-  string plmn_id = 7; // Included in LTE ctx
-  string imsi_plmn_id = 8; // Included in LTE ctx
-  bytes user_location = 9; // Included in LTE ctx
-  QosInformationRequest qos_info = 10; // Included in LTE ctx
-  bytes msisdn = 11; // Included in Common ctx
-  RATType rat_type = 12; // Included in Common ctx
-  bytes hardware_addr = 13; // MAC Address for WLAN
-  string radius_session_id = 14; // Included in WLAN ctx
-  uint32 bearer_id = 15; // Included in LTE ctx
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
-  string ue_ipv6 = 18;
-  uint32 pdn_type = 19;
 }
 
 message CommonSessionContext {
@@ -68,6 +52,8 @@ message CommonSessionContext {
   string apn = 4;
   bytes msisdn = 5;
   RATType rat_type = 6;
+  string ue_ipv6 = 7;
+  uint32 pdn_type = 8;
 }
 
 message RatSpecificContext {
@@ -103,6 +89,16 @@ message LocalEndSessionRequest {
 }
 
 message LocalEndSessionResponse {
+}
+
+message PolicyBearerBindingRequest {
+  SubscriberID sid = 1;
+  uint32 linked_bearer_id = 2;
+  string policy_rule_id = 3;
+  uint32 bearer_id = 4;
+}
+
+message PolicyBearerBindingResponse {
 }
 
 message ChargingReAuthRequest {
@@ -254,12 +250,32 @@ message PolicyReAuthAnswer {
   map<string, FailureCode> failed_rules = 3;
 }
 
+message RuleSet {
+  bool apply_subscriber_wide = 1; // Apply the rules to all sessions for IMSI
+  string apn = 2;
+  repeated StaticRuleInstall static_rules = 3;
+  repeated DynamicRuleInstall dynamic_rules = 4;
+}
+
+message RulesPerSubscriber {
+  string imsi = 1;
+  repeated RuleSet rule_set = 3;
+}
+
+message SessionRules {
+  repeated RulesPerSubscriber rules_per_subscriber = 1;
+}
+
 service LocalSessionManager {
   rpc ReportRuleStats(RuleRecordTable) returns (orc8r.Void) {}
 
   rpc CreateSession(LocalCreateSessionRequest) returns (LocalCreateSessionResponse) {}
 
   rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
+
+  rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
+  // A set interface of subscribers -> currently active rules
+  rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
 }
 
 service SessionProxyResponder {
@@ -451,20 +467,7 @@ message TgppContext {
 }
 
 message CreateSessionRequest {
-  SubscriberID subscriber = 1;
   string session_id = 2;
-  string ue_ipv4 = 3;
-  string spgw_ipv4 = 4;
-  string apn = 5;
-  string imei = 7;
-  string plmn_id = 8;
-  string imsi_plmn_id = 9;
-  bytes user_location = 10;
-  QosInformationRequest qos_info = 11;
-  bytes  msisdn = 12;
-  string gc_id = 13;
-  RATType rat_type = 14;
-  bytes hardware_addr = 15; // MAC Address for WLAN
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
 }

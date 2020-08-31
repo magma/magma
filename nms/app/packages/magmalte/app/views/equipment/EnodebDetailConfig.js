@@ -17,6 +17,7 @@ import type {DataRows} from '../../components/DataGrid';
 
 import AddEditEnodeButton from './EnodebDetailConfigEdit';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
@@ -25,7 +26,6 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {EnodeConfigFdd} from './EnodebDetailConfigFdd';
 import {EnodeConfigTdd} from './EnodebDetailConfigTdd';
 import {colors, typography} from '../../theme/default';
@@ -134,20 +134,16 @@ export default function EnodebConfig() {
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
         <Grid item xs={12}>
-          <CardTitleFilterRow
-            label="Config"
-            icon={SettingsIcon}
-            filter={editJSON}
-          />
+          <CardTitleRow label="Config" icon={SettingsIcon} filter={editJSON} />
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <CardTitleFilterRow label="eNodeb" filter={editEnodeb} />
+          <CardTitleRow label="eNodeb" filter={editEnodeb} />
           <EnodebInfoConfig />
         </Grid>
 
         <Grid item xs={12} md={6}>
-          <CardTitleFilterRow label="RAN" filter={editRAN} />
+          <CardTitleRow label="RAN" filter={editRAN} />
           <EnodebRanConfig />
         </Grid>
       </Grid>
@@ -160,7 +156,7 @@ function EnodebRanConfig() {
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const lteRanConfigs = ctx.state.lteRanConfigs;
+  const lteRanConfigs = ctx.lteRanConfigs;
 
   const data: DataRows[] = [
     [

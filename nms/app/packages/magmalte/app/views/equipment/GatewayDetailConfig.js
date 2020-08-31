@@ -20,6 +20,7 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 import ActionTable from '../../components/ActionTable';
 import AddEditGatewayButton from './GatewayDetailConfigEdit';
 import Button from '@material-ui/core/Button';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import EnodebContext from '../../components/context/EnodebContext';
 import GatewayContext from '../../components/context/GatewayContext';
@@ -29,7 +30,6 @@ import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext, useState} from 'react';
@@ -63,14 +63,15 @@ export function GatewayJsonConfig() {
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
+  const {status, ...gwInfoJson} = gwInfo;
 
   return (
     <JsonEditor
-      content={gwInfo}
+      content={gwInfoJson}
       error={error}
       onSave={async gateway => {
         try {
-          await ctx.setState(gatewayId, gateway);
+          await ctx.setState(gatewayId, {...gateway, status});
           enqueueSnackbar('Gateway saved successfully', {
             variant: 'success',
           });
@@ -155,7 +156,7 @@ export default function GatewayConfig() {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <Grid item xs={12}>
-            <CardTitleFilterRow
+            <CardTitleRow
               icon={SettingsIcon}
               label="Config"
               filter={ConfigFilter}
@@ -165,11 +166,11 @@ export default function GatewayConfig() {
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Gateway" filter={editGateway} />
+                  <CardTitleRow label="Gateway" filter={editGateway} />
                   <GatewayInfoConfig gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow
+                  <CardTitleRow
                     label="Aggregations"
                     filter={editAggregations}
                   />
@@ -180,11 +181,11 @@ export default function GatewayConfig() {
             <Grid item xs={12} md={6} alignItems="center">
               <Grid container spacing={4}>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="EPC" filter={editEPC} />
+                  <CardTitleRow label="EPC" filter={editEPC} />
                   <GatewayEPC gwInfo={gwInfo} />
                 </Grid>
                 <Grid item xs={12}>
-                  <CardTitleFilterRow label="Ran" filter={editRan} />
+                  <CardTitleRow label="Ran" filter={editRan} />
                   <GatewayRAN gwInfo={gwInfo} />
                 </Grid>
               </Grid>

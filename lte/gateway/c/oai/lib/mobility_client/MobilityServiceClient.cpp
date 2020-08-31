@@ -46,7 +46,7 @@ namespace lte {
 
 int MobilityServiceClient::AllocateIPv4AddressAsync(
     const std::string& imsi, const std::string& apn,
-    const std::function<void(Status, IPAddress)>& callback) {
+    const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
   AllocateIPRequest request = AllocateIPRequest();
   request.set_version(AllocateIPRequest::IPV4);
 
@@ -158,9 +158,9 @@ int MobilityServiceClient::GetSubscriberIDFromIPv4(
 
 void MobilityServiceClient::AllocateIPv4AddressRPC(
     const AllocateIPRequest& request,
-    const std::function<void(Status, IPAddress)>& callback) {
+    const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
   auto localResp =
-      new AsyncLocalResponse<IPAddress>(std::move(callback), RESPONSE_TIMEOUT);
+      new AsyncLocalResponse<AllocateIPAddressResponse>(std::move(callback), RESPONSE_TIMEOUT);
   localResp->set_response_reader(std::move(stub_->AsyncAllocateIPAddress(
       localResp->get_context(), request, &queue_)));
 }

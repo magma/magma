@@ -13,22 +13,42 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {apn} from '@fbcnms/magma-api';
+
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import JsonEditor from '../../components/JsonEditor';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {useState} from 'react';
 
 const APN_TITLE = 'APNs';
+const DEFAULT_APN_CONFIG = {
+  apn_configuration: {
+    ambr: {
+      max_bandwidth_dl: 1000000,
+      max_bandwidth_ul: 1000000,
+    },
+    qos_profile: {
+      class_id: 9,
+      preemption_capability: false,
+      preemption_vulnerability: false,
+      priority_level: 15,
+    },
+  },
+  apn_name: '',
+};
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -89,6 +109,12 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+type Props = WithAlert & {
+  apns: {[string]: apn},
+  onSave?: apn => void,
+  onDelete?: string => void,
+};
+
 type ApnRowType = {
   apnID: string,
   description: string,
@@ -96,19 +122,14 @@ type ApnRowType = {
   added: Date,
 };
 
-export default function ApnOverview() {
+function ApnOverview(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const {history, match, relativeUrl} = useRouter();
+  const [currRow, setCurrRow] = useState<ApnRowType>({});
   const networkId: string = nullthrows(match.params.networkId);
-  const {response, isLoading} = useMagmaAPI(MagmaV1API.getLteByNetworkIdApns, {
-    networkId: networkId,
-  });
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-  const apnRows: Array<ApnRowType> = response
-    ? Object.keys(response).map((apn: string) => {
+  const apnRows: Array<ApnRowType> = props.apns
+    ? Object.keys(props.apns).map((apn: string) => {
         return {
           apnID: apn,
           description: 'Test APN description',
@@ -133,7 +154,11 @@ export default function ApnOverview() {
             justify="flex-end"
             alignItems="center"
             spacing={2}>
-            <Button className={classes.appBarBtn}>Add New APN</Button>
+            <Button
+              className={classes.appBarBtn}
+              onClick={() => history.push(relativeUrl('/json'))}>
+              Add New APN
+            </Button>
           </Grid>
         </Grid>
 
@@ -146,7 +171,45 @@ export default function ApnOverview() {
               {title: 'Qos Profile', field: 'qosProfile', type: 'numeric'},
               {title: 'Added', field: 'added', type: 'datetime'},
             ]}
-            menuItems={[{name: 'Edit'}, {name: 'Deactivate'}, {name: 'Remove'}]}
+            handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
+            menuItems={[
+              {
+                name: 'Edit JSON',
+                handleFunc: () => {
+                  history.push(relativeUrl('/' + currRow.apnID + '/json'));
+                },
+              },
+              {name: 'Deactivate'},
+              {
+                name: 'Remove',
+                handleFunc: () => {
+                  props
+                    .confirm(
+                      `Are you sure you want to delete ${currRow.apnID}?`,
+                    )
+                    .then(async confirmed => {
+                      if (!confirmed) {
+                        return;
+                      }
+
+                      try {
+                        await MagmaV1API.deleteLteByNetworkIdApnsByApnName({
+                          networkId: networkId,
+                          apnName: currRow.apnID,
+                        });
+                        props.onDelete?.(currRow.apnID);
+                      } catch (e) {
+                        enqueueSnackbar(
+                          'failed deleting policy ' + currRow.apnID,
+                          {
+                            variant: 'error',
+                          },
+                        );
+                      }
+                    });
+                },
+              },
+            ]}
             options={{
               actionsColumnIndex: -1,
               pageSizeOptions: [5, 10],
@@ -157,3 +220,57 @@ export default function ApnOverview() {
     </div>
   );
 }
+
+type JsonConfigType = {
+  apns: {[string]: apn},
+  onSave?: apn => void,
+};
+
+export function ApnJsonConfig(props: JsonConfigType) {
+  const {match, history} = useRouter();
+  const [error, setError] = useState('');
+  const networkId: string = nullthrows(match.params.networkId);
+  const apnName: string = match.params.apnId;
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const apn: apn = props.apns[apnName] || DEFAULT_APN_CONFIG;
+  return (
+    <JsonEditor
+      content={apn}
+      error={error}
+      onSave={async apn => {
+        try {
+          if (apn.apn_name === '') {
+            throw Error('Invalid Name');
+          }
+          if (apnName) {
+            await MagmaV1API.putLteByNetworkIdApnsByApnName({
+              networkId: networkId,
+              apn: apn,
+              apnName: apnName,
+            });
+            enqueueSnackbar('APN saved successfully', {
+              variant: 'success',
+            });
+            setError('');
+            props.onSave?.(apn);
+          } else {
+            await MagmaV1API.postLteByNetworkIdApns({
+              networkId: networkId,
+              apn: (apn: apn),
+            });
+            enqueueSnackbar('APN added successfully', {
+              variant: 'success',
+            });
+          }
+          setError('');
+          props.onSave?.(apn);
+          history.goBack();
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
+  );
+}
+
+export default withAlert(ApnOverview);

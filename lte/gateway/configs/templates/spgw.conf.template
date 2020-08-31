@@ -41,6 +41,8 @@ S-GW :
       BRIDGE_NAME                          = "{{ ovs_bridge_name }}";
       GTP_PORT_NUM                         = {{ ovs_gtp_port_number }};
       MTR_PORT_NUM                         = {{ ovs_mtr_port_number }};
+      INTERNAL_SAMPLING_PORT_NUM           = {{ ovs_internal_sampling_port_number }};
+      INTERNAL_SAMPLING_FWD_TBL_NUM        = {{ ovs_internal_sampling_fwd_tbl_number }};
       UPLINK_PORT_NUM                      = {{ ovs_uplink_port_number }};
       UPLINK_MAC                           = "{{ ovs_uplink_mac }}";
     };

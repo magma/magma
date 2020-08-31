@@ -48,7 +48,7 @@
 /*
    Timer handlers
 */
-static void _esm_information_t3489_handler(void*);
+static void _esm_information_t3489_handler(void*, imsi64_t* imsi64);
 
 /* Maximum value of the deactivate EPS bearer context request
    retransmission counter */
@@ -171,7 +171,7 @@ int esm_proc_esm_information_response(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _esm_information_t3489_handler(void* args) {
+static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
 
   /*
@@ -191,6 +191,7 @@ static void _esm_information_t3489_handler(void* args) {
         "retransmission counter = %d\n",
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->count);
 
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < ESM_INFORMATION_COUNTER_MAX) {
       /*
        * Re-send deactivate EPS bearer context request message to the UE
@@ -275,7 +276,7 @@ static int _esm_information(
 
     OAILOG_INFO(
         LOG_NAS_EMM,
-        "UE " MME_UE_S1AP_ID_FMT "Timer T3489 (%lx) expires in %ld seconds\n",
+        "UE " MME_UE_S1AP_ID_FMT "Timer T3489 (%lx) expires in %d seconds\n",
         ue_id, emm_context_p->esm_ctx.T3489.id,
         emm_context_p->esm_ctx.T3489.sec);
   } else {

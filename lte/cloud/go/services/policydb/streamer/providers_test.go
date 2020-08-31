@@ -19,6 +19,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_protos "magma/lte/cloud/go/protos"
+	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/policydb/streamer"
@@ -239,12 +240,12 @@ func TestPolicyStreamers(t *testing.T) {
 	assert.Equal(t, expected, actual)
 }
 
-func TestRuleMappingsProvider(t *testing.T) {
+func TestApnRuleMappingsProvider(t *testing.T) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{})) // load remote providers
 	lte_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
 
-	provider, err := providers.GetStreamProvider(lte.MappingsStreamName)
+	provider, err := providers.GetStreamProvider(lte.ApnRuleMappingsStreamName)
 	assert.NoError(t, err)
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
@@ -255,46 +256,129 @@ func TestRuleMappingsProvider(t *testing.T) {
 	_, err = configurator.CreateEntities(
 		"n1",
 		[]configurator.NetworkEntity{
-			{Type: lte.SubscriberEntityType, Key: "s1"},
-			{Type: lte.SubscriberEntityType, Key: "s2"},
-			{Type: lte.SubscriberEntityType, Key: "s3"},
+			{Type: lte.PolicyRuleEntityType, Key: "r1"},
+			{Type: lte.PolicyRuleEntityType, Key: "r2"},
+			{Type: lte.PolicyRuleEntityType, Key: "r4"},
 
-			// r1 -> s1, r2 -> s2, r3 -> s1,s2
-			{Type: lte.PolicyRuleEntityType, Key: "r1", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s1"}}},
-			{Type: lte.PolicyRuleEntityType, Key: "r2", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s2"}}},
-			{Type: lte.PolicyRuleEntityType, Key: "r3", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s1"}, {Type: lte.SubscriberEntityType, Key: "s2"}}},
+			{Type: lte.BaseNameEntityType, Key: "b1"},
+			{Type: lte.BaseNameEntityType, Key: "b3"},
 
-			// b1 -> s1, b2 -> s2, b3 -> s1,s2
-			{Type: lte.BaseNameEntityType, Key: "b1", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s1"}}},
-			{Type: lte.BaseNameEntityType, Key: "b2", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s2"}}},
-			{Type: lte.BaseNameEntityType, Key: "b3", Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "s1"}, {Type: lte.SubscriberEntityType, Key: "s2"}}},
+			{
+				Type: lte.APNEntityType, Key: "apn1",
+				Config: &lte_models.ApnConfiguration{
+					Ambr: &lte_models.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(42),
+						MaxBandwidthUl: swag.Uint32(100),
+					},
+					QosProfile: &lte_models.QosProfile{
+						ClassID:                 swag.Int32(1),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(true),
+						PriorityLevel:           swag.Uint32(1),
+					},
+				},
+			},
+			{
+				Type: lte.APNEntityType, Key: "apn2",
+				Config: &lte_models.ApnConfiguration{
+					Ambr: &lte_models.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(42),
+						MaxBandwidthUl: swag.Uint32(100),
+					},
+					QosProfile: &lte_models.QosProfile{
+						ClassID:                 swag.Int32(1),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(true),
+						PriorityLevel:           swag.Uint32(1),
+					},
+				},
+			},
 		},
 	)
 	assert.NoError(t, err)
 
-	expectedProtos := []*lte_protos.AssignedPolicies{
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.APNPolicyProfileEntityType, Key: "s1___apn1",
+				Associations: []storage.TypeAndKey{
+					{Type: lte.APNEntityType, Key: "apn1"},
+					{Type: lte.PolicyRuleEntityType, Key: "r4"},
+				},
+			},
+			{
+				Type: lte.APNPolicyProfileEntityType, Key: "s1___apn2",
+				Associations: []storage.TypeAndKey{
+					{Type: lte.APNEntityType, Key: "apn2"},
+				},
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.SubscriberEntityType, Key: "s1",
+				Associations: []storage.TypeAndKey{
+					{Type: lte.PolicyRuleEntityType, Key: "r1"},
+					{Type: lte.BaseNameEntityType, Key: "b1"},
+					{Type: lte.APNPolicyProfileEntityType, Key: "s1___apn1"},
+				},
+			},
+			{
+				Type: lte.SubscriberEntityType, Key: "s2",
+				Associations: []storage.TypeAndKey{
+					{Type: lte.PolicyRuleEntityType, Key: "r2"},
+					{Type: lte.BaseNameEntityType, Key: "b3"},
+				},
+			},
+			{Type: lte.SubscriberEntityType, Key: "s3"},
+		},
+	)
+	assert.NoError(t, err)
+
+	expectedProtos := []*lte_protos.SubscriberPolicySet{
 		{
-			AssignedBaseNames: []string{"b1", "b3"},
-			AssignedPolicies:  []string{"r1", "r3"},
+			GlobalBaseNames: []string{"b1"},
+			GlobalPolicies:  []string{"r1"},
+			RulesPerApn: []*lte_protos.ApnPolicySet{
+				{
+					Apn:              "apn1",
+					AssignedPolicies: []string{"r4"},
+				},
+			},
 		},
 		{
-			AssignedBaseNames: []string{"b2", "b3"},
-			AssignedPolicies:  []string{"r2", "r3"},
+			GlobalBaseNames: []string{"b3"},
+			GlobalPolicies:  []string{"r2"},
+			RulesPerApn:     []*lte_protos.ApnPolicySet{},
+		},
+		{
+			GlobalBaseNames: []string{},
+			GlobalPolicies:  []string{},
+			RulesPerApn:     []*lte_protos.ApnPolicySet{},
 		},
 	}
 	expected := funk.Map(
 		expectedProtos,
-		func(ap *lte_protos.AssignedPolicies) *protos.DataUpdate {
+		func(ap *lte_protos.SubscriberPolicySet) *protos.DataUpdate {
 			data, err := proto.Marshal(ap)
 			assert.NoError(t, err)
 			return &protos.DataUpdate{Value: data}
 		},
 	).([]*protos.DataUpdate)
-	expected[0].Key, expected[1].Key = "s1", "s2"
+	expected[0].Key, expected[1].Key, expected[2].Key = "s1", "s2", "s3"
 
 	actual, err := provider.GetUpdates("hw1", nil)
 	assert.NoError(t, err)
-	assert.Equal(t, expected, actual)
+	for i, update := range actual {
+		subPolicySet := &lte_protos.SubscriberPolicySet{}
+		_ = proto.Unmarshal(update.Value, subPolicySet)
+		assert.True(t, proto.Equal(subPolicySet, expectedProtos[i]))
+	}
 }
 
 func TestNetworkWideRulesProvider(t *testing.T) {

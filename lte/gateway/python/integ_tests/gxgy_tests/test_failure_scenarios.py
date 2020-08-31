@@ -15,7 +15,7 @@ from unittest.mock import Mock
 
 from lte.protos import session_manager_pb2
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.pipelined.tests.app.subscriber import SubContextConfig
+from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
 from ryu.lib import hub
 
 from .policies import create_uplink_rule, get_packets_for_flows
@@ -43,7 +43,7 @@ class FailureScenarioTest(unittest.TestCase):
         Test that when a rule is returned that requires OCS tracking but has
         no credit, data is not allowed to pass
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', 4)
+        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
 
         self.test_util.controller.mock_create_session = Mock(
             return_value=session_manager_pb2.CreateSessionResponse(
@@ -81,7 +81,7 @@ class FailureScenarioTest(unittest.TestCase):
         Test that when a session is initialized but the OCS either errored out or
         returned 0 GSUs, data is not allowed to flow
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', 4)
+        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
 
         rule2 = create_uplink_rule("rule2", 2, '46.10.0.1')
         rule3 = create_uplink_rule("rule3", 3, '47.10.0.1')
@@ -134,7 +134,7 @@ class FailureScenarioTest(unittest.TestCase):
         Test that when the OCS fails to respond to an update request, the service
         is cut off until the update can be completed
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', 4)
+        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
         quota = 1024
 
         self.test_util.controller.mock_create_session = Mock(

@@ -19,6 +19,7 @@ import ActionTable from '../../components/ActionTable';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
 import EnodebContext from '../../components/context/EnodebContext';
 import Grid from '@material-ui/core/Grid';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -81,6 +82,7 @@ export default function Enodeb() {
       <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
           <DateTimeMetricChart
+            unit={'Throughput(mb/s)'}
             title={CHART_TITLE}
             queries={[
               `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
@@ -130,9 +132,20 @@ function EnodebTableRaw(props: WithAlert) {
       data={enbRows}
       columns={[
         {title: 'Name', field: 'name'},
-        {title: 'Serial Number', field: 'id'},
+        {
+          title: 'Serial Number',
+          field: 'id',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => history.push(relativeUrl('/' + currRow.id))}>
+              {currRow.id}
+            </Link>
+          ),
+        },
         {title: 'Session State Name', field: 'sessionName'},
-        {title: 'Health', field: 'health'},
+        {title: 'Health', field: 'health', width: 100},
         {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
       ]}
       handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}
@@ -169,8 +182,6 @@ function EnodebTableRaw(props: WithAlert) {
               });
           },
         },
-        {name: 'Deactivate'},
-        {name: 'Reboot'},
       ]}
       options={{
         actionsColumnIndex: -1,

@@ -19,13 +19,13 @@ import type {TimeRange} from '@fbcnms/ui/insights/AsyncMetric';
 import AsyncMetric from '@fbcnms/ui/insights/AsyncMetric';
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataUsageIcon from '@material-ui/icons/DataUsage';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
 import Text from '../../theme/design-system/Text';
 import TimeRangeSelector from '../../theme/design-system/TimeRangeSelector';
 
-import {CardTitleFilterRow} from '../../components/layout/CardTitleRow';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 
@@ -39,13 +39,13 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const CHART_COLORS = [colors.secondary.dodgerBlue];
+const TITLE = 'Frequency of Gateway Check-Ins';
+
 export default function () {
   const classes = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('3_hours');
-  const state = {
-    title: 'Frequency of Gateway Check-Ins',
-    legendLabels: ['Check-Ins', 'Events'],
-  };
+
   const chartStyle: ChartStyle = {
     data: {
       lineTension: 0.2,
@@ -97,23 +97,24 @@ export default function () {
 
   return (
     <>
-      <CardTitleFilterRow
+      <CardTitleRow
         icon={DataUsageIcon}
         label="Gateway Check-Ins"
         filter={Filter}
       />
       <Card elevation={0}>
         <CardHeader
-          title={<Text variant="body2">{state.title}</Text>}
+          title={<Text variant="body2">{TITLE}</Text>}
           subheader={
             <AsyncMetric
+              height={300}
               style={chartStyle}
-              label={state.title}
-              unit=""
+              label={TITLE}
+              unit="Count"
               queries={['sum(checkin_status)']}
               timeRange={timeRange}
-              startEnd={undefined}
-              legendLabels={state.legendLabels}
+              legendLabels={['Check-Ins']}
+              chartColors={CHART_COLORS}
             />
           }
         />

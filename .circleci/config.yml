@@ -523,6 +523,8 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/cwf/gateway
             make -C ${MAGMA_ROOT}/cwf/gateway precommit
+            cd ${MAGMA_ROOT}/cwf/gateway
+            make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - magma_slack_notify
 
   cwf-integ-test:
@@ -818,7 +820,7 @@ jobs:
           name: Build xwf go radius
           command: |
             cd ${MAGMA_ROOT}/feg
-            docker build --tag goradius -f radius/src/Dockerfile ./
+            docker build --build-arg BUILD_NUM=${CIRCLE_SHA1:0:8} --tag goradius -f radius/src/Dockerfile ./
       - tag-push-docker:
           images: 'goradius'
           tag: <<parameters.tag>>

@@ -66,6 +66,8 @@ void OpenflowController::message_callback(
   } else if (type == OFPT_ERROR) {
     dispatch_event(
         ErrorEvent(ofconn, reinterpret_cast<struct ofp_error_msg*>(data)));
+  } else {
+    OAILOG_DEBUG(LOG_GTPV1U, "Openflow controller unknown callback %d\n", type);
   }
 }
 
@@ -92,7 +94,8 @@ void OpenflowController::dispatch_event(const ControllerEvent& ev) {
 void OpenflowController::inject_external_event(
     std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) ) {
   if (latest_ofconn_ == NULL) {
-    throw std::runtime_error("Controller not connected to switch\n");
+    OAILOG_ERROR(LOG_GTPV1U, "Null connection on event type %d", ev->get_type());
+    throw std::runtime_error("Controller not connected to switch:\n");
   }
   ev->set_of_connection(latest_ofconn_);
   latest_ofconn_->add_immediate_event(cb, ev);

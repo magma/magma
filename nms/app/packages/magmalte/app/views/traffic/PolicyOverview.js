@@ -13,24 +13,35 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {policy_rule} from '@fbcnms/magma-api';
+
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
+import JsonEditor from '../../components/JsonEditor';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const POLICY_TITLE = 'Policies';
+const DEFAULT_POLICY_CONFIG = {
+  flow_list: [],
+  id: '',
+  monitoring_key: '',
+  priority: 1,
+};
+
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -103,27 +114,20 @@ type PolicyRowType = {
   trackingType: string,
 };
 
-export default function PolicyOverview() {
+type Props = WithAlert & {
+  policies: {[string]: policy_rule},
+  onDelete?: string => void,
+};
+
+export function PolicyOverview(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [currRow, setCurrRow] = useState<PolicyRowType>({});
+  const {history, match, relativeUrl} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
-
-  // this for enabling edit, deactivate actions
-  const [_, setCurrRow] = useState<PolicyRowType>({});
-
-  const {response, isLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull,
-    {
-      networkId: networkId,
-    },
-  );
-
-  if (isLoading) {
-    return <LoadingFiller />;
-  }
-  const policyRows: Array<PolicyRowType> = response
-    ? Object.keys(response).map((policyID: string) => {
-        const policyRule = response[policyID];
+  const policyRows: Array<PolicyRowType> = props.policies
+    ? Object.keys(props.policies).map((policyID: string) => {
+        const policyRule = props.policies[policyID];
         return {
           policyID: policyRule.id,
           numFlows: policyRule.flow_list.length,
@@ -162,7 +166,11 @@ export default function PolicyOverview() {
             </Grid>
 
             <Grid item>
-              <Button className={classes.appBarBtn}>Create New Policy</Button>
+              <Button
+                className={classes.appBarBtn}
+                onClick={() => history.push(relativeUrl('/json'))}>
+                Create New Policy
+              </Button>
             </Grid>
           </Grid>
         </Grid>
@@ -195,7 +203,46 @@ export default function PolicyOverview() {
               {title: 'Tracking Type', field: 'trackingType'},
             ]}
             handleCurrRow={(row: PolicyRowType) => setCurrRow(row)}
-            menuItems={[{name: 'Edit'}, {name: 'Deactivate'}, {name: 'Remove'}]}
+            menuItems={[
+              {
+                name: 'Edit JSON',
+                handleFunc: () => {
+                  history.push(relativeUrl('/' + currRow.policyID + '/json'));
+                },
+              },
+              {name: 'Deactivate'},
+              {
+                name: 'Remove',
+                handleFunc: () => {
+                  props
+                    .confirm(
+                      `Are you sure you want to delete ${currRow.policyID}?`,
+                    )
+                    .then(async confirmed => {
+                      if (!confirmed) {
+                        return;
+                      }
+
+                      try {
+                        await MagmaV1API.deleteNetworksByNetworkIdPoliciesRulesByRuleId(
+                          {
+                            networkId: networkId,
+                            ruleId: currRow.policyID,
+                          },
+                        );
+                        props.onDelete?.(currRow.policyID);
+                      } catch (e) {
+                        enqueueSnackbar(
+                          'failed deleting policy ' + currRow.policyID,
+                          {
+                            variant: 'error',
+                          },
+                        );
+                      }
+                    });
+                },
+              },
+            ]}
             options={{
               actionsColumnIndex: -1,
               pageSizeOptions: [5, 10],
@@ -206,3 +253,50 @@ export default function PolicyOverview() {
     </div>
   );
 }
+type JsonConfigType = {
+  policies: {[string]: policy_rule},
+  onSave?: policy_rule => void,
+};
+export function PolicyJsonConfig(props: JsonConfigType) {
+  const {match, history} = useRouter();
+  const [error, setError] = useState('');
+  const networkId: string = nullthrows(match.params.networkId);
+  const policyID: string = match.params.policyId;
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const policy: policy_rule = props.policies[policyID] || DEFAULT_POLICY_CONFIG;
+  return (
+    <JsonEditor
+      content={policy}
+      error={error}
+      onSave={async policy => {
+        try {
+          if (policyID) {
+            await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
+              networkId: networkId,
+              ruleId: policyID,
+              policyRule: (policy: policy_rule),
+            });
+            enqueueSnackbar('Policy saved successfully', {
+              variant: 'success',
+            });
+          } else {
+            await MagmaV1API.postNetworksByNetworkIdPoliciesRules({
+              networkId: networkId,
+              policyRule: (policy: policy_rule),
+            });
+            enqueueSnackbar('Policy added successfully', {
+              variant: 'success',
+            });
+          }
+          setError('');
+          props.onSave?.(policy);
+          history.goBack();
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
+  );
+}
+
+export default withAlert(PolicyOverview);

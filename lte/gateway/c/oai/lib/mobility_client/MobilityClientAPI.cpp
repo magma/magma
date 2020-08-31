@@ -36,14 +36,15 @@ using grpc::ChannelCredentials;
 using grpc::CreateChannel;
 using grpc::InsecureChannelCredentials;
 using grpc::Status;
+using magma::lte::AllocateIPAddressResponse;
 using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
 
 extern task_zmq_ctx_t spgw_app_task_zmq_ctx;
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
-    const grpc::Status& status, struct in_addr inaddr, const char* imsi,
-    const char* apn, const char* pdn_type,
+    const grpc::Status& status, struct in_addr inaddr, int vlan,
+    const char* imsi, const char* apn, const char* pdn_type,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
@@ -75,11 +76,14 @@ int pgw_handle_allocate_ipv4_address(
     s5_create_session_response_t s5_response) {
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id, apn,
-      [=, &s5_response](const Status& status, IPAddress ip_msg) {
-        memcpy(addr, ip_msg.mutable_address()->c_str(), sizeof(in_addr));
-
+      [=, &s5_response](
+          const Status& status, AllocateIPAddressResponse ip_msg) {
+        memcpy(
+            addr, ip_msg.mutable_ip_addr()->mutable_address()->c_str(),
+            sizeof(in_addr));
+        int vlan      = atoi(ip_msg.mutable_vlan()->c_str());
         auto sgi_resp = handle_allocate_ipv4_address_status(
-            status, *addr, subscriber_id, apn, pdn_type,
+            status, *addr, vlan, subscriber_id, apn, pdn_type,
             sgi_create_endpoint_resp);
 
         if (sgi_resp.status == SGI_STATUS_OK) {
@@ -111,7 +115,7 @@ int pgw_handle_allocate_ipv4_address(
 }
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
-    const Status& status, struct in_addr inaddr, const char* imsi,
+    const Status& status, struct in_addr inaddr, int vlan, const char* imsi,
     const char* apn, const char* pdn_type,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp) {
   if (status.ok()) {
@@ -119,9 +123,10 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
         "ue_pdn_connection", 1, 2, "pdn_type", pdn_type, "result", "success");
     sgi_create_endpoint_resp.paa.ipv4_address = inaddr;
     sgi_create_endpoint_resp.paa.pdn_type     = IPv4;
+    sgi_create_endpoint_resp.paa.vlan         = vlan;
     OAILOG_DEBUG(
-        LOG_UTIL, "Allocated IPv4 address for imsi <%s>, apn <%s>\n", imsi,
-        apn);
+        LOG_UTIL, "Allocated IPv4 address for imsi <%s>, apn <%s> vlan %d\n",
+        imsi, apn, vlan);
     sgi_create_endpoint_resp.status = SGI_STATUS_OK;
   } else {
     if (status.error_code() == RPC_STATUS_ALREADY_EXISTS) {
@@ -282,22 +287,31 @@ int pgw_handle_allocate_ipv4v6_address(
   // Get IPv4 address
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id, apn,
-      [=, &s5_response](const Status& status, IPAddress ip_msg) {
-        memcpy(ip4_addr, ip_msg.mutable_address()->c_str(), sizeof(in_addr));
-
-        // TODO Make an RPC call to Mobilityd to get IPv6 address
-
-        // TODO Remove the below temporary code once Mobilityd supports ipv6
-        struct in6_addr* ip6_prefix_temp =
-            generate_random_ip6_interface_id(config_ipv6_prefix);
-        memcpy(ip6_prefix, ip6_prefix_temp, sizeof(struct in6_addr));
-
-        auto sgi_resp = handle_allocate_ipv4v6_address_status(
-            status, *ip4_addr, *ip6_prefix, subscriber_id, apn, pdn_type,
-            sgi_create_endpoint_resp, ipv6_prefix_len);
+      [=, &s5_response](
+          const Status& status, AllocateIPAddressResponse ip_msg) {
+        memcpy(
+            ip4_addr, ip_msg.mutable_ip_addr()->mutable_address()->c_str(),
+            sizeof(in_addr));
+        int vlan      = atoi(ip_msg.mutable_vlan()->c_str());
+        auto sgi_resp = handle_allocate_ipv4_address_status(
+            status, *ip4_addr, vlan, subscriber_id, apn, pdn_type,
+            sgi_create_endpoint_resp);
 
         // create session in PCEF and return
         if (sgi_resp.status == SGI_STATUS_OK) {
+          // TODO Make an RPC call to Mobilityd to get IPv6 address
+
+          // TODO Remove the below temporary code once Mobilityd supports ipv6
+          struct in6_addr* ip6_prefix_temp =
+              generate_random_ip6_interface_id(config_ipv6_prefix);
+          memcpy(ip6_prefix, ip6_prefix_temp, sizeof(struct in6_addr));
+          /* As mobilityd doesnt support ipv4v6 address allocation yet
+           * overwrite sgi_create_endpoint_resp for now
+           */
+          auto sgi_resp = handle_allocate_ipv4v6_address_status(
+              status, *ip4_addr, *ip6_prefix, subscriber_id, apn, pdn_type,
+              sgi_create_endpoint_resp, ipv6_prefix_len);
+
           s5_create_session_request_t session_req = {0};
           session_req.context_teid  = sgi_create_endpoint_resp.context_teid;
           session_req.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;

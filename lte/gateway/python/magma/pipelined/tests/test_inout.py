@@ -67,6 +67,7 @@ class InOutTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
                 'enable_nat': True,
+                'uplink_gw_mac': '11:22:33:44:55:66'
             },
             mconfig=None,
             loop=None,

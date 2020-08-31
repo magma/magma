@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {ComponentType} from 'react';
+import typeof SvgIcon from '@material-ui/core/@@SvgIcon';
 
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
@@ -34,29 +34,12 @@ const useStyles = makeStyles(theme => ({
 }));
 
 type CardTitleRowProps = {
-  icon?: ComponentType<SvgIconExports>,
-  label: string,
-};
-
-export const CardTitleRow = (props: CardTitleRowProps) => {
-  const classes = useStyles();
-  const Icon = props.icon;
-
-  return (
-    <Grid container alignItems="center" className={classes.cardTitleRow}>
-      {Icon ? <Icon className={classes.cardTitleIcon} /> : null}
-      <Text variant="body1">{props.label}</Text>
-    </Grid>
-  );
-};
-
-type CardTitleFilterRowProps = {
-  icon?: ComponentType<SvgIconExports>,
+  icon?: SvgIcon,
   label: string,
   filter?: () => React$Node,
 };
 
-export const CardTitleFilterRow = (props: CardTitleFilterRowProps) => {
+export default function CardTitleRow(props: CardTitleRowProps) {
   const classes = useStyles();
   const Filters = props.filter;
   const Icon = props.icon;
@@ -69,7 +52,11 @@ export const CardTitleFilterRow = (props: CardTitleFilterRowProps) => {
           <Text variant="body1">{props.label}</Text>
         </Grid>
       </Grid>
-      <Grid item>{Filters ? <Filters /> : null}</Grid>
+      {Filters ? (
+        <Grid item>
+          <Filters />
+        </Grid>
+      ) : null}
     </Grid>
   );
-};
+}

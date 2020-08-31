@@ -103,7 +103,6 @@ func (m *CwfGateway) FromBackendModels(
 	device *orc8rModels.GatewayDevice,
 	status *orc8rModels.GatewayStatus,
 ) handlers.GatewayModel {
-	// delegate most of the fillin to magmad gateway struct
 	mdGW := (&orc8rModels.MagmadGateway{}).FromBackendModels(magmadGateway, device, status)
 	// TODO: we should change this to a reflection based shallow copy
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
@@ -146,16 +145,23 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnCreate() []configurator.EntityW
 	}
 }
 
-func (m *MutableCwfGateway) GetAdditionalEntitiesToLoadOnUpdate(gatewayID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: gatewayID}}
+func (m *MutableCwfGateway) GetGatewayType() string {
+	return cwf.CwfGatewayType
+}
+
+func (m *MutableCwfGateway) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return nil
+}
+
+func (m *MutableCwfGateway) GetAdditionalLoadsOnUpdate() storage.TKs {
+	return []storage.TypeAndKey{{Type: cwf.CwfGatewayType, Key: string(m.ID)}}
 }
 
 func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
-	gatewayID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: cwf.CwfGatewayType, Key: gatewayID}]
+	var ret []configurator.EntityWriteOperation
+	existingEnt, ok := loadedEntities[storage.TypeAndKey{Type: cwf.CwfGatewayType, Key: string(m.ID)}]
 	if !ok {
 		return ret, merrors.ErrNotFound
 	}
@@ -202,27 +208,23 @@ func (m *NetworkCarrierWifiConfigs) GetFromNetwork(network configurator.Network)
 	return orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
 }
 
-func (m *LiImsis) FromBackendModels(networkID string, gatewayID string) error {
-	carrierWifi := &GatewayCwfConfigs{}
-	err := carrierWifi.FromBackendModels(networkID, gatewayID)
-	if err != nil {
-		return err
+func (m *LiUes) ToUpdateCriteria(network configurator.Network) (configurator.NetworkUpdateCriteria, error) {
+	networkConfig := orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
+	if networkConfig == nil {
+		return configurator.NetworkUpdateCriteria{}, merrors.ErrNotFound
 	}
-	*m = carrierWifi.LiImsis
-
-	return nil
+	networkConfig.(*NetworkCarrierWifiConfigs).LiUes = m
+	return orc8rModels.GetNetworkConfigUpdateCriteria(network.ID, cwf.CwfNetworkType, networkConfig), nil
 }
 
-func (m *LiImsis) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
-	carrierWifi := &GatewayCwfConfigs{}
-	err := carrierWifi.FromBackendModels(networkID, gatewayID)
-	if err != nil {
-		return nil, err
+func (m *LiUes) GetFromNetwork(network configurator.Network) interface{} {
+	networkConfig := orc8rModels.GetNetworkConfig(network, cwf.CwfNetworkType)
+	if networkConfig == nil {
+		return nil
 	}
-	carrierWifi.LiImsis = *m
-	return carrierWifi.ToUpdateCriteria(networkID, gatewayID)
+	return networkConfig.(*NetworkCarrierWifiConfigs).LiUes
 }
 
-func (m *LiImsis) ValidateModel() error {
+func (m *LiUes) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

@@ -37,7 +37,7 @@ func ListRatingGroups(c echo.Context) error {
 		return nerr
 	}
 
-	ratingGroups, err := configurator.LoadAllEntitiesInNetwork(
+	ents, err := configurator.LoadAllEntitiesInNetwork(
 		networkID, lte.RatingGroupEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
 	)
@@ -45,15 +45,12 @@ func ListRatingGroups(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ret := map[uint32]*models.RatingGroup{}
-	for _, ratingGroupEnt := range ratingGroups {
-		ratingGroup, err := (&models.RatingGroup{}).FromEntity(ratingGroupEnt)
-		if err != nil {
-			return err
-		}
-		ret[uint32(ratingGroup.ID)] = ratingGroup
+	groupsByID := map[models.RatingGroupID]*models.RatingGroup{}
+	for _, ent := range ents {
+		r := (&models.RatingGroup{}).FromEntity(ent)
+		groupsByID[r.ID] = r
 	}
-	return c.JSON(http.StatusOK, ret)
+	return c.JSON(http.StatusOK, groupsByID)
 }
 
 func CreateRatingGroup(c echo.Context) error {
@@ -96,11 +93,7 @@ func GetRatingGroup(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 
-	ratingGroup, err := (&models.RatingGroup{}).FromEntity(ent)
-	if err != nil {
-		return echo.ErrNotFound
-	}
-	return c.JSON(http.StatusOK, ratingGroup)
+	return c.JSON(http.StatusOK, (&models.RatingGroup{}).FromEntity(ent))
 }
 
 func UpdateRatingGroup(c echo.Context) error {

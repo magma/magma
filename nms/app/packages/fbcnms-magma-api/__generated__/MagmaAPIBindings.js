@@ -119,6 +119,13 @@ export type cambium_channel = {
     client_mac ? : string,
     client_secret ? : string,
 };
+export type carrier_wifi_gateway_health_status = {
+    description: string,
+    status: "HEALTHY" | "UNHEALTHY",
+};
+export type carrier_wifi_network_cluster_status = {
+    active_gateway: string,
+};
 export type challenge_key = {
     key ? : string,
     key_type: "ECHO" | "SOFTWARE_ECDSA_SHA256",
@@ -303,6 +310,8 @@ export type enodebd_test_config = {
     run_traffic_tests: boolean,
     ssid ? : string,
     ssid_pw ? : string,
+    start_state ? : string,
+    subscriberID: string,
     traffic_gwID: string,
 };
 export type error = {
@@ -393,7 +402,6 @@ export type gateway_cwf_configs = {
     allowed_gre_peers: allowed_gre_peers,
     gateway_health_configs ? : gateway_health_configs,
     ipdr_export_dst ? : ipdr_export_dst,
-    li_imsis ? : li_imsis,
 };
 export type gateway_description = string;
 export type gateway_device = {
@@ -405,6 +413,7 @@ export type gateway_epc_configs = {
     dns_secondary ? : string,
     ip_block: string,
     nat_enabled: boolean,
+    sgi_management_iface_vlan ? : string,
 };
 export type gateway_federation_configs = {
     aaa_server: aaa_server,
@@ -513,16 +522,22 @@ export type gettable_alert_silencer = {
     updatedAt: string,
 };
 export type gx = {
+    disableGx ? : boolean,
     overwrite_apn ? : string,
     server ? : diameter_client_configs,
     servers ? : Array < diameter_client_configs >
         ,
+    virtual_apn_rules ? : Array < virtual_apn_rule >
+        ,
 };
 export type gy = {
+    disableGy ? : boolean,
     init_method ? : 1 | 2,
     overwrite_apn ? : string,
     server ? : diameter_client_configs,
     servers ? : Array < diameter_client_configs >
+        ,
+    virtual_apn_rules ? : Array < virtual_apn_rule >
         ,
 };
 export type health = {
@@ -568,8 +583,16 @@ export type label_pair = {
     name: string,
     value: string,
 };
-export type li_imsis = Array < string >
-;
+export type li_ues = {
+    imsis: Array < string >
+        ,
+    ips: Array < string >
+        ,
+    macs: Array < string >
+        ,
+    msisdns: Array < string >
+        ,
+};
 export type lte_gateway = {
     cellular: gateway_cellular_configs,
     connected_enodeb_serials: enodeb_serials,
@@ -706,6 +729,7 @@ export type mutable_subscriber = {
     id: subscriber_id,
     lte: lte_subscription,
     name ? : string,
+    static_ips ? : subscriber_static_ips,
 };
 export type mutable_symphony_agent = {
     description: gateway_description,
@@ -743,6 +767,7 @@ export type network_carrier_wifi_configs = {
     aaa_server: aaa_server,
     default_rule_id: string,
     eap_aka: eap_aka,
+    li_ues ? : li_ues,
     network_services: Array < "dpi" | "policy_enforcement" >
         ,
 };
@@ -753,6 +778,7 @@ export type network_cellular_configs = {
 };
 export type network_description = string;
 export type network_dns_config = {
+    dhcp_server_enabled ? : boolean,
     enable_caching: boolean,
     local_ttl: number,
     records ? : network_dns_records,
@@ -767,6 +793,7 @@ export type network_epc_configs = {
     mcc: string,
     mnc: string,
     mobility ? : {
+        enable_static_ip_assignments ? : boolean,
         ip_allocation_mode: "NAT" | "STATIC" | "DHCP_PASSTHROUGH" | "DHCP_BROADCAST",
         nat ? : {
             ip_blocks ? : Array < string >
@@ -1092,11 +1119,20 @@ export type subscriber = {
         ,
     active_policies ? : Array < policy_id >
         ,
+    config: subscriber_config,
     id: subscriber_id,
     lte: lte_subscription,
     monitoring ? : subscriber_status,
     name ? : string,
     state ? : subscriber_state,
+};
+export type subscriber_config = {
+    lte: lte_subscription,
+    static_ips ? : subscriber_static_ips,
+};
+export type subscriber_directory_record = {
+    location_history: Array < string >
+        ,
 };
 export type subscriber_id = string;
 export type subscriber_ip_allocation = {
@@ -1104,11 +1140,15 @@ export type subscriber_ip_allocation = {
     ip: string,
 };
 export type subscriber_state = {
+    directory ? : subscriber_directory_record,
     mme ? : untyped_mme_state,
     mobility ? : Array < subscriber_ip_allocation >
         ,
     s1ap ? : untyped_mme_state,
     spgw ? : untyped_mme_state,
+};
+export type subscriber_static_ips = {
+    [string]: string,
 };
 export type subscriber_status = {
     icmp ? : icmp_status,
@@ -1214,6 +1254,10 @@ export type tier_images = Array < tier_image >
 export type tier_name = string;
 export type tier_version = string;
 export type untyped_mme_state = {};
+export type virtual_apn_rule = {
+    apn_filter ? : string,
+    apn_overwrite ? : string,
+};
 export type webhook_receiver = {
     http_config ? : http_config,
     send_resolved ? : boolean,
@@ -1655,6 +1699,23 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getCwfByNetworkIdClusterStatus(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < carrier_wifi_network_cluster_status >
+        {
+            let path = '/cwf/{network_id}/cluster_status';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getCwfByNetworkIdDescription(
             parameters: {
                 'networkId': string,
@@ -1988,14 +2049,14 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
-    static async getCwfByNetworkIdGatewaysByGatewayIdLiImsis(
+    static async getCwfByNetworkIdGatewaysByGatewayIdHealthStatus(
             parameters: {
                 'networkId': string,
                 'gatewayId': string,
             }
-        ): Promise < li_imsis >
+        ): Promise < carrier_wifi_gateway_health_status >
         {
-            let path = '/cwf/{network_id}/gateways/{gateway_id}/li_imsis';
+            let path = '/cwf/{network_id}/gateways/{gateway_id}/health_status';
             let body;
             let query = {};
             if (parameters['networkId'] === undefined) {
@@ -2012,38 +2073,6 @@ export default class MagmaAPIBindings {
 
             return await this.request(path, 'GET', query, body);
         }
-    static async putCwfByNetworkIdGatewaysByGatewayIdLiImsis(
-        parameters: {
-            'networkId': string,
-            'gatewayId': string,
-            'description': li_imsis,
-        }
-    ): Promise < "Success" > {
-        let path = '/cwf/{network_id}/gateways/{gateway_id}/li_imsis';
-        let body;
-        let query = {};
-        if (parameters['networkId'] === undefined) {
-            throw new Error('Missing required  parameter: networkId');
-        }
-
-        path = path.replace('{network_id}', `${parameters['networkId']}`);
-
-        if (parameters['gatewayId'] === undefined) {
-            throw new Error('Missing required  parameter: gatewayId');
-        }
-
-        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
-
-        if (parameters['description'] === undefined) {
-            throw new Error('Missing required  parameter: description');
-        }
-
-        if (parameters['description'] !== undefined) {
-            body = parameters['description'];
-        }
-
-        return await this.request(path, 'PUT', query, body);
-    }
     static async getCwfByNetworkIdGatewaysByGatewayIdMagmad(
             parameters: {
                 'networkId': string,
@@ -2232,6 +2261,48 @@ export default class MagmaAPIBindings {
 
         if (parameters['tierId'] !== undefined) {
             body = parameters['tierId'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getCwfByNetworkIdLiUes(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < li_ues >
+        {
+            let path = '/cwf/{network_id}/li_ues';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putCwfByNetworkIdLiUes(
+        parameters: {
+            'networkId': string,
+            'description': li_ues,
+        }
+    ): Promise < "Success" > {
+        let path = '/cwf/{network_id}/li_ues';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['description'] === undefined) {
+            throw new Error('Missing required  parameter: description');
+        }
+
+        if (parameters['description'] !== undefined) {
+            body = parameters['description'];
         }
 
         return await this.request(path, 'PUT', query, body);

@@ -34,15 +34,18 @@ namespace {
  */
 class GTPApplicationTest : public ::testing::Test {
  protected:
-  static constexpr const char* TEST_GTP_MAC = "1.2.3.4.5.6";
-  static const uint32_t TEST_GTP_PORT       = 123;
-  static const uint32_t TEST_MTR_PORT       = 1155;
-  static const uint32_t TEST_UPLINK_PORT    = of13::OFPP_LOCAL;
+  static constexpr const char* TEST_GTP_MAC            = "1.2.3.4.5.6";
+  static const uint32_t TEST_GTP_PORT                  = 123;
+  static const uint32_t TEST_MTR_PORT                  = 1155;
+  static const uint32_t TEST_INTERNAL_SAMPLING_POR     = 1156;
+  static const uint32_t TEST_INTERNAL_SAMPLING_FWD_TBL = 201;
+  static const uint32_t TEST_UPLINK_PORT               = of13::OFPP_LOCAL;
 
  protected:
   virtual void SetUp() {
     gtp_app = new GTPApplication(
-        TEST_GTP_MAC, TEST_GTP_PORT, TEST_MTR_PORT, TEST_UPLINK_PORT);
+        TEST_GTP_MAC, TEST_GTP_PORT, TEST_MTR_PORT, TEST_INTERNAL_SAMPLING_POR,
+        TEST_INTERNAL_SAMPLING_FWD_TBL, TEST_UPLINK_PORT);
     messenger = std::shared_ptr<MockMessenger>(new MockMessenger());
 
     controller = std::unique_ptr<OpenflowController>(
@@ -151,7 +154,8 @@ TEST_F(GTPApplicationTest, TestAddTunnel) {
   uint32_t in_tei  = 1;
   uint32_t out_tei = 2;
   char imsi[]      = "001010000000013";
-  AddGTPTunnelEvent add_tunnel(ue_ip, enb_ip, in_tei, out_tei, imsi);
+  int vlan = 0;
+  AddGTPTunnelEvent add_tunnel(ue_ip, vlan, enb_ip, in_tei, out_tei, imsi);
   // Uplink
   EXPECT_CALL(
       *messenger,
@@ -269,6 +273,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow) {
   char imsi[]      = "001010000000013";
   struct ipv4flow_dl dl_flow;
   uint32_t dl_flow_precedence = 0;
+  int vlan = 0;
 
   dl_flow.dst_ip.s_addr = inet_addr("0.0.0.3");
   dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
@@ -279,7 +284,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow) {
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, enb_ip, in_tei, out_tei, imsi, &dl_flow, dl_flow_precedence);
+      ue_ip, vlan, enb_ip, in_tei, out_tei, imsi, &dl_flow, dl_flow_precedence);
   // Uplink
   EXPECT_CALL(
       *messenger,
@@ -409,6 +414,7 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlow) {
 
   controller->dispatch_event(del_tunnel);
 }
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   return RUN_ALL_TESTS();

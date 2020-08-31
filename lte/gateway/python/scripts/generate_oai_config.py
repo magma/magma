@@ -173,6 +173,8 @@ def _get_context():
         "ovs_bridge_name",
         "ovs_gtp_port_number",
         "ovs_mtr_port_number",
+        "ovs_internal_sampling_port_number",
+        "ovs_internal_sampling_fwd_tbl",
         "ovs_uplink_port_number",
         "ovs_uplink_mac",
     ):
