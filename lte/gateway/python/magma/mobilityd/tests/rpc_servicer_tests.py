@@ -143,7 +143,7 @@ class RpcTests(unittest.TestCase):
         resp = self._stub.ListAllocatedIPs(self._block_msg)
         self.assertNotEqual(resp, None)
         tmp = ListAllocatedIPsResponse()
-        tmp.ip_list.extend([ip_msg0])
+        tmp.ip_list.extend([ip_msg0.ip_addr])
         self.assertEqual(resp, tmp)
 
     def test_list_allocated_ips_from_unknown_ipblock(self):
@@ -168,8 +168,8 @@ class RpcTests(unittest.TestCase):
                                     version=AllocateIPRequest.IPV4,
                                     apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(request)
-        self.assertEqual(ip_msg0.version, AllocateIPRequest.IPV4)
-        ip0 = ipaddress.ip_address(ip_msg0.address)
+        self.assertEqual(ip_msg0.ip_addr.version, AllocateIPRequest.IPV4)
+        ip0 = ipaddress.ip_address(ip_msg0.ip_addr.address)
         self.assertTrue(ip0 in self._block)
 
         # TODO: uncomment the code below when ip_allocator
@@ -183,8 +183,8 @@ class RpcTests(unittest.TestCase):
         # allocate 2nd IP
         request.sid.CopyFrom(self._sid1)
         ip_msg2 = self._stub.AllocateIPAddress(request)
-        self.assertEqual(ip_msg2.version, AllocateIPRequest.IPV4)
-        ip2 = ipaddress.ip_address(ip_msg2.address)
+        self.assertEqual(ip_msg2.ip_addr.version, AllocateIPRequest.IPV4)
+        ip2 = ipaddress.ip_address(ip_msg2.ip_addr.address)
         self.assertTrue(ip2 in self._block)
 
     def test_multiple_apn_ipallocation(self):
@@ -196,15 +196,15 @@ class RpcTests(unittest.TestCase):
                                     version=AllocateIPRequest.IPV4,
                                     apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(request)
-        self.assertEqual(ip_msg0.version, AllocateIPRequest.IPV4)
-        ip0 = ipaddress.ip_address(ip_msg0.address)
+        self.assertEqual(ip_msg0.ip_addr.version, AllocateIPRequest.IPV4)
+        ip0 = ipaddress.ip_address(ip_msg0.ip_addr.address)
         self.assertTrue(ip0 in self._block)
 
         # allocate 2nd IP from another APN to the same user
         request.apn = self._apn1
         ip_msg1 = self._stub.AllocateIPAddress(request)
-        self.assertEqual(ip_msg1.version, AllocateIPRequest.IPV4)
-        ip1 = ipaddress.ip_address(ip_msg1.address)
+        self.assertEqual(ip_msg1.ip_addr.version, AllocateIPRequest.IPV4)
+        ip1 = ipaddress.ip_address(ip_msg1.ip_addr.address)
         self.assertTrue(ip1 in self._block)
 
     def test_run_out_of_ip(self):
@@ -252,19 +252,19 @@ class RpcTests(unittest.TestCase):
         # release ip_msg0
         release_request0 = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0,
+            ip=ip_msg0.ip_addr,
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request0)
         self.assertEqual(resp, Void())
         resp = self._stub.ListAllocatedIPs(self._block_msg)
         tmp = ListAllocatedIPsResponse()
-        tmp.ip_list.extend([ip_msg1])
+        tmp.ip_list.extend([ip_msg1.ip_addr])
         self.assertEqual(resp, tmp)
 
         # release ip_msg1
         release_request1 = ReleaseIPRequest(
             sid=self._sid1,
-            ip=ip_msg1,
+            ip=ip_msg1.ip_addr,
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request1)
         resp = self._stub.ListAllocatedIPs(self._block_msg)
@@ -282,7 +282,7 @@ class RpcTests(unittest.TestCase):
 
         request = ReleaseIPRequest(
             sid=SIDUtils.to_pb("IMSI12345"),
-            ip=ip_msg0,
+            ip=ip_msg0.ip_addr,
             apn=self._apn0)
         with self.assertRaises(grpc.RpcError) as err:
             self._stub.ReleaseIPAddress(request)
@@ -299,7 +299,7 @@ class RpcTests(unittest.TestCase):
 
         request = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0,
+            ip=ip_msg0.ip_addr,
             apn=self._apn1)
         with self.assertRaises(grpc.RpcError) as err:
             self._stub.ReleaseIPAddress(request)
@@ -315,7 +315,7 @@ class RpcTests(unittest.TestCase):
             version=AllocateIPRequest.IPV4,
             apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(alloc_request0)
-        ip0 = ipaddress.ip_address(ip_msg0.address)
+        ip0 = ipaddress.ip_address(ip_msg0.ip_addr.address)
 
         lookup_request0 = IPLookupRequest(
             sid=self._sid0,
@@ -336,9 +336,6 @@ class RpcTests(unittest.TestCase):
                          grpc.StatusCode.NOT_FOUND)
 
     def test_get_gw_info(self):
-        gw_info = self._stub.GetGatewayInfo(Void())
-        gw_ip_get = str(ipaddress.ip_address(gw_info.ip.address))
-
         def_gw_cmd = shlex.split("ip route show")
         p = subprocess.Popen(def_gw_cmd, stdout=subprocess.PIPE)
         output = p.stdout.read().decode("utf-8")
@@ -349,7 +346,13 @@ class RpcTests(unittest.TestCase):
                 def_ip = tokens[2]
                 break
 
-        self.assertEqual(def_ip, gw_ip_get)
+        gw_info_list = self._stub.ListGatewayInfo(Void())
+        for gw_info in gw_info_list.gw_list:
+            gw_ip_get = str(ipaddress.ip_address(gw_info.ip.address))
+            if gw_ip_get == def_ip:
+                return
+
+        assert 0
 
     def test_set_gw_info(self):
         mac1 = "22:22:c6:d0:02:3c"
@@ -358,13 +361,61 @@ class RpcTests(unittest.TestCase):
         gwinfo_msg.ip.version = IPBlock.IPV4
         gwinfo_msg.ip.address = ipaddr1.packed
         gwinfo_msg.mac = mac1
+        gwinfo_msg.vlan = ""
 
         self._stub.SetGatewayInfo(gwinfo_msg)
-        gw_info = self._stub.GetGatewayInfo(Void())
-        gw_ip_get = ipaddress.ip_address(gw_info.ip.address)
+        gw_info_list = self._stub.ListGatewayInfo(Void())
+        for gw_info in gw_info_list.gw_list:
+            gw_ip_get = ipaddress.ip_address(gw_info.ip.address)
+            self.assertEqual(ipaddr1, gw_ip_get)
+            self.assertEqual(mac1, gw_info.mac)
 
-        self.assertEqual(ipaddr1, gw_ip_get)
-        self.assertEqual(mac1, gw_info.mac)
+    def test_set_gw_info_vlan(self):
+        mac1 = "22:22:c6:d0:02:3c"
+        ipaddr1 = ipaddress.ip_address("10.1.1.11")
+        gwinfo_msg = GWInfo(ip=IPAddress(version=IPAddress.IPV4,
+                                          address=ipaddr1.packed),
+                            mac=mac1, vlan="1")
+
+        self._stub.SetGatewayInfo(gwinfo_msg)
+        gw_info_list = self._stub.ListGatewayInfo(Void())
+        for gw_info in gw_info_list.gw_list:
+            if gw_info.vlan == "1":
+                gw_ip_get = ipaddress.ip_address(gw_info.ip.address)
+                self.assertEqual(ipaddr1, gw_ip_get)
+                self.assertEqual(mac1, gw_info.mac)
+                return
+
+        assert 0
+
+    def test_set_gw_info_vlan2(self):
+        mac1 = "22:22:c6:d0:02:3c"
+        ipaddr1 = ipaddress.ip_address("10.1.1.11")
+        gwinfo_msg1 = GWInfo(ip=IPAddress(version=IPAddress.IPV4,
+                                          address=ipaddr1.packed),
+                             mac=mac1, vlan="1")
+
+        self._stub.SetGatewayInfo(gwinfo_msg1)
+
+        mac2 = "33:22:c6:d0:02:3c"
+        ipaddr2 = ipaddress.ip_address("20.1.1.11")
+        gwinfo_msg2 = GWInfo(ip=IPAddress(version=IPAddress.IPV4,
+                                          address=ipaddr2.packed),
+                             mac=mac2, vlan="2")
+
+        self._stub.SetGatewayInfo(gwinfo_msg2)
+
+        gw_info_list = self._stub.ListGatewayInfo(Void())
+        count1 = 0
+        count2 = 0
+        for gw_info in gw_info_list.gw_list:
+            if gw_info == gwinfo_msg1:
+                count1 = count1 + 1
+            if gw_info == gwinfo_msg2:
+                count2 = count2 + 1
+
+        self.assertEqual(count1, 1)
+        self.assertEqual(count2, 1)
 
     def test_get_subscriber_id_from_ip(self):
         """ test GetSubscriberIDFromIP """
@@ -374,7 +425,7 @@ class RpcTests(unittest.TestCase):
             version=AllocateIPRequest.IPV4,
             apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(alloc_request0)
-        sid_pb_returned = self._stub.GetSubscriberIDFromIP(ip_msg0)
+        sid_pb_returned = self._stub.GetSubscriberIDFromIP(ip_msg0.ip_addr)
         self.assertEqual(SIDUtils.to_str(self._sid0),
                          SIDUtils.to_str(sid_pb_returned))
 
@@ -402,7 +453,9 @@ class RpcTests(unittest.TestCase):
             version=AllocateIPRequest.IPV4,
             apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(alloc_request0)
-        entry0 = SubscriberIPTableEntry(sid=self._sid0, ip=ip_msg0, apn=self._apn0)
+        entry0 = SubscriberIPTableEntry(sid=self._sid0,
+                                        ip=ip_msg0.ip_addr,
+                                        apn=self._apn0)
         resp = self._stub.GetSubscriberIPTable(Void())
         self.assertTrue(entry0 in resp.entries)
 
@@ -411,7 +464,9 @@ class RpcTests(unittest.TestCase):
             version=AllocateIPRequest.IPV4,
             apn=self._apn1)
         ip_msg1 = self._stub.AllocateIPAddress(alloc_request1)
-        entry1 = SubscriberIPTableEntry(sid=self._sid1, ip=ip_msg1, apn=self._apn1)
+        entry1 = SubscriberIPTableEntry(sid=self._sid1,
+                                        ip=ip_msg1.ip_addr,
+                                        apn=self._apn1)
         resp = self._stub.GetSubscriberIPTable(Void())
         self.assertTrue(entry0 in resp.entries)
         self.assertTrue(entry1 in resp.entries)
@@ -419,7 +474,7 @@ class RpcTests(unittest.TestCase):
         # keep in table after in release
         release_request0 = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0,
+            ip=ip_msg0.ip_addr,
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request0)
         resp = self._stub.GetSubscriberIPTable(Void())
@@ -534,14 +589,14 @@ class RpcTests(unittest.TestCase):
         # Release the allocated IPs
         release_request0 = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0,
+            ip=ip_msg0.ip_addr,
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request0)
         self.assertEqual(resp, Void())
 
         release_request1 = ReleaseIPRequest(
             sid=self._sid1,
-            ip=ip_msg1,
+            ip=ip_msg1.ip_addr,
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request1)
         self.assertEqual(resp, Void())
@@ -595,7 +650,7 @@ class RpcTests(unittest.TestCase):
         # Release the allocated IPs
         release_request0 = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0,
+            ip=ip_msg0.ip_addr,
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request0)
         self.assertEqual(resp, Void())

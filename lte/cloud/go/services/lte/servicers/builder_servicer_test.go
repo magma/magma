@@ -31,6 +31,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -44,7 +45,7 @@ func TestBuilder_Build(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
 				EnableCaching: swag.Bool(true),
 			},
@@ -53,19 +54,19 @@ func TestBuilder_Build(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayType, Key: "gw1"},
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayType, Key: "gw1",
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	enb := configurator.NetworkEntity{
-		Type: lte.CellularEnodebType, Key: "enb1",
+		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config:             newDefaultEnodebConfig(),
 		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
 	}
@@ -135,6 +136,7 @@ func TestBuilder_Build(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
+			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
@@ -191,18 +193,18 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
 		},
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayType, Key: "gw1"},
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayType, Key: "gw1",
-		Config:             newGatewayConfigNonNat(),
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("", ""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
@@ -234,6 +236,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			IpBlock:         "192.168.128.0/24",
 			IpAllocatorType: lte_mconfig.MobilityD_IP_POOL,
 			StaticIpEnabled: false,
+			MultiApnIpAlloc: false,
 		},
 		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -259,6 +262,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
+			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
@@ -282,7 +286,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, false)
+	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, false, false)
 	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
@@ -293,7 +297,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, false)
+	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, false, false)
 	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
@@ -304,7 +308,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, true)
+	setEPCNetworkIPAllocator(&nw, lte_models.NATAllocationMode, true, false)
 	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
@@ -315,13 +319,82 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
-	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, true)
+	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, true, false)
 	expected["mobilityd"] = &lte_mconfig.MobilityD{
 		LogLevel:        protos.LogLevel_INFO,
 		IpBlock:         "192.168.128.0/24",
 		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
 		StaticIpEnabled: true,
 	}
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// validate multi apn mconfig
+	setEPCNetworkIPAllocator(&nw, lte_models.DHCPBroadcastAllocationMode, true, true)
+	expected["mobilityd"] = &lte_mconfig.MobilityD{
+		LogLevel:        protos.LogLevel_INFO,
+		IpBlock:         "192.168.128.0/24",
+		IpAllocatorType: lte_mconfig.MobilityD_DHCP,
+		StaticIpEnabled: true,
+		MultiApnIpAlloc: true,
+	}
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("30", ""),
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan: "30",
+	}
+
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// validate SGi ip address
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("44", "1.2.3.4"),
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan:   "44",
+		SgiManagementIfaceIpAddr: "1.2.3.4",
+	}
+
 	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
@@ -337,17 +410,17 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
 		},
 	}
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayType, Key: "gw1"},
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayType, Key: "gw1",
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config:             newDefaultGatewayConfig(),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
@@ -437,7 +510,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	nw := configurator.Network{
 		ID: "n1",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType: lte_models.NewDefaultTDDNetworkConfig(),
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
 			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
 				EnableCaching: swag.Bool(true),
 			},
@@ -446,19 +519,19 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	gw := configurator.NetworkEntity{
 		Type: orc8r.MagmadGatewayType, Key: "gw1",
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularGatewayType, Key: "gw1"},
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
 	lteGW := configurator.NetworkEntity{
-		Type: lte.CellularGatewayType, Key: "gw1",
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
 		Config: newDefaultGatewayConfig(),
 		Associations: []storage.TypeAndKey{
-			{Type: lte.CellularEnodebType, Key: "enb1"},
+			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	enb := configurator.NetworkEntity{
-		Type: lte.CellularEnodebType, Key: "enb1",
+		Type: lte.CellularEnodebEntityType, Key: "enb1",
 		Config: &lte_models.EnodebConfiguration{
 			CellID:          swag.Uint32(42),
 			DeviceClass:     "Baicells ID TDD/FDD",
@@ -532,6 +605,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
+			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
@@ -601,15 +675,17 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 	}
 }
 
-func newGatewayConfigNonNat() *lte_models.GatewayCellularConfigs {
+func newGatewayConfigNonNat(vlan string, sgi_ip string) *lte_models.GatewayCellularConfigs {
 	return &lte_models.GatewayCellularConfigs{
 		Ran: &lte_models.GatewayRanConfigs{
 			Pci:             260,
 			TransmitEnabled: swag.Bool(true),
 		},
 		Epc: &lte_models.GatewayEpcConfigs{
-			NatEnabled: swag.Bool(false),
-			IPBlock:    "192.168.128.0/24",
+			NatEnabled:                 swag.Bool(false),
+			IPBlock:                    "192.168.128.0/24",
+			SgiManagementIfaceVlan:     vlan,
+			SgiManagementIfaceStaticIP: strfmt.IPv4(sgi_ip),
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
@@ -637,20 +713,22 @@ func newDefaultEnodebConfig() *lte_models.EnodebConfiguration {
 }
 
 func setEPCNetworkServices(services []string, nw *configurator.Network) {
-	inwConfig := nw.Configs[lte.CellularNetworkType]
+	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 	cellularNwConfig.Epc.NetworkServices = services
 
-	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
+	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
 }
 
-func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip bool) {
-	inwConfig := nw.Configs[lte.CellularNetworkType]
+func setEPCNetworkIPAllocator(nw *configurator.Network, mode string, static_ip bool,
+	multi_apn bool) {
+	inwConfig := nw.Configs[lte.CellularNetworkConfigType]
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 	cellularNwConfig.Epc.Mobility = &lte_models.NetworkEpcConfigsMobility{
-		IPAllocationMode:          mode,
-		EnableStaticIPAssignments: static_ip,
+		IPAllocationMode:           mode,
+		EnableStaticIPAssignments:  static_ip,
+		EnableMultiApnIPAllocation: multi_apn,
 	}
 
-	nw.Configs[lte.CellularNetworkType] = cellularNwConfig
+	nw.Configs[lte.CellularNetworkConfigType] = cellularNwConfig
 }

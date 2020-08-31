@@ -82,6 +82,7 @@ export default function Enodeb() {
       <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
           <DateTimeMetricChart
+            unit={'Throughput(mb/s)'}
             title={CHART_TITLE}
             queries={[
               `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,

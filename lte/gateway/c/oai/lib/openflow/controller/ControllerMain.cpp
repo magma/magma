@@ -49,7 +49,10 @@ int start_of_controller(bool persist_state) {
   static openflow::GTPApplication gtp_app(
       std::string(bdata(spgw_config.sgw_config.ovs_config.uplink_mac)),
       spgw_config.sgw_config.ovs_config.gtp_port_num,
-      spgw_config.sgw_config.ovs_config.mtr_port_num, uplink_port_num_);
+      spgw_config.sgw_config.ovs_config.mtr_port_num,
+      spgw_config.sgw_config.ovs_config.internal_sampling_port_num,
+      spgw_config.sgw_config.ovs_config.internal_sampling_fwd_tbl_num,
+      uplink_port_num_);
   // Base app registers first, because it deletes/creates default flow
   ctrl.register_for_event(&base_app, openflow::EVENT_SWITCH_UP);
   ctrl.register_for_event(&base_app, openflow::EVENT_ERROR);
@@ -57,6 +60,7 @@ int start_of_controller(bool persist_state) {
   ctrl.register_for_event(&paging_app, openflow::EVENT_SWITCH_UP);
   ctrl.register_for_event(&paging_app, openflow::EVENT_ADD_PAGING_RULE);
   ctrl.register_for_event(&paging_app, openflow::EVENT_DELETE_PAGING_RULE);
+  ctrl.register_for_event(&gtp_app, openflow::EVENT_SWITCH_UP);
   ctrl.register_for_event(&gtp_app, openflow::EVENT_ADD_GTP_TUNNEL);
   ctrl.register_for_event(&gtp_app, openflow::EVENT_DELETE_GTP_TUNNEL);
   ctrl.register_for_event(&gtp_app, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL);
@@ -82,16 +86,16 @@ static void* external_event_callback(std::shared_ptr<void> data) {
 }
 
 int openflow_controller_add_gtp_tunnel(
-    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
     const char* imsi, struct ipv4flow_dl* flow_dl,
     uint32_t flow_precedence_dl) {
   if (flow_dl) {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-        ue, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl);
+        ue, vlan, enb, i_tei, o_tei, imsi, flow_dl, flow_precedence_dl);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   } else {
     auto add_tunnel = std::make_shared<openflow::AddGTPTunnelEvent>(
-        ue, enb, i_tei, o_tei, imsi);
+        ue, vlan, enb, i_tei, o_tei, imsi);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   }
   return 0;

@@ -27,7 +27,7 @@ type AlertReceiverConfig struct {
 	Name *string `json:"name"`
 
 	// slack configs
-	SLACKConfigs []*SLACKReceiver `json:"slack_configs"`
+	SlackConfigs []*SlackReceiver `json:"slack_configs"`
 
 	// webhook configs
 	WebhookConfigs []*WebhookReceiver `json:"webhook_configs"`
@@ -45,7 +45,7 @@ func (m *AlertReceiverConfig) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateSLACKConfigs(formats); err != nil {
+	if err := m.validateSlackConfigs(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -93,19 +93,19 @@ func (m *AlertReceiverConfig) validateName(formats strfmt.Registry) error {
 	return nil
 }
 
-func (m *AlertReceiverConfig) validateSLACKConfigs(formats strfmt.Registry) error {
+func (m *AlertReceiverConfig) validateSlackConfigs(formats strfmt.Registry) error {
 
-	if swag.IsZero(m.SLACKConfigs) { // not required
+	if swag.IsZero(m.SlackConfigs) { // not required
 		return nil
 	}
 
-	for i := 0; i < len(m.SLACKConfigs); i++ {
-		if swag.IsZero(m.SLACKConfigs[i]) { // not required
+	for i := 0; i < len(m.SlackConfigs); i++ {
+		if swag.IsZero(m.SlackConfigs[i]) { // not required
 			continue
 		}
 
-		if m.SLACKConfigs[i] != nil {
-			if err := m.SLACKConfigs[i].Validate(formats); err != nil {
+		if m.SlackConfigs[i] != nil {
+			if err := m.SlackConfigs[i].Validate(formats); err != nil {
 				if ve, ok := err.(*errors.Validation); ok {
 					return ve.ValidateName("slack_configs" + "." + strconv.Itoa(i))
 				}

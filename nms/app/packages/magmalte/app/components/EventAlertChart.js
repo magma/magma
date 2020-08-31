@@ -24,7 +24,12 @@ import React from 'react';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
-import {CustomLineChart, getStep, getStepString} from './CustomMetrics';
+import {
+  CustomLineChart,
+  getQueryRanges,
+  getStep,
+  getStepString,
+} from './CustomMetrics';
 import {colors} from '../theme/default';
 import {useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
@@ -38,25 +43,16 @@ type DatasetFetchProps = {
   networkId: network_id,
   start: moment,
   end: moment,
+  delta: number,
+  unit: string,
   enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
 };
 
 async function getEventAlertDataset(props: DatasetFetchProps) {
-  const {start, end, networkId} = props;
-  const [delta, unit, format] = getStep(start, end);
+  const {networkId, start, end, delta, unit} = props;
   let requestError = '';
-  const queries = [];
-  const labels = [];
 
-  let s = start.clone();
-  while (end.diff(s) >= 0) {
-    labels.push(s.format(format));
-    const e = s.clone();
-    e.add(delta, unit);
-    queries.push([s, e]);
-    s = e.clone();
-  }
-
+  const queries = getQueryRanges(start, end, delta, unit);
   const requests = queries.map(async (query, _) => {
     try {
       const [s, e] = query;
@@ -76,16 +72,16 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
   const eventData = await Promise.all(requests)
     .then(allResponses => {
       return allResponses.map((r, index) => {
-        const [s] = queries[index];
+        const [_, e] = queries[index];
 
         if (r === null || r === undefined) {
           return {
-            t: s.unix(),
+            t: e.unix() * 1000,
             y: 0,
           };
         }
         return {
-          t: s.unix(),
+          t: e.unix() * 1000,
           y: r,
         };
       });
@@ -95,43 +91,35 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       return [];
     });
 
+  const alertsData = [];
+  try {
+    const alertPromResp = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
+      {
+        networkId: networkId,
+        start: start.toISOString(),
+        end: end.toISOString(),
+        step: getStepString(delta, unit),
+        query: 'sum(ALERTS)',
+      },
+    );
+    alertPromResp.data?.result.forEach(it =>
+      it['values']?.map(i => {
+        alertsData.push({
+          t: parseInt(i[0]) * 1000,
+          y: parseFloat(i[1]),
+        });
+      }),
+    );
+  } catch (error) {
+    requestError = error;
+  }
+
   if (requestError) {
     props.enqueueSnackbar('Error getting event counts', {
       variant: 'error',
     });
   }
-
-  const alertPromResp = await MagmaV1API.getNetworksByNetworkIdPrometheusQueryRange(
-    {
-      networkId: networkId,
-      start: start.toISOString(),
-      end: end.toISOString(),
-      step: getStepString(delta, unit),
-      query: 'sum(ALERTS)',
-    },
-  );
-
-  const alertsData = [];
-  alertPromResp.data.result.forEach(it =>
-    it['values']?.map(i => {
-      alertsData.push({
-        t: parseInt(i[0]) * 1000,
-        y: parseFloat(i[1]),
-      });
-    }),
-  );
-
   return [
-    {
-      label: 'Events',
-      fill: false,
-      backgroundColor: colors.secondary.dodgerBlue,
-      borderColor: colors.secondary.dodgerBlue,
-      borderWidth: 1,
-      hoverBackgroundColor: colors.secondary.dodgerBlue,
-      hoverBorderColor: 'black',
-      data: eventData,
-    },
     {
       label: 'Alerts',
       fill: false,
@@ -145,7 +133,16 @@ async function getEventAlertDataset(props: DatasetFetchProps) {
       hoverBorderColor: 'black',
       data: alertsData,
     },
-    labels,
+    {
+      label: 'Events',
+      fill: false,
+      backgroundColor: colors.secondary.dodgerBlue,
+      borderColor: colors.secondary.dodgerBlue,
+      borderWidth: 1,
+      hoverBackgroundColor: colors.secondary.dodgerBlue,
+      hoverBorderColor: 'black',
+      data: eventData,
+    },
   ];
 }
 
@@ -154,7 +151,6 @@ export default function EventAlertChart(props: Props) {
   const networkId: string = nullthrows(match.params.networkId);
   const [start, end] = props.startEnd;
   const enqueueSnackbar = useEnqueueSnackbar();
-  const [labels, setLabels] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const [eventDataset, setEventDataset] = useState<Dataset>({
@@ -179,18 +175,20 @@ export default function EventAlertChart(props: Props) {
     fill: false,
   });
 
+  const [delta, unit] = getStep(start, end);
   useEffect(() => {
     // fetch queries
     const fetchAllData = async () => {
-      const [eventDataset, alertDataset, labels] = await getEventAlertDataset({
+      const [eventDataset, alertDataset] = await getEventAlertDataset({
         start,
         end,
+        delta,
+        unit,
         networkId,
         enqueueSnackbar,
       });
       setEventDataset(eventDataset);
       setAlertDataset(alertDataset);
-      setLabels(labels);
       setIsLoading(false);
     };
 
@@ -206,8 +204,12 @@ export default function EventAlertChart(props: Props) {
       <CardHeader
         subheader={
           <CustomLineChart
+            start={start}
+            end={end}
+            delta={delta}
+            unit={unit}
             dataset={[eventDataset, alertDataset]}
-            labels={labels}
+            yLabel={'Count'}
           />
         }
       />

@@ -14,6 +14,7 @@
  * @format
  */
 import type {
+  challenge_key,
   enodeb_serials,
   gateway_device,
   gateway_epc_configs,
@@ -25,16 +26,20 @@ import type {
 } from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
+import EnodebContext from '../../components/context/EnodebContext';
 import FormLabel from '@material-ui/core/FormLabel';
 import GatewayContext from '../../components/context/GatewayContext';
-import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
+import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -69,7 +74,8 @@ const DEFAULT_GATEWAY_CONFIG = {
   device: {
     hardware_id: '',
     key: {
-      key_type: 'ECHO',
+      key: '',
+      key_type: 'SOFTWARE_ECDSA_SHA256',
     },
   },
   id: '',
@@ -110,6 +116,9 @@ const useStyles = makeStyles(_ => ({
   tabBar: {
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
+  },
+  selectMenu: {
+    maxHeight: '200px',
   },
 }));
 
@@ -156,13 +165,13 @@ export default function AddEditGatewayButton(props: ButtonProps) {
         editProps={props.editProps}
       />
       {props.isLink ? (
-        <Link
+        <Button
           data-testid={(props.editProps?.editTable ?? '') + 'EditButton'}
           component="button"
           variant="text"
           onClick={handleClickOpen}>
           {props.title}
-        </Link>
+        </Button>
       ) : (
         <Button
           variant="text"
@@ -319,6 +328,10 @@ export function ConfigEdit(props: Props) {
     props.gateway?.device || DEFAULT_GATEWAY_CONFIG.device,
   );
 
+  const [challengeKey, setChallengeKey] = useState<challenge_key>(
+    props.gateway?.device.key || DEFAULT_GATEWAY_CONFIG.device.key,
+  );
+
   const [gatewayVersion, setGatewayVersion] = useState<VersionType>(
     props.gateway?.status?.platform_info?.packages?.[0].version ||
       DEFAULT_GATEWAY_CONFIG.status?.platform_info?.packages[0]?.version,
@@ -336,7 +349,7 @@ export function ConfigEdit(props: Props) {
             packages: [{version: gatewayVersion}],
           },
         },
-        device: gatewayDevice,
+        device: {...gatewayDevice, key: challengeKey},
       };
       await ctx.setState(gateway.id, gatewayInfos);
       enqueueSnackbar('Gateway saved successfully', {
@@ -406,6 +419,16 @@ export function ConfigEdit(props: Props) {
               value={gateway.description}
               onChange={({target}) =>
                 setGateway({...gateway, description: target.value})
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'Challenge Key'}>
+            <OutlinedInput
+              data-testid="challengeKey"
+              fullWidth={true}
+              value={challengeKey.key}
+              onChange={({target}) =>
+                setChallengeKey({...challengeKey, key: target.value})
               }
             />
           </AltFormField>
@@ -627,14 +650,14 @@ export function EPCEdit(props: Props) {
 }
 
 export function RanEdit(props: Props) {
+  const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
-
+  const enbsCtx = useContext(EnodebContext);
   const handleRanChange = (key: string, val) => {
     setRanConfig({...ranConfig, [key]: val});
   };
-
   const [ranConfig, setRanConfig] = useState<gateway_ran_configs>(
     props.gateway?.cellular.ran || DEFAULT_GATEWAY_CONFIG.cellular.ran,
   );
@@ -643,7 +666,6 @@ export function RanEdit(props: Props) {
     props.gateway?.connected_enodeb_serials ||
       DEFAULT_GATEWAY_CONFIG.connected_enodeb_serials,
   );
-
   const onSave = async () => {
     try {
       const gateway = {
@@ -688,20 +710,29 @@ export function RanEdit(props: Props) {
               }
             />
           </AltFormField>
-          <AltFormField label={'Connected eNodeBs'}>
-            <OutlinedInput
-              data-testid="enbs"
-              type="string"
+          <AltFormField label={'Registered eNodeBs'}>
+            <Select
+              multiple
+              variant={'outlined'}
               fullWidth={true}
-              value={connectedEnodebs.toString()}
+              value={connectedEnodebs}
               onChange={({target}) => {
-                setConnectedEnodebs(
-                  target.value !== ''
-                    ? target.value.replace(' ', '').split(',')
-                    : [],
-                );
+                setConnectedEnodebs(Array.from(target.value));
               }}
-            />
+              data-testid="networkType"
+              MenuProps={{classes: {paper: classes.selectMenu}}}
+              renderValue={selected => selected.join(', ')}
+              input={<OutlinedInput />}>
+              {Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
+                <MenuItem key={enbSerial} value={enbSerial}>
+                  <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
+                  <ListItemText
+                    primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
+                    secondary={enbSerial}
+                  />
+                </MenuItem>
+              ))}
+            </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>
             <Switch

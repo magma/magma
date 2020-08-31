@@ -106,12 +106,40 @@ export default function TrafficDashboard() {
           )}
         />
         <Route
+          path={relativePath('/apn/json')}
+          render={() => (
+            <ApnJsonConfig
+              apns={apns}
+              onSave={apn => setApns({...apns, [apn.apn_name]: apn})}
+            />
+          )}
+        />
+        <Route
           path={relativePath('/policy')}
-          render={() => <PolicyOverview policies={policies} />}
+          render={() => (
+            <PolicyOverview
+              policies={policies}
+              onDelete={policyId => {
+                const {
+                  [policyId]: _deletedPolicy,
+                  ...updatedPolicies
+                } = policies;
+                setPolicies(updatedPolicies);
+              }}
+            />
+          )}
         />
         <Route
           path={relativePath('/apn')}
-          render={() => <ApnOverview apns={apns} />}
+          render={() => (
+            <ApnOverview
+              apns={apns}
+              onDelete={apnId => {
+                const {[apnId]: _deletedApn, ...updatedApns} = apns;
+                setApns(updatedApns);
+              }}
+            />
+          )}
         />
         <Redirect to={relativeUrl('/policy')} />
       </Switch>

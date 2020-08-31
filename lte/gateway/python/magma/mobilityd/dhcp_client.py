@@ -122,12 +122,12 @@ class DHCPClient:
             return
 
         dhcp_opts.append("end")
-
+        dhcp_desc.xid = pkt_xid
         with self._dhcp_notify:
             self.dhcp_client_state[mac.as_redis_key(vlan)] = dhcp_desc
 
         pkt = Ether(src=str(mac), dst="ff:ff:ff:ff:ff:ff")
-        if vlan:
+        if vlan and vlan != "0":
             pkt /= Dot1Q(vlan=int(vlan))
         pkt /= IP(src="0.0.0.0", dst="255.255.255.255")
         pkt /= UDP(sport=68, dport=67)
@@ -255,7 +255,7 @@ class DHCPClient:
 
                 self.dhcp_client_state[mac_addr_key] = dhcp_state
 
-                self.dhcp_gw_info.update_ip(router_ip_addr)
+                self.dhcp_gw_info.update_ip(router_ip_addr, vlan)
                 self._dhcp_notify.notifyAll()
 
                 if state == DHCPState.OFFER:

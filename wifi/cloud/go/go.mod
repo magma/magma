@@ -11,8 +11,8 @@ require (
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/go-openapi/errors v0.19.2
 	github.com/go-openapi/strfmt v0.19.4
-	github.com/go-openapi/swag v0.18.0
-	github.com/go-openapi/validate v0.18.0
+	github.com/go-openapi/swag v0.19.5
+	github.com/go-openapi/validate v0.19.3
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1
@@ -22,7 +22,6 @@ require (
 	github.com/thoas/go-funk v0.7.0
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0
-	magma/orc8r/lib/go/protos v0.0.0
 )
 
 go 1.12

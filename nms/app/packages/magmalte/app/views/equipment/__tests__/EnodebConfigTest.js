@@ -95,7 +95,8 @@ describe('<AddEditEnodeButton />', () => {
           <MuiStylesThemeProvider theme={defaultTheme}>
             <EnodebContext.Provider
               value={{
-                state: {enbInfo: enbInf, lteRanConfigs: ran},
+                state: {enbInfo: enbInf},
+                lteRanConfigs: ran,
                 setState: async (key, value?) =>
                   SetEnodebState({
                     enbInfo: enbInf,
@@ -132,7 +133,8 @@ describe('<AddEditEnodeButton />', () => {
           <MuiStylesThemeProvider theme={defaultTheme}>
             <EnodebContext.Provider
               value={{
-                state: {enbInfo: enbInf, lteRanConfigs: ran},
+                state: {enbInfo: enbInf},
+                lteRanConfigs: ran,
                 setState: async (key, value?) =>
                   SetEnodebState({
                     enbInfo: enbInf,

@@ -16,8 +16,6 @@ package state
 import (
 	"context"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -135,51 +133,10 @@ func DeleteStates(networkID string, stateIDs []state_types.ID) error {
 	return err
 }
 
-// GetGatewayStatus returns the status for an indicated gateway.
-func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus, error) {
-	st, err := GetState(networkID, orc8r.GatewayStateType, deviceID)
-	if err != nil {
-		return nil, err
-	}
-	if st.ReportedState == nil {
-		return nil, merrors.ErrNotFound
-	}
-	return fillInGatewayStatusState(st), nil
-}
-
-// GetGatewayStatuses returns the status for indicated gateways, keyed by
-// device ID.
-func GetGatewayStatuses(networkID string, deviceIDs []string) (map[string]*models.GatewayStatus, error) {
-	stateIDs := funk.Map(deviceIDs, func(id string) state_types.ID {
-		return state_types.ID{Type: orc8r.GatewayStateType, DeviceID: id}
-	}).([]state_types.ID)
-	res, err := GetStates(networkID, stateIDs)
-	if err != nil {
-		return map[string]*models.GatewayStatus{}, err
-	}
-
-	ret := make(map[string]*models.GatewayStatus, len(res))
-	for stateID, st := range res {
-		ret[stateID.DeviceID] = fillInGatewayStatusState(st)
-	}
-	return ret, nil
-}
-
 func makeProtoIDs(stateIDs []state_types.ID) []*protos.StateID {
 	var ids []*protos.StateID
 	for _, st := range stateIDs {
 		ids = append(ids, &protos.StateID{Type: st.Type, DeviceID: st.DeviceID})
 	}
 	return ids
-}
-
-func fillInGatewayStatusState(st state_types.State) *models.GatewayStatus {
-	if st.ReportedState == nil {
-		return nil
-	}
-	gwStatus := st.ReportedState.(*models.GatewayStatus)
-	gwStatus.CheckinTime = st.TimeMs
-	gwStatus.CertExpirationTime = st.CertExpirationTime
-	gwStatus.HardwareID = st.ReporterID
-	return gwStatus
 }

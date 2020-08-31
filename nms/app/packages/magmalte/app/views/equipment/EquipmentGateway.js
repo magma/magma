@@ -28,6 +28,7 @@ import Link from '@material-ui/core/Link';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import Paper from '@material-ui/core/Paper';
 import React, {useState} from 'react';
+import SubscriberContext from '../../components/context/SubscriberContext';
 import Text from '../../theme/design-system/Text';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import isGatewayHealthy from '../../components/GatewayUtils';
@@ -133,6 +134,9 @@ function GatewayTableRaw(props: WithAlert) {
   const classes = useStyles();
   const ctx = useContext(GatewayTierContext);
   const gwCtx = useContext(GatewayContext);
+  const subscriberCtx = useContext(SubscriberContext);
+  const gwSubscriberMap = subscriberCtx.gwSubscriberMap;
+
   const lteGateways = gwCtx.state;
   const {history, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<EquipmentGatewayRowType>({});
@@ -165,7 +169,8 @@ function GatewayTableRaw(props: WithAlert) {
         name: gateway.name,
         id: gateway.id,
         num_enodeb: numEnodeBs,
-        num_subscribers: 0,
+        num_subscribers:
+          gwSubscriberMap?.[gateway.device.hardware_id]?.length ?? 0,
         health: isGatewayHealthy(gateway) ? 'Good' : 'Bad',
         checkInTime: checkInTime,
       });

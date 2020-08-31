@@ -162,6 +162,7 @@ function Overview() {
         <Grid item xs={12}>
           <DateTimeMetricChart
             title={CHART_TITLE}
+            unit={'Throughput(mb/s)'}
             queries={[
               `sum(pdcp_user_plane_bytes_dl{service="enodebd", enodeb="${enodebSerial}"})/1000`,
               `sum(pdcp_user_plane_bytes_ul{service="enodebd", enodeb="${enodebSerial}"})/1000`,

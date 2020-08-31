@@ -53,10 +53,10 @@ int openflow_reset(void) {
 }
 
 int openflow_add_tunnel(
-    struct in_addr ue, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
     Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl) {
   return openflow_controller_add_gtp_tunnel(
-      ue, enb, i_tei, o_tei, (const char*) imsi.digit, flow_dl,
+      ue, vlan, enb, i_tei, o_tei, (const char*) imsi.digit, flow_dl,
       flow_precedence_dl);
 }
 
@@ -112,7 +112,7 @@ int openflow_send_end_marker(struct in_addr enb, uint32_t tei) {
       "actions=load:%" PRIu32
       "->tun_id[0..31],"
       "set_field:%s->tun_dst,"
-      "set_field:0xfe->tun_gtp_msg_type,set_field:0x30->tun_gtp_flags,output:"
+      "set_field:0xfe->tun_gtpu_msgtype,set_field:0x30->tun_gtpu_flags,output:"
       "gtp0'",
       tei, inet_ntoa(enb));
 
@@ -125,6 +125,9 @@ int openflow_send_end_marker(struct in_addr enb, uint32_t tei) {
     OAILOG_ERROR(
         LOG_GTPV1U, "end marker cmd: [%s] failed: %d", end_marker_cmd, rc);
     end_marker_supported = false;
+  } else {
+    OAILOG_DEBUG(LOG_GTPV1U, "End marker sent: tei %" PRIu32
+        " tun_dst %s", tei, inet_ntoa(enb));
   }
   return rc;
 }

@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {apn} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
@@ -24,6 +25,7 @@ import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -32,6 +34,21 @@ import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 
 const APN_TITLE = 'APNs';
+const DEFAULT_APN_CONFIG = {
+  apn_configuration: {
+    ambr: {
+      max_bandwidth_dl: 1000000,
+      max_bandwidth_ul: 1000000,
+    },
+    qos_profile: {
+      class_id: 9,
+      preemption_capability: false,
+      preemption_vulnerability: false,
+      priority_level: 15,
+    },
+  },
+  apn_name: '',
+};
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(3),
@@ -92,6 +109,12 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+type Props = WithAlert & {
+  apns: {[string]: apn},
+  onSave?: apn => void,
+  onDelete?: string => void,
+};
+
 type ApnRowType = {
   apnID: string,
   description: string,
@@ -99,13 +122,12 @@ type ApnRowType = {
   added: Date,
 };
 
-type APNType = {
-  apns: {[string]: apn},
-};
-export default function ApnOverview(props: APNType) {
+function ApnOverview(props: Props) {
   const classes = useStyles();
-  const {history, relativeUrl} = useRouter();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const {history, match, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<ApnRowType>({});
+  const networkId: string = nullthrows(match.params.networkId);
   const apnRows: Array<ApnRowType> = props.apns
     ? Object.keys(props.apns).map((apn: string) => {
         return {
@@ -132,7 +154,11 @@ export default function ApnOverview(props: APNType) {
             justify="flex-end"
             alignItems="center"
             spacing={2}>
-            <Button className={classes.appBarBtn}>Add New APN</Button>
+            <Button
+              className={classes.appBarBtn}
+              onClick={() => history.push(relativeUrl('/json'))}>
+              Add New APN
+            </Button>
           </Grid>
         </Grid>
 
@@ -154,7 +180,35 @@ export default function ApnOverview(props: APNType) {
                 },
               },
               {name: 'Deactivate'},
-              {name: 'Remove'},
+              {
+                name: 'Remove',
+                handleFunc: () => {
+                  props
+                    .confirm(
+                      `Are you sure you want to delete ${currRow.apnID}?`,
+                    )
+                    .then(async confirmed => {
+                      if (!confirmed) {
+                        return;
+                      }
+
+                      try {
+                        await MagmaV1API.deleteLteByNetworkIdApnsByApnName({
+                          networkId: networkId,
+                          apnName: currRow.apnID,
+                        });
+                        props.onDelete?.(currRow.apnID);
+                      } catch (e) {
+                        enqueueSnackbar(
+                          'failed deleting policy ' + currRow.apnID,
+                          {
+                            variant: 'error',
+                          },
+                        );
+                      }
+                    });
+                },
+              },
             ]}
             options={{
               actionsColumnIndex: -1,
@@ -167,32 +221,50 @@ export default function ApnOverview(props: APNType) {
   );
 }
 
-type Props = {
+type JsonConfigType = {
   apns: {[string]: apn},
   onSave?: apn => void,
 };
-export function ApnJsonConfig(props: Props) {
-  const {match} = useRouter();
+
+export function ApnJsonConfig(props: JsonConfigType) {
+  const {match, history} = useRouter();
   const [error, setError] = useState('');
   const networkId: string = nullthrows(match.params.networkId);
-  const apnName: string = nullthrows(match.params.apnId);
+  const apnName: string = match.params.apnId;
   const enqueueSnackbar = useEnqueueSnackbar();
+  const apn: apn = props.apns[apnName] || DEFAULT_APN_CONFIG;
   return (
     <JsonEditor
-      content={props.apns[apnName]}
+      content={apn}
       error={error}
       onSave={async apn => {
         try {
-          await MagmaV1API.putLteByNetworkIdApnsByApnName({
-            networkId: networkId,
-            apn: apn,
-            apnName: apnName,
-          });
-          enqueueSnackbar('APN saved successfully', {
-            variant: 'success',
-          });
+          if (apn.apn_name === '') {
+            throw Error('Invalid Name');
+          }
+          if (apnName) {
+            await MagmaV1API.putLteByNetworkIdApnsByApnName({
+              networkId: networkId,
+              apn: apn,
+              apnName: apnName,
+            });
+            enqueueSnackbar('APN saved successfully', {
+              variant: 'success',
+            });
+            setError('');
+            props.onSave?.(apn);
+          } else {
+            await MagmaV1API.postLteByNetworkIdApns({
+              networkId: networkId,
+              apn: (apn: apn),
+            });
+            enqueueSnackbar('APN added successfully', {
+              variant: 'success',
+            });
+          }
           setError('');
           props.onSave?.(apn);
+          history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -200,3 +272,5 @@ export function ApnJsonConfig(props: Props) {
     />
   );
 }
+
+export default withAlert(ApnOverview);

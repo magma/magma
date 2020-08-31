@@ -90,6 +90,7 @@ module.exports.overrides = [
       'packages/magmalte/config/*.js',
       'packages/magmalte/scripts/**/*.js',
       'packages/magmalte/server/**/*.js',
+      'packages/magmalte/grafana/**/*.js',
     ],
     rules: {
       'no-console': 'off',

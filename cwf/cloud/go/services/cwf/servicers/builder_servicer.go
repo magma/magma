@@ -1,9 +1,14 @@
 /*
- Copyright (c) Facebook, Inc. and its affiliates.
- All rights reserved.
+ Copyright 2020 The Magma Authors.
 
  This source code is licensed under the BSD-style license found in the
  LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
 */
 
 package servicers
@@ -104,7 +109,7 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return nil, err
 	}
-	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IPDRExportDst)
+	ipdrExportDst, err := getPipelineDIpdrExportDst(gwConfig.IpdrExportDst)
 	if err != nil {
 		return nil, err
 	}
@@ -174,7 +179,7 @@ func getPipelineDAllowedGrePeers(allowedGrePeers models.AllowedGrePeers) ([]*lte
 	return ues, nil
 }
 
-func getPipelineDIpdrExportDst(ipdrExportDst *models.IPDRExportDst) (*lte_mconfig.PipelineD_IPDRExportDst, error) {
+func getPipelineDIpdrExportDst(ipdrExportDst *models.IpdrExportDst) (*lte_mconfig.PipelineD_IPDRExportDst, error) {
 	if ipdrExportDst == nil {
 		return nil, nil
 	}

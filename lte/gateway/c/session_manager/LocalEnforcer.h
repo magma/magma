@@ -12,6 +12,7 @@
  */
 #pragma once
 
+#include <experimental/optional>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -206,13 +207,31 @@ class LocalEnforcer {
       const std::vector<std::unique_ptr<ServiceAction>>& actions,
       SessionUpdate& session_update);
 
+  /**
+   * handle_set_session_rules takes SessionRules, which is a set message that
+   * reflects the desired rule state, and apply the changes. The changes should
+   * be propagated to PipelineD and MME if the session is 4G.
+   * @param session_map
+   * @param updates
+   * @param session_update
+   */
+  void handle_set_session_rules(
+      SessionMap& session_map, const SessionRules& rules,
+      SessionUpdate& session_update);
+
+  /**
+   * Check if PolicyBearerBindingRequest has a non-zero dedicated bearer ID:
+   * Update the policy to bearer map if non-zero
+   * Delete the policy rule if zero
+   * @return true if successfully processed the request
+   */
+  bool bind_policy_to_bearer(
+      SessionMap& session_map, const PolicyBearerBindingRequest& request,
+      SessionUpdate& session_update);
+
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
  private:
-  struct RulesToProcess {
-    std::vector<std::string> static_rules;
-    std::vector<PolicyRule> dynamic_rules;
-  };
   struct RedirectInstallInfo {
     std::string imsi;
     std::string session_id;
@@ -225,8 +244,6 @@ class LocalEnforcer {
   std::shared_ptr<EventsReporter> events_reporter_;
   std::shared_ptr<SpgwServiceClient> spgw_client_;
   std::shared_ptr<aaa::AAAClient> aaa_client_;
-  std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
-      session_map_;
   SessionStore& session_store_;
   folly::EventBase* evb_;
   long session_force_termination_timeout_ms_;
@@ -320,6 +337,21 @@ class LocalEnforcer {
       SessionStateUpdateCriteria& update_criteria);
 
   /**
+   * propagate_rule_updates_to_pipelined calls the PipelineD RPC calls to
+   * install/uninstall flows
+   * @param imsi
+   * @param config
+   * @param rules_to_activate
+   * @param rules_to_deactivate
+   * @param always_send_activate : if this is set activate call will be sent
+   * even if rules_to_activate is empty
+   */
+  void propagate_rule_updates_to_pipelined(
+      const std::string& imsi, const SessionConfig& config,
+      const RulesToProcess& rules_to_activate,
+      const RulesToProcess& rules_to_deactivate, bool always_send_activate);
+
+  /**
    * For the matching session ID, activate and/or deactivate the specified
    * rules.
    * Also create a bearer for the session.
@@ -395,6 +427,7 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
+      std::experimental::optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
@@ -485,6 +518,10 @@ class LocalEnforcer {
       SessionMap& session_map, const std::unordered_set<std::string>& imsis,
       SessionUpdate& session_update);
 
+  void handle_activate_service_action(
+      SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
+      SessionUpdate& session_update);
+
   /**
    * Install flow for redirection through pipelined
    */
@@ -504,6 +541,10 @@ class LocalEnforcer {
       const std::string& imsi, const std::string& ue_mac_addr,
       const SubscriberQuotaUpdate_Type state);
 
+  void update_ipfix_flow(
+      const std::string& imsi, const SessionConfig& config,
+      const uint64_t pdp_start_time);
+
   /**
    * [CWF-ONLY]
    * If the session has active monitored rules attached to it, then propagate
@@ -520,6 +561,18 @@ class LocalEnforcer {
   bool terminate_on_wallet_exhaust();
 
   void schedule_termination(std::unordered_set<std::string>& imsis);
+
+  void propagate_bearer_updates_to_mme(const BearerUpdate& updates);
+
+  /**
+   * Remove the specified rule from the session and propagate the change to
+   * PipelineD
+   * @param rule_id rule to be deleted
+   * @param uc
+   */
+  void remove_rule_due_to_bearer_creation_failure(
+      const std::string& imsi, SessionState& session,
+      const std::string& rule_id, SessionStateUpdateCriteria& uc);
 };
 
 }  // namespace magma

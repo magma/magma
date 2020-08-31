@@ -277,7 +277,8 @@ TEST_F(SessiondTest, end_to_end_success) {
             testing::SetArgPointee<2>(create_response),
             testing::Return(grpc::Status::OK)));
     EXPECT_CALL(
-        *events_reporter, session_created("IMSI1", testing::_, testing::_))
+        *events_reporter, session_created("IMSI1", testing::_, testing::_,
+            testing::_))
         .Times(1);
 
     // Temporary fix for pipelined client in sessiond introduces separate calls
@@ -338,9 +339,6 @@ TEST_F(SessiondTest, end_to_end_success) {
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
-  // TODO @themarwhal deprecate
-  request.mutable_sid()->set_id("IMSI1");
-  request.set_rat_type(RATType::TGPP_LTE);
   request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
@@ -438,9 +436,6 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
-  // TODO @themarwhal deprecate
-  request.mutable_sid()->set_id("IMSI1");
-  request.set_rat_type(RATType::TGPP_LTE);
   request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);

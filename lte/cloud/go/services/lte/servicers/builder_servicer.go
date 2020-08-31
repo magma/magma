@@ -54,13 +54,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	}
 
 	// Only build an mconfig if cellular network and gateway configs exist
-	inwConfig, found := network.Configs[lte.CellularNetworkType]
+	inwConfig, found := network.Configs[lte.CellularNetworkConfigType]
 	if !found || inwConfig == nil {
 		return ret, nil
 	}
 	cellularNwConfig := inwConfig.(*lte_models.NetworkCellularConfigs)
 
-	cellGW, err := graph.GetEntity(lte.CellularGatewayType, request.GatewayId)
+	cellGW, err := graph.GetEntity(lte.CellularGatewayEntityType, request.GatewayId)
 	if err == merrors.ErrNotFound {
 		return ret, nil
 	}
@@ -76,7 +76,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return nil, err
 	}
 
-	enodebs, err := graph.GetAllChildrenOfType(cellGW, lte.CellularEnodebType)
+	enodebs, err := graph.GetAllChildrenOfType(cellGW, lte.CellularEnodebEntityType)
 	if err != nil {
 		return nil, err
 	}
@@ -114,6 +114,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			IpBlock:         gwEpc.IPBlock,
 			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
 			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
+			MultiApnIpAlloc: getMobilityDMultuAPNIPAlloc(nwEpc),
 		},
 		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -135,11 +136,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
-			LogLevel:      protos.LogLevel_INFO,
-			UeIpBlock:     gwEpc.IPBlock,
-			NatEnabled:    swag.BoolValue(gwEpc.NatEnabled),
-			DefaultRuleId: nwEpc.DefaultRuleID,
-			Services:      pipelineDServices,
+			LogLevel:                 protos.LogLevel_INFO,
+			UeIpBlock:                gwEpc.IPBlock,
+			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
+			DefaultRuleId:            nwEpc.DefaultRuleID,
+			Services:                 pipelineDServices,
+			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
+			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP.String(),
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,
@@ -372,4 +375,11 @@ func getMobilityDStaticIPAllocation(epc *lte_models.NetworkEpcConfigs) bool {
 		return false
 	}
 	return epc.Mobility.EnableStaticIPAssignments
+}
+
+func getMobilityDMultuAPNIPAlloc(epc *lte_models.NetworkEpcConfigs) bool {
+	if epc.Mobility == nil {
+		return false
+	}
+	return epc.Mobility.EnableMultiApnIPAllocation
 }

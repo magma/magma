@@ -20,8 +20,9 @@ prefix="vt$tag"
 ip_addr="10.200.$tag.111/24"
 router_ip="10.200.$tag.211"
 
-ip link add "$prefix"_port0 type veth peer name  "$prefix"_port1
-ifconfig "$prefix"_port0 up
+ip link del "$prefix"_port
+ip link add "$prefix"_port type veth peer name  "$prefix"_port1
+ifconfig "$prefix"_port up
 
 mkdir -p /etc/netns/"$prefix"_dhcp_srv
 touch /etc/netns/"$prefix"_dhcp_srv/resolv.conf
@@ -30,7 +31,7 @@ ip netns add "$prefix"_dhcp_srv
 
 ip link set dev  "$prefix"_port1 netns "$prefix"_dhcp_srv
 ip netns exec    "$prefix"_dhcp_srv   ifconfig  "$prefix"_port1 "$ip_addr"
-ip netns exec    "$prefix"_dhcp_srv   ifconfig  "$prefix"_port1 hw ether b2:a0:cc:85:80:7a
+ip netns exec    "$prefix"_dhcp_srv   ifconfig  "$prefix"_port1 hw ether b2:a0:cc:85:80:$tag
 ip netns exec    "$prefix"_dhcp_srv   ip addr add $router_ip  dev "$prefix"_port1
 
 ip netns exec    "$prefix"_dhcp_srv   ifconfig  "$prefix"_port1 up
@@ -47,4 +48,13 @@ ip netns exec "$prefix"_dhcp_srv  /usr/sbin/dnsmasq -q --conf-file=/tmp/dns."$ta
 
 logger "DHCP server started"
 
-ovs-vsctl --may-exist add-port "$br_name" "$prefix"_port0 tag="$tag"
+existing_br=$(sudo ovs-vsctl iface-to-br vt1_port)
+if [[ ! -z $existing_br ]]; then
+	ovs-vsctl del-port "$existing_br" "$prefix"_port
+fi
+
+ovs-vsctl --may-exist add-port "$br_name" "$prefix"_port
+if [[ "$tag" -ne "0" ]]
+then
+	ovs-vsctl set port "$prefix"_port tag="$tag"
+fi

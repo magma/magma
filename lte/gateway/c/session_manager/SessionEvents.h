@@ -31,7 +31,8 @@ class EventsReporter {
  public:
   virtual void session_created(
       const std::string& imsi, const std::string& session_id,
-      const SessionConfig& session_context){};
+      const SessionConfig& session_context,
+      const std::unique_ptr<SessionState>& session){};
 
   virtual void session_create_failure(
       const std::string& imsi, const SessionConfig& session_context,
@@ -59,7 +60,8 @@ class EventsReporterImpl : public EventsReporter {
 
   void session_created(
       const std::string& imsi, const std::string& session_id,
-      const SessionConfig& session_context);
+      const SessionConfig& session_context,
+      const std::unique_ptr<SessionState>& session);
 
   void session_create_failure(
       const std::string& imsi, const SessionConfig& session_context,
@@ -78,6 +80,8 @@ class EventsReporterImpl : public EventsReporter {
 
  private:
   std::string get_mac_addr(const SessionConfig& config);
+  std::string get_imei(const SessionConfig& config);
+  std::string get_spgw_ipv4(const SessionConfig& config);
 
  private:
   AsyncEventdClient& eventd_client_;

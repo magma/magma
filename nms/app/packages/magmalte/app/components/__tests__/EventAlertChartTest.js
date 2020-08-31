@@ -70,13 +70,13 @@ describe('<EventAlertChart/>', () => {
     {
       startDate: moment().subtract(10, 'day'),
       endDate: moment(),
-      step: '1d',
+      step: '24h',
       valid: true,
     },
     {
       startDate: moment(),
       endDate: moment().subtract(10, 'day'),
-      step: '1d',
+      step: '24h',
       valid: false,
     },
   ];

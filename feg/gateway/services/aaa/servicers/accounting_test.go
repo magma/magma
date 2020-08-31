@@ -100,8 +100,7 @@ func testAccountingTerminate(t *testing.T) {
 }
 
 // TestAccountingCreateWithRecycle to trigger the recycle of the session we need to authenticate
-// a ue and then try to create a session with the same imsi, but idfferent session id. This will
-// trigger the IPFix Update instead of Mac Flow install.
+// a ue and then try to create a session with the same imsi, but idfferent session id.
 func TestAccountingCreateWithRecycle(t *testing.T) {
 	mockPipelined := mock_pipelined.NewRunningPipelined(t)
 	mock_sessiond.NewRunningSessionManager(t)
@@ -122,7 +121,6 @@ func TestAccountingCreateWithRecycle(t *testing.T) {
 	aaaCtx.SessionId = SESSIONID2
 	_, err = accService.CreateSession(context.Background(), aaaCtx)
 	assert.NoError(t, err)
-	mock_pipelined.AssertIPIXFlowUpdate(t, mockPipelined)
 }
 
 // TestAccountingBadMACaddress uses a wrong mac address.

@@ -156,7 +156,7 @@ function EnodebRanConfig() {
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const lteRanConfigs = ctx.state.lteRanConfigs;
+  const lteRanConfigs = ctx.lteRanConfigs;
 
   const data: DataRows[] = [
     [
