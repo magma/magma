@@ -103,6 +103,8 @@ class UplinkBridgeWithNonNATTest(unittest.TestCase):
     UPLINK_DHCP = 'test_dhcp0'
     UPLINK_PATCH = 'test_patch_p2'
     UPLINK_ETH_PORT = 'test_eth3'
+    VLAN_DEV_IN = "test_v_in"
+    VLAN_DEV_OUT = "test_v_out"
 
     @classmethod
     def setUpClass(cls):
@@ -143,6 +145,9 @@ class UplinkBridgeWithNonNATTest(unittest.TestCase):
                 'uplink_patch': cls.UPLINK_PATCH,
                 'uplink_dhcp_port': cls.UPLINK_DHCP,
                 'sgi_management_iface_vlan': "",
+                'dev_vlan_in': cls.VLAN_DEV_IN,
+                'dev_vlan_out': cls.VLAN_DEV_OUT,
+                'ovs_vlan_workaround': False,
             },
             mconfig=None,
             loop=None,
@@ -151,11 +156,18 @@ class UplinkBridgeWithNonNATTest(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.BRIDGE)
+        BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
+
+        BridgeTools.create_veth_pair(cls.VLAN_DEV_IN,
+                                     cls.VLAN_DEV_OUT)
+        # Add to OVS,
+        BridgeTools.add_ovs_port(cls.UPLINK_BRIDGE,
+                                 cls.VLAN_DEV_IN, "70")
+        BridgeTools.add_ovs_port(cls.UPLINK_BRIDGE,
+                                 cls.VLAN_DEV_OUT, "71")
 
         # dummy uplink interface
-        BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
         vlan = "10"
-        BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
         subprocess.Popen(["ovs-vsctl", "set", "port", cls.UPLINK_BRIDGE,
                           "tag=" + vlan]).wait()
         assert get_ovsdb_port_tag(cls.UPLINK_BRIDGE) == vlan
@@ -195,6 +207,8 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
     UPLINK_PATCH = 'test_patch_p2'
     UPLINK_ETH_PORT = 'test_eth3'
     VLAN_TAG='100'
+    VLAN_DEV_IN = "test_v_in"
+    VLAN_DEV_OUT = "test_v_out"
 
     @classmethod
     def setUpClass(cls):
@@ -234,7 +248,9 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
                 'virtual_mac': '02:bb:5e:36:06:4b',
                 'uplink_patch': cls.UPLINK_PATCH,
                 'uplink_dhcp_port': cls.UPLINK_DHCP,
-                'sgi_management_iface_vlan': cls.VLAN_TAG
+                'sgi_management_iface_vlan': cls.VLAN_TAG,
+                'dev_vlan_in': cls.VLAN_DEV_IN,
+                'dev_vlan_out': cls.VLAN_DEV_OUT,
             },
             mconfig=None,
             loop=None,
@@ -243,6 +259,16 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
         )
 
         BridgeTools.create_bridge(cls.BRIDGE, cls.BRIDGE)
+        BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
+
+        BridgeTools.create_veth_pair(cls.VLAN_DEV_IN,
+                                     cls.VLAN_DEV_OUT)
+        # Add to OVS,
+        BridgeTools.add_ovs_port(cls.UPLINK_BRIDGE,
+                                 cls.VLAN_DEV_IN, "70")
+        BridgeTools.add_ovs_port(cls.UPLINK_BRIDGE,
+                                 cls.VLAN_DEV_OUT, "71")
+
         # validate vlan id set
         vlan = "10"
         BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
@@ -326,7 +352,9 @@ class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
                 'uplink_patch': cls.UPLINK_PATCH,
                 'uplink_dhcp_port': cls.UPLINK_DHCP,
                 'sgi_management_iface_vlan': cls.VLAN_TAG,
-                'sgi_management_iface_ip_addr': cls.SGi_IP
+                'sgi_management_iface_ip_addr': cls.SGi_IP,
+                'dev_vlan_in': "test_v_in",
+                'dev_vlan_out': "test_v_out",
             },
             mconfig=None,
             loop=None,

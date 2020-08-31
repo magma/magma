@@ -59,7 +59,7 @@ class InOutController(MagmaController):
     InOutConfig = namedtuple(
         'InOutConfig',
         ['gtp_port', 'uplink_port_name', 'mtr_ip', 'mtr_port', 'li_port_name',
-         'enable_nat', 'non_mat_gw_probe_frequency', 'non_nat_arp_egress_port',
+         'enable_nat', 'non_nat_gw_probe_frequency', 'non_nat_arp_egress_port',
          'setup_type', 'uplink_gw_mac'],
     )
     ARP_PROBE_FREQUENCY = 300
@@ -109,7 +109,7 @@ class InOutController(MagmaController):
             li_port_name = config_dict['li_local_iface']
 
         enable_nat = config_dict.get('enable_nat', True)
-        non_mat_gw_probe_freq = config_dict.get('non_mat_gw_probe_frequency',
+        non_nat_gw_probe_freq = config_dict.get('non_nat_gw_probe_frequency',
                                                 self.ARP_PROBE_FREQUENCY)
         non_nat_arp_egress_port = config_dict.get('non_nat_arp_egress_port',
                                                   self.NON_NAT_ARP_EGRESS_PORT)
@@ -122,7 +122,7 @@ class InOutController(MagmaController):
             mtr_port=mtr_port,
             li_port_name=li_port_name,
             enable_nat=enable_nat,
-            non_mat_gw_probe_frequency=non_mat_gw_probe_freq,
+            non_nat_gw_probe_frequency=non_nat_gw_probe_freq,
             non_nat_arp_egress_port=non_nat_arp_egress_port,
             setup_type=setup_type,
             uplink_gw_mac=uplink_gw_mac)
@@ -362,7 +362,7 @@ class InOutController(MagmaController):
                 else:
                     self.logger.warning("No default GW found.")
 
-            hub.sleep(self.config.non_mat_gw_probe_frequency)
+            hub.sleep(self.config.non_nat_gw_probe_frequency)
 
     def _setup_non_nat_monitoring(self, datapath):
         """
