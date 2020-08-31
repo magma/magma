@@ -5,8 +5,9 @@ if [[ $1 == "check" ]]; then
   # check dependency in systemd files of other services
   check_systemd_file "magma@pipelined" "magma@mme"
 
-  #check service config
-  if ! grep -q "clean_restart.*false" /etc/magma/pipelined.yml; then
+  # check service config
+  check_stateless_flag pipelined clean_restart; ret_check=$?
+  if [[ $ret_check -eq $RETURN_STATEFUL ]]; then
     echo "Pipelined config file is stateful."
     exit 1
   fi
@@ -19,14 +20,14 @@ elif [[ $1 == "disable" ]]; then
   remove_systemd_override "magma@mme"
 
   # change clean_restart setting in pipelined.yml
-  sed -e '/clean_restart/ s/false/true/' -i /etc/magma/pipelined.yml
+  disable_stateless_flag pipelined clean_restart
 elif [[ $1 == "enable" ]]; then
   echo "Enabling stateless pipelined config"
   # remove restart dependencies between pipelined and other services
   add_systemd_override "magma@pipelined" "magma@mme"
 
   # change clean_restart setting in pipelined.yml
-  sed -e '/clean_restart/ s/true/false/' -i /etc/magma/pipelined.yml
+  enable_stateless_flag pipelined clean_restart false
 else
   echo "Invalid argument. Use one of the following"
   echo "check: Run a check whether Pipelined is stateless or not"

@@ -10,8 +10,9 @@ if [[ $1 == "check" ]]; then
     check_systemd_file "magma@mobilityd" "$dep_service_name"
   done
 
-  #check service config
-  if ! grep -q "persist_to_redis.*true" /etc/magma/mobilityd.yml; then
+  # check service config
+  check_stateless_flag mobilityd persist_to_redis; ret_check=$?
+  if [[ $ret_check -eq $RETURN_STATEFUL ]]; then
     echo "Mobilityd config file is stateful."
     exit 1
   fi
@@ -27,7 +28,7 @@ elif [[ $1 == "disable" ]]; then
   done
 
   # change persist_to_redis setting in mobilityd.yml
-  sed -e '/persist_to_redis/ s/true/false/' -i /etc/magma/mobilityd.yml
+  disable_stateless_flag mobilityd persist_to_redis
 elif [[ $1 == "enable" ]]; then
   echo "Enabling stateless mobilityd config"
   # remove restart dependencies between mobilityd and other services
@@ -37,7 +38,7 @@ elif [[ $1 == "enable" ]]; then
   done
 
   # change persist_to_redis setting in mobilityd.yml
-  sed -e '/persist_to_redis/ s/false/true/' -i /etc/magma/mobilityd.yml
+  enable_stateless_flag mobilityd persist_to_redis true
 else
   echo "Invalid argument. Use one of the following"
   echo "check: Run a check whether Mobilityd is stateless or not"

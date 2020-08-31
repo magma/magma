@@ -6,6 +6,27 @@ RETURN_STATEFUL=1
 RETURN_CORRUPT=2
 RETURN_INVALID=3
 
+function set_override_flag {
+  service_name=$1
+  flag=$2
+  value=$3
+  override_file=/var/opt/magma/configs/$service_name.yml
+
+# check if override file exists
+  if [ ! -f "$override_file" ]; then
+    sudo mkdir -p /var/opt/magma/configs && touch $override_file
+  fi
+
+# check if the setting exists and set the correct value
+  if ! grep -q "$flag" $override_file; then
+    echo "$flag: $value" >> $override_file
+  else
+    if ! grep -q "$flag: $value" $override_file; then
+      sed -e "/$flag/ s/.*/$flag:\ $value/" -i $override_file
+    fi
+  fi
+}
+
 function check_stateless_agw {
   echo "Checking stateless AGW config"
   num_stateful=0

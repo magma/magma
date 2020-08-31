@@ -10,8 +10,9 @@ if [[ $1 == "check" ]]; then
     check_systemd_file "magma@mme" "$dep_service_name"
   done
 
-  #check service config
-  if ! grep -q "use_stateless.*true" /etc/magma/mme.yml; then
+  # check service config
+  check_stateless_flag mme use_stateless; ret_check=$?
+  if [[ $ret_check -eq $RETURN_STATEFUL ]]; then
     echo "MME config file is stateful."
     exit 1
   fi
@@ -27,7 +28,7 @@ elif [[ $1 == "disable" ]]; then
   done
 
   # change use_stateless setting in mme.yml
-  sed -e '/use_stateless/ s/true/false/' -i /etc/magma/mme.yml
+  disable_stateless_flag mme use_stateless
 elif [[ $1 == "enable" ]]; then
   echo "Enabling stateless MME config"
   # stop other services from restarting when MME restarts
@@ -37,7 +38,7 @@ elif [[ $1 == "enable" ]]; then
   done
 
   # change use_stateless setting in mme.yml
-  sed -e '/use_stateless/ s/false/true/' -i /etc/magma/mme.yml
+  enable_stateless_flag mme use_stateless true
 else
   echo "Invalid argument. Use one of the following"
   echo "check: Run a check whether MME is stateless or not"
