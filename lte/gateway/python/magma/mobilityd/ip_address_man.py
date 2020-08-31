@@ -184,7 +184,8 @@ class IPAddressManager:
 
         if self.static_ip_enabled:
             ip_allocator = IPAllocatorStaticWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                    ip_allocator=ip_allocator)
+                                                    ip_allocator=ip_allocator,
+                                                    gw_info=self._dhcp_gw_info)
 
         if self.multi_apn:
             self.ip_allocator = IPAllocatorMultiAPNWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,

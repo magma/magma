@@ -28,4 +28,3 @@ func (x *AuthenticationsCalculation) Calculate(prometheusClient query_api.Promet
 	}
 	return results, nil
 }
-

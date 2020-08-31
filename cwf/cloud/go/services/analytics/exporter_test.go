@@ -45,8 +45,7 @@ const (
 var (
 	sampleResult = calculations.NewResult(1, "testMetric,", prometheus.Labels{"networkID": "testNetwork", "label1": "labelValue"})
 
-	noNetworkResult = calculations.NewResult(1, "testMetric", prometheus.Labels{},
-	)
+	noNetworkResult = calculations.NewResult(1, "testMetric", prometheus.Labels{})
 
 	testExporter = &wwwExporter{
 		metricsPrefix:   metricsPrefix,

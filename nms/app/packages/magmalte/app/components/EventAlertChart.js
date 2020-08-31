@@ -209,7 +209,7 @@ export default function EventAlertChart(props: Props) {
             delta={delta}
             unit={unit}
             dataset={[eventDataset, alertDataset]}
-            yLabel={'count'}
+            yLabel={'Count'}
           />
         }
       />

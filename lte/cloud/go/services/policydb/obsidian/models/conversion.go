@@ -17,6 +17,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"strings"
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/protos"
@@ -122,12 +123,10 @@ func (m RuleNames) ToTKs() storage.TKs {
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	ent := configurator.NetworkEntity{
-		Type:   lte.PolicyRuleEntityType,
-		Key:    string(m.ID),
-		Config: m.getConfig(),
-	}
-	if m.QosProfile != "" {
-		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.PolicyQoSProfileEntityType, Key: m.QosProfile})
+		Type:         lte.PolicyRuleEntityType,
+		Key:          string(m.ID),
+		Config:       m.getConfig(),
+		Associations: m.GetAssocs(),
 	}
 	return ent
 }
@@ -227,6 +226,13 @@ func (m PolicyIdsByApn) ToEntities(subscriberID string) []configurator.NetworkEn
 		ents = append(ents, ent)
 	}
 	return ents
+}
+
+func GetAPN(apnPolicyProfileKey string) (string, error) {
+	if !strings.Contains(apnPolicyProfileKey, magicNamespaceSeparator) {
+		return "", errors.New("incorrectly formatted APNPolicyProfile key")
+	}
+	return strings.Split(apnPolicyProfileKey, magicNamespaceSeparator)[1], nil
 }
 
 func makeAPNPolicyKey(subscriberID, apnName string) string {

@@ -14,6 +14,7 @@ limitations under the License.
 import ipaddress
 import unittest
 import logging
+from typing import Optional
 
 from lte.protos.subscriberdb_pb2 import (
     LTESubscription,
@@ -44,7 +45,8 @@ class MockedSubscriberDBStub:
         return cls.subs.get(str(sid), None)
 
     @classmethod
-    def add_sub(cls, sid: str, apn: str, ip: str, vlan: str = None):
+    def add_sub(cls, sid: str, apn: str, ip: str, vlan: str = None,
+                gw_ip=None, gw_mac=None):
         sub_db_sid = SIDUtils.to_pb(sid)
         lte = LTESubscription()
         lte.state = LTESubscription.ACTIVE
@@ -54,7 +56,7 @@ class MockedSubscriberDBStub:
         subs_data = SubscriberData(sid=sub_db_sid, lte=lte, state=state, non_3gpp=non_3gpp)
 
         cls.subs[str(sub_db_sid)] = subs_data
-        cls.add_sub_ip(sid, apn, ip, vlan)
+        cls.add_sub_ip(sid, apn, ip, vlan, gw_ip, gw_mac)
 
     @classmethod
     def add_incomplete_sub(cls, sid: str):
@@ -67,7 +69,8 @@ class MockedSubscriberDBStub:
         cls.subs[str(sub_db_sid)] = subs_data
 
     @classmethod
-    def add_sub_ip(cls, sid: str, apn: str, ip: str, vlan: str = None):
+    def add_sub_ip(cls, sid: str, apn: str, ip: str, vlan: str = None,
+                   gw_ip=None, gw_mac=None):
         sub_db_sid = SIDUtils.to_pb(sid)
         apn_config = APNConfiguration()
         apn_config.context_id = 1
@@ -76,6 +79,10 @@ class MockedSubscriberDBStub:
             apn_config.assigned_static_ip = ip
         if vlan:
             apn_config.resource.vlan_id = int(vlan)
+        if gw_ip:
+            apn_config.resource.gateway_ip = gw_ip
+        if gw_mac:
+            apn_config.resource.gateway_mac = gw_mac
 
         subs_data = cls.subs[str(sub_db_sid)]
         subs_data.non_3gpp.apn_config.extend([apn_config])
@@ -126,6 +133,12 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         logging.info("type ip_desc.vlan_id %s vlan %s", type(ip_desc.vlan_id), type(vlan))
         self.assertEqual(ip_desc.vlan_id, vlan)
 
+    def check_gw_info(self, vlan: Optional[int], gw_ip: str, gw_mac: Optional[str]):
+        gw_info_ip = self._allocator._dhcp_gw_info.get_gw_ip(vlan)
+        self.assertEqual(gw_info_ip, gw_ip)
+        gw_info_mac = self._allocator._dhcp_gw_info.get_gw_mac(vlan)
+        self.assertEqual(gw_info_mac, gw_mac)
+
     def test_get_ip_vlan_for_subscriber(self):
         """ test get_ip_for_sid without any assignment """
         sid = 'IMSI11'
@@ -154,6 +167,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip0, ipaddress.ip_address(assigned_ip))
         self.check_type(sid, IPType.STATIC)
         self.check_vlan(sid, vlan)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_different_apn(self):
         """ test get_ip_for_sid with different APN assigned ip"""
@@ -172,6 +186,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertNotEqual(ip0, ipaddress.ip_address(assigned_ip))
         self.check_type(sid, IPType.IP_POOL)
         self.check_vlan(sid, 0)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_wildcard_apn(self):
         """ test wildcard apn"""
@@ -191,6 +206,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip0, ipaddress.ip_address(assigned_ip))
         self.check_type(sid, IPType.STATIC)
         self.check_vlan(sid, vlan)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_wildcard_and_exact_apn(self):
         """ test IP assignement from multiple  APNs"""
@@ -214,6 +230,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip0, ipaddress.ip_address(assigned_ip))
         self.check_type(sid, IPType.STATIC)
         self.check_vlan(sid, vlan)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_invalid_ip(self):
         """ test invalid data from DB """
@@ -233,6 +250,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertNotEqual(str(ip0), assigned_ip)
         self.check_type(sid, IPType.IP_POOL)
         self.check_vlan(sid, 0)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_multi_apn_but_no_match(self):
         """ test IP assignment from multiple  APNs"""
@@ -254,6 +272,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertNotEqual(ip0, ipaddress.ip_address(assigned_ip))
         self.check_type(sid, IPType.IP_POOL)
         self.check_vlan(sid, 0)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_incomplete_sub(self):
         """ test IP assignment from subscriber without non_3gpp config"""
@@ -287,6 +306,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip0, ipaddress.ip_address(assigned_ip))
         self.check_type(sid, IPType.STATIC)
         self.check_vlan(sid, vlan)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_apn_dot(self):
         """ test get_ip_for_sid with static IP """
@@ -306,6 +326,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip0, ipaddress.ip_address(assigned_ip))
         self.check_type(sid, IPType.STATIC)
         self.check_vlan(sid, vlan)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_wildcard_and_no_exact_apn(self):
         """ test IP assignement from multiple  APNs"""
@@ -329,6 +350,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip0, ipaddress.ip_address(wild_assigned_ip))
         self.check_type(sid, IPType.STATIC)
         self.check_vlan(sid, vlan_wild)
+        self.check_gw_info(vlan, None, None)
 
     def test_get_ip_vlan_for_subscriber_with_wildcard_and_exact_apn_no_ip(self):
         """ test IP assignement from multiple  APNs"""
@@ -351,4 +373,5 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip0, ipaddress.ip_address(wild_assigned_ip))
         self.check_type(sid, IPType.STATIC)
         self.check_vlan(sid, vlan_wild)
+        self.check_gw_info(vlan, None, None)
 

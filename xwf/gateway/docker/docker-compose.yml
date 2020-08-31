@@ -94,3 +94,9 @@ services:
       - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
     command: >
       /bin/sh -c "./docker-entrypoint.sh"
+
+  radiusd:
+    <<: *service
+    image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
+    container_name: radiusd
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0

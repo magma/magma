@@ -293,7 +293,8 @@ export default function GatewayLogs() {
             columns={LOG_COLUMNS}
             options={{
               actionsColumnIndex: -1,
-              pageSizeOptions: [5, 10],
+              pageSize: 10,
+              pageSizeOptions: [10, 20],
             }}
           />
         </Grid>
