@@ -621,6 +621,13 @@ class SessionState {
   bool policy_has_qos(
       const PolicyType policy_type, const std::string& rule_id,
       PolicyRule* rule_out);
+
+  /**
+   * Increments data usage values for session
+   * @param bytes_tx
+   * @param bytes_rx
+   */
+  void update_data_usage_metrics(uint64_t bytes_tx, uint64_t bytes_rx);
 };
 
 }  // namespace magma
