@@ -56,6 +56,7 @@ setup(
         'scripts/show_gateway_info.py',
     ],
     install_requires=[
+        'setuptools==49.6.0',
         'Cython>=0.29.1',
         'pystemd==0.5.0',
         'docker>=4.0.2',
