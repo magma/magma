@@ -49,7 +49,9 @@ class IPDesc:
         self.state = state
         self.sid = sid
         self.type = ip_type
-        self.vlan_id = vlan_id
+        self.vlan_id = 0
+        if 0 < vlan_id < 4096:
+            self.vlan_id = vlan_id
 
     def __str__(self):
         as_str = '<mobilityd.IPDesc ' + \
