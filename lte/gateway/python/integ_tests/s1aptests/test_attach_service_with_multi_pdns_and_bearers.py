@@ -159,7 +159,7 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         req.ue_Id = ue_id
         req.ueMtmsi = s1ap_types.ueMtmsi_t()
         req.ueMtmsi.pres = False
-        req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
+        req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_SIGNALLING.value
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
         )
