@@ -53,9 +53,7 @@ require (
 	github.com/shirou/gopsutil v2.20.3+incompatible
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
 	github.com/stretchr/testify v1.5.1
-	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
-	golang.org/x/net v0.0.0-20200520004742-59133d7f0dd7
-	golang.org/x/sys v0.0.0-20200722175500-76b94024e4b6 // indirect
+	golang.org/x/net v0.0.0-20200625001655-4c5254603344
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.27.1
 	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect

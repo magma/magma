@@ -394,10 +394,11 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
         shell_env_vars["TESTS"] = test_re
 
     # QOS take a while to run. Increasing the timeout to 20m
-    go_test_cmd = "go test -v -test.short -timeout 20m"
-    go_test_cmd += " -tags " + tests_to_run.value
+    go_test_cmd = "gotestsum --format=standard-verbose --"
+    go_test_cmd += " -test.short -timeout 20m" # go test args
+    go_test_cmd += " -tags=" + tests_to_run.value
     if test_re:
-        go_test_cmd += " -run " + test_re
+        go_test_cmd += " -run=" + test_re
 
     with cd(CWAG_INTEG_ROOT), shell_env(**shell_env_vars):
         result = run(go_test_cmd, warn_only=True)
