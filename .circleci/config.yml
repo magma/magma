@@ -579,28 +579,55 @@ jobs:
     environment:
       - MAGMA_ROOT=/home/circleci/project
       - PYTHON_BUILD=${MAGMA_ROOT}/build
+      - C_BUILD=${MAGMA_ROOT}/build
       - PIP_CACHE_HOME=${MAGMA_ROOT}/.pipcache
       - MAGMA_DEV_MODE=1
       - SKIP_SUDO_TESTS=1
+      - BUILD_TYPE=DEBUG
       - CODEGEN_ROOT=/home/circleci/project/.codegen
       - SWAGGER_CODEGEN_JAR=/home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
-      - run: sudo apt-get update -y
-      - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
-      - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
       - run:
           command: |
+            sudo echo "deb http://mirrors.kernel.org/ubuntu bionic main universe" | sudo tee -a /etc/apt/sources.list
+            sudo echo "deb http://packages.magma.etagecom.io stretch-stable main" | sudo tee -a /etc/apt/sources.list
+            sudo echo "deb http://packages.magma.etagecom.io magma-custom main" | sudo tee -a /etc/apt/sources.list
+      - run: sudo apt-key adv --fetch-keys http://packages.magma.etagecom.io/pubkey.gpg
+      - run: sudo apt-get update -y
+      - run: sudo apt-get install -y libsystemd-dev pkg-config libcurl4 curl zip unzip
+      # for python tests
+      - run: sudo apt-get install -y python3-dev virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      # for c++ common
+      - run:
+          command: |
+            sudo apt-get install -y cmake ninja-build protobuf-compiler \
+            libprotobuf-c-dev libyaml-cpp-dev libprotoc-dev libprotobuf-dev \
+            grpc-dev prometheus-cpp-dev magma-cpp-redis libgoogle-glog-dev
+      # for SessionD/MME
+      - run:
+          command: |
+            sudo apt-get install -y liblfds710 libfolly-dev libdouble-conversion-dev \
+            libboost-chrono-dev libboost-context-dev libboost-program-options-dev \
+            libboost-filesystem-dev libboost-regex-dev libevent-dev \
+            nlohmann-json-dev libgtest-dev google-mock libconfig-dev \
+            oai-nettle oai-gnutls libxml2-dev
+      - run:
+          command: |
+            sudo rm -rf /usr/include/google
             sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
             sudo unzip protoc3.zip -d protoc3
-            sudo mv protoc3/bin/protoc /bin/protoc
-            sudo chmod a+rx /bin/protoc
+            sudo mv protoc3/bin/protoc /usr/bin/protoc
+            sudo chmod a+rx /usr/bin/protoc
             sudo mv protoc3/include/google /usr/include/
             sudo chmod -R a+Xr /usr/include/google
             sudo rm -rf protoc3.zip protoc3
             mkdir ${CODEGEN_ROOT}
+            sudo mkdir -p ${C_BUILD}/magma_common
             wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
-            make -C $MAGMA_ROOT/lte/gateway/python test_all
+            make -C $MAGMA_ROOT/lte/gateway build_common
+            make -C $MAGMA_ROOT/lte/gateway build_session_manager
+            make -C $MAGMA_ROOT/lte/gateway build_oai
       - magma_slack_notify
 
   lte-integ-test:

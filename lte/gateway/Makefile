@@ -67,7 +67,7 @@ all: build
 
 build: build_python build_common build_oai build_sctpd build_session_manager ## Build all
 
-test: test_python test_oai test_session_manager ## Run all tests
+test: test_oai test_session_manager ## Run all tests
 
 clean: clean_python  ## Clean all builds
 	rm -rf $(C_BUILD)
