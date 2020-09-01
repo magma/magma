@@ -20,6 +20,7 @@
 #include "ServiceRegistrySingleton.h"
 #include "SessionReporter.h"
 #include "MagmaService.h"
+#include "Matchers.h"
 #include "SessiondMocks.h"
 
 using grpc::Status;
@@ -85,13 +86,9 @@ class SessionReporterTest : public ::testing::Test {
   MockCallback mock_callback;
 };
 
-MATCHER_P(CheckCreateResponseRuleSize, size, "") {
-  return arg.static_rules_size() == size;
-}
-
 // Test requests on single thread
 TEST_F(SessionReporterTest, test_single_call) {
-  EXPECT_CALL(mock_callback, create_callback(_, CheckCreateResponseRuleSize(1)))
+  EXPECT_CALL(mock_callback, create_callback(_, CheckStaticRuleSize(1)))
       .Times(1);
   // add rule id for verification
   CreateSessionResponse response;

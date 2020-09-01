@@ -17,6 +17,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include "Consts.h"
 #include "LocalEnforcer.h"
 #include "MagmaService.h"
 #include "Matchers.h"
@@ -45,11 +46,9 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     })
         .detach();
 
-    imsi              = "IMSI1";
-    imsi2             = "IMSI2";
-    sid               = id_gen_.gen_session_id(imsi);
-    sid2              = id_gen_.gen_session_id(imsi2);
-    sid3              = id_gen_.gen_session_id(imsi2);
+    sid               = id_gen_.gen_session_id(IMSI1);
+    sid2              = id_gen_.gen_session_id(IMSI2);
+    sid3              = id_gen_.gen_session_id(IMSI2);
     monitoring_key    = "mk1";
     monitoring_key2   = "mk2";
     rule_id_1         = "test_rule_1";
@@ -82,20 +81,15 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   std::unique_ptr<SessionState> get_session(
       std::string session_id, std::shared_ptr<StaticRuleStore> rule_store) {
     std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-    std::string msisdn              = "5100001234";
-    std::string radius_session_id =
-        "AA-AA-AA-AA-AA-AA:TESTAP__"
-        "0F-10-2E-12-3A-55";
-    std::string mac_addr        = "0f:10:2e:12:3a:55";
     SessionConfig cfg;
     cfg.common_context =
-        build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_WLAN);
-    const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+        build_common_context("", IP2, "APN", MSISDN, TGPP_WLAN);
+    const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context = TgppContext{};
     auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
+        IMSI1, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
   }
 
   UsageMonitoringUpdateResponse* get_monitoring_update() {
@@ -133,7 +127,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   PolicyReAuthRequest* get_policy_reauth_request() {
     auto request = new PolicyReAuthRequest();
     request->set_session_id("");
-    request->set_imsi("IMSI1");
+    request->set_imsi(IMSI1);
 
     auto static_rule = new StaticRuleInstall();
     static_rule->set_rule_id("static_1");
@@ -148,8 +142,6 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   }
 
  protected:
-  std::string imsi;
-  std::string imsi2;
   std::string sid;
   std::string sid2;
   std::string sid3;
@@ -202,17 +194,17 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   EXPECT_EQ(sessions.size(), 0);
   sessions.push_back(std::move(session));
   EXPECT_EQ(sessions.size(), 1);
-  session_store->create_sessions(imsi, std::move(sessions));
+  session_store->create_sessions(IMSI1, std::move(sessions));
 
   // Just verify some things about the session before doing PolicyReAuth
   SessionRead read_req = {};
-  read_req.insert(imsi);
+  read_req.insert(IMSI1);
   auto session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
   EXPECT_EQ(
-      session_map[imsi].front()->is_static_rule_installed("static_1"), false);
+      session_map[IMSI1].front()->is_static_rule_installed("static_1"), false);
 
   // 4) Now call PolicyReAuth
   //    This is done with a duplicate install of rule_id_3. This checks that
@@ -225,7 +217,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   grpc::ServerContext create_context;
   EXPECT_CALL(
       *pipelined_client,
-      activate_flows_for_rules(imsi, _, _, CheckCount(1), _, _))
+      activate_flows_for_rules(IMSI1, _, _, CheckCount(1), _, _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, request,
@@ -241,10 +233,10 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   //    installed.
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
   EXPECT_EQ(
-      session_map[imsi].front()->is_static_rule_installed("static_1"), true);
+      session_map[IMSI1].front()->is_static_rule_installed("static_1"), true);
 }
 
 int main(int argc, char** argv) {

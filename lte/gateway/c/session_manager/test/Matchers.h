@@ -28,6 +28,50 @@ MATCHER_P(CheckCount, count, "") {
   return arg_count == count;
 }
 
+MATCHER_P(CheckCreateSession, imsi, "") {
+  auto req = static_cast<const CreateSessionRequest*>(arg);
+  return req->common_context().sid().id() == imsi;
+}
+
+MATCHER_P(CheckStaticRuleSize, size, "") {
+  return arg.static_rules_size() == size;
+}
+
+MATCHER_P(CheckUpdateSessionRequestNumber, request_number, "") {
+  auto request = static_cast<const UpdateSessionRequest&>(arg);
+  for (const auto& credit_usage_update : request.updates()) {
+    int req_number = credit_usage_update.request_number();
+    return req_number == request_number;
+  }
+  return false;
+}
+
+MATCHER_P(CheckSingleUpdateSession, expected_update, "") {
+  auto request = static_cast<const UpdateSessionRequest*>(arg);
+  if (request->updates_size() != 1) {
+    return false;
+  }
+
+  auto& update = request->updates(0);
+  bool val =
+      update.usage().type() == expected_update.usage().type() &&
+      update.usage().bytes_tx() == expected_update.usage().bytes_tx() &&
+      update.usage().bytes_rx() == expected_update.usage().bytes_rx() &&
+      update.sid() == expected_update.sid() &&
+      update.usage().charging_key() == expected_update.usage().charging_key();
+  return val;
+}
+
+MATCHER_P(CheckTerminateImsi, imsi, "") {
+  auto request = static_cast<const SessionTerminateRequest*>(arg);
+  return request->sid() == imsi;
+}
+
+MATCHER_P(CheckDeactivateFlows, imsi, "") {
+  auto request = static_cast<const DeactivateFlowsRequest*>(arg);
+  return request->sid().id() == imsi;
+}
+
 MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
   auto req = static_cast<const UpdateSessionRequest>(arg);
   return req.updates().size() == chargingCount &&
@@ -43,6 +87,20 @@ MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
 MATCHER_P2(CheckActivateFlows, imsi, rule_count, "") {
   auto request = static_cast<const ActivateFlowsRequest*>(arg);
   return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
+}
+
+MATCHER_P2(CheckQuotaUpdateState, size, expected_states, "") {
+  auto updates     = static_cast<const std::vector<SubscriberQuotaUpdate>>(arg);
+  int updates_size = updates.size();
+  if (updates_size != size) {
+    return false;
+  }
+  for (int i = 0; i < updates_size; i++) {
+    if (updates[i].update_type() != expected_states[i]) {
+      return false;
+    }
+  }
+  return true;
 }
 
 MATCHER_P5(

@@ -18,6 +18,7 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include "Consts.h"
 #include "MagmaService.h"
 #include "ServiceRegistrySingleton.h"
 #include "SessiondMocks.h"
@@ -74,7 +75,7 @@ class AsyncServiceTest : public ::testing::Test {
     grpc::ClientContext create_context;
     LocalCreateSessionResponse create_resp;
     LocalCreateSessionRequest request;
-    request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
+    request.mutable_common_context()->mutable_sid()->set_id(IMSI1);
     auto status = stub->CreateSession(&create_context, request, &create_resp);
     EXPECT_TRUE(status.ok());
   }
@@ -83,7 +84,7 @@ class AsyncServiceTest : public ::testing::Test {
     grpc::ClientContext end_context;
     LocalEndSessionResponse end_resp;
     LocalEndSessionRequest request;
-    request.mutable_sid()->set_id("IMSI1");
+    request.mutable_sid()->set_id(IMSI1);
     auto status = stub->EndSession(&end_context, request, &end_resp);
     EXPECT_TRUE(status.ok());
   }

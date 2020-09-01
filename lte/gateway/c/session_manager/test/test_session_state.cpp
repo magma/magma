@@ -17,6 +17,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include "Consts.h"
 #include "ProtobufCreators.h"
 #include "SessionState.h"
 #include "SessiondMocks.h"
@@ -654,7 +655,7 @@ TEST_F(SessionStateTest, test_final_credit_install) {
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   CreditUpdateResponse charge_resp;
   charge_resp.set_success(true);
-  charge_resp.set_sid("IMSI1");
+  charge_resp.set_sid(IMSI1);
   charge_resp.set_charging_key(1);
 
   bool is_final = true;
@@ -685,7 +686,7 @@ TEST_F(SessionStateTest, test_empty_credit_grant) {
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   CreditUpdateResponse charge_resp;
   charge_resp.set_success(true);
-  charge_resp.set_sid("IMSI1");
+  charge_resp.set_sid(IMSI1);
   charge_resp.set_charging_key(1);
 
   // A ChargingCredit with no GSU but FinalAction
@@ -827,10 +828,10 @@ TEST_F(SessionStateTest, test_apply_session_rule_set) {
       rules_to_apply, to_activate, to_deactivate, uc);
 
   // First check the active rules in session
-  EXPECT_TRUE(!session_state->is_static_rule_installed("rule-static-1"));
+  EXPECT_FALSE(session_state->is_static_rule_installed("rule-static-1"));
   EXPECT_TRUE(session_state->is_static_rule_installed("rule-static-2"));
   EXPECT_TRUE(session_state->is_static_rule_installed("rule-static-3"));
-  EXPECT_TRUE(!session_state->is_dynamic_rule_installed("rule-dynamic-1"));
+  EXPECT_FALSE(session_state->is_dynamic_rule_installed("rule-dynamic-1"));
   EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-2"));
   EXPECT_TRUE(session_state->is_dynamic_rule_installed("rule-dynamic-3"));
 

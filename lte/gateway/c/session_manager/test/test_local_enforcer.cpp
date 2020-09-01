@@ -20,6 +20,7 @@
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
+#include "Consts.h"
 #include "LocalEnforcer.h"
 #include "Matchers.h"
 #include "MagmaService.h"
@@ -29,18 +30,11 @@
 #include "SessiondMocks.h"
 #include "magma_logging.h"
 
-#define SECONDS_A_DAY 86400
-
 using grpc::ServerContext;
 using grpc::Status;
 using ::testing::Test;
 
 namespace magma {
-const std::string imsi1 = "IMSI1";
-const std::string imsi2 = "IMSI2";
-const std::string session_id1 = "IMSI1-SessionID";
-const std::string session_id2 = "IMSI2-SessionID";
-
 class LocalEnforcerTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
@@ -67,12 +61,12 @@ class LocalEnforcerTest : public ::testing::Test {
 
   void initialize_lte_test_config() {
     test_cfg_.common_context =
-        build_common_context("", "127.0.0.1", "IMS", "", TGPP_LTE);
+        build_common_context("", IP1, "IMS", "", TGPP_LTE);
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
     const auto& lte_context =
-        build_lte_context("128.0.0.1", "", "", "", "", 0, &qos_info);
+        build_lte_context(IP2, "", "", "", "", 0, &qos_info);
     test_cfg_.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
   }
 
@@ -156,10 +150,10 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
 
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
-  create_credit_update_response(imsi1, 1, 1024, credits->Add());
+  create_credit_update_response(IMSI1, 1, 1024, credits->Add());
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
-                             imsi1, testing::_, testing::_, CheckCount(0),
+                             IMSI1, testing::_, testing::_, CheckCount(0),
                              CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
@@ -173,16 +167,14 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
       .WillOnce(testing::Return(true));
 
   SessionConfig test_cwf_cfg;
-  const auto& mac_addr          = "00:00:00:00:00:00";
-  const auto& radius_session_id = "1234567";
-  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cwf_cfg, response);
+      session_map, IMSI1, SESSION_ID_1, test_cwf_cfg, response);
 
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 1024}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 1024}});
 }
 
 TEST_F(LocalEnforcerTest, test_init_infinite_metered_credit) {
@@ -190,7 +182,7 @@ TEST_F(LocalEnforcerTest, test_init_infinite_metered_credit) {
 
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
-  create_credit_update_response(imsi1, 1, INFINITE_METERED, credits->Add());
+  create_credit_update_response(IMSI1, 1, INFINITE_METERED, credits->Add());
 
   StaticRuleInstall rule1;
   rule1.set_rule_id("rule1");
@@ -205,9 +197,9 @@ TEST_F(LocalEnforcerTest, test_init_infinite_metered_credit) {
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 0}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 0}});
 }
 
 TEST_F(LocalEnforcerTest, test_init_no_credit) {
@@ -215,7 +207,7 @@ TEST_F(LocalEnforcerTest, test_init_no_credit) {
 
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
-  create_credit_update_response(imsi1, 1, FINITE, credits->Add());
+  create_credit_update_response(IMSI1, 1, FINITE, credits->Add());
 
   StaticRuleInstall rule1;
   rule1.set_rule_id("rule1");
@@ -230,9 +222,9 @@ TEST_F(LocalEnforcerTest, test_init_no_credit) {
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 0}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 0}});
 }
 
 TEST_F(LocalEnforcerTest, test_init_session_credit) {
@@ -240,7 +232,7 @@ TEST_F(LocalEnforcerTest, test_init_session_credit) {
 
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
-  create_credit_update_response(imsi1, 1, 1024, credits->Add());
+  create_credit_update_response(IMSI1, 1, 1024, credits->Add());
 
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
@@ -249,108 +241,108 @@ TEST_F(LocalEnforcerTest, test_init_session_credit) {
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 1024}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 1024}});
 }
 
 TEST_F(LocalEnforcerTest, test_single_record) {
   // insert initial session credit
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   insert_static_rule(1, "", "rule1");
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 16, 32, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 16, 32, record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
-  assert_charging_credit(session_map, imsi1, session_id1, USED_RX, {{1, 16}});
-  assert_charging_credit(session_map, imsi1, session_id1, USED_TX, {{1, 32}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 16}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 32}});
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 1024}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 1024}});
 
   EXPECT_EQ(update.size(), 1);
-  EXPECT_EQ(update[imsi1][session_id1].charging_credit_map.size(), 1);
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 1);
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[1].bucket_deltas[USED_RX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_RX],
       16);
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[1].bucket_deltas[USED_TX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_TX],
       32);
 }
 
 TEST_F(LocalEnforcerTest, test_aggregate_records) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   create_credit_update_response(
-      imsi1, 2, 1024, response.mutable_credits()->Add());
+      IMSI1, 2, 1024, response.mutable_credits()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule2");
   insert_static_rule(2, "", "rule3");
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 10, 20, record_list->Add());
-  create_rule_record(imsi1, "rule2", 5, 15, record_list->Add());
-  create_rule_record(imsi1, "rule3", 100, 150, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 5, 15, record_list->Add());
+  create_rule_record(IMSI1, "rule3", 100, 150, record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
   assert_charging_credit(
-      session_map, imsi1, session_id1, USED_RX, {{1, 15}, {2, 100}});
+      session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 15}, {2, 100}});
   assert_charging_credit(
-      session_map, imsi1, session_id1, USED_TX, {{1, 35}, {2, 150}});
+      session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 35}, {2, 150}});
 
-  EXPECT_EQ(update[imsi1][session_id1].charging_credit_map.size(), 2);
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 2);
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[1].bucket_deltas[USED_RX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_RX],
       15);
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[1].bucket_deltas[USED_TX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_TX],
       35);
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[2].bucket_deltas[USED_RX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[2].bucket_deltas[USED_RX],
       100);
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[2].bucket_deltas[USED_TX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[2].bucket_deltas[USED_TX],
       150);
 }
 
 TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   create_credit_update_response(
-      imsi1, 2, 1024, response.mutable_credits()->Add());
+      IMSI1, 2, 1024, response.mutable_credits()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule2");
   insert_static_rule(2, "", "rule3");
 
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->terminate_session(session_map, imsi1, "IMS", update);
+  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 10, 20, record_list->Add());
-  create_rule_record(imsi1, "rule2", 5, 15, record_list->Add());
-  create_rule_record(imsi1, "rule3", 100, 150, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 5, 15, record_list->Add());
+  create_rule_record(IMSI1, "rule3", 100, 150, record_list->Add());
 
   EXPECT_CALL(
       *reporter,
-      report_terminate_session(CheckTerminateRequestCount(imsi1, 0, 2), _))
+      report_terminate_session(CheckTerminateRequestCount(IMSI1, 0, 2), _))
       .Times(1);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -361,9 +353,9 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
 TEST_F(LocalEnforcerTest, test_collect_updates) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 3072, response.mutable_credits()->Add());
+      IMSI1, 1, 3072, response.mutable_credits()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   insert_static_rule(1, "", "rule1");
 
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -375,7 +367,7 @@ TEST_F(LocalEnforcerTest, test_collect_updates) {
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
 
   local_enforcer->aggregate_records(session_map, table, update);
   actions.clear();
@@ -384,18 +376,18 @@ TEST_F(LocalEnforcerTest, test_collect_updates) {
   local_enforcer->execute_actions(session_map, actions, update);
   EXPECT_EQ(session_update.updates_size(), 1);
   assert_charging_credit(
-      session_map, imsi1, session_id1, REPORTING_RX, {{1, 1024}});
+      session_map, IMSI1, SESSION_ID_1, REPORTING_RX, {{1, 1024}});
   assert_charging_credit(
-      session_map, imsi1, session_id1, REPORTING_TX, {{1, 2048}});
-  EXPECT_EQ(update[imsi1][session_id1].charging_credit_map.size(), 1);
+      session_map, IMSI1, SESSION_ID_1, REPORTING_TX, {{1, 2048}});
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 1);
   // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
   EXPECT_EQ(
-      update[imsi1][session_id1]
+      update[IMSI1][SESSION_ID_1]
           .charging_credit_map[1]
           .bucket_deltas[REPORTING_RX],
       0);
   EXPECT_EQ(
-      update[imsi1][session_id1]
+      update[IMSI1][SESSION_ID_1]
           .charging_credit_map[1]
           .bucket_deltas[REPORTING_TX],
       0);
@@ -406,38 +398,38 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules) {
 
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
-  create_credit_update_response(imsi1, 1, 2048, credits->Add());
+  create_credit_update_response(IMSI1, 1, 2048, credits->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 2048}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 2048}});
 
   insert_static_rule(1, "1", "rule1");
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 1024, 1024, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 1024, 1024, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+  session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
 
   UpdateSessionResponse update_response;
   auto credit_updates_response = update_response.mutable_responses();
-  create_credit_update_response(imsi1, 1, 24, credit_updates_response->Add());
+  create_credit_update_response(IMSI1, 1, 24, credit_updates_response->Add());
 
   auto monitor_updates_response =
       update_response.mutable_usage_monitor_responses();
   create_monitor_update_response(
-      imsi1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048,
+      IMSI1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048,
       monitor_updates_response->Add());
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
 
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 2072}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 2072}});
 }
 
 TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
@@ -451,29 +443,29 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
 
   auto monitor_updates = response.mutable_usage_monitors();
   create_monitor_update_response(
-      imsi1, "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
+      IMSI1, "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
       monitor_updates->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   assert_monitor_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{"1", 1024}});
-  assert_charging_credit(session_map, imsi1, session_id1, ALLOWED_TOTAL, {});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{"1", 1024}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {});
 
   // receive usages from pipelined
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 10, 20, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
-  assert_monitor_credit(session_map, imsi1, session_id1, USED_RX, {{"1", 10}});
-  assert_monitor_credit(session_map, imsi1, session_id1, USED_TX, {{"1", 20}});
+  assert_monitor_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{"1", 10}});
+  assert_monitor_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{"1", 20}});
 
   UpdateSessionResponse update_response;
   auto monitor_updates_responses =
       update_response.mutable_usage_monitor_responses();
   auto monitor_response = monitor_updates_responses->Add();
   create_monitor_update_response(
-      imsi1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048, monitor_response);
+      IMSI1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048, monitor_response);
   monitor_response->set_success(false);
   monitor_response->set_result_code(5001);  // USER_UNKNOWN permanent failure
 
@@ -481,7 +473,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          imsi1, std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
+          IMSI1, std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(
@@ -489,38 +481,38 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
 
   // expect no update to credit
   assert_monitor_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{"1", 1024}});
-  assert_charging_credit(session_map, imsi1, session_id1, ALLOWED_TOTAL, {});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{"1", 1024}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {});
 }
 
 TEST_F(LocalEnforcerTest, test_terminate_credit) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   create_credit_update_response(
-      imsi1, 2, 2048, response.mutable_credits()->Add());
+      IMSI1, 2, 2048, response.mutable_credits()->Add());
   CreateSessionResponse response2;
   create_credit_update_response(
-      imsi2, 1, 4096, response2.mutable_credits()->Add());
+      IMSI2, 1, 4096, response2.mutable_credits()->Add());
 
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
-  session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
-  session_map = session_store->read_sessions(SessionRead{imsi2});
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
+  session_map = session_store->read_sessions(SessionRead{IMSI2});
   local_enforcer->init_session_credit(
-      session_map, imsi2, "4321", test_cfg_, response2);
-  session_store->create_sessions(imsi2, std::move(session_map[imsi2]));
+      session_map, IMSI2, "4321", test_cfg_, response2);
+  session_store->create_sessions(IMSI2, std::move(session_map[IMSI2]));
 
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   auto update = SessionStore::get_default_session_update(session_map);
 
   EXPECT_CALL(
       *reporter,
-      report_terminate_session(CheckTerminateRequestCount(imsi1, 0, 2), _))
+      report_terminate_session(CheckTerminateRequestCount(IMSI1, 0, 2), _))
       .Times(1);
   local_enforcer->terminate_session(
-      session_map, imsi1, test_cfg_.common_context.apn(), update);
+      session_map, IMSI1, test_cfg_.common_context.apn(), update);
 
   RuleRecordTable empty_table;
   local_enforcer->aggregate_records(session_map, empty_table, update);
@@ -530,28 +522,28 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
   EXPECT_TRUE(success);
 
   // No longer in system
-  session_map = session_store->read_sessions(SessionRead{imsi1});
-  EXPECT_EQ(session_map[imsi1].size(), 0);
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
+  EXPECT_EQ(session_map[IMSI1].size(), 0);
 }
 
 TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 3072, response.mutable_credits()->Add());
+      IMSI1, 1, 3072, response.mutable_credits()->Add());
   create_credit_update_response(
-      imsi1, 2, 2048, response.mutable_credits()->Add());
+      IMSI1, 2, 2048, response.mutable_credits()->Add());
   create_monitor_update_response(
-      imsi1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
+      IMSI1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
       response.mutable_usage_monitors()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   insert_static_rule(1, "", "rule1");
   insert_static_rule(2, "", "rule2");
 
   // Insert record for key 1
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -561,17 +553,17 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
       local_enforcer->collect_updates(session_map, actions, update);
   local_enforcer->execute_actions(session_map, actions, update);
   assert_charging_credit(
-      session_map, imsi1, session_id1, REPORTING_RX, {{1, 1024}});
+      session_map, IMSI1, SESSION_ID_1, REPORTING_RX, {{1, 1024}});
 
-  session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+  session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
 
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   // Collecting terminations should key 1 anyways during reporting
-  local_enforcer->terminate_session(session_map, imsi1, "IMS", update);
+  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
 
   EXPECT_CALL(
       *reporter,
-      report_terminate_session(CheckTerminateRequestCount(imsi1, 1, 2), _))
+      report_terminate_session(CheckTerminateRequestCount(IMSI1, 1, 2), _))
       .Times(1);
 
   RuleRecordTable empty_table;
@@ -582,24 +574,24 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
 TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, true, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, true, response.mutable_credits()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule2");
   insert_static_rule(1, "", "rule3");
   insert_static_rule(1, "", "rule4");
 
-  EXPECT_EQ(session_map[imsi1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
 
-  auto session_map_2 = session_store->read_sessions(SessionRead{imsi1});
+  auto session_map_2 = session_store->read_sessions(SessionRead{IMSI1});
   auto session_update =
       session_store->get_default_session_update(session_map_2);
-  EXPECT_EQ(session_map_2[imsi1].size(), 1);
+  EXPECT_EQ(session_map_2[IMSI1].size(), 1);
 
   RuleLifetime lifetime1 = {
       .activation_time   = std::time_t(0),
@@ -617,11 +609,11 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
       .activation_time   = std::time_t(15),
       .deactivation_time = std::time_t(20),
   };
-  auto& uc = session_update[imsi1][session_id1];
-  session_map_2[imsi1].front()->activate_static_rule("rule1", lifetime1, uc);
-  session_map_2[imsi1].front()->schedule_static_rule("rule2", lifetime2, uc);
-  session_map_2[imsi1].front()->schedule_static_rule("rule3", lifetime3, uc);
-  session_map_2[imsi1].front()->schedule_static_rule("rule4", lifetime4, uc);
+  auto& uc = session_update[IMSI1][SESSION_ID_1];
+  session_map_2[IMSI1].front()->activate_static_rule("rule1", lifetime1, uc);
+  session_map_2[IMSI1].front()->schedule_static_rule("rule2", lifetime2, uc);
+  session_map_2[IMSI1].front()->schedule_static_rule("rule3", lifetime3, uc);
+  session_map_2[IMSI1].front()->schedule_static_rule("rule4", lifetime4, uc);
 
   PolicyRule d1, d2, d3, d4;
   d1.set_id("dynamic_rule1");
@@ -629,10 +621,10 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
   d3.set_id("dynamic_rule3");
   d4.set_id("dynamic_rule4");
 
-  session_map_2[imsi1].front()->insert_dynamic_rule(d1, lifetime1, uc);
-  session_map_2[imsi1].front()->schedule_dynamic_rule(d2, lifetime2, uc);
-  session_map_2[imsi1].front()->schedule_dynamic_rule(d3, lifetime3, uc);
-  session_map_2[imsi1].front()->schedule_dynamic_rule(d4, lifetime4, uc);
+  session_map_2[IMSI1].front()->insert_dynamic_rule(d1, lifetime1, uc);
+  session_map_2[IMSI1].front()->schedule_dynamic_rule(d2, lifetime2, uc);
+  session_map_2[IMSI1].front()->schedule_dynamic_rule(d3, lifetime3, uc);
+  session_map_2[IMSI1].front()->schedule_dynamic_rule(d4, lifetime4, uc);
 
   EXPECT_EQ(uc.new_scheduled_static_rules.count("rule2"), 1);
   EXPECT_EQ(uc.new_scheduled_static_rules.count("rule3"), 1);
@@ -643,11 +635,11 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
 
   local_enforcer->sync_sessions_on_restart(std::time_t(12));
 
-  session_map_2  = session_store->read_sessions(SessionRead{imsi1});
+  session_map_2  = session_store->read_sessions(SessionRead{IMSI1});
   session_update = session_store->get_default_session_update(session_map_2);
-  EXPECT_EQ(session_map_2[imsi1].size(), 1);
+  EXPECT_EQ(session_map_2[IMSI1].size(), 1);
 
-  auto& session = session_map_2[imsi1].front();
+  auto& session = session_map_2[IMSI1].front();
   EXPECT_FALSE(session->is_static_rule_installed("rule1"));
   EXPECT_FALSE(session->is_static_rule_installed("rule2"));
   EXPECT_TRUE(session->is_static_rule_installed("rule3"));
@@ -664,9 +656,9 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   magma::lte::TgppContext tgpp_ctx;
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, true, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, true, response.mutable_credits()->Add());
   auto session_state =
-      new SessionState(imsi1, session_id1, test_cfg_, *rule_store, tgpp_ctx,
+      new SessionState(IMSI1, SESSION_ID_1, test_cfg_, *rule_store, tgpp_ctx,
 pdp_start_time);
 
   // manually place revalidation timer
@@ -678,13 +670,13 @@ pdp_start_time);
   time.set_seconds(0);
   session_state->set_revalidation_time(time, uc);
 
-  session_map[imsi1] = std::vector<std::unique_ptr<SessionState>>();
-  session_map[imsi1].push_back(
+  session_map[IMSI1] = std::vector<std::unique_ptr<SessionState>>();
+  session_map[IMSI1].push_back(
       std::move(std::unique_ptr<SessionState>(session_state)));
 
-  EXPECT_EQ(session_map[imsi1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
 
   local_enforcer->sync_sessions_on_restart(std::time_t(0));
@@ -693,10 +685,10 @@ pdp_start_time);
   evb->loopOnce();
   evb->loopOnce();
   // We expect that the event trigger will now be marked as ready to be acted on
-  auto session_map_2 = session_store->read_sessions(SessionRead{imsi1});
-  EXPECT_EQ(session_map_2[imsi1].size(), 1);
+  auto session_map_2 = session_store->read_sessions(SessionRead{IMSI1});
+  EXPECT_EQ(session_map_2[IMSI1].size(), 1);
 
-  auto& session = session_map_2[imsi1].front();
+  auto& session = session_map_2[IMSI1].front();
   auto events   = session->get_event_triggers();
   EXPECT_EQ(events[REVALIDATION_TIMEOUT], true);
 }
@@ -710,23 +702,23 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   insert_static_rule(0, "m1", "rule1");
 
   // Create a CreateSessionResponse with one Gx monitor:m1 and one rule:rule1
-  create_session_create_response(imsi1, "m1", rules_to_install, &response);
+  create_session_create_response(IMSI1, "m1", rules_to_install, &response);
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
-  EXPECT_EQ(session_map[imsi1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
 
-  auto session_map    = session_store->read_sessions(SessionRead{imsi1});
+  auto session_map    = session_store->read_sessions(SessionRead{IMSI1});
   auto session_update = session_store->get_default_session_update(session_map);
-  EXPECT_EQ(session_map[imsi1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
 
   // Update session to have SESSION_TERMINATION_SCHEDULED
-  auto& uc = session_update[imsi1][session_id1];
-  session_map[imsi1].front()->mark_as_awaiting_termination(uc);
+  auto& uc = session_update[IMSI1][SESSION_ID_1];
+  session_map[IMSI1].front()->mark_as_awaiting_termination(uc);
   EXPECT_EQ(uc.is_fsm_updated, true);
   EXPECT_EQ(uc.updated_fsm_state, SESSION_TERMINATION_SCHEDULED);
 
@@ -742,30 +734,30 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          imsi1, CheckCount(1), testing::_, RequestOriginType::GX));
+          IMSI1, CheckCount(1), testing::_, RequestOriginType::GX));
   evb->loopOnce();
 
   // At this point, the state should have transitioned from
   // SESSION_TERMINATION_SCHEDULED -> SESSION_TERMINATING_FLOW_ACTIVE
-  session_map            = session_store->read_sessions(SessionRead{imsi1});
-  auto updated_fsm_state = session_map[imsi1].front()->get_state();
+  session_map            = session_store->read_sessions(SessionRead{IMSI1});
+  auto updated_fsm_state = session_map[IMSI1].front()->get_state();
   EXPECT_EQ(updated_fsm_state, SESSION_RELEASED);
 }
 
 TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, true, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, true, response.mutable_credits()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule2");
 
   // Insert record for key 1
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 1024, 2048, record_list->Add());
-  create_rule_record(imsi1, "rule2", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -778,7 +770,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   // + FUA-Terminate), we expect MME to be notified to delete the bearer
   // created on session creation
   EXPECT_CALL(
-      *spgw_client, delete_default_bearer(imsi1, testing::_, testing::_));
+      *spgw_client, delete_default_bearer(IMSI1, testing::_, testing::_));
   // call collect_updates to trigger actions
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto usage_updates =
@@ -789,11 +781,11 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
 TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, true, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, true, response.mutable_credits()->Add());
   auto monitors = response.mutable_usage_monitors();
   auto monitor  = monitors->Add();
   create_monitor_update_response(
-      imsi1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor);
+      IMSI1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor);
   StaticRuleInstall static_rule_install;
   static_rule_install.set_rule_id("rule3");
   response.mutable_static_rules()->Add()->CopyFrom(static_rule_install);
@@ -801,23 +793,21 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   insert_static_rule(0, "m1", "rule3");
 
   SessionConfig test_cwf_cfg;
-  const auto& mac_addr          = "00:00:00:00:00:00";
-  const auto& radius_session_id = "1234567";
   test_cwf_cfg.common_context =
-      build_common_context(imsi1, "", "", "", TGPP_WLAN);
-  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+      build_common_context(IMSI1, "", "", "", TGPP_WLAN);
+  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cwf_cfg, response);
+      session_map, IMSI1, SESSION_ID_1, test_cwf_cfg, response);
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule2");
 
   // Insert record for key 1
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 1024, 2048, record_list->Add());
-  create_rule_record(imsi1, "rule2", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -846,52 +836,52 @@ TEST_F(LocalEnforcerTest, test_all) {
   // insert initial session credit
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   CreateSessionResponse response2;
   create_credit_update_response(
-      imsi2, 2, 2048, response2.mutable_credits()->Add());
+      IMSI2, 2, 2048, response2.mutable_credits()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi2, session_id2, test_cfg_, response2);
+      session_map, IMSI2, SESSION_ID_2, test_cfg_, response2);
 
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 1024}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 1024}});
   assert_charging_credit(
-      session_map, imsi2, session_id2, ALLOWED_TOTAL, {{2, 2048}});
+      session_map, IMSI2, SESSION_ID_2, ALLOWED_TOTAL, {{2, 2048}});
 
   // receive usages from pipelined
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 10, 20, record_list->Add());
-  create_rule_record(imsi1, "rule2", 5, 15, record_list->Add());
-  create_rule_record(imsi2, "rule3", 1024, 1024, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 5, 15, record_list->Add());
+  create_rule_record(IMSI2, "rule3", 1024, 1024, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  assert_charging_credit(session_map, imsi1, session_id1, USED_RX, {{1, 15}});
-  assert_charging_credit(session_map, imsi1, session_id1, USED_TX, {{1, 35}});
-  assert_charging_credit(session_map, imsi2, session_id2, USED_RX, {{2, 1024}});
-  assert_charging_credit(session_map, imsi2, session_id2, USED_TX, {{2, 1024}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 15}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 35}});
+  assert_charging_credit(session_map, IMSI2, SESSION_ID_2, USED_RX, {{2, 1024}});
+  assert_charging_credit(session_map, IMSI2, SESSION_ID_2, USED_TX, {{2, 1024}});
 
   EXPECT_EQ(update.size(), 2);
 
-  EXPECT_EQ(update[imsi1][session_id1].charging_credit_map.size(), 1);
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 1);
   // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[1].bucket_deltas[USED_RX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_RX],
       15);
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[1].bucket_deltas[USED_TX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_TX],
       35);
 
-  EXPECT_EQ(update[imsi2][session_id2].charging_credit_map.size(), 1);
+  EXPECT_EQ(update[IMSI2][SESSION_ID_2].charging_credit_map.size(), 1);
   // UpdateCriteria does not store REPORTING_RX / REPORTING_TX
   EXPECT_EQ(
-      update[imsi2][session_id2].charging_credit_map[2].bucket_deltas[USED_RX],
+      update[IMSI2][SESSION_ID_2].charging_credit_map[2].bucket_deltas[USED_RX],
       1024);
   EXPECT_EQ(
-      update[imsi2][session_id2].charging_credit_map[2].bucket_deltas[USED_TX],
+      update[IMSI2][SESSION_ID_2].charging_credit_map[2].bucket_deltas[USED_TX],
       1024);
 
   // Collect updates for reporting
@@ -902,49 +892,49 @@ TEST_F(LocalEnforcerTest, test_all) {
   EXPECT_EQ(session_update.updates_size(), 1);
 
   assert_charging_credit(
-      session_map, imsi2, session_id2, REPORTING_RX, {{2, 1024}});
+      session_map, IMSI2, SESSION_ID_2, REPORTING_RX, {{2, 1024}});
   assert_charging_credit(
-      session_map, imsi2, session_id2, REPORTING_TX, {{2, 1024}});
+      session_map, IMSI2, SESSION_ID_2, REPORTING_TX, {{2, 1024}});
   assert_charging_credit(
-      session_map, imsi2, session_id2, REPORTED_RX, {{2, 0}});
+      session_map, IMSI2, SESSION_ID_2, REPORTED_RX, {{2, 0}});
   assert_charging_credit(
-      session_map, imsi2, session_id2, REPORTED_TX, {{2, 0}});
+      session_map, IMSI2, SESSION_ID_2, REPORTED_TX, {{2, 0}});
 
   // Add updated credit from cloud
   UpdateSessionResponse update_response;
   auto updates = update_response.mutable_responses();
-  create_credit_update_response(imsi2, 2, 4096, updates->Add());
+  create_credit_update_response(IMSI2, 2, 4096, updates->Add());
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
 
   assert_charging_credit(
-      session_map, imsi2, session_id2, ALLOWED_TOTAL, {{2, 6144}});
+      session_map, IMSI2, SESSION_ID_2, ALLOWED_TOTAL, {{2, 6144}});
   assert_charging_credit(
-      session_map, imsi2, session_id2, REPORTING_RX, {{2, 0}});
+      session_map, IMSI2, SESSION_ID_2, REPORTING_RX, {{2, 0}});
   assert_charging_credit(
-      session_map, imsi2, session_id2, REPORTING_TX, {{2, 0}});
+      session_map, IMSI2, SESSION_ID_2, REPORTING_TX, {{2, 0}});
   assert_charging_credit(
-      session_map, imsi2, session_id2, REPORTED_RX, {{2, 1024}});
+      session_map, IMSI2, SESSION_ID_2, REPORTED_RX, {{2, 1024}});
   assert_charging_credit(
-      session_map, imsi2, session_id2, REPORTED_TX, {{2, 1024}});
+      session_map, IMSI2, SESSION_ID_2, REPORTED_TX, {{2, 1024}});
 
   EXPECT_EQ(
-      update[imsi2][session_id2]
+      update[IMSI2][SESSION_ID_2]
           .charging_credit_map[2]
           .bucket_deltas[REPORTED_TX],
       1024);
   EXPECT_EQ(
-      update[imsi2][session_id2]
+      update[IMSI2][SESSION_ID_2]
           .charging_credit_map[2]
           .bucket_deltas[REPORTED_RX],
       1024);
 
   // Terminate IMSI1
-  local_enforcer->terminate_session(session_map, imsi1, "IMS", update);
+  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
 
   EXPECT_CALL(
       *reporter,
-      report_terminate_session(CheckTerminateRequestCount(imsi1, 0, 1), _))
+      report_terminate_session(CheckTerminateRequestCount(IMSI1, 0, 1), _))
       .Times(1);
   run_evb();
 
@@ -956,11 +946,11 @@ TEST_F(LocalEnforcerTest, test_re_auth) {
   insert_static_rule(1, "", "rule1");
   CreateSessionResponse response;
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   ChargingReAuthRequest reauth;
-  reauth.set_sid(imsi1);
-  reauth.set_session_id(session_id1);
+  reauth.set_sid(IMSI1);
+  reauth.set_session_id(SESSION_ID_1);
   reauth.set_charging_key(1);
   reauth.set_type(ChargingReAuthRequest::SINGLE_SERVICE);
   auto update = SessionStore::get_default_session_update(session_map);
@@ -973,13 +963,13 @@ TEST_F(LocalEnforcerTest, test_re_auth) {
       local_enforcer->collect_updates(session_map, actions, update);
   local_enforcer->execute_actions(session_map, actions, update);
   EXPECT_EQ(update_req.updates_size(), 1);
-  EXPECT_EQ(update_req.updates(0).sid(), imsi1);
+  EXPECT_EQ(update_req.updates(0).sid(), IMSI1);
   EXPECT_EQ(update_req.updates(0).usage().type(), CreditUsage::REAUTH_REQUIRED);
 
   // Give credit after re-auth
   UpdateSessionResponse update_response;
   auto updates = update_response.mutable_responses();
-  create_credit_update_response(imsi1, 1, 4096, updates->Add());
+  create_credit_update_response(IMSI1, 1, 4096, updates->Add());
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
 
@@ -999,34 +989,34 @@ TEST_F(LocalEnforcerTest, test_re_auth) {
 TEST_F(LocalEnforcerTest, test_dynamic_rules) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
   auto policy_rule  = dynamic_rule->mutable_policy_rule();
   policy_rule->set_id("rule1");
   policy_rule->set_rating_group(1);
   policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   insert_static_rule(1, "", "rule2");
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 16, 32, record_list->Add());
-  create_rule_record(imsi1, "rule2", 8, 8, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 16, 32, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 8, 8, record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
-  assert_charging_credit(session_map, imsi1, session_id1, USED_RX, {{1, 24}});
-  assert_charging_credit(session_map, imsi1, session_id1, USED_TX, {{1, 40}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 24}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 40}});
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 1024}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 1024}});
 
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[1].bucket_deltas[USED_RX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_RX],
       24);
   EXPECT_EQ(
-      update[imsi1][session_id1].charging_credit_map[1].bucket_deltas[USED_TX],
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].bucket_deltas[USED_TX],
       40);
 }
 
@@ -1034,7 +1024,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   CreateSessionResponse response;
   // with final action = terminate
   create_credit_update_response(
-      imsi1, 1, 1024, true, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, true, response.mutable_credits()->Add());
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
   auto policy_rule  = dynamic_rule->mutable_policy_rule();
   policy_rule->set_id("rule2");
@@ -1056,12 +1046,12 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
       .WillOnce(testing::Return(true));
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "rule1", 1024, 2048, record_list->Add());
-  create_rule_record(imsi1, "rule2", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 1024, 2048, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -1080,7 +1070,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
 TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, true, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, true, response.mutable_credits()->Add());
 
   // add a dynamic rule without activation time
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
@@ -1131,7 +1121,7 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   // static rules: rule4, rule6
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
-                             imsi1, testing::_, testing::_, CheckCount(2),
+                             IMSI1, testing::_, testing::_, CheckCount(2),
                              CheckCount(2), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
@@ -1139,7 +1129,7 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   // static rules: rule5
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
-                             imsi1, testing::_, testing::_, CheckCount(1),
+                             IMSI1, testing::_, testing::_, CheckCount(1),
                              CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
@@ -1147,14 +1137,14 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   // dynamic rules: rule2
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
-                             imsi1, testing::_, testing::_, CheckCount(0),
+                             IMSI1, testing::_, testing::_, CheckCount(0),
                              CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
 }
 
@@ -1169,45 +1159,45 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   // insert initial session credit
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   create_credit_update_response(
-      imsi1, 2, 1024, response.mutable_credits()->Add());
+      IMSI1, 2, 1024, response.mutable_credits()->Add());
   create_monitor_update_response(
-      imsi1, "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
+      IMSI1, "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
       response.mutable_usage_monitors()->Add());
   create_monitor_update_response(
-      imsi1, "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
+      IMSI1, "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
       response.mutable_usage_monitors()->Add());
   create_monitor_update_response(
-      imsi1, "4", MonitoringLevel::SESSION_LEVEL, 2128,
+      IMSI1, "4", MonitoringLevel::SESSION_LEVEL, 2128,
       response.mutable_usage_monitors()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   assert_charging_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{1, 1024}, {2, 1024}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 1024}, {2, 1024}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL,
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL,
       {{"1", 1024}, {"3", 2048}, {"4", 2128}});
 
   // receive usages from pipelined
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(imsi1, "both_rule", 10, 20, record_list->Add());
-  create_rule_record(imsi1, "ocs_rule", 5, 15, record_list->Add());
-  create_rule_record(imsi1, "pcrf_only", 1024, 1024, record_list->Add());
-  create_rule_record(imsi1, "pcrf_split", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, "both_rule", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, "ocs_rule", 5, 15, record_list->Add());
+  create_rule_record(IMSI1, "pcrf_only", 1024, 1024, record_list->Add());
+  create_rule_record(IMSI1, "pcrf_split", 10, 20, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
   assert_charging_credit(
-      session_map, imsi1, session_id1, USED_RX, {{1, 10}, {2, 5}});
+      session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 10}, {2, 5}});
   assert_charging_credit(
-      session_map, imsi1, session_id1, USED_TX, {{1, 20}, {2, 15}});
+      session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 20}, {2, 15}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, USED_RX,
+      session_map, IMSI1, SESSION_ID_1, USED_RX,
       {{"1", 20}, {"3", 1024}, {"4", 1049}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, USED_TX,
+      session_map, IMSI1, SESSION_ID_1, USED_TX,
       {{"1", 40}, {"3", 1024}, {"4", 1079}});
 
   // Collect updates, should only have mkeys 3 and 4
@@ -1217,7 +1207,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   local_enforcer->execute_actions(session_map, actions, update);
   EXPECT_EQ(session_update.usage_monitors_size(), 2);
   for (const auto& monitor : session_update.usage_monitors()) {
-    EXPECT_EQ(monitor.sid(), imsi1);
+    EXPECT_EQ(monitor.sid(), IMSI1);
     if (monitor.update().monitoring_key() == "3") {
       EXPECT_EQ(monitor.update().level(), MonitoringLevel::PCC_RULE_LEVEL);
       EXPECT_EQ(monitor.update().bytes_rx(), 1024);
@@ -1232,35 +1222,35 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   }
 
   assert_charging_credit(
-      session_map, imsi1, session_id1, REPORTING_RX, {{1, 0}, {2, 0}});
+      session_map, IMSI1, SESSION_ID_1, REPORTING_RX, {{1, 0}, {2, 0}});
   assert_charging_credit(
-      session_map, imsi1, session_id1, REPORTING_TX, {{1, 0}, {2, 0}});
+      session_map, IMSI1, SESSION_ID_1, REPORTING_TX, {{1, 0}, {2, 0}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, REPORTING_RX,
+      session_map, IMSI1, SESSION_ID_1, REPORTING_RX,
       {{"1", 0}, {"3", 1024}, {"4", 1049}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, REPORTING_TX,
+      session_map, IMSI1, SESSION_ID_1, REPORTING_TX,
       {{"1", 0}, {"3", 1024}, {"4", 1079}});
 
   UpdateSessionResponse update_response;
   auto monitor_updates = update_response.mutable_usage_monitor_responses();
   create_monitor_update_response(
-      imsi1, "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
+      IMSI1, "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
       monitor_updates->Add());
   create_monitor_update_response(
-      imsi1, "4", MonitoringLevel::SESSION_LEVEL, 2048, monitor_updates->Add());
+      IMSI1, "4", MonitoringLevel::SESSION_LEVEL, 2048, monitor_updates->Add());
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
   assert_monitor_credit(
-      session_map, imsi1, session_id1, REPORTING_RX, {{"3", 0}, {"4", 0}});
+      session_map, IMSI1, SESSION_ID_1, REPORTING_RX, {{"3", 0}, {"4", 0}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, REPORTING_TX, {{"3", 0}, {"4", 0}});
+      session_map, IMSI1, SESSION_ID_1, REPORTING_TX, {{"3", 0}, {"4", 0}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, REPORTED_RX, {{"3", 1024}, {"4", 1049}});
+      session_map, IMSI1, SESSION_ID_1, REPORTED_RX, {{"3", 1024}, {"4", 1049}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, REPORTED_TX, {{"3", 1024}, {"4", 1079}});
+      session_map, IMSI1, SESSION_ID_1, REPORTED_TX, {{"3", 1024}, {"4", 1079}});
   assert_monitor_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL,
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL,
       {{"3", 4096}, {"4", 4176}});
 
   // Test rule removal in usage monitor response for CCA-Update
@@ -1268,12 +1258,12 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   monitor_updates = update_response.mutable_usage_monitor_responses();
   auto monitor_updates_response = monitor_updates->Add();
   create_monitor_update_response(
-      imsi1, "3", MonitoringLevel::PCC_RULE_LEVEL, 0, monitor_updates_response);
+      IMSI1, "3", MonitoringLevel::PCC_RULE_LEVEL, 0, monitor_updates_response);
   monitor_updates_response->add_rules_to_remove("pcrf_only");
 
   EXPECT_CALL(
       *pipelined_client, deactivate_flows_for_rules(
-                             imsi1, std::vector<std::string>{"pcrf_only"},
+                             IMSI1, std::vector<std::string>{"pcrf_only"},
                              CheckCount(0), RequestOriginType::GX))
       .Times(1)
       .WillOnce(testing::Return(true));
@@ -1285,7 +1275,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   monitor_updates          = update_response.mutable_usage_monitor_responses();
   monitor_updates_response = monitor_updates->Add();
   create_monitor_update_response(
-      imsi1, "3", MonitoringLevel::PCC_RULE_LEVEL, 0,
+      IMSI1, "3", MonitoringLevel::PCC_RULE_LEVEL, 0,
       monitor_updates_response);
 
   StaticRuleInstall static_rule_install;
@@ -1297,7 +1287,7 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
-          imsi1, testing::_, testing::_,
+          IMSI1, testing::_, testing::_,
           std::vector<std::string>{"pcrf_only"}, CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
@@ -1317,62 +1307,62 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   // insert initial session credit
   CreateSessionResponse response;
   create_monitor_update_response(
-      imsi1, "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
+      IMSI1, "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
       response.mutable_usage_monitors()->Add());
   create_monitor_update_response(
-      imsi1, "2", MonitoringLevel::SESSION_LEVEL, 1024,
+      IMSI1, "2", MonitoringLevel::SESSION_LEVEL, 1024,
       response.mutable_usage_monitors()->Add());
   create_monitor_update_response(
-      imsi1, "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
+      IMSI1, "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
       response.mutable_usage_monitors()->Add());
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   assert_monitor_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL,
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL,
       {{"1", 1024}, {"3", 2048}});
 
   // IMPORTANT: save the updates into store and reload
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
 
   // Receive an update with DISABLE for mkey=3 & mkey=2, CONTINUE for mkey=1
   UpdateSessionResponse update_response;
   auto monitors = update_response.mutable_usage_monitor_responses();
   create_monitor_update_response(
-      imsi1, "1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitors->Add());
+      IMSI1, "1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitors->Add());
   create_monitor_update_response(
-      imsi1, "2", MonitoringLevel::SESSION_LEVEL, 0, monitors->Add());
+      IMSI1, "2", MonitoringLevel::SESSION_LEVEL, 0, monitors->Add());
   create_monitor_update_response(
-      imsi1, "3", MonitoringLevel::PCC_RULE_LEVEL, 0, monitors->Add());
+      IMSI1, "3", MonitoringLevel::PCC_RULE_LEVEL, 0, monitors->Add());
   // Apply the updates
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
   // Check the UC's deleted field, as that will be applied to SessionStore
-  auto monitor_updates = update[imsi1][session_id1].monitor_credit_map;
+  auto monitor_updates = update[IMSI1][SESSION_ID_1].monitor_credit_map;
   EXPECT_FALSE(monitor_updates["1"].deleted);
   EXPECT_TRUE(monitor_updates["2"].deleted);
   EXPECT_TRUE(monitor_updates["3"].deleted);
   // Check updates for disabling session level monitoring key
-  EXPECT_TRUE(update[imsi1][session_id1].is_session_level_key_updated);
-  EXPECT_EQ(update[imsi1][session_id1].updated_session_level_key, "");
+  EXPECT_TRUE(update[IMSI1][SESSION_ID_1].is_session_level_key_updated);
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].updated_session_level_key, "");
   assert_monitor_credit(
-      session_map, imsi1, session_id1, ALLOWED_TOTAL, {{"1", 2048}, {"3", 0}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{"1", 2048}, {"3", 0}});
 
   // IMPORTANT: this step will sync the updates into session store and re-read
   // the session_map.
   success = session_store->update_sessions(update);
   EXPECT_TRUE(success);
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
 
   // Assert that we don't send usage reports for deleted monitors
   // receive usages from pipelined
   RuleRecordTable table;
   auto record_list = table.mutable_records();
   create_rule_record(
-      imsi1, "pcrf_only_to_be_disabled", 5000, 5000, record_list->Add());
+      IMSI1, "pcrf_only_to_be_disabled", 5000, 5000, record_list->Add());
   update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -1390,15 +1380,15 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
 
   SessionConfig test_volte_cfg;
   test_volte_cfg.common_context =
-      build_common_context("", "127.0.0.1", "", "IMS", TGPP_LTE);
-  const auto& lte_context = build_lte_context("", "", "", "", "", 1,
-&test_qos_info);
+      build_common_context("", IP1, "", "IMS", TGPP_LTE);
+  const auto& lte_context =
+      build_lte_context("", "", "", "", "", 1, &test_qos_info);
   test_volte_cfg.rat_specific_context.mutable_lte_context()->CopyFrom(
       lte_context);
 
   CreateSessionResponse response;
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_volte_cfg, response);
+      session_map, IMSI1, SESSION_ID_1, test_volte_cfg, response);
 
   PolicyReAuthRequest rar;
   std::vector<std::string> rules_to_remove;
@@ -1407,7 +1397,7 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   std::vector<EventTrigger> event_triggers;
   std::vector<UsageMonitoringCredit> usage_monitoring_credits;
   create_policy_reauth_request(
-      session_id1, imsi1, rules_to_remove, rules_to_install,
+      SESSION_ID_1, IMSI1, rules_to_remove, rules_to_install,
       dynamic_rules_to_install, event_triggers, time(NULL),
       usage_monitoring_credits, &rar);
   auto rar_qos_info = rar.mutable_qos_info();
@@ -1438,7 +1428,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   insert_static_rule(0, "m1", "rule4");
 
   // test_cfg_ is initialized with QoSInfo field w/ QCI 5
-  test_cfg_.common_context.mutable_sid()->set_id(imsi1);
+  test_cfg_.common_context.mutable_sid()->set_id(IMSI1);
   test_cfg_.common_context.set_apn("apn1");
   auto lte_context = test_cfg_.rat_specific_context.mutable_lte_context();
   lte_context->mutable_qos_info()->set_qos_class_id(5);
@@ -1453,24 +1443,24 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   // expect only 1 rule in the request since only rules with a QoS field
   // should be mapped to a bearer
   EXPECT_CALL(
-      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(imsi1, 3)))
+      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(IMSI1, 3)))
       .Times(1)
       .WillOnce(testing::Return(true));
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   // Test successful creation of dedicated bearer for rule1 + rule2
   auto bearer_bind_req_success1 =
-      create_policy_bearer_bind_req(imsi1, default_bearer_id, "rule1", bearer_1);
+      create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule1", bearer_1);
   auto bearer_bind_req_success2 =
-      create_policy_bearer_bind_req(imsi1, default_bearer_id, "rule2", bearer_2);
+      create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule2", bearer_2);
   std::unordered_set<std::string> rule_ids({"rule1", "rule2"});
   // Expect NO call to PipelineD for rule1
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-      imsi1, CheckSubset(rule_ids), CheckCount(0), testing::_))
+      IMSI1, CheckSubset(rule_ids), CheckCount(0), testing::_))
       .Times(0);
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->bind_policy_to_bearer(
@@ -1480,11 +1470,11 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
 
   // Test unsuccessful creation of dedicated bearer for rule3 (bearer_id = 0)
   auto bearer_bind_req_fail =
-      create_policy_bearer_bind_req(imsi1, default_bearer_id, "rule3", 0);
+      create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule3", 0);
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-      imsi1, std::vector<std::string>{"rule3"}, CheckCount(0), testing::_))
+      IMSI1, std::vector<std::string>{"rule3"}, CheckCount(0), testing::_))
       .Times(1);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_fail, update);
@@ -1494,17 +1484,17 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   // dedicated bearer request. Use the set rule interface to remove rule1.
   SessionRules session_rules;
   auto rule_set_per_sub = session_rules.mutable_rules_per_subscriber()->Add();
-  rule_set_per_sub->set_imsi(imsi1);
+  rule_set_per_sub->set_imsi(IMSI1);
   rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
       create_rule_set(false, "apn1", {"rule2", "rule4"}, {}));
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-      imsi1, std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
+      IMSI1, std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
       .Times(1);
   EXPECT_CALL(
       *spgw_client, delete_dedicated_bearer(CheckDeleteOneBearerReq(
-      imsi1, default_bearer_id, bearer_1)))
+      IMSI1, default_bearer_id, bearer_1)))
       .Times(1);
   update = SessionStore::get_default_session_update(session_map);
   local_enforcer->handle_set_session_rules(session_map, session_rules, update);
@@ -1514,17 +1504,17 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   auto monitor_update =
       update_response.mutable_usage_monitor_responses()->Add();
   create_monitor_update_response(
-      imsi1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor_update);
+      IMSI1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor_update);
   monitor_update->add_rules_to_remove("rule2");
 
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-      imsi1, std::vector<std::string>{"rule2"}, CheckCount(0), testing::_))
+      IMSI1, std::vector<std::string>{"rule2"}, CheckCount(0), testing::_))
       .Times(1);
   EXPECT_CALL(
       *spgw_client, delete_dedicated_bearer(CheckDeleteOneBearerReq(
-      imsi1, default_bearer_id, bearer_2)))
+      IMSI1, default_bearer_id, bearer_2)))
       .Times(1);
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
@@ -1534,21 +1524,18 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
 // We will test a case where a subscriber has 2 separate sessions
 TEST_F(LocalEnforcerTest, test_set_session_rules) {
   SessionConfig config1, config2;
-  const std::string ip1         = "127.0.0.1";
-  const std::string ip2         = "127.0.0.2";
-
   // Set Session1 + Session2 to be LTE session with default QoS
   QosInformationRequest qos_info;
   qos_info.set_apn_ambr_dl(32);
   qos_info.set_apn_ambr_dl(64);
   qos_info.set_qos_class_id(1);
   const auto& lte_context =
-      build_lte_context("128.0.0.1", "", "", "", "", 0, &qos_info);
+      build_lte_context(IP2, "", "", "", "", 0, &qos_info);
   config1.common_context =
-      build_common_context(imsi1, ip1, "apn1", "msisdn1", TGPP_LTE);
+      build_common_context(IMSI1, IP1, "apn1", "msisdn1", TGPP_LTE);
   config1.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
   config2.common_context =
-      build_common_context(imsi1, ip2, "apn2", "msisdn1", TGPP_LTE);
+      build_common_context(IMSI1, IP2, "apn2", "msisdn1", TGPP_LTE);
   config2.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
 
   // Initialize 3 static rules in RuleStore and create 2 dynamic rules
@@ -1567,16 +1554,16 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
       dynamic_1);
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, config1, response);
+      session_map, IMSI1, SESSION_ID_1, config1, response);
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id2, config2, response);
+      session_map, IMSI1, SESSION_ID_2, config2, response);
   // Assert the rules exist
-  EXPECT_TRUE(session_map[imsi1][0]->is_static_rule_installed("static1"));
-  EXPECT_TRUE(session_map[imsi1][0]->is_static_rule_installed("static2"));
-  EXPECT_TRUE(session_map[imsi1][0]->is_dynamic_rule_installed("dynamic1"));
+  EXPECT_TRUE(session_map[IMSI1][0]->is_static_rule_installed("static1"));
+  EXPECT_TRUE(session_map[IMSI1][0]->is_static_rule_installed("static2"));
+  EXPECT_TRUE(session_map[IMSI1][0]->is_dynamic_rule_installed("dynamic1"));
 
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
 
   // Apply a set rule of
@@ -1588,7 +1575,7 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
   // apn2 -> (add dynamic_2 + remove static2,dynamic_1)
   SessionRules session_rules;
   auto rule_set_per_sub = session_rules.mutable_rules_per_subscriber()->Add();
-  rule_set_per_sub->set_imsi(imsi1);
+  rule_set_per_sub->set_imsi(IMSI1);
   rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
       create_rule_set(false, "apn1", {"static1", "static3"}, {dynamic_2}));
   rule_set_per_sub->mutable_rule_set()->Add()->CopyFrom(
@@ -1600,7 +1587,7 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
-      imsi1, ip1, testing::_, std::vector<std::string>{"static3"},
+          IMSI1, IP1, testing::_, std::vector<std::string>{"static3"},
           CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
@@ -1608,25 +1595,25 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
-      imsi1, ip2, testing::_, CheckCount(0), CheckCount(1), testing::_))
+          IMSI1, IP2, testing::_, CheckCount(0), CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // For both Session1 + Session2
   EXPECT_CALL(
-      *pipelined_client,
-      deactivate_flows_for_rules(
-      imsi1, std::vector<std::string>{"static2"}, CheckCount(1), testing::_))
+      *pipelined_client, deactivate_flows_for_rules(
+                             IMSI1, std::vector<std::string>{"static2"},
+                             CheckCount(1), testing::_))
       .Times(2)
       .WillOnce(testing::Return(true));
 
   // Since static3 is also a QoS rule with a new QCI (not equal to default), we
   // should also expect a create bearer request here
   EXPECT_CALL(
-      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(imsi1, 1)))
+      *spgw_client, create_dedicated_bearer(CheckCreateBearerReq(IMSI1, 1)))
       .Times(1)
       .WillOnce(testing::Return(true));
 
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->handle_set_session_rules(session_map, session_rules, update);
 }
@@ -1635,7 +1622,7 @@ TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
   // verify session validity by passing in an invalid IMSI
   PolicyReAuthRequest rar;
   create_policy_reauth_request(
-      "session1", imsi1, {}, {}, {}, {}, time(NULL), {}, &rar);
+      "session1", IMSI1, {}, {}, {}, {}, time(NULL), {}, &rar);
   PolicyReAuthAnswer raa;
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
@@ -1645,7 +1632,7 @@ TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
   // and an invalid session-id (session1)
   CreateSessionResponse response;
   local_enforcer->init_session_credit(
-      session_map, imsi1, "session0", test_cfg_, response);
+      session_map, IMSI1, "session0", test_cfg_, response);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
   EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
 }
@@ -1660,7 +1647,7 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_init) {
   auto monitor = response.mutable_usage_monitors()->Add();
   std::vector<EventTrigger> event_triggers{EventTrigger::REVALIDATION_TIMEOUT};
   create_monitor_update_response(
-      imsi1, mkey, MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor);
+      IMSI1, mkey, MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor);
 
   response.add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
   response.mutable_revalidation_time()->set_seconds(time(NULL));
@@ -1670,16 +1657,16 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_init) {
   response.mutable_static_rules()->Add()->CopyFrom(static_rule_install);
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
   // schedule_revalidation puts two things on the event loop
   // updates the session's state with revalidation_requested_ set to true
   evb->loopOnce();
   evb->loopOnce();
   auto update = SessionStore::get_default_session_update(session_map);
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto updates = local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(updates.usage_monitors_size(), 1);
@@ -1697,21 +1684,21 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_rar) {
   insert_static_rule(1, mkey, "rule1");
 
   // Create a CreateSessionResponse with one Gx monitor, PCC rule
-  create_session_create_response(imsi1, mkey, rules_to_install, &response);
+  create_session_create_response(IMSI1, mkey, rules_to_install, &response);
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
-  EXPECT_EQ(session_map[imsi1].size(), 1);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
 
   // Write and read into session store, assert success
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
 
   // Create a RaR with a REVALIDATION event trigger
   create_policy_reauth_request(
-      session_id1, imsi1, {}, {}, {}, event_triggers, time(NULL), {}, &rar);
+      SESSION_ID_1, IMSI1, {}, {}, {}, event_triggers, time(NULL), {}, &rar);
 
   auto update = SessionStore::get_default_session_update(session_map);
   // This should trigger a revalidation to be scheduled
@@ -1725,7 +1712,7 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_rar) {
   // updates the session's state with revalidation_requested_ set to true
   evb->loopOnce();
   evb->loopOnce();
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto updates = local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(updates.usage_monitors_size(), 1);
@@ -1743,41 +1730,41 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
 
   // Create a CreateSessionResponse with one Gx monitor, PCC rule
   create_session_create_response(
-      imsi1, mkey1, rules_to_install, &create_response);
+      IMSI1, mkey1, rules_to_install, &create_response);
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, create_response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, create_response);
 
   create_response.Clear();
   create_session_create_response(
-      imsi2, mkey1, rules_to_install, &create_response);
+      IMSI2, mkey1, rules_to_install, &create_response);
   local_enforcer->init_session_credit(
-      session_map, imsi2, session_id2, test_cfg_, create_response);
+      session_map, IMSI2, SESSION_ID_2, test_cfg_, create_response);
 
   // Write and read into session store, assert success
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
   success =
-      session_store->create_sessions(imsi2, std::move(session_map[imsi2]));
+      session_store->create_sessions(IMSI2, std::move(session_map[IMSI2]));
   EXPECT_TRUE(success);
-  session_map = session_store->read_sessions(SessionRead{imsi1, imsi2});
-  EXPECT_EQ(session_map[imsi1].size(), 1);
-  EXPECT_EQ(session_map[imsi2].size(), 1);
+  session_map = session_store->read_sessions(SessionRead{IMSI1, IMSI2});
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI2].size(), 1);
 
   auto revalidation_timer = time(NULL);
   // IMSI1 has two separate monitors with the same revalidation timer
   // IMSI2 does not have a revalidation timer
   auto monitor = update_response.mutable_usage_monitor_responses()->Add();
   create_monitor_update_response(
-      imsi1, mkey1, MonitoringLevel::PCC_RULE_LEVEL, 1024, event_triggers,
+      IMSI1, mkey1, MonitoringLevel::PCC_RULE_LEVEL, 1024, event_triggers,
       revalidation_timer, monitor);
   monitor = update_response.mutable_usage_monitor_responses()->Add();
   create_monitor_update_response(
-      imsi1, mkey2, MonitoringLevel::PCC_RULE_LEVEL, 1024, event_triggers,
+      IMSI1, mkey2, MonitoringLevel::PCC_RULE_LEVEL, 1024, event_triggers,
       revalidation_timer, monitor);
   monitor = update_response.mutable_usage_monitor_responses()->Add();
   create_monitor_update_response(
-      imsi1, mkey1, MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor);
+      IMSI1, mkey1, MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor);
   auto update = SessionStore::get_default_session_update(session_map);
   // This should trigger a revalidation to be scheduled
   local_enforcer->update_session_credits_and_rules(
@@ -1791,7 +1778,7 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update) {
   evb->loopOnce();
   evb->loopOnce();
 
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto updates = local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(updates.usage_monitors_size(), 1);
@@ -1808,23 +1795,23 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update_no_monitor) {
   // Create a CreateSessionResponse with Revalidation Timeout, PCC rule
   auto res = create_response.mutable_usage_monitors()->Add();
   res->set_success(true);
-  res->set_sid(imsi1);
+  res->set_sid(IMSI1);
   create_response.mutable_static_rules()->Add()->CopyFrom(rule_install);
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, create_response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, create_response);
 
   // Write and read into session store, assert success
   bool success =
-      session_store->create_sessions(imsi1, std::move(session_map[imsi1]));
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
   EXPECT_TRUE(success);
 
-  session_map = session_store->read_sessions(SessionRead{imsi1});
-  EXPECT_EQ(session_map[imsi1].size(), 1);
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
 
   // IMSI1 has no monitor credit and a revalidation timeout
   auto monitor = update_response.mutable_usage_monitor_responses()->Add();
   monitor->set_success(true);
-  monitor->set_sid(imsi1);
+  monitor->set_sid(IMSI1);
   monitor->add_event_triggers(EventTrigger::REVALIDATION_TIMEOUT);
   monitor->mutable_revalidation_time()->set_seconds(time(NULL));
   auto update = SessionStore::get_default_session_update(session_map);
@@ -1840,7 +1827,7 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_update_no_monitor) {
   evb->loopOnce();
   evb->loopOnce();
 
-  session_map = session_store->read_sessions(SessionRead{imsi1});
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto updates = local_enforcer->collect_updates(session_map, actions, update);
   EXPECT_EQ(updates.usage_monitors_size(), 1);
@@ -1852,7 +1839,7 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
 
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   auto epoch        = 145;
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
   auto policy_rule  = dynamic_rule->mutable_policy_rule();
@@ -1863,16 +1850,15 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
   static_rule->set_rule_id("rule2");
   SessionConfig test_cwf_cfg1;
   test_cwf_cfg1.common_context = build_common_context(
-      imsi1, "127.0.0.1", "01-a1-20-c2-0f-bb:CWC_OFFLOAD", "msisdn1",
-      TGPP_WLAN);
+      IMSI1, IP1, "01-a1-20-c2-0f-bb:CWC_OFFLOAD", "msisdn1", TGPP_WLAN);
   const auto& wlan = build_wlan_context("11:22:00:00:22:11", "5555");
   test_cwf_cfg1.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cwf_cfg1, response);
+      session_map, IMSI1, SESSION_ID_1, test_cwf_cfg1, response);
 
   CreateSessionResponse response2;
   create_credit_update_response(
-      imsi2, 1, 2048, response2.mutable_credits()->Add());
+      IMSI2, 1, 2048, response2.mutable_credits()->Add());
   auto dynamic_rule2 = response2.mutable_dynamic_rules()->Add();
   auto policy_rule2  = dynamic_rule2->mutable_policy_rule();
   policy_rule2->set_id("rule22");
@@ -1880,14 +1866,14 @@ TEST_F(LocalEnforcerTest, test_pipelined_cwf_setup) {
   policy_rule2->set_tracking_type(PolicyRule::ONLY_OCS);
   SessionConfig test_cwf_cfg2;
   test_cwf_cfg2.common_context = build_common_context(
-      imsi2, "127.0.0.1", "03-21-00-02-00-20:Magma", "msisdn2", TGPP_WLAN);
+      IMSI2, IP1, "03-21-00-02-00-20:Magma", "msisdn2", TGPP_WLAN);
   const auto& wlan2 = build_wlan_context("00:00:00:00:00:02", "5555");
   test_cwf_cfg2.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan2);
   local_enforcer->init_session_credit(
-      session_map, imsi2, "12345", test_cwf_cfg2, response2);
+      session_map, IMSI2, SESSION_ID_2, test_cwf_cfg2, response2);
 
-  std::vector<std::string> imsi_list       = {imsi2, imsi1};
-  std::vector<std::string> ip_address_list = {"127.0.0.1", "127.0.0.1"};
+  std::vector<std::string> imsi_list                      = {IMSI2, IMSI1};
+  std::vector<std::string> ip_address_list                = {IP1, IP1};
   std::vector<std::vector<std::string>> static_rule_list  = {{}, {"rule2"}};
   std::vector<std::vector<std::string>> dynamic_rule_list = {
       {"rule22"}, {"rule1"}};
@@ -1918,7 +1904,7 @@ TEST_F(LocalEnforcerTest, test_pipelined_lte_setup) {
 
   CreateSessionResponse response;
   create_credit_update_response(
-      imsi1, 1, 1024, response.mutable_credits()->Add());
+      IMSI1, 1, 1024, response.mutable_credits()->Add());
   auto epoch        = 145;
   auto dynamic_rule = response.mutable_dynamic_rules()->Add();
   auto policy_rule  = dynamic_rule->mutable_policy_rule();
@@ -1928,21 +1914,21 @@ TEST_F(LocalEnforcerTest, test_pipelined_lte_setup) {
   auto static_rule = response.mutable_static_rules()->Add();
   static_rule->set_rule_id("rule2");
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cfg_, response);
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
   CreateSessionResponse response2;
   create_credit_update_response(
-      imsi2, 1, 2048, response2.mutable_credits()->Add());
+      IMSI2, 1, 2048, response2.mutable_credits()->Add());
   auto dynamic_rule2 = response2.mutable_dynamic_rules()->Add();
   auto policy_rule2  = dynamic_rule2->mutable_policy_rule();
   policy_rule2->set_id("rule22");
   policy_rule2->set_rating_group(1);
   policy_rule2->set_tracking_type(PolicyRule::ONLY_OCS);
   local_enforcer->init_session_credit(
-      session_map, imsi2, "12345", test_cfg_, response2);
+      session_map, IMSI2, SESSION_ID_2, test_cfg_, response2);
 
-  std::vector<std::string> imsi_list       = {imsi2, imsi1};
-  std::vector<std::string> ip_address_list = {"127.0.0.1", "127.0.0.1"};
+  std::vector<std::string> imsi_list                      = {IMSI2, IMSI1};
+  std::vector<std::string> ip_address_list                = {IP1, IP1};
   std::vector<std::vector<std::string>> static_rule_list  = {{}, {"rule2"}};
   std::vector<std::vector<std::string>> dynamic_rule_list = {
       {"rule22"}, {"rule1"}};
@@ -1974,22 +1960,21 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
       SessionStore::get_default_session_update(session_map);
 
   auto credits = response.mutable_credits();
-  create_credit_update_response(imsi1, 1, 1024, credits->Add());
+  create_credit_update_response(IMSI1, 1, 1024, credits->Add());
 
-  auto apn               = "03-21-00-02-00-20:Magma";
-  auto mac_addr          = "00:00:00:00:00:02";
-  auto radius_session_id = "5555";
+  const auto apn      = "03-21-00-02-00-20:Magma";
+  const auto mac_addr = "00:00:00:00:00:02";
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.common_context =
-      build_common_context(imsi1, "", apn, "msisdn", TGPP_WLAN);
-  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+      build_common_context(IMSI1, "", apn, MSISDN, TGPP_WLAN);
+  const auto& wlan = build_wlan_context(mac_addr, RADIUS_SESSION_ID);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cwf_cfg, response);
+      session_map, IMSI1, SESSION_ID_1, test_cwf_cfg, response);
 
   std::vector<std::string> ue_mac_addrs  = {"00:00:00:00:00:02"};
-  std::vector<std::string> msisdns       = {"msisdn"};
+  std::vector<std::string> msisdns       = {MSISDN};
   std::vector<std::string> apn_mac_addrs = {"03-21-00-02-00-20"};
   std::vector<std::string> apn_names     = {"Magma"};
 
@@ -2013,22 +1998,21 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
       SessionStore::get_default_session_update(session_map);
 
   auto credits = response.mutable_credits();
-  create_credit_update_response(imsi1, 1, 1024, credits->Add());
+  create_credit_update_response(IMSI1, 1, 1024, credits->Add());
 
-  auto apn               = "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay";
-  auto mac_addr          = "00:00:00:00:00:02";
-  auto radius_session_id = "5555";
+  auto apn      = "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay";
+  auto mac_addr = "00:00:00:00:00:02";
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.common_context =
-      build_common_context(imsi1, "127.0.0.1", apn, "msisdn", TGPP_WLAN);
-  const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+      build_common_context(IMSI1, IP1, apn, MSISDN, TGPP_WLAN);
+  const auto& wlan = build_wlan_context(mac_addr, RADIUS_SESSION_ID);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
-      session_map, imsi1, session_id1, test_cwf_cfg, response);
+      session_map, IMSI1, SESSION_ID_1, test_cwf_cfg, response);
 
   std::vector<std::string> ue_mac_addrs  = {"00:00:00:00:00:02"};
-  std::vector<std::string> msisdns       = {"msisdn"};
+  std::vector<std::string> msisdns       = {MSISDN};
   std::vector<std::string> apn_mac_addrs = {""};
   std::vector<std::string> apn_names     = {
       "03-0BLAHBLAH0-00-02-00-20:ThisIsNotOkay"};

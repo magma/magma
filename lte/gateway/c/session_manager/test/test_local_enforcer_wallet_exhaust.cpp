@@ -20,15 +20,15 @@
 #include <gtest/gtest.h>
 #include <lte/protos/session_manager.grpc.pb.h>
 
+#include "Consts.h"
 #include "LocalEnforcer.h"
 #include "MagmaService.h"
+#include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "ServiceRegistrySingleton.h"
 #include "SessionStore.h"
 #include "SessiondMocks.h"
 #include "magma_logging.h"
-
-#define SECONDS_A_DAY 86400
 
 using grpc::ServerContext;
 using grpc::Status;
@@ -98,20 +98,6 @@ class LocalEnforcerTest : public ::testing::Test {
   folly::EventBase* evb;
 };
 
-MATCHER_P2(CheckQuotaUpdateState, size, expected_states, "") {
-  auto updates     = static_cast<const std::vector<SubscriberQuotaUpdate>>(arg);
-  int updates_size = updates.size();
-  if (updates_size != size) {
-    return false;
-  }
-  for (int i = 0; i < updates_size; i++) {
-    if (updates[i].update_type() != expected_states[i]) {
-      return false;
-    }
-  }
-  return true;
-}
-
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
   SetUpWithMConfig(get_mconfig_gx_rule_wallet_exhaust());
   insert_static_rule(0, "m1", "static_1");
@@ -119,9 +105,9 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
   std::vector<std::string> static_rules{"static_1"};
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.common_context =
-      build_common_context("IMSI1", "", "", "", TGPP_WLAN);
+      build_common_context(IMSI1, "", "", "", TGPP_WLAN);
   CreateSessionResponse response;
-  create_session_create_response("IMSI1", "m1", static_rules, &response);
+  create_session_create_response(IMSI1, "m1", static_rules, &response);
 
   StaticRuleInstall static_rule_install;
   static_rule_install.set_rule_id("static_1");
@@ -136,7 +122,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_has_quota) {
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
-      session_map, "IMSI1", "1234", test_cwf_cfg, response);
+      session_map, IMSI1, "1234", test_cwf_cfg, response);
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
@@ -146,9 +132,9 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
   std::vector<std::string> static_rules{};  // no rule installs
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.common_context =
-      build_common_context("IMSI1", "", "", "", TGPP_WLAN);
+      build_common_context(IMSI1, "", "", "", TGPP_WLAN);
   CreateSessionResponse response;
-  create_session_create_response("IMSI1", "m1", static_rules, &response);
+  create_session_create_response(IMSI1, "m1", static_rules, &response);
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
       SubscriberQuotaUpdate_Type_NO_QUOTA};
@@ -158,7 +144,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_init_no_quota) {
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
-      session_map, "IMSI1", "1234", test_cwf_cfg, response);
+      session_map, IMSI1, "1234", test_cwf_cfg, response);
 }
 
 TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
@@ -169,17 +155,17 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_rar) {
   std::vector<std::string> static_rules{"static_1"};
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.common_context =
-      build_common_context("IMSI1", "", "", "", TGPP_WLAN);
+      build_common_context(IMSI1, "", "", "", TGPP_WLAN);
   CreateSessionResponse response;
-  create_session_create_response("IMSI1", "m1", static_rules, &response);
+  create_session_create_response(IMSI1, "m1", static_rules, &response);
   local_enforcer->init_session_credit(
-      session_map, "IMSI1", "1234", test_cwf_cfg, response);
+      session_map, IMSI1, "1234", test_cwf_cfg, response);
 
   // send a policy reauth request with rule removals for "static_1" to indicate
   // total monitoring quota exhaustion
   PolicyReAuthRequest request;
   request.set_session_id("");
-  request.set_imsi("IMSI1");
+  request.set_imsi(IMSI1);
   request.add_rules_to_remove("static_1");
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states{
@@ -204,18 +190,18 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   std::vector<std::string> static_rules{"static_1", "static_2"};
   SessionConfig test_cwf_cfg;
   test_cwf_cfg.common_context =
-      build_common_context("IMSI1", "", "", "", TGPP_WLAN);
+      build_common_context(IMSI1, "", "", "", TGPP_WLAN);
   CreateSessionResponse response;
-  create_session_create_response("IMSI1", "m1", static_rules, &response);
+  create_session_create_response(IMSI1, "m1", static_rules, &response);
   local_enforcer->init_session_credit(
-      session_map, "IMSI1", "1234", test_cwf_cfg, response);
+      session_map, IMSI1, "1234", test_cwf_cfg, response);
 
   // remove only static_2, should not change anything in terms of quota since
   // static_1 is still active
   UpdateSessionResponse update_response;
   auto monitor = update_response.mutable_usage_monitor_responses()->Add();
   create_monitor_update_response(
-      "IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL, 2048, monitor);
+      IMSI1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 2048, monitor);
   monitor->add_rules_to_remove("static_2");
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->update_session_credits_and_rules(
@@ -226,7 +212,7 @@ TEST_F(LocalEnforcerTest, test_cwf_quota_exhaustion_on_update) {
   update_response.clear_usage_monitor_responses();
   monitor = update_response.mutable_usage_monitor_responses()->Add();
   create_monitor_update_response(
-      "IMSI1", "m1", MonitoringLevel::PCC_RULE_LEVEL, 0, monitor);
+      IMSI1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 0, monitor);
   monitor->add_rules_to_remove("static_1");
 
   std::vector<SubscriberQuotaUpdate_Type> expected_states = {

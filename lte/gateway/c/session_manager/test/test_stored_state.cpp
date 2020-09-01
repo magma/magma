@@ -16,6 +16,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include "Consts.h"
 #include "ProtobufCreators.h"
 #include "StoredState.h"
 #include "magma_logging.h"
@@ -29,7 +30,7 @@ class StoredStateTest : public ::testing::Test {
   SessionConfig get_stored_session_config() {
     SessionConfig stored;
     stored.common_context =
-        build_common_context("IMSI1", "ue_ipv4", "apn", "msisdn", TGPP_WLAN);
+        build_common_context(IMSI1, "ue_ipv4", "apn", "msisdn", TGPP_WLAN);
     const auto& lte_context = build_lte_context(
         "192.168.0.2", "imei", "plmn_id", "imsi_plmn_id", "user_location", 321,
         nullptr);
@@ -116,7 +117,7 @@ class StoredStateTest : public ::testing::Test {
     stored.credit_map             = get_stored_charging_credit_map();
     stored.monitor_map            = get_stored_monitor_map();
     stored.session_level_key      = "session_level_key";
-    stored.imsi                   = "IMSI1";
+    stored.imsi                   = IMSI1;
     stored.session_id             = "session_id";
     stored.subscriber_quota_state = SubscriberQuotaUpdate_Type_VALID_QUOTA;
     stored.fsm_state              = SESSION_RELEASED;
@@ -303,7 +304,7 @@ TEST_F(StoredStateTest, test_stored_session) {
   EXPECT_EQ(stored_monitor.credit.buckets[ALLOWED_TOTAL], 54321);
   EXPECT_EQ(stored_monitor.level, MonitoringLevel::PCC_RULE_LEVEL);
 
-  EXPECT_EQ(deserialized.imsi, "IMSI1");
+  EXPECT_EQ(deserialized.imsi, IMSI1);
   EXPECT_EQ(deserialized.session_id, "session_id");
   EXPECT_EQ(
       deserialized.subscriber_quota_state,

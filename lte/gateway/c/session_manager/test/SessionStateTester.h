@@ -17,6 +17,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include "Consts.h"
 #include "ProtobufCreators.h"
 #include "SessionState.h"
 #include "SessiondMocks.h"
@@ -138,14 +139,14 @@ class SessionStateTest : public ::testing::Test {
 
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
     CreditUpdateResponse charge_resp;
-    create_credit_update_response("IMSI1", rating_group, volume, &charge_resp);
+    create_credit_update_response(IMSI1, rating_group, volume, &charge_resp);
     session_state->receive_charging_credit(charge_resp, update_criteria);
   }
 
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t total_volume,
                                uint64_t tx_volume,uint64_t rx_volume, bool is_final) {
     CreditUpdateResponse charge_resp;
-    create_credit_update_response("IMSI1", rating_group,total_volume, tx_volume,
+    create_credit_update_response(IMSI1, rating_group,total_volume, tx_volume,
                                   rx_volume, is_final, &charge_resp);
     session_state->receive_charging_credit(charge_resp, update_criteria);
   }
@@ -153,7 +154,7 @@ class SessionStateTest : public ::testing::Test {
   void receive_credit_from_pcrf(
       const std::string& mkey, uint64_t volume, MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
-    create_monitor_update_response("IMSI1", mkey, level, volume, &monitor_resp);
+    create_monitor_update_response(IMSI1, mkey, level, volume, &monitor_resp);
     session_state->receive_monitor(monitor_resp, update_criteria);
   }
 
