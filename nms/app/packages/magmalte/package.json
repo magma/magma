@@ -21,6 +21,7 @@
     "@fbcnms/magma-api": "^0.1.0",
     "@fbcnms/platform-server": "^0.1.12",
     "@fbcnms/projects": "^0.1.0",
+    "@fbcnms/sequelize-models": "^0.1.0",
     "@fbcnms/strings": "^0.1.0",
     "@fbcnms/ui": "^0.1.5",
     "@fbcnms/util": "^0.1.0",

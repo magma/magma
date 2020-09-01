@@ -271,18 +271,13 @@ func CreateRule(c echo.Context) error {
 	writes = append(writes, createdEntity)
 
 	for _, tk := range rule.GetParentAssocs().Filter(lte.SubscriberEntityType) {
-		writes = append(writes, configurator.EntityUpdateCriteria{
+		w := configurator.EntityUpdateCriteria{
 			Type:              lte.SubscriberEntityType,
 			Key:               tk.Key,
 			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.PolicyRuleEntityType, Key: createdEntity.Key}},
-		})
+		}
+		writes = append(writes, w)
 	}
-	childWrites := configurator.EntityUpdateCriteria{
-		Type:              createdEntity.Type,
-		Key:               createdEntity.Key,
-		AssociationsToAdd: rule.GetAssocs(),
-	}
-	writes = append(writes, childWrites)
 
 	if err := configurator.WriteEntities(networkID, writes...); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to create policy"), http.StatusInternalServerError)

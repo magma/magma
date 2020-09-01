@@ -152,7 +152,7 @@ class InOutNonNatTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
                 'enable_nat': False,
-                'non_mat_gw_probe_frequency': .2,
+                'non_nat_gw_probe_frequency': 0.5,
                 'non_nat_arp_egress_port': non_nat_arp_egress_port,
                 'ovs_uplink_port_name': 'patch-up',
                 'uplink_gw_mac': gw_mac_addr
