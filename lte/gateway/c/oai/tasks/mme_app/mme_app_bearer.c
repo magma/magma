@@ -1198,6 +1198,7 @@ static void mme_app_validate_erabs_rcvd_in_icsr(
     struct ue_mm_context_s* ue_context_p,
     itti_mme_app_initial_context_setup_rsp_t* const initial_ctxt_setup_rsp_p,
     itti_s11_modify_bearer_request_t* s11_modify_bearer_request, uint8_t* idx) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
   for (uint8_t item = 0;
        item < initial_ctxt_setup_rsp_p->e_rab_setup_list.no_of_items; item++) {
     if ((mme_app_get_bearer_context(
@@ -1219,6 +1220,7 @@ static void mme_app_populate_bearer_contexts_to_be_removed(
     itti_mme_app_initial_context_setup_rsp_t* const initial_ctxt_setup_rsp_p,
     itti_s11_modify_bearer_request_t* s11_modify_bearer_request, int idx,
     uint8_t* bc_to_be_removed_idx) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
   pdn_cid_t pcid = 0;
 
   for (uint8_t item = 0;
@@ -1264,8 +1266,9 @@ static void mme_app_populate_bearer_contexts_to_be_removed(
 static void mme_app_populate_bearer_contexts_to_be_modified(
     struct ue_mm_context_s* ue_context_p,
     itti_mme_app_initial_context_setup_rsp_t* const initial_ctxt_setup_rsp_p,
-    itti_s11_modify_bearer_request_t* s11_modify_bearer_request, uint8_t pid,
-    int idx, uint8_t* bc_to_be_modified_idx, bool* bearer_found) {
+    itti_s11_modify_bearer_request_t* s11_modify_bearer_request, int idx,
+    uint8_t* bc_to_be_modified_idx, bool* bearer_found) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
   for (uint8_t item = 0;
        item < initial_ctxt_setup_rsp_p->e_rab_setup_list.no_of_items; item++) {
     if ((ue_context_p->bearer_contexts[idx]) &&
@@ -1336,6 +1339,7 @@ static void mme_app_build_modify_bearer_request_message(
     itti_mme_app_initial_context_setup_rsp_t* const initial_ctxt_setup_rsp_p,
     itti_s11_modify_bearer_request_t* s11_modify_bearer_request, uint8_t* pid,
     uint8_t* bc_to_be_removed_idx) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
   uint8_t bc_to_be_modified_idx = 0;
   bool bearer_found             = false;
 
@@ -1354,8 +1358,8 @@ static void mme_app_build_modify_bearer_request_message(
     bearer_found = false;
     // Helper function to populate bearer_contexts_to_be_modified in MBR
     mme_app_populate_bearer_contexts_to_be_modified(
-        ue_context_p, initial_ctxt_setup_rsp_p, s11_modify_bearer_request, *pid,
-        idx, &bc_to_be_modified_idx, &bearer_found);
+        ue_context_p, initial_ctxt_setup_rsp_p, s11_modify_bearer_request, idx,
+        &bc_to_be_modified_idx, &bearer_found);
     if (!bearer_found) {
       mme_app_populate_bearer_contexts_to_be_removed(
           ue_context_p, initial_ctxt_setup_rsp_p, s11_modify_bearer_request,
