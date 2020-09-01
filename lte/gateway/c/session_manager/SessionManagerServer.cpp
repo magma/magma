@@ -58,6 +58,17 @@ void LocalSessionManagerAsyncService::init_call_data() {
   new BindPolicy2BearerCallData(cq_.get(), *this, *handler_);
 }
 
+/*Landing object invocation object call for 5G*/
+AmfPduSessionSmContextAsyncService::AmfPduSessionSmContextAsyncService(
+    std::unique_ptr<ServerCompletionQueue> cq,
+    std::unique_ptr<SetMessageManagerHandler> handler)
+    : AsyncService(std::move(cq)), handler_(std::move(handler)) {}
+
+void AmfPduSessionSmContextAsyncService::init_call_data() {
+  new SetAmfSessionContextCallData(cq_.get(), *this, *handler_);
+  MLOG(MINFO) << "ACL5g@74amf sessioncontext calldata";
+ }
+
 SessionProxyResponderAsyncService::SessionProxyResponderAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
     std::unique_ptr<SessionProxyResponderHandler> handler)

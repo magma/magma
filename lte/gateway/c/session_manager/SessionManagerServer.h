@@ -16,11 +16,11 @@
 
 #include "LocalSessionManagerHandler.h"
 #include "SessionProxyResponderHandler.h"
-
+#include "SetMessageManagerHandler.h"
 using grpc::ServerCompletionQueue;
 using grpc::ServerContext;
 using grpc::Status;
-
+using namespace std;
 namespace magma {
 
 /**
@@ -82,6 +82,22 @@ class LocalSessionManagerAsyncService final :
 
  private:
   std::unique_ptr<LocalSessionManagerHandler> handler_;
+};
+
+/*AmfPduSessionSmContextToSmf  Set RPC service object for 5G */
+class AmfPduSessionSmContextAsyncService final :
+  public AsyncService,
+  public AmfPduSessionSmContext::AsyncService {
+ public:
+  AmfPduSessionSmContextAsyncService(
+    std::unique_ptr<ServerCompletionQueue> cq,
+    std::unique_ptr<SetMessageManagerHandler> handler);
+
+ protected:
+  void init_call_data();
+
+ private:
+  std::unique_ptr<SetMessageManagerHandler> handler_;
 };
 
 /**
@@ -206,6 +222,36 @@ class ReportRuleStatsCallData :
 
  private:
   LocalSessionManagerHandler &handler_;
+};
+/*Set RPC calldata to invoke first first function of landing object for 5G */
+//AmfPduSessionSmContextToSmf
+class SetAmfSessionContextCallData :
+  public AsyncGRPCRequest<
+    AmfPduSessionSmContext::AsyncService,
+    SetSMSessionContext,
+    SmContextVoid> {
+ public:
+  SetAmfSessionContextCallData(
+    ServerCompletionQueue *cq,
+    AmfPduSessionSmContext::AsyncService &service,
+    SetMessageManagerHandler &handler):
+    AsyncGRPCRequest(cq, service),
+    handler_(handler)
+  {
+    service_.RequestSetAmfSessionContext(
+      &ctx_, &request_, &responder_, cq_, cq_, (void *) this);
+  }
+
+ protected:
+  void clone() override { new SetAmfSessionContextCallData(cq_, service_, handler_); }
+
+  void process() override
+ {
+    handler_.SetAmfSessionContext(&ctx_, &request_, get_finish_callback());
+  }
+
+private:
+  SetMessageManagerHandler &handler_;
 };
 
 /**
