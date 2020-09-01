@@ -31,12 +31,16 @@ import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {Alarm} from '@material-ui/icons';
 import {colors, typography} from '../theme/default';
+import {intersection} from 'lodash';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 import {useState} from 'react';
 import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
+  dashboardRoot: {
+    margin: theme.spacing(5),
+  },
   tab: {
     backgroundColor: colors.primary.white,
     borderRadius: '4px 4px 0 0',
@@ -102,7 +106,36 @@ type AlertRowType = {
 
 type AlertTable = {[Severity]: Array<AlertRowType>};
 
-export default function () {
+type DashboardAlertTableProps = {
+  labelFilters?: {[string]: string},
+};
+
+function checkFilter(
+  alert: prom_firing_alert,
+  labelFilters?: {[string]: string},
+) {
+  if (labelFilters) {
+    const labels = intersection(
+      Object.keys(labelFilters),
+      Object.keys(alert.labels),
+    );
+    if (!labels.length) {
+      return false;
+    }
+
+    let filtersMatch = true;
+    labels.forEach(k => {
+      if (alert.labels[k] !== labelFilters[k]) {
+        filtersMatch = false;
+      }
+    });
+    return filtersMatch;
+  }
+  return true;
+}
+
+export default function DashboardAlertTable(props: DashboardAlertTableProps) {
+  const classes = useStyles();
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const {isLoading, response} = useMagmaAPI(
@@ -115,9 +148,10 @@ export default function () {
     return <LoadingFiller />;
   }
 
-  const alerts: Array<prom_firing_alert> = response ?? [];
+  let alerts: Array<prom_firing_alert> = response ?? [];
   const data: AlertTable = {Critical: [], Major: [], Minor: [], Other: []};
 
+  alerts = alerts.filter(alert => checkFilter(alert, props.labelFilters));
   alerts.forEach(alert => {
     const sev: Severity = severityMap[alert.labels['severity']] || 'Other';
     data[sev].push({
@@ -128,13 +162,15 @@ export default function () {
       timingInfo: new Date(alert.startsAt),
     });
   });
+
   return (
-    <>
+    <div className={props.labelFilters && classes.dashboardRoot}>
       <CardTitleRow icon={Alarm} label={`Alerts (${alerts.length})`} />
       <AlertsTabbedTable alerts={data} />
-    </>
+    </div>
   );
 }
+
 type TabPanelProps = {
   alerts: Array<AlertRowType>,
   label: string,
