@@ -249,7 +249,7 @@ func (m *CwfHaPair) ToEntity() configurator.NetworkEntity {
 	}
 }
 
-func (m *CwfHaPair) FromBackendModels(ent configurator.NetworkEntity) (*CwfHaPair, error) {
+func (m *CwfHaPair) FromBackendModels(ent configurator.NetworkEntity) error {
 	gatewayIDs := []string{}
 	for _, assoc := range ent.Associations {
 		if assoc.Type != cwf.CwfGatewayType {
@@ -258,27 +258,45 @@ func (m *CwfHaPair) FromBackendModels(ent configurator.NetworkEntity) (*CwfHaPai
 		gatewayIDs = append(gatewayIDs, assoc.Key)
 	}
 	if len(gatewayIDs) != 2 {
-		return &CwfHaPair{}, fmt.Errorf("could not convert entity to CwfHaPair; could not parse gateway pair IDs")
+		return fmt.Errorf("could not convert entity to CwfHaPair; could not parse gateway pair IDs")
 	}
 	if ent.Config == nil {
-		return &CwfHaPair{}, fmt.Errorf("could not convert entity to CwfHaPair; config was nil")
+		return fmt.Errorf("could not convert entity to CwfHaPair; config was nil")
 	}
 	cfg, ok := ent.Config.(*CwfHaPairConfigs)
 	if !ok {
-		return &CwfHaPair{}, fmt.Errorf("could not convert entity to CwfHaPair; config conversion failed")
+		return fmt.Errorf("could not convert entity config type %T to CwfHaPair", ent.Config)
 	}
-	return &CwfHaPair{
-		HaPairID:   ent.Key,
-		GatewayID1: gatewayIDs[0],
-		GatewayID2: gatewayIDs[1],
-		Config:     cfg,
-	}, nil
+	m.HaPairID = ent.Key
+	m.GatewayID1 = gatewayIDs[0]
+	m.GatewayID2 = gatewayIDs[1]
+	m.Config = cfg
+	return nil
 }
 
 func (m *CwfHaPair) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 	ret := configurator.EntityUpdateCriteria{
 		Type:      cwf.CwfHAPairType,
 		Key:       m.HaPairID,
+		NewConfig: m.Config,
+		AssociationsToSet: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
+	return ret
+}
+
+func (m *MutableCwfHaPair) ToEntityUpdateCriteria(haPairID string) configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      cwf.CwfHAPairType,
+		Key:       haPairID,
 		NewConfig: m.Config,
 		AssociationsToSet: []storage.TypeAndKey{
 			{

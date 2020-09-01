@@ -42,6 +42,8 @@ magma-gen-meta:
       filename: carrier_wifi_gateway_health_status_swaggergen.go
     - go-struct-name: CwfHaPair
       filename: cwf_ha_pair_swaggergen.go
+    - go-struct-name: MutableCwfHaPair
+      filename: mutable_cwf_ha_pair_swaggergen.go
 
 
 info:
@@ -303,7 +305,7 @@ paths:
           description: Carrier Wifi HA gateway pair
           required: true
           schema:
-            $ref: '#/definitions/cwf_ha_pair'
+            $ref: '#/definitions/mutable_cwf_ha_pair'
       responses:
         '200':
           description: Success
@@ -1142,6 +1144,25 @@ definitions:
         example: "gateway2"
       config:
         $ref: "#/definitions/cwf_ha_pair_configs"
+
+  mutable_cwf_ha_pair:
+   description: HA Gateway pair with read-only fields omitted
+   type: object
+   required:
+     - gateway_id_1
+     - gateway_id_2
+     - config
+   properties:
+     gateway_id_1:
+       type: string
+       x-nullable: false
+       example: "gateway1"
+     gateway_id_2:
+       type: string
+       x-nullable: false
+       example: "gateway2"
+     config:
+       $ref: "#/definitions/cwf_ha_pair_configs"
 
   cwf_ha_pair_configs:
     description: Configuration for HA Gateway pair in a Carrier Wifi Network

@@ -352,11 +352,13 @@ func listHAPairsHandler(c echo.Context) error {
 	}
 	haPairEntsByTK := haPairEnts.MakeByTK()
 	ret := make(map[string]*cwfModels.CwfHaPair, len(haPairEntsByTK))
-	for tk, haPair := range haPairEntsByTK {
-		ret[tk.Key], err = (&cwfModels.CwfHaPair{}).FromBackendModels(haPair)
+	for tk, haPairEnt := range haPairEntsByTK {
+		cwfHaPair := &cwfModels.CwfHaPair{}
+		err = cwfHaPair.FromBackendModels(haPairEnt)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
+		ret[tk.Key] = cwfHaPair
 	}
 	return c.JSON(http.StatusOK, ret)
 }
@@ -394,7 +396,8 @@ func getHAPairHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	cwfHaPair, err := (&cwfModels.CwfHaPair{}).FromBackendModels(ent)
+	cwfHaPair := &cwfModels.CwfHaPair{}
+	err = cwfHaPair.FromBackendModels(ent)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -406,15 +409,12 @@ func updateHAPairHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	haPair := new(cwfModels.CwfHaPair)
-	if err := c.Bind(haPair); err != nil {
+	mutableHaPair := new(cwfModels.MutableCwfHaPair)
+	if err := c.Bind(mutableHaPair); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	if err := haPair.ValidateModel(); err != nil {
+	if err := mutableHaPair.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
-	}
-	if haPairID != haPair.HaPairID {
-		return obsidian.HttpError(errors.New("ha pair in body does not match URL param"), http.StatusBadRequest)
 	}
 	// 404 if pair doesn't exist
 	exists, err := configurator.DoesEntityExist(networkID, cwf.CwfHAPairType, haPairID)
@@ -424,7 +424,7 @@ func updateHAPairHandler(c echo.Context) error {
 	if !exists {
 		return echo.ErrNotFound
 	}
-	_, err = configurator.UpdateEntity(networkID, haPair.ToEntityUpdateCriteria())
+	_, err = configurator.UpdateEntity(networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID))
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
