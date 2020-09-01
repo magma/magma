@@ -1,0 +1,603 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite tests="4" failures="0" time="0.110000" name="magma/feg/gateway/diameter">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/diameter" name="TestConnectionManager" time="0.110000"></testcase>
+		<testcase classname="magma/feg/gateway/diameter" name="TestEncodeDecodeSID" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/diameter" name="TestEncodePLMN" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/diameter" name="TestEncodeUserLocation" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/mconfig_test">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="3" failures="0" time="0.000000" name="magma/feg/gateway/multiplex">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/multiplex" name="TestMultiplexContextSessionIdConversions" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/multiplex" name="TestMultiplexContextIMSIstrConversions" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/multiplex" name="TestStaticMultiplexByIMSI" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/object_store">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/policydb">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/policydb/mocks">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/registry">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/service_health">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/service_health/metrics">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/aaa_server">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/client">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/events">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/metrics">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/pipelined">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/protos">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/radius">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/radius/dae">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/session_manager">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="1" failures="0" time="0.600000" name="magma/feg/gateway/services/aaa/store">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/aaa/store" name="TestInMemSessionTable" time="0.600000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/test/mock_pipelined">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/test/mock_sessiond">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/aaa/test/pipelined">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/csfb">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers/decode">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="4" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers/decode/ie">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/ie" name="TestDecodeIMSI" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/ie" name="TestDecodeFixedLengthIE" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/ie" name="TestDecodeVariableLengthIE" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/ie" name="TestDecodeLimitedLengthIE" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="25" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers/decode/message">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestSGsMessageDecoder" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPIMSIDetachAck" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPLocationUpdateAccept" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPLocationUpdateReject" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPMMInformationRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPPagingRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPEPSDetachAck" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPAlertRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPDownlinkUnitdata" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPReleaseRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPServiceAbortRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPStatus" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPResetAck" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPResetIndication" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPAlertAck" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPAlertReject" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPEPSDetachIndication" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPIMSIDetachIndication" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPLocationUpdateRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPPagingReject" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPServiceRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPTMSIReallocationComplete" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPUEActivityIndication" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPUEUnreachable" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/decode/message" name="TestDecodeSGsAPUplinkUnitdata" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers/decode/test_utils">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="5" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers/encode/ie">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/ie" name="TestEncodeIMSI" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/ie" name="TestEncodeMMEName" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/ie" name="TestEncodeFixedLengthIE" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/ie" name="TestEncodeLimitedLengthIE" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/ie" name="TestEncodeVariableLengthIE" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="24" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers/encode/message">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPAlertAck" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPAlertReject" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPAlertRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPDownlinkUnitdata" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPEPSDetachAck" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPEPSDetachIndication" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPIMSIDetachAck" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPIMSIDetachIndication" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPLocationUpdateAccept" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPLocationUpdateReject" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPLocationUpdateRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPMMInformationRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPPagingReject" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPPagingRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPReleaseRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPResetAck" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPResetIndication" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPServiceAbortRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPServiceRequest" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPStatus" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPTMSIReallocationComplete" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPUEActivityIndication" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPUEUnreachable" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/csfb/servicers/encode/message" name="TestEncodeSGsAPUplinkUnitdata" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers/mocks">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/servicers/test">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/csfb/test_init">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="1" failures="0" time="0.000000" name="magma/feg/gateway/services/eap">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/eap" name="TestAttributeScanner" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/client">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/eap_router">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/eap_router/sample_eap_client">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/protos">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="1" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers/aka">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/eap/providers/aka" name="TestMacGeneration" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers/aka/eap_aka">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers/aka/metrics">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers/aka/provider">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers/aka/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers/aka/servicers/handlers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers/protos">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/providers/registry">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/eap/test">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/feg_hello">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/feg_hello/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/gateway_health">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/gateway_health/collection">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/gateway_health/events">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/gateway_health/gateway_health">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/gateway_health/health_manager">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/hlr_proxy">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/radiusd">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/radiusd/collection">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/radiusd/radiusd">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/s6a_proxy">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/s6a_proxy/metrics">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/s6a_proxy/s6a_proxy">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/s6a_proxy/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/s6a_proxy/servicers/test">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/s6a_proxy/test_init">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/session_proxy/credit_control">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/session_proxy/credit_control/gx">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/session_proxy/credit_control/gy">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/session_proxy/metrics">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/session_proxy/relay">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/session_proxy/relay/mocks">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/session_proxy/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/session_proxy/session_proxy">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/swx_proxy">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/swx_proxy/cache">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/swx_proxy/metrics">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/swx_proxy/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/swx_proxy/servicers/test">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/swx_proxy/swx_proxy">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/swx_proxy/test_init">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/hss">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/hss/hss">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/hss/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/hss/servicers/test_utils">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="10" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/hss/storage">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestMemorySubscriberStore/TestAddSubscriber" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestMemorySubscriberStore/TestDeleteAllSubscribers" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestMemorySubscriberStore/TestDeleteSubscriber" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestMemorySubscriberStore/TestGetSubscriberData" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestMemorySubscriberStore/TestRaceCondition" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestMemorySubscriberStore/TestUpdateSubscriberData" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestMemorySubscriberStore" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestValidateSubscriberData" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestValidateSubscriberID" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/hss/storage" name="TestTestcoreStorageMemory_Integration" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/hss/test_init">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="2" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/mock_driver">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/feg/gateway/services/testcore/mock_driver" name="TestAllExpectationsMet" time="0.000000"></testcase>
+		<testcase classname="magma/feg/gateway/services/testcore/mock_driver" name="TestSomeExpectationsNotMet" time="0.000000"></testcase>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/ocs">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/ocs/mock_ocs">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/pcrf">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/pcrf/mock_pcrf">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/vlr">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/services/testcore/vlr/servicers">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/tools/gw_csfb_service_cli">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/tools/gw_s6a_service_cli">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/tools/gx_client_cli">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/tools/gy_client_cli">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/tools/hello_cli">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/tools/hss_cli">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/tools/s6a_cli">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+	<testsuite tests="0" failures="0" time="0.000000" name="magma/feg/gateway/tools/swx_cli">
+		<properties>
+			<property name="go.version" value="go1.13.4 linux/amd64"></property>
+		</properties>
+	</testsuite>
+</testsuites>

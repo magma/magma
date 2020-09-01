@@ -31,15 +31,22 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/ishidawataru/sctp v0.0.0-20190922091402-408ec287e38c
-	github.com/pkg/errors v0.8.1
+	github.com/jonboulle/clockwork v0.2.0 // indirect
+	github.com/mattn/go-colorable v0.1.7 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.9.1
 	github.com/shirou/gopsutil v2.20.3+incompatible
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/thoas/go-funk v0.7.0
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/crypto v0.0.0-20200820211705-5c72a883971a // indirect
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
+	golang.org/x/sys v0.0.0-20200831180312-196b9ba8737a // indirect
+	golang.org/x/tools v0.0.0-20200831203904-5a2aa26beb65 // indirect
 	google.golang.org/grpc v1.27.1
+	gotest.tools/gotestsum v0.5.3 // indirect
 	layeh.com/radius v0.0.0-20200615152116-663b41c3bf86
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0

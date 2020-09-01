@@ -6,7 +6,7 @@ aliases:
   - &only_master
     filters:
       branches:
-        only: master
+        only: add-junit
 
 executors:
   node:
@@ -52,6 +52,7 @@ orbs:
                   fi
                 done
                 echo "No changes in [$paths]"
+                exit 0
                 circleci step halt
 
 commands:
@@ -475,12 +476,17 @@ jobs:
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
          command: go mod download
-         workdir: ${MAGMA_ROOT}/cwf/gateway
+         workdir: ${MAGMA_ROOT}/feg/gateway
       - run:
           name: make feg precommit
           command: |
             cd ${MAGMA_ROOT}/feg/gateway
             make -C ${MAGMA_ROOT}/feg/gateway precommit
+            mkdir -p /tmp/test-results
+            cp ${MAGMA_ROOT}/feg/gateway/unit-tests.xml /tmp/test-results
+      - run: echo $MAGMA_ROOT
+      - store_test_results:
+          path: /tmp/test-results
       - magma_slack_notify
 
   feg-build:
@@ -858,12 +864,12 @@ workflows:
   agw:
     jobs:
       - lte-test
-      - lte-integ-test:
-          <<: *only_master
-      - lte-agw-deploy:
-          <<: *only_master
-          requires:
-            - lte-integ-test
+      #- lte-integ-test:
+      #    <<: *only_master
+      #- lte-agw-deploy:
+      #    <<: *only_master
+          #requires:
+          #  - lte-integ-test
 
   feg:
     jobs:
@@ -877,18 +883,18 @@ workflows:
       - cwag-precommit
       - cwf-integ-test:
           <<: *only_master
-      - xwfm-test:
-          <<: *only_master
-      - cwag-deploy:
-          <<: *only_master
-          requires:
-            - cwag-precommit
-            - cwf-integ-test
-      - xwfm-deploy:
-          <<: *only_master
-          requires:
-            - xwfm-test
-            - cwag-deploy
+      #- xwfm-test:
+      #    <<: *only_master
+      #- cwag-deploy:
+      #    <<: *only_master
+      #    requires:
+      #      - cwag-precommit
+      #      - cwf-integ-test
+      #- xwfm-deploy:
+      #    <<: *only_master
+      #    requires:
+      #      - xwfm-test
+      #      - cwag-deploy
 
 
   cwf_operator:
