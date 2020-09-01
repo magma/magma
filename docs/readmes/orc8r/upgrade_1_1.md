@@ -1,9 +1,12 @@
 ---
-id: deploy_upgrade
-title: Upgrading from 1.0
+id: upgrade_1_1
+title: Upgrade to v1.1
 hide_title: true
 ---
-# Upgrading from v1.0
+
+# Upgrade to v1.1
+
+This guide covers upgrading Orchestrator deployments from v1.0 to v1.1.
 
 First, read through [Installing Orchestrator](deploy_install.md) to familiarize
 yourself with the installation steps. If you want to perform an online upgrade
@@ -13,7 +16,7 @@ cluster. You can flip your DNS records to the new application whenever you feel
 comfortable to complete the migration.
 
 This guide will assume that you've already set up all the prerequisites,
-including developer tooling, a Helm chart repository, and a Docker registry.
+including developer tooling, a Helm chart repository, and a container registry.
 
 ## Create a New Root Module
 
@@ -41,16 +44,16 @@ components that you created for v1.0 so it doesn't create new copies. Terraform
 has a useful utility `terraform state mv` that can help accomplish this:
 
 ```bash
-cd OLDTF
-terraform state mv -state-out=NEWTF/terraform.tfstate 'module.vpc' 'module.orc8r.module.vpc'
-terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_security_group.default' 'module.orc8r.aws_security_group.default'
-terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_ebs_volume.prometheus-ebs-eks' 'aws_ebs_volume.prometheus-ebs-eks'
-terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_ebs_volume.prometheus-configs-ebs-eks' 'aws_ebs_volume.prometheus-configs-ebs-eks'
-terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_iam_policy.worker_node_policy' 'aws_iam_policy.worker_node_policy'
-terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_db_instance.default' 'module.orc8r.aws_db_instance.default'
-terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_db_instance.nms' 'module.orc8r.aws_db_instance.nms'
-terraform state mv -state-out=NEWTF/terraform.tfstate 'module.eks' 'module.orc8r.module.eks'
-terraform state mv -state-out=NEWTF/terraform.tfstate 'data.template_file.metrics_userdata' 'data.template_file.metrics_userdata'
+$ cd OLDTF
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'module.vpc' 'module.orc8r.module.vpc'
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_security_group.default' 'module.orc8r.aws_security_group.default'
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_ebs_volume.prometheus-ebs-eks' 'aws_ebs_volume.prometheus-ebs-eks'
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_ebs_volume.prometheus-configs-ebs-eks' 'aws_ebs_volume.prometheus-configs-ebs-eks'
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_iam_policy.worker_node_policy' 'aws_iam_policy.worker_node_policy'
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_db_instance.default' 'module.orc8r.aws_db_instance.default'
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_db_instance.nms' 'module.orc8r.aws_db_instance.nms'
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'module.eks' 'module.orc8r.module.eks'
+$ terraform state mv -state-out=NEWTF/terraform.tfstate 'data.template_file.metrics_userdata' 'data.template_file.metrics_userdata'
 ```
 
 If you added any custom components to your v1.0 root Terraform module, you
@@ -69,9 +72,9 @@ Then, update the application certs to include 2 new components (replace
 YOURDOMAIN.COM with the domain you've reserved for Orchestrator):
 
 ```bash
-cd MYSECRETS/certs
-openssl genrsa -out fluentd.key 2048
-openssl req -x509 -new -nodes -key fluentd.key -sha256 -days 3650 \
+$ cd MYSECRETS/certs
+$ openssl genrsa -out fluentd.key 2048
+$ openssl req -x509 -new -nodes -key fluentd.key -sha256 -days 3650 \
       -out fluentd.pem -subj "/C=US/CN=fluentd.YOURDOMAIN.COM"
 ```
 
@@ -94,7 +97,7 @@ also update `eks_worker_groups` in `main.tf` to match.
 ## Initial Terraform
 
 ```bash
-terraform plan -target=module.orc8r -var-file=vars.tfvars
+$ terraform plan -target=module.orc8r -var-file=vars.tfvars
 ```
 
 Pay VERY close attention to the output of the plan to make sure that nothing
@@ -123,7 +126,7 @@ data loss.
 When you are convinced that your new Terraform module won't break anything:
 
 ```bash
-terraform apply -target=module.orc8r -var-file=vars.tfvars
+$ terraform apply -target=module.orc8r -var-file=vars.tfvars
 ```
 
 ## Application Terraform
@@ -154,8 +157,8 @@ and will not affect the v1.0 deployment.
 
 ```bash
 # Replace orc8r with your v1.1 k8s namespace if you changed the name
-export CNTLR_POD=$(kubectl -n orc8r get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -it ${CNTLR_POD} bash
+$ export CNTLR_POD=$(kubectl -n orc8r get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+$ kubectl exec -it ${CNTLR_POD} bash
 
 (pod)$ cd /var/opt/magma/bin
 (pod)$ ./m005_certifier_to_blobstore -verify
@@ -190,7 +193,7 @@ create a new admin user in the `master` organization to set up access for
 other tenants:
 
 ```bash
-kubectl exec -it -n magma \
+$ kubectl exec -it -n magma \
   $(kubectl -n magma get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
   yarn setAdminPassword master <admin user email> <admin user password>
 ```

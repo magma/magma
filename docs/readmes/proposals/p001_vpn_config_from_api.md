@@ -1,7 +1,7 @@
 ---
-id: vpn_config_from_api
+id: p001_vpn_config_from_api
 title: Configurable VPN from Orchestrator API
-hide_title: yes
+hide_title: true
 ---
 
 # Configurable VPN from Orchestrator API

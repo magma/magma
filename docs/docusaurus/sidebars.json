@@ -4,17 +4,24 @@
     "Orchestrator": [
       {
         "type": "subcategory",
-        "label": "Deploying Orchestrator",
+        "label": "Deploy Orchestrator",
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
-          "orc8r/deploy_install",
-          "orc8r/deploy_upgrade"
+          "orc8r/deploy_install"
         ]
       },
       {
         "type": "subcategory",
-        "label": "Orchestrator Users Guide",
+        "label": "Upgrade Orchestrator",
+        "ids": [
+          "orc8r/upgrade_1_2",
+          "orc8r/upgrade_1_1"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "User Guide",
         "ids": [
           "orc8r/ue_metering"
         ]
@@ -24,7 +31,7 @@
     "Access Gateway": [
       {
         "type": "subcategory",
-        "label": "Deploying AGWs",
+        "label": "Deploy AGWs",
         "ids": [
           "lte/setup_deb",
           "lte/config_agw",
@@ -46,7 +53,7 @@
     "Federation Gateway": [
       {
         "type": "subcategory",
-        "label": "Deploying FeG",
+        "label": "Deploy FeG",
         "ids": [
           "feg/deploy_intro",
           "feg/deploy_build",
@@ -56,7 +63,9 @@
     ],
     "FAQ": ["faq/magma_faq"],
     "Proposals": [
-      "proposals/vpn_config_from_api"
+      "proposals/p001_vpn_config_from_api",
+      "proposals/p002_scaled_prometheus_pipeline",
+      "proposals/p003_qos_enforcement"
     ]
   }
 }

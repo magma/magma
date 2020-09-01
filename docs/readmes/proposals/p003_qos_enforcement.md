@@ -1,6 +1,12 @@
-# Magma QoS Policy and Federation API Cleanup
+---
+id: p003_qos_enforcement
+title: QoS Policy Configuration
+hide_title: true
+---
 
-*Status: In-Review*\
+# QoS Policy Configuration and Cleanup
+
+*Status: Accepted*\
 *Author: @andreilee*\
 *Last Updated: 08/13*
 
