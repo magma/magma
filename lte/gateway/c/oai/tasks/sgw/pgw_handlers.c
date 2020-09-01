@@ -511,8 +511,16 @@ int spgw_send_nw_init_activate_bearer_rsp(
   // Send Dedicated Bearer ID and Policy Rule ID binding to PCRF
   char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
   IMSI64_TO_STRING(imsi64, (char*) imsi_str, IMSI_BCD_DIGITS_MAX);
+  if (cause == REQUEST_ACCEPTED) {
   pcef_send_policy2bearer_binding(
       imsi_str, default_bearer_id, policy_rule_name, eps_bearer_id);
+  } else {
+    // Send 0 as dedicated bearer id if the create bearer request
+    // was not accepted. Session manager should delete the policy rule
+    // for this bearer.
+    pcef_send_policy2bearer_binding(
+      imsi_str, default_bearer_id, policy_rule_name, 0);
+  }
 
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
