@@ -1956,7 +1956,7 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
   *imsi64                                = ue_context_p->emm_context._imsi64;
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   // Re-transmit Paging message only once
-  if (ue_context_p->paging_retx_count < 1) {
+  if (ue_context_p->paging_retx_count < MAX_PAGING_RETRY_COUNT) {
     ue_context_p->paging_retx_count++;
     if ((mme_app_paging_request_helper(
             ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
@@ -2659,7 +2659,7 @@ void mme_app_handle_nw_init_ded_bearer_actv_req(
         break;
       }
     }
-    /* Page the UE if message saving was successful and
+    /* Page the UE if message is saved successfully and
      * UE has not already been paged*/
     if ((is_msg_saved) &&
         (ue_context_p->paging_response_timer.id == MME_APP_TIMER_INACTIVE_ID)) {
