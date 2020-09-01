@@ -106,6 +106,7 @@ GYController needs to be updated to support restriction FUA. This translates to,
 1/ activate all the flows as they are received from SessionD.
 2/ Support QoS in GY APP (Include a Qos Manager)
 3/ Updating statistics back to SessionD
+4/ Support Gy rules enforcement stats in SessionD
 
 Since some of these logic is common between enforcement and gy apps, we will need
 to move it to  policy\_mixin.py
