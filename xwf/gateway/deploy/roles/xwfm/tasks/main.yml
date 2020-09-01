@@ -113,6 +113,11 @@
   become: true
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
 
+- name: Load TLS PKI for XWF bridge
+  become: true
+  script: set_pki.sh
+  when: {{ connection_mode }} == "secure"
+
 - name: Set OVS controller for XWF bridge
   become: true
   shell: ovs-vsctl set-controller uplink_br0 {{ connection_mode }}:{{ xwf_ctrl_ip }}:6653
