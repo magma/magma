@@ -452,9 +452,10 @@ function newPanel(params: PanelParams) {
   // Have to add this after to avoid grafana-dash-gen from forcing the target
   // into a Graphite format
   pan.state.targets = params.targets;
-  if (params.unit !== null) {
-    pan.state.y_formats[0] = params.unit;
-  }
+
+  // "short" is the default unit for grafana (no unit)
+  pan.state.y_formats[0] = params.unit ?? 'short';
+
   // yMin should be 0 at minimum unless otherwise specified.
   // null is used to indicate 'auto' in grafana
   if (params.yMin === null) {
