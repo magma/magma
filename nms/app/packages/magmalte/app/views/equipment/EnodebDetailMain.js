@@ -13,7 +13,6 @@
  * @flow strict-local
  * @format
  */
-import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import DateTimeMetricChart from '../../components/DateTimeMetricChart';
@@ -31,7 +30,6 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
@@ -40,28 +38,11 @@ const useStyles = makeStyles(theme => ({
   dashboardRoot: {
     margin: theme.spacing(5),
   },
-  appBarBtn: {
-    color: colors.primary.white,
-    background: colors.primary.comet,
-    fontFamily: typography.button.fontFamily,
-    fontWeight: typography.button.fontWeight,
-    fontSize: typography.button.fontSize,
-    lineHeight: typography.button.lineHeight,
-    letterSpacing: typography.button.letterSpacing,
-
-    '&:hover': {
-      background: colors.primary.mirage,
-    },
-  },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
 export function EnodebDetail() {
   const ctx = useContext(EnodebContext);
-  const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
@@ -75,47 +56,11 @@ export function EnodebDetail() {
             label: 'Overview',
             to: '/overview',
             icon: DashboardIcon,
-            filters: (
-              <Grid
-                container
-                justify="flex-end"
-                alignItems="center"
-                spacing={2}>
-                <Grid item>
-                  <Button className={classes.appBarBtnSecondary}>
-                    Secondary Action
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button className={classes.appBarBtn} variant="contained">
-                    Reboot
-                  </Button>
-                </Grid>
-              </Grid>
-            ),
           },
           {
             label: 'Config',
             to: '/config',
             icon: SettingsIcon,
-            filters: (
-              <Grid
-                container
-                justify="flex-end"
-                alignItems="center"
-                spacing={2}>
-                <Grid item>
-                  <Button className={classes.appBarBtnSecondary}>
-                    Secondary Action
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button className={classes.appBarBtn} variant="contained">
-                    Reboot
-                  </Button>
-                </Grid>
-              </Grid>
-            ),
           },
         ]}
       />
