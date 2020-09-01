@@ -57,7 +57,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def __init__(self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
                  ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
-                 tunnel_learn_app, service_config, service_manager):
+                 tunnel_learn_app, classifier_app, service_config, service_manager):
         self._loop = loop
         self._gy_app = gy_app
         self._enforcer_app = enforcer_app
@@ -69,6 +69,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._vlan_learn_app = vlan_learn_app
         self._tunnel_learn_app = tunnel_learn_app
         self._service_config = service_config
+        self._classifier_app = classifier_app
         self._service_manager = service_manager
 
     def add_to_server(self, server):
