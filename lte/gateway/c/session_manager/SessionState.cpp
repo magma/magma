@@ -1451,6 +1451,7 @@ BearerUpdate SessionState::get_dedicated_bearer_updates(
   }
 
   // Rule Removals
+  MLOG(MINFO) << "Processing delete bearer updates from rules_to_deactivate...";
   for (const auto& rule_id : rules_to_deactivate.static_rules) {
     update_bearer_deletion_req(STATIC, rule_id, config_, update, uc);
   }
@@ -1630,22 +1631,30 @@ void SessionState::update_bearer_deletion_req(
     const PolicyType policy_type, const std::string& rule_id,
     const SessionConfig& config, BearerUpdate& update,
     SessionStateUpdateCriteria& uc) {
+  MLOG(MINFO) << session_id_
+              << "Processing rule remove -> delete_bearer_req for " << rule_id;
   if (!config.rat_specific_context.has_lte_context()) {
+    MLOG(MINFO) << session_id_ << " Not a LTE session, skipping";
     return;
   }
   if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) ==
       bearer_id_by_policy_.end()) {
+    MLOG(MINFO) << session_id_ << " Bearer for " << rule_id
+                << " not found, skipping";
     return;
   }
   // map change needs to be propagated to the store
   const auto bearer_id_to_delete =
       bearer_id_by_policy_[PolicyID(policy_type, rule_id)];
+  MLOG(MINFO) << session_id_ << " Adding delete bearer req for " << rule_id
+              << " " << bearer_id_to_delete;
   bearer_id_by_policy_.erase(PolicyID(policy_type, rule_id));
   uc.is_bearer_mapping_updated = true;
   uc.bearer_id_by_policy       = bearer_id_by_policy_;
 
   // If it is first time filling in the DeletionReq, fill in other info
   if (!update.needs_deletion) {
+    MLOG(MINFO) << session_id_ << " Marking session adds needing deletion";
     update.needs_deletion = true;
     auto& req             = update.delete_req;
     req.mutable_sid()->CopyFrom(config.common_context.sid());
@@ -1654,6 +1663,9 @@ void SessionState::update_bearer_deletion_req(
         config.rat_specific_context.lte_context().bearer_id());
   }
   update.delete_req.mutable_eps_bearer_ids()->Add(bearer_id_to_delete);
+  MLOG(MINFO) << session_id_
+              << "Done processing rule remove -> delete_bearer_req for "
+              << rule_id;
 }
 
 RuleSetToApply::RuleSetToApply(const magma::lte::RuleSet& rule_set) {

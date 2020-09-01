@@ -1357,16 +1357,21 @@ void LocalEnforcer::handle_set_session_rules(
         // No rule change needed for this APN
         continue;
       }
+      MLOG(MINFO) << session->get_session_id()
+                  << " processing set rule updates";
 
       auto& uc = session_update[imsi][session->get_session_id()];
       // Process the rule sets and get rules that need to be
       // activated/deactivated
       session->apply_session_rule_set(
           *rule_set, rules_to_activate, rules_to_deactivate, uc);
-
+      MLOG(MINFO) << session->get_session_id()
+                  << " processing rule updates to PipelineD";
       // Propagate these rule changes to PipelineD and MME (if 4G)
       propagate_rule_updates_to_pipelined(
           imsi, config, rules_to_activate, rules_to_deactivate, false);
+      MLOG(MINFO) << session->get_session_id()
+                  << " processing bearer updates to MME";
       if (config.common_context.rat_type() == TGPP_LTE) {
         const auto update = session->get_dedicated_bearer_updates(
             rules_to_activate, rules_to_deactivate, uc);
@@ -1493,7 +1498,6 @@ void LocalEnforcer::init_policy_reauth_for_session(
       *session, imsi, to_vec(request.rules_to_install()),
       to_vec(request.dynamic_rules_to_install()), rules_to_activate,
       rules_to_deactivate, update_criteria);
-
   propagate_rule_updates_to_pipelined(
       imsi, session->get_config(), rules_to_activate, rules_to_deactivate,
       false);
