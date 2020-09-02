@@ -16,10 +16,14 @@
 import 'jest-dom/extend-expect';
 import EventAlertChart from '../EventAlertChart';
 import MagmaAPIBindings from '@fbcnms/magma-api';
+import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
 import axiosMock from 'axios';
+import defaultTheme from '../../theme/default';
 import moment from 'moment';
+
 import {MemoryRouter, Route} from 'react-router-dom';
+import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, render, wait} from '@testing-library/react';
 import type {promql_return_object} from '@fbcnms/magma-api';
 
@@ -87,15 +91,19 @@ describe('<EventAlertChart/>', () => {
       // const startDate = moment().subtract(3, 'hours');
       const Wrapper = () => (
         <MemoryRouter initialEntries={['/nms/mynetwork']} initialIndex={0}>
-          <Route
-            path="/nms/:networkId"
-            render={props => (
-              <EventAlertChart
-                {...props}
-                startEnd={[tc.startDate, tc.endDate]}
+          <MuiThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <Route
+                path="/nms/:networkId"
+                render={props => (
+                  <EventAlertChart
+                    {...props}
+                    startEnd={[tc.startDate, tc.endDate]}
+                  />
+                )}
               />
-            )}
-          />
+            </MuiStylesThemeProvider>
+          </MuiThemeProvider>
         </MemoryRouter>
       );
       render(<Wrapper />);

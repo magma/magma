@@ -184,7 +184,7 @@ function EnodeEditDialog(props: DialogProps) {
       </Tabs>
       {tabPos === 0 && (
         <ConfigEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
+          isAdd={!editProps}
           enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
@@ -200,7 +200,7 @@ function EnodeEditDialog(props: DialogProps) {
       )}
       {tabPos === 1 && (
         <RanEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Add eNodeB'}
+          isAdd={!editProps}
           enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
@@ -212,7 +212,7 @@ function EnodeEditDialog(props: DialogProps) {
 }
 
 type Props = {
-  saveButtonTitle: string,
+  isAdd: boolean,
   enb?: enodeb,
   lteRanConfigs: ?network_ran_configs,
   onClose: () => void,
@@ -275,7 +275,6 @@ export function RanEdit(props: Props) {
       });
       props.onSave(enb);
     } catch (e) {
-      console.log('xxxx', e);
       setError(e.response?.data?.message ?? e.message);
     }
   };
@@ -403,7 +402,7 @@ export function RanEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Add eNodeB' : 'Save'}
         </Button>
       </DialogActions>
     </>
@@ -417,11 +416,20 @@ export function ConfigEdit(props: Props) {
   const ctx = useContext(EnodebContext);
   const enodebSerial: string = match.params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-
   const [enb, setEnb] = useState<enodeb>(props.enb || DEFAULT_ENB_CONFIG);
-
   const onSave = async () => {
     try {
+      if (props.isAdd) {
+        // check if it is not a modify during add i.e we aren't switching tabs back
+        // during add and modifying the information other than the serial number
+        if (
+          enb.serial in ctx.state.enbInfo &&
+          enb.serial !== props.enb?.serial
+        ) {
+          setError(`eNodeB ${enb.serial} already exists`);
+          return;
+        }
+      }
       await ctx.setState(enb.serial, {
         enb_state: enbInfo?.enb_state ?? {},
         enb: enb,
@@ -443,7 +451,9 @@ export function ConfigEdit(props: Props) {
         <List>
           {error !== '' && (
             <AltFormField label={''}>
-              <FormLabel error>{error}</FormLabel>
+              <FormLabel data-testid="configEditError" error>
+                {error}
+              </FormLabel>
             </AltFormField>
           )}
           <AltFormField label={'Name'}>
@@ -482,7 +492,7 @@ export function ConfigEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>

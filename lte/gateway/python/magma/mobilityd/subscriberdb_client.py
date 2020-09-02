@@ -39,6 +39,12 @@ class StaticIPInfo:
         self.gw_ip = gw_ip_parsed
         self.vlan = vlan
 
+    def __str__(self):
+        return "IP: {} GW-IP: {} GW-MAC: {} VLAN: {}".format(self.ip,
+                                                             self.gw_ip,
+                                                             self.gw_mac,
+                                                             self.vlan)
+
 
 class SubscriberDbClient:
     def __init__(self, subscriberdb_rpc_stub):

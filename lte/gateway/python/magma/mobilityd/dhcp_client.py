@@ -32,7 +32,7 @@ from magma.mobilityd.dhcp_desc import DHCPState, DHCPDescriptor
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 
 LOG = logging.getLogger('mobilityd.dhcp.sniff')
-
+DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 
 class DHCPClient:
     THREAD_YIELD_TIME = .1
@@ -42,7 +42,7 @@ class DHCPClient:
                  gw_info: UplinkGatewayInfo,
                  dhcp_wait: Condition,
                  iface: str = "dhcp0",
-                 lease_renew_wait_min: int = 30):
+                 lease_renew_wait_min: int = 200):
         """
         Implement DHCP client to allocate IP for given Mac address.
         DHCP client state is maintained in user provided hash table.
@@ -181,12 +181,9 @@ class DHCPClient:
                 for dhcp_record in self.dhcp_client_state.values():
                     logging.debug("monitor: %s", dhcp_record)
                     # Only process active records.
-                    if dhcp_record.state != DHCPState.ACK and \
-                       dhcp_record.state != DHCPState.REQUEST:
+                    if dhcp_record.state not in DHCP_ACTIVE_STATES:
                         continue
-                    # ignore already released IPs.
-                    if dhcp_record.state == DHCPState.RELEASE:
-                        continue
+
                     now = datetime.datetime.now()
                     logging.debug("monitor time: %s", now)
                     request_state = DHCPState.REQUEST
@@ -232,7 +229,7 @@ class DHCPClient:
                 if subnet_mask is not None:
                     ip_subnet = IPv4Network(ip_offered + "/" + subnet_mask, strict=False)
                 else:
-                    ip_subnet = None
+                    ip_subnet = IPv4Network(ip_offered + "/" + "32", strict=False)
 
                 dhcp_router_opt = self._get_option(packet, "router")
                 if dhcp_router_opt is not None:

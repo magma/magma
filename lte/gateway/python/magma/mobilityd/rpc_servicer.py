@@ -23,7 +23,8 @@ from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
-from .ip_address_man import IPAddressManager, IPNotInUseError, MappingNotFoundError
+from .ip_address_man import IPAddressManager, IPNotInUseError, \
+    MappingNotFoundError, DuplicateIPAssignmentError
 
 from .ip_allocator_pool import IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError
@@ -181,6 +182,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
             except DuplicatedIPAllocationError:
                 context.set_details('IP has been allocated for this subscriber')
+                context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            except DuplicateIPAssignmentError:
+                context.set_details('IP has been allocated for other subscriber')
                 context.set_code(grpc.StatusCode.ALREADY_EXISTS)
         else:
             self._unimplemented_ip_version_error(context)

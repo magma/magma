@@ -242,7 +242,7 @@ export default function DataGrid(props: Props) {
                   className={classes.dataBox}
                   title={data.category}
                   titleTypographyProps={{
-                    variant: 'body3',
+                    variant: 'caption',
                     className: classes.dataLabel,
                     title: data.category,
                   }}

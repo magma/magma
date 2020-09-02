@@ -122,8 +122,10 @@ export default function () {
     const sev: Severity = severityMap[alert.labels['severity']] || 'Other';
     data[sev].push({
       label: alert.labels.alertname,
-      labelInfo: `${alert.labels.job} - ${alert.labels.instance}`,
-      annotations: `${alert.annotations.description} - ${alert.annotations.summary}`,
+      labelInfo: `${alert.labels.job ?? '-'} - ${alert.labels.instance ?? '-'}`,
+      annotations: `${alert.annotations.description ?? '-'} - ${
+        alert.annotations.summary ?? '-'
+      }`,
       status: alert.status.state,
       timingInfo: new Date(alert.startsAt),
     });
