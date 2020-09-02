@@ -578,7 +578,8 @@ jobs:
       image: ubuntu-1604:201903-01
     environment:
       - MAGMA_ROOT=/home/circleci/project
-      - PYTHON_BUILD=${MAGMA_ROOT}/build
+      - PYTHON_BUILD=${MAGMA_ROOT}/build/python
+      - C_BUILD=${MAGMA_ROOT}/build/c
       - PIP_CACHE_HOME=${MAGMA_ROOT}/.pipcache
       - MAGMA_DEV_MODE=1
       - SKIP_SUDO_TESTS=1
@@ -589,18 +590,28 @@ jobs:
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
       - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
+      # for c++ common
       - run:
           command: |
-            sudo curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
-            sudo unzip protoc3.zip -d protoc3
-            sudo mv protoc3/bin/protoc /bin/protoc
+            sudo apt-get install -y cmake ninja-build protobuf-compiler \
+            libprotobuf-c-dev libyaml-cpp-dev libprotoc-dev libprotobuf-dev \
+            libgoogle-glog-dev libdouble-conversion-dev libboost-chrono-dev \
+            libboost-context-dev libboost-program-options-dev \
+            libboost-filesystem-dev libboost-regex-dev libevent-dev \
+            libgtest-dev google-mock libconfig-dev libxml2-dev
+      - run:
+          command: |
+            curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+            unzip protoc3.zip -d protoc3
+            mv protoc3/bin/protoc /bin/protoc
             sudo chmod a+rx /bin/protoc
-            sudo mv protoc3/include/google /usr/include/
+            mv protoc3/include/google /usr/include/
             sudo chmod -R a+Xr /usr/include/google
             sudo rm -rf protoc3.zip protoc3
             mkdir ${CODEGEN_ROOT}
             wget https://repo1.maven.org/maven2/io/swagger/swagger-codegen-cli/2.2.3/swagger-codegen-cli-2.2.3.jar -O $SWAGGER_CODEGEN_JAR
-            make -C $MAGMA_ROOT/lte/gateway/python test_all
+      - run: sudo apt-get install -y thisshouldfail-marie
+      - run: make -C $MAGMA_ROOT/lte/gateway/python test_all
       - magma_slack_notify
 
   lte-integ-test:
