@@ -440,10 +440,10 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
     if (config_setting_lookup_string(
             setting_pgw, PGW_RELAY_ENABLED, (const char**) &astring)) {
       if (strcasecmp(astring, "yes") == 0) {
-        config_pP->relay_enabled = true;
+        config_pP->hss_relay_enabled = true;
         OAILOG_DEBUG(LOG_SPGW_APP, "Enabling relay through PCEF\n");
       } else {
-        config_pP->relay_enabled = false;
+        config_pP->hss_relay_enabled = false;
       }
     }
 

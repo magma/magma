@@ -115,7 +115,7 @@ typedef struct pgw_config_s {
 
   bool force_push_pco;
   uint16_t ue_mtu;
-  bool relay_enabled;
+  bool hss_relay_enabled;
   bool enable_nat;
 
   struct {
