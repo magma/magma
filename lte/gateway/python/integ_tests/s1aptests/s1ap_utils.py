@@ -39,6 +39,9 @@ from lte.protos.session_manager_pb2 import (
     DynamicRuleInstall,
     PolicyReAuthRequest,
     QoSInformation,
+    RuleSet,
+    RulesPerSubscriber,
+    SessionRules,
 )
 from lte.protos.abort_session_pb2 import (
     AbortSessionRequest,
@@ -50,8 +53,11 @@ from lte.protos.spgw_service_pb2 import (
 )
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
-from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
 from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
+from lte.protos.session_manager_pb2_grpc import (
+    LocalSessionManagerStub,
+    SessionProxyResponderStub,
+)
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
@@ -1218,7 +1224,7 @@ class SessionManagerUtil(object):
         """
         Initialize sessionManager util.
         """
-        self._session_stub = SessionProxyResponderStub(
+        self._session_proxy_stub = SessionProxyResponderStub(
             get_rpc_channel("sessiond")
         )
         self._abort_session_stub = AbortSessionResponderStub(
@@ -1226,6 +1232,9 @@ class SessionManagerUtil(object):
         )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
+        )
+        self._local_session_manager_stub = LocalSessionManagerStub(
+            get_rpc_channel("sessiond")
         )
 
     def get_flow_match(self, flow_list, flow_match_list):
@@ -1295,15 +1304,7 @@ class SessionManagerUtil(object):
                 )
             )
 
-    def create_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
-        """
-        Sends Policy RAR message to session manager
-        """
-        print("Sending Policy RAR message to session manager")
-        flow_match_list = []
-        res = None
-        self.get_flow_match(flow_list, flow_match_list)
-
+    def get_policy_rule(self, policy_id, qos, flow_match_list):
         policy_qos = FlowQos(
             qci=qos["qci"],
             max_req_bw_ul=qos["max_req_bw_ul"],
@@ -1327,6 +1328,19 @@ class SessionManagerUtil(object):
             qos=policy_qos,
         )
 
+        return policy_rule
+
+    def send_ReAuthRequest(self, imsi, policy_id, flow_list, qos):
+        """
+        Sends Policy RAR message to session manager
+        """
+        print("Sending Policy RAR message to session manager")
+        flow_match_list = []
+        res = None
+        self.get_flow_match(flow_list, flow_match_list)
+
+        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
+
         qos = QoSInformation(qci=qos["qci"])
 
         # Get sessionid
@@ -1345,7 +1359,7 @@ class SessionManagerUtil(object):
             print("error: Couldn't find sessionid. Directoryd content:")
             self._print_directoryd_content()
 
-        self._session_stub.PolicyReAuth(
+        self._session_proxy_stub.PolicyReAuth(
             PolicyReAuthRequest(
                 session_id=res.value,
                 imsi=imsi,
@@ -1392,6 +1406,36 @@ class SessionManagerUtil(object):
             for record in allRecordsResponse.records:
                 print("%s" % str(record))
 
+    def send_SetSessionRules(self, imsi, policy_id, flow_list, qos):
+        """
+        Sends Policy SetSessionRules message to session manager
+        """
+        print("Sending session rules to session manager")
+        flow_match_list = []
+        res = None
+        self.get_flow_match(flow_list, flow_match_list)
+
+        policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
+
+        rule_set = RuleSet(
+            apply_subscriber_wide = True,
+            apn = "",
+            static_rules = [],
+            dynamic_rules = [
+                DynamicRuleInstall(policy_rule=policy_rule)
+            ],
+        )
+
+        self._local_session_manager_stub.SetSessionRules(
+            SessionRules(
+                rules_per_subscriber = [
+                    RulesPerSubscriber(
+                        imsi = imsi,
+                        rule_set = [rule_set],
+                    )
+                ]
+            )
+        )
 
 class GTPBridgeUtils:
     def __init__(self):

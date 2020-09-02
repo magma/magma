@@ -17,13 +17,13 @@ import time
 
 from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
-from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil, GTPBridgeUtils
+from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
-from lte.protos.policydb_pb2 import FlowMatch
 
 
-class TestAttachDetachRarTcpData(unittest.TestCase):
+class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
     SPGW_TABLE = 0
+    GTP_PORT = 32768
     LOCAL_PORT = "LOCAL"
 
     def setUp(self):
@@ -34,7 +34,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_rar_tcp_data(self):
+    def test_attach_detach_setsessionrules_tcp_data(self):
         """ attach/detach + send ReAuth Req to session manager with a"""
         """ single UE """
         num_ues = 1
@@ -46,8 +46,6 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
-        gtp_br_util = GTPBridgeUtils()
-        GTP_PORT = gtp_br_util.get_gtp_port_no()
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -69,83 +67,25 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
 
             # UL Flow description #1
             ulFlow1 = {
-                "ipv4_dst": "192.168.129.42",  # IPv4 destination address
-                "tcp_dst_port": 5002,  # TCP dest port
-                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-                "direction": FlowMatch.UPLINK,  # Direction
-            }
-
-            # UL Flow description #2
-            ulFlow2 = {
-                "ipv4_dst": "192.168.129.42",  # IPv4 destination address
-                "tcp_dst_port": 5001,  # TCP dest port
-                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-                "direction": FlowMatch.UPLINK,  # Direction
-            }
-
-            # UL Flow description #3
-            ulFlow3 = {
-                "ipv4_dst": "192.168.129.64",  # IPv4 destination address
-                "tcp_dst_port": 5003,  # TCP dest port
-                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-                "direction": FlowMatch.UPLINK,  # Direction
-            }
-
-            # UL Flow description #4
-            ulFlow4 = {
-                "ipv4_dst": "192.168.129.42",  # IPv4 destination address
-                "tcp_dst_port": 5004,  # TCP dest port
-                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-                "direction": FlowMatch.UPLINK,  # Direction
+                "ip_proto": "TCP",  # Protocol Type
+                "direction": "UL",  # Direction
             }
 
             # DL Flow description #1
             dlFlow1 = {
-                "ipv4_src": "192.168.129.42",  # IPv4 source address
-                "tcp_src_port": 5001,  # TCP source port
-                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-                "direction": FlowMatch.DOWNLINK,  # Direction
-            }
-
-            # DL Flow description #2
-            dlFlow2 = {
-                "ipv4_src": "192.168.129.64",  # IPv4 source address
-                "tcp_src_port": 5002,  # TCP source port
-                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-                "direction": FlowMatch.DOWNLINK,  # Direction
-            }
-
-            # DL Flow description #3
-            dlFlow3 = {
-                "ipv4_src": "192.168.129.64",  # IPv4 source address
-                "tcp_src_port": 5003,  # TCP source port
-                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-                "direction": FlowMatch.DOWNLINK,  # Direction
-            }
-
-            # DL Flow description #4
-            dlFlow4 = {
-                "ipv4_src": "192.168.129.42",  # IPv4 source address
-                "tcp_src_port": 5004,  # TCP source port
-                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
-                "direction": FlowMatch.DOWNLINK,  # Direction
+                "ip_proto": "TCP",  # Protocol Type
+                "direction": "DL",  # Direction
             }
 
             # Flow list to be configured
             flow_list = [
                 ulFlow1,
-                ulFlow2,
-                ulFlow3,
-                ulFlow4,
                 dlFlow1,
-                dlFlow2,
-                dlFlow3,
-                dlFlow4,
             ]
 
             # QoS
             qos = {
-                "qci": 5,  # qci value [1 to 9]
+                "qci": 8,  # qci value [1 to 9]
                 "priority": 0,  # Range [0-255]
                 "max_req_bw_ul": 10000000,  # MAX bw Uplink
                 "max_req_bw_dl": 15000000,  # MAX bw Downlink
@@ -156,20 +96,51 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                 "pre_vul": 1,  # pre-emption vulnerability
             }
 
-            policy_id = "ims-voice"
+            policy_id = "tcp"
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
             print(
-                "********************** Sending RAR for IMSI",
+                "********************** Set Session Rule for IMSI",
                 "".join([str(i) for i in req.imsi]),
             )
-            self._sessionManager_util.send_ReAuthRequest(
+            self._sessionManager_util.send_SetSessionRules(
                 "IMSI" + "".join([str(i) for i in req.imsi]),
                 policy_id,
                 flow_list,
                 qos,
             )
+
+            # Receive Activate dedicated bearer request
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            )
+            act_ded_ber_ctxt_req = response.cast(
+                s1ap_types.UeActDedBearCtxtReq_t
+            )
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+            # Send Activate dedicated bearer accept
+            self._s1ap_wrapper.sendActDedicatedBearerAccept(
+                req.ue_id, act_ded_ber_ctxt_req.bearerId
+            )
+
+            policy_id = "tcp2"
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+            print(
+                "********************** Set Session Rule for IMSI",
+                "".join([str(i) for i in req.imsi]),
+            )
+            self._sessionManager_util.send_SetSessionRules(
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                policy_id,
+                flow_list,
+                qos,
+            )
+
 
             # Receive Activate dedicated bearer request
             response = self._s1ap_wrapper.s1_util.get_response()
@@ -198,7 +169,7 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
                     datapath,
                     {
                         "table_id": self.SPGW_TABLE,
-                        "match": {"in_port": GTP_PORT},
+                        "match": {"in_port": self.GTP_PORT},
                     },
                 )
                 if len(uplink_flows) > 1:
@@ -255,27 +226,6 @@ class TestAttachDetachRarTcpData(unittest.TestCase):
             time.sleep(5)
             with self._s1ap_wrapper.configUplinkTest(req, duration=1) as test:
                 test.verify()
-
-            print(
-                "********************** Deleting dedicated bearer for IMSI",
-                "".join([str(i) for i in req.imsi]),
-            )
-            self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5, 6
-            )
-
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value,
-            )
-
-            print("******************* Received deactivate eps bearer context")
-
-            deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
-            self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-                req.ue_id, deactv_bearer_req.bearerId
-            )
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
