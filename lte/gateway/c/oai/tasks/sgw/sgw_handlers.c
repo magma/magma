@@ -476,6 +476,144 @@ static void sgw_populate_mbr_bearer_contexts_removed(
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
+
+//------------------------------------------------------------------------------
+/* Helper function to add gtp tunnels for default and
+ * dedicated bearers
+ */
+static void sgw_add_gtp_tunnel(
+    imsi64_t imsi64, sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p) {
+  int rv             = RETURNok;
+  struct in_addr enb = {.s_addr = 0};
+  enb.s_addr =
+      eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
+
+  struct in_addr ue = {.s_addr = 0};
+  ue.s_addr         = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+  int vlan          = eps_bearer_ctxt_p->paa.vlan;
+  Imsi_t imsi = new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
+
+  /* UE is switching back to EPS services after the CS Fallback
+   * If Modify bearer Request is received in UE suspended mode, Resume PS
+   * data
+   */
+  if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection
+          .ue_suspended_for_ps_handover) {
+    rv = gtp_tunnel_ops->forward_data_on_tunnel(
+        ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
+        DEFAULT_PRECEDENCE);
+    if (rv < 0) {
+      OAILOG_ERROR_UE(
+          LOG_SPGW_APP, imsi64, "ERROR in forwarding data on TUNNEL err=%d\n",
+          rv);
+    }
+  } else {
+    OAILOG_DEBUG_UE(
+        LOG_SPGW_APP, imsi64, "Adding tunnel for bearer %u\n",
+        eps_bearer_ctxt_p->eps_bearer_id);
+    if (eps_bearer_ctxt_p->eps_bearer_id ==
+        new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+            .pdn_connection.default_bearer) {
+      // Set default precedence and tft for default bearer
+      rv = gtpv1u_add_tunnel(
+          ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
+      if (rv < 0) {
+        OAILOG_ERROR_UE(
+            LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
+      }
+    } else {
+      for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
+           ++itrn) {
+        packet_filter_contents_t packet_filter =
+            eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
+                .packetfiltercontents;
+
+        // Prepare DL flow rule
+        // The TFTs are DL TFTs: UE is the destination/local,
+        // PDN end point is the source/remote.
+        struct ipv4flow_dl dlflow;
+
+        // Adding UE to the rule is safe
+        dlflow.dst_ip.s_addr = ue.s_addr;
+
+        // At least we can match UE IPv4 addr;
+        // when IPv6 is supported, we need to revisit this.
+        dlflow.set_params = DST_IPV4;
+
+        // Process remote address if present
+        if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG &
+             packet_filter.flags) ==
+            TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
+          struct in_addr remoteaddr = {.s_addr = 0};
+          remoteaddr.s_addr = (packet_filter.ipv4remoteaddr[0].addr << 24) +
+                              (packet_filter.ipv4remoteaddr[1].addr << 16) +
+                              (packet_filter.ipv4remoteaddr[2].addr << 8) +
+                              packet_filter.ipv4remoteaddr[3].addr;
+          dlflow.src_ip.s_addr = ntohl(remoteaddr.s_addr);
+          dlflow.set_params |= SRC_IPV4;
+        }
+
+        // Specify the next header
+        dlflow.ip_proto = packet_filter.protocolidentifier_nextheader;
+        // Match on proto if it is explicity specified to be
+        // other than the dummy IP. When PCRF RAR message does not
+        // define the protocol type, this field defaults to value 0.
+        // OVS would still apply exact match on 0  if parameter is set,
+        // although incoming packets will have a proper protocol number
+        // in its header leading to no match.
+        if (dlflow.ip_proto != IPPROTO_IP) {
+          dlflow.set_params |= IP_PROTO;
+        }
+
+        // Process remote port if present
+        if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG &
+             packet_filter.flags) ==
+            TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG) {
+          if (dlflow.ip_proto == IPPROTO_TCP) {
+            dlflow.set_params |= TCP_SRC_PORT;
+            dlflow.tcp_src_port = packet_filter.singleremoteport;
+          } else if (dlflow.ip_proto == IPPROTO_UDP) {
+            dlflow.set_params |= UDP_SRC_PORT;
+            dlflow.udp_src_port = packet_filter.singleremoteport;
+          }
+        }
+
+        // Process UE port if present
+        if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG &
+             packet_filter.flags) ==
+            TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
+          if (dlflow.ip_proto == IPPROTO_TCP) {
+            dlflow.set_params |= TCP_DST_PORT;
+            dlflow.tcp_dst_port = packet_filter.singleremoteport;
+          } else if (dlflow.ip_proto == IPPROTO_UDP) {
+            dlflow.set_params |= UDP_DST_PORT;
+            dlflow.udp_dst_port = packet_filter.singleremoteport;
+          }
+        }
+        rv = gtpv1u_add_tunnel(
+            ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            eps_bearer_ctxt_p->enb_teid_S1u, imsi, &dlflow,
+            eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
+                .eval_precedence);
+
+        if (rv < 0) {
+          OAILOG_ERROR_UE(
+              LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
+        } else {
+          OAILOG_INFO_UE(
+              LOG_SPGW_APP, imsi64,
+              "Successfully setup flow rule for EPS bearer id %u "
+              "tunnel " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT "\n",
+              eps_bearer_ctxt_p->eps_bearer_id, eps_bearer_ctxt_p->enb_teid_S1u,
+              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+        }
+      }
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_SPGW_APP);
+}
 //------------------------------------------------------------------------------
 /* Populates bearer contexts to be modified structure in
  * modify bearer rsp message
@@ -486,7 +624,6 @@ static void sgw_populate_mbr_bearer_contexts_modified(
     itti_s11_modify_bearer_response_t* modify_response_p) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
   uint8_t rsp_idx                          = 0;
-  int rv                                   = RETURNok;
   sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p = NULL;
 
   for (uint8_t idx = 0; idx < resp_pP->num_bearers_modified; idx++) {
@@ -510,42 +647,7 @@ static void sgw_populate_mbr_bearer_contexts_modified(
       //#pragma message  "TODO define constant for default eps_bearer id"
 
       // setup GTPv1-U tunnel
-      struct in_addr enb = {.s_addr = 0};
-      enb.s_addr =
-          eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
-
-      struct in_addr ue = {.s_addr = 0};
-      ue.s_addr         = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
-      int vlan          = eps_bearer_ctxt_p->paa.vlan;
-
-      Imsi_t imsi =
-          new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
-      /* UE is switching back to EPS services after the CS Fallback
-       * If Modify bearer Request is received in UE suspended mode, Resume PS
-       * data
-       */
-      if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
-              .pdn_connection.ue_suspended_for_ps_handover) {
-        rv = gtp_tunnel_ops->forward_data_on_tunnel(
-            ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
-            DEFAULT_PRECEDENCE);
-        if (rv < 0) {
-          OAILOG_ERROR_UE(
-              LOG_SPGW_APP, imsi64,
-              "ERROR in forwarding data on TUNNEL err=%d\n", rv);
-        }
-      } else {
-        OAILOG_DEBUG_UE(
-            LOG_SPGW_APP, imsi64, "Adding tunnel for bearer %u\n",
-            resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id);
-        rv = gtpv1u_add_tunnel(
-            ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
-        if (rv < 0) {
-          OAILOG_ERROR_UE(
-              LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
-        }
-      }
+      sgw_add_gtp_tunnel(imsi64, eps_bearer_ctxt_p, new_bearer_ctxt_info_p);
       // may be removed
       if (TRAFFIC_FLOW_TEMPLATE_NB_PACKET_FILTERS_MAX >
           eps_bearer_ctxt_p->num_sdf) {
