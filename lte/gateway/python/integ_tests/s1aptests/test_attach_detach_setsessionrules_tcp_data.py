@@ -120,8 +120,6 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                 s1ap_types.UeActDedBearCtxtReq_t
             )
 
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
             # Send Activate dedicated bearer accept
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
                 req.ue_id, act_ded_ber_ctxt_req.bearerId
@@ -151,8 +149,6 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                 s1ap_types.UeActDedBearCtxtReq_t
             )
 
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
             # Send Activate dedicated bearer accept
             self._s1ap_wrapper.sendActDedicatedBearerAccept(
                 req.ue_id, act_ded_ber_ctxt_req.bearerId
