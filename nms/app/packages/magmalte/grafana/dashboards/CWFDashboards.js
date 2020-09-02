@@ -233,9 +233,7 @@ export const CWFAccessPointDBData: GrafanaDBData = {
               legendFormat: '{{apn}}',
             },
           ],
-          unit: 's',
-          description:
-            'When sessiond terminates a session to aaa server. Reasons: Mostly due to out of quota, TODO: Fill in later?',
+          description: 'Session terminations initiated by sessiond',
         },
       ],
     },
@@ -389,8 +387,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
               legendFormat: '{{networkID}}',
             },
           ],
-          description:
-            'When sessiond terminates a session to aaa server. Reasons: Mostly due to out of quota, TODO: Fill in later?',
+          description: 'Session terminations initiated by sessiond',
         },
       ],
     },
