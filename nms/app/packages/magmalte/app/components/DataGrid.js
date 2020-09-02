@@ -29,6 +29,7 @@ import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import Tooltip from '@material-ui/core/Tooltip';
 import React from 'react';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
@@ -68,8 +69,8 @@ const useStyles = makeStyles(theme => ({
       props.hasStatus
         ? 'calc(100% - 16px)'
         : props.hasIcon
-        ? 'calc(100% - 32px)'
-        : '100%',
+          ? 'calc(100% - 32px)'
+          : '100%',
   },
   dataObscuredValue: {
     color: colors.primary.brightGray,
@@ -212,67 +213,74 @@ type Data = {
   statusCircle?: boolean,
   statusInactive?: boolean,
   status?: boolean,
+  tooltip?: string,
 };
 
 export type DataRows = Data[];
 
-type Props = {data: DataRows[], testID?: string};
+type Props = { data: DataRows[], testID?: string };
 
 export default function DataGrid(props: Props) {
   const classes = useStyles();
   const dataGrid = props.data.map((row, i) => (
     <Grid key={i} container direction="row">
-      {row.map((data, j) => (
-        <React.Fragment key={`data-${i}-${j}`}>
-          <Grid
-            item
-            container
-            alignItems="center"
-            xs={12}
-            md
-            key={`data-${i}-${j}`}
-            zeroMinWidth
-            className={classes.dataBlock}>
-            <Grid item xs={12}>
-              {data.collapse !== undefined && data.collapse !== false ? (
-                DataCollapse(data.category, data.value, data.collapse)
-              ) : (
-                <CardHeader
-                  data-testid={data.category}
-                  className={classes.dataBox}
-                  title={data.category}
-                  titleTypographyProps={{
-                    variant: 'caption',
-                    className: classes.dataLabel,
-                    title: data.category,
-                  }}
-                  subheaderTypographyProps={{
-                    variant: 'body1',
-                    className:
-                      data.obscure === true
-                        ? classes.dataObscuredValue
-                        : classes.dataValue,
-                    title: data.value + (data.unit ?? ''),
-                  }}
-                  subheader={
-                    data.statusCircle === true
-                      ? StatusIndicator(
-                          data.statusInactive || false,
-                          data.status || false,
-                          data.value + (data.unit ?? ''),
-                        )
-                      : data.icon
-                      ? DataIcon(data.icon, data.value + (data.unit ?? ''))
-                      : data.obscure === true
-                      ? DataObscure(data.value, data.category)
-                      : data.value + (data.unit ?? '')
-                  }
-                />
-              )}
+      {row.map((data, j) => {
+        const dataEntryValue = data.value + (data.unit ?? '');
+
+        return (
+          <React.Fragment key={`data-${i}-${j}`}>
+            <Grid
+              item
+              container
+              alignItems="center"
+              xs={12}
+              md
+              key={`data-${i}-${j}`}
+              zeroMinWidth
+              className={classes.dataBlock}>
+              <Grid item xs={12}>
+                {data.collapse !== undefined && data.collapse !== false ? (
+                  DataCollapse(data.category, data.value, data.collapse)
+                ) : (
+                    <Tooltip title={data.tooltip ?? dataEntryValue}>
+                      <CardHeader
+                        data-testid={data.category}
+                        className={classes.dataBox}
+                        title={data.category}
+                        titleTypographyProps={{
+                          variant: 'caption',
+                          className: classes.dataLabel,
+                          title: data.category,
+                        }}
+                        subheaderTypographyProps={{
+                          variant: 'body1',
+                          className:
+                            data.obscure === true
+                              ? classes.dataObscuredValue
+                              : classes.dataValue,
+                          title: dataEntryValue,
+                        }}
+                        subheader={
+                          data.statusCircle === true
+                            ? StatusIndicator(
+                              data.statusInactive || false,
+                              data.status || false,
+                              dataEntryValue,
+                            )
+                            : data.icon
+                              ? DataIcon(data.icon, dataEntryValue)
+                              : data.obscure === true
+                                ? DataObscure(data.value, data.category)
+                                : dataEntryValue
+                        }
+                      />
+                    </Tooltip>
+                  )}
+              </Grid>
             </Grid>
-          </Grid>
-        </React.Fragment>
-      ))}
+          </React.Fragment>
+        )
+      })}
     </Grid>
   ));
   return (
