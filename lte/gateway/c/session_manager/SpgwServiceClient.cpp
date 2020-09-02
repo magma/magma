@@ -78,9 +78,9 @@ bool AsyncSpgwServiceClient::delete_default_bearer(
 
 bool AsyncSpgwServiceClient::delete_dedicated_bearer(
     const magma::DeleteBearerRequest& request) {
-  std::string bearer_ids = "{";
+  std::string bearer_ids = "{ ";
   for (const auto& bearer_id : request.eps_bearer_ids()) {
-    bearer_ids += bearer_id + " ";
+    bearer_ids += std::to_string(bearer_id) + " ";
   }
   bearer_ids += "}";
   MLOG(MINFO) << "Deleting dedicated bearers for " << request.sid().id() << ", "
@@ -99,7 +99,7 @@ bool AsyncSpgwServiceClient::delete_dedicated_bearer(
 
 bool AsyncSpgwServiceClient::create_dedicated_bearer(
     const magma::CreateBearerRequest& request) {
-  std::string rule_ids = "{";
+  std::string rule_ids = "{ ";
   for (const auto& rule : request.policy_rules()) {
     rule_ids += rule.id() + " ";
   }
