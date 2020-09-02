@@ -29,7 +29,6 @@ import Input from '@material-ui/core/Input';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import Tooltip from '@material-ui/core/Tooltip';
 import React from 'react';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
@@ -242,42 +241,42 @@ export default function DataGrid(props: Props) {
                 {data.collapse !== undefined && data.collapse !== false ? (
                   DataCollapse(data.category, data.value, data.collapse)
                 ) : (
-                    <CardHeader
-                      data-testid={data.category}
-                      className={classes.dataBox}
-                      title={data.category}
-                      titleTypographyProps={{
-                        variant: 'caption',
-                        className: classes.dataLabel,
-                        title: data.category,
-                      }}
-                      subheaderTypographyProps={{
-                        variant: 'body1',
-                        className:
+                  <CardHeader
+                    data-testid={data.category}
+                    className={classes.dataBox}
+                    title={data.category}
+                    titleTypographyProps={{
+                      variant: 'caption',
+                      className: classes.dataLabel,
+                      title: data.category,
+                    }}
+                    subheaderTypographyProps={{
+                      variant: 'body1',
+                      className:
                         data.obscure === true
                           ? classes.dataObscuredValue
                           : classes.dataValue,
-                        title: data.tooltip ?? dataEntryValue,
-                      }}
-                      subheader={
-                        data.statusCircle === true
-                          ? StatusIndicator(
+                      title: data.tooltip ?? dataEntryValue,
+                    }}
+                    subheader={
+                      data.statusCircle === true
+                        ? StatusIndicator(
                             data.statusInactive || false,
                             data.status || false,
                             dataEntryValue,
                           )
-                          : data.icon
-                            ? DataIcon(data.icon, dataEntryValue)
-                            : data.obscure === true
-                              ? DataObscure(data.value, data.category)
-                              : dataEntryValue
-                      }
-                    />
-                  )}
+                        : data.icon
+                        ? DataIcon(data.icon, dataEntryValue)
+                        : data.obscure === true
+                        ? DataObscure(data.value, data.category)
+                        : dataEntryValue
+                    }
+                  />
+                )}
               </Grid>
             </Grid>
           </React.Fragment>
-        )
+        );
       })}
     </Grid>
   ));
