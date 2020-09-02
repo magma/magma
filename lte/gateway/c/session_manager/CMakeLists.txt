@@ -154,8 +154,26 @@ add_library(SESSION_MANAGER
     MeteringReporter.h
     GrpcMagmaUtils.cpp
     GrpcMagmaUtils.h
+    SetMessageManagerHandler.cpp
+    SetMessageManagerHandler.h
+    SessionStateEnforcer.cpp
+    SessionStateEnforcer.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
+
+
+add_library(ACL_SESSION_MANAGER
+    test/test_stubs/amf_client.h
+    test/test_stubs/amf_client.cpp
+    ${PROTO_SRCS}
+    ${PROTO_HDRS})
+
+target_link_libraries(ACL_SESSION_MANAGER
+  SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
+  DATASTORE
+  glog gflags folly pthread ${GCOV_LIB} grpc++ grpc yaml-cpp protobuf cpp_redis
+  prometheus-cpp tacopie
+  )
 
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
@@ -177,6 +195,9 @@ endif ()
 add_executable(sessiond ${PROJECT_SOURCE_DIR}/sessiond_main.cpp)
 
 target_link_libraries (sessiond SESSION_MANAGER)
+
+add_executable(acl_sessiond ${PROJECT_SOURCE_DIR}/test/test_stubs/amf_stub_main.cpp)
+target_link_libraries (acl_sessiond ACL_SESSION_MANAGER)
 
 if (BUILD_TESTS)
   ENABLE_TESTING()
