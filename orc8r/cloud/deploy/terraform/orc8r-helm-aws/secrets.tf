@@ -93,14 +93,17 @@ resource "kubernetes_secret" "orc8r_configs" {
     "metricsd.yml" = yamlencode({
       "profile" : "prometheus",
       "prometheusQueryAddress" : format("http://%s-prometheus:9090", var.helm_deployment_name),
-      "prometheusPushAddresses" : [
-        format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
-      ],
 
       "alertmanagerApiURL" : format("http://%s-alertmanager:9093/api/v2", var.helm_deployment_name),
       "prometheusConfigServiceURL" : format("http://%s-prometheus-configurer:9100", var.helm_deployment_name),
       "alertmanagerConfigServiceURL" : format("http://%s-alertmanager-configurer:9101", var.helm_deployment_name),
     })
+
+    "orchestrator.yml" = yamlencode({
+      "prometheusPushAddresses" : [
+        format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
+      ],
+    }
 
     "elastic.yml" = yamlencode({
       "elasticHost" : var.elasticsearch_endpoint == null ? "elastic" : var.elasticsearch_endpoint
