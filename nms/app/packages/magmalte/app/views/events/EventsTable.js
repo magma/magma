@@ -33,7 +33,7 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-import {useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -238,6 +238,14 @@ export default function EventsTable(props: EventTableProps) {
       format: format,
     };
   }, [startDate, endDate]);
+
+  useEffect(() => {
+    if (props.inStartDate && props.inEndDate) {
+      if (tableRef.current) {
+        tableRef.current.onQueryChange();
+      }
+    }
+  }, [props.inStartDate, props.inEndDate]);
 
   function DateFilter() {
     return (
