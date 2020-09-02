@@ -17,12 +17,10 @@ namespace lte {
 
 class SetSMSessionContext;
 class SmContextVoid;
-
 }
 }
 
 using grpc::Status;
-
 
 void amf_create_session();
 
