@@ -113,10 +113,36 @@
   become: true
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
 
+#- name: Load TLS PKI for XWF bridge
+#  become: true
+#  script: set_pki.sh {{ ovs_rootca }} {{ ovs_key }} {{ ovs_crt }}
+#  when: connection_mode == "ssl"
+
 - name: Load TLS PKI for XWF bridge
-  become: true
-  script: set_pki.sh
-  when: {{ connection_mode }} == "secure"
+  block:
+    - name: Create PKI location
+      become: true
+      shell: mkdir -p /etc/openvswitch
+
+    - name: Copy PKI
+      become: true
+      copy: content={{ item.src }} dest=/etc/openvswitch/{{ item.dest }}
+      with_items:
+        - { src: "{{ ovs_rootca }}", dest: cacert.pem }
+        - { src: "{{ ovs_key }}", dest: sc-privkey.pem }
+        - { src: "{{ ovs_crt }}", dest: sc-cert.pem }
+
+    - name: Correct key
+      become: true
+      lineinfile: dest=/etc/openvswitch/sc-privkey.pem
+        state=absent
+        regexp='^\|'
+
+    - name: Set OVS in secure mode
+      become: true
+      shell: ovs-vsctl set-ssl /etc/openvswitch/sc-privkey.pem /etc/openvswitch/sc-cert.pem /etc/openvswitch/cacert.pem
+
+  when: connection_mode == "ssl"
 
 - name: Set OVS controller for XWF bridge
   become: true

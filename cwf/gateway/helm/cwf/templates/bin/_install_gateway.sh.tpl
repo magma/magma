@@ -93,7 +93,7 @@ if [ "$GW_TYPE" == "$XWF" ]; then
   MODULE_DIR="xwf"
   CONNECTION_MODE=${MODE:=tcp}
   ANSIBLE_CONFIG="$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/ansible.cfg \
-    ansible-playbook -e "xwf_ctrl_ip=$XWF_CTRL" -e "connection_mode=$CONNECTION_MODE" \
+    ansible-playbook -e "xwf_ctrl_ip=$XWF_CTRL connection_mode=$CONNECTION_MODE" \
     "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/deploy/xwf.yml -i "localhost," -c local -v
 fi
 
