@@ -17,19 +17,20 @@
 import {gatewayTemplate, networkTemplate, variableTemplate} from './Dashboards';
 import type {GrafanaDBData} from './Dashboards';
 
-const imsiTemplate = variableTemplate({
-  labelName: 'imsi',
-  query: `label_values(imsi)`,
+const msisdnTemplate = variableTemplate({
+  labelName: 'msisdn',
+  query: `label_values(msisdn)`,
   regex: `/.+/`,
   sort: 'num-asc',
+  includeAll: false,
 });
 
 const apnTemplate = variableTemplate({
   labelName: 'apn',
-  query: `label_values(apn)`,
   query: `label_values({networkID=~"$networkID",apn=~".+"},apn)`,
   regex: `/.+/`,
   sort: 'alpha-insensitive-asc',
+  includeAll: true,
 });
 
 const dbDescription =
@@ -38,7 +39,7 @@ const dbDescription =
 export const CWFSubscriberDBData: GrafanaDBData = {
   title: 'CWF - Subscribers',
   description: dbDescription,
-  templates: [imsiTemplate],
+  templates: [msisdnTemplate],
   rows: [
     {
       title: 'Traffic',
@@ -47,8 +48,8 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Traffic In',
           targets: [
             {
-              expr: 'sum(octets_in{imsi=~"$imsi"}) by (imsi)',
-              legendFormat: '{{imsi}}',
+              expr: 'sum(octets_in{msisdn=~"$msisdn"}) by (imsi, msisdn)',
+              legendFormat: '{{imsi}}, MSISDN: {{msisdn}}',
             },
           ],
           unit: 'decbytes',
@@ -58,8 +59,9 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Throughput In',
           targets: [
             {
-              expr: 'avg(rate(octets_in{imsi=~"$imsi"}[5m])) by (imsi)',
-              legendFormat: '{{imsi}}',
+              expr:
+                'avg(rate(octets_in{msisdn=~"$msisdn"}[5m])) by (imsi, msisdn)',
+              legendFormat: '{{imsi}}, MSISDN: {{msisdn}}',
             },
           ],
           unit: 'Bps',
@@ -70,8 +72,8 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Traffic Out',
           targets: [
             {
-              expr: 'sum(octets_out{imsi=~"$imsi"}) by (imsi)',
-              legendFormat: '{{imsi}}',
+              expr: 'sum(octets_out{msisdn=~"$msisdn"}) by (imsi, msisdn)',
+              legendFormat: '{{imsi}}, MSISDN: {{msisdn}}',
             },
           ],
           unit: 'decbytes',
@@ -81,8 +83,9 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Throughput Out',
           targets: [
             {
-              expr: 'avg(rate(octets_out{imsi=~"$imsi"}[5m])) by (imsi)',
-              legendFormat: '{{imsi}}',
+              expr:
+                'avg(rate(octets_out{msisdn=~"$msisdn"}[5m])) by (imsi, msisdn)',
+              legendFormat: '{{imsi}}, MSISDN: {{msisdn}}',
             },
           ],
           unit: 'Bps',
@@ -98,9 +101,9 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Active Sessions',
           targets: [
             {
-              expr: 'active_sessions{imsi=~"$imsi"}',
+              expr: 'active_sessions{msisdn=~"$msisdn"}',
               legendFormat:
-                '{{imsi}} Session: {{id}} -- Network: {{networkID}} -- Gateway: {{gatewayID}}',
+                '{{imsi}} -- MSISDN: {{msisdn}} -- Session: {{id}} -- Network: {{networkID}} -- Gateway: {{gatewayID}}',
             },
           ],
           description:
