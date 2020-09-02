@@ -42,5 +42,5 @@ class AMFClient : public GRPCReceiver {
   static AMFClient& get_instance();
   std::unique_ptr<AmfPduSessionSmContext::Stub> stub_;
   static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
- };
- }
+};
+}
