@@ -69,8 +69,8 @@ const useStyles = makeStyles(theme => ({
       props.hasStatus
         ? 'calc(100% - 16px)'
         : props.hasIcon
-          ? 'calc(100% - 32px)'
-          : '100%',
+        ? 'calc(100% - 32px)'
+        : '100%',
   },
   dataObscuredValue: {
     color: colors.primary.brightGray,
@@ -218,7 +218,7 @@ type Data = {
 
 export type DataRows = Data[];
 
-type Props = { data: DataRows[], testID?: string };
+type Props = {data: DataRows[], testID?: string};
 
 export default function DataGrid(props: Props) {
   const classes = useStyles();
@@ -242,39 +242,37 @@ export default function DataGrid(props: Props) {
                 {data.collapse !== undefined && data.collapse !== false ? (
                   DataCollapse(data.category, data.value, data.collapse)
                 ) : (
-                    <Tooltip title={data.tooltip ?? dataEntryValue}>
-                      <CardHeader
-                        data-testid={data.category}
-                        className={classes.dataBox}
-                        title={data.category}
-                        titleTypographyProps={{
-                          variant: 'caption',
-                          className: classes.dataLabel,
-                          title: data.category,
-                        }}
-                        subheaderTypographyProps={{
-                          variant: 'body1',
-                          className:
-                            data.obscure === true
-                              ? classes.dataObscuredValue
-                              : classes.dataValue,
-                          title: dataEntryValue,
-                        }}
-                        subheader={
-                          data.statusCircle === true
-                            ? StatusIndicator(
-                              data.statusInactive || false,
-                              data.status || false,
-                              dataEntryValue,
-                            )
-                            : data.icon
-                              ? DataIcon(data.icon, dataEntryValue)
-                              : data.obscure === true
-                                ? DataObscure(data.value, data.category)
-                                : dataEntryValue
-                        }
-                      />
-                    </Tooltip>
+                    <CardHeader
+                      data-testid={data.category}
+                      className={classes.dataBox}
+                      title={data.category}
+                      titleTypographyProps={{
+                        variant: 'caption',
+                        className: classes.dataLabel,
+                        title: data.category,
+                      }}
+                      subheaderTypographyProps={{
+                        variant: 'body1',
+                        className:
+                        data.obscure === true
+                          ? classes.dataObscuredValue
+                          : classes.dataValue,
+                        title: data.tooltip ?? dataEntryValue,
+                      }}
+                      subheader={
+                        data.statusCircle === true
+                          ? StatusIndicator(
+                            data.statusInactive || false,
+                            data.status || false,
+                            dataEntryValue,
+                          )
+                          : data.icon
+                            ? DataIcon(data.icon, dataEntryValue)
+                            : data.obscure === true
+                              ? DataObscure(data.value, data.category)
+                              : dataEntryValue
+                      }
+                    />
                   )}
               </Grid>
             </Grid>
