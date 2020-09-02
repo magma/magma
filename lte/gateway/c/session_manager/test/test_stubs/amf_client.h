@@ -43,4 +43,5 @@ class AMFClient : public GRPCReceiver {
   std::unique_ptr<AmfPduSessionSmContext::Stub> stub_;
   static const uint32_t RESPONSE_TIMEOUT = 10;  // seconds
 };
-}
+ 
+} //namespace magma
