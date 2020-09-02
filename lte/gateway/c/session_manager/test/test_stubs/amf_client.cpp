@@ -80,7 +80,7 @@ void AMFClient::amf_create_session_final(
     // response using the response reader. When it is done, the callback stored in
     // `local_response` will be called
     local_response->set_response_reader(std::move(response_reader));
-}
+    }
 }
 /*forward declaration of void NULL function for call back*/
 void call_back_void(grpc::Status, magma::SmContextVoid response)
