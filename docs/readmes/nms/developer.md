@@ -163,6 +163,10 @@ Passes the state of the `statusCircle`. **True** renders a green status indicato
 #### statusInactive `boolean` **(Optional)**
 Passes the state of inactive to `statusCircle` rendering a gray status indicator. 
 <br />
+
+#### tooltip `string` **(Optional)**
+Passes a string that will be shown as a tooltip when hovering over a specific data entry. If the prop is not passed, the data entry `value` is displayed instead.
+<br />
 <br />
 
 ### Examples
