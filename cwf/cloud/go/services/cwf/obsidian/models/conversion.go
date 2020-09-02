@@ -252,10 +252,9 @@ func (m *CwfHaPair) ToEntity() configurator.NetworkEntity {
 func (m *CwfHaPair) FromBackendModels(ent configurator.NetworkEntity) error {
 	gatewayIDs := []string{}
 	for _, assoc := range ent.Associations {
-		if assoc.Type != cwf.CwfGatewayType {
-			continue
+		if assoc.Type == cwf.CwfGatewayType {
+			gatewayIDs = append(gatewayIDs, assoc.Key)
 		}
-		gatewayIDs = append(gatewayIDs, assoc.Key)
 	}
 	if len(gatewayIDs) != 2 {
 		return fmt.Errorf("could not convert entity to CwfHaPair; could not parse gateway pair IDs")

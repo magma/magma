@@ -34,7 +34,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
 
-	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/pkg/errors"
 )
@@ -331,34 +330,18 @@ func listHAPairsHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	ids, err := configurator.ListEntityKeys(nid, cwf.CwfHAPairType)
+	haPairEnts, err := configurator.LoadAllEntitiesInNetwork(nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	haPairTKs := make([]storage.TypeAndKey, 0, len(ids))
-	for _, id := range ids {
-		haPairTKs = append(haPairTKs, storage.TypeAndKey{Type: cwf.CwfHAPairType, Key: id})
-	}
-	haPairEnts, _, err := configurator.LoadEntities(
-		nid,
-		swag.String(cwf.CwfHAPairType),
-		nil,
-		nil,
-		haPairTKs,
-		configurator.FullEntityLoadCriteria(),
-	)
-	if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	haPairEntsByTK := haPairEnts.MakeByTK()
-	ret := make(map[string]*cwfModels.CwfHaPair, len(haPairEntsByTK))
-	for tk, haPairEnt := range haPairEntsByTK {
+	ret := make(map[string]*cwfModels.CwfHaPair, len(haPairEnts))
+	for _, haPairEnt := range haPairEnts {
 		cwfHaPair := &cwfModels.CwfHaPair{}
 		err = cwfHaPair.FromBackendModels(haPairEnt)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		ret[tk.Key] = cwfHaPair
+		ret[haPairEnt.Key] = cwfHaPair
 	}
 	return c.JSON(http.StatusOK, ret)
 }
