@@ -14,6 +14,8 @@
 package models
 
 import (
+	"fmt"
+
 	"magma/cwf/cloud/go/cwf"
 	"magma/feg/cloud/go/feg"
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
@@ -227,4 +229,84 @@ func (m *LiUes) GetFromNetwork(network configurator.Network) interface{} {
 
 func (m *LiUes) ValidateModel() error {
 	return m.Validate(strfmt.Default)
+}
+
+func (m *CwfHaPair) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:   cwf.CwfHAPairType,
+		Key:    m.HaPairID,
+		Config: m.Config,
+		Associations: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
+}
+
+func (m *CwfHaPair) FromBackendModels(ent configurator.NetworkEntity) error {
+	gatewayIDs := []string{}
+	for _, assoc := range ent.Associations {
+		if assoc.Type == cwf.CwfGatewayType {
+			gatewayIDs = append(gatewayIDs, assoc.Key)
+		}
+	}
+	if len(gatewayIDs) != 2 {
+		return fmt.Errorf("could not convert entity to CwfHaPair; could not parse gateway pair IDs")
+	}
+	if ent.Config == nil {
+		return fmt.Errorf("could not convert entity to CwfHaPair; config was nil")
+	}
+	cfg, ok := ent.Config.(*CwfHaPairConfigs)
+	if !ok {
+		return fmt.Errorf("could not convert entity config type %T to CwfHaPair", ent.Config)
+	}
+	m.HaPairID = ent.Key
+	m.GatewayID1 = gatewayIDs[0]
+	m.GatewayID2 = gatewayIDs[1]
+	m.Config = cfg
+	return nil
+}
+
+func (m *CwfHaPair) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      cwf.CwfHAPairType,
+		Key:       m.HaPairID,
+		NewConfig: m.Config,
+		AssociationsToSet: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
+	return ret
+}
+
+func (m *MutableCwfHaPair) ToEntityUpdateCriteria(haPairID string) configurator.EntityUpdateCriteria {
+	ret := configurator.EntityUpdateCriteria{
+		Type:      cwf.CwfHAPairType,
+		Key:       haPairID,
+		NewConfig: m.Config,
+		AssociationsToSet: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
+	return ret
 }
