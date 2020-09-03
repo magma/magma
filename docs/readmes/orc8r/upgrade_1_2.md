@@ -144,6 +144,7 @@ Refresh Terraform state, then apply the new changes. The `apply` step should
 only contain `changes`, no `additions`
 
 ```bash
+terraform init --upgrade
 terraform refresh
 terraform apply  # DOUBLE CHECK this output
 ```
