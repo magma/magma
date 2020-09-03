@@ -118,7 +118,9 @@
   block:
     - name: Create PKI location
       become: true
-      shell: mkdir -p /etc/openvswitch
+      file:
+        path: /etc/openvswitch
+        state: directory
 
     - name: Copy PKI
       become: true
@@ -133,6 +135,13 @@
       lineinfile: dest=/etc/openvswitch/sc-privkey.pem
         state=absent
         regexp='^\|'
+
+    - name: Normalize spaces
+      become: true
+      replace:
+        path: /etc/openvswitch/sc-privkey.pem
+        regexp: '^(  )'
+        replace: ''
 
     - name: Set OVS in secure mode
       become: true
