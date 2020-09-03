@@ -34,7 +34,7 @@ const siteConfig = {
   // Used for publishing and more
   projectName: 'magma',
   organizationName: 'magma',  
-  url: 'https://lucid-tesla-3ae3ff.netlify.app', // Your website URL
+  url: 'https://magmacore.org', // Your website URL
   baseUrl: '/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
@@ -62,7 +62,7 @@ const siteConfig = {
 
   /* path to images for header/footer */
   headerIcon: 'img/magma-logo.svg',
-  footerIcon: 'img/magma-logo.svg',
+  footerIcon: 'img/magma_icon.png',
   favicon: 'img/favicon.png',
 
   /* Colors for website */
