@@ -37,24 +37,18 @@ import {getFEGSections} from '../feg/FEGSections';
 import {
   getLteSections,
   getLteSectionsV2,
-  useLteContext,
 } from '@fbcnms/magmalte/app/components/lte/LteSections';
 import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
 import {getRhinoSections} from '@fbcnms/magmalte/app/components/rhino/RhinoSections';
 import {useContext, useEffect, useState} from 'react';
 
-export default function useSections(skipContext?: boolean): SectionsConfigs {
+export default function useSections(): SectionsConfigs {
   const {networkId} = useContext<NetworkContextType>(NetworkContext);
   const {isFeatureEnabled} = useContext(AppContext);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const alertsEnabled = isFeatureEnabled('alerts');
   const logsEnabled = isFeatureEnabled('logs');
   const dashboardV2Enabled = isFeatureEnabled('dashboard_v2');
-  const lteContext = useLteContext(
-    networkId,
-    networkType,
-    !dashboardV2Enabled || skipContext === true,
-  );
 
   useEffect(() => {
     const fetchNetworkType = async () => {
@@ -88,7 +82,7 @@ export default function useSections(skipContext?: boolean): SectionsConfigs {
     case LTE:
     default: {
       if (dashboardV2Enabled) {
-        return getLteSectionsV2(alertsEnabled, lteContext);
+        return getLteSectionsV2(alertsEnabled);
       }
       return getLteSections(alertsEnabled, logsEnabled);
     }
