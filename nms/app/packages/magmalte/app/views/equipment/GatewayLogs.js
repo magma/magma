@@ -44,9 +44,9 @@ import {useRouter} from '@fbcnms/ui/hooks';
 const MAX_PAGE_ROW_COUNT = 10000;
 const EXPORT_DELIMITER = ',';
 const LOG_COLUMNS = [
-  {title: 'Date', field: 'date', type: 'datetime'},
-  {title: 'Service', field: 'service'},
-  {title: 'Type', field: 'logType'},
+  {title: 'Date', field: 'date', type: 'datetime', width: 200},
+  {title: 'Service', field: 'service', width: 200},
+  {title: 'Type', field: 'logType', width: 200},
   {title: 'Output', field: 'output'},
 ];
 

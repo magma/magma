@@ -154,8 +154,8 @@ function parseSubscriberFile(fileObj: File) {
             imsi: items[1],
             authKey: items[2],
             authOpc: items[3],
-            dataPlan: items[4],
-            state: items[5] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+            state: items[4] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+            dataPlan: items[5],
             apns: items[6]
               .split('|')
               .map(item => item.trim())

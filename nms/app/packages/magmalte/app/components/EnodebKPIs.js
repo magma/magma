@@ -37,14 +37,17 @@ export default function EnodebKPIs() {
       {
         category: 'Severe Events',
         value: 0,
+        tooltip: 'Severe Events reported by the eNodeB',
       },
       {
         category: 'Total',
         value: total || 0,
+        tooltip: 'Total number of eNodeBs',
       },
       {
         category: 'Transmitting',
         value: transmitting || 0,
+        tooltip: 'Number of eNodeBs with active transmit status',
       },
     ],
   ];
