@@ -124,7 +124,7 @@
       - "{{ all_vars.patches }}"
 
 - name: Cherry pick vlan patch
-  command: git apply "{{ all_vars.vlan_fix_hash }}"
+  command: git cherry-pick "{{ all_vars.vlan_fix_hash }}"
   args:
     chdir: "{{ GIT_HOME.path }}/ovs"
 
