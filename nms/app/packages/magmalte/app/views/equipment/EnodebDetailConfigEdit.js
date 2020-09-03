@@ -368,6 +368,7 @@ export function RanEdit(props: Props) {
           <AltFormField label={'PCI'}>
             <OutlinedInput
               data-testid="pci"
+              placeholder="Enter PCI"
               fullWidth={true}
               value={optConfig.pci}
               onChange={({target}) => handleOptChange('pci', target.value)}
@@ -377,6 +378,7 @@ export function RanEdit(props: Props) {
           <AltFormField label={'TAC'}>
             <OutlinedInput
               data-testid="tac"
+              placeholder="Enter TAC"
               fullWidth={true}
               value={optConfig.tac}
               onChange={({target}) => handleOptChange('tac', target.value)}
@@ -449,6 +451,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Name'}>
             <OutlinedInput
               data-testid="name"
+              placeholder="Enter Name"
               fullWidth={true}
               value={enb.name}
               onChange={({target}) => setEnb({...enb, name: target.value})}
@@ -457,6 +460,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Serial Number'}>
             <OutlinedInput
               data-testid="serial"
+              placeholder="Ex: 12020000261814C0021"
               fullWidth={true}
               value={enb.serial}
               readOnly={props.enb ? true : false}
@@ -466,6 +470,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Description'}>
             <OutlinedInput
               data-testid="description"
+              placeholder="Enter Description"
               fullWidth={true}
               multiline
               rows={4}

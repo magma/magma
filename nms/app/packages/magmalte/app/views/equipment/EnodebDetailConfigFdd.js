@@ -83,6 +83,7 @@ export default function EnodeConfigEditFdd(props: EditProps) {
           <Grid item xs={12}>
             <OutlinedInput
               data-testid="earfcndl"
+              placeholder="Enter EARFCNDL"
               className={classes.input}
               fullWidth={true}
               value={props.earfcndl}
@@ -99,6 +100,7 @@ export default function EnodeConfigEditFdd(props: EditProps) {
           <Grid item xs={12}>
             <OutlinedInput
               className={classes.input}
+              placeholder="Enter EARFCNUL"
               fullWidth={true}
               value={props.earfcnul}
               readOnly={true}

@@ -150,6 +150,7 @@ export function NetworkEpcEdit(props: EditProps) {
           <AltFormField label={'LTE Auth AMF'}>
             <OutlinedInput
               data-testid="password"
+              placeholder="Enter Auth AMF"
               type={showPassword ? 'text' : 'password'}
               fullWidth={true}
               value={epcConfigs.lte_auth_amf}
@@ -171,6 +172,7 @@ export function NetworkEpcEdit(props: EditProps) {
           <AltFormField label={'MCC'}>
             <OutlinedInput
               data-testid="mcc"
+              placeholder="Enter MCC"
               fullWidth={true}
               value={epcConfigs.mcc}
               onChange={({target}) =>
@@ -181,6 +183,7 @@ export function NetworkEpcEdit(props: EditProps) {
           <AltFormField label={'MNC'}>
             <OutlinedInput
               data-testid="mnc"
+              placeholder="Enter MNC"
               fullWidth={true}
               value={epcConfigs.mnc}
               onChange={({target}) =>
@@ -191,6 +194,7 @@ export function NetworkEpcEdit(props: EditProps) {
           <AltFormField label={'TAC'}>
             <OutlinedInput
               data-testid="tac"
+              placeholder="Enter TAC"
               type="number"
               fullWidth={true}
               value={epcConfigs.tac}

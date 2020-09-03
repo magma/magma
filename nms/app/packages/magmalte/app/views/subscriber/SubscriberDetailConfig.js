@@ -97,10 +97,6 @@ export default function SubscriberDetailConfig() {
   const classes = useStyles();
   const {history, relativeUrl} = useRouter();
 
-  function TrafficFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
-
   function ConfigFilter() {
     return (
       <Button
@@ -131,7 +127,10 @@ export default function SubscriberDetailConfig() {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <CardTitleRow label="Traffic Policy" filter={TrafficFilter} />
+              <CardTitleRow
+                label="Traffic Policy"
+                filter={EditSubscriberButton}
+              />
               <SubscriberConfigTrafficPolicy />
             </Grid>
           </Grid>
