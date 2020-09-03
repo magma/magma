@@ -147,6 +147,7 @@ ue_mm_context_t* mme_create_new_ue_context(void) {
 
   new_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
   new_p->sgs_context          = NULL;
+  new_p->paging_retx_count    = 0;
   return new_p;
 }
 
