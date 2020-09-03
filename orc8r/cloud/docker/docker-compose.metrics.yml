@@ -10,7 +10,7 @@ services:
     restart: always
 
   prometheus:
-    image: prom/prometheus
+    image: prom/prometheus:v2.20.1
     ports:
       - 9090:9090/tcp
     volumes:
