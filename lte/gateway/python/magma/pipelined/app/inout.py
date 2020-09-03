@@ -63,7 +63,8 @@ class InOutController(MagmaController):
          'setup_type', 'uplink_gw_mac'],
     )
     ARP_PROBE_FREQUENCY = 300
-    NON_NAT_ARP_EGRESS_PORT = 'uplink_br0'
+    NON_NAT_ARP_EGRESS_PORT = 'dhcp0'
+    UPLINK_OVS_BRIDGE_NAME = 'uplink_br0'
 
     def __init__(self, *args, **kwargs):
         super(InOutController, self).__init__(*args, **kwargs)
@@ -111,8 +112,14 @@ class InOutController(MagmaController):
         enable_nat = config_dict.get('enable_nat', True)
         non_nat_gw_probe_freq = config_dict.get('non_nat_gw_probe_frequency',
                                                 self.ARP_PROBE_FREQUENCY)
-        non_nat_arp_egress_port = config_dict.get('non_nat_arp_egress_port',
-                                                  self.NON_NAT_ARP_EGRESS_PORT)
+        # In case of vlan tag on uplink_bridge, use separate port.
+        sgi_vlan = config_dict.get('sgi_management_iface_vlan', "")
+        if not sgi_vlan:
+            non_nat_arp_egress_port = config_dict.get('non_nat_arp_egress_port',
+                                                      self.UPLINK_OVS_BRIDGE_NAME)
+        else:
+            non_nat_arp_egress_port = config_dict.get('non_nat_arp_egress_port',
+                                                      self.NON_NAT_ARP_EGRESS_PORT)
         uplink_gw_mac = config_dict.get('uplink_gw_mac',
                                         "ff:ff:ff:ff:ff:ff")
         return self.InOutConfig(
@@ -169,7 +176,8 @@ class InOutController(MagmaController):
                                        self._midle_tbl_num,
                                        self.config.mtr_port,
                                        self.config.mtr_ip,
-                                       priority=flows.UE_FLOW_PRIORITY)
+                                       priority=flows.UE_FLOW_PRIORITY,
+                                       direction=Direction.OUT)
 
     def _install_default_egress_flows(self, dp, mac_addr: str = "", vlan: str = ""):
         """
@@ -393,9 +401,9 @@ class InOutController(MagmaController):
 
 
 def _install_vlan_egress_flows(dp, table_no, out_port, ip,
-                               priority=0):
+                               priority=0, direction=Direction.IN):
     # Pass non vlan packet as it is.
-    match = MagmaMatch(direction=Direction.IN,
+    match = MagmaMatch(direction=direction,
                        eth_type=ether_types.ETH_TYPE_IP,
                        vlan_vid=(0x0000, 0x1000),
                        ipv4_dst=ip)
@@ -405,7 +413,7 @@ def _install_vlan_egress_flows(dp, table_no, out_port, ip,
                           output_port=out_port)
 
     # remove vlan header for out_port.
-    match = MagmaMatch(direction=Direction.IN,
+    match = MagmaMatch(direction=direction,
                        eth_type=ether_types.ETH_TYPE_IP,
                        vlan_vid=(0x1000, 0x1000),
                        ipv4_dst=ip)
