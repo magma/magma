@@ -20,14 +20,15 @@ const users = [
     caption: 'User1',
     // You will need to prepend the image path with your baseUrl
     // if it is not '/', like: '/test-site/img/docusaurus.svg'.
-    image: '/img/docusaurus.svg',
-    infoLink: 'https://www.facebook.com',
+    image: '/img/magma-logo.svg',
+    infoLink: 'https://magmacore.org',
     pinned: true,
   },
 ];
 
 const siteConfig = {
-  title: 'Magma', // Title for your website.
+  title: 'Magma Documentation', // Title for your website.
+  // disableTitleTagline: true, 
   tagline: 'Bring more people online by enabling operators with open, flexible, and extensible network solutions',
 
   // Used for publishing and more
@@ -46,23 +47,28 @@ const siteConfig = {
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
-   // {doc: 'basics/introduction', label: 'Docs', href: "/docs"},
-    {page: 'help', label: 'Help'},
-    {href: 'https://github.com/jimmytipit/magma', label: 'Github'},
+    // {doc: 'basics/introduction', label: 'Docs'},
+    {href: 'https://magmacore.org', label: 'Home'},
+    {label: ' | '},
+    {href: '/', label: 'Docs'},
+    {label: ' | '},
+    {href: 'https://github.org/magma', label: 'Code'},
+    {label: ' | '},
+    {href: 'https://github.org/community', label: 'Community'},
   ],
 
   // If you have users set above, you add it here:
   users,
 
   /* path to images for header/footer */
-  headerIcon: 'img/fb.png',
-  footerIcon: 'img/fb.png',
+  headerIcon: 'img/magma-logo.svg',
+  footerIcon: 'img/magma-logo.svg',
   favicon: 'img/favicon.png',
 
   /* Colors for website */
   colors: {
-    primaryColor: '#2E8555',
-    secondaryColor: '#205C3B',
+    primaryColor: '#5602a4',
+    secondaryColor: '#5602a4',
   },
 
   /* Custom fonts for website */
