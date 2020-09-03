@@ -35,8 +35,9 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_attach_detach_setsessionrules_tcp_data(self):
-        """ attach/detach + send ReAuth Req to session manager with a"""
-        """ single UE """
+        """ attach/detach + make set session rule calls to"""
+        """ session manager twice + run UL and DL tcp traffic"""
+        """ with a single UE """
         num_ues = 1
         detach_type = [
             s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value,
@@ -87,10 +88,10 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             qos = {
                 "qci": 8,  # qci value [1 to 9]
                 "priority": 0,  # Range [0-255]
-                "max_req_bw_ul": 10000000,  # MAX bw Uplink
-                "max_req_bw_dl": 15000000,  # MAX bw Downlink
-                "gbr_ul": 1000000,  # GBR Uplink
-                "gbr_dl": 2000000,  # GBR Downlink
+                "max_req_bw_ul": 10000,  # MAX bw Uplink
+                "max_req_bw_dl": 25000,  # MAX bw Downlink
+                "gbr_ul": 1000,  # GBR Uplink
+                "gbr_dl": 2000,  # GBR Downlink
                 "arp_prio": 15,  # ARP priority
                 "pre_cap": 1,  # pre-emption capability
                 "pre_vul": 1,  # pre-emption vulnerability
@@ -234,7 +235,16 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-            with self._s1ap_wrapper.configUplinkTest(req, duration=1) as test:
+            with self._s1ap_wrapper.configUplinkTest(req, duration=20) as test:
+                test.verify()
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+            with self._s1ap_wrapper.configDownlinkTest(req, duration=20) as test:
                 test.verify()
 
             print("Sleeping for 5 seconds")
