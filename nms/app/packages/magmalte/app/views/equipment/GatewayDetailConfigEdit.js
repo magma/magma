@@ -234,7 +234,7 @@ function GatewayEditDialog(props: DialogProps) {
       </Tabs>
       {tabPos === 0 && (
         <ConfigEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
+          isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
@@ -251,7 +251,7 @@ function GatewayEditDialog(props: DialogProps) {
       )}
       {tabPos === 1 && (
         <AggregationEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Add Gateway'}
+          isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
@@ -268,7 +268,7 @@ function GatewayEditDialog(props: DialogProps) {
       )}
       {tabPos === 2 && (
         <EPCEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
+          isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
@@ -285,7 +285,7 @@ function GatewayEditDialog(props: DialogProps) {
       )}
       {tabPos === 3 && (
         <RanEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Close'}
+          isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
           }
@@ -304,7 +304,7 @@ function GatewayEditDialog(props: DialogProps) {
 }
 
 type Props = {
-  saveButtonTitle: string,
+  isAdd: boolean,
   gateway?: lte_gateway,
   onClose: () => void,
   onSave: lte_gateway => void,
@@ -351,6 +351,14 @@ export function ConfigEdit(props: Props) {
         },
         device: {...gatewayDevice, key: challengeKey},
       };
+      if (props.isAdd) {
+        // check if it is not a modify during add i.e we aren't switching tabs back
+        // during add and modifying the information other than the serial number
+        if (gateway.id in ctx.state && gateway.id !== props.gateway?.id) {
+          setError(`Gateway ${gateway.id} already exists`);
+          return;
+        }
+      }
       await ctx.setState(gateway.id, gatewayInfos);
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
@@ -366,7 +374,9 @@ export function ConfigEdit(props: Props) {
         <List>
           {error !== '' && (
             <AltFormField label={''}>
-              <FormLabel error>{error}</FormLabel>
+              <FormLabel data-testid="configEditError" error>
+                {error}
+              </FormLabel>
             </AltFormField>
           )}
           <AltFormField label={'Gateway Name'}>
@@ -439,7 +449,7 @@ export function ConfigEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>
@@ -515,7 +525,7 @@ export function AggregationEdit(props: Props) {
 
   return (
     <>
-      <DialogContent data-testid="aggregation">
+      <DialogContent data-testid="aggregationEdit">
         <List>
           {error !== '' && (
             <AltFormField label={''}>
@@ -547,7 +557,7 @@ export function AggregationEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>
@@ -642,7 +652,7 @@ export function EPCEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>
@@ -749,7 +759,7 @@ export function RanEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Close' : 'Save'}
         </Button>
       </DialogActions>
     </>

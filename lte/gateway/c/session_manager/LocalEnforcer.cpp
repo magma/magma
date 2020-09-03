@@ -384,7 +384,7 @@ void LocalEnforcer::start_session_termination(
   update_criteria.updated_pdp_end_time = epoch;
 
   remove_all_rules_for_termination(imsi, session, update_criteria);
-  
+
   session->set_fsm_state(SESSION_RELEASED, update_criteria);
   const auto& config         = session->get_config();
   const auto& common_context = config.common_context;
@@ -1227,7 +1227,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
           *session, imsi, to_vec(usage_monitor_resp.static_rules_to_install()),
           to_vec(usage_monitor_resp.dynamic_rules_to_install()),
           rules_to_activate, rules_to_deactivate, update_criteria);
-      
+
       propagate_rule_updates_to_pipelined(
           imsi, config, rules_to_activate, rules_to_deactivate, false);
 
@@ -1848,11 +1848,14 @@ void LocalEnforcer::update_ipfix_flow(
 
 void LocalEnforcer::propagate_bearer_updates_to_mme(
     const BearerUpdate& updates) {
-  if (updates.needs_creation) {
-    spgw_client_->create_dedicated_bearer(updates.create_req);
-  }
+  // Order matters!!
+  // First send delete requests and then create requests to
+  // ensure that the final state is the desired one.
   if (updates.needs_deletion) {
     spgw_client_->delete_dedicated_bearer(updates.delete_req);
+  }
+  if (updates.needs_creation) {
+    spgw_client_->create_dedicated_bearer(updates.create_req);
   }
 }
 

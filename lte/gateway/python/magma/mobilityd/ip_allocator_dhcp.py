@@ -57,7 +57,7 @@ class IPAllocatorDHCP(IPAllocator):
             assigned_ip_blocks: set of IP blocks, populated from DHCP.
             ip_state_map: maintains state of IP allocation to UE.
             dhcp_store: maintains DHCP transaction for each active MAC address
-            gw_info_map: maintains uplink GW info
+            gw_info: maintains uplink GW info
             retry_limit: try DHCP request
             iface: DHCP interface.
         """
@@ -111,10 +111,9 @@ class IPAllocatorDHCP(IPAllocator):
             NoAvailableIPError: if run out of available IP addresses
         """
         mac = create_mac_from_sid(sid)
-        LOG.debug("allocate IP for %s mac %s", sid, mac)
 
         dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan)
-        LOG.debug("got IP from redis: %s", dhcp_desc)
+        LOG.debug("allocate IP for %s mac %s dhcp_desc %s", sid, mac, dhcp_desc)
 
         if dhcp_allocated_ip(dhcp_desc) is not True:
             dhcp_desc = self._alloc_ip_address_from_dhcp(mac, vlan)
@@ -122,13 +121,13 @@ class IPAllocatorDHCP(IPAllocator):
         if dhcp_allocated_ip(dhcp_desc):
             ip_block = ip_network(dhcp_desc.subnet)
             ip_desc = IPDesc(ip=ip_address(dhcp_desc.ip), state=IPState.ALLOCATED,
-                             sid=sid, ip_block=ip_block, ip_type=IPType.DHCP)
-            LOG.debug("Got IP after sending DHCP requests: %s", ip_desc)
+                             sid=sid, ip_block=ip_block, ip_type=IPType.DHCP, vlan_id=vlan)
             self._assigned_ip_blocks.add(ip_block)
 
             return ip_desc
         else:
-            raise NoAvailableIPError("No available IP addresses From DHCP")
+            msg = "No available IP addresses From DHCP for SID: {} MAC {}".format(sid, mac)
+            raise NoAvailableIPError(msg)
 
     def release_ip(self, ip_desc: IPDesc):
         """

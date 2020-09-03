@@ -22,7 +22,7 @@ class MockLocalSessionManagerStub:
     def __init__(self):
         pass
 
-    def SetSessionRules(self, _: SessionRules) -> Void:
+    def SetSessionRules(self, _: SessionRules, timeout: float) -> Void:
         return Void()
 
 

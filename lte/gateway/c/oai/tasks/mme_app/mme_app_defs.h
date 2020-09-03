@@ -38,6 +38,8 @@
 #include "emm_proc.h"
 
 #define INVALID_BEARER_INDEX -1
+#define IPV6_ADDRESS_SIZE 16
+#define IPV4_ADDRESS_SIZE 4
 
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
 
@@ -309,7 +311,6 @@ ue_mm_context_t* mme_app_get_ue_context_for_timer(
 void mme_app_handle_modify_bearer_rsp(
     itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
     ue_mm_context_t* ue_context_p);
-
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)
 #define INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00
