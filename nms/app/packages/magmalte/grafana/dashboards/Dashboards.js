@@ -35,6 +35,7 @@ export const networkTemplate: TemplateConfig = variableTemplate({
   query: `label_values(${netIDVar})`,
   regex: `/.+/`,
   sort: 'alpha-insensitive-asc',
+  includeAll: true,
 });
 
 // This templating schema will produce a variable in the dashboard
@@ -47,6 +48,7 @@ export const gatewayTemplate: TemplateConfig = variableTemplate({
   query: `label_values({networkID=~"$networkID",gatewayID=~".+"}, ${gwIDVar})`,
   regex: `/.+/`,
   sort: 'alpha-insensitive-asc',
+  includeAll: true,
 });
 
 export const NetworkDBData: GrafanaDBData = {
@@ -474,6 +476,7 @@ export type TemplateParams = {
   query: string,
   regex: string,
   sort?: VariableSortOption,
+  includeAll: boolean,
 };
 
 type VariableSortOption =
@@ -490,7 +493,7 @@ export function variableTemplate(params: TemplateParams): TemplateConfig {
     allValue: '.+',
     definition: params.query,
     hide: 0,
-    includeAll: true,
+    includeAll: params.includeAll,
     allFormat: 'glob',
     multi: true,
     name: params.labelName,
