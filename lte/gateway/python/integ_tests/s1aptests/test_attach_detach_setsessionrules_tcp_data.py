@@ -138,7 +138,21 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                 flow_list,
                 qos,
             )
+            # First rule is replaced by the second rule
+            # Triggers a delete bearer followed by a create bearer request
+            # Receive Deactivate dedicated bearer request
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            )
+            deactivate_ber_ctxt_req = response.cast(
+                s1ap_types.UeDeActvBearCtxtReq_t
+            )
 
+            # Send Deactivate dedicated bearer accept
+            self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
+                req.ue_id, deactivate_ber_ctxt_req.bearerId
+            )
 
             # Receive Activate dedicated bearer request
             response = self._s1ap_wrapper.s1_util.get_response()
