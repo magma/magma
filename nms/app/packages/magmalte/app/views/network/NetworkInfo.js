@@ -128,6 +128,7 @@ export function NetworkInfoEdit(props: EditProps) {
           <AltFormField label={'Network ID'}>
             <OutlinedInput
               data-testid="networkID"
+              placeholder="Enter ID"
               fullWidth={true}
               value={lteNetwork.id}
               onChange={({target}) =>
@@ -139,6 +140,7 @@ export function NetworkInfoEdit(props: EditProps) {
           <AltFormField label={'Network Name'}>
             <OutlinedInput
               data-testid="networkName"
+              placeholder="Enter Name"
               fullWidth={true}
               value={lteNetwork.name}
               onChange={({target}) =>
@@ -150,6 +152,7 @@ export function NetworkInfoEdit(props: EditProps) {
           <AltFormField label={'Add Description'}>
             <OutlinedInput
               data-testid="networkDescription"
+              placeholder="Enter Description"
               fullWidth={true}
               multiline
               rows={4}

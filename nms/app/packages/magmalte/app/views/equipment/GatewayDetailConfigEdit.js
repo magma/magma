@@ -120,6 +120,9 @@ const useStyles = makeStyles(_ => ({
   selectMenu: {
     maxHeight: '200px',
   },
+  selectPlaceholder: {
+    opacity: 0.5,
+  },
 }));
 
 const EditTableType = {
@@ -382,6 +385,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Gateway Name'}>
             <OutlinedInput
               data-testid="name"
+              placeholder="Enter Name"
               fullWidth={true}
               value={gateway.name}
               onChange={({target}) => {
@@ -392,6 +396,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Gateway ID'}>
             <OutlinedInput
               data-testid="id"
+              placeholder="Enter ID"
               fullWidth={true}
               value={gateway.id}
               readOnly={props.gateway ? true : false}
@@ -403,6 +408,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Hardware UUID'}>
             <OutlinedInput
               data-testid="hardwareId"
+              placeholder="Eg. 4dfe212f-df33-4cd2-910c-41892a042fee"
               fullWidth={true}
               value={gatewayDevice.hardware_id}
               onChange={({target}) =>
@@ -416,6 +422,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Version'}>
             <OutlinedInput
               data-testid="version"
+              placeholder="Enter Version"
               fullWidth={true}
               value={gatewayVersion}
               readOnly={false}
@@ -425,6 +432,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Gateway Description'}>
             <OutlinedInput
               data-testid="description"
+              placeholder="Enter Description"
               fullWidth={true}
               value={gateway.description}
               onChange={({target}) =>
@@ -435,6 +443,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Challenge Key'}>
             <OutlinedInput
               data-testid="challengeKey"
+              placeholder="A base64 bytestring of the key in DER format"
               fullWidth={true}
               value={challengeKey.key}
               onChange={({target}) =>
@@ -617,6 +626,7 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'IP Block'}>
             <OutlinedInput
               data-testid="ipBlock"
+              placeholder="Enter IP Block"
               type="string"
               fullWidth={true}
               value={EPCConfig.ip_block}
@@ -626,6 +636,7 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'DNS Primary'}>
             <OutlinedInput
               data-testid="dnsPrimary"
+              placeholder="Enter Primary DNS"
               type="string"
               fullWidth={true}
               value={EPCConfig.dns_primary}
@@ -637,6 +648,7 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'DNS Secondary'}>
             <OutlinedInput
               data-testid="dnsSecondary"
+              placeholder="Enter Secondary DNS"
               type="string"
               fullWidth={true}
               value={EPCConfig.dns_secondary}
@@ -712,6 +724,7 @@ export function RanEdit(props: Props) {
           <AltFormField label={'PCI'}>
             <OutlinedInput
               data-testid="pci"
+              placeholder="Enter PCI"
               type="number"
               fullWidth={true}
               value={ranConfig.pci}
@@ -725,14 +738,26 @@ export function RanEdit(props: Props) {
               multiple
               variant={'outlined'}
               fullWidth={true}
+              displayEmpty={true}
               value={connectedEnodebs}
               onChange={({target}) => {
                 setConnectedEnodebs(Array.from(target.value));
               }}
               data-testid="networkType"
               MenuProps={{classes: {paper: classes.selectMenu}}}
-              renderValue={selected => selected.join(', ')}
-              input={<OutlinedInput />}>
+              renderValue={selected => {
+                if (!selected.length) {
+                  return 'Select eNodeBs';
+                }
+                return selected.join(', ');
+              }}
+              input={
+                <OutlinedInput
+                  className={
+                    connectedEnodebs.length ? '' : classes.selectPlaceholder
+                  }
+                />
+              }>
               {Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
                 <MenuItem key={enbSerial} value={enbSerial}>
                   <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
