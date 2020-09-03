@@ -57,25 +57,28 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GatewayJsonConfig() {
-  const {match} = useRouter();
+  const {match, history} = useRouter();
   const [error, setError] = useState('');
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
-  const {status, ...gwInfoJson} = gwInfo;
-
+  const {['status']: _status, ...gwInfoJson} = gwInfo;
   return (
     <JsonEditor
-      content={gwInfoJson}
+      content={{
+        ...gwInfoJson,
+        connected_enodeb_serials: gwInfoJson.connected_enodeb_serials ?? [],
+      }}
       error={error}
       onSave={async gateway => {
         try {
-          await ctx.setState(gatewayId, {...gateway, status});
+          await ctx.setState(gatewayId, gateway);
           enqueueSnackbar('Gateway saved successfully', {
             variant: 'success',
           });
           setError('');
+          history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }

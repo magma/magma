@@ -115,13 +115,13 @@ export default function TopBar(props: Props) {
             </Tabs>
           </Grid>
           {props.tabs.map((tab, i) => (
-            <>
+            <React.Fragment key={`fragment-${i}`}>
               {currentTab === i ? (
                 <Grid key={i} item>
                   {tab.filters}
                 </Grid>
               ) : null}
-            </>
+            </React.Fragment>
           ))}
         </Grid>
       </AppBar>

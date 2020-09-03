@@ -175,16 +175,21 @@ class IPAddressManager:
         elif self.allocator_type == MobilityD.DHCP:
             iface = config.get('dhcp_iface', 'dhcp0')
             retry_limit = config.get('retry_limit', 300)
-            ip_allocator = IPAllocatorDHCP(self._assigned_ip_blocks,
-                                           self.ip_state_map,
+            ip_allocator = IPAllocatorDHCP(assigned_ip_blocks=self._assigned_ip_blocks,
+                                           ip_state_map=self.ip_state_map,
                                            iface=iface,
                                            retry_limit=retry_limit,
                                            dhcp_store=self._dhcp_store,
                                            gw_info=self._dhcp_gw_info)
+        else:
+            raise ValueError("Unknown IP allocator type: %s" % self.allocator_type)
 
         if self.static_ip_enabled:
             ip_allocator = IPAllocatorStaticWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                    ip_allocator=ip_allocator)
+                                                    ip_allocator=ip_allocator,
+                                                    gw_info=self._dhcp_gw_info,
+                                                    assigned_ip_blocks=self._assigned_ip_blocks,
+                                                    ip_state_map=self.ip_state_map)
 
         if self.multi_apn:
             self.ip_allocator = IPAllocatorMultiAPNWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
@@ -289,7 +294,6 @@ class IPAddressManager:
         with self._lock:
             # if an IP is reserved for the UE, this IP could be in the state of
             # ALLOCATED, RELEASED or REAPED.
-
             if sid in self.sid_ips_map:
                 old_ip_desc = self.sid_ips_map[sid]
                 if self.ip_state_map.test_ip_state(old_ip_desc.ip, IPState.ALLOCATED):
@@ -326,9 +330,19 @@ class IPAddressManager:
 
             # Now try to allocate it from underlying allocator.
             ip_desc = self.ip_allocator.alloc_ip_address(sid, 0)
+            existing_sid = self.get_sid_for_ip(ip_desc.ip)
+            if existing_sid:
+                error_msg = "Dup IP: {} for SID: {}, which already is " \
+                            "assigned to SID: {}".format(ip_desc.ip,
+                                                         sid,
+                                                         existing_sid)
+                logging.error(error_msg)
+                raise DuplicateIPAssignmentError(error_msg)
+
             self.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc, IPState.ALLOCATED)
             self.sid_ips_map[sid] = ip_desc
 
+            logging.debug("Allocating New IP: %s", str(ip_desc))
             IP_ALLOCATED_TOTAL.inc()
             return ip_desc.ip, ip_desc.vlan_id
 
@@ -376,7 +390,9 @@ class IPAddressManager:
             if not (sid in self.sid_ips_map and ip ==
                     self.sid_ips_map[sid].ip):
                 logging.error(
-                    "Releasing unknown <SID, IP> pair: <%s, %s>", sid, ip)
+                    "Releasing unknown <SID, IP> pair: <%s, %s> "
+                    "sid_ips_map[%s]: %s",
+                    sid, ip, sid, self.sid_ips_map.get(sid, ""))
                 raise MappingNotFoundError(
                     "(%s, %s) pair is not found", sid, str(ip))
             if not self.ip_state_map.test_ip_state(ip, IPState.ALLOCATED):
@@ -411,6 +427,8 @@ class IPAddressManager:
         with self._lock:
             for ip in self.ip_state_map.list_ips(IPState.REAPED):
                 ip_desc = self.ip_state_map.mark_ip_state(ip, IPState.FREE)
+                logging.debug("Release Reaped IP: %s", ip_desc)
+
                 self.ip_allocator.release_ip(ip_desc)
                 # update SID-IP map
                 del self.sid_ips_map[ip_desc.sid]
@@ -456,4 +474,12 @@ class IPNotInUseError(Exception):
 
 class MappingNotFoundError(Exception):
     """ Exception thrown when releasing a non-exising SID-IP mapping """
+    pass
+
+
+class DuplicateIPAssignmentError(Exception):
+    """ Exception thrown when underlying IP allocator assigns duplicate
+    Ip address to two different SID. This also catches dup IP across
+    two different APNs.
+    """
     pass

@@ -41,6 +41,7 @@ import (
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
 
+	"github.com/go-openapi/swag"
 	"github.com/labstack/echo"
 	"github.com/stretchr/testify/assert"
 )
@@ -1098,12 +1099,103 @@ func TestAPNPolicyProfile(t *testing.T) {
 	deleteSubscriber := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, urlManage, obsidian.DELETE).HandlerFunc
 
 	deleteAPN := tests.GetHandlerByPathAndMethod(t, lteHandlers.GetHandlers(), "/magma/v1/lte/:network_id/apns/:apn_name", obsidian.DELETE).HandlerFunc
+	postPolicy := tests.GetHandlerByPathAndMethod(t, policydbHandlers.GetHandlers(), "/magma/v1/networks/:network_id/policies/rules", obsidian.POST).HandlerFunc
 	deletePolicy := tests.GetHandlerByPathAndMethod(t, policydbHandlers.GetHandlers(), "/magma/v1/networks/:network_id/policies/rules/:rule_id", obsidian.DELETE).HandlerFunc
 
 	imsi := "IMSI1234567890"
 	imsi1 := "IMSI1234567800"
 	mutableSub := newMutableSubscriber(imsi)
 	sub := mutableSub.ToSubscriber()
+
+	t.Run("dangling apn_policy_profile regression", func(t *testing.T) {
+		// Post policy
+		policy := newPolicy("ruleXXX")
+		tc := tests.Test{
+			Method:         "POST",
+			URL:            "/magma/v1/networks/n0/policies/rules",
+			Payload:        policy,
+			ParamNames:     []string{"network_id"},
+			ParamValues:    []string{"n0"},
+			Handler:        postPolicy,
+			ExpectedStatus: 201,
+		}
+		tests.RunUnitTest(t, e, tc)
+
+		// Post, sub with same policy both static and for specific APN
+		mutableSub.ActivePolicies = policydbModels.PolicyIds{policy.ID}
+		mutableSub.ActivePoliciesByApn = policydbModels.PolicyIdsByApn{
+			"apn0": policydbModels.PolicyIds{"ruleXXX"},
+		}
+		tc = tests.Test{
+			Method:         "POST",
+			URL:            "/magma/v1/lte/n0/subscribers",
+			Payload:        mutableSub,
+			Handler:        postSubscriber,
+			ParamNames:     []string{"network_id"},
+			ParamValues:    []string{"n0"},
+			ExpectedStatus: 201,
+		}
+		tests.RunUnitTest(t, e, tc)
+
+		// Configurator confirms apn_policy_profile exists
+		profiles, err := configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+		assert.NoError(t, err)
+		assert.Len(t, profiles, 1)
+
+		// Put, remove policy
+		mutableSub.ActivePolicies = policydbModels.PolicyIds{}
+		mutableSub.ActivePoliciesByApn = policydbModels.PolicyIdsByApn{
+			"apn0": policydbModels.PolicyIds{},
+		}
+		tc = tests.Test{
+			Method:         "PUT",
+			URL:            "/magma/v1/lte/n0/subscribers/" + imsi,
+			Payload:        mutableSub,
+			ParamNames:     []string{"network_id", "subscriber_id"},
+			ParamValues:    []string{"n0", imsi},
+			Handler:        putSubscriber,
+			ExpectedStatus: 204,
+		}
+		tests.RunUnitTest(t, e, tc)
+
+		// Configurator confirms apn_policy_profile still exists
+		profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+		assert.NoError(t, err)
+		assert.Len(t, profiles, 1)
+
+		// Delete
+		tc = tests.Test{
+			Method:         "DELETE",
+			URL:            "/magma/v1/lte/n0/subscribers/" + imsi,
+			ParamNames:     []string{"network_id", "subscriber_id"},
+			ParamValues:    []string{"n0", imsi},
+			Handler:        deleteSubscriber,
+			ExpectedStatus: 204,
+		}
+		tests.RunUnitTest(t, e, tc)
+
+		// Configurator confirms subscriber no longer exists
+		profiles, err = configurator.ListEntityKeys("n0", lte.SubscriberEntityType)
+		assert.NoError(t, err)
+		assert.Len(t, profiles, 0)
+
+		// Configurator confirms apn_policy_profile no longer exists
+		profiles, err = configurator.ListEntityKeys("n0", lte.APNPolicyProfileEntityType)
+		assert.NoError(t, err)
+		assert.Len(t, profiles, 0)
+
+		// Clean up created policy rule
+		tc = tests.Test{
+			Method:         "DELETE",
+			URL:            "/magma/v1/networks/n1/policies/rules/rule0",
+			Payload:        nil,
+			ParamNames:     []string{"network_id", "rule_id"},
+			ParamValues:    []string{"n0", "ruleXXX"},
+			Handler:        deletePolicy,
+			ExpectedStatus: 204,
+		}
+		tests.RunUnitTest(t, e, tc)
+	})
 
 	// Get all, initially empty
 	tc := tests.Test{
@@ -1166,7 +1258,6 @@ func TestAPNPolicyProfile(t *testing.T) {
 	assert.Len(t, profiles, 1)
 
 	// Get all, posted subscriber found
-	sub = mutableSub.ToSubscriber()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers",
@@ -1174,7 +1265,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamNames:     []string{"network_id"},
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 200,
-		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: sub}),
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{imsi: mutableSub.ToSubscriber()}),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1228,7 +1319,6 @@ func TestAPNPolicyProfile(t *testing.T) {
 	assert.Len(t, profiles, 2)
 
 	// Get, changes are reflected
-	sub = mutableSub.ToSubscriber()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers/" + imsi,
@@ -1236,7 +1326,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamValues:    []string{"n0", imsi},
 		Handler:        getSubscriber,
 		ExpectedStatus: 200,
-		ExpectedResult: sub,
+		ExpectedResult: mutableSub.ToSubscriber(),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1296,7 +1386,6 @@ func TestAPNPolicyProfile(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get, successfully added back
-	sub = mutableSub.ToSubscriber()
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/subscribers/" + imsi,
@@ -1304,7 +1393,7 @@ func TestAPNPolicyProfile(t *testing.T) {
 		ParamValues:    []string{"n0", imsi},
 		Handler:        getSubscriber,
 		ExpectedStatus: 200,
-		ExpectedResult: sub,
+		ExpectedResult: mutableSub.ToSubscriber(),
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -1414,4 +1503,21 @@ func newMutableSubscriber(id string) *subscriberModels.MutableSubscriber {
 		ActiveApns: subscriberModels.ApnList{"apn0", "apn1"},
 	}
 	return sub
+}
+
+func newPolicy(id string) *policydbModels.PolicyRule {
+	policy := &policydbModels.PolicyRule{
+		ID: policydbModels.PolicyID(id),
+		FlowList: []*policydbModels.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &policydbModels.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
+				},
+			},
+		},
+		Priority: swag.Uint32(1),
+	}
+	return policy
 }

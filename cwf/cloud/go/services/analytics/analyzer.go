@@ -41,8 +41,6 @@ type PrometheusAnalyzer struct {
 	Exporter         Exporter
 }
 
-
-
 func NewPrometheusAnalyzer(prometheusClient v1.API, calculations []calculations.Calculation, exporter Exporter) Analyzer {
 	cronJob := cron.New()
 	return &PrometheusAnalyzer{

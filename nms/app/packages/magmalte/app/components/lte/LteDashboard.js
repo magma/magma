@@ -127,7 +127,12 @@ function LteNetworkDashboard({startEnd}: {startEnd: [moment, moment]}) {
           <DashboardKPIs />
         </Grid>
         <Grid item xs={12}>
-          <EventsTable eventStream="NETWORK" sz="md" />
+          <EventsTable
+            eventStream="NETWORK"
+            sz="md"
+            inStartDate={startEnd[0]}
+            inEndDate={startEnd[1]}
+          />
         </Grid>
       </Grid>
     </div>

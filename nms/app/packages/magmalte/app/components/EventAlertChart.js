@@ -18,6 +18,8 @@ import type {network_id} from '@fbcnms/magma-api';
 
 import Card from '@material-ui/core/Card';
 import CardHeader from '@material-ui/core/CardHeader';
+import CardTitleRow from './layout/CardTitleRow';
+import DataUsageIcon from '@material-ui/icons/DataUsage';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
@@ -200,19 +202,25 @@ export default function EventAlertChart(props: Props) {
   }
 
   return (
-    <Card elevation={0}>
-      <CardHeader
-        subheader={
-          <CustomLineChart
-            start={start}
-            end={end}
-            delta={delta}
-            unit={unit}
-            dataset={[eventDataset, alertDataset]}
-            yLabel={'count'}
-          />
-        }
+    <>
+      <CardTitleRow
+        icon={DataUsageIcon}
+        label="Frequency of Alerts and Events"
       />
-    </Card>
+      <Card elevation={0}>
+        <CardHeader
+          subheader={
+            <CustomLineChart
+              start={start}
+              end={end}
+              delta={delta}
+              unit={unit}
+              dataset={[eventDataset, alertDataset]}
+              yLabel={'Count'}
+            />
+          }
+        />
+      </Card>
+    </>
   );
 }

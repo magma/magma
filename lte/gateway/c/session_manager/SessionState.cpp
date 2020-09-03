@@ -24,7 +24,19 @@
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
+#include "MetricsHelpers.h"
 #include "magma_logging.h"
+
+namespace {
+const char* LABEL_IMSI      = "IMSI";
+const char* LABEL_APN       = "apn";
+const char* LABEL_MSISDN    = "msisdn";
+const char* LABEL_DIRECTION = "direction";
+const char* DIRECTION_UP    = "up";
+const char* DIRECTION_DOWN  = "down";
+}  // namespace
+
+using magma::service303::increment_counter;
 
 namespace magma {
 
@@ -47,6 +59,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.pdp_end_time           = pdp_end_time_;
   marshaled.pending_event_triggers = pending_event_triggers_;
   marshaled.revalidation_time      = revalidation_time_;
+  marshaled.bearer_id_by_policy = bearer_id_by_policy_;
 
   marshaled.monitor_map = StoredMonitorMap();
   for (auto& monitor_pair : monitor_map_) {
@@ -103,7 +116,8 @@ SessionState::SessionState(
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
-      credit_map_(4, &ccHash, &ccEqual) {
+      credit_map_(4, &ccHash, &ccEqual),
+      bearer_id_by_policy_(marshaled.bearer_id_by_policy) {
   session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
@@ -383,6 +397,9 @@ void SessionState::add_rule_usage(
   if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
     add_to_monitor(session_level_key_, used_tx, used_rx, update_criteria);
+  }
+  if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
+    update_data_usage_metrics(used_tx, used_rx);
   }
 }
 
@@ -1691,6 +1708,21 @@ RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
     return rule_set_by_apn[apn];
   }
   return {};
+}
+
+void SessionState::update_data_usage_metrics(
+    uint64_t bytes_tx, uint64_t bytes_rx) {
+  const auto sid    = get_config().common_context.sid().id();
+  const auto msisdn = get_config().common_context.msisdn();
+  const auto apn    = get_config().common_context.apn();
+  increment_counter(
+      "ue_reported_usage", bytes_tx, size_t(4), LABEL_IMSI, sid.c_str(),
+      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_UP);
+  increment_counter(
+      "ue_reported_usage", bytes_rx, size_t(4), LABEL_IMSI, sid.c_str(),
+      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_DOWN);
 }
 
 }  // namespace magma

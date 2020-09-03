@@ -21,9 +21,9 @@ NO_VLAN = "NO_VLAN"
 
 
 def _get_vlan_key(vlan: Optional[str]) -> str:
-    if vlan is None or vlan == '' or vlan == NO_VLAN:
+    if vlan is None or vlan == '' or vlan == NO_VLAN or vlan == "0":
         return NO_VLAN
-    if int(vlan) < 0 or int(vlan) > 4096:
+    if int(vlan) < 0 or int(vlan) > 4095:
         raise InvalidVlanId("invalid vlan: " + vlan)
 
     return vlan
@@ -40,6 +40,7 @@ class UplinkGatewayInfo:
         """
         self._backing_map = gw_info_map
 
+    # TODO: change vlan_id type to int
     def get_gw_ip(self, vlan_id: Optional[str] = "") -> Optional[str]:
         vlan_key = _get_vlan_key(vlan_id)
         if vlan_key in self._backing_map:
@@ -81,11 +82,11 @@ class UplinkGatewayInfo:
         else:
             return None
 
-    def update_mac(self, ip: str, mac: str, vlan_id: Optional[str] = ""):
+    def update_mac(self, ip: str, mac: Optional[str], vlan_id: Optional[str] = ""):
         vlan_key = _get_vlan_key(vlan_id)
 
         # TODO: enhance check for MAC address sanity.
-        if ':' not in mac:
+        if mac is None or ':' not in mac:
             logging.error("Incorrect mac format: %s for IP %s (vlan_key %s)",
                           mac, ip, vlan_id)
             return

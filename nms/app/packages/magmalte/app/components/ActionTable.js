@@ -99,6 +99,7 @@ type ActionTableColumn = {
 
 type ActionTableOptions = {
   actionsColumnIndex: number,
+  pageSize?: number,
   pageSizeOptions: Array<number>,
 };
 
@@ -123,6 +124,7 @@ export type ActionTableProps<T> = {
   tableRef?: {},
   toolbar?: {},
   editable?: {},
+  localization?: {},
   title?: string,
   handleCurrRow?: T => void,
   columns: Array<ActionTableColumn>,
@@ -244,6 +246,7 @@ export default function ActionTable<T>(props: ActionTableProps<T>) {
     <>
       {actionTableJSX}
       <MaterialTable
+        localization={props.localization}
         toolbar={props.toolbar}
         tableRef={props.tableRef}
         editable={props.editable}

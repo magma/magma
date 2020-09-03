@@ -29,7 +29,7 @@ func (x *UserConsumptionCalculation) Calculate(prometheusClient query_api.Promet
 
 	var consumptionQuery string
 	// Measure consumption over x.Hours if exists
-	if x.Hours > 0{
+	if x.Hours > 0 {
 		consumptionQuery = fmt.Sprintf(`sum(increase(octets_%s[%dh])) by (%s)`, x.Direction, x.Hours, metrics.NetworkLabelName)
 	} else {
 		consumptionQuery = fmt.Sprintf(`sum(increase(octets_%s[%dd])) by (%s)`, x.Direction, x.Days, metrics.NetworkLabelName)
