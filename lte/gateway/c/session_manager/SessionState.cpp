@@ -59,6 +59,7 @@ StoredSessionState SessionState::marshal() {
   marshaled.pdp_end_time           = pdp_end_time_;
   marshaled.pending_event_triggers = pending_event_triggers_;
   marshaled.revalidation_time      = revalidation_time_;
+  marshaled.bearer_id_by_policy = bearer_id_by_policy_;
 
   marshaled.monitor_map = StoredMonitorMap();
   for (auto& monitor_pair : monitor_map_) {
@@ -115,7 +116,8 @@ SessionState::SessionState(
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
-      credit_map_(4, &ccHash, &ccEqual) {
+      credit_map_(4, &ccHash, &ccEqual),
+      bearer_id_by_policy_(marshaled.bearer_id_by_policy) {
   session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;

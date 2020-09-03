@@ -176,7 +176,8 @@ class InOutController(MagmaController):
                                        self._midle_tbl_num,
                                        self.config.mtr_port,
                                        self.config.mtr_ip,
-                                       priority=flows.UE_FLOW_PRIORITY)
+                                       priority=flows.UE_FLOW_PRIORITY,
+                                       direction=Direction.OUT)
 
     def _install_default_egress_flows(self, dp, mac_addr: str = "", vlan: str = ""):
         """
@@ -400,9 +401,9 @@ class InOutController(MagmaController):
 
 
 def _install_vlan_egress_flows(dp, table_no, out_port, ip,
-                               priority=0):
+                               priority=0, direction=Direction.IN):
     # Pass non vlan packet as it is.
-    match = MagmaMatch(direction=Direction.IN,
+    match = MagmaMatch(direction=direction,
                        eth_type=ether_types.ETH_TYPE_IP,
                        vlan_vid=(0x0000, 0x1000),
                        ipv4_dst=ip)
@@ -412,7 +413,7 @@ def _install_vlan_egress_flows(dp, table_no, out_port, ip,
                           output_port=out_port)
 
     # remove vlan header for out_port.
-    match = MagmaMatch(direction=Direction.IN,
+    match = MagmaMatch(direction=direction,
                        eth_type=ether_types.ETH_TYPE_IP,
                        vlan_vid=(0x1000, 0x1000),
                        ipv4_dst=ip)
