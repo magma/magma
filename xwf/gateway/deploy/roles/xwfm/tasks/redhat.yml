@@ -1,0 +1,77 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+
+- name: Install interface files
+  template: src={{ item }} dest=/etc/sysconfig/network-scripts/
+  with_items:
+    - ifcfg-cwag_br0
+    - ifcfg-gre0
+    - ifcfg-cwag_patch
+    - ifcfg-uplink_patch
+
+- name: Activate interfaces
+  shell: ifup {{ item }}
+  with_items:
+    - cwag_br0
+    - gre0
+    - cwag_patch
+
+- name: install the uplink bridge
+  become: true
+  template: src={{ item }} dest=/etc/sysconfig/network-scripts/
+  with_items:
+    - ifcfg-uplink_br0
+
+- name: bring up uplink bridge
+  become: true
+  shell: ifup uplink_br0
+
+- name: Install gw0  file
+  become: true
+  template: src=ifcfg-gw0 dest=/etc/sysconfig/network-scripts/ifcfg-gw0
+  when: gateway_mode == 'gateway'
+
+- name: bring up gw0 interface
+  become: true
+  shell: ifup gw0
+  when: gateway_mode == 'gateway'
+
+- name: Install network config  file for passthrough
+  become: true
+  template: src=ifcfg-gw0 dest=/etc/sysconfig/network-scripts/ifcfg-{{ uplink_if }}
+  when: uplink_if is defined
+
+- name: bring up uplink interface
+  become: true
+  shell: ifup {{ item }}
+  with_items:
+    - "{{ uplink_if }}"
+  when: uplink_if is defined
+
+- name: bring up uplink patch
+  become: true
+  shell: ifup uplink_patch
+  when: downlink_if is not defined
+
+- name: Install downlink file
+  become: true
+  template: src=ifcfg-downlink dest=/etc/sysconfig/network-scripts/ifcfg-{{ downlink_if }}
+  when: downlink_if is defined
+
+- name: bring up downlink interface
+  become: true
+  shell: ifup {{ item }}
+  with_items:
+    - "{{ downlink_if }}"
+  when: downlink_if is defined

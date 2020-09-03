@@ -1,0 +1,60 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: Create OVS bridge cwag_br0 and GRE tunnel gre0
+  become: true
+  script: create_gre_tunnel.sh
+
+- name: create the script file for uplink bridge creation
+  become: true
+  template:
+    src: setup_uplink.j2
+    dest: /tmp/setup_uplink.sh
+    mode: 0777
+
+- name: Create OVS bridge uplink_br0 and add peer patch port to connect it to cwag_br0
+  become: true
+  shell: /tmp/setup_uplink.sh
+
+- name: Enable IP forwarding
+  sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+
+- name: Add static IP to cwag_br0
+  become: true
+  template:
+    src: 99-ovscfg.yaml.j2
+    dest: /etc/netplan/99-ovscfg.yaml
+  tags:
+    - no_ci
+
+- name: Apply netplan for OVS cwag_br0 interface
+  become: true
+  shell: netplan apply
+  when: gateway_mode == 'gateway'
+  tags:
+    - no_ci
+
+- name: create the script file for uplink bridge creation
+  become: true
+  template:
+    src: setup_ips.j2
+    dest: /tmp/setup_ips.sh
+    mode: 0777
+
+- name: Create OVS bridge uplink_br0 and add peer patch port to connect it to cwag_br0
+  become: true
+  shell: /tmp/setup_ips.sh
+
+- name: Set OVS controller for XWF bridge
+  become: true
+  shell: ovs-vsctl set-controller uplink_br0 tcp:{{ xwf_ctrl_ip }}:665

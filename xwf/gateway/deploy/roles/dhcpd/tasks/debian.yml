@@ -1,0 +1,59 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: Install isc-dhcp-server
+  apt:
+    state: present
+    pkg:
+      - isc-dhcp-server
+
+- name: Copy dhcpd configuration file
+  become: true
+  template:
+    src: dhcpd.conf.j2
+    dest: /etc/dhcp/dhcpd.conf
+
+- name: Copy dhcpd default interface file
+  become: true
+  copy:
+    src: isc-dhcp-server
+    dest: /etc/default
+
+- name: copy the dhcpd service file
+  become: true
+  copy:
+    src: dhcpd.service
+    dest: /lib/systemd/system/
+
+- name: Start dhcpd
+  service:
+    name: isc-dhcp-server
+    state: started
+    enabled: yes
+  become: true
+
+- name: make rc local file so firewall rules persist reboots
+  template:
+    src: rc.local.j2
+    dest: /etc/rc.local
+    mode: 0775
+  tags:
+    - no_ci
+  become: true
+  when: gateway_mode == 'gateway'
+
+- name: execute the rc.local file
+  shell: /etc/rc.local
+  when: gateway_mode == 'gateway'
+  tags:
+    - no_ci

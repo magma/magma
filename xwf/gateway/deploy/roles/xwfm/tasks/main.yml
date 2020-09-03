@@ -27,7 +27,8 @@
 
 - name: set the hostname now
   become: true
-  shell: hostname {{ 'xwfm.' + partner + '.' + env + '.' + server_id | default('1') }} 
+  shell: hostname {{ 'xwfm.' + partner + '.' + env + '.' + server_id | default('1') }}
+  ignore_errors: true
 
 - name: delete ovs bridges incase they exist
   become: true
@@ -43,71 +44,11 @@
 
 - name: Configure Red Hat interfaces
   when: ansible_distribution == 'CentOS' or ansible_distribution == 'Red Hat Enterprise Linux'
-  become: true
-  block:
-    - name: Install interface files
-      template: src={{ item }} dest=/etc/sysconfig/network-scripts/
-      with_items:
-        - ifcfg-cwag_br0
-        - ifcfg-gre0
-        - ifcfg-cwag_patch
-        - ifcfg-uplink_patch
+  include_tasks: redhat.yml
 
-    - name: Activate interfaces
-      shell: ifup {{ item }}
-      with_items:
-        - cwag_br0
-        - gre0
-        - cwag_patch
-
-    - name: install the uplink bridge
-      become: true
-      template: src={{ item }} dest=/etc/sysconfig/network-scripts/
-      with_items:
-        - ifcfg-uplink_br0
-   
-    - name: bring up uplink bridge
-      become: true
-      shell: ifup uplink_br0 
-
-    - name: Install gw0  file
-      become: true
-      template: src=ifcfg-gw0 dest=/etc/sysconfig/network-scripts/ifcfg-gw0
-      when: gateway_mode == 'gateway'
-
-    - name: bring up gw0 interface
-      become: true
-      shell: ifup gw0
-      when: gateway_mode == 'gateway'
-
-    - name: Install network config  file for passthrough
-      become: true
-      template: src=ifcfg-gw0 dest=/etc/sysconfig/network-scripts/ifcfg-{{ uplink_if }}
-      when: uplink_if is defined 
-
-    - name: bring up uplink interface
-      become: true
-      shell: ifup {{ item }}
-      with_items:
-        - "{{ uplink_if }}"
-      when: uplink_if is defined 
-
-    - name: bring up uplink patch 
-      become: true
-      shell: ifup uplink_patch
-      when: downlink_if is not defined
-
-    - name: Install downlink file
-      become: true
-      template: src=ifcfg-downlink dest=/etc/sysconfig/network-scripts/ifcfg-{{ downlink_if }}
-      when: downlink_if is defined
-
-    - name: bring up downlink interface
-      become: true
-      shell: ifup {{ item }}
-      with_items:
-        - "{{ downlink_if }}"
-      when: downlink_if is defined 
+- name: Configure Ubuntu interfaces
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+  include_tasks: debian.yml
 
 - name: Enable IP forwarding
   become: true
