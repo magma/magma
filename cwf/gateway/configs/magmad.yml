@@ -95,3 +95,10 @@ metricsd:
     - radiusd
     - directoryd
     - state
+
+# Services for which magmad grpc status check restart recovery is enabled
+services_to_restart:
+  - pipelined
+
+# How many times can grpc status check fail before restarting the services above
+restart_timeout_threshold: 15
