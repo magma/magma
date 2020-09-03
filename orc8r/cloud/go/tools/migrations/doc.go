@@ -21,9 +21,6 @@
 	Migrations are expected to conform to the following descriptions
 	- Idempotent
 		- Running the migration multiple times has same effect as running once
-	- Safe to downgrade
-		- Running the migration should not break an existing minor-version
-		  Orchestrator deployment
 	- Self-contained
 		- Migration itself doesn't rely on services or internal code
 		- Edit SQL tables directly

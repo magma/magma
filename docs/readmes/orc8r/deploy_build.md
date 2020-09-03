@@ -47,25 +47,25 @@ as a starting point, as individual needs may vary.
 First define some necessary variables
 
 ```bash
-$ export PUBLISH=MAGMA_ROOT/orc8r/tools/docker/publish.sh  # or add to path
-$ export REGISTRY=registry.hub.docker.com/REGISTRY  # or desired registry
-$ export MAGMA_TAG=1.1.0-master  # or desired tag
+export PUBLISH=MAGMA_ROOT/orc8r/tools/docker/publish.sh  # or add to path
+export REGISTRY=registry.hub.docker.com/REGISTRY  # or desired registry
+export MAGMA_TAG=1.1.0-master  # or desired tag
 ```
 
 Build and publish Orchestrator images
 
 ```bash
-$ cd MAGMA_ROOT/orc8r/cloud/docker
-$ ./build.py -a
-$ for image in controller nginx ; do ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG} ; done
+cd MAGMA_ROOT/orc8r/cloud/docker
+./build.py -a
+for image in controller nginx ; do ${PUBLISH} -r ${REGISTRY} -i ${image} -v ${MAGMA_TAG} ; done
 ```
 
 Build and publish NMS images
 
 ```bash
-$ cd MAGMA_ROOT/nms/app/packages/magmalte
-$ docker-compose build magmalte
-$ COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG}
+cd MAGMA_ROOT/nms/app/packages/magmalte
+docker-compose build magmalte
+COMPOSE_PROJECT_NAME=magmalte ${PUBLISH} -r ${REGISTRY} -i magmalte -v ${MAGMA_TAG}
 ```
 
 ## Build and Publish Helm Charts
@@ -80,20 +80,20 @@ Next, package the Magma Helm charts and publish them to the GitHub
 repo
 
 ```bash
-$ mkdir ~/magma-charts && cd ~/magma-charts
-$ git init
-$ helm package MAGMA_ROOT/orc8r/cloud/helm/orc8r/ && helm repo index .
-$ git add . && git commit -m 'Initial chart commit'
-$ git remote add origin GITHUB_REPO_URL && git push -u origin master
+mkdir ~/magma-charts && cd ~/magma-charts
+git init
+helm package MAGMA_ROOT/orc8r/cloud/helm/orc8r/ && helm repo index .
+git add . && git commit -m 'Initial chart commit'
+git remote add origin GITHUB_REPO_URL && git push -u origin master
 ```
 
 To confirm, reference the published charts locally
 
 ```bash
-$ helm repo add GITHUB_REPO --username GITHUB_USERNAME --password GITHUB_ACCESS_TOKEN \
+helm repo add GITHUB_REPO --username GITHUB_USERNAME --password GITHUB_ACCESS_TOKEN \
       'https://raw.githubusercontent.com/GITHUB_USERNAME/GITHUB_REPO/master/'
-$ helm repo update && helm repo list  # should list the GITHUB_REPO repository
-$ helm search repo GITHUB_REPO  # should list the GITHUB_REPO chart
+helm repo update && helm repo list  # should list the GITHUB_REPO repository
+helm search repo GITHUB_REPO  # should list the GITHUB_REPO chart
 ```
 
 Finally, check out the newly-created `index.yaml`. It should contain the

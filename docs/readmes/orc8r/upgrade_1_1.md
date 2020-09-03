@@ -44,16 +44,16 @@ components that you created for v1.0 so it doesn't create new copies. Terraform
 has a useful utility `terraform state mv` that can help accomplish this:
 
 ```bash
-$ cd OLDTF
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'module.vpc' 'module.orc8r.module.vpc'
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_security_group.default' 'module.orc8r.aws_security_group.default'
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_ebs_volume.prometheus-ebs-eks' 'aws_ebs_volume.prometheus-ebs-eks'
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_ebs_volume.prometheus-configs-ebs-eks' 'aws_ebs_volume.prometheus-configs-ebs-eks'
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_iam_policy.worker_node_policy' 'aws_iam_policy.worker_node_policy'
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_db_instance.default' 'module.orc8r.aws_db_instance.default'
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_db_instance.nms' 'module.orc8r.aws_db_instance.nms'
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'module.eks' 'module.orc8r.module.eks'
-$ terraform state mv -state-out=NEWTF/terraform.tfstate 'data.template_file.metrics_userdata' 'data.template_file.metrics_userdata'
+cd OLDTF
+terraform state mv -state-out=NEWTF/terraform.tfstate 'module.vpc' 'module.orc8r.module.vpc'
+terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_security_group.default' 'module.orc8r.aws_security_group.default'
+terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_ebs_volume.prometheus-ebs-eks' 'aws_ebs_volume.prometheus-ebs-eks'
+terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_ebs_volume.prometheus-configs-ebs-eks' 'aws_ebs_volume.prometheus-configs-ebs-eks'
+terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_iam_policy.worker_node_policy' 'aws_iam_policy.worker_node_policy'
+terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_db_instance.default' 'module.orc8r.aws_db_instance.default'
+terraform state mv -state-out=NEWTF/terraform.tfstate 'aws_db_instance.nms' 'module.orc8r.aws_db_instance.nms'
+terraform state mv -state-out=NEWTF/terraform.tfstate 'module.eks' 'module.orc8r.module.eks'
+terraform state mv -state-out=NEWTF/terraform.tfstate 'data.template_file.metrics_userdata' 'data.template_file.metrics_userdata'
 ```
 
 If you added any custom components to your v1.0 root Terraform module, you
@@ -72,10 +72,10 @@ Then, update the application certs to include 2 new components (replace
 YOURDOMAIN.COM with the domain you've reserved for Orchestrator):
 
 ```bash
-$ cd MYSECRETS/certs
-$ openssl genrsa -out fluentd.key 2048
-$ openssl req -x509 -new -nodes -key fluentd.key -sha256 -days 3650 \
-      -out fluentd.pem -subj "/C=US/CN=fluentd.YOURDOMAIN.COM"
+cd MYSECRETS/certs
+openssl genrsa -out fluentd.key 2048
+openssl req -x509 -new -nodes -key fluentd.key -sha256 -days 3650 \
+    -out fluentd.pem -subj "/C=US/CN=fluentd.YOURDOMAIN.COM"
 ```
 
 ## Define Terraform Variables
@@ -97,7 +97,7 @@ also update `eks_worker_groups` in `main.tf` to match.
 ## Initial Terraform
 
 ```bash
-$ terraform plan -target=module.orc8r -var-file=vars.tfvars
+terraform plan -target=module.orc8r -var-file=vars.tfvars
 ```
 
 Pay VERY close attention to the output of the plan to make sure that nothing
@@ -126,7 +126,7 @@ data loss.
 When you are convinced that your new Terraform module won't break anything:
 
 ```bash
-$ terraform apply -target=module.orc8r -var-file=vars.tfvars
+terraform apply -target=module.orc8r -var-file=vars.tfvars
 ```
 
 ## Application Terraform
@@ -193,9 +193,9 @@ create a new admin user in the `master` organization to set up access for
 other tenants:
 
 ```bash
-$ kubectl exec -it -n magma \
-  $(kubectl -n magma get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
-  yarn setAdminPassword master <admin user email> <admin user password>
+kubectl exec -it -n magma \
+    $(kubectl -n magma get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
+    yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
 When you flip DNS over to the services in the v1.1 namespace, you'll be able to

@@ -135,7 +135,7 @@ module orc8r {
 module orc8r-app {
   source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.2"
   # ...
-  orc8r_chart_version = "1.4.34"
+  orc8r_chart_version = "1.4.35"
   orc8r_tag           = "MAGMA_TAG"  # from build step
 }
 ```
@@ -144,8 +144,8 @@ Refresh Terraform state, then apply the new changes. The `apply` step should
 only contain `changes`, no `additions`
 
 ```bash
-$ terraform refresh
-$ terraform apply  # DOUBLE CHECK this output
+terraform refresh
+terraform apply  # DOUBLE CHECK this output
 ```
 
 ## Data Migrations
@@ -155,8 +155,8 @@ manual migrations to migrate the data.
 
 NOTE: running these scripts is the point of commitment. The v1.1 deployment
 will continue to function, and 95% of its functionality will be retained, but
-there will be nonzero data loss until you upgrade to v1.2 or fall back to a DB
-checkpoint.
+after the non-reversible schema change you will need to upgrade to v1.2 or fall
+back to a DB checkpoint.
 
 ```bash
 $ export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
@@ -213,5 +213,5 @@ Helm v2 may not be usable afterwards.
 Finally, make Helm 3 the default Helm executable
 
 ```bash
-$ brew unlink helm@2 && brew link helm  # for example
+brew unlink helm@2 && brew link helm  # for example
 ```

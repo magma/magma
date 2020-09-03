@@ -43,7 +43,7 @@ likely work as well.
 - `v1.2` [patch branch](https://github.com/magma/magma/tree/v1.2)
 - `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.2`
 Terraform module source
-- `1.4.34` Helm chart version
+- `1.4.35` Helm chart version
 
 ### v1.1.0
 Verified with Terraform version `0.12.29`. The latest Terraform version will

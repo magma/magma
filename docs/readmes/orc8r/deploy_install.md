@@ -33,10 +33,12 @@ your Orchestrator deployment. These certificates will be uploaded to AWS
 Secrets Manager and you can delete them locally afterwards.
 
 ```bash
-$ mkdir -p ~/secrets/certs
+mkdir -p ~/secrets/certs
+cd ~/secrets/certs
 ```
 
-You will need the following certificates and private keys
+You will need the following certificates and private keys placed in this
+directory
 
 1. The public SSL certificate for your Orchestrator domain,
 with `CN=*.yourdomain.com`. This can be an SSL certificate chain, but it must be
@@ -48,8 +50,7 @@ If you aren't worried about a browser warning, you can generate self-signed
 versions of these certs
 
 ```bash
-$ cd ~/secrets/certs
-$ MAGMA_ROOT/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
+MAGMA_ROOT/orc8r/cloud/deploy/scripts/self_sign_certs.sh yourdomain.com
 ```
 
 Alternatively, if you already have these certs, rename and move them as follows
@@ -63,8 +64,7 @@ Next, with the domain certs placed in the correct directory, generate the
 application certs
 
 ```bash
-$ cd ~/secrets/certs
-$ MAGMA_ROOT/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
+MAGMA_ROOT/orc8r/cloud/deploy/scripts/create_application_certs.sh yourdomain.com
 ```
 
 NOTE: `yourdomain.com` above should match the relevant Terraform variables in
@@ -76,7 +76,6 @@ Finally, create the `admin_operator.pfx` file, protected with a password of
 your choosing
 
 ```bash
-$ cd ~/secrets/certs
 $ openssl pkcs12 -export -inkey admin_operator.key.pem -in admin_operator.pem -out admin_operator.pfx
 
 Enter Export Password:
@@ -128,7 +127,7 @@ override the following parameters
 - `helm_repo` repo containing desired Helm charts
 - `helm_user`
 - `helm_pass`
-- `seed_certs_dir`: `"~/secrets/certs"` (local certs directory)
+- `seed_certs_dir`: local certs directory (e.g. `"~/secrets/certs"`)
 - `orc8r_tag`: tag used when you published your Orchestrator containers
 
 If you don't know what values to put for the `docker_*` and `helm_*` variables,
@@ -182,7 +181,7 @@ For example, with the [`realpath`](https://linux.die.net/man/1/realpath) utility
 installed, you can set the kubeconfig with
 
 ```bash
-$ export KUBECONFIG=$(realpath kubeconfig_orc8r)
+export KUBECONFIG=$(realpath kubeconfig_orc8r)
 ```
 
 ### Terraform Secrets
@@ -231,8 +230,8 @@ Create the Orchestrator admin user with the `admin_operator` certificate
 created earlier
 
 ```bash
-$ export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
-$ kubectl exec ${CNTLR_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
+export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+kubectl exec ${CNTLR_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
 
 If you want to verify the admin user was successfully created, inspect the
@@ -256,8 +255,8 @@ also need to add a new admin user with the updated `admin_operator` cert.
 Create an admin user for the `master` organization on the NMS
 
 ```bash
-$ export NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
-$ kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
+export NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
+kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
 ## DNS Resolution
