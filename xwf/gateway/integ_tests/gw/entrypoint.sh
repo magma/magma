@@ -4,6 +4,7 @@ echo "get controller ip"
 [[ -z "${CTRL_IP}" ]] && CtrlIP="$(getent hosts ofproxy | awk '{ print $1 }')" || CtrlIP="${CTRL_IP}"
 
 echo "Running in $CONNECTION_MODE"
+CONNECTION_MODE=${CONNECTION_MODE:=tcp}
 if [ "$CONNECTION_MODE" == "ssl" ]
 then
   CtrlIP="$(getent hosts tls-termination | awk '{ print $1 }')" || CtrlIP="${CTRL_IP}"
