@@ -39,9 +39,6 @@ type CarrierWifiAccessGatewayHealthCondition string
 type CarrierWifiAccessGatewayInitState string
 
 const (
-	Healthy   CarrierWifiAccessGatewayHealthCondition = "Healthy"
-	Unhealthy CarrierWifiAccessGatewayHealthCondition = "Unhealthy"
-
 	Initialized   HAClusterInitState = "Initialized"
 	Uninitialized HAClusterInitState = "Uninitialized"
 )
@@ -50,10 +47,18 @@ const (
 
 // HAClusterSpec defines the desired state of HACluster
 type HAClusterSpec struct {
-	// GatewayResourceNames denotes the list of all gateway resource names in the HACluster
+	// GatewayResourceNames denotes the list of all gateway resource names in
+	// the HACluster
 	// +kubebuilder:validation:MaxItems=2
 	// +kubebuilder:validation:MinItems=1
 	GatewayResourceNames []string `json:"gatewayResourceNames"`
+
+	// MaxConsecutiveActiveErrors denotes the maximum number of errors the
+	// HACluster's active can have fetching health status before a failover
+	// occurs
+	// +kubebuilder:validation:Minimum=1
+	// +kubebuilder:validation:Maximum=5
+	MaxConsecutiveActiveErrors int `json:"maxConsecutiveActiveErrors"`
 	// Important: Run "make gen" to regenerate code after modifying this file
 }
 
@@ -69,6 +74,14 @@ type HAClusterStatus struct {
 	// StandbyInitState denotes the initialization state of the standby in
 	// the HACluster
 	StandbyInitState HAClusterInitState `json:"standbyInitState"`
+
+	// ConsecutiveActiveErrors denotes the number of consecutive errors
+	// that have occurred when the active has been called for health status
+	ConsecutiveActiveErrors int `json:"consecutiveActiveErrors"`
+
+	// ConsecutiveStandbyErrors denotes the number of consecutive errors
+	// that have occurred when the standby has been called for health status
+	ConsecutiveStandbyErrors int `json:"consecutiveStandbyErrors"`
 	// Important: Run "make gen" to regenerate code after modifying this file
 }
 
