@@ -122,6 +122,14 @@ func TestPolicyStreamers(t *testing.T) {
 	// create the rules first otherwise base names can't associate to them
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
+			Type: lte.PolicyQoSProfileEntityType,
+			Key:  "p1",
+			Config: &models.PolicyQosProfile{
+				ClassID: 42,
+				ID:      "p1",
+			},
+		},
+		{
 			Type: lte.PolicyRuleEntityType,
 			Key:  "r1",
 			Config: &models.PolicyRuleConfig{
@@ -137,6 +145,9 @@ func TestPolicyStreamers(t *testing.T) {
 					},
 				},
 				MonitoringKey: "foo",
+			},
+			Associations: []storage.TypeAndKey{
+				{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
 			},
 		},
 		{
@@ -196,6 +207,7 @@ func TestPolicyStreamers(t *testing.T) {
 					Action: lte_protos.FlowDescription_PERMIT,
 				},
 			},
+			Qos: &lte_protos.FlowQos{Qci: 42},
 		},
 		{
 			Id:       "r2",
