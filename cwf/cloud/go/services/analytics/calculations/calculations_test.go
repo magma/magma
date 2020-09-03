@@ -358,3 +358,15 @@ func TestUserConsumptionCalculation(t *testing.T) {
 		t.Run(test.name, test.RunTest)
 	}
 }
+
+func TestCheckLabelsMatch(t *testing.T) {
+	expectedLabels := []string{"label1", "label2"}
+	assert.True(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label1": "val", "label2": "val"}))
+	assert.True(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val", "label1": "val"}))
+
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label1": "val"}))
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val"}))
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"newLabel": "val"}))
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{}))
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val", "label1": "val", "newLabel": "val"}))
+}
