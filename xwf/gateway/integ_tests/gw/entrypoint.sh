@@ -3,6 +3,13 @@
 echo "get controller ip"
 [[ -z "${CTRL_IP}" ]] && CtrlIP="$(getent hosts ofproxy | awk '{ print $1 }')" || CtrlIP="${CTRL_IP}"
 
+echo "Running in $CONNECTION_MODE"
+CONNECTION_MODE=${CONNECTION_MODE:=tcp}
+if [ "$CONNECTION_MODE" == "ssl" ]
+then
+  CtrlIP="$(getent hosts tls-termination | awk '{ print $1 }')" || CtrlIP="${CTRL_IP}"
+fi
+
 echo "start ovs-ctl"
 /usr/share/openvswitch/scripts/ovs-ctl start --system-id=random --no-ovs-vswitchd
 /usr/share/openvswitch/scripts/ovs-ctl stop
@@ -24,7 +31,8 @@ curl -X POST  https://graph.expresswifi.com/openflow/configxwfm?access_token=$AC
 sed -i '/^uplink_if/d'  /etc/xwfwhoami # TODO: remove this
 
 echo "run XWF ansible"
-ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP}" xwf/gateway/deploy/xwf.yml -i "localhost," --skip-tags "install,install_docker,no_ci" -c local -v
+ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP} connection_mode=$CONNECTION_MODE" \
+xwf/gateway/deploy/xwf.yml -i "localhost," --skip-tags "install,install_docker,no_ci" -c local -v
 
 echo "run DNS server"
 dnsmasq
