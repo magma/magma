@@ -328,6 +328,7 @@ message ChargingCredit {
   FinalAction final_action = 5;
   GrantedUnits granted_units = 6;
   RedirectServer redirect_server = 7;
+  repeated string restrict_rules = 8;
 }
 
 message CreditUsage {

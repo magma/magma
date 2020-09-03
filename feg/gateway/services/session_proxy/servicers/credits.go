@@ -313,6 +313,7 @@ func getSingleChargingCreditFromCCA(
 		IsFinal:        credits.IsFinal,
 		FinalAction:    protos.ChargingCredit_FinalAction(credits.FinalAction),
 		RedirectServer: credits.RedirectServer.ToProto(),
+		RestrictRules:  credits.RestrictRules,
 	}
 }
 

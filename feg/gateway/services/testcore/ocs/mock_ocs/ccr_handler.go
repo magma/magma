@@ -147,6 +147,7 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 					mscc.RatingGroup,
 					srv.ocsConfig.FinalUnitAction,
 					srv.ocsConfig.RedirectAddress,
+					srv.ocsConfig.RestrictRules,
 				))
 		}
 		sendAnswer(ccr, c, m, diam.Success, creditAnswers...)
@@ -283,10 +284,23 @@ func getMin(first, second uint64) uint64 {
 	return first
 }
 
-func toFinalUnitActionAVP(finalUnitAction protos.FinalUnitAction, redirectAddress string) []*diam.AVP {
+func toFinalUnitActionAVP(finalUnitAction protos.FinalUnitAction, redirectAddress string, restrict_rules []string) []*diam.AVP {
 	fuaAVPs := []*diam.AVP{
 		diam.NewAVP(avp.FinalUnitAction, avp.Mbit, 0, datatype.Enumerated(finalUnitAction)),
 	}
+
+	if finalUnitAction == protos.FinalUnitAction_Restrict {
+		if restrict_rules == nil || len(restrict_rules) == 0 {
+			glog.Errorf("RestrictRules must be provided when final unit action is set to restrict\n")
+			return fuaAVPs
+		}
+		for _, rule := range restrict_rules {
+			fuaAVPs = append(fuaAVPs,
+				diam.NewAVP(avp.FilterID, avp.Mbit, 0, datatype.UTF8String(rule)),
+			)
+		}
+	}
+
 	if finalUnitAction == protos.FinalUnitAction_Redirect {
 		fuaAVPs = append(
 			fuaAVPs,
@@ -301,7 +315,7 @@ func toFinalUnitActionAVP(finalUnitAction protos.FinalUnitAction, redirectAddres
 	return fuaAVPs
 }
 
-func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *protos.Octets, isFinalUnit bool, ratingGroup uint32, fuAction protos.FinalUnitAction, redirectAddr string) *diam.AVP {
+func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *protos.Octets, isFinalUnit bool, ratingGroup uint32, fuAction protos.FinalUnitAction, redirectAddr string, restrict_rules []string) *diam.AVP {
 	creditGroup := &diam.GroupedAVP{
 		AVP: []*diam.AVP{
 			diam.NewAVP(avp.GrantedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{
@@ -314,7 +328,7 @@ func toGrantedUnitsAVP(resultCode uint32, validityTime uint32, quotaGrant *proto
 	}
 	if isFinalUnit {
 		creditGroup.AddAVP(
-			diam.NewAVP(avp.FinalUnitIndication, avp.Mbit, 0, &diam.GroupedAVP{AVP: toFinalUnitActionAVP(fuAction, redirectAddr)}),
+			diam.NewAVP(avp.FinalUnitIndication, avp.Mbit, 0, &diam.GroupedAVP{AVP: toFinalUnitActionAVP(fuAction, redirectAddr, restrict_rules)}),
 		)
 	}
 	return diam.NewAVP(avp.MultipleServicesCreditControl, avp.Mbit, 0, creditGroup)

@@ -78,7 +78,8 @@ func (answer GyAnswer) toAVPs() ([]*diam.AVP, uint32) {
 				grant.GetIsFinalCredit(),
 				grant.GetRatingGroup(),
 				grant.GetFinalUnitAction(),
-				grant.GetRedirectServer().GetRedirectServerAddress()))
+				grant.GetRedirectServer().GetRedirectServerAddress(),
+				grant.GetRestrictRules()))
 	}
 	return avps, answer.GetResultCode()
 }

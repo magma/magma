@@ -131,6 +131,7 @@ func assertCCAIsEqualToExpectedAnswer(t *testing.T, actual *gy.CreditControlAnsw
 		if credit.IsFinalCredit {
 			assert.Equal(t, int(credit.GetFinalUnitAction()), int(actualCredit.FinalAction))
 			assert.Equal(t, credit.GetRedirectServer().GetRedirectServerAddress(), actualCredit.RedirectServer.RedirectServerAddress)
+			assert.Equal(t, credit.GetRestrictRules(), actualCredit.RestrictRules)
 		}
 		expectedOctet := credit.GetGrantedServiceUnit()
 		actualOctet := actualCredit.GrantedUnits

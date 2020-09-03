@@ -89,6 +89,7 @@ type ReceivedCredits struct {
 	IsFinal           bool
 	FinalAction       FinalUnitAction // unused if IsFinal is false
 	RedirectServer    RedirectServer
+	RestrictRules     []string
 }
 
 type CreditControlAnswer struct {
@@ -102,6 +103,7 @@ type CreditControlAnswer struct {
 type FinalUnitIndication struct {
 	Action         FinalUnitAction `avp:"Final-Unit-Action"`
 	RedirectServer RedirectServer  `avp:"Redirect-Server"`
+	RestrictRules  []string        `avp:"Filter-Id"`
 }
 
 type RedirectServer struct {

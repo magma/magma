@@ -447,6 +447,9 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 			if mscc.FinalUnitIndication.Action == Redirect {
 				receivedCredits.RedirectServer = mscc.FinalUnitIndication.RedirectServer
 			}
+			if mscc.FinalUnitIndication.Action == RestrictAccess {
+				receivedCredits.RestrictRules = mscc.FinalUnitIndication.RestrictRules
+			}
 		}
 		creditList = append(creditList, receivedCredits)
 	}

@@ -59,6 +59,7 @@ type OCSConfig struct {
 	ServerConfig    *diameter.DiameterServerConfig
 	GyInitMethod    gy.InitMethod
 	UseMockDriver   bool
+	RestrictRules   []string
 	RedirectAddress string
 	FinalUnitAction protos.FinalUnitAction
 }
@@ -176,6 +177,7 @@ func (srv *OCSDiamServer) SetOCSSettings(
 	config.ValidityTime = ocsConfig.ValidityTime
 	config.UseMockDriver = ocsConfig.UseMockDriver
 	config.RedirectAddress = ocsConfig.RedirectAddress
+	config.RestrictRules = ocsConfig.RestrictRules
 	config.FinalUnitAction = ocsConfig.FinalUnitAction
 	return &orcprotos.Void{}, nil
 }
