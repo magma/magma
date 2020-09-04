@@ -25,7 +25,7 @@ const msisdnTemplate = variableTemplate({
   includeAll: false,
 });
 
-const apnTemplate = variableTemplate({
+export const apnTemplate = variableTemplate({
   labelName: 'apn',
   query: `label_values({networkID=~"$networkID",apn=~".+"},apn)`,
   regex: `/.+/`,
