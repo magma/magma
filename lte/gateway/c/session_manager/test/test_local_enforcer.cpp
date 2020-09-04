@@ -1416,8 +1416,12 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   // Check updates for disabling session level monitoring key
   EXPECT_TRUE(update_2["IMSI1"]["1234"].is_session_level_key_updated);
   EXPECT_EQ(update_2["IMSI1"]["1234"].updated_session_level_key, "2");
-  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 2048},
-      {"2", 1024},{"3", 1024}});
+  // note that we have gone over allowed, so we will reset ALLOWED_TOTAL
+  // 3024 because used 2000 before (out of the initial 1024) plues we added 1024
+  // 4000 because session level has used 2000 + 2000 from mkey 1 and 3
+  // 2000 because mkey 3 have used 2000 but we haven't added any extra
+  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 3024},
+      {"2", 4000},{"3", 2000}});
 
 
   // Monitor credit usage #2

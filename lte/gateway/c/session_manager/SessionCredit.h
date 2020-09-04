@@ -157,6 +157,8 @@ class SessionCredit {
  private:
   void log_quota_and_usage() const;
 
+  std::string get_percentage_usage(uint64_t allowed, uint64_t floor, uint64_t used) const;
+
   bool is_received_grented_unit_zero(const CreditUnit& cu) const;
 
   SessionCredit::Usage get_unreported_usage() const;
@@ -174,7 +176,11 @@ class SessionCredit {
 
   void apply_reporting_limits(SessionCredit::Usage& usage);
 
-  uint64_t calculate_delta_allowed_floor(CreditUnit cu, Bucket allowed, Bucket floor);
+  uint64_t calculate_delta_allowed_floor(CreditUnit cu,
+                           Bucket allowed, Bucket floor, uint64_t volume_used);
+
+  uint64_t calculate_delta_allowed(uint64_t gsu_volume,
+                           Bucket allowed, uint64_t volume_used);
 };
 
 }  // namespace magma
