@@ -103,7 +103,7 @@ resource "kubernetes_secret" "orc8r_configs" {
       "prometheusPushAddresses" : [
         format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
       ],
-    }
+    })
 
     "elastic.yml" = yamlencode({
       "elasticHost" : var.elasticsearch_endpoint == null ? "elastic" : var.elasticsearch_endpoint
