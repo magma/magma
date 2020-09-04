@@ -76,6 +76,8 @@ func initSubscriber(t *testing.T, hwID string) {
 
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: hwID})
 	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"})
+	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
