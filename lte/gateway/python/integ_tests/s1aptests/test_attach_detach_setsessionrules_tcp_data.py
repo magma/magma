@@ -78,10 +78,23 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                 "direction": "DL",  # Direction
             }
 
+            ulFlow2 = {
+                "ip_proto": "UDP",  # Protocol Type
+                "direction": "UL",  # Direction
+            }
+
+            # DL Flow description #1
+            dlFlow2 = {
+                "ip_proto": "UDP",  # Protocol Type
+                "direction": "DL",  # Direction
+            }
+
             # Flow list to be configured
             flow_list = [
                 ulFlow1,
                 dlFlow1,
+                ulFlow2,
+                dlFlow2,
             ]
 
             # QoS
@@ -97,7 +110,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                 "pre_vul": 1,  # pre-emption vulnerability
             }
 
-            policy_id = "tcp"
+            policy_id = "tcp_udp"
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
@@ -235,16 +248,12 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-            with self._s1ap_wrapper.configUplinkTest(req, duration=20) as test:
+            with self._s1ap_wrapper.configUplinkTest(req, duration=60, is_udp=True) as test:
                 test.verify()
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-
-
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
-            with self._s1ap_wrapper.configDownlinkTest(req, duration=20) as test:
+            with self._s1ap_wrapper.configDownlinkTest(req, duration=60, is_udp=True) as test:
                 test.verify()
 
             print("Sleeping for 5 seconds")
