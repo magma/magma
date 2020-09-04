@@ -1198,6 +1198,16 @@ class SpgwUtil(object):
         )
         self._stub.DeleteBearer(req)
 
+    def delete_bearers(self, imsi, lbi, ebi):
+        """
+        Sends a DeleteBearer Request to SPGW service
+        """
+        print("Sending DeleteBearer request to spgw service")
+        req = DeleteBearerRequest(
+            sid=SIDUtils.to_pb(imsi), link_bearer_id=lbi, eps_bearer_ids=ebi
+        )
+        self._stub.DeleteBearer(req)
+
 
 class SessionManagerUtil(object):
     """
