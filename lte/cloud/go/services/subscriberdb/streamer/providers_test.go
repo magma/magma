@@ -22,6 +22,7 @@ import (
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
+	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
@@ -45,7 +46,9 @@ func TestSubscriberdbStreamer(t *testing.T) {
 
 	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
 	assert.NoError(t, err)
-	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1", PhysicalID: "hw1"})
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	assert.NoError(t, err)
+	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"})
 	assert.NoError(t, err)
 
 	// 1 sub without a profile on the backend (should fill as "default"), the
