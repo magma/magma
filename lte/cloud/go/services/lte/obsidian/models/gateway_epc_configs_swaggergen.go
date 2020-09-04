@@ -40,8 +40,7 @@ type GatewayEpcConfigs struct {
 	// IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
 	// Max Length: 49
 	// Min Length: 5
-	// Format: ipv4
-	SgiManagementIfaceStaticIP strfmt.IPv4 `json:"sgi_management_iface_static_ip,omitempty"`
+	SgiManagementIfaceStaticIP string `json:"sgi_management_iface_static_ip,omitempty"`
 
 	// VLAN ID for management interface traffic on the AGW
 	// Max Length: 4
@@ -154,10 +153,6 @@ func (m *GatewayEpcConfigs) validateSgiManagementIfaceStaticIP(formats strfmt.Re
 	}
 
 	if err := validate.MaxLength("sgi_management_iface_static_ip", "body", string(m.SgiManagementIfaceStaticIP), 49); err != nil {
-		return err
-	}
-
-	if err := validate.FormatOf("sgi_management_iface_static_ip", "body", "ipv4", m.SgiManagementIfaceStaticIP.String(), formats); err != nil {
 		return err
 	}
 
