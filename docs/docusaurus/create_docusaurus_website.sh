@@ -17,4 +17,5 @@ docker build -f docusaurus/Dockerfile -t docusaurus-doc .
 docker stop docs_container || true
 docker run --rm -p 3000:3000 -d --name docs_container docusaurus-doc
 
+echo ""
 echo "Navigate to http://127.0.0.1:3000/magma/ to see the docs."

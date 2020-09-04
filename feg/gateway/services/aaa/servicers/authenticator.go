@@ -74,7 +74,7 @@ func NewEapAuthenticator(
 func (srv *eapAuth) HandleIdentity(ctx context.Context, in *protos.EapIdentity) (*protos.Eap, error) {
 	resp, err := client.HandleIdentityResponse(uint8(in.GetMethod()), &protos.Eap{Payload: in.Payload, Ctx: in.Ctx})
 	if err != nil && resp != nil && len(resp.GetPayload()) > 0 {
-		errMsg := fmt.Sprintf("EAP HandleIdentity Error: %v", err)
+		errMsg := fmt.Sprintf("EAP HandleIdentity Error for Identity '%s', APN '%s': %v", resp.GetCtx().GetIdentity(), resp.GetCtx().GetApn(), err)
 		glog.Error(errMsg)
 		if srv.config.GetEventLoggingEnabled() {
 			events.LogAuthenticationFailedEvent(in.GetCtx(), errMsg)
@@ -106,7 +106,7 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 
 	if err != nil && len(resp.GetPayload()) > 0 {
 		// log error, but do not return it to Radius. EAP will carry its own error
-		errMsg := fmt.Sprintf("EAP Handle Error: %v", err)
+		errMsg := fmt.Sprintf("EAP Handle Error for Identity '%s', APN '%s': %v", resp.GetCtx().GetIdentity(), resp.GetCtx().GetApn(), err)
 		if srv.config.GetEventLoggingEnabled() {
 			events.LogAuthenticationFailedEvent(resp.GetCtx(), errMsg)
 		}

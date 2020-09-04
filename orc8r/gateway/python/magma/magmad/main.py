@@ -37,6 +37,7 @@ from .service_manager import ServiceManager
 from .service_poller import ServicePoller
 from .state_reporter import StateReporter
 from .sync_rpc_client import SyncRPCClient
+from .service_health_watchdog import ServiceHealthWatchdog
 
 
 def main():
@@ -173,6 +174,14 @@ def main():
         grpc_client_manager=grpc_client_manager,
     )
 
+    # Initialize ServiceHealthWatchdog
+    service_health_watchdog = ServiceHealthWatchdog(
+        config=service.config,
+        loop=service.loop,
+        service_poller=service_poller,
+        service_manager=service_manager
+    )
+
     # Start _bootstrap_manager
     bootstrap_manager.start_bootstrap_manager()
 
@@ -181,6 +190,9 @@ def main():
 
     # Start state reporting loop
     state_reporter.start()
+
+    # Start service timeout health check loop
+    service_health_watchdog.start()
 
     # Start upgrade manager loop
     if service.config.get('enable_upgrade_manager', False):

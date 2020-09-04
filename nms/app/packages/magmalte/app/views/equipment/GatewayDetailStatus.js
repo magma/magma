@@ -60,13 +60,17 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
     !!gwInfo.magmad.dynamic_services &&
     gwInfo.magmad.dynamic_services.includes('eventd');
 
+  const isHealthy = isGatewayHealthy(gwInfo);
   const data: DataRows[] = [
     [
       {
         category: 'Health',
-        value: isGatewayHealthy(gwInfo) ? 'Good' : 'Bad',
+        value: isHealthy ? 'Good' : 'Bad',
         statusCircle: true,
         status: isGatewayHealthy(gwInfo),
+        tooltip: isHealthy
+          ? 'Gateway checked in recently'
+          : "Gateway hasn't checked in within last 5 minutes",
       },
       {
         category: 'Last Check in',
@@ -93,6 +97,7 @@ export default function GatewayDetailStatus({gwInfo}: {gwInfo: lte_gateway}) {
         unit:
           cpuPercent?.data?.result?.[0]?.values?.[0]?.[1] ?? false ? '%' : '',
         statusCircle: false,
+        tooltip: 'Current Gateway CPU %',
       },
     ],
   ];

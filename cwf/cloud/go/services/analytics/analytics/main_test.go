@@ -18,15 +18,14 @@ import (
 	"strconv"
 	"testing"
 
-	"magma/orc8r/lib/go/metrics"
-
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGetXAPCalculations(t *testing.T) {
-	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName})
+	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, xapLabels)
 	calcs := getXAPCalculations([]int{1, 7, 30}, xapGauge, "metricName")
+	assert.Len(t, calcs, 3)
 	for _, calc := range calcs {
 		xapCalc := calc.(*calculations.XAPCalculation)
 		assert.Equal(t, strconv.Itoa(xapCalc.Days), xapCalc.Labels[calculations.DaysLabel])
@@ -34,8 +33,9 @@ func TestGetXAPCalculations(t *testing.T) {
 }
 
 func TestGetUserThroughputCalculations(t *testing.T) {
-	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, "hours"})
+	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, userThroughputLabels)
 	calcs := getUserThroughputCalculations([]int{1, 7, 30}, userThroughputGauge, "metricName")
+	assert.Len(t, calcs, 6)
 	for _, calc := range calcs {
 		c := calc.(*calculations.UserThroughputCalculation)
 		assert.Equal(t, strconv.Itoa(c.Days), c.Labels[calculations.DaysLabel])
@@ -43,8 +43,9 @@ func TestGetUserThroughputCalculations(t *testing.T) {
 }
 
 func TestGetUserConsumptionCalculations(t *testing.T) {
-	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, "hours"})
+	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, userConsumptionLabels)
 	calcs := getUserConsumptionCalculations([]int{1, 7, 30}, userConsumptionGauge, "metricName")
+	assert.Len(t, calcs, 6)
 	for _, calc := range calcs {
 		c := calc.(*calculations.UserConsumptionCalculation)
 		assert.Equal(t, strconv.Itoa(c.Days), c.Labels[calculations.DaysLabel])
@@ -52,8 +53,9 @@ func TestGetUserConsumptionCalculations(t *testing.T) {
 }
 
 func TestGet1hourUserConsumptionCalculations(t *testing.T) {
-	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
+	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, hourlyUserConsumptionLabels)
 	calcs := get1hourConsumptionCalculation(userConsumptionGauge, "metricName")
+	assert.Len(t, calcs, 2)
 	for _, calc := range calcs {
 		c := calc.(*calculations.UserConsumptionCalculation)
 		assert.Equal(t, strconv.Itoa(c.Hours), c.Labels["hours"])
@@ -61,10 +63,21 @@ func TestGet1hourUserConsumptionCalculations(t *testing.T) {
 }
 
 func TestGetAPThroughputCalculations(t *testing.T) {
-	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, calculations.APNLabel})
+	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, apThroughputLabels)
 	calcs := getAPThroughputCalculations([]int{1, 7, 30}, apThroughputGauge, "metricName")
+	assert.Len(t, calcs, 6)
 	for _, calc := range calcs {
 		c := calc.(*calculations.APThroughputCalculation)
+		assert.Equal(t, strconv.Itoa(c.Days), c.Labels[calculations.DaysLabel])
+	}
+}
+
+func TestGetAuthenticationCalculations(t *testing.T) {
+	authenticationsGague := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: authenticationsMetricName}, authenticationsLabels)
+	calcs := getAuthenticationCalculations(daysToCalculate, authenticationsGague, "metricName")
+	assert.Len(t, calcs, 3)
+	for _, calc := range calcs {
+		c := calc.(*calculations.AuthenticationsCalculation)
 		assert.Equal(t, strconv.Itoa(c.Days), c.Labels[calculations.DaysLabel])
 	}
 }

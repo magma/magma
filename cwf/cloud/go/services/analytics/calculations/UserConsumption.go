@@ -15,6 +15,7 @@ package calculations
 
 import (
 	"fmt"
+	"github.com/golang/glog"
 	"magma/cwf/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
 )
@@ -26,6 +27,7 @@ type UserConsumptionCalculation struct {
 }
 
 func (x *UserConsumptionCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]Result, error) {
+	glog.Infof("Calculating User Consumption. Days: %d, Hours: %d, Direction: %s", x.Days, x.Hours, x.Direction)
 
 	var consumptionQuery string
 	// Measure consumption over x.Hours if exists
@@ -42,8 +44,7 @@ func (x *UserConsumptionCalculation) Calculate(prometheusClient query_api.Promet
 
 	baseLabels := combineLabels(x.Labels, map[string]string{DirectionLabel: string(x.Direction)})
 	results := makeVectorResults(vec, baseLabels, x.Name)
-	for _, res := range results {
-		x.RegisteredGauge.With(res.labels).Set(res.value)
-	}
+	registerResults(x.CalculationParams, results)
+
 	return results, nil
 }

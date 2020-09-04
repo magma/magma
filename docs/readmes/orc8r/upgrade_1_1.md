@@ -1,9 +1,12 @@
 ---
-id: deploy_upgrade
-title: Upgrading from 1.0
+id: upgrade_1_1
+title: Upgrade to v1.1
 hide_title: true
 ---
-# Upgrading from v1.0
+
+# Upgrade to v1.1
+
+This guide covers upgrading Orchestrator deployments from v1.0 to v1.1.
 
 First, read through [Installing Orchestrator](deploy_install.md) to familiarize
 yourself with the installation steps. If you want to perform an online upgrade
@@ -13,7 +16,7 @@ cluster. You can flip your DNS records to the new application whenever you feel
 comfortable to complete the migration.
 
 This guide will assume that you've already set up all the prerequisites,
-including developer tooling, a Helm chart repository, and a Docker registry.
+including developer tooling, a Helm chart repository, and a container registry.
 
 ## Create a New Root Module
 
@@ -72,7 +75,7 @@ YOURDOMAIN.COM with the domain you've reserved for Orchestrator):
 cd MYSECRETS/certs
 openssl genrsa -out fluentd.key 2048
 openssl req -x509 -new -nodes -key fluentd.key -sha256 -days 3650 \
-      -out fluentd.pem -subj "/C=US/CN=fluentd.YOURDOMAIN.COM"
+    -out fluentd.pem -subj "/C=US/CN=fluentd.YOURDOMAIN.COM"
 ```
 
 ## Define Terraform Variables
@@ -154,8 +157,8 @@ and will not affect the v1.0 deployment.
 
 ```bash
 # Replace orc8r with your v1.1 k8s namespace if you changed the name
-export CNTLR_POD=$(kubectl -n orc8r get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
-kubectl exec -it ${CNTLR_POD} bash
+$ export CNTLR_POD=$(kubectl -n orc8r get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+$ kubectl exec -it ${CNTLR_POD} bash
 
 (pod)$ cd /var/opt/magma/bin
 (pod)$ ./m005_certifier_to_blobstore -verify
@@ -191,8 +194,8 @@ other tenants:
 
 ```bash
 kubectl exec -it -n magma \
-  $(kubectl -n magma get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
-  yarn setAdminPassword master <admin user email> <admin user password>
+    $(kubectl -n magma get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}') -- \
+    yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
 When you flip DNS over to the services in the v1.1 namespace, you'll be able to

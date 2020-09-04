@@ -73,6 +73,9 @@ static void _handle_failed_create_bearer_response(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
     gtpv2c_cause_value_t cause, imsi64_t imsi64, uint8_t eps_bearer_id,
     teid_t teid);
+static void _generate_dl_flow(
+    packet_filter_contents_t* packet_filter, in_addr_t s_addr,
+    struct ipv4flow_dl* dlflow);
 
 #if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
@@ -526,72 +529,13 @@ static void sgw_add_gtp_tunnel(
     } else {
       for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
            ++itrn) {
-        packet_filter_contents_t packet_filter =
-            eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
-                .packetfiltercontents;
-
         // Prepare DL flow rule
-        // The TFTs are DL TFTs: UE is the destination/local,
-        // PDN end point is the source/remote.
         struct ipv4flow_dl dlflow;
+        _generate_dl_flow(
+            &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
+                .packetfiltercontents),
+            ue.s_addr, &dlflow);
 
-        // Adding UE to the rule is safe
-        dlflow.dst_ip.s_addr = ue.s_addr;
-
-        // At least we can match UE IPv4 addr;
-        // when IPv6 is supported, we need to revisit this.
-        dlflow.set_params = DST_IPV4;
-
-        // Process remote address if present
-        if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG &
-             packet_filter.flags) ==
-            TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
-          struct in_addr remoteaddr = {.s_addr = 0};
-          remoteaddr.s_addr = (packet_filter.ipv4remoteaddr[0].addr << 24) +
-                              (packet_filter.ipv4remoteaddr[1].addr << 16) +
-                              (packet_filter.ipv4remoteaddr[2].addr << 8) +
-                              packet_filter.ipv4remoteaddr[3].addr;
-          dlflow.src_ip.s_addr = ntohl(remoteaddr.s_addr);
-          dlflow.set_params |= SRC_IPV4;
-        }
-
-        // Specify the next header
-        dlflow.ip_proto = packet_filter.protocolidentifier_nextheader;
-        // Match on proto if it is explicity specified to be
-        // other than the dummy IP. When PCRF RAR message does not
-        // define the protocol type, this field defaults to value 0.
-        // OVS would still apply exact match on 0  if parameter is set,
-        // although incoming packets will have a proper protocol number
-        // in its header leading to no match.
-        if (dlflow.ip_proto != IPPROTO_IP) {
-          dlflow.set_params |= IP_PROTO;
-        }
-
-        // Process remote port if present
-        if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG &
-             packet_filter.flags) ==
-            TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG) {
-          if (dlflow.ip_proto == IPPROTO_TCP) {
-            dlflow.set_params |= TCP_SRC_PORT;
-            dlflow.tcp_src_port = packet_filter.singleremoteport;
-          } else if (dlflow.ip_proto == IPPROTO_UDP) {
-            dlflow.set_params |= UDP_SRC_PORT;
-            dlflow.udp_src_port = packet_filter.singleremoteport;
-          }
-        }
-
-        // Process UE port if present
-        if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG &
-             packet_filter.flags) ==
-            TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
-          if (dlflow.ip_proto == IPPROTO_TCP) {
-            dlflow.set_params |= TCP_DST_PORT;
-            dlflow.tcp_dst_port = packet_filter.singleremoteport;
-          } else if (dlflow.ip_proto == IPPROTO_UDP) {
-            dlflow.set_params |= UDP_DST_PORT;
-            dlflow.udp_dst_port = packet_filter.singleremoteport;
-          }
-        }
         rv = gtpv1u_add_tunnel(
             ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u, imsi, &dlflow,
@@ -1627,72 +1571,14 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
               eps_bearer_ctxt_entry_p->tft.numberofpacketfilters);
           for (int i = 0;
                i < eps_bearer_ctxt_entry_p->tft.numberofpacketfilters; ++i) {
-            packet_filter_contents_t packet_filter =
-                eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
-                    .packetfiltercontents;
-
             // Prepare DL flow rule
-            // The TFTs are DL TFTs: UE is the destination/local,
-            // PDN end point is the source/remote.
             struct ipv4flow_dl dlflow;
+            _generate_dl_flow(
+                &(eps_bearer_ctxt_entry_p->tft.packetfilterlist
+                      .createnewtft[i]
+                      .packetfiltercontents),
+                ue.s_addr, &dlflow);
 
-            // Adding UE to the rule is safe
-            dlflow.dst_ip.s_addr = ue.s_addr;
-
-            // At least we can match UE IPv4 addr;
-            // when IPv6 is supported, we need to revisit this.
-            dlflow.set_params = DST_IPV4;
-
-            // Process remote address if present
-            if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG &
-                 packet_filter.flags) ==
-                TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
-              struct in_addr remoteaddr = {.s_addr = 0};
-              remoteaddr.s_addr = (packet_filter.ipv4remoteaddr[0].addr << 24) +
-                                  (packet_filter.ipv4remoteaddr[1].addr << 16) +
-                                  (packet_filter.ipv4remoteaddr[2].addr << 8) +
-                                  packet_filter.ipv4remoteaddr[3].addr;
-              dlflow.src_ip.s_addr = ntohl(remoteaddr.s_addr);
-              dlflow.set_params |= SRC_IPV4;
-            }
-
-            // Specify the next header
-            dlflow.ip_proto = packet_filter.protocolidentifier_nextheader;
-            // Match on proto if it is explicity specified to be
-            // other than the dummy IP. When PCRF RAR message does not
-            // define the protocol type, this field defaults to value 0.
-            // OVS would still apply exact match on 0  if parameter is set,
-            // although incoming packets will have a proper protocol number
-            // in its header leading to no match.
-            if (dlflow.ip_proto != IPPROTO_IP) {
-              dlflow.set_params |= IP_PROTO;
-            }
-
-            // Process remote port if present
-            if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG &
-                 packet_filter.flags) ==
-                TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG) {
-              if (dlflow.ip_proto == IPPROTO_TCP) {
-                dlflow.set_params |= TCP_SRC_PORT;
-                dlflow.tcp_src_port = packet_filter.singleremoteport;
-              } else if (dlflow.ip_proto == IPPROTO_UDP) {
-                dlflow.set_params |= UDP_SRC_PORT;
-                dlflow.udp_src_port = packet_filter.singleremoteport;
-              }
-            }
-
-            // Process UE port if present
-            if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG &
-                 packet_filter.flags) ==
-                TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
-              if (dlflow.ip_proto == IPPROTO_TCP) {
-                dlflow.set_params |= TCP_DST_PORT;
-                dlflow.tcp_dst_port = packet_filter.singleremoteport;
-              } else if (dlflow.ip_proto == IPPROTO_UDP) {
-                dlflow.set_params |= UDP_DST_PORT;
-                dlflow.udp_dst_port = packet_filter.singleremoteport;
-              }
-            }
             rc = gtpv1u_add_tunnel(
                 ue, vlan, enb, eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_entry_p->enb_teid_S1u, imsi, &dlflow,
@@ -1850,17 +1736,27 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
         OAILOG_INFO_UE(
             LOG_SPGW_APP, imsi64, "Removed bearer context for (ebi = %d)\n",
             ebi);
-        rc = gtp_tunnel_ops->del_tunnel(
-            eps_bearer_ctxt_p->paa.ipv4_address,
-            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
-            eps_bearer_ctxt_p->enb_teid_S1u, NULL);
-        if (rc < 0) {
-          OAILOG_ERROR_UE(
-              LOG_SPGW_APP, imsi64,
-              "ERROR in deleting TUNNEL " TEID_FMT " (eNB) <-> (SGW) " TEID_FMT
-              "\n",
-              eps_bearer_ctxt_p->enb_teid_S1u,
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+        // Get all the DL flow rules for this dedicated bearer
+        for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
+             ++itrn) {
+          // Prepare DL flow rule from stored packet filters
+          struct ipv4flow_dl dlflow;
+          _generate_dl_flow(
+              &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
+                  .packetfiltercontents),
+              eps_bearer_ctxt_p->paa.ipv4_address.s_addr, &dlflow);
+          rc = gtp_tunnel_ops->del_tunnel(
+              eps_bearer_ctxt_p->paa.ipv4_address,
+              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+              eps_bearer_ctxt_p->enb_teid_S1u, &dlflow);
+          if (rc < 0) {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "ERROR in deleting TUNNEL " TEID_FMT
+                " (eNB) <-> (SGW) " TEID_FMT "\n",
+                eps_bearer_ctxt_p->enb_teid_S1u,
+                eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+          }
         }
 
         sgw_free_eps_bearer_context(
@@ -1950,4 +1846,68 @@ static void _handle_failed_create_bearer_response(
         "Failed to send ACTIVATE_DEDICATED_BEARER_RSP to PCRF\n");
   }
   OAILOG_FUNC_OUT(LOG_SPGW_APP);
+}
+
+// Fills up downlink (DL) flow match rule from packet filters of eps bearer
+static void _generate_dl_flow(
+    packet_filter_contents_t* packet_filter, in_addr_t s_addr,
+    struct ipv4flow_dl* dlflow) {
+  // Prepare DL flow rule
+  // The TFTs are DL TFTs: UE is the destination/local,
+  // PDN end point is the source/remote.
+
+  // Adding UE to the rule is safe
+  dlflow->dst_ip.s_addr = s_addr;
+
+  // At least we can match UE IPv4 addr;
+  // when IPv6 is supported, we need to revisit this.
+  dlflow->set_params = DST_IPV4;
+
+  // Process remote address if present
+  if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
+      TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
+    struct in_addr remoteaddr = {.s_addr = 0};
+    remoteaddr.s_addr         = (packet_filter->ipv4remoteaddr[0].addr << 24) +
+                        (packet_filter->ipv4remoteaddr[1].addr << 16) +
+                        (packet_filter->ipv4remoteaddr[2].addr << 8) +
+                        packet_filter->ipv4remoteaddr[3].addr;
+    dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
+    dlflow->set_params |= SRC_IPV4;
+  }
+
+  // Specify the next header
+  dlflow->ip_proto = packet_filter->protocolidentifier_nextheader;
+  // Match on proto if it is explicity specified to be
+  // other than the dummy IP. When PCRF RAR message does not
+  // define the protocol type, this field defaults to value 0.
+  // OVS would still apply exact match on 0  if parameter is set,
+  // although incoming packets will have a proper protocol number
+  // in its header leading to no match.
+  if (dlflow->ip_proto != IPPROTO_IP) {
+    dlflow->set_params |= IP_PROTO;
+  }
+
+  // Process remote port if present
+  if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG & packet_filter->flags) ==
+      TRAFFIC_FLOW_TEMPLATE_SINGLE_REMOTE_PORT_FLAG) {
+    if (dlflow->ip_proto == IPPROTO_TCP) {
+      dlflow->set_params |= TCP_SRC_PORT;
+      dlflow->tcp_src_port = packet_filter->singleremoteport;
+    } else if (dlflow->ip_proto == IPPROTO_UDP) {
+      dlflow->set_params |= UDP_SRC_PORT;
+      dlflow->udp_src_port = packet_filter->singleremoteport;
+    }
+  }
+
+  // Process UE port if present
+  if ((TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG & packet_filter->flags) ==
+      TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
+    if (dlflow->ip_proto == IPPROTO_TCP) {
+      dlflow->set_params |= TCP_DST_PORT;
+      dlflow->tcp_dst_port = packet_filter->singleremoteport;
+    } else if (dlflow->ip_proto == IPPROTO_UDP) {
+      dlflow->set_params |= UDP_DST_PORT;
+      dlflow->udp_dst_port = packet_filter->singleremoteport;
+    }
+  }
 }

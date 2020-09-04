@@ -74,4 +74,6 @@ fi
 docker tag "${IMAGE_ID}" "${REGISTRY}/${IMAGE}:${VERSION}"
 docker push "${REGISTRY}/${IMAGE}:${VERSION}"
 
+echo ""
 echo "Image pushed successfully"
+echo ""

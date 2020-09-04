@@ -183,7 +183,7 @@ class UplinkBridgeController(MagmaController):
         if self.config.enable_nat is True or \
                 self.config.uplink_eth_port_name is None:
             return
-        self._cleanup_if(self.config.uplink_eth_port_name)
+        self._cleanup_if(self.config.uplink_eth_port_name, True)
         # Add eth interface to OVS.
         ovs_add_port = "ovs-vsctl --may-exist add-port %s %s" \
                        % (self.config.uplink_bridge, self.config.uplink_eth_port_name)
@@ -213,15 +213,15 @@ class UplinkBridgeController(MagmaController):
             raise Exception('Error: %s failed with: %s' % (vlan_cmd, ex))
 
     def _del_eth_port(self):
-        self._cleanup_if(self.config.uplink_bridge)
+        self._cleanup_if(self.config.uplink_bridge, True)
 
         ovs_rem_port = "ovs-vsctl --if-exists del-port %s %s" \
                        % (self.config.uplink_bridge, self.config.uplink_eth_port_name)
         try:
             subprocess.Popen(ovs_rem_port, shell=True).wait()
+            self.logger.info("Remove ovs uplink port: %s", ovs_rem_port)
         except subprocess.CalledProcessError as ex:
             self.logger.debug("ignore port del error: %s ", ex)
-        self.logger.info("Remove ovs uplink port: %s", ovs_rem_port)
 
         self._set_sgi_ip_addr(self.config.uplink_eth_port_name)
 
@@ -230,7 +230,16 @@ class UplinkBridgeController(MagmaController):
                           self.config.sgi_management_iface_ip_addr)
         if self.config.sgi_management_iface_ip_addr is None or \
                 self.config.sgi_management_iface_ip_addr == "":
-            self._restart_dhclient(if_name)
+            if if_name == self.config.uplink_bridge:
+                self._restart_dhclient(if_name)
+            else:
+                # for system port, use networking config
+                if_up_cmd = ["ifup", if_name]
+                try:
+                    subprocess.check_call(if_up_cmd)
+                except subprocess.CalledProcessError as ex:
+                    self.logger.info("could not bring up if: %s, %s",
+                                     if_up_cmd, ex)
             return
 
         try:
@@ -272,7 +281,7 @@ class UplinkBridgeController(MagmaController):
             BridgeTools.add_ovs_port(self.config.uplink_bridge,
                                      self.config.dev_vlan_out, "71")
 
-    def _cleanup_if(self, if_name):
+    def _cleanup_if(self, if_name, flush: bool):
         # Release eth IP first.
         release_eth_ip = ["dhclient", "-r", if_name]
         try:
@@ -281,6 +290,8 @@ class UplinkBridgeController(MagmaController):
             self.logger.info("could not release dhcp lease: %s, %s",
                              release_eth_ip, ex)
 
+        if not flush:
+            return
         flush_eth_ip = ["ip", "addr", "flush", "dev", if_name]
         try:
             subprocess.check_call(flush_eth_ip)
@@ -291,7 +302,7 @@ class UplinkBridgeController(MagmaController):
         self.logger.info("SGi DHCP: port [%s] ip removed", if_name)
 
     def _restart_dhclient_if(self, if_name):
-        self._cleanup_if(if_name)
+        self._cleanup_if(if_name, False)
 
         setup_dhclient = ["dhclient", if_name]
         try:

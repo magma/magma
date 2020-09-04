@@ -50,14 +50,17 @@ export default function GatewayKPIs() {
       {
         category: 'Severe Events',
         value: 0,
+        tooltip: 'Severe Events reported by the gateway',
       },
       {
         category: 'Connected',
         value: upCount || 0,
+        tooltip: 'Number of gateways checked in within last 5 minutes',
       },
       {
         category: 'Disconnected',
         value: downCount || 0,
+        tooltip: 'Number of gateways not checked in within last 5 minutes',
       },
     ],
   ];

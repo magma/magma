@@ -88,6 +88,7 @@ export default function EnodeConfigEditTdd(props: EditProps) {
       <AltFormField label={'EARFCNDL'}>
         <OutlinedInput
           data-testid="earfcndl"
+          placeholder="Enter EARFCNDL"
           className={classes.input}
           fullWidth={true}
           value={props.earfcndl}
@@ -97,6 +98,7 @@ export default function EnodeConfigEditTdd(props: EditProps) {
       <AltFormField label={'Special Subframe Pattern'}>
         <OutlinedInput
           className={classes.input}
+          placeholder="Enter Special Subframe Pattern"
           fullWidth={true}
           value={props.specialSubframePattern}
           onChange={({target}) => props.setSpecialSubframePattern(target.value)}
@@ -105,6 +107,7 @@ export default function EnodeConfigEditTdd(props: EditProps) {
       <AltFormField label={'Subframe Assignment'}>
         <OutlinedInput
           className={classes.input}
+          placeholder="Enter Subframe Assignment"
           fullWidth={true}
           value={props.subframeAssignment}
           onChange={({target}) => props.setSubframeAssignment(target.value)}
