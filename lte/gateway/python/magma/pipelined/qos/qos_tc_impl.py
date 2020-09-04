@@ -33,7 +33,8 @@ def argSplit(cmd: str) -> List[str]:
     return args
 
 
-def run_cmd(cmd_list, show_error=True):
+def run_cmd(cmd_list, show_error=True) -> int:
+    err = 0
     for cmd in cmd_list:
         LOG.debug("running %s", cmd)
         try:
@@ -41,13 +42,16 @@ def run_cmd(cmd_list, show_error=True):
             args = argSplit(cmd)
             subprocess.check_call(args)
         except subprocess.CalledProcessError as e:
+            err = e.returncode
             if show_error:
                 LOG.error("%s error running %s ", str(e), cmd)
+    return err
 
 
 # TODO - replace this implementation with pyroute2 tc
 ROOT_QID = 65534
 DEFAULT_RATE = '12Kbit'
+DEFAULT_INTF_SPEED = '1000'
 class TrafficClass:
     """
     Creates/Deletes queues in linux. Using Qdiscs for flow based
@@ -55,27 +59,29 @@ class TrafficClass:
     """
 
     @staticmethod
-    def delete_class(intf: str, qid: int, show_error=True) -> None:
+    def delete_class(intf: str, qid: int, show_error=True) -> int:
         qid_hex = hex(qid)
         # delete filter if this is a leaf class
         filter_cmd = "tc filter del dev {intf} protocol ip parent 1: prio 1 "
         filter_cmd += "handle {qid} fw flowid 1:{qid}"
         filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
-        run_cmd([filter_cmd], show_error)
-
-        # delete class
         tc_cmd = "tc class del dev {intf} classid 1:{qid}".format(intf=intf,
             qid=qid_hex)
-        run_cmd([tc_cmd], show_error)
-
+        return run_cmd([filter_cmd, tc_cmd], show_error)
 
     @staticmethod
     def create_class(intf: str, qid: int, max_bw: int, rate=None,
-                     parent_qid=None, show_error=True) -> None:
+                     parent_qid=None, show_error=True) -> int:
         if not rate:
             rate = DEFAULT_RATE
 
         if not parent_qid:
+            parent_qid = ROOT_QID
+
+        if parent_qid == qid:
+            # parent qid should only be self for root case, everything else
+            # should be the child of root class
+            LOG.error('parent and self qid equal, setting parent_qid to root')
             parent_qid = ROOT_QID
 
         qid_hex = hex(qid)
@@ -87,7 +93,6 @@ class TrafficClass:
 
         # delete if exists
         TrafficClass.delete_class(intf, qid, show_error=False)
-
         run_cmd([tc_cmd], show_error=show_error)
 
         # add fq_codel and filter
@@ -98,14 +103,18 @@ class TrafficClass:
         filter_cmd = filter_cmd.format(intf=intf, qid=qid_hex)
 
         # add fq_codel qdisc and filter
-        run_cmd((qdisc_cmd, filter_cmd), show_error)
+        return run_cmd((qdisc_cmd, filter_cmd), show_error)
 
     @staticmethod
-    def init_qdisc(intf: str, show_error=False) -> None:
-        speed = '1000'
+    def init_qdisc(intf: str, show_error=False) -> int:
+        speed = DEFAULT_INTF_SPEED
         qid_hex = hex(ROOT_QID)
-        with open("/sys/class/net/{intf}/speed".format(intf=intf)) as f:
-            speed = f.read().strip()
+        fn = "/sys/class/net/{intf}/speed".format(intf=intf)
+        try:
+            with open(fn) as f:
+                speed = f.read().strip()
+        except OSError:
+            LOG.error('unable to read speed from %s defaulting to %s', fn, speed)
 
         qdisc_cmd = "tc qdisc add dev {intf} root handle 1: htb".format(intf=intf)
         parent_q_cmd = "tc class add dev {intf} parent 1: classid 1:{root_qid} htb "
@@ -115,7 +124,7 @@ class TrafficClass:
         tc_cmd += "rate {rate} ceil {speed}Mbit"
         tc_cmd = tc_cmd.format(intf=intf, root_qid=qid_hex, rate=DEFAULT_RATE,
                                speed=speed)
-        run_cmd((qdisc_cmd, parent_q_cmd, tc_cmd), show_error)
+        return run_cmd((qdisc_cmd, parent_q_cmd, tc_cmd), show_error)
 
     @staticmethod
     def read_all_classes(intf: str):
@@ -242,8 +251,12 @@ class TCManager(object):
 
         LOG.debug("deleting qos_handle %s", qid)
         intf = self._uplink if d == FlowMatch.UPLINK else self._downlink
-        TrafficClass.delete_class(intf, qid)
-        self._id_manager.release_idx(qid)
+        err = TrafficClass.delete_class(intf, qid)
+        if err == 0:
+            self._id_manager.release_idx(qid)
+        else:
+            LOG.error('error deleting class %d, not releasing idx', qid)
+        return
 
     def read_all_state(self, ):
         LOG.debug("read_all_state")
