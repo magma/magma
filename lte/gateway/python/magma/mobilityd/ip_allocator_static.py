@@ -23,7 +23,7 @@ from typing import List, Optional, Set
 
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.ip_descriptor_map import IpDescriptorMap
-from magma.mobilityd.ip_allocator_base import IPAllocator
+from magma.mobilityd.ip_allocator_base import IPAllocator, DuplicateIPAssignmentError
 from magma.mobilityd.subscriberdb_client import SubscriberDbClient, StaticIPInfo
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 import logging
@@ -103,6 +103,14 @@ class IPAllocatorStaticWrapper(IPAllocator):
             return None
         logging.debug("Found static IP: sid: %s ip_addr_info: %s",
                       sid, str(ip_addr_info))
+        # Validate static IP is not in any of IP pool.
+        for ip_pool in self._assigned_ip_blocks:
+            if ip_addr_info.ip in ip_pool:
+                error_msg = "Static Ip {} Overlap with IP-POOL: {}".format(
+                             ip_addr_info.ip, ip_pool)
+                logging.error(error_msg)
+                raise DuplicateIPAssignmentError(error_msg)
+
         # update gw info if available.
         if ip_addr_info.gw_ip:
             self._gw_info.update_ip(ip_addr_info.gw_ip, str(ip_addr_info.vlan))

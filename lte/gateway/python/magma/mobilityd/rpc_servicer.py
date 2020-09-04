@@ -24,7 +24,8 @@ from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
 from .ip_address_man import IPAddressManager, IPNotInUseError, \
-    MappingNotFoundError, DuplicateIPAssignmentError
+    MappingNotFoundError
+from .ip_allocator_base import DuplicateIPAssignmentError
 
 from .ip_allocator_pool import IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError

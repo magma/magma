@@ -48,7 +48,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
-        self._block = ipaddress.ip_network('192.168.0.0/28')
+        self._block = ipaddress.ip_network('192.168.0.0/24')
         self._new_ip_allocator(self.RECYCLING_INTERVAL_SECONDS)
 
     def tearDown(self):
@@ -482,3 +482,14 @@ class StaticIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip1, ip1_returned)
         self.assertEqual(ip1, ipaddress.ip_address(assigned_ip1))
         self.check_type(sid, IPType.STATIC)
+
+    def test_get_ip_for_subscriber_with_apn_overlap_ip_pool(self):
+        """ test get_ip_for_sid with static IP """
+        apn = 'magma'
+        imsi = 'IMSI110'
+        sid = imsi + '.' + apn
+        assigned_ip = '192.168.0.10'
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
+
+        with self.assertRaises(DuplicateIPAssignmentError):
+            ip0, _ = self._allocator.alloc_ip_address(sid)
