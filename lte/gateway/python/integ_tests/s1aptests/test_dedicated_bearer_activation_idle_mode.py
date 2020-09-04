@@ -18,12 +18,19 @@ import gpp_types
 import s1ap_types
 import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
+from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
+from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 
 
 class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
+    SPGW_TABLE = 0
+    GTP_PORT = 32768
+    LOCAL_PORT = "LOCAL"
+
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._spgw_util = SpgwUtil()
+        self._sessionManager_util = SessionManagerUtil()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
@@ -34,12 +41,15 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         trigger dedicated bearer activation
         + Page the UE + send dedicated bearer activation + detach"""
         self._s1ap_wrapper.configUEDevice(1)
+        datapath = get_datapath()
+        MAX_NUM_RETRIES = 5
+
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         imsi = req.imsi
         print("*********** Running End to End attach for UE id ", ue_id)
         # Now actually complete the attach
-        attach = self._s1ap_wrapper._s1_util.attach(
+        self._s1ap_wrapper._s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
@@ -74,24 +84,140 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
 
         print("*********** Sleeping for 5 seconds")
         time.sleep(5)
-        # Add dedicated bearer for default bearer 5
+        # Add dedicated bearers for default bearer 5
+
+        # UL Flow description #1
+        ulFlow1 = {
+            "ipv4_dst": "192.168.129.42",  # IPv4 destination address
+            "tcp_dst_port": 5002,  # TCP dest port
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "UL",  # Direction
+        }
+
+        # UL Flow description #2
+        ulFlow2 = {
+            "ipv4_dst": "192.168.129.42",  # IPv4 destination address
+            "tcp_dst_port": 5001,  # TCP dest port
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "UL",  # Direction
+        }
+
+        # UL Flow description #3
+        ulFlow3 = {
+            "ipv4_dst": "192.168.129.64",  # IPv4 destination address
+            "tcp_dst_port": 5003,  # TCP dest port
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "UL",  # Direction
+        }
+
+        # UL Flow description #4
+        ulFlow4 = {
+            "ipv4_dst": "192.168.129.42",  # IPv4 destination address
+            "tcp_dst_port": 5001,  # TCP dest port
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "UL",  # Direction
+        }
+
+        # DL Flow description #1
+        dlFlow1 = {
+            "ipv4_src": "192.168.129.42",  # IPv4 source address
+            "tcp_src_port": 5001,  # TCP source port
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "DL",  # Direction
+        }
+
+        # DL Flow description #2
+        dlFlow2 = {
+            "ipv4_src": "192.168.129.64",  # IPv4 source address
+            "tcp_src_port": 5002,  # TCP source port
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "DL",  # Direction
+        }
+        # DL Flow description #3
+        dlFlow3 = {
+            "ipv4_src": "192.168.129.64",  # IPv4 source address
+            "tcp_src_port": 5003,  # TCP source port
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "DL",  # Direction
+        }
+
+        # DL Flow description #4
+        dlFlow4 = {
+            "ipv4_src": "192.168.129.42",  # IPv4 source address
+            "tcp_src_port": 5001,  # TCP source port
+            "ip_proto": "TCP",  # Protocol Type
+            "direction": "DL",  # Direction
+        }
+
+        # Flow list to be configured
+        flow_list1 = [
+            ulFlow1,
+            ulFlow2,
+            ulFlow3,
+            dlFlow1,
+            dlFlow2,
+            dlFlow3,
+        ]
+
+        flow_list2 = [
+            ulFlow4,
+            dlFlow4,
+        ]
+
+        # QoS
+        qos1 = {
+            "qci": 5,  # qci value [1 to 9]
+            "priority": 5,  # Range [0-255]
+            "max_req_bw_ul": 10000000,  # MAX bw Uplink
+            "max_req_bw_dl": 15000000,  # MAX bw Downlink
+            "gbr_ul": 1000000,  # GBR Uplink
+            "gbr_dl": 2000000,  # GBR Downlink
+            "arp_prio": 15,  # ARP priority
+            "pre_cap": 1,  # pre-emption capability
+            "pre_vul": 1,  # pre-emption vulnerability
+        }
+        qos2 = {
+            "qci": 1,  # qci value [1 to 9]
+            "priority": 1,  # Range [0-255]
+            "max_req_bw_ul": 10000000,  # MAX bw Uplink
+            "max_req_bw_dl": 15000000,  # MAX bw Downlink
+            "gbr_ul": 1000000,  # GBR Uplink
+            "gbr_dl": 2000000,  # GBR Downlink
+            "arp_prio": 1,  # ARP priority
+            "pre_cap": 1,  # pre-emption capability
+            "pre_vul": 1,  # pre-emption vulnerability
+        }
+
+        policy_id1 = "ims-voice"
+        policy_id2 = "internet"
+
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
         print(
-            "************* Adding dedicated bearer to magma.ipv4"
+            "************* Adding dedicated bearers to magma.ipv4"
             " PDN in idle mode"
         )
-        self._spgw_util.create_bearer(
+        print(
+            "********************** Sending 1st RAR for IMSI",
+            "".join([str(i) for i in imsi]),
+        )
+        self._sessionManager_util.create_ReAuthRequest(
             "IMSI" + "".join([str(i) for i in imsi]),
-            attach.esmInfo.epsBearerId,
+            policy_id1,
+            flow_list1,
+            qos1,
         )
 
         # Add 2nd dedicated bearer for default bearer 5
         print(
-            "************* Adding dedicated bearer to magma.ipv4"
-            " PDN in idle mode"
+            "********************** Sending 2nd RAR for IMSI",
+            "".join([str(i) for i in imsi]),
         )
-        self._spgw_util.create_bearer(
+        self._sessionManager_util.create_ReAuthRequest(
             "IMSI" + "".join([str(i) for i in imsi]),
-            attach.esmInfo.epsBearerId,
+            policy_id2,
+            flow_list2,
+            qos2,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -147,6 +273,69 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         self._s1ap_wrapper.sendActDedicatedBearerAccept(
             ue_id, act_ded_ber_req_oai_apn2.bearerId
         )
+
+        # Check if UL and DL OVS flows are created
+        # UPLINK
+        print("Checking for uplink flow")
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(MAX_NUM_RETRIES):
+            print("Get uplink flows: attempt ", i)
+            uplink_flows = get_flows(
+                datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {"in_port": self.GTP_PORT},
+                },
+            )
+            if len(uplink_flows) > 2:
+                break
+            time.sleep(5)  # sleep for 5 seconds before retrying
+
+        assert len(uplink_flows) > 2, "Uplink flow missing for UE"
+        self.assertIsNotNone(
+            uplink_flows[0]["match"]["tunnel_id"],
+            "Uplink flow missing tunnel id match",
+        )
+
+        # DOWNLINK
+        print("Checking for downlink flow")
+        ue_ip = str(self._s1ap_wrapper._s1_util.get_ip(ue_id))
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(MAX_NUM_RETRIES):
+            print("Get downlink flows: attempt ", i)
+            downlink_flows = get_flows(
+                datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {
+                        "nw_dst": ue_ip,
+                        "eth_type": 2048,
+                        "in_port": self.LOCAL_PORT,
+                    },
+                },
+            )
+            if len(downlink_flows) > 2:
+                break
+            time.sleep(5)  # sleep for 5 seconds before retrying
+
+        assert len(downlink_flows) > 2, "Downlink flow missing for UE"
+        self.assertEqual(
+            downlink_flows[0]["match"]["ipv4_dst"],
+            ue_ip,
+            "UE IP match missing from downlink flow",
+        )
+        actions = downlink_flows[0]["instructions"][0]["actions"]
+        has_tunnel_action = any(
+            action
+            for action in actions
+            if action["field"] == "tunnel_id" and action["type"] == "SET_FIELD"
+        )
+        self.assertTrue(
+            has_tunnel_action, "Downlink flow missing set tunnel action"
+        )
+
         print("*********** Sleeping for 5 seconds")
         time.sleep(5)
         print("*********** Running UE detach for UE id ", ue_id)
