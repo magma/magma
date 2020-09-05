@@ -17,6 +17,7 @@
 import {isEqual, sortBy} from 'lodash';
 
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
 import {
   CWFAccessPointDBData,
   CWFGatewayDBData,
@@ -490,13 +491,14 @@ export async function syncDashboards(
 
   // If an org contains CWF networks, add the CWF-specific dashboards
   if (await hasCWFNetwork(networks)) {
-    console.log('Creating cwf dashboards');
     posts.push(
       dashboardData(createDashboard(CWFNetworkDBData).generate()),
       dashboardData(createDashboard(CWFAccessPointDBData).generate()),
       dashboardData(createDashboard(CWFSubscriberDBData).generate()),
       dashboardData(createDashboard(CWFGatewayDBData).generate()),
     );
+    // Analytics Dashboard
+    posts.push(dashboardData(createDashboard(AnalyticsDBData).generate()));
   }
 
   for (const post of posts) {
