@@ -80,7 +80,7 @@ export function SubscriberJsonConfig() {
       error={error}
       onSave={async (subscriber: mutable_subscriber) => {
         try {
-          await ctx.setState(subscriber.id, subscriber);
+          await ctx.setState?.(subscriber.id, subscriber);
           enqueueSnackbar('Subscriber saved successfully', {
             variant: 'success',
           });
@@ -96,10 +96,6 @@ export function SubscriberJsonConfig() {
 export default function SubscriberDetailConfig() {
   const classes = useStyles();
   const {history, relativeUrl} = useRouter();
-
-  function TrafficFilter() {
-    return <Button variant="text">Edit</Button>;
-  }
 
   function ConfigFilter() {
     return (
@@ -131,7 +127,10 @@ export default function SubscriberDetailConfig() {
             </Grid>
 
             <Grid item xs={12} md={6}>
-              <CardTitleRow label="Traffic Policy" filter={TrafficFilter} />
+              <CardTitleRow
+                label="Traffic Policy"
+                filter={EditSubscriberButton}
+              />
               <SubscriberConfigTrafficPolicy />
             </Grid>
           </Grid>

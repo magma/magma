@@ -338,7 +338,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                 datapath, {"table_id": self.SPGW_TABLE, "priority": 0}
             )
             self.assertEqual(
-                len(flows), 1, "There should only be 1 default table 0 flow"
+                len(flows), 2, "There should only be 2 default table 0 flows"
             )
 
 

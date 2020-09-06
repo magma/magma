@@ -413,6 +413,7 @@ export type gateway_epc_configs = {
     dns_secondary ? : string,
     ip_block: string,
     nat_enabled: boolean,
+    sgi_management_iface_vlan ? : string,
 };
 export type gateway_federation_configs = {
     aaa_server: aaa_server,
@@ -526,6 +527,8 @@ export type gx = {
     server ? : diameter_client_configs,
     servers ? : Array < diameter_client_configs >
         ,
+    virtual_apn_rules ? : Array < virtual_apn_rule >
+        ,
 };
 export type gy = {
     disableGy ? : boolean,
@@ -533,6 +536,8 @@ export type gy = {
     overwrite_apn ? : string,
     server ? : diameter_client_configs,
     servers ? : Array < diameter_client_configs >
+        ,
+    virtual_apn_rules ? : Array < virtual_apn_rule >
         ,
 };
 export type health = {
@@ -1125,12 +1130,17 @@ export type subscriber_config = {
     lte: lte_subscription,
     static_ips ? : subscriber_static_ips,
 };
+export type subscriber_directory_record = {
+    location_history: Array < string >
+        ,
+};
 export type subscriber_id = string;
 export type subscriber_ip_allocation = {
     apn: string,
     ip: string,
 };
 export type subscriber_state = {
+    directory ? : subscriber_directory_record,
     mme ? : untyped_mme_state,
     mobility ? : Array < subscriber_ip_allocation >
         ,
@@ -1244,6 +1254,10 @@ export type tier_images = Array < tier_image >
 export type tier_name = string;
 export type tier_version = string;
 export type untyped_mme_state = {};
+export type virtual_apn_rule = {
+    apn_filter ? : string,
+    apn_overwrite ? : string,
+};
 export type webhook_receiver = {
     http_config ? : http_config,
     send_resolved ? : boolean,

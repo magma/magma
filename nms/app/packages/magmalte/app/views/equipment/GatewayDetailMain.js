@@ -19,24 +19,24 @@ import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import DashboardAlertTable from '../../components/DashboardAlertTable';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig from './GatewayDetailConfig';
 import GatewayContext from '../../components/context/GatewayContext';
 import GatewayDetailEnodebs from './GatewayDetailEnodebs';
 import GatewayDetailStatus from './GatewayDetailStatus';
+import GatewayDetailSubscribers from './GatewayDetailSubscribers';
 import GatewayLogs from './GatewayLogs';
 import GatewaySummary from './GatewaySummary';
 import GraphicEqIcon from '@material-ui/icons/GraphicEq';
 import Grid from '@material-ui/core/Grid';
 import ListAltIcon from '@material-ui/icons/ListAlt';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
-import Paper from '@material-ui/core/Paper';
 import PeopleIcon from '@material-ui/icons/People';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -170,6 +170,12 @@ export function GatewayDetail() {
             />
           )}
         />
+        <Route
+          path={relativePath('/alert')}
+          render={() => (
+            <DashboardAlertTable labelFilters={{gatewayID: gatewayId}} />
+          )}
+        />
         <Route path={relativePath('/overview')} component={GatewayOverview} />
         <Route path={relativePath('/logs')} component={GatewayLogs} />
         <Redirect to={relativeUrl('/overview')} />
@@ -219,9 +225,7 @@ function GatewayOverview() {
             </Grid>
             <Grid item>
               <CardTitleRow icon={PeopleIcon} label="Subscribers" />
-              <Paper className={classes.paper} elevation={0}>
-                <Text variant="body2">Subscribers data</Text>
-              </Paper>
+              <GatewayDetailSubscribers gwInfo={gwInfo} />
             </Grid>
           </Grid>
         </Grid>

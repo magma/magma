@@ -1,5 +1,5 @@
 #!/bin/bash
-SRC_DIR=$MAGMA_ROOT/lte/gateway/deploy/roles/magma/files
+SRC_DIR=/usr/local/bin
 SERVICE_LIST=("mme" "mobilityd" "pipelined" "sctpd" "sessiond")
 RETURN_STATELESS=0
 RETURN_STATEFUL=1
@@ -101,4 +101,11 @@ sudo service sctpd restart
 echo "Config complete"
 
 check_stateless_agw; ret_check=$?
+
+if [[ $ret_check -eq 1 ]]; then
+  sudo service magma@magmad start
+  # Sleep for a bit so OVS and Magma services come up before proceeding
+  sleep 15
+fi
+
 exit $ret_check

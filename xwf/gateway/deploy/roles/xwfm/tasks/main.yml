@@ -23,6 +23,7 @@
   copy:
    content: "{{ 'xwfm.' + partner + '.' + env + '.' + server_id | default('1') }}"
    dest: /etc/hostname
+  ignore_errors: true
 
 - name: set the hostname now
   become: true

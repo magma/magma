@@ -46,3 +46,7 @@ multi_session_proxy:
 restart:
 	echo "Running restart tests..."
 	go test -tags=restart -timeout 20m
+
+precommit:
+	go fmt ./...
+	go test --tags=all -c ./...

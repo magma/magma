@@ -15,61 +15,18 @@
  */
 
 import type {DataRows} from './DataGrid';
-import type {enodeb, enodeb_state} from '@fbcnms/magma-api';
+import type {EnodebInfo} from './lte/EnodebUtils';
 
 import DataGrid from './DataGrid';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import React, {useEffect, useState} from 'react';
+import EnodebContext from './context/EnodebContext';
+import React from 'react';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
-import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useContext} from 'react';
 
 export default function EnodebKPIs() {
-  const [enodebSt, setEnodebSt] = useState<{[string]: enodeb_state}>({});
-  const {match} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-
-  const {response} = useMagmaAPI(MagmaV1API.getLteByNetworkIdEnodebs, {
-    networkId: networkId,
-  });
-
-  useEffect(() => {
-    const fetchEnodebState = async () => {
-      if (!response) {
-        return;
-      }
-
-      const enodebInfo: {[string]: enodeb} = response;
-      const requests = Object.keys(enodebInfo).map(async k => {
-        const {serial} = enodebInfo[k];
-        try {
-          // eslint-disable-next-line max-len
-          const enbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
-            {
-              networkId: networkId,
-              enodebSerial: serial,
-            },
-          );
-          return {serial, enbSt};
-        } catch (error) {
-          console.error('error getting enodeb status for ' + serial);
-          return null;
-        }
-      });
-      Promise.all(requests).then(allResponses => {
-        const enodebState = {};
-        allResponses.filter(Boolean).forEach(r => {
-          enodebState[r.serial] = r.enbSt;
-        });
-        setEnodebSt(enodebState);
-      });
-    };
-    fetchEnodebState();
-  }, [networkId, response]);
-
-  const [total, transmitting] = enodebStatus(enodebSt);
+  const ctx = useContext(EnodebContext);
+  const [total, transmitting] = enodebStatus(ctx.state.enbInfo);
 
   const data: DataRows[] = [
     [
@@ -80,14 +37,17 @@ export default function EnodebKPIs() {
       {
         category: 'Severe Events',
         value: 0,
+        tooltip: 'Severe Events reported by the eNodeB',
       },
       {
         category: 'Total',
         value: total || 0,
+        tooltip: 'Total number of eNodeBs',
       },
       {
         category: 'Transmitting',
         value: transmitting || 0,
+        tooltip: 'Number of eNodeBs with active transmit status',
       },
     ],
   ];
@@ -95,14 +55,14 @@ export default function EnodebKPIs() {
   return <DataGrid data={data} />;
 }
 
-function enodebStatus(enodebSt: {[string]: enodeb_state}): [number, number] {
+function enodebStatus(enbInfo: {[string]: EnodebInfo}): [number, number] {
   let transmitCnt = 0;
-  Object.keys(enodebSt)
-    .map((k: string) => enodebSt[k])
-    .map((e: enodeb_state) => {
-      if (e.rf_tx_on) {
+  Object.keys(enbInfo)
+    .map((k: string) => enbInfo[k])
+    .map((e: EnodebInfo) => {
+      if (e.enb_state.rf_tx_on) {
         transmitCnt++;
       }
     });
-  return [Object.keys(enodebSt).length, transmitCnt];
+  return [Object.keys(enbInfo).length, transmitCnt];
 }

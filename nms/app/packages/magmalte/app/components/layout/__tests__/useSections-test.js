@@ -18,11 +18,17 @@ import MagmaAPIBindings from '@fbcnms/magma-api';
 import NetworkContext from '../../context/NetworkContext';
 import React from 'react';
 import useSections from '../useSections';
+
 import {AppContextProvider} from '@fbcnms/ui/context/AppContext';
 import {act, renderHook} from '@testing-library/react-hooks';
+
+const enqueueSnackbarMock = jest.fn();
 jest.mock('@fbcnms/magma-api');
 jest.mock('mapbox-gl', () => {});
 jest.mock('@fbcnms/ui/insights/map/MapView', () => {});
+jest
+  .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
+  .mockReturnValue(enqueueSnackbarMock);
 
 import {AllNetworkTypes, CWF, XWFM} from '@fbcnms/types/network';
 
@@ -110,7 +116,7 @@ AllNetworkTypes.forEach(networkType => {
   // different config defaults
   const apiNetworkType = networkType === XWFM ? CWF : networkType;
   test('Should render ' + networkType, async () => {
-    MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValueOnce(
+    MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValue(
       apiNetworkType,
     );
 

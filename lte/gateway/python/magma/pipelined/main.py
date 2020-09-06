@@ -23,6 +23,7 @@ import threading
 import aioeventlet
 from ryu import cfg
 from ryu.base.app_manager import AppManager
+from scapy.arch import get_if_hwaddr
 
 from magma.common.misc_utils import call_process
 from magma.common.service import MagmaService
@@ -55,12 +56,20 @@ def main():
     cfg.CONF.ofp_listen_host = "127.0.0.1"
 
     # override mconfig using local config.
+    # TODO: move config compilation to separate module.
     enable_nat = service.config.get('enable_nat', service.mconfig.nat_enabled)
     service.config['enable_nat'] = enable_nat
     logging.info("Nat: %s", enable_nat)
     vlan_tag = service.config.get('sgi_management_iface_vlan',
                                   service.mconfig.sgi_management_iface_vlan)
     service.config['sgi_management_iface_vlan'] = vlan_tag
+
+    sgi_ip = service.config.get('sgi_management_iface_ip_addr',
+                                  service.mconfig.sgi_management_iface_ip_addr)
+    service.config['sgi_management_iface_ip_addr'] = sgi_ip
+
+    if 'virtual_mac' not in service.config:
+        service.config['virtual_mac'] = get_if_hwaddr(service.config.get('bridge_name'))
 
     # Load the ryu apps
     service_manager = ServiceManager(service)

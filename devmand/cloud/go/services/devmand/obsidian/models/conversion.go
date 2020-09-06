@@ -21,7 +21,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
-	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
+	orc8r_models "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
@@ -61,16 +61,16 @@ func (m *SymphonyNetwork) FromConfiguratorNetwork(n configurator.Network) interf
 	m.Name = models.NetworkName(n.Name)
 	m.Description = models.NetworkDescription(n.Description)
 	if cfg := n.Configs[orc8r.NetworkFeaturesConfig]; cfg != nil {
-		m.Features = cfg.(*models2.NetworkFeatures)
+		m.Features = cfg.(*orc8r_models.NetworkFeatures)
 	}
 	return m
 }
 
-func (m *MutableSymphonyAgent) GetMagmadGateway() *models2.MagmadGateway {
-	return &models2.MagmadGateway{
+func (m *MutableSymphonyAgent) GetMagmadGateway() *orc8r_models.MagmadGateway {
+	return &orc8r_models.MagmadGateway{
 		Description: m.Description,
 		Device:      m.Device,
-		ID:          models.GatewayID(m.ID),
+		ID:          m.ID,
 		Magmad:      m.Magmad,
 		Name:        m.Name,
 		Tier:        m.Tier,
@@ -97,22 +97,30 @@ func (m *MutableSymphonyAgent) GetAdditionalWritesOnCreate() []configurator.Enti
 	return writes
 }
 
-func (m *MutableSymphonyAgent) GetAdditionalEntitiesToLoadOnUpdate(agentID string) []storage.TypeAndKey {
-	return []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: agentID}}
+func (m *MutableSymphonyAgent) GetGatewayType() string {
+	return devmand.SymphonyAgentType
+}
+
+func (m *MutableSymphonyAgent) GetAdditionalLoadsOnLoad(gateway configurator.NetworkEntity) storage.TKs {
+	return nil
+}
+
+func (m *MutableSymphonyAgent) GetAdditionalLoadsOnUpdate() storage.TKs {
+	return []storage.TypeAndKey{{Type: devmand.SymphonyAgentType, Key: string(m.ID)}}
 }
 
 func (m *MutableSymphonyAgent) GetAdditionalWritesOnUpdate(
-	agentID string,
 	loadedEntities map[storage.TypeAndKey]configurator.NetworkEntity,
 ) ([]configurator.EntityWriteOperation, error) {
-	ret := []configurator.EntityWriteOperation{}
-	_, ok := loadedEntities[storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: agentID}]
+	var ret []configurator.EntityWriteOperation
+	_, ok := loadedEntities[storage.TypeAndKey{Type: devmand.SymphonyAgentType, Key: string(m.ID)}]
 	if !ok {
 		return nil, merrors.ErrNotFound
 	}
 
 	update := configurator.EntityUpdateCriteria{
-		Type: devmand.SymphonyAgentType, Key: agentID,
+		Type:              devmand.SymphonyAgentType,
+		Key:               string(m.ID),
 		AssociationsToSet: []storage.TypeAndKey{},
 	}
 	for _, dID := range m.ManagedDevices {
@@ -136,10 +144,10 @@ func (m *MutableSymphonyAgent) ToConfiguratorEntity() configurator.NetworkEntity
 
 func (m *SymphonyAgent) FromBackendModels(
 	magmadEnt, agentEnt configurator.NetworkEntity,
-	device *models2.GatewayDevice,
-	status *models2.GatewayStatus,
+	device *orc8r_models.GatewayDevice,
+	status *orc8r_models.GatewayStatus,
 ) handlers.GatewayModel {
-	mdGW := (&models2.MagmadGateway{}).FromBackendModels(magmadEnt, device, status)
+	mdGW := (&orc8r_models.MagmadGateway{}).FromBackendModels(magmadEnt, device, status)
 	m.ID, m.Name, m.Description, m.Magmad, m.Tier, m.Device, m.Status = mdGW.ID, mdGW.Name, mdGW.Description, mdGW.Magmad, mdGW.Tier, mdGW.Device, mdGW.Status
 
 	for _, tk := range agentEnt.Associations {
@@ -187,9 +195,9 @@ func (m *SymphonyDevice) FromBackendModels(ent configurator.NetworkEntity) *Symp
 			m.ManagingAgent = SymphonyDeviceAgent(tk.Key)
 		}
 	}
-	state, err := state.GetState(ent.NetworkID, devmand.SymphonyDeviceStateType, ent.Key)
+	st, err := state.GetState(ent.NetworkID, devmand.SymphonyDeviceStateType, ent.Key)
 	if err == nil {
-		m.State = state.ReportedState.(*SymphonyDeviceState)
+		m.State = st.ReportedState.(*SymphonyDeviceState)
 	}
 	return m
 }
@@ -208,7 +216,7 @@ func (m *MutableSymphonyDevice) FromBackendModels(ent configurator.NetworkEntity
 
 func (m *MutableSymphonyDevice) ToEntityUpdateCriteria(nID string) ([]configurator.EntityUpdateCriteria, error) {
 	updates := []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{
+		{
 			Type:      devmand.SymphonyDeviceType,
 			Key:       string(m.ID),
 			NewName:   swag.String(string(m.Name)),
@@ -293,7 +301,7 @@ func (m *SymphonyDeviceConfig) FromBackendModels(networkID, deviceID string) err
 
 func (m *SymphonyDeviceConfig) ToUpdateCriteria(networkID, deviceID string) ([]configurator.EntityUpdateCriteria, error) {
 	return []configurator.EntityUpdateCriteria{
-		configurator.EntityUpdateCriteria{
+		{
 			Type:      devmand.SymphonyDeviceType,
 			Key:       deviceID,
 			NewConfig: m,

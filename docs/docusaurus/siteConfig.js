@@ -55,14 +55,14 @@ const siteConfig = {
   users,
 
   /* path to images for header/footer */
-  headerIcon: 'img/fb.png',
-  footerIcon: 'img/fb.png',
+  headerIcon: 'img/magma_logo.png',
+  footerIcon: 'img/magma_logo.png',
   favicon: 'img/favicon.png',
 
   /* Colors for website */
   colors: {
-    primaryColor: '#2E8555',
-    secondaryColor: '#205C3B',
+    primaryColor: '#5602a4',
+    secondaryColor: '#3a1079',
   },
 
   /* Custom fonts for website */

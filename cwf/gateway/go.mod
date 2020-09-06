@@ -58,6 +58,7 @@ require (
 	golang.org/x/sys v0.0.0-20200722175500-76b94024e4b6 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.27.1
+	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000

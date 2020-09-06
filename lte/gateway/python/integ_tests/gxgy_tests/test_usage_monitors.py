@@ -16,7 +16,7 @@ from unittest.mock import Mock
 from lte.protos import session_manager_pb2
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.subscriberdb_pb2 import SubscriberID
-from magma.pipelined.tests.app.subscriber import SubContextConfig
+from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
 from ryu.lib import hub
 
 from .policies import create_uplink_rule, get_packets_for_flows
@@ -49,7 +49,7 @@ class UsageMonitorTest(unittest.TestCase):
         traffic to match the policy, verify monitoring update is sent, terminate
         subscriber
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', 4)
+        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
         quota = 1024  # bytes
 
         self.test_util.controller.mock_create_session = Mock(
@@ -101,7 +101,7 @@ class UsageMonitorTest(unittest.TestCase):
         Test a mix of usage monitors, session monitors, and charging credits to
         PCRF and OCS.
         """
-        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', 4)
+        sub1 = SubContextConfig('IMSI001010000088888', '192.168.128.74', default_ambr_config, 4)
         quota = 1024  # bytes
 
         pcrf_rule = create_uplink_rule("pcrf_rule", 0, '46.10.0.1',

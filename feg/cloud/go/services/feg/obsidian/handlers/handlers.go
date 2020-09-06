@@ -66,11 +66,11 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(ListGatewaysPath, feg.FegGatewayType, makeFederationGateways),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, &fegModels.MutableFederationGateway{}, makeFederationGateways),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
-		handlers.GetDeleteGatewayHandler(ManageGatewayPath, feg.FegGatewayType),
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
 		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
@@ -103,7 +103,7 @@ func GetHandlers() []obsidian.Handler {
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &fegModels.MutableFederationGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &fegModels.MutableFederationGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -115,7 +115,7 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGatewayModel(nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
 	if nerr != nil {
 		return nerr
 	}
@@ -146,8 +146,20 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &fegModels.MutableFederationGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &fegModels.MutableFederationGateway{}); nerr != nil {
 		return nerr
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	err := handlers.DeleteMagmadGateway(nid, gid, storage.TKs{{Type: feg.FegGatewayType, Key: gid}})
+	if err != nil {
+		return makeErr(err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -157,12 +169,12 @@ type federationAndMagmadGateway struct {
 }
 
 func makeFederationGateways(
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rModels.GatewayStatus,
 ) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*federationAndMagmadGateway{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, feg.FegGatewayType) {
 		existing, found := gatewayEntsByKey[tk.Key]
 		if !found {
 			existing = &federationAndMagmadGateway{}
@@ -186,6 +198,7 @@ func makeFederationGateways(
 		}
 		ret[key] = (&fegModels.FederationGateway{}).FromBackendModels(ents.magmadGateway, ents.federationGateway, devCasted, statusesByID[hwID])
 	}
+
 	return ret
 }
 
@@ -235,4 +248,11 @@ func getHealthStatusHandler(c echo.Context) error {
 		Description: res.GetHealth().GetHealthMessage(),
 	}
 	return c.JSON(http.StatusOK, ret)
+}
+
+func makeErr(err error) *echo.HTTPError {
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
+	}
+	return obsidian.HttpError(err, http.StatusInternalServerError)
 }

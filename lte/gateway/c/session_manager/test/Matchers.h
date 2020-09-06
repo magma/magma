@@ -88,4 +88,29 @@ MATCHER_P(CheckEventType, expectedEventType, "") {
   return (arg.event_type() == expectedEventType);
 }
 
+MATCHER_P2(CheckCreateBearerReq, imsi, rule_count, "") {
+  auto request = static_cast<const CreateBearerRequest>(arg);
+  return request.sid().id() == imsi &&
+         request.policy_rules().size() == rule_count;
+}
+
+MATCHER_P3(CheckDeleteOneBearerReq, imsi, link_bearer_id, eps_bearer_id, "") {
+  auto request = static_cast<const DeleteBearerRequest>(arg);
+
+  return request.sid().id() == imsi &&
+         request.link_bearer_id() == uint32_t(link_bearer_id) &&
+         request.eps_bearer_ids_size() == 1 &&
+         request.eps_bearer_ids(0) == uint32_t(eps_bearer_id);
+}
+
+MATCHER_P(CheckSubset, ids, "") {
+  auto request = static_cast<const std::vector<std::string>>(arg);
+  for (size_t i = 0; i < request.size(); i++) {
+    if (ids.find(request[i]) != ids.end()) {
+      return true;
+    }
+  }
+  return false;
+}
+
 };  // namespace magma

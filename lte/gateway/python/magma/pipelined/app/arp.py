@@ -161,7 +161,7 @@ class ArpController(MagmaController):
         records = get_all_records()
         attached_ues = [ue.sid.id for ue in ue_requests]
         self.logger.debug("Setting up ARP controller with list of UEs:")
-        self.logger.debug(*attached_ues)
+        self.logger.debug(str(*attached_ues))
         for rec in records:
             if rec.id not in attached_ues:
                 self.logger.debug(

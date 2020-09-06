@@ -82,17 +82,17 @@ func newDefaultEapAka() *EapAka {
 
 func newDefaultGx() *Gx {
 	return &Gx{
-		Server:       newDefaultDiameterClientConfigs(),
-		OverwriteApn: "",
+		Server:          newDefaultDiameterClientConfigs(),
+		VirtualApnRules: []*VirtualApnRule{},
 	}
 }
 
 func newDefaultGy() *Gy {
 	initMethod := uint32(float32(1))
 	return &Gy{
-		InitMethod:   &initMethod,
-		Server:       newDefaultDiameterClientConfigs(),
-		OverwriteApn: "",
+		InitMethod:      &initMethod,
+		Server:          newDefaultDiameterClientConfigs(),
+		VirtualApnRules: []*VirtualApnRule{},
 	}
 }
 

@@ -23,6 +23,7 @@ import type {
   generic_command_params,
   lte_gateway,
   magmad_gateway_configs,
+  mutable_lte_gateway,
   network_id,
   ping_request,
   tier,
@@ -35,7 +36,7 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 type InitTierStateProps = {
   networkId: network_id,
   setTiers: ({[string]: tier}) => void,
-  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
 
 export async function InitTierState(props: InitTierStateProps) {
@@ -44,7 +45,7 @@ export async function InitTierState(props: InitTierStateProps) {
   try {
     tierIdList = await MagmaV1API.getNetworksByNetworkIdTiers({networkId});
   } catch (e) {
-    enqueueSnackbar('failed fetching tier information', {variant: 'error'});
+    enqueueSnackbar?.('failed fetching tier information', {variant: 'error'});
   }
 
   const requests = tierIdList.map(tierId => {
@@ -54,7 +55,7 @@ export async function InitTierState(props: InitTierStateProps) {
         tierId,
       });
     } catch (e) {
-      enqueueSnackbar('failed fetching tier information for ' + tierId, {
+      enqueueSnackbar?.('failed fetching tier information for ' + tierId, {
         variant: 'error',
       });
       return;
@@ -109,7 +110,7 @@ export async function SetTierState(props: TierStateProps) {
 type InitEnodeStateProps = {
   networkId: network_id,
   setEnbInfo: ({[string]: EnodebInfo}) => void,
-  enqueueSnackbar: (msg: string, cfg: {}) => ?(string | number),
+  enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
 
 export async function InitEnodeState(props: InitEnodeStateProps) {
@@ -118,10 +119,14 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
   try {
     enb = await MagmaV1API.getLteByNetworkIdEnodebs({networkId});
   } catch (e) {
-    enqueueSnackbar('failed fetching enodeb information', {
+    enqueueSnackbar?.('failed fetching enodeb information', {
       variant: 'error',
     });
-    return [];
+    return;
+  }
+
+  if (!enb) {
+    return;
   }
 
   let err = false;
@@ -135,17 +140,13 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
           enodebSerial: serial,
         },
       );
-      return [enb[k], enbSt];
+      return [enb[k], enbSt ?? {}];
     } catch (e) {
       err = true;
       return [enb[k], {}];
     }
   });
-  if (err) {
-    enqueueSnackbar('failed fetching enodeb state information', {
-      variant: 'error',
-    });
-  }
+
   const enbResp = await Promise.all(requests);
   const enbInfo = {};
   enbResp.filter(Boolean).forEach(r => {
@@ -159,6 +160,11 @@ export async function InitEnodeState(props: InitEnodeStateProps) {
       }
     }
   });
+  if (err) {
+    enqueueSnackbar?.('failed fetching enodeb state information', {
+      variant: 'error',
+    });
+  }
   setEnbInfo(enbInfo);
 }
 
@@ -205,7 +211,7 @@ type GatewayStateProps = {
   lteGateways: {[string]: lte_gateway},
   setLteGateways: ({[string]: lte_gateway}) => void,
   key: gateway_id,
-  value?: lte_gateway,
+  value?: mutable_lte_gateway,
 };
 
 export async function SetGatewayState(props: GatewayStateProps) {
@@ -224,6 +230,14 @@ export async function SetGatewayState(props: GatewayStateProps) {
         gateway: value,
       });
       setLteGateways({...lteGateways, [key]: value});
+    }
+    const gateway = await MagmaV1API.getLteByNetworkIdGatewaysByGatewayId({
+      networkId: networkId,
+      gatewayId: key,
+    });
+    if (gateway) {
+      const newLteGateways = {...lteGateways, [key]: gateway};
+      setLteGateways(newLteGateways);
     }
   } else {
     await MagmaV1API.deleteLteByNetworkIdGatewaysByGatewayId({

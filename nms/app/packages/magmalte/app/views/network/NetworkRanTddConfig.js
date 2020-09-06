@@ -32,6 +32,7 @@ export default function TddConfig(props: Props) {
       <AltFormField label={'EARFCNDL'}>
         <OutlinedInput
           fullWidth={true}
+          placeholder="Enter EARFCNDL"
           type="number"
           data-testid="earfcndl"
           value={props.lteRanConfigs.tdd_config?.earfcndl}
@@ -55,6 +56,7 @@ export default function TddConfig(props: Props) {
           <AltFormField label={'Special Subframe Pattern'}>
             <OutlinedInput
               fullWidth={true}
+              placeholder="Special Subframe Pattern"
               type="number"
               data-testid="specialSubframePattern"
               value={props.lteRanConfigs.tdd_config?.special_subframe_pattern}
@@ -77,6 +79,7 @@ export default function TddConfig(props: Props) {
           <AltFormField label={'Subframe Assignment'}>
             <OutlinedInput
               fullWidth={true}
+              placeholder="Subframe Assignment"
               type="number"
               data-testid="subframeAssignment"
               value={props.lteRanConfigs.tdd_config?.subframe_assignment}

@@ -1,9 +1,23 @@
+/*
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package analytics
 
 import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"magma/cwf/cloud/go/services/analytics/calculations"
 	"net/http"
 	"net/url"
 	"testing"
@@ -29,17 +43,9 @@ const (
 )
 
 var (
-	sampleResult = Result{
-		value:      1,
-		metricName: "testMetric",
-		labels:     prometheus.Labels{"networkID": "testNetwork", "label1": "labelValue"},
-	}
+	sampleResult = calculations.NewResult(1, "testMetric,", prometheus.Labels{"networkID": "testNetwork", "label1": "labelValue"})
 
-	noNetworkResult = Result{
-		value:      1,
-		metricName: "testMetric",
-		labels:     prometheus.Labels{},
-	}
+	noNetworkResult = calculations.NewResult(1, "testMetric", prometheus.Labels{})
 
 	testExporter = &wwwExporter{
 		metricsPrefix:   metricsPrefix,
@@ -53,7 +59,7 @@ var (
 type exportTestCase struct {
 	client             HttpClient
 	exporter           Exporter
-	exportResult       Result
+	exportResult       calculations.Result
 	expectedError      string
 	assertExpectations func(t *testing.T)
 	name               string
@@ -125,7 +131,7 @@ func TestWwwExporter_Export(t *testing.T) {
 			expectedError: "",
 			assertExpectations: func(t *testing.T) {
 				expectedURL := fmt.Sprintf(exportURLTemplate, metricExportURL, appID, appSecret)
-				expectedDatapointJSON := fmt.Sprintf(wwwDatapointJSONStringTemplate, testExporter.FormatEntity(sampleResult, "testNetwork"), testExporter.FormatKey(sampleResult), sampleResult.value)
+				expectedDatapointJSON := fmt.Sprintf(wwwDatapointJSONStringTemplate, testExporter.FormatEntity(sampleResult, "testNetwork"), testExporter.FormatKey(sampleResult), sampleResult.Value())
 				expectedPostData := url.Values{"datapoints": {string(expectedDatapointJSON)}, "category": {categoryName}}
 				successClient.AssertCalled(t, "PostForm", expectedURL, expectedPostData)
 			},

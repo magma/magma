@@ -21,7 +21,7 @@ import (
 	"golang.org/x/net/context"
 
 	"magma/lte/cloud/go/protos"
-	orc_protos "magma/orc8r/lib/go/protos"
+	orc8rProtos "magma/orc8r/lib/go/protos"
 
 	"magma/feg/gateway/registry"
 	"magma/orc8r/cloud/go/test_utils"
@@ -42,8 +42,8 @@ func NewRunningSessionManager(t *testing.T) *MockSessionManager {
 	return service
 }
 
-func (c *MockSessionManager) ReportRuleStats(ctx context.Context, in *protos.RuleRecordTable) (*orc_protos.Void, error) {
-	out := new(orc_protos.Void)
+func (c *MockSessionManager) ReportRuleStats(ctx context.Context, in *protos.RuleRecordTable) (*orc8rProtos.Void, error) {
+	out := new(orc8rProtos.Void)
 	if c.returnErrors {
 		return out, fmt.Errorf("CreateSession returnErrors enabled")
 	}
@@ -57,7 +57,7 @@ func (c *MockSessionManager) CreateSession(ctx context.Context, in *protos.Local
 	}
 
 	out := &protos.LocalCreateSessionResponse{
-		SessionId: fmt.Sprintf("%s-12345678", in.Sid.Id),
+		SessionId: fmt.Sprintf("%s-12345678", in.CommonContext.Sid.Id),
 	}
 	return out, nil
 }
@@ -67,6 +67,20 @@ func (c *MockSessionManager) EndSession(ctx context.Context, in *protos.LocalEnd
 		return nil, fmt.Errorf("CreateSession returnErrors enabled")
 	}
 	return &protos.LocalEndSessionResponse{}, nil
+}
+
+func (c *MockSessionManager) BindPolicy2Bearer(ctx context.Context, in *protos.PolicyBearerBindingRequest) (*protos.PolicyBearerBindingResponse, error) {
+	if c.returnErrors {
+		return nil, fmt.Errorf("BindPolicy2Bearer returnErrors enabled")
+	}
+	return &protos.PolicyBearerBindingResponse{}, nil
+}
+
+func (c *MockSessionManager) SetSessionRules(ctx context.Context, in *protos.SessionRules) (*orc8rProtos.Void, error) {
+	if c.returnErrors {
+		return nil, fmt.Errorf("SetSessionRules returnErrors enabled")
+	}
+	return &orc8rProtos.Void{}, nil
 }
 
 func (c *MockSessionManager) ReturnErrors(enable bool) {

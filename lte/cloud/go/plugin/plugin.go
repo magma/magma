@@ -61,16 +61,18 @@ func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkConfigType, &lte_models.NetworkCellularConfigs{}),
 		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &policydb_models.NetworkSubscriberConfig{}),
+
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayEntityType, &lte_models.GatewayCellularConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebEntityType, &lte_models.EnodebConfiguration{}),
 
+		configurator.NewNetworkEntityConfigSerde(lte.SubscriberEntityType, &subscriberdb_models.SubscriberConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &policydb_models.PolicyRuleConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policydb_models.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(lte.SubscriberEntityType, &subscriberdb_models.SubscriberConfig{}),
-
 		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policydb_models.RatingGroup{}),
-
 		configurator.NewNetworkEntityConfigSerde(lte.APNEntityType, &lte_models.ApnConfiguration{}),
+		configurator.NewNetworkEntityConfigSerde(lte.APNResourceEntityType, &lte_models.ApnResource{}),
+
+		configurator.NewNetworkEntityConfigSerde(lte.PolicyQoSProfileEntityType, &policydb_models.PolicyQosProfile{}),
 	}
 }
 
@@ -92,8 +94,8 @@ func (*LteOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider 
 	return []providers.StreamProvider{
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.SubscriberStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.PolicyStreamName),
+		providers.NewRemoteProvider(lte_service.ServiceName, lte.ApnRuleMappingsStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.BaseNameStreamName),
-		providers.NewRemoteProvider(lte_service.ServiceName, lte.MappingsStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.NetworkWideRulesStreamName),
 		providers.NewRemoteProvider(lte_service.ServiceName, lte.RatingGroupStreamName),
 	}

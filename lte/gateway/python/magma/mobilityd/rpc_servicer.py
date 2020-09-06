@@ -23,7 +23,9 @@ from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import return_void
 from magma.subscriberdb.sid import SIDUtils
-from .ip_address_man import IPAddressManager, IPNotInUseError, MappingNotFoundError
+from .ip_address_man import IPAddressManager, IPNotInUseError, \
+    MappingNotFoundError
+from .ip_allocator_base import DuplicateIPAssignmentError
 
 from .ip_allocator_pool import IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError
@@ -169,17 +171,21 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 if request.apn:
                     composite_sid = composite_sid + "." + request.apn
 
-                ip = self._ipv4_allocator.alloc_ip_address(composite_sid)
+                ip, vlan = self._ipv4_allocator.alloc_ip_address(composite_sid)
                 logging.info("Allocated IPv4 %s for sid %s for apn %s"
                              % (ip, SIDUtils.to_str(request.sid), request.apn))
                 ip_addr.version = IPAddress.IPV4
                 ip_addr.address = ip.packed
-                return AllocateIPAddressResponse(ip_addr=ip_addr)
+                return AllocateIPAddressResponse(ip_addr=ip_addr,
+                                                 vlan=str(vlan))
             except NoAvailableIPError:
                 context.set_details('No free IPv4 IP available')
                 context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
             except DuplicatedIPAllocationError:
                 context.set_details('IP has been allocated for this subscriber')
+                context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            except DuplicateIPAssignmentError:
+                context.set_details('IP has been allocated for other subscriber')
                 context.set_code(grpc.StatusCode.ALREADY_EXISTS)
         else:
             self._unimplemented_ip_version_error(context)

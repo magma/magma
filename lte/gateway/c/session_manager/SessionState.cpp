@@ -24,7 +24,19 @@
 #include "RuleStore.h"
 #include "SessionState.h"
 #include "StoredState.h"
+#include "MetricsHelpers.h"
 #include "magma_logging.h"
+
+namespace {
+const char* LABEL_IMSI      = "IMSI";
+const char* LABEL_APN       = "apn";
+const char* LABEL_MSISDN    = "msisdn";
+const char* LABEL_DIRECTION = "direction";
+const char* DIRECTION_UP    = "up";
+const char* DIRECTION_DOWN  = "down";
+}  // namespace
+
+using magma::service303::increment_counter;
 
 namespace magma {
 
@@ -43,8 +55,11 @@ StoredSessionState SessionState::marshal() {
   marshaled.subscriber_quota_state = subscriber_quota_state_;
   marshaled.tgpp_context           = tgpp_context_;
   marshaled.request_number         = request_number_;
+  marshaled.pdp_start_time         = pdp_start_time_;
+  marshaled.pdp_end_time           = pdp_end_time_;
   marshaled.pending_event_triggers = pending_event_triggers_;
   marshaled.revalidation_time      = revalidation_time_;
+  marshaled.bearer_id_by_policy = bearer_id_by_policy_;
 
   marshaled.monitor_map = StoredMonitorMap();
   for (auto& monitor_pair : monitor_map_) {
@@ -94,12 +109,15 @@ SessionState::SessionState(
       request_number_(marshaled.request_number),
       curr_state_(marshaled.fsm_state),
       config_(marshaled.config),
+      pdp_start_time_(marshaled.pdp_start_time),
+      pdp_end_time_(marshaled.pdp_end_time),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
       static_rules_(rule_store),
       pending_event_triggers_(marshaled.pending_event_triggers),
       revalidation_time_(marshaled.revalidation_time),
-      credit_map_(4, &ccHash, &ccEqual) {
+      credit_map_(4, &ccHash, &ccEqual),
+      bearer_id_by_policy_(marshaled.bearer_id_by_policy) {
   session_level_key_ = marshaled.session_level_key;
   for (auto it : marshaled.monitor_map) {
     Monitor monitor;
@@ -184,6 +202,11 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
       }
     }
   }
+  // QoS Management
+  if (uc.is_bearer_mapping_updated) {
+    bearer_id_by_policy_ = uc.bearer_id_by_policy;
+  }
+
   // Config
   if (uc.is_config_updated) {
     config_ = uc.updated_config;
@@ -335,6 +358,11 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     set_monitor(key, Monitor(stored_monitor), _);
     monitor_map_[key] = std::make_unique<Monitor>(stored_monitor);
   }
+
+  if (uc.updated_pdp_end_time > 0) {
+    pdp_end_time_ = uc.updated_pdp_end_time;
+  }
+
   return true;
 }
 
@@ -369,6 +397,82 @@ void SessionState::add_rule_usage(
   if (session_level_key_ != "" && monitoring_key != session_level_key_) {
     // Update session level key if its different
     add_to_monitor(session_level_key_, used_tx, used_rx, update_criteria);
+  }
+  if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
+    update_data_usage_metrics(used_tx, used_rx);
+  }
+}
+
+void SessionState::apply_session_rule_set(
+    RuleSetToApply& rule_set, RulesToProcess& rules_to_activate,
+    RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc) {
+  apply_session_static_rule_set(
+      rule_set.static_rules, rules_to_activate, rules_to_deactivate, uc);
+  apply_session_dynamic_rule_set(
+      rule_set.dynamic_rules, rules_to_activate, rules_to_deactivate, uc);
+}
+
+void SessionState::apply_session_static_rule_set(
+    std::unordered_set<std::string> static_rules,
+    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& uc) {
+  // No activation time / deactivation support yet for rule set interface
+  RuleLifetime lifetime{
+      .activation_time   = 0,
+      .deactivation_time = 0,
+  };
+  // Go through the rule set and install any rules not yet installed
+  for (const auto& static_rule_id : static_rules) {
+    if (!is_static_rule_installed(static_rule_id)) {
+      MLOG(MINFO) << "Installing static rule " << static_rule_id << " for "
+                  << session_id_;
+      activate_static_rule(static_rule_id, lifetime, uc);
+      rules_to_activate.static_rules.push_back(static_rule_id);
+    }
+  }
+  std::vector<std::string> static_rules_to_deactivate;
+
+  // Go through the existing rules and uninstall any rule not in the rule set
+  for (const auto static_rule_id : active_static_rules_) {
+    if (static_rules.find(static_rule_id) == static_rules.end()) {
+      rules_to_deactivate.static_rules.push_back(static_rule_id);
+    }
+  }
+  // Do the actual removal separately so we're not modifying the vector while
+  // looping
+  for (const auto static_rule_id : rules_to_deactivate.static_rules) {
+    MLOG(MINFO) << "Removing static rule " << static_rule_id << " for "
+                << session_id_;
+    deactivate_static_rule(static_rule_id, uc);
+  }
+}
+
+void SessionState::apply_session_dynamic_rule_set(
+    std::unordered_map<std::string, PolicyRule> dynamic_rules,
+    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& uc) {
+  // No activation time / deactivation support yet for rule set interface
+  RuleLifetime lifetime{
+      .activation_time   = 0,
+      .deactivation_time = 0,
+  };
+  for (const auto& dynamic_rule_pair : dynamic_rules) {
+    if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
+      MLOG(MINFO) << "installing dynamic rule " << dynamic_rule_pair.first
+                  << " for " << session_id_;
+      insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
+      rules_to_activate.dynamic_rules.push_back(dynamic_rule_pair.second);
+    }
+  }
+  std::vector<PolicyRule> active_dynamic_rules;
+  dynamic_rules_.get_rules(active_dynamic_rules);
+  for (const auto& dynamic_rule : active_dynamic_rules) {
+    if (dynamic_rules.find(dynamic_rule.id()) == dynamic_rules.end()) {
+      MLOG(MINFO) << "Removing dynamic rule " << dynamic_rule.id() << " for "
+                  << session_id_;
+      remove_dynamic_rule(dynamic_rule.id(), nullptr, uc);
+      rules_to_deactivate.dynamic_rules.push_back(dynamic_rule);
+    }
   }
 }
 
@@ -1335,6 +1439,58 @@ void SessionState::set_session_level_key(const std::string new_key) {
   session_level_key_ = new_key;
 }
 
+BearerUpdate SessionState::get_dedicated_bearer_updates(
+    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
+    SessionStateUpdateCriteria& uc) {
+  BearerUpdate update;
+  // Rule Installs
+  for (const auto& rule_id : rules_to_activate.static_rules) {
+    update_bearer_creation_req(STATIC, rule_id, config_, update);
+  }
+  for (const auto& rule : rules_to_activate.dynamic_rules) {
+    const auto& rule_id = rule.id();
+    update_bearer_creation_req(DYNAMIC, rule_id, config_, update);
+  }
+
+  // Rule Removals
+  for (const auto& rule_id : rules_to_deactivate.static_rules) {
+    update_bearer_deletion_req(STATIC, rule_id, config_, update, uc);
+  }
+  for (const auto& rule : rules_to_deactivate.dynamic_rules) {
+    const auto& rule_id = rule.id();
+    update_bearer_deletion_req(DYNAMIC, rule_id, config_, update, uc);
+  }
+  return update;
+}
+
+void SessionState::bind_policy_to_bearer(
+    const PolicyBearerBindingRequest& request, SessionStateUpdateCriteria& uc) {
+  const std::string& rule_id = request.policy_rule_id();
+  auto policy_type           = get_policy_type(rule_id);
+  if (!policy_type) {
+    MLOG(MDEBUG) << "Policy " << rule_id
+                 << " not found, when trying to bind to bearerID "
+                 << request.bearer_id();
+    return;
+  }
+  MLOG(MINFO) << session_id_ << " now has policy " << rule_id
+              << " tied to bearerID " << request.bearer_id();
+  bearer_id_by_policy_[PolicyID(*policy_type, rule_id)] = request.bearer_id();
+  uc.is_bearer_mapping_updated = true;
+  uc.bearer_id_by_policy       = bearer_id_by_policy_;
+}
+
+std::experimental::optional<PolicyType> SessionState::get_policy_type(
+    const std::string& rule_id) {
+  if (is_static_rule_installed(rule_id)) {
+    return STATIC;
+  } else if (is_dynamic_rule_installed(rule_id)) {
+    return DYNAMIC;
+  } else {
+    return {};
+  }
+}
+
 SessionCreditUpdateCriteria* SessionState::get_monitor_uc(
     const std::string& key, SessionStateUpdateCriteria& uc) {
   if (uc.monitor_credit_map.find(key) == uc.monitor_credit_map.end()) {
@@ -1420,4 +1576,153 @@ bool SessionState::is_credit_state_redirected(
   }
   return it->second->service_state == SERVICE_REDIRECTED;
 }
+
+// QoS/Bearer Management
+bool SessionState::policy_has_qos(
+    const PolicyType policy_type, const std::string& rule_id,
+    PolicyRule* rule_out) {
+  if (policy_type == STATIC) {
+    bool exists = static_rules_.get_rule(rule_id, rule_out);
+    return exists && rule_out->has_qos();
+  }
+  if (policy_type == DYNAMIC) {
+    bool exists = dynamic_rules_.get_rule(rule_id, rule_out);
+    return exists && rule_out->has_qos();
+  }
+  return false;
+}
+
+void SessionState::update_bearer_creation_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update) {
+  if (!config.rat_specific_context.has_lte_context()) {
+    return;
+  }
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) !=
+      bearer_id_by_policy_.end()) {
+    // Policy already has a bearer
+    return;
+  }
+  PolicyRule rule;
+  if (!policy_has_qos(policy_type, rule_id, &rule)) {
+    // Only create a bearer for policies with QoS
+    return;
+  }
+  auto default_qci = FlowQos_Qci(
+      config.rat_specific_context.lte_context().qos_info().qos_class_id());
+  if (rule.qos().qci() == default_qci) {
+    // This QCI is already covered by the default bearer
+    return;
+  }
+
+  // If it is first time filling in the CreationReq, fill in other info
+  if (!update.needs_creation) {
+    update.needs_creation = true;
+    update.create_req.mutable_sid()->CopyFrom(config.common_context.sid());
+    update.create_req.set_ip_addr(config.common_context.ue_ipv4());
+    update.create_req.set_link_bearer_id(
+        config.rat_specific_context.lte_context().bearer_id());
+  }
+  update.create_req.mutable_policy_rules()->Add()->CopyFrom(rule);
+  // We will add the new policyID to bearerID association, once we receive a
+  // message from SGW.
+}
+
+void SessionState::update_bearer_deletion_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update,
+    SessionStateUpdateCriteria& uc) {
+  if (!config.rat_specific_context.has_lte_context()) {
+    return;
+  }
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) ==
+      bearer_id_by_policy_.end()) {
+    return;
+  }
+  // map change needs to be propagated to the store
+  const auto bearer_id_to_delete =
+      bearer_id_by_policy_[PolicyID(policy_type, rule_id)];
+  bearer_id_by_policy_.erase(PolicyID(policy_type, rule_id));
+  uc.is_bearer_mapping_updated = true;
+  uc.bearer_id_by_policy       = bearer_id_by_policy_;
+
+  // If it is first time filling in the DeletionReq, fill in other info
+  if (!update.needs_deletion) {
+    update.needs_deletion = true;
+    auto& req             = update.delete_req;
+    req.mutable_sid()->CopyFrom(config.common_context.sid());
+    req.set_ip_addr(config.common_context.ue_ipv4());
+    req.set_link_bearer_id(
+        config.rat_specific_context.lte_context().bearer_id());
+  }
+  update.delete_req.mutable_eps_bearer_ids()->Add(bearer_id_to_delete);
+}
+
+RuleSetToApply::RuleSetToApply(const magma::lte::RuleSet& rule_set) {
+  for (const auto& static_rule_install : rule_set.static_rules()) {
+    static_rules.insert(static_rule_install.rule_id());
+  }
+  for (const auto& dynamic_rule_install : rule_set.dynamic_rules()) {
+    dynamic_rules[dynamic_rule_install.policy_rule().id()] =
+        dynamic_rule_install.policy_rule();
+  }
+}
+
+void RuleSetToApply::combine_rule_set(const RuleSetToApply& other) {
+  for (const auto& static_rule : other.static_rules) {
+    static_rules.insert(static_rule);
+  }
+  for (const auto& dynamic_pair : other.dynamic_rules) {
+    dynamic_rules[dynamic_pair.first] = dynamic_pair.second;
+  }
+}
+
+RuleSetBySubscriber::RuleSetBySubscriber(
+    const RulesPerSubscriber& rules_per_subscriber) {
+  imsi = rules_per_subscriber.imsi();
+  for (const auto& rule_set : rules_per_subscriber.rule_set()) {
+    if (rule_set.apply_subscriber_wide()) {
+      subscriber_wide_rule_set = RuleSetToApply(rule_set);
+    } else {
+      subscriber_wide_rule_set        = {};
+      rule_set_by_apn[rule_set.apn()] = RuleSetToApply(rule_set);
+    }
+  }
+}
+
+std::experimental::optional<RuleSetToApply>
+RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
+  const bool apn_rule_set_exists =
+      rule_set_by_apn.find(apn) != rule_set_by_apn.end();
+  // Apply subscriber wide rule set if it exists. Also apply per-APN rule
+  // set if it exists.
+  if (apn_rule_set_exists && subscriber_wide_rule_set) {
+    auto rule_set_to_apply = rule_set_by_apn[apn];
+    rule_set_to_apply.combine_rule_set(*subscriber_wide_rule_set);
+    return rule_set_to_apply;
+  }
+  if (subscriber_wide_rule_set) {
+    return subscriber_wide_rule_set;
+  }
+  if (apn_rule_set_exists) {
+    return rule_set_by_apn[apn];
+  }
+  return {};
+}
+
+void SessionState::update_data_usage_metrics(
+    uint64_t bytes_tx, uint64_t bytes_rx) {
+  const auto sid    = get_config().common_context.sid().id();
+  const auto msisdn = get_config().common_context.msisdn();
+  const auto apn    = get_config().common_context.apn();
+  increment_counter(
+      "ue_reported_usage", bytes_tx, size_t(4), LABEL_IMSI, sid.c_str(),
+      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_UP);
+  increment_counter(
+      "ue_reported_usage", bytes_rx, size_t(4), LABEL_IMSI, sid.c_str(),
+      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_DOWN);
+}
+
 }  // namespace magma

@@ -31,6 +31,7 @@ from lte.protos.pipelined_pb2 import (
     AllTableAssignments,
     TableAssignment)
 from lte.protos.policydb_pb2 import PolicyRule
+from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
@@ -146,7 +147,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, rule.id)
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.ip_addr, request.rule_ids,
+            request.sid.id, request.ip_addr, request.apn_ambr, request.rule_ids,
             request.dynamic_rules)
 
         failed_static_rule_results, failed_dynamic_rule_results = \
@@ -157,7 +158,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         dynamic_rules = \
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
         enforcement_res = self._activate_rules_in_enforcement(
-            request.sid.id, request.ip_addr, static_rule_ids, dynamic_rules)
+            request.sid.id, request.ip_addr, request.apn_ambr, static_rule_ids,
+            dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
         enforcement_res.static_rule_results.extend(failed_static_rule_results)
@@ -189,6 +191,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         fut.set_result(res)
 
     def _activate_rules_in_enforcement_stats(self, imsi: str, ip_addr: str,
+                                             apn_ambr: AggregatedMaximumBitrate,
                                              static_rule_ids: List[str],
                                              dynamic_rules: List[PolicyRule]
                                              ) -> ActivateFlowsResult:
@@ -197,18 +200,20 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, ip_addr, static_rule_ids, dynamic_rules)
+            imsi, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
     def _activate_rules_in_enforcement(self, imsi: str, ip_addr: str,
+                                       apn_ambr: AggregatedMaximumBitrate,
                                        static_rule_ids: List[str],
                                        dynamic_rules: List[PolicyRule]
                                        ) -> ActivateFlowsResult:
         # TODO: this will crash pipelined if called with both static rules
         # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
-            imsi, ip_addr, static_rule_ids, dynamic_rules)
+            imsi, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
+        # TODO ?? Should the enforcement failure be reported per imsi session
         _report_enforcement_failures(enforcement_res, imsi)
         return enforcement_res
 

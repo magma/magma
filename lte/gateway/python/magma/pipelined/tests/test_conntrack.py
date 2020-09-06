@@ -20,7 +20,7 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.app.conntrack import ConntrackController
 from magma.pipelined.tests.app.start_pipelined import TestSetup, \
     PipelinedController
-from magma.pipelined.tests.app.subscriber import SubContextConfig
+from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -112,7 +112,7 @@ class ConntrackTest(unittest.TestCase):
         """
         sub_ip = '145.254.160.237' # extracted from pcap don't change
         sub = SubContextConfig('IMSI001010000000013', sub_ip,
-                               self._tbl_num)
+                               default_ambr_config, self._tbl_num)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),

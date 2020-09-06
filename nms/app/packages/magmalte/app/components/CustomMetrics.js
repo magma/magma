@@ -46,6 +46,29 @@ export function getStep(start: moment, end: moment): [number, string, string] {
   return [24, 'hour', 'DD-MM-YYYY'];
 }
 
+// for querying event and log count, the api doesn't have a step attribute
+// hence we have to split the start and end window into several sets of
+// [start, end] queries which can then be queried in parallel
+export function getQueryRanges(
+  start: moment,
+  end: moment,
+  delta: number,
+  unit: string,
+): Array<[moment, moment]> {
+  const queries = [];
+  let s = start.clone();
+  // go back delta time so that we get the total number of events
+  // or logs at that 's' point of time
+  s = s.subtract(delta, unit);
+  while (end.diff(s, unit) >= delta) {
+    const e = s.clone();
+    e.add(delta, unit);
+    queries.push([s, e]);
+    s = e;
+  }
+  return queries;
+}
+
 export type DatasetType = {
   t: number,
   y: number,
@@ -63,7 +86,6 @@ export type Dataset = {
 
 type Props = {
   dataset: Array<Dataset>,
-  labels?: Array<string>,
   unit?: string,
   yLabel?: string,
   tooltipHandler?: (ChartTooltipItem, ChartData) => string,
@@ -144,7 +166,6 @@ export function CustomLineChart(props: Props) {
       <Line
         height={300}
         data={{
-          labels: props.labels,
           datasets: props.dataset,
         }}
         legend={{

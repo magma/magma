@@ -33,8 +33,7 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -136,19 +135,10 @@ function ExpandEvent(props: EventDescriptionProps) {
   );
 }
 
-function handleEventQuery(
-  networkId,
-  streams,
-  tags,
-  q,
-  from,
-  start,
-  end,
-  enqueueSnackbar,
-) {
+function handleEventQuery(networkId, streams, tags, q, from, start, end) {
   return new Promise(async (resolve, reject) => {
     try {
-      const eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
+      let eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
         networkId: networkId,
         streams: streams,
         tags: tags,
@@ -157,17 +147,39 @@ function handleEventQuery(
         start: start.toISOString(),
         end: end.toISOString(),
       });
+      let eventResp = [];
+      if (eventCount === 0 && q.search !== '' && tags === undefined) {
+        eventCount = await MagmaV1API.getEventsByNetworkIdAboutCount({
+          networkId: networkId,
+          streams: streams,
+          tags: q.search,
+          from: (q.page * q.pageSize).toString(),
+          size: q.pageSize.toString(),
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
 
-      const eventResp = await MagmaV1API.getEventsByNetworkId({
-        networkId: networkId,
-        streams: streams,
-        tags: tags,
-        events: q.search !== '' ? q.search : undefined,
-        from: (q.page * q.pageSize).toString(),
-        size: q.pageSize.toString(),
-        start: start.toISOString(),
-        end: end.toISOString(),
-      });
+        eventResp = await MagmaV1API.getEventsByNetworkId({
+          networkId: networkId,
+          streams: streams,
+          tags: q.search,
+          from: (q.page * q.pageSize).toString(),
+          size: q.pageSize.toString(),
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      } else {
+        eventResp = await MagmaV1API.getEventsByNetworkId({
+          networkId: networkId,
+          streams: streams,
+          tags: tags,
+          events: q.search !== '' ? q.search : undefined,
+          from: (q.page * q.pageSize).toString(),
+          size: q.pageSize.toString(),
+          start: start.toISOString(),
+          end: end.toISOString(),
+        });
+      }
       const page =
         eventCount < q.page * q.pageSize ? eventCount / q.pageSize : q.page;
 
@@ -189,27 +201,26 @@ function handleEventQuery(
         totalCount: eventCount,
       });
     } catch (e) {
-      enqueueSnackbar(e, {variant: 'error'});
-      reject(e);
+      reject(e?.message ?? 'error retrieving events');
     }
   });
 }
 
-export default function EventsTable({
-  eventStream,
-  tags,
-  sz,
-}: {
+type EventTableProps = {
   eventStream: magmaEventStream,
   tags?: string,
   sz: 'sm' | 'md' | 'lg',
-}) {
+  inStartDate?: moment,
+  inEndDate?: moment,
+};
+
+export default function EventsTable(props: EventTableProps) {
+  const {eventStream, tags, sz} = props;
   const classes = useStyles();
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());
   const [eventCount, setEventCount] = useState(0);
   const tableRef = useRef(null);
-  const enqueueSnackbar = useEnqueueSnackbar();
   const {match} = useRouter();
   const networkId = nullthrows(match.params.networkId);
   const streams =
@@ -227,6 +238,14 @@ export default function EventsTable({
       format: format,
     };
   }, [startDate, endDate]);
+
+  useEffect(() => {
+    if (props.inStartDate && props.inEndDate) {
+      if (tableRef.current) {
+        tableRef.current.onQueryChange();
+      }
+    }
+  }, [props.inStartDate, props.inEndDate]);
 
   function DateFilter() {
     return (
@@ -276,7 +295,6 @@ export default function EventsTable({
     <>
       {sz === 'sm' && (
         <ActionTable
-          title=""
           tableRef={tableRef}
           data={(query: ActionQuery) => {
             return handleEventQuery(
@@ -287,7 +305,6 @@ export default function EventsTable({
               0,
               startDate,
               endDate,
-              enqueueSnackbar,
             );
           }}
           columns={[
@@ -296,7 +313,7 @@ export default function EventsTable({
           ]}
           options={{
             actionsColumnIndex: -1,
-            pageSizeOptions: [5],
+            pageSizeOptions: [10],
             toolbar: false,
           }}
           detailPanel={[
@@ -313,6 +330,12 @@ export default function EventsTable({
       {sz === 'md' && (
         <ActionTable
           tableRef={tableRef}
+          localization={{
+            toolbar: {
+              searchPlaceholder:
+                tags !== undefined ? 'Event Types' : 'Event Types or Tags',
+            },
+          }}
           data={(query: ActionQuery) => {
             return handleEventQuery(
               networkId,
@@ -320,9 +343,8 @@ export default function EventsTable({
               tags,
               query,
               0,
-              startDate,
-              endDate,
-              enqueueSnackbar,
+              props.inStartDate ?? startDate,
+              props.inEndDate ?? endDate,
             );
           }}
           columns={[
@@ -332,6 +354,7 @@ export default function EventsTable({
           ]}
           options={{
             actionsColumnIndex: -1,
+            pageSize: 10,
             pageSizeOptions: [10, 20],
           }}
           detailPanel={[
@@ -364,8 +387,13 @@ export default function EventsTable({
             <Grid item xs={12}>
               <ActionTable
                 tableRef={tableRef}
-                toolbar={{
-                  searchTooltip: 'Search Event Types',
+                localization={{
+                  toolbar: {
+                    searchPlaceholder:
+                      tags !== undefined
+                        ? 'Event Types'
+                        : 'Event Types or Tags',
+                  },
                 }}
                 data={(query: ActionQuery) => {
                   return handleEventQuery(
@@ -376,7 +404,6 @@ export default function EventsTable({
                     0,
                     startDate,
                     endDate,
-                    enqueueSnackbar,
                   );
                 }}
                 columns={[
@@ -391,6 +418,7 @@ export default function EventsTable({
                 ]}
                 options={{
                   actionsColumnIndex: -1,
+                  pageSize: 10,
                   pageSizeOptions: [10, 20],
                 }}
                 detailPanel={[

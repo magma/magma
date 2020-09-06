@@ -27,7 +27,6 @@ import DialogTitle from '../../theme/design-system/DialogTitle';
 import EnodebContext from '../../components/context/EnodebContext';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
-import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
@@ -124,13 +123,13 @@ export default function AddEditEnodeButton(props: ButtonProps) {
         editProps={props.editProps}
       />
       {props.isLink ? (
-        <Link
+        <Button
           data-testid={(props.editProps?.editTable ?? '') + 'EditButton'}
           component="button"
           variant="text"
           onClick={handleClickOpen}>
           {props.title}
-        </Link>
+        </Button>
       ) : (
         <Button
           variant="text"
@@ -151,7 +150,7 @@ function EnodeEditDialog(props: DialogProps) {
   const ctx = useContext(EnodebContext);
   const enodebSerial: string = match.params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const lteRanConfigs = ctx.state.lteRanConfigs;
+  const lteRanConfigs = ctx.lteRanConfigs;
 
   const [tabPos, setTabPos] = useState(
     editProps ? EditTableType[editProps.editTable] : 0,
@@ -185,7 +184,7 @@ function EnodeEditDialog(props: DialogProps) {
       </Tabs>
       {tabPos === 0 && (
         <ConfigEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Continue'}
+          isAdd={!editProps}
           enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
@@ -201,7 +200,7 @@ function EnodeEditDialog(props: DialogProps) {
       )}
       {tabPos === 1 && (
         <RanEdit
-          saveButtonTitle={editProps ? 'Save' : 'Save And Add eNodeB'}
+          isAdd={!editProps}
           enb={Object.keys(enb).length != 0 ? enb : enbInfo?.enb}
           lteRanConfigs={lteRanConfigs}
           onClose={onClose}
@@ -213,7 +212,7 @@ function EnodeEditDialog(props: DialogProps) {
 }
 
 type Props = {
-  saveButtonTitle: string,
+  isAdd: boolean,
   enb?: enodeb,
   lteRanConfigs: ?network_ran_configs,
   onClose: () => void,
@@ -276,7 +275,6 @@ export function RanEdit(props: Props) {
       });
       props.onSave(enb);
     } catch (e) {
-      console.log('xxxx', e);
       setError(e.response?.data?.message ?? e.message);
     }
   };
@@ -369,6 +367,7 @@ export function RanEdit(props: Props) {
           <AltFormField label={'PCI'}>
             <OutlinedInput
               data-testid="pci"
+              placeholder="Enter PCI"
               fullWidth={true}
               value={optConfig.pci}
               onChange={({target}) => handleOptChange('pci', target.value)}
@@ -378,6 +377,7 @@ export function RanEdit(props: Props) {
           <AltFormField label={'TAC'}>
             <OutlinedInput
               data-testid="tac"
+              placeholder="Enter TAC"
               fullWidth={true}
               value={optConfig.tac}
               onChange={({target}) => handleOptChange('tac', target.value)}
@@ -404,7 +404,7 @@ export function RanEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Add eNodeB' : 'Save'}
         </Button>
       </DialogActions>
     </>
@@ -418,11 +418,20 @@ export function ConfigEdit(props: Props) {
   const ctx = useContext(EnodebContext);
   const enodebSerial: string = match.params.enodebSerial;
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-
   const [enb, setEnb] = useState<enodeb>(props.enb || DEFAULT_ENB_CONFIG);
-
   const onSave = async () => {
     try {
+      if (props.isAdd) {
+        // check if it is not a modify during add i.e we aren't switching tabs back
+        // during add and modifying the information other than the serial number
+        if (
+          enb.serial in ctx.state.enbInfo &&
+          enb.serial !== props.enb?.serial
+        ) {
+          setError(`eNodeB ${enb.serial} already exists`);
+          return;
+        }
+      }
       await ctx.setState(enb.serial, {
         enb_state: enbInfo?.enb_state ?? {},
         enb: enb,
@@ -444,12 +453,15 @@ export function ConfigEdit(props: Props) {
         <List>
           {error !== '' && (
             <AltFormField label={''}>
-              <FormLabel error>{error}</FormLabel>
+              <FormLabel data-testid="configEditError" error>
+                {error}
+              </FormLabel>
             </AltFormField>
           )}
           <AltFormField label={'Name'}>
             <OutlinedInput
               data-testid="name"
+              placeholder="Enter Name"
               fullWidth={true}
               value={enb.name}
               onChange={({target}) => setEnb({...enb, name: target.value})}
@@ -458,6 +470,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Serial Number'}>
             <OutlinedInput
               data-testid="serial"
+              placeholder="Ex: 12020000261814C0021"
               fullWidth={true}
               value={enb.serial}
               readOnly={props.enb ? true : false}
@@ -467,6 +480,7 @@ export function ConfigEdit(props: Props) {
           <AltFormField label={'Description'}>
             <OutlinedInput
               data-testid="description"
+              placeholder="Enter Description"
               fullWidth={true}
               multiline
               rows={4}
@@ -483,7 +497,7 @@ export function ConfigEdit(props: Props) {
           Cancel
         </Button>
         <Button onClick={onSave} variant="contained" color="primary">
-          {props.saveButtonTitle}
+          {props.isAdd ? 'Save And Continue' : 'Save'}
         </Button>
       </DialogActions>
     </>
