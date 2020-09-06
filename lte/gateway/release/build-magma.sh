@@ -210,6 +210,7 @@ SCTPD_BUILD="${C_BUILD}/sctpd"
 make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
+make build_connection_tracker BUILD_TYPE="${BUILD_TYPE}"
 
 # Next, gather up the python files and put them into a build path.
 #
@@ -310,6 +311,7 @@ $(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/ma
 $(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
 $(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.service) \
 $(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
+$(glob_files "${SERVICE_DIR}/magma@connectiond.service" /etc/systemd/system/magma@connectiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@connectiond.service" /etc/systemd/system/magma@connectiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
 $(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \
