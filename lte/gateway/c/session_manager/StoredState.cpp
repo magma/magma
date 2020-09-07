@@ -98,6 +98,12 @@ std::string serialize_stored_final_action_info(const FinalActionInfo& stored) {
   stored.redirect_server.SerializeToString(&redirect_server);
   marshaled["redirect_server"] = redirect_server;
 
+  folly::dynamic restrict_rules = folly::dynamic::array;
+  for (const auto& rule_id : stored.restrict_rules) {
+    restrict_rules.push_back(rule_id);
+  }
+  marshaled["restrict_rules"] = restrict_rules;
+
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
@@ -114,6 +120,10 @@ FinalActionInfo deserialize_stored_final_action_info(
   magma::lte::RedirectServer redirect_server;
   redirect_server.ParseFromString(marshaled["redirect_server"].getString());
   stored.redirect_server = redirect_server;
+
+  for (auto& rule_id : marshaled["restrict_rules"]) {
+    stored.restrict_rules.push_back(rule_id.getString());
+  }
 
   return stored;
 }

@@ -1027,7 +1027,7 @@ static FinalActionInfo get_final_action_info(
     }
     else if (credit.final_action() == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
         for (auto rule : credit.restrict_rules()) {
-          final_action_info.restrict_rules.insert(rule);
+          final_action_info.restrict_rules.push_back(rule);
         }
     }
   }

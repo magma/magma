@@ -36,6 +36,7 @@ StoredChargingGrant ChargingGrant::marshal() {
   StoredChargingGrant marshaled{};
   marshaled.is_final                       = is_final_grant;
   marshaled.final_action_info.final_action = final_action_info.final_action;
+  marshaled.final_action_info.restrict_rules = final_action_info.restrict_rules;
   marshaled.final_action_info.redirect_server =
       final_action_info.redirect_server;
   marshaled.reauth_state  = reauth_state;
@@ -56,6 +57,12 @@ void ChargingGrant::receive_charging_grant(
     final_action_info.final_action = p_credit.final_action();
     if (p_credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
       final_action_info.redirect_server = p_credit.redirect_server();
+    }
+    else if (p_credit.final_action() ==
+        ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+      for (auto rule : p_credit.restrict_rules()) {
+        final_action_info.restrict_rules.push_back(rule);
+      }
     }
     log_final_action_info();
   }
@@ -210,6 +217,13 @@ void ChargingGrant::log_final_action_info() const {
       final_action += ", redirect_server: ";
       final_action +=
           final_action_info.redirect_server.redirect_server_address();
+    }
+    else if (final_action_info.final_action ==
+        ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+      final_action += ", restrict_rules: ";
+      for (auto rule : final_action_info.restrict_rules) {
+        final_action += rule + ", ";
+      }
     }
   }
   MLOG(MINFO) << "This is a final credit, with " << final_action;
