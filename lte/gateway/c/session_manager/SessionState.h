@@ -367,7 +367,7 @@ class SessionState {
 
   EventTriggerStatus get_event_triggers() {return pending_event_triggers_;}
 
-  bool is_credit_state_redirected(const CreditKey &charging_key) const;
+  bool is_credit_in_final_unit_state(const CreditKey &charging_key) const;
 
   // Monitors
   bool receive_monitor(const UsageMonitoringUpdateResponse &update,

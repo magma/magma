@@ -103,11 +103,11 @@ class ServiceAction {
   }
 
   /**
-   * get_restrict_rule_ids returns the associated restrict rules
+   * get_restrict_rules returns the associated restrict rules
    * for the RESTRICT action
    */
-  const std::vector<std::string> &get_restrict_rule_ids() const {
-    return restrict_rule_ids_;
+  const std::vector<std::string> &get_restrict_rules() const {
+    return restrict_rules_;
   }
 
   std::vector<std::string>* get_mutable_rule_ids() { return &rule_ids_; }
@@ -125,11 +125,11 @@ class ServiceAction {
   }
 
   /**
-   * get_mutable_restrict_rule_ids returns a mutable list of the associated restrict
+   * get_mutable_restrict_rules returns a mutable list of the associated restrict
    * rules
    */
-  std::vector<std::string>* get_mutable_restrict_rule_ids() {
-    return &restrict_rule_ids_;
+  std::vector<std::string>* get_mutable_restrict_rules() {
+    return &restrict_rules_;
   }
 
   /**
@@ -150,7 +150,7 @@ class ServiceAction {
   std::vector<PolicyRule> rule_definitions_;
   std::unique_ptr<RedirectServer> redirect_server_;
   std::experimental::optional<AggregatedMaximumBitrate> ambr_;
-  std::vector<std::string> restrict_rule_ids_;
+  std::vector<std::string> restrict_rules_;
 };
 
 } // namespace magma

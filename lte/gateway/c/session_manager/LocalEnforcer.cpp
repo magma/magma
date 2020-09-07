@@ -318,16 +318,16 @@ void LocalEnforcer::execute_actions(
         {
           // Bundle up all info into this struct so that we don't have to pass around
           // unique pointers
-          FinalActionInstallInfo fua_info{
+          FinalActionInstallInfo final_action_info{
             .imsi              = action_p->get_imsi(),
             .session_id        = action_p->get_session_id(),
             .action_type       = action_p->get_type(),
-            .restrict_rule_ids = action_p->get_restrict_rule_ids(),
+            .restrict_rules = action_p->get_restrict_rules(),
           };
           if (action_p->is_redirect_server_set()) {
-            fua_info.redirect_server = action_p->get_redirect_server();
+            final_action_info.redirect_server = action_p->get_redirect_server();
           }
-          start_final_unit_action_flows_install(session_map, fua_info, session_update);
+          start_final_unit_action_flows_install(session_map, final_action_info, session_update);
           break;
         }
       case TERMINATE_SERVICE: {
@@ -550,27 +550,27 @@ PolicyRule LocalEnforcer::create_redirect_rule(
 }
 
 void LocalEnforcer::start_final_unit_action_flows_install(
-    SessionMap& session_map, const FinalActionInstallInfo fua_info,
+    SessionMap& session_map, const FinalActionInstallInfo final_action_info,
     SessionUpdate& session_update) {
   MLOG(MDEBUG) << "Fetching Subscriber IP address from DirectoryD for "
-               << fua_info.session_id;
+               << final_action_info.session_id;
   directoryd_client_->get_directoryd_ip_field(
-      fua_info.imsi,
-      [this, fua_info](Status status, DirectoryField resp) {
+      final_action_info.imsi,
+      [this, final_action_info](Status status, DirectoryField resp) {
         // This call back gets executed in the DirectoryD client thread, but
         // we want to run the session update logic in the main thread.
-        evb_->runInEventBaseThread([this, fua_info, status, resp]() {
-          complete_final_unit_action_flows_install(status, resp, fua_info);
+        evb_->runInEventBaseThread([this, final_action_info, status, resp]() {
+          complete_final_unit_action_flows_install(status, resp, final_action_info);
         });
       });
 }
 
 void LocalEnforcer::complete_final_unit_action_flows_install(
     Status status, DirectoryField resp,
-    const FinalActionInstallInfo fua_info) {
+    const FinalActionInstallInfo final_action_info) {
   RuleLifetime lifetime{};
-  auto imsi         = fua_info.imsi;
-  auto session_id   = fua_info.session_id;
+  auto imsi         = final_action_info.imsi;
+  auto session_id   = final_action_info.session_id;
 
   MLOG(MDEBUG) << "Received response from DirectoryD on IP addr for "
                << session_id;
@@ -591,12 +591,12 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
   auto session_update = session_store_.get_default_session_update(session_map);
   for (const auto& session : it->second) {
     if (session->get_session_id() == session_id) {
-      if (fua_info.action_type == REDIRECT) {
+      if (final_action_info.action_type == REDIRECT) {
         // This is GY based REDIRECT, GX redirect will come in as a regular rule
         std::vector<std::string> static_rules;
-        auto rule = create_redirect_rule(fua_info);
+        auto rule = create_redirect_rule(final_action_info);
         // check if the rule has been installed already.
-        if (session->is_dynamic_rule_installed(rule.id())) {
+        if (!session->is_gy_dynamic_rule_installed(rule.id())) {
           MLOG(MDEBUG) << "Install redirect GY flow in pipelined for "
                      << session_id;
           pipelined_client_->add_gy_final_action_flow(
@@ -605,11 +605,11 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
           session->insert_gy_dynamic_rule(rule, lifetime, uc);
         }
       }
-      else if (fua_info.action_type == RESTRICT_ACCESS) {
+      else if (final_action_info.action_type == RESTRICT_ACCESS) {
         MLOG(MDEBUG) << "Install restricted GY flow in pipelined for "
                      << session_id;
         pipelined_client_->add_gy_final_action_flow(
-            imsi, ip, fua_info.restrict_rule_ids, {});
+            imsi, ip, final_action_info.restrict_rules, {});
       }
     }
   }
@@ -1240,13 +1240,12 @@ void LocalEnforcer::update_charging_credits(
       }
 
       SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
-      bool is_redirected =
-          session->is_credit_state_redirected(CreditKey(credit_update_resp));
+      bool is_final_action_state =
+          session->is_credit_in_final_unit_state(CreditKey(credit_update_resp));
       session->receive_charging_credit(credit_update_resp, uc);
-
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), uc);
 
-      if (is_redirected) {
+      if (is_final_action_state) {
         SessionState::SessionInfo info;
         std::vector<PolicyRule> gy_rules_to_deactivate;
         session->get_session_info(info);

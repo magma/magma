@@ -1031,9 +1031,9 @@ static FinalActionInfo get_final_action_info(
       final_action_info.redirect_server = credit.redirect_server();
     }
     else if (credit.final_action() == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
-        for (auto rule : credit.restrict_rules()) {
-          final_action_info.restrict_rules.insert(rule);
-        }
+      for (auto rule : credit.restrict_rules()) {
+        final_action_info.restrict_rules.push_back(rule);
+      }
     }
   }
   return final_action_info;
@@ -1286,10 +1286,10 @@ void SessionState::get_charging_updates(
           MLOG(MDEBUG) << "Service Restriction is already activated.";
           continue;
         }
-        auto restrict_rule_ids = action->get_mutable_restrict_rule_ids();
+        auto restrict_rules = action->get_mutable_restrict_rules();
         grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
         for (auto &rule : grant->final_action_info.restrict_rules) {
-          restrict_rule_ids->push_back(rule);
+          restrict_rules->push_back(rule);
         }
       }
       case ACTIVATE_SERVICE:
@@ -1452,7 +1452,6 @@ bool SessionState::init_new_monitor(
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
   auto _ = SessionCreditUpdateCriteria{};
-  FinalActionInfo final_action_info;
   auto gsu = update.credit().granted_units();
   monitor->credit.receive_credit(gsu, NULL);
 
@@ -1612,13 +1611,14 @@ void SessionState::set_revalidation_time(
   update_criteria.revalidation_time = time;
 }
 
-bool SessionState::is_credit_state_redirected(
+bool SessionState::is_credit_in_final_unit_state(
     const CreditKey& charging_key) const {
   auto it = credit_map_.find(charging_key);
   if (it == credit_map_.end()) {
     return false;
   }
-  return it->second->service_state == SERVICE_REDIRECTED;
+ return (it->second->service_state == SERVICE_REDIRECTED ||
+      it->second->service_state == SERVICE_RESTRICTED);
 }
 
 // QoS/Bearer Management

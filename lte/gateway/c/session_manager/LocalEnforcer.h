@@ -232,7 +232,7 @@ class LocalEnforcer {
     std::string imsi;
     std::string session_id;
     ServiceActionType action_type;
-    std::vector<std::string> restrict_rule_ids;
+    std::vector<std::string> restrict_rules;
     magma::lte::RedirectServer redirect_server;
   };
   std::shared_ptr<SessionReporter> reporter_;
