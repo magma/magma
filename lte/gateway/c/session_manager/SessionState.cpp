@@ -1030,6 +1030,11 @@ static FinalActionInfo get_final_action_info(
     if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
       final_action_info.redirect_server = credit.redirect_server();
     }
+    else if (credit.final_action() == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+        for (auto rule : credit.restrict_rules()) {
+          final_action_info.restrict_rules.insert(rule);
+        }
+    }
   }
   return final_action_info;
 }
@@ -1276,10 +1281,20 @@ void SessionState::get_charging_updates(
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
+      case RESTRICT_ACCESS: {
+        if (grant->service_state == SERVICE_RESTRICTED) {
+          MLOG(MDEBUG) << "Service Restriction is already activated.";
+          continue;
+        }
+        auto restrict_rule_ids = action->get_mutable_restrict_rule_ids();
+        grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
+        for (auto &rule : grant->final_action_info.restrict_rules) {
+          restrict_rule_ids->push_back(rule);
+        }
+      }
       case ACTIVATE_SERVICE:
         action->set_ambr(config_.get_apn_ambr());
       case TERMINATE_SERVICE:
-      case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " action type " << action_type;
         action->set_credit_key(key);
@@ -1291,6 +1306,9 @@ void SessionState::get_charging_updates(
         dynamic_rules_.get_rule_definitions_for_charging_key(
             key, *action->get_mutable_rule_definitions());
         actions_out->push_back(std::move(action));
+        break;
+      default:
+        MLOG(MWARNING) << "Unexpected action type " << action_type;
         break;
     }
   }
