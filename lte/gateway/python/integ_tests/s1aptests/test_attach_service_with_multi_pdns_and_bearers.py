@@ -96,8 +96,7 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         has_tunnel_action = any(
             action
             for action in actions
-            if action["field"] == "tunnel_id"
-            and action["type"] == "SET_FIELD"
+            if action["field"] == "tunnel_id" and action["type"] == "SET_FIELD"
         )
         self.assertTrue(
             has_tunnel_action, "Downlink flow missing set tunnel action"
@@ -197,18 +196,22 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         }
 
         # Flow lists to be configured
-        flow_list = [
+        flow_list1 = [
             ulFlow1,
             ulFlow2,
             ulFlow3,
-            ulFlow4,
             dlFlow1,
             dlFlow2,
             dlFlow3,
+        ]
+
+        flow_list2 = [
+            ulFlow4,
             dlFlow4,
         ]
+
         # QoS
-        qos = {
+        qos1 = {
             "qci": 1,  # qci value [1 to 9]
             "priority": 1,  # Range [0-255]
             "max_req_bw_ul": 10000000,  # MAX bw Uplink
@@ -220,7 +223,20 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
             "pre_vul": 1,  # pre-emption vulnerability
         }
 
-        policy_id = "internet"
+        qos2 = {
+            "qci": 2,  # qci value [1 to 9]
+            "priority": 5,  # Range [0-255]
+            "max_req_bw_ul": 10000000,  # MAX bw Uplink
+            "max_req_bw_dl": 15000000,  # MAX bw Downlink
+            "gbr_ul": 1000000,  # GBR Uplink
+            "gbr_dl": 2000000,  # GBR Downlink
+            "arp_prio": 1,  # ARP priority
+            "pre_cap": 1,  # pre-emption capability
+            "pre_vul": 1,  # pre-emption vulnerability
+        }
+
+        policy_id1 = "internet"
+        policy_id2 = "ims"
 
         # Now actually complete the attach
         self._s1ap_wrapper._s1_util.attach(
@@ -249,9 +265,9 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         )
         self._sessionManager_util.create_ReAuthRequest(
             "IMSI" + "".join([str(i) for i in req.imsi]),
-            policy_id,
-            flow_list,
-            qos,
+            policy_id1,
+            flow_list1,
+            qos1,
         )
 
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -275,7 +291,7 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
-        sec_pdn = response.cast(s1ap_types.uePdnConRsp_t)
+        response.cast(s1ap_types.uePdnConRsp_t)
         print(
             "********************** Sending Activate default EPS bearer "
             "context accept for UE id ",
@@ -286,10 +302,17 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         time.sleep(5)
         # Add dedicated bearer to 2nd PDN
         print("********************** Adding dedicated bearer to ims PDN")
-        self._spgw_util.create_bearer(
-            "IMSI" + "".join([str(i) for i in req.imsi]),
-            sec_pdn.m.pdnInfo.epsBearerId,
+        print(
+            "********************** Sending RAR for IMSI",
+            "".join([str(i) for i in req.imsi]),
         )
+        self._sessionManager_util.create_ReAuthRequest(
+            "IMSI" + "".join([str(i) for i in req.imsi]),
+            policy_id2,
+            flow_list2,
+            qos2,
+        )
+
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
@@ -307,15 +330,15 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
 
         print("Sleeping for 5 seconds")
         time.sleep(5)
+        # Verify if flow rules are created
+        num_flows = 3
+        self._verify_flow_rules(ue_id, num_flows)
         print("*********** Moving UE to idle mode")
         print(
             "************* Sending UE context release request ",
             "for UE id ",
             ue_id,
         )
-        # Verify if flow rules are created
-        num_flows = 3
-        self._verify_flow_rules(ue_id, num_flows)
         # Send UE context release request to move UE to idle mode
         req = s1ap_types.ueCntxtRelReq_t()
         req.ue_Id = ue_id

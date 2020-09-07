@@ -35,56 +35,77 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
+    def _verify_flow_rules(self, ueId, num_flows):
+        MAX_NUM_RETRIES = 5
+        datapath = get_datapath()
+
+        # Check if UL and DL OVS flows are created
+        print("************ Verifying flow rules")
+        # UPLINK
+        print("Checking for uplink flow")
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(MAX_NUM_RETRIES):
+            print("Get uplink flows: attempt ", i)
+            uplink_flows = get_flows(
+                datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {"in_port": self.GTP_PORT},
+                },
+            )
+            if len(uplink_flows) > num_flows:
+                break
+            time.sleep(5)  # sleep for 5 seconds before retrying
+
+        assert len(uplink_flows) > num_flows, "Uplink flow missing for UE"
+        self.assertIsNotNone(
+            uplink_flows[0]["match"]["tunnel_id"],
+            "Uplink flow missing tunnel id match",
+        )
+
+        # DOWNLINK
+        print("Checking for downlink flow")
+        ue_ip = str(self._s1ap_wrapper._s1_util.get_ip(ueId))
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(MAX_NUM_RETRIES):
+            print("Get downlink flows: attempt ", i)
+            downlink_flows = get_flows(
+                datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {
+                        "nw_dst": ue_ip,
+                        "eth_type": 2048,
+                        "in_port": self.LOCAL_PORT,
+                    },
+                },
+            )
+            if len(downlink_flows) > num_flows:
+                break
+            time.sleep(5)  # sleep for 5 seconds before retrying
+        assert len(downlink_flows) > num_flows, "Downlink flow missing for UE"
+        self.assertEqual(
+            downlink_flows[0]["match"]["ipv4_dst"],
+            ue_ip,
+            "UE IP match missing from downlink flow",
+        )
+        actions = downlink_flows[0]["instructions"][0]["actions"]
+        has_tunnel_action = any(
+            action
+            for action in actions
+            if action["field"] == "tunnel_id" and action["type"] == "SET_FIELD"
+        )
+        self.assertTrue(
+            has_tunnel_action, "Downlink flow missing set tunnel action"
+        )
+
     def test_dedicated_bearer_activation_idle_mode(self):
         """
         Test with a single UE attach + UE context release +
         trigger dedicated bearer activation
-        + Page the UE + send dedicated bearer activation + detach"""
-        self._s1ap_wrapper.configUEDevice(1)
-        datapath = get_datapath()
-        MAX_NUM_RETRIES = 5
-
-        req = self._s1ap_wrapper.ue_req
-        ue_id = req.ue_id
-        imsi = req.imsi
-        print("*********** Running End to End attach for UE id ", ue_id)
-        # Now actually complete the attach
-        self._s1ap_wrapper._s1_util.attach(
-            ue_id,
-            s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-            s1ap_types.ueAttachAccept_t,
-        )
-
-        # Wait on EMM Information from MME
-        self._s1ap_wrapper._s1_util.receive_emm_info()
-
-        # Delay to ensure S1APTester sends attach complete before sending UE
-        # context release
-        print("*********** Sleeping for 5 seconds")
-        time.sleep(5)
-
-        print("*********** Moving UE to idle mode")
-        print(
-            "*********** Sending UE context release request ",
-            "for UE id ",
-            ue_id,
-        )
-        # Send UE context release request to move UE to idle mode
-        req = s1ap_types.ueCntxtRelReq_t()
-        req.ue_Id = ue_id
-        req.cause.causeVal = gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
-        self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, req
-        )
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
-        )
-
-        print("*********** Sleeping for 5 seconds")
-        time.sleep(5)
-        # Add dedicated bearers for default bearer 5
+        + Page the UE + detach"""
 
         # UL Flow description #1
         ulFlow1 = {
@@ -191,11 +212,56 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         policy_id1 = "ims-voice"
         policy_id2 = "internet"
 
-        print("Sleeping for 5 seconds")
+        self._s1ap_wrapper.configUEDevice(1)
+        req = self._s1ap_wrapper.ue_req
+        ue_id = req.ue_id
+        imsi = req.imsi
+        print("*********** Running End to End attach for UE id ", ue_id)
+        # Now actually complete the attach
+        self._s1ap_wrapper._s1_util.attach(
+            ue_id,
+            s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+            s1ap_types.ueAttachAccept_t,
+        )
+
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
+
+        # Delay to ensure S1APTester sends attach complete before sending UE
+        # context release
+        print("*********** Sleeping for 5 seconds")
         time.sleep(5)
+
+        # Move UE to idle mode
+        print("*********** Moving UE to idle mode")
+        print(
+            "*********** Sending UE context release request ",
+            "for UE id ",
+            ue_id,
+        )
+        # Send UE context release request to move UE to idle mode
+        rel_req = s1ap_types.ueCntxtRelReq_t()
+        rel_req.ue_Id = ue_id
+        rel_req.cause.causeVal = (
+            gpp_types.CauseRadioNetwork.USER_INACTIVITY.value
+        )
+        self._s1ap_wrapper.s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_CNTXT_REL_REQUEST, rel_req
+        )
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
+
+        print("*********** Sleeping for 5 seconds")
+        time.sleep(5)
+        # Add dedicated bearers for default bearer 5
+
         print(
             "************* Adding dedicated bearers to magma.ipv4"
-            " PDN in idle mode"
+            " PDN in idle mode for UE",
+            ue_id,
         )
         print(
             "********************** Sending 1st RAR for IMSI",
@@ -220,6 +286,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
             qos2,
         )
 
+        num_flows = 2
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value
@@ -228,13 +295,13 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         print("*********** Received Paging for UE id ", ue_id)
         print("*********** Sending Service request for UE id ", ue_id)
         # Send service request to reconnect UE
-        req = s1ap_types.ueserviceReq_t()
-        req.ue_Id = ue_id
-        req.ueMtmsi = s1ap_types.ueMtmsi_t()
-        req.ueMtmsi.pres = False
-        req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_SIGNALLING.value
+        ser_req = s1ap_types.ueserviceReq_t()
+        ser_req.ue_Id = ue_id
+        ser_req.ueMtmsi = s1ap_types.ueMtmsi_t()
+        ser_req.ueMtmsi.pres = False
+        ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_SIGNALLING.value
         self._s1ap_wrapper.s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
+            s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
         )
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
@@ -274,67 +341,8 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
             ue_id, act_ded_ber_req_oai_apn2.bearerId
         )
 
-        # Check if UL and DL OVS flows are created
-        # UPLINK
-        print("Checking for uplink flow")
-        # try at least 5 times before failing as gateway
-        # might take some time to install the flows in ovs
-        for i in range(MAX_NUM_RETRIES):
-            print("Get uplink flows: attempt ", i)
-            uplink_flows = get_flows(
-                datapath,
-                {
-                    "table_id": self.SPGW_TABLE,
-                    "match": {"in_port": self.GTP_PORT},
-                },
-            )
-            if len(uplink_flows) > 2:
-                break
-            time.sleep(5)  # sleep for 5 seconds before retrying
-
-        assert len(uplink_flows) > 2, "Uplink flow missing for UE"
-        self.assertIsNotNone(
-            uplink_flows[0]["match"]["tunnel_id"],
-            "Uplink flow missing tunnel id match",
-        )
-
-        # DOWNLINK
-        print("Checking for downlink flow")
-        ue_ip = str(self._s1ap_wrapper._s1_util.get_ip(ue_id))
-        # try at least 5 times before failing as gateway
-        # might take some time to install the flows in ovs
-        for i in range(MAX_NUM_RETRIES):
-            print("Get downlink flows: attempt ", i)
-            downlink_flows = get_flows(
-                datapath,
-                {
-                    "table_id": self.SPGW_TABLE,
-                    "match": {
-                        "nw_dst": ue_ip,
-                        "eth_type": 2048,
-                        "in_port": self.LOCAL_PORT,
-                    },
-                },
-            )
-            if len(downlink_flows) > 2:
-                break
-            time.sleep(5)  # sleep for 5 seconds before retrying
-
-        assert len(downlink_flows) > 2, "Downlink flow missing for UE"
-        self.assertEqual(
-            downlink_flows[0]["match"]["ipv4_dst"],
-            ue_ip,
-            "UE IP match missing from downlink flow",
-        )
-        actions = downlink_flows[0]["instructions"][0]["actions"]
-        has_tunnel_action = any(
-            action
-            for action in actions
-            if action["field"] == "tunnel_id" and action["type"] == "SET_FIELD"
-        )
-        self.assertTrue(
-            has_tunnel_action, "Downlink flow missing set tunnel action"
-        )
+        # Verify if flow rules are created
+        self._verify_flow_rules(ue_id, num_flows)
 
         print("*********** Sleeping for 5 seconds")
         time.sleep(5)
