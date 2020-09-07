@@ -314,12 +314,22 @@ void LocalEnforcer::execute_actions(
         handle_activate_service_action(session_map, action_p, session_update);
         break;
       case REDIRECT:
-        // This is GY based REDIRECT, GX redirect will come in as a regular rule
-        start_redirect_flow_install(session_map, action_p, session_update);
-        break;
       case RESTRICT_ACCESS:
-        MLOG(MWARNING) << "RESTRICT_ACCESS mode is unsupported"
-                       << ", will just terminate the service.";
+        {
+          // Bundle up all info into this struct so that we don't have to pass around
+          // unique pointers
+          FuaInstallInfo fua_info{
+            .imsi              = action_p->get_imsi(),
+            .session_id        = action_p->get_session_id(),
+            .action_type       = action_p->get_type(),
+            .restrict_rule_ids = action_p->get_restrict_rule_ids(),
+          };
+          if (action_p->is_redirect_server_set()) {
+            fua_info.redirect_server = action_p->get_redirect_server();
+          }
+          start_final_unit_action_flows_install(session_map, fua_info, session_update);
+          break;
+        }
       case TERMINATE_SERVICE: {
         bool terminated = find_and_terminate_session(
             session_map, imsi, session_id, session_update);
@@ -524,7 +534,7 @@ static RedirectInformation_AddressType address_type_converter(
 }
 
 PolicyRule LocalEnforcer::create_redirect_rule(
-    const RedirectInstallInfo& info) {
+    const FuaInstallInfo& info) {
   PolicyRule redirect_rule;
   redirect_rule.set_id("redirect");
   redirect_rule.set_priority(LocalEnforcer::REDIRECT_FLOW_PRIORITY);
@@ -540,38 +550,28 @@ PolicyRule LocalEnforcer::create_redirect_rule(
   return redirect_rule;
 }
 
-void LocalEnforcer::start_redirect_flow_install(
-    SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
+void LocalEnforcer::start_final_unit_action_flows_install(
+    SessionMap& session_map, const FuaInstallInfo fua_info,
     SessionUpdate& session_update) {
-  // Bundle up all info into this struct so that we don't have to pass around
-  // unique pointers
-  RedirectInstallInfo redirect_info{
-      .imsi            = action_p->get_imsi(),
-      .session_id      = action_p->get_session_id(),
-      .redirect_server = action_p->get_redirect_server(),
-  };
-
   MLOG(MDEBUG) << "Fetching Subscriber IP address from DirectoryD for "
-               << redirect_info.session_id;
+               << fua_info.session_id;
   directoryd_client_->get_directoryd_ip_field(
-      redirect_info.imsi,
-      [this, redirect_info](Status status, DirectoryField resp) {
+      fua_info.imsi,
+      [this, fua_info](Status status, DirectoryField resp) {
         // This call back gets executed in the DirectoryD client thread, but
         // we want to run the session update logic in the main thread.
-        evb_->runInEventBaseThread([this, redirect_info, status, resp]() {
-          complete_redirect_flow_install(status, resp, redirect_info);
+        evb_->runInEventBaseThread([this, fua_info, status, resp]() {
+          complete_final_unit_action_flows_install(status, resp, fua_info);
         });
       });
 }
 
-void LocalEnforcer::complete_redirect_flow_install(
+void LocalEnforcer::complete_final_unit_action_flows_install(
     Status status, DirectoryField resp,
-    const RedirectInstallInfo redirect_info) {
+    const FuaInstallInfo fua_info) {
   RuleLifetime lifetime{};
-  std::vector<std::string> static_rules;
-  auto rule       = create_redirect_rule(redirect_info);
-  auto imsi       = redirect_info.imsi;
-  auto session_id = redirect_info.session_id;
+  auto imsi         = fua_info.imsi;
+  auto session_id   = fua_info.session_id;
 
   MLOG(MDEBUG) << "Received response from DirectoryD on IP addr for "
                << session_id;
@@ -590,23 +590,33 @@ void LocalEnforcer::complete_redirect_flow_install(
     return;
   }
   auto session_update = session_store_.get_default_session_update(session_map);
-
-  // check if the rule has been installed already.
   for (const auto& session : it->second) {
-    if (session->get_session_id() == session_id &&
-        !session->is_dynamic_rule_installed(rule.id())) {
-      MLOG(MDEBUG) << "Install redirect GY flow in pipelined for "
-                   << session_id;
-      pipelined_client_->add_gy_final_action_flow(
-          imsi, ip, static_rules, {rule});
-
-      auto& uc = session_update[imsi][session_id];
-      session->insert_gy_dynamic_rule(rule, lifetime, uc);
+    if (session->get_session_id() == session_id) {
+      if (fua_info.action_type == REDIRECT) {
+        // This is GY based REDIRECT, GX redirect will come in as a regular rule
+        std::vector<std::string> static_rules;
+        auto rule = create_redirect_rule(fua_info);
+        // check if the rule has been installed already.
+        if (session->is_dynamic_rule_installed(rule.id())) {
+          MLOG(MDEBUG) << "Install redirect GY flow in pipelined for "
+                     << session_id;
+          pipelined_client_->add_gy_final_action_flow(
+              imsi, ip, static_rules, {rule});
+          auto& uc = session_update[imsi][session_id];
+          session->insert_gy_dynamic_rule(rule, lifetime, uc);
+        }
+      }
+      else if (fua_info.action_type == RESTRICT_ACCESS) {
+        MLOG(MDEBUG) << "Install restricted GY flow in pipelined for "
+                     << session_id;
+        pipelined_client_->add_gy_final_action_flow(
+            imsi, ip, fua_info.restrict_rule_ids, {});
+      }
     }
   }
   auto success = session_store_.update_sessions(session_update);
   if (!success) {
-    MLOG(MERROR) << "Failed to store redirect flow update for " << session_id;
+    MLOG(MERROR) << "Failed to store final unit action flows update for " << session_id;
   }
 }
 

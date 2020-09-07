@@ -232,9 +232,11 @@ class LocalEnforcer {
   static uint32_t REDIRECT_FLOW_PRIORITY;
 
  private:
-  struct RedirectInstallInfo {
+  struct FuaInstallInfo {
     std::string imsi;
     std::string session_id;
+    ServiceActionType action_type;
+    std::vector<std::string> restrict_rule_ids;
     magma::lte::RedirectServer redirect_server;
   };
   std::shared_ptr<SessionReporter> reporter_;
@@ -525,15 +527,16 @@ class LocalEnforcer {
   /**
    * Install flow for redirection through pipelined
    */
-  void start_redirect_flow_install(
-      SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
+  void start_final_unit_action_flows_install(
+      SessionMap& session_map, const FuaInstallInfo info,
       SessionUpdate& session_update);
 
-  void complete_redirect_flow_install(
+  void complete_final_unit_action_flows_install(
       Status status, DirectoryField resp,
-      const RedirectInstallInfo redirect_info);
+      const FuaInstallInfo info);
 
-  PolicyRule create_redirect_rule(const RedirectInstallInfo& info);
+
+  PolicyRule create_redirect_rule(const FuaInstallInfo& info);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
