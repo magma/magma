@@ -76,3 +76,11 @@ class DuplicatedIPAllocationError(Exception):
     """ Exception thrown when an IP has already been allocated to a UE
     """
     pass
+
+
+class DuplicateIPAssignmentError(Exception):
+    """ Exception thrown when underlying IP allocator assigns duplicate
+    Ip address to two different SID. This also catches dup IP across
+    two different APNs or overlaps in IP-POOL.
+    """
+    pass

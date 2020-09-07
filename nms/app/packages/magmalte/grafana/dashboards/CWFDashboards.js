@@ -17,19 +17,20 @@
 import {gatewayTemplate, networkTemplate, variableTemplate} from './Dashboards';
 import type {GrafanaDBData} from './Dashboards';
 
-const imsiTemplate = variableTemplate({
-  labelName: 'imsi',
-  query: `label_values(imsi)`,
+const msisdnTemplate = variableTemplate({
+  labelName: 'msisdn',
+  query: `label_values(msisdn)`,
   regex: `/.+/`,
   sort: 'num-asc',
+  includeAll: false,
 });
 
-const apnTemplate = variableTemplate({
+export const apnTemplate = variableTemplate({
   labelName: 'apn',
-  query: `label_values(apn)`,
   query: `label_values({networkID=~"$networkID",apn=~".+"},apn)`,
   regex: `/.+/`,
   sort: 'alpha-insensitive-asc',
+  includeAll: true,
 });
 
 const dbDescription =
@@ -38,7 +39,7 @@ const dbDescription =
 export const CWFSubscriberDBData: GrafanaDBData = {
   title: 'CWF - Subscribers',
   description: dbDescription,
-  templates: [imsiTemplate],
+  templates: [msisdnTemplate],
   rows: [
     {
       title: 'Traffic',
@@ -47,8 +48,9 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Traffic In',
           targets: [
             {
-              expr: 'sum(octets_in{imsi=~"$imsi"}) by (imsi)',
-              legendFormat: '{{imsi}}',
+              expr:
+                'sum(ue_reported_usage{msisdn=~"$msisdn", direction="down"}) by (IMSI, msisdn)',
+              legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}',
             },
           ],
           unit: 'decbytes',
@@ -58,8 +60,9 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Throughput In',
           targets: [
             {
-              expr: 'avg(rate(octets_in{imsi=~"$imsi"}[5m])) by (imsi)',
-              legendFormat: '{{imsi}}',
+              expr:
+                'avg(rate(ue_reported_usage{msisdn=~"$msisdn", direction="down"}[5m])) by (IMSI, msisdn)',
+              legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}',
             },
           ],
           unit: 'Bps',
@@ -70,8 +73,9 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Traffic Out',
           targets: [
             {
-              expr: 'sum(octets_out{imsi=~"$imsi"}) by (imsi)',
-              legendFormat: '{{imsi}}',
+              expr:
+                'sum(ue_reported_usage{msisdn=~"$msisdn", direction="up"}) by (IMSI, msisdn)',
+              legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}',
             },
           ],
           unit: 'decbytes',
@@ -81,8 +85,9 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Throughput Out',
           targets: [
             {
-              expr: 'avg(rate(octets_out{imsi=~"$imsi"}[5m])) by (imsi)',
-              legendFormat: '{{imsi}}',
+              expr:
+                'avg(rate(ue_reported_usage{msisdn=~"$msisdn", direction="up"}[5m])) by (IMSI, msisdn)',
+              legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}',
             },
           ],
           unit: 'Bps',
@@ -98,9 +103,9 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           title: 'Active Sessions',
           targets: [
             {
-              expr: 'active_sessions{imsi=~"$imsi"}',
+              expr: 'active_sessions{msisdn=~"$msisdn"}',
               legendFormat:
-                '{{imsi}} Session: {{id}} -- Network: {{networkID}} -- Gateway: {{gatewayID}}',
+                '{{imsi}} -- MSISDN: {{msisdn}} -- Session: {{id}} -- Network: {{networkID}} -- Gateway: {{gatewayID}}',
             },
           ],
           description:
@@ -149,7 +154,8 @@ export const CWFAccessPointDBData: GrafanaDBData = {
           title: 'Traffic In',
           targets: [
             {
-              expr: 'sum(octets_in{apn=~"$apn"}) by (apn)',
+              expr:
+                'sum(ue_reported_usage{apn=~"$apn", direction="down"}) by (apn)',
               legendFormat: '{{apn}}',
             },
           ],
@@ -160,7 +166,8 @@ export const CWFAccessPointDBData: GrafanaDBData = {
           title: 'Traffic Out',
           targets: [
             {
-              expr: 'sum(octets_out{apn=~"$apn"}) by (apn)',
+              expr:
+                'sum(ue_reported_usage{apn=~"$apn", direction="up"}) by (apn)',
               legendFormat: '{{apn}}',
             },
           ],
@@ -171,7 +178,8 @@ export const CWFAccessPointDBData: GrafanaDBData = {
           title: 'Throughput In',
           targets: [
             {
-              expr: 'avg(rate(octets_in{apn=~"$apn"}[5m])) by (apn)',
+              expr:
+                'avg(rate(ue_reported_usage{apn=~"$apn", direction="down"}[5m])) by (apn)',
               legendFormat: '{{apn}}',
             },
           ],
@@ -182,7 +190,8 @@ export const CWFAccessPointDBData: GrafanaDBData = {
           title: 'Throughput Out',
           targets: [
             {
-              expr: 'avg(rate(octets_out{apn=~"$apn"}[5m])) by (apn)',
+              expr:
+                'avg(rate(ue_reported_usage{apn=~"$apn", direction="up"}[5m])) by (apn)',
               legendFormat: '{{apn}}',
             },
           ],
@@ -282,7 +291,8 @@ export const CWFNetworkDBData: GrafanaDBData = {
           title: 'Traffic In',
           targets: [
             {
-              expr: 'sum(octets_in{networkID=~"$networkID"}) by (networkID)',
+              expr:
+                'sum(ue_reported_usage{networkID=~"$networkID", direction="down"}) by (networkID)',
               legendFormat: '{{networkID}}',
             },
           ],
@@ -293,7 +303,8 @@ export const CWFNetworkDBData: GrafanaDBData = {
           title: 'Traffic Out',
           targets: [
             {
-              expr: 'sum(octets_out{networkID=~"$networkID"}) by (networkID)',
+              expr:
+                'sum(ue_reported_usage{networkID=~"$networkID", direction="up"}) by (networkID)',
               legendFormat: '{{networkID}}',
             },
           ],
@@ -305,7 +316,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           targets: [
             {
               expr:
-                'avg(rate(octets_in{networkID=~"$networkID"}[5m])) by (networkID)',
+                'avg(rate(ue_reported_usage{networkID=~"$networkID", direction="down"}[5m])) by (networkID)',
               legendFormat: '{{networkID}}',
             },
           ],
@@ -317,7 +328,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           targets: [
             {
               expr:
-                'avg(rate(octets_out{networkID=~"$networkID"}[5m])) by (networkID)',
+                'avg(rate(ue_reported_usage{networkID=~"$networkID", direction="up"}[5m])) by (networkID)',
               legendFormat: '{{networkID}}',
             },
           ],

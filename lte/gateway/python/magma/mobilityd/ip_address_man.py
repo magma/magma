@@ -62,6 +62,7 @@ from .ip_allocator_dhcp import IPAllocatorDHCP
 from .ip_allocator_pool import IpAllocatorPool
 from .ip_allocator_static import IPAllocatorStaticWrapper
 from .ip_allocator_multi_apn import IPAllocatorMultiAPNWrapper
+from .ip_allocator_base import DuplicateIPAssignmentError
 
 from .ip_descriptor_map import IpDescriptorMap
 from .uplink_gw import UplinkGatewayInfo
@@ -476,10 +477,3 @@ class MappingNotFoundError(Exception):
     """ Exception thrown when releasing a non-exising SID-IP mapping """
     pass
 
-
-class DuplicateIPAssignmentError(Exception):
-    """ Exception thrown when underlying IP allocator assigns duplicate
-    Ip address to two different SID. This also catches dup IP across
-    two different APNs.
-    """
-    pass

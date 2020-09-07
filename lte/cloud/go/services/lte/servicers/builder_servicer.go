@@ -142,7 +142,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			DefaultRuleId:            nwEpc.DefaultRuleID,
 			Services:                 pipelineDServices,
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
-			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP.String(),
+			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:     protos.LogLevel_INFO,

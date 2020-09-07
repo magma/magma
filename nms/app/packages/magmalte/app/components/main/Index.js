@@ -21,7 +21,7 @@ import {
   GatewayTierContextProvider,
   SubscriberContextProvider,
 } from '@fbcnms/magmalte/app/components/lte/LteSections';
-import {LTE, coalesceNetworkType} from '@fbcnms/types/network';
+import {FEG_LTE, LTE, coalesceNetworkType} from '@fbcnms/types/network';
 import type {NetworkType} from '@fbcnms/types/network';
 import type {Theme} from '@material-ui/core';
 
@@ -104,6 +104,7 @@ export default function Index() {
     return <LoadingFiller />;
   }
 
+  const lteNetwork = networkType === LTE || networkType === FEG_LTE;
   return (
     <NetworkContext.Provider value={{networkId, networkType}}>
       <div className={classes.root}>
@@ -118,7 +119,7 @@ export default function Index() {
           user={user}
         />
         <AppContent>
-          {networkType === LTE ? (
+          {lteNetwork ? (
             <LteContextProvider networkId={networkId}>
               <SectionRoutes />
             </LteContextProvider>
