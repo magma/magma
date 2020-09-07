@@ -1,7 +1,7 @@
 ################################################################
 # Builder Image (can also be used as developer's image)
 ################################################################
-FROM ubuntu:bionic as conv-builder
+FROM ubuntu:bionic as magma-mme-builder
 
 ARG GIT_PROXY
 ARG FEATURES=mme_oai
@@ -276,7 +276,7 @@ RUN openssl rand -out /root/.rnd 128
 ################################################################
 # Target Image
 ################################################################
-FROM ubuntu:bionic as conv-mme
+FROM ubuntu:bionic as magma-mme
 
 ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
@@ -287,82 +287,83 @@ ENV DEBIAN_FRONTEND=noninteractive
 # redis-server installation is temporary
 # once we resolve the issue when running it on a separate container, we will remove it
 
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
-    psmisc \
-    openssl \
-    net-tools \
-    tshark \
-    redis-server \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      psmisc \
+      openssl \
+      net-tools \
+      tshark \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libasan.so.3 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libconfig.so.9 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libglog.so.0  /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.5 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libsctp.so.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libunwind.so.8 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_context.so.1.65.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.65.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.65.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.65.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libboost_system.so.1.65.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libdouble-conversion.so.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libevent-2.1.so.6 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libsnappy.so.1 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libicui18n.so.60 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libicuuc.so.60 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libicudata.so.60 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libczmq.so.4.1.0 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libzmq.so.5.1.5 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libsodium.so.23.1.0 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libpgm-5.2.so.0.0.122 /usr/lib/x86_64-linux-gnu/
-COPY --from=conv-builder /usr/lib/x86_64-linux-gnu/libnorm.so.1.0.0 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libasan.so.3 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libcrypto.so.1.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libconfig.so.9 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libglog.so.0  /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libyaml-cpp.so.0.5 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libsctp.so.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libunwind.so.8 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libboost_context.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libboost_filesystem.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libboost_program_options.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libboost_regex.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libboost_system.so.1.65.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libdouble-conversion.so.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libevent-2.1.so.6 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libssl.so.1.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libsnappy.so.1 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libicui18n.so.60 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libicuuc.so.60 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libicudata.so.60 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libczmq.so.4.1.0 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libzmq.so.5.1.5 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libsodium.so.23.1.0 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libpgm-5.2.so.0.0.122 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /usr/lib/x86_64-linux-gnu/libnorm.so.1.0.0 /usr/lib/x86_64-linux-gnu/
 
-COPY --from=conv-builder /usr/local/lib/libfdproto.so.6 /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libfdcore.so.6 /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libgrpc++.so /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libprotobuf.so.17 /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libfolly.so /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libgrpc.so /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libgpr.so /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libgflags.so.2.2 /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libcares.so.2 /usr/local/lib/
-COPY --from=conv-builder /usr/local/lib/libaddress_sorting.so /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libfdproto.so.6 /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libfdcore.so.6 /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libgrpc++.so /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libprotobuf.so.17 /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libfolly.so /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libgrpc.so /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libgpr.so /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libgflags.so.2.2 /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libcares.so.2 /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libaddress_sorting.so /usr/local/lib/
 
-COPY --from=conv-builder /lib/x86_64-linux-gnu/libidn.so.11 /usr/lib/x86_64-linux-gnu/
+COPY --from=magma-mme-builder /lib/x86_64-linux-gnu/libidn.so.11 /usr/lib/x86_64-linux-gnu/
 
 # Copy all fdx files from freeDiameter installation
 WORKDIR /usr/local/lib/freeDiameter
-COPY --from=conv-builder /usr/local/lib/freeDiameter/* ./
+COPY --from=magma-mme-builder /usr/local/lib/freeDiameter/* ./
 
 # Refresh library cache
 RUN ldconfig
 
 # Copy pre-built binaries for MME and SCTPD
 WORKDIR /conv-mme/bin
-COPY --from=conv-builder $C_BUILD/oai/oai_mme/mme oai_mme
-COPY --from=conv-builder $C_BUILD/sctpd/sctpd .
+COPY --from=magma-mme-builder $C_BUILD/oai/oai_mme/mme oai_mme
+COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
 
 # Copy the configuration file templates and mean to modify/generate certificates
 WORKDIR /conv-mme/etc
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
 
 # Create running dirs
 WORKDIR /var/opt/magma
 WORKDIR /usr/local/etc/redis
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/redis_for_container.conf redis.conf
 
 WORKDIR /etc/magma
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
 WORKDIR /conv-mme/scripts
-COPY --from=conv-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
+COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
 RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
