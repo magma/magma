@@ -54,12 +54,13 @@ type UESimConfig struct {
 	radiusAcctAddress string
 	radiusSecret      string
 	brMac             string
+	bypassHssAuth     bool
 }
 
 // NewUESimServer initializes a UESimServer with an empty store map.
 // Output: a new UESimServer
 func NewUESimServer(factory blobstore.BlobStorageFactory) (*UESimServer, error) {
-	config, err := getUESimConfig()
+	config, err := GetUESimConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -79,29 +80,7 @@ func (srv *UESimServer) AddUE(ctx context.Context, ue *cwfprotos.UEConfig) (ret 
 		err = ConvertStorageErrorToGrpcStatus(err)
 		return
 	}
-	blob, err := ueToBlob(ue)
-	store, err := srv.store.StartTransaction(nil)
-	if err != nil {
-		err = errors.Wrap(err, "Error while starting transaction")
-		err = ConvertStorageErrorToGrpcStatus(err)
-		return
-	}
-	defer func() {
-		switch err {
-		case nil:
-			if commitErr := store.Commit(); commitErr != nil {
-				err = errors.Wrap(err, "Error while committing transaction")
-				err = ConvertStorageErrorToGrpcStatus(err)
-			}
-		default:
-			if rollbackErr := store.Rollback(); rollbackErr != nil {
-				err = errors.Wrap(err, "Error while rolling back transaction")
-				err = ConvertStorageErrorToGrpcStatus(err)
-			}
-		}
-	}()
-
-	err = store.CreateOrUpdate(networkIDPlaceholder, []blobstore.Blob{blob})
+	addUeToStore(srv.store, ue)
 	return
 }
 
@@ -198,19 +177,6 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 	}
 	output, err := executeIperfWithOptions(argList, req)
 	return &cwfprotos.GenTrafficResponse{Output: output}, err
-}
-
-// Converts UE data to a blob for storage.
-func ueToBlob(ue *cwfprotos.UEConfig) (blobstore.Blob, error) {
-	marshaledUE, err := protos.Marshal(ue)
-	if err != nil {
-		return blobstore.Blob{}, err
-	}
-	return blobstore.Blob{
-		Type:  blobTypePlaceholder,
-		Key:   ue.GetImsi(),
-		Value: marshaledUE,
-	}, nil
 }
 
 // Converts a blob back into a UE config

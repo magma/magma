@@ -56,6 +56,7 @@ require (
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344
 	google.golang.org/appengine v1.6.5 // indirect
 	google.golang.org/grpc v1.27.1
+	honnef.co/go/tools v0.0.0-20190523083050-ea95bdfd59fc // indirect
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000

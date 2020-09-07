@@ -106,7 +106,7 @@ func getCCRHandler(srv *PCRFServer) diam.HandlerFunc {
 		avps := []*diam.AVP{}
 		ccrType := credit_control.CreditRequestType(ccr.RequestType)
 		if ccrType == credit_control.CRTInit {
-			glog.V(2).Infof("\tGot xCRT-Init from %s. Rules will be sent: %v - %v\n", imsi, account.RuleBaseNames, account.UsageMonitors)
+			glog.V(2).Infof("\tGot xCRT-Init from %s. Rules will be sent: %v - %v - %v\n", imsi, account.RuleNames, account.RuleBaseNames, account.UsageMonitors)
 			// Install all rules attached to the subscriber for the initial answer
 			ruleInstalls := toRuleInstallAVPs(account.RuleNames, account.RuleBaseNames, account.RuleDefinitions, nil, nil)
 			// Install all monitors attached to the subscriber for the initial answer
