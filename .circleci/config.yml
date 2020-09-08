@@ -860,10 +860,11 @@ workflows:
       - lte-test
       - lte-integ-test:
           <<: *only_master
+      - agw_hold:
+          type: approval
       - lte-agw-deploy:
-          <<: *only_master
           requires:
-            - lte-integ-test
+            - agw_hold
 
   feg:
     jobs:
