@@ -61,7 +61,6 @@ def lte():
 
 def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
                branch: str = '', sha1: str = '', tag: str = '',
-               pr_num: str = '',
                magma_root: str = '',
                node_ssh_key: str = 'ci_node.pem',
                api_url: str = 'https://api-staging.magma.etagecom.io',
@@ -88,7 +87,7 @@ def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
 
     try:
         _set_host_for_lease(lease, node_ssh_key)
-        _checkout_code(repo, branch, sha1, tag, pr_num, magma_root)
+        _checkout_code(repo, branch, sha1, tag, magma_root)
         # Destroy all running vagrant VMs. If we use the same node to run integ
         # tests on more than one repo, Vagrant will complain about colliding
         # VM names.
@@ -174,7 +173,7 @@ def _acquire_node_lease(api_url: str,
     return NodeLease(resp_obj['id'], resp_obj['lease_id'], resp_obj['vpn_ip'])
 
 
-def _checkout_code(repo: str, branch: str, sha1: str, tag: str, pr_num: str,
+def _checkout_code(repo: str, branch: str, sha1: str, tag: str,
                    magma_root: str):
     repo_name = _get_repo_name(repo)
     if not exists(repo_name):
@@ -184,8 +183,6 @@ def _checkout_code(repo: str, branch: str, sha1: str, tag: str, pr_num: str,
             _run_git(f'git remote set-url origin "{repo}"', warn_only=True)
 
     # This logic comes from the CircleCI `checkout` step
-    # TODO: allow PR builds - or does circle set branch env var to
-    #  PR branch already?
     branch = branch or 'master'
     with cd(f'{repo_name}/{magma_root}'):
         _run_git('git clean -d -f')
