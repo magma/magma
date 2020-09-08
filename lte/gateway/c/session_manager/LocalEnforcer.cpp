@@ -611,6 +611,10 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
                      << session_id;
         pipelined_client_->add_gy_final_action_flow(
             imsi, ip, fua_info.restrict_rule_ids, {});
+        auto& uc = session_update[imsi][session_id];
+        for (auto rule : fua_info.restrict_rule_ids) {
+          session->activate_restrict_rule(rule, lifetime, uc);
+        }
       }
     }
   }
@@ -1163,15 +1167,16 @@ void LocalEnforcer::update_charging_credits(
     for (const auto& session : it->second) {
       std::string sid                             = session->get_session_id();
       SessionStateUpdateCriteria& update_criteria = session_update[imsi][sid];
-      bool is_redirected =
-          session->is_credit_state_redirected(CreditKey(credit_update_resp));
+      bool is_final_action_state =
+          session->is_credit_in_final_unit_state(CreditKey(credit_update_resp));
       session->receive_charging_credit(credit_update_resp, update_criteria);
 
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), update_criteria);
       SessionState::SessionInfo info;
 
-      if (is_redirected) {
+      if (is_final_action_state) {
         std::vector<PolicyRule> gy_rules_to_deactivate;
+        std::vector<std::string> restrict_rules_to_deactivate;
         session->get_session_info(info);
         for (const auto& rule : info.gy_dynamic_rules) {
           PolicyRule dy_rule;
@@ -1182,11 +1187,20 @@ void LocalEnforcer::update_charging_credits(
             gy_rules_to_deactivate.push_back(dy_rule);
           }
         }
-
-        if (!gy_rules_to_deactivate.empty()) {
+        for (const auto& rule : info.restrict_rules) {
+          auto& uc = session_update[imsi][session->get_session_id()];
+          bool deactivated =
+              session->deactivate_restrict_rule(rule, uc);
+          if (deactivated) {
+            restrict_rules_to_deactivate.push_back(rule);
+          }
+        }
+      
+        if (!gy_rules_to_deactivate.empty() ||
+            !restrict_rules_to_deactivate.empty()) {
           std::vector<std::string> static_rules;
           pipelined_client_->deactivate_flows_for_rules(
-              imsi, static_rules, gy_rules_to_deactivate,
+              imsi, restrict_rules_to_deactivate, gy_rules_to_deactivate,
               RequestOriginType::GY);
         }
       }

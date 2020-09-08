@@ -331,6 +331,35 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     }
   }
 
+  // Restrict rules
+  for (const auto& rule_id : uc.restrict_rules_to_install) {
+    if (is_restrict_rule_installed(rule_id)) {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because restrict rule already installed: " << rule_id
+                   << std::endl;
+      return false;
+    }
+    if (uc.new_rule_lifetimes.find(rule_id) != uc.new_rule_lifetimes.end()) {
+      auto lifetime = uc.new_rule_lifetimes[rule_id];
+      activate_restrict_rule(rule_id, lifetime, _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because rule lifetime is unspecified: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
+  for (const auto& rule_id : uc.restrict_rules_to_uninstall) {
+    if (is_restrict_rule_installed(rule_id)) {
+      deactivate_restrict_rule(rule_id, _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because restrict rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
+
   // Charging credit
   for (const auto& it : uc.charging_credit_map) {
     auto key           = it.first;
@@ -695,6 +724,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
+  info.restrict_rules = active_restrict_rules_;
   info.ambr = config_.get_apn_ambr();
 }
 
@@ -752,6 +782,12 @@ bool SessionState::is_static_rule_installed(const std::string& rule_id) {
              rule_id) != active_static_rules_.end();
 }
 
+bool SessionState::is_restrict_rule_installed(const std::string& rule_id) {
+  return std::find(
+             active_restrict_rules_.begin(), active_restrict_rules_.end(),
+             rule_id) != active_restrict_rules_.end();
+}
+
 void SessionState::insert_dynamic_rule(
     const PolicyRule& rule, RuleLifetime& lifetime,
     SessionStateUpdateCriteria& update_criteria) {
@@ -784,6 +820,15 @@ void SessionState::activate_static_rule(
   rule_lifetimes_[rule_id] = lifetime;
   active_static_rules_.push_back(rule_id);
   update_criteria.static_rules_to_install.insert(rule_id);
+  update_criteria.new_rule_lifetimes[rule_id] = lifetime;
+}
+
+void SessionState::activate_restrict_rule(
+    const std::string& rule_id, RuleLifetime& lifetime,
+    SessionStateUpdateCriteria& update_criteria) {
+  rule_lifetimes_[rule_id] = lifetime;
+  active_restrict_rules_.push_back(rule_id);
+  update_criteria.restrict_rules_to_install.insert(rule_id);
   update_criteria.new_rule_lifetimes[rule_id] = lifetime;
 }
 
@@ -838,6 +883,18 @@ bool SessionState::deactivate_scheduled_static_rule(
   return true;
 }
 
+bool SessionState::deactivate_restrict_rule(
+    const std::string& rule_id, SessionStateUpdateCriteria& update_criteria) {
+  auto it = std::find(
+      active_restrict_rules_.begin(), active_restrict_rules_.end(), rule_id);
+  if (it == active_restrict_rules_.end()) {
+    return false;
+  }
+  update_criteria.restrict_rules_to_uninstall.insert(rule_id);
+  active_restrict_rules_.erase(it);
+  return true;
+}
+
 void SessionState::sync_rules_to_time(
     std::time_t current_time, SessionStateUpdateCriteria& update_criteria) {
   // Update active static rules
@@ -882,6 +939,10 @@ std::vector<std::string>& SessionState::get_static_rules() {
 
 std::set<std::string>& SessionState::get_scheduled_static_rules() {
   return scheduled_static_rules_;
+}
+
+std::vector<std::string>& SessionState::get_restrict_rules() {
+  return active_restrict_rules_;
 }
 
 DynamicRuleStore& SessionState::get_dynamic_rules() {
@@ -1586,13 +1647,14 @@ void SessionState::set_revalidation_time(
   update_criteria.revalidation_time = time;
 }
 
-bool SessionState::is_credit_state_redirected(
+bool SessionState::is_credit_in_final_unit_state(
     const CreditKey& charging_key) const {
   auto it = credit_map_.find(charging_key);
   if (it == credit_map_.end()) {
     return false;
   }
-  return it->second->service_state == SERVICE_REDIRECTED;
+  return (it->second->service_state == SERVICE_REDIRECTED ||
+      it->second->service_state == SERVICE_RESTRICTED);
 }
 
 // QoS/Bearer Management

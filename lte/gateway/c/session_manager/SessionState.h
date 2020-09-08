@@ -82,6 +82,7 @@ class SessionState {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
+    std::vector<std::string> restrict_rules;
     std::experimental::optional<AggregatedMaximumBitrate> ambr;
   };
   struct TotalCreditUsage {
@@ -235,10 +236,16 @@ class SessionState {
 
   bool is_static_rule_installed(const std::string& rule_id);
 
+  bool is_restrict_rule_installed(const std::string& rule_id);
+
   /**
    * Add a dynamic rule to the session which is currently active.
    */
   void insert_dynamic_rule(
+      const PolicyRule& rule, RuleLifetime& lifetime,
+      SessionStateUpdateCriteria& update_criteria);
+
+  void insert_gy_dynamic_rule(
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
@@ -249,8 +256,8 @@ class SessionState {
       const std::string& rule_id, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
-  void insert_gy_dynamic_rule(
-      const PolicyRule& rule, RuleLifetime& lifetime,
+  void activate_restrict_rule(
+      const std::string& rule_id, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -271,6 +278,10 @@ class SessionState {
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
+  bool remove_gy_dynamic_rule(
+      const std::string& rule_id, PolicyRule *rule_out,
+      SessionStateUpdateCriteria& update_criteria);
+
   /**
    * Remove a currently active static rule to mark it as deactivated.
    *
@@ -283,16 +294,19 @@ class SessionState {
   bool deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
-  bool remove_gy_dynamic_rule(
-      const std::string& rule_id, PolicyRule *rule_out,
-      SessionStateUpdateCriteria& update_criteria);
 
   bool deactivate_scheduled_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
+  bool deactivate_restrict_rule(
+      const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
+
+
   std::vector<std::string>& get_static_rules();
 
   std::set<std::string>& get_scheduled_static_rules();
+
+  std::vector<std::string>& get_restrict_rules();
 
   DynamicRuleStore& get_dynamic_rules();
 
@@ -368,7 +382,7 @@ class SessionState {
 
   EventTriggerStatus get_event_triggers() {return pending_event_triggers_;}
 
-  bool is_credit_state_redirected(const CreditKey &charging_key) const;
+  bool is_credit_in_final_unit_state(const CreditKey &charging_key) const;
 
   // Monitors
   bool receive_monitor(const UsageMonitoringUpdateResponse &update,
@@ -443,6 +457,8 @@ class SessionState {
   DynamicRuleStore dynamic_rules_;
   // Dynamic GY rules that are currently installed for the session
   DynamicRuleStore gy_dynamic_rules_;
+  // Static rules that are currently installed when service is restricted
+  std::vector<std::string> active_restrict_rules_;
 
   // Static rules that are scheduled for installation for the session
   std::set<std::string> scheduled_static_rules_;
