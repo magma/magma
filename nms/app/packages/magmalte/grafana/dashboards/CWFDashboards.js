@@ -406,7 +406,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
       title: 'Diameter Result Codes',
       panels: [
         {
-          title: 'Gx Result Codes',
+          title: 'Gx Result Codes (Rate)',
           targets: [
             {
               expr:
@@ -417,7 +417,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of Gx responses segmented by code',
         },
         {
-          title: 'Gy Result Codes',
+          title: 'Gy Result Codes (Rate)',
           targets: [
             {
               expr:
@@ -428,7 +428,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of Gy responses segmented by code',
         },
         {
-          title: 'SWX Result Codes',
+          title: 'SWX Result Codes (Rate)',
           targets: [
             {
               expr:
@@ -439,7 +439,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of SWx responses segmented by diameter base code',
         },
         {
-          title: 'SWX Experimental Result Codes',
+          title: 'SWX Experimental Result Codes (Rate)',
           targets: [
             {
               expr:
@@ -455,7 +455,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
       title: 'Diameter Timeouts',
       panels: [
         {
-          title: 'Gx Timeouts',
+          title: 'Gx Timeouts (Rate)',
           targets: [
             {
               expr:
@@ -467,7 +467,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
             'Rate of Gx requests that did not receive a response (and thus timed out)',
         },
         {
-          title: 'Gy Timeouts',
+          title: 'Gy Timeouts (Rate)',
           targets: [
             {
               expr:
@@ -479,7 +479,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
             'Rate of Gy requests that did not receive a response (and thus timed out)',
         },
         {
-          title: 'SWX Timeouts',
+          title: 'SWX Timeouts (Rate)',
           targets: [
             {
               expr:
@@ -496,7 +496,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
       title: 'OCS CCR Requests',
       panels: [
         {
-          title: 'Initializations',
+          title: 'Initializations (Rate)',
           targets: [
             {
               expr: 'sum(rate(ocs_ccr_init_requests_total[5m])) by (networkID)',
@@ -506,7 +506,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of Gy CCR-I requests',
         },
         {
-          title: 'Terminations',
+          title: 'Terminations (Rate)',
           targets: [
             {
               expr:
@@ -517,7 +517,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of Gy CCR-T requests',
         },
         {
-          title: 'Updates',
+          title: 'Updates (Rate)',
           targets: [
             {
               expr:
@@ -533,7 +533,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
       title: 'OCS Send Failures',
       panels: [
         {
-          title: 'Initialization Failures',
+          title: 'Initialization Failures (Rate)',
           targets: [
             {
               expr:
@@ -545,7 +545,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
             'Rate of Gy CCR-I messages that were unable to be sent due to diameter connection errors',
         },
         {
-          title: 'Temination Failures',
+          title: 'Temination Failures (Rate)',
           targets: [
             {
               expr:
@@ -557,7 +557,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
             'Rate of Gy CCR-T messages that were unable to be sent due to diameter connection errors',
         },
         {
-          title: 'Update Failures',
+          title: 'Update Failures (Rate)',
           targets: [
             {
               expr:
@@ -574,7 +574,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
       title: 'PCRF CCR Requests',
       panels: [
         {
-          title: 'Initializations',
+          title: 'Initializations (Rate)',
           targets: [
             {
               expr:
@@ -585,7 +585,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of Gx CCR-I requests',
         },
         {
-          title: 'Teminations',
+          title: 'Teminations (Rate)',
           targets: [
             {
               expr:
@@ -596,7 +596,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of Gx CCR-T requests',
         },
         {
-          title: 'Updates',
+          title: 'Updates (Rate)',
           targets: [
             {
               expr:
@@ -612,7 +612,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
       title: 'PCRF CCR Send Failures',
       panels: [
         {
-          title: 'Initialization Failures',
+          title: 'Initialization Failures (Rate)',
           targets: [
             {
               expr:
@@ -624,7 +624,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
             'Rate of Gx CCR-I messages that were unable to be sent due to diameter connection errors',
         },
         {
-          title: 'Temination Failures',
+          title: 'Temination Failures (Rate)',
           targets: [
             {
               expr:
@@ -636,7 +636,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
             'Rate of Gx CCR-T messages that were unable to be sent due to diameter connection errors',
         },
         {
-          title: 'Update Failures',
+          title: 'Update Failures (Rate)',
           targets: [
             {
               expr:
@@ -653,7 +653,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
       title: 'HSS Requests/Failures',
       panels: [
         {
-          title: 'MAR Requests',
+          title: 'MAR Requests (Rate)',
           targets: [
             {
               expr:
@@ -664,7 +664,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of SWx MAR requests',
         },
         {
-          title: 'SAR Requests',
+          title: 'SAR Requests (Rate)',
           targets: [
             {
               expr:
@@ -675,7 +675,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of SWx SAR requests',
         },
         {
-          title: 'MAR Failures',
+          title: 'MAR Failures (Rate)',
           targets: [
             {
               expr:
@@ -686,7 +686,7 @@ export const CWFNetworkDBData: GrafanaDBData = {
           description: 'Rate of SWx MAR request failures',
         },
         {
-          title: 'SAR Failures',
+          title: 'SAR Failures (Rate)',
           targets: [
             {
               expr:
@@ -710,7 +710,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
       title: 'Diameter Result Codes',
       panels: [
         {
-          title: 'Gx Result Codes',
+          title: 'Gx Result Codes (Rate)',
           targets: [
             {
               expr:
@@ -721,7 +721,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of Gx responses segmented by code',
         },
         {
-          title: 'Gy Result Codes',
+          title: 'Gy Result Codes (Rate)',
           targets: [
             {
               expr:
@@ -732,7 +732,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of Gy responses segmented by code',
         },
         {
-          title: 'SWX Result Codes',
+          title: 'SWX Result Codes (Rate)',
           targets: [
             {
               expr:
@@ -743,7 +743,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of SWx responses segmented by diameter base code',
         },
         {
-          title: 'SWX Experimental Result Codes',
+          title: 'SWX Experimental Result Codes (Rate)',
           targets: [
             {
               expr:
@@ -759,7 +759,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
       title: 'Diameter Timeouts',
       panels: [
         {
-          title: 'Gx Timeouts',
+          title: 'Gx Timeouts (Rate)',
           targets: [
             {
               expr:
@@ -771,7 +771,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
             'Rate of Gx requests that did not receive a response (and thus timed out)',
         },
         {
-          title: 'Gy Timeouts',
+          title: 'Gy Timeouts (Rate)',
           targets: [
             {
               expr:
@@ -783,7 +783,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
             'Rate of Gy requests that did not receive a response (and thus timed out)',
         },
         {
-          title: 'SWX Timeouts',
+          title: 'SWX Timeouts (Rate)',
           targets: [
             {
               expr:
@@ -800,7 +800,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
       title: 'OCS CCR Requests',
       panels: [
         {
-          title: 'Initializations',
+          title: 'Initializations (Rate)',
           targets: [
             {
               expr:
@@ -811,7 +811,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of Gy CCR-I requests',
         },
         {
-          title: 'Terminations',
+          title: 'Terminations (Rate)',
           targets: [
             {
               expr:
@@ -822,7 +822,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of Gy CCR-T requests',
         },
         {
-          title: 'Updates',
+          title: 'Updates (Rate)',
           targets: [
             {
               expr:
@@ -835,7 +835,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
       ],
     },
     {
-      title: 'OCS Send Failures',
+      title: 'OCS Send Failures (Rate)',
       panels: [
         {
           title: 'Initialization Failures',
@@ -850,7 +850,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
             'Rate of Gy CCR-I messages that were unable to be sent due to diameter connection errors',
         },
         {
-          title: 'Termination Failures',
+          title: 'Termination Failures (Rate)',
           targets: [
             {
               expr:
@@ -862,7 +862,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
             'Rate of Gy CCR-T messages that were unable to be sent due to diameter connection errors',
         },
         {
-          title: 'Update Failures',
+          title: 'Update Failures (Rate)',
           targets: [
             {
               expr:
@@ -879,7 +879,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
       title: 'PCRF CCR Requests',
       panels: [
         {
-          title: 'Initializations',
+          title: 'Initializations (Rate)',
           targets: [
             {
               expr:
@@ -890,7 +890,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of Gx CCR-I requests',
         },
         {
-          title: 'Terminations',
+          title: 'Terminations (Rate)',
           targets: [
             {
               expr:
@@ -901,7 +901,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of Gx CCR-T requests',
         },
         {
-          title: 'Updates',
+          title: 'Updates (Rate)',
           targets: [
             {
               expr:
@@ -917,7 +917,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
       title: 'PCRF CCR Send Failures',
       panels: [
         {
-          title: 'Initialization Failures',
+          title: 'Initialization Failures (Rate)',
           targets: [
             {
               expr:
@@ -929,7 +929,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
             'Rate of Gx CCR-I messages that were unable to be sent due to diameter connection errors',
         },
         {
-          title: 'Termination Failures',
+          title: 'Termination Failures (Rate)',
           targets: [
             {
               expr:
@@ -941,7 +941,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
             'Rate of Gx CCR-T messages that were unable to be sent due to diameter connection errors',
         },
         {
-          title: 'Update Failures',
+          title: 'Update Failures (Rate)',
           targets: [
             {
               expr:
@@ -958,7 +958,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
       title: 'HSS Requests/Failures',
       panels: [
         {
-          title: 'MAR Requests',
+          title: 'MAR Requests (Rate)',
           targets: [
             {
               expr:
@@ -969,7 +969,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of SWx MAR requests',
         },
         {
-          title: 'SAR Requests',
+          title: 'SAR Requests (Rate)',
           targets: [
             {
               expr:
@@ -980,7 +980,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of SWx SAR requests',
         },
         {
-          title: 'MAR Failures',
+          title: 'MAR Failures (Rate)',
           targets: [
             {
               expr:
@@ -991,7 +991,7 @@ export const CWFGatewayDBData: GrafanaDBData = {
           description: 'Rate of SWx MAR request failures',
         },
         {
-          title: 'SAR Failures',
+          title: 'SAR Failures (Rate)',
           targets: [
             {
               expr:
