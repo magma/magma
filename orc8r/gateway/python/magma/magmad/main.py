@@ -72,7 +72,7 @@ def main():
     collect_interval = metrics_config['collect_interval']
     sync_interval = metrics_config['sync_interval']
     grpc_timeout = metrics_config['grpc_timeout']
-    grpc_msg_size = metrics_config.get('grpc_max_msg_size_mb', 4)
+    grpc_msg_size = metrics_config.get('max_grpc_msg_size_mb', 4)
     queue_length = metrics_config['queue_length']
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
