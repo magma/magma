@@ -20,12 +20,14 @@ import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+import ipaddress
 
 
 class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
     SPGW_TABLE = 0
     GTP_PORT = 32768
     LOCAL_PORT = "LOCAL"
+    default_ip = None
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -35,7 +37,9 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def _verify_flow_rules(self, ueId, num_flows):
+    def _verify_flow_rules(
+        self, num_ul_flows, num_dl_flows_default, num_dl_flows_sec_pdn, ips
+    ):
         MAX_NUM_RETRIES = 5
         datapath = get_datapath()
 
@@ -54,11 +58,10 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
                     "match": {"in_port": self.GTP_PORT},
                 },
             )
-            if len(uplink_flows) > num_flows:
+            if len(uplink_flows) == num_ul_flows:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
-
-        assert len(uplink_flows) > num_flows, "Uplink flow missing for UE"
+        assert len(uplink_flows) == num_ul_flows, "Uplink flow missing for UE"
         self.assertIsNotNone(
             uplink_flows[0]["match"]["tunnel_id"],
             "Uplink flow missing tunnel id match",
@@ -66,41 +69,50 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
 
         # DOWNLINK
         print("Checking for downlink flow")
-        ue_ip = str(self._s1ap_wrapper._s1_util.get_ip(ueId))
-        # try at least 5 times before failing as gateway
-        # might take some time to install the flows in ovs
-        for i in range(MAX_NUM_RETRIES):
-            print("Get downlink flows: attempt ", i)
-            downlink_flows = get_flows(
-                datapath,
-                {
-                    "table_id": self.SPGW_TABLE,
-                    "match": {
-                        "nw_dst": ue_ip,
-                        "eth_type": 2048,
-                        "in_port": self.LOCAL_PORT,
+        for ue_ip in ips:
+            print("Dl flow for dst ue ip", ue_ip)
+            if ue_ip == self.default_ip:
+                num_dl_flows = num_dl_flows_default
+            else:
+                num_dl_flows = num_dl_flows_sec_pdn
+            # try at least 5 times before failing as gateway
+            # might take some time to install the flows in ovs
+            ue_ip_str = str(ue_ip)
+            for i in range(MAX_NUM_RETRIES):
+                print("Get downlink flows: attempt ", i)
+                downlink_flows = get_flows(
+                    datapath,
+                    {
+                        "table_id": self.SPGW_TABLE,
+                        "match": {
+                            "nw_dst": ue_ip_str,
+                            "eth_type": 2048,
+                            "in_port": self.LOCAL_PORT,
+                        },
                     },
-                },
+                )
+                if len(downlink_flows) == num_dl_flows:
+                    break
+                time.sleep(5)  # sleep for 5 seconds before retrying
+            assert (
+                len(downlink_flows) == num_dl_flows
+            ), "Downlink flow missing for UE"
+            self.assertEqual(
+                downlink_flows[0]["match"]["ipv4_dst"],
+                ue_ip_str,
+                "UE IP match missing from downlink flow",
             )
-            if len(downlink_flows) > num_flows:
-                break
-            time.sleep(5)  # sleep for 5 seconds before retrying
-        assert len(downlink_flows) > num_flows, "Downlink flow missing for UE"
-        self.assertEqual(
-            downlink_flows[0]["match"]["ipv4_dst"],
-            ue_ip,
-            "UE IP match missing from downlink flow",
-        )
 
-        actions = downlink_flows[0]["instructions"][0]["actions"]
-        has_tunnel_action = any(
-            action
-            for action in actions
-            if action["field"] == "tunnel_id" and action["type"] == "SET_FIELD"
-        )
-        self.assertTrue(
-            has_tunnel_action, "Downlink flow missing set tunnel action"
-        )
+            actions = downlink_flows[0]["instructions"][0]["actions"]
+            has_tunnel_action = any(
+                action
+                for action in actions
+                if action["field"] == "tunnel_id"
+                and action["type"] == "SET_FIELD"
+            )
+            self.assertTrue(
+                has_tunnel_action, "Downlink flow missing set tunnel action"
+            )
 
     def test_attach_service_with_multi_pdns_and_bearers(self):
         """
@@ -110,6 +122,7 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
+        ips = []
         # APN of the secondary PDN
         ims = {
             "apn_name": "ims",  # APN-name
@@ -131,6 +144,10 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
             "************************* Running End to End attach for UE id ",
             ue_id,
         )
+
+        num_ul_flows = 4
+        num_dl_flows_default = 4
+        num_dl_flows_sec_pdn = 2
 
         # UL Flow description #1
         ulFlow1 = {
@@ -239,12 +256,15 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         policy_id2 = "ims"
 
         # Now actually complete the attach
-        self._s1ap_wrapper._s1_util.attach(
+        attach = self._s1ap_wrapper._s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        self.default_ip = ipaddress.ip_address(bytes(addr[:4]))
+        ips.append(self.default_ip)
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -291,7 +311,11 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PDN_CONN_RSP_IND.value
         )
-        response.cast(s1ap_types.uePdnConRsp_t)
+        act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
+        addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
+        sec_ip = ipaddress.ip_address(bytes(addr[:4]))
+        ips.append(sec_ip)
+
         print(
             "********************** Sending Activate default EPS bearer "
             "context accept for UE id ",
@@ -331,8 +355,9 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         print("Sleeping for 5 seconds")
         time.sleep(5)
         # Verify if flow rules are created
-        num_flows = 3
-        self._verify_flow_rules(ue_id, num_flows)
+        self._verify_flow_rules(
+            num_ul_flows, num_dl_flows_default, num_dl_flows_sec_pdn, ips
+        )
         print("*********** Moving UE to idle mode")
         print(
             "************* Sending UE context release request ",
@@ -373,7 +398,9 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         time.sleep(5)
 
         # Verify if flow rules are created
-        self._verify_flow_rules(ue_id, num_flows)
+        self._verify_flow_rules(
+            num_ul_flows, num_dl_flows_default, num_dl_flows_sec_pdn, ips
+        )
 
         print("Sleeping for 5 seconds")
         time.sleep(5)

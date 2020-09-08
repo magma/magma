@@ -35,7 +35,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def _verify_flow_rules(self, ueId, num_flows):
+    def _verify_flow_rules(self, ueId, num_ul_flows, num_dl_flows):
         MAX_NUM_RETRIES = 5
         datapath = get_datapath()
 
@@ -54,11 +54,11 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
                     "match": {"in_port": self.GTP_PORT},
                 },
             )
-            if len(uplink_flows) > num_flows:
+            if len(uplink_flows) == num_ul_flows:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
 
-        assert len(uplink_flows) > num_flows, "Uplink flow missing for UE"
+        assert len(uplink_flows) == num_ul_flows, "Uplink flow missing for UE"
         self.assertIsNotNone(
             uplink_flows[0]["match"]["tunnel_id"],
             "Uplink flow missing tunnel id match",
@@ -82,10 +82,12 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
                     },
                 },
             )
-            if len(downlink_flows) > num_flows:
+            if len(downlink_flows) == num_dl_flows:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying
-        assert len(downlink_flows) > num_flows, "Downlink flow missing for UE"
+        assert (
+            len(downlink_flows) == num_dl_flows
+        ), "Downlink flow missing for UE"
         self.assertEqual(
             downlink_flows[0]["match"]["ipv4_dst"],
             ue_ip,
@@ -286,7 +288,6 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
             qos2,
         )
 
-        num_flows = 2
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_PAGING_IND.value
@@ -342,7 +343,9 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         )
 
         # Verify if flow rules are created
-        self._verify_flow_rules(ue_id, num_flows)
+        num_ul_flows = 3
+        num_dl_flows = 5
+        self._verify_flow_rules(ue_id, num_ul_flows, num_dl_flows)
 
         print("*********** Sleeping for 5 seconds")
         time.sleep(5)
