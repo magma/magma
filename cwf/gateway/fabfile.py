@@ -142,7 +142,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
               "You can now run the tests manually from cwag_test")
         sys.exit(0)
 
-
     # HSSLESS tests are to be executed from gateway_host VM
     if tests_to_run.value == SubTests.HSSLESS.value:
         _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
