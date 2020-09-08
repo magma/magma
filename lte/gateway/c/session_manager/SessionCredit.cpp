@@ -492,6 +492,9 @@ bool SessionCredit::is_received_grented_unit_zero(const CreditUnit& cu) const{
 }
 
 void SessionCredit::log_quota_and_usage() const {
+  if (magma::get_verbosity() != MDEBUG){
+    return;
+  }
   MLOG(MDEBUG) << "===> Used     Tx: " << buckets_[USED_TX]
                << " Rx: " << buckets_[USED_RX]
                << " Total: " << buckets_[USED_TX] + buckets_[USED_RX];
@@ -537,6 +540,9 @@ std::string SessionCredit::get_percentage_usage(uint64_t allowed, uint64_t floor
 }
 
 void SessionCredit::log_usage_report(SessionCredit::Usage usage) const {
+  if (magma::get_verbosity() != MDEBUG){
+    return;
+  }
   MLOG(MDEBUG) << "===> Amount reporting for this report:"
                << " tx=" << usage.bytes_tx << " rx=" << usage.bytes_rx;
   MLOG(MDEBUG) << "===> The total amount currently being reported:"
