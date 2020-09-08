@@ -38,6 +38,7 @@ class SubTests(Enum):
     GX = "gx"
     GY = "gy"
     QOS = "qos"
+    HSSLESS = "hssless"
 
     @staticmethod
     def list():
@@ -139,6 +140,13 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         execute(_add_docker_host_remote_network_envvar)
         print("run_test was set to false. Test will not be run\n"
               "You can now run the tests manually from cwag_test")
+        sys.exit(0)
+
+
+    # HSSLESS tests are to be executed from gateway_host VM
+    if tests_to_run.value == SubTests.HSSLESS.value:
+        _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
+        execute(_run_integ_tests, gateway_host, trf_host, tests_to_run, test_re)
         sys.exit(0)
 
     execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
