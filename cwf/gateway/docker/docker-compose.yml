@@ -227,8 +227,4 @@ services:
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"
-  uesim:
-    <<: *service
-    container_name: uesim
-    image: ${DOCKER_REGISTRY}cwag_go:${IMAGE_VERSION}
-    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/uesim -logtostderr=true -v=0
+
