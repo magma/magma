@@ -341,7 +341,7 @@ export async function RunGatewayCommands(props: GatewayCommandProps) {
 
     default:
       if (props.params != null) {
-        return await MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot(
+        return await MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric(
           {networkId, gatewayId, parameters: props.params},
         );
       }
