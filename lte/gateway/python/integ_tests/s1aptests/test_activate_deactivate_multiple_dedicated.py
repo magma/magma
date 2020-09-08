@@ -29,7 +29,7 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
 
     def test_activate_deactivate_multiplededicated(self):
         """ attach/detach + multiple dedicated bearer test with a single UE """
-        num_dedicated_bearers = 3
+        num_dedicated_bearers = 10
         bearer_ids = []
         self._s1ap_wrapper.configUEDevice(1)
 
@@ -56,7 +56,7 @@ class TestActivateDeactivateMultipleDedicated(unittest.TestCase):
                 "".join([str(i) for i in req.imsi]),
             )
             self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]), 5
+                "IMSI" + "".join([str(i) for i in req.imsi]), 5, rule_id=str(i)
             )
 
             response = self._s1ap_wrapper.s1_util.get_response()

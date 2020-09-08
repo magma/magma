@@ -958,7 +958,7 @@ class SpgwUtil(object):
         """
         self._stub = SpgwServiceStub(get_rpc_channel("spgw_service"))
 
-    def create_bearer(self, imsi, lbi, qci_val=1):
+    def create_bearer(self, imsi, lbi, qci_val=1, rule_id='1'):
         """
         Sends a CreateBearer Request to SPGW service
         """
@@ -968,7 +968,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
-                    id="rar_rule_1",
+                    id="rar_rule_"+rule_id,
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,
