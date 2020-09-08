@@ -144,7 +144,7 @@ export function PolicyOverview(props: Props) {
       <Grid container spacing={3}>
         <Grid container>
           <Grid item xs={6}>
-            <Text key="title">
+            <Text key="title" data-testid={`title_${POLICY_TITLE}`}>
               <LibraryBooksIcon /> {POLICY_TITLE}
             </Text>
           </Grid>
