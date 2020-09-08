@@ -241,10 +241,9 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
-          MLOG(MINFO) << "Sending a CreateSessionResponse for " << session_id;
+          MLOG(MINFO) << "Processing a CreateSessionResponse for " << session_id;
           enforcer_->init_session_credit(
               *session_map_ptr, imsi, session_id, cfg, response);
-
           bool write_success = session_store_.create_sessions(
               imsi, std::move((*session_map_ptr)[imsi]));
           if (write_success) {

@@ -22,3 +22,4 @@
 #define MAC_ADDR "0f:10:2e:12:3a:55"
 #define IP1 "127.0.0.1"
 #define IP2 "127.0.0.2"
+#define APN1 "03-21-00-02-00-20:Magma"

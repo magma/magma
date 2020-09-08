@@ -23,11 +23,13 @@ using grpc::Status;
 namespace {  // anonymous
 
 magma::DeactivateFlowsRequest create_deactivate_req(
-    const std::string& imsi, const std::vector<std::string>& rule_ids,
+    const std::string& imsi, const std::string& ip_addr,
+    const std::vector<std::string>& rule_ids,
     const std::vector<magma::PolicyRule>& dynamic_rules,
     const magma::RequestOriginType_OriginType origin_type) {
   magma::DeactivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
+  req.set_ip_addr(ip_addr);
   req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
   for (const auto& id : rule_ids) {
@@ -209,13 +211,15 @@ bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
 }
 
 bool AsyncPipelinedClient::deactivate_flows_for_rules(
-    const std::string& imsi, const std::vector<std::string>& rule_ids,
+    const std::string& imsi, const std::string& ip_addr,
+    const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules,
     const RequestOriginType_OriginType origin_type) {
-  auto req = create_deactivate_req(imsi, rule_ids, dynamic_rules, origin_type);
+  auto req = create_deactivate_req(
+      imsi, ip_addr, rule_ids, dynamic_rules, origin_type);
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for subscriber "
-               << imsi;
+               << imsi << " IP " << ip_addr;
   deactivate_flows_rpc(req, [imsi](Status status, DeactivateFlowsResult resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
