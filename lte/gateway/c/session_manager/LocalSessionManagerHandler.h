@@ -151,7 +151,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   std::string convert_mac_addr_to_str(const std::string& mac_addr);
 
   void add_session_to_directory_record(
-      const std::string& imsi, const std::string& session_id);
+      const std::string& imsi, const std::string& session_id,
+      const std::string& msisdn);
 
   /**
    * handle_create_session_cwf handles a sequence of actions needed for the
