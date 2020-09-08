@@ -98,7 +98,9 @@ Both Gx and Gy reporting have some commonalities on its algorithm:
 2. Sessiond will count the credits used but it will not report back anything yet
 3. When a specific percentage of that grant is reached, Sessiond will send a 
 report to OCS or PCRF with used units (by default 80% and can be changed at 
-`sessiond.yml` using parameter `sessiond_readme_quota_exhaustion`) 
+`sessiond.yml` using parameter `sessiond_readme_quota_exhaustion`). In case of
+overusage, this will be reported too. So it is up to PCRF/OCS to take that 
+overusage into consideration
 4. PCRF/OCS will then send back another grant, which will be added to the still
 remaining grant. 
 5. PCRF/OCS can also include an indication to let SessionD know that there is 
