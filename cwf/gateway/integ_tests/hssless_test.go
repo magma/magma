@@ -21,6 +21,7 @@ import (
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
+	fegprotos "magma/feg/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/blobstore"
 
@@ -45,7 +46,6 @@ func TestHsslessAuthenticateUe(t *testing.T) {
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
-	//assert.NoError(t, usePCRFMockDriver())
 	defer func() {
 		// Delete omni rules
 		assert.NoError(t, ruleManager.RemoveOmniPresentRulesFromDB("omni"))
@@ -65,6 +65,16 @@ func TestHsslessAuthenticateUe(t *testing.T) {
 	err = ruleManager.AddStaticPassAllToDBAndPCRFforIMSIs(imsis, "omni-pass-all-1", "1", 1, models.PolicyRuleConfigTrackingTypeONLYOCS, 20)
 	assert.NoError(t, err)
 
+	// Set Credits on OCS
+	setCreditOnOCS(
+		&fegprotos.CreditInfo{
+			Imsi:        imsi,
+			ChargingKey: 1,
+			Volume:      &fegprotos.Octets{TotalOctets: 500 * KiloBytes},
+			UnitType:    fegprotos.CreditInfo_Bytes,
+		},
+	)
+
 	tr.WaitForPoliciesToSync()
 
 	ues[0].Msisdn = DefaultMsisdn
@@ -73,7 +83,6 @@ func TestHsslessAuthenticateUe(t *testing.T) {
 
 	_, err = server.AddUE(context.Background(), ues[0])
 	assert.NoError(t, err)
-
 
 	authReq := &cwfprotos.AuthenticateRequest{Imsi: imsi}
 
@@ -87,6 +96,8 @@ func TestHsslessAuthenticateUe(t *testing.T) {
 	discRes, err := server.Disconnect(context.Background(), discReq)
 	assert.NoError(t, err)
 	assert.NotNil(t, discRes)
+
+	time.Sleep(5 * time.Second)
 
 }
 
