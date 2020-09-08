@@ -83,10 +83,10 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   ChargingGrant grant = get_default_grant();
   GrantedUnits gsu;
   uint64_t total_grant = 1000;
-  FinalActionInfo final_action_info;
+  create_granted_units(&total_grant, NULL, NULL, &gsu);
 
   auto uc = grant.get_update_criteria();
-  create_granted_units(&total_grant, NULL, NULL, &gsu);
+
   grant.credit.receive_credit(gsu, &uc);
   grant.is_final_grant = false;
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
@@ -108,6 +108,8 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   EXPECT_FALSE(grant.get_update_type(&update_type));
 
   // Receive a final grant
+  total_grant = 0;
+  create_granted_units(&total_grant, NULL, NULL, &gsu);
   grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
   grant.is_final_grant = true;
@@ -258,10 +260,12 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   // Now receive new quota (not final unit)
   uc = grant.get_update_criteria();  // reset UC
   grant.credit.receive_credit(gsu, &uc);
-  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 2000);
+  // we overused, so we take into consideration the 2000 we used plus granted 1000
+  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
-  EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 1000);
+  // we overused, so the delta is the overusage
+  EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 2000);
 
   // Trigger an update again, we expect the rest to be reported
   uc = grant.get_update_criteria();  // reset UC
@@ -280,18 +284,18 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   grant.final_action_info =
       get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
   grant.credit.receive_credit(gsu, &uc);
-  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
+  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 4000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
   EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 1000);
 
   // Use enough credit to exceed the given quota
   uc = grant.get_update_criteria();  // reset UC
-  credit.add_used_credit(1500, 0, uc);
-  EXPECT_EQ(uc.bucket_deltas[USED_TX], 1500);
-  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
+  credit.add_used_credit(2000, 0, uc);
+  EXPECT_EQ(uc.bucket_deltas[USED_TX], 2000);
+  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 4000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
-  EXPECT_EQ(credit.get_credit(USED_TX), 3500);
+  EXPECT_EQ(credit.get_credit(USED_TX), 4000);
   EXPECT_TRUE(credit.is_quota_exhausted(1));  // 100% exceeded
   EXPECT_TRUE(grant.should_deactivate_service());
   grant.set_service_state(SERVICE_NEEDS_DEACTIVATION, uc);

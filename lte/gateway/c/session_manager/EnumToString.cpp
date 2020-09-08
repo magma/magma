@@ -61,6 +61,8 @@ std::string final_action_to_str(ChargingCredit_FinalAction final_action) {
 
 std::string grant_type_to_str(GrantTrackingType grant_type) {
   switch (grant_type) {
+    case TRACKING_UNSET:
+      return "TRACKING_UNSET";
     case ALL_TOTAL_TX_RX:
       return "ALL_TOTAL_TX_RX";
     case TOTAL_ONLY:

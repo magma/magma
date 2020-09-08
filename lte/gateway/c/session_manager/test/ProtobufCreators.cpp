@@ -158,15 +158,36 @@ void create_usage_update(
 void create_monitor_credit(
     const std::string& m_key, MonitoringLevel level, uint64_t volume,
     UsageMonitoringCredit* credit) {
-  if (volume == 0) {
-    credit->set_action(UsageMonitoringCredit::DISABLE);
-  } else {
-    credit->set_action(UsageMonitoringCredit::CONTINUE);
-  }
-  credit->mutable_granted_units()->mutable_total()->set_volume(volume);
+  create_monitor_credit(m_key, level, volume, 0 , 0, credit);
+}
+
+void create_monitor_credit(
+    const std::string& m_key, MonitoringLevel level,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    UsageMonitoringCredit* credit) {
+  credit->mutable_granted_units()->mutable_total()->set_volume(total_volume);
   credit->mutable_granted_units()->mutable_total()->set_is_valid(true);
+  credit->mutable_granted_units()->mutable_tx()->set_volume(tx_volume);
+  credit->mutable_granted_units()->mutable_tx()->set_is_valid(true);
+  credit->mutable_granted_units()->mutable_rx()->set_volume(rx_volume);
+  credit->mutable_granted_units()->mutable_rx()->set_is_valid(true);
   credit->set_level(level);
   credit->set_monitoring_key(m_key);
+}
+
+
+void create_monitor_update_response(
+    const std::string& imsi, const std::string& m_key, MonitoringLevel level,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    UsageMonitoringUpdateResponse* response) {
+  std::vector<EventTrigger> event_triggers;
+  create_monitor_update_response(
+      imsi, m_key, level, total_volume, tx_volume, rx_volume,
+      event_triggers, 0, response);
 }
 
 void create_monitor_update_response(
@@ -182,7 +203,21 @@ void create_monitor_update_response(
     uint64_t volume, const std::vector<EventTrigger>& event_triggers,
     const uint64_t revalidation_time_unix_ts,
     UsageMonitoringUpdateResponse* response) {
-  create_monitor_credit(m_key, level, volume, response->mutable_credit());
+  create_monitor_update_response(
+      imsi, m_key, level, volume, 0, 0,
+      event_triggers, revalidation_time_unix_ts, response);
+}
+
+void create_monitor_update_response(
+    const std::string& imsi, const std::string& m_key, MonitoringLevel level,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    const std::vector<EventTrigger>& event_triggers,
+    const uint64_t revalidation_time_unix_ts,
+    UsageMonitoringUpdateResponse* response) {
+  create_monitor_credit(m_key, level, total_volume, tx_volume, rx_volume,
+                        response->mutable_credit());
   response->set_success(true);
   response->set_sid(imsi);
   for (const auto& event_trigger : event_triggers) {

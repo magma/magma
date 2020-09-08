@@ -1348,71 +1348,108 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   insert_static_rule(0, "1", "pcrf_only_active");
   insert_static_rule(0, "3", "pcrf_only_to_be_disabled");
 
+  // Monitor credit addition #1
   // insert initial session credit
-  CreateSessionResponse response;
+  CreateSessionResponse response_1;
   create_monitor_update_response(
       "IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
-      response.mutable_usage_monitors()->Add());
+      response_1.mutable_usage_monitors()->Add());
   create_monitor_update_response(
       "IMSI1", "2", MonitoringLevel::SESSION_LEVEL, 1024,
-      response.mutable_usage_monitors()->Add());
+      response_1.mutable_usage_monitors()->Add());
   create_monitor_update_response(
-      "IMSI1", "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
-      response.mutable_usage_monitors()->Add());
+      "IMSI1", "3", MonitoringLevel::PCC_RULE_LEVEL, 1024,
+      response_1.mutable_usage_monitors()->Add());
   local_enforcer->init_session_credit(
-      session_map, "IMSI1", "1234", test_cfg_, response);
-  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 1024}, {"3", 2048}});
-
+      session_map, "IMSI1", "1234", test_cfg_, response_1);
+  assert_monitor_credit("IMSI1", ALLOWED_TOTAL,
+                        {{"1", 1024}, {"2", 1024},{"3", 1024}});
   // IMPORTANT: save the updates into store and reload
   bool success =
       session_store->create_sessions("IMSI1", std::move(session_map["IMSI1"]));
   EXPECT_TRUE(success);
   session_map = session_store->read_sessions(SessionRead{"IMSI1"});
 
-  // Receive an update with DISABLE for mkey=3 & mkey=2, CONTINUE for mkey=1
-  UpdateSessionResponse update_response;
-  auto monitors = update_response.mutable_usage_monitor_responses();
-  create_monitor_update_response(
-      "IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitors->Add());
-  create_monitor_update_response(
-      "IMSI1", "2", MonitoringLevel::SESSION_LEVEL, 0, monitors->Add());
-  create_monitor_update_response(
-      "IMSI1", "3", MonitoringLevel::PCC_RULE_LEVEL, 0, monitors->Add());
-  // Apply the updates
-  auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->update_session_credits_and_rules(
-      session_map, update_response, update);
-  // Check the UC's deleted field, as that will be applied to SessionStore
-  auto monitor_updates = update["IMSI1"]["1234"].monitor_credit_map;
-  EXPECT_FALSE(monitor_updates["1"].deleted);
-  EXPECT_TRUE(monitor_updates["2"].deleted);
-  EXPECT_TRUE(monitor_updates["3"].deleted);
-  // Check updates for disabling session level monitoring key
-  EXPECT_TRUE(update["IMSI1"]["1234"].is_session_level_key_updated);
-  EXPECT_EQ(update["IMSI1"]["1234"].updated_session_level_key, "");
-  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 2048}, {"3", 0}});
 
-  // IMPORTANT: this step will sync the updates into session store and re-read
-  // the session_map.
-  success = session_store->update_sessions(update);
-  EXPECT_TRUE(success);
-  session_map = session_store->read_sessions(SessionRead{"IMSI1"});
-
-  // Assert that we don't send usage reports for deleted monitors
-  // receive usages from pipelined
-  RuleRecordTable table;
-  auto record_list = table.mutable_records();
+  // Monitor credit usage #1
+  // Use the quota to exhaust monitor 2 and 3 and assert that we send usage
+  // reports for all monitors receive usages from pipelined
+  RuleRecordTable table_1;
+  auto record_list_1 = table_1.mutable_records();
   create_rule_record(
-      "IMSI1", "pcrf_only_to_be_disabled", 5000, 5000, record_list->Add());
-  update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->aggregate_records(session_map, table, update);
+      "IMSI1", "pcrf_only_active", 2000, 0, record_list_1->Add());
+  create_rule_record(
+  "IMSI1", "pcrf_only_to_be_disabled", 2000, 0, record_list_1->Add());
+
+  auto update_1 = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table_1, update_1);
+
+  // Collect updates, should have updates since all monitors got 80% exhausted
+  std::vector<std::unique_ptr<ServiceAction>> actions_1;
+  auto update_request_1 =
+      local_enforcer->collect_updates(session_map, actions_1, update_1);
+  EXPECT_EQ(update_request_1.updates_size(), 0);
+  EXPECT_EQ(update_request_1.usage_monitors_size(), 3);
+
+
+  // Monitor credit addition #2
+  // Receive an update with zero grant for mkey=3 & mkey=2, but with
+  // credit for mkey=1. That means 3 and 2 will have to stop reporting when
+  // their quotas are exhausted
+  UpdateSessionResponse update_response_2;
+  auto monitors_2 = update_response_2.mutable_usage_monitor_responses();
+  create_monitor_update_response(
+      "IMSI1", "1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitors_2->Add());
+  create_monitor_update_response(
+      "IMSI1", "2", MonitoringLevel::SESSION_LEVEL, 0, monitors_2->Add());
+  create_monitor_update_response(
+      "IMSI1", "3", MonitoringLevel::PCC_RULE_LEVEL, 0, monitors_2->Add());
+  // Apply the updates
+  auto update_2 = SessionStore::get_default_session_update(session_map);
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response_2, update_2);
+
+  auto monitor_updates_2 = update_2["IMSI1"]["1234"].monitor_credit_map;
+  EXPECT_FALSE(monitor_updates_2["1"].deleted);
+  EXPECT_FALSE(monitor_updates_2["2"].deleted);
+  EXPECT_FALSE(monitor_updates_2["3"].deleted);
+  // Check updates for disabling session level monitoring key
+  EXPECT_TRUE(update_2["IMSI1"]["1234"].is_session_level_key_updated);
+  EXPECT_EQ(update_2["IMSI1"]["1234"].updated_session_level_key, "2");
+  // note that we have gone over allowed, so we will reset ALLOWED_TOTAL
+  // 3024 because used 2000 before (out of the initial 1024) plues we added 1024
+  // 4000 because session level has used 2000 + 2000 from mkey 1 and 3
+  // 2000 because mkey 3 have used 2000 but we haven't added any extra
+  assert_monitor_credit("IMSI1", ALLOWED_TOTAL, {{"1", 3024},
+      {"2", 4000},{"3", 2000}});
+
+
+  // Monitor credit usage #2
+  // Generate more traffic to see monitors 2 and 3 are not triggering update
+  RuleRecordTable table_2;
+  auto record_list2 = table_2.mutable_records();
+  create_rule_record(
+      "IMSI1", "pcrf_only_active", 2000, 0, record_list2->Add());
+  create_rule_record(
+      "IMSI1", "pcrf_only_to_be_disabled", 2000, 0, record_list2->Add());
+
+  update_2 = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table_2, update_2);
+  monitor_updates_2 = update_2["IMSI1"]["1234"].monitor_credit_map;
+  EXPECT_FALSE(monitor_updates_2["1"].deleted);
+  EXPECT_TRUE(monitor_updates_2["2"].deleted);
+  EXPECT_TRUE(monitor_updates_2["3"].deleted);
+  // check session level key will be removed
+  EXPECT_EQ(update_2["IMSI1"]["1234"].updated_session_level_key, "");
 
   // Collect updates, should have NO updates
-  std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto update_request =
-      local_enforcer->collect_updates(session_map, actions, update);
-  EXPECT_EQ(update_request.updates_size(), 0);
-  EXPECT_EQ(update_request.usage_monitors_size(), 0);
+  std::vector<std::unique_ptr<ServiceAction>> actions_2;
+  auto update_request_2 =
+      local_enforcer->collect_updates(session_map, actions_2, update_2);
+  EXPECT_EQ(update_request_2.updates_size(), 0);
+  EXPECT_EQ(update_request_2.usage_monitors_size(), 1);
+
+
 }
 
 TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
