@@ -63,10 +63,20 @@ class TestEnbPartialReset(unittest.TestCase):
         )()
         for indx in range(reset_req.r.partialRst.numOfConn):
             reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[indx]
+            '''Known Issue: if enbUeS1apId is getting changed, Detach Request is
+             not sent from s1ap tester.
+             Due to other high priority tasks, working on this issue is de-prioritized
+            '''
+
+            #reset_req.r.partialRst.ueS1apIdPairList[indx].enbUeS1apId = ue_ids[indx] + 20
+            reset_req.r.partialRst.ueS1apIdPairList[indx].mmeUeS1apId = ue_ids[indx] + 20
             print(
-                "Reset_req.r.partialRst.ueS1apIdPairList[indx].ueId",
+                "Reset_req.r.partialRst.ueS1apIdPairList[indx].ueId"
+                " enbUeS1apId: mmeUeS1apId:",
                 reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
                 indx,
+                reset_req.r.partialRst.ueS1apIdPairList[indx].enbUeS1apId,
+                reset_req.r.partialRst.ueS1apIdPairList[indx].mmeUeS1apId
             )
         print("ue_ids", ue_ids)
         self._s1ap_wrapper.s1_util.issue_cmd(s1ap_types.tfwCmd.RESET_REQ, reset_req)
