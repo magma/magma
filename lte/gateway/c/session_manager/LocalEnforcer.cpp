@@ -326,10 +326,9 @@ void LocalEnforcer::execute_actions(
         break;
       }
       case TERMINATE_SERVICE: {
-        bool terminated = find_and_terminate_session(
+        auto result_code = find_and_terminate_session_by_session_id(
             session_map, imsi, session_id, session_update);
-        if (!terminated) {
-          // Session not found
+        if (result_code != ResultCode::SESSION_REMOVED) {
           MLOG(MERROR) << "Cannot act on TERMINATE action since session "
                        << session_id << " does not exist";
         }
@@ -352,23 +351,6 @@ void LocalEnforcer::handle_activate_service_action(
           &LocalEnforcer::handle_activate_ue_flows_callback, this,
           action_p->get_imsi(), action_p->get_ip_addr(), action_p->get_ambr(),
           action_p->get_rule_ids(), action_p->get_rule_definitions(), _1, _2));
-}
-
-bool LocalEnforcer::find_and_terminate_session(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, SessionUpdate& session_update) {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    return false;
-  }
-  for (const auto& session : it->second) {
-    if (session->get_session_id() == session_id) {
-      start_session_termination(
-          imsi, session, true, session_update[imsi][session_id]);
-      return true;
-    }
-  }
-  return false;
 }
 
 // Terminates sessions that correspond to the given IMSI and session.
@@ -473,6 +455,9 @@ void LocalEnforcer::notify_termination_to_access_service(
       // Deleting the PDN session by triggering network issued default bearer
       // deactivation
       const auto& lte_context = config.rat_specific_context.lte_context();
+      MLOG(MDEBUG) << "Asking MME to remove the default bearer for "
+                   << " IMSI: " << imsi << ", APN: " << common_context.apn()
+                   << ", DefaultBearerID: " << lte_context.bearer_id();
       spgw_client_->delete_default_bearer(
           imsi, common_context.ue_ipv4(), lte_context.bearer_id());
       break;
@@ -1402,27 +1387,36 @@ void LocalEnforcer::update_session_credits_and_rules(
       session_map, subscribers_to_terminate, session_update);
 }
 
-// terminate_session (for externally triggered EndSession)
-// terminates the session that is associated with the given imsi and apn
-void LocalEnforcer::terminate_session(
+// find_and_terminate_session_by_apn (for externally triggered EndSession)
+// terminates the session that is associated with the given IMSI and APN
+ResultCode LocalEnforcer::find_and_terminate_session_by_apn(
     SessionMap& session_map, const std::string& imsi, const std::string& apn,
     SessionUpdate& session_update) {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    MLOG(MERROR) << "Could not find session for IMSI " << imsi
-                 << " during termination";
-    throw SessionNotFound();
+  SessionSearchCriteria criteria(imsi, IMSI_AND_APN, apn);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    return ResultCode::SESSION_NOT_FOUND;
   }
-  for (const auto& session : it->second) {
-    auto config     = session->get_config();
-    auto session_id = session->get_session_id();
-    if (config.common_context.apn() == apn) {
-      SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
-      MLOG(MINFO) << "Starting externally triggered termination for "
-                  << session_id;
-      start_session_termination(imsi, session, false, uc);
-    }
+  auto& session          = **session_it;
+  const auto& session_id = session->get_session_id();
+  MLOG(MINFO) << "Starting externally triggered termination for " << session_id;
+  start_session_termination(
+      imsi, session, true, session_update[imsi][session_id]);
+  return ResultCode::SESSION_REMOVED;
+}
+
+ResultCode LocalEnforcer::find_and_terminate_session_by_session_id(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, SessionUpdate& session_update) {
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    return ResultCode::SESSION_NOT_FOUND;
   }
+  auto& session = **session_it;
+  start_session_termination(
+      imsi, session, true, session_update[imsi][session_id]);
+  return ResultCode::SESSION_REMOVED;
 }
 
 void LocalEnforcer::handle_set_session_rules(
@@ -1469,14 +1463,14 @@ void LocalEnforcer::handle_set_session_rules(
   }
 }
 
-ReAuthResult LocalEnforcer::init_charging_reauth(
+ResultCode LocalEnforcer::init_charging_reauth(
     SessionMap& session_map, ChargingReAuthRequest request,
     SessionUpdate& session_update) {
   auto it = session_map.find(request.sid());
   if (it == session_map.end()) {
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                  << " during reauth";
-    return ReAuthResult::SESSION_NOT_FOUND;
+    return ResultCode::SESSION_NOT_FOUND;
   }
   SessionStateUpdateCriteria& uc =
       session_update[request.sid()][request.session_id()];
@@ -1491,7 +1485,7 @@ ReAuthResult LocalEnforcer::init_charging_reauth(
     }
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                  << " during reauth";
-    return ReAuthResult::SESSION_NOT_FOUND;
+    return ResultCode::SESSION_NOT_FOUND;
   }
   MLOG(MDEBUG) << "Initiating reauth of all keys for subscriber "
                << request.sid() << " for session" << request.session_id();
@@ -1503,7 +1497,7 @@ ReAuthResult LocalEnforcer::init_charging_reauth(
   MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                << " during reauth";
 
-  return ReAuthResult::SESSION_NOT_FOUND;
+  return ResultCode::SESSION_NOT_FOUND;
 }
 
 void LocalEnforcer::init_policy_reauth(
@@ -1513,7 +1507,7 @@ void LocalEnforcer::init_policy_reauth(
   if (it == session_map.end()) {
     MLOG(MERROR) << "Could not find session for subscriber " << request.imsi()
                  << " during policy reauth";
-    answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+    answer_out.set_result(ResultCode::SESSION_NOT_FOUND);
     return;
   }
   // For empty session_id, apply changes to all sessions of subscriber
@@ -1535,11 +1529,11 @@ void LocalEnforcer::init_policy_reauth(
       MLOG(MERROR) << "Found a matching IMSI " << request.imsi()
                    << ", but no matching session ID " << request.session_id()
                    << " during policy reauth";
-      answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+      answer_out.set_result(ResultCode::SESSION_NOT_FOUND);
       return;
     }
   }
-  answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
+  answer_out.set_result(ResultCode::UPDATE_INITIATED);
 }
 
 void LocalEnforcer::init_policy_reauth_for_session(

@@ -453,12 +453,12 @@ TEST_F(SessionStateTest, test_reauth_key) {
   // credit is already reporting, no update needed
   auto uc         = get_default_update_criteria();
   auto reauth_res = session_state->reauth_key(1, uc);
-  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_NOT_NEEDED);
+  EXPECT_EQ(reauth_res, ResultCode::UPDATE_NOT_NEEDED);
   receive_credit_from_ocs(1, 1024);
   EXPECT_EQ(session_state->get_charging_credit(1, REPORTING_TX), 0);
   EXPECT_EQ(session_state->get_charging_credit(1, REPORTING_RX), 0);
   reauth_res = session_state->reauth_key(1, uc);
-  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ResultCode::UPDATE_INITIATED);
 
   session_state->add_rule_usage("rule1", 2, 1, update_criteria);
   UpdateSessionRequest reauth_update;
@@ -472,7 +472,7 @@ TEST_F(SessionStateTest, test_reauth_key) {
 TEST_F(SessionStateTest, test_reauth_new_key) {
   // credit is already reporting, no update needed
   auto reauth_res = session_state->reauth_key(1, update_criteria);
-  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ResultCode::UPDATE_INITIATED);
 
   // assert stored charging grant fields are updated to reflect reauth state
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
@@ -525,7 +525,7 @@ TEST_F(SessionStateTest, test_reauth_all) {
   // If any charging key isn't reporting, an update is needed
   auto uc         = get_default_update_criteria();
   auto reauth_res = session_state->reauth_all(uc);
-  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_INITIATED);
+  EXPECT_EQ(reauth_res, ResultCode::UPDATE_INITIATED);
 
   // assert stored charging grant fields are updated to reflect reauth state
   EXPECT_EQ(uc.charging_credit_map.size(), 2);
@@ -547,7 +547,7 @@ TEST_F(SessionStateTest, test_reauth_all) {
 
   // All charging keys are reporting, no update needed
   reauth_res = session_state->reauth_all(uc);
-  EXPECT_EQ(reauth_res, ReAuthResult::UPDATE_NOT_NEEDED);
+  EXPECT_EQ(reauth_res, ResultCode::UPDATE_NOT_NEEDED);
 
   EXPECT_EQ(uc.charging_credit_map.size(), 2);
   credit_uc_1 = uc.charging_credit_map[1];

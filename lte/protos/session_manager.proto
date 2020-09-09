@@ -100,6 +100,18 @@ message PolicyBearerBindingRequest {
 message PolicyBearerBindingResponse {
 }
 
+// Based on https://tools.ietf.org/html/rfc3588#section-8.5
+enum ResultCode {
+  SESSION_REMOVED = 0;
+  SESSION_NOT_FOUND = 1;
+  USER_NOT_FOUND = 2;
+  GATEWAY_NOT_FOUND = 3;
+  RADIUS_SERVER_ERROR = 4;
+  UPDATE_INITIATED = 5;
+  UPDATE_NOT_NEEDED = 6;
+  OTHER_FAILURE = 7;
+}
+
 message ChargingReAuthRequest {
   string session_id = 1;
   uint32 charging_key = 2;
@@ -113,7 +125,7 @@ message ChargingReAuthRequest {
 }
 
 message ChargingReAuthAnswer {
-  ReAuthResult result = 1;
+  ResultCode result = 1;
 }
 
 enum EventTrigger {
@@ -204,13 +216,6 @@ message QoSInformation {
   QCI qci = 2;
 }
 
-enum ReAuthResult {
-  UPDATE_INITIATED = 0;
-  UPDATE_NOT_NEEDED = 1;
-  SESSION_NOT_FOUND = 2;
-  OTHER_FAILURE = 3;
-}
-
 message PolicyReAuthAnswer {
   enum FailureCode {
     // We want to map these directly to the diameter return codes, so use a
@@ -245,7 +250,7 @@ message PolicyReAuthAnswer {
   }
 
   string session_id = 1;
-  ReAuthResult result = 2;
+  ResultCode result = 2;
   map<string, FailureCode> failed_rules = 3;
 }
 
@@ -281,7 +286,6 @@ service SessionProxyResponder {
   rpc ChargingReAuth(ChargingReAuthRequest) returns (ChargingReAuthAnswer) {}
 
   // NOTE: if no session_id is specified, apply to all sessions for the IMSI
-  //
   rpc PolicyReAuth(PolicyReAuthRequest) returns (PolicyReAuthAnswer) {}
 }
 

@@ -50,7 +50,7 @@ func (h *asrHandler) ServeDIAM(conn diam.Conn, m *diam.Message) {
 		if len(imsi) == 0 {
 			imsi, err = diameter.ExtractImsiFromSessionID(asr.SessionID)
 			if err != nil {
-				glog.Errorf("Error retreiving IMSI from Session ID %s: %s", asr.SessionID, err)
+				glog.Errorf("Error retrieving IMSI from Session ID %s: %s", asr.SessionID, err)
 				h.sendASA(conn, m, asr.SessionID, diam.UnknownSessionID)
 				return
 			}
@@ -74,16 +74,16 @@ func (h *asrHandler) ServeDIAM(conn diam.Conn, m *diam.Message) {
 		}
 		var resCode uint32
 		switch res.GetCode() {
-		case protos.AbortSessionResult_GATEWAY_NOT_FOUND:
+		case protos.ResultCode_GATEWAY_NOT_FOUND:
 			glog.Errorf("Failed ASR to gateway: %s", res.GetErrorMessage())
 			resCode = diam.UnableToDeliver
-		case protos.AbortSessionResult_SESSION_NOT_FOUND:
+		case protos.ResultCode_SESSION_NOT_FOUND:
 			glog.Errorf("Unknown Session in ASR: %s", res.GetErrorMessage())
 			resCode = diam.UnknownSessionID
-		case protos.AbortSessionResult_USER_NOT_FOUND:
+		case protos.ResultCode_USER_NOT_FOUND:
 			glog.Errorf("Unknown User in ASR: %s", res.GetErrorMessage())
 			resCode = diam.UnknownUser
-		case protos.AbortSessionResult_SESSION_REMOVED:
+		case protos.ResultCode_SESSION_REMOVED:
 			resCode = diam.Success
 		default:
 			if len(res.GetErrorMessage()) > 0 {

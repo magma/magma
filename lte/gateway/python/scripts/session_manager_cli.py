@@ -34,6 +34,12 @@ from lte.protos.session_manager_pb2_grpc import (
     LocalSessionManagerStub,
     SessionProxyResponderStub,
 )
+from lte.protos.abort_session_pb2 import (
+    AbortSessionRequest,
+)
+from lte.protos.abort_session_pb2_grpc import (
+    AbortSessionResponderStub,
+)
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import grpc_wrapper
 from magma.common.service_registry import ServiceRegistry
@@ -208,6 +214,20 @@ def send_policy_rar(client, args):
     print(reauth_result)
 
 
+@grpc_wrapper
+def send_abort_session(client, args):
+    abort_session_chan = ServiceRegistry.get_rpc_channel("abort_session", ServiceRegistry.LOCAL)
+    abort_session_client = AbortSessionResponderStub(abort_session_chan)
+
+    asr = AbortSessionRequest(
+        session_id=args.session_id,
+        user_name=args.user_name,
+    )
+
+    asa = abort_session_client.AbortSession(asr)
+    print(asa)
+
+
 def create_parser():
     """
     Creates the argparse parser with all the arguments.
@@ -228,7 +248,7 @@ def create_parser():
     create_session_parser.add_argument("imsi", help="e.g., 001010000088888")
     create_session_parser.set_defaults(func=send_create_session)
 
-    # Create Session
+    # PolicyReAuth
     create_session_parser = subparsers.add_parser(
         "policy_rar", help="Send Policy Reauthorization Request to sessiond"
     )
@@ -256,6 +276,15 @@ def create_parser():
         "pre_cap,pre_vul] e.g., 10000000,10000000,0,0,15,1,0",
     )
     create_session_parser.set_defaults(func=send_policy_rar)
+
+    # ASR
+    abort_session_parser = subparsers.add_parser(
+        "abort_session",
+        help="Send an AbortSessionRequest to SessionD service",
+    )
+    abort_session_parser.add_argument("session_id", help="e.g., 001010000088888")
+    abort_session_parser.add_argument("user_name", help="e.g., IMSI010000088888")
+    abort_session_parser.set_defaults(func=send_abort_session)
 
     return parser
 

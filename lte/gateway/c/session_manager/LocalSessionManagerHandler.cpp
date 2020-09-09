@@ -452,24 +452,26 @@ void LocalSessionManagerHandlerImpl::EndSession(
 void LocalSessionManagerHandlerImpl::end_session(
     SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
-  try {
-    auto update = SessionStore::get_default_session_update(session_map);
-    enforcer_->terminate_session(session_map, sid.id(), apn, update);
-
-    bool update_success = session_store_.update_sessions(update);
-    if (update_success) {
-      response_callback(Status::OK, LocalEndSessionResponse());
-    } else {
-      auto status = Status(
-          grpc::ABORTED,
-          "EndSession no longer valid due to another update that "
-          "occurred to the session first.");
-      response_callback(status, LocalEndSessionResponse());
-    }
-  } catch (const SessionNotFound& ex) {
+  auto update      = SessionStore::get_default_session_update(session_map);
+  auto result_code = enforcer_->find_and_terminate_session_by_apn(
+      session_map, sid.id(), apn, update);
+  if (result_code == ResultCode::USER_NOT_FOUND ||
+      result_code == ResultCode::SESSION_NOT_FOUND) {
     MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-                 << sid.id();
+                 << sid.id() << " APN " << apn;
     Status status(grpc::FAILED_PRECONDITION, "Session not found");
+    response_callback(status, LocalEndSessionResponse());
+    // no update needed
+    return;
+  }
+  bool update_success = session_store_.update_sessions(update);
+  if (update_success) {
+    response_callback(Status::OK, LocalEndSessionResponse());
+  } else {
+    auto status = Status(
+        grpc::ABORTED,
+        "EndSession no longer valid due to another update that "
+        "occurred to the session first.");
     response_callback(status, LocalEndSessionResponse());
   }
 }

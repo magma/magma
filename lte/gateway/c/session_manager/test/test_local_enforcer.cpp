@@ -354,7 +354,8 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
   insert_static_rule(2, "", "rule3");
 
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
+  local_enforcer->find_and_terminate_session_by_apn(
+      session_map, IMSI1, "IMS", update);
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
@@ -553,7 +554,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
       *reporter,
       report_terminate_session(CheckTerminateRequestCount(IMSI1, 0, 2), _))
       .Times(1);
-  local_enforcer->terminate_session(
+  local_enforcer->find_and_terminate_session_by_apn(
       session_map, IMSI1, test_cfg_.common_context.apn(), update);
 
   RuleRecordTable empty_table;
@@ -604,7 +605,8 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
 
   session_map = session_store->read_sessions(SessionRead{IMSI1});
   // Collecting terminations should key 1 anyways during reporting
-  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
+  local_enforcer->find_and_terminate_session_by_apn(
+      session_map, IMSI1, "IMS", update);
 
   EXPECT_CALL(
       *reporter,
@@ -988,7 +990,8 @@ TEST_F(LocalEnforcerTest, test_all) {
       1024);
 
   // Terminate IMSI1
-  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
+  local_enforcer->find_and_terminate_session_by_apn(
+      session_map, IMSI1, "IMS", update);
 
   EXPECT_CALL(
       *reporter,
@@ -1014,7 +1017,7 @@ TEST_F(LocalEnforcerTest, test_re_auth) {
   auto update = SessionStore::get_default_session_update(session_map);
   auto result =
       local_enforcer->init_charging_reauth(session_map, reauth, update);
-  EXPECT_EQ(result, ReAuthResult::UPDATE_INITIATED);
+  EXPECT_EQ(result, ResultCode::UPDATE_INITIATED);
 
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto update_req =
@@ -1542,7 +1545,7 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
   PolicyReAuthAnswer raa;
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
-  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+  EXPECT_EQ(raa.result(), ResultCode::UPDATE_INITIATED);
 }
 
 // This test covers some edge cases for the dedicated bearer creation scheduling
@@ -1869,7 +1872,7 @@ TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
   PolicyReAuthAnswer raa;
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
-  EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
+  EXPECT_EQ(raa.result(), ResultCode::SESSION_NOT_FOUND);
 
   // verify session validity passing in a valid IMSI (IMSI1)
   // and an invalid session-id (session1)
@@ -1877,7 +1880,7 @@ TEST_F(LocalEnforcerTest, test_rar_session_not_found) {
   local_enforcer->init_session_credit(
       session_map, IMSI1, "session0", test_cfg_, response);
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
-  EXPECT_EQ(raa.result(), ReAuthResult::SESSION_NOT_FOUND);
+  EXPECT_EQ(raa.result(), ResultCode::SESSION_NOT_FOUND);
 }
 
 TEST_F(LocalEnforcerTest, test_revalidation_timer_on_init) {
@@ -1946,7 +1949,7 @@ TEST_F(LocalEnforcerTest, test_revalidation_timer_on_rar) {
   auto update = SessionStore::get_default_session_update(session_map);
   // This should trigger a revalidation to be scheduled
   local_enforcer->init_policy_reauth(session_map, rar, raa, update);
-  EXPECT_EQ(raa.result(), ReAuthResult::UPDATE_INITIATED);
+  EXPECT_EQ(raa.result(), ResultCode::UPDATE_INITIATED);
   // Propagate the change to store
   success = session_store->update_sessions(update);
   EXPECT_TRUE(success);
@@ -2342,7 +2345,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   update = SessionStore::get_default_session_update(session_map);
   auto result =
       local_enforcer->init_charging_reauth(session_map, reauth, update);
-  EXPECT_EQ(result, ReAuthResult::UPDATE_INITIATED);
+  EXPECT_EQ(result, ResultCode::UPDATE_INITIATED);
 
   actions.clear();
   auto update_req =

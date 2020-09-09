@@ -47,3 +47,9 @@ network will get that rule installed. Remember to check that subscriber on OCS t
 If there is not a PCRF to connect to, you can disable Gx so your session proxy doesn't try to connect to a 
 non-existing PCRF. To do so go to swagger API `/feg/{network_id}/gateways/{gateway_id}` 
 search for your Federated Gateway(using `feg network` and `feg gateway`) and modify `disableGx` under `Gx` key.
+
+## Testing
+- Generate mock server struct for testing by using `mockery`. Mockery should already be installed, 
+  but if not run `go get github.com/vektra/mockery/v2/.../`. 
+  An example command looks something like this:
+  `mockery --dir=../../lte/cloud/go/protos --name=SessionProxyResponderClient --output=./services/session_proxy/relay/mocks`

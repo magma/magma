@@ -275,15 +275,24 @@ int main(int argc, char* argv[]) {
       local_enforcer, reporter.get(), directoryd_client, events_reporter,
       *session_store);
   auto proxy_handler =
-      std::make_unique<magma::SessionProxyResponderHandlerImpl>(
+      std::make_shared<magma::SessionProxyResponderHandlerImpl>(
           local_enforcer, *session_store);
   magma::service303::MagmaService server(SESSIOND_SERVICE, SESSIOND_VERSION);
   magma::LocalSessionManagerAsyncService local_service(
       server.GetNewCompletionQueue(), std::move(local_handler));
   magma::SessionProxyResponderAsyncService proxy_service(
-      server.GetNewCompletionQueue(), std::move(proxy_handler));
+      server.GetNewCompletionQueue(), proxy_handler);
   server.AddServiceToServer(&local_service);
   server.AddServiceToServer(&proxy_service);
+
+  // For FWA always handle abort session
+  magma::AbortSessionResponderAsyncService* abort_session_service = nullptr;
+  if (!config["support_carrier_wifi"].as<bool>()) {
+    abort_session_service = new magma::AbortSessionResponderAsyncService(
+        server.GetNewCompletionQueue(), proxy_handler);
+    server.AddServiceToServer(abort_session_service);
+  }
+
   server.Start();
 
   std::thread local_thread([&]() {
@@ -297,6 +306,17 @@ int main(int argc, char* argv[]) {
     proxy_service.stop();               // stop queue after server shuts down
   });
 
+  // Only start abort session handler for non-CWF deployments
+  std::thread abort_session_thread;
+  if (abort_session_service != nullptr) {
+    abort_session_thread = std::thread([&]() {
+      MLOG(MINFO) << "Started abort session service thread";
+      // block here instead of on server
+      abort_session_service->wait_for_requests();
+      abort_session_service->stop();  // stop queue after server shuts down
+    });
+  }
+
   // Block on main local_enforcer (to keep evb in this thread)
   local_enforcer->attachEventBase(evb);
   local_enforcer->sync_sessions_on_restart(time(NULL));
@@ -304,6 +324,10 @@ int main(int argc, char* argv[]) {
   server.Stop();
 
   // Clean up threads & resources
+  if (abort_session_service != nullptr) {
+    abort_session_thread.join();
+    free(abort_session_service);
+  }
   policy_response_handler.join();
   local_thread.join();
   proxy_thread.join();

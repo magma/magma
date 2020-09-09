@@ -39,6 +39,7 @@ require (
 	github.com/stretchr/testify v1.4.0
 	github.com/thoas/go-funk v0.7.0
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	google.golang.org/genproto v0.0.0-20191108220845-16a3f7862a1a // indirect
 	google.golang.org/grpc v1.27.1
 	layeh.com/radius v0.0.0-20200615152116-663b41c3bf86
 	magma/feg/cloud/go v0.0.0

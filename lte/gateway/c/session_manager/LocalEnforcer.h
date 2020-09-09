@@ -152,23 +152,34 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * terminate_session handles externally triggered session termination.
-   * This assumes that the termination is coming from the access component, so
-   * it does not notify the termination back to the access component.
+   * find_and_terminate_session_by_apn handles externally triggered session
+   * termination. This assumes that the termination is coming from the access
+   * component, so it does not notify the termination back to the access
+   * component.
    * @param session_map
    * @param imsi
    * @param apn
    * @param session_update
    */
-  void terminate_session(
+  ResultCode find_and_terminate_session_by_apn(
       SessionMap& session_map, const std::string& imsi, const std::string& apn,
       SessionUpdate& session_update);
+
+  /**
+   * find_and_terminate_session_by_session_id call start_session_termination on
+   * a session with IMSI + session id.
+   * @return true if start_session_termination was called, false if session was
+   * not found
+   */
+  ResultCode find_and_terminate_session_by_session_id(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, SessionUpdate& session_update);
 
   /**
    * Initialize reauth for a subscriber service. If the subscriber cannot be
    * found, the method returns SESSION_NOT_FOUND
    */
-  ReAuthResult init_charging_reauth(
+  ResultCode init_charging_reauth(
       SessionMap& session_map, ChargingReAuthRequest request,
       SessionUpdate& session_update);
 
@@ -438,16 +449,6 @@ class LocalEnforcer {
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
-
-  /**
-   * find_and_terminate_session call start_session_termination on a session with
-   * IMSI + session id.
-   * @return true if start_session_termination was called, false if session was
-   * not found
-   */
-  bool find_and_terminate_session(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, SessionUpdate& session_update);
 
   /**
    * start_session_termination starts the termination process. This includes:

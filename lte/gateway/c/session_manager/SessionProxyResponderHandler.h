@@ -16,6 +16,7 @@
 
 #include <grpc++/grpc++.h>
 #include <lte/protos/session_manager.grpc.pb.h>
+#include <lte/protos/abort_session.grpc.pb.h>
 
 #include "LocalEnforcer.h"
 #include "SessionStore.h"
@@ -41,6 +42,13 @@ class SessionProxyResponderHandler {
   virtual void PolicyReAuth(
       ServerContext* context, const PolicyReAuthRequest* request,
       std::function<void(Status, PolicyReAuthAnswer)> response_callback) = 0;
+
+  /**
+   * Support for network initiated ungraceful termination
+   */
+  virtual void AbortSession(
+      ServerContext* context, const AbortSessionRequest* request,
+      std::function<void(Status, AbortSessionResult)> response_callback) = 0;
 };
 
 /**
@@ -69,30 +77,16 @@ class SessionProxyResponderHandlerImpl : public SessionProxyResponderHandler {
       ServerContext* context, const PolicyReAuthRequest* request,
       std::function<void(Status, PolicyReAuthAnswer)> response_callback);
 
+  /**
+   * Support for network initiated ungraceful termination
+   */
+  void AbortSession(
+      ServerContext* context, const AbortSessionRequest* request,
+      std::function<void(Status, AbortSessionResult)> response_callback);
+
  private:
   std::shared_ptr<LocalEnforcer> enforcer_;
   SessionStore& session_store_;
-
- private:
-  /**
-   * Get the most recently written state of the session to be updated for
-   * charging reauth.
-   * Does not get any other sessions.
-   *
-   * NOTE: Call only from the main EventBase thread, otherwise there will
-   *       be undefined behavior.
-   */
-  SessionMap get_sessions_for_charging(const ChargingReAuthRequest& request);
-
-  /**
-   * Get the most recently written state of the session to be updated for
-   * policy reauth.
-   * Does not get any other sessions.
-   *
-   * NOTE: Call only from the main EventBase thread, otherwise there will
-   *       be undefined behavior.
-   */
-  SessionMap get_sessions_for_policy(const PolicyReAuthRequest& request);
 };
 
 }  // namespace magma

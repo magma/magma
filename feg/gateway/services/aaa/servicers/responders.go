@@ -59,7 +59,7 @@ func (srv *accountingService) AbortSession(
 	}
 	sid := srv.sessions.FindSession(imsi)
 	if len(sid) == 0 {
-		res.Code = lteprotos.AbortSessionResult_USER_NOT_FOUND
+		res.Code = lteprotos.ResultCode_USER_NOT_FOUND
 		res.ErrorMessage = fmt.Sprintf("Session for IMSI: %s is not found", imsi)
 		glog.Error(res.ErrorMessage)
 		if srv.config.GetEventLoggingEnabled() {
@@ -69,7 +69,7 @@ func (srv *accountingService) AbortSession(
 	}
 	s := srv.sessions.GetSession(sid)
 	if s == nil {
-		res.Code = lteprotos.AbortSessionResult_SESSION_NOT_FOUND
+		res.Code = lteprotos.ResultCode_SESSION_NOT_FOUND
 		res.ErrorMessage = fmt.Sprintf("Session for Radius Session ID: %s and IMSI: %s is not found", sid, imsi)
 		glog.Error(res.ErrorMessage)
 		if srv.config.GetEventLoggingEnabled() {
@@ -85,7 +85,7 @@ func (srv *accountingService) AbortSession(
 		len(asid) > 0 &&
 		asid != req.GetSessionId() {
 
-		res.Code = lteprotos.AbortSessionResult_SESSION_NOT_FOUND
+		res.Code = lteprotos.ResultCode_SESSION_NOT_FOUND
 		res.ErrorMessage = fmt.Sprintf(
 			"Accounting Session ID Mismatch for RadSID %s and IMSI: %s. Requested: %s, recorded: %s",
 			sid, imsi, req.GetSessionId(), asid)
@@ -113,7 +113,7 @@ func (srv *accountingService) AbortSession(
 
 	err := srv.dae.Disconnect(sctx)
 	if err != nil {
-		res.Code = lteprotos.AbortSessionResult_RADIUS_SERVER_ERROR
+		res.Code = lteprotos.ResultCode_RADIUS_SERVER_ERROR
 		res.ErrorMessage = fmt.Sprintf(
 			"Radius Disconnect Error: %v for IMSI: %s, Acct SID: %s, Radius SID: %s", err, imsi, asid, sid)
 		glog.Error(res.ErrorMessage)

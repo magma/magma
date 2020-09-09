@@ -118,7 +118,7 @@ std::string credit_update_type_to_str(CreditUsage::UpdateType update) {
   }
 }
 
-std::string raa_result_to_str(ReAuthResult res) {
+std::string result_code_to_str(ResultCode res) {
   switch (res) {
     case UPDATE_INITIATED:
       return "UPDATE_INITIATED";
@@ -126,6 +126,10 @@ std::string raa_result_to_str(ReAuthResult res) {
       return "UPDATE_NOT_NEEDED";
     case SESSION_NOT_FOUND:
       return "SESSION_NOT_FOUND";
+    case SESSION_REMOVED:
+      return "SESSION_REMOVED";
+    case USER_NOT_FOUND:
+      return "USER_NOT_FOUND";
     case OTHER_FAILURE:
       return "OTHER_FAILURE";
     default:

@@ -74,18 +74,18 @@ func getGyReAuthRequestProto(diamReq *ChargingReAuthRequest, imsi, sid string) *
 
 func getGyReAuthAnswerDiamMsg(sessionID string, protoAns *protos.ChargingReAuthAnswer) *ChargingReAuthAnswer {
 	var resultCode uint32
-	reauthResult := protos.ReAuthResult_OTHER_FAILURE
+	reauthResult := protos.ResultCode_OTHER_FAILURE
 	if protoAns != nil {
 		reauthResult = protoAns.Result
 	}
 	switch reauthResult {
-	case protos.ReAuthResult_UPDATE_INITIATED:
+	case protos.ResultCode_UPDATE_INITIATED:
 		resultCode = diam.LimitedSuccess
-	case protos.ReAuthResult_UPDATE_NOT_NEEDED:
+	case protos.ResultCode_UPDATE_NOT_NEEDED:
 		resultCode = diam.Success
-	case protos.ReAuthResult_SESSION_NOT_FOUND:
+	case protos.ResultCode_SESSION_NOT_FOUND:
 		resultCode = diam.UnknownSessionID
-	// ReAuthResult_OTHER_FAILURE & undefined
+	// ResultCode_OTHER_FAILURE & undefined
 	default:
 		resultCode = diam.UnableToComply
 	}

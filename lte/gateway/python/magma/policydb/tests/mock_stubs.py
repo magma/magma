@@ -12,7 +12,7 @@ limitations under the License.
 """
 
 from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
-    PolicyReAuthAnswer, ReAuthResult, SessionRules
+    PolicyReAuthAnswer, ResultCode, SessionRules
 from orc8r.protos.common_pb2 import Void
 
 class MockLocalSessionManagerStub:
@@ -36,7 +36,7 @@ class MockSessionProxyResponderStub1:
 
     def PolicyReAuth(self, _: PolicyReAuthRequest) -> PolicyReAuthAnswer:
         return PolicyReAuthAnswer(
-            result=ReAuthResult.Value('UPDATE_INITIATED')
+            result=ResultCode.Value('UPDATE_INITIATED')
         )
 
 
@@ -50,7 +50,7 @@ class MockSessionProxyResponderStub2:
 
     def PolicyReAuth(self, _: PolicyReAuthRequest) -> PolicyReAuthAnswer:
         return PolicyReAuthAnswer(
-            result=ReAuthResult.Value('OTHER_FAILURE')
+            result=ResultCode.Value('OTHER_FAILURE')
         )
 
 
@@ -63,7 +63,7 @@ class MockSessionProxyResponderStub3:
 
     def PolicyReAuth(self, _: PolicyReAuthRequest) -> PolicyReAuthAnswer:
         return PolicyReAuthAnswer(
-            result=ReAuthResult.Value('UPDATE_INITIATED'),
+            result=ResultCode.Value('UPDATE_INITIATED'),
             failed_rules={
                 "p2": PolicyReAuthAnswer.FailureCode.Value("UNKNOWN_RULE_NAME"),
             },

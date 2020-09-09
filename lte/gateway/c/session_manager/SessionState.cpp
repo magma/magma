@@ -1140,7 +1140,7 @@ uint64_t SessionState::get_charging_credit(
   return it->second->credit.get_credit(bucket);
 }
 
-ReAuthResult SessionState::reauth_key(
+ResultCode SessionState::reauth_key(
     const CreditKey& charging_key,
     SessionStateUpdateCriteria& update_criteria) {
   auto it = credit_map_.find(charging_key);
@@ -1148,12 +1148,12 @@ ReAuthResult SessionState::reauth_key(
     // if credit is already reporting, don't initiate update
     auto& grant = it->second;
     if (grant->credit.is_reporting()) {
-      return ReAuthResult::UPDATE_NOT_NEEDED;
+      return ResultCode::UPDATE_NOT_NEEDED;
     }
     auto uc = grant->get_update_criteria();
     grant->set_reauth_state(REAUTH_REQUIRED, uc);
     update_criteria.charging_credit_map[charging_key] = uc;
-    return ReAuthResult::UPDATE_INITIATED;
+    return ResultCode::UPDATE_INITIATED;
   }
   // charging_key cannot be found, initialize credit and engage reauth
   auto grant           = std::make_unique<ChargingGrant>();
@@ -1162,12 +1162,12 @@ ReAuthResult SessionState::reauth_key(
   grant->service_state = SERVICE_DISABLED;
   update_criteria.charging_credit_to_install[charging_key] = grant->marshal();
   credit_map_[charging_key]                                = std::move(grant);
-  return ReAuthResult::UPDATE_INITIATED;
+  return ResultCode::UPDATE_INITIATED;
 }
 
-ReAuthResult SessionState::reauth_all(
+ResultCode SessionState::reauth_all(
     SessionStateUpdateCriteria& update_criteria) {
-  auto res = ReAuthResult::UPDATE_NOT_NEEDED;
+  auto res = ResultCode::UPDATE_NOT_NEEDED;
   for (auto& credit_pair : credit_map_) {
     auto key    = credit_pair.first;
     auto& grant = credit_pair.second;
@@ -1176,7 +1176,7 @@ ReAuthResult SessionState::reauth_all(
       update_criteria.charging_credit_map[key] = grant->get_update_criteria();
       grant->set_reauth_state(
           REAUTH_REQUIRED, update_criteria.charging_credit_map[key]);
-      res = ReAuthResult::UPDATE_INITIATED;
+      res = ResultCode::UPDATE_INITIATED;
     }
   }
   return res;

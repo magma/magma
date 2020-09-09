@@ -13,7 +13,7 @@ limitations under the License.
 
 import unittest
 from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
-    PolicyReAuthAnswer, ReAuthResult, StaticRuleInstall, PolicyReAuthRequest
+    PolicyReAuthAnswer, ResultCode, StaticRuleInstall, PolicyReAuthRequest
 from magma.policydb.reauth_handler import ReAuthHandler
 
 
@@ -27,7 +27,7 @@ class MockSessionProxyResponderStub:
 
     def PolicyReAuth(self, _: PolicyReAuthRequest) -> PolicyReAuthAnswer:
         return PolicyReAuthAnswer(
-            result=ReAuthResult.Value('UPDATE_INITIATED')
+            result=ResultCode.Value('UPDATE_INITIATED')
         )
 
 

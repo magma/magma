@@ -43,7 +43,7 @@ func (srv *FegToGwRelayServer) AbortSessionUnverified(
 		msg := fmt.Sprintf("unable to get HwID from IMSI %v. err: %v", req.GetUserName(), err)
 		log.Print(msg)
 		return &protos.AbortSessionResult{
-			Code:         protos.AbortSessionResult_GATEWAY_NOT_FOUND,
+			Code:         protos.ResultCode_GATEWAY_NOT_FOUND,
 			ErrorMessage: msg}, nil
 	}
 	conn, ctx, err := gateway_registry.GetGatewayConnection(gateway_registry.GwAbortSessionService, hwId)
@@ -52,7 +52,7 @@ func (srv *FegToGwRelayServer) AbortSessionUnverified(
 			hwId, req.GetUserName(), err)
 		log.Print(msg)
 		return &protos.AbortSessionResult{
-			Code:         protos.AbortSessionResult_GATEWAY_NOT_FOUND,
+			Code:         protos.ResultCode_GATEWAY_NOT_FOUND,
 			ErrorMessage: msg}, nil
 	}
 	client := protos.NewAbortSessionResponderClient(conn)
