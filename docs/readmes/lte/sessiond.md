@@ -30,9 +30,10 @@ SessionD interfaces with three distinct external components.
   control plane interface towards an operator core. In terms of session 
   management, the SessionProxy service on a FeG will relay all session related 
   interactions. <br>
-  This feature can be enabled on the Orc8r with a network wide `relay_enabled` 
-  flag. When it is disabled, a local PolicyDB service is used in place. This
-  service will directly fetch session configurations from the Orc8r. <br> 
+  This feature can be enabled on the Orc8r with a network wide
+  `gx_gy_relay_enabled` flag. When it is disabled, a local PolicyDB service
+  is used in place. This service will directly fetch session configurations
+  from the Orc8r. <br>
   The feature is disabled by default.
 - Omnipresent Rules <br>
   *This feature is currently only relevant for the federated case.* <br>

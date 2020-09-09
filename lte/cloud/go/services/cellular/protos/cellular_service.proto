@@ -137,6 +137,7 @@ message NetworkEPCConfig {
     }
     map<string, SubscriptionProfile> sub_profiles = 6;
     string default_rule_id = 7;
+    // DEPRECATED
     // Enable relaying S6a messages via FeG RPC
     bool relay_enabled = 8;
     // Ordered list of network service that will be enabled
@@ -145,6 +146,11 @@ message NetworkEPCConfig {
     // If relay_enabled is false, this determines whether cloud subscriberdb
     // or local subscriberdb is used for authentication requests.
     bool cloud_subscriberdb_enabled = 10;
+
+    // Enable relaying S6a messages via FeG RPC
+    bool hss_relay_enabled = 11;
+    // Enable relaying Gx/Gy messages via FeG RPC
+    bool gx_gy_relay_enabled = 12;
 }
 
 message CellularEnodebConfig {
