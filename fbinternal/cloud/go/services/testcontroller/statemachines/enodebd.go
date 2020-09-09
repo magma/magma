@@ -119,8 +119,10 @@ func (m *MagmadClient) GenerateTraffic(networkId string, gatewayId string, ssid 
 	stringVal := fmt.Sprintf("-c 'python3 /usr/local/bin/traffic_cli.py gen_traffic %s %s http://www.google.com'", ssid, pw)
 	params := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
-			"shell_params": &structpb.Value{Kind: &structpb.Value_StringValue{
-				StringValue: stringVal,
+			"shell_params": &structpb.Value{Kind: &structpb.Value_ListValue{
+				ListValue: &structpb.ListValue{
+					Values: []*structpb.Value{&structpb.Value{Kind: &structpb.Value_StringValue{StringValue: stringVal}}},
+				},
 			}},
 		},
 	}
@@ -467,15 +469,15 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 	helper := &protos.GenericCommandResponse{
 		Response: &structpb.Struct{
 			Fields: map[string]*structpb.Value{
-				"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
-				"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-				"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+				"returncode": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+				"stdout":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
+				"stderr":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
 			},
 		},
 	}
 	resp, err := gatewayClient.GenerateTraffic(*config.NetworkID, trafficGWID, config.Ssid, config.SsidPw)
 	// Any result that is not 0 is considered a failure on the traffic script's part
-	if resp == nil || err != nil || !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
+	if resp == nil || err != nil || !proto.Equal(resp.Response.Fields["returncode"], helper.Response.Fields["returncode"]) {
 		if successState == subscriberActiveState {
 			pretext = fmt.Sprintf(trafficInactiveSubPretextFmt, *config.SubscriberID, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "SUCCEEDED")
 			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
@@ -486,8 +488,12 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 1 * time.Minute, errors.Errorf("Traffic test number %d failed on gwID %s after %d tries", trafficTestNumber, trafficGWID, maxTrafficStateCount)
 		}
-		if !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
-			err = errors.Errorf("Traffic script failed")
+		if err == nil {
+			err = errors.Errorf("Traffic script failed. Return Code: %d, Stdout: %s, Stderr: %s",
+				int(resp.Response.Fields["returncode"].GetNumberValue()),
+				resp.Response.Fields["stdout"].GetStringValue(),
+				resp.Response.Fields["stderr"].GetStringValue(),
+			)
 		}
 		return fmt.Sprintf(trafficTestStateFmt, trafficTestNumber, stateNumber+1), 1 * time.Minute, err
 	}
