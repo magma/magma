@@ -47,6 +47,7 @@
 #include "intertask_interface_types.h"
 #include "emm_data.h"
 #include "esm_data.h"
+#include "emm_cnDef.h"
 
 typedef enum {
   ECM_IDLE = 0,
@@ -107,7 +108,7 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
 /* Timer structure */
 struct mme_app_timer_t {
   long id;  /* The timer identifier                 */
-  long sec; /* The timer interval value in seconds  */
+  uint32_t sec; /* The timer interval value in seconds  */
 };
 
 /** @struct bearer_context_t
@@ -414,11 +415,14 @@ typedef struct ue_mm_context_s {
    * Stop when UE moves to connected state
    */
   struct mme_app_timer_t implicit_detach_timer;
+  time_t time_implicit_detach_timer_started;
   /* Initial Context Setup Procedure Guard timer */
   struct mme_app_timer_t initial_context_setup_rsp_timer;
   /* UE Context Modification Procedure Guard timer */
   struct mme_app_timer_t ue_context_modification_timer;
   /* Timer for retrying paging messages */
+#define MAX_PAGING_RETRY_COUNT 1
+  uint8_t paging_retx_count;
   struct mme_app_timer_t paging_response_timer;
   /* send_ue_purge_request: If true MME shall send S6a- Purge Req to
    * delete contexts at HSS
@@ -450,6 +454,9 @@ typedef struct ue_mm_context_s {
   network_access_mode_t network_access_mode;
 
   bool path_switch_req;
+  /* Storing activate_dedicated_bearer_req messages received
+   * when UE is in ECM_IDLE state*/
+  emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req[BEARERS_PER_UE];
   LIST_HEAD(s11_procedures_s, mme_app_s11_proc_s) * s11_procedures;
 } ue_mm_context_t;
 

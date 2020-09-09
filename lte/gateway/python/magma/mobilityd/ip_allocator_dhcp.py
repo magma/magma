@@ -22,7 +22,7 @@ from ipaddress import ip_address, ip_network
 from typing import List, Set, MutableMapping
 from threading import Condition
 
-from magma.mobilityd.ip_descriptor import IPState, IPDesc
+from magma.mobilityd.ip_descriptor import IPState, IPDesc, IPType
 
 from .ip_descriptor_map import IpDescriptorMap
 from .ip_allocator_base import IPAllocator, NoAvailableIPError
@@ -57,7 +57,7 @@ class IPAllocatorDHCP(IPAllocator):
             assigned_ip_blocks: set of IP blocks, populated from DHCP.
             ip_state_map: maintains state of IP allocation to UE.
             dhcp_store: maintains DHCP transaction for each active MAC address
-            gw_info_map: maintains uplink GW info
+            gw_info: maintains uplink GW info
             retry_limit: try DHCP request
             iface: DHCP interface.
         """
@@ -96,12 +96,13 @@ class IPAllocatorDHCP(IPAllocator):
         return [ip for ip in self._ip_state_map.list_ips(IPState.ALLOCATED)
                 if ip in ipblock]
 
-    def alloc_ip_address(self, sid: str) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:
         """
         Assumption: one-to-one mappings between SID and IP.
 
         Args:
             sid (string): universal subscriber id
+            vlan: vlan of the APN
 
         Returns:
             ipaddress.ip_address: IP address allocated
@@ -110,25 +111,25 @@ class IPAllocatorDHCP(IPAllocator):
             NoAvailableIPError: if run out of available IP addresses
         """
         mac = create_mac_from_sid(sid)
-        LOG.debug("allocate IP for %s mac %s", sid, mac)
 
-        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac)
-        LOG.debug("got IP from redis: %s", dhcp_desc)
+        dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan)
+        LOG.debug("allocate IP for %s mac %s dhcp_desc %s", sid, mac, dhcp_desc)
 
         if dhcp_allocated_ip(dhcp_desc) is not True:
-            dhcp_desc = self._alloc_ip_address_from_dhcp(mac)
+            dhcp_desc = self._alloc_ip_address_from_dhcp(mac, vlan)
 
         if dhcp_allocated_ip(dhcp_desc):
             ip_block = ip_network(dhcp_desc.subnet)
-            ip_desc = IPDesc(ip_address(dhcp_desc.ip), IPState.ALLOCATED, sid, ip_block)
-            LOG.debug("Got IP after sending DHCP requests: %s", ip_desc)
+            ip_desc = IPDesc(ip=ip_address(dhcp_desc.ip), state=IPState.ALLOCATED,
+                             sid=sid, ip_block=ip_block, ip_type=IPType.DHCP, vlan_id=vlan)
             self._assigned_ip_blocks.add(ip_block)
 
             return ip_desc
         else:
-            raise NoAvailableIPError("No available IP addresses From DHCP")
+            msg = "No available IP addresses From DHCP for SID: {} MAC {}".format(sid, mac)
+            raise NoAvailableIPError(msg)
 
-    def release_ip(self, sid: str, deleted_ip: ip_address, ip_block: ip_network):
+    def release_ip(self, ip_desc: IPDesc):
         """
         Release IP address, this involves following steps.
         1. send DHCP protocol packet to release the IP.
@@ -136,33 +137,33 @@ class IPAllocatorDHCP(IPAllocator):
         3. update IP from ip-state.
 
         Args:
-            sid: SID, used to get mac address.
-            deleted_ip: IP assigned to this SID
-            ip_block: IP block of the IP address.
-
+            ip_desc: release needs following info from IPDesc.
+                SID used to get mac address, IP assigned to this SID,
+                IP block of the IP address, vlan id of the APN.
         Returns: None
         """
-        self._dhcp_client.release_ip_address(create_mac_from_sid(sid))
+        self._dhcp_client.release_ip_address(create_mac_from_sid(ip_desc.sid),
+                                             ip_desc.vlan_id)
         # Remove the IP from free IP list, since DHCP is the
         # owner of this IP
-        self._ip_state_map.remove_ip_from_state(deleted_ip, IPState.FREE)
+        self._ip_state_map.remove_ip_from_state(ip_desc.ip, IPState.FREE)
 
         list_allocated_ips = self._ip_state_map.list_ips(IPState.ALLOCATED)
         for ipaddr in list_allocated_ips:
-            if ipaddr in ip_block:
+            if ipaddr in ip_desc.ip_block:
                 # found the IP, do not remove this ip_block
                 return
 
-        ip_block_network = ip_network(ip_block)
+        ip_block_network = ip_network(ip_desc.ip_block)
         if ip_block_network in self._assigned_ip_blocks:
             self._assigned_ip_blocks.remove(ip_block_network)
         logging.debug("del: _assigned_ip_blocks %s ipblock %s",
-                      self._assigned_ip_blocks, ip_block)
+                      self._assigned_ip_blocks, ip_desc.ip_block)
 
     def stop_dhcp_sniffer(self):
         self._dhcp_client.stop()
 
-    def _alloc_ip_address_from_dhcp(self, mac: MacAddress) -> DHCPDescriptor:
+    def _alloc_ip_address_from_dhcp(self, mac: MacAddress, vlan: int) -> DHCPDescriptor:
         retry_count = 0
         with self.dhcp_wait:
             dhcp_desc = None
@@ -170,10 +171,10 @@ class IPAllocatorDHCP(IPAllocator):
                    dhcp_allocated_ip(dhcp_desc) is not True):
 
                 if retry_count % DEFAULT_DHCP_REQUEST_RETRY_FREQUENCY == 0:
-                    self._dhcp_client.send_dhcp_packet(mac, DHCPState.DISCOVER)
+                    self._dhcp_client.send_dhcp_packet(mac, vlan, DHCPState.DISCOVER)
                 self.dhcp_wait.wait(timeout=DEFAULT_DHCP_REQUEST_RETRY_DELAY)
 
-                dhcp_desc = self._dhcp_client.get_dhcp_desc(mac)
+                dhcp_desc = self._dhcp_client.get_dhcp_desc(mac, vlan)
 
                 retry_count = retry_count + 1
 

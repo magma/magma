@@ -343,10 +343,6 @@ func getSeriesMatches(c echo.Context, matchParam string, queryRestrictor restric
  * We can't just proxy the request to Prometheus since this endpoint has no way
  * of restricting the query, so we have to simulate it by doing a series request
  * and then manipulating the result
- *
- * We have found that on large deployments the query time for `api/v1/series`
- * can take a very long time and fail after a while. To fix this, we set the
- * default start time to 3 hours ago, rather than having no limit.
  */
 func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 	return func(c echo.Context) error {
@@ -362,13 +358,13 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
-		seriesMatchers := []string{}
+
+		seriesMatchers := []string{fmt.Sprintf("{%s=~\".*\"}", labelName)}
 		for _, matcher := range queryRestrictor.Matchers() {
 			seriesMatchers = append(seriesMatchers, fmt.Sprintf("{%s}", matcher.String()))
 		}
 
-		defaultStartTime := time.Now().Add(-3 * time.Hour)
-		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &defaultStartTime)
+		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &minTime)
 		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
 
 		// TODO: catch the warnings replacing _
@@ -397,7 +393,9 @@ func getSetOfValuesFromLabel(seriesList []model.LabelSet, labelName model.LabelN
 	}
 	ret := make([]string, 0)
 	for val := range values {
-		ret = append(ret, string(val))
+		if val != "" {
+			ret = append(ret, string(val))
+		}
 	}
 	return ret
 }

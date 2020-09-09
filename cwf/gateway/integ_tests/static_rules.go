@@ -29,8 +29,9 @@ func getUsageInformation(monitorKey string, quota uint64) *protos.UsageMonitorin
 	}
 }
 
-func getStaticPassAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32,
-	qos *models.FlowQos) *lteProtos.PolicyRule {
+func getStaticPassAll(
+	ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32, qos *lteProtos.FlowQos,
+) *lteProtos.PolicyRule {
 	rule := &models.PolicyRuleConfig{
 		FlowList: []*models.FlowDescription{
 			{
@@ -52,14 +53,13 @@ func getStaticPassAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 				},
 			},
 		},
-		Qos:           qos,
 		MonitoringKey: monitoringKey,
 		Priority:      swag.Uint32(priority),
 		TrackingType:  trackingType,
 		RatingGroup:   ratingGroup,
 	}
 
-	return rule.ToProto(ruleID)
+	return rule.ToProto(ruleID, qos)
 }
 
 func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) *lteProtos.PolicyRule {
@@ -90,5 +90,5 @@ func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 		RatingGroup:   ratingGroup,
 	}
 
-	return rule.ToProto(ruleID)
+	return rule.ToProto(ruleID, nil)
 }

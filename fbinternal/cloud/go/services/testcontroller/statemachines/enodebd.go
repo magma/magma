@@ -35,6 +35,7 @@ import (
 	"magma/orc8r/cloud/go/services/magmad"
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
+	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
@@ -339,8 +340,24 @@ States with traffic tests enabled:
 		> "Check for upgrade" pings slack, 1 minute
 */
 
-func startNewTest(*enodebdE2ETestStateMachine, *models.EnodebdTestConfig) (string, time.Duration, error) {
-	return checkForUpgradeState, time.Minute, nil
+func startNewTest(machine *enodebdE2ETestStateMachine, config *models.EnodebdTestConfig) (string, time.Duration, error) {
+	states := []string{
+		checkForUpgradeState,
+		rebootEnodeb1State,
+		reconfigEnodebState1,
+		restoreEnodebConfigState1,
+		subscriberInactiveState,
+		subscriberActiveState,
+	}
+	if config.StartState != "" {
+		if !find(states, config.StartState) {
+			// Invalid state, default to check_for_upgrade
+			return checkForUpgradeState, time.Minute, errors.Errorf("Invalid starting state. Defaulting to check_for_upgrade")
+		}
+	} else {
+		return checkForUpgradeState, time.Minute, nil
+	}
+	return config.StartState, time.Minute, nil
 }
 
 func makeSubscriberStateHandler(desiredState string, successState string) handlerFunc {
@@ -355,16 +372,16 @@ func subscriberState(desiredState string, successState string, machine *enodebdE
 	cfg, err := configurator.LoadEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID)
 	if err != nil {
 		pretext = fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "FAILED")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
 
-	newConfig, ok := cfg.(*subscribermodels.LteSubscription)
+	newConfig, ok := cfg.(*subscribermodels.SubscriberConfig)
 	if !ok {
-		glog.Errorf("got data of type %T but wanted LteSubscription", cfg)
+		glog.Errorf("got data of type %T but wanted SubscriberConfig", cfg)
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
-	newConfig.State = desiredState
+	newConfig.Lte.State = desiredState
 	err = configurator.CreateOrUpdateEntityConfig(*config.NetworkID, lte.SubscriberEntityType, *config.SubscriberID, newConfig)
 	if err != nil {
 		// Restore subscriber to original config before erroring out
@@ -373,10 +390,10 @@ func subscriberState(desiredState string, successState string, machine *enodebdE
 			glog.Error(err)
 		}
 		pretext = fmt.Sprintf(subscriberPretextFmt, *config.SubscriberID, desiredState, "FAILED")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 10 * time.Minute, err
 	}
-	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 	return successState, 10 * time.Minute, nil
 }
 
@@ -390,7 +407,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 	pretext := fmt.Sprintf(reconfigPretextFmt, *config.EnodebSN, "SUCCEEDED")
 	fallback := "Reconfig enodeb notification"
 	_, err := configurator.UpdateEntity(*config.NetworkID, configurator.EntityUpdateCriteria{
-		Type:      lte.CellularEnodebType,
+		Type:      lte.CellularEnodebEntityType,
 		Key:       *config.EnodebSN,
 		NewConfig: config.EnodebConfig,
 	})
@@ -402,7 +419,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 			if successState == trafficTest4State1 {
 				pretext = fmt.Sprintf(restoreConfigPretextFmt, *config.EnodebSN, "FAILED")
 			}
-			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 10 * time.Minute, err
 		}
 		switch successState {
@@ -414,7 +431,7 @@ func configEnodeb(stateNumber int, successState string, machine *enodebdE2ETestS
 			return checkForUpgradeState, 10 * time.Minute, err
 		}
 	}
-	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 	return successState, 10 * time.Minute, nil
 }
 
@@ -461,12 +478,12 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 	if resp == nil || err != nil || !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
 		if successState == subscriberActiveState {
 			pretext = fmt.Sprintf(trafficInactiveSubPretextFmt, *config.SubscriberID, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "SUCCEEDED")
-			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return successState, 1 * time.Minute, nil
 		}
 		if stateNumber >= maxTrafficStateCount {
 			pretext = fmt.Sprintf(trafficPretextFmt, trafficTestNumber, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "FAILED")
-			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 1 * time.Minute, errors.Errorf("Traffic test number %d failed on gwID %s after %d tries", trafficTestNumber, trafficGWID, maxTrafficStateCount)
 		}
 		if !proto.Equal(resp.Response.Fields["result"], helper.Response.Fields["result"]) {
@@ -476,10 +493,10 @@ func trafficTest(trafficTestNumber int, stateNumber int, gatewayClient GatewayCl
 	}
 	if successState == subscriberActiveState {
 		pretext = fmt.Sprintf(trafficInactiveSubPretextFmt, *config.SubscriberID, *config.EnodebSN, *config.AgwConfig.TargetGatewayID, "FAILED")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 		return checkForUpgradeState, 1 * time.Minute, errors.Errorf("Traffic test number %d should not have succeeded on gwID %s", trafficTestNumber, trafficGWID)
 	}
-	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 	return successState, 1 * time.Minute, nil
 }
 
@@ -498,7 +515,7 @@ func rebootEnodebStateHandler(stateNumber int, gatewayClient GatewayClient, mach
 		if stateNumber >= maxRebootEnodebStateCount {
 			pretext := fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "FAILED")
 			fallback := "Reboot enodeb notification"
-			postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+			postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 			return checkForUpgradeState, 15 * time.Minute, errors.Errorf("enodeb %s did not reboot within %d tries", enodebSN, maxRebootEnodebStateCount)
 		}
 		return fmt.Sprintf(rebootEnodebStateFmt, stateNumber+1), 5 * time.Minute, err
@@ -520,20 +537,20 @@ func verifyConnectivity(successState string, machine *enodebdE2ETestStateMachine
 
 	resp, err := getEnodebStatus(*config.NetworkID, enodebSN)
 	if resp == nil || err != nil {
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Wrap(err, "error getting enodeb status")
 	}
 	if !*resp.EnodebConnected {
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Errorf("Error Enodeb is not connected")
 	}
 	if !*resp.RfTxDesired || !*resp.RfTxOn {
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, "", "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, "", "")
 		return checkForUpgradeState, 5 * time.Minute, errors.Errorf("Error RF TX on/desired are not both set to true")
 	}
 
 	pretext = fmt.Sprintf(rebootPretextFmt, enodebSN, targetGWID, "SUCCEEDED")
-	postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, "", "")
+	postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, "", "")
 	return successState, 15 * time.Minute, nil
 }
 
@@ -597,13 +614,13 @@ func verifyUpgrade(stateNumber int, successState string, machine *enodebdE2ETest
 	// If equal, transition to reboot enodeb state
 	if string(tierCfg.Version) == currentVersion {
 		pretext := fmt.Sprintf(autoupgradePretextFmt, targetGWID, "SUCCEEDED", "")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, true, pretext, fallback, string(tierCfg.Version), "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, true, pretext, fallback, string(tierCfg.Version), "")
 		return successState, 20 * time.Minute, nil
 	}
 
 	if stateNumber >= maxVerifyUpgradeStateCount {
 		pretext := fmt.Sprintf(autoupgradePretextFmt, targetGWID, "FAILED", "")
-		postToSlack(machine.client, *config.AgwConfig.SLACKWebhook, false, pretext, fallback, string(tierCfg.Version), "")
+		postToSlack(machine.client, *config.AgwConfig.SlackWebhook, false, pretext, fallback, string(tierCfg.Version), "")
 		return checkForUpgradeState, 20 * time.Minute, errors.Errorf("gateway %s did not upgrade within %d tries", targetGWID, maxVerifyUpgradeStateCount)
 	} else {
 		return fmt.Sprintf(verifyUpgradeStateFmt, stateNumber+1), 10 * time.Minute, nil
@@ -611,6 +628,14 @@ func verifyUpgrade(stateNumber int, successState string, machine *enodebdE2ETest
 }
 
 // State handler helpers
+func find(slice []string, val string) bool {
+	for _, item := range slice {
+		if item == val {
+			return true
+		}
+	}
+	return false
+}
 
 func getLatestRepoMagmaVersion(client HttpClient, url string, releaseChannel string) (string, error) {
 	url = fmt.Sprintf("%s/dists/%s/main/binary-amd64/Packages", url, releaseChannel)
@@ -677,7 +702,7 @@ func getCurrentAGWPackageVersion(config *models.EnodebdTestConfig) (string, erro
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to load hwID for target gateway %s", targetGWID)
 	}
-	agwState, err := state.GetGatewayStatus(*config.NetworkID, hwID)
+	agwState, err := wrappers.GetGatewayStatus(*config.NetworkID, hwID)
 	if err != nil {
 		return "", errors.Wrapf(err, "failed to load gateway status for %s", targetGWID)
 	}

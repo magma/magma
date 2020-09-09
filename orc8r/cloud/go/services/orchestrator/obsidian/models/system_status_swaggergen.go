@@ -19,7 +19,7 @@ import (
 type SystemStatus struct {
 
 	// cpu idle
-	CPUIDLE uint64 `json:"cpu_idle,omitempty" magma_alt_name:"CpuIdle"`
+	CPUIdle uint64 `json:"cpu_idle,omitempty" magma_alt_name:"CpuIdle"`
 
 	// cpu system
 	CPUSystem uint64 `json:"cpu_system,omitempty" magma_alt_name:"CpuSystem"`

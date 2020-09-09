@@ -550,7 +550,21 @@ func TestUpdateGateway(t *testing.T) {
 	assert.Equal(t, expectedEnts, actualEnts)
 	assert.Equal(t, payload.Device, actualDevice)
 
+	// 400 mismatch gateway_id in parameter vs. payload
+	tc = tests.Test{
+		Method:                 "PUT",
+		URL:                    testURLRoot + "/g3",
+		Handler:                updateGateway,
+		Payload:                payload,
+		ParamNames:             []string{"network_id", "gateway_id"},
+		ParamValues:            []string{"n1", "g3"},
+		ExpectedStatus:         400,
+		ExpectedErrorSubstring: "gateway ID from parameter (g3) and payload (g1) must match",
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// 404
+	payload.ID = "g3"
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            testURLRoot + "/g3",

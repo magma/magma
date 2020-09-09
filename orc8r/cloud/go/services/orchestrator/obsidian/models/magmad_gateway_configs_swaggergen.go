@@ -46,6 +46,9 @@ type MagmadGatewayConfigs struct {
 
 	// logging
 	Logging *GatewayLoggingConfigs `json:"logging,omitempty"`
+
+	// vpn
+	Vpn *GatewayVpnConfigs `json:"vpn,omitempty"`
 }
 
 // Validate validates this magmad gateway configs
@@ -73,6 +76,10 @@ func (m *MagmadGatewayConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateLogging(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateVpn(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -157,6 +164,24 @@ func (m *MagmadGatewayConfigs) validateLogging(formats strfmt.Registry) error {
 		if err := m.Logging.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("logging")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *MagmadGatewayConfigs) validateVpn(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Vpn) { // not required
+		return nil
+	}
+
+	if m.Vpn != nil {
+		if err := m.Vpn.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("vpn")
 			}
 			return err
 		}

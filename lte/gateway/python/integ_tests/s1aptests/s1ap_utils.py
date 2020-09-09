@@ -444,13 +444,10 @@ class MagmadUtil(object):
 
         """
 
-        config_stateless_script = (
-            "/home/vagrant/magma/lte/gateway/deploy/roles/magma/files/"
-            "config_stateless_agw.sh"
-        )
+        config_stateless_script = "/usr/local/bin/config_stateless_agw.sh"
 
         ret_code = self.exec_command(
-            "sudo -E " + config_stateless_script + " " + cmd.name.lower()
+            "sudo " + config_stateless_script + " " + cmd.name.lower()
         )
 
         if ret_code == 0:
@@ -469,7 +466,14 @@ class MagmadUtil(object):
         self.exec_command(
             "sudo service magma@* stop ; sudo service magma@magmad start"
         )
-        time.sleep(10)
+        print(
+            "Waiting for all services to restart. Sleeping for 60 seconds.."
+        )
+        timeSlept = 0
+        while timeSlept < 60:
+            time.sleep(5)
+            timeSlept += 5
+            print("*********** Slept for " + str(timeSlept) + " seconds")
 
     def restart_services(self, services):
         """
@@ -601,6 +605,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
+                    id="rar_rule_1",
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,

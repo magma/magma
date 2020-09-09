@@ -43,11 +43,10 @@ struct ChargingGrant {
   ChargingGrant() : credit(), is_final_grant(false),
     service_state(SERVICE_ENABLED), reauth_state(REAUTH_NOT_NEEDED) {}
 
+  ChargingGrant(const StoredChargingGrant &marshaled);
+
   // ChargingGrant -> StoredChargingGrant
   StoredChargingGrant marshal();
-
-  // StoredChargingGrant -> ChargingGrant
-  static ChargingGrant unmarshal(const StoredChargingGrant &marshaled);
 
   void receive_charging_grant(const magma::lte::ChargingCredit& credit,
                               SessionCreditUpdateCriteria* uc=NULL);

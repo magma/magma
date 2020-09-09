@@ -4,7 +4,9 @@
       "@type": "type.googleapis.com/magma.mconfig.MobilityD",
       "logLevel": "INFO",
       "ipBlock": "192.168.128.0/24",
-      "ip_allocator_type": "IP_POOL"
+      "ip_allocator_type": "IP_POOL",
+      "static_ip_enabled": true,
+      "multi_apn_ip_alloc": true
     },
     "mme": {
       "@type": "type.googleapis.com/magma.mconfig.MME",
@@ -64,7 +66,7 @@
        ],
       "allowedGrePeers": [
        ],
-      "liImsis": []
+      "liUes": {}
     },
     "subscriberdb": {
       "@type": "type.googleapis.com/magma.mconfig.SubscriberDB",
@@ -76,7 +78,8 @@
       "@type": "type.googleapis.com/magma.mconfig.DnsD",
       "logLevel": "INFO",
       "enableCaching": false,
-      "localTTL": 0
+      "localTTL": 0,
+      "dhcpServerEnabled": true
     },
     "lighttpd": {
       "@type": "type.googleapis.com/magma.mconfig.LighttpD",

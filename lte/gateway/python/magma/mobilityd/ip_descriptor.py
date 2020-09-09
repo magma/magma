@@ -13,6 +13,7 @@ limitations under the License.
 import ipaddress
 from enum import Enum
 
+
 class IPState(Enum):
     FREE = 1
     ALLOCATED = 2
@@ -21,7 +22,13 @@ class IPState(Enum):
     RESERVED = 5
 
 
-class IPDesc():
+class IPType(Enum):
+    STATIC = 1
+    IP_POOL = 2
+    DHCP = 3
+
+
+class IPDesc:
     """
     IP descriptor.
 
@@ -30,20 +37,33 @@ class IPDesc():
         state (IPState)
         sid (str)
         ip_block (ipaddress.ip_network)
+        type (IPType)
+        vlan_id (int)
     """
 
     def __init__(self, ip: ipaddress.ip_address = None, state: IPState = None,
-                 sid: str = None, ip_block: ipaddress.ip_network = None):
+                 sid: str = None, ip_block: ipaddress.ip_network = None,
+                 ip_type: IPType = None, vlan_id: int = 0):
         self.ip = ip
         self.ip_block = ip_block
         self.state = state
         self.sid = sid
+        self.type = ip_type
+        self.vlan_id = 0
+        if 0 < vlan_id < 4096:
+            self.vlan_id = vlan_id
 
     def __str__(self):
         as_str = '<mobilityd.IPDesc ' + \
-                 '{{ip: {}, ip_block: {}, state: {}, sid: {}}}>'.format(
+                 '{{ip: {}, ip_block: {}, state: {}, sid: {}, type: {}'.format(
                      self.ip,
                      self.ip_block,
                      self.state,
-                     self.sid)
+                     self.sid,
+                     self.type)
+
+        if self.vlan_id != 0:
+            as_str = as_str + " vlan_is: {}".format(self.vlan_id)
+
+        as_str = as_str + " }}>"
         return as_str

@@ -107,9 +107,20 @@ message PipelineD {
       uint32 port = 2;
     }
     IPDRExportDst ipdr_export_dst = 10;
-    repeated string li_imsis = 11;
+    message LiUes {
+        repeated string imsis = 1;
+        repeated string msisdns = 2;
+        repeated string macs = 3;
+        repeated string ips = 4;
+    }
+    LiUes li_ues = 12;
+
+    string sgi_management_iface_vlan = 13;
+    string sgi_management_iface_ip_addr = 14;
     // DEPRECATED
+    reserved 4, 11;
     // repeated string apps = 4;
+    // repeated string li_imsis = 11;
 }
 
 //------------------------------------------------------------------------------
@@ -167,6 +178,10 @@ message MobilityD {
     // ip allocation type, either dhcp or ip_pool
     // default is ip_pool
     IpAllocatorType ip_allocator_type = 3;
+    // Enable Static IP from subscriberDB
+    bool static_ip_enabled = 4;
+    // Enable multi APN IP allocation
+    bool multi_apn_ip_alloc = 5;
 }
 
 //------------------------------------------------------------------------------

@@ -60,6 +60,8 @@ type GyClient struct {
 type GyGlobalConfig struct {
 	OCSOverwriteApn      string
 	OCSServiceIdentifier string
+	DisableGy            bool
+	VirtualApnRules      []*credit_control.VirtualApnRule
 }
 
 var (
@@ -163,11 +165,17 @@ func (gyClient *GyClient) IgnoreAnswer(request *CreditControlRequest) {
 }
 
 func (gyClient *GyClient) EnableConnections() error {
+	if gyClient.globalConfig.DisableGy {
+		return nil
+	}
 	gyClient.diamClient.EnableConnectionCreation()
 	return gyClient.diamClient.BeginConnection(gyClient.serverCfg)
 }
 
 func (gyClient *GyClient) DisableConnections(period time.Duration) {
+	if gyClient.globalConfig.DisableGy {
+		return
+	}
 	gyClient.diamClient.DisableConnectionCreation(period)
 }
 
@@ -236,7 +244,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 	m.NewAVP(avp.ServiceContextID, avp.Mbit, 0, datatype.UTF8String(gyClient.diamClient.ServiceContextId()))
 	m.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, datatype.Unsigned32(request.RequestNumber))
 
-	// Always add MSISDN (TASA requirement) if it's provided by AGW
+	// Always add MSISDN if it's provided by AGW
 	if len(request.Msisdn) > 0 {
 		m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
@@ -316,10 +324,8 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPSGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPGGSNMCCMNC, avp.Vbit, diameter.Vendor3GPP, datatype.UTF8String(request.PlmnID)))
 	}
-	apn := datatype.UTF8String(request.Apn)
-	if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
-		apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
-	}
+
+	apn := getAPNfromConfig(gyGlobalConfig, request.Apn)
 	if len(apn) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.CalledStationID, avp.Mbit, 0, apn))
 	}
@@ -330,7 +336,7 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	if len(request.GcID) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPChargingID, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(request.GcID)))
 	}
-	/********************** TBD - doesn't work with some OCSes *********************
+	/********************** TBD - doesn't work with some OCSes *****************
 	if request.Qos != nil {
 		qosGrp := &diam.GroupedAVP{
 			AVP: []*diam.AVP{
@@ -340,13 +346,30 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		}
 		psInfoGrp.AddAVP(diam.NewAVP(avp.QoSInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, qosGrp))
 	}
-	********************** TBD - doesn't work with current TASA OCS *********************/
+	***************************************************************************/
 
 	svcInfoGrp = append(
 		svcInfoGrp,
 		diam.NewAVP(avp.PSInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, psInfoGrp),
 	)
 	return diam.NewAVP(avp.ServiceInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{AVP: svcInfoGrp})
+}
+
+// getAPNfromConfig returns a new apn value to overwrite the one in the request based on list of regex definied in Gy config.
+// If Virtual APN config is not defined, the function returnis OCSOverwriteApn instead.
+// Input: GyGlobalConfig and the APN received from the request
+// Output: Overwritten apn value
+func getAPNfromConfig(gyGlobalConfig *GyGlobalConfig, request_apn string) datatype.UTF8String {
+	apn := datatype.UTF8String(request_apn)
+	if gyGlobalConfig != nil {
+		if len(gyGlobalConfig.VirtualApnRules) > 0 {
+			apn = datatype.UTF8String(credit_control.MatchAndGetOverwriteApn(request_apn, gyGlobalConfig.VirtualApnRules))
+		} else if len(gyGlobalConfig.OCSOverwriteApn) > 0 {
+			// OverwriteApn is deprecated transition to VirtualApnRules
+			apn = datatype.UTF8String(gyGlobalConfig.OCSOverwriteApn)
+		}
+	}
+	return apn
 }
 
 // getMSCCAVP retrieves the MultipleServicesCreditControl AVP for the

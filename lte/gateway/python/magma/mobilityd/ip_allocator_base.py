@@ -18,9 +18,8 @@ from abc import ABC, abstractmethod
 
 from ipaddress import ip_address, ip_network
 from typing import List
-from enum import Enum
 
-from magma.mobilityd.ip_descriptor import IPDesc
+from magma.mobilityd.ip_descriptor import IPDesc, IPType
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
@@ -45,11 +44,11 @@ class IPAllocator(ABC):
         ...
 
     @abstractmethod
-    def alloc_ip_address(self, sid: str) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan_id: int) -> IPDesc:
         ...
 
     @abstractmethod
-    def release_ip(self, sid: str, ip: ip_address, ip_block: ip_network):
+    def release_ip(self, ip_desc: IPDesc):
         ...
 
 
@@ -75,5 +74,13 @@ class NoAvailableIPError(Exception):
 
 class DuplicatedIPAllocationError(Exception):
     """ Exception thrown when an IP has already been allocated to a UE
+    """
+    pass
+
+
+class DuplicateIPAssignmentError(Exception):
+    """ Exception thrown when underlying IP allocator assigns duplicate
+    Ip address to two different SID. This also catches dup IP across
+    two different APNs or overlaps in IP-POOL.
     """
     pass

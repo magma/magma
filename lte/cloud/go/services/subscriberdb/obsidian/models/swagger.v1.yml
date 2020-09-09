@@ -22,6 +22,8 @@ magma-gen-meta:
       filename: icmp_status_swaggergen.go
     - go-struct-name: MutableSubscriber
       filename: mutable_subscriber_swaggergen.go
+    - go-struct-name: SubscriberDirectoryRecord
+      filename: subscriber_directory_record_swaggergen.go
 
 info:
   title: LTE Subscriber Management
@@ -165,6 +167,7 @@ definitions:
     required:
       - id
       - lte
+      - config
     properties:
       id:
         $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
@@ -174,6 +177,8 @@ definitions:
         example: 'Jane Doe'
       lte:
         $ref: '#/definitions/lte_subscription'
+      config:
+        $ref: '#/definitions/subscriber_config'
       active_base_names:
         type: array
         items:
@@ -184,14 +189,9 @@ definitions:
           - 'base_name_1'
           - 'base_name_2'
       active_policies:
-        type: array
-        items:
-          $ref: './lte-policydb-swagger.yml#/definitions/policy_id'
-        x-omitempty: true
-        description: 'Policies which are active for this subscriber'
-        example:
-          - 'rule1'
-          - 'rule2'
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids'
+      active_policies_by_apn:
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
       monitoring:
@@ -223,17 +223,33 @@ definitions:
         example:
           - 'base_name_1'
           - 'base_name_2'
+      static_ips:
+        $ref: '#/definitions/subscriber_static_ips'
       active_policies:
-        type: array
-        items:
-          $ref: './lte-policydb-swagger.yml#/definitions/policy_id'
-        x-omitempty: true
-        description: 'Policies which are active for this subscriber'
-        example:
-          - 'rule1'
-          - 'rule2'
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids'
+      active_policies_by_apn:
+        $ref: './lte-policydb-swagger.yml#/definitions/policy_ids_by_apn'
       active_apns:
         $ref: '#/definitions/apn_list'
+
+  subscriber_config:
+    type: object
+    required:
+      - lte
+    properties:
+      lte:
+        $ref: '#/definitions/lte_subscription'
+      static_ips:
+        $ref: '#/definitions/subscriber_static_ips'
+
+  subscriber_static_ips:
+    type: object
+    description: Mapping of APN ID to static IP address to allocate for the subscriber at the edge
+    additionalProperties:
+      type: string
+      format: ipv4
+      minLength: 1
+      example: '192.168.100.1'
 
   lte_subscription:
     type: object
@@ -287,6 +303,8 @@ definitions:
         items:
           $ref: '#/definitions/subscriber_ip_allocation'
         x-omitempty: true
+      directory:
+        $ref: '#/definitions/subscriber_directory_record'
 
   untyped_mme_state:
     type: object
@@ -311,6 +329,16 @@ definitions:
         minLength: 1
         x-nullable: false
 
+  subscriber_directory_record:
+    type: object
+    description: AGW location history for the subscriber
+    required:
+      - location_history
+    properties:
+      location_history:
+        type: array
+        items:
+          type: string
 
   subscriber_status:
     type: object

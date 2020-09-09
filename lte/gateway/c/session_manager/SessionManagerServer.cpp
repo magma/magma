@@ -55,6 +55,8 @@ void LocalSessionManagerAsyncService::init_call_data() {
   new ReportRuleStatsCallData(cq_.get(), *this, *handler_);
   new CreateSessionCallData(cq_.get(), *this, *handler_);
   new EndSessionCallData(cq_.get(), *this, *handler_);
+  new BindPolicy2BearerCallData(cq_.get(), *this, *handler_);
+  new SetSessionRulesCallData(cq_.get(), *this, *handler_);
 }
 
 SessionProxyResponderAsyncService::SessionProxyResponderAsyncService(

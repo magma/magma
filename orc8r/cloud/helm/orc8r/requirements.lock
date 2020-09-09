@@ -1,10 +1,10 @@
 dependencies:
 - name: secrets
   repository: ""
-  version: 0.1.4
+  version: 0.1.5
 - name: metrics
   repository: ""
-  version: 1.4.14
+  version: 1.4.15
 - name: nms
   repository: ""
   version: 0.1.6

@@ -71,3 +71,30 @@ func (m *CarrierWifiGatewayHealthStatus) ValidateModel() error {
 	}
 	return nil
 }
+
+func (m *CwfHaPair) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	if m.GatewayID1 == m.GatewayID2 {
+		return fmt.Errorf("GatewayID1 and GatewayID2 cannot be the same")
+	}
+	return nil
+}
+
+func (m *MutableCwfHaPair) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	if m.GatewayID1 == m.GatewayID2 {
+		return fmt.Errorf("GatewayID1 and GatewayID2 cannot be the same")
+	}
+	return nil
+}
+
+func (m *CwfHaPairConfigs) ValidateModel() error {
+	if err := m.Validate(strfmt.Default); err != nil {
+		return err
+	}
+	return nil
+}

@@ -53,58 +53,46 @@ func (srv *CentralSessionController) sendSingleCreditRequest(request *gy.CreditC
 	}
 }
 
-// getCCRInitRequest creates a CreditControlRequest for an INIT message,
-// defaulting the request number to 0 and not including credit usage
-func getCCRInitRequest(
-	imsi string,
-	pReq *protos.CreateSessionRequest,
-) *gy.CreditControlRequest {
-
-	var qos *gy.QosRequestInfo
-
-	if pReq.GetQosInfo() != nil {
-		qos = &gy.QosRequestInfo{
-			ApnAggMaxBitRateDL: pReq.GetQosInfo().GetApnAmbrDl(),
-			ApnAggMaxBitRateUL: pReq.GetQosInfo().GetApnAmbrUl(),
-		}
-	}
-
-	return &gy.CreditControlRequest{
-		SessionID:     pReq.SessionId,
-		RequestNumber: 0,
-		IMSI:          imsi,
-		UeIPV4:        pReq.UeIpv4,
-		SpgwIPV4:      pReq.SpgwIpv4,
-		Apn:           pReq.Apn,
-		Msisdn:        pReq.Msisdn,
-		Imei:          pReq.Imei,
-		PlmnID:        pReq.PlmnId,
-		UserLocation:  pReq.UserLocation,
-		GcID:          pReq.GcId,
-		Qos:           qos,
-		Type:          credit_control.CRTInit,
-		RatType:       gy.GetRATType(pReq.GetRatType()),
-	}
-}
-
-// getCCRInitialUpdateRequest creates the first update request to send to the
+// makeCCRInit creates the first update request to send to the
 // OCS when a session is established.
-func getCCRInitialCreditRequest(
+func makeCCRInit(
 	imsi string,
 	pReq *protos.CreateSessionRequest,
 	keys []policydb.ChargingKey,
 ) *gy.CreditControlRequest {
-	var msgType credit_control.CreditRequestType
-	var qos *gy.QosRequestInfo
-
-	if pReq.GetQosInfo() != nil {
-		qos = &gy.QosRequestInfo{
-			ApnAggMaxBitRateDL: pReq.GetQosInfo().GetApnAmbrDl(),
-			ApnAggMaxBitRateUL: pReq.GetQosInfo().GetApnAmbrUl(),
-		}
+	common := pReq.GetCommonContext()
+	request := &gy.CreditControlRequest{
+		SessionID:     pReq.GetSessionId(),
+		Type:          credit_control.CRTInit,
+		IMSI:          imsi,
+		RequestNumber: 0,
+		UeIPV4:        common.GetUeIpv4(),
+		Apn:           common.GetApn(),
+		Msisdn:        common.GetMsisdn(),
+		RatType:       gy.GetRATType(common.GetRatType()),
 	}
 
-	msgType = credit_control.CRTInit
+	if pReq.RatSpecificContext != nil {
+		ratSpecific := pReq.GetRatSpecificContext().GetContext()
+		switch context := ratSpecific.(type) {
+		case *protos.RatSpecificContext_LteContext:
+			lteContext := context.LteContext
+			request.SpgwIPV4 = lteContext.GetSpgwIpv4()
+			request.Imei = lteContext.GetImei()
+			request.PlmnID = lteContext.GetPlmnId()
+			request.UserLocation = lteContext.GetUserLocation()
+			if lteContext.GetQosInfo() != nil {
+				request.Qos = &gy.QosRequestInfo{
+					ApnAggMaxBitRateDL: lteContext.GetQosInfo().GetApnAmbrDl(),
+					ApnAggMaxBitRateUL: lteContext.GetQosInfo().GetApnAmbrUl(),
+				}
+			}
+			break
+		}
+	} else {
+		glog.Warning("No RatSpecificContext is specified")
+	}
+
 	usedCredits := make([]*gy.UsedCredits, 0, len(keys))
 	for _, key := range keys {
 		uc := &gy.UsedCredits{RatingGroup: key.RatingGroup}
@@ -114,23 +102,14 @@ func getCCRInitialCreditRequest(
 		}
 		usedCredits = append(usedCredits, uc)
 	}
-	return &gy.CreditControlRequest{
-		SessionID:     pReq.SessionId,
-		RequestNumber: 0,
-		IMSI:          imsi,
-		UeIPV4:        pReq.UeIpv4,
-		SpgwIPV4:      pReq.SpgwIpv4,
-		Apn:           pReq.Apn,
-		Msisdn:        pReq.Msisdn,
-		Imei:          pReq.Imei,
-		PlmnID:        pReq.PlmnId,
-		UserLocation:  pReq.UserLocation,
-		GcID:          pReq.GcId,
-		Qos:           qos,
-		Credits:       usedCredits,
-		Type:          msgType,
-		RatType:       gy.GetRATType(pReq.GetRatType()),
-	}
+	request.Credits = usedCredits
+	return request
+}
+
+// makeCCRInitWithoutChargingKeys creates a CreditControlRequest for an INIT
+// message, defaulting the request number to 0 and not including credit usage
+func makeCCRInitWithoutChargingKeys(imsi string, pReq *protos.CreateSessionRequest) *gy.CreditControlRequest {
+	return makeCCRInit(imsi, pReq, nil)
 }
 
 // sendMultipleRequestsWithTimeout sends a batch of update requests to the OCS

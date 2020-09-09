@@ -214,24 +214,6 @@ func NewSessionHealthTracker() *SessionHealthTracker {
 	}
 }
 
-func UpdateGxRecentRequestMetrics(err error) {
-	if err == nil {
-		GxSuccessTimestamp.Set(float64(time.Now().Unix()))
-		GxFailuresSinceLastSuccess.Set(0)
-	} else {
-		GxFailuresSinceLastSuccess.Inc()
-	}
-}
-
-func UpdateGyRecentRequestMetrics(err error) {
-	if err == nil {
-		GySuccessTimestamp.Set(float64(time.Now().Unix()))
-		GyFailuresSinceLastSuccess.Set(0)
-	} else {
-		GyFailuresSinceLastSuccess.Inc()
-	}
-}
-
 func GetCurrentHealthMetrics() (*SessionHealthMetrics, error) {
 	pcrfInitTotal, err := service_health_metrics.GetInt64("pcrf_ccr_init_requests_total")
 	if err != nil {
@@ -344,4 +326,58 @@ func (prevMetrics *SessionHealthMetrics) GetDelta(
 	// Update stored counts to current metric totals
 	*prevMetrics = *currentMetrics
 	return deltaMetrics, nil
+}
+
+// Generic metric functions
+func UpdateGxRecentRequestMetrics(err error) {
+	if err == nil {
+		GxSuccessTimestamp.Set(float64(time.Now().Unix()))
+		GxFailuresSinceLastSuccess.Set(0)
+	} else {
+		GxFailuresSinceLastSuccess.Inc()
+	}
+}
+
+func UpdateGyRecentRequestMetrics(err error) {
+	if err == nil {
+		GySuccessTimestamp.Set(float64(time.Now().Unix()))
+		GyFailuresSinceLastSuccess.Set(0)
+	} else {
+		GyFailuresSinceLastSuccess.Inc()
+	}
+}
+
+// session_controller functions
+func ReportCreateGxSession(err error) {
+	UpdateGxRecentRequestMetrics(err)
+	if err != nil {
+		PcrfCcrInitSendFailures.Inc()
+	}
+	PcrfCcrInitRequests.Inc()
+}
+
+func ReportCreateGySession(err error) {
+	UpdateGyRecentRequestMetrics(err)
+	if err != nil {
+		OcsCcrInitSendFailures.Inc()
+	}
+	OcsCcrInitRequests.Inc()
+}
+
+func ReportTerminateGxSession(err error) {
+	UpdateGxRecentRequestMetrics(err)
+	if err != nil {
+		PcrfCcrTerminateSendFailures.Inc()
+	} else {
+		PcrfCcrTerminateRequests.Inc()
+	}
+}
+
+func ReportTerminateGySession(err error) {
+	UpdateGyRecentRequestMetrics(err)
+	if err != nil {
+		OcsCcrTerminateSendFailures.Inc()
+	} else {
+		OcsCcrTerminateRequests.Inc()
+	}
 }

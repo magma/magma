@@ -35,7 +35,7 @@ class SessionCredit {
 
   SessionCredit(ServiceState start_state, CreditLimitType limit_type);
 
-  static SessionCredit unmarshal(const StoredSessionCredit& marshaled);
+  SessionCredit(const StoredSessionCredit &marshaled);
 
   StoredSessionCredit marshal();
 
@@ -94,6 +94,9 @@ class SessionCredit {
   void set_grant_tracking_type(
       GrantTrackingType g_type, SessionCreditUpdateCriteria& uc);
 
+  void set_received_granted_units(
+      GrantedUnits& rgu, SessionCreditUpdateCriteria& uc);
+
   /**
    * Add credit to the specified bucket. This does not necessarily correspond
    * to allowed or used credit.
@@ -124,6 +127,9 @@ class SessionCredit {
    */
   bool is_quota_exhausted(float usage_reporting_threshold) const;
 
+
+  bool current_grant_contains_zero() const;
+
   /**
    * A threshold represented as a ratio for triggering usage update before
    * an user completely used up the quota
@@ -145,9 +151,15 @@ class SessionCredit {
   bool reporting_;
   CreditLimitType credit_limit_type_;
   GrantTrackingType grant_tracking_type_;
+  // stores the granted credits we received the last
+  GrantedUnits received_granted_units_;
 
  private:
   void log_quota_and_usage() const;
+
+  std::string get_percentage_usage(uint64_t allowed, uint64_t floor, uint64_t used) const;
+
+  bool is_received_grented_unit_zero(const CreditUnit& cu) const;
 
   SessionCredit::Usage get_unreported_usage() const;
 
@@ -164,7 +176,11 @@ class SessionCredit {
 
   void apply_reporting_limits(SessionCredit::Usage& usage);
 
-  uint64_t calculate_allowed_floor(CreditUnit cu, Bucket allowed, Bucket floor);
+  uint64_t calculate_delta_allowed_floor(CreditUnit cu,
+                           Bucket allowed, Bucket floor, uint64_t volume_used);
+
+  uint64_t calculate_delta_allowed(uint64_t gsu_volume,
+                           Bucket allowed, uint64_t volume_used);
 };
 
 }  // namespace magma

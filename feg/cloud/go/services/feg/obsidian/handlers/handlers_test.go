@@ -34,7 +34,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/configurator/test_init"
+	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
@@ -50,7 +50,7 @@ import (
 func TestFederationNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	testHealthServicer, err := healthTestInit.StartTestService(t)
 	assert.NoError(t, err)
@@ -264,7 +264,7 @@ func TestFederationGateways(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
 	defer clock.UnfreezeClock(t)
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	testHealthServicer, err := healthTestInit.StartTestService(t)
@@ -478,7 +478,7 @@ func TestFederatedLteNetworks(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FegOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin3.LteOrchestratorPlugin{})
-	test_init.StartTestService(t)
+	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
@@ -608,10 +608,10 @@ func TestFederatedLteNetworks(t *testing.T) {
 		Name:        "updated foobar",
 		Description: "Updated Foo Bar",
 		Configs: map[string]interface{}{
-			lte.CellularNetworkType:     models3.NewDefaultFDDNetworkConfig(),
-			feg.FederatedNetworkType:    models2.NewDefaultFederatedNetworkConfigs(),
-			orc8r.DnsdNetworkType:       payloadN1.DNS,
-			orc8r.NetworkFeaturesConfig: payloadN1.Features,
+			lte.CellularNetworkConfigType: models3.NewDefaultFDDNetworkConfig(),
+			feg.FederatedNetworkType:      models2.NewDefaultFederatedNetworkConfigs(),
+			orc8r.DnsdNetworkType:         payloadN1.DNS,
+			orc8r.NetworkFeaturesConfig:   payloadN1.Features,
 		},
 		Version: 1,
 	}
@@ -698,10 +698,10 @@ func seedFederatedLteNetworks(t *testing.T) {
 				Name:        "foobar",
 				Description: "Foo Bar",
 				Configs: map[string]interface{}{
-					feg.FederatedNetworkType:    models2.NewDefaultFederatedNetworkConfigs(),
-					lte.CellularNetworkType:     models3.NewDefaultTDDNetworkConfig(),
-					orc8r.NetworkFeaturesConfig: models.NewDefaultFeaturesConfig(),
-					orc8r.DnsdNetworkType:       models.NewDefaultDNSConfig(),
+					feg.FederatedNetworkType:      models2.NewDefaultFederatedNetworkConfigs(),
+					lte.CellularNetworkConfigType: models3.NewDefaultTDDNetworkConfig(),
+					orc8r.NetworkFeaturesConfig:   models.NewDefaultFeaturesConfig(),
+					orc8r.DnsdNetworkType:         models.NewDefaultDNSConfig(),
 				},
 			},
 			{

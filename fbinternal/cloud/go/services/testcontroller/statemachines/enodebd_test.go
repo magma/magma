@@ -756,6 +756,43 @@ func Test_EnodebdE2ETestStateMachine_SubscriberState(t *testing.T) {
 	mockMagmad.AssertExpectations(t)
 }
 
+func Test_EnodebdE2ETestStateMachine_DynamicStartState(t *testing.T) {
+	SetupTests(t, "testcontroller__statemachines__enodebd_dynamic_start_state")
+	RegisterAGW(t)
+	testConfig := GetEnodebTestConfig()
+	testConfig.StartState = "reboot_enodeb_1"
+	cli := &mockClient{}
+	mockMagmad, _ := GetMockObjects()
+
+	// New test
+	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
+	actualState, actualDuration, err := sm.Run(storage2.CommonStartState, testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "reboot_enodeb_1", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	testConfig.StartState = "reconfig_enodeb1"
+	actualState, actualDuration, err = sm.Run(storage2.CommonStartState, testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "reconfig_enodeb1", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	testConfig.StartState = "subscriber_inactive"
+	actualState, actualDuration, err = sm.Run(storage2.CommonStartState, testConfig, nil)
+	assert.NoError(t, err)
+	assert.Equal(t, "subscriber_inactive", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	testConfig.StartState = "INVALID STATE"
+	// Invalid state should default to check_for_upgrade
+	actualState, actualDuration, err = sm.Run(storage2.CommonStartState, testConfig, nil)
+	assert.EqualError(t, err, "Invalid starting state. Defaulting to check_for_upgrade")
+	assert.Equal(t, "check_for_upgrade", actualState)
+	assert.Equal(t, time.Minute, actualDuration)
+
+	cli.AssertExpectations(t)
+	mockMagmad.AssertExpectations(t)
+}
 func SetupTests(t *testing.T, dbName string) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &plugin2.FbinternalOrchestratorPlugin{})
@@ -790,7 +827,7 @@ func RegisterAGW(t *testing.T) {
 				Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			},
 			{
-				Type:       lte.CellularEnodebType,
+				Type:       lte.CellularEnodebEntityType,
 				Key:        "1202000038269KP0037",
 				PhysicalID: "1202000038269KP0037",
 				Config: &ltemodels.EnodebConfiguration{
@@ -810,12 +847,14 @@ func RegisterAGW(t *testing.T) {
 				Key:         "IMSI1234567890",
 				Name:        "subscriber1",
 				Description: "mock subscriber",
-				Config: &subscribermodels.LteSubscription{
-					AuthAlgo:   "MILENAGE",
-					AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-					State:      "ACTIVE",
-					SubProfile: "default",
+				Config: &subscribermodels.SubscriberConfig{
+					Lte: &subscribermodels.LteSubscription{
+						AuthAlgo:   "MILENAGE",
+						AuthKey:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+						AuthOpc:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+						State:      "ACTIVE",
+						SubProfile: "default",
+					},
 				},
 			},
 		},
@@ -828,7 +867,7 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 		AgwConfig: &models.AgwTestConfig{
 			PackageRepo:     swag.String("https://packages.magma.etagecom.io"),
 			ReleaseChannel:  swag.String("stretch-beta"),
-			SLACKWebhook:    swag.String("https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"),
+			SlackWebhook:    swag.String("https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"),
 			TargetGatewayID: swag.String("g1"),
 			TargetTier:      swag.String("t1"),
 		},
@@ -849,6 +888,7 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 			TransmitEnabled:        swag.Bool(true),
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
+		StartState:   "check_for_upgrade",
 	}
 	return testConfig
 }

@@ -7,6 +7,12 @@ aliases:
     filters:
       branches:
         only: master
+  - &master_and_develop
+    filters:
+      branches:
+        only:
+          - master
+          - develop
 
 executors:
   node:
@@ -523,6 +529,8 @@ jobs:
           command: |
             cd ${MAGMA_ROOT}/cwf/gateway
             make -C ${MAGMA_ROOT}/cwf/gateway precommit
+            cd ${MAGMA_ROOT}/cwf/gateway
+            make -C ${MAGMA_ROOT}/cwf/gateway/integ_tests precommit
       - magma_slack_notify
 
   cwf-integ-test:
@@ -714,14 +722,14 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
+      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
     steps:
       - checkout
       - docker/install-dc
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           command: |
-            cd ${MAGMA_ROOT}/nms/app/fbcnms-projects/magmalte
+            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
             docker-compose build magmalte
       - tag-push-docker:
           project: magmalte
@@ -818,9 +826,21 @@ jobs:
           name: Build xwf go radius
           command: |
             cd ${MAGMA_ROOT}/feg
-            docker build --tag goradius -f radius/src/Dockerfile ./
+            docker build --build-arg BUILD_NUM=${CIRCLE_SHA1:0:8} --tag goradius -f radius/src/Dockerfile ./
       - tag-push-docker:
           images: 'goradius'
+          tag: <<parameters.tag>>
+          registry: $DOCKER_MAGMA_REGISTRY
+      - run:
+          name: Load openvswitch kernel module for xwf integ test
+          command: sudo modprobe openvswitch
+      - run:
+          name: Build xwfm-integ-tests
+          command: |
+            cd ${MAGMA_ROOT}
+            docker build --tag xwfm-integ-tests -f xwf/gateway/integ_tests/gw/Dockerfile ./
+      - tag-push-docker:
+          images: 'xwfm-integ-tests'
           tag: <<parameters.tag>>
           registry: $DOCKER_MAGMA_REGISTRY
       - magma_slack_notify
@@ -845,7 +865,7 @@ workflows:
     jobs:
       - lte-test
       - lte-integ-test:
-          <<: *only_master
+          <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
           requires:
@@ -862,9 +882,9 @@ workflows:
     jobs:
       - cwag-precommit
       - cwf-integ-test:
-          <<: *only_master
+          <<: *master_and_develop
       - xwfm-test:
-          <<: *only_master
+          <<: *master_and_develop
       - cwag-deploy:
           <<: *only_master
           requires:

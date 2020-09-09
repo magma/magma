@@ -48,11 +48,6 @@ func TestAAAPipelinedClientWithGoodAPN(t *testing.T) {
 	mock_pipelined.AssertMacFlowInstall(t, mockPipelined)
 	mock_pipelined.AssertReceivedApMacAndAddress(t, mockPipelined, expectedMac, expectedApName)
 
-	err = pipelined.UpdateIPFIXFlow(subscriberId, aaaCtx)
-	assert.NoError(t, err)
-	mock_pipelined.AssertIPIXFlowUpdate(t, mockPipelined)
-	mock_pipelined.AssertReceivedApMacAndAddress(t, mockPipelined, expectedMac, expectedApName)
-
 	err = pipelined.DeleteUeMacFlow(subscriberId, aaaCtx)
 	assert.NoError(t, err)
 	mock_pipelined.AssertIDeleteMacFlow(t, mockPipelined)
@@ -73,11 +68,6 @@ func TestAAAPipelinedClientWithBadAPN(t *testing.T) {
 	assert.NoError(t, err)
 	mock_pipelined.AssertReceivedApMacAndAddress(t, mockPipelined, expectedMac, expectedApName)
 	mock_pipelined.AssertMacFlowInstall(t, mockPipelined)
-
-	err = pipelined.UpdateIPFIXFlow(subscriberId, aaaCtx)
-	assert.NoError(t, err)
-	mock_pipelined.AssertIPIXFlowUpdate(t, mockPipelined)
-	mock_pipelined.AssertReceivedApMacAndAddress(t, mockPipelined, expectedMac, expectedApName)
 
 	err = pipelined.DeleteUeMacFlow(subscriberId, aaaCtx)
 	assert.NoError(t, err)

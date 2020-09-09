@@ -15,8 +15,12 @@ magma-gen-meta:
       filename: diameter_client_configs_swaggergen.go
     - go-struct-name: DiameterServerConfigs
       filename: diameter_server_configs_swaggergen.go
+    - go-struct-name: AaaServer
+      filename: aaa_server_swaggergen.go
     - go-struct-name: EapAkaTimeouts
       filename: eap_aka_timeouts_swaggergen.go
+    - go-struct-name: EapAka
+      filename: eap_aka_swaggergen.go
     - go-struct-name: NetworkFederationConfigs
       filename: network_federation_configs_swaggergen.go
     - go-struct-name: SubscriptionProfile
@@ -762,6 +766,7 @@ paths:
           description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
 definitions:
   feg_network:
     type: object
@@ -852,6 +857,10 @@ definitions:
     type: object
     description: gx configuration
     properties:
+      disableGx:
+        type: boolean
+        example: false
+        default: false
       server:
         $ref: '#/definitions/diameter_client_configs'
       servers:
@@ -861,12 +870,18 @@ definitions:
       overwrite_apn:
         type: string
         example: ""
-
-
+      virtual_apn_rules:
+        type: array
+        items:
+          $ref: '#/definitions/virtual_apn_rule'
 
   gy:
     type: object
     properties:
+      disableGy:
+        type: boolean
+        example: false
+        default: false
       server:
         $ref: '#/definitions/diameter_client_configs'
       servers:
@@ -885,6 +900,10 @@ definitions:
       overwrite_apn:
         type: string
         example: ""
+      virtual_apn_rules:
+        type: array
+        items:
+          $ref: '#/definitions/virtual_apn_rule'
 
   swx:
     type: object
@@ -1218,6 +1237,21 @@ definitions:
         type: string
         pattern: '[^\:]+(:[0-9]{1,5})?'
         example: ":56789"
+        x-nullable: false
+
+  virtual_apn_rule:
+    description: Virtual APN Rule configuration
+    type: object
+    properties:
+      apn_filter:
+        description: Regex to match APN values
+        type: string
+        example: ".*\\.magma.*"
+        x-nullable: false
+      apn_overwrite:
+        description: New APN to overwrite when filter matches
+        type: string
+        example: "new.magma.apn"
         x-nullable: false
 
   subscription_profile:

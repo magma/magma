@@ -41,13 +41,13 @@ magma-gen-meta:
     - go-struct-name: PromqlReturnObject
       filename: promql_return_object_swaggergen.go
     - go-struct-name: SLACKAction
-      filename: sla_c_k_action_swaggergen.go
+      filename: slack_action_swaggergen.go
     - go-struct-name: SLACKConfirmField
-      filename: sla_c_k_confirm_field_swaggergen.go
+      filename: slack_confirm_field_swaggergen.go
     - go-struct-name: SLACKField
-      filename: sla_c_k_field_swaggergen.go
+      filename: slack_field_swaggergen.go
     - go-struct-name: SLACKReceiver
-      filename: sla_c_k_receiver_swaggergen.go
+      filename: slack_receiver_swaggergen.go
     - go-struct-name: PushedMetric
       filename: pushed_metric_swaggergen.go
     - go-struct-name: LabelPair
@@ -655,7 +655,7 @@ paths:
           name: start
           type: string
           description: start time of the requested range (UnixTime or RFC3339)
-          required: true
+          required: false
         - in: query
           name: end
           type: string

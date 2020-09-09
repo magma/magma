@@ -14,6 +14,8 @@ limitations under the License.
 import logging
 import os
 import re
+import subprocess
+import netifaces
 
 from collections import namedtuple
 from concurrent.futures import Future
@@ -33,6 +35,7 @@ from magma.pipelined.tests.app.exceptions import BadConfigError, \
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery
 from magma.pipelined.tests.app.start_pipelined import StartThread
 from magma.pipelined.app.base import global_epoch
+from magma.pipelined.openflow import flows
 
 """
 Pipelined test util functions can be used for testing pipelined, the usage of
@@ -413,7 +416,14 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
                                                     service_manager,
                                                     include_stats=include_stats)
 
-    def fail(err_msg: str):
+    def fail(err_msg: str, _bridge_name: str):
+        ofctl_cmd = "sudo ovs-ofctl dump-flows %s" % _bridge_name
+        p = subprocess.Popen([ofctl_cmd],
+                             stdout=subprocess.PIPE,
+                             shell=True)
+        ofctl_dump = p.stdout.read().decode("utf-8").strip()
+        logging.error("cmd ofctl_dump: %s", ofctl_dump)
+
         msg = 'Snapshot mismatch with error:\n' \
               '{}\n' \
               'To fix the error, update "{}" to the current snapshot:\n' \
@@ -427,17 +437,19 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
             for line in file:
                 prev_snapshot.append(line.rstrip('\n'))
     except OSError as e:
-        fail(str(e))
+        fail(str(e), bridge_name)
         return
     if set(current_snapshot) != set(prev_snapshot):
         fail('\n'.join(list(unified_diff(prev_snapshot, current_snapshot,
                                          fromfile='previous snapshot',
-                                         tofile='current snapshot'))))
+                                         tofile='current snapshot'))),
+             bridge_name)
 
 
 def wait_for_snapshots(bridge_name: str,
                        service_manager: ServiceManager,
-                       wait_time: int = 1, max_sleep_time: int = 20):
+                       wait_time: int = 1, max_sleep_time: int = 20,
+                       datapath=None):
     """
     Wait after checking ovs snapshot as new changes might still come in,
 
@@ -452,6 +464,8 @@ def wait_for_snapshots(bridge_name: str,
     sleep_time = 0
     old_snapshot = _get_current_bridge_snapshot(bridge_name, service_manager)
     while True:
+        if datapath:
+            flows.set_barrier(datapath)
         hub.sleep(wait_time)
 
         new_snapshot = _get_current_bridge_snapshot(bridge_name,
@@ -477,7 +491,9 @@ class SnapshotVerifier:
     def __init__(self, test_case: TestCase, bridge_name: str,
                  service_manager: ServiceManager,
                  snapshot_name: Optional[str] = None,
-                 include_stats: bool = True):
+                 include_stats: bool = True,
+                 max_sleep_time: int = 20,
+                 datapath=None):
         """
         These arguments are used to call assert_bridge_snapshot_match on exit.
 
@@ -494,6 +510,8 @@ class SnapshotVerifier:
         self._service_manager = service_manager
         self._snapshot_name = snapshot_name
         self._include_stats = include_stats
+        self._max_sleep_time = max_sleep_time
+        self._datapath = datapath
 
     def __enter__(self):
         pass
@@ -503,9 +521,39 @@ class SnapshotVerifier:
         Runs after finishing 'with' (Verify snapshot)
         """
         try:
-            wait_for_snapshots(self._bridge_name, self._service_manager)
+            wait_for_snapshots(self._bridge_name, self._service_manager,
+                               max_sleep_time=self._max_sleep_time,
+                               datapath=self._datapath)
         except WaitTimeExceeded as e:
+            ofctl_cmd = "sudo ovs-ofctl dump-flows %s".format(self._bridge_name)
+            p = subprocess.Popen([ofctl_cmd],
+                                 stdout=subprocess.PIPE,
+                                 shell=True)
+            ofctl_dump = p.stdout.read().decode("utf-8").strip()
+            logging.error("ofctl_dump: %s", ofctl_dump)
             TestCase().fail(e)
         assert_bridge_snapshot_match(self._test_case, self._bridge_name,
                                      self._service_manager,
                                      self._snapshot_name, self._include_stats)
+
+
+def get_ovsdb_port_tag(port_name: str) -> str:
+    dump1 = subprocess.Popen(["ovsdb-client", "dump", "Port", "name", "tag"],
+                             stdout=subprocess.PIPE)
+    for port in dump1.stdout.readlines():
+        if port_name not in str(port):
+            continue
+        try:
+            tokens = str(port.decode("utf-8")).strip('\"').split()
+            return tokens[1]
+        except ValueError:
+            pass
+
+
+def get_iface_ipv4(iface: str) -> List[str]:
+    virt_ifaddresses = netifaces.ifaddresses(iface)
+    ip_addr_list = []
+    for ip_rec in virt_ifaddresses[netifaces.AF_INET]:
+        ip_addr_list.append(ip_rec['addr'])
+
+    return ip_addr_list

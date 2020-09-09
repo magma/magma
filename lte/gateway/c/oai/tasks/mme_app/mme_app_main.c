@@ -137,7 +137,13 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
         if (!ue_context_p->path_switch_req) {
           /* Updating statistics */
+          mme_app_handle_modify_bearer_rsp(
+              &received_message_p->ittiMsg.s11_modify_bearer_response,
+              ue_context_p);
           update_mme_app_stats_s1u_bearer_add();
+          mme_app_handle_modify_bearer_rsp(
+              &received_message_p->ittiMsg.s11_modify_bearer_response,
+              ue_context_p);
         } else {
           mme_app_handle_path_switch_req_ack(
               &received_message_p->ittiMsg.s11_modify_bearer_response,
@@ -227,8 +233,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
         mme_app_statistics_display();
       } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
         mme_app_nas_timer_handle_signal_expiry(
-            TIMER_HAS_EXPIRED(received_message_p).timer_id,
-            TIMER_HAS_EXPIRED(received_message_p).arg);
+          TIMER_HAS_EXPIRED(received_message_p).timer_id,
+          TIMER_HAS_EXPIRED(received_message_p).arg, &imsi64);
       }
       timer_handle_expired(
           received_message_p->ittiMsg.timer_has_expired.timer_id);

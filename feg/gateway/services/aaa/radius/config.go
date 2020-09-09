@@ -20,7 +20,10 @@ const (
 	defaultNetwork  = "udp"
 	defaultAuthAddr = ":1812"
 	defaultAcctAddr = ":1813"
+	defaultDAEAddr  = ":3799"
 	defaultSecret   = "123456"
+
+	defaultAcctInterimUpdateInterval = 180 // in seconds
 )
 
 var defaultConfigs = &mconfig.RadiusConfig{
@@ -28,9 +31,10 @@ var defaultConfigs = &mconfig.RadiusConfig{
 	Network:  defaultNetwork,
 	AuthAddr: defaultAuthAddr,
 	AcctAddr: defaultAcctAddr,
+	DAEAddr:  defaultDAEAddr,
 }
 
-func validateConfigs(cfg *mconfig.RadiusConfig) *mconfig.RadiusConfig {
+func ValidateConfigs(cfg *mconfig.RadiusConfig) *mconfig.RadiusConfig {
 	res := &mconfig.RadiusConfig{}
 	if cfg != nil {
 		*res = *cfg
@@ -46,6 +50,9 @@ func validateConfigs(cfg *mconfig.RadiusConfig) *mconfig.RadiusConfig {
 	}
 	if len(res.AcctAddr) == 0 {
 		res.AcctAddr = defaultAcctAddr
+	}
+	if len(res.DAEAddr) == 0 {
+		res.DAEAddr = defaultDAEAddr
 	}
 	return res
 }

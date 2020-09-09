@@ -72,12 +72,7 @@ module.exports.overrides = [
     ],
   },
   {
-    files: [
-      'fbcnms-packages/**/*.js',
-      'fbcnms-projects/inventory/**/*.js',
-      'fbcnms-projects/magmalte/**/*.js',
-      'fbcnms-projects/platform-server/**/*.js',
-    ],
+    files: ['packages/**/*.js'],
     rules: {
       'header/header': [2, 'block', {pattern: combinedOpenSourcePattern}],
     },
@@ -91,34 +86,14 @@ module.exports.overrides = [
       'babel.config.js',
       'jest.config.js',
       'jest.*.config.js',
-      'fbcnms-packages/eslint-config-fbcnms/**/*.js',
-      'fbcnms-packages/fbcnms-auth/**/*.js',
-      'fbcnms-packages/fbcnms-babel-register/**/*.js',
-      'fbcnms-packages/fbcnms-express-middleware/**/*.js',
-      'fbcnms-packages/fbcnms-logging/**/*.js',
-      'fbcnms-packages/fbcnms-magma-api/**/*.js',
-      'fbcnms-packages/fbcnms-platform-server/**/*.js',
-      'fbcnms-packages/fbcnms-relay/**/*.js',
-      'fbcnms-packages/fbcnms-sequelize-models/**/*.js',
-      'fbcnms-packages/fbcnms-ui/stories/**/*.js',
-      'fbcnms-packages/fbcnms-util/**/*.js',
-      'fbcnms-packages/fbcnms-webpack-config/**/*.js',
-      'fbcnms-projects/*/config/webpack.*.js',
-      'fbcnms-projects/*/scripts/**/*.js',
-      'fbcnms-projects/*/server/**/*.js',
-      'fbcnms-projects/platform-server/**/*.js',
-      'scripts/fb/fbt/*.js',
+      'packages/fbcnms-magma-api/**/*.js',
+      'packages/magmalte/config/*.js',
+      'packages/magmalte/scripts/**/*.js',
+      'packages/magmalte/server/**/*.js',
+      'packages/magmalte/grafana/**/*.js',
     ],
     rules: {
       'no-console': 'off',
-    },
-  },
-  {
-    files: ['**/tgnms/**/*.js'],
-    rules: {
-      // tgnms doesn't want this because there's too many errors
-      'flowtype/no-weak-types': 'off',
-      'flowtype/require-valid-file-annotation': 'off',
     },
   },
 ];

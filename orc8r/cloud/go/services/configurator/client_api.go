@@ -584,6 +584,7 @@ func GetNetworkAndEntityIDForPhysicalID(physicalID string) (string, string, erro
 // LoadEntities loads entities specified by the parameters.
 // typeFilter, keyFilter, physicalID, and ids are all used to define a filter to
 // filter out results - if they are all nil, it will return all network entities
+// If ids is empty, all entities will be returned
 func LoadEntities(
 	networkID string,
 	typeFilter *string,
@@ -652,6 +653,9 @@ func DoesEntityExist(networkID, entityType, entityKey string) (bool, error) {
 // DoEntitiesExist returns a boolean that indicated whether all entities
 // specified exist in the network
 func DoEntitiesExist(networkID string, ids []storage2.TypeAndKey) (bool, error) {
+	if len(ids) == 0 {
+		return true, nil
+	}
 	found, _, err := LoadEntities(
 		networkID,
 		nil, nil, nil,
