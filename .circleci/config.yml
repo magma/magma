@@ -848,86 +848,91 @@ jobs:
 workflows:
   version: 2.1
 
-  # cloud:
-  #   jobs:
-  #     - cloud-test
-  #     - insync-checkin
-  #     - orc8r-build:
-  #         requires:
-  #           - cloud-test
-  #           - insync-checkin
-  #
-  # lib_gateway:
-  #   jobs:
-  #     - orc8r-gateway-test
+  cloud:
+    jobs:
+      - cloud-test
+      - insync-checkin
+      - orc8r-build:
+          requires:
+            - cloud-test
+            - insync-checkin
+
+  lib_gateway:
+    jobs:
+      - orc8r-gateway-test
 
   agw:
     jobs:
-      - lte-agw-deploy
+      - lte-test
+      - lte-integ-test:
+          <<: *master_and_develop
+      - lte-agw-deploy:
+          <<: *only_master
+          requires:
+            - lte-integ-test
 
-  #
-  # feg:
-  #   jobs:
-  #     - feg-precommit
-  #     - feg-build:
-  #         requires:
-  #           - feg-precommit
-  #
-  # cwag:
-  #   jobs:
-  #     - cwag-precommit
-  #     - cwf-integ-test:
-  #         <<: *master_and_develop
-  #     - xwfm-test:
-  #         <<: *master_and_develop
-  #     - cwag-deploy:
-  #         <<: *only_master
-  #         requires:
-  #           - cwag-precommit
-  #           - cwf-integ-test
-  #     - xwfm-deploy:
-  #         <<: *only_master
-  #         requires:
-  #           - xwfm-test
-  #           - cwag-deploy
-  #
-  #
-  # cwf_operator:
-  #   jobs:
-  #     - cwf-operator-precommit
-  #     - cwf-operator-build:
-  #         requires:
-  #           - cwf-operator-precommit
-  #
-  # hourly_xwfm:
-  #   triggers:
-  #     - schedule:
-  #         cron: "0 * * * *"
-  #         <<: *only_master
-  #   jobs:
-  #     - xwfm-test
-  #     - xwfm-deploy:
-  #         requires:
-  #           - xwfm-test
-  #         tag: 'hourly'
-  #     - cwag-deploy:
-  #         requires:
-  #           - xwfm-test
-  #         images: 'gateway_python|gateway_pipelined'
-  #         tag: 'hourly'
-  #
-  # nms:
-  #   jobs:
-  #     - nms-flow-test
-  #     - eslint
-  #     - nms-yarn-test:
-  #         requires:
-  #           - nms-flow-test
-  #     - nms-build:
-  #         requires:
-  #           - nms-flow-test
-  #           - eslint
-  #           - nms-yarn-test
+  feg:
+    jobs:
+      - feg-precommit
+      - feg-build:
+          requires:
+            - feg-precommit
+
+  cwag:
+    jobs:
+      - cwag-precommit
+      - cwf-integ-test:
+          <<: *master_and_develop
+      - xwfm-test:
+          <<: *master_and_develop
+      - cwag-deploy:
+          <<: *only_master
+          requires:
+            - cwag-precommit
+            - cwf-integ-test
+      - xwfm-deploy:
+          <<: *only_master
+          requires:
+            - xwfm-test
+            - cwag-deploy
+
+
+  cwf_operator:
+    jobs:
+      - cwf-operator-precommit
+      - cwf-operator-build:
+          requires:
+            - cwf-operator-precommit
+
+  hourly_xwfm:
+    triggers:
+      - schedule:
+          cron: "0 * * * *"
+          <<: *only_master
+    jobs:
+      - xwfm-test
+      - xwfm-deploy:
+          requires:
+            - xwfm-test
+          tag: 'hourly'
+      - cwag-deploy:
+          requires:
+            - xwfm-test
+          images: 'gateway_python|gateway_pipelined'
+          tag: 'hourly'
+
+  nms:
+    jobs:
+      - nms-flow-test
+      - eslint
+      - nms-yarn-test:
+          requires:
+            - nms-flow-test
+      - nms-build:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
 
   docusaurus:
    jobs:
