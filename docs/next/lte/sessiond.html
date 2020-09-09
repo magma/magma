@@ -94,7 +94,9 @@ identified by charging key.</p>
 <li>Sessiond will count the credits used but it will not report back anything yet</li>
 <li>When a specific percentage of that grant is reached, Sessiond will send a
 report to OCS or PCRF with used units (by default 80% and can be changed at
-<code>sessiond.yml</code> using parameter <code>sessiond_readme_quota_exhaustion</code>)</li>
+<code>sessiond.yml</code> using parameter <code>sessiond_readme_quota_exhaustion</code>). In case of
+overusage, this will be reported too. So it is up to PCRF/OCS to take that
+overusage into consideration</li>
 <li>PCRF/OCS will then send back another grant, which will be added to the still
 remaining grant.</li>
 <li>PCRF/OCS can also include an indication to let SessionD know that there is
