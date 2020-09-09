@@ -306,15 +306,18 @@ func getInitialCreditResponsesFromCCA(request *gy.CreditControlRequest, answer *
 func getSingleChargingCreditFromCCA(
 	credits *gy.ReceivedCredits,
 ) *protos.ChargingCredit {
-	return &protos.ChargingCredit{
-		GrantedUnits:   credits.GrantedUnits.ToProto(),
-		Type:           protos.ChargingCredit_BYTES,
-		ValidityTime:   credits.ValidityTime,
-		IsFinal:        credits.IsFinal,
-		FinalAction:    protos.ChargingCredit_FinalAction(credits.FinalAction),
-		RedirectServer: credits.RedirectServer.ToProto(),
-		RestrictRules:  credits.RestrictRules,
+	chargingCredit := &protos.ChargingCredit{
+		GrantedUnits: credits.GrantedUnits.ToProto(),
+		Type:         protos.ChargingCredit_BYTES,
+		ValidityTime: credits.ValidityTime,
 	}
+	if credits.FinalUnitIndication != nil {
+		chargingCredit.IsFinal = true
+		chargingCredit.FinalAction = protos.ChargingCredit_FinalAction(credits.FinalUnitIndication.FinalAction)
+		chargingCredit.RedirectServer = credits.FinalUnitIndication.RedirectServer.ToProto()
+		chargingCredit.RestrictRules = credits.FinalUnitIndication.RestrictRules
+	}
+	return chargingCredit
 }
 
 // getUpdateRequestsFromUsage returns a slice of CCRs from usage update protos

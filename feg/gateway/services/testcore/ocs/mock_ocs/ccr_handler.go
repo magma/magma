@@ -145,9 +145,9 @@ func getCCRHandler(srv *OCSDiamServer) diam.HandlerFunc {
 					returnOctets,
 					final,
 					mscc.RatingGroup,
-					srv.ocsConfig.FinalUnitAction,
-					srv.ocsConfig.RedirectAddress,
-					srv.ocsConfig.RestrictRules,
+					srv.ocsConfig.FinalUnitIndication.FinalUnitAction,
+					srv.ocsConfig.FinalUnitIndication.RedirectAddress,
+					srv.ocsConfig.FinalUnitIndication.RestrictRules,
 				))
 		}
 		sendAnswer(ccr, c, m, diam.Success, creditAnswers...)

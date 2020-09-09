@@ -81,15 +81,12 @@ type QosRequestInfo struct {
 }
 
 type ReceivedCredits struct {
-	ResultCode        uint32
-	RatingGroup       uint32
-	ServiceIdentifier *uint32
-	GrantedUnits      *credit_control.GrantedServiceUnit
-	ValidityTime      uint32
-	IsFinal           bool
-	FinalAction       FinalUnitAction // unused if IsFinal is false
-	RedirectServer    RedirectServer
-	RestrictRules     []string
+	ResultCode          uint32
+	RatingGroup         uint32
+	ServiceIdentifier   *uint32
+	GrantedUnits        *credit_control.GrantedServiceUnit
+	ValidityTime        uint32
+	FinalUnitIndication *FinalUnitIndication
 }
 
 type CreditControlAnswer struct {
@@ -101,7 +98,7 @@ type CreditControlAnswer struct {
 }
 
 type FinalUnitIndication struct {
-	Action         FinalUnitAction `avp:"Final-Unit-Action"`
+	FinalAction    FinalUnitAction `avp:"Final-Unit-Action"`
 	RedirectServer RedirectServer  `avp:"Redirect-Server"`
 	RestrictRules  []string        `avp:"Filter-Id"`
 }

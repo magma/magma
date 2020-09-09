@@ -40,14 +40,17 @@ func TestOCSExpectations(t *testing.T) {
 	}
 
 	initRequest := fegprotos.NewGyCCRequest(test.IMSI1, fegprotos.CCRequestType_INITIAL)
+	finalIndication := &fegprotos.FinalUnitIndication{
+		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
+	}
 	quotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
 			TotalOctets: 100,
 		},
-		IsFinalCredit:   true,
-		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
-		ResultCode:      2001,
+		IsFinalCredit:       true,
+		FinalUnitIndication: finalIndication,
+		ResultCode:          2001,
 	}
 	initAnswer := fegprotos.NewGyCCAnswer(diameter.SuccessCode).SetQuotaGrant(quotaGrant)
 	initExpectation := fegprotos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
@@ -127,11 +130,14 @@ func assertCCAIsEqualToExpectedAnswer(t *testing.T, actual *gy.CreditControlAnsw
 		assert.True(t, found, fmt.Sprintf("Expected %v in answer but it doesn't exist", credit))
 		assert.Equal(t, int(credit.GetResultCode()), int(actualCredit.ResultCode))
 		assert.Equal(t, credit.GetValidityTime(), actualCredit.ValidityTime)
-		assert.Equal(t, credit.GetIsFinalCredit(), actualCredit.IsFinal)
 		if credit.IsFinalCredit {
-			assert.Equal(t, int(credit.GetFinalUnitAction()), int(actualCredit.FinalAction))
-			assert.Equal(t, credit.GetRedirectServer().GetRedirectServerAddress(), actualCredit.RedirectServer.RedirectServerAddress)
-			assert.Equal(t, credit.GetRestrictRules(), actualCredit.RestrictRules)
+			assert.True(t, credit.GetIsFinalCredit())
+
+			expectedFinalUnit := credit.GetFinalUnitIndication()
+			assert.Equal(t, int(expectedFinalUnit.GetFinalUnitAction()), int(actualCredit.FinalUnitIndication.FinalAction))
+			assert.Equal(t, expectedFinalUnit.GetRedirectServer().GetRedirectServerAddress(),
+				actualCredit.FinalUnitIndication.RedirectServer.RedirectServerAddress)
+			assert.Equal(t, expectedFinalUnit.GetRestrictRules(), actualCredit.FinalUnitIndication.RestrictRules)
 		}
 		expectedOctet := credit.GetGrantedServiceUnit()
 		actualOctet := actualCredit.GrantedUnits

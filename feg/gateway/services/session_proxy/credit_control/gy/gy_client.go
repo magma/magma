@@ -435,21 +435,12 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 	creditList := make([]*ReceivedCredits, 0, len(cca.CreditControl))
 	for _, mscc := range cca.CreditControl {
 		receivedCredits := &ReceivedCredits{
-			ResultCode:        mscc.ResultCode,
-			GrantedUnits:      &mscc.GrantedServiceUnit,
-			ValidityTime:      mscc.ValidityTime,
-			RatingGroup:       mscc.RatingGroup,
-			ServiceIdentifier: mscc.ServiceIdentifier,
-		}
-		if mscc.FinalUnitIndication != nil {
-			receivedCredits.IsFinal = true
-			receivedCredits.FinalAction = mscc.FinalUnitIndication.Action
-			if mscc.FinalUnitIndication.Action == Redirect {
-				receivedCredits.RedirectServer = mscc.FinalUnitIndication.RedirectServer
-			}
-			if mscc.FinalUnitIndication.Action == RestrictAccess {
-				receivedCredits.RestrictRules = mscc.FinalUnitIndication.RestrictRules
-			}
+			ResultCode:          mscc.ResultCode,
+			GrantedUnits:        &mscc.GrantedServiceUnit,
+			ValidityTime:        mscc.ValidityTime,
+			RatingGroup:         mscc.RatingGroup,
+			ServiceIdentifier:   mscc.ServiceIdentifier,
+			FinalUnitIndication: mscc.FinalUnitIndication,
 		}
 		creditList = append(creditList, receivedCredits)
 	}

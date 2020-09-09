@@ -77,9 +77,9 @@ func (answer GyAnswer) toAVPs() ([]*diam.AVP, uint32) {
 				grant.GetGrantedServiceUnit(),
 				grant.GetIsFinalCredit(),
 				grant.GetRatingGroup(),
-				grant.GetFinalUnitAction(),
-				grant.GetRedirectServer().GetRedirectServerAddress(),
-				grant.GetRestrictRules()))
+				grant.GetFinalUnitIndication().GetFinalUnitAction(),
+				grant.GetFinalUnitIndication().GetRedirectServer().GetRedirectServerAddress(),
+				grant.GetFinalUnitIndication().GetRestrictRules()))
 	}
 	return avps, answer.GetResultCode()
 }
