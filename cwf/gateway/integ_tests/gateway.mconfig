@@ -55,6 +55,7 @@
    "@type": "type.googleapis.com/magma.mconfig.SessionD",
    "logLevel": "INFO",
    "relayEnabled": true,
+   "gxGyRelayEnabled": true,
    "walletExhaustDetection": {
     "terminateOnExhaust": true
    }

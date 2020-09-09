@@ -30,9 +30,10 @@ SessionD interfaces with three distinct external components.
   control plane interface towards an operator core. In terms of session 
   management, the SessionProxy service on a FeG will relay all session related 
   interactions. <br>
-  This feature can be enabled on the Orc8r with a network wide `relay_enabled` 
-  flag. When it is disabled, a local PolicyDB service is used in place. This
-  service will directly fetch session configurations from the Orc8r. <br> 
+  This feature can be enabled on the Orc8r with a network wide
+  `gx_gy_relay_enabled` flag. When it is disabled, a local PolicyDB service
+  is used in place. This service will directly fetch session configurations
+  from the Orc8r. <br>
   The feature is disabled by default.
 - Omnipresent Rules <br>
   *This feature is currently only relevant for the federated case.* <br>
@@ -98,7 +99,9 @@ Both Gx and Gy reporting have some commonalities on its algorithm:
 2. Sessiond will count the credits used but it will not report back anything yet
 3. When a specific percentage of that grant is reached, Sessiond will send a 
 report to OCS or PCRF with used units (by default 80% and can be changed at 
-`sessiond.yml` using parameter `sessiond_readme_quota_exhaustion`) 
+`sessiond.yml` using parameter `sessiond_readme_quota_exhaustion`). In case of
+overusage, this will be reported too. So it is up to PCRF/OCS to take that 
+overusage into consideration
 4. PCRF/OCS will then send back another grant, which will be added to the still
 remaining grant. 
 5. PCRF/OCS can also include an indication to let SessionD know that there is 
