@@ -143,19 +143,15 @@ class SessionState {
   bool is_terminating();
 
   /**
-   * complete_termination collects final usages for all credits into a
-   * SessionTerminateRequest and calls the on termination callback with the
-   * request.
-   * Note that complete_termination will forcefully complete the termination
-   * no matter the current state of the session. To properly complete the
-   * termination, this function should only be called when
-   * can_complete_termination returns true.
+   * complete_termination checks the FSM state and transitions the state to
+   * TERMINATED, if it can. If the state is ACTIVE or TERMINATED, it will not do
+   * anything.
+   * This function will return true if the termination happened successfully.
    */
-  void complete_termination(
-      SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria);
+  bool complete_termination(SessionStateUpdateCriteria& update_criteria);
 
-  bool reset_reporting_charging_credit(const CreditKey &key,
-                              SessionStateUpdateCriteria &update_criteria);
+  bool reset_reporting_charging_credit(
+      const CreditKey& key, SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Receive the credit grant if the credit update was successful
@@ -219,6 +215,9 @@ class SessionState {
   uint64_t get_pdp_end_time();
 
   void increment_request_number(uint32_t incr);
+
+  SessionTerminateRequest make_termination_request(
+      SessionStateUpdateCriteria& uc);
 
   // Methods related to the session's static and dynamic rules
   /**
@@ -530,9 +529,6 @@ class SessionState {
       const std::string &key, SessionCreditUpdateCriteria &update);
 
   void add_common_fields_to_usage_monitor_update(UsageMonitoringUpdateRequest* req);
-
-  SessionTerminateRequest make_termination_request(
-    SessionStateUpdateCriteria& update_criteria);
 
   /**
    * Returns true if the specified rule should be active at that time

@@ -567,31 +567,27 @@ SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
   return subscriber_quota_state_;
 }
 
-void SessionState::complete_termination(
-    SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria) {
+bool SessionState::complete_termination(SessionStateUpdateCriteria& uc) {
   switch (curr_state_) {
     case SESSION_ACTIVE:
-      MLOG(MERROR) << session_id_ << " Encountered unexpected state 'ACTIVE' when "
-                   << "forcefully completing termination. Not terminating...";
-      return;
+      MLOG(MERROR) << "Encountered unexpected state 'ACTIVE' when "
+                   << "completing termination for " << session_id_
+                   << " Not terminating...";
+      return false;
     case SESSION_TERMINATED:
       // session is already terminated. Do nothing.
-      return;
-    case SESSION_RELEASED:
-      MLOG(MINFO) << session_id_ << " Forcefully terminating session since it did "
-                  << "not receive usage from pipelined in time.";
-    default:  // Continue termination but no logs are necessary for other states
+      return false;
+    default:
+      // Continue termination but no logs are necessary for other states
       break;
   }
-  // mark entire session as terminated
-  set_fsm_state(SESSION_TERMINATED, update_criteria);
-  auto termination_req = make_termination_request(update_criteria);
-  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
-  reporter.report_terminate_session(termination_req, logging_cb);
+  // mark session as terminated
+  set_fsm_state(SESSION_TERMINATED, uc);
+  return true;
 }
 
 SessionTerminateRequest SessionState::make_termination_request(
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& uc) {
   SessionTerminateRequest req;
   req.set_sid(imsi_);
   req.set_session_id(session_id_);
@@ -615,7 +611,7 @@ SessionTerminateRequest SessionState::make_termination_request(
 
   // gx monitors
   for (auto& credit_pair : monitor_map_) {
-    auto credit_uc = get_monitor_uc(credit_pair.first, update_criteria);
+    auto credit_uc = get_monitor_uc(credit_pair.first, uc);
     req.mutable_monitor_usages()->Add()->CopyFrom(make_usage_monitor_update(
         credit_pair.second->credit.get_all_unreported_usage_for_reporting(
             *credit_uc),
@@ -623,7 +619,7 @@ SessionTerminateRequest SessionState::make_termination_request(
   }
   // gy credits
   for (auto& credit_pair : credit_map_) {
-    auto credit_uc    = get_credit_uc(credit_pair.first, update_criteria);
+    auto credit_uc    = get_credit_uc(credit_pair.first, uc);
     auto credit_usage = credit_pair.second->get_credit_usage(
         CreditUsage::TERMINATED, *credit_uc, true);
     credit_pair.first.set_credit_usage(&credit_usage);
