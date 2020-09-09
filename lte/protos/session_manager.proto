@@ -26,6 +26,7 @@ message RuleRecord {
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
+  string ue_ipv4 = 5;
 }
 
 message RuleRecordTable {
