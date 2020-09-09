@@ -29,9 +29,10 @@ A federation gateway, FeG, is an entity responsible for hosting a centralized
 control plane interface towards an operator core. In terms of session
 management, the SessionProxy service on a FeG will relay all session related
 interactions. <br>
-This feature can be enabled on the Orc8r with a network wide <code>relay_enabled</code>
-flag. When it is disabled, a local PolicyDB service is used in place. This
-service will directly fetch session configurations from the Orc8r. <br>
+This feature can be enabled on the Orc8r with a network wide
+<code>gx_gy_relay_enabled</code> flag. When it is disabled, a local PolicyDB service
+is used in place. This service will directly fetch session configurations
+from the Orc8r. <br>
 The feature is disabled by default.</li>
 <li>Omnipresent Rules <br>
 <em>This feature is currently only relevant for the federated case.</em> <br>
