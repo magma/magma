@@ -63,6 +63,14 @@ export const imsiTemplate = variableTemplate({
   includeAll: true,
 });
 
+export const msisdnTemplate = variableTemplate({
+  labelName: 'msisdn',
+  query: `label_values(msisdn)`,
+  regex: `/.+/`,
+  sort: 'num-asc',
+  includeAll: false,
+});
+
 export const apnTemplate = variableTemplate({
   labelName: 'apn',
   query: `label_values({networkID=~"$networkID",apn=~".+"},apn)`,
@@ -334,7 +342,7 @@ export const SubscriberDBData: GrafanaDBData = {
   title: 'Subscribers',
   description:
     'Metrics relevant to subscribers. Do not edit: edits will be overwritten. Save this dashboard under another name to copy and edit.',
-  templates: [networkTemplate, imsiTemplate, apnTemplate],
+  templates: [networkTemplate, imsiTemplate, apnTemplate, msisdnTemplate],
   rows: [
     {
       title: '',

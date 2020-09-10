@@ -18,24 +18,10 @@ import {
   gatewayTemplate,
   getNetworkTemplate,
   variableTemplate,
+  apnTemplate,
+  msisdnTemplate,
 } from './Dashboards';
 import type {GrafanaDBData} from './Dashboards';
-
-const msisdnTemplate = variableTemplate({
-  name: 'msisdn',
-  query: `label_values(msisdn)`,
-  regex: `/.+/`,
-  sort: 'num-asc',
-  includeAll: false,
-});
-
-export const apnTemplate = variableTemplate({
-  name: 'apn',
-  query: `label_values({networkID=~"$networkID",apn=~".+"},apn)`,
-  regex: `/.+/`,
-  sort: 'alpha-insensitive-asc',
-  includeAll: true,
-});
 
 const dbDescription =
   'Do not edit: edits will be overwritten. Save this dashboard under another name to copy and edit.';
