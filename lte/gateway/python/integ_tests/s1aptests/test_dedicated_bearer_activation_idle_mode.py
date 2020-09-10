@@ -17,9 +17,8 @@ import time
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
-from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
+import ipaddress
 
 
 class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
@@ -29,79 +28,10 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
-        self._spgw_util = SpgwUtil()
         self._sessionManager_util = SessionManagerUtil()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
-
-    def _verify_flow_rules(self, ueId, num_ul_flows, num_dl_flows):
-        MAX_NUM_RETRIES = 5
-        datapath = get_datapath()
-
-        # Check if UL and DL OVS flows are created
-        print("************ Verifying flow rules")
-        # UPLINK
-        print("Checking for uplink flow")
-        # try at least 5 times before failing as gateway
-        # might take some time to install the flows in ovs
-        for i in range(MAX_NUM_RETRIES):
-            print("Get uplink flows: attempt ", i)
-            uplink_flows = get_flows(
-                datapath,
-                {
-                    "table_id": self.SPGW_TABLE,
-                    "match": {"in_port": self.GTP_PORT},
-                },
-            )
-            if len(uplink_flows) == num_ul_flows:
-                break
-            time.sleep(5)  # sleep for 5 seconds before retrying
-
-        assert len(uplink_flows) == num_ul_flows, "Uplink flow missing for UE"
-        self.assertIsNotNone(
-            uplink_flows[0]["match"]["tunnel_id"],
-            "Uplink flow missing tunnel id match",
-        )
-
-        # DOWNLINK
-        print("Checking for downlink flow")
-        ue_ip = str(self._s1ap_wrapper._s1_util.get_ip(ueId))
-        # try at least 5 times before failing as gateway
-        # might take some time to install the flows in ovs
-        for i in range(MAX_NUM_RETRIES):
-            print("Get downlink flows: attempt ", i)
-            downlink_flows = get_flows(
-                datapath,
-                {
-                    "table_id": self.SPGW_TABLE,
-                    "match": {
-                        "nw_dst": ue_ip,
-                        "eth_type": 2048,
-                        "in_port": self.LOCAL_PORT,
-                    },
-                },
-            )
-            if len(downlink_flows) == num_dl_flows:
-                break
-            time.sleep(5)  # sleep for 5 seconds before retrying
-        assert (
-            len(downlink_flows) == num_dl_flows
-        ), "Downlink flow missing for UE"
-        self.assertEqual(
-            downlink_flows[0]["match"]["ipv4_dst"],
-            ue_ip,
-            "UE IP match missing from downlink flow",
-        )
-        actions = downlink_flows[0]["instructions"][0]["actions"]
-        has_tunnel_action = any(
-            action
-            for action in actions
-            if action["field"] == "tunnel_id" and action["type"] == "SET_FIELD"
-        )
-        self.assertTrue(
-            has_tunnel_action, "Downlink flow missing set tunnel action"
-        )
 
     def test_dedicated_bearer_activation_idle_mode(self):
         """
@@ -109,6 +39,7 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         trigger dedicated bearer activation
         + Page the UE + detach"""
 
+        ips = []
         # UL Flow description #1
         ulFlow1 = {
             "ipv4_dst": "192.168.129.42",  # IPv4 destination address
@@ -220,12 +151,15 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         imsi = req.imsi
         print("*********** Running End to End attach for UE id ", ue_id)
         # Now actually complete the attach
-        self._s1ap_wrapper._s1_util.attach(
+        attach = self._s1ap_wrapper._s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
+        ips.append(default_ip)
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -343,9 +277,14 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         )
 
         # Verify if flow rules are created
-        num_ul_flows = 3
-        num_dl_flows = 5
-        self._verify_flow_rules(ue_id, num_ul_flows, num_dl_flows)
+        flowRules = {
+            "num_ul_flows": 3,
+            "num_dl_flows_default": 5,
+            "ips_to_be_matched": ips,
+            "default_ip_addr": default_ip,
+        }
+
+        self._s1ap_wrapper.s1_util.verify_flow_rules(flowRules)
 
         print("*********** Sleeping for 5 seconds")
         time.sleep(5)

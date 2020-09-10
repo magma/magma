@@ -46,6 +46,7 @@ from magma.subscriberdb.sid import SIDUtils
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
+from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 
 DEFAULT_GRPC_TIMEOUT = 10
 
@@ -306,6 +307,73 @@ class S1ApUtil(object):
 
         with self._lock:
             del self._ue_ip_map[ue_id]
+
+    def verify_flow_rules(self, flowRules):
+        MAX_NUM_RETRIES = 5
+        datapath = get_datapath()
+        SPGW_TABLE = 0
+        GTP_PORT = 32768
+        LOCAL_PORT = "LOCAL"
+        num_ul_flows = flowRules["num_ul_flows"]
+        # Check if UL and DL OVS flows are created
+        print("************ Verifying flow rules")
+        # UPLINK
+        print("Checking for uplink flow")
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(MAX_NUM_RETRIES):
+            print("Get uplink flows: attempt ", i)
+            uplink_flows = get_flows(
+                datapath,
+                {"table_id": SPGW_TABLE, "match": {"in_port": GTP_PORT}, },
+            )
+            if len(uplink_flows) == num_ul_flows:
+                break
+            time.sleep(5)  # sleep for 5 seconds before retrying
+        assert len(uplink_flows) == num_ul_flows, "Uplink flow missing for UE"
+        assert uplink_flows[0]["match"]["tunnel_id"] is not None
+
+        # DOWNLINK
+        print("Checking for downlink flow")
+        ips = flowRules["ips_to_be_matched"]
+        for ue_ip in ips:
+            print("Checking dl flow for dst ue ip", ue_ip)
+            num_dl_flows = (
+                flowRules["num_dl_flows_default"]
+                if ue_ip == flowRules["default_ip_addr"]
+                else flowRules["num_dl_flows_sec_pdn"]
+            )
+            # try at least 5 times before failing as gateway
+            # might take some time to install the flows in ovs
+            ue_ip_str = str(ue_ip)
+            for i in range(MAX_NUM_RETRIES):
+                print("Get downlink flows: attempt ", i)
+                downlink_flows = get_flows(
+                    datapath,
+                    {
+                        "table_id": SPGW_TABLE,
+                        "match": {
+                            "nw_dst": ue_ip_str,
+                            "eth_type": 2048,
+                            "in_port": LOCAL_PORT,
+                        },
+                    },
+                )
+                if len(downlink_flows) == num_dl_flows:
+                    break
+                time.sleep(5)  # sleep for 5 seconds before retrying
+            assert (
+                len(downlink_flows) == num_dl_flows
+            ), "Downlink flow missing for UE"
+            assert downlink_flows[0]["match"]["ipv4_dst"] == ue_ip_str
+            actions = downlink_flows[0]["instructions"][0]["actions"]
+            has_tunnel_action = any(
+                action
+                for action in actions
+                if action["field"] == "tunnel_id"
+                and action["type"] == "SET_FIELD"
+            )
+            assert bool(has_tunnel_action)
 
 
 class SubscriberUtil(object):
