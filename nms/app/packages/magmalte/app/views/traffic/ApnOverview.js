@@ -143,7 +143,7 @@ function ApnOverview(props: Props) {
       <Grid container spacing={3}>
         <Grid container>
           <Grid item xs={6}>
-            <Text key="title">
+            <Text key="title" data-testid={`title_${APN_TITLE}`}>
               <RssFeedIcon /> {APN_TITLE}
             </Text>
           </Grid>

@@ -27,6 +27,7 @@ echo "run XWF ansible"
 ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP}" xwf/gateway/deploy/xwf.yml -i "localhost," --skip-tags "install,install_docker,no_ci" -c local -v
 
 echo "run DNS server"
+echo "nameserver 8.8.8.8" >> /etc/resolv.conf
 dnsmasq
 
 echo "run DHCP server"

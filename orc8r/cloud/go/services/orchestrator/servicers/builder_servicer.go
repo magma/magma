@@ -92,6 +92,7 @@ func (b *baseOrchestratorBuilder) Build(network *storage.Network, graph *storage
 		}
 		vals["td-agent-bit"] = getFluentBitMconfig(networkID, gatewayID, gatewayConfig)
 		vals["eventd"] = getEventdMconfig(gatewayConfig)
+		vals["ovpn"] = getVpnMconfig(gatewayConfig)
 	}
 	vals["control_proxy"] = &mconfig_protos.ControlProxy{LogLevel: protos.LogLevel_INFO}
 	vals["metricsd"] = &mconfig_protos.MetricsD{LogLevel: protos.LogLevel_INFO}
@@ -179,6 +180,17 @@ func getEventdMconfig(gatewayConfig *models.MagmadGatewayConfigs) *mconfig_proto
 	if gatewayConfig.Logging != nil && gatewayConfig.Logging.EventVerbosity != nil {
 		ret.EventVerbosity = *gatewayConfig.Logging.EventVerbosity
 	}
+	return ret
+}
+
+func getVpnMconfig(gatewayConfig *models.MagmadGatewayConfigs) *mconfig_protos.OpenVPN {
+	ret := &mconfig_protos.OpenVPN{
+		EnableShellAccess: false,
+	}
+	if gatewayConfig.Vpn != nil {
+		ret.EnableShellAccess = *gatewayConfig.Vpn.EnableShell
+	}
+
 	return ret
 }
 

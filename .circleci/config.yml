@@ -7,6 +7,12 @@ aliases:
     filters:
       branches:
         only: master
+  - &master_and_develop
+    filters:
+      branches:
+        only:
+          - master
+          - develop
 
 executors:
   node:
@@ -859,7 +865,7 @@ workflows:
     jobs:
       - lte-test
       - lte-integ-test:
-          <<: *only_master
+          <<: *master_and_develop
       - lte-agw-deploy:
           <<: *only_master
           requires:
@@ -876,9 +882,9 @@ workflows:
     jobs:
       - cwag-precommit
       - cwf-integ-test:
-          <<: *only_master
+          <<: *master_and_develop
       - xwfm-test:
-          <<: *only_master
+          <<: *master_and_develop
       - cwag-deploy:
           <<: *only_master
           requires:

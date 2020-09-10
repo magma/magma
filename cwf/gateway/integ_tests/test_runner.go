@@ -83,6 +83,7 @@ type TestRunner struct {
 	imsis       map[string]bool
 	activePCRFs []string
 	activeOCSs  []string
+	startTime   time.Time
 }
 
 // imsi -> ruleID -> record
@@ -91,6 +92,7 @@ type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
 // NewTestRunner initializes a new TestRunner by making a UESim client and
 // and setting the next IMSI.
 func NewTestRunner(t *testing.T) *TestRunner {
+	startTime := time.Now()
 	fmt.Println("************************* TestRunner setup")
 
 	fmt.Printf("Adding Mock HSS service at %s:%d\n", CwagIP, HSSPort)
@@ -109,6 +111,7 @@ func NewTestRunner(t *testing.T) *TestRunner {
 	testRunner := &TestRunner{t: t,
 		activePCRFs: []string{MockPCRFRemote},
 		activeOCSs:  []string{MockOCSRemote},
+		startTime:   startTime,
 	}
 	testRunner.imsis = make(map[string]bool)
 	return testRunner
@@ -151,7 +154,7 @@ func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 
 // ConfigUEsPerInstance same as ConfigUEs but per specific PCRF and OCS instance
 func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInstance string) ([]*cwfprotos.UEConfig, error) {
-	fmt.Printf("************************* Configuring %d UE(s)\n", len(IMSIs))
+	fmt.Printf("************************* Configuring %d UE(s), PCRF instance: %s\n", len(IMSIs), pcrfInstance)
 	ues := make([]*cwfprotos.UEConfig, 0)
 	for _, imsi := range IMSIs {
 		// If IMSIs were generated properly they should never give an error here
@@ -298,6 +301,11 @@ func (tr *TestRunner) WaitForPoliciesToSync() {
 func (tr *TestRunner) WaitForReAuthToProcess() {
 	// Todo figure out the best way to figure out when RAR is processed
 	time.Sleep(4 * time.Second)
+}
+
+func (tr *TestRunner) PrintElapsedTime() {
+	now := time.Now()
+	fmt.Printf("Elapsed Time: %s\n", now.Sub(tr.startTime))
 }
 
 // generateRandomIMSIS creates a slice of unique Random IMSIs taking into consideration a previous list with IMSIS

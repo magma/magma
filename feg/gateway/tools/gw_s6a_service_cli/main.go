@@ -24,10 +24,6 @@ import (
 	"magma/feg/gateway/services/s6a_proxy"
 )
 
-func init() {
-	flag.Parse()
-}
-
 func main() {
 	// setting up flags of the CLI
 	helpPtr := flag.Bool("help", false, "[optional] Display this help message")

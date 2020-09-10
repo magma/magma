@@ -223,7 +223,7 @@ TEST(test_counting_algorithm, test_session_credit) {
   SessionCredit credit;
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
-  uint64_t total_grant = 300;
+  uint64_t total_grant = 1000;
   uint64_t tx_grant    = 100;
   uint64_t rx_grant    = 200;
   create_granted_units(&total_grant, &tx_grant, &rx_grant, &gsu);
@@ -231,6 +231,13 @@ TEST(test_counting_algorithm, test_session_credit) {
   // receive total = 300 tx = 100, rx = 200
   credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, ALL_TOTAL_TX_RX);
+  EXPECT_EQ(0, credit.get_credit(ALLOWED_FLOOR_TOTAL));
+  EXPECT_EQ(0, credit.get_credit(ALLOWED_FLOOR_TX));
+  EXPECT_EQ(0, credit.get_credit(ALLOWED_FLOOR_RX));
+  EXPECT_EQ(1000, credit.get_credit(ALLOWED_TOTAL));
+  EXPECT_EQ(100, credit.get_credit(ALLOWED_TX)); // 250 because we overused so 150 + 100
+  EXPECT_EQ(200, credit.get_credit(ALLOWED_RX));
+
   // use tx and rx = 99 + 150 = 249
   credit.add_used_credit(99, 150, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
@@ -243,11 +250,11 @@ TEST(test_counting_algorithm, test_session_credit) {
   // cumulative: total = 600 tx = 200, rx = 400
   credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, ALL_TOTAL_TX_RX);
-  EXPECT_EQ(600, credit.get_credit(ALLOWED_TOTAL));
+  EXPECT_EQ(2000, credit.get_credit(ALLOWED_TOTAL));
   EXPECT_EQ(200, credit.get_credit(ALLOWED_TX));
   EXPECT_EQ(400, credit.get_credit(ALLOWED_RX));
-  EXPECT_EQ(300, credit.get_credit(ALLOWED_FLOOR_TOTAL));
-  EXPECT_EQ(100, credit.get_credit(ALLOWED_FLOOR_TX));
+  EXPECT_EQ(1000, credit.get_credit(ALLOWED_FLOOR_TOTAL));
+  EXPECT_EQ(100, credit.get_credit(ALLOWED_FLOOR_TX)); // 150 because we overused so 150
   EXPECT_EQ(200, credit.get_credit(ALLOWED_FLOOR_RX));
   EXPECT_EQ(99, credit.get_credit(USED_TX));
   EXPECT_EQ(150, credit.get_credit(USED_RX));
@@ -281,10 +288,10 @@ TEST(test_counting_algorithm, test_session_credit) {
   create_granted_units(&total_grant, &tx_grant, &rx_grant, &gsu);
   credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, ALL_TOTAL_TX_RX);
-  EXPECT_EQ(600, credit.get_credit(ALLOWED_TOTAL));
+  EXPECT_EQ(2000, credit.get_credit(ALLOWED_TOTAL));
   EXPECT_EQ(200, credit.get_credit(ALLOWED_TX));
   EXPECT_EQ(400, credit.get_credit(ALLOWED_RX));
-  EXPECT_EQ(300, credit.get_credit(ALLOWED_FLOOR_TOTAL));
+  EXPECT_EQ(1000, credit.get_credit(ALLOWED_FLOOR_TOTAL));
   EXPECT_EQ(100, credit.get_credit(ALLOWED_FLOOR_TX));
   EXPECT_EQ(200, credit.get_credit(ALLOWED_FLOOR_RX));
   EXPECT_EQ(200, credit.get_credit(USED_TX));
