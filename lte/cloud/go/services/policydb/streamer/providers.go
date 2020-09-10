@@ -124,13 +124,13 @@ func loadQosProfiles(networkID string) (map[string]configurator.NetworkEntity, e
 		return nil, err
 	}
 
+	// Select all attached QoS profiles
 	byPolicyID := map[string]configurator.NetworkEntity{}
 	for _, prof := range profiles {
 		tk, err := prof.ParentAssociations.GetFirst(lte.PolicyRuleEntityType)
-		if err != nil {
-			return nil, err
+		if err == nil {
+			byPolicyID[tk.Key] = prof
 		}
-		byPolicyID[tk.Key] = prof
 	}
 
 	return byPolicyID, nil

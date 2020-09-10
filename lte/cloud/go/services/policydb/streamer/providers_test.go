@@ -121,12 +121,22 @@ func TestPolicyStreamers(t *testing.T) {
 
 	// create the rules first otherwise base names can't associate to them
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
+		// Attached qos profile
 		{
 			Type: lte.PolicyQoSProfileEntityType,
 			Key:  "p1",
 			Config: &models.PolicyQosProfile{
 				ClassID: 42,
 				ID:      "p1",
+			},
+		},
+		// Dangling qos profile
+		{
+			Type: lte.PolicyQoSProfileEntityType,
+			Key:  "p2",
+			Config: &models.PolicyQosProfile{
+				ClassID: 420,
+				ID:      "p2",
 			},
 		},
 		{
