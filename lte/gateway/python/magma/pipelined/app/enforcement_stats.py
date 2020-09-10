@@ -22,6 +22,7 @@ from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
+from ryu.lib.packet import ether_types
 
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
@@ -187,10 +188,10 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self.logger.debug(
             'Installing flow for %s with rule num %s (version %s)', imsi,
             rule_num, version)
-        inbound_rule_match = _generate_rule_match(imsi, rule_num, version,
-                                                  Direction.IN)
-        outbound_rule_match = _generate_rule_match(imsi, rule_num, version,
-                                                   Direction.OUT)
+        inbound_rule_match = _generate_rule_match(imsi, ip_addr, rule_num,
+                                                  version, Direction.IN)
+        outbound_rule_match = _generate_rule_match(imsi, ip_addr, rule_num,
+                                                   version, Direction.OUT)
 
         inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
         outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
@@ -290,7 +291,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if not self.init_finished:
             self.logger.debug('Setup not finished, skipping stats reply')
             return
-
+        
         self.unhandled_stats_msgs.append(ev.msg.body)
         if ev.msg.flags == OFPMPF_REPLY_MORE:
             # Wait for more multi-part responses thats received for the
@@ -378,6 +379,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
             return current_usage
         sid = _get_sid(flow_stat)
+        ipv4_addr = _get_ipv4(flow_stat)
 
         # use a compound key to separate flows for the same rule but for
         # different subscribers
@@ -385,6 +387,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         record = current_usage[key]
         record.rule_id = rule_id
         record.sid = sid
+        if ipv4_addr:
+            record.ue_ipv4 = ipv4_addr
         if flow_stat.match[DIRECTION_REG] == Direction.IN:
             # HACK decrement byte count for downlink packets by the length
             # of an ethernet frame. Only IP and below should be counted towards
@@ -473,12 +477,19 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             return ""
 
 
-def _generate_rule_match(imsi, rule_num, version, direction):
+def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
     Return a MagmaMatch that matches on the rule num and the version.
     """
-    return MagmaMatch(imsi=encode_imsi(imsi), direction=direction,
-                      reg2=rule_num, rule_version=version)
+    ip_match = {}
+    if ip_addr:
+        if direction == Direction.OUT:
+            ip_match = {'ipv4_src': ip_addr}
+        else:
+            ip_match = {'ipv4_dst': ip_addr}
+    return MagmaMatch(imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+                      direction=direction, reg2=rule_num, rule_version=version,
+                      **ip_match)
 
 
 def _delta_usage_maps(current_usage, last_usage):
@@ -527,6 +538,17 @@ def _get_sid(flow):
         return None
     return decode_imsi(flow.match[IMSI_REG])
 
+
+def _get_ipv4(flow):
+    if DIRECTION_REG not in flow.match:
+        return None
+    if flow.match[DIRECTION_REG] == Direction.OUT:
+        ip_register = 'ipv4_src'
+    else:
+        ip_register = 'ipv4_dst'
+    if ip_register not in flow.match:
+        return None
+    return flow.match[ip_register]
 
 def _get_version(flow):
     if RULE_VERSION_REG not in flow.match:
