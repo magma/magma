@@ -388,6 +388,7 @@ message CreditUpdateResponse {
   // When this is set to an infinite limit, field 'credit' should be ignored
   CreditLimitType limit_type = 9;
   TgppContext tgpp_ctx = 10;
+  string session_id = 11;
 }
 
 // PCRF USAGE MONITORING

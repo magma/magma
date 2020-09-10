@@ -1148,8 +1148,16 @@ void LocalEnforcer::update_charging_credits(
       continue;
     }
     for (const auto& session : it->second) {
-      std::string sid                = session->get_session_id();
-      SessionStateUpdateCriteria& uc = session_update[imsi][sid];
+      std::string session_id = session->get_session_id();
+      if (session_id != credit_update_resp.session_id()){
+        MLOG(MDEBUG) <<
+            "Not updating credit because this update is for session" <<
+            credit_update_resp.session_id() <<
+            " and this is session " << session_id;
+        continue;
+      }
+
+      SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
       bool is_redirected =
           session->is_credit_state_redirected(CreditKey(credit_update_resp));
       session->receive_charging_credit(credit_update_resp, uc);
@@ -1162,7 +1170,7 @@ void LocalEnforcer::update_charging_credits(
         session->get_session_info(info);
         for (const auto& rule : info.gy_dynamic_rules) {
           PolicyRule dy_rule;
-          auto& uc = session_update[imsi][session->get_session_id()];
+          uc = session_update[imsi][session_id];
           bool is_dynamic =
               session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
           if (is_dynamic) {
@@ -1208,8 +1216,17 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     }
 
     for (const auto& session : it->second) {
-      auto& uc           = session_update[imsi][session->get_session_id()];
-      const auto& config = session->get_config();
+      std::string session_id = session->get_session_id();
+      if (session_id != usage_monitor_resp.session_id()){
+        MLOG(MDEBUG) <<
+                     "Not updating monitor because this update is for session" <<
+                     usage_monitor_resp.session_id() <<
+                     " and this is session " << session_id;
+        continue;
+      }
+
+      auto& uc = session_update[imsi][session->get_session_id()];
+      const auto& config    = session->get_config();
       session->receive_monitor(usage_monitor_resp, uc);
       session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);
 
