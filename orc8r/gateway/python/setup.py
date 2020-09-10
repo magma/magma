@@ -54,6 +54,7 @@ setup(
         'scripts/service_util.py',
         'scripts/service303_cli.py',
         'scripts/show_gateway_info.py',
+        'scripts/traffic_cli.py',
     ],
     install_requires=[
         'setuptools==49.6.0',
