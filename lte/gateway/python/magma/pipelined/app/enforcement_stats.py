@@ -384,6 +384,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # use a compound key to separate flows for the same rule but for
         # different subscribers
         key = sid + "|" + rule_id
+        if ipv4_addr:
+            key += "|" + ipv4_addr
         record = current_usage[key]
         record.rule_id = rule_id
         record.sid = sid
@@ -410,10 +412,12 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         for deletable_stat in self._old_flow_stats(stats_msgs):
             stat_rule_id = self._get_rule_id(deletable_stat)
             stat_sid = _get_sid(deletable_stat)
+            ipv4_addr = _get_ipv4(deletable_stat)
             rule_version = _get_version(deletable_stat)
 
             try:
-                self._delete_flow(deletable_stat, stat_sid, rule_version)
+                self._delete_flow(deletable_stat, stat_sid, ipv4_addr,
+                                  rule_version)
                 # Only remove the usage of the deleted flow if deletion
                 # is successful.
                 self._update_usage_from_flow_stat(deleted_flow_usage,
@@ -449,11 +453,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 if current_ver != rule_version:
                     yield stat
 
-    def _delete_flow(self, flow_stat, sid, version):
+    def _delete_flow(self, flow_stat, sid, ip_addr, version):
         cookie, mask = (
             flow_stat.cookie, flows.OVS_COOKIE_MATCH_ALL)
         match = _generate_rule_match(
-            sid, flow_stat.cookie, version,
+            sid, ip_addr, flow_stat.cookie, version,
             Direction(flow_stat.match[DIRECTION_REG]))
         flows.delete_flow(self._datapath,
                           self.tbl_num,
