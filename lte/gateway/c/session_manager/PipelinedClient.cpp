@@ -51,9 +51,9 @@ magma::ActivateFlowsRequest create_activate_req(
   req.mutable_request_origin()->set_type(origin_type);
   if (ambr) {
     // TODO remove log once feature is stable
-    MLOG(MINFO) << "Sending AMBR info for " << imsi << " ip addr " << ip_addr
-                 << "dl " << ambr->max_bandwidth_dl() << "ul "
-                 << ambr->max_bandwidth_ul();
+    MLOG(MINFO) << "Sending AMBR info for " << imsi << ", ip addr=" << ip_addr
+                << ", dl=" << ambr->max_bandwidth_dl()
+                << ", ul=" << ambr->max_bandwidth_ul();
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
   auto ids = req.mutable_rule_ids();
@@ -232,8 +232,8 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
     const std::vector<PolicyRule>& dynamic_rules,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
   MLOG(MDEBUG) << "Activating " << static_rules.size() << " static rules and "
-               << dynamic_rules.size() << " dynamic rules for subscriber "
-               << imsi;
+               << dynamic_rules.size() << " dynamic rules for " << imsi
+               << " and ip " << ip_addr;
   // Activate static rules and dynamic rules separately until bug is fixed in
   // pipelined which crashes if activated at the same time
   auto static_req = create_activate_req(

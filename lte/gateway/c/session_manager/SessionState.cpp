@@ -458,7 +458,7 @@ void SessionState::apply_session_dynamic_rule_set(
   };
   for (const auto& dynamic_rule_pair : dynamic_rules) {
     if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
-      MLOG(MINFO) << "installing dynamic rule " << dynamic_rule_pair.first
+      MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first
                   << " for " << session_id_;
       insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
       rules_to_activate.dynamic_rules.push_back(dynamic_rule_pair.second);
@@ -1592,26 +1592,37 @@ bool SessionState::policy_has_qos(
   return false;
 }
 
-void SessionState::update_bearer_creation_req(
-    const PolicyType policy_type, const std::string& rule_id,
-    const SessionConfig& config, BearerUpdate& update) {
+std::experimental::optional<PolicyRule>
+SessionState::policy_needs_bearer_creation(
+    const PolicyType policy_type, const std::string& id,
+    const SessionConfig& config) {
   if (!config.rat_specific_context.has_lte_context()) {
-    return;
+    return {};
   }
-  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) !=
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, id)) !=
       bearer_id_by_policy_.end()) {
     // Policy already has a bearer
-    return;
+    return {};
   }
-  PolicyRule rule;
-  if (!policy_has_qos(policy_type, rule_id, &rule)) {
+  PolicyRule policy;
+  if (!policy_has_qos(policy_type, id, &policy)) {
     // Only create a bearer for policies with QoS
-    return;
+    return {};
   }
   auto default_qci = FlowQos_Qci(
       config.rat_specific_context.lte_context().qos_info().qos_class_id());
-  if (rule.qos().qci() == default_qci) {
+  if (policy.qos().qci() == default_qci) {
     // This QCI is already covered by the default bearer
+    return {};
+  }
+  return policy;
+}
+
+void SessionState::update_bearer_creation_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update) {
+  auto policy = policy_needs_bearer_creation(policy_type, rule_id, config);
+  if (!policy) {
     return;
   }
 
@@ -1623,7 +1634,7 @@ void SessionState::update_bearer_creation_req(
     update.create_req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
-  update.create_req.mutable_policy_rules()->Add()->CopyFrom(rule);
+  update.create_req.mutable_policy_rules()->Add()->CopyFrom(*policy);
   // We will add the new policyID to bearerID association, once we receive a
   // message from SGW.
 }
