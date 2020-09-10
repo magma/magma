@@ -67,12 +67,12 @@ func main() {
 	diamServer := mock_ocs.NewOCSDiamServer(
 		gyCliConf,
 		&mock_ocs.OCSConfig{
-			ServerConfig:    gyServConf,
-			MaxUsageOctets:  &protos.Octets{TotalOctets: MaxUsageBytes},
-			MaxUsageTime:    MaxUsageTime,
-			ValidityTime:    ValidityTime,
-			GyInitMethod:    gy.PerSessionInit,
-			FinalUnitAction: protos.FinalUnitAction_Terminate,
+			ServerConfig:        gyServConf,
+			MaxUsageOctets:      &protos.Octets{TotalOctets: MaxUsageBytes},
+			MaxUsageTime:        MaxUsageTime,
+			ValidityTime:        ValidityTime,
+			GyInitMethod:        gy.PerSessionInit,
+			FinalUnitIndication: mock_ocs.FinalUnitIndication{FinalUnitAction: protos.FinalUnitAction_Terminate},
 		},
 	)
 
