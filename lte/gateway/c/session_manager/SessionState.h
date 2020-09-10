@@ -401,7 +401,16 @@ class SessionState {
   BearerUpdate get_dedicated_bearer_updates(
       RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
       SessionStateUpdateCriteria& uc);
-
+  /**
+   * Determine whether a policy with type+ID needs a bearer to be created
+   * @param policy_type
+   * @param rule_id
+   * @param config
+   * @return an optional wrapped PolicyRule if creation is needed, {} otherwise
+   */
+  std::experimental::optional<PolicyRule> policy_needs_bearer_creation(
+      const PolicyType policy_type, const std::string& rule_id,
+      const SessionConfig& config);
   /**
    *
    * @param rule_set

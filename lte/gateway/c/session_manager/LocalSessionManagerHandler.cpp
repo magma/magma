@@ -241,7 +241,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
-          MLOG(MINFO) << "Sending a CreateSessionResponse for " << session_id;
+          MLOG(MINFO) << "Received a CreateSessionResponse for " << session_id;
           enforcer_->init_session_credit(
               *session_map_ptr, imsi, session_id, cfg, response);
 
@@ -511,10 +511,11 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
         response_callback) {
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  MLOG(INFO) << "imsi: " << request->sid().id()
-             << " default bearer: " << request->linked_bearer_id()
-             << " policy rule: " << request->policy_rule_id()
-             << " created bearer: " << request->bearer_id();
+  MLOG(INFO) << "Received a BindPolicy2Bearer request for "
+             << request->sid().id()
+             << " with default bearerID: " << request->linked_bearer_id()
+             << " policyID: " << request->policy_rule_id()
+             << " created dedicated bearerID: " << request->bearer_id();
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = session_store_.read_sessions({request_cpy.sid().id()});
     SessionUpdate update =

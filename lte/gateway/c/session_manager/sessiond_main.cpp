@@ -101,7 +101,7 @@ static uint32_t get_log_verbosity(
   }
 }
 
-void set_session_credit_consts(const YAML::Node& config) {
+void set_consts(const YAML::Node& config) {
   auto reporting_threshold = config["usage_reporting_threshold"].as<float>();
   if (reporting_threshold <= MIN_USAGE_REPORTING_THRESHOLD ||
       reporting_threshold >= MAX_USAGE_REPORTING_THRESHOLD) {
@@ -115,6 +115,11 @@ void set_session_credit_consts(const YAML::Node& config) {
 
   magma::SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED =
       config["terminate_service_when_quota_exhausted"].as<bool>();
+
+  if (config["bearer_creation_delay_on_session_init"].IsDefined()) {
+    magma::LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT =
+        config["bearer_creation_delay_on_session_init"].as<uint32_t>();
+  }
 }
 
 magma::SessionStore* create_session_store(
@@ -236,7 +241,7 @@ int main(int argc, char* argv[]) {
   magma::SessionStore* session_store = create_session_store(config, rule_store);
 
   // Some setup work for the SessionCredit class
-  set_session_credit_consts(config);
+  set_consts(config);
   // Initialize the main logical component of SessionD
   auto local_enforcer = std::make_shared<magma::LocalEnforcer>(
       reporter, rule_store, *session_store, pipelined_client, directoryd_client,

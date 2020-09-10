@@ -125,6 +125,10 @@ class LocalEnforcer {
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
 
+  void schedule_session_init_bearer_creations(
+      const std::string& imsi, const std::string& session_id,
+      BearerUpdate& update);
+
   /**
    * Initialize credit received from the cloud in the system. This adds all the
    * charging keys to the credit manager for tracking
@@ -221,6 +225,7 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   static uint32_t REDIRECT_FLOW_PRIORITY;
+  static uint32_t BEARER_CREATION_DELAY_ON_SESSION_INIT;
 
  private:
   struct RedirectInstallInfo {
