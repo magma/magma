@@ -450,10 +450,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                     yield stat
 
     def _delete_flow(self, flow_stat, sid, version):
+        ipv4_addr = _get_ipv4(flow_stat)
         cookie, mask = (
             flow_stat.cookie, flows.OVS_COOKIE_MATCH_ALL)
         match = _generate_rule_match(
-            sid, flow_stat.cookie, version,
+            sid, ipv4_addr, flow_stat.cookie, version,
             Direction(flow_stat.match[DIRECTION_REG]))
         flows.delete_flow(self._datapath,
                           self.tbl_num,
