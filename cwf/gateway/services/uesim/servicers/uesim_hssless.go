@@ -97,25 +97,18 @@ func (srv *UESimServerHssLess) Authenticate(ctx context.Context, id *cwfprotos.A
 	}
 
 	req := &lte_protos.LocalCreateSessionRequest{
-		Sid:             makeSID(ue.GetImsi()),
-		UeIpv4:          defaultUeIp,
-		Apn:             defaultApn,
-		Msisdn:          ([]byte)(ue.GetMsisdn()),
-		RatType:         lte_protos.RATType_TGPP_WLAN,
-		HardwareAddr:    ([]byte)("ab:cd:ef:12:23:34"),
-		RadiusSessionId: "session1",
 		CommonContext: &lte_protos.CommonSessionContext{
 			Sid:     makeSID(ue.GetImsi()),
 			UeIpv4:  defaultUeIp,
 			Apn:     defaultApn,
-			Msisdn:  ([]byte)(defaultMSISDN),
+			Msisdn:  ([]byte)(ue.GetMsisdn()),
 			RatType: lte_protos.RATType_TGPP_WLAN,
 		},
 		RatSpecificContext: &lte_protos.RatSpecificContext{
 			Context: &lte_protos.RatSpecificContext_WlanContext{
 				WlanContext: &lte_protos.WLANSessionContext{
-					MacAddrBinary:   ([]byte)("ab:cd:ef:12:23:34"),
-					MacAddr:         "ab:cd:ef:12:23:34",
+					MacAddrBinary:   ([]byte)(srv.cfg.brMac),
+					MacAddr:         srv.cfg.brMac,
 					RadiusSessionId: "sessiond1",
 				},
 			},
