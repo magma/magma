@@ -4,10 +4,11 @@ ovs_version: "v2.8.9"
 packages:
   - "oai-gtp_4.9-5_amd64.deb"
   - "libopenvswitch_2.8.9-1_amd64.deb"
-  - "openvswitch-datapath-dkms_2.8.9-1_all.deb"
+  - "openvswitch-datapath-module-4.9.0-9-amd64_2.8.9-1_amd64.deb"
   - "openvswitch-datapath-source_2.8.9-1_all.deb"
   - "openvswitch-common_2.8.9-1_amd64.deb"
   - "openvswitch-switch_2.8.9-1_amd64.deb"
+  - "python-openvswitch_2.8.9-1_all.deb"
 
 private_package: "deb http://packages.magma.etagecom.io stretch-test main"
 source_name: "packages_magma_etagecom_io"
