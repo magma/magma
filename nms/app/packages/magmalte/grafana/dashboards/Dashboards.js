@@ -342,7 +342,7 @@ export const SubscriberDBData: GrafanaDBData = {
   title: 'Subscribers',
   description:
     'Metrics relevant to subscribers. Do not edit: edits will be overwritten. Save this dashboard under another name to copy and edit.',
-  templates: [networkTemplate, imsiTemplate, apnTemplate, msisdnTemplate],
+  templates: [networkTemplate, msisdnTemplate],
   rows: [
     {
       title: '',
@@ -352,7 +352,7 @@ export const SubscriberDBData: GrafanaDBData = {
           targets: [
             {
               expr:
-                'sum(ue_reported_usage{IMSI=~"$imsi", direction="down"}) by (IMSI, apn, msisdn)',
+                'sum(ue_reported_usage{msisdn=~"$msisdn", direction="down"}) by (IMSI, apn, msisdn)',
               legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
             },
           ],
@@ -364,7 +364,7 @@ export const SubscriberDBData: GrafanaDBData = {
           targets: [
             {
               expr:
-                'sum(ue_reported_usage{IMSI=~"$imsi", direction="up"}) by (IMSI, apn, msisdn)',
+                'sum(ue_reported_usage{msisdn=~"$msisdn", direction="up"}) by (IMSI, apn, msisdn)',
               legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
             },
           ],
@@ -376,7 +376,7 @@ export const SubscriberDBData: GrafanaDBData = {
           targets: [
             {
               expr:
-                'avg(rate(ue_reported_usage{IMSI=~"$imsi", direction="down"}[5m])) by (IMSI, apn, msisdn)',
+                'avg(rate(ue_reported_usage{msisdn=~"$msisdn", direction="down"}[5m])) by (IMSI, apn, msisdn)',
               legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
             },
           ],
@@ -389,7 +389,7 @@ export const SubscriberDBData: GrafanaDBData = {
           targets: [
             {
               expr:
-                'avg(rate(ue_reported_usage{IMSI=~"$imsi", direction="up"}[5m])) by (IMSI, apn, msisdn)',
+                'avg(rate(ue_reported_usage{msisdn=~"$msisdn", direction="up"}[5m])) by (IMSI, apn, msisdn)',
               legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
             },
           ],
