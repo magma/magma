@@ -22,7 +22,6 @@ namespace magma5g
 
     MLOG(MDEBUG) << "   DecodeSecurityHeaderTypeMsg : ";
     securityheadertype->securityhdr = *(buffer) & 0xf;
-    decoded++;
     MLOG(MDEBUG) << " Security header type = " << dec << int(securityheadertype->securityhdr)<< "\n";
     return (decoded);
   };
@@ -34,8 +33,7 @@ namespace magma5g
 
     MLOG(MDEBUG) << " EncodeSecurityHeaderTypeMsg : ";
     *(buffer) = securityheadertype->securityhdr & 0xf;
-    MLOG(MDEBUG) << "Security header type = 0x0" << hex << int(*(buffer))<< endl;
-    encoded++;
+    MLOG(MDEBUG) << "Security header type = 0x" << hex << int(*(buffer))<< endl;
     return (encoded);
   };
 }

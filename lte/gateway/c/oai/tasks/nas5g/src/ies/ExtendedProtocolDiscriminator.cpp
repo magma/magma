@@ -31,7 +31,7 @@ namespace magma5g
     MLOG(MDEBUG) << "   DecodeExtendedProtocolDiscriminatorMsg : ";
     extendedprotocoldiscriminator->extendedprotodiscriminator = *(buffer + decoded);
     decoded++;
-    MLOG(MDEBUG) << " epd = " << dec << int(extendedprotocoldiscriminator->extendedprotodiscriminator)<<"\n"; 
+    MLOG(MDEBUG) << " epd = " << hex << int(extendedprotocoldiscriminator->extendedprotodiscriminator)<<"\n"; 
     return (decoded);
   };
 

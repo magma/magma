@@ -8,7 +8,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
-#include <bitset>
+
 #include <sstream>
 #include <cstdint>
 #include <cstring>
@@ -67,7 +67,7 @@ namespace magma5g
 
     int decoded = 0;
 
-    MLOG(MDEBUG) << "         DecodeGutiMobileIdentityMsg : ";
+    MLOG(MDEBUG) << " --- Guti Mobile Identity \n";
     guti->spare = (*(buffer + decoded) >> 4) & 0xf;
 
     // For the GUTI, bits 5 to 8 of octet 3 are coded as "1111"
@@ -96,9 +96,10 @@ namespace magma5g
     decoded++;
     guti->amfregionid = *(buffer + decoded);
     decoded++;
-    guti->amfsetid = *(buffer + decoded);
-    decoded++;
-    guti->amfsetid1 = (*(buffer + decoded) >> 6) & 0x3;
+    uint16_t setid;
+    setid = *(buffer + decoded);
+    decoded ++;
+    guti->amfsetid = 0x0000 | ((setid & 0xff) << 2) | ((*(buffer + decoded) >> 6) & 0x3);
     guti->amfpointer = *(buffer + decoded) & 0x3f;
     decoded++;
 
@@ -111,22 +112,13 @@ namespace magma5g
     guti->tmsi4 = *(buffer + decoded);
     decoded++;
 
-    MLOG(MDEBUG) << "           oddeven = " << hex << int(guti->oddeven)<<"\n";
-    MLOG(MDEBUG) << "           mcc_digit2 = " << hex << int(guti->mcc_digit2)<<"\n";
-    MLOG(MDEBUG) << "           mcc_digit1 = " << hex << int(guti->mcc_digit1)<<"\n";
-    MLOG(MDEBUG) << "           mnc_digit3 = " << hex << int(guti->mnc_digit3)<<"\n";
-    MLOG(MDEBUG) << "           mcc_digit3 = " << hex << int(guti->mcc_digit3)<<"\n";
-    MLOG(MDEBUG) << "           mnc_digit2 = " << hex << int(guti->mnc_digit2)<<"\n";
-    MLOG(MDEBUG) << "           mnc_digit1 = " << hex << int(guti->mnc_digit1)<<"\n";
-
-    MLOG(MDEBUG) << "           amfregionid = " << hex << int(guti->amfregionid)<<"\n";
-    MLOG(MDEBUG) << "           amfsetid = " << hex << int(guti->amfsetid)<<"\n";
-    MLOG(MDEBUG) << "           amfsetid1 = " << hex << int(guti->amfsetid1)<<"\n";
-    MLOG(MDEBUG) << "           amfpointer = " << hex << int(guti->amfpointer)<<"\n";
-    MLOG(MDEBUG) << "           tmsi1 = " << hex << int(guti->tmsi1)<<"\n";
-    MLOG(MDEBUG) << "           tmsi2 = " << hex << int(guti->tmsi2)<<"\n";
-    MLOG(MDEBUG) << "           tmsi3 = " << hex << int(guti->tmsi3)<<"\n";
-    MLOG(MDEBUG) << "           tmsi4 = " << hex << int(guti->tmsi4)<<"\n";
+    MLOG(MDEBUG) << "   Odd/Even Indecation = " << dec << int(guti->oddeven)<<"\n";
+    MLOG(MDEBUG) << "   Mobile Country Code (MCC) = "<<dec<<int(guti->mcc_digit1)<<dec<<int(guti->mcc_digit2)<<dec<<int(guti->mcc_digit3)<<"\n";
+    MLOG(MDEBUG) << "   Mobile Network Code (MNC) = "<<dec<<int(guti->mnc_digit1)<<dec<<int(guti->mnc_digit2)<<dec<<int(guti->mnc_digit3)<<"\n";
+    MLOG(MDEBUG) << "   Amf Region ID = " << dec << int(guti->amfregionid)<<"\n";
+    MLOG(MDEBUG) << "   Amf Set ID = " << dec << int(guti->amfsetid)<<"\n";
+    MLOG(MDEBUG) << "   Amf Pointer = " << dec << int(guti->amfpointer)<<"\n";
+    MLOG(MDEUBG) << "   M5G-TMSI = "<<"0x0"<<hex<<int(guti->tmsi1)<<"0"<<hex<<int(guti->tmsi2)<<"0"<<hex<<int(guti->tmsi3)<<"0"<<hex<<int(guti->tmsi4)<<"\n\n";
 
 
     return(decoded);
@@ -171,12 +163,8 @@ namespace magma5g
   int M5GSMobileIdentityMsg::DecodeImsiMobileIdentityMsg(
       ImsiM5GSMobileIdentity* imsi, uint8_t* buffer, uint8_t ielen) {
     int decoded = 0;
-    int schemeOutLen = 0;
-    uint16_t i = 0;
 
-    MLOG(MDEBUG) << "      DecodeImsiMobileIdentityMsg:"<<"\n";
-    memset(&imsi->scheme_output, 0, SCHEME_OUTPUT_MAX);
-
+    MLOG(MDEBUG) << "        DecodeImsiMobileIdentityMsg:"<<"\n";
     imsi->spare2 = (*(buffer + decoded) >> 7) & 0x1;
 
     imsi->supiformat        = (*(buffer + decoded) >> 4) & 0x7;
@@ -216,36 +204,32 @@ namespace magma5g
     imsi->home_nw_id = *(buffer + decoded);
     decoded++;
 
-    schemeOutLen = ielen - decoded;
-    if (memcpy(&imsi->scheme_output, (buffer + decoded), schemeOutLen))
-      decoded = ielen;
+    MLOG(MDEBUG) << "decoded" << decoded << "ielen " << int(ielen);
 
-    MLOG(MDEBUG) << "           spare2 = 0x" << hex << int(imsi->spare2)<<"\n";
-    MLOG(MDEBUG) << "           supiformat = 0x" << hex << int(imsi->supiformat)<<"\n";
-    MLOG(MDEBUG) << "           spare1 = 0x" << hex << int(imsi->spare1)<<"\n";
-    MLOG(MDEBUG) << "           typeofidentity = 0x" << hex << int(imsi->typeofidentity)<<"\n";
-    MLOG(MDEBUG) << "           mcc_digit2 = 0x" << hex << int(imsi->mcc_digit2)<<"\n";
-    MLOG(MDEBUG) << "           mcc_digit1 = 0x" << hex << int(imsi->mcc_digit1)<<"\n";
-    MLOG(MDEBUG) << "           mnc_digit3 = 0x" << hex << int(imsi->mnc_digit3)<<"\n";
-    MLOG(MDEBUG) << "           mcc_digit3 = 0x" << hex << int(imsi->mcc_digit3)<<"\n";
-    MLOG(MDEBUG) << "           mnc_digit2 = 0x" << hex << int(imsi->mnc_digit2)<<"\n";
-    MLOG(MDEBUG) << "           mnc_digit1 = 0x" << hex << int(imsi->mnc_digit1)<<"\n";
-    MLOG(MDEBUG) << "           routingindicatordigit2 = 0x" << hex << int(imsi->routingindicatordigit2)<<"\n";
-    MLOG(MDEBUG) << "           routingindicatordigit1 = 0x" << hex << int(imsi->routingindicatordigit1)<<"\n";
-    MLOG(MDEBUG) << "           routingindicatordigit4 = 0x" << hex << int(imsi->routingindicatordigit4)<<"\n";
-    MLOG(MDEBUG) << "           routingindicatordigit3 = 0x" << hex << int(imsi->routingindicatordigit3)<<"\n";
-    MLOG(MDEBUG) << "           spare6 = 0x" << hex << int(imsi->spare6)<<"\n";
-    MLOG(MDEBUG) << "           spare5 = 0x" << hex << int(imsi->spare5)<<"\n";
-    MLOG(MDEBUG) << "           spare4 = 0x" << hex << int(imsi->spare4)<<"\n";
-    MLOG(MDEBUG) << "           spare3 = 0x" << hex << int(imsi->spare3)<<"\n";
-    MLOG(MDEBUG) << "           protect_schm_id = 0x" << hex << int(imsi->protect_schm_id)<<"\n";
-    MLOG(MDEBUG) << "           home_nw_id = 0x" << hex << int(imsi->home_nw_id)<<"\n";
-    MLOG(MDEBUG) << "           scheme_output = ";
+    if (memcpy(&imsi->scheme_output, (buffer + decoded), ielen - decoded))
+      decoded = (ielen);
 
-    for(i; i < schemeOutLen; i++) {
-       MLOG(MDEBUG) << "  0x" << hex << (int)(imsi->scheme_output[i]);
-    }
-    MLOG(MDEBUG) << endl;
+    MLOG(MDEBUG) << "           spare2 = " << hex << int(imsi->spare2)<<"\n";
+    MLOG(MDEBUG) << "           supiformat = " << hex << int(imsi->supiformat)<<"\n";
+    MLOG(MDEBUG) << "           spare1 = " << hex << int(imsi->spare1)<<"\n";
+    MLOG(MDEBUG) << "           typeofidentity = " << hex << int(imsi->typeofidentity)<<"\n";
+    MLOG(MDEBUG) << "           mcc_digit2 = " << hex << int(imsi->mcc_digit2)<<"\n";
+    MLOG(MDEBUG) << "           mcc_digit1 = " << hex << int(imsi->mcc_digit1)<<"\n";
+    MLOG(MDEBUG) << "           mnc_digit3 = " << hex << int(imsi->mnc_digit3)<<"\n";
+    MLOG(MDEBUG) << "           mcc_digit3 = " << hex << int(imsi->mcc_digit3)<<"\n";
+    MLOG(MDEBUG) << "           mnc_digit2 = " << hex << int(imsi->mnc_digit2)<<"\n";
+    MLOG(MDEBUG) << "           mnc_digit1 = " << hex << int(imsi->mnc_digit1)<<"\n";
+    MLOG(MDEBUG) << "           routingindicatordigit2 = " << hex << int(imsi->routingindicatordigit2)<<"\n";
+    MLOG(MDEBUG) << "           routingindicatordigit1 = " << hex << int(imsi->routingindicatordigit1)<<"\n";
+    MLOG(MDEBUG) << "           routingindicatordigit4 = " << hex << int(imsi->routingindicatordigit4)<<"\n";
+    MLOG(MDEBUG) << "           routingindicatordigit3 = " << hex << int(imsi->routingindicatordigit3)<<"\n";
+    MLOG(MDEBUG) << "           spare6 = " << hex << int(imsi->spare6)<<"\n";
+    MLOG(MDEBUG) << "           spare5 = " << hex << int(imsi->spare5)<<"\n";
+    MLOG(MDEBUG) << "           spare4 = " << hex << int(imsi->spare4)<<"\n";
+    MLOG(MDEBUG) << "           spare3 = " << hex << int(imsi->spare3)<<"\n";
+    MLOG(MDEBUG) << "           protect_schm_id = " << hex << int(imsi->protect_schm_id)<<"\n";
+    MLOG(MDEBUG) << "           home_nw_id = " << hex << int(imsi->home_nw_id)<<"\n";
+    MLOG(MDEBUG) << "           scheme_output = " << imsi->scheme_output<<"\n";
 
     return(decoded);
   };
@@ -337,39 +321,41 @@ namespace magma5g
   {
     int decoded_rc = TLV_VALUE_DOESNT_MATCH;
     int decoded    = 0;
-    uint16_t ielen  = 0;
+    uint8_t ielen  = 0;
 
-    MLOG(MDEBUG) << "    DecodeM5GSMobileIdentityMsg : "<<"\n";
+    MLOG(MDEBUG) << "M5GS Mobile Identity : "<<"\n";
     if (iei > 0) {
       CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
       decoded++;
     }
-    IES_DECODE_U16(buffer, decoded, ielen);
+
+    ielen = *(buffer + decoded);
+    decoded++;
     CHECK_LENGTH_DECODER(len - decoded, ielen);
     unsigned char typeofidentity = *(buffer + decoded) & 0x7;
 
-    MLOG(MDEBUG) << "      typeofid = 0x" << hex << bitset<4>(int(typeofidentity)) << " ielen = 0x"<< hex << bitset<16>(int(ielen))<<"\n";
+    MLOG(MDEBUG) << "   Length = " << dec << int(ielen) << "\n "<< "  Type of Identity = "<< dec << int(typeofidentity);
 
     if (typeofidentity == M5GSMobileIdentityMsg_SUCI) {
+      MLOG(MDEBUG) << " Type suci";
       decoded_rc = DecodeSuciMobileIdentityMsg(
           &mg5smobileidentity->mobileidentity.suci, buffer, ielen);
-      MLOG(MDEBUG) << "Type suci";
     } else if (typeofidentity == M5GSMobileIdentityMsg_GUTI) {
+      MLOG(MDEBUG) << " Type guti";
       decoded_rc = DecodeGutiMobileIdentityMsg(
           &mg5smobileidentity->mobileidentity.guti, buffer + decoded, ielen);
-      MLOG(MDEBUG) << "Type guti";
     } else if (typeofidentity == M5GSMobileIdentityMsg_IMEI) {
+      MLOG(MDEBUG) << " Type imei";
       decoded_rc = DecodeImeiMobileIdentityMsg(
           &mg5smobileidentity->mobileidentity.imei, buffer + decoded, ielen);
-      MLOG(MDEBUG) << "Type imei";
     } else if (typeofidentity == M5GSMobileIdentityMsg_TMSI) {
+      MLOG(MDEBUG) << " Type tmsi";
       decoded_rc = DecodeTmsiMobileIdentityMsg(
           &mg5smobileidentity->mobileidentity.tmsi, buffer + decoded, ielen);
-      MLOG(MDEBUG) << "Type tmsi";
     } else if (typeofidentity == M5GSMobileIdentityMsg_IMSI) {
+      MLOG(MDEBUG) << " Type imsi";
       decoded_rc = DecodeImsiMobileIdentityMsg(
           &mg5smobileidentity->mobileidentity.imsi, buffer + decoded, ielen);
-      MLOG(MDEBUG) << "Type imsi";
     }
 
     if (decoded_rc < 0) {

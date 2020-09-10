@@ -32,7 +32,7 @@ namespace magma5g
     MLOG(MDEBUG) << "   DecodeMessageTypeMsg : ";
     messagetype->msgtype = *(buffer + decoded);
     decoded++;
-    MLOG(MDEBUG) <<" msgtype = " << hex << int(messagetype->msgtype)<<"\n";
+    MLOG(MDEBUG) <<" msgtype = 0x" << hex << int(messagetype->msgtype)<<"\n";
     return (decoded);
   };
 

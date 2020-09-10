@@ -10,7 +10,6 @@
  */
 #include <iostream>
 #include <sstream>
-#include <bitset>
 #include <cstdint>
 #include "NASKeySetIdentifier.h"
 #include "CommonDefs.h"
@@ -31,7 +30,7 @@ namespace magma5g
   {
     int decoded = 0;
 
-    MLOG(MDEBUG) << "   DecodeNASKeySetIdentifierMsg : "<<"\n";
+    MLOG(MDEBUG) << "DecoseNASKeySetIdentifierMsg : "<<"\n";
 
     CHECK_PDU_POINTER_AND_LENGTH_DECODER(
         buffer, NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
@@ -40,11 +39,11 @@ namespace magma5g
       CHECK_IEI_DECODER((unsigned char)(*buffer & 0xf0), iei);
     }
 
-    naskeysetidentifier->tsc                 = (*(buffer + decoded) >> 7) & 0x1;
-    naskeysetidentifier->naskeysetidentifier = (*(buffer + decoded) >> 4) & 0x7;
+    naskeysetidentifier->tsc                 = (*(buffer + decoded) >> 3) & 0x1;
+    naskeysetidentifier->naskeysetidentifier = *(buffer + decoded) & 0x7;
     decoded++;
-    MLOG(MDEBUG) << "      tsc = 0x" << hex << bitset<4>(int(naskeysetidentifier->tsc))<<"\n";
-    MLOG(MDEBUG) << "      naskeysetidentifier = 0x" << hex << bitset<3>(int(naskeysetidentifier->naskeysetidentifier))<<"\n";
+    MLOG(MDEBUG) << "   tsc = " << hex << int(naskeysetidentifier->tsc)<<"\n";
+    MLOG(MDEBUG) << "   NASkeysetidentifier = " << hex  << int(naskeysetidentifier->naskeysetidentifier)<<"\n";
     return decoded;
   };
 

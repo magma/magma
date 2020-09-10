@@ -10,13 +10,11 @@ generate_cpp_protos("${NAS_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_DIR})
 
 message("Proto_srcs are ${PROTO_SRCS}")
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${LTE_OUT_DIR})
-
 include_directories("${NGAP_C_DIR}")
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/ies)
@@ -27,8 +25,9 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AmfMessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationAccept.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationRequestUEInit.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationAcceptUEInit.cpp
     )
-
 
 set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/ExtendedProtocolDiscriminator.cpp
@@ -38,22 +37,17 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/SecurityHeaderType.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GSRegistrationType.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GSRegistrationResult.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GSDeRegistrationType.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/SpareHalfOctet.cpp
     )
-
-#set(test_OBJS
-#	${CMAKE_CURRENT_SOURCE_DIR}/test/reg_req_decode.cpp
-#  )
 
 
 add_library(TASK_NAS5G
     ${libnas_src_OBJS}
-    #    ${libnas_include_OBJS}
     ${libnas_ies_OBJS}
-    #    ${test_OBJS}
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )
-
 
 target_link_libraries(TASK_NAS5G
     COMMON
@@ -72,9 +66,7 @@ target_include_directories(TASK_NAS5G PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}/include
     ${CMAKE_CURRENT_SOURCE_DIR}/include/ies
     ${CMAKE_CURRENT_SOURCE_DIR}/test
-
 )
-
 
 add_subdirectory(test)
 

@@ -34,7 +34,7 @@ namespace magma5g
       uint8_t mnc_digit1 : 4;
       uint8_t amfregionid;
       uint8_t amfsetid;
-      uint8_t amfsetid1 : 2;
+      uint8_t amfsetid1;
       uint8_t amfpointer : 6;
       uint8_t tmsi1;
       uint8_t tmsi2;
@@ -57,7 +57,6 @@ namespace magma5g
   // 5GS mobile identity information element for type of identity or "IMSI"
   class ImsiM5GSMobileIdentity {
     public:
-#define SCHEME_OUTPUT_MAX 65525
       ImsiM5GSMobileIdentity();
       ~ImsiM5GSMobileIdentity();
       uint8_t spare2 : 1;
@@ -80,7 +79,7 @@ namespace magma5g
       uint8_t spare3 : 1;
       uint8_t protect_schm_id : 4;
       uint8_t home_nw_id;
-      uint8_t scheme_output[SCHEME_OUTPUT_MAX];
+      std::string scheme_output;
   };
 
   // 5GS mobile identity information element for type of identity or "SUCI"
