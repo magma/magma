@@ -21,6 +21,7 @@
 
 namespace magma {
 using namespace lte;
+using std::experimental::optional;
 
 enum ServiceActionType {
   CONTINUE_SERVICE = 0,
@@ -69,8 +70,7 @@ class ServiceAction {
     return *this;
   }
 
-  ServiceAction& set_ambr(
-      const std::experimental::optional<AggregatedMaximumBitrate> ambr) {
+  ServiceAction& set_ambr(const optional<AggregatedMaximumBitrate> ambr) {
     ambr_ = ambr;
     return *this;
   }
@@ -120,9 +120,7 @@ class ServiceAction {
     return *redirect_server_;
   }
 
-  const std::experimental::optional<AggregatedMaximumBitrate> get_ambr() const {
-    return ambr_;
-  }
+  const optional<AggregatedMaximumBitrate> get_ambr() const { return ambr_; }
 
   /**
    * get_mutable_restrict_rules returns a mutable list of the associated restrict
@@ -149,7 +147,7 @@ class ServiceAction {
   std::vector<std::string> rule_ids_;
   std::vector<PolicyRule> rule_definitions_;
   std::unique_ptr<RedirectServer> redirect_server_;
-  std::experimental::optional<AggregatedMaximumBitrate> ambr_;
+  optional<AggregatedMaximumBitrate> ambr_;
   std::vector<std::string> restrict_rules_;
 };
 

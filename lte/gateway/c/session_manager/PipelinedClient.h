@@ -27,6 +27,7 @@ using grpc::Status;
 
 namespace magma {
 using namespace lte;
+using std::experimental::optional;
 
 /**
  * PipelinedClient is the base class for managing rules and their activations.
@@ -83,12 +84,11 @@ class PipelinedClient {
    * Activate all rules for the specified rules, using a normal vector
    */
   virtual bool activate_flows_for_rules(
-    const std::string& imsi,
-    const std::string& ip_addr,
-    const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
-    const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules,
-    std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
+      const std::string& imsi, const std::string& ip_addr,
+      const optional<AggregatedMaximumBitrate>& ambr,
+      const std::vector<std::string>& static_rules,
+      const std::vector<PolicyRule>& dynamic_rules,
+      std::function<void(Status status, ActivateFlowsResult)> callback) = 0;
 
   /**
    * Send the MAC address of UE and the subscriberID
@@ -197,12 +197,11 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    * Activate all rules for the specified rules, using a normal vector
    */
   bool activate_flows_for_rules(
-    const std::string& imsi,
-    const std::string& ip_addr,
-    const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
-    const std::vector<std::string>& static_rules,
-    const std::vector<PolicyRule>& dynamic_rules,
-    std::function<void(Status status, ActivateFlowsResult)> callback);
+      const std::string& imsi, const std::string& ip_addr,
+      const optional<AggregatedMaximumBitrate>& ambr,
+      const std::vector<std::string>& static_rules,
+      const std::vector<PolicyRule>& dynamic_rules,
+      std::function<void(Status status, ActivateFlowsResult)> callback);
 
   /**
    * Send the MAC address of UE and the subscriberID

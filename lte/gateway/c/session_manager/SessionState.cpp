@@ -1529,8 +1529,7 @@ void SessionState::bind_policy_to_bearer(
   uc.bearer_id_by_policy       = bearer_id_by_policy_;
 }
 
-std::experimental::optional<PolicyType> SessionState::get_policy_type(
-    const std::string& rule_id) {
+optional<PolicyType> SessionState::get_policy_type(const std::string& rule_id) {
   if (is_static_rule_installed(rule_id)) {
     return STATIC;
   } else if (is_dynamic_rule_installed(rule_id)) {
@@ -1762,8 +1761,7 @@ RuleSetBySubscriber::RuleSetBySubscriber(
   }
 }
 
-std::experimental::optional<RuleSetToApply>
-RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
+optional<RuleSetToApply> RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
   const bool apn_rule_set_exists =
       rule_set_by_apn.find(apn) != rule_set_by_apn.end();
   // Apply subscriber wide rule set if it exists. Also apply per-APN rule

@@ -89,7 +89,7 @@ TEST_F(StoreClientTest, test_read_and_write) {
 
   // Since the grant was not given with R/W permission for subscriber IMSI2,
   // The session for IMSI2 should not be saved into the store
-  session_map[imsi2] = std::vector<std::unique_ptr<SessionState>>();
+  session_map[imsi2] = SessionVector();
   session_map[imsi2].push_back(std::move(session2));
   EXPECT_EQ(session_map.size(), 2);
   EXPECT_EQ(session_map[imsi2].size(), 1);

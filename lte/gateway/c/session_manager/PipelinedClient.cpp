@@ -21,6 +21,7 @@
 using grpc::Status;
 
 namespace {  // anonymous
+using std::experimental::optional;
 
 magma::DeactivateFlowsRequest create_deactivate_req(
     const std::string& imsi, const std::string& ip_addr,
@@ -43,7 +44,7 @@ magma::DeactivateFlowsRequest create_deactivate_req(
 
 magma::ActivateFlowsRequest create_activate_req(
     const std::string& imsi, const std::string& ip_addr,
-    const std::experimental::optional<magma::AggregatedMaximumBitrate>& ambr,
+    const optional<magma::AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<magma::PolicyRule>& dynamic_rules,
     const magma::RequestOriginType_OriginType origin_type) {
@@ -231,7 +232,7 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules(
 
 bool AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
-    const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
+    const optional<AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
