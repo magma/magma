@@ -261,6 +261,7 @@ func getSingleCreditResponseFromCCA(
 	}
 	res := &protos.CreditUpdateResponse{
 		Success:     success && msccSuccess,
+		SessionId:   request.SessionID,
 		Sid:         imsi,
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),

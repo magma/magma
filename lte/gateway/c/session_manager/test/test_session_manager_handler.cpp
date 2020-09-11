@@ -114,6 +114,7 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   CreateSessionResponse response;
   const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
   const std::string& imsi                = "IMSI1";
+  const std::string& session_id          = "1234";
   const std::string& msisdn              = "5100001234";
   const std::string& radius_session_id =
       "AA-AA-AA-AA-AA-AA:TESTAP__"
@@ -130,10 +131,10 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   // Only the active sessions are not recycled, to ensure that
   // this session is not automatically scheduled for termination
   // when RAT Type is WLAN, it needs monitoring keys...
-  create_session_create_response(imsi, monitoring_key, static_rules, &response);
+  create_session_create_response(imsi, session_id, monitoring_key, static_rules, &response);
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(
-      imsi, 1, 1536, response.mutable_credits()->Add());
+      imsi, session_id, 1, 1536, response.mutable_credits()->Add());
 
   SessionRead req  = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);
@@ -180,6 +181,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
 
   CreateSessionResponse response;
   std::string imsi   = "IMSI1";
+  std::string session_id = "1234";
   std::string msisdn = "5100001234";
   auto sid           = id_gen_.gen_session_id(imsi);
   SessionConfig cfg;
@@ -189,10 +191,11 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
 
   response.set_session_id(sid);
-  create_session_create_response(imsi, monitoring_key, static_rules, &response);
+  create_session_create_response(imsi, session_id,
+                                 monitoring_key, static_rules, &response);
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(
-      imsi, 1, 1536, response.mutable_credits()->Add());
+      imsi, session_id, 1, 1536, response.mutable_credits()->Add());
 
   SessionRead req  = {"IMSI1"};
   auto session_map = session_store->read_sessions(req);
@@ -287,9 +290,9 @@ TEST_F(SessionManagerHandlerTest, test_create_session) {
   create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
       "rule3");
   create_credit_update_response(
-      "IMSI1", 1, 1536, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 1, 1536, create_response.mutable_credits()->Add());
   create_credit_update_response(
-      "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 2, 1024, create_response.mutable_credits()->Add());
 
   // Ensure session is reported as it is not a duplicate
   EXPECT_CALL(*reporter, report_create_session(_, _)).Times(1);
@@ -311,7 +314,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   CreateSessionResponse response;
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(
-      "IMSI1", 1, 1025, response.mutable_credits()->Add());
+        "IMSI1", "1234", 1, 1025, response.mutable_credits()->Add());
   std::string imsi   = "IMSI1";
   std::string msisdn = "5100001234";
   auto sid           = id_gen_.gen_session_id(imsi);
@@ -361,7 +364,7 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   CreateSessionResponse response;
   response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
   create_credit_update_response(
-      "IMSI1", 1, 1025, response.mutable_credits()->Add());
+        "IMSI1", "1234", 1, 1025, response.mutable_credits()->Add());
   const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
   const std::string& imsi                = "IMSI1";
   const std::string& msisdn              = "5100001234";
