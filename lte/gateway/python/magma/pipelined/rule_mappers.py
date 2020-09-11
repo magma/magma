@@ -98,6 +98,8 @@ class SessionRuleToVersionMapper:
         incremented.
         """
         encoded_imsi = encode_imsi(imsi)
+        if ip_addr is None:
+            ip_addr = ""
         with self._lock:
             if rule_id is None:
                 for k, v in self._version_by_imsi_and_rule.items():

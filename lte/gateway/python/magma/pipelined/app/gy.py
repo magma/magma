@@ -83,7 +83,7 @@ class GYController(PolicyMixin, MagmaController):
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
 
-    def deactivate_rules(self, imsi, rule_ids):
+    def deactivate_rules(self, imsi, _, rule_ids):
         """
         Deactivate flows for a subscriber. If only imsi is present, delete all
         rule flows for a subscriber (i.e. end its session). If rule_ids are

@@ -261,7 +261,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def _deactivate_flows_gy(self, request):
         logging.debug('Deactivating GY flows for %s', request.sid.id)
-        self._gy_app.deactivate_rules(request.sid.id, request.rule_ids)
+        self._gy_app.deactivate_rules(request.sid.id, request.ip_addr,
+                                      request.rule_ids)
 
     def GetPolicyUsage(self, request, context):
         """

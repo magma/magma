@@ -27,6 +27,7 @@ from ryu.lib.packet import ether_types
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.policy_converters import get_ue_ipv4_match_args
 from magma.pipelined.openflow import messages, flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.imsi import decode_imsi, encode_imsi
@@ -489,12 +490,8 @@ def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
     Return a MagmaMatch that matches on the rule num and the version.
     """
-    ip_match = {}
-    if ip_addr:
-        if direction == Direction.OUT:
-            ip_match = {'ipv4_src': ip_addr}
-        else:
-            ip_match = {'ipv4_dst': ip_addr}
+    ip_match = get_ue_ipv4_match_args(ip_addr, direction)
+
     return MagmaMatch(imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
                       direction=direction, reg2=rule_num, rule_version=version,
                       **ip_match)
@@ -557,6 +554,7 @@ def _get_ipv4(flow):
     if ip_register not in flow.match:
         return None
     return flow.match[ip_register]
+
 
 def _get_version(flow):
     if RULE_VERSION_REG not in flow.match:
