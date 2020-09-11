@@ -124,7 +124,6 @@ FinalActionInfo deserialize_stored_final_action_info(
   for (auto& rule_id : marshaled["restrict_rules"]) {
     stored.restrict_rules.push_back(rule_id.getString());
   }
-
   return stored;
 }
 
@@ -422,6 +421,12 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   }
   marshaled["gy_dynamic_rules"] = gy_dynamic_rules;
 
+  folly::dynamic restrict_rules = folly::dynamic::array;
+  for (const auto& rule_id : stored.restrict_rules) {
+    restrict_rules.push_back(rule_id);
+  }
+  marshaled["restrict_rules"] = restrict_rules;
+
   marshaled["request_number"] = std::to_string(stored.request_number);
 
   std::string serialized = folly::toJson(marshaled);
@@ -474,6 +479,10 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
     PolicyRule policy_rule;
     policy_rule.ParseFromString(policy.getString());
     stored.gy_dynamic_rules.push_back(policy_rule);
+  }
+
+  for (auto& rule_id : marshaled["restrict_rules"]) {
+    stored.restrict_rules.push_back(rule_id.getString());
   }
 
   stored.request_number = static_cast<uint32_t>(

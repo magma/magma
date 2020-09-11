@@ -319,9 +319,9 @@ void LocalEnforcer::execute_actions(
           // Bundle up all info into this struct so that we don't have to pass around
           // unique pointers
           FinalActionInstallInfo final_action_info{
-            .imsi              = action_p->get_imsi(),
-            .session_id        = action_p->get_session_id(),
-            .action_type       = action_p->get_type(),
+            .imsi           = action_p->get_imsi(),
+            .session_id     = action_p->get_session_id(),
+            .action_type    = action_p->get_type(),
             .restrict_rules = action_p->get_restrict_rules(),
           };
           if (action_p->is_redirect_server_set()) {
@@ -568,7 +568,6 @@ void LocalEnforcer::start_final_unit_action_flows_install(
 void LocalEnforcer::complete_final_unit_action_flows_install(
     Status status, DirectoryField resp,
     const FinalActionInstallInfo final_action_info) {
-  RuleLifetime lifetime{};
   auto imsi         = final_action_info.imsi;
   auto session_id   = final_action_info.session_id;
 
@@ -588,7 +587,10 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
     MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
     return;
   }
+
+  RuleLifetime lifetime{};
   auto session_update = session_store_.get_default_session_update(session_map);
+  auto& uc = session_update[imsi][session_id];
   for (const auto& session : it->second) {
     if (session->get_session_id() == session_id) {
       if (final_action_info.action_type == REDIRECT) {
@@ -601,7 +603,6 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
                      << session_id;
           pipelined_client_->add_gy_final_action_flow(
               imsi, ip, static_rules, {rule});
-          auto& uc = session_update[imsi][session_id];
           session->insert_gy_dynamic_rule(rule, lifetime, uc);
         }
       }
@@ -610,6 +611,9 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
                      << session_id;
         pipelined_client_->add_gy_final_action_flow(
             imsi, ip, final_action_info.restrict_rules, {});
+        for (const auto& rule_id : final_action_info.restrict_rules) {
+          session->insert_restrict_rule(rule_id, lifetime, uc);
+        }
       }
     }
   }
@@ -1249,6 +1253,7 @@ void LocalEnforcer::update_charging_credits(
         SessionState::SessionInfo info;
         std::vector<PolicyRule> gy_rules_to_deactivate;
         session->get_session_info(info);
+        uc = session_update[imsi][session_id];
         for (const auto& rule : info.gy_dynamic_rules) {
           PolicyRule dy_rule;
           if (session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc)) {
@@ -1257,8 +1262,10 @@ void LocalEnforcer::update_charging_credits(
         }
         if (!gy_rules_to_deactivate.empty()) {
           pipelined_client_->deactivate_flows_for_rules(
-              imsi, info.ip_addr, {}, gy_rules_to_deactivate,
+              imsi, info.ip_addr, info.restrict_rules, gy_rules_to_deactivate,
               RequestOriginType::GY);
+          // Clear all restrict rules for this session
+          session->clear_restrict_rules(uc);
         }
       }
     }
