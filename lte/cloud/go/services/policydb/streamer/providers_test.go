@@ -119,9 +119,8 @@ func TestPolicyStreamers(t *testing.T) {
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
 
-	// create the rules first otherwise base names can't associate to them
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		// Attached qos profile
+		// Attached qos profile (shared)
 		{
 			Type: lte.PolicyQoSProfileEntityType,
 			Key:  "p1",
@@ -170,6 +169,9 @@ func TestPolicyStreamers(t *testing.T) {
 					ServerAddress: swag.String("https://www.google.com"),
 					Support:       swag.String("ENABLED"),
 				},
+			},
+			Associations: []storage.TypeAndKey{
+				{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
 			},
 		},
 		{
@@ -227,6 +229,7 @@ func TestPolicyStreamers(t *testing.T) {
 				AddressType:   lte_protos.RedirectInformation_IPv4,
 				ServerAddress: "https://www.google.com",
 			},
+			Qos: &lte_protos.FlowQos{Qci: 42},
 		},
 		{Id: "r3", MonitoringKey: []byte("bar")},
 	}
