@@ -142,10 +142,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         logging.debug('Activating GX flows for %s', request.sid.id)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, rule_id)
+                request.sid.id, request.ip_addr, rule_id)
         for rule in request.dynamic_rules:
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, rule.id)
+                request.sid.id, request.ip_addr, rule.id)
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, request.ip_addr, request.apn_ambr, request.rule_ids,
             request.dynamic_rules)
@@ -180,10 +180,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         logging.debug('Activating GY flows for %s', request.sid.id)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, rule_id)
+                request.sid.id, request.ip_addr, rule_id)
         for rule in request.dynamic_rules:
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, rule.id)
+                request.sid.id, request.ip_addr, rule.id)
 
         res = self._activate_rules_in_gy(request.sid.id, request.ip_addr, request.apn_ambr,
             request.rule_ids, request.dynamic_rules)
@@ -250,12 +250,14 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if request.rule_ids:
             for rule_id in request.rule_ids:
                 self._service_manager.session_rule_version_mapper \
-                    .update_version(request.sid.id, rule_id)
+                    .update_version(request.sid.id, request.ip_addr,
+                                    rule_id)
         else:
             # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id)
-        self._enforcer_app.deactivate_rules(request.sid.id, request.rule_ids)
+                request.sid.id, request.ip_addr)
+        self._enforcer_app.deactivate_rules(request.sid.id, request.ip_addr,
+                                            request.rule_ids)
 
     def _deactivate_flows_gy(self, request):
         logging.debug('Deactivating GY flows for %s', request.sid.id)

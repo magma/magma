@@ -184,7 +184,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         Returns flow add messages used for rule matching.
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        version = self._session_rule_version_mapper.get_version(imsi, rule.id)
+        version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
+                                                                rule.id)
         self.logger.debug(
             'Installing flow for %s with rule num %s (version %s)', imsi,
             rule_num, version)
@@ -444,12 +445,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
                 rule_id = self._get_rule_id(stat)
                 sid = _get_sid(stat)
+                ipv4_addr = _get_ipv4(stat)
                 rule_version = _get_version(stat)
                 if rule_id == "":
                     continue
 
                 current_ver = \
-                    self._session_rule_version_mapper.get_version(sid, rule_id)
+                    self._session_rule_version_mapper.get_version(sid,
+                                                                  ipv4_addr,
+                                                                  rule_id)
                 if current_ver != rule_version:
                     yield stat
 

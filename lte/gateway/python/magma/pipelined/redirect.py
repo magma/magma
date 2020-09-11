@@ -51,7 +51,7 @@ class RedirectionManager:
 
     RedirectRequest = namedtuple(
         'RedirectRequest',
-        ['imsi', 'ip_addr', 'rule', 'rule_num', 'priority'],
+        ['imsi', 'ip_addr', 'rule', 'rule_num', 'rule_version', 'priority'],
     )
 
     def __init__(self, bridge_ip, logger, main_tbl_num, next_table,
@@ -98,6 +98,7 @@ class RedirectionManager:
         ip_addr = redirect_request.ip_addr
         rule = redirect_request.rule
         rule_num = redirect_request.rule_num
+        rule_version = redirect_request.rule_version
         priority = redirect_request.priority
 
         # TODO IMPORTANT check that redirectd service is running, as its a
@@ -111,11 +112,11 @@ class RedirectionManager:
 
         self._save_redirect_entry(ip_addr, rule.redirect)
         self._install_redirect_flows(datapath, loop, imsi, rule, rule_num,
-                                     priority)
+                                     rule_version, priority)
         return
 
     def _install_redirect_flows(self, datapath, loop, imsi, rule, rule_num,
-                                priority):
+                                rule_version, priority):
         """
         Add flows to forward traffic to the redirection server.
 
@@ -131,17 +132,19 @@ class RedirectionManager:
 
         if rule.redirect.address_type == rule.redirect.URL:
             self._install_url_bypass_flows(datapath, loop, imsi, rule,
-                                           rule_num, priority)
+                                           rule_num, rule_version, priority)
         elif rule.redirect.address_type == rule.redirect.IPv4:
             self._install_ipv4_bypass_flows(datapath, imsi, rule,
-                                            rule_num, priority,
+                                            rule_num, rule_version, priority,
                                             [rule.redirect.server_address])
 
-        self._install_dns_flows(datapath, imsi, rule, rule_num, priority)
-        self._install_server_flows(datapath, imsi, rule, rule_num, priority)
+        self._install_dns_flows(datapath, imsi, rule, rule_num, rule_version,
+                                priority)
+        self._install_server_flows(datapath, imsi, rule, rule_num, rule_version,
+                                   priority)
 
     def _install_scratch_table_flows(self, datapath, imsi, rule, rule_num,
-                                     priority):
+                                     rule_version, priority):
         """
         The flow action for subscribers that need to be redirected does 2 things
             * Forward requests from subscriber to the internal http server
@@ -235,7 +238,7 @@ class RedirectionManager:
             parser.OFPActionSetField(tcp_dst=self._redirect_port),
             of_note,
         ]
-        actions += self._load_rule_actions(parser, rule_num, imsi, rule.id)
+        actions += self._load_rule_actions(parser, rule_num, rule_version)
 
         flows.add_resubmit_current_service_flow(
             datapath, self._scratch_tbl_num, match_http, actions,
@@ -301,13 +304,14 @@ class RedirectionManager:
         imsi = redirect_request.imsi
         rule = redirect_request.rule
         rule_num = redirect_request.rule_num
+        rule_version = redirect_request.rule_version
         priority = redirect_request.priority
         if rule.redirect.address_type == rule.redirect.URL:
             self._install_url_bypass_flows(datapath, loop, imsi, rule,
-                                           rule_num, priority)
+                                           rule_num, rule_version, priority)
         elif rule.redirect.address_type == rule.redirect.IPv4:
             self._install_ipv4_bypass_flows(datapath, imsi, rule,
-                                            rule_num, priority,
+                                            rule_num, rule_version, priority,
                                             [rule.redirect.server_address])
 
         parser = datapath.ofproto_parser
@@ -317,7 +321,8 @@ class RedirectionManager:
 
         self._save_redirect_entry(internal_ip, rule.redirect)
         #TODO check if we actually need this, dns might already be allowed
-        self._install_dns_flows(datapath, imsi, rule, rule_num, priority)
+        self._install_dns_flows(datapath, imsi, rule, rule_num, rule_version,
+                                priority)
 
         match_tcp_80 = MagmaMatch(
             imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
@@ -475,18 +480,19 @@ class RedirectionManager:
                             priority=flows.MINIMUM_PRIORITY + 1,
                             cookie=rule_num)
 
-    def _install_server_flows(self, datapath, imsi, rule, rule_num, priority):
+    def _install_server_flows(self, datapath, imsi, rule, rule_num,
+                              rule_version, priority):
         """
         Install the redirect flows to redirect all HTTP traffic to the captive
         portal and to drop all of the rest.
         """
         self._install_scratch_table_flows(datapath, imsi, rule, rule_num,
-                                          priority)
+                                          rule_version, priority)
         self._install_not_processed_flows(datapath, imsi, rule, rule_num,
                                           priority)
 
     def _install_url_bypass_flows(self, datapath, loop, imsi, rule, rule_num,
-                                  priority):
+                                  rule_version, priority):
         """
         Resolve DNS queries to get the ip address of redirect url, this is done
         to allow traffic to safely pass through as we want subscribers to have
@@ -503,7 +509,7 @@ class RedirectionManager:
                 )
             )
             self._install_ipv4_bypass_flows(datapath, imsi, rule, rule_num,
-                                            priority, cached_ips)
+                                            rule_version, priority, cached_ips)
             return
 
         resolver = aiodns.DNSResolver(timeout=self.DNS_TIMEOUT_SECS, loop=loop)
@@ -522,12 +528,12 @@ class RedirectionManager:
                 return
             self._dns_cache.get(redirect_addr_host, lambda: ips, max_age=ttl)
             self._install_ipv4_bypass_flows(datapath, imsi, rule, rule_num,
-                                            priority, ips)
+                                            rule_version, priority, ips)
 
         asyncio.ensure_future(query, loop=loop).add_done_callback(add_flows)
 
     def _install_ipv4_bypass_flows(self, datapath, imsi, rule, rule_num,
-                                   priority, ips):
+                                   rule_version, priority, ips):
         """
         Installs flows for traffic that is allowed to pass through for
         subscriber who has redirection enabled. Allow access to all passed ips.
@@ -539,7 +545,7 @@ class RedirectionManager:
         actions = [
             of_note,
         ]
-        actions += self._load_rule_actions(parser, rule_num, imsi, rule.id)
+        actions += self._load_rule_actions(parser, rule_num, rule_version)
 
         matches = []
         for ip in ips:
@@ -557,7 +563,8 @@ class RedirectionManager:
                 priority=priority + 1, cookie=rule_num,
                 hard_timeout=rule.hard_timeout, resubmit_table=self.next_table)
 
-    def _install_dns_flows(self, datapath, imsi, rule, rule_num, priority):
+    def _install_dns_flows(self, datapath, imsi, rule, rule_num, rule_version,
+                           priority):
         """
         Installs flows that allow DNS queries to path through.
         """
@@ -566,7 +573,7 @@ class RedirectionManager:
         actions = [
             of_note,
         ]
-        actions += self._load_rule_actions(parser, rule_num, imsi, rule.id)
+        actions += self._load_rule_actions(parser, rule_num, rule_version)
         matches = []
         # Install UDP flows for DNS
         matches.append(MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
@@ -631,9 +638,8 @@ class RedirectionManager:
         flows.delete_flow(datapath, self._scratch_tbl_num,
                           MagmaMatch(imsi=encode_imsi(imsi)))
 
-    def _load_rule_actions(self, parser, rule_num, imsi, rule_id):
-        version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+    def _load_rule_actions(self, parser, rule_num, rule_version):
         return [
             parser.NXActionRegLoad2(dst='reg2', value=rule_num),
-            parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version),
+            parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=rule_version),
         ]

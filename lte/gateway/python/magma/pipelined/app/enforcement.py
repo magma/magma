@@ -338,12 +338,16 @@ class EnforcementController(PolicyMixin, MagmaController):
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        rule_version = self._session_rule_version_mapper.get_version(imsi,
+                                                                     ip_addr,
+                                                                     rule.id)
         priority = self.get_of_priority(rule.priority)
         redirect_request = RedirectionManager.RedirectRequest(
             imsi=imsi,
             ip_addr=ip_addr,
             rule=rule,
             rule_num=rule_num,
+            rule_version=rule_version,
             priority=priority)
         try:
             self._redirect_manager.handle_redirection(
@@ -395,7 +399,8 @@ class EnforcementController(PolicyMixin, MagmaController):
             if inst:
                 instructions.append(inst)
 
-        version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+        version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
+                                                                rule_id)
         actions.extend(
             [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
              parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
