@@ -41,10 +41,21 @@ enum SessionIDType {
 };
 
 struct SessionIdentifier {
-  std::string imsi;       // mandatory
-  SessionIDType id_type;  // mandatory
+  const std::string imsi;  // mandatory
+  SessionIDType id_type;   // mandatory
   std::string session_id;
   std::string apn;
+  SessionIdentifier(
+      const std::string p_imsi, SessionIDType p_id_type,
+      const std::string secondary_key)
+      : imsi(p_imsi), id_type(p_id_type) {
+    if (p_id_type == IMSI_AND_APN) {
+      apn = secondary_key;
+    }
+    if (p_id_type == IMSI_AND_SESSION_ID) {
+      session_id = secondary_key;
+    }
+  }
 };
 
 /**

@@ -1207,67 +1207,58 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
           imsi, usage_monitor_resp.result_code(), subscribers_to_terminate);
       continue;
     }
-
-    auto it = session_map.find(imsi);
-    if (it == session_map.end()) {
-      MLOG(MERROR) << "Could not find session for IMSI " << imsi
-                   << " during update";
+    SessionIdentifier id(
+        imsi, IMSI_AND_SESSION_ID, usage_monitor_resp.session_id());
+    optional<SessionVector::iterator> session_it =
+        session_store_.get_session(session_map, id);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not find session for " << imsi << " SessionID "
+                   << id.session_id << " during update";
       continue;
     }
+    auto& session      = **session_it;
+    auto& uc           = session_update[imsi][id.session_id];
+    const auto& config = session->get_config();
+    session->receive_monitor(usage_monitor_resp, uc);
+    session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);
 
-    for (const auto& session : it->second) {
-      std::string session_id = session->get_session_id();
-      if (session_id != usage_monitor_resp.session_id()){
-        MLOG(MDEBUG) <<
-                     "Not updating monitor because this update is for session" <<
-                     usage_monitor_resp.session_id() <<
-                     " and this is session " << session_id;
-        continue;
-      }
+    RulesToProcess rules_to_activate;
+    RulesToProcess rules_to_deactivate;
 
-      auto& uc = session_update[imsi][session->get_session_id()];
-      const auto& config    = session->get_config();
-      session->receive_monitor(usage_monitor_resp, uc);
-      session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);
+    process_rules_to_remove(
+        imsi, session, usage_monitor_resp.rules_to_remove(),
+        rules_to_deactivate, uc);
 
-      RulesToProcess rules_to_activate;
-      RulesToProcess rules_to_deactivate;
+    process_rules_to_install(
+        *session, imsi, to_vec(usage_monitor_resp.static_rules_to_install()),
+        to_vec(usage_monitor_resp.dynamic_rules_to_install()),
+        rules_to_activate, rules_to_deactivate, uc);
 
-      process_rules_to_remove(
-          imsi, session, usage_monitor_resp.rules_to_remove(),
-          rules_to_deactivate, uc);
+    propagate_rule_updates_to_pipelined(
+        imsi, config, rules_to_activate, rules_to_deactivate, false);
 
-      process_rules_to_install(
-          *session, imsi, to_vec(usage_monitor_resp.static_rules_to_install()),
-          to_vec(usage_monitor_resp.dynamic_rules_to_install()),
+    if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
+      subscribers_to_terminate.insert(imsi);
+    }
+
+    if (revalidation_required(usage_monitor_resp.event_triggers()) &&
+        imsis_with_revalidation.count(imsi) == 0) {
+      // All usage monitors under the same session will have the same event
+      // trigger. See proto message / FeG for why. We will modify this input
+      // logic later (Move event trigger out of UsageMonitorResponse), but
+      // here we use a set to indicate whether a timer is already accounted
+      // for.
+      // Only schedule if no other revalidation timer was scheduled for
+      // this IMSI
+      auto revalidation_time = usage_monitor_resp.revalidation_time();
+      imsis_with_revalidation.insert(imsi);
+      schedule_revalidation(imsi, *session, revalidation_time, uc);
+    }
+
+    if (config.common_context.rat_type() == TGPP_LTE) {
+      const auto update = session->get_dedicated_bearer_updates(
           rules_to_activate, rules_to_deactivate, uc);
-
-      propagate_rule_updates_to_pipelined(
-          imsi, config, rules_to_activate, rules_to_deactivate, false);
-
-      if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
-        subscribers_to_terminate.insert(imsi);
-      }
-
-      if (revalidation_required(usage_monitor_resp.event_triggers()) &&
-          imsis_with_revalidation.count(imsi) == 0) {
-        // All usage monitors under the same session will have the same event
-        // trigger. See proto message / FeG for why. We will modify this input
-        // logic later (Move event trigger out of UsageMonitorResponse), but
-        // here we use a set to indicate whether a timer is already accounted
-        // for.
-        // Only schedule if no other revalidation timer was scheduled for
-        // this IMSI
-        auto revalidation_time = usage_monitor_resp.revalidation_time();
-        imsis_with_revalidation.insert(imsi);
-        schedule_revalidation(imsi, *session, revalidation_time, uc);
-      }
-
-      if (config.common_context.rat_type() == TGPP_LTE) {
-        const auto update = session->get_dedicated_bearer_updates(
-            rules_to_activate, rules_to_deactivate, uc);
-        propagate_bearer_updates_to_mme(update);
-      }
+      propagate_bearer_updates_to_mme(update);
     }
   }
 }
