@@ -176,7 +176,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
-
+	tr.WaitForEnforcementStatsToSync()
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)

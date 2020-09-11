@@ -97,6 +97,7 @@ enum ServiceState {
 };
 
 enum GrantTrackingType {
+  TRACKING_UNSET  = -1,
   TOTAL_ONLY      = 0,
   TX_ONLY         = 1,
   RX_ONLY         = 2,
@@ -135,6 +136,7 @@ struct StoredSessionCredit {
   CreditLimitType credit_limit_type;
   std::unordered_map<Bucket, uint64_t> buckets;
   GrantTrackingType grant_tracking_type;
+  GrantedUnits received_granted_units;
 };
 
 struct StoredMonitor {
@@ -227,6 +229,8 @@ struct SessionCreditUpdateCriteria {
   // Maintained by SessionCredit
   bool reporting;
   GrantTrackingType grant_tracking_type;
+  GrantedUnits received_granted_units;
+
   // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
 

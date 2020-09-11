@@ -27,7 +27,16 @@
         ]
       }
     ],
-    "NMS User Guide": ["nms/nms_organizations", "nms/nms_grafana"],
+    "NMS User Guide": [
+      "nms/nms_overview",
+      "nms/nms_dashboard",
+      "nms/nms_equipment",
+      "nms/nms_network",
+      "nms/nms_subscriber",
+      "nms/nms_traffic",
+      "nms/nms_organizations",
+      "nms/nms_developer",
+      "nms/nms_how_to_guide"],
     "Access Gateway": [
       {
         "type": "subcategory",

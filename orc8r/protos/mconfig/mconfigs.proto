@@ -122,3 +122,10 @@ message FluentBit {
 
     map<string, string> files_by_tag = 20;
 }
+
+//------------------------------------------------------------------------------
+// OpenVPN client configs
+//------------------------------------------------------------------------------
+message OpenVPN {
+    bool enable_shell_access = 1;
+}

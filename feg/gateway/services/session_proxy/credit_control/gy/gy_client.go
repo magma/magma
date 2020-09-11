@@ -244,7 +244,7 @@ func (gyClient *GyClient) createCreditControlMessage(
 	m.NewAVP(avp.ServiceContextID, avp.Mbit, 0, datatype.UTF8String(gyClient.diamClient.ServiceContextId()))
 	m.NewAVP(avp.CCRequestNumber, avp.Mbit, 0, datatype.Unsigned32(request.RequestNumber))
 
-	// Always add MSISDN (TASA requirement) if it's provided by AGW
+	// Always add MSISDN if it's provided by AGW
 	if len(request.Msisdn) > 0 {
 		m.NewAVP(avp.SubscriptionID, avp.Mbit, 0, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
@@ -336,7 +336,7 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	if len(request.GcID) > 0 {
 		psInfoGrp.AddAVP(diam.NewAVP(avp.TGPPChargingID, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(request.GcID)))
 	}
-	/********************** TBD - doesn't work with some OCSes *********************
+	/********************** TBD - doesn't work with some OCSes *****************
 	if request.Qos != nil {
 		qosGrp := &diam.GroupedAVP{
 			AVP: []*diam.AVP{
@@ -346,7 +346,7 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 		}
 		psInfoGrp.AddAVP(diam.NewAVP(avp.QoSInformation, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, qosGrp))
 	}
-	********************** TBD - doesn't work with current TASA OCS *********************/
+	***************************************************************************/
 
 	svcInfoGrp = append(
 		svcInfoGrp,
@@ -435,18 +435,12 @@ func getReceivedCredits(cca *CCADiameterMessage) []*ReceivedCredits {
 	creditList := make([]*ReceivedCredits, 0, len(cca.CreditControl))
 	for _, mscc := range cca.CreditControl {
 		receivedCredits := &ReceivedCredits{
-			ResultCode:        mscc.ResultCode,
-			GrantedUnits:      &mscc.GrantedServiceUnit,
-			ValidityTime:      mscc.ValidityTime,
-			RatingGroup:       mscc.RatingGroup,
-			ServiceIdentifier: mscc.ServiceIdentifier,
-		}
-		if mscc.FinalUnitIndication != nil {
-			receivedCredits.IsFinal = true
-			receivedCredits.FinalAction = mscc.FinalUnitIndication.Action
-			if mscc.FinalUnitIndication.Action == Redirect {
-				receivedCredits.RedirectServer = mscc.FinalUnitIndication.RedirectServer
-			}
+			ResultCode:          mscc.ResultCode,
+			GrantedUnits:        &mscc.GrantedServiceUnit,
+			ValidityTime:        mscc.ValidityTime,
+			RatingGroup:         mscc.RatingGroup,
+			ServiceIdentifier:   mscc.ServiceIdentifier,
+			FinalUnitIndication: mscc.FinalUnitIndication,
 		}
 		creditList = append(creditList, receivedCredits)
 	}

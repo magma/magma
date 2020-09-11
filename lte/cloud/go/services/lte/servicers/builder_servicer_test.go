@@ -31,7 +31,6 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
-	strfmt "github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -685,7 +684,7 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string) *lte_models.GatewayCellu
 			NatEnabled:                 swag.Bool(false),
 			IPBlock:                    "192.168.128.0/24",
 			SgiManagementIfaceVlan:     vlan,
-			SgiManagementIfaceStaticIP: strfmt.IPv4(sgi_ip),
+			SgiManagementIfaceStaticIP: sgi_ip,
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",

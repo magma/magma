@@ -153,7 +153,16 @@ class SessionStateTest : public ::testing::Test {
   void receive_credit_from_pcrf(
       const std::string& mkey, uint64_t volume, MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
-    create_monitor_update_response("IMSI1", mkey, level, volume, &monitor_resp);
+    receive_credit_from_pcrf(mkey, volume, 0, 0, level);
+  }
+
+  void receive_credit_from_pcrf(
+      const std::string& mkey, uint64_t total_volume,
+      uint64_t tx_volume,uint64_t rx_volume, MonitoringLevel level) {
+    UsageMonitoringUpdateResponse monitor_resp;
+    create_monitor_update_response(
+        "IMSI1", mkey, level, total_volume,
+        tx_volume, rx_volume, &monitor_resp);
     session_state->receive_monitor(monitor_resp, update_criteria);
   }
 

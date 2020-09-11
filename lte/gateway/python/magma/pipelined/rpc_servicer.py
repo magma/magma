@@ -185,7 +185,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, rule.id)
 
-        res = self._activate_rules_in_gy(request.sid.id, request.ip_addr,
+        res = self._activate_rules_in_gy(request.sid.id, request.ip_addr, request.apn_ambr,
             request.rule_ids, request.dynamic_rules)
 
         fut.set_result(res)
@@ -218,10 +218,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return enforcement_res
 
     def _activate_rules_in_gy(self, imsi: str, ip_addr: str,
+                              apn_ambr: AggregatedMaximumBitrate,
                               static_rule_ids: List[str],
                               dynamic_rules: List[PolicyRule]
                               ) -> ActivateFlowsResult:
-        gy_res = self._gy_app.activate_rules(imsi, ip_addr, static_rule_ids,
+        gy_res = self._gy_app.activate_rules(imsi, ip_addr, apn_ambr, static_rule_ids,
                                              dynamic_rules)
         # TODO: add metrics
         return gy_res

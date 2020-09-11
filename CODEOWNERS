@@ -21,6 +21,9 @@ lte/gateway/release @kkahrs
 lte/gateway/python/magma/pipelined @koolzz @pshelar
 lte/gateway/python/integ_tests @ssanadhya @ulaskozat
 
+**/*.pb.go @magma/entire-org
+**/*_swaggergen.go @magma/entire-org
+
 nms/ @karthiksubraveti @andreilee @xjtian @Scott8440
 
 CODEOWNERS @xjtian @amarpad

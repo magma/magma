@@ -46,6 +46,7 @@ static magma::mconfig::SessionD get_default_mconfig() {
   magma::mconfig::SessionD mconfig;
   mconfig.set_log_level(magma::orc8r::LogLevel::INFO);
   mconfig.set_relay_enabled(false);
+  mconfig.set_gx_gy_relay_enabled(false);
   auto wallet_config = mconfig.mutable_wallet_exhaust_detection();
   wallet_config->set_terminate_on_exhaust(false);
   return mconfig;
@@ -62,8 +63,8 @@ static magma::mconfig::SessionD load_mconfig() {
 }
 
 static const std::shared_ptr<grpc::Channel> get_controller_channel(
-    const YAML::Node& config, const bool relay_enabled) {
-  if (relay_enabled) {
+    const YAML::Node& config, const bool gx_gy_relay_enabled) {
+  if (gx_gy_relay_enabled) {
     MLOG(MINFO) << "Using proxied SessionD controller";
     return magma::ServiceRegistrySingleton::Instance()->GetGrpcChannel(
         SESSION_PROXY_SERVICE, magma::ServiceRegistrySingleton::CLOUD);
@@ -220,8 +221,12 @@ int main(int argc, char* argv[]) {
 
   // Setup SessionReporter which talks to the policy component
   // (FeG+PCRF/PolicyDB).
+  bool gx_gy_relay_enabled = mconfig.relay_enabled();
+  if (!gx_gy_relay_enabled) {
+    gx_gy_relay_enabled = mconfig.gx_gy_relay_enabled();
+  }
   auto reporter = std::make_shared<magma::SessionReporterImpl>(
-      evb, get_controller_channel(config, mconfig.relay_enabled()));
+      evb, get_controller_channel(config, gx_gy_relay_enabled));
   std::thread policy_response_handler([&]() {
     MLOG(MINFO) << "Started reporter thread";
     reporter->rpc_response_loop();

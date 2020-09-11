@@ -69,8 +69,20 @@ void create_monitor_credit(
     const std::string& m_key, MonitoringLevel level, uint64_t volume,
     UsageMonitoringCredit* response);
 
-// When volume = 0, the action for the monitoring credit will be set to DISABLE.
-// It is CONTINUE otherwise.
+void create_monitor_credit(
+    const std::string& m_key, MonitoringLevel level,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    UsageMonitoringCredit* credit);
+
+void create_monitor_update_response(
+    const std::string& imsi, const std::string& m_key, MonitoringLevel level,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    UsageMonitoringUpdateResponse* response);
+
 void create_monitor_update_response(
     const std::string& imsi, const std::string& m_key, MonitoringLevel level,
     uint64_t volume, UsageMonitoringUpdateResponse* response);
@@ -78,6 +90,15 @@ void create_monitor_update_response(
 void create_monitor_update_response(
     const std::string& imsi, const std::string& m_key, MonitoringLevel level,
     uint64_t volume, const std::vector<EventTrigger>& event_triggers,
+    const uint64_t revalidation_time_unix_ts,
+    UsageMonitoringUpdateResponse* response);
+
+void create_monitor_update_response(
+    const std::string& imsi, const std::string& m_key, MonitoringLevel level,
+    uint64_t total_volume,
+    uint64_t tx_volume,
+    uint64_t rx_volume,
+    const std::vector<EventTrigger>& event_triggers,
     const uint64_t revalidation_time_unix_ts,
     UsageMonitoringUpdateResponse* response);
 

@@ -105,7 +105,7 @@ class SessionStoreTest : public ::testing::Test {
     // Don't set event triggers
     // Don't set result code since the response is already successful
     // Don't set any rule installation/uninstallation
-    // Don't set the TgppContext, assume relay disabled
+    // Don't set the TgppContext, assume gx_gy_relay disabled
     return credit_update;
   }
 

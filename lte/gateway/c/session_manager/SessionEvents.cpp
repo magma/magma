@@ -233,7 +233,7 @@ std::string EventsReporterImpl::get_imei(const SessionConfig& config) {
 }
 
 std::string EventsReporterImpl::get_spgw_ipv4(const SessionConfig& config) {
-  // IMEI is only relevant for LTE
+  // SPGW_IPV4 is only relevant for LTE
   const auto& rat_specific    = config.rat_specific_context;
   std::string spgw_ipv4 = "";
   if (rat_specific.has_lte_context()) {

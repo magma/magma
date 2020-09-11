@@ -47,6 +47,7 @@ magma-gen-meta:
     - go-struct-name: APN
       filename: apn_swaggergen.go
 
+
 info:
   title: LTE Network Management
   description: LTE REST APIs
@@ -1121,6 +1122,40 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/gateways/{gateway_id}/vpn:
+    get:
+      summary: Get the gateway VPN configuration
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The current VPN gateway config
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_vpn_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the gateway VPN configuration
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: config
+          in: body
+          description: New VPN configuration
+          required: true
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_vpn_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/enodebs:
     get:
       summary: List all enodeBs in the network
@@ -1693,7 +1728,7 @@ definitions:
         maxLength: 4
       sgi_management_iface_static_ip:
         type: string
-        format: ipv4
+        format: cidr
         description: IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
         minLength: 5
         maxLength: 49

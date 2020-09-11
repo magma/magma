@@ -38,7 +38,6 @@ class SubTests(Enum):
     GX = "gx"
     GY = "gy"
     QOS = "qos"
-    MULTISESSIONPROXY = "multi_session_proxy"
 
     @staticmethod
     def list():
@@ -105,8 +104,6 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
             execute(_build_gateway)
 
     execute(_run_gateway)
-    # Stop not necessary services for this test case
-    execute(_stop_docker_services, ["pcrf2", "ocs2"])
 
     # Setup the trfserver: use the provided trfserver if given, else default to
     # the vagrant machine
@@ -129,7 +126,10 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     # Get back to the gateway vm to setup static arp
     _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
     execute(_set_cwag_networking, cwag_test_br_mac)
-    execute(_check_docker_services)
+
+    # check if docker services are alive except for OCS2 and PCRF2
+    ignoreList = ["ocs2", "pcrf2"]
+    execute(_check_docker_services, ignoreList)
 
     _switch_to_vm_no_destroy(gateway_host, "cwag_test", "cwag_test.yml")
     execute(_start_ue_simulator)
@@ -141,23 +141,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
               "You can now run the tests manually from cwag_test")
         sys.exit(0)
 
-    if tests_to_run.value not in SubTests.MULTISESSIONPROXY.value:
-        execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
-
-    # Setup environment for multi service proxy if required
-    if tests_to_run.value in (SubTests.ALL.value,
-                              SubTests.MULTISESSIONPROXY.value):
-        _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
-
-        # copy new config and restart the impacted services
-        execute(_set_cwag_configs, "gateway.mconfig.multi_session_proxy")
-        execute(_restart_docker_services, ["session_proxy", "pcrf", "ocs",
-                                           "pcrf2", "ocs2", "ingress"])
-        execute(_check_docker_services)
-
-        _switch_to_vm_no_destroy(gateway_host, "cwag_test", "cwag_test.yml")
-        execute(_run_integ_tests, test_host, trf_host,
-                SubTests.MULTISESSIONPROXY, test_re)
+    execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
 
     # If we got here means everything work well!!
     if not test_host and not trf_host:
@@ -349,10 +333,12 @@ def _stop_docker_services(services):
         )
 
 
-def _check_docker_services():
+def _check_docker_services(ignoreList):
     with cd(CWAG_ROOT + "/docker"):
+        grepIgnore = "| grep --invert-match '" + \
+                     '\|'.join(ignoreList) + "'" if ignoreList else ""
         run(
-            " DCPS=$(docker ps --format \"{{.Names}}\t{{.Status}}\" | grep Restarting);"
+            " DCPS=$(docker ps --format \"{{.Names}}\t{{.Status}}\" | grep Restarting" + grepIgnore + ");"
             " [[ -z \"$DCPS\" ]] ||"
             " ( echo \"Container restarting detected.\" ; echo \"$DCPS\"; exit 1 )"
         )
@@ -394,10 +380,11 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
         shell_env_vars["TESTS"] = test_re
 
     # QOS take a while to run. Increasing the timeout to 20m
-    go_test_cmd = "go test -v -test.short -timeout 20m"
-    go_test_cmd += " -tags " + tests_to_run.value
+    go_test_cmd = "gotestsum --format=standard-verbose --"
+    go_test_cmd += " -test.short -timeout 20m" # go test args
+    go_test_cmd += " -tags=" + tests_to_run.value
     if test_re:
-        go_test_cmd += " -run " + test_re
+        go_test_cmd += " -run=" + test_re
 
     with cd(CWAG_INTEG_ROOT), shell_env(**shell_env_vars):
         result = run(go_test_cmd, warn_only=True)

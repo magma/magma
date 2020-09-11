@@ -128,9 +128,12 @@ message PipelineD {
 //------------------------------------------------------------------------------
 message SessionD {
     orc8r.LogLevel log_level = 1;
+    // DEPRECATED
     // Enable forwarding S6a related requests to Federated GW
     bool relay_enabled = 2;
     WalletExhaustDetection wallet_exhaust_detection = 3;
+    // Enable relaying Gx/Gy messages via FeG RPC
+    bool gx_gy_relay_enabled = 4;
 }
 
 message WalletExhaustDetection {
@@ -209,6 +212,7 @@ message MME {
     int32 mme_code = 6;
     // Enable DNS Caching. Will be filled by DnsD
     bool enable_dns_caching = 7;
+    // DEPRECATED
     // Enable credit control tracking with OCS and forwarding S6a related
     // requests to Federated GW
     bool relay_enabled = 8;
@@ -239,6 +243,9 @@ message MME {
     string dns_secondary = 21;
     // Whether NAT is enabled
     bool nat_enabled = 22;
+
+    // Enable relaying S6a messages via FeG RPC
+    bool hss_relay_enabled = 23;
 }
 
 
@@ -259,8 +266,13 @@ message SubscriberDB {
         uint64 max_dl_bit_rate = 2;
     }
     map<string, SubscriptionProfile> sub_profiles = 4;
+
+    // DEPRECATED
     // Enable forwarding S6a related requests to Federated GW
     bool relay_enabled = 5;
+
+    // Enable relaying S6a messages via FeG RPC
+    bool hss_relay_enabled = 6;
 }
 
 //------------------------------------------------------------------------------

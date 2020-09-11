@@ -43,6 +43,10 @@ struct Monitor {
     marshaled.level = level;
     return marshaled;
   }
+
+  bool should_delete_monitor(){
+    return credit.current_grant_contains_zero() && credit.is_quota_exhausted(1);
+  }
 };
 
 }  // namespace magma
