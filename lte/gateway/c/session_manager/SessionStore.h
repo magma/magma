@@ -13,6 +13,7 @@
 #pragma once
 
 #include <memory>
+#include <experimental/optional>
 
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
@@ -26,15 +27,26 @@
 
 namespace magma {
 namespace lte {
+using std::experimental::optional;
 
-typedef std::unordered_map<
-    std::string, std::vector<std::unique_ptr<SessionState>>>
-    SessionMap;
 // Value int represents the request numbers needed for requests to PCRF
 typedef std::set<std::string> SessionRead;
 typedef std::unordered_map<
     std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>
     SessionUpdate;
+
+enum SessionIDType {
+  IMSI_AND_APN        = 0,
+  IMSI_AND_SESSION_ID = 1,
+};
+
+struct SessionIdentifier {
+  std::string imsi;       // mandatory
+  SessionIDType id_type;  // mandatory
+  std::string session_id;
+  std::string apn;
+};
+
 /**
  * SessionStore acts as a broker to storage of sessiond state.
  *
@@ -109,8 +121,7 @@ class SessionStore {
    * @return true if successful, otherwise the update to storage is discarded.
    */
   bool create_sessions(
-      const std::string& subscriber_id,
-      std::vector<std::unique_ptr<SessionState>> sessions);
+      const std::string& subscriber_id, SessionVector sessions);
 
   /**
    * Attempt to update sessions with update criteria. If any update to any of
@@ -121,6 +132,15 @@ class SessionStore {
    * @return true if successful, otherwise the update to storage is discarded.
    */
   bool update_sessions(const SessionUpdate& update_criteria);
+
+  /**
+   *
+   * @param session_map
+   * @param id
+   * @return
+   */
+  optional<SessionVector::iterator> get_session(
+      SessionMap& session_map, SessionIdentifier id);
 
  private:
   std::shared_ptr<StaticRuleStore> rule_store_;

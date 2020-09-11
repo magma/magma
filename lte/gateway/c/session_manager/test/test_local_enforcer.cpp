@@ -682,7 +682,7 @@ TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart_revalidation_timer) {
   time.set_seconds(0);
   session_state->set_revalidation_time(time, uc);
 
-  session_map[IMSI1] = std::vector<std::unique_ptr<SessionState>>();
+  session_map[IMSI1] = SessionVector();
   session_map[IMSI1].push_back(
       std::move(std::unique_ptr<SessionState>(session_state)));
 

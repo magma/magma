@@ -202,7 +202,7 @@ TEST_F(SessionStoreTest, test_metering_reporting) {
 
   // 2) Create a single session and write it into the store
   auto session1    = get_session(sid, rule_store);
-  auto session_vec = std::vector<std::unique_ptr<SessionState>>{};
+  auto session_vec = SessionVector{};
   session_vec.push_back(std::move(session1));
   session_store->create_sessions(imsi, std::move(session_vec));
 
@@ -302,7 +302,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
   // 3) Commit session for IMSI1 into SessionStore
-  auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+  auto sessions = SessionVector{};
   EXPECT_EQ(sessions.size(), 0);
   sessions.push_back(std::move(session));
   EXPECT_EQ(sessions.size(), 1);
@@ -406,7 +406,7 @@ TEST_F(SessionStoreTest, test_sync_request_numbers) {
   auto uc      = get_default_update_criteria();
 
   // 3) Commit session for IMSI1 into SessionStore
-  auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+  auto sessions = SessionVector{};
   EXPECT_EQ(sessions.size(), 0);
   sessions.push_back(std::move(session));
   EXPECT_EQ(sessions.size(), 1);
@@ -453,8 +453,8 @@ TEST_F(SessionStoreTest, test_get_default_session_update) {
   auto session2          = get_session(sid2, rule_store);
   auto session3          = get_session(sid3, rule_store);
 
-  session_map[imsi]  = std::vector<std::unique_ptr<SessionState>>{};
-  session_map[imsi2] = std::vector<std::unique_ptr<SessionState>>{};
+  session_map[imsi]  = SessionVector{};
+  session_map[imsi2] = SessionVector{};
 
   session_map[imsi].push_back(std::move(session1));
   session_map[imsi2].push_back(std::move(session2));
@@ -474,7 +474,7 @@ TEST_F(SessionStoreTest, test_update_session_rules) {
 
   // 2) Create a single session and write it into the store
   auto session1    = get_session(sid, rule_store);
-  auto session_vec = std::vector<std::unique_ptr<SessionState>>{};
+  auto session_vec = SessionVector{};
   session_vec.push_back(std::move(session1));
   session_store->create_sessions(imsi, std::move(session_vec));
 

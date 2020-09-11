@@ -80,8 +80,7 @@ SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
 }
 
 bool SessionStore::create_sessions(
-    const std::string& subscriber_id,
-    std::vector<std::unique_ptr<SessionState>> sessions) {
+    const std::string& subscriber_id, SessionVector sessions) {
   auto session_map           = SessionMap{};
   session_map[subscriber_id] = std::move(sessions);
   store_client_->write_sessions(std::move(session_map));
@@ -120,6 +119,30 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
     }
   }
   return store_client_->write_sessions(std::move(session_map));
+}
+
+optional<SessionVector::iterator> SessionStore::get_session(
+    SessionMap& session_map, SessionIdentifier id) {
+  auto it = session_map.find(id.imsi);
+  if (it == session_map.end()) {
+    return {};
+  }
+  auto& sessions = it->second;
+  for (auto it = sessions.begin(); it != sessions.end(); ++it) {
+    switch (id.id_type) {
+      case IMSI_AND_SESSION_ID:
+        if ((*it)->get_session_id() == id.session_id) {
+          return it;
+        }
+      case IMSI_AND_APN:
+        if ((*it)->get_config().common_context.apn() == id.apn) {
+          return it;
+        }
+      default:
+        continue;
+    }
+  }
+  return {};
 }
 
 SessionUpdate SessionStore::get_default_session_update(

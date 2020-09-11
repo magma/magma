@@ -974,7 +974,7 @@ void LocalEnforcer::init_session_credit(
     // First time a session is created for IMSI
     MLOG(MDEBUG) << "First session for IMSI " << imsi << " with session ID "
                  << session_id;
-    session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
+    session_map[imsi] = SessionVector();
   }
   if (session_state->is_radius_cwf_session() == false) {
     events_reporter_->session_created(imsi, session_id, cfg, session_state);
