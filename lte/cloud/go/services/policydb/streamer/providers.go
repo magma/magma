@@ -114,7 +114,7 @@ func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*
 }
 
 // loadQosProfiles returns all policy_qos_profile ents, keyed by the key of
-// their parent policy rule ent.
+// their parent policy rule ent, once for each parent.
 func loadQosProfiles(networkID string) (map[string]configurator.NetworkEntity, error) {
 	profiles, err := configurator.LoadAllEntitiesInNetwork(
 		networkID, lte.PolicyQoSProfileEntityType,
@@ -124,16 +124,14 @@ func loadQosProfiles(networkID string) (map[string]configurator.NetworkEntity, e
 		return nil, err
 	}
 
-	// Select all attached QoS profiles
-	byPolicyID := map[string]configurator.NetworkEntity{}
-	for _, prof := range profiles {
-		tk, err := prof.ParentAssociations.GetFirst(lte.PolicyRuleEntityType)
-		if err == nil {
-			byPolicyID[tk.Key] = prof
+	qosByProfileID := map[string]configurator.NetworkEntity{}
+	for _, qos := range profiles {
+		for _, tk := range qos.ParentAssociations.Filter(lte.PolicyRuleEntityType) {
+			qosByProfileID[tk.Key] = qos
 		}
 	}
 
-	return byPolicyID, nil
+	return qosByProfileID, nil
 }
 
 func createRuleProtoFromEnt(rule, qosProfile configurator.NetworkEntity) *lte_protos.PolicyRule {
