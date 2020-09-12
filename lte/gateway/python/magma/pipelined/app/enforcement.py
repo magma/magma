@@ -453,7 +453,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._qos_mgr.remove_subscriber_qos(imsi, num)
 
     def _deactivate_flows_for_subscriber(self, imsi, ip_addr):
-        """ Deactivate all rules for a subscriber, ending any enforcement """
+        """ Deactivate all rules for specified subscriber session """
         ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            imsi=encode_imsi(imsi), **ip_match_in)
@@ -469,12 +469,15 @@ class EnforcementController(PolicyMixin, MagmaController):
 
     def deactivate_rules(self, imsi, ip_addr, rule_ids):
         """
-        Deactivate flows for a subscriber. If only imsi is present, delete all
-        rule flows for a subscriber (i.e. end its session). If rule_ids are
-        present, delete the rule flows for that subscriber.
+        Deactivate flows for a subscriber.
+            Only imsi -> remove all rules for imsi
+            imsi+ipv4 -> remove all rules for imsi session
+            imsi+rule_ids -> remove specific rules for imsi (for all sessions)
+            imsi+ipv4+rule_ids -> remove rules for specific imsi session
 
         Args:
             imsi (string): subscriber id
+            ip_addr (string): subscriber ip address
             rule_ids (list of strings): policy rule ids
         """
         if not self.init_finished:
