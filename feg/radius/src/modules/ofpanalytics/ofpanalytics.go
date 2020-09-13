@@ -129,11 +129,11 @@ func Handle(m modules.Context, rc *modules.RequestContext, r *radius.Request, _ 
 	defer resp.Body.Close()
 	rc.Logger.Debug("got response", zap.String("status", resp.Status),
 		zap.String("url", resp.Request.URL.String()),
-		zap.Any("request", r.Packet.Attributes)),
+		zap.Any("request", r.Packet.Attributes),
 		zap.String("Called-Station-Id", rfc2865.CalledStationID_GetString(r.Packet)),
 		zap.String("Calling-Station-Id", rfc2865.CallingStationID_GetString(r.Packet)),
 		zap.String("NAS-Identifier", rfc2865.NASIdentifier_GetString(r.Packet)),
-		zap.String("XWF-C-Version", analyticsVersion),
+		zap.String("XWF-C-Version", analyticsVersion))
 
 	if resp.StatusCode != http.StatusOK {
 		return nil, fmt.Errorf("error processing message by endpoint. Response status %d", resp.StatusCode)
