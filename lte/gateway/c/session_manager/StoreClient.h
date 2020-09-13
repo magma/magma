@@ -25,6 +25,7 @@ typedef std::unordered_map<
     std::string, std::vector<std::unique_ptr<SessionState>>>
     SessionMap;
 
+
 /**
  * StoreClient is responsible for reading/writing sessions to/from storage.
  */

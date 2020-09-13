@@ -564,6 +564,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto usage_updates =
       local_enforcer->collect_updates(session_map, actions, update);
+
   local_enforcer->execute_actions(session_map, actions, update);
   assert_charging_credit(
       session_map, IMSI1, SESSION_ID_1, REPORTING_RX, {{1, 1024}});
