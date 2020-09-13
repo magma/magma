@@ -100,3 +100,19 @@ services:
     image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
     container_name: radiusd
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
+
+  logrouter:
+    <<: *service
+    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/logrouter
+    container_name: local_fluentbit
+    ports:
+      - "24224:24224"
+    healthcheck:
+      test: ["CMD", "nc", "-vz", "localhost", "24224"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
+    environment:
+      - SCRIBE_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
+      - SCUBA_TABLE=perfpipe_xwf_xwfm_logs
+      - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
