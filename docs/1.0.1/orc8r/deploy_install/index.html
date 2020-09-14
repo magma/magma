@@ -137,14 +137,21 @@ Signature ok
 subject=/C=US/ST=CA/L=Menlo Park/O=Facebook/OU=Magma/CN=*.yourdomain.com/emailAddress=admin@yourdomain.com
 Getting CA Private Key
 
-$ rm controller.csr rootCA.key rootCA.srl
+$ rm controller.csr rootCA.srl
 </code></pre>
 <p>At this point, regardless of whether you self-signed your certs or acquired
 them from a certificate provider, your <code>certs</code> subdirectory should look like
 this:</p>
 <pre><code class="hljs css language-bash">$ ls
-controller.crt  controller.key  rootCA.pem
+controller.crt  controller.key  rootCA.pem    rootCA.key
 </code></pre>
+<p>We <em>strongly</em> recommend moving <code>rootCA.key</code> to a more secure location at this
+point. By default, the Helm chart for secrets will below will upload it to EKS
+as a Kubernetes secret and mount it to controller pods. If the private key
+portion of the root CA is compromised, all TLS traffic to and from your cluster
+will be compromised.</p>
+<p>Keep rootCA.key in a place where you can access it again - you will need it to
+renew the SSL certificate for the Orchestrator controller when it expires.</p>
 <h3><a class="anchor" aria-hidden="true" id="application-certificates-and-keys"></a><a href="#application-certificates-and-keys" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Application Certificates and Keys</h3>
 <p><code>certifier</code> is the Orchestrator service which signs client certificates. All
 access to Orchestrator is authenticated by client SSL certificates, so you'll
@@ -164,7 +171,7 @@ $ openssl genrsa -out bootstrapper.key 2048
 Generating RSA private key, 2048 bit long modulus
 
 $ ls
-bootstrapper.key  certifier.key     certifier.pem     controller.crt    controller.key    rootCA.pem
+bootstrapper.key  certifier.key     certifier.pem     controller.crt    controller.key    rootCA.pem    rootCA.key
 </code></pre>
 <p>The last command created a private key for the <code>bootstrapper</code> service, which
 is the mechanism by which Access Gateways acquire their client certificates
