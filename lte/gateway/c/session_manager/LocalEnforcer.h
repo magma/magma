@@ -375,10 +375,12 @@ class LocalEnforcer {
       const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
-      const std::string& imsi, const StaticRuleInstall& static_rule);
+      const std::string& imsi, const std::string& ip_addr,
+      const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
-      const std::string& imsi, DynamicRuleInstall& dynamic_rule);
+      const std::string& imsi, const std::string& ip_addr,
+      DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message

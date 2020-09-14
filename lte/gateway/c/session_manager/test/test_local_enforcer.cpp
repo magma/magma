@@ -418,7 +418,8 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules) {
 
   UpdateSessionResponse update_response;
   auto credit_updates_response = update_response.mutable_responses();
-  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 24, credit_updates_response->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 24, credit_updates_response->Add());
 
   auto monitor_updates_response =
       update_response.mutable_usage_monitor_responses();
@@ -430,7 +431,8 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules) {
   // impact session 1234. This helps to test feature to prevent adding credits
   // for a specific session with same RG/mKey to other sessions of the same IMSI
   // with the same RG/mKey
-  create_credit_update_response(IMSI1, SESSION_ID_2, 1, 30000, credit_updates_response->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_2, 1, 30000, credit_updates_response->Add());
   create_monitor_update_response(
       IMSI1, SESSION_ID_2, "1", MonitoringLevel::PCC_RULE_LEVEL, 40000,
       monitor_updates_response->Add());
@@ -442,7 +444,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules) {
   assert_charging_credit(
       session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{1, 2072}});
   assert_monitor_credit(
-      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{"1",2048}});
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{"1", 2048}});
 }
 
 TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
@@ -478,7 +480,8 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
       update_response.mutable_usage_monitor_responses();
   auto monitor_response = monitor_updates_responses->Add();
   create_monitor_update_response(
-      IMSI1, SESSION_ID_1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048, monitor_response);
+      IMSI1, SESSION_ID_1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048,
+      monitor_response);
   monitor_response->set_success(false);
   monitor_response->set_result_code(5001);  // USER_UNKNOWN permanent failure
 
@@ -486,16 +489,17 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          IMSI1, std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
+          IMSI1, testing::_, std::vector<std::string>{"rule1"}, CheckCount(0),
+          testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
 
   // expect no update to credit
-  assert_monitor_credit(session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{"1", 1024}});
-  assert_charging_credit(
-      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {});
+  assert_monitor_credit(
+      session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {{"1", 1024}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL, {});
 }
 
 TEST_F(LocalEnforcerTest, test_terminate_credit) {
@@ -746,7 +750,7 @@ TEST_F(LocalEnforcerTest, test_termination_scheduling_on_sync_sessions) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          IMSI1, CheckCount(1), testing::_, RequestOriginType::GX));
+          IMSI1, testing::_, CheckCount(1), testing::_, RequestOriginType::GX));
   evb->loopOnce();
 
   // At this point, the state should have transitioned from
@@ -774,8 +778,9 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
-      testing::_, testing::_, testing::_, testing::_))
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          testing::_, testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // Since this is a termination triggered by SessionD/Core (quota exhaustion
@@ -824,8 +829,9 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
-      testing::_, testing::_, testing::_, testing::_))
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          testing::_, testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1070,7 +1076,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          testing::_, CheckCount(2), CheckCount(1), testing::_))
+          testing::_, testing::_, CheckCount(2), CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   std::vector<std::unique_ptr<ServiceAction>> actions;
@@ -1250,7 +1256,8 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
       IMSI1, SESSION_ID_1, "3", MonitoringLevel::PCC_RULE_LEVEL, 2048,
       monitor_updates->Add());
   create_monitor_update_response(
-      IMSI1, SESSION_ID_1, "4", MonitoringLevel::SESSION_LEVEL, 2048, monitor_updates->Add());
+      IMSI1, SESSION_ID_1, "4", MonitoringLevel::SESSION_LEVEL, 2048,
+      monitor_updates->Add());
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
   assert_monitor_credit(
@@ -1258,9 +1265,11 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   assert_monitor_credit(
       session_map, IMSI1, SESSION_ID_1, REPORTING_TX, {{"3", 0}, {"4", 0}});
   assert_monitor_credit(
-      session_map, IMSI1, SESSION_ID_1, REPORTED_RX, {{"3", 1024}, {"4", 1049}});
+      session_map, IMSI1, SESSION_ID_1, REPORTED_RX,
+      {{"3", 1024}, {"4", 1049}});
   assert_monitor_credit(
-      session_map, IMSI1, SESSION_ID_1, REPORTED_TX, {{"3", 1024}, {"4", 1079}});
+      session_map, IMSI1, SESSION_ID_1, REPORTED_TX,
+      {{"3", 1024}, {"4", 1079}});
   assert_monitor_credit(
       session_map, IMSI1, SESSION_ID_1, ALLOWED_TOTAL,
       {{"3", 4096}, {"4", 4176}});
@@ -1270,13 +1279,15 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   monitor_updates = update_response.mutable_usage_monitor_responses();
   auto monitor_updates_response = monitor_updates->Add();
   create_monitor_update_response(
-      IMSI1, SESSION_ID_1, "3", MonitoringLevel::PCC_RULE_LEVEL, 0, monitor_updates_response);
+      IMSI1, SESSION_ID_1, "3", MonitoringLevel::PCC_RULE_LEVEL, 0,
+      monitor_updates_response);
   monitor_updates_response->add_rules_to_remove("pcrf_only");
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
-      IMSI1, std::vector<std::string>{"pcrf_only"},
-      CheckCount(0), RequestOriginType::GX))
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          IMSI1, testing::_, std::vector<std::string>{"pcrf_only"},
+          CheckCount(0), RequestOriginType::GX))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(
@@ -1506,7 +1517,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          IMSI1, CheckSubset(rule_ids), CheckCount(0), testing::_))
+          IMSI1, testing::_, CheckSubset(rule_ids), CheckCount(0), testing::_))
       .Times(0);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_success1, update);
@@ -1519,7 +1530,8 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          IMSI1, std::vector<std::string>{"rule3"}, CheckCount(0), testing::_))
+          IMSI1, testing::_, std::vector<std::string>{"rule3"}, CheckCount(0),
+          testing::_))
       .Times(1);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_fail, update);
@@ -1543,11 +1555,12 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          IMSI1, std::vector<std::string>{"rule1"}, CheckCount(0), testing::_))
+          IMSI1, testing::_, std::vector<std::string>{"rule1"}, CheckCount(0),
+          testing::_))
       .Times(1);
   EXPECT_CALL(
       *spgw_client, delete_dedicated_bearer(CheckDeleteOneBearerReq(
-      IMSI1, default_bearer_id, bearer_1)))
+                        IMSI1, default_bearer_id, bearer_1)))
       .Times(1);
   update = SessionStore::get_default_session_update(session_map);
   local_enforcer->handle_set_session_rules(session_map, session_rules, update);
@@ -1557,17 +1570,19 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   auto monitor_update =
       update_response.mutable_usage_monitor_responses()->Add();
   create_monitor_update_response(
-      IMSI1, SESSION_ID_1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024, monitor_update);
+      IMSI1, SESSION_ID_1, "m1", MonitoringLevel::PCC_RULE_LEVEL, 1024,
+      monitor_update);
   monitor_update->add_rules_to_remove("rule2");
 
   EXPECT_CALL(
       *pipelined_client,
       deactivate_flows_for_rules(
-          IMSI1, std::vector<std::string>{"rule2"}, CheckCount(0), testing::_))
+          IMSI1, testing::_, std::vector<std::string>{"rule2"}, CheckCount(0),
+          testing::_))
       .Times(1);
   EXPECT_CALL(
       *spgw_client, delete_dedicated_bearer(CheckDeleteOneBearerReq(
-      IMSI1, default_bearer_id, bearer_2)))
+                        IMSI1, default_bearer_id, bearer_2)))
       .Times(1);
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
@@ -1659,9 +1674,10 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
       .WillOnce(testing::Return(true));
   // For both Session1 + Session2
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
-      IMSI1, std::vector<std::string>{"static2"},
-      CheckCount(1), testing::_))
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          IMSI1, testing::_, std::vector<std::string>{"static2"}, CheckCount(1),
+          testing::_))
       .Times(2)
       .WillOnce(testing::Return(true));
 
