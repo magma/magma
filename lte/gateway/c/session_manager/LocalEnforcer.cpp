@@ -48,8 +48,8 @@ uint64_t get_time_in_sec_since_epoch() {
 }  // namespace
 
 namespace magma {
-
-uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY = 2000;
+uint32_t LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT = 2000;
+uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY                = 2000;
 
 using google::protobuf::RepeatedPtrField;
 using google::protobuf::util::TimeUtil;
@@ -901,9 +901,6 @@ void LocalEnforcer::handle_session_init_rule_updates(
     std::unordered_set<uint32_t>& charging_credits_received) {
   RulesToProcess rules_to_activate;
   RulesToProcess rules_to_deactivate;
-
-  // Can use a default UpdateCriteria since SessionStore's create and update
-  // methods are separate.
   std::vector<StaticRuleInstall> static_rule_installs =
       to_vec(response.static_rules());
   std::vector<DynamicRuleInstall> dynamic_rule_installs =
@@ -911,23 +908,93 @@ void LocalEnforcer::handle_session_init_rule_updates(
   filter_rule_installs(
       static_rule_installs, dynamic_rule_installs, charging_credits_received);
 
-  auto uc = get_default_update_criteria();
+  SessionStateUpdateCriteria uc;  // TODO remove unused UC
   process_rules_to_install(
       session_state, imsi, static_rule_installs, dynamic_rule_installs,
       rules_to_activate, rules_to_deactivate, uc);
 
-  const auto& config = session_state.get_config();
-  // activate_flows_for_rules() should be called even if there is no rule to
-  // activate, because pipelined activates a "drop all packet" rule
+  // activate_flows_for_rules() should be called even if there is no rule
+  // to activate, because pipelined activates a "drop all packet" rule
   // when no rule is provided as the parameter.
+  const auto& config = session_state.get_config();
   propagate_rule_updates_to_pipelined(
       imsi, config, rules_to_activate, rules_to_deactivate, true);
 
   if (config.common_context.rat_type() == TGPP_LTE) {
-    const auto update = session_state.get_dedicated_bearer_updates(
+    auto bearer_updates = session_state.get_dedicated_bearer_updates(
         rules_to_activate, rules_to_deactivate, uc);
-    propagate_bearer_updates_to_mme(update);
+    if (bearer_updates.needs_creation) {
+      // If a bearer creation is needed, we need to delay this by a few seconds
+      // so that the attach fully completes before.
+      schedule_session_init_bearer_creations(
+          imsi, session_state.get_session_id(), bearer_updates);
+    }
   }
+}
+
+void LocalEnforcer::schedule_session_init_bearer_creations(
+    const std::string& imsi, const std::string& session_id,
+    BearerUpdate& bearer_updates) {
+  MLOG(MINFO) << "Scheduling a bearer creation request for newly created "
+              << session_id << " in "
+              << LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT << " ms";
+  evb_->runAfterDelay(
+      [this, imsi, session_id, bearer_updates]() mutable {
+        auto session_map = session_store_.read_sessions({imsi});
+        auto it          = session_map.find(imsi);
+        if (it == session_map.end()) {
+          MLOG(MWARNING) << "Ignoring dedicated bearer creations from session "
+                            "creation for "
+                         << session_id << " since it no longer exists";
+          return;
+        }
+        for (auto& session : it->second) {
+          if (session->get_session_id() != session_id) {
+            continue;
+          }
+          // Skip bearer update if it is no longer ACTIVE
+          if (session->get_state() != SESSION_ACTIVE) {
+            MLOG(MWARNING) << "Ignoring dedicated bearer create request from"
+                           << " session creation for " << session_id
+                           << " since the session is no longer active";
+            return;
+          }
+          // Check that the policies are still installed and needs a
+          // bearer
+          auto rules = bearer_updates.create_req.mutable_policy_rules();
+          auto it    = rules->begin();
+          while (it != rules->end()) {
+            auto policy_type = session->get_policy_type(it->id());
+            if (!policy_type) {
+              MLOG(MWARNING) << "Ignoring dedicated bearer create request from"
+                             << " session creation for " << session_id
+                             << " policy ID: " << it->id()
+                             << " since the policy is no longer active in the "
+                                "session";
+              it = rules->erase(it);
+              continue;
+            }
+            if (!session->policy_needs_bearer_creation(
+                    *policy_type, it->id(), session->get_config())) {
+              MLOG(MWARNING) << "Ignoring dedicated bearer create request from "
+                             << "session creation for " << session_id
+                             << " and policy ID: " << it->id()
+                             << " since the policy no longer needs a bearer";
+              it = rules->erase(it);
+              continue;
+            }
+            ++it;
+          }
+          if (rules->size() > 0) {
+            propagate_bearer_updates_to_mme(bearer_updates);
+          }
+          return;
+        }
+        // No need to update session store for bearer creations.
+        // SessionStore will be updated once the bearer binding
+        // completes/fails.
+      },
+      LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT);
 }
 
 void LocalEnforcer::init_session_credit(
