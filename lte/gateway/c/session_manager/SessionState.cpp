@@ -871,10 +871,9 @@ bool SessionState::deactivate_static_rule(
   return true;
 }
 
-bool SessionState::clear_restrict_rules(SessionStateUpdateCriteria& update_criteria) {
+void SessionState::clear_restrict_rules(SessionStateUpdateCriteria& update_criteria) {
   restrict_rules_.clear();
   update_criteria.restrict_rules.clear();
-  return true;
 }
 
 bool SessionState::deactivate_scheduled_static_rule(
@@ -1323,14 +1322,14 @@ void SessionState::get_charging_updates(
       } break;
       case REDIRECT:
         if (grant->service_state == SERVICE_REDIRECTED) {
-          MLOG(MDEBUG) << "Redirection already activated.";
+          MLOG(MDEBUG) << "Redirection already activated for " << session_id_ ;
           continue;
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
       case RESTRICT_ACCESS: {
         if (grant->service_state == SERVICE_RESTRICTED) {
-          MLOG(MDEBUG) << "Service Restriction is already activated.";
+          MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
           continue;
         }
         auto restrict_rules = action->get_mutable_restrict_rules();
@@ -1355,7 +1354,8 @@ void SessionState::get_charging_updates(
         actions_out->push_back(std::move(action));
         break;
       default:
-        MLOG(MWARNING) << "Unexpected action type " << action_type;
+        MLOG(MWARNING) << "Unexpected action type " << action_type
+                       << " for " << session_id_;
         break;
     }
   }

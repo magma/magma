@@ -13,6 +13,7 @@
 #pragma once
 
 #include "StoredState.h"
+#include "ServiceAction.h"
 
 namespace magma {
 std::string reauth_state_to_str(ReAuthState state);
@@ -30,4 +31,6 @@ std::string credit_update_type_to_str(CreditUsage::UpdateType update);
 std::string raa_result_to_str(ReAuthResult res);
 
 std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state);
+
+std::string service_action_type_to_str(ServiceActionType action);
 }  // namespace magma

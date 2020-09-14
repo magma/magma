@@ -520,7 +520,7 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * Install flow for redirection through pipelined
+   * Install final action flows through pipelined
    */
   void start_final_unit_action_flows_install(
       SessionMap& session_map, const FinalActionInstallInfo info,
@@ -530,8 +530,25 @@ class LocalEnforcer {
       Status status, DirectoryField resp,
       const FinalActionInstallInfo info);
 
+  /**
+   * Remove final action flows through pipelined
+   */
+  void cancelling_final_unit_action(
+      const std::unique_ptr<SessionState>& session,
+      SessionStateUpdateCriteria& uc);
 
+  /**
+   * Create redirection rule
+   */
   PolicyRule create_redirect_rule(const FinalActionInstallInfo& info);
+
+  /**
+   * Populate FinalActionInstallInfo structure with all info
+   * needed to complete final action flows installation.
+   */
+  void populate_final_action_install_info(
+      FinalActionInstallInfo &info,
+      const std::unique_ptr<ServiceAction>& action);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 

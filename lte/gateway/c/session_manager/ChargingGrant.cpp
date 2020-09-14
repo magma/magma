@@ -58,16 +58,19 @@ void ChargingGrant::receive_charging_grant(
   is_final_grant = p_credit.is_final();
   if (is_final_grant) {
     final_action_info.final_action = p_credit.final_action();
-    if (p_credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-      final_action_info.redirect_server = p_credit.redirect_server();
-    }
-    else if (p_credit.final_action() ==
-        ChargingCredit_FinalAction_RESTRICT_ACCESS) {
-      // Clear the previous restrict rules
-      final_action_info.restrict_rules.clear();
-      for (auto rule : p_credit.restrict_rules()) {
-        final_action_info.restrict_rules.push_back(rule);
-      }
+    switch (final_action_info.final_action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        final_action_info.redirect_server = p_credit.redirect_server();
+        break;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        // Clear the previous restrict rules
+        final_action_info.restrict_rules.clear();
+        for (auto rule : p_credit.restrict_rules()) {
+          final_action_info.restrict_rules.push_back(rule);
+        }
+        break;
+      default: // do nothing
+        break;
     }
     log_final_action_info();
   }
@@ -218,17 +221,21 @@ void ChargingGrant::log_final_action_info() const {
   if (is_final_grant) {
     final_action += "final action: ";
     final_action += final_action_to_str(final_action_info.final_action);
-    if (final_action_info.final_action == ChargingCredit_FinalAction_REDIRECT) {
-      final_action += ", redirect_server: ";
-      final_action +=
+    switch (final_action_info.final_action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        final_action += ", redirect_server: ";
+        final_action +=
           final_action_info.redirect_server.redirect_server_address();
-    }
-    else if (final_action_info.final_action ==
-        ChargingCredit_FinalAction_RESTRICT_ACCESS) {
-      final_action += ", restrict_rules: ";
-      for (auto rule : final_action_info.restrict_rules) {
-        final_action += rule + ", ";
-      }
+        break;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        final_action += ", restrict_rules: { ";
+        for (auto rule : final_action_info.restrict_rules) {
+          final_action += rule + " ";
+        }
+        final_action += "}";
+        break;
+      default: // do nothing;
+        break;
     }
   }
   MLOG(MINFO) << "This is a final credit, with " << final_action;

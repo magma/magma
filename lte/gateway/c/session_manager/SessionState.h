@@ -302,7 +302,7 @@ class SessionState {
   /**
    * Remove all currently active restrict rules.
    */
-  bool clear_restrict_rules(SessionStateUpdateCriteria& update_criteria);
+  void clear_restrict_rules(SessionStateUpdateCriteria& update_criteria);
 
   std::vector<std::string>& get_static_rules();
 
