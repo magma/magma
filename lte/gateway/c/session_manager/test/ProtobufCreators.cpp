@@ -80,6 +80,16 @@ void create_rule_record(
   rule_record->set_bytes_tx(bytes_tx);
 }
 
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t bytes_rx, uint64_t bytes_tx, RuleRecord* rule_record) {
+  rule_record->set_sid(imsi);
+  rule_record->set_rule_id(rule_id);
+  rule_record->set_bytes_rx(bytes_rx);
+  rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_ue_ipv4(ip);
+}
+
 void create_charging_credit(
     uint64_t volume, bool is_final, ChargingCredit* credit) {
   create_granted_units(&volume, NULL, NULL, credit->mutable_granted_units());

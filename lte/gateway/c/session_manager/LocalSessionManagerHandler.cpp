@@ -44,6 +44,10 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
+  if (request_cpy.records_size() > 0) {
+    PrintGrpcMessage(
+        static_cast<const google::protobuf::Message&>(request_cpy));
+  }
   MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = session_store_.read_all_sessions();

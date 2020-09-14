@@ -34,6 +34,15 @@ MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
          req.usage_monitors().size() == monitorCount;
 }
 
+MATCHER_P(CheckUpdateRequestNumber, request_number, "") {
+  auto request = static_cast<const UpdateSessionRequest&>(arg);
+  for (const auto& credit_usage_update : request.updates()) {
+    int req_number = credit_usage_update.request_number();
+    return req_number == request_number;
+  }
+  return false;
+}
+
 MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
   auto req = static_cast<const SessionTerminateRequest>(arg);
   return req.sid() == imsi && req.credit_usages().size() == chargingCount &&
