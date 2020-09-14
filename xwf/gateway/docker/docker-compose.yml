@@ -111,7 +111,7 @@ services:
 
   logrouter:
     <<: *service
-    image: facebookconnectivity-openflow-xwfm-docker.jfrog.io/logrouter
+    image: ${DOCKER_REGISTRY}logrouter
     container_name: local_fluentbit
     ports:
       - "24224:24224"
