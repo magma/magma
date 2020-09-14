@@ -113,6 +113,8 @@ class SessionRuleToVersionMapper:
         """
         Returns the version number given a subscriber and a rule.
         """
+        if ip_addr is None:
+            ip_addr = ""
         key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
         with self._lock:
             version = self._version_by_imsi_and_rule.get(key)
