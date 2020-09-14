@@ -16,4 +16,4 @@ openssl req -new -key controller.key -out controller.csr \
 openssl x509 -req -in controller.csr -CA rootCA.pem -CAkey rootCA.key \
       -CAcreateserial -out controller.crt -days 3650 -sha256
 
-rm -f controller.csr rootCA.key rootCA.srl
+rm -f controller.csr rootCA.srl
