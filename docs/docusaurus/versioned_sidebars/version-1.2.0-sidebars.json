@@ -22,23 +22,16 @@
           "version-1.2.0-orc8r/upgrade_1_2",
           "version-1.2.0-orc8r/upgrade_1_1"
         ]
-      },
-      {
-        "type": "subcategory",
-        "label": "User Guide",
-        "ids": [
-          "version-1.2.0-orc8r/ue_metering"
-        ]
       }
     ],
     "NMS User Guide": [
       "version-1.2.0-nms/nms_overview",
+      "version-1.2.0-nms/nms_organizations",
       "version-1.2.0-nms/nms_dashboard",
       "version-1.2.0-nms/nms_equipment",
       "version-1.2.0-nms/nms_network",
       "version-1.2.0-nms/nms_subscriber",
       "version-1.2.0-nms/nms_traffic",
-      "version-1.2.0-nms/nms_organizations",
       "version-1.2.0-nms/nms_developer",
       "version-1.2.0-nms/nms_how_to_guide"
     ],
@@ -64,6 +57,10 @@
           "version-1.2.0-lte/dev_notes"
         ]
       }
+    ],
+    "Feature Guides": [
+      "version-1.2.0-howtos/ue_metering",
+      "version-1.2.0-howtos/config_agw_bridged"
     ],
     "Federation Gateway": [
       {

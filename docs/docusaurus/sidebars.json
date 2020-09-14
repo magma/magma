@@ -18,13 +18,6 @@
           "orc8r/upgrade_1_2",
           "orc8r/upgrade_1_1"
         ]
-      },
-      {
-        "type": "subcategory",
-        "label": "User Guide",
-        "ids": [
-          "orc8r/ue_metering"
-        ]
       }
     ],
     "NMS User Guide": [
@@ -60,6 +53,10 @@
           "lte/dev_notes"
         ]
       }
+    ],
+    "Feature Guides": [
+      "howtos/ue_metering",
+      "howtos/config_agw_bridged"
     ],
     "Federation Gateway": [
       {
