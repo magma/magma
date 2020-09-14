@@ -25,7 +25,6 @@ import LogChart from './GatewayLogChart';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {CsvBuilder} from 'filefy';
@@ -35,6 +34,7 @@ import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
+import {useRefreshingDateRange} from '../events/EventsTable';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit
@@ -181,12 +181,14 @@ export default function GatewayLogs() {
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [logCount, setLogCount] = useState(0);
-  const [endDate, setEndDate] = useState(moment());
   const [actionQuery, setActionQuery] = useState<ActionQuery>({});
   const enqueueSnackbar = useEnqueueSnackbar();
   const tableRef = useRef(null);
+
+  const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
+    true,
+  );
 
   const startEnd = useMemo(() => {
     const [delta, unit, format] = getStep(startDate, endDate);
