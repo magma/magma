@@ -81,7 +81,7 @@
     name: "{{ packages }}"
   vars:
     packages:
-      - 'magma=1.2.0-1599526409-b82d5c80'   # Change this hash if v1.2 branch gets more commits
+      - 'magma=1.2.0-1600052642-41609608'   # Change this hash if v1.2 branch gets more commits
 
 - name: Start service openvswitch-switch.
   become: yes

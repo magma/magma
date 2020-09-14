@@ -10,6 +10,6 @@ packages:
   - "openvswitch-switch_2.8.9-1_amd64.deb"
   - "python-openvswitch_2.8.9-1_all.deb"
 
-private_package: "deb http://packages.magma.etagecom.io stretch-test main"
+private_package: "deb http://packages.magma.etagecom.io stretch-stable main"
 source_name: "packages_magma_etagecom_io"
 apt_key: "http://packages.magma.etagecom.io/pubkey.gpg"
