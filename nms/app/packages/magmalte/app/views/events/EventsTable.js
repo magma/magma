@@ -33,7 +33,7 @@ import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-import {useEffect, useMemo, useRef, useState} from 'react';
+import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -212,13 +212,68 @@ type EventTableProps = {
   sz: 'sm' | 'md' | 'lg',
   inStartDate?: moment,
   inEndDate?: moment,
+  shouldAutorefresh: boolean,
+};
+
+const defaultProps = {
+  shouldAutorefresh: true,
+};
+
+type UseRefreshingDateRangeHook = (
+  shouldAutorefresh: boolean,
+) => {
+  startDate: moment,
+  endDate: moment,
+  setStartDate: (date: moment) => void,
+  setEndDate: (date: moment) => void,
+};
+
+export const useRefreshingDateRange: UseRefreshingDateRangeHook = shouldAutorefresh => {
+  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
+  const [endDate, setEndDate] = useState(moment());
+  const [isDateRangeSelectedByUser, setIsDateRangeChanged] = useState(false);
+
+  useEffect(() => {
+    if (!isDateRangeSelectedByUser && shouldAutorefresh) {
+      const interval = setInterval(() => {
+        setEndDate(moment());
+      }, 10000);
+
+      return () => clearInterval(interval);
+    }
+  }, [setEndDate, shouldAutorefresh, isDateRangeSelectedByUser]);
+
+  const modifiedSetStartDate = useCallback(
+    (date: moment) => {
+      setIsDateRangeChanged(true);
+      setStartDate(date);
+    },
+    [setIsDateRangeChanged, setStartDate],
+  );
+
+  const modifiedSetEndDate = useCallback(
+    (date: moment) => {
+      setIsDateRangeChanged(true);
+      setEndDate(date);
+    },
+    [setIsDateRangeChanged, setEndDate],
+  );
+
+  return {
+    startDate,
+    endDate,
+    setStartDate: modifiedSetStartDate,
+    setEndDate: modifiedSetEndDate,
+  };
 };
 
 export default function EventsTable(props: EventTableProps) {
-  const {eventStream, tags, sz} = props;
+  const {eventStream, tags, sz, shouldAutorefresh} = props;
   const classes = useStyles();
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
+  const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
+    shouldAutorefresh,
+  );
+
   const [eventCount, setEventCount] = useState(0);
   const tableRef = useRef(null);
   const {match} = useRouter();
@@ -438,3 +493,5 @@ export default function EventsTable(props: EventTableProps) {
     </>
   );
 }
+
+EventsTable.defaultProps = defaultProps;
