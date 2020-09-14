@@ -619,14 +619,11 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
                          << session_id;
             pipelined_client_->add_gy_final_action_flow(
                 imsi, ip, final_action_info.restrict_rules, {});
-            for (const auto& rule_id : final_action_info.restrict_rules) {
-              session->insert_restrict_rule(rule_id, lifetime, uc);
-            }
             break;
           }
         default:
           MLOG(MDEBUG) << "Unexpected final unit action install "
-                       << service_action_type_to_str(final_action_info.action_type) 
+                       << service_action_type_to_str(final_action_info.action_type)
                        << " for " << session_id;
           break;
       }
@@ -640,6 +637,7 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
 
 void LocalEnforcer::cancelling_final_unit_action(
     const std::unique_ptr<SessionState>& session,
+    const std::vector<std::string> &restrict_rules,
     SessionStateUpdateCriteria& uc) {
 
   SessionState::SessionInfo info;
@@ -654,12 +652,11 @@ void LocalEnforcer::cancelling_final_unit_action(
       gy_rules_to_deactivate.push_back(dy_rule);
     }
   }
-  if (!gy_rules_to_deactivate.empty() || !info.restrict_rules.empty()) {
+
+  if (!gy_rules_to_deactivate.empty() || !restrict_rules.empty()) {
     pipelined_client_->deactivate_flows_for_rules(
-        info.imsi, info.restrict_rules, gy_rules_to_deactivate,
+        info.imsi, info.ip_addr, restrict_rules, gy_rules_to_deactivate,
         RequestOriginType::GY);
-    // Clear all restrict rules for this session
-    session->clear_restrict_rules(uc);
   }
 }
 
@@ -1284,15 +1281,20 @@ void LocalEnforcer::update_charging_credits(
       }
 
       auto& uc = session_update[imsi][session_id];
+      const auto& credit_key(credit_update_resp);
+      // We need to retrive restrict_rules and is_final_action_state
+      // prior to receiving charging credit as they will be updated.
+      auto restrict_rules =
+          session->get_final_action_restrict_rules(credit_key);
       bool is_final_action_state =
-          session->is_credit_in_final_unit_state(CreditKey(credit_update_resp));
+          session->is_credit_in_final_unit_state(credit_key);
       session->receive_charging_credit(credit_update_resp, uc);
       session->set_tgpp_context(credit_update_resp.tgpp_ctx(), uc);
 
       if (is_final_action_state) {
         // We need to cancel final unit action flows installed in pipelined here
         // following the reception of new charging credit.
-        cancelling_final_unit_action(session, uc);
+        cancelling_final_unit_action(session, restrict_rules, uc);
       }
     }
   }

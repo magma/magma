@@ -96,9 +96,6 @@ StoredSessionState SessionState::marshal() {
   scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
   marshaled.scheduled_dynamic_rules = std::move(scheduled_dynamic_rules);
 
-  for (auto& rule_id : restrict_rules_) {
-    marshaled.restrict_rules.push_back(rule_id);
-  }
   for (auto& it : rule_lifetimes_) {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
@@ -154,9 +151,6 @@ SessionState::SessionState(
   }
   for (auto& rule : marshaled.gy_dynamic_rules) {
     gy_dynamic_rules_.insert_rule(rule);
-  }
-  for (const std::string& rule_id : marshaled.restrict_rules) {
-    restrict_rules_.push_back(rule_id);
   }
 }
 
@@ -335,20 +329,6 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
                    << " because gy dynamic rule already uninstalled: "
                    << rule_id << std::endl;
       return false;
-    }
-  }
-
-  // Restrict rules
-  for (const auto& rule_id : uc.restrict_rules) {
-    if (is_restrict_rule_installed(rule_id)) {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because restrict rule already installed: "
-                   << rule_id << std::endl;
-      return false;
-    }
-    else {
-      auto lifetime = uc.new_rule_lifetimes[rule_id];
-      insert_restrict_rule(rule_id, lifetime, _);
     }
   }
 
@@ -721,7 +701,6 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
-  info.restrict_rules = restrict_rules_;
   info.ambr = config_.get_apn_ambr();
 }
 
@@ -779,12 +758,6 @@ bool SessionState::is_static_rule_installed(const std::string& rule_id) {
              rule_id) != active_static_rules_.end();
 }
 
-bool SessionState::is_restrict_rule_installed(const std::string& rule_id) {
-  return std::find(
-             restrict_rules_.begin(), restrict_rules_.end(),
-             rule_id) != restrict_rules_.end();
-}
-
 void SessionState::insert_dynamic_rule(
     const PolicyRule& rule, RuleLifetime& lifetime,
     SessionStateUpdateCriteria& update_criteria) {
@@ -817,15 +790,6 @@ void SessionState::activate_static_rule(
   rule_lifetimes_[rule_id] = lifetime;
   active_static_rules_.push_back(rule_id);
   update_criteria.static_rules_to_install.insert(rule_id);
-  update_criteria.new_rule_lifetimes[rule_id] = lifetime;
-}
-
-void SessionState::insert_restrict_rule(
-    const std::string& rule_id, RuleLifetime& lifetime,
-    SessionStateUpdateCriteria& update_criteria) {
-  rule_lifetimes_[rule_id] = lifetime;
-  restrict_rules_.push_back(rule_id);
-  update_criteria.restrict_rules.insert(rule_id);
   update_criteria.new_rule_lifetimes[rule_id] = lifetime;
 }
 
@@ -869,11 +833,6 @@ bool SessionState::deactivate_static_rule(
   update_criteria.static_rules_to_uninstall.insert(rule_id);
   active_static_rules_.erase(it);
   return true;
-}
-
-void SessionState::clear_restrict_rules(SessionStateUpdateCriteria& update_criteria) {
-  restrict_rules_.clear();
-  update_criteria.restrict_rules.clear();
 }
 
 bool SessionState::deactivate_scheduled_static_rule(
@@ -945,10 +904,6 @@ RuleLifetime& SessionState::get_rule_lifetime(const std::string& rule_id) {
 
 DynamicRuleStore& SessionState::get_gy_dynamic_rules() {
   return gy_dynamic_rules_;
-}
-
-std::vector<std::string>& SessionState::get_restrict_rules() {
-  return restrict_rules_;
 }
 
 uint32_t SessionState::total_monitored_rules_count() {
@@ -1073,13 +1028,17 @@ static FinalActionInfo get_final_action_info(
   FinalActionInfo final_action_info;
   if (credit.is_final()) {
     final_action_info.final_action = credit.final_action();
-    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-      final_action_info.redirect_server = credit.redirect_server();
-    }
-    else if (credit.final_action() == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
-      for (auto rule : credit.restrict_rules()) {
-        final_action_info.restrict_rules.push_back(rule);
-      }
+    switch (final_action_info.final_action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        final_action_info.redirect_server = credit.redirect_server();
+        break;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        for (auto rule : credit.restrict_rules()) {
+          final_action_info.restrict_rules.push_back(rule);
+        }
+        break;
+      default: // do nothing;
+        break;
     }
   }
   return final_action_info;
@@ -1664,8 +1623,19 @@ bool SessionState::is_credit_in_final_unit_state(
   if (it == credit_map_.end()) {
     return false;
   }
- return (it->second->service_state == SERVICE_REDIRECTED ||
-      it->second->service_state == SERVICE_RESTRICTED);
+  return (it->second->service_state == SERVICE_REDIRECTED ||
+          it->second->service_state == SERVICE_RESTRICTED);
+}
+
+std::vector<std::string> SessionState::get_final_action_restrict_rules(
+    const CreditKey& charging_key) const {
+  std::vector<std::string> restrict_rules;
+  auto it = credit_map_.find(charging_key);
+  if (it != credit_map_.end()) {
+    return restrict_rules;
+  }
+  restrict_rules = it->second->final_action_info.restrict_rules;
+  return restrict_rules;
 }
 
 // QoS/Bearer Management

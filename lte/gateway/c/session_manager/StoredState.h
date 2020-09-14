@@ -212,7 +212,6 @@ struct StoredSessionState {
   std::set<std::string> scheduled_static_rules;
   std::vector<PolicyRule> scheduled_dynamic_rules;
   std::unordered_map<std::string, RuleLifetime> rule_lifetimes;
-  std::vector<std::string> restrict_rules;
   uint32_t request_number;
   EventTriggerStatus pending_event_triggers;
   google::protobuf::Timestamp revalidation_time;
@@ -262,7 +261,6 @@ struct SessionStateUpdateCriteria {
   std::set<std::string> dynamic_rules_to_uninstall;
   std::set<std::string> gy_dynamic_rules_to_uninstall;
   std::vector<PolicyRule> new_scheduled_dynamic_rules;
-  std::set<std::string> restrict_rules;
   std::unordered_map<std::string, RuleLifetime> new_rule_lifetimes;
   StoredChargingCreditMap charging_credit_to_install;
   std::unordered_map<

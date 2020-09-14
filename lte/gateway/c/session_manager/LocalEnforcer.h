@@ -535,6 +535,7 @@ class LocalEnforcer {
    */
   void cancelling_final_unit_action(
       const std::unique_ptr<SessionState>& session,
+      const std::vector<std::string> &restrict_rules,
       SessionStateUpdateCriteria& uc);
 
   /**

@@ -162,6 +162,4 @@ std::string service_action_type_to_str(ServiceActionType action) {
       return "INVALID ACTION TYPE";
   }
 }
-
-
 }  // namespace magma
