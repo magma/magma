@@ -36,7 +36,8 @@
       "nms/nms_traffic",
       "nms/nms_organizations",
       "nms/nms_developer",
-      "nms/nms_how_to_guide"],
+      "nms/nms_how_to_guide"
+    ],
     "Access Gateway": [
       {
         "type": "subcategory",
@@ -46,6 +47,7 @@
           "lte/config_agw",
           "lte/enodebd",
           "lte/config_apn",
+          "lte/agw_120_upgrade",
           "lte/agw_110_upgrade"
         ]
       },
