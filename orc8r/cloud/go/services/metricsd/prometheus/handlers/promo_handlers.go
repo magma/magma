@@ -369,7 +369,8 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 			seriesMatchers = append(seriesMatchers, fmt.Sprintf("{%s}", matcher.String()))
 		}
 
-		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &minTime)
+		defaultStartTime := time.Now().Add(-3 * time.Hour)
+		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &defaultStartTime)
 		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
 
 		// TODO: catch the warnings replacing _
