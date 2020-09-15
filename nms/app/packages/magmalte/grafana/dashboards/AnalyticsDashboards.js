@@ -14,8 +14,7 @@
  * @format
  */
 
-import {apnTemplate} from './CWFDashboards';
-import {getNetworkTemplate} from './Dashboards';
+import {apnTemplate, getNetworkTemplate} from './Dashboards';
 import type {GrafanaDBData} from './Dashboards';
 
 export const AnalyticsDBData = (networkIDs: Array<string>): GrafanaDBData => {
