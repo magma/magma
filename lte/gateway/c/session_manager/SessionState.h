@@ -241,15 +241,15 @@ class SessionState {
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
+  void insert_gy_dynamic_rule(
+      const PolicyRule& rule, RuleLifetime& lifetime,
+      SessionStateUpdateCriteria& update_criteria);
+
   /**
    * Add a static rule to the session which is currently active.
    */
   void activate_static_rule(
       const std::string& rule_id, RuleLifetime& lifetime,
-      SessionStateUpdateCriteria& update_criteria);
-
-  void insert_gy_dynamic_rule(
-      const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -270,6 +270,10 @@ class SessionState {
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
+  bool remove_gy_dynamic_rule(
+      const std::string& rule_id, PolicyRule *rule_out,
+      SessionStateUpdateCriteria& update_criteria);
+
   /**
    * Remove a currently active static rule to mark it as deactivated.
    *
@@ -282,9 +286,6 @@ class SessionState {
   bool deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
-  bool remove_gy_dynamic_rule(
-      const std::string& rule_id, PolicyRule *rule_out,
-      SessionStateUpdateCriteria& update_criteria);
 
   bool deactivate_scheduled_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
@@ -367,7 +368,10 @@ class SessionState {
 
   EventTriggerStatus get_event_triggers() {return pending_event_triggers_;}
 
-  bool is_credit_state_redirected(const CreditKey &charging_key) const;
+  bool is_credit_in_final_unit_state(const CreditKey &charging_key) const;
+
+  std::vector<std::string> get_final_action_restrict_rules(
+      const CreditKey &charging_key) const;
 
   // Monitors
   bool receive_monitor(const UsageMonitoringUpdateResponse &update,

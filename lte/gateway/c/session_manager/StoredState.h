@@ -40,6 +40,7 @@ struct SessionConfig {
 struct FinalActionInfo {
   ChargingCredit_FinalAction final_action;
   RedirectServer redirect_server;
+  std::vector<std::string> restrict_rules;
 };
 
 enum EventTriggerState {

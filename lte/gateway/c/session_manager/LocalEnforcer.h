@@ -228,9 +228,11 @@ class LocalEnforcer {
   static uint32_t BEARER_CREATION_DELAY_ON_SESSION_INIT;
 
  private:
-  struct RedirectInstallInfo {
+  struct FinalActionInstallInfo {
     std::string imsi;
     std::string session_id;
+    ServiceActionType action_type;
+    std::vector<std::string> restrict_rules;
     magma::lte::RedirectServer redirect_server;
   };
   std::shared_ptr<SessionReporter> reporter_;
@@ -518,17 +520,36 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * Install flow for redirection through pipelined
+   * Install final action flows through pipelined
    */
-  void start_redirect_flow_install(
-      SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
+  void start_final_unit_action_flows_install(
+      SessionMap& session_map, const FinalActionInstallInfo info,
       SessionUpdate& session_update);
 
-  void complete_redirect_flow_install(
+  void complete_final_unit_action_flows_install(
       Status status, DirectoryField resp,
-      const RedirectInstallInfo redirect_info);
+      const FinalActionInstallInfo info);
 
-  PolicyRule create_redirect_rule(const RedirectInstallInfo& info);
+  /**
+   * Remove final action flows through pipelined
+   */
+  void cancelling_final_unit_action(
+      const std::unique_ptr<SessionState>& session,
+      const std::vector<std::string> &restrict_rules,
+      SessionStateUpdateCriteria& uc);
+
+  /**
+   * Create redirection rule
+   */
+  PolicyRule create_redirect_rule(const FinalActionInstallInfo& info);
+
+  /**
+   * Populate FinalActionInstallInfo structure with all info
+   * needed to complete final action flows installation.
+   */
+  void populate_final_action_install_info(
+      FinalActionInstallInfo &info,
+      const std::unique_ptr<ServiceAction>& action);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 

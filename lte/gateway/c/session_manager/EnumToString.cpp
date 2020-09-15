@@ -145,4 +145,21 @@ std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state) {
       return "INVALID";
   }
 }
+
+std::string service_action_type_to_str(ServiceActionType action) {
+  switch (action) {
+    case CONTINUE_SERVICE:
+      return "CONTINUE_SERVICE";
+    case TERMINATE_SERVICE:
+      return "TERMINATE_SERVICE";
+    case ACTIVATE_SERVICE:
+      return "ACTIVATE_SERVICE";
+    case REDIRECT:
+      return "REDIRECT";
+    case RESTRICT_ACCESS:
+      return "RESTRICT_ACCESS";
+    default:
+      return "INVALID ACTION TYPE";
+  }
+}
 }  // namespace magma

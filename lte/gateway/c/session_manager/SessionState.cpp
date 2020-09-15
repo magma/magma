@@ -95,6 +95,7 @@ StoredSessionState SessionState::marshal() {
   std::vector<PolicyRule> scheduled_dynamic_rules;
   scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
   marshaled.scheduled_dynamic_rules = std::move(scheduled_dynamic_rules);
+
   for (auto& it : rule_lifetimes_) {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
@@ -1027,8 +1028,17 @@ static FinalActionInfo get_final_action_info(
   FinalActionInfo final_action_info;
   if (credit.is_final()) {
     final_action_info.final_action = credit.final_action();
-    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-      final_action_info.redirect_server = credit.redirect_server();
+    switch (final_action_info.final_action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        final_action_info.redirect_server = credit.redirect_server();
+        break;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        for (auto rule : credit.restrict_rules()) {
+          final_action_info.restrict_rules.push_back(rule);
+        }
+        break;
+      default: // do nothing;
+        break;
     }
   }
   return final_action_info;
@@ -1271,15 +1281,25 @@ void SessionState::get_charging_updates(
       } break;
       case REDIRECT:
         if (grant->service_state == SERVICE_REDIRECTED) {
-          MLOG(MDEBUG) << "Redirection already activated.";
+          MLOG(MDEBUG) << "Redirection already activated for " << session_id_ ;
           continue;
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
+      case RESTRICT_ACCESS: {
+        if (grant->service_state == SERVICE_RESTRICTED) {
+          MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
+          continue;
+        }
+        auto restrict_rules = action->get_mutable_restrict_rules();
+        grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
+        for (auto &rule : grant->final_action_info.restrict_rules) {
+          restrict_rules->push_back(rule);
+        }
+      }
       case ACTIVATE_SERVICE:
         action->set_ambr(config_.get_apn_ambr());
       case TERMINATE_SERVICE:
-      case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " action type " << action_type;
         action->set_credit_key(key);
@@ -1291,6 +1311,10 @@ void SessionState::get_charging_updates(
         dynamic_rules_.get_rule_definitions_for_charging_key(
             key, *action->get_mutable_rule_definitions());
         actions_out->push_back(std::move(action));
+        break;
+      default:
+        MLOG(MWARNING) << "Unexpected action type " << action_type
+                       << " for " << session_id_;
         break;
     }
   }
@@ -1434,7 +1458,6 @@ bool SessionState::init_new_monitor(
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
   auto _ = SessionCreditUpdateCriteria{};
-  FinalActionInfo final_action_info;
   auto gsu = update.credit().granted_units();
   monitor->credit.receive_credit(gsu, NULL);
 
@@ -1594,13 +1617,25 @@ void SessionState::set_revalidation_time(
   update_criteria.revalidation_time = time;
 }
 
-bool SessionState::is_credit_state_redirected(
+bool SessionState::is_credit_in_final_unit_state(
     const CreditKey& charging_key) const {
   auto it = credit_map_.find(charging_key);
   if (it == credit_map_.end()) {
     return false;
   }
-  return it->second->service_state == SERVICE_REDIRECTED;
+  return (it->second->service_state == SERVICE_REDIRECTED ||
+          it->second->service_state == SERVICE_RESTRICTED);
+}
+
+std::vector<std::string> SessionState::get_final_action_restrict_rules(
+    const CreditKey& charging_key) const {
+  std::vector<std::string> restrict_rules;
+  auto it = credit_map_.find(charging_key);
+  if (it != credit_map_.end()) {
+    return restrict_rules;
+  }
+  restrict_rules = it->second->final_action_info.restrict_rules;
+  return restrict_rules;
 }
 
 // QoS/Bearer Management
