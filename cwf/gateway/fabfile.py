@@ -48,7 +48,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
                gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
                transfer_images=False, destroy_vm=False, no_build=False,
                tests_to_run="all", skip_unit_tests=False, test_re=None,
-               run_tests=True):
+               count="1", run_tests=True):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -141,7 +141,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
               "You can now run the tests manually from cwag_test")
         sys.exit(0)
 
-    execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
+    execute(_run_integ_tests, test_host, trf_host, tests_to_run, count, test_re)
 
     # If we got here means everything work well!!
     if not test_host and not trf_host:
@@ -368,7 +368,7 @@ def _add_docker_host_remote_network_envvar():
         "echo 'DOCKER_API_VERSION=1.40' >> /etc/environment" % (CWAG_IP, CWAG_IP))
 
 
-def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
+def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests, count,
                      test_re=None):
     """ Run the integration tests """
     # add docker host environment as well
@@ -382,6 +382,7 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
     # QOS take a while to run. Increasing the timeout to 20m
     go_test_cmd = "gotestsum --format=standard-verbose --"
     go_test_cmd += " -test.short -timeout 20m" # go test args
+    go_test_cmd += " -count " + count
     go_test_cmd += " -tags=" + tests_to_run.value
     if test_re:
         go_test_cmd += " -run=" + test_re

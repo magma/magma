@@ -171,7 +171,7 @@ func (manager *RuleManager) RemoveInstalledRules() error {
 // AddUsageMonitor constructs a usage monitor according to the parameters and
 // inserts it into PCRF
 func (manager *RuleManager) AddUsageMonitor(imsi, monitoringKey string, volume, bytesPerGrant uint64) error {
-	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s\n", imsi)
+	fmt.Printf("************************* Adding PCRF Usage Monitor for UE with IMSI: %s with TotalGrant: %v, Incremental grant %v\n", imsi, volume, bytesPerGrant)
 	usageMonitor := makeUsageMonitor(imsi, monitoringKey, volume, bytesPerGrant)
 	err := addPCRFUsageMonitorsPerInstance(manager.pcrfInstance, usageMonitor)
 	if err != nil {

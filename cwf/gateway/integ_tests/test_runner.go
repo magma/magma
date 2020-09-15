@@ -66,6 +66,7 @@ const (
 	KiloBytes                = 1024
 	MegaBytes                = 1024 * KiloBytes
 	Buffer                   = 100 * KiloBytes
+	BufferMultiplier         = 1.2 // 20% error
 	RevalidationTimeoutEvent = 17
 
 	ReAuthMaxUsageBytes   = 5 * MegaBytes
@@ -276,7 +277,7 @@ func (tr *TestRunner) GetPolicyUsage() (RecordByIMSI, error) {
 		return recordsBySubID, err
 	}
 	for _, record := range table.Records {
-		fmt.Printf("Record %v\n", record)
+		fmt.Printf("Record %vtotal:%v\n", record, record.BytesTx+record.BytesRx)
 		_, exists := recordsBySubID[record.Sid]
 		if !exists {
 			recordsBySubID[record.Sid] = map[string]*lteprotos.RuleRecord{}

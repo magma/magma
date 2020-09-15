@@ -15,6 +15,7 @@ package integration
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"time"
 
@@ -104,10 +105,34 @@ func (tr *TestRunner) DisconnectAndAssertSuccess(imsi string) {
 
 // Query policy usage records from pipelined, and assert that there is no entry
 // for the IMSI. This means no policy flows are installed for the IMSI.
-func (tr *TestRunner) AssertPolicyEnforcementRecordIsNil(imsi string) {
+func (tr *TestRunner) AssertEnforcementRecordIsEmptyForSub(imsi string) {
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(tr.t, err)
 	assert.Empty(tr.t, recordsBySubID[prependIMSIPrefix(imsi)])
+}
+
+func (tr *TestRunner) AssertPolicyEnforcementRecordIsNotNil(recordsBySubID RecordByIMSI, imsi, ruleID string) {
+	record := recordsBySubID[prependIMSIPrefix(imsi)][ruleID]
+	assert.NotNil(tr.t, record, fmt.Sprintf("No enforcement record for %s %s", imsi, ruleID))
+}
+
+func (tr *TestRunner) AssertPolicyEnforcementRecordIsNil(recordsBySubID RecordByIMSI, imsi, ruleID string) {
+	record := recordsBySubID[prependIMSIPrefix(imsi)][ruleID]
+	assert.Nil(tr.t, record, fmt.Sprintf("Unexpected enforcement record exists for %s %s", imsi, ruleID))
+}
+
+// Assert that the total usage for IMSI, RuleID is between min and max
+func (tr *TestRunner) AssertPolicyEnforcementRecordTotalUsage(imsi, ruleID string, min, max uint64) {
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(tr.t, err)
+	tr.AssertPolicyEnforcementRecordIsNotNil(recordsBySubID, imsi, ruleID)
+	record := recordsBySubID[prependIMSIPrefix(imsi)][ruleID]
+	if record != nil {
+		totalUsage := record.BytesTx + record.BytesRx
+		maxWithErrorMultiplier := uint64(math.Round(float64(max) * float64(BufferMultiplier)))
+		assert.True(tr.t, totalUsage > min, fmt.Sprintf("%s %s passed less than expected amount %v", imsi, ruleID, min))
+		assert.True(tr.t, totalUsage <= maxWithErrorMultiplier, fmt.Sprintf("%s %s passed more than expected amount: %v, actual: %v", imsi, ruleID, maxWithErrorMultiplier, totalUsage))
+	}
 }
 
 // Query assertion result from MockPCRF and assert all expectations were met.

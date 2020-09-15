@@ -509,7 +509,7 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	// Assert that a CCR-I/U/T was sent to OCS
 	tr.AssertAllGyExpectationsMetNoError()
 
-	tr.AssertPolicyEnforcementRecordIsNil(ue.GetImsi())
+	tr.AssertEnforcementRecordIsEmptyForSub(ue.GetImsi())
 }
 
 // This test verifies the abort session request

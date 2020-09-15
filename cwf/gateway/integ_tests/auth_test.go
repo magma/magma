@@ -111,7 +111,7 @@ func TestAuthenticateFail(t *testing.T) {
 	tr.AssertAllGxExpectationsMetNoError()
 
 	// Since CCR/A-I failed, pipelined should see no rules installed
-	tr.AssertPolicyEnforcementRecordIsNil(imsi)
+	tr.AssertEnforcementRecordIsEmptyForSub(imsi)
 
 	// ----- Gx CCR-I success && Gy CCR-I fail -> Authentication fails -----
 	imsi = ues[1].GetImsi()
@@ -133,7 +133,7 @@ func TestAuthenticateFail(t *testing.T) {
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// Since CCR/A-I failed, pipelined should see no rules installed
-	tr.AssertPolicyEnforcementRecordIsNil(imsi)
+	tr.AssertEnforcementRecordIsEmptyForSub(imsi)
 }
 
 // - Set an expectation for a CCR-I to be sent up to PCRF, to which it will
