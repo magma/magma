@@ -14,11 +14,15 @@
  * @format
  */
 
-import {gatewayTemplate, networkTemplate, variableTemplate} from './Dashboards';
+import {
+  gatewayTemplate,
+  getNetworkTemplate,
+  variableTemplate,
+} from './Dashboards';
 import type {GrafanaDBData} from './Dashboards';
 
 const msisdnTemplate = variableTemplate({
-  labelName: 'msisdn',
+  name: 'msisdn',
   query: `label_values(msisdn)`,
   regex: `/.+/`,
   sort: 'num-asc',
@@ -26,7 +30,7 @@ const msisdnTemplate = variableTemplate({
 });
 
 export const apnTemplate = variableTemplate({
-  labelName: 'apn',
+  name: 'apn',
   query: `label_values({networkID=~"$networkID",apn=~".+"},apn)`,
   regex: `/.+/`,
   sort: 'alpha-insensitive-asc',
@@ -116,892 +120,904 @@ export const CWFSubscriberDBData: GrafanaDBData = {
   ],
 };
 
-export const CWFAccessPointDBData: GrafanaDBData = {
-  title: 'CWF - Access Points',
-  description: dbDescription,
-  templates: [networkTemplate, apnTemplate],
-  rows: [
-    {
-      title: 'Message Stats',
-      panels: [
-        {
-          title: 'Accounting Stops',
-          targets: [
-            {
-              expr: 'sum(accounting_stop{apn=~"$apn"}) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          description: 'Radius accounting stops received from AP/WLC',
-        },
-        {
-          title: 'Authorization',
-          targets: [
-            {
-              expr: 'sum(eap_auth{apn=~"$apn"}) by (code, apn)',
-              legendFormat: '{{apn}}-{{code}}',
-            },
-          ],
-          description:
-            'EAP Authorization responses, partitioned by response type (Failure, Success) where request is the sum of success and failures',
-        },
-      ],
-    },
-    {
-      title: 'Traffic',
-      panels: [
-        {
-          title: 'Traffic In',
-          targets: [
-            {
-              expr:
-                'sum(ue_reported_usage{apn=~"$apn", direction="down"}) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          unit: 'decbytes',
-          description: 'Inbound data measured in bytes.',
-        },
-        {
-          title: 'Traffic Out',
-          targets: [
-            {
-              expr:
-                'sum(ue_reported_usage{apn=~"$apn", direction="up"}) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          unit: 'decbytes',
-          description: 'Outbound data measured in bytes.',
-        },
-        {
-          title: 'Throughput In',
-          targets: [
-            {
-              expr:
-                'avg(rate(ue_reported_usage{apn=~"$apn", direction="down"}[5m])) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          unit: 'Bps',
-          description: 'Inbound data rate measured in bytes/second.',
-        },
-        {
-          title: 'Throughput Out',
-          targets: [
-            {
-              expr:
-                'avg(rate(ue_reported_usage{apn=~"$apn", direction="up"}[5m])) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          unit: 'Bps',
-          description: 'Outbound data rate measured in bytes/second.',
-        },
-      ],
-    },
-    {
-      title: 'Session',
-      panels: [
-        {
-          title: 'Active Sessions',
-          targets: [
-            {
-              expr: 'sum(active_sessions{apn=~"$apn"}) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          description: 'Number of active user sessions in the network',
-        },
-        {
-          title: 'Session Stop',
-          targets: [
-            {
-              expr: 'sum(session_stop{apn=~"$apn"}) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          description: 'Number of sessions removed for any reason',
-        },
-        {
-          title: 'Session Timeout',
-          targets: [
-            {
-              expr: 'sum(session_timeouts{apn=~"$apn"}) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          description:
-            'Subset of session_stop. Count of any session that times out from aaa server',
-        },
-        {
-          title: 'Session Terminate',
-          targets: [
-            {
-              expr: 'sum(session_manager_terminate{apn=~"$apn"}) by (apn)',
-              legendFormat: '{{apn}}',
-            },
-          ],
-          description: 'Session terminations initiated by sessiond',
-        },
-      ],
-    },
-  ],
+export const CWFAccessPointDBData = (
+  networkIDs: Array<string>,
+): GrafanaDBData => {
+  return {
+    title: 'CWF - Access Points',
+    description: dbDescription,
+    templates: [getNetworkTemplate(networkIDs), apnTemplate],
+    rows: [
+      {
+        title: 'Message Stats',
+        panels: [
+          {
+            title: 'Accounting Stops',
+            targets: [
+              {
+                expr: 'sum(accounting_stop{apn=~"$apn"}) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            description: 'Radius accounting stops received from AP/WLC',
+          },
+          {
+            title: 'Authorization',
+            targets: [
+              {
+                expr: 'sum(eap_auth{apn=~"$apn"}) by (code, apn)',
+                legendFormat: '{{apn}}-{{code}}',
+              },
+            ],
+            description:
+              'EAP Authorization responses, partitioned by response type (Failure, Success) where request is the sum of success and failures',
+          },
+        ],
+      },
+      {
+        title: 'Traffic',
+        panels: [
+          {
+            title: 'Traffic In',
+            targets: [
+              {
+                expr:
+                  'sum(ue_reported_usage{apn=~"$apn", direction="down"}) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            unit: 'decbytes',
+            description: 'Inbound data measured in bytes.',
+          },
+          {
+            title: 'Traffic Out',
+            targets: [
+              {
+                expr:
+                  'sum(ue_reported_usage{apn=~"$apn", direction="up"}) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            unit: 'decbytes',
+            description: 'Outbound data measured in bytes.',
+          },
+          {
+            title: 'Throughput In',
+            targets: [
+              {
+                expr:
+                  'avg(rate(ue_reported_usage{apn=~"$apn", direction="down"}[5m])) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            unit: 'Bps',
+            description: 'Inbound data rate measured in bytes/second.',
+          },
+          {
+            title: 'Throughput Out',
+            targets: [
+              {
+                expr:
+                  'avg(rate(ue_reported_usage{apn=~"$apn", direction="up"}[5m])) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            unit: 'Bps',
+            description: 'Outbound data rate measured in bytes/second.',
+          },
+        ],
+      },
+      {
+        title: 'Session',
+        panels: [
+          {
+            title: 'Active Sessions',
+            targets: [
+              {
+                expr: 'sum(active_sessions{apn=~"$apn"}) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            description: 'Number of active user sessions in the network',
+          },
+          {
+            title: 'Session Stop',
+            targets: [
+              {
+                expr: 'sum(session_stop{apn=~"$apn"}) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            description: 'Number of sessions removed for any reason',
+          },
+          {
+            title: 'Session Timeout',
+            targets: [
+              {
+                expr: 'sum(session_timeouts{apn=~"$apn"}) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            description:
+              'Subset of session_stop. Count of any session that times out from aaa server',
+          },
+          {
+            title: 'Session Terminate',
+            targets: [
+              {
+                expr: 'sum(session_manager_terminate{apn=~"$apn"}) by (apn)',
+                legendFormat: '{{apn}}',
+              },
+            ],
+            description: 'Session terminations initiated by sessiond',
+          },
+        ],
+      },
+    ],
+  };
 };
 
-export const CWFNetworkDBData: GrafanaDBData = {
-  title: 'CWF - Networks',
-  description: dbDescription,
-  templates: [networkTemplate],
-  rows: [
-    {
-      title: 'Message Stats',
-      panels: [
-        {
-          title: 'Authorization',
-          targets: [
-            {
-              expr:
-                'sum(eap_auth{networkID=~"$networkID"}) by (code, networkID)',
-              legendFormat: '{{networkID}}-{{code}}',
-            },
-          ],
-          description:
-            'EAP Authorization responses, partitioned by response type (Failure, Success) where request is the sum of success and failures',
-        },
-        {
-          title: 'Accounting Stops',
-          targets: [
-            {
-              expr:
-                'sum(accounting_stop{networkID=~"$networkID"}) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Radius accounting stops received from AP/WLC',
-        },
-      ],
-    },
-    {
-      title: 'Traffic',
-      panels: [
-        {
-          title: 'Traffic In',
-          targets: [
-            {
-              expr:
-                'sum(ue_reported_usage{networkID=~"$networkID", direction="down"}) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          unit: 'decbytes',
-          description: 'Inbound data measured in bytes.',
-        },
-        {
-          title: 'Traffic Out',
-          targets: [
-            {
-              expr:
-                'sum(ue_reported_usage{networkID=~"$networkID", direction="up"}) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          unit: 'decbytes',
-          description: 'Outbound data measured in bytes.',
-        },
-        {
-          title: 'Throughput In',
-          targets: [
-            {
-              expr:
-                'avg(rate(ue_reported_usage{networkID=~"$networkID", direction="down"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          unit: 'Bps',
-          description: 'Inbound data rate measured in bytes/second.',
-        },
-        {
-          title: 'Throughput Out',
-          targets: [
-            {
-              expr:
-                'avg(rate(ue_reported_usage{networkID=~"$networkID", direction="up"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          unit: 'Bps',
-          description: 'Outbound data rate measured in bytes/second.',
-        },
-      ],
-    },
-    {
-      title: 'Latency',
-      panels: [
-        {
-          title: 'Session Create Latency',
-          targets: [
-            {
-              expr:
-                'avg(create_session_lat{networkID=~"$networkID"}) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          unit: 's',
-          description:
-            'Average time taken to create a session over the network.',
-        },
-      ],
-    },
-    {
-      title: 'Session',
-      panels: [
-        {
-          title: 'Active Sessions',
-          targets: [
-            {
-              expr:
-                'sum(active_sessions{networkID=~"$networkID"}) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Number of active user sessions in the network',
-        },
-        {
-          title: 'Session Stop',
-          targets: [
-            {
-              expr: 'sum(session_stop{networkID=~"$networkID"}) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Number of sessions removed for any reason',
-        },
-        {
-          title: 'Session Timeouts',
-          targets: [
-            {
-              expr:
-                'sum(session_timeouts{networkID=~"$networkID"}) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Subset of session_stop. Count of any session that times out from aaa server',
-        },
-        {
-          title: 'Session Terminate',
-          targets: [
-            {
-              expr:
-                'sum(session_manager_terminate{networkID=~"$networkID"}) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Session terminations initiated by sessiond',
-        },
-      ],
-    },
-    {
-      title: 'Diameter Result Codes',
-      panels: [
-        {
-          title: 'Gx Result Codes (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(gx_result_codes{networkID=~"$networkID"}[5m])) by (networkID, code)',
-              legendFormat: '{{networkID}} - {{code}}',
-            },
-          ],
-          description: 'Rate of Gx responses segmented by code',
-        },
-        {
-          title: 'Gy Result Codes (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(gy_result_codes{networkID=~"$networkID"}[5m])) by (networkID, code)',
-              legendFormat: '{{networkID}} - {{code}}',
-            },
-          ],
-          description: 'Rate of Gy responses segmented by code',
-        },
-        {
-          title: 'SWX Result Codes (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(swx_result_codes{networkID=~"$networkID"}[5m])) by (networkID, code)',
-              legendFormat: '{{networkID}} - {{code}}',
-            },
-          ],
-          description: 'Rate of SWx responses segmented by diameter base code',
-        },
-        {
-          title: 'SWX Experimental Result Codes (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(swx_experimental_result_codes{networkID=~"$networkID"}[5m])) by (networkID, code)',
-              legendFormat: '{{networkID}} - {{code}}',
-            },
-          ],
-          description: 'Rate of SWx responses segmented by SWx-specific code',
-        },
-      ],
-    },
-    {
-      title: 'Diameter Timeouts',
-      panels: [
-        {
-          title: 'Gx Timeouts (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(gx_timeouts_total{networkID=~"$networkID"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of Gx requests that did not receive a response (and thus timed out)',
-        },
-        {
-          title: 'Gy Timeouts (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(gy_timeouts_total{networkID=~"$networkID"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of Gy requests that did not receive a response (and thus timed out)',
-        },
-        {
-          title: 'SWX Timeouts (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(swx_timeouts_total{networkID=~"$networkID"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of SWx requests that did not receive a response (and thus timed out)',
-        },
-      ],
-    },
-    {
-      title: 'OCS CCR Requests',
-      panels: [
-        {
-          title: 'Initializations (Rate)',
-          targets: [
-            {
-              expr: 'sum(rate(ocs_ccr_init_requests_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of Gy CCR-I requests',
-        },
-        {
-          title: 'Terminations (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_terminate_requests_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of Gy CCR-T requests',
-        },
-        {
-          title: 'Updates (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_update_requests_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of Gy CCR-U requests',
-        },
-      ],
-    },
-    {
-      title: 'OCS Send Failures',
-      panels: [
-        {
-          title: 'Initialization Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_init_send_failures_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of Gy CCR-I messages that were unable to be sent due to diameter connection errors',
-        },
-        {
-          title: 'Temination Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_terminate_send_failures_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of Gy CCR-T messages that were unable to be sent due to diameter connection errors',
-        },
-        {
-          title: 'Update Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_update_send_failures_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of Gy CCR-U messages that were unable to be sent due to diameter connection errors',
-        },
-      ],
-    },
-    {
-      title: 'PCRF CCR Requests',
-      panels: [
-        {
-          title: 'Initializations (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_init_requests_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of Gx CCR-I requests',
-        },
-        {
-          title: 'Teminations (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_terminate_requests_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of Gx CCR-T requests',
-        },
-        {
-          title: 'Updates (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_update_requests_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of Gx CCR-U requests',
-        },
-      ],
-    },
-    {
-      title: 'PCRF CCR Send Failures',
-      panels: [
-        {
-          title: 'Initialization Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_init_send_failures_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of Gx CCR-I messages that were unable to be sent due to diameter connection errors',
-        },
-        {
-          title: 'Temination Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_terminate_send_failures_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of Gx CCR-T messages that were unable to be sent due to diameter connection errors',
-        },
-        {
-          title: 'Update Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_update_send_failures_total[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description:
-            'Rate of Gx CCR-U messages that were unable to be sent due to diameter connection errors',
-        },
-      ],
-    },
-    {
-      title: 'HSS Requests/Failures',
-      panels: [
-        {
-          title: 'MAR Requests (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(mar_requests_total{networkID=~"$networkID"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of SWx MAR requests',
-        },
-        {
-          title: 'SAR Requests (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(sar_requests_total{networkID=~"$networkID"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of SWx SAR requests',
-        },
-        {
-          title: 'MAR Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(mar_send_failures_total{networkID=~"$networkID"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of SWx MAR request failures',
-        },
-        {
-          title: 'SAR Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(sar_send_failures_total{networkID=~"$networkID"}[5m])) by (networkID)',
-              legendFormat: '{{networkID}}',
-            },
-          ],
-          description: 'Rate of SWx SAR request failures',
-        },
-      ],
-    },
-  ],
+export const CWFNetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
+  return {
+    title: 'CWF - Networks',
+    description: dbDescription,
+    templates: [getNetworkTemplate(networkIDs)],
+    rows: [
+      {
+        title: 'Message Stats',
+        panels: [
+          {
+            title: 'Authorization',
+            targets: [
+              {
+                expr:
+                  'sum(eap_auth{networkID=~"$networkID"}) by (code, networkID)',
+                legendFormat: '{{networkID}}-{{code}}',
+              },
+            ],
+            description:
+              'EAP Authorization responses, partitioned by response type (Failure, Success) where request is the sum of success and failures',
+          },
+          {
+            title: 'Accounting Stops',
+            targets: [
+              {
+                expr:
+                  'sum(accounting_stop{networkID=~"$networkID"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Radius accounting stops received from AP/WLC',
+          },
+        ],
+      },
+      {
+        title: 'Traffic',
+        panels: [
+          {
+            title: 'Traffic In',
+            targets: [
+              {
+                expr:
+                  'sum(ue_reported_usage{networkID=~"$networkID", direction="down"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            unit: 'decbytes',
+            description: 'Inbound data measured in bytes.',
+          },
+          {
+            title: 'Traffic Out',
+            targets: [
+              {
+                expr:
+                  'sum(ue_reported_usage{networkID=~"$networkID", direction="up"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            unit: 'decbytes',
+            description: 'Outbound data measured in bytes.',
+          },
+          {
+            title: 'Throughput In',
+            targets: [
+              {
+                expr:
+                  'avg(rate(ue_reported_usage{networkID=~"$networkID", direction="down"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            unit: 'Bps',
+            description: 'Inbound data rate measured in bytes/second.',
+          },
+          {
+            title: 'Throughput Out',
+            targets: [
+              {
+                expr:
+                  'avg(rate(ue_reported_usage{networkID=~"$networkID", direction="up"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            unit: 'Bps',
+            description: 'Outbound data rate measured in bytes/second.',
+          },
+        ],
+      },
+      {
+        title: 'Latency',
+        panels: [
+          {
+            title: 'Session Create Latency',
+            targets: [
+              {
+                expr:
+                  'avg(create_session_lat{networkID=~"$networkID"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            unit: 's',
+            description:
+              'Average time taken to create a session over the network.',
+          },
+        ],
+      },
+      {
+        title: 'Session',
+        panels: [
+          {
+            title: 'Active Sessions',
+            targets: [
+              {
+                expr:
+                  'sum(active_sessions{networkID=~"$networkID"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Number of active user sessions in the network',
+          },
+          {
+            title: 'Session Stop',
+            targets: [
+              {
+                expr:
+                  'sum(session_stop{networkID=~"$networkID"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Number of sessions removed for any reason',
+          },
+          {
+            title: 'Session Timeouts',
+            targets: [
+              {
+                expr:
+                  'sum(session_timeouts{networkID=~"$networkID"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Subset of session_stop. Count of any session that times out from aaa server',
+          },
+          {
+            title: 'Session Terminate',
+            targets: [
+              {
+                expr:
+                  'sum(session_manager_terminate{networkID=~"$networkID"}) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Session terminations initiated by sessiond',
+          },
+        ],
+      },
+      {
+        title: 'Diameter Result Codes',
+        panels: [
+          {
+            title: 'Gx Result Codes (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(gx_result_codes{networkID=~"$networkID"}[5m])) by (networkID, code)',
+                legendFormat: '{{networkID}} - {{code}}',
+              },
+            ],
+            description: 'Rate of Gx responses segmented by code',
+          },
+          {
+            title: 'Gy Result Codes (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(gy_result_codes{networkID=~"$networkID"}[5m])) by (networkID, code)',
+                legendFormat: '{{networkID}} - {{code}}',
+              },
+            ],
+            description: 'Rate of Gy responses segmented by code',
+          },
+          {
+            title: 'SWX Result Codes (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(swx_result_codes{networkID=~"$networkID"}[5m])) by (networkID, code)',
+                legendFormat: '{{networkID}} - {{code}}',
+              },
+            ],
+            description:
+              'Rate of SWx responses segmented by diameter base code',
+          },
+          {
+            title: 'SWX Experimental Result Codes (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(swx_experimental_result_codes{networkID=~"$networkID"}[5m])) by (networkID, code)',
+                legendFormat: '{{networkID}} - {{code}}',
+              },
+            ],
+            description: 'Rate of SWx responses segmented by SWx-specific code',
+          },
+        ],
+      },
+      {
+        title: 'Diameter Timeouts',
+        panels: [
+          {
+            title: 'Gx Timeouts (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(gx_timeouts_total{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of Gx requests that did not receive a response (and thus timed out)',
+          },
+          {
+            title: 'Gy Timeouts (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(gy_timeouts_total{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of Gy requests that did not receive a response (and thus timed out)',
+          },
+          {
+            title: 'SWX Timeouts (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(swx_timeouts_total{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of SWx requests that did not receive a response (and thus timed out)',
+          },
+        ],
+      },
+      {
+        title: 'OCS CCR Requests',
+        panels: [
+          {
+            title: 'Initializations (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_init_requests_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of Gy CCR-I requests',
+          },
+          {
+            title: 'Terminations (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_terminate_requests_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of Gy CCR-T requests',
+          },
+          {
+            title: 'Updates (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_update_requests_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of Gy CCR-U requests',
+          },
+        ],
+      },
+      {
+        title: 'OCS Send Failures',
+        panels: [
+          {
+            title: 'Initialization Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_init_send_failures_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of Gy CCR-I messages that were unable to be sent due to diameter connection errors',
+          },
+          {
+            title: 'Temination Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_terminate_send_failures_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of Gy CCR-T messages that were unable to be sent due to diameter connection errors',
+          },
+          {
+            title: 'Update Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_update_send_failures_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of Gy CCR-U messages that were unable to be sent due to diameter connection errors',
+          },
+        ],
+      },
+      {
+        title: 'PCRF CCR Requests',
+        panels: [
+          {
+            title: 'Initializations (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_init_requests_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of Gx CCR-I requests',
+          },
+          {
+            title: 'Teminations (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_terminate_requests_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of Gx CCR-T requests',
+          },
+          {
+            title: 'Updates (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_update_requests_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of Gx CCR-U requests',
+          },
+        ],
+      },
+      {
+        title: 'PCRF CCR Send Failures',
+        panels: [
+          {
+            title: 'Initialization Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_init_send_failures_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of Gx CCR-I messages that were unable to be sent due to diameter connection errors',
+          },
+          {
+            title: 'Temination Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_terminate_send_failures_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of Gx CCR-T messages that were unable to be sent due to diameter connection errors',
+          },
+          {
+            title: 'Update Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_update_send_failures_total[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description:
+              'Rate of Gx CCR-U messages that were unable to be sent due to diameter connection errors',
+          },
+        ],
+      },
+      {
+        title: 'HSS Requests/Failures',
+        panels: [
+          {
+            title: 'MAR Requests (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(mar_requests_total{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of SWx MAR requests',
+          },
+          {
+            title: 'SAR Requests (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(sar_requests_total{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of SWx SAR requests',
+          },
+          {
+            title: 'MAR Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(mar_send_failures_total{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of SWx MAR request failures',
+          },
+          {
+            title: 'SAR Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(sar_send_failures_total{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            description: 'Rate of SWx SAR request failures',
+          },
+        ],
+      },
+    ],
+  };
 };
 
-export const CWFGatewayDBData: GrafanaDBData = {
-  title: 'CWF - Gateways',
-  description: dbDescription,
-  templates: [networkTemplate, gatewayTemplate],
-  rows: [
-    {
-      title: 'Diameter Result Codes',
-      panels: [
-        {
-          title: 'Gx Result Codes (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(gx_result_codes{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID, code)',
-              legendFormat: '{{gatewayID}} - {{code}}',
-            },
-          ],
-          description: 'Rate of Gx responses segmented by code',
-        },
-        {
-          title: 'Gy Result Codes (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(gy_result_codes{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID, code)',
-              legendFormat: '{{gatewayID}} - {{code}}',
-            },
-          ],
-          description: 'Rate of Gy responses segmented by code',
-        },
-        {
-          title: 'SWX Result Codes (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(swx_result_codes{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID, code)',
-              legendFormat: '{{gatewayID}} - {{code}}',
-            },
-          ],
-          description: 'Rate of SWx responses segmented by diameter base code',
-        },
-        {
-          title: 'SWX Experimental Result Codes (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(swx_experimental_result_codes{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID, code)',
-              legendFormat: '{{gatewayID}} - {{code}}',
-            },
-          ],
-          description: 'Rate of SWx responses segmented by SWx-specific code',
-        },
-      ],
-    },
-    {
-      title: 'Diameter Timeouts',
-      panels: [
-        {
-          title: 'Gx Timeouts (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(gx_timeouts_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description:
-            'Rate of Gx requests that did not receive a response (and thus timed out)',
-        },
-        {
-          title: 'Gy Timeouts (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(gy_timeouts_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description:
-            'Rate of Gy requests that did not receive a response (and thus timed out)',
-        },
-        {
-          title: 'SWX Timeouts (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(swx_timeouts_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description:
-            'Rate of SWx requests that did not receive a response (and thus timed out)',
-        },
-      ],
-    },
-    {
-      title: 'OCS CCR Requests',
-      panels: [
-        {
-          title: 'Initializations (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_init_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of Gy CCR-I requests',
-        },
-        {
-          title: 'Terminations (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_terminate_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of Gy CCR-T requests',
-        },
-        {
-          title: 'Updates (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_update_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of Gy CCR-U requests',
-        },
-      ],
-    },
-    {
-      title: 'OCS Send Failures (Rate)',
-      panels: [
-        {
-          title: 'Initialization Failures',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_init_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description:
-            'Rate of Gy CCR-I messages that were unable to be sent due to diameter connection errors',
-        },
-        {
-          title: 'Termination Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_terminate_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description:
-            'Rate of Gy CCR-T messages that were unable to be sent due to diameter connection errors',
-        },
-        {
-          title: 'Update Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(ocs_ccr_update_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description:
-            'Rate of Gy CCR-U messages that were unable to be sent due to diameter connection errors',
-        },
-      ],
-    },
-    {
-      title: 'PCRF CCR Requests',
-      panels: [
-        {
-          title: 'Initializations (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_init_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of Gx CCR-I requests',
-        },
-        {
-          title: 'Terminations (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_terminate_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of Gx CCR-T requests',
-        },
-        {
-          title: 'Updates (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_update_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of Gx CCR-U requests',
-        },
-      ],
-    },
-    {
-      title: 'PCRF CCR Send Failures',
-      panels: [
-        {
-          title: 'Initialization Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_init_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description:
-            'Rate of Gx CCR-I messages that were unable to be sent due to diameter connection errors',
-        },
-        {
-          title: 'Termination Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_terminate_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description:
-            'Rate of Gx CCR-T messages that were unable to be sent due to diameter connection errors',
-        },
-        {
-          title: 'Update Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(pcrf_ccr_update_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-        },
-      ],
-      description:
-        'Rate of Gx CCR-U messages that were unable to be sent due to diameter connection errors',
-    },
-    {
-      title: 'HSS Requests/Failures',
-      panels: [
-        {
-          title: 'MAR Requests (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(mar_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of SWx MAR requests',
-        },
-        {
-          title: 'SAR Requests (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(sar_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of SWx SAR requests',
-        },
-        {
-          title: 'MAR Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(mar_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of SWx MAR request failures',
-        },
-        {
-          title: 'SAR Failures (Rate)',
-          targets: [
-            {
-              expr:
-                'sum(rate(sar_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
-              legendFormat: '{{gatewayID}}',
-            },
-          ],
-          description: 'Rate of SWx SAR request failures',
-        },
-      ],
-    },
-  ],
+export const CWFGatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
+  return {
+    title: 'CWF - Gateways',
+    description: dbDescription,
+    templates: [getNetworkTemplate(networkIDs), gatewayTemplate],
+    rows: [
+      {
+        title: 'Diameter Result Codes',
+        panels: [
+          {
+            title: 'Gx Result Codes (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(gx_result_codes{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID, code)',
+                legendFormat: '{{gatewayID}} - {{code}}',
+              },
+            ],
+            description: 'Rate of Gx responses segmented by code',
+          },
+          {
+            title: 'Gy Result Codes (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(gy_result_codes{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID, code)',
+                legendFormat: '{{gatewayID}} - {{code}}',
+              },
+            ],
+            description: 'Rate of Gy responses segmented by code',
+          },
+          {
+            title: 'SWX Result Codes (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(swx_result_codes{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID, code)',
+                legendFormat: '{{gatewayID}} - {{code}}',
+              },
+            ],
+            description:
+              'Rate of SWx responses segmented by diameter base code',
+          },
+          {
+            title: 'SWX Experimental Result Codes (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(swx_experimental_result_codes{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID, code)',
+                legendFormat: '{{gatewayID}} - {{code}}',
+              },
+            ],
+            description: 'Rate of SWx responses segmented by SWx-specific code',
+          },
+        ],
+      },
+      {
+        title: 'Diameter Timeouts',
+        panels: [
+          {
+            title: 'Gx Timeouts (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(gx_timeouts_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description:
+              'Rate of Gx requests that did not receive a response (and thus timed out)',
+          },
+          {
+            title: 'Gy Timeouts (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(gy_timeouts_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description:
+              'Rate of Gy requests that did not receive a response (and thus timed out)',
+          },
+          {
+            title: 'SWX Timeouts (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(swx_timeouts_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description:
+              'Rate of SWx requests that did not receive a response (and thus timed out)',
+          },
+        ],
+      },
+      {
+        title: 'OCS CCR Requests',
+        panels: [
+          {
+            title: 'Initializations (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_init_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of Gy CCR-I requests',
+          },
+          {
+            title: 'Terminations (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_terminate_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of Gy CCR-T requests',
+          },
+          {
+            title: 'Updates (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_update_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of Gy CCR-U requests',
+          },
+        ],
+      },
+      {
+        title: 'OCS Send Failures (Rate)',
+        panels: [
+          {
+            title: 'Initialization Failures',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_init_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description:
+              'Rate of Gy CCR-I messages that were unable to be sent due to diameter connection errors',
+          },
+          {
+            title: 'Termination Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_terminate_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description:
+              'Rate of Gy CCR-T messages that were unable to be sent due to diameter connection errors',
+          },
+          {
+            title: 'Update Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ocs_ccr_update_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description:
+              'Rate of Gy CCR-U messages that were unable to be sent due to diameter connection errors',
+          },
+        ],
+      },
+      {
+        title: 'PCRF CCR Requests',
+        panels: [
+          {
+            title: 'Initializations (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_init_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of Gx CCR-I requests',
+          },
+          {
+            title: 'Terminations (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_terminate_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of Gx CCR-T requests',
+          },
+          {
+            title: 'Updates (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_update_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of Gx CCR-U requests',
+          },
+        ],
+      },
+      {
+        title: 'PCRF CCR Send Failures',
+        panels: [
+          {
+            title: 'Initialization Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_init_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description:
+              'Rate of Gx CCR-I messages that were unable to be sent due to diameter connection errors',
+          },
+          {
+            title: 'Termination Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_terminate_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description:
+              'Rate of Gx CCR-T messages that were unable to be sent due to diameter connection errors',
+          },
+          {
+            title: 'Update Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(pcrf_ccr_update_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+          },
+        ],
+        description:
+          'Rate of Gx CCR-U messages that were unable to be sent due to diameter connection errors',
+      },
+      {
+        title: 'HSS Requests/Failures',
+        panels: [
+          {
+            title: 'MAR Requests (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(mar_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of SWx MAR requests',
+          },
+          {
+            title: 'SAR Requests (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(sar_requests_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of SWx SAR requests',
+          },
+          {
+            title: 'MAR Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(mar_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of SWx MAR request failures',
+          },
+          {
+            title: 'SAR Failures (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(sar_send_failures_total{networkID=~"$networkID", gatewayID=~"$gatewayID"}[5m])) by (gatewayID)',
+                legendFormat: '{{gatewayID}}',
+              },
+            ],
+            description: 'Rate of SWx SAR request failures',
+          },
+        ],
+      },
+    ],
+  };
 };

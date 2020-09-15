@@ -174,7 +174,8 @@ class EnforcementStatsTest(unittest.TestCase):
             PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
             PolicyRule(id='rx_match', priority=5, flow_list=flow_list2)
         ]
-        enf_stat_name = [imsi + '|tx_match', imsi + '|rx_match']
+        enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
+                         imsi + '|rx_match' + '|' + sub_ip]
         self.service_manager.session_rule_version_mapper.update_version(
             imsi, 'tx_match')
         self.service_manager.session_rule_version_mapper.update_version(
@@ -258,7 +259,7 @@ class EnforcementStatsTest(unittest.TestCase):
                 server_address="http://about.sha.ddih.org/"
             )
         )
-        stat_name = imsi + '|redir_test'
+        stat_name = imsi + '|redir_test' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
             imsi, 'redir_test')
 
@@ -382,7 +383,7 @@ class EnforcementStatsTest(unittest.TestCase):
             action=FlowDescription.PERMIT)
         ]
         policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
-        enf_stat_name = imsi + '|rule1'
+        enf_stat_name = imsi + '|rule1' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
             imsi, 'rule1')
         version = \
@@ -483,7 +484,7 @@ class EnforcementStatsTest(unittest.TestCase):
             action=FlowDescription.PERMIT)
         ]
         policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
-        enf_stat_name = imsi + '|rule1'
+        enf_stat_name = imsi + '|rule1' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
             imsi, 'rule1')
         version = \

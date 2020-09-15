@@ -61,15 +61,22 @@ being hosted on.
 ## Provisioning Your eNodeB on NMS
 
 Get the serial number of your eNodeB, you'll need it to register the device.
-On the NMS, navigate to "eNodeB Devices" in the sidebar, and hit "Add EnodeB".
-Configure the RAN parameters as necessary. Note that fields left blank will
-be inherited from either the network or gateway LTE parameters:
+On the NMS, navigate to "Equipment" in the sidebar, select "eNodeB" in the
+upper left, and hit "Add New" in the upper right.
 
-![Configuring an eNodeB](assets/nms/configure_enb.png)
+Configure the RAN parameters in the resulting multi-step modal as necessary.
+Note that fields left blank will be inherited from either the network or
+gateway LTE parameters:
 
-Then, go back to the "Gateways" page and edit the LTE configuration of your
-AGW. Enter the serial number of the enodeB you just provisioned into the
-"Registered eNodeBs" field, then hit save.
+![Configuring an eNodeB](assets/nms/configure_enb_12.png)
+
+Then, go back to the "Gateways" page and click on the ID of the AGW that you
+registered in the gateway table. Click through to the "Config" tab of the
+AGW detail view, then hit "Edit" by the RAN configuration. Select the eNodeB
+that you just registered in the multi-select dropdown, then save the update.
+Make sure that transmit is enabled.
+
+![Connecting an eNodeB](assets/nms/connect_enb.png)
 
 ### Basic Troubleshooting
 After connecting your eNodeB(s) to the gateway through the `eth1` interface, you
@@ -149,42 +156,9 @@ Source        Destination    Protocol  Length   Info
 10.0.2.1      10.0.2.246     SCTP      66       HEARTBEAT_ACK
 ```
 
-# Connecting your first user
-
-## Adding subscribers
-
 Once your eNodeB starts transmitting, UEs may attempt to attach to your
 network. Your AGW will reject these attach requests due to authentication
 failure until you add the corresponding IMSI to the subscriber database.
 
-On the NMS, go to "Subscribers", then "Add Subscriber". The SIM secrets can be
-entered either in hex or base64-encoded binary:
-
-![Adding a subscriber](assets/nms/add_sub.png)
-
-Subscriber information will eventually propagate to the AGW. You can verify
-using the CLI command `"subscriber_cli.py list"`
-
-## Validating UE connectivity
-
-Validating UE connectivity can be done from the UE side, MME side, or by
-listening to traffic on the `S1` interface.
-Below is a typical UE attach procedure as captured on the `S1` interface.
-
-```
-Source        Destination   Protocol        Info
-10.0.2.246    10.0.2.1      S1AP/NAS-EPS    InitialUEMessage, Attach request, PDN connectivity request
-10.0.2.1      10.0.2.246    S1AP/NAS-EPS    DownlinkNASTransport, Identity request
-10.0.2.246    10.0.2.1      S1AP/NAS-EPS    UplinkNASTransport, Identity response
-10.0.2.1      10.0.2.246    S1AP/NAS-EPS    DownlinkNASTransport, Authentication request
-10.0.2.246    10.0.2.1      S1AP/NAS-EPS    UplinkNASTransport, Authentication response
-10.0.2.1      10.0.2.246    S1AP/NAS-EPS    DownlinkNASTransport, Security mode command
-10.0.2.246    10.0.2.1      S1AP/NAS-EPS    UplinkNASTransport, Security mode complete
-10.0.2.1      10.0.2.246    S1AP/NAS-EPS    DownlinkNASTransport, ESM information request
-10.0.2.246    10.0.2.1      S1AP/NAS-EPS    UplinkNASTransport, ESM information response
-10.0.2.1      10.0.2.246    S1AP/NAS-EPS    InitialContextSetupRequest, Attach accept, Activate default EPS bearer context request
-10.0.2.246    10.0.2.1      S1AP            UECapabilityInfoIndication, UECapabilityInformation
-10.0.2.246    10.0.2.1      S1AP            InitialContextSetupResponse
-10.0.2.246    10.0.2.1      S1AP/NAS-EPS    UplinkNASTransport, Attach complete, Activate default EPS bearer context accept
-10.0.2.1      10.0.2.246    S1AP/NAS-EPS    DownlinkNASTransport, EMM information
-```
+Continue to the next section to register your subscribers and configure your
+APNs to start serving traffic.

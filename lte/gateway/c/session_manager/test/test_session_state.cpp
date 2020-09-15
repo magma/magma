@@ -671,7 +671,7 @@ TEST_F(SessionStateTest, test_install_gy_rules) {
       session_state->get_dynamic_rules().remove_rule("redirect", &rule_out));
 }
 
-TEST_F(SessionStateTest, test_final_credit_install) {
+TEST_F(SessionStateTest, test_final_credit_redirect_install) {
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   CreditUpdateResponse charge_resp;
   charge_resp.set_success(true);
@@ -698,6 +698,31 @@ TEST_F(SessionStateTest, test_final_credit_install) {
   EXPECT_EQ(
       fa.redirect_server.redirect_address_type(),
       RedirectServer_RedirectAddressType_URL);
+}
+
+TEST_F(SessionStateTest, test_final_restrict_credit_install) {
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
+  CreditUpdateResponse charge_resp;
+  charge_resp.set_success(true);
+  charge_resp.set_sid("IMSI1");
+  charge_resp.set_charging_key(1);
+
+  bool is_final = true;
+  auto p_credit = charge_resp.mutable_credit();
+  create_charging_credit(1024, is_final, p_credit);
+  //auto restrict_rules = p_credit->restrict_rules();
+  p_credit->add_restrict_rules("restrict-rule");
+  p_credit->set_final_action(ChargingCredit_FinalAction_RESTRICT_ACCESS);
+
+  session_state->receive_charging_credit(charge_resp, update_criteria);
+
+  // Test that the update criteria is filled out properly
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
+  auto u_credit = update_criteria.charging_credit_to_install[1];
+  EXPECT_TRUE(u_credit.is_final);
+  auto fa = u_credit.final_action_info;
+  EXPECT_EQ(fa.final_action, ChargingCredit_FinalAction_RESTRICT_ACCESS);
+  EXPECT_EQ(fa.restrict_rules[0], "restrict-rule");
 }
 
 // We want to test a case where we do not receive a GSU, but we receive a

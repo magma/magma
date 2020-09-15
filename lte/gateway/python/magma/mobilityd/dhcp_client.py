@@ -27,7 +27,7 @@ from scapy.layers.inet import IP, UDP
 from scapy.sendrecv import sendp
 from threading import Condition
 
-from magma.mobilityd.mac import MacAddress, create_mac_from_sid
+from magma.mobilityd.mac import MacAddress, hex_to_mac
 from magma.mobilityd.dhcp_desc import DHCPState, DHCPDescriptor
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 
@@ -133,7 +133,7 @@ class DHCPClient:
         pkt /= UDP(sport=68, dport=67)
         pkt /= BOOTP(op=1, chaddr=mac.as_hex(), xid=pkt_xid, ciaddr=ciaddr)
         pkt /= DHCP(options=dhcp_opts)
-        LOG.debug("DHCP pkt %s", pkt.show(dump=True))
+        LOG.debug("DHCP pkt xmit %s", pkt.show(dump=True))
 
         sendp(pkt, iface=self._dhcp_interface, verbose=0)
 
@@ -215,7 +215,9 @@ class DHCPClient:
         return None
 
     def _process_dhcp_pkt(self, packet, state: DHCPState):
-        mac_addr = create_mac_from_sid(packet[Ether].dst)
+        LOG.debug("DHCP pkt recv %s", packet.show(dump=True))
+
+        mac_addr = MacAddress(hex_to_mac(packet[BOOTP].chaddr.hex()[0:12]))
         vlan = ""
         if Dot1Q in packet:
             vlan = str(packet[Dot1Q].vlan)
@@ -268,16 +270,12 @@ class DHCPClient:
         if DHCP not in packet:
             return
 
-        LOG.debug("DHCP type %s", packet[DHCP].options[0][1])
-
         # Match DHCP offer
         if packet[DHCP].options[0][1] == int(DHCPState.OFFER):
-            LOG.debug("Offer %s (%s) ", packet[IP].src, packet[Ether].src)
             self._process_dhcp_pkt(packet, DHCPState.OFFER)
 
         # Match DHCP ack
         elif packet[DHCP].options[0][1] == int(DHCPState.ACK):
-            LOG.debug("Acked %s (%s) ", packet[IP].src, packet[Ether].src)
             self._process_dhcp_pkt(packet, DHCPState.ACK)
 
         # TODO handle other DHCP protocol events.

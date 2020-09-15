@@ -35,6 +35,7 @@ services:
       - ../../packages/magmalte/app:/usr/src/packages/magmalte/app
       - ../../packages/magmalte/scripts:/usr/src/packages/magmalte/scripts
       - ../../packages/magmalte/server:/usr/src/packages/magmalte/server
+      - ../../packages/magmalte/grafana:/usr/src/packages/magmalte/grafana
     depends_on:
       - mariadb
     networks:

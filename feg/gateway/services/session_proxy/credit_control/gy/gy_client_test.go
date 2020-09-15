@@ -37,6 +37,7 @@ const (
 	testIMSI2      = "4321"
 	returnedOctets = 1024
 	validityTime   = 3600
+	restrictRule   = "restrict-rule-1"
 )
 
 var defaultLocalServerConfig = diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
@@ -44,12 +45,14 @@ var defaultLocalServerConfig = diameter.DiameterServerConfig{DiameterServerConnC
 	Protocol: "tcp"},
 }
 
+var defaultfinalUnitConfig = mock_ocs.FinalUnitIndication{FinalUnitAction: fegprotos.FinalUnitAction(gy.Terminate)}
+
 // TestGyClient tests CCR init, update, and terminate messages using a fake
 // server
 func TestGyClient(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -153,7 +156,7 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	matchApn := ".*\\.magma.*"
 	overwriteApn := "gy.Apn.magma.com"
@@ -189,7 +192,7 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 func TestGyClientOutOfCredit(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -229,14 +232,13 @@ func TestGyClientOutOfCredit(t *testing.T) {
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrUpdate))
 	update := gy.GetAnswer(done)
 	assert.Equal(t, uint64(10), *update.Credits[0].GrantedUnits.TotalOctets)
-	assert.True(t, update.Credits[0].IsFinal)
-	assert.Equal(t, gy.Terminate, update.Credits[0].FinalAction)
+	assert.Equal(t, gy.Terminate, update.Credits[0].FinalUnitIndication.FinalAction)
 }
 
 func TestGyClientPerKeyInit(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -289,7 +291,7 @@ func TestGyClientPerKeyInit(t *testing.T) {
 func TestGyClientMultipleCredits(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -337,7 +339,7 @@ func TestGyClientMultipleCredits(t *testing.T) {
 func TestGyReAuth(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -378,6 +380,57 @@ func TestGyReAuth(t *testing.T) {
 	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
 }
 
+func TestGyClientOutOfCreditRestrict(t *testing.T) {
+	serverConfig := defaultLocalServerConfig
+	clientConfig := getClientConfig()
+	finalUnitConfig := mock_ocs.FinalUnitIndication{
+		RestrictRules: []string{restrictRule},
+		FinalUnitAction: fegprotos.FinalUnitAction(gy.RestrictAccess),
+	}
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit, finalUnitConfig)
+	seedAccountConfigurations(ocs)
+	gyGlobalConfig := getGyGlobalConfig("", "")
+	gyClient := gy.NewGyClient(
+		clientConfig,
+		&serverConfig,
+		getReAuthHandler(), nil, gyGlobalConfig,
+	)
+
+	// send init
+	ccrInit := &gy.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI1,
+		RequestNumber: 0,
+		Credits:       nil,
+		UeIPV4:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+	}
+	done := make(chan interface{}, 1000)
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	gy.GetAnswer(done)
+
+	// send request with (total credits - used credits) < max usage (final units)
+	ccrUpdate := &gy.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTUpdate,
+		IMSI:          testIMSI1,
+		RequestNumber: 1,
+		Credits: []*gy.UsedCredits{{
+			RatingGroup:  1,
+			InputOctets:  999990,
+			OutputOctets: 0,
+			TotalOctets:  999990,
+		}},
+	}
+
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrUpdate))
+	update := gy.GetAnswer(done)
+	assert.Equal(t, uint64(10), *update.Credits[0].GrantedUnits.TotalOctets)
+	assert.Equal(t, gy.RestrictAccess, update.Credits[0].FinalUnitIndication.FinalAction)
+	assert.Equal(t, restrictRule, update.Credits[0].FinalUnitIndication.RestrictRules[0])
+}
+
 func getClientConfig() *diameter.DiameterClientConfig {
 	return &diameter.DiameterClientConfig{
 		Host:        "test.test.com",
@@ -398,7 +451,7 @@ func getGyGlobalConfig(apnFilter, apnOverwrite string) *gy.GyGlobalConfig {
 	}
 }
 
-func startServer(client *diameter.DiameterClientConfig, server *diameter.DiameterServerConfig, initMethod gy.InitMethod) *mock_ocs.OCSDiamServer {
+func startServer(client *diameter.DiameterClientConfig, server *diameter.DiameterServerConfig, initMethod gy.InitMethod, finalUnitIndication mock_ocs.FinalUnitIndication) *mock_ocs.OCSDiamServer {
 	serverStarted := make(chan struct{})
 	var ocs *mock_ocs.OCSDiamServer
 	go func() {
@@ -406,11 +459,12 @@ func startServer(client *diameter.DiameterClientConfig, server *diameter.Diamete
 		ocs = mock_ocs.NewOCSDiamServer(
 			client,
 			&mock_ocs.OCSConfig{
-				MaxUsageOctets: &fegprotos.Octets{TotalOctets: returnedOctets},
-				MaxUsageTime:   1000,
-				ValidityTime:   validityTime,
-				ServerConfig:   server,
-				GyInitMethod:   initMethod,
+				MaxUsageOctets:      &fegprotos.Octets{TotalOctets: returnedOctets},
+				MaxUsageTime:        1000,
+				ValidityTime:        validityTime,
+				ServerConfig:        server,
+				GyInitMethod:        initMethod,
+				FinalUnitIndication: finalUnitIndication,
 			},
 		)
 		lis, err := ocs.StartListener()
