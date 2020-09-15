@@ -95,6 +95,7 @@ StoredSessionState SessionState::marshal() {
   std::vector<PolicyRule> scheduled_dynamic_rules;
   scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
   marshaled.scheduled_dynamic_rules = std::move(scheduled_dynamic_rules);
+
   for (auto& it : rule_lifetimes_) {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
@@ -458,7 +459,7 @@ void SessionState::apply_session_dynamic_rule_set(
   };
   for (const auto& dynamic_rule_pair : dynamic_rules) {
     if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
-      MLOG(MINFO) << "installing dynamic rule " << dynamic_rule_pair.first
+      MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first
                   << " for " << session_id_;
       insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
       rules_to_activate.dynamic_rules.push_back(dynamic_rule_pair.second);
@@ -505,7 +506,16 @@ void SessionState::get_monitor_updates(
   for (auto& monitor_pair : monitor_map_) {
     auto mkey    = monitor_pair.first;
     auto& credit = monitor_pair.second->credit;
-    if (!credit.is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
+
+    bool is_partially_exhausted = credit.is_quota_exhausted(
+        SessionCredit::USAGE_REPORTING_THRESHOLD);
+    bool is_totally_exhausted = credit.is_quota_exhausted(1);
+
+    if (!is_partially_exhausted ||
+        (!is_totally_exhausted && credit.current_grant_contains_zero())){
+      // The update will be skipped in case we havent used enough data yet
+      // OR in the case the monitor got a 0 grant and it is not exhausted
+      // (we will only send the last update when it is totally exhausted)
       continue;
     }
     MLOG(MDEBUG) << "Session " << session_id_ << " monitoring key " << mkey
@@ -558,31 +568,27 @@ SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
   return subscriber_quota_state_;
 }
 
-void SessionState::complete_termination(
-    SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria) {
+bool SessionState::complete_termination(SessionStateUpdateCriteria& uc) {
   switch (curr_state_) {
     case SESSION_ACTIVE:
-      MLOG(MERROR) << session_id_ << " Encountered unexpected state 'ACTIVE' when "
-                   << "forcefully completing termination. Not terminating...";
-      return;
+      MLOG(MERROR) << "Encountered unexpected state 'ACTIVE' when "
+                   << "completing termination for " << session_id_
+                   << " Not terminating...";
+      return false;
     case SESSION_TERMINATED:
       // session is already terminated. Do nothing.
-      return;
-    case SESSION_RELEASED:
-      MLOG(MINFO) << session_id_ << " Forcefully terminating session since it did "
-                  << "not receive usage from pipelined in time.";
-    default:  // Continue termination but no logs are necessary for other states
+      return false;
+    default:
+      // Continue termination but no logs are necessary for other states
       break;
   }
-  // mark entire session as terminated
-  set_fsm_state(SESSION_TERMINATED, update_criteria);
-  auto termination_req = make_termination_request(update_criteria);
-  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
-  reporter.report_terminate_session(termination_req, logging_cb);
+  // mark session as terminated
+  set_fsm_state(SESSION_TERMINATED, uc);
+  return true;
 }
 
 SessionTerminateRequest SessionState::make_termination_request(
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& uc) {
   SessionTerminateRequest req;
   req.set_sid(imsi_);
   req.set_session_id(session_id_);
@@ -606,7 +612,7 @@ SessionTerminateRequest SessionState::make_termination_request(
 
   // gx monitors
   for (auto& credit_pair : monitor_map_) {
-    auto credit_uc = get_monitor_uc(credit_pair.first, update_criteria);
+    auto credit_uc = get_monitor_uc(credit_pair.first, uc);
     req.mutable_monitor_usages()->Add()->CopyFrom(make_usage_monitor_update(
         credit_pair.second->credit.get_all_unreported_usage_for_reporting(
             *credit_uc),
@@ -614,7 +620,7 @@ SessionTerminateRequest SessionState::make_termination_request(
   }
   // gy credits
   for (auto& credit_pair : credit_map_) {
-    auto credit_uc    = get_credit_uc(credit_pair.first, update_criteria);
+    auto credit_uc    = get_credit_uc(credit_pair.first, uc);
     auto credit_usage = credit_pair.second->get_credit_usage(
         CreditUsage::TERMINATED, *credit_uc, true);
     credit_pair.first.set_credit_usage(&credit_usage);
@@ -1022,8 +1028,17 @@ static FinalActionInfo get_final_action_info(
   FinalActionInfo final_action_info;
   if (credit.is_final()) {
     final_action_info.final_action = credit.final_action();
-    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-      final_action_info.redirect_server = credit.redirect_server();
+    switch (final_action_info.final_action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        final_action_info.redirect_server = credit.redirect_server();
+        break;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        for (auto rule : credit.restrict_rules()) {
+          final_action_info.restrict_rules.push_back(rule);
+        }
+        break;
+      default: // do nothing;
+        break;
     }
   }
   return final_action_info;
@@ -1180,6 +1195,8 @@ void SessionState::apply_charging_credit_update(
   // Credit merging
   credit.set_grant_tracking_type(
       credit_update.grant_tracking_type, credit_update);
+  credit.set_received_granted_units(credit_update.received_granted_units,
+                                    credit_update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     credit.add_credit(
@@ -1193,6 +1210,7 @@ void SessionState::apply_charging_credit_update(
   charging_grant->expiry_time       = credit_update.expiry_time;
   charging_grant->reauth_state      = credit_update.reauth_state;
   charging_grant->service_state     = credit_update.service_state;
+
 }
 
 void SessionState::set_charging_credit(
@@ -1263,15 +1281,25 @@ void SessionState::get_charging_updates(
       } break;
       case REDIRECT:
         if (grant->service_state == SERVICE_REDIRECTED) {
-          MLOG(MDEBUG) << "Redirection already activated.";
+          MLOG(MDEBUG) << "Redirection already activated for " << session_id_ ;
           continue;
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
+      case RESTRICT_ACCESS: {
+        if (grant->service_state == SERVICE_RESTRICTED) {
+          MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
+          continue;
+        }
+        auto restrict_rules = action->get_mutable_restrict_rules();
+        grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
+        for (auto &rule : grant->final_action_info.restrict_rules) {
+          restrict_rules->push_back(rule);
+        }
+      }
       case ACTIVATE_SERVICE:
         action->set_ambr(config_.get_apn_ambr());
       case TERMINATE_SERVICE:
-      case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " action type " << action_type;
         action->set_credit_key(key);
@@ -1283,6 +1311,10 @@ void SessionState::get_charging_updates(
         dynamic_rules_.get_rule_definitions_for_charging_key(
             key, *action->get_mutable_rule_definitions());
         actions_out->push_back(std::move(action));
+        break;
+      default:
+        MLOG(MWARNING) << "Unexpected action type " << action_type
+                       << " for " << session_id_;
         break;
     }
   }
@@ -1306,6 +1338,17 @@ bool SessionState::receive_monitor(
   }
   auto mkey = update.credit().monitoring_key();
   auto it = monitor_map_.find(mkey);
+
+  if (update_criteria.monitor_credit_map.find(mkey) !=
+      update_criteria.monitor_credit_map.end() &&
+      update_criteria.monitor_credit_map[mkey].deleted){
+    // This will only happen if the PCRF responds back with more credit when
+    // the monitor has already been set to be terminated
+    MLOG(MDEBUG) <<"Ignoring Monitor update" << mkey << " update because it "
+                                                  "has been set for deletion";
+    return false;
+  }
+
   if (it == monitor_map_.end()) {
     // new credit
     return init_new_monitor(update, update_criteria);
@@ -1316,15 +1359,9 @@ bool SessionState::receive_monitor(
     return false;
   }
 
-  if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
-    MLOG(MINFO) << "Erasing monitor " << mkey << " from DISABLE instruction";
-    monitor_map_.erase(mkey);
-    credit_uc->deleted = true;
-  } else {
-    MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
-    const auto& gsu = update.credit().granted_units();
-    it->second->credit.receive_credit(gsu, credit_uc);
-  }
+  MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
+  const auto& gsu = update.credit().granted_units();
+  it->second->credit.receive_credit(gsu, credit_uc);
   return true;
 }
 
@@ -1334,10 +1371,11 @@ void SessionState::apply_monitor_updates(
   if (it == monitor_map_.end()) {
     return;
   }
-  if (update.deleted) {
-    monitor_map_.erase(key);
-    return;
-  }
+
+  auto& credit = it->second->credit;
+  // Credit merging
+  credit.set_grant_tracking_type(update.grant_tracking_type, update);
+  credit.set_received_granted_units(update.received_granted_units,update);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     it->second->credit.add_credit(
@@ -1363,8 +1401,20 @@ bool SessionState::add_to_monitor(
                  << " not found, not adding the usage";
     return false;
   }
+
   auto credit_uc = get_monitor_uc(key, uc);
-  it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+  // add credit or delete monitor
+  if (it->second->should_delete_monitor() ){
+    MLOG(MINFO) << "Erasing monitor " << key << " due to quota exhausted";
+    if (it->second->level == MonitoringLevel::SESSION_LEVEL){
+      uc.is_session_level_key_updated = true;
+      uc.updated_session_level_key = "";
+    }
+    credit_uc->deleted = true;
+    monitor_map_.erase(key);
+  } else {
+    it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+  }
   return true;
 }
 
@@ -1408,7 +1458,6 @@ bool SessionState::init_new_monitor(
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
   auto _ = SessionCreditUpdateCriteria{};
-  FinalActionInfo final_action_info;
   auto gsu = update.credit().granted_units();
   monitor->credit.receive_credit(gsu, NULL);
 
@@ -1480,8 +1529,7 @@ void SessionState::bind_policy_to_bearer(
   uc.bearer_id_by_policy       = bearer_id_by_policy_;
 }
 
-std::experimental::optional<PolicyType> SessionState::get_policy_type(
-    const std::string& rule_id) {
+optional<PolicyType> SessionState::get_policy_type(const std::string& rule_id) {
   if (is_static_rule_installed(rule_id)) {
     return STATIC;
   } else if (is_dynamic_rule_installed(rule_id)) {
@@ -1568,13 +1616,25 @@ void SessionState::set_revalidation_time(
   update_criteria.revalidation_time = time;
 }
 
-bool SessionState::is_credit_state_redirected(
+bool SessionState::is_credit_in_final_unit_state(
     const CreditKey& charging_key) const {
   auto it = credit_map_.find(charging_key);
   if (it == credit_map_.end()) {
     return false;
   }
-  return it->second->service_state == SERVICE_REDIRECTED;
+  return (it->second->service_state == SERVICE_REDIRECTED ||
+          it->second->service_state == SERVICE_RESTRICTED);
+}
+
+std::vector<std::string> SessionState::get_final_action_restrict_rules(
+    const CreditKey& charging_key) const {
+  std::vector<std::string> restrict_rules;
+  auto it = credit_map_.find(charging_key);
+  if (it != credit_map_.end()) {
+    return restrict_rules;
+  }
+  restrict_rules = it->second->final_action_info.restrict_rules;
+  return restrict_rules;
 }
 
 // QoS/Bearer Management
@@ -1592,26 +1652,37 @@ bool SessionState::policy_has_qos(
   return false;
 }
 
-void SessionState::update_bearer_creation_req(
-    const PolicyType policy_type, const std::string& rule_id,
-    const SessionConfig& config, BearerUpdate& update) {
+std::experimental::optional<PolicyRule>
+SessionState::policy_needs_bearer_creation(
+    const PolicyType policy_type, const std::string& id,
+    const SessionConfig& config) {
   if (!config.rat_specific_context.has_lte_context()) {
-    return;
+    return {};
   }
-  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) !=
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, id)) !=
       bearer_id_by_policy_.end()) {
     // Policy already has a bearer
-    return;
+    return {};
   }
-  PolicyRule rule;
-  if (!policy_has_qos(policy_type, rule_id, &rule)) {
+  PolicyRule policy;
+  if (!policy_has_qos(policy_type, id, &policy)) {
     // Only create a bearer for policies with QoS
-    return;
+    return {};
   }
   auto default_qci = FlowQos_Qci(
       config.rat_specific_context.lte_context().qos_info().qos_class_id());
-  if (rule.qos().qci() == default_qci) {
+  if (policy.qos().qci() == default_qci) {
     // This QCI is already covered by the default bearer
+    return {};
+  }
+  return policy;
+}
+
+void SessionState::update_bearer_creation_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update) {
+  auto policy = policy_needs_bearer_creation(policy_type, rule_id, config);
+  if (!policy) {
     return;
   }
 
@@ -1623,7 +1694,7 @@ void SessionState::update_bearer_creation_req(
     update.create_req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
-  update.create_req.mutable_policy_rules()->Add()->CopyFrom(rule);
+  update.create_req.mutable_policy_rules()->Add()->CopyFrom(*policy);
   // We will add the new policyID to bearerID association, once we receive a
   // message from SGW.
 }
@@ -1690,8 +1761,7 @@ RuleSetBySubscriber::RuleSetBySubscriber(
   }
 }
 
-std::experimental::optional<RuleSetToApply>
-RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
+optional<RuleSetToApply> RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
   const bool apn_rule_set_exists =
       rule_set_by_apn.find(apn) != rule_set_by_apn.end();
   // Apply subscriber wide rule set if it exists. Also apply per-APN rule

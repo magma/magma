@@ -61,6 +61,8 @@ std::string final_action_to_str(ChargingCredit_FinalAction final_action) {
 
 std::string grant_type_to_str(GrantTrackingType grant_type) {
   switch (grant_type) {
+    case TRACKING_UNSET:
+      return "TRACKING_UNSET";
     case ALL_TOTAL_TX_RX:
       return "ALL_TOTAL_TX_RX";
     case TOTAL_ONLY:
@@ -141,6 +143,23 @@ std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state) {
       return "TERMINATE";
     default:
       return "INVALID";
+  }
+}
+
+std::string service_action_type_to_str(ServiceActionType action) {
+  switch (action) {
+    case CONTINUE_SERVICE:
+      return "CONTINUE_SERVICE";
+    case TERMINATE_SERVICE:
+      return "TERMINATE_SERVICE";
+    case ACTIVATE_SERVICE:
+      return "ACTIVATE_SERVICE";
+    case REDIRECT:
+      return "REDIRECT";
+    case RESTRICT_ACCESS:
+      return "RESTRICT_ACCESS";
+    default:
+      return "INVALID ACTION TYPE";
   }
 }
 }  // namespace magma

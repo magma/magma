@@ -103,14 +103,17 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
 
 	// We expect an update request with some usage update (probably around 80-100% of the given quota)
+	finalUnitIndication := fegprotos.FinalUnitIndication{
+		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
+	}
 	finalQuotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
-			TotalOctets: 2 * MegaBytes,
+			TotalOctets: 3 * MegaBytes,
 		},
-		IsFinalCredit:   true,
-		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
-		ResultCode:      2001,
+		IsFinalCredit:       true,
+		FinalUnitIndication: &finalUnitIndication,
+		ResultCode:          2001,
 	}
 	updateRequest1 := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
 	updateAnswer1 := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(finalQuotaGrant)
@@ -136,7 +139,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	if record != nil {
 		// We should not be seeing > 1024k data here
 		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(math.Round(4.5*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
+		assert.True(t, record.BytesTx <= uint64(math.Round(5*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
 	}
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the OCS
@@ -150,7 +153,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// We need to generate over 100% of the quota to trigger a session termination
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("5.5M")}}
+	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("10M")}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -236,14 +239,17 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 		assert.NoError(t, tr.CleanUp())
 	}()
 
+	finalUnitIndication := fegprotos.FinalUnitIndication{
+		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
+	}
 	quotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
 			TotalOctets: 4 * MegaBytes,
 		},
-		IsFinalCredit:   true,
-		FinalUnitAction: fegprotos.FinalUnitAction_Terminate,
-		ResultCode:      2001,
+		IsFinalCredit:       true,
+		FinalUnitIndication: &finalUnitIndication,
+		ResultCode:          2001,
 	}
 	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
 	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
@@ -344,15 +350,18 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	redirectSrv := fegprotos.RedirectServer{
 		RedirectServerAddress: "2.2.2.2",
 	}
+	finalUnitIndication := fegprotos.FinalUnitIndication{
+		FinalUnitAction: fegprotos.FinalUnitAction_Redirect,
+		RedirectServer:  &redirectSrv,
+	}
 	quotaGrant := &fegprotos.QuotaGrant{
 		RatingGroup: 1,
 		GrantedServiceUnit: &fegprotos.Octets{
 			TotalOctets: 4 * MegaBytes,
 		},
-		IsFinalCredit:   true,
-		FinalUnitAction: fegprotos.FinalUnitAction_Redirect,
-		RedirectServer:  &redirectSrv,
-		ResultCode:      2001,
+		IsFinalCredit:       true,
+		FinalUnitIndication: &finalUnitIndication,
+		ResultCode:          2001,
 	}
 
 	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)

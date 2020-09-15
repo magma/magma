@@ -635,6 +635,8 @@ imsi64_t mme_app_handle_initial_ue_message(
             free_wrapper((void**) &timer_argP);
           }
           ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
+          ue_context_p->time_paging_response_timer_started = 0;
+          ue_context_p->paging_retx_count                  = 0;
         }
       } else {
         OAILOG_DEBUG(
@@ -2028,12 +2030,15 @@ int mme_app_paging_request_helper(
   MessageDef* message_p = NULL;
   int rc                = RETURNok;
   OAILOG_FUNC_IN(LOG_MME_APP);
+
   // First, check if the UE is already connected. If so, stop
   if (ue_context_p->ecm_state == ECM_CONNECTED) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Paging process attempted for connected UE with id %d\n",
         ue_context_p->mme_ue_s1ap_id);
+    ue_context_p->paging_retx_count = 0;
+    ue_context_p->time_paging_response_timer_started = 0;
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
   message_p = itti_alloc_new_message(TASK_MME_APP, S1AP_PAGING_REQUEST);
@@ -2096,6 +2101,12 @@ int mme_app_paging_request_helper(
         "Failed to start paging timer for ue %d\n",
         ue_context_p->mme_ue_s1ap_id);
   }
+  /* MME shall store the time when Paging Indication sent for
+   * the first time
+   */
+  if (!(ue_context_p->paging_retx_count)) {
+    ue_context_p->time_paging_response_timer_started = time(NULL);
+  }
   OAILOG_FUNC_RETURN(LOG_MME_APP, timer_rc);
 }
 
@@ -2134,15 +2145,21 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
   ue_context_p->paging_response_timer.id = MME_APP_TIMER_INACTIVE_ID;
   // Re-transmit Paging message only once
   if (ue_context_p->paging_retx_count < MAX_PAGING_RETRY_COUNT) {
-    ue_context_p->paging_retx_count++;
     if ((mme_app_paging_request_helper(
             ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS)) != RETURNok) {
       OAILOG_ERROR_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
           "Failed to send Paging Message for ue_id " MME_UE_S1AP_ID_FMT "\n",
           mme_ue_s1ap_id);
+    } else {
+      ++ue_context_p->paging_retx_count;
     }
   } else {
+    /* MME shall reset the paging_retx_count as MME reached sending
+     * Paging Indication to max retries
+     */
+    ue_context_p->paging_retx_count = 0;
+    ue_context_p->time_paging_response_timer_started = 0;
     /* If there are any pending dedicated bearer requests to be sent to UE
      * send create_dedicated_bearer_reject to SPGW as UE did not respond
      * to Paging and free the memory*/

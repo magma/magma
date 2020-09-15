@@ -80,8 +80,7 @@ SessionMap SessionStore::read_sessions_for_deletion(const SessionRead& req) {
 }
 
 bool SessionStore::create_sessions(
-    const std::string& subscriber_id,
-    std::vector<std::unique_ptr<SessionState>> sessions) {
+    const std::string& subscriber_id, SessionVector sessions) {
   auto session_map           = SessionMap{};
   session_map[subscriber_id] = std::move(sessions);
   store_client_->write_sessions(std::move(session_map));
@@ -95,7 +94,6 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
     subscriber_ids.insert(it.first);
   }
   auto session_map = store_client_->read_sessions(subscriber_ids);
-  MLOG(MDEBUG) << "Merging updates into existing sessions";
   // Now attempt to modify the state
   for (auto& it : session_map) {
     auto imsi = it.first;
@@ -120,8 +118,32 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
       ++it2;
     }
   }
-  MLOG(MDEBUG) << "Writing into session store";
   return store_client_->write_sessions(std::move(session_map));
+}
+
+optional<SessionVector::iterator> SessionStore::find_session(
+    SessionMap& session_map, SessionSearchCriteria criteria) {
+  auto it = session_map.find(criteria.imsi);
+  if (it == session_map.end()) {
+    return {};
+  }
+  auto& sessions = it->second;
+  for (auto it = sessions.begin(); it != sessions.end(); ++it) {
+    switch (criteria.search_type) {
+      case IMSI_AND_SESSION_ID:
+        if ((*it)->get_session_id() == criteria.secondary_key) {
+          return it;
+        }
+      case IMSI_AND_APN:
+        if ((*it)->get_config().common_context.apn() ==
+            criteria.secondary_key) {
+          return it;
+        }
+      default:
+        continue;
+    }
+  }
+  return {};
 }
 
 SessionUpdate SessionStore::get_default_session_update(
