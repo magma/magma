@@ -227,6 +227,23 @@ class PolicyMixin(metaclass=ABCMeta):
             return RuleModResult.FAILURE
         return self._install_flow_for_rule(imsi, ip_addr, apn_ambr, rule)
 
+    def _wait_for_rule_responses(self, imsi, rule, chan):
+        def fail(err):
+            self.logger.error(
+                "Failed to install rule %s for subscriber %s: %s",
+                rule.id, imsi, err)
+            self._deactivate_flow_for_rule(imsi, rule.id)
+            return RuleModResult.FAILURE
+
+        for _ in range(len(rule.flow_list)):
+            try:
+                result = chan.get()
+            except MsgChannel.Timeout:
+                return fail("No response from OVS")
+            if not result.ok():
+                return fail(result.exception())
+        return RuleModResult.SUCCESS
+
     def _wait_for_responses(self, chan, response_count):
         def fail(err):
             #TODO need to rework setup to return all rule specific success/fails

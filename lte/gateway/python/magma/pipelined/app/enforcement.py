@@ -22,7 +22,7 @@ from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.messages import MsgChannel, MessageHub
+from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.openflow.registers import Direction, RULE_VERSION_REG, \
     SCRATCH_REGS
 from magma.pipelined.policy_converters import FlowMatchError, \
@@ -237,7 +237,6 @@ class EnforcementController(PolicyMixin, MagmaController):
             ip_addr (string): subscriber session ipv4 address
             rule (PolicyRule): policy rule proto
         """
-
         if rule.redirect.support == rule.redirect.ENABLED:
             return self._install_redirect_flow(imsi, ip_addr, rule)
 
@@ -253,25 +252,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             return RuleModResult.FAILURE
 
         chan = self._msg_hub.send(flow_adds, self._datapath)
-
         return self._wait_for_rule_responses(imsi, rule, chan)
-
-    def _wait_for_rule_responses(self, imsi, rule, chan):
-        def fail(err):
-            self.logger.error(
-                "Failed to install rule %s for subscriber %s: %s",
-                rule.id, imsi, err)
-            self._deactivate_flow_for_rule(imsi, rule.id)
-            return RuleModResult.FAILURE
-
-        for _ in range(len(rule.flow_list)):
-            try:
-                result = chan.get()
-            except MsgChannel.Timeout:
-                return fail("No response from OVS")
-            if not result.ok():
-                return fail(result.exception())
-        return RuleModResult.SUCCESS
 
     def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id,
