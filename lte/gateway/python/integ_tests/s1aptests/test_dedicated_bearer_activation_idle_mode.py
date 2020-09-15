@@ -39,7 +39,6 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         trigger dedicated bearer activation
         + Page the UE + detach"""
 
-        ips = []
         # UL Flow description #1
         ulFlow1 = {
             "ipv4_dst": "192.168.129.42",  # IPv4 destination address
@@ -159,7 +158,6 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         )
         addr = attach.esmInfo.pAddr.addrInfo
         default_ip = ipaddress.ip_address(bytes(addr[:4]))
-        ips.append(default_ip)
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -277,14 +275,12 @@ class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
         )
 
         # Verify if flow rules are created
-        flowRules = {
-            "num_ul_flows": 3,
-            "num_dl_flows_default": 5,
-            "ips_to_be_matched": ips,
-            "default_ip_addr": default_ip,
-        }
-
-        self._s1ap_wrapper.s1_util.verify_flow_rules(flowRules)
+        dl_flow_rules = {default_ip: [flow_list1, flow_list2]}
+        # 1 UL flow is created per bearer
+        num_ul_flows = 3
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
 
         print("*********** Sleeping for 5 seconds")
         time.sleep(5)

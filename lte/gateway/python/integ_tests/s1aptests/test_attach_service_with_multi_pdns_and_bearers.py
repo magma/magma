@@ -13,11 +13,10 @@ limitations under the License.
 
 import unittest
 import time
-
+import ipaddress
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-import ipaddress
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 
 
@@ -37,7 +36,6 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
-        ips = []
         # APN of the secondary PDN
         ims = {
             "apn_name": "ims",  # APN-name
@@ -59,10 +57,6 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
             "************************* Running End to End attach for UE id ",
             ue_id,
         )
-
-        ul_flows = 4
-        dl_flows_default = 4
-        dl_flows_sec_pdn = 2
 
         # UL Flow description #1
         ulFlow1 = {
@@ -179,7 +173,6 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         )
         addr = attach.esmInfo.pAddr.addrInfo
         default_ip = ipaddress.ip_address(bytes(addr[:4]))
-        ips.append(default_ip)
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -229,7 +222,6 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
         addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
         sec_ip = ipaddress.ip_address(bytes(addr[:4]))
-        ips.append(sec_ip)
 
         print(
             "********************** Sending Activate default EPS bearer "
@@ -267,17 +259,19 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
             act_ded_ber_req_ims_apn.bearerId,
         )
 
-        flowRules = {
-            "num_ul_flows": ul_flows,
-            "num_dl_flows_default": dl_flows_default,
-            "num_dl_flows_sec_pdn": dl_flows_sec_pdn,
-            "ips_to_be_matched": ips,
-            "default_ip_addr": default_ip,
-        }
         print("Sleeping for 5 seconds")
         time.sleep(5)
+
+        dl_flow_rules = {
+            default_ip: [flow_list1],
+            sec_ip: [flow_list2],
+        }
+        # 1 UL flow is created per bearer
+        num_ul_flows = 4
         # Verify if flow rules are created
-        self._s1ap_wrapper.s1_util.verify_flow_rules(flowRules)
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
         print("*********** Moving UE to idle mode")
         print(
             "************* Sending UE context release request ",
@@ -318,7 +312,9 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
         time.sleep(5)
 
         # Verify if flow rules are created
-        self._s1ap_wrapper.s1_util.verify_flow_rules(flowRules)
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
 
         print("Sleeping for 5 seconds")
         time.sleep(5)

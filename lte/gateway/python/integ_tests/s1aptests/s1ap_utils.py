@@ -69,6 +69,12 @@ class S1ApUtil(object):
     _cond = threading.Condition()
     _msg = Queue()
 
+    MAX_NUM_RETRIES = 5
+    datapath = get_datapath()
+    SPGW_TABLE = 0
+    GTP_PORT = 32768
+    LOCAL_PORT = "LOCAL"
+
     class Msg(object):
         def __init__(self, msg_type, msg_p, msg_len):
             self.msg_type = msg_type
@@ -308,24 +314,103 @@ class S1ApUtil(object):
         with self._lock:
             del self._ue_ip_map[ue_id]
 
-    def verify_flow_rules(self, flowRules):
-        MAX_NUM_RETRIES = 5
-        datapath = get_datapath()
-        SPGW_TABLE = 0
-        GTP_PORT = 32768
-        LOCAL_PORT = "LOCAL"
-        num_ul_flows = flowRules["num_ul_flows"]
+    def _verify_dl_flow(self, dl_flow_rules=None):
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+
+        # Verify the total number of DL flows for this UE ip address
+        num_dl_flows = 1
+        for key, value in dl_flow_rules.items():
+            ipv4_src_addr = None
+            tcp_src_port = 0
+            ip_proto = 0
+            ue_ip_str = str(key)
+            # Set to 1 for the default bearer
+            total_num_dl_flows_to_be_verified = 1
+            for item in value:
+                for flow in item:
+                    if flow["direction"] == "DL":
+                        total_num_dl_flows_to_be_verified += 1
+            total_dl_ovs_flows_created = get_flows(
+                self.datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {
+                        "nw_dst": ue_ip_str,
+                        "eth_type": 2048,
+                        "in_port": self.LOCAL_PORT,
+                    },
+                },
+            )
+            assert (
+                len(total_dl_ovs_flows_created)
+                == total_num_dl_flows_to_be_verified
+            )
+
+            # Now verify the rules for every flow
+            for item in value:
+                for flow in item:
+                    if flow["direction"] == "DL":
+                        ipv4_src_addr = str(flow["ipv4_src"])
+                        tcp_src_port = flow["tcp_src_port"]
+                        ip_proto = (
+                            FlowMatch.IPPROTO_TCP
+                            if (flow["ip_proto"] == "TCP")
+                            else FlowMatch.IPPROTO_UDP
+                        )
+                        for i in range(self.MAX_NUM_RETRIES):
+                            print("Get downlink flows: attempt ", i)
+                            downlink_flows = get_flows(
+                                self.datapath,
+                                {
+                                    "table_id": self.SPGW_TABLE,
+                                    "match": {
+                                        "nw_dst": ue_ip_str,
+                                        "eth_type": 2048,
+                                        "in_port": self.LOCAL_PORT,
+                                        "ipv4_src": ipv4_src_addr,
+                                        "tcp_src": tcp_src_port,
+                                        "ip_proto": ip_proto,
+                                    },
+                                },
+                            )
+                            if len(downlink_flows) >= num_dl_flows:
+                                break
+                            time.sleep(
+                                5
+                            )  # sleep for 5 seconds before retrying
+                        assert (
+                            len(downlink_flows) >= num_dl_flows
+                        ), "Downlink flow missing for UE"
+                        assert (
+                            downlink_flows[0]["match"]["ipv4_dst"] == ue_ip_str
+                        )
+                        actions = downlink_flows[0]["instructions"][0][
+                            "actions"
+                        ]
+                        has_tunnel_action = any(
+                            action
+                            for action in actions
+                            if action["field"] == "tunnel_id"
+                            and action["type"] == "SET_FIELD"
+                        )
+                        assert bool(has_tunnel_action)
+
+    def verify_flow_rules(self, num_ul_flows, dl_flow_rules=None):
         # Check if UL and DL OVS flows are created
         print("************ Verifying flow rules")
         # UPLINK
         print("Checking for uplink flow")
         # try at least 5 times before failing as gateway
         # might take some time to install the flows in ovs
-        for i in range(MAX_NUM_RETRIES):
+        for i in range(self.MAX_NUM_RETRIES):
             print("Get uplink flows: attempt ", i)
             uplink_flows = get_flows(
-                datapath,
-                {"table_id": SPGW_TABLE, "match": {"in_port": GTP_PORT}, },
+                self.datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {"in_port": self.GTP_PORT},
+                },
             )
             if len(uplink_flows) == num_ul_flows:
                 break
@@ -335,45 +420,7 @@ class S1ApUtil(object):
 
         # DOWNLINK
         print("Checking for downlink flow")
-        ips = flowRules["ips_to_be_matched"]
-        for ue_ip in ips:
-            print("Checking dl flow for dst ue ip", ue_ip)
-            num_dl_flows = (
-                flowRules["num_dl_flows_default"]
-                if ue_ip == flowRules["default_ip_addr"]
-                else flowRules["num_dl_flows_sec_pdn"]
-            )
-            # try at least 5 times before failing as gateway
-            # might take some time to install the flows in ovs
-            ue_ip_str = str(ue_ip)
-            for i in range(MAX_NUM_RETRIES):
-                print("Get downlink flows: attempt ", i)
-                downlink_flows = get_flows(
-                    datapath,
-                    {
-                        "table_id": SPGW_TABLE,
-                        "match": {
-                            "nw_dst": ue_ip_str,
-                            "eth_type": 2048,
-                            "in_port": LOCAL_PORT,
-                        },
-                    },
-                )
-                if len(downlink_flows) == num_dl_flows:
-                    break
-                time.sleep(5)  # sleep for 5 seconds before retrying
-            assert (
-                len(downlink_flows) == num_dl_flows
-            ), "Downlink flow missing for UE"
-            assert downlink_flows[0]["match"]["ipv4_dst"] == ue_ip_str
-            actions = downlink_flows[0]["instructions"][0]["actions"]
-            has_tunnel_action = any(
-                action
-                for action in actions
-                if action["field"] == "tunnel_id"
-                and action["type"] == "SET_FIELD"
-            )
-            assert bool(has_tunnel_action)
+        self._verify_dl_flow(dl_flow_rules)
 
 
 class SubscriberUtil(object):
