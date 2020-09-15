@@ -78,6 +78,12 @@ class SessionCredit {
   SessionCredit::Usage get_usage_for_reporting(
       SessionCreditUpdateCriteria& update_criteria);
 
+  /**
+   * returns the units to be requested to OCS based on the last grant. If
+   * the last grant is not totally used it will return lastGrant - usage
+   */
+  RequestedUnits get_requested_credits_units();
+
   SessionCredit::Usage get_all_unreported_usage_for_reporting(
       SessionCreditUpdateCriteria& update_criteria);
 
@@ -166,6 +172,8 @@ class SessionCredit {
   void log_usage_report(SessionCredit::Usage) const;
 
   GrantTrackingType determine_grant_tracking_type(const GrantedUnits& grant);
+
+  uint64_t  calculate_requested_unit(CreditUnit cu, Bucket allowed, Bucket allowed_floor, uint64_t used);
 
   bool compute_quota_exhausted(
       const uint64_t allowed, const uint64_t used, float threshold_ratio,

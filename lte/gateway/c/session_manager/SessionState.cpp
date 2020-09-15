@@ -1272,9 +1272,9 @@ void SessionState::get_charging_updates(
         if (update_type == CreditUsage::REAUTH_REQUIRED) {
           grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
         }
-        auto update = grant->get_credit_usage(update_type, *credit_uc, false);
-        key.set_credit_usage(&update);
-        auto credit_req = make_credit_usage_update_req(update);
+        CreditUsage usage = grant->get_credit_usage(update_type, *credit_uc, false);
+        key.set_credit_usage(&usage);
+        auto credit_req = make_credit_usage_update_req(usage);
         update_request_out.mutable_updates()->Add()->CopyFrom(credit_req);
         request_number_++;
         uc.request_number_increment++;
