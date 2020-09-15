@@ -22,15 +22,15 @@ import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import axios from 'axios';
 
 import {AltFormField} from '../../components/FormField';
 import {LTE} from '@fbcnms/types/network';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useState} from 'react';
 
 type Props = {
   lteNetwork: lte_network,
@@ -62,7 +62,7 @@ export default function NetworkInfo(props: Props) {
 
 type EditProps = {
   saveButtonTitle: string,
-  lteNetwork: ?lte_network,
+  lteNetwork: lte_network,
   onClose: () => void,
   onSave: lte_network => void,
 };
@@ -70,28 +70,25 @@ type EditProps = {
 export function NetworkInfoEdit(props: EditProps) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
-  const [lteNetwork, setLteNetwork] = useState<lte_network>(
-    props.lteNetwork || {},
-  );
+  const ctx = useContext(LteNetworkContext);
+  const [lteNetwork, setLteNetwork] = useState<lte_network>(props.lteNetwork);
 
   const onSave = async () => {
-    if (props.lteNetwork) {
+    if (props.lteNetwork?.id) {
       // edit
       try {
-        await MagmaV1API.putLteByNetworkId({
-          networkId: lteNetwork.id,
-          lteNetwork: {
-            ...lteNetwork,
-          },
-        });
+        await ctx.updateNetworks({networkId: lteNetwork.id, lteNetwork});
         enqueueSnackbar('Network configs saved successfully', {
           variant: 'success',
         });
         props.onSave(lteNetwork);
       } catch (e) {
-        setError(e.data?.message ?? e.message);
+        setError(e.response?.data?.message ?? e?.message);
       }
     } else {
+      // network creation a special case. We have to update the organization
+      // information in db, so we hijack the request and update the org info
+      // with the networkID
       try {
         const payload = {
           networkID: lteNetwork.id,
@@ -115,7 +112,6 @@ export function NetworkInfoEdit(props: EditProps) {
       }
     }
   };
-
   return (
     <>
       <DialogContent data-testid="networkInfoEdit">
@@ -134,7 +130,7 @@ export function NetworkInfoEdit(props: EditProps) {
               onChange={({target}) =>
                 setLteNetwork({...lteNetwork, id: target.value})
               }
-              disabled={props.lteNetwork ? true : false}
+              disabled={props.lteNetwork?.id ? true : false}
             />
           </AltFormField>
           <AltFormField label={'Network Name'}>

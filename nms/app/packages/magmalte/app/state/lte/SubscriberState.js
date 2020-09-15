@@ -13,16 +13,15 @@
  * @flow strict-local
  * @format
  */
-import type {Metrics} from '../components/context/SubscriberContext';
+import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+
+import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
+import type {Metrics} from '../../components/context/SubscriberContext';
 import type {
   mutable_subscriber,
   network_id,
   subscriber,
 } from '@fbcnms/magma-api';
-
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-
-import {getLabelUnit} from '../views/subscriber/SubscriberUtils';
 
 type InitSubscriberStateProps = {
   networkId: network_id,

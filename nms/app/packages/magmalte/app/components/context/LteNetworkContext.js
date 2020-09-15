@@ -13,19 +13,15 @@
  * @flow strict-local
  * @format
  */
-import type {UpdateGatewayProps} from '../../state/lte/EquipmentState';
-import type {
-  gateway_id,
-  lte_gateway,
-  mutable_lte_gateway,
-} from '@fbcnms/magma-api';
+'use strict';
+import type {UpdateNetworkProps} from '../../state/lte/NetworkState';
+import type {lte_network} from '@fbcnms/magma-api';
 
 import React from 'react';
 
-export type GatewayContextType = {
-  state: {[string]: lte_gateway},
-  setState: (key: gateway_id, val?: mutable_lte_gateway) => Promise<void>,
-  updateGateway: (props: $Shape<UpdateGatewayProps>) => Promise<void>,
+export type LteNetworkContextType = {
+  state: lte_network,
+  updateNetworks: (props: $Shape<UpdateNetworkProps>) => Promise<void>,
 };
 
-export default React.createContext<GatewayContextType>({});
+export default React.createContext<LteNetworkContextType>({});
