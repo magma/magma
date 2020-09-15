@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 from typing import List
 
 from ryu.controller import ofp_event
@@ -18,17 +17,24 @@ from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 
+from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.pipelined_pb2 import RuleModResult
 from magma.pipelined.openflow.messages import MessageHub
+
+from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import EGRESS
 from magma.pipelined.app.policy_mixin import PolicyMixin
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
+from magma.pipelined.openflow.registers import Direction, RULE_VERSION_REG
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.redirect import RedirectionManager, RedirectException
+from magma.pipelined.policy_converters import FlowMatchError, \
+    flow_match_to_magma_match
 
+from magma.pipelined.qos.common import QosManager
+from magma.pipelined.qos.types import QosInfo
 
 class GYController(PolicyMixin, MagmaController):
     """
@@ -40,22 +46,32 @@ class GYController(PolicyMixin, MagmaController):
 
     APP_NAME = "gy"
     APP_TYPE = ControllerType.LOGICAL
+    ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
+    # For allowing unlcassified flows for app/service type rules.
+    UNCLASSIFIED_ALLOW_PRIORITY = ENFORCE_DROP_PRIORITY + 1
+    # Should not overlap with the drop flow as drop matches all packets.
+    MIN_GY_PROGRAMMED_FLOW = UNCLASSIFIED_ALLOW_PRIORITY + 1
+    MAX_GY_PRIORITY = flows.MAXIMUM_PRIORITY
+    # Effectively range is 3 -> 65535
+    GY_PRIORITY_RANGE = MAX_GY_PRIORITY - MIN_GY_PROGRAMMED_FLOW
 
     def __init__(self, *args, **kwargs):
         super(GYController, self).__init__(*args, **kwargs)
+        self._config = kwargs['config']
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
         self.loop = kwargs['loop']
+        self._egress_scratch_table = self._service_manager.get_table_num(EGRESS)
         self._msg_hub = MessageHub(self.logger)
         self._internal_ip_allocator = kwargs['internal_ip_allocator']
-        tbls = \
-            self._service_manager.allocate_scratch_tables(self.APP_NAME, 2)
-        self._redirect_scratch = tbls[0]
+        self._redirect_scratch = \
+            self._service_manager.allocate_scratch_tables(self.APP_NAME, 2)[0]
         self._mac_rewr = \
             self._service_manager.INTERNAL_MAC_IP_REWRITE_TBL_NUM
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
         self._clean_restart = kwargs['config']['clean_restart']
+        self._qos_mgr = None
         self._redirect_manager = \
             RedirectionManager(
                 self._bridge_ip_address,
@@ -80,6 +96,9 @@ class GYController(PolicyMixin, MagmaController):
             datapath: ryu datapath struct
         """
         self._datapath = datapath
+        self._qos_mgr = QosManager(datapath, self.loop, self._config)
+        self._qos_mgr.setup()
+
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
 
@@ -115,15 +134,25 @@ class GYController(PolicyMixin, MagmaController):
         pass
 
     def _deactivate_flows_for_subscriber(self, imsi):
-        """ Deactivate all rules for a subscriber, ending any enforcement """
+        """
+        Deactivate all rules for a subscriber, ending any enforcement
+
+        Args:
+            imsi (string): subscriber id
+        """
         match = MagmaMatch(imsi=encode_imsi(imsi))
         flows.delete_flow(self._datapath, self.tbl_num, match)
         self._redirect_manager.deactivate_flows_for_subscriber(self._datapath,
                                                                imsi)
+        self._qos_mgr.remove_subscriber_qos(imsi)
 
     def _deactivate_flow_for_rule(self, imsi, rule_id):
         """
         Deactivate a specific rule using the flow cookie for a subscriber
+
+        Args:
+            imsi (string): subscriber id
+            rule_id (string): policy rule id
         """
         try:
             num = self._rule_mapper.get_rule_num(rule_id)
@@ -136,16 +165,36 @@ class GYController(PolicyMixin, MagmaController):
                           cookie=cookie, cookie_mask=mask)
         self._redirect_manager.deactivate_flow_for_rule(self._datapath, imsi,
                                                         num)
+        self._qos_mgr.remove_subscriber_qos(imsi, num)
 
-    def _install_flow_for_rule(self, imsi, ip_addr, _, rule):
+    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):
+        """
+        Install a flow to get stats for a particular rule. Flows will match on
+        IMSI, cookie (the rule num), in/out direction
+
+        Args:
+            imsi (string): subscriber to install rule for
+            ip_addr (string): subscriber session ipv4 address
+            apn_ambr (integer): maximum bandwidth for non-GBR EPS bearers
+            rule (PolicyRule): policy rule proto
+        """
         if rule.redirect.support == rule.redirect.ENABLED:
             self._install_redirect_flow(imsi, ip_addr, rule)
             return RuleModResult.SUCCESS
-        else:
-            # TODO: Add support once sessiond implements restrict access QOS
-            self.logger.error('GY only supports FINAL action redirect, other'
-                              'final actions are not supported')
+
+        if not rule.flow_list:
+            self.logger.error('The flow list for imsi %s, rule.id - %s'
+                              'is empty, this shoudn\'t happen', imsi, rule.id)
             return RuleModResult.FAILURE
+
+        flow_adds = []
+        try:
+            flow_adds = self._get_rule_match_flow_msgs(imsi, ip_addr, apn_ambr, rule)
+        except FlowMatchError:
+            return RuleModResult.FAILURE
+
+        chan = self._msg_hub.send(flow_adds, self._datapath)
+        return self._wait_for_rule_responses(imsi, rule, chan)
 
     def _install_default_flow_for_subscriber(self, imsi):
         pass
@@ -201,6 +250,17 @@ class GYController(PolicyMixin, MagmaController):
 
     def _install_default_flows_if_not_installed(self, datapath,
             existing_flows: List[OFPFlowStats]) -> List[OFPFlowStats]:
+        """
+        For each direction set the default flows to just forward to next app.
+        The enforcement flows for each subscriber would be added when the
+        IP session is created, by reaching out to the controller/PCRF.
+        If default flows are already installed, do nothing.
+
+        Args:
+            datapath: ryu datapath struct
+        Returns:
+            The list of flows that remain after inserting default flows
+        """
         inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                    direction=Direction.IN)
         outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
@@ -224,6 +284,162 @@ class GYController(PolicyMixin, MagmaController):
             self._wait_for_responses(chan, len(msgs))
 
         return remaining_flows
+
+    def _get_rule_match_flow_msgs(self, imsi, ip_addr, apn_ambr, rule):
+        """
+        Get flow msgs to get stats for a particular rule. Flows will match on
+        IMSI, cookie (the rule num), in/out direction
+
+        Args:
+            imsi (string): subscriber to install rule for
+            ip_addr (string): subscriber session ipv4 address
+            apn_ambr (integer): maximum bandwidth for non-GBR EPS bearers
+            rule (PolicyRule): policy rule proto
+        """
+        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        priority = self.get_of_priority(rule.priority)
+
+        flow_adds = []
+        for flow in rule.flow_list:
+            try:
+                flow_adds.extend(self._get_classify_rule_flow_msgs(
+                    imsi, ip_addr, apn_ambr, flow, rule_num, priority,
+                    rule.qos, rule.hard_timeout, rule.id, rule.app_name,
+                    rule.app_service_type))
+
+            except FlowMatchError as err:  # invalid match
+                self.logger.error(
+                    "Failed to get flow msg '%s' for subscriber %s: %s",
+                    rule.id, imsi, err)
+                raise err
+        return flow_adds
+
+    def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
+                                     priority, qos, hard_timeout, rule_id,
+                                     app_name, app_service_type):
+        """
+        Install a flow from a rule. If the flow action is DENY, then the flow
+        will drop the packet. Otherwise, the flow classifies the packet with
+        its matched rule and injects the rule num into the packet's register.
+        """
+        flow_match = flow_match_to_magma_match(flow.match)
+        flow_match.imsi = encode_imsi(imsi)
+        flow_match_actions, instructions = self._get_classify_rule_of_actions(
+            flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id)
+        msgs = []
+        if app_name:
+            # We have to allow initial traffic to pass through, before it gets
+            # classified by DPI, flow match set app_id to unclassified
+            flow_match.app_id = UNCLASSIFIED_PROTO_ID
+            msgs.append(
+                flows.get_add_resubmit_current_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    flow_match,
+                    flow_match_actions,
+                    hard_timeout=hard_timeout,
+                    priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
+                    cookie=rule_num,
+                    resubmit_table=self._egress_scratch_table)
+            )
+            flow_match.app_id = get_app_id(
+                PolicyRule.AppName.Name(app_name),
+                PolicyRule.AppServiceType.Name(app_service_type),
+            )
+
+        if flow.action == flow.DENY:
+            msgs.append(flows.get_add_drop_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                flow_match,
+                flow_match_actions,
+                hard_timeout=hard_timeout,
+                priority=priority,
+                cookie=rule_num)
+            )
+        else:
+            msgs.append(flows.get_add_resubmit_current_service_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                flow_match,
+                flow_match_actions,
+                instructions=instructions,
+                hard_timeout=hard_timeout,
+                priority=priority,
+                cookie=rule_num,
+                resubmit_table=self._egress_scratch_table)
+            )
+        return msgs
+
+    def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ip_addr,
+                                      apn_ambr, qos, rule_id):
+        """
+        Returns an action instructions list to be applied for a specific flow.
+        If qos or apn_ambr are set, the appropriate action is returned based
+        on the implementation used (tc vs ovs_meter)
+        """
+        parser = self._datapath.ofproto_parser
+        instructions = []
+
+        # encode the rule id in hex
+        of_note = parser.NXActionNote(list(rule_id.encode()))
+        actions = [of_note]
+        if flow.action == flow.DENY:
+            return actions, instructions
+
+        mbr_ul = qos.max_req_bw_ul
+        mbr_dl = qos.max_req_bw_dl
+        qos_info = None
+        ambr = None
+        d = flow.match.direction
+        if d == flow.match.UPLINK:
+            if apn_ambr:
+                ambr = apn_ambr.max_bandwidth_ul
+            if mbr_ul != 0:
+                qos_info = QosInfo(gbr=qos.gbr_ul, mbr=mbr_ul)
+
+        if d == flow.match.DOWNLINK:
+            if apn_ambr:
+                ambr = apn_ambr.max_bandwidth_dl
+            if mbr_dl != 0:
+                qos_info = QosInfo(gbr=qos.gbr_dl, mbr=mbr_dl)
+
+        if qos_info or ambr:
+            action, inst = self._qos_mgr.add_subscriber_qos(
+                imsi, ip_addr, ambr, rule_num, d, qos_info)
+
+            self.logger.debug("adding Actions %s instruction %s ", action, inst)
+            if action:
+                actions.append(action)
+
+            if inst:
+                instructions.append(inst)
+
+        version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+        actions.extend(
+            [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
+             ])
+        return actions, instructions
+
+    def get_of_priority(self, precedence):
+        """
+        Lower the precedence higher the importance of the flow in 3GPP.
+        Higher the priority higher the importance of the flow in openflow.
+        Convert precedence to priority:
+        1 - Flows with precedence > 65534 will have min priority which is the
+        min priority for a programmed flow = (default drop + 1)
+        2 - Flows in the precedence range 0-65534 will have priority 65535 -
+        Precedence
+        :param precedence:
+        :return:
+        """
+        if precedence >= self.GY_PRIORITY_RANGE:
+            self.logger.warning(
+                "Flow precedence is higher than OF range using min priority %d",
+                self.MIN_GY_PROGRAMMED_FLOW)
+            return self.MIN_GY_PROGRAMMED_FLOW
+        return self.MAX_GY_PRIORITY - precedence
 
     @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
     def _handle_barrier(self, ev):
