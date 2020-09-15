@@ -116,11 +116,9 @@ class SubscriberDbClient:
             selected_apn_conf = None
             for apn_config in data.non_3gpp.apn_config:
                 logging.debug("APN config: %s", apn_config)
-                if apn_config.assigned_static_ip is None or \
-                        apn_config.assigned_static_ip == "":
-                    continue
                 try:
-                    ipaddress.ip_address(apn_config.assigned_static_ip)
+                    if apn_config.assigned_static_ip:
+                        ipaddress.ip_address(apn_config.assigned_static_ip)
                 except ValueError:
                     continue
                 if apn_config.service_selection == '*':
@@ -129,7 +127,6 @@ class SubscriberDbClient:
                     selected_apn_conf = apn_config
                     break
 
-            if selected_apn_conf and selected_apn_conf.assigned_static_ip:
-                return selected_apn_conf
+            return selected_apn_conf
 
         return None
