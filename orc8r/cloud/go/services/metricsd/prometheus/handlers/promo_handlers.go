@@ -359,7 +359,12 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 
-		seriesMatchers := []string{fmt.Sprintf("{%s=~\".*\"}", labelName)}
+		restrictedQuery, err := queryRestrictor.RestrictQuery(fmt.Sprintf("{%s=~\".+\"}", labelName))
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+
+		seriesMatchers := []string{restrictedQuery}
 		for _, matcher := range queryRestrictor.Matchers() {
 			seriesMatchers = append(seriesMatchers, fmt.Sprintf("{%s}", matcher.String()))
 		}
