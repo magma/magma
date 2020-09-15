@@ -61,8 +61,9 @@ class GYController(PolicyMixin, MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
+        self._enforcement_stats_scratch = self._service_manager.get_table_num(
+            EnforcementStatsController.APP_NAME)
         self.loop = kwargs['loop']
-        self._egress_scratch_table = self._service_manager.get_table_num(EGRESS)
         self._msg_hub = MessageHub(self.logger)
         self._internal_ip_allocator = kwargs['internal_ip_allocator']
         self._redirect_scratch = \
@@ -77,7 +78,7 @@ class GYController(PolicyMixin, MagmaController):
                 self._bridge_ip_address,
                 self.logger,
                 self.tbl_num,
-                self._service_manager.get_table_num(EGRESS),
+                self._enforcement_stats_scratch,
                 self._redirect_scratch,
                 self._session_rule_version_mapper
             ).set_cwf_args(
@@ -335,16 +336,20 @@ class GYController(PolicyMixin, MagmaController):
             # We have to allow initial traffic to pass through, before it gets
             # classified by DPI, flow match set app_id to unclassified
             flow_match.app_id = UNCLASSIFIED_PROTO_ID
+            parser = self._datapath.ofproto_parser
+            passthrough_actions = flow_match_actions + \
+                [parser.nxactionregload2(dst=scratch_regs[1],
+                                         value=ignore_stats)]
             msgs.append(
                 flows.get_add_resubmit_current_service_flow_msg(
                     self._datapath,
                     self.tbl_num,
                     flow_match,
-                    flow_match_actions,
+                    passthrough_actions,
                     hard_timeout=hard_timeout,
                     priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
-                    resubmit_table=self._egress_scratch_table)
+                    resubmit_table=_enforcement_stats_scratch)
             )
             flow_match.app_id = get_app_id(
                 PolicyRule.AppName.Name(app_name),
@@ -371,7 +376,7 @@ class GYController(PolicyMixin, MagmaController):
                 hard_timeout=hard_timeout,
                 priority=priority,
                 cookie=rule_num,
-                resubmit_table=self._egress_scratch_table)
+                resubmit_table=_enforcement_stats_scratch)
             )
         return msgs
 
