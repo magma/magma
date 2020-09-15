@@ -20,10 +20,11 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/ies)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include/ies)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/test)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../../../../../orc8r/gateway/c/common/logging)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../common/glogwrapper)
 
 set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AmfMessage.cpp
-	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationAccept.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationRequestUEInit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationAcceptUEInit.cpp
@@ -52,7 +53,6 @@ add_library(TASK_NAS5G
 target_link_libraries(TASK_NAS5G
     COMMON
     LIB_BSTR LIB_SECU LIB_3GPP
-    # TASK_AMF 
     )
 if (EMBEDDED_SGW)
   target_link_libraries(TASK_NAS5G TASK_SGW)

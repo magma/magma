@@ -20,15 +20,16 @@ namespace magma5g
   {
     public:
       uint8_t iei;
-      #define NAS_KEY_SET_IDENTIFIER_MIN_LENGTH 1
-      #define NAS_KEY_SET_IDENTIFIER_NATIVE 0
-      #define NAS_KEY_SET_IDENTIFIER_MAPPED 1
       uint8_t tsc : 1;
-      #define NAS_KEY_SET_IDENTIFIER_NOT_AVAILABLE 0x7
       uint8_t naskeysetidentifier : 3;
+      #define NAS_KEY_SET_IDENTIFIER_NATIVE 0
+      #define NAS_KEY_SET_IDENTIFIER_MIN_LENGTH 1
+      #define NAS_KEY_SET_IDENTIFIER_MAPPED 1
+      #define NAS_KEY_SET_IDENTIFIER_NOT_AVAILABLE 0x7
+
       NASKeySetIdentifierMsg();
       ~NASKeySetIdentifierMsg();
-      int EncodeNASKeySetIdentifierMsg ( NASKeySetIdentifierMsg *naskeysetidentifier, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
-      int DecodeNASKeySetIdentifierMsg ( NASKeySetIdentifierMsg * naskeysetidentifier, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
+      int EncodeNASKeySetIdentifierMsg(NASKeySetIdentifierMsg *naskeysetidentifier, uint8_t iei, uint8_t * buffer, uint32_t len);
+      int DecodeNASKeySetIdentifierMsg(NASKeySetIdentifierMsg * naskeysetidentifier, uint8_t iei, uint8_t * buffer, uint32_t len);
   };
 }

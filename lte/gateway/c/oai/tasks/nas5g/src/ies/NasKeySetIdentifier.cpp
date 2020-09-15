@@ -53,9 +53,8 @@ namespace magma5g
     uint32_t encoded = 0;
 
     MLOG(MDEBUG) << "EncodeNASKeySetIdentifierMsg:";
-    // TBD 
+    // Will be supported POST MVC 
     CHECK_PDU_POINTER_AND_LENGTH_ENCODER (buffer,NAS_KEY_SET_IDENTIFIER_MIN_LENGTH , len);
-
     return encoded;
   };
 }

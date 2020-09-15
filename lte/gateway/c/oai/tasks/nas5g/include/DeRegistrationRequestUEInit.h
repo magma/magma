@@ -23,9 +23,9 @@ namespace magma5g
     class DeRegistrationRequestUEInitMsg
     {
       public:
-#define DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH 3
         DeRegistrationRequestUEInitMsg();
         ~DeRegistrationRequestUEInitMsg();
+
         ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator; 
         SecurityHeaderTypeMsg securityheadertype;
         SpareHalfOctetMsg sparehalfoctet; 
@@ -33,6 +33,7 @@ namespace magma5g
         M5GSDeRegistrationTypeMsg m5gsderegistrationtype;
         NASKeySetIdentifierMsg naskeysetidentifier; 
         M5GSMobileIdentityMsg m5gsmobileidentity; 
+        #define DEREGISTRATION_REQUEST_UEINIT_MINIMUM_LENGTH 3
         int DecodeDeRegistrationRequestUEInitMsg(DeRegistrationRequestUEInitMsg *deregistrationrequestueinit, uint8_t *buffer, uint32_t len);
         int EncodeDeRegistrationRequestUEInitMsg(DeRegistrationRequestUEInitMsg *deregistrationrequestueinit, uint8_t *buffer, uint32_t len);
     };

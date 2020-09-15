@@ -3,27 +3,21 @@
 #include <stdint.h>
 #include <iostream>
 #include "M5gNasMessage.h"
-//#include "magma_logging.h"
-//#include "glogwrapper/glog_logging.h"
-
-#define MLOG(MDEBUG) cout
-//#define MLOG(MERROR) cout
+#include "magma_logging.h"
+#include "glogwrapper/glog_logging.h"
 
 typedef enum {
-  TLV_MAC_MISMATCH                        = -14,
+  TLV_MAC_MISMATCH                        = -114,
   TLV_BUFFER_NULL                         = -13,
   TLV_BUFFER_TOO_SHORT                    = -12,
   TLV_PROTOCOL_NOT_SUPPORTED              = -11,
   TLV_WRONG_MESSAGE_TYPE                  = -10,
   TLV_OCTET_STRING_TOO_LONG_FOR_IEI       = -9,
-
   TLV_VALUE_DOESNT_MATCH                  = -4,
   TLV_MANDATORY_FIELD_NOT_PRESENT         = -3,
   TLV_UNEXPECTED_IEI                      = -2,
-
   RETURN_ERROR                            = -1,
   RETURN_NO_ERROR                         = 0,
-
   TLV_NO_ERROR                            = RETURN_NO_ERROR,
   TLV_FATAL_ERROR                         = TLV_VALUE_DOESNT_MATCH
 } TLVErrorCode;

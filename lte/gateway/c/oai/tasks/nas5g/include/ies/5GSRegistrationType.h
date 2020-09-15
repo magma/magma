@@ -22,9 +22,10 @@ namespace magma5g
       const int REGISTRATION_TYPE_MIN_LENGTH = 1;
       uint8_t FOR : 1;
       uint8_t typeval : 3;
+
       M5GSRegistrationTypeMsg();
       ~M5GSRegistrationTypeMsg();
-      int EncodeM5GSRegistrationTypeMsg ( M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
-      int DecodeM5GSRegistrationTypeMsg ( M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
+      int EncodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len);
+      int DecodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len);
   };
 }

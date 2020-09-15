@@ -62,27 +62,28 @@ namespace magma5g
   };
 
   // Decode GutiMobileIdentity IE Message
-  int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
-      GutiM5GSMobileIdentity* guti, uint8_t* buffer, uint8_t ielen) {
+	int M5GSMobileIdentityMsg::DecodeGutiMobileIdentityMsg(
+			GutiM5GSMobileIdentity* guti, uint8_t* buffer, uint8_t ielen) {
 
-    int decoded = 0;
+		int decoded = 0;
+		uint16_t setid;
 
-    MLOG(MDEBUG) << " --- Guti Mobile Identity \n";
-    guti->spare = (*(buffer + decoded) >> 4) & 0xf;
+		MLOG(MDEBUG) << " --- Guti Mobile Identity \n";
+		guti->spare = (*(buffer + decoded) >> 4) & 0xf;
 
-    // For the GUTI, bits 5 to 8 of octet 3 are coded as "1111"
-    if (guti->spare != 0xf) {
-      MLOG(MERROR) << "Error: " << std::dec << TLV_VALUE_DOESNT_MATCH;
-      return(TLV_VALUE_DOESNT_MATCH);
-    }
+		// For the GUTI, bits 5 to 8 of octet 3 are coded as "1111"
+		if (guti->spare != 0xf) {
+			MLOG(MERROR) << "Error: " << std::dec << TLV_VALUE_DOESNT_MATCH;
+			return(TLV_VALUE_DOESNT_MATCH);
+		}
 
-    guti->oddeven        = (*(buffer + decoded) >> 3) & 0x1;
-    guti->typeofidentity = *(buffer + decoded) & 0x7;
+		guti->oddeven        = (*(buffer + decoded) >> 3) & 0x1;
+		guti->typeofidentity = *(buffer + decoded) & 0x7;
 
-    if (guti->typeofidentity != M5GSMobileIdentityMsg_GUTI) {
-      MLOG(MERROR) << "Error: " << std::dec << TLV_VALUE_DOESNT_MATCH;
-      return(TLV_VALUE_DOESNT_MATCH);
-    }
+		if (guti->typeofidentity != M5GSMobileIdentityMsg_GUTI) {
+			MLOG(MERROR) << "Error: " << std::dec << TLV_VALUE_DOESNT_MATCH;
+			return(TLV_VALUE_DOESNT_MATCH);
+		}
 
     decoded++;
     guti->mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
@@ -96,13 +97,11 @@ namespace magma5g
     decoded++;
     guti->amfregionid = *(buffer + decoded);
     decoded++;
-    uint16_t setid;
     setid = *(buffer + decoded);
     decoded ++;
     guti->amfsetid = 0x0000 | ((setid & 0xff) << 2) | ((*(buffer + decoded) >> 6) & 0x3);
     guti->amfpointer = *(buffer + decoded) & 0x3f;
     decoded++;
-
     guti->tmsi1 = *(buffer + decoded);
     decoded++;
     guti->tmsi2 = *(buffer + decoded);
@@ -111,7 +110,6 @@ namespace magma5g
     decoded++;
     guti->tmsi4 = *(buffer + decoded);
     decoded++;
-
     MLOG(MDEBUG) << "   Odd/Even Indecation = " << dec << int(guti->oddeven)<<"\n";
     MLOG(MDEBUG) << "   Mobile Country Code (MCC) = "<<dec<<int(guti->mcc_digit1)<<dec<<int(guti->mcc_digit2)<<dec<<int(guti->mcc_digit3)<<"\n";
     MLOG(MDEBUG) << "   Mobile Network Code (MNC) = "<<dec<<int(guti->mnc_digit1)<<dec<<int(guti->mnc_digit2)<<dec<<int(guti->mnc_digit3)<<"\n";
@@ -119,8 +117,6 @@ namespace magma5g
     MLOG(MDEBUG) << "   Amf Set ID = " << dec << int(guti->amfsetid)<<"\n";
     MLOG(MDEBUG) << "   Amf Pointer = " << dec << int(guti->amfpointer)<<"\n";
     MLOG(MDEUBG) << "   M5G-TMSI = "<<"0x0"<<hex<<int(guti->tmsi1)<<"0"<<hex<<int(guti->tmsi2)<<"0"<<hex<<int(guti->tmsi3)<<"0"<<hex<<int(guti->tmsi4)<<"\n\n";
-
-
     return(decoded);
   }
 
@@ -144,7 +140,6 @@ namespace magma5g
       MLOG(MERROR) << "Error: " << std::dec << TLV_VALUE_DOESNT_MATCH;
       return(TLV_VALUE_DOESNT_MATCH);
     }
-
     decoded++;
     imei->identity_digit3 = (*(buffer + decoded) >> 4) & 0xf;
     imei->identity_digit2 = *(buffer + decoded) & 0xf;
@@ -186,21 +181,18 @@ namespace magma5g
     imsi->mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
     imsi->mnc_digit1 = *(buffer + decoded) & 0xf;
     decoded++;
-
     imsi->routingindicatordigit2 = (*(buffer + decoded) >> 4) & 0xf;
     imsi->routingindicatordigit1 = *(buffer + decoded) & 0xf;
     decoded++;
     imsi->routingindicatordigit4 = (*(buffer + decoded) >> 4) & 0xf;
     imsi->routingindicatordigit3 = *(buffer + decoded) & 0xf;
     decoded++;
-
     imsi->spare6 = (*(buffer + decoded) >> 7) & 0x1;
     imsi->spare5 = (*(buffer + decoded) >> 6) & 0x1;
     imsi->spare4 = (*(buffer + decoded) >> 5) & 0x1;
     imsi->spare3 = (*(buffer + decoded) >> 4) & 0x1;
     imsi->protect_schm_id = *(buffer + decoded) & 0xf;
     decoded++;
-
     imsi->home_nw_id = *(buffer + decoded);
     decoded++;
 
@@ -234,7 +226,7 @@ namespace magma5g
     return(decoded);
   };
 
-  // TBD
+  // Will be supported POST MVC
   // Decode SuciMobileIdentity IE 
   int M5GSMobileIdentityMsg::DecodeSuciMobileIdentityMsg(
       SuciM5GSMobileIdentity* suci, uint8_t* buffer, uint8_t ielen) {
@@ -244,21 +236,17 @@ namespace magma5g
     suci->spare2 = (*(buffer + decoded) >> 7) & 0x1;
     suci->supiformat        = (*(buffer + decoded) >> 4) & 0x7;
     suci->spare1 = (*(buffer + decoded) >> 3) & 0x1;
-
     suci->typeofidentity = *(buffer + decoded) & 0x7;
 
     if (suci->typeofidentity != M5GSMobileIdentityMsg_SUCI) {
       MLOG(MDEBUG) << "TLV_VALUE_DOESNT_MATCH error";
       return(TLV_VALUE_DOESNT_MATCH);
     }
-
     decoded++;
 
-    //TBD
+    //Will be supported POST MVC
     suci->sucinai = *(buffer + decoded);
     decoded++;
-
-
     decoded++;
 
     return(decoded);
@@ -284,15 +272,12 @@ namespace magma5g
       MLOG(MDEBUG) << "Error: " << int(TLV_VALUE_DOESNT_MATCH);
       return(TLV_VALUE_DOESNT_MATCH);
     }
-
     decoded++;
-
     tmsi->amfsetid = *(buffer + decoded);
     decoded++;
     tmsi->amfsetid1 = (*(buffer + decoded) >> 6) & 0x2;
     tmsi->amfpointer = *(buffer + decoded) & 0x3f;
     decoded++;
-
     tmsi->m5gtmsi1 = *(buffer + decoded);
     decoded++;
     tmsi->m5gtmsi2 = *(buffer + decoded);
@@ -363,7 +348,6 @@ namespace magma5g
       return decoded_rc;
     }
     return (decoded + decoded_rc);
-
   };
 
   // Encode GutiMobileIdentity IE
@@ -374,20 +358,17 @@ namespace magma5g
     MLOG(MDEBUG) << "EncodeGutiMobileIdentityMsg:";
     *(buffer + encoded) =
       0xf0 | ((guti->oddeven & 0x01)<< 3) | (guti->typeofidentity & 0x7);
-
     MLOG(MDEBUG) << "oddeven typeofidentity = " << hex << int(*(buffer + encoded));
     encoded++;
     *(buffer + encoded) = 0x00 | ((guti->mcc_digit2 & 0x0f) << 4) | (guti->mcc_digit1 & 0x0f);
     MLOG(MDEBUG) << "mcc_digit2 >mcc_digit1 typeofidentity = " << hex << int(*(buffer + encoded));
     encoded++;
-
     *(buffer + encoded) = 0x00 | ((guti->mnc_digit3 & 0x0f) << 4) | (guti->mcc_digit3 & 0x0f);
     MLOG(MDEBUG) << "mnc_digit3 >mcc_digit3 typeofidentity = " << hex << int(*(buffer + encoded));
     encoded++;
     *(buffer + encoded) = 0x00 | ((guti->mnc_digit2 & 0x0f) << 4) | (guti->mnc_digit1 & 0x0f);
     MLOG(MDEBUG) << "mnc_digit2 >mcc_digit1 typeofidentity = " << hex << int(*(buffer + encoded));
     encoded++;
-
     *(buffer + encoded) = 0x00 | guti->amfregionid;
     MLOG(MDEBUG) << "amfregionid = " << hex << int(*(buffer + encoded));
     encoded++;
@@ -397,7 +378,6 @@ namespace magma5g
     *(buffer + encoded) = 0x00 | ((guti->amfsetid1 & 0x03) << 6) | (guti->amfpointer & 0x3f);
     MLOG(MDEBUG) << "amfsetid1 amfpointer = " << hex << int(*(buffer + encoded));
     encoded++;
-
     *(buffer + encoded) = 0x00 | guti->tmsi1;
     MLOG(MDEBUG) << "tmsi1 = " << hex << int(*(buffer + encoded));
     encoded++;
@@ -414,7 +394,7 @@ namespace magma5g
     return encoded;
   };
 
-  // TBD
+  // Will be supported POST MVC
   // Encode ImeiMobileIdentity IE
   int M5GSMobileIdentityMsg::EncodeImeiMobileIdentityMsg(
       ImeiM5GSMobileIdentity* imei, uint8_t* buffer) {
@@ -430,7 +410,7 @@ namespace magma5g
     return encoded;
   };
 
-  // TBD
+  // Will be supported POST MVC
   // Encode ImsiMobileIdentity IE
   int M5GSMobileIdentityMsg::EncodeImsiMobileIdentityMsg(
       ImsiM5GSMobileIdentity* imsi, uint8_t* buffer) {
@@ -443,24 +423,21 @@ namespace magma5g
     encoded++;
     *(buffer + encoded) = 0x00 | ((imsi->mcc_digit2 & 0x0f) << 4) | (imsi->mcc_digit1 & 0x0f);
     encoded++;
-
     *(buffer + encoded) = 0x00 | ((imsi->mnc_digit3 & 0x0f) << 4) | (imsi->mcc_digit3 & 0x0f);
     encoded++;
     *(buffer + encoded) = 0x00 | ((imsi->mnc_digit2 & 0x0f) << 4) | (imsi->mnc_digit1 & 0x0f);
     encoded++;
-
     *(buffer + encoded) = 0x00 | ((imsi->routingindicatordigit2 & 0xf0) << 4) | (imsi->routingindicatordigit1 & 0x0f);
     encoded++;
     *(buffer + encoded) = 0x00 | ((imsi->routingindicatordigit3 & 0xf0) << 4) | (imsi->routingindicatordigit4 & 0x0f);
     encoded++;
-
     *(buffer + encoded) = 0x00 | ((imsi->spare6 & 0x01) << 7) | ((imsi->spare5 & 0x01) << 6) |
       ((imsi->spare4 & 0x01) << 5) | ((imsi->spare3 & 0x01) << 4) | (imsi->protect_schm_id & 0x0f);
-
     *(buffer + encoded) = imsi->home_nw_id;
     encoded++;
 
-#if 0
+    /*
+    // Will be supported POST MVC
     imsi->scheme_output.assign((const char *)(buffer + encoded),  imsi->scheme_output.size());
 
 
@@ -472,11 +449,11 @@ namespace magma5g
       MLOG(MDEBUG) << (uint8_t)(imsi->scheme_output[i]);
     }
     MLOG(MDEBUG) << endl;
-#endif
+    */
     return encoded;
   };
 
-  // TBD
+  // Will be supported POST MVC
   int M5GSMobileIdentityMsg::EncodeTmsiMobileIdentityMsg(
       TmsiM5GSMobileIdentity* tmsi, uint8_t* buffer) {
     uint32_t encoded = 0;
@@ -490,7 +467,6 @@ namespace magma5g
     *(buffer + encoded) = 0x00 | ((tmsi->amfsetid1 & 0xc0) << 6);
     *(buffer + encoded) = 0x00 | (tmsi->amfpointer & 0x3f);
     encoded++;
-
     *(buffer + encoded) = 0x00 | tmsi->m5gtmsi1;
     encoded++;
     *(buffer + encoded) = 0x00 | tmsi->m5gtmsi2;

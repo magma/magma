@@ -16,7 +16,6 @@ limitations under the License.
 using namespace std;
 namespace magma5g
 {
-
   DeRegistrationRequestUEInitMsg::DeRegistrationRequestUEInitMsg()
   {
   };
@@ -25,6 +24,7 @@ namespace magma5g
   {
   };
 
+  //Decode De Registration Request(UE) Message and its IEs
   int DeRegistrationRequestUEInitMsg::DecodeDeRegistrationRequestUEInitMsg(DeRegistrationRequestUEInitMsg *deregistrationrequest, uint8_t* buffer, uint32_t len)
   {
     uint32_t decoded = 0;
@@ -37,40 +37,34 @@ namespace magma5g
       return decodedresult;
     else
       decoded += decodedresult;
-
     if((decodedresult = deregistrationrequest->securityheadertype.DecodeSecurityHeaderTypeMsg (&deregistrationrequest->securityheadertype, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-
     if((decodedresult = deregistrationrequest->sparehalfoctet.DecodeSpareHalfOctetMsg (&deregistrationrequest->sparehalfoctet, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-
     if((decodedresult = deregistrationrequest->messagetype.DecodeMessageTypeMsg (&deregistrationrequest->messagetype, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-
     if((decodedresult = deregistrationrequest->m5gsderegistrationtype.DecodeM5GSDeRegistrationTypeMsg (&deregistrationrequest->m5gsderegistrationtype, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-
     if((decodedresult = deregistrationrequest->naskeysetidentifier.DecodeNASKeySetIdentifierMsg (&deregistrationrequest->naskeysetidentifier, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-
     if((decodedresult = deregistrationrequest->m5gsmobileidentity.DecodeM5GSMobileIdentityMsg (&deregistrationrequest->m5gsmobileidentity, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-
     return decoded;
   };
 
+  //Encode De Registration Request(UE) Message and its IEs
   int DeRegistrationRequestUEInitMsg::EncodeDeRegistrationRequestUEInitMsg( DeRegistrationRequestUEInitMsg *deregistrationrequest, uint8_t* buffer, uint32_t len)
   {
     uint32_t encoded = 0;
@@ -83,37 +77,30 @@ namespace magma5g
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationrequest->securityheadertype.EncodeSecurityHeaderTypeMsg (&deregistrationrequest->securityheadertype, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationrequest->sparehalfoctet.EncodeSpareHalfOctetMsg (&deregistrationrequest->sparehalfoctet, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationrequest->messagetype.EncodeMessageTypeMsg (&deregistrationrequest->messagetype, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationrequest->m5gsderegistrationtype.EncodeM5GSDeRegistrationTypeMsg (&deregistrationrequest->m5gsderegistrationtype, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationrequest->naskeysetidentifier.EncodeNASKeySetIdentifierMsg (&deregistrationrequest->naskeysetidentifier, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationrequest->m5gsmobileidentity.EncodeM5GSMobileIdentityMsg (&deregistrationrequest->m5gsmobileidentity, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     return encoded;
   };
 }

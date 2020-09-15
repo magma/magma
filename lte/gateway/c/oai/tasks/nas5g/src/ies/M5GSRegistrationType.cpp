@@ -25,6 +25,7 @@ namespace magma5g
   M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg()
   {
   };
+
   // Decode M5GSRegistrationType Message 
   int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t *buffer, uint32_t len) 
   {
@@ -48,7 +49,7 @@ namespace magma5g
    // Encode M5GSRegistrationType Message 
    int M5GSRegistrationTypeMsg::EncodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len)
    {
-      // TBD
+      // Will be supported POST MVC
       return 0;
    };
 }

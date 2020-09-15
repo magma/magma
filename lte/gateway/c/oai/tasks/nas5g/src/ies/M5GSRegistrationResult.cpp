@@ -59,9 +59,8 @@ namespace magma5g
      
     MLOG(MDEBUG) << " EncodeM5GSRegistrationResultMsg : 0x0" << int(*(buffer + encoded)) << " (" << "spare = "<<((m5gsregistrationresult->spare & 0xf) << 0x4) <<", sms allowed = "<<((m5gsregistrationresult->smsallowed & 0x1) << 3) <<  ", result val = " << hex << int(m5gsregistrationresult->registrationresultval & 0x7) << ")"<< endl;
     encoded++;
-    
     *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
-     MLOG(MDEBUG) << " EncodeM5GSRegistrationResultMsg : length  = 0x0" << hex << int(*lenPtr) << endl;
+    MLOG(MDEBUG) << " EncodeM5GSRegistrationResultMsg : length  = 0x0" << hex << int(*lenPtr) << endl;
     return encoded;
   };
 }

@@ -19,10 +19,11 @@ namespace magma5g
   {
     public:
       uint8_t extendedprotodiscriminator;
+
       ExtendedProtocolDiscriminatorMsg();
       ~ExtendedProtocolDiscriminatorMsg();
-      int EncodeExtendedProtocolDiscriminatorMsg ( ExtendedProtocolDiscriminatorMsg *extendedprotocoldiscriminator, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
-      int DecodeExtendedProtocolDiscriminatorMsg ( ExtendedProtocolDiscriminatorMsg *extendedprotocoldiscriminator, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
+      int EncodeExtendedProtocolDiscriminatorMsg(ExtendedProtocolDiscriminatorMsg *extendedprotocoldiscriminator, uint8_t iei, uint8_t * buffer, uint32_t len);
+      int DecodeExtendedProtocolDiscriminatorMsg(ExtendedProtocolDiscriminatorMsg *extendedprotocoldiscriminator, uint8_t iei, uint8_t * buffer, uint32_t len);
   };
 }
 

@@ -25,6 +25,7 @@ namespace magma5g
   {
   };
 
+  //Decoding De Registration Accept Message and its IEs
   int DeRegistrationAcceptUEInitMsg::DecodeDeRegistrationAcceptUEInitMsg(DeRegistrationAcceptUEInitMsg *deregistrationaccept, uint8_t* buffer, uint32_t len)
   {
     uint32_t decoded = 0;
@@ -36,25 +37,22 @@ namespace magma5g
       return decodedresult;
     else
       decoded += decodedresult;
-
     if((decodedresult = deregistrationaccept->securityheadertype.DecodeSecurityHeaderTypeMsg (&deregistrationaccept->securityheadertype, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-
     if((decodedresult = deregistrationaccept->sparehalfoctet.DecodeSpareHalfOctetMsg (&deregistrationaccept->sparehalfoctet, 0, buffer+decoded, len-decoded))<0)
 	    return decodedresult;
     else
 	    decoded += decodedresult;
-
     if((decodedresult = deregistrationaccept->messagetype.DecodeMessageTypeMsg (&deregistrationaccept->messagetype, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-
     return decoded;
   };
 
+  //Encoding De Registration Accept Message and its IEs
   int DeRegistrationAcceptUEInitMsg::EncodeDeRegistrationAcceptUEInitMsg( DeRegistrationAcceptUEInitMsg *deregistrationaccept, uint8_t* buffer, uint32_t len)
   {
     uint32_t encoded = 0;
@@ -67,22 +65,18 @@ namespace magma5g
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationaccept->securityheadertype.EncodeSecurityHeaderTypeMsg (&deregistrationaccept->securityheadertype, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationaccept->sparehalfoctet.EncodeSpareHalfOctetMsg (&deregistrationaccept->sparehalfoctet, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     if((encodedresult = deregistrationaccept->messagetype.EncodeMessageTypeMsg (&deregistrationaccept->messagetype, 0, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
       encoded += encodedresult;
-
     return encoded;
   };
 }

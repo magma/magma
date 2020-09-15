@@ -10,22 +10,23 @@ limitations under the License.
 */
 #pragma once
 #include <sstream>
+#ifdef HANDLE_POST_MVC 
 #include "RegistrationRequest.h"
 #include "RegistrationAccept.h"
-#if 0 // TBD
-#include"registration_complete.h"
-#include"registration_reject.h"
-#include"identity_request.h"
-#include"identity_response.h"
-#include"Authentication_Request.h"
-#include"Authentication_Response.h"
-#include"Authentication_Reject.h"
-#include"AuthenticationFailure.h"
+#include "registration_complete.h"
+#include "registration_reject.h"
+#include "identity_request.h"
+#include "identity_response.h"
+#include "Authentication_Request.h"
+#include "Authentication_Response.h"
+#include "Authentication_Reject.h"
+#include "AuthenticationFailure.h"
 #include "security_mode_command.h"
 #include "security_mode_complete.h"
-#include"deregistration_request.h"
-#include"deregistration_accept.h"
+#include "deregistration_request.h"
+#include "deregistration_accept.h"
 #endif
+
 using namespace std;
 
 namespace magma5g
@@ -46,9 +47,9 @@ namespace magma5g
       AmfMsg();
       ~AmfMsg();
       AmfMsgHeader header;
+      #ifdef HANDLE_POST_MVC
       RegistrationRequestMsg registrationrequestmsg;
       RegistrationAcceptMsg  registrationacceptmsg;
-#if 0 // TBD
       RegistrationCompleteMsg registrationcompletemsg;
       RegistrationRejectMsg registrationrejectmsg;
       IdentityRequestMsg identityrequestmsg;
@@ -61,7 +62,7 @@ namespace magma5g
       SecurityModeCompleteMsg securitymodecompletemsg;
       DeregistrationRequestMsg deregistrationequesmsg;
       DregistrationAcceptMsg deregistrationacceptmsg;
-#endif
+      #endif
       int M5gNasMessageEncodeMsg (AmfMsg *msg, uint8_t *buffer, uint32_t len);
       int M5gNasMessageDecodeMsg (AmfMsg *msg, uint8_t *buffer, uint32_t len);
       int AmfMsgDecodeHeaderMsg (AmfMsgHeader *header, uint8_t *buffer, uint32_t len);

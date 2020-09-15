@@ -38,7 +38,6 @@ namespace magma5g
       return (decoded);
    };
 
-
    int M5GSDeRegistrationTypeMsg::EncodeM5GSDeRegistrationTypeMsg(M5GSDeRegistrationTypeMsg *deregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len)
    {
       uint8_t encoded = 0;

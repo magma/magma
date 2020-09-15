@@ -31,26 +31,22 @@ namespace magma5g
     int headerresult = 0;
     int decoderesult = 0;
 
-    MLOG(MDEBUG) << "M5gNasMessageDecodeMsg : "<<"\n";
     if (len > 0 || buffer != NULL) {
       headerresult = msg->AmfMsgDecodeHeaderMsg(&msg->header, buffer, len);
       if (headerresult <= 0) { 
-        MLOG(MERROR) << "   AmfMsgDecodeHeaderMsg ret error " << std::dec << RETURN_ERROR;
+        MLOG(MERROR) << "   Error : Header Decoding Failed" << std::dec << RETURN_ERROR;
         return (RETURN_ERROR);
       }
     } else {
-      MLOG(MERROR) << "buffer error ";
+      MLOG(MERROR) << "Error : Buffer is Empty";
       return (RETURN_ERROR);
     }
-
     MLOG(MDEBUG) << "   epd = 0x" << hex << int(msg->header.extendedprotocoldiscriminator)  <<"\n"<< "   security hdr =  0x" << hex << int(msg->header.securityheadertype) <<"\n"<< "   hdr type = 0x" << hex << int(msg->header.messagetype)<<"\n";
     decoderesult = msg->AmfMsgDecodeMsg(msg, buffer, len);
-
     if (decoderesult <= 0) {
       MLOG(MERROR) << "decode result error ";
       return (RETURN_ERROR);
     }
-
     return (headerresult + decoderesult);       
   }
 
@@ -68,17 +64,14 @@ namespace magma5g
         return (RETURN_ERROR);
       }
     } else {
-      MLOG(MERROR) << "buffer error ";
+      MLOG(MERROR) << "Error : Buffer is empty "<<endl;
       return (RETURN_ERROR);
     }
-
     encoderesult = msg->AmfMsgEncodeMsg(msg, buffer, len);
-
     if (encoderesult <= 0) {
-      MLOG(MERROR) << "Encode error ";
+      MLOG(MERROR) << "Error : Encoding AMF Message Failed"<<endl;
       return (RETURN_ERROR);
     }
-
     return (headerresult + encoderesult);       
   }
 
@@ -87,22 +80,21 @@ namespace magma5g
   {
     int size = 0;
 
-    MLOG(MDEBUG) << "AmfMsgDecodeHeaderMsg:";
+    MLOG(MDEBUG) << "AmfMsgDecodeHeaderMsg:"<<endl;
     if (len > 0  || buffer != NULL) {
       DECODE_U8(buffer + size, hdr->extendedprotocoldiscriminator, size);
       DECODE_U8(buffer + size, hdr->securityheadertype, size);
       DECODE_U8(buffer + size, hdr->messagetype, size);
       MLOG(MDEBUG) << "epd = 0x" << hex << int(hdr->extendedprotocoldiscriminator)  << "security hdr = 0x" << hex << int(hdr->securityheadertype) << " hdr type = 0x" << hex << int(hdr->messagetype);
     } else {
-      MLOG(MERROR) << "buffer Null error" ;
+      MLOG(MERROR) << "Error : Buffer is Empty"<<endl;
       return(RETURN_ERROR);
     }
 
     if (hdr->extendedprotocoldiscriminator != M5G_MOBILITY_MANAGEMENT_MESSAGES) {
-      MLOG(MERROR) << "Error tlv not supported";
+      MLOG(MERROR) << "Error : TLV not supported"<<endl;
       return (TLV_PROTOCOL_NOT_SUPPORTED);
     }
-
     return (size);
   }
 
@@ -118,40 +110,37 @@ namespace magma5g
       ENCODE_U8(buffer + size, hdr->messagetype, size);
       MLOG(MDEBUG) << "epd = 0x" << hex << int(hdr->extendedprotocoldiscriminator)  << "security hdr = 0x" << hex << int(hdr->securityheadertype) << "hdr type = 0x" << hex << int(hdr->messagetype);
     } else {
-      MLOG(MERROR) << "buffer Null error" ;
+      MLOG(MERROR) << "Error : Buffer is Empty " ;
       return(RETURN_ERROR);
     }
-
     if ((unsigned char)hdr->extendedprotocoldiscriminator != M5G_MOBILITY_MANAGEMENT_MESSAGES) {
-      MLOG(MERROR) << "Error tlv not supported";
+      MLOG(MERROR) << "Error : TLV not supported";
       return (TLV_PROTOCOL_NOT_SUPPORTED);
     }
-
     return (size);
   }
- 
+
   // Decode AMF Message
   int AmfMsg::AmfMsgDecodeMsg(AmfMsg *msg, uint8_t *buffer, uint32_t len)
   {
     int decoderesult = 0;
 
-    MLOG(MDEBUG) << "AmfMsgDecodeMsg:";
+    MLOG(MDEBUG) << "AmfMsgDecodeMsg:"<<endl;
     if (len <= 0 || buffer == NULL) 
     {
-      MLOG(MERROR) << "buffer Null error" ;
+      MLOG(MERROR) << "Error : Buffer is Empty"<<endl;
       return(RETURN_ERROR);
     } 
-
     MLOG(MDEBUG) << "msg type = 0x" << hex << int(msg->header.messagetype);
     switch ((unsigned char)msg->header.messagetype) 
     {
+      #ifdef HANDLE_POST_MVC 
       case REGISTRATION_REQUEST:
-        MLOG(MDEBUG) << "Registraion request msg";
+        MLOG(MDEBUG) << "Registraion request msg"<<endl;
         decoderesult = msg->registrationrequestmsg.DecodeRegistrationRequestMsg(&msg->registrationrequestmsg, buffer, len);
         break;
-#if 0 // TBD
       case REGISTRATION_ACCEPT:
-        MLOG(MDEBUG) << "AmfMsgDecodeMsg: Registraion accept msg";
+        MLOG(MDEBUG) << "AmfMsgDecodeMsg: Registraion accept msg"<<endl;
         decoderesult = msg->registrationacceptmsg.DecodeRegistrationAcceptMsg(&msg->registrationacceptmsg, buffer, len);
         break;
       case REGISTRATION_COMPLETE:
@@ -184,11 +173,10 @@ namespace magma5g
       case SECURITY_MODE_COMPLETE:
         decoderesult = security_mode_complete_msg.decode_security_mode_complete(&msg->securitymodecompletemsg,buffer,len);
         break;
-#endif
+      #endif
       default:
         decoderesult = TLV_WRONG_MESSAGE_TYPE; 
     }
-
     return (decoderesult);
   }
 
@@ -197,26 +185,23 @@ namespace magma5g
   {
     int encoderesult = 0;
 
-    MLOG(MDEBUG) << " AmfMsgEncodeMsg : \n";
+    MLOG(MDEBUG) << " AmfMsgEncodeMsg : "<<endl;
     if (len <= 0 || buffer == NULL) 
     {
-      MLOG(MERROR) << "buffer Null error" ;
+      MLOG(MERROR) << "Error : Buffer is Empty" ;
       return(RETURN_ERROR);
     } 
-
     switch ((unsigned char)msg->header.messagetype) 
     {
-/*
+      #ifdef HANDLE_POST_MVC
       case REGISTRATION_REQUEST:
         encoderesult = msg->registrationrequestmsg.EncodeRegistrationRequestMsg(&msg->registrationrequestmsg, buffer, len);
         break;
-*/
-  	case REGISTRATION_ACCEPT:
+  	  case REGISTRATION_ACCEPT:
         MLOG(MDEBUG) << " registraion accept msg \n";
         encoderesult = msg->registrationacceptmsg.EncodeRegistrationAcceptMsg(&msg->registrationacceptmsg, buffer, len);
         break;
-#if 0
-  	case REGISTRATION_COMPLETE:
+  	  case REGISTRATION_COMPLETE:
         encoderesult = msg->RegistrationCompleteMsg.EncodeRegistrationComplete(&msg->registrationcompletemsg, buffer, len);
         break;
       case REGISTRATION_REJECT:
@@ -248,8 +233,7 @@ namespace magma5g
         break;
       default:
         encoderesult = TLV_WRONG_MESSAGE_TYPE; 
-    
-#endif
+      #endif
     }
     return (encoderesult);
   }

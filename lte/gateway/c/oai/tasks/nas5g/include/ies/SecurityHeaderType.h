@@ -19,9 +19,10 @@ namespace magma5g
   {
     public:
       uint8_t securityhdr : 4;
+
       SecurityHeaderTypeMsg();
       ~SecurityHeaderTypeMsg();
-      int EncodeSecurityHeaderTypeMsg ( SecurityHeaderTypeMsg *securityheadertype, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
-      int DecodeSecurityHeaderTypeMsg ( SecurityHeaderTypeMsg *securityheadertype, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
+      int EncodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg *securityheadertype, uint8_t iei, uint8_t * buffer, uint32_t len);
+      int DecodeSecurityHeaderTypeMsg(SecurityHeaderTypeMsg *securityheadertype, uint8_t iei, uint8_t * buffer, uint32_t len);
   };
 }

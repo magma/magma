@@ -19,6 +19,7 @@ namespace magma5g
   {
     public:
       uint8_t spare : 4;
+
       SpareHalfOctetMsg();
       ~SpareHalfOctetMsg();
       int EncodeSpareHalfOctetMsg ( SpareHalfOctetMsg *sparehalfoctet, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;

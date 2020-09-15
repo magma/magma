@@ -19,9 +19,10 @@ namespace magma5g
   {
     public:
       uint8_t msgtype;
+
       MessageTypeMsg();
       ~MessageTypeMsg();
-      int EncodeMessageTypeMsg ( MessageTypeMsg *messagetype, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
-      int DecodeMessageTypeMsg ( MessageTypeMsg * messagetype, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
+      int EncodeMessageTypeMsg(MessageTypeMsg *messagetype, uint8_t iei, uint8_t * buffer, uint32_t len);
+      int DecodeMessageTypeMsg(MessageTypeMsg * messagetype, uint8_t iei, uint8_t * buffer, uint32_t len);
   };
 }

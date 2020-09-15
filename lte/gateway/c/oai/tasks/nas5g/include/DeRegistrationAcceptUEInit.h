@@ -21,13 +21,14 @@ namespace magma5g
     class DeRegistrationAcceptUEInitMsg
     {
       public:
-#define DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH 3
         DeRegistrationAcceptUEInitMsg();
         ~DeRegistrationAcceptUEInitMsg();
+
         ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator; 
         SecurityHeaderTypeMsg securityheadertype; 
         SpareHalfOctetMsg sparehalfoctet;
         MessageTypeMsg messagetype; 
+        #define DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH 3
         int DecodeDeRegistrationAcceptUEInitMsg(DeRegistrationAcceptUEInitMsg *deregistrationacceptueinit, uint8_t *buffer, uint32_t len);
         int EncodeDeRegistrationAcceptUEInitMsg(DeRegistrationAcceptUEInitMsg *deregistrationacceptueinit, uint8_t *buffer, uint32_t len);
     };
