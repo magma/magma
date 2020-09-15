@@ -55,16 +55,8 @@ export const gatewayTemplate: TemplateConfig = variableTemplate({
   includeAll: true,
 });
 
-export const imsiTemplate = variableTemplate({
-  labelName: 'imsi',
-  query: `label_values({networkID=~"$networkID",IMSI=~".+"}, IMSI)`,
-  regex: `/.+/`,
-  sort: 'alpha-insensitive-asc',
-  includeAll: true,
-});
-
 export const msisdnTemplate = variableTemplate({
-  labelName: 'msisdn',
+  name: 'msisdn',
   query: `label_values(msisdn)`,
   regex: `/.+/`,
   sort: 'num-asc',
@@ -72,7 +64,7 @@ export const msisdnTemplate = variableTemplate({
 });
 
 export const apnTemplate = variableTemplate({
-  labelName: 'apn',
+  name: 'apn',
   query: `label_values({networkID=~"$networkID",apn=~".+"},apn)`,
   regex: `/.+/`,
   sort: 'alpha-insensitive-asc',
@@ -337,69 +329,72 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
       },
     ],
   };
+};
 
-export const SubscriberDBData: GrafanaDBData = {
-  title: 'Subscribers',
-  description:
-    'Metrics relevant to subscribers. Do not edit: edits will be overwritten. Save this dashboard under another name to copy and edit.',
-  templates: [networkTemplate, msisdnTemplate],
-  rows: [
-    {
-      title: '',
-      panels: [
-        {
-          title: 'UE Data Usage In',
-          targets: [
-            {
-              expr:
-                'sum(ue_reported_usage{msisdn=~"$msisdn", direction="down"}) by (IMSI, apn, msisdn)',
-              legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
-            },
-          ],
-          unit: 'decbytes',
-          description: 'Inbound data per subscriber measured in bytes.',
-        },
-        {
-          title: 'UE Data Usage Out',
-          targets: [
-            {
-              expr:
-                'sum(ue_reported_usage{msisdn=~"$msisdn", direction="up"}) by (IMSI, apn, msisdn)',
-              legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
-            },
-          ],
-          unit: 'decbytes',
-          description: 'Outbound data per subscriber measured in bytes.',
-        },
-        {
-          title: 'Throughput In',
-          targets: [
-            {
-              expr:
-                'avg(rate(ue_reported_usage{msisdn=~"$msisdn", direction="down"}[5m])) by (IMSI, apn, msisdn)',
-              legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
-            },
-          ],
-          unit: 'Bps',
-          description:
-            'Inbound data rate per subscriber measured in bytes/second.',
-        },
-        {
-          title: 'Throughput Out',
-          targets: [
-            {
-              expr:
-                'avg(rate(ue_reported_usage{msisdn=~"$msisdn", direction="up"}[5m])) by (IMSI, apn, msisdn)',
-              legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
-            },
-          ],
-          unit: 'Bps',
-          description:
-            'Outbound data rate per subscriber measured in bytes/second.',
-        },
-      ],
-    },
-  ],
+export const SubscriberDBData = (networkIDs: Array<string>): GrafanaDBData => {
+  return {
+    title: 'Subscribers',
+    description:
+      'Metrics relevant to subscribers. Do not edit: edits will be overwritten. Save this dashboard under another name to copy and edit.',
+    templates: [getNetworkTemplate(networkIDs), msisdnTemplate],
+    rows: [
+      {
+        title: '',
+        panels: [
+          {
+            title: 'UE Data Usage In',
+            targets: [
+              {
+                expr:
+                  'sum(ue_reported_usage{msisdn=~"$msisdn", direction="down"}) by (IMSI, apn, msisdn)',
+                legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
+              },
+            ],
+            unit: 'decbytes',
+            description: 'Inbound data per subscriber measured in bytes.',
+          },
+          {
+            title: 'UE Data Usage Out',
+            targets: [
+              {
+                expr:
+                  'sum(ue_reported_usage{msisdn=~"$msisdn", direction="up"}) by (IMSI, apn, msisdn)',
+                legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
+              },
+            ],
+            unit: 'decbytes',
+            description: 'Outbound data per subscriber measured in bytes.',
+          },
+          {
+            title: 'Throughput In',
+            targets: [
+              {
+                expr:
+                  'avg(rate(ue_reported_usage{msisdn=~"$msisdn", direction="down"}[5m])) by (IMSI, apn, msisdn)',
+                legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
+              },
+            ],
+            unit: 'Bps',
+            description:
+              'Inbound data rate per subscriber measured in bytes/second.',
+          },
+          {
+            title: 'Throughput Out',
+            targets: [
+              {
+                expr:
+                  'avg(rate(ue_reported_usage{msisdn=~"$msisdn", direction="up"}[5m])) by (IMSI, apn, msisdn)',
+                legendFormat: '{{IMSI}}, MSISDN: {{msisdn}}, APN: {{apn}}',
+              },
+            ],
+            unit: 'Bps',
+            description:
+              'Outbound data rate per subscriber measured in bytes/second.',
+          },
+        ],
+      },
+    ],
+  };
 };
 
 export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {

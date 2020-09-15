@@ -15,10 +15,9 @@
  */
 
 import {
+  apnTemplate,
   gatewayTemplate,
   getNetworkTemplate,
-  variableTemplate,
-  apnTemplate,
   msisdnTemplate,
 } from './Dashboards';
 import type {GrafanaDBData} from './Dashboards';

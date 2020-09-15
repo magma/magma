@@ -483,17 +483,10 @@ export async function syncDashboards(
 
   // Basic dashboards
   const posts = [
-<<<<<<< HEAD
     dashboardData(createDashboard(NetworkDBData(networks)).generate()),
     dashboardData(createDashboard(GatewayDBData(networks)).generate()),
     dashboardData(createDashboard(InternalDBData(networks)).generate()),
-=======
-    dashboardData(createDashboard(NetworkDBData).generate()),
-    dashboardData(createDashboard(GatewayDBData).generate()),
-    dashboardData(createDashboard(SubscriberDBData).generate()),
-    dashboardData(createDashboard(InternalDBData).generate()),
-    dashboardData(createDashboard(TemplateDBData).generate()),
->>>>>>> Adding Subscribers dashboard with UE data traffic panels on Grafana
+    dashboardData(createDashboard(SubscriberDBData(networks)).generate()),
   ];
 
   // If an org contains CWF networks, add the CWF-specific dashboards
