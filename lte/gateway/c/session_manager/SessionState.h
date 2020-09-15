@@ -28,6 +28,7 @@
 #include "ChargingGrant.h"
 
 namespace magma {
+using std::experimental::optional;
 typedef std::unordered_map<
     CreditKey, std::unique_ptr<ChargingGrant>, decltype(&ccHash),
     decltype(&ccEqual)>
@@ -55,10 +56,10 @@ struct RuleSetToApply {
 struct RuleSetBySubscriber {
   std::string imsi;
   std::unordered_map<std::string, RuleSetToApply> rule_set_by_apn;
-  std::experimental::optional<RuleSetToApply> subscriber_wide_rule_set;
+  optional<RuleSetToApply> subscriber_wide_rule_set;
 
   RuleSetBySubscriber(const RulesPerSubscriber& rules_per_subscriber);
-  std::experimental::optional<RuleSetToApply> get_combined_rule_set_for_apn(
+  optional<RuleSetToApply> get_combined_rule_set_for_apn(
       const std::string& apn);
 };
 
@@ -82,7 +83,7 @@ class SessionState {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
-    std::experimental::optional<AggregatedMaximumBitrate> ambr;
+    optional<AggregatedMaximumBitrate> ambr;
   };
   struct TotalCreditUsage {
     uint64_t monitoring_tx;
@@ -225,8 +226,7 @@ class SessionState {
    * @param rule_id
    * @return the type if the rule exists, {} otherwise.
    */
-  std::experimental::optional<PolicyType> get_policy_type(
-      const std::string& rule_id);
+  optional<PolicyType> get_policy_type(const std::string& rule_id);
 
   bool is_dynamic_rule_installed(const std::string& rule_id);
 

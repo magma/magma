@@ -34,6 +34,7 @@
 #include "SpgwServiceClient.h"
 
 namespace magma {
+using std::experimental::optional;
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;
@@ -425,7 +426,7 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      std::experimental::optional<AggregatedMaximumBitrate> ambr,
+      optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);

@@ -69,12 +69,12 @@ SessionMap RedisStoreClient::read_sessions(
     auto reply = futures[key].get();
     if (reply.is_null()) {
       // value just doesn't exist
-      session_map[key] = std::vector<std::unique_ptr<SessionState>>{};
+      session_map[key] = SessionVector{};
     } else if (reply.is_error()) {
       MLOG(MERROR) << "RedisStoreClient: Unable to get value for key " << key;
       throw RedisReadFailed();
     } else if (!reply.is_string()) {
-      session_map[key] = std::vector<std::unique_ptr<SessionState>>{};
+      session_map[key] = SessionVector{};
     } else {
       session_map[key] = std::move(deserialize_session_vec(reply.as_string()));
     }
@@ -109,7 +109,7 @@ SessionMap RedisStoreClient::read_all_sessions() {
     auto value_reply = array[i + 1];
     if (!value_reply.is_string()) {
       MLOG(MERROR) << "RedisStoreClient: Unable to get value for key " << key;
-      session_map[key] = std::vector<std::unique_ptr<SessionState>>{};
+      session_map[key] = SessionVector{};
     } else {
       session_map[key] =
           std::move(deserialize_session_vec(value_reply.as_string()));
@@ -161,7 +161,7 @@ bool RedisStoreClient::write_sessions(SessionMap session_map) {
 }
 
 std::string RedisStoreClient::serialize_session_vec(
-    std::vector<std::unique_ptr<SessionState>>& session_vec) {
+    SessionVector& session_vec) {
   folly::dynamic marshaled = folly::dynamic::array;
   for (auto& session_ptr : session_vec) {
     auto stored_session = session_ptr->marshal();
@@ -171,9 +171,8 @@ std::string RedisStoreClient::serialize_session_vec(
   return serialized;
 }
 
-std::vector<std::unique_ptr<SessionState>>
-RedisStoreClient::deserialize_session_vec(std::string serialized) {
-  std::vector<std::unique_ptr<SessionState>> session_vec;
+SessionVector RedisStoreClient::deserialize_session_vec(std::string serialized) {
+  SessionVector session_vec;
   auto folly_serialized = folly::StringPiece(serialized);
   try {
     folly::dynamic marshaled = folly::parseJson(folly_serialized);

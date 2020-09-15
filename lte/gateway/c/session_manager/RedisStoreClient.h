@@ -62,11 +62,9 @@ class RedisStoreClient final : public StoreClient {
   std::shared_ptr<StaticRuleStore> rule_store_;
 
  private:
-  std::string serialize_session_vec(
-      std::vector<std::unique_ptr<SessionState>>& session_vec);
+  std::string serialize_session_vec(SessionVector& session_vec);
 
-  std::vector<std::unique_ptr<SessionState>> deserialize_session_vec(
-      std::string serialized);
+  SessionVector deserialize_session_vec(std::string serialized);
 };
 
 }  // namespace lte
