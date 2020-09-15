@@ -2348,7 +2348,7 @@ int s1ap_mme_handle_enb_reset(
               OAILOG_ERROR_UE(
                   LOG_S1AP, imsi64,
                   "Partial Reset Request without any valid S1 signaling "
-                  "connection.Sending Reset Ack with recevied signalling "
+                  "connection.Sending Reset Ack with received signalling "
                   "connection IDs \n");
               reset_req->ue_to_reset_list[i].enb_ue_s1ap_id =
                   (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);

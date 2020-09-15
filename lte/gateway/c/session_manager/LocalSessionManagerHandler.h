@@ -211,33 +211,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void handle_setup_callback(
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
 
-  /**
-   * Get the most recently written state of sessions for Creation
-   * Does not get any other sessions.
-   *
-   * NOTE: Call only from the main EventBase thread, otherwise there will
-   *       be undefined behavior.
-   */
-  SessionMap get_sessions_for_creation(const std::string& imsi);
-
-  /**
-   * Get the most recently written state of sessions for reporting usage.
-   * Does not get sessions that are not required for reporting.
-   *
-   * NOTE: Call only from the main EventBase thread, otherwise there will
-   *       be undefined behavior.
-   */
-  SessionMap get_sessions_for_reporting(const RuleRecordTable& request);
-
-  /**
-   * Get the most recently written state of the session that is to be deleted.
-   * Does not get any other sessions.
-   *
-   * NOTE: Call only from the main EventBase thread, otherwise there will
-   *       be undefined behavior.
-   */
-  SessionMap get_sessions_for_deletion(const std::string& imsi);
-
   void report_session_update_event(
       SessionMap& session_map, SessionUpdate& session_update);
 
@@ -249,6 +222,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       Status status, const std::string& sid,
       std::function<void(Status, LocalCreateSessionResponse)>
           response_callback);
+
+  void log_create_session(SessionConfig& cfg);
 };
 
 }  // namespace magma

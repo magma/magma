@@ -458,7 +458,7 @@ void SessionState::apply_session_dynamic_rule_set(
   };
   for (const auto& dynamic_rule_pair : dynamic_rules) {
     if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
-      MLOG(MINFO) << "installing dynamic rule " << dynamic_rule_pair.first
+      MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first
                   << " for " << session_id_;
       insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
       rules_to_activate.dynamic_rules.push_back(dynamic_rule_pair.second);
@@ -567,31 +567,27 @@ SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
   return subscriber_quota_state_;
 }
 
-void SessionState::complete_termination(
-    SessionReporter& reporter, SessionStateUpdateCriteria& update_criteria) {
+bool SessionState::complete_termination(SessionStateUpdateCriteria& uc) {
   switch (curr_state_) {
     case SESSION_ACTIVE:
-      MLOG(MERROR) << session_id_ << " Encountered unexpected state 'ACTIVE' when "
-                   << "forcefully completing termination. Not terminating...";
-      return;
+      MLOG(MERROR) << "Encountered unexpected state 'ACTIVE' when "
+                   << "completing termination for " << session_id_
+                   << " Not terminating...";
+      return false;
     case SESSION_TERMINATED:
       // session is already terminated. Do nothing.
-      return;
-    case SESSION_RELEASED:
-      MLOG(MINFO) << session_id_ << " Forcefully terminating session since it did "
-                  << "not receive usage from pipelined in time.";
-    default:  // Continue termination but no logs are necessary for other states
+      return false;
+    default:
+      // Continue termination but no logs are necessary for other states
       break;
   }
-  // mark entire session as terminated
-  set_fsm_state(SESSION_TERMINATED, update_criteria);
-  auto termination_req = make_termination_request(update_criteria);
-  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
-  reporter.report_terminate_session(termination_req, logging_cb);
+  // mark session as terminated
+  set_fsm_state(SESSION_TERMINATED, uc);
+  return true;
 }
 
 SessionTerminateRequest SessionState::make_termination_request(
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& uc) {
   SessionTerminateRequest req;
   req.set_sid(imsi_);
   req.set_session_id(session_id_);
@@ -615,7 +611,7 @@ SessionTerminateRequest SessionState::make_termination_request(
 
   // gx monitors
   for (auto& credit_pair : monitor_map_) {
-    auto credit_uc = get_monitor_uc(credit_pair.first, update_criteria);
+    auto credit_uc = get_monitor_uc(credit_pair.first, uc);
     req.mutable_monitor_usages()->Add()->CopyFrom(make_usage_monitor_update(
         credit_pair.second->credit.get_all_unreported_usage_for_reporting(
             *credit_uc),
@@ -623,7 +619,7 @@ SessionTerminateRequest SessionState::make_termination_request(
   }
   // gy credits
   for (auto& credit_pair : credit_map_) {
-    auto credit_uc    = get_credit_uc(credit_pair.first, update_criteria);
+    auto credit_uc    = get_credit_uc(credit_pair.first, uc);
     auto credit_usage = credit_pair.second->get_credit_usage(
         CreditUsage::TERMINATED, *credit_uc, true);
     credit_pair.first.set_credit_usage(&credit_usage);
@@ -1622,26 +1618,37 @@ bool SessionState::policy_has_qos(
   return false;
 }
 
-void SessionState::update_bearer_creation_req(
-    const PolicyType policy_type, const std::string& rule_id,
-    const SessionConfig& config, BearerUpdate& update) {
+std::experimental::optional<PolicyRule>
+SessionState::policy_needs_bearer_creation(
+    const PolicyType policy_type, const std::string& id,
+    const SessionConfig& config) {
   if (!config.rat_specific_context.has_lte_context()) {
-    return;
+    return {};
   }
-  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) !=
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, id)) !=
       bearer_id_by_policy_.end()) {
     // Policy already has a bearer
-    return;
+    return {};
   }
-  PolicyRule rule;
-  if (!policy_has_qos(policy_type, rule_id, &rule)) {
+  PolicyRule policy;
+  if (!policy_has_qos(policy_type, id, &policy)) {
     // Only create a bearer for policies with QoS
-    return;
+    return {};
   }
   auto default_qci = FlowQos_Qci(
       config.rat_specific_context.lte_context().qos_info().qos_class_id());
-  if (rule.qos().qci() == default_qci) {
+  if (policy.qos().qci() == default_qci) {
     // This QCI is already covered by the default bearer
+    return {};
+  }
+  return policy;
+}
+
+void SessionState::update_bearer_creation_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update) {
+  auto policy = policy_needs_bearer_creation(policy_type, rule_id, config);
+  if (!policy) {
     return;
   }
 
@@ -1653,7 +1660,7 @@ void SessionState::update_bearer_creation_req(
     update.create_req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
-  update.create_req.mutable_policy_rules()->Add()->CopyFrom(rule);
+  update.create_req.mutable_policy_rules()->Add()->CopyFrom(*policy);
   // We will add the new policyID to bearerID association, once we receive a
   // message from SGW.
 }
