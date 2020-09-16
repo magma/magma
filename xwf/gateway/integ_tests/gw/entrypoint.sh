@@ -27,7 +27,7 @@ cp xwf/gateway/configs/* /etc/magma/
 cp orc8r/gateway/configs/templates/* /etc/magma/
 
 echo "get xwfwhoami"
-curl -X POST  https://graph.expresswifi.com/openflow/configxwfm?access_token=$ACCESSTOKEN | jq -r .configxwfm > /etc/xwfwhoami
+curl -X POST -k https://graph.expresswifi.com/openflow/configxwfm?access_token=$ACCESSTOKEN | jq -r .configxwfm > /etc/xwfwhoami
 sed -i '/^uplink_if/d'  /etc/xwfwhoami # TODO: remove this
 
 echo "run XWF ansible"
