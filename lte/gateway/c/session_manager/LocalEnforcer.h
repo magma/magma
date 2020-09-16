@@ -35,6 +35,7 @@
 
 namespace magma {
 using std::experimental::optional;
+typedef std::pair<std::string, std::string> ImsiAndSessionID;
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;
@@ -265,7 +266,7 @@ class LocalEnforcer {
    */
   void complete_termination_for_released_sessions(
       SessionMap& session_map,
-      std::unordered_set<std::string> sessions_with_active_flows,
+      std::unordered_set<ImsiAndSessionID> sessions_with_active_flows,
       SessionUpdate& session_update);
 
   void filter_rule_installs(
@@ -372,7 +373,7 @@ class LocalEnforcer {
    */
   void complete_termination(
       SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, SessionStateUpdateCriteria& uc);
+      const std::string& session_id, SessionUpdate& session_update);
 
   void schedule_static_rule_activation(
       const std::string& imsi, const std::string& ip_addr,

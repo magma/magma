@@ -527,6 +527,12 @@ TEST_F(SessionStoreTest, test_get_session) {
   EXPECT_TRUE(optional_it2);
   auto& found_session2 = **optional_it2;
   EXPECT_EQ(found_session2->get_config().common_context.apn(), "APN2");
+  // Happy Path! IMSI+UE IPv4
+  SessionSearchCriteria id1_success_ip(IMSI1, IMSI_AND_UE_IPV4, IP2);
+  auto optional_it3 = session_store.find_session(session_map, id1_success_ip);
+  EXPECT_TRUE(optional_it3);
+  auto& found_session3 = **optional_it3;
+  EXPECT_EQ(found_session3->get_config().common_context.ue_ipv4(), IP2);
 }
 
 int main(int argc, char** argv) {

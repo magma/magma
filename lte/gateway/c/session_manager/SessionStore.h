@@ -38,6 +38,7 @@ typedef std::unordered_map<
 enum SessionSearchCriteriaType {
   IMSI_AND_APN        = 0,
   IMSI_AND_SESSION_ID = 1,
+  IMSI_AND_UE_IPV4    = 2,
 };
 
 struct SessionSearchCriteria {
@@ -143,7 +144,7 @@ class SessionStore {
    * optional of the iterator. Otherwise, it returns an empty value.
    *
    * Usage Example
-   * SessionSearchCriteriaType criteria(IMSI1, IMSI_AND_SESSION_ID,
+   * SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID,
    * SESSION_ID_1);
    * auto session_it = session_store_.find_session(session_map,
    * id);
