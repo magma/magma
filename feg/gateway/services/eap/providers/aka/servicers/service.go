@@ -23,6 +23,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/eap/providers/aka"
 	"magma/feg/gateway/services/eap/providers/aka/metrics"
 )
@@ -68,7 +69,7 @@ type EapAkaSrv struct {
 	sessions map[string]*SessionCtx
 
 	// PLMN IDs map, if not empty -> serve only IMSIs with specified PLMN IDs - Read Only
-	plmnIds map[string]plmnIdVal
+	plmnIds plmn_filter.PlmnIdVals
 
 	timeouts touts
 }
@@ -116,7 +117,7 @@ func (s *EapAkaSrv) SetSessionAuthenticatedTimeout(tout time.Duration) {
 func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 	service := &EapAkaSrv{
 		sessions: map[string]*SessionCtx{},
-		plmnIds:  map[string]plmnIdVal{},
+		plmnIds:  plmn_filter.PlmnIdVals{},
 		timeouts: defaultTimeouts,
 	}
 	if config != nil {
@@ -135,18 +136,7 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 					time.Millisecond * time.Duration(config.Timeout.SessionAuthenticatedMs))
 			}
 		}
-		for _, plmnid := range config.PlmnIds {
-			l := len(plmnid)
-			switch l {
-			case 5:
-				service.plmnIds[plmnid] = plmnIdVal{l5: true}
-			case 6:
-				plmnid5 := plmnid[:5]
-				val, _ := service.plmnIds[plmnid5]
-				val.b6 = plmnid[5]
-				service.plmnIds[plmnid5] = val
-			}
-		}
+		service.plmnIds = plmn_filter.GetPlmnVals(config.PlmnIds)
 	}
 	return service, nil
 }
@@ -154,13 +144,7 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 // CheckPlmnId returns true either if there is no PLMN ID filters (allowlist) configured or
 // one the configured PLMN IDs matches passed IMSI
 func (s *EapAkaSrv) CheckPlmnId(imsi aka.IMSI) bool {
-	if len(s.plmnIds) == 0 {
-		return true
-	}
-	if val, ok := s.plmnIds[string(imsi)[:5]]; ok && (val.l5 || (len(imsi) > 5 && val.b6 == imsi[6])) {
-		return true
-	}
-	return false
+	return plmn_filter.CheckImsiOnPlmnIdListIfAny(string(imsi), s.plmnIds)
 }
 
 // Unlock - unlocks the CTX
