@@ -497,6 +497,3 @@ class EnforcementController(PolicyMixin, MagmaController):
         else:
             for rule_id in rule_ids:
                 self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
-
-
-
