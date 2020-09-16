@@ -83,7 +83,7 @@ class GYController(PolicyMixin, MagmaController):
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
 
-    def deactivate_rules(self, imsi, rule_ids):
+    def deactivate_rules(self, imsi, _, rule_ids):
         """
         Deactivate flows for a subscriber. If only imsi is present, delete all
         rule flows for a subscriber (i.e. end its session). If rule_ids are
@@ -179,6 +179,9 @@ class GYController(PolicyMixin, MagmaController):
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        rule_version = self._session_rule_version_mapper.get_version(imsi,
+                                                                     ip_addr,
+                                                                     rule.id)
         priority = rule.priority
         # TODO currently if redirection is enabled we ignore other flows
         # from rule.flow_list, confirm that this is the expected behaviour
@@ -187,6 +190,7 @@ class GYController(PolicyMixin, MagmaController):
             ip_addr=ip_addr,
             rule=rule,
             rule_num=rule_num,
+            rule_version=rule_version,
             priority=priority)
         try:
             self._redirect_manager.setup_cwf_redirect(

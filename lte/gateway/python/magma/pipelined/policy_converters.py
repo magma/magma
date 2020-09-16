@@ -40,7 +40,7 @@ def _check_pkt_protocol(match):
     return True
 
 
-def flow_match_to_magma_match(match):
+def flow_match_to_magma_match(match, ue_ipv4_addr=None):
     '''
     Convert a FlowMatch to a MagmaMatch object
 
@@ -64,6 +64,11 @@ def flow_match_to_magma_match(match):
             attrib = DPI_REG
 
         match_kwargs[attrib] = value
+    if ue_ipv4_addr:
+        if _get_direction_for_match(match) == Direction.OUT:
+            match_kwargs['ipv4_src'] = ue_ipv4_addr
+        else:
+            match_kwargs['ipv4_dst'] = ue_ipv4_addr
     return MagmaMatch(direction=_get_direction_for_match(match),
                       **match_kwargs)
 
@@ -122,6 +127,16 @@ def flip_flow_match(match):
     )
 
 
+def get_ue_ipv4_match_args(ip_addr, direction):
+    ip_match = {}
+    if ip_addr:
+        if direction == Direction.OUT:
+            ip_match = {'ipv4_src': ip_addr}
+        else:
+            ip_match = {'ipv4_dst': ip_addr}
+    return ip_match
+
+
 def _get_ip_tuple(ip_str):
     '''
     Convert an ip string to a formatted block tuple
@@ -142,3 +157,4 @@ def _get_direction_for_match(flow_match):
     if flow_match.direction == flow_match.UPLINK:
         return Direction.OUT
     return Direction.IN
+
