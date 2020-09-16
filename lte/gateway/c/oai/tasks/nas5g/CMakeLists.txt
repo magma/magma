@@ -29,6 +29,7 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationRequestUEInit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationAcceptUEInit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationRequest.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationResponse.cpp
     )
 
 set(libnas_ies_OBJS
