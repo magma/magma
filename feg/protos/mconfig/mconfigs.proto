@@ -52,6 +52,7 @@ message S6aConfig {
     float request_failure_threshold = 6;
     // Minimum number of requests necessary to consider a metrics snapshot valid
     uint32 minimum_request_threshold = 7;
+    repeated string PlmnIds = 8;
 }
 
 message VirtualApnRule {

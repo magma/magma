@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/swx_proxy/servicers"
 	"magma/gateway/mconfig"
 
@@ -113,11 +114,11 @@ func generateSwxProxyConfigFromString(t *testing.T, confString string) []*servic
 
 func assertHLRClients(t *testing.T, confs []*servicers.SwxProxyConfig) {
 	for _, cfg := range confs {
-		assert.Truef(t, cfg.IsHlrClient("001020000000055"),
+		assert.Truef(t, plmn_filter.CheckImsiOnPlmnIdListIfAny("001020000000055", cfg.HlrPlmnIds),
 			"IMSI 001020000000055 should be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
-		assert.Truef(t, cfg.IsHlrClient("001030000000055"),
+		assert.Truef(t, plmn_filter.CheckImsiOnPlmnIdListIfAny("001030000000055", cfg.HlrPlmnIds),
 			"IMSI 001030000000055 should be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
-		assert.Falsef(t, cfg.IsHlrClient("001010000000055"),
+		assert.Falsef(t, plmn_filter.CheckImsiOnPlmnIdListIfAny("001010000000055", cfg.HlrPlmnIds),
 			"IMSI 001010000000055 should NOT be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
 	}
 }

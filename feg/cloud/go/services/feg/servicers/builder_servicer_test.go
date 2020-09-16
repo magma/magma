@@ -79,6 +79,7 @@ func TestBuilder_Build(t *testing.T) {
 				Realm:            "magma.com",
 				Host:             "magma-fedgw.magma.com",
 			},
+			PlmnIds:                 []string{"123456"},
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
 		},
@@ -309,6 +310,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
 		},
+		PlmnIds: []string{"123456"},
 	},
 	Gx: &models.Gx{
 		DisableGx: swag.Bool(true),

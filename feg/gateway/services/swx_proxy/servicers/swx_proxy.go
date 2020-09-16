@@ -31,6 +31,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/metrics"
@@ -58,11 +59,6 @@ type swxProxy struct {
 	healthTracker  *metrics.SwxHealthTracker
 }
 
-type PlmnIdVal struct {
-	l5 bool
-	b6 byte
-}
-
 type SwxProxyConfig struct {
 	ClientCfg             *diameter.DiameterClientConfig
 	ServerCfg             *diameter.DiameterServerConfig
@@ -70,7 +66,7 @@ type SwxProxyConfig struct {
 	RegisterOnAuth        bool // should we send SAR REGISTER on every MAR/A
 	DeriveUnregisterRealm bool // use returned maa.AAAServerName to derive Origin Realm from
 	CacheTTLSeconds       uint32
-	HlrPlmnIds            map[string]PlmnIdVal
+	HlrPlmnIds            plmn_filter.PlmnIdVals
 }
 
 // NewSwxProxy creates a new instance of the proxy with configured cache TTL
