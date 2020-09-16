@@ -46,6 +46,7 @@
 #include "enum_string.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_bearer_context.h"
+#include "mme_app_pdn_context.h"
 #include "mme_app_defs.h"
 #include "mme_app_itti_messaging.h"
 #include "mme_app_procedures.h"
@@ -229,14 +230,6 @@ void mme_app_ue_sgs_context_free_content(
 }
 
 //------------------------------------------------------------------------------
-void mme_app_free_pdn_connection(pdn_context_t** const pdn_connection) {
-  bdestroy_wrapper(&(*pdn_connection)->apn_in_use);
-  bdestroy_wrapper(&(*pdn_connection)->apn_oi_replacement);
-  bdestroy_wrapper(&(*pdn_connection)->apn_subscribed);
-  free_wrapper((void**) pdn_connection);
-}
-
-//------------------------------------------------------------------------------
 void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   bdestroy_wrapper(&ue_context_p->msisdn);
   bdestroy_wrapper(&ue_context_p->ue_radio_capability);
@@ -334,7 +327,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
   ue_context_p->hss_initiated_detach  = false;
   for (int i = 0; i < MAX_APN_PER_UE; i++) {
     if (ue_context_p->pdn_contexts[i]) {
-      mme_app_free_pdn_connection(&ue_context_p->pdn_contexts[i]);
+      mme_app_free_pdn_context(&ue_context_p->pdn_contexts[i]);
     }
   }
 
