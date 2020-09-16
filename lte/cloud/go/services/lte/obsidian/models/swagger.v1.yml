@@ -1606,7 +1606,6 @@ definitions:
       - tier
       - cellular
       - connected_enodeb_serials
-      - apn_resources
     properties:
       device:
         $ref: './orc8r-swagger.yml#/definitions/gateway_device'
@@ -1641,7 +1640,6 @@ definitions:
       - tier
       - cellular
       - connected_enodeb_serials
-      - apn_resources
     properties:
       device:
         $ref: './orc8r-swagger.yml#/definitions/gateway_device'

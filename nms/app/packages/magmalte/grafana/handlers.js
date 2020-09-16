@@ -28,7 +28,7 @@ import {
   GatewayDBData,
   InternalDBData,
   NetworkDBData,
-  TemplateDBData,
+  SubscriberDBData,
   createDashboard,
 } from './dashboards/Dashboards';
 import {Organization} from '@fbcnms/sequelize-models';
@@ -483,22 +483,24 @@ export async function syncDashboards(
 
   // Basic dashboards
   const posts = [
-    dashboardData(createDashboard(NetworkDBData).generate()),
-    dashboardData(createDashboard(GatewayDBData).generate()),
-    dashboardData(createDashboard(InternalDBData).generate()),
-    dashboardData(createDashboard(TemplateDBData).generate()),
+    dashboardData(createDashboard(NetworkDBData(networks)).generate()),
+    dashboardData(createDashboard(GatewayDBData(networks)).generate()),
+    dashboardData(createDashboard(InternalDBData(networks)).generate()),
+    dashboardData(createDashboard(SubscriberDBData(networks)).generate()),
   ];
 
   // If an org contains CWF networks, add the CWF-specific dashboards
   if (await hasCWFNetwork(networks)) {
     posts.push(
-      dashboardData(createDashboard(CWFNetworkDBData).generate()),
-      dashboardData(createDashboard(CWFAccessPointDBData).generate()),
+      dashboardData(createDashboard(CWFNetworkDBData(networks)).generate()),
+      dashboardData(createDashboard(CWFAccessPointDBData(networks)).generate()),
       dashboardData(createDashboard(CWFSubscriberDBData).generate()),
-      dashboardData(createDashboard(CWFGatewayDBData).generate()),
+      dashboardData(createDashboard(CWFGatewayDBData(networks)).generate()),
     );
     // Analytics Dashboard
-    posts.push(dashboardData(createDashboard(AnalyticsDBData).generate()));
+    posts.push(
+      dashboardData(createDashboard(AnalyticsDBData(networks)).generate()),
+    );
   }
 
   for (const post of posts) {

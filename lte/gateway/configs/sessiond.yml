@@ -38,6 +38,11 @@ support_carrier_wifi: false
 # quota.
 cwf_quota_exhaustion_termination_on_init_ms: 30000
 
+# On session creation, we want to delay the bearer creation requests to after
+# the attach has completed. This value indicates how many ms to wait before
+# sending the bearer create request.
+bearer_creation_delay_on_session_init: 2000
+
 # Set to true to store session state in Redis for persistence.
 support_stateless: false
 

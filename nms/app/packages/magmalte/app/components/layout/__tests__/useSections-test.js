@@ -30,7 +30,7 @@ jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
-import {AllNetworkTypes, CWF, XWFM} from '@fbcnms/types/network';
+import {CWF, XWFM} from '@fbcnms/types/network';
 
 global.CONFIG = {
   appData: {
@@ -76,26 +76,6 @@ const testCases: {[string]: TestCase} = {
       'alerts',
     ],
   },
-  mesh: {
-    default: 'map',
-    sections: [],
-  },
-  wifi_network: {
-    default: 'map',
-    sections: ['map', 'metrics', 'devices', 'configure'],
-  },
-  third_party: {
-    default: 'devices',
-    sections: ['devices', 'metrics', 'agents'],
-  },
-  symphony: {
-    default: 'devices',
-    sections: ['devices', 'metrics', 'agents'],
-  },
-  rhino: {
-    default: 'metrics',
-    sections: ['metrics'],
-  },
   feg: {
     default: 'gateways',
     sections: ['gateways', 'configure'],
@@ -110,31 +90,41 @@ const testCases: {[string]: TestCase} = {
   },
 };
 
-AllNetworkTypes.forEach(networkType => {
-  const testCase = testCases[networkType];
-  // XWF-M network selection in NMS creates a CWF network on the API just with
-  // different config defaults
-  const apiNetworkType = networkType === XWFM ? CWF : networkType;
-  test('Should render ' + networkType, async () => {
-    MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValue(
-      apiNetworkType,
-    );
+const AllNetworkTypes = {
+  carrier_wifi_network: 'carrier_wifi_network',
+  xwfm: 'xwfm',
+  feg: 'feg',
+  feg_lte: 'feg_lte',
+  lte: 'lte',
+};
 
-    const {result, waitForNextUpdate} = renderHook(() => useSections(), {
-      wrapper,
+Object.keys(AllNetworkTypes)
+  .sort()
+  .forEach(networkType => {
+    const testCase = testCases[networkType];
+    // XWF-M network selection in NMS creates a CWF network on the API just with
+    // different config defaults
+    const apiNetworkType = networkType === XWFM ? CWF : networkType;
+    test('Should render ' + networkType, async () => {
+      MagmaAPIBindings.getNetworksByNetworkIdType.mockResolvedValue(
+        apiNetworkType,
+      );
+
+      const {result, waitForNextUpdate} = renderHook(() => useSections(), {
+        wrapper,
+      });
+
+      await act(async () => {
+        // State is updated when we wait for the update, so we need this wrapped
+        // in act
+        await waitForNextUpdate();
+      });
+
+      expect(result.current[0]).toBe(testCase.default);
+
+      const paths = result.current[1].map(r => r.path);
+      expect(paths).toStrictEqual(testCase.sections);
+
+      MagmaAPIBindings.getNetworksByNetworkIdType.mockClear();
     });
-
-    await act(async () => {
-      // State is updated when we wait for the update, so we need this wrapped
-      // in act
-      await waitForNextUpdate();
-    });
-
-    expect(result.current[0]).toBe(testCase.default);
-
-    const paths = result.current[1].map(r => r.path);
-    expect(paths).toStrictEqual(testCase.sections);
-
-    MagmaAPIBindings.getNetworksByNetworkIdType.mockClear();
   });
-});
