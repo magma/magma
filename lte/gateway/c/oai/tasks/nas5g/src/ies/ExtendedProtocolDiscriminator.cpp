@@ -31,7 +31,7 @@ namespace magma5g
     MLOG(MDEBUG) << "   DecodeExtendedProtocolDiscriminatorMsg : ";
     extendedprotocoldiscriminator->extendedprotodiscriminator = *(buffer + decoded);
     decoded++;
-    MLOG(MDEBUG) << " epd = " << hex << int(extendedprotocoldiscriminator->extendedprotodiscriminator)<<"\n"; 
+    MLOG(MDEBUG) << " epd = " << hex << int(extendedprotocoldiscriminator->extendedprotodiscriminator); 
     return (decoded);
   };
 
@@ -40,9 +40,9 @@ namespace magma5g
   {
     int encoded = 0;
 
-    MLOG(MDEBUG) << "\n\n EncodeExtendedProtocolDiscriminatorMsg : ";
+    MLOG(MDEBUG) << " EncodeExtendedProtocolDiscriminatorMsg : ";
     *(buffer + encoded) = extendedprotocoldiscriminator->extendedprotodiscriminator;
-    MLOG(MDEBUG) << "epd = 0x" << hex << int(*(buffer + encoded))<<"\n"; 
+    MLOG(MDEBUG) << "epd = 0x" << hex << int(*(buffer + encoded)); 
     encoded++;
     return (encoded);
   };

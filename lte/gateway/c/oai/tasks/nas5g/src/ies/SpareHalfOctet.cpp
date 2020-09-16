@@ -23,7 +23,7 @@ namespace magma5g
     MLOG(MDEBUG) << "   DecodeSpareHalfOctetMsg : ";
     sparehalfoctet->spare = (*buffer & 0xf0) >> 4;
     decoded++;
-    MLOG(MDEBUG) << "Spare = 0x" << hex << int(sparehalfoctet->spare)<< "\n";
+    MLOG(MDEBUG) << "Spare = 0x" << hex << int(sparehalfoctet->spare);
     return (decoded);
   };
 
@@ -34,7 +34,7 @@ namespace magma5g
 
     MLOG(MDEBUG) << " EncodeSpareHalfOctetMsg : ";
     *(buffer) = 0x00 | (sparehalfoctet->spare & 0xf) << 4;
-    MLOG(MDEBUG) << "   Spare = 0x" << hex << int(*(buffer))<< endl;
+    MLOG(MDEBUG) << "   Spare = 0x" << hex << int(*(buffer));
     encoded++;
     return (encoded);
   };

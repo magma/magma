@@ -30,23 +30,22 @@ namespace magma5g
       msg.securityheadertype.securityhdr = 0;
       msg.messagetype.msgtype = 0x46;
 
-      MLOG(MDEBUG) << "\n\n---Encoding message--- \n\n"; 
+      MLOG(MDEBUG) << "---Encoding message--- \n"; 
       ret = msg.EncodeDeRegistrationAcceptUEInitMsg( &msg, buffer, len);
       
-      MLOG(MDEBUG) << "\n\n ENCODED MESSAGE : " << setfill('0')<< hex << int(buffer[0])<< setw(2) << hex << int(buffer[1])<< hex << int(buffer[2]) << "\n\n";
+      MLOG(MDEBUG) << " ENCODED MESSAGE : " << setfill('0')<< hex << int(buffer[0])<< setw(2) << hex << int(buffer[1])<< hex << int(buffer[2]) << "\n";
 
       MLOG(MDEBUG) << "---Decoding encoded message--- " ;
       int ret2 =0;
       ret2 = msg.DecodeDeRegistrationAcceptUEInitMsg(&msg, buffer, len);
 
-      MLOG(BEBUG) << "\n ---DECODED MESSAGE ---\n\n";
+      MLOG(BEBUG) << " ---DECODED MESSAGE ---\n";
       MLOG(MDEBUG) << " Extended Protocol Discriminator :" << dec << int(msg.extendedprotocoldiscriminator.extendedprotodiscriminator);
       MLOG(MDEBUG) << " Spare half octet : 0" ;
       MLOG(MDEBUG) << " Security Header Type : " << dec << int(msg.securityheadertype.securityhdr);
       MLOG(MDEBUG) << " Message Type : 0x" << hex << int(msg.messagetype.msgtype);
       MLOG(MDEBUG) << "\n\n";
       return 0;
-      
    }
 }  
 

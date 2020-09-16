@@ -29,7 +29,7 @@ namespace magma5g
       MLOG(MDEBUG) << "\n\n---Decoding De-registration request (UE originating) Message---\n\n";
       ret = De_Req.DecodeDeRegistrationRequestUEInitMsg( &De_Req, buffer, len);
 
-      MLOG(BEBUG) << "\n\n ---DECODED MESSAGE ---\n\n";
+      MLOG(BEBUG) << " ---DECODED MESSAGE ---\n";
       MLOG(MDEBUG) << " Extended Protocol Discriminator :"<< dec << int(De_Req.extendedprotocoldiscriminator.extendedprotodiscriminator);
       MLOG(MDEBUG) << " Spare half octet : " << dec  << int(De_Req.sparehalfoctet.spare);
       MLOG(MDEBUG) << " Security Header Type : " << dec << int(De_Req.securityheadertype.securityhdr);

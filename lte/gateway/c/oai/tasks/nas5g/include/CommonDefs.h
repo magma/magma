@@ -7,7 +7,7 @@
 #include "glogwrapper/glog_logging.h"
 
 typedef enum {
-  TLV_MAC_MISMATCH                        = -114,
+  TLV_MAC_MISMATCH                        = -14,
   TLV_BUFFER_NULL                         = -13,
   TLV_BUFFER_TOO_SHORT                    = -12,
   TLV_PROTOCOL_NOT_SUPPORTED              = -11,
@@ -120,7 +120,7 @@ typedef enum {
 #define BUFFER_PRINT_LOG(bUFFER, lEN )                                         \
   {                                                                            \
      uint32_t iLEN = 0;                                                        \
-     if (bUFFER != NULL) {                                                     \
+     if(bUFFER != NULL) {                                                     \
         while (iLEN < lEN) {                                                   \
            MLOG(MDEBUG) << " 0x" << hex << int(*(bUFFER + iLEN));              \
            iLEN ++;                                                            \
