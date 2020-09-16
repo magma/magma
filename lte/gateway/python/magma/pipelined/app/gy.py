@@ -24,14 +24,19 @@ from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import EGRESS
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
+    IGNORE_STATS
+from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.app.policy_mixin import PolicyMixin
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, RULE_VERSION_REG
+from magma.pipelined.openflow.registers import Direction, RULE_VERSION_REG, \
+    SCRATCH_REGS
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.redirect import RedirectionManager, RedirectException
 from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match
+#get_ue_ipv4_match_args
 
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.qos.types import QosInfo
@@ -43,7 +48,6 @@ class GYController(PolicyMixin, MagmaController):
     The GY controller installs flows for enforcement of GY final actions, this
     includes redirection and QoS(currently not supported)
     """
-
     APP_NAME = "gy"
     APP_TYPE = ControllerType.LOGICAL
     ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
@@ -78,7 +82,7 @@ class GYController(PolicyMixin, MagmaController):
                 self._bridge_ip_address,
                 self.logger,
                 self.tbl_num,
-                self._enforcement_stats_scratch,
+                self._service_manager.get_table_num(EGRESS),
                 self._redirect_scratch,
                 self._session_rule_version_mapper
             ).set_cwf_args(
@@ -103,7 +107,7 @@ class GYController(PolicyMixin, MagmaController):
         self._delete_all_flows(datapath)
         self._install_default_flows(datapath)
 
-    def deactivate_rules(self, imsi, _, rule_ids):
+    def deactivate_rules(self, imsi, ip_addr, rule_ids):
         """
         Deactivate flows for a subscriber. If only imsi is present, delete all
         rule flows for a subscriber (i.e. end its session). If rule_ids are
@@ -126,15 +130,15 @@ class GYController(PolicyMixin, MagmaController):
             return
 
         if not rule_ids:
-            self._deactivate_flows_for_subscriber(imsi)
+            self._deactivate_flows_for_subscriber(imsi, ip_addr)
         else:
             for rule_id in rule_ids:
-                self._deactivate_flow_for_rule(imsi, rule_id)
+                self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
 
     def cleanup_state(self):
         pass
 
-    def _deactivate_flows_for_subscriber(self, imsi):
+    def _deactivate_flows_for_subscriber(self, imsi, _):
         """
         Deactivate all rules for a subscriber, ending any enforcement
 
@@ -147,7 +151,7 @@ class GYController(PolicyMixin, MagmaController):
                                                                imsi)
         self._qos_mgr.remove_subscriber_qos(imsi)
 
-    def _deactivate_flow_for_rule(self, imsi, rule_id):
+    def _deactivate_flow_for_rule(self, imsi, _, rule_id):
         """
         Deactivate a specific rule using the flow cookie for a subscriber
 
@@ -327,7 +331,7 @@ class GYController(PolicyMixin, MagmaController):
         will drop the packet. Otherwise, the flow classifies the packet with
         its matched rule and injects the rule num into the packet's register.
         """
-        flow_match = flow_match_to_magma_match(flow.match)
+        flow_match = flow_match_to_magma_match(flow.match, ip_addr)
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions, instructions = self._get_classify_rule_of_actions(
             flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id)
@@ -338,8 +342,8 @@ class GYController(PolicyMixin, MagmaController):
             flow_match.app_id = UNCLASSIFIED_PROTO_ID
             parser = self._datapath.ofproto_parser
             passthrough_actions = flow_match_actions + \
-                [parser.nxactionregload2(dst=scratch_regs[1],
-                                         value=ignore_stats)]
+                [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
+                                         value=IGNORE_STATS)]
             msgs.append(
                 flows.get_add_resubmit_current_service_flow_msg(
                     self._datapath,
@@ -349,7 +353,7 @@ class GYController(PolicyMixin, MagmaController):
                     hard_timeout=hard_timeout,
                     priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
-                    resubmit_table=_enforcement_stats_scratch)
+                    resubmit_table=self._enforcement_stats_scratch)
             )
             flow_match.app_id = get_app_id(
                 PolicyRule.AppName.Name(app_name),
@@ -376,7 +380,7 @@ class GYController(PolicyMixin, MagmaController):
                 hard_timeout=hard_timeout,
                 priority=priority,
                 cookie=rule_num,
-                resubmit_table=_enforcement_stats_scratch)
+                resubmit_table=self._enforcement_stats_scratch)
             )
         return msgs
 
@@ -424,7 +428,8 @@ class GYController(PolicyMixin, MagmaController):
             if inst:
                 instructions.append(inst)
 
-        version = self._session_rule_version_mapper.get_version(imsi, rule_id)
+        version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
+                                                                rule_id)
         actions.extend(
             [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
              parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
@@ -449,6 +454,24 @@ class GYController(PolicyMixin, MagmaController):
                 self.MIN_GY_PROGRAMMED_FLOW)
             return self.MIN_GY_PROGRAMMED_FLOW
         return self.MAX_GY_PRIORITY - precedence
+
+    @set_ev_cls(ofp_event.EventOFPMeterConfigStatsReply, MAIN_DISPATCHER)
+    def meter_config_stats_reply_handler(self, ev):
+        if not self._qos_mgr:
+            return
+
+        qos_impl = self._qos_mgr.impl
+        if qos_impl and isinstance(qos_impl, MeterManager):
+            qos_impl.handle_meter_config_stats(ev.msg.body)
+
+    @set_ev_cls(ofp_event.EventOFPMeterFeaturesStatsReply, MAIN_DISPATCHER)
+    def meter_features_stats_reply_handler(self, ev):
+        if not self._qos_mgr:
+            return
+
+        qos_impl = self._qos_mgr.impl
+        if qos_impl and isinstance(qos_impl, MeterManager):
+            qos_impl.handle_meter_feature_stats(ev.msg.body)
 
     @set_ev_cls(ofp_event.EventOFPBarrierReply, MAIN_DISPATCHER)
     def _handle_barrier(self, ev):
