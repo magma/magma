@@ -224,6 +224,21 @@ func (b *dnsdBuilder) Build(network *storage.Network, graph *storage.EntityGraph
 	dnsConfigProto.DhcpServerEnabled = dnsConfig.DhcpServerEnabled
 	dnsConfigProto.LogLevel = protos.LogLevel_INFO
 
+	nativeGraph, err := (configurator.EntityGraph{}).FromStorageProto(graph)
+	if err != nil {
+		return nil, err
+	}
+	gateway, err := nativeGraph.GetEntity(orc8r.MagmadGatewayType, gatewayID)
+	if err == merrors.ErrNotFound {
+		return nil, errors.Errorf("could not find magmad gateway %s in graph", gatewayID)
+	}
+
+	// Override dhcpServerEnabled if there's gateway specific config
+	if gateway.Config != nil {
+		gatewayDnsdConfig := gateway.Config.(*models.GatewayDnsdConfigs)
+		dnsConfigProto.DhcpServerEnabled = *gatewayDnsdConfig.DhcpServerEnabled
+	}
+
 	for _, record := range dnsConfig.Records {
 		recordProto := &mconfig_protos.NetworkDNSConfigRecordsItems{}
 		protos.FillIn(record, recordProto)

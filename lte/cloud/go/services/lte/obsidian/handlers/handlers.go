@@ -180,6 +180,7 @@ func getGateway(c echo.Context) error {
 		Status:                 magmadModel.Status,
 		Tier:                   magmadModel.Tier,
 		Magmad:                 magmadModel.Magmad,
+		Dnsd:                   magmadModel.Dnsd,
 		ConnectedEnodebSerials: lte_models.EnodebSerials{},
 		ApnResources:           lte_models.ApnResources{},
 	}

@@ -1627,6 +1627,8 @@ definitions:
         $ref: '#/definitions/apn_resources'
       status:
         $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+      dnsd:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_dnsd_configs'
 
   mutable_lte_gateway:
     type: object
@@ -1659,6 +1661,8 @@ definitions:
         $ref: '#/definitions/enodeb_serials'
       apn_resources:
         $ref: '#/definitions/apn_resources'
+      dnsd:
+        $ref: './orc8r-swagger.yml#/definitions/gateway_dnsd_configs'
 
   gateway_cellular_configs:
     type: object
