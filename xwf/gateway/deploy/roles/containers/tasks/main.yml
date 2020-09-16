@@ -44,7 +44,7 @@
   template:
     src: env.j2
     dest: /var/opt/magma/docker/.env
-    mode: 0755
+    mode: 0400
 
 - name: Clone the git repo
   git:
