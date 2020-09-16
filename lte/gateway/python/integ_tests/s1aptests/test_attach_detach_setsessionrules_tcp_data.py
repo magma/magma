@@ -48,8 +48,24 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
 
+        ims = {
+            "apn_name": "ims",  # APN-name
+            "qci": 5,  # qci
+            "priority": 15,  # priority
+            "pre_cap": 0,  # preemption-capability
+            "pre_vul": 0,  # preemption-vulnerability
+            "mbr_ul": 100000,  # MBR UL
+            "mbr_dl": 150000,  # MBR DL
+        }
+
+        # APN list to be configured
+        apn_list = [ims]
+
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
+            self._s1ap_wrapper.configAPN(
+                "IMSI" + "".join([str(i) for i in req.imsi]), apn_list, default=False
+            )
             print(
                 "********************** Running End to End attach for ",
                 "UE id ",
@@ -69,12 +85,14 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             # UL Flow description #1
             ulFlow1 = {
                 "ip_proto": "TCP",  # Protocol Type
+                "tcp_src_port": 7000, # TCP UE Port
                 "direction": "UL",  # Direction
             }
 
             # DL Flow description #1
             dlFlow1 = {
                 "ip_proto": "TCP",  # Protocol Type
+                "tcp_dst_port": 7000, # TCP UE Port
                 "direction": "DL",  # Direction
             }
 
@@ -110,7 +128,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                 "pre_vul": 1,  # pre-emption vulnerability
             }
 
-            policy_id = "tcp_udp"
+            policy_id = "tcp_udp_1"
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
@@ -139,7 +157,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                 req.ue_id, act_ded_ber_ctxt_req.bearerId
             )
 
-            policy_id = "tcp2"
+            policy_id = "tcp_udp_2"
             print("Sleeping for 5 seconds")
             time.sleep(5)
             print(
@@ -248,12 +266,12 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-            with self._s1ap_wrapper.configUplinkTest(req, duration=60, is_udp=True) as test:
+            with self._s1ap_wrapper.configUplinkTest(req, duration=60, is_udp=False) as test:
                 test.verify()
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-            with self._s1ap_wrapper.configDownlinkTest(req, duration=60, is_udp=True) as test:
+            with self._s1ap_wrapper.configDownlinkTest(req, duration=60, is_udp=False) as test:
                 test.verify()
 
             print("Sleeping for 5 seconds")

@@ -1263,6 +1263,7 @@ class SessionManagerUtil(object):
                     int(flow["udp_dst_port"]) if "udp_dst_port" in flow else 0
                 )
             else:
+                ip_protocol = FlowMatch.IPPROTO_IP
                 udp_src_port = 0
                 udp_dst_port = 0
                 tcp_src_port = 0
@@ -1304,23 +1305,28 @@ class SessionManagerUtil(object):
                 )
             )
 
-    def get_policy_rule(self, policy_id, qos, flow_match_list):
-        policy_qos = FlowQos(
-            qci=qos["qci"],
-            max_req_bw_ul=qos["max_req_bw_ul"],
-            max_req_bw_dl=qos["max_req_bw_dl"],
-            gbr_ul=qos["gbr_ul"],
-            gbr_dl=qos["gbr_dl"],
-            arp=QosArp(
-                priority_level=qos["arp_prio"],
-                pre_capability=qos["pre_cap"],
-                pre_vulnerability=qos["pre_vul"],
-            ),
-        )
+    def get_policy_rule(self, policy_id, qos=None, flow_match_list=None):
+        if qos is not None:
+            policy_qos = FlowQos(
+                qci=qos["qci"],
+                max_req_bw_ul=qos["max_req_bw_ul"],
+                max_req_bw_dl=qos["max_req_bw_dl"],
+                gbr_ul=qos["gbr_ul"],
+                gbr_dl=qos["gbr_dl"],
+                arp=QosArp(
+                    priority_level=qos["arp_prio"],
+                    pre_capability=qos["pre_cap"],
+                    pre_vulnerability=qos["pre_vul"],
+                ),
+            )
+            priority = qos["priority"]
+        else:
+            policy_qos = None
+            priority = 2
 
         policy_rule = PolicyRule(
             id=policy_id,
-            priority=qos["priority"],
+            priority=priority,
             flow_list=flow_match_list,
             tracking_type=PolicyRule.NO_TRACKING,
             rating_group=1,
@@ -1417,12 +1423,25 @@ class SessionManagerUtil(object):
 
         policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
 
+        ulFlow1 = {
+            "direction": "UL",  # Direction
+        }
+        dlFlow1 = {
+            "direction": "DL",  # Direction
+        }
+        default_flow_rules = [ulFlow1, dlFlow1]
+        default_flow_match_list = []
+        self.get_flow_match(default_flow_rules, default_flow_match_list)
+        default_policy_rule = self.get_policy_rule(
+            "allow_list_" + imsi, None, default_flow_match_list)
+
         rule_set = RuleSet(
             apply_subscriber_wide = True,
             apn = "",
             static_rules = [],
             dynamic_rules = [
-                DynamicRuleInstall(policy_rule=policy_rule)
+                DynamicRuleInstall(policy_rule=policy_rule),
+                DynamicRuleInstall(policy_rule=default_policy_rule)
             ],
         )
 
