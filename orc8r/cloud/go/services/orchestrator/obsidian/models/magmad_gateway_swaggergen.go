@@ -26,9 +26,6 @@ type MagmadGateway struct {
 	// Required: true
 	Device *GatewayDevice `json:"device"`
 
-	// dnsd
-	Dnsd *GatewayDnsdConfigs `json:"dnsd,omitempty"`
-
 	// id
 	// Required: true
 	ID models1.GatewayID `json:"id"`
@@ -58,10 +55,6 @@ func (m *MagmadGateway) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDevice(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateDnsd(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -113,24 +106,6 @@ func (m *MagmadGateway) validateDevice(formats strfmt.Registry) error {
 		if err := m.Device.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("device")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *MagmadGateway) validateDnsd(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Dnsd) { // not required
-		return nil
-	}
-
-	if m.Dnsd != nil {
-		if err := m.Dnsd.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("dnsd")
 			}
 			return err
 		}

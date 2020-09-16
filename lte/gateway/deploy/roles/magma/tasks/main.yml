@@ -64,6 +64,7 @@
   with_items:
     - create_oai_certs.py
     - generate_oai_config.py
+    - generate_dnsd_config.py
   when: full_provision
 
 - name: Create symlink for stateless scripts

@@ -27,7 +27,6 @@ import (
 	"magma/orc8r/lib/go/protos"
 	mconfig_protos "magma/orc8r/lib/go/protos/mconfig"
 
-	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -322,99 +321,6 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 	})
 }
 
-func TestDnsdMconfigBuilder_Build(t *testing.T) {
-	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
-	orchestrator_test_init.StartTestService(t)
-
-	t.Run("empty dnsd network config", func(t *testing.T) {
-		nw := configurator.Network{ID: "n1"}
-		gw := configurator.NetworkEntity{
-			Type: orc8r.MagmadGatewayType,
-			Key:  "gw1",
-			Config: &models.MagmadGatewayConfigs{
-				AutoupgradeEnabled:      swag.Bool(true),
-				AutoupgradePollInterval: 300,
-				CheckinInterval:         60,
-				CheckinTimeout:          10,
-				DynamicServices:         []string{},
-				FeatureFlags:            map[string]bool{},
-			},
-		}
-		graph := configurator.EntityGraph{
-			Entities: []configurator.NetworkEntity{gw},
-		}
-
-		expected := map[string]proto.Message{
-			"dnsd": &mconfig_protos.DnsD{},
-		}
-
-		actual, err := buildDnsd(&nw, &graph, "gw1")
-		assert.NoError(t, err)
-		assert.Equal(t, expected, actual)
-	})
-
-	t.Run("non-empty dnsd network config", func(t *testing.T) {
-		nw := configurator.Network{
-			ID: "n1",
-			Configs: map[string]interface{}{
-				"dnsd_network": &models.NetworkDNSConfig{
-					EnableCaching: swag.Bool(true),
-					LocalTTL:      swag.Uint32(100),
-					Records: []*models.DNSConfigRecord{
-						{
-							ARecord:     []strfmt.IPv4{"127.0.0.1", "127.0.0.2"},
-							AaaaRecord:  []strfmt.IPv6{"2001:0db8:85a3:0000:0000:8a2e:0370:7334", "1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
-							CnameRecord: []string{"baz"},
-							Domain:      "example.com",
-						},
-						{
-							ARecord: []strfmt.IPv4{"quz"},
-						},
-					},
-				},
-			},
-		}
-		gw := configurator.NetworkEntity{
-			Type: orc8r.MagmadGatewayType,
-			Key:  "gw1",
-			Config: &models.MagmadGatewayConfigs{
-				AutoupgradeEnabled:      swag.Bool(true),
-				AutoupgradePollInterval: 300,
-				CheckinInterval:         60,
-				CheckinTimeout:          10,
-				DynamicServices:         []string{},
-				FeatureFlags:            map[string]bool{},
-			},
-		}
-		graph := configurator.EntityGraph{
-			Entities: []configurator.NetworkEntity{gw},
-		}
-
-		expected := map[string]proto.Message{
-			"dnsd": &mconfig_protos.DnsD{
-				LogLevel:      protos.LogLevel_INFO,
-				EnableCaching: true,
-				LocalTTL:      100,
-				Records: []*mconfig_protos.NetworkDNSConfigRecordsItems{
-					{
-						ARecord:     []string{"127.0.0.1", "127.0.0.2"},
-						AaaaRecord:  []string{"2001:0db8:85a3:0000:0000:8a2e:0370:7334", "1234:0db8:85a3:0000:0000:8a2e:0370:1234"},
-						CnameRecord: []string{"baz"},
-						Domain:      "example.com",
-					},
-					{
-						ARecord: []string{"quz"},
-					},
-				},
-			},
-		}
-
-		actual, err := buildDnsd(&nw, &graph, "gw1")
-		assert.NoError(t, err)
-		assert.Equal(t, expected["dnsd"].String(), actual["dnsd"].String())
-	})
-}
-
 func buildBaseOrchestrator(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
 	networkProto, err := network.ToStorageProto()
 	if err != nil {
@@ -445,34 +351,6 @@ func buildBaseOrchestrator(network *configurator.Network, graph *configurator.En
 		ret["magmad"] = configs["magmad"]
 		ret["td-agent-bit"] = configs["td-agent-bit"]
 		ret["eventd"] = configs["eventd"]
-	}
-
-	return ret, nil
-}
-
-func buildDnsd(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
-	if err != nil {
-		return nil, err
-	}
-	graphProto, err := graph.ToStorageProto()
-	if err != nil {
-		return nil, err
-	}
-	builder := mconfig.NewRemoteBuilder(orchestrator.ServiceName)
-	res, err := builder.Build(networkProto, graphProto, gatewayID)
-	if err != nil {
-		return nil, err
-	}
-
-	configs, err := mconfig.UnmarshalConfigs(res)
-	if err != nil {
-		return nil, err
-	}
-
-	// Only return configs relevant to dnsd
-	ret := map[string]proto.Message{
-		"dnsd": configs["dnsd"],
 	}
 
 	return ret, nil

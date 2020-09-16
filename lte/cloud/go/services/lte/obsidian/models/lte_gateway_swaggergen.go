@@ -38,9 +38,6 @@ type LteGateway struct {
 	// Required: true
 	Device *models4.GatewayDevice `json:"device"`
 
-	// dnsd
-	Dnsd *models4.GatewayDnsdConfigs `json:"dnsd,omitempty"`
-
 	// id
 	// Required: true
 	ID models3.GatewayID `json:"id"`
@@ -82,10 +79,6 @@ func (m *LteGateway) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateDevice(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateDnsd(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -187,24 +180,6 @@ func (m *LteGateway) validateDevice(formats strfmt.Registry) error {
 		if err := m.Device.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("device")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *LteGateway) validateDnsd(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.Dnsd) { // not required
-		return nil
-	}
-
-	if m.Dnsd != nil {
-		if err := m.Dnsd.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("dnsd")
 			}
 			return err
 		}

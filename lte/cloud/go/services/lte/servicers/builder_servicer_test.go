@@ -123,7 +123,7 @@ func TestBuilder_Build(t *testing.T) {
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
-			EnableDnsCaching:         true,
+			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{15000},
 			NatEnabled:               true,
 		},
@@ -153,6 +153,10 @@ func TestBuilder_Build(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
 		},
 	}
 
@@ -279,6 +283,10 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
 		},
 	}
 	actual, err := build(&nw, &graph, "gw1")
@@ -493,6 +501,10 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 				TerminateOnExhaust: false,
 			},
 		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+		},
 	}
 
 	actual, err := build(&nw, &graph, "gw1")
@@ -592,7 +604,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			Lac:                      1,
 			RelayEnabled:             false,
 			CloudSubscriberdbEnabled: false,
-			EnableDnsCaching:         true,
+			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
 		},
@@ -622,6 +634,10 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
 		},
 	}
 
@@ -671,6 +687,11 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 			Arfcn2g:              nil,
 			NonEpsServiceControl: swag.Uint32(0),
 		},
+		DNS: &lte_models.GatewayDNSConfigs{
+			DhcpServerEnabled: swag.Bool(true),
+			EnableCaching:     swag.Bool(false),
+			LocalTTL:          swag.Int32(0),
+		},
 	}
 }
 
@@ -693,6 +714,11 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string) *lte_models.GatewayCellu
 			CsfbRat:              swag.Uint32(0),
 			Arfcn2g:              nil,
 			NonEpsServiceControl: swag.Uint32(0),
+		},
+		DNS: &lte_models.GatewayDNSConfigs{
+			DhcpServerEnabled: swag.Bool(true),
+			EnableCaching:     swag.Bool(false),
+			LocalTTL:          swag.Int32(0),
 		},
 	}
 }
