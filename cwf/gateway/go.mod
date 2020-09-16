@@ -21,7 +21,7 @@ replace (
 	fbc/lib/go/oc => ../../feg/radius/lib/go/oc
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
-	github.com/fiorix/go-diameter/v4 => github.com/emakeev/go-diameter/v4 v4.0.6
+	github.com/fiorix/go-diameter/v4 => github.com/emakeev/go-diameter/v4 v4.0.8
 
 	magma/cwf/cloud/go => ../../cwf/cloud/go
 	magma/feg/cloud/go => ../../feg/cloud/go
