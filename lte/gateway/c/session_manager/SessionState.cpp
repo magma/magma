@@ -1630,7 +1630,7 @@ std::vector<std::string> SessionState::get_final_action_restrict_rules(
     const CreditKey& charging_key) const {
   std::vector<std::string> restrict_rules;
   auto it = credit_map_.find(charging_key);
-  if (it != credit_map_.end()) {
+  if (it == credit_map_.end()) {
     return restrict_rules;
   }
   restrict_rules = it->second->final_action_info.restrict_rules;

@@ -97,6 +97,18 @@ void create_charging_credit(
   credit->set_is_final(is_final);
 }
 
+void create_charging_credit(
+    uint64_t volume, ChargingCredit_FinalAction action,
+    std::string redirect_server, std::string restrict_rule,
+    ChargingCredit* credit) {
+  create_granted_units(&volume, NULL, NULL, credit->mutable_granted_units());
+  credit->set_type(ChargingCredit::BYTES);
+  credit->set_is_final(true);
+  credit->set_final_action(action);
+  credit->mutable_redirect_server()->set_redirect_server_address(redirect_server);
+  credit->add_restrict_rules(restrict_rule);
+}
+
 void create_credit_update_response(
   const std::string& imsi,
   const std::string session_id,
@@ -118,11 +130,25 @@ void create_credit_update_response(
   create_credit_update_response(imsi, session_id, charging_key, volume, false, response);
 }
 
+
 void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
     uint32_t charging_key, uint64_t volume, bool is_final,
     CreditUpdateResponse* response) {
   create_charging_credit(volume, is_final, response->mutable_credit());
+  response->set_success(true);
+  response->set_sid(imsi);
+  response->set_session_id(session_id);
+  response->set_charging_key(charging_key);
+}
+
+void create_credit_update_response(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, uint64_t volume, ChargingCredit_FinalAction action,
+    std::string redirect_server, std::string restrict_rule,
+    CreditUpdateResponse* response) {
+  create_charging_credit(volume, action,
+      redirect_server, restrict_rule, response->mutable_credit());
   response->set_success(true);
   response->set_sid(imsi);
   response->set_session_id(session_id);
