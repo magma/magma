@@ -117,4 +117,15 @@ typedef enum {
 #define IES_DECODE_U32(bUFFER, dECODED, vALUE)                                 \
   DECODE_U32(bUFFER + dECODED, vALUE, dECODED)
 
+#define BUFFER_PRINT_LOG(bUFFER, lEN )                                         \
+  {                                                                            \
+     uint32_t iLEN = 0;                                                        \
+     if (bUFFER != NULL) {                                                     \
+        while (iLEN < lEN) {                                                   \
+           MLOG(MDEBUG) << " 0x" << hex << int(*(bUFFER + iLEN));              \
+           iLEN ++;                                                            \
+        }                                                                      \
+     }                                                                         \
+     MLOG(MDEBUG) << endl;                                                     \
+  }
 

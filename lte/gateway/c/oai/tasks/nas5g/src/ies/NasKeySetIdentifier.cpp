@@ -47,14 +47,29 @@ namespace magma5g
     return decoded;
   };
 
-  // Encode NASKeySetIdentifier IE
+
+// Encode NASKeySetIdentifier IE
   int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(NASKeySetIdentifierMsg *naskeysetidentifier, uint8_t iei, uint8_t * buffer, uint32_t len)
   {
-    uint32_t encoded = 0;
+ uint32_t encoded = 0;
 
-    MLOG(MDEBUG) << "EncodeNASKeySetIdentifierMsg:";
-    // Will be supported POST MVC 
-    CHECK_PDU_POINTER_AND_LENGTH_ENCODER (buffer,NAS_KEY_SET_IDENTIFIER_MIN_LENGTH , len);
+    // Checking IEI and pointer
+    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
+
+    if (iei > 0) {
+      CHECK_IEI_ENCODER((unsigned char)iei, naskeysetidentifier->iei);
+      *buffer = iei;
+      MLOG(MDEBUG) << "In EncodeNASKeySetIdentifierMsg: iei" <<  hex << int(*buffer) << endl;
+      encoded++;
+    }
+
+    MLOG(MDEBUG) << " EncodeNASKeySetIdentifierMsg : " << endl;
+    *(buffer + encoded) = 0x00 | (naskeysetidentifier->tsc & 0x1) << 3 |
+                         (naskeysetidentifier->naskeysetidentifier & 0x7);
+    MLOG(MDEBUG) << "   Type of Security Context  = 0x" << hex  << int(naskeysetidentifier->tsc)<<"\n";
+    MLOG(MDEBUG) << "   NAS key set identifier = 0x" << hex  << int(*(buffer + encoded))<<"\n";
+    encoded++;
+
     return encoded;
   };
 }

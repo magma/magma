@@ -11,6 +11,7 @@ limitations under the License.
 
 /* using this stub code we are going to test Encoding functionality of De-Registration Accept Message */
 #include <iostream>
+#include <iomanip>
 #include "DeRegistrationAcceptUEInit.h"
 #include "CommonDefs.h"
 using namespace std;
@@ -32,7 +33,7 @@ namespace magma5g
       MLOG(MDEBUG) << "\n\n---Encoding message--- \n\n"; 
       ret = msg.EncodeDeRegistrationAcceptUEInitMsg( &msg, buffer, len);
       
-      MLOG(MDEBUG) << "\n\n ENCODED MESSAGE : " << hex << int(buffer[0])<<"0"<< hex << int(buffer[1])<< hex << int(buffer[2]) << "\n\n";
+      MLOG(MDEBUG) << "\n\n ENCODED MESSAGE : " << setfill('0')<< hex << int(buffer[0])<< setw(2) << hex << int(buffer[1])<< hex << int(buffer[2]) << "\n\n";
 
       MLOG(MDEBUG) << "---Decoding encoded message--- " ;
       int ret2 =0;

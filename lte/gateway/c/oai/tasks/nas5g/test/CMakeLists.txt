@@ -21,3 +21,9 @@ add_executable(DeRegAcptEncode DeRegAcptEncode.cpp)
 
 target_link_libraries(DeRegAcptEncode TASK_NAS5G)
 
+#Executable for Authentication Request Message encode
+
+add_executable(AuthReqEncode AuthReqEncode.cpp)
+
+target_link_libraries(AuthReqEncode TASK_NAS5G)
+

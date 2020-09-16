@@ -28,6 +28,7 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationAccept.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationRequestUEInit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationAcceptUEInit.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationRequest.cpp
     )
 
 set(libnas_ies_OBJS
@@ -40,8 +41,11 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GSRegistrationResult.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/M5GSDeRegistrationType.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/SpareHalfOctet.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/ABBA.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/AuthenticationParameterAUTN.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/AuthenticationParameterRAND.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/EAPMessage.cpp
     )
-
 
 add_library(TASK_NAS5G
     ${libnas_src_OBJS}

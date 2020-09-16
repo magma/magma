@@ -12,6 +12,7 @@ limitations under the License.
 /* using this stub code we are going to test Encoding functionality of Registration Accept Message */
 
 #include <iostream>
+#include <iomanip>
 #include <RegistrationAccept.h>
 #include <AmfMessage.h>
 #include <CommonDefs.h>
@@ -41,7 +42,7 @@ namespace magma5g
       //Encoding Message
       enc_r = msg.EncodeRegistrationAcceptMsg(&msg, buffer, len);
 
-      MLOG(MDEBUG) << " Encoded Message : " << hex << int(buffer[0]) << "0" << hex << int(buffer[1]) << hex << int(buffer[2]) << "0" << hex << int(buffer[3]) << "0" << hex<< int(buffer[4]);
+      MLOG(MDEBUG) << " Encoded Message : " << setfill('0') << hex << int(buffer[0]) << setw(2) << hex << int(buffer[1]) << hex << int(buffer[2]) << setw(2) << hex << int(buffer[3]) << setw(2) << hex<< int(buffer[4]);
 
       MLOG(MDEBUG) << "---Decoding Encoded Registration Accept Message---";
       int dec_r = 0;
@@ -55,7 +56,6 @@ namespace magma5g
       MLOG(MDEBUG) << " 5GS Registration Result : Spare :" << dec << int(msg.m5gsregistrationresult.spare) << endl;
       MLOG(MDEBUG) << " 5GS Registration Result : SMS allowed : " << dec << int(msg.m5gsregistrationresult.smsallowed) << endl;
       MLOG(MDEBUG) << " 5GS Registration Result Registration Result Value : " << dec << int(msg.m5gsregistrationresult.registrationresultval) << endl;
-
 
       return 0;
    }
