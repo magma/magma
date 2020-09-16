@@ -1468,7 +1468,8 @@ definitions:
       - lte_auth_op
       - mcc
       - mnc
-      - relay_enabled
+      - hss_relay_enabled
+      - gx_gy_relay_enabled
       - tac
     properties:
       mcc:
@@ -1525,7 +1526,10 @@ definitions:
       default_rule_id:
         type: string
         example: 'default_rule_1'
-      relay_enabled:
+      hss_relay_enabled:
+        type: boolean
+        example: false
+      gx_gy_relay_enabled:
         type: boolean
         example: false
       cloud_subscriberdb_enabled:
