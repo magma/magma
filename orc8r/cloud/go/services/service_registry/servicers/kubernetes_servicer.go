@@ -63,9 +63,7 @@ func (s *KubernetesServiceRegistryServicer) ListAllServices(ctx context.Context,
 		return ret, err
 	}
 	for _, svc := range svcList.Items {
-		splitSvcName := strings.SplitAfterN(svc.Name, serviceNameDelimiter, 2)
-		svcNameIndex := len(splitSvcName) - 1
-		ret.Services = append(ret.Services, splitSvcName[svcNameIndex])
+		ret.Services = append(ret.Services, s.parseServiceName(svc.Name))
 	}
 	return ret, nil
 }
@@ -81,9 +79,7 @@ func (s *KubernetesServiceRegistryServicer) FindServices(ctx context.Context, re
 		return ret, err
 	}
 	for _, svc := range svcList.Items {
-		splitSvcName := strings.SplitAfterN(svc.Name, serviceNameDelimiter, 2)
-		svcNameIndex := len(splitSvcName) - 1
-		ret.Services = append(ret.Services, splitSvcName[svcNameIndex])
+		ret.Services = append(ret.Services, s.parseServiceName(svc.Name))
 	}
 	return ret, nil
 }
@@ -166,4 +162,14 @@ func (s *KubernetesServiceRegistryServicer) getServiceForServiceName(serviceName
 		}
 	}
 	return nil, fmt.Errorf("Could not find service '%s'", serviceName)
+}
+
+func (s *KubernetesServiceRegistryServicer) parseServiceName(svcName string) string {
+	// K8s services deployed via Helm have name with format
+	// 'deploymentName-svc-name'. Given that the deployment name for services
+	// is unknown to other services running in the cluster, remove this prefix,
+	// returning only the svc-name portion
+	splitSvcName := strings.SplitAfterN(svcName, serviceNameDelimiter, 2)
+	svcNameIndex := len(splitSvcName) - 1
+	return splitSvcName[svcNameIndex]
 }

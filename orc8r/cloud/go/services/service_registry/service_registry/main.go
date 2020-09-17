@@ -37,19 +37,19 @@ func main() {
 
 	var serviceRegistryServicer protos.ServiceRegistryServer
 	switch registryModeEnvValue {
-	case "0":
-		glog.Info("Registry Mode set to 0. Creating Docker service registry")
+	case service_registry.DockerServiceRegistry:
+		glog.Infof("Registry Mode set to %s. Creating Docker service registry", service_registry.DockerServiceRegistry)
 		dockerCli, err := client.NewEnvClient()
 		if err != nil {
 			glog.Fatalf("Error creating docker client for service registry servicer: %s", err)
 		}
 		serviceRegistryServicer = servicers.NewDockerServiceRegistryServicer(dockerCli)
-	case "1":
+	case service_registry.K8sServiceRegistry:
 	default:
 		if registryModeEnvValue != "1" {
-			glog.Infof("Registry Mode %s is invalid. Defaulting to Kubernetes service registry", registryModeEnvValue)
+			glog.Infof("Registry Mode %s is invalid. Defaulting to k8s service registry", registryModeEnvValue)
 		} else {
-			glog.Info("Registry Mode set to 1. Creating Kubernetes service registry")
+			glog.Infof("Registry Mode set to %s. Creating k8s service registry", service_registry.K8sServiceRegistry)
 		}
 		config, err := rest.InClusterConfig()
 		if err != nil {

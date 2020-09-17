@@ -64,9 +64,7 @@ func (s *DockerServiceRegistryServicer) ListAllServices(ctx context.Context, req
 		if len(container.Names) == 0 {
 			continue
 		}
-		serviceName := container.Names[0]
-		serviceName = strings.TrimPrefix(serviceName, "/")
-		services = append(services, serviceName)
+		services = append(services, s.parseContainerNames(container.Names))
 	}
 	return &protos.ListAllServicesResponse{
 		Services: services,
@@ -95,9 +93,7 @@ func (s *DockerServiceRegistryServicer) FindServices(ctx context.Context, req *p
 		if len(container.Names) == 0 {
 			continue
 		}
-		serviceName := container.Names[0]
-		serviceName = strings.TrimPrefix(serviceName, "/")
-		services = append(services, serviceName)
+		services = append(services, s.parseContainerNames(container.Names))
 	}
 	return &protos.FindServicesResponse{
 		Services: services,
@@ -190,4 +186,12 @@ func (s *DockerServiceRegistryServicer) doesComposeServiceExist(serviceName stri
 		return false, err
 	}
 	return true, nil
+}
+
+func (s *DockerServiceRegistryServicer) parseContainerNames(names []string) string {
+	// Docker allows multiple names to be specified for a container, returning
+	// the containers names in format ['/service1, /service_alias, ...]
+	// Return the non-aliased container name, removing the preceeding slash
+	serviceName := names[0]
+	return strings.TrimPrefix(serviceName, "/")
 }

@@ -17,9 +17,12 @@ const (
 	ServiceName = "service_registry"
 
 	// ServiceRegistryMode:
-	// 0 for Docker backed service registry
-	// 1 for Kubernetes backed service registry
 	ServiceRegistryModeEnvVar = "SERVICE_REGISTRY_MODE"
+
+	// TODO: Move service registry modes to orc8r/lib
+	DockerServiceRegistry = "docker"
+	K8sServiceRegistry    = "k8s"
+	YamlServiceRegistry   = "yaml"
 
 	// TODO: Move standardized ports to service creation
 	HttpServerPort  = 8080
