@@ -40,7 +40,7 @@ def _check_pkt_protocol(match):
     return True
 
 
-def flow_match_to_magma_match(match, ue_ipv4_addr=None):
+def flow_match_to_magma_match(match, ip_addr=None):
     '''
     Convert a FlowMatch to a MagmaMatch object
 
@@ -49,26 +49,36 @@ def flow_match_to_magma_match(match, ue_ipv4_addr=None):
     '''
     _check_pkt_protocol(match)
     match_kwargs = {'eth_type': ether_types.ETH_TYPE_IP}
-    attributes = ['ipv4_dst', 'ipv4_src',
+    attributes = ['ip_dst', 'ip_src',
                   'ip_proto', 'tcp_src', 'tcp_dst',
                   'udp_src', 'udp_dst', 'app_name']
     for attrib in attributes:
         value = getattr(match, attrib, None)
         if not value:
             continue
-        if attrib in {'ipv4_dst', 'ipv4_src'}:
-            value = _get_ip_tuple(value)
+        if attrib in {'ip_dst', 'ip_src'}:
+            if not value.address:
+                continue
+            value = _get_ip_tuple(value.address.decode('utf-8'))
             if value is None:
                 return
         if attrib == 'app_name':
             attrib = DPI_REG
 
         match_kwargs[attrib] = value
-    if ue_ipv4_addr:
-        if _get_direction_for_match(match) == Direction.OUT:
-            match_kwargs['ipv4_src'] = ue_ipv4_addr
+
+    if ip_addr:
+        if ip_addr.version == ip_addr.IPV4:
+            ip_src_reg = 'ipv4_src'
+            ip_dst_reg = 'ipv4_dst'
         else:
-            match_kwargs['ipv4_dst'] = ue_ipv4_addr
+            ip_src_reg = 'ipv6_src'
+            ip_dst_reg = 'ipv6_dst'
+        if _get_direction_for_match(match) == Direction.OUT:
+            match_kwargs[ip_src_reg] = ip_addr.address.decode('utf-8')
+        else:
+            match_kwargs[ip_dst_reg] = ip_addr.address.decode('utf-8')
+
     return MagmaMatch(direction=_get_direction_for_match(match),
                       **match_kwargs)
 
@@ -129,11 +139,19 @@ def flip_flow_match(match):
 
 def get_ue_ipv4_match_args(ip_addr, direction):
     ip_match = {}
+
     if ip_addr:
-        if direction == Direction.OUT:
-            ip_match = {'ipv4_src': ip_addr}
+        if ip_addr.version == ip_addr.IPV4:
+            ip_src_reg = 'ipv4_src'
+            ip_dst_reg = 'ipv4_dst'
         else:
-            ip_match = {'ipv4_dst': ip_addr}
+            ip_src_reg = 'ipv6_src'
+            ip_dst_reg = 'ipv6_dst'
+
+        if direction == Direction.OUT:
+            ip_match = {ip_src_reg: ip_addr.address.decode('utf-8')}
+        else:
+            ip_match = {ip_dst_reg: ip_addr.address.decode('utf-8')}
     return ip_match
 
 

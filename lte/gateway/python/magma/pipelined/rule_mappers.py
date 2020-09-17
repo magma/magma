@@ -23,7 +23,7 @@ from magma.common.redis.serializers import get_json_deserializer, \
 
 
 SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi ip_addr rule_id')
-
+import logging
 
 class RuleIDToNumMapper:
     """
@@ -99,23 +99,27 @@ class SessionRuleToVersionMapper:
         """
         encoded_imsi = encode_imsi(imsi)
         if ip_addr is None:
-            ip_addr = ""
+            ip_addr_str = ""
+        else:
+            ip_addr_str = ip_addr.address.decode('utf-8')
         with self._lock:
             if rule_id is None:
                 for k, v in self._version_by_imsi_and_rule.items():
-                    _, imsi, ip_addr, _ = SubscriberRuleKey(*json.loads(k))
-                    if imsi == encoded_imsi and ip_addr == ip_addr:
+                    _, imsi, ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
+                    if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
                         self._version_by_imsi_and_rule[k] = v + 1
             else:
-                self._update_version_unsafe(imsi, ip_addr, rule_id)
+                self._update_version_unsafe(imsi, ip_addr_str, rule_id)
 
     def get_version(self, imsi: str, ip_addr: str, rule_id: str) -> int:
         """
         Returns the version number given a subscriber and a rule.
         """
         if ip_addr is None:
-            ip_addr = ""
-        key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
+            ip_addr_str = ""
+        else:
+            ip_addr_str = ip_addr.address.decode('utf-8')
+        key = self._get_json_key(encode_imsi(imsi), ip_addr_str, rule_id)
         with self._lock:
             version = self._version_by_imsi_and_rule.get(key)
             if version is None:

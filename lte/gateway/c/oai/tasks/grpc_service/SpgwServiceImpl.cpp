@@ -174,9 +174,9 @@ Status SpgwServiceImpl::CreateBearer(
           " Destination IP address: %s"
           " Destination TCP port: %d"
           " Destination UDP port: %d \n",
-          flow.match().ip_proto(), flow.match().ipv4_src().c_str(),
+          flow.match().ip_proto(), flow.match().ip_src().address().c_str(),
           flow.match().tcp_src(), flow.match().udp_src(),
-          flow.match().ipv4_dst().c_str(), flow.match().tcp_dst(),
+          flow.match().ip_dst().address().c_str(), flow.match().tcp_dst(),
           flow.match().udp_dst());
     }
 
@@ -223,9 +223,9 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
   // Else, remote server is TCP source
   // GRPC interface does not support a third option (e.g., bidirectional)
   if (flow_match_rule->direction() == FlowMatch::UPLINK) {
-    if (!flow_match_rule->ipv4_dst().empty()) {
+    if (!flow_match_rule->ip_dst().address().empty()) {
       flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      if (!fillIpv4(pf_content, flow_match_rule->ipv4_dst())) {
+      if (!fillIpv4(pf_content, flow_match_rule->ip_dst().address())) {
         return false;
       }
     }
@@ -244,9 +244,9 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
       pf_content->singleremoteport = flow_match_rule->udp_dst();
     }
   } else if (flow_match_rule->direction() == FlowMatch::DOWNLINK) {
-    if (!flow_match_rule->ipv4_src().empty()) {
+    if (!flow_match_rule->ip_dst().address().empty()) {
       flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      if (!fillIpv4(pf_content, flow_match_rule->ipv4_src())) {
+      if (!fillIpv4(pf_content, flow_match_rule->ip_dst().address())) {
         return false;
       }
     }

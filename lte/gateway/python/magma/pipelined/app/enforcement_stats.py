@@ -15,6 +15,7 @@ from typing import List
 from collections import defaultdict
 
 from lte.protos.pipelined_pb2 import RuleModResult
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.session_manager_pb2 import RuleRecord, \
     RuleRecordTable
 from ryu.controller import dpset, ofp_event
@@ -414,7 +415,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         for deletable_stat in self._old_flow_stats(stats_msgs):
             stat_rule_id = self._get_rule_id(deletable_stat)
             stat_sid = _get_sid(deletable_stat)
-            ipv4_addr = _get_ipv4(deletable_stat)
+            ipv4_addr_str = _get_ipv4(deletable_stat)
+            ipv4_addr = None
+            if ipv4_addr_str:
+                ipv4_addr = IPAddress(version=IPAddress.IPV4,
+                                      address=ipv4_addr_str.encode('utf-8'))
             rule_version = _get_version(deletable_stat)
 
             try:
@@ -446,7 +451,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
                 rule_id = self._get_rule_id(stat)
                 sid = _get_sid(stat)
-                ipv4_addr = _get_ipv4(stat)
+                ipv4_addr_str = _get_ipv4(stat)
+                ipv4_addr = None
+                if ipv4_addr_str:
+                    ipv4_addr = IPAddress(version=IPAddress.IPV4,
+                                          address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
                 if rule_id == "":
                     continue
