@@ -90,15 +90,26 @@ class UplinkBridgeController(MagmaController):
 
         self._delete_all_flows()
         self._add_eth_port()
-        self._set_vlan_eth_port()
         self._setup_vlan_pop_dev()
         # flows to forward traffic between patch port to eth port
 
-        # 1. DHCP traffic
+        # 1.a. Setup SGi Vlan flows
+        if self.config.sgi_management_iface_vlan:
+            match = "in_port=%s,vlan_vid=%s/0x1fff" % (self.config.uplink_eth_port_name,
+                                                       hex(0x1000 | int(self.config.sgi_management_iface_vlan)))
+            actions = "strip_vlan,output:LOCAL"
+            self._install_flow(flows.MAXIMUM_PRIORITY, match, actions)
+
+            match = "in_port=LOCAL"
+            actions = "push_vlan:0x8100,mod_vlan_vid=%s,output:%s" % (self.config.sgi_management_iface_vlan,
+                                                                      self.config.uplink_eth_port_name)
+            self._install_flow(flows.MAXIMUM_PRIORITY, match, actions)
+
+        # 1.b. DHCP traffic
         match = "in_port=%s,ip,udp,tp_dst=68" % self.config.uplink_eth_port_name
         actions = "output:%s,output:%s,output:LOCAL" % (self.config.dhcp_port,
                                                         self.config.uplink_patch)
-        self._install_flow(flows.MAXIMUM_PRIORITY, match, actions)
+        self._install_flow(flows.MAXIMUM_PRIORITY - 1, match, actions)
 
         # 2.a. all egress traffic
         match = "in_port=%s,ip" % self.config.uplink_patch
@@ -168,7 +179,7 @@ class UplinkBridgeController(MagmaController):
     def _install_flow(self, priority: int, flow_match: str, flow_action: str):
         if self.config.enable_nat is True:
             return
-        flow_cmd = "ovs-ofctl add-flow %s \"priority=%s,%s, actions=%s\"" % (
+        flow_cmd = "ovs-ofctl add-flow -Oopenflow13 %s \"priority=%s,%s, actions=%s\"" % (
             self.config.uplink_bridge, priority,
             flow_match, flow_action)
 
@@ -193,24 +204,6 @@ class UplinkBridgeController(MagmaController):
             raise Exception('Error: %s failed with: %s' % (ovs_add_port, ex))
 
         self.logger.info("Add uplink port: %s", ovs_add_port)
-
-    def _set_vlan_eth_port(self):
-        if self.config.uplink_bridge is None:
-            return
-
-        if self.config.sgi_management_iface_vlan == '':
-            vlan_cmd = "ovs-vsctl clear port %s tag" \
-                       % self.config.uplink_bridge
-        else:
-            vlan_cmd = "ovs-vsctl set port %s tag=%s" \
-                       % (self.config.uplink_bridge,
-                          self.config.sgi_management_iface_vlan)
-
-        self.logger.info("Vlan set port: %s", vlan_cmd)
-        try:
-            subprocess.Popen(vlan_cmd, shell=True).wait()
-        except subprocess.CalledProcessError as ex:
-            raise Exception('Error: %s failed with: %s' % (vlan_cmd, ex))
 
     def _del_eth_port(self):
         self._cleanup_if(self.config.uplink_bridge, True)

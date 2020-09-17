@@ -39,6 +39,7 @@ message DiamServerConfig {
 
 message S6aConfig {
     DiamClientConfig server = 1;
+    repeated string PlmnIds = 2;
 }
 
 message GxConfig {

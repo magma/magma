@@ -14,6 +14,9 @@ limitations under the License.
 package s6a_proxy_test
 
 import (
+	"fmt"
+	"math/rand"
+	"runtime"
 	"testing"
 
 	"magma/feg/cloud/go/protos"
@@ -24,8 +27,26 @@ import (
 	"magma/feg/gateway/services/s6a_proxy/test_init"
 )
 
+var (
+	diamServerAddr = fmt.Sprintf("127.0.0.1:%d", 30000+rand.Intn(1000))
+	TCPorSCTP      = systemBasedTCPorSCTP() // sctp if run in linux, tcp if run in MAC
+)
+
+// systemBasedTCPorSCTP decides to run the test in TCP or SCTP. By default tests should
+// be run in SCTP, but if test are run on MacOs, TCP is the only supported protocol
+func systemBasedTCPorSCTP() string {
+	if runtime.GOOS == "darwin" {
+		fmt.Println(
+			"Running servers with TCP. MacOS detected, SCTP not supported in this system. " +
+				"Use this mode only for debugging!!!")
+		return "tcp"
+	}
+	fmt.Println("Running servers with SCTP")
+	return "sctp"
+}
+
 func TestS6aProxyClient(t *testing.T) {
-	err := test_init.StartTestService(t)
+	err := test_init.StartTestService(t, TCPorSCTP, diamServerAddr)
 	if err != nil {
 		t.Fatal(err)
 		return

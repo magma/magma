@@ -28,6 +28,7 @@ import {
   GatewayDBData,
   InternalDBData,
   NetworkDBData,
+  SubscriberDBData,
   createDashboard,
 } from './dashboards/Dashboards';
 import {Organization} from '@fbcnms/sequelize-models';
@@ -485,6 +486,7 @@ export async function syncDashboards(
     dashboardData(createDashboard(NetworkDBData(networks)).generate()),
     dashboardData(createDashboard(GatewayDBData(networks)).generate()),
     dashboardData(createDashboard(InternalDBData(networks)).generate()),
+    dashboardData(createDashboard(SubscriberDBData(networks)).generate()),
   ];
 
   // If an org contains CWF networks, add the CWF-specific dashboards

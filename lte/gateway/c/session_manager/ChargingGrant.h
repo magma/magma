@@ -71,6 +71,9 @@ struct ChargingGrant {
   CreditUsage get_credit_usage(CreditUsage::UpdateType update_type,
     SessionCreditUpdateCriteria& uc, bool is_terminate);
 
+  // get_requested_units returns total, tx and rx needed to cover one worth of grant
+  RequestedUnits get_requested_units();
+
   // Return true if the service needs to be deactivated
   bool should_deactivate_service() const;
 

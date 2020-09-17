@@ -304,6 +304,49 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(
   return usage;
 }
 
+RequestedUnits SessionCredit::get_requested_credits_units() {
+  RequestedUnits requestedUnits;
+  uint64_t buckets_used_total =buckets_[USED_TX] + buckets_[USED_RX];
+
+  uint64_t total_requested = calculate_requested_unit(
+      received_granted_units_.total(),
+      ALLOWED_TOTAL, ALLOWED_FLOOR_TOTAL, buckets_used_total);
+
+  uint64_t tx_requested = calculate_requested_unit(
+      received_granted_units_.tx(),
+      ALLOWED_TX, ALLOWED_FLOOR_TX, buckets_[USED_TX]);
+
+  uint64_t rx_requested = calculate_requested_unit(
+      received_granted_units_.rx(),
+      ALLOWED_RX, ALLOWED_FLOOR_RX, buckets_[USED_RX]);
+
+  requestedUnits.set_total(total_requested);
+  requestedUnits.set_tx(tx_requested);
+  requestedUnits.set_rx(rx_requested);
+
+  return requestedUnits;
+}
+
+// returns either the last grant, or the difference between the last grant
+// and the credit remaining. Prevents over requesting in case we still have
+// credit available from the previous request
+uint64_t SessionCredit:: calculate_requested_unit(
+    CreditUnit cu, Bucket allowed,Bucket allowed_floor, uint64_t used){
+  if (cu.is_valid() == false){
+    return 0;
+  }
+  // get the current volume grant, or infer it in case of 0
+  int64_t grant = cu.volume()!=0 ? cu.volume() :
+                                   buckets_[allowed]-buckets_[allowed_floor];
+  int64_t remaining = buckets_[allowed] - used;
+  if (remaining >= 0 && grant >= remaining) {
+    // request just partial of a grant since we still have some credit left
+    return grant - remaining;
+  }
+  return grant;
+}
+
+
 // Take the minimum of (grant - reported) and (reported - used)
 void SessionCredit::apply_reporting_limits(SessionCredit::Usage& usage) {
   uint64_t tx_limit, rx_limit, total_limit, total_reported;
@@ -345,7 +388,7 @@ void SessionCredit::apply_reporting_limits(SessionCredit::Usage& usage) {
 }
 
 SessionCredit::Usage SessionCredit::get_unreported_usage() const {
-  SessionCredit::Usage usage = {bytes_tx: 0, bytes_rx: 0};
+  SessionCredit::Usage usage = {0, 0};
   auto report                = buckets_[REPORTED_TX] + buckets_[REPORTING_TX];
   if (buckets_[USED_TX] > report) {
     usage.bytes_tx = buckets_[USED_TX] - report;

@@ -132,6 +132,19 @@ class LocalEnforcerTest : public ::testing::Test {
     EXPECT_TRUE(found);
   }
 
+  void assert_session_is_in_final_state(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, const CreditKey &charging_key,
+    bool is_final) {
+    EXPECT_TRUE(session_map.find(imsi) != session_map.end());
+    for (const auto& session : session_map.find(imsi)->second) {
+      if (session->get_session_id() == session_id) {
+        EXPECT_EQ(session->is_credit_in_final_unit_state(charging_key), is_final);
+      }
+    }
+}
+
+
  protected:
   std::shared_ptr<MockSessionReporter> reporter;
   std::shared_ptr<StaticRuleStore> rule_store;
@@ -259,7 +272,9 @@ TEST_F(LocalEnforcerTest, test_single_record) {
   insert_static_rule(1, "", "rule1");
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 16, 32, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 16, 32,
+      record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -292,9 +307,15 @@ TEST_F(LocalEnforcerTest, test_aggregate_records) {
   insert_static_rule(2, "", "rule3");
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 10, 20, record_list->Add());
-  create_rule_record(IMSI1, "rule2", 5, 15, record_list->Add());
-  create_rule_record(IMSI1, "rule3", 100, 150, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 5, 15,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule3", 100, 150,
+      record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -368,7 +389,9 @@ TEST_F(LocalEnforcerTest, test_collect_updates) {
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1024, 2048,
+      record_list->Add());
 
   local_enforcer->aggregate_records(session_map, table, update);
   actions.clear();
@@ -469,7 +492,9 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   // receive usages from pipelined
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 10, 20, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
+      record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
   assert_monitor_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{"1", 10}});
@@ -560,7 +585,9 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   // Insert record for key 1
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1024, 2048,
+      record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -568,6 +595,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
   auto usage_updates =
       local_enforcer->collect_updates(session_map, actions, update);
+
   local_enforcer->execute_actions(session_map, actions, update);
   assert_charging_credit(
       session_map, IMSI1, SESSION_ID_1, REPORTING_RX, {{1, 1024}});
@@ -772,8 +800,12 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   // Insert record for key 1
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
-  create_rule_record(IMSI1, "rule2", 1024, 2048, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1024, 2048,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 1024, 2048,
+      record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -871,9 +903,15 @@ TEST_F(LocalEnforcerTest, test_all) {
   // receive usages from pipelined
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 10, 20, record_list->Add());
-  create_rule_record(IMSI1, "rule2", 5, 15, record_list->Add());
-  create_rule_record(IMSI2, "rule3", 1024, 1024, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 5, 15,
+      record_list->Add());
+  create_rule_record(
+      IMSI2, test_cfg_.common_context.ue_ipv4(), "rule3", 1024, 1024,
+      record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -1021,8 +1059,12 @@ TEST_F(LocalEnforcerTest, test_dynamic_rules) {
   insert_static_rule(1, "", "rule2");
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 16, 32, record_list->Add());
-  create_rule_record(IMSI1, "rule2", 8, 8, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 16, 32,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 8, 8,
+      record_list->Add());
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
@@ -1060,8 +1102,8 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
-      testing::_, testing::_, testing::_, CheckCount(2),
-      CheckCount(1), testing::_))
+                             testing::_, testing::_, testing::_, CheckCount(2),
+                             CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1070,8 +1112,12 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "rule1", 1024, 2048, record_list->Add());
-  create_rule_record(IMSI1, "rule2", 1024, 2048, record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 1024, 2048,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule2", 1024, 2048,
+      record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -1202,10 +1248,11 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   // receive usages from pipelined
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, "both_rule", 10, 20, record_list->Add());
-  create_rule_record(IMSI1, "ocs_rule", 5, 15, record_list->Add());
-  create_rule_record(IMSI1, "pcrf_only", 1024, 1024, record_list->Add());
-  create_rule_record(IMSI1, "pcrf_split", 10, 20, record_list->Add());
+  auto& ip         = test_cfg_.common_context.ue_ipv4();
+  create_rule_record(IMSI1, ip, "both_rule", 10, 20, record_list->Add());
+  create_rule_record(IMSI1, ip, "ocs_rule", 5, 15, record_list->Add());
+  create_rule_record(IMSI1, ip, "pcrf_only", 1024, 1024, record_list->Add());
+  create_rule_record(IMSI1, ip, "pcrf_split", 10, 20, record_list->Add());
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table, update);
 
@@ -1358,9 +1405,11 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   // reports for all monitors receive usages from pipelined
   RuleRecordTable table_1;
   auto record_list_1 = table_1.mutable_records();
-  create_rule_record(IMSI1, "pcrf_only_active", 2000, 0, record_list_1->Add());
+  auto ip            = test_cfg_.common_context.ue_ipv4();
   create_rule_record(
-      IMSI1, "pcrf_only_to_be_disabled", 2000, 0, record_list_1->Add());
+      IMSI1, ip, "pcrf_only_active", 2000, 0, record_list_1->Add());
+  create_rule_record(
+      IMSI1, ip, "pcrf_only_to_be_disabled", 2000, 0, record_list_1->Add());
   local_enforcer->aggregate_records(session_map, table_1, update_1);
 
   // Collect updates, should have updates since all monitors got 80% exhausted
@@ -1406,9 +1455,10 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   // Generate more traffic to see monitors 2 and 3 are not triggering update
   RuleRecordTable table_2;
   auto record_list2 = table_2.mutable_records();
-  create_rule_record(IMSI1, "pcrf_only_active", 2000, 0, record_list2->Add());
   create_rule_record(
-      IMSI1, "pcrf_only_to_be_disabled", 2000, 0, record_list2->Add());
+      IMSI1, ip, "pcrf_only_active", 2000, 0, record_list2->Add());
+  create_rule_record(
+      IMSI1, ip, "pcrf_only_to_be_disabled", 2000, 0, record_list2->Add());
 
   update_2 = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table_2, update_2);
@@ -2191,6 +2241,109 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
 
   local_enforcer->setup(
       session_map, epoch, [](Status status, SetupFlowsResult resp) {});
+}
+
+TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, ChargingCredit_FinalAction_RESTRICT_ACCESS,
+      "", "rule1", response.mutable_credits()->Add());
+
+  auto dynamic_rule = response.mutable_dynamic_rules()->Add();
+  auto policy_rule  = dynamic_rule->mutable_policy_rule();
+  policy_rule->set_id("rule2");
+  policy_rule->set_rating_group(1);
+  policy_rule->set_tracking_type(PolicyRule::ONLY_OCS);
+  auto static_rule = response.mutable_static_rules()->Add();
+  static_rule->set_rule_id("rule1");
+  static_rule = response.mutable_static_rules()->Add();
+  static_rule->set_rule_id("rule3");
+
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule3");
+
+  // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
+  EXPECT_CALL(
+      *pipelined_client, activate_flows_for_rules(
+      testing::_, testing::_, testing::_, CheckCount(2),
+      CheckCount(1), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  EXPECT_CALL(
+      *pipelined_client, update_ipfix_flow(
+      testing::_, testing::_, testing::_, testing::_,
+      testing::_, testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  // Insert record and aggreagate thems
+  RuleRecordTable table;
+  auto& ip = test_cfg_.common_context.ue_ipv4();
+  auto record_list = table.mutable_records();
+  create_rule_record(IMSI1, ip, "rule1", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, ip, "rule2", 1024, 2048, record_list->Add());
+  create_rule_record(IMSI1, ip, "rule3", 1024, 2048, record_list->Add());
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  // Collect actions and verify that restrict action is in the list
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto usage_updates =
+      local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(actions.size(), 1);
+  EXPECT_EQ(actions[0]->get_type(), RESTRICT_ACCESS);
+  EXPECT_EQ(actions[0]->get_restrict_rules()[0], "rule1");
+
+  // Execute actions and asset final action state
+  local_enforcer->execute_actions(session_map, actions, update);
+
+  const CreditKey& credit_key(1);
+  assert_session_is_in_final_state(session_map, IMSI1, SESSION_ID_1, credit_key, true);
+
+  // Send a ReAuth request
+  ChargingReAuthRequest reauth;
+  reauth.set_sid(IMSI1);
+  reauth.set_session_id(SESSION_ID_1);
+  reauth.set_charging_key(1);
+  reauth.set_type(ChargingReAuthRequest::SINGLE_SERVICE);
+  update = SessionStore::get_default_session_update(session_map);
+  auto result =
+      local_enforcer->init_charging_reauth(session_map, reauth, update);
+  EXPECT_EQ(result, ReAuthResult::UPDATE_INITIATED);
+
+  actions.clear();
+  auto update_req =
+      local_enforcer->collect_updates(session_map, actions, update);
+  local_enforcer->execute_actions(session_map, actions, update);
+  EXPECT_EQ(update_req.updates_size(), 1);
+  EXPECT_EQ(update_req.updates(0).sid(), IMSI1);
+  EXPECT_EQ(update_req.updates(0).usage().type(), CreditUsage::REAUTH_REQUIRED);
+
+  // Give credit after ReAuth
+  UpdateSessionResponse update_response;
+  auto updates = update_response.mutable_responses();
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 4096, updates->Add());
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, update);
+
+  // when next update is collected, this should trigger an action to activate
+  // the flow in pipelined
+  EXPECT_CALL(
+      *pipelined_client, activate_flows_for_rules(
+      testing::_, testing::_, testing::_, testing::_,
+      testing::_, testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  actions.clear();
+  local_enforcer->collect_updates(session_map, actions, update);
+  local_enforcer->execute_actions(session_map, actions, update);
+
+  // Assert that we exited final action state
+  assert_session_is_in_final_state(session_map, IMSI1, SESSION_ID_1, credit_key, false);
 }
 
 int main(int argc, char** argv) {
