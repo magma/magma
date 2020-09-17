@@ -247,58 +247,60 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
 void LocalEnforcer::aggregate_records(
     SessionMap& session_map, const RuleRecordTable& records,
     SessionUpdate& session_update) {
-  // TODO We should have a more granular identifier for sessions here
-  // Insert the IMSIs for which we received a rule record into a set for easy
-  // access
-  std::unordered_set<std::string> sessions_with_active_flows;
+  // Insert the IMSI+SessionID for sessions we received a rule record into a set
+  // for easy access
+  std::unordered_set<ImsiAndSessionID> sessions_with_active_flows;
   for (const RuleRecord& record : records.records()) {
-    auto it = session_map.find(record.sid());
-    if (it == session_map.end()) {
-      MLOG(MERROR) << "Could not find session for " << record.sid()
+    const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
+    SessionSearchCriteria criteria(imsi, IMSI_AND_UE_IPV4, ip);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not find session for " << imsi << " and " << ip
                    << " during record aggregation";
       continue;
     }
-    sessions_with_active_flows.insert(record.sid());
+    auto& session          = **session_it;
+    const auto& session_id = session->get_session_id();
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
-      MLOG(MINFO) << record.sid() << " used " << record.bytes_tx()
+      MLOG(MINFO) << session_id << " used " << record.bytes_tx()
                   << " tx bytes and " << record.bytes_rx()
                   << " rx bytes for rule " << record.rule_id();
     }
-    // Update sessions
-    for (const auto& session : it->second) {
-      SessionStateUpdateCriteria& uc =
-          session_update[record.sid()][session->get_session_id()];
-      session->add_rule_usage(
-          record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
-    }
+    SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
+    session->add_rule_usage(
+        record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
+    sessions_with_active_flows.insert(ImsiAndSessionID(imsi, session_id));
   }
   complete_termination_for_released_sessions(
       session_map, sessions_with_active_flows, session_update);
 }
 
 void LocalEnforcer::complete_termination_for_released_sessions(
-    SessionMap& session_map, std::unordered_set<std::string> sessions_with_active_flows,
+    SessionMap& session_map,
+    std::unordered_set<ImsiAndSessionID> sessions_with_active_flows,
     SessionUpdate& session_update) {
   // Iterate through sessions and notify that report has finished. Terminate any
   // sessions that can be terminated.
-  std::vector<std::pair<std::string, std::string>> imsi_to_terminate;
+  std::vector<ImsiAndSessionID> sessions_to_terminate;
   for (const auto& session_pair : session_map) {
     const std::string imsi = session_pair.first;
     for (const auto& session : session_pair.second) {
       const std::string session_id = session->get_session_id();
       // If we did not receive a rule record for the session, this means
       // PipelineD has reported all usage for the session
+      auto imsi_and_session_id = ImsiAndSessionID(imsi, session_id);
       if (session->get_state() == SESSION_RELEASED &&
-          sessions_with_active_flows.find(imsi) == sessions_with_active_flows.end()) {
-        imsi_to_terminate.push_back(std::make_pair(imsi, session_id));
+          sessions_with_active_flows.find(imsi_and_session_id) ==
+              sessions_with_active_flows.end()) {
+        sessions_to_terminate.push_back(imsi_and_session_id);
       }
     }
   }
-  for (const auto& imsi_sid_pair : imsi_to_terminate) {
-    auto imsi                      = imsi_sid_pair.first;
-    auto session_id                = imsi_sid_pair.second;
-    SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
-    complete_termination(session_map, imsi, session_id, uc);
+  // Do the actual termination in a separate loop since this can modify the
+  // session map structure
+  for (const auto& pair : sessions_to_terminate) {
+    const auto &imsi = pair.first, &session_id = pair.second;
+    complete_termination(session_map, imsi, session_id, session_update);
   }
 }
 
@@ -424,8 +426,7 @@ void LocalEnforcer::handle_force_termination_timeout(
   // If the session doesn't exist in the session_update, then the session was
   // already terminated + removed
   if (needs_termination) {
-    complete_termination(
-        session_map, imsi, session_id, session_update[imsi][session_id]);
+    complete_termination(session_map, imsi, session_id, session_update);
     bool end_success = session_store_.update_sessions(session_update);
     if (end_success) {
       MLOG(MDEBUG) << "Updated session termination of " << session_id
@@ -1184,7 +1185,7 @@ void LocalEnforcer::report_subscriber_state_to_pipelined(
 
 void LocalEnforcer::complete_termination(
     SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, SessionStateUpdateCriteria& uc) {
+    const std::string& session_id, SessionUpdate& session_update) {
   // If the session cannot be found in session_map, or a new session has
   // already begun, do nothing.
   auto it = session_map.find(imsi);
@@ -1195,6 +1196,7 @@ void LocalEnforcer::complete_termination(
                  << ". Skipping termination.";
     return;
   }
+  auto& uc = session_update[imsi][session_id];
   for (auto session_it = it->second.begin(); session_it != it->second.end();
        ++session_it) {
     if ((*session_it)->get_session_id() == session_id) {
@@ -1284,8 +1286,8 @@ void LocalEnforcer::update_charging_credits(
       const auto& credit_key(credit_update_resp);
       // We need to retrive restrict_rules and is_final_action_state
       // prior to receiving charging credit as they will be updated.
-      auto restrict_rules =
-          session->get_final_action_restrict_rules(credit_key);
+      std::vector<std::string> restrict_rules;
+      session->get_final_action_restrict_rules(credit_key, restrict_rules);
       bool is_final_action_state =
           session->is_credit_in_final_unit_state(credit_key);
       session->receive_charging_credit(credit_update_resp, uc);

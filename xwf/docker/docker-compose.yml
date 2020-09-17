@@ -16,10 +16,10 @@ services:
     ports:
       - "24224:24224"
     healthcheck:
-      test: ["CMD", "nc", "-vz", "localhost", "24224"]
-      interval: 30s
-      timeout: 10s
-      retries: 15
+        test: ["CMD", "nc", "-vz", "localhost", "24224"]
+        interval: 30s
+        timeout: 10s
+        retries: 15
     environment:
       - SCRIBE_ACCESS_TOKEN=${XWF_SCUBA_ACCESS_TOKEN}
       - SCUBA_TABLE=perfpipe_xwf_openflow_compose_logs
@@ -131,6 +131,8 @@ services:
       /bin/sh -c "./docker-entrypoint.sh"
     networks:
       - control
+    ports:
+      - "1812:1812/udp"
     logging:
       driver: "json-file"
       options:
@@ -276,4 +278,4 @@ networks:
   control:
     ipam:
       config:
-        - subnet: 10.0.12.0/24
+      - subnet: 10.0.12.0/24

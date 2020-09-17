@@ -303,7 +303,6 @@ def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
     while not all(stats_reported[rule] for rule in rule_list):
         hub.sleep(wait_time)
         for reported_stats in controller._report_usage.call_args_list:
-            #logging.error(reported_stats)
             stats = reported_stats[0][0]
             for rule in rule_list:
                 if rule in stats:

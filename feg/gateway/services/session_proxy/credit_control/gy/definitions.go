@@ -54,6 +54,7 @@ type UsedCredits struct {
 	OutputOctets      uint64
 	TotalOctets       uint64
 	Type              UsedCreditsType
+	RequestedUnits    *protos.RequestedUnits
 }
 
 type CreditControlRequest struct {

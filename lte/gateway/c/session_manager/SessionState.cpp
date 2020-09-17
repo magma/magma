@@ -1272,9 +1272,9 @@ void SessionState::get_charging_updates(
         if (update_type == CreditUsage::REAUTH_REQUIRED) {
           grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
         }
-        auto update = grant->get_credit_usage(update_type, *credit_uc, false);
-        key.set_credit_usage(&update);
-        auto credit_req = make_credit_usage_update_req(update);
+        CreditUsage usage = grant->get_credit_usage(update_type, *credit_uc, false);
+        key.set_credit_usage(&usage);
+        auto credit_req = make_credit_usage_update_req(usage);
         update_request_out.mutable_updates()->Add()->CopyFrom(credit_req);
         request_number_++;
         uc.request_number_increment++;
@@ -1626,15 +1626,14 @@ bool SessionState::is_credit_in_final_unit_state(
           it->second->service_state == SERVICE_RESTRICTED);
 }
 
-std::vector<std::string> SessionState::get_final_action_restrict_rules(
-    const CreditKey& charging_key) const {
-  std::vector<std::string> restrict_rules;
+void SessionState::get_final_action_restrict_rules(
+    const CreditKey& charging_key,
+    std::vector<std::string> &restrict_rules) {
   auto it = credit_map_.find(charging_key);
-  if (it != credit_map_.end()) {
-    return restrict_rules;
+  if (it == credit_map_.end()) {
+    return;
   }
   restrict_rules = it->second->final_action_info.restrict_rules;
-  return restrict_rules;
 }
 
 // QoS/Bearer Management

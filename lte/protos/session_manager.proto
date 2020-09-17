@@ -332,6 +332,13 @@ message ChargingCredit {
   repeated string restrict_rules = 8;
 }
 
+message RequestedUnits {
+  uint64 total = 1;
+  uint64 tx = 2;
+  uint64 rx = 3;
+}
+
+
 message CreditUsage {
   uint64 bytes_tx = 1;
   uint64 bytes_rx = 2;
@@ -350,6 +357,7 @@ message CreditUsage {
   UpdateType type = 5;
   bytes monitoring_key = 6;
   ServiceIdentifier service_identifier = 7;
+  RequestedUnits requested_units = 8;
 }
 
 message CreditUsageUpdate {

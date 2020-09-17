@@ -27,6 +27,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/s6a_proxy"
 	"magma/feg/gateway/services/s6a_proxy/servicers"
@@ -154,6 +155,12 @@ func air(cmd *commands.Command, args []string) int {
 		DestRealm: destRealm,
 	}
 
+	conf := &servicers.S6aProxyConfig{
+		ClientCfg: clientCfg,
+		ServerCfg: serverCfg,
+		PlmnIds:   plmn_filter.PlmnIdVals{},
+	}
+
 	if testServer {
 		if len(testServerAddr) == 0 {
 			testServerAddr = s6aAddr
@@ -169,7 +176,7 @@ func air(cmd *commands.Command, args []string) int {
 		fmt.Printf(
 			"Direct connection:\n\tClient Config: %+v\n\tServer Config: %+v\n", *clientCfg, *serverCfg)
 
-		localProxy, err := servicers.NewS6aProxy(clientCfg, serverCfg)
+		localProxy, err := servicers.NewS6aProxy(conf)
 		if err != nil {
 			f.Usage()
 			log.Printf("BuiltIn Proxy initialization error: %v", err)

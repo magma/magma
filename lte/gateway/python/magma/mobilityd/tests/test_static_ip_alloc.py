@@ -257,8 +257,8 @@ class StaticIPAllocationTests(unittest.TestCase):
 
         # check if retrieved ip is the same as the one allocated
         self.assertEqual(ip0, ip0_returned)
-        self.assertEqual(ip0, ipaddress.ip_address(assigned_ip_wild))
-        self.check_type(sid, IPType.STATIC)
+        self.assertNotEqual(ip0, ipaddress.ip_address(assigned_ip_wild))
+        self.check_type(sid, IPType.IP_POOL)
 
     def test_get_ip_for_subscriber_with_apn_with_gw(self):
         """ test get_ip_for_sid with static IP """

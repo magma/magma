@@ -24,6 +24,7 @@ namespace lte {
 typedef std::vector<std::unique_ptr<SessionState>> SessionVector;
 typedef std::unordered_map<std::string, SessionVector> SessionMap;
 
+
 /**
  * StoreClient is responsible for reading/writing sessions to/from storage.
  */

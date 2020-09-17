@@ -139,9 +139,13 @@ optional<SessionVector::iterator> SessionStore::find_session(
             criteria.secondary_key) {
           return it;
         }
-      default:
-        continue;
+      case IMSI_AND_UE_IPV4:
+        if ((*it)->get_config().common_context.ue_ipv4() ==
+            criteria.secondary_key) {
+          return it;
+        }
     }
+    continue;
   }
   return {};
 }

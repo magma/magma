@@ -1245,13 +1245,18 @@ static void mme_app_populate_bearer_contexts_to_be_removed(
                          .item[item]
                          .e_rab_id)]
                  ->pdn_cx_id;
+      OAILOG_INFO(
+          LOG_NAS_ESM, "Releasing dedicated EPS bearer context for ebi %u\n",
+          initial_ctxt_setup_rsp_p->e_rab_failed_to_setup_list.item[item]
+              .e_rab_id);
+
       int rc = esm_proc_eps_bearer_context_deactivate(
           &ue_context_p->emm_context, true,
           initial_ctxt_setup_rsp_p->e_rab_failed_to_setup_list.item[item]
               .e_rab_id,
           &pcid, &idx, NULL);
       if (rc != RETURNok) {
-        OAILOG_INFO(
+        OAILOG_ERROR(
             LOG_NAS_ESM,
             "Failed to release the dedicated EPS bearer context for "
             "ebi:%u\n",
