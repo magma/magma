@@ -309,6 +309,10 @@ class TestAttachServiceMultiPdnsBearersFailure(unittest.TestCase):
             init_ctxt_setup_failed_erabs,
         )
 
+        # Verify if paging flow rules are created
+        ip_list = [default_ip, sec_ip]
+        self._s1ap_wrapper.s1_util.verify_paging_flow_rules(ip_list)
+
         print("************************* Sleeping for 5 seconds")
         time.sleep(5)
         print(
