@@ -26,7 +26,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
+*/
 
 package hacluster
 
@@ -160,7 +160,7 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 			"max consecutive errors for failover",
 			hacluster.Spec.MaxConsecutiveActiveErrors,
 		)
-		hacluster.Status.ConsecutiveActiveErrors = hacluster.Status.ConsecutiveActiveErrors + 1
+		hacluster.Status.ConsecutiveActiveErrors++
 		if hacluster.Status.ConsecutiveActiveErrors < hacluster.Spec.MaxConsecutiveActiveErrors {
 			updateErr := r.client.Status().Update(context.TODO(), hacluster)
 			if updateErr != nil {
@@ -174,7 +174,7 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 	standbyHealth, err := r.getGatewayHealthStatus(standbyGateway, request.Namespace)
 	if err != nil {
-		hacluster.Status.ConsecutiveStandbyErrors = hacluster.Status.ConsecutiveStandbyErrors + 1
+		hacluster.Status.ConsecutiveStandbyErrors++
 		reqLogger.Error(err, "An error occurring while fetching standby health status")
 	} else {
 		hacluster.Status.ConsecutiveStandbyErrors = 0
@@ -184,9 +184,12 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 	failover := false
 	var initErr error
 	var updatedStatus magmav1alpha1.HAClusterStatus
-	if activeHealth.Health == protos.HealthStatus_HEALTHY {
+	isActiveHealthy := activeHealth.Health == protos.HealthStatus_HEALTHY
+	isStandbyHealthy := standbyHealth.Health == protos.HealthStatus_HEALTHY
+
+	if isActiveHealthy {
 		updatedStatus, initErr = r.initCluster(activeGateway, standbyGateway, request.Namespace, hacluster.Status, false)
-	} else if activeHealth.Health == protos.HealthStatus_UNHEALTHY && standbyHealth.Health == protos.HealthStatus_HEALTHY {
+	} else if isStandbyHealthy {
 		reqLogger.Info("Promoting standby due to unhealthy active", "promoted active", standbyGateway)
 		hacluster.Status.ActiveInitState = magmav1alpha1.Uninitialized
 		hacluster.Status.StandbyInitState = magmav1alpha1.Uninitialized
@@ -209,10 +212,11 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 	}
 	hacluster.Status = updatedStatus
 	updateErr := r.client.Status().Update(context.TODO(), hacluster)
-	if updateErr != nil && failover {
-		reqLogger.Error(updateErr, "Updating hacluster status with promoted active failed", "promoted active", standbyGateway)
-		return reconcile.Result{}, updateErr
-	} else if updateErr != nil {
+	if updateErr != nil {
+		if failover {
+			reqLogger.Error(updateErr, "Updating hacluster status with promoted active failed", "promoted active", standbyGateway)
+			return reconcile.Result{}, updateErr
+		}
 		reqLogger.Error(updateErr, "Updating hacluster status failed")
 		return reconcile.Result{}, updateErr
 	}
@@ -279,6 +283,10 @@ func (r ReconcileHACluster) initCluster(active string, standby string, namespace
 	return ret, r.constructAggregateClusterError(initActiveErr, initStandbyErr)
 }
 
+// initGatewayWithRole inits a gateway with active or standby role based off of
+// the existing cluster initialization status. This function returns the
+// updated cluster status, an error, and a boolean signaling if the returned
+// error (if any) was an RPC error
 func (r ReconcileHACluster) initGatewayWithRole(gateway string, namespace string, active bool) (magmav1alpha1.HAClusterInitState, bool, error) {
 	// Get pod first to avoid sending an RPC that will timeout
 	_, err := r.getPodNamespacedNameForGateway(gateway, namespace)
