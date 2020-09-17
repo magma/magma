@@ -866,10 +866,10 @@ workflows:
       - lte-test
       - lte-integ-test-pr-hold:
           type: approval
-          context: "Magma Team"
+          context: Magma Team
       - lte-integ-test:
           name: pr-lte-integ-test
-          context: "Magma Team"
+          context: Magma Team
           requires:
             - lte-integ-test-pr-hold
       - lte-integ-test:
@@ -891,10 +891,10 @@ workflows:
       - cwag-precommit
       - cwf-integ-test-pr-hold:
           type: approval
-          context: "Magma Team"
+          context: Magma Team
       - cwf-integ-test:
           name: pr-cwf-integ-test
-          context: "Magma Team"
+          context: Magma Team
           requires:
             - cwf-integ-test-pr-hold
       - cwf-integ-test:
