@@ -351,7 +351,7 @@ class S1ApUtil(object):
             for item in value:
                 for flow in item:
                     if flow["direction"] == "DL":
-                        ipv4_src_addr = str(flow["ipv4_src"])
+                        ipv4_src_addr = flow["ipv4_src"]
                         tcp_src_port = flow["tcp_src_port"]
                         ip_proto = (
                             FlowMatch.IPPROTO_TCP
@@ -421,6 +421,39 @@ class S1ApUtil(object):
         # DOWNLINK
         print("Checking for downlink flow")
         self._verify_dl_flow(dl_flow_rules)
+
+    def verify_paging_flow_rules(self, ip_list):
+        # Check if paging flows are created
+        print("************ Verifying paging flow rules")
+        num_paging_flows_to_be_verified = 1
+        controller_port = 4294967293
+        for ip in ip_list:
+            ue_ip_str = str(ip)
+            print("Verifying paging flow for ip", ue_ip_str)
+            for i in range(self.MAX_NUM_RETRIES):
+                print("Get paging flows: attempt ", i)
+                paging_flows = get_flows(
+                    self.datapath,
+                    {
+                        "table_id": self.SPGW_TABLE,
+                        "match": {"nw_dst": ue_ip_str, "eth_type": 2048, },
+                    },
+                )
+                if len(paging_flows) == num_paging_flows_to_be_verified:
+                    break
+                time.sleep(5)  # sleep for 5 seconds before retrying
+            assert (
+                len(paging_flows) == num_paging_flows_to_be_verified
+            ), "Paging flow missing for UE"
+
+            actions = paging_flows[0]["instructions"][0]["actions"]
+            has_tunnel_action = any(
+                action
+                for action in actions
+                if action["type"] == "OUTPUT"
+                and action["port"] == controller_port
+            )
+            assert bool(has_tunnel_action)
 
 
 class SubscriberUtil(object):

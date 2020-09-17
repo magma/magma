@@ -290,6 +290,13 @@ class TestAttachServiceWithMultiPdnsAndBearers(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
 
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+
+        # Verify if paging flow rules are created
+        ip_list = [default_ip, sec_ip]
+        self._s1ap_wrapper.s1_util.verify_paging_flow_rules(ip_list)
+
         print(
             "************************* Sending Service request for UE id ",
             ue_id,

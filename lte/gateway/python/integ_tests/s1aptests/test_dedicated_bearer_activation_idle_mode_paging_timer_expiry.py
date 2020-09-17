@@ -17,14 +17,13 @@ import time
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil
+import ipaddress
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 
 
 class TestDedicatedBearerActivationIdleModePagingTmrExpiry(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
-        self._spgw_util = SpgwUtil()
         self._sessionManager_util = SessionManagerUtil()
 
     def tearDown(self):
@@ -132,12 +131,14 @@ class TestDedicatedBearerActivationIdleModePagingTmrExpiry(unittest.TestCase):
         policy_id = "internet"
 
         print("*********** Running End to End attach for UE id ", ue_id)
-        self._s1ap_wrapper._s1_util.attach(
+        attach = self._s1ap_wrapper._s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
@@ -164,6 +165,10 @@ class TestDedicatedBearerActivationIdleModePagingTmrExpiry(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
+
+        # Verify if paging flow rules are created
+        ip_list = [default_ip]
+        self._s1ap_wrapper.s1_util.verify_paging_flow_rules(ip_list)
 
         print("Sleeping for 5 seconds")
         time.sleep(5)
