@@ -107,8 +107,7 @@ class UplinkBridgeController(MagmaController):
 
         # 1.b. DHCP traffic
         match = "in_port=%s,ip,udp,tp_dst=68" % self.config.uplink_eth_port_name
-        actions = "output:%s,output:%s,output:LOCAL" % (self.config.dhcp_port,
-                                                        self.config.uplink_patch)
+        actions = "output:%s,output:LOCAL" % self.config.dhcp_port
         self._install_flow(flows.MAXIMUM_PRIORITY - 1, match, actions)
 
         # 2.a. all egress traffic
