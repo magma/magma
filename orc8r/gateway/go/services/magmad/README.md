@@ -16,23 +16,29 @@
   * running network diagnostics
   * remote execution of permitted commands
   * etc.
-
+* Managing Gateway software & facilitating Gateway software upgrades **
 
 ## Implementation
 
-This is Go native implementation of magmad service, it is intended as a 'drop in' replacement of python based magmad service
-on systems with limited resources or lack of full python support.
+This is Go native implementation of magmad service, it is intended as an lightweight alternative to Magma's main 
+python magmad service implementation (magma/orc8r/gateway/python/magmad), primary targeting embedded systems or systems 
+with limited resources and/or lack of full python support (systems with less then 256MB of RAM or storage).
+
+This implementation is not guranteed to support all features supported by current python magmad (such as Gateway software
+upgrades), it provides required core functionality for a Gateway to be a part of Magma network.
+
 It'll work with all existing *magmad.yml*, *service_registry.yml* and *control_proxy.yml* configurations located in
 */etc/magma/configs* or legacy */etc/magma* directories.
 
-Current implementation requires at least 15MB of RAM and 3MB of storage (compressed) on most supported systems/architectures.
+Current implementation requires at least 16MB of RAM and 3MB of storage (compressed) on most supported systems/architectures.
+
 
 ## Building magmad
 
 magmad binary can be built on any system with [installed Go tools](https://golang.org/doc/install#install). Go1.12 or later is recommended.
 
 To build:
-* Clone magma [github repository](https://github.com/facebookincubator/magma)
+* Clone magma [github repository](https://github.com/magma/magma)
 * (optional) Create a target directory for magmad binary (example: *mkdir -p ~/bin/arm; mkdir -p ~/bin/amd64*)
 * *cd magma/orc8r/gateway/go*
 * Use Go tool to build magmad for your target platform. Examples:
@@ -98,9 +104,11 @@ As of go1.14 the supported distributions are:
 - Discord:
   - [magma\_dev](https://discord.gg/WDBpebF) channel
 
-See the [CONTRIBUTING](CONTRIBUTING.md) file for how to help out.
+See the [CONTRIBUTING](../../../../CONTRIBUTING.md) file for how to help out.
 
 ## License
 
-Magma is BSD License licensed, as found in the LICENSE file.
+Magma is BSD License licensed, as found in the [LICENSE](../../../../LICENSE) file.
 The EPC is OAI is offered under the OAI Apache 2.0 license, as found in the LICENSE file in the OAI directory.
+
+** - Go magmad does not currently provide Gateway software upgrade capabilities
