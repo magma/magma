@@ -1286,8 +1286,8 @@ void LocalEnforcer::update_charging_credits(
       const auto& credit_key(credit_update_resp);
       // We need to retrive restrict_rules and is_final_action_state
       // prior to receiving charging credit as they will be updated.
-      auto restrict_rules =
-          session->get_final_action_restrict_rules(credit_key);
+      std::vector<std::string> restrict_rules;
+      session->get_final_action_restrict_rules(credit_key, restrict_rules);
       bool is_final_action_state =
           session->is_credit_in_final_unit_state(credit_key);
       session->receive_charging_credit(credit_update_resp, uc);

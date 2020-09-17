@@ -27,12 +27,13 @@ from lte.protos.oai.spgw_state_pb2 import SpgwState, S11BearerContext
 from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
 
 
-def _deserialize_session_json(serialized_json_str: str) -> str:
+def _deserialize_session_json(serialized_json_str: bytes) -> str:
     """
     Helper function to deserialize sessiond:sessions hash list values
     :param serialized_json_str
     """
     session_json_values = []
+    serialized_json_str = str(serialized_json_str, 'utf-8', 'ignore')
     session_values = jsonpickle.decode(serialized_json_str)
     for value in session_values:
         session_json = json.loads(value)
