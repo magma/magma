@@ -676,7 +676,7 @@ class SpgwUtil(object):
                         FlowDescription(
                             match=FlowMatch(
                                 ipv4_src="",
-                                tcp_src=5002,
+                                tcp_dst=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
                             ),
