@@ -74,6 +74,7 @@
       "proposals/p001_vpn_config_from_api",
       "proposals/p002_scaled_prometheus_pipeline",
       "proposals/p003_qos_enforcement"
+      "proposals/p004_ci_run_pr"
     ]
   }
 }
