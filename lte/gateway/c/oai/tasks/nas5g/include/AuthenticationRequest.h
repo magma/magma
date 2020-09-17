@@ -8,6 +8,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #pragma once
 #include <sstream>
 #include "ExtendedProtocolDiscriminator.h"
@@ -19,7 +20,9 @@
 #include "AuthenticationParameterRAND.h"
 #include "AuthenticationParameterAUTN.h"
 #include "EAPMessage.h"
+
 using namespace std;
+
 namespace magma5g
 {
   // AuthenticationRequest Message Class 
@@ -53,4 +56,8 @@ namespace magma5g
          Security header type                    Security header type            9.3             M          V          1/2
          Spare half octet                        Spare half                      9.5             M          V          1/2
          Auth request message                    Message type                    9.7             M          V          1
+   21    Authentication parameter RAND           Authentication parameter RAND 9.11.3.16         O          TV         17
+         (5G authentication challenge)
+   20    Authentication parameter AUTN           Authentication parameter AUTN 9.11.3.15         O          TLV        18
+         (5G authentication challenge)
  */

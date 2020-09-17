@@ -45,6 +45,7 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/ABBA.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/AuthenticationParameterAUTN.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/AuthenticationParameterRAND.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/AuthenticationResponseParameter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/EAPMessage.cpp
     )
 

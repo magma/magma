@@ -8,6 +8,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #include <iostream>
 #include <sstream>
 #include "AuthenticationRequest.h"
@@ -65,7 +66,6 @@ namespace magma5g
       return encodedresult;
     else
       encoded += encodedresult;
-    #ifdef HANDLE_POST_MVC
     if((encodedresult = authenticationrequest->authrand.EncodeAuthenticationParameterRANDMsg (&authenticationrequest->authrand, AUTH_PARAM_RAND, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else
@@ -75,7 +75,7 @@ namespace magma5g
       return encodedresult;
     else
       encoded += encodedresult;
-
+    #ifdef HANDLE_POST_MVC
     if((encodedresult = authenticationrequest->eap.EncodeEAPMessageMsg (&authenticationrequest->eap, EAPMESSAGE, buffer+encoded, len-encoded))<0)
       return encodedresult;
     else

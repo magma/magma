@@ -8,13 +8,17 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #pragma once
 #include <sstream>
 #include "ExtendedProtocolDiscriminator.h"
 #include "SecurityHeaderType.h"
 #include "SpareHalfOctet.h"
 #include "MessageType.h"
+#include "AuthenticationResponseParameter.h"
+
 using namespace std;
+
 namespace magma5g
 {
   // AuthenticationResponse Message Class 
@@ -26,6 +30,7 @@ namespace magma5g
       SecurityHeaderTypeMsg securityheadertype; 
       SpareHalfOctetMsg sparehalfoctet;
       MessageTypeMsg messagetype;
+      AuthenticationResponseParameterMsg responseparameter;
 
       AuthenticationResponseMsg();
       ~AuthenticationResponseMsg();
@@ -43,4 +48,5 @@ namespace magma5g
           Security header type                Security header type            9.3             M          V          1/2
           Spare half octet                    Spare half                      9.5             M          V          1/2
           Auth response message               Message type                    9.7             M          V          1
+   2D     Authentication response parameter   Authentication response parameter 9.11.3.17     O          TLV        18
  */

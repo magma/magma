@@ -8,6 +8,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #include <iostream>
 #include <sstream>
 #include "AuthenticationResponse.h"
@@ -32,20 +33,24 @@ namespace magma5g
 
     CHECK_PDU_POINTER_AND_LENGTH_DECODER (buffer, AUTHENTICATION_RESPONSE_MINIMUM_LENGTH, len);
 
-    MLOG(MDEBUG) << " ---Decoding AuAuthentication Response Message---\n" << endl;
+    MLOG(MDEBUG) << "\n\n---Decoding Authentication Response Message---\n" << endl;
     if((decodedresult = authenticationresponse->extendedprotocoldiscriminator.DecodeExtendedProtocolDiscriminatorMsg(&authenticationresponse->extendedprotocoldiscriminator, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-    if((decodedresult = authenticationresponse->securityheadertype.DecodeSecurityHeaderTypeMsg (&authenticationresponse->securityheadertype, 0, buffer+decoded, len-decoded))<0)
+    if((decodedresult = authenticationresponse->securityheadertype.DecodeSecurityHeaderTypeMsg(&authenticationresponse->securityheadertype, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-    if((decodedresult = authenticationresponse->sparehalfoctet.DecodeSpareHalfOctetMsg (&authenticationresponse->sparehalfoctet, 0, buffer+decoded, len-decoded))<0)
+    if((decodedresult = authenticationresponse->sparehalfoctet.DecodeSpareHalfOctetMsg(&authenticationresponse->sparehalfoctet, 0, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
-    if((decodedresult = authenticationresponse->messagetype.DecodeMessageTypeMsg (&authenticationresponse->messagetype, 0, buffer+decoded, len-decoded))<0)
+    if((decodedresult = authenticationresponse->messagetype.DecodeMessageTypeMsg(&authenticationresponse->messagetype, 0, buffer+decoded, len-decoded))<0)
+      return decodedresult;
+    else
+      decoded += decodedresult;
+    if((decodedresult = authenticationresponse->responseparameter.DecodeAuthenticationResponseParameterMsg(&authenticationresponse->responseparameter, AUTH_RESPONSE_PARAMETER, buffer+decoded, len-decoded))<0)
       return decodedresult;
     else
       decoded += decodedresult;
@@ -53,7 +58,6 @@ namespace magma5g
     return decoded;
   };
 
-  
   // Encode AuthenticationResponse Messsage
   int AuthenticationResponseMsg::EncodeAuthenticationResponseMsg(AuthenticationResponseMsg *authenticationresponse, uint8_t* buffer, uint32_t len)
   {

@@ -80,4 +80,7 @@ namespace magma5g {
   #define M5GSUPDATETYPE                       0x53
   #define NASMESSAGECONTAINER                  0x71
   #define TAI                                  0x52
+  #define AUTH_PARAM_RAND                      0x21
+  #define AUTH_PARAM_AUTN                      0x20
+  #define AUTH_RESPONSE_PARAMETER              0x2D
 } // namespace magma5g
