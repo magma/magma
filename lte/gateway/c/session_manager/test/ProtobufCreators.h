@@ -58,6 +58,11 @@ void create_credit_update_response(
     uint32_t charging_key, uint64_t volume,
     CreditUpdateResponse* response);
 
+void create_credit_update_response(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, uint64_t volume, ChargingCredit_FinalAction action,
+    std::string redirect_server, std::string restrict_rule,
+    CreditUpdateResponse* response);
 
 void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
@@ -73,6 +78,11 @@ void create_credit_update_response(
 void create_charging_credit(
     uint64_t total_volume, uint64_t tx_volume, uint64_t rx_volume,
     bool is_final, ChargingCredit* credit);
+
+void create_charging_credit(
+    uint64_t volume, ChargingCredit_FinalAction action,
+    std::string redirect_server, std::string restrict_rule,
+    ChargingCredit* credit);
 
 void create_monitor_credit(
     const std::string& m_key, MonitoringLevel level, uint64_t volume,
