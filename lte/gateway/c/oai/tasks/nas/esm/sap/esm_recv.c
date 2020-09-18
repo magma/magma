@@ -312,8 +312,13 @@ esm_cause_t esm_recv_pdn_connectivity_request(
      */
     for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
       if (ue_mm_context_p->pdn_contexts[itr]) {
-        if(!(strcmp((const char *) ue_mm_context_p->pdn_contexts[itr]->apn_subscribed->data, apn_config->service_selection)) && (ue_mm_context_p->pdn_contexts[itr]->is_active)) {
-          OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_MULTIPLE_PDN_CONNECTIONS_NOT_ALLOWED);
+        if (!(strcmp(
+                (const char*) ue_mm_context_p->pdn_contexts[itr]
+                    ->apn_subscribed->data,
+                apn_config->service_selection)) &&
+            (ue_mm_context_p->pdn_contexts[itr]->is_active)) {
+          OAILOG_FUNC_RETURN(
+              LOG_NAS_ESM, ESM_CAUSE_MULTIPLE_PDN_CONNECTIONS_NOT_ALLOWED);
         }
       }
     }
