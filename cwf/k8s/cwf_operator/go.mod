@@ -29,6 +29,7 @@ module magma/cwf/k8s/cwf_operator
 go 1.13
 
 require (
+	github.com/docker/go-metrics v0.0.1 // indirect
 	github.com/go-logr/glogr v0.1.0
 	github.com/gorilla/mux v1.7.4 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
