@@ -33,6 +33,7 @@ from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.ifaces import monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
+from magma.pipelined.gtp_stats_collector import GTPStatsCollector
 from lte.protos.mconfig import mconfigs_pb2
 
 
@@ -123,6 +124,11 @@ def main():
                                  on_exit_server_thread)
         start_check_quota_server(run_flask, bridge_ip, no_quota_port, False,
                                  on_exit_server_thread)
+
+    collector = GTPStatsCollector(
+        service.config['ovs_gtp_stats_polling_interval'],
+        service.loop)
+    collector.start()
 
     # Run the service loop
     service.run()
