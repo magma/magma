@@ -28,13 +28,6 @@ SUDO='sudo'
 
 """
 sudo apt install ruby ruby-dev build-essential rubygems libffi-dev python3-setuptools python-setuptools libssl-dev
-
-x E: Unable to locate package grpc-dev
-E: Unable to locate package magma-cpp-redis
-x E: Unable to locate package prometheus-cpp-dev
-x E: Unable to locate package libfolly-dev
-x E: Unable to locate package magma-libfluid
-
 """
 
 
@@ -82,6 +75,7 @@ def buildscript(package_name):
 
 def buildafter(package_name, env=None):
     script = buildscript(package_name)
+    # pre will contain first-level prerequisites
     pre = strsplitbytes(subprocess.check_output([script, '-A'],
                                              env=env))
     return pre
@@ -138,8 +132,13 @@ def main(args):
     all_packages.update(packages)
     depmap = {}
 
-    for package in packages:
+    while packages:
+        package = packages.pop()
         items = set(buildafter(package))
+        for item in items:
+            if item not in depmap:
+                packages.append(item)
+                depmap[item] = set(buildafter(item))
         depmap[package] = items
         all_packages.update(items)
 
@@ -166,7 +165,17 @@ def main(args):
     for package in ordered_packages:
         to_install.update(buildrequires(package))
     if to_install:
-        subprocess.run([SUDO, packagemanager(), 'install', '-y'] + list(to_install))
+        cp = subprocess.run([SUDO, packagemanager(), 'install', '-y'] + list(to_install))
+        try:
+            cp.check_returncode()
+        except subprocess.CalledProcessError:
+            message = 'install dependencies failed: '
+            if isinstance(cp.args, list):
+                message += ' '.join(cp.args)
+            else:
+                message += str(cp.args)
+            print(message)
+            sys.exit(1)
 
     for package in ordered_packages:
         build(package, env=env, install=not args.no_install)
