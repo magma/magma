@@ -88,3 +88,21 @@ function buildrequires() {
     # print a list of packages that must be installed from configured sources before build
     echo -n
 }
+
+function installrequires () {
+    # print a list of packages that must be installed with finished package
+    echo -n
+}
+
+function fpminstallrequires () {
+    # print a list of command line options for fpm invocation
+    # usage:
+    # fpminstallrequires
+    # output:
+    # --depends pkg1 --depends pkg2 --depends pkg3
+    #
+    # gets package list from installrequires
+    for pkg in $(installrequires); do
+        echo --depends "$pkg"
+    done
+}
