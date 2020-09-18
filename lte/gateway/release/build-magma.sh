@@ -286,7 +286,7 @@ BUILDCMD="fpm \
 --exclude '*/.ignoreme' \
 ${SCTPD_BUILD}/sctpd=/usr/local/sbin/ \
 ${SCTPD_VERSION_FILE}=/usr/local/share/sctpd/version \
-$(glob_files "${SERVICE_DIR}/sctpd.service" /etc/systemd/system/sctpd.service)"
+$(glob_files "${SERVICE_DIR}/sctpd.service" /lib/systemd/system/sctpd.service)"
 
 eval "$BUILDCMD"
 
@@ -309,18 +309,18 @@ ${SYSTEM_DEPS} \
 ${OAI_BUILD}/oai_mme/mme=/usr/local/bin/ \
 ${SESSIOND_BUILD}/sessiond=/usr/local/bin/ \
 ${SCTPD_MIN_VERSION_FILE}=/usr/local/share/magma/sctpd_min_version \
-$(glob_files "${SERVICE_DIR}/magma@.service" /etc/systemd/system/magma@.service) \
-$(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /etc/systemd/system/magma@control_proxy.service) \
-$(glob_files "${SERVICE_DIR}/magma@magmad.service" /etc/systemd/system/magma@magmad.service) \
-$(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.service) \
-$(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
-$(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
-$(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \
-$(glob_files "${SERVICE_DIR}/magma@redirectd.service" /etc/systemd/system/magma@redirectd.service) \
-$(glob_files "${SERVICE_DIR}/magma@dnsd.service" /etc/systemd/system/magma@dnsd.service) \
-$(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /etc/systemd/system/magma@lighttpd.service) \
-$(glob_files "${SERVICE_DIR}/magma@redis.service" /etc/systemd/system/magma@redis.service) \
-$(glob_files "${SERVICE_DIR}/magma@td-agent-bit.service" /etc/systemd/system/magma@td-agent-bit.service) \
+$(glob_files "${SERVICE_DIR}/magma@.service" /lib/systemd/system/magma@.service) \
+$(glob_files "${SERVICE_DIR}/magma@control_proxy.service" /lib/systemd/system/magma@control_proxy.service) \
+$(glob_files "${SERVICE_DIR}/magma@magmad.service" /lib/systemd/system/magma@magmad.service) \
+$(glob_files "${SERVICE_DIR}/magma@mme.service" /lib/systemd/system/magma@mme.service) \
+$(glob_files "${SERVICE_DIR}/magma@sessiond.service" /lib/systemd/system/magma@sessiond.service) \
+$(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /lib/systemd/system/magma@mobilityd.service) \
+$(glob_files "${SERVICE_DIR}/magma@pipelined.service" /lib/systemd/system/magma@pipelined.service) \
+$(glob_files "${SERVICE_DIR}/magma@redirectd.service" /lib/systemd/system/magma@redirectd.service) \
+$(glob_files "${SERVICE_DIR}/magma@dnsd.service" /lib/systemd/system/magma@dnsd.service) \
+$(glob_files "${SERVICE_DIR}/magma@lighttpd.service" /lib/systemd/system/magma@lighttpd.service) \
+$(glob_files "${SERVICE_DIR}/magma@redis.service" /lib/systemd/system/magma@redis.service) \
+$(glob_files "${SERVICE_DIR}/magma@td-agent-bit.service" /lib/systemd/system/magma@td-agent-bit.service) \
 ${CERT_FILE}=/var/opt/magma/certs/rootCA.pem \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/!(control_proxy.yml|pipelined.yml|sessiond.yml)" /etc/magma/) \
 $(glob_files "${MAGMA_ROOT}/lte/gateway/configs/pipelined.yml_prod" /etc/magma/pipelined.yml) \

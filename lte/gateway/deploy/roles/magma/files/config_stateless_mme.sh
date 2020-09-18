@@ -1,22 +1,13 @@
 #!/bin/bash
+source /usr/local/bin/config_stateless_utils.sh
 
 MME_DEPS=("magma@mobilityd" "magma@pipelined" "magma@sessiond" "sctpd")
 
-function check_systemd_file {
-  service_name=$1
-  if grep -q "^#PartOf=magma@mme" /etc/systemd/system/"$service_name".service
-  then
-    return 0
-  fi
-  echo "The $service_name service will restart with MME, i.e. stateful."
-  exit 1
-}
-
 if [[ $1 == "check" ]]; then
   # check dependency in systemd files of other services
-  for service_name in "${MME_DEPS[@]}"
+  for dep_service_name in "${MME_DEPS[@]}"
   do
-    check_systemd_file "$service_name"
+    check_systemd_file "magma@mme" "$dep_service_name"
   done
 
   #check service config
@@ -30,10 +21,9 @@ if [[ $1 == "check" ]]; then
 elif [[ $1 == "disable" ]]; then
   echo "Disabling stateless MME config"
   # force other services to restart when MME restarts
-  for service_name in "${MME_DEPS[@]}"
+  for dep_service_name in "${MME_DEPS[@]}"
   do
-    sudo sed -e '/PartOf=magma@mme/ s/^#*//' -i \
-      /etc/systemd/system/"$service_name".service
+    remove_systemd_override "$dep_service_name"
   done
 
   # change use_stateless setting in mme.yml
@@ -41,10 +31,9 @@ elif [[ $1 == "disable" ]]; then
 elif [[ $1 == "enable" ]]; then
   echo "Enabling stateless MME config"
   # stop other services from restarting when MME restarts
-  for service_name in "${MME_DEPS[@]}"
+  for dep_service_name in "${MME_DEPS[@]}"
   do
-    sudo sed -e '/PartOf=magma@mme/ s/^#*/#/' -i \
-      /etc/systemd/system/"$service_name".service
+    add_systemd_override "magma@mme" "$dep_service_name"
   done
 
   # change use_stateless setting in mme.yml

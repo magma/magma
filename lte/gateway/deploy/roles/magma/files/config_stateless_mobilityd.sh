@@ -1,12 +1,14 @@
 #!/bin/bash
+source /usr/local/bin/config_stateless_utils.sh
+
+MOBILITYD_DEPS=("magma@mme" "magma@pipelined")
 
 if [[ $1 == "check" ]]; then
   # check dependency in systemd files of other services
-  if ! grep -q "^#PartOf=magma@mobilityd" /etc/systemd/system/magma@mme.service
-  then
-    echo "MME will restart with mobilityd, i.e. stateful."
-    exit 1
-  fi
+  for dep_service_name in "${MOBILITYD_DEPS[@]}"
+  do
+    check_systemd_file "magma@mobilityd" "$dep_service_name"
+  done
 
   #check service config
   if ! grep -q "persist_to_redis.*true" /etc/magma/mobilityd.yml; then
@@ -19,16 +21,20 @@ if [[ $1 == "check" ]]; then
 elif [[ $1 == "disable" ]]; then
   echo "Disabling stateless mobilityd config"
   # restore restart dependencies between mobilityd and other services
-  sudo sed -e '/PartOf=magma@mobilityd/ s/^#*//' -i \
-    /etc/systemd/system/magma@mme.service
+  for dep_service_name in "${MOBILITYD_DEPS[@]}"
+  do
+    remove_systemd_override "$dep_service_name"
+  done
 
   # change persist_to_redis setting in mobilityd.yml
   sed -e '/persist_to_redis/ s/true/false/' -i /etc/magma/mobilityd.yml
 elif [[ $1 == "enable" ]]; then
   echo "Enabling stateless mobilityd config"
   # remove restart dependencies between mobilityd and other services
-  sudo sed -e '/PartOf=magma@mobilityd/ s/^#*/#/' -i \
-    /etc/systemd/system/magma@mme.service
+  for dep_service_name in "${MOBILITYD_DEPS[@]}"
+  do
+    add_systemd_override "magma@mobilityd" "$dep_service_name"
+  done
 
   # change persist_to_redis setting in mobilityd.yml
   sed -e '/persist_to_redis/ s/false/true/' -i /etc/magma/mobilityd.yml

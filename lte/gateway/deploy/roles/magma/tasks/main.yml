@@ -13,7 +13,7 @@
 - name: Copy magma service files
   copy:
     src: "systemd/magma_{{ item }}.service"
-    dest: "/etc/systemd/system/magma@{{ item }}.service"
+    dest: "/lib/systemd/system/magma@{{ item }}.service"
   with_items:
     # Magma Python services
     - magmad
@@ -34,7 +34,7 @@
 - name: Copy sctpd service file
   copy:
     src: systemd/sctpd.service
-    dest: /etc/systemd/system/sctpd.service
+    dest: /lib/systemd/system/sctpd.service
   when: full_provision
 
 - name: Copy logrotate config file
@@ -75,6 +75,7 @@
     - pipelined
     - sctpd
     - sessiond
+    - utils
 
 - name: Create symlink for sctpd binary
   file: src='{{ c_build }}/sctpd/sctpd' path=/usr/local/sbin/sctpd state=link force=yes follow=no

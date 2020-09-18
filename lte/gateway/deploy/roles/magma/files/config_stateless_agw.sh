@@ -1,6 +1,6 @@
 #!/bin/bash
 SRC_DIR=/usr/local/bin
-SERVICE_LIST=("mme" "mobilityd" "pipelined" "sctpd" "sessiond")
+SERVICE_LIST=("mme" "mobilityd" "pipelined" "sessiond" "sctpd")
 RETURN_STATELESS=0
 RETURN_STATEFUL=1
 RETURN_CORRUPT=2

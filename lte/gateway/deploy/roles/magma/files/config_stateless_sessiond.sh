@@ -1,12 +1,9 @@
 #!/bin/bash
+source /usr/local/bin/config_stateless_utils.sh
 
 if [[ $1 == "check" ]]; then
   # check dependency in systemd files of other services
-  if ! grep -q "^#PartOf=magma@sessiond" /etc/systemd/system/magma@mme.service
-  then
-    echo "MME will restart with sessiond, i.e. stateful."
-    exit 1
-  fi
+  check_systemd_file "magma@sessiond" "magma@mme"
 
   #check service config
   if ! grep -q "support_stateless.*true" /etc/magma/sessiond.yml; then
@@ -19,16 +16,14 @@ if [[ $1 == "check" ]]; then
 elif [[ $1 == "disable" ]]; then
   echo "Disabling stateless sessiond config"
   # restore restart dependencies between sessiond and other services
-  sudo sed -e '/PartOf=magma@sessiond/ s/^#*//' -i \
-    /etc/systemd/system/magma@mme.service
+  remove_systemd_override "magma@mme"
 
   # change support_stateless setting in sessiond.yml
   sed -e '/support_stateless/ s/true/false/' -i /etc/magma/sessiond.yml
 elif [[ $1 == "enable" ]]; then
   echo "Enabling stateless sessiond config"
   # remove restart dependencies between sessiond and other services
-  sudo sed -e '/PartOf=magma@sessiond/ s/^#*/#/' -i \
-    /etc/systemd/system/magma@mme.service
+  add_systemd_override "magma@sessiond" "magma@mme"
 
   # change support_stateless setting in sessiond.yml
   sed -e '/support_stateless/ s/false/true/' -i /etc/magma/sessiond.yml
