@@ -28,7 +28,18 @@ VERSION="${GIT_VERSION}"-"${ITERATION}"
 PKGNAME=grpc-dev
 
 function buildrequires() {
-    echo build-essential autoconf libtool
+    if [ "${PKGFMT}" == 'deb' ]; then
+        echo build-essential autoconf libtool
+    else
+        echo autoconf gcc gcc-c++ libtool golang cmake protobuf-c-devel protobuf-c-compiler protobuf-devel
+    fi
+}
+function installrequires() {
+    if [ "${PKGFMT}" == 'deb' ]; then
+        echo libgoogle-perftools4
+    else
+        echo gperftools
+    fi
 }
 
 if_subcommand_exec
@@ -65,8 +76,26 @@ git submodule update --init
 sed -i 's/.usr.local$/\/tmp\/build-grpc-dev\/install\/usr\/local/' Makefile
 
 # build and install grpc
+cd "${WORK_DIR}"/grpc
+rm -rf "${WORK_DIR}"/grpc/build
+mkdir build
+cd build
+cmake \
+    -DgRPC_INSTALL=ON \
+    -DBUILD_SHARED_LIBS=OFF \
+    -DgRPC_BUILD_TESTS=OFF \
+    -DgRPC_GFLAGS_PROVIDER=package \
+    -DgRPC_PROTOBUF_PROVIDER=package \
+    -DgRPC_ZLIB_PROVIDER=package \
+    -DgRPC_SSL_PROVIDER=package \
+    -DCMAKE_BUILD_TYPE=Release \
+    ..
+
 make -j$(nproc)
-make install
+make DESTDIR="${WORK_DIR}"/install install
+
+cp "${WORK_DIR}"/grpc/build/*.a "${WORK_DIR}"/install/usr/local/lib
+cp "${WORK_DIR}"/grpc/build/grpc_* "${WORK_DIR}"/install/usr/local/bin
 
 # HACK see https://github.com/grpc/grpc/issues/11868
 # package still links to libgrpc++.so.1 even though libgrpc++.so.6 is needed
@@ -88,7 +117,7 @@ fpm \
     -n ${PKGNAME} \
     -v ${GIT_VERSION} \
     --iteration ${ITERATION} \
-    --depends "libgoogle-perftools4" \
+    $(fpminstallrequires) \
     --provides ${PKGNAME} \
     --conflicts ${PKGNAME} \
     --replaces ${PKGNAME} \
