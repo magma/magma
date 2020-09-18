@@ -18,15 +18,16 @@ const jsonServer = require('json-server');
 const https = require('https');
 const fs = require('fs');
 
-const keyFile = 'mock/.cache/mock_server.key';
-const certFile = 'mock/.cache/mock_server.cert';
+const certFile = process.env.API_CERT_FILENAME ?? 'mock/.cache/mock_server.key';
+const keyFile =
+  process.env.API_PRIVATE_KEY_FILENAME ?? 'mock/.cache/mock_server.cert';
 
 const server = jsonServer.create();
-const router = jsonServer.router('mock/db.json');
+const router = jsonServer.router('./mock/db.json');
 const middlewares = jsonServer.defaults();
 server.use(middlewares);
 
-const buffer = fs.readFileSync('mock/db.json', 'utf-8');
+const buffer = fs.readFileSync('./mock/db.json', 'utf-8');
 const db = JSON.parse(buffer);
 
 // add custom route handlers

@@ -27,6 +27,14 @@ const (
 	RuleLevel    MonitoringLevel = 0x1
 )
 
+type MonitoringSupport uint8
+
+const UsageMonitoringDisabled MonitoringSupport = 0x0
+
+type MonitoringReport uint8
+
+const UsageMonitoringReport MonitoringReport = 0x0
+
 type EventTrigger uint32
 
 const (
@@ -150,6 +158,8 @@ type UsageMonitoringInfo struct {
 	MonitoringKey      []byte                             `avp:"Monitoring-Key"`
 	GrantedServiceUnit *credit_control.GrantedServiceUnit `avp:"Granted-Service-Unit"`
 	Level              MonitoringLevel                    `avp:"Usage-Monitoring-Level"`
+	Support            *MonitoringSupport                 `avp:"Usage-Monitoring-Support"`
+	Report             *MonitoringReport                  `avp:"Usage-Monitoring-Report"`
 }
 
 // CCADiameterMessage is a gx CCA message as defined in 3GPP 29.212

@@ -11,7 +11,7 @@
     "migrate": "node -r @fbcnms/babel-register scripts/migrate.js",
     "setAdminPassword": "node -r '@fbcnms/babel-register' scripts/setPassword.js",
     "createOrganization": "node -r '@fbcnms/babel-register' scripts/createOrganization.js",
-    "mockserver": "node scripts/mockServer.js"
+    "mockserver": "node -r '@fbcnms/babel-register' scripts/mockServer.js"
   },
   "dependencies": {
     "@date-io/moment": "1.x",
@@ -33,6 +33,7 @@
     "classnames": "^2.2.5",
     "css-loader": "^1.0.1",
     "dotenv": "^8.2.0",
+    "https": "^1.0.0",
     "lodash": "^4.17.11",
     "mapbox-gl": "^0.53.0",
     "mariadb": "^2.3.1",
@@ -49,7 +50,7 @@
   "devDependencies": {
     "@babel/plugin-proposal-class-properties": "^7.5.5",
     "@babel/plugin-transform-react-jsx": "^7.0.0",
-    "@babel/preset-env": "^7.3.4",
+    "@babel/preset-env": "^7.11.5",
     "@babel/preset-flow": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
     "@testing-library/react": "^10.4.8",
