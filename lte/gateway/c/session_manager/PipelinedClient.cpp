@@ -30,6 +30,7 @@ magma::DeactivateFlowsRequest create_deactivate_req(
     const magma::RequestOriginType_OriginType origin_type) {
   magma::DeactivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
+  req.mutable_ip_addr()->set_version(magma::IPAddress::IPV4);
   req.mutable_ip_addr()->set_address(ip_addr);
   req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
@@ -50,6 +51,7 @@ magma::ActivateFlowsRequest create_activate_req(
     const magma::RequestOriginType_OriginType origin_type) {
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
+  req.mutable_ip_addr()->set_version(magma::IPAddress::IPV4);
   req.mutable_ip_addr()->set_address(ip_addr);
   req.mutable_request_origin()->set_type(origin_type);
   if (ambr) {

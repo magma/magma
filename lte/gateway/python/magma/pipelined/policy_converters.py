@@ -13,6 +13,7 @@ limitations under the License.
 import ipaddress
 
 from lte.protos.policydb_pb2 import FlowMatch
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_direction, \
     DPI_REG
@@ -176,3 +177,7 @@ def _get_direction_for_match(flow_match):
         return Direction.OUT
     return Direction.IN
 
+
+def convert_ipv4_str_to_ip_proto(ipv4_str):
+    return IPAddress(version=IPAddress.IPV4,
+                     address=ipv4_str.encode('utf-8'))

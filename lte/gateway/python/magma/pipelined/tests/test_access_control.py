@@ -23,6 +23,7 @@ from magma.pipelined.openflow.registers import Direction
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder
 from magma.pipelined.tests.app.start_pipelined import TestSetup, \
     PipelinedController
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
@@ -150,11 +151,13 @@ class AccessControlTestLTE(unittest.TestCase):
             FlowQuery(self._tbl_num, self.testing_controller,
                       match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                        direction=Direction.OUT,
-                                       ipv4_dst=self.INBOUND_TEST_IP)),
+                                       ip_dst=convert_ipv4_str_to_ip_proto(
+                                            self.INBOUND_TEST_IP))),
             FlowQuery(self._tbl_num, self.testing_controller,
                       match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                        direction=Direction.OUT,
-                                       ipv4_dst=self.BOTH_DIR_TEST_IP)),
+                                       ip_dst=convert_ipv4_str_to_ip_proto(
+                                           self.BOTH_DIR_TEST_IP))),
         ]
 
         # =========================== Verification ===========================
@@ -208,11 +211,13 @@ class AccessControlTestLTE(unittest.TestCase):
             FlowQuery(self._tbl_num, self.testing_controller,
                       match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                        direction=Direction.IN,
-                                       ipv4_src=self.OUTBOUND_TEST_IP)),
+                                       ip_src=convert_ipv4_str_to_ip_proto(
+                                           self.OUTBOUND_TEST_IP))),
             FlowQuery(self._tbl_num, self.testing_controller,
                       match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                        direction=Direction.IN,
-                                       ipv4_src=self.BOTH_DIR_TEST_IP)),
+                                       ip_src=convert_ipv4_str_to_ip_proto(
+                                           self.BOTH_DIR_TEST_IP))),
         ]
 
         # =========================== Verification ===========================
@@ -267,11 +272,13 @@ class AccessControlTestLTE(unittest.TestCase):
             FlowQuery(self._tbl_num, self.testing_controller,
                       match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                        direction=Direction.OUT,
-                                       ipv4_dst=self.INBOUND_TEST_IP)),
+                                       ip_dst=convert_ipv4_str_to_ip_proto(
+                                           self.INBOUND_TEST_IP))),
             FlowQuery(self._tbl_num, self.testing_controller,
                       match=MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                                        direction=Direction.IN,
-                                       ipv4_src=self.OUTBOUND_TEST_IP)),
+                                       ip_src=convert_ipv4_str_to_ip_proto(
+                                           self.OUTBOUND_TEST_IP))),
         ]
 
         # =========================== Verification ===========================
