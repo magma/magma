@@ -27,7 +27,19 @@ VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-libfluid
 
 function buildrequires() {
-    echo g++ make libtool pkg-config libevent-dev libssl-dev
+    if [ "${OS_RELEASE}" == 'centos8' ]; then
+        echo gcc-c++ make libtool pkg-config libevent-devel openssl-devel
+    else
+        echo g++ make libtool pkg-config libevent-dev libssl-dev
+    fi
+}
+
+function installrequires() {
+    if [ "${PKGFMT}" == 'deb' ]; then
+        echo libevent-dev libssl-dev
+    else
+        echo libevent-devel openssl-devel
+    fi
 }
 
 if_subcommand_exec
@@ -64,6 +76,7 @@ git -C libfluid_base checkout $LIBFLUID_BASE_COMMIT
 
 pushd libfluid_base
 git apply "${PATCH_DIR}"/libfluid_base_patches/ExternalEventPatch.patch
+git apply "${PATCH_DIR}"/libfluid_base_patches/EVLOOP_NO_EXIT_ON_EMPTY_compat.patch
 popd
 
 git clone https://github.com/OpenNetworkingFoundation/libfluid_msg.git
@@ -103,7 +116,6 @@ fpm \
     --conflicts ${PKGNAME} \
     --replaces ${PKGNAME} \
     --package ${BUILD_PATH} \
-    --depends "libevent-dev" \
-    --depends "libssl-dev" \
+    $(fpminstallrequires) \
     --description 'Libfluid Openflow Controller' \
     -C ${WORK_DIR}/install
