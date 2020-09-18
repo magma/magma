@@ -13,6 +13,7 @@
 
 #include <string>
 #include "magma_logging.h"
+#include <sstream>
 #include "GrpcMagmaUtils.h"
 
 #define MAGMA_PRINT_GRPC_PAYLOAD "MAGMA_PRINT_GRPC_PAYLOAD"
