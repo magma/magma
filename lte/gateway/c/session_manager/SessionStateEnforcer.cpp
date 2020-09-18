@@ -57,16 +57,10 @@ SessionStateEnforcer::SessionStateEnforcer(
       mconfig_(mconfig)
       //SmSession_Context_Send_Client_sp_(SmSession_Context_Send_Client)
       //pipelined_client_(pipelined_client),
-        {
-			// for now this is the right place, need to move if find  anohter right place
-			static_rule_init();
-		}
-
-/*
-void SessionStateEnforcer::start() {
-   evb_->loopForever();
-}
-*/
+      {
+	  // for now this is the right place, need to move if find  anohter right place
+          static_rule_init();
+      }
 
 void SessionStateEnforcer::attachEventBase(folly::EventBase* evb) {
    evb_ = evb;
@@ -81,16 +75,16 @@ folly::EventBase& SessionStateEnforcer::get_event_base() {
 }
 
 bool SessionStateEnforcer::m5g_init_session_credit(SessionMap& session_map,
-		const std::string& imsi, const std::string& session_ctx_id,
+		const std::string& imsi, const std::string& session_id,
 	       	const SessionConfig& cfg) {
    /* creating SessionState object with state CREATING
     * This calls constructor and allocates memory*/
    std::cerr << __LINE__ << " " << __FUNCTION__ <<" New SessionState object getting created" 
 	                  << " with IMSI" << imsi <<"\n";
    auto session_state = std::make_unique<SessionState>
-                        (imsi, session_ctx_id, cfg,*rule_store_);
-   MLOG(MINFO) << __LINE__ << " ACL_TAG New SessionState object created with IMSI: "
-	        << imsi <<" session context id : " << session_ctx_id;
+                        (imsi, session_id, cfg,*rule_store_);
+   MLOG(MINFO) << __LINE__ << " New SessionState object created with IMSI: "
+	        << imsi <<" session context id : " << session_id;
    handle_session_init_rule_updates(session_map,
    		                            imsi, *session_state);
 
@@ -101,7 +95,7 @@ bool SessionStateEnforcer::m5g_init_session_credit(SessionMap& session_map,
    if (exist_imsi == session_map.end()) {
      // First time a session is created for IMSI in the SessionMap
      MLOG(MDEBUG) << "First session for IMSI " << imsi
-                  << " with session context ID " << session_ctx_id;
+                  << " with session context ID " << session_id;
      session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
    }
    else {//TODO IMP to remove the comment, as session_state is not filled properly
@@ -150,15 +144,14 @@ bool SessionStateEnforcer::handle_session_init_rule_updates(
         // Add to the the session vector
 	session_state.insert_with_static_rules (&rule);
     }
-#if 1
-    //auto ip_addr = session_state.get_config().common_context.ue_ipv4();
     auto ip_addr = session_state.get_config().rat_specific_context.
                m5gsm_session_context().pdu_address().redirect_server_address();
-    SessionState::SessionCommonInfo  sess_comm_info;
-    sess_comm_info.imsi_ = imsi;
-    sess_comm_info.ip_addr_ = ip_addr;
-    sess_comm_info.Pdr_rules_ = session_state.get_5g_static_pdr_rules();
-    sess_comm_info.Far_rules_ = session_state.get_5g_static_far_rules();
+    SessionState::SessionInfo  sess_info;
+    sess_info.imsi = imsi;
+    sess_info.ip_addr = ip_addr;
+    sess_info.Pdr_rules_ = session_state.get_5g_static_pdr_rules();
+    sess_info.Far_rules_ = session_state.get_5g_static_far_rules();
+    session_state.sess_infocopy(&sess_info);
 
     /* session_state elments are filled with rules. State needs to be 
      * moved to CREATED and sending message to UPF.
@@ -176,8 +169,7 @@ bool SessionStateEnforcer::handle_session_init_rule_updates(
     /* Update the m5gsm_cause and prepare for respone along with actual cause*/
     prepare_response_to_access(imsi, session_state, 
 		    magma::lte::M5GSMCause::OPERATION_SUCCESS);
-    pipelined_client_->set_upf_session(sess_comm_info,call_back_void_upf);
-#endif
+    pipelined_client_->set_upf_session(sess_info,call_back_void_upf);
 return true;
 }
 
@@ -220,10 +212,6 @@ void SessionStateEnforcer::prepare_response_to_access(
    rsp->set_always_on_pdu_session_indication(config.rat_specific_context.
 		   m5gsm_session_context().pdu_session_req_always_on());
    rsp->set_m5gsm_congetion_re_attempt_indicator(true);
-   //rsp->set_sm_session_state(config.rat_specific_context.
-   //		   m5gsm_session_context().sm_session_state());
-   //rsp->set_sm_session_version(config.rat_specific_context.
-   //		   m5gsm_session_context().sm_session_version());
    rsp->mutable_pdu_address()->set_redirect_address_type(
 		   config.rat_specific_context.
 		   m5gsm_session_context().pdu_address().redirect_address_type());
@@ -249,13 +237,6 @@ bool SessionStateEnforcer:: static_rule_init () {
    SetGroupPDR reqpdr1,reqpdr2;
    SetGroupFAR reqf;
    magma::PDI pdireq;
-#if 0
-   //req.set_seid("0x12345678");
-   req.set_sess_ver_no(0x01);
-   //req.mutable_node_id()->set_node_id("100");
-   req.set_session_state("Created");
-   //cpfseid to be addeid
-#endif
    reqpdr1.set_pdr_id(1);
    reqpdr1.set_sess_ver_no(2);
    reqpdr1.set_precedence(5);
@@ -263,10 +244,6 @@ bool SessionStateEnforcer:: static_rule_init () {
    pdireq.set_src_interface(3);
    pdireq.set_net_instance("downlink");
    pdireq.set_ue_ip_adr("10.10.1.1");
-   //pdireq.set_tr_ep_id(0x234035);
-   //mutable_pdi()
-   //reqp.mutable_pdi()->set_pdi(pdireq);
-   //PdrGlobalList.policy_count();
    GlobalRuleList.insert_rule(1,reqpdr1); 
    reqpdr2.set_pdr_id(2);
    reqpdr2.set_sess_ver_no(1);
@@ -280,8 +257,6 @@ bool SessionStateEnforcer:: static_rule_init () {
    far1.set_far_id(1);
    far1.set_sess_ver_no (4);
    far1.set_bar_id(6);
-   //ApplyAction_Action  far_act =::magma::lte::ApplyAction_Action_FORW;
-   //far1.mutable_apply_action()->set_apply_action(far_act);
    GlobalRuleList.insert_rule(1,far1);
 
    //subscriber Id 1 to PDR 1 and FAR 1
@@ -290,15 +265,6 @@ bool SessionStateEnforcer:: static_rule_init () {
    //subscriber Id 2  PDR list shud 2 and 4, far list also 2 and 4
    pdr_map_.insert(std::pair<std::string,uint32_t>("IMSI00000002",2));
    far_map_.insert(std::pair<std::string,uint32_t>("IMSI00000002",2));
-   #if 0
-   for ( auto local_it = pdr_map_.begin(); local_it!= pdr_map_.end(); ++local_it )
-      std::cout << " first" << local_it->first << ":" << local_it->second;
-    std::cout << std::endl;
-
-   for (auto itr =far_map_.begin(); itr!= far_map_.end(); ++itr)  {
-      std::cout << " first" << itr->first << ":" << itr->second;
-   }
-   #endif
    return true;
 }
 } //end namespace magma

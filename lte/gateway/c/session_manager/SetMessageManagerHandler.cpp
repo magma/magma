@@ -74,32 +74,33 @@ void SetMessageManagerHandler::SetAmfSessionContext(
    response_callback(Status::OK, SmContextVoid());
    /*The Event Based main_thread invocation and runs to handle session state*/ 
    m5g_enforcer_->get_event_base().runInEventBaseThread (
-      [this, context, response_callback, request_cpy]() {
-   std::cerr << __LINE__ << " ACL_TAG entered event loop therad " << __FUNCTION__ << " processing message \n";
+      [this, response_callback, request_cpy]() {
+      //[this, context, response_callback, request_cpy]() {
+   std::cerr << __LINE__ << " Entered event loop therad " << __FUNCTION__ << " processing message \n";
    //extract values from proto
    auto  imsi = request_cpy.common_context().sid().id();
    std::string dnn = request_cpy.common_context().apn(); //may not required for demo-1
-   std::string session_ctx_id = id_gen_.gen_session_id(imsi);
+   std::string session_id = id_gen_.gen_session_id(imsi);
 
    MLOG(MDEBUG) << "Requested imsi from UE: " << imsi
-                 << " Generated sessioncontext ID" << session_ctx_id;
-   std::cerr << __LINE__ << " ACL_TAG Requested imsi from UE " << imsi << "\n";
+                 << " Generated sessioncontext ID" << session_id;
+   std::cerr << __LINE__ << " Requested imsi from UE " << imsi << "\n";
    /*reach complete message from proto message*/
    SessionConfig cfg = m5g_build_session_config(request_cpy);
-   std::cerr << __LINE__ << " ACL_TAG m5g_build_session_config called \n";
+   std::cerr << __LINE__ << " m5g_build_session_config called \n";
 
    /*check if it's initial message*/
    if((cfg.rat_specific_context.m5gsm_session_context().rquest_type() == INITIAL_REQUEST) &&
       (cfg.common_context.sm_session_state() == CREATING_0)) {
       /*it's new UE establisment request and need to create the session context*/
       	 MLOG(MDEBUG) << "AMF request type INITIAL_REQUEST and session state CREATING";
-      	 std::cerr << __LINE__ << " ACL_TAG AMF request type INITIAL_REQUEST and session state CREATING \n";
+      	 std::cerr << __LINE__ << " AMF request type INITIAL_REQUEST and session state CREATING \n";
          /* read the SessionMap from global session_store 
 	  * if not found it will add this imsi
 	  */
-	 SessionRead req = {imsi};
-         auto session_map = session_store_.read_sessions(req);
-	 send_create_session(session_map, imsi, session_ctx_id, cfg);
+	 //SessionRead req = {imsi};
+         auto session_map = session_store_.read_sessions({imsi});
+	 send_create_session(session_map, imsi, session_id, cfg);
     }
   });
 }
@@ -108,13 +109,13 @@ void SetMessageManagerHandler::SetAmfSessionContext(
 void SetMessageManagerHandler::send_create_session(
 		   SessionMap& session_map,
 		   const std::string& imsi,
-		   const std::string& session_ctx_id,
+		   const std::string& session_id,
 		   const SessionConfig& cfg)
 {
    auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
    /* initialization of SessionState for IMSI by SessionStateEnforcer*/
    bool success = m5g_enforcer_->m5g_init_session_credit(*session_map_ptr,
-		                                 imsi, session_ctx_id, cfg);
+		                                 imsi, session_id, cfg);
    std::cerr << __LINE__ << " " << __FUNCTION__ << " successfully handled m5g_enforcer \n" ;
    if(!success) {
       MLOG(MERROR) << "Failed to initialize SessionState for IMSI " << imsi;
@@ -123,7 +124,7 @@ void SetMessageManagerHandler::send_create_session(
       /* writing of SessionMap in memory through SessionStore object*/
       if(session_store_.create_sessions(
                 imsi, std::move((*session_map_ptr)[imsi]))) {
-	  std::cerr << __LINE__ << " ACL_TAG Successfully initialized 5G session for "
+	  std::cerr << __LINE__ << " Successfully initialized 5G session for "
 		    << "subscriber and stored by session_store_.create_sessions \n";
 	  MLOG(MINFO) << "Successfully initialized 5G session for subscriber "
 		          << cfg.common_context.sid().id()

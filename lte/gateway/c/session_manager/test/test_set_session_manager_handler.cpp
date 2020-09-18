@@ -103,13 +103,13 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionContext) {
 
   grpc::ServerContext server_context;
 
-   std::cerr << "ACL_TAG all values filled and triggering SetAmfSessionContext\n";
+   std::cerr << " all values filled and triggering SetAmfSessionContext\n";
 
   set_session_manager->SetAmfSessionContext(
       &server_context, &request,
       [this](grpc::Status status, SmContextVoid Void) {});
 
-   std::cerr << "ACL_TAG END triggerred SetAmfSessionContext\n";
+   std::cerr << " END triggerred SetAmfSessionContext\n";
   // Run session creation in the EventBase loop
   evb->loopOnce();
   //evb->loopOnce();
