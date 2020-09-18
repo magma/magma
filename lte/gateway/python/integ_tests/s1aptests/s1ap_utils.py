@@ -426,7 +426,6 @@ class S1ApUtil(object):
         # Check if paging flows are created
         print("************ Verifying paging flow rules")
         num_paging_flows_to_be_verified = 1
-        controller_port = 4294967293
         for ip in ip_list:
             ue_ip_str = str(ip)
             print("Verifying paging flow for ip", ue_ip_str)
@@ -436,7 +435,11 @@ class S1ApUtil(object):
                     self.datapath,
                     {
                         "table_id": self.SPGW_TABLE,
-                        "match": {"nw_dst": ue_ip_str, "eth_type": 2048, },
+                        "match": {
+                            "nw_dst": ue_ip_str,
+                            "eth_type": 2048,
+                            "priority": 5,
+                        },
                     },
                 )
                 if len(paging_flows) == num_paging_flows_to_be_verified:
@@ -446,6 +449,8 @@ class S1ApUtil(object):
                 len(paging_flows) == num_paging_flows_to_be_verified
             ), "Paging flow missing for UE"
 
+            # TODO - Verify that the action is to send to controller
+            """controller_port = 4294967293
             actions = paging_flows[0]["instructions"][0]["actions"]
             has_tunnel_action = any(
                 action
@@ -453,7 +458,7 @@ class S1ApUtil(object):
                 if action["type"] == "OUTPUT"
                 and action["port"] == controller_port
             )
-            assert bool(has_tunnel_action)
+            assert bool(has_tunnel_action)"""
 
 
 class SubscriberUtil(object):
