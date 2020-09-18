@@ -11,6 +11,7 @@
 # limitations under the License.
 */}}
 
+{{- if eq .Values.runtime_type "kubevirt" }}
 {{- if .Values.manifests.deployment }}
 {{- $envAll := . }}
 {{- $saNamespace := $envAll.Release.Namespace }}
@@ -152,14 +153,15 @@ spec:
               - "cp /mnt/fegenv/.env /opt/magma/.env"
               - "cp /mnt/certs/rootCA.pem /opt/magma/rootCA.pem"
               - "chmod +x /opt/magma/*"
-            {{ if .Values.kubevirt.ssh_pwauth }}
-            ssh_pwauth: {{ .Values.kubevirt.ssh_pwauth }}
+            {{ if .Values.gateway.ssh_pwauth }}
+            ssh_pwauth: {{ .Values.gateway.ssh_pwauth }}
             {{- end }}
-    {{ if .Values.kubevirt.user }}
-{{ toYaml .Values.kubevirt.user | indent 12 }}
+    {{ if .Values.gateway.user }}
+{{ toYaml .Values.gateway.user | indent 12 }}
     {{- end }}
             runcmd:
             - /opt/magma/bootstrap.sh
             - /opt/magma/install_gateway.sh {{ .Values.feg.type }}
 
+{{- end }}
 {{- end }}

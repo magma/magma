@@ -21,9 +21,25 @@ release_group: null
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
+# Runtime type refere to k8s addon running to support VM as POD
+# Example: virtlet or kubevirt
+
+runtime_type: virtlet
+
 # secrets sub-chart configuration.
 secrets:
   create: false
+#  secret:
+#    enabled: true
+#    gwinfo:
+#      gw_challenge.key: |-
+#        -----BEGIN EC PRIVATE KEY-----
+#        MIGkAgEBBDDnfY3HT8joMBPrpDemifgvX2BiI0O0Y2UcwtosEoUAoU9HTN9tBxi9
+#        ---------
+#        ---------
+#        -----END EC PRIVATE KEY-----
+#      snowflake: |-
+#        c108a923-2abe-4ca8-ad70-7a1177137cc3
 
 # Define which secrets should be mounted by pods.
 secret:
@@ -45,33 +61,49 @@ feg:
     bootstrap_address: bootstrap-legacy.magma.svc.cluster.local
     bootstrap_port: 443
   repo:
-    url: https://github.com/facebookincubator/magma/
-    branch: master
+    url: https://github.com/magma/magma/
+    branch: "master"
 
-## Key Values for VM running using virtlet runtime
+## Base image for VM used by virtlet and kubevirt runtime
+## for Virtlet the image should be in qcwo2 format 
+## for Kubevirt the image should be in docker format and need to be build as described in README.md#5. Build kubevirt base image
+##
 image:
-  repository: virtlet.cloud/cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
-  pullPolicy: IfNotPresent
+  repository:
+  pullPolicy:
+
+# VMI/POD replication
+replicas: 1
 
 nameOverride: ""
 fullnameOverride: ""
 
 labels:
-  node_selector_key: extraRuntime
-  node_selector_value: virtlet
+  node_selector_key: cmp
+  node_selector_value: node
 
-pod:
-  replicas:
-    server: 1
-  resources:
-    enabled: true
-    server:
-      requests:
-        memory: "2048Mi"
-        cpu: "100m"
-      limits:
-        memory: "4096Mi"
-        cpu: "2000m"
+## When used runtime_type as KUBEVIRT use below syntax for multiple interfaces
+#
+#network:
+#  interface:
+#  - name: bridge-eth1
+#    type: bridge
+#  - name: sriov-eth2
+#    type: sriov
+
+## When used runtime_type as VIRTLET use below syntax for multiple interfaces
+#
+#network:
+#  interface: "calico,bridge-eth1,sriov-eth2"
+
+resources:
+  requests:
+    memory: "2048Mi"
+    cpu: "2"
+  limits:
+    memory: "4096Mi"
+    cpu: "2"
+
 service:
   type: LoadBalancer
   ports:
@@ -96,7 +128,7 @@ tolerations: []
 
 affinity: {}
 
-virtlet:
+gateway:
   vcpuCount: 2
   rootVolumeSize: 20Gi
   diskDriver: virtio
@@ -119,6 +151,4 @@ manifests:
   deployment: true
   service: true
   configmap_env: true
-  configmap_bin: true
-  secrets: true
   rbac: true
