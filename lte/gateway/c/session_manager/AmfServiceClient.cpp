@@ -14,30 +14,6 @@ void call_back_void_amf(grpc::Status, magma::SmContextVoid respvoid)
 }
 std::function<void(grpc::Status, magma::SmContextVoid)>callback  = call_back_void_amf;
 
-#if 0
-magma::SetSMSessionContextAccess create_set_smsess_access_req(
-    const std::string& imsi, const std::string& apn_ip_addr,
-    const uint32_t linked_bearer_id,
-    const std::vector<magma::PolicyRule>& flows) {
-  magma::SetSMSessionContextAccess sreq;
-  
-  auto *req =  sreq.mutable_rat_specific_context().mutable_m5g_session_context_rsp();
-
-  req.set_pdu_session_id();
-  req.set_pdu_session_type(magma::PduSessionType::IPV4);
-  req.set_selected_ssc_mode(magma::SscMode::SSC_MODE_1);
-  auto req_auth_qos_rules = req.mutable_authorized_qos_rules();
-  for (const auto& flow : flows) {
-    req_auth_qos_rules->Add()->CopyFrom(flow);
-  }
-  .
-  .
-  .
-
- return req;
-}
-
-#endif
 }
 
 namespace magma {
@@ -56,15 +32,6 @@ bool AsyncAmfServiceClient::handle_response_to_access(
     const magma::SetSMSessionContextAccess& response) {
   
   MLOG(MINFO) << "Sending Set SM Session Response from SMF ";
-  #if 0
-  handle_response_to_access_rpc(
-      response, [](Status status, SmContextVoid resp) {
-        if (!status.ok()) {
-          MLOG(MERROR) << "Could not send Set SM Session Response from SMF" << imsi
-                       << apn_ip_addr << ": " << status.error_message();
-        }
-      });
-  #endif
   handle_response_to_access_rpc(response, callback);
   return true;
 }

@@ -40,14 +40,12 @@ class AsyncAmfServiceClient : public GRPCReceiver, public AmfServiceClient {
    public:
 
       AsyncAmfServiceClient();
-      //AsyncAmfServiceClient() {}  //TODO  For temorary compilation purpose and will take out
       AsyncAmfServiceClient(std::shared_ptr<grpc::Channel> amf_srv_channel);
 
       /* This will send response back to AMF for all three request messages
        * i.e. establish, modification and release messages
        */
       bool handle_response_to_access(const magma::SetSMSessionContextAccess& response);
-     //bool handle_response_to_access(const magma::SetSMSessionContextAccess& response) { return true;}
 
     private:
       static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
