@@ -40,7 +40,7 @@ message RuleRecordTable {
 enum RATType {
   TGPP_LTE = 0;  // will map to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
   TGPP_WLAN = 1; // will map to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
-  TGPP_5G = 2;
+  TGPP_NR = 2;
 }
 
 message LocalCreateSessionRequest {
@@ -588,7 +588,7 @@ message M5GSMCapability {
 //M5GSMCause
 enum M5GSMCause {
      OPERATOR_DETERMINED_BARRING = 0;                              //actual value 8
-     INSUFFICIENT_RESOURCES = 1;                                               //actual value 26
+     INSUFFICIENT_RESOURCES = 1;                                   //actual value 26
      MISSING_OR_UNKNOWN_DNN = 2;                                   //actual value 27
      UNKNOWN_PDU_SESSION_TYPE = 3;                                 //actual value 28
      USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED = 4;              //actual value 29
@@ -650,9 +650,8 @@ enum DnnSelectionMode {
 //RatType
 //Define enum TS-29.571 - section 5.4.3 structure Imported from session_manager.proto file.
 
-
-//RequestedQosRules
-message RequestedQosRules {
+//RequestedQosRules and AuthorizedQosRules
+message QosRules {
    uint32 qos_rule_identifier = 1;
    bool dqr = 2;
    uint32 number_of_packet_filters = 3;
@@ -714,12 +713,12 @@ message M5GSMSessionContext {
   bytes integrity_protection_max_data_rate = 16;  //Length is 3 bytes, TS-24.501 9.11.4.7
   PduSessionType pdu_session_type = 17;
   SscMode ssc_mode = 18;
-  M5GSMCapability m5g_sm_capability = 19;  // max size go up to 15 bytes. TLV and 9.11.4.1. Flattend
+  M5GSMCapability m5g_sm_capability = 19;  // max size go up to 15 bytes. TLV and 9.11.4.1.
   uint32 max_pkt_filter_supported = 20;    //Maximum no. of supported packet filters
   bool pdu_session_req_always_on = 21;     //Always-on PDU session requested TS-24.501 9.11.4.4
   string sm_pdu_dn_req = 22;               //SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
   M5GSMCause m5gsm_cause = 23;
-  RequestedQosRules requested_qos_rules = 24; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.  Flattend .
+  QosRules requested_qos_rules = 24; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
 }
 
 message SetSMSessionContext {
@@ -757,16 +756,6 @@ message RatSpecificContextAccess {
 //e.g. to determine whether a resource is available for downlink media of a media stream of an SDP media
 //description provided by the UE in an IMS session.
 
-message AuthorizedQosRules {	
-   uint32 qos_rule_identifier = 1;
-   bool dqr = 2;			                                    
-   uint32 number_of_packet_filters = 3;
-   repeated int32 packet_filter_identifier = 5;
-   uint32 qos_rule_precedence = 8;
-   bool segregation = 9;
-   uint32 qos_flow_identifier = 10;
-}
-
 message M5GSMSessionContextAccess{
     //One byte, received from UE. For 5G pdu_session_id. 
     bytes pdu_session_id = 1;
@@ -775,7 +764,7 @@ message M5GSMSessionContextAccess{
     //selected session and service continuty mode TS-24501 - 9.11.4.16
     SscMode selected_ssc_mode = 3; 
     //TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
-    repeated AuthorizedQosRules authorized_qos_rules = 4; 
+    repeated QosRules authorized_qos_rules = 4; 
     //TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
     AggregatedMaximumBitrate session_ambr = 5;
     M5GSMCause M5gsm_cause = 6; //TS-24501 - 9.11.4.2
@@ -783,22 +772,8 @@ message M5GSMSessionContextAccess{
     bool always_on_pdu_session_indication = 7; 
     SscMode allowed_ssc_mode = 8; //Indicates SSC mode.
     bool M5gsm_congetion_re_attempt_indicator = 9;
-    //PDU session state to mirror with AMF or MME moved to common_context
-    //SMSessionFSMState sm_session_state = 10;
-    //uint32 sm_session_version = 11;
     //IP address. Imported from session_manager.proto file.
     RedirectServer pdu_address = 12;
-    //Defferred from MVC scope.
-    //specify GPRS specific timer values. Flattened the structure.
-    //RqTimerValue rq_timer_value = 8;
-    //specify GPRS specific timer values. Flattened the structure
-    //BackOffTimerGprs3 back_off_timer_gprs3 = 15;
-    //TS-24.501 - 9.11.4.8. Indicate a set of EPS contexts for a PDU session
-    //repeated MappedEpsBearerContext mapped_eps_bearer_context = 11;
-    // variable length, Extensible Authentication Protocol IETF RFC 3748 [34].
-    //string eap_message = 12;
-    //10.5.6.3A in 3GPP TS 24.008 [12].
-    //repeated ExtProtocolConfigOption ext_protocol_config_option = 14;
 }
 
 message SetSMSessionContextAccess {
