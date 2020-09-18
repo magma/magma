@@ -43,6 +43,10 @@ cwf_quota_exhaustion_termination_on_init_ms: 30000
 # sending the bearer create request.
 bearer_creation_delay_on_session_init: 2000
 
+# If this flag is set, we will send the GW's timezone information to the policy
+# component as part of CreateSessionRequest.
+send_access_timezone: true
+
 # Set to true to store session state in Redis for persistence.
 support_stateless: false
 

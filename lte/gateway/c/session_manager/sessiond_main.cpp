@@ -120,6 +120,10 @@ void set_consts(const YAML::Node& config) {
     magma::LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT =
         config["bearer_creation_delay_on_session_init"].as<uint32_t>();
   }
+  if (config["send_access_timezone"].IsDefined()) {
+    magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
+        config["send_access_timezone"].as<bool>();
+  }
 }
 
 magma::SessionStore* create_session_store(
@@ -214,14 +218,14 @@ int main(int argc, char* argv[]) {
       MLOG(MINFO) << "Started AAA Client response thread";
       aaa_client->rpc_response_loop();
     });
-    spgw_client = nullptr;
+    spgw_client                     = nullptr;
   } else {
     spgw_client = std::make_shared<magma::AsyncSpgwServiceClient>();
     access_response_handling_thread = std::thread([&]() {
       MLOG(MINFO) << "Started SPGW response thread";
       spgw_client->rpc_response_loop();
     });
-    aaa_client = nullptr;
+    aaa_client                      = nullptr;
   }
 
   // Setup SessionReporter which talks to the policy component
