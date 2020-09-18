@@ -18,9 +18,11 @@ import type {event as MagmaEvent} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import CardTitleRow from '../../components/layout/CardTitleRow';
+import Checkbox from '@material-ui/core/Checkbox';
 import EventChart from './EventChart';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
@@ -70,6 +72,9 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(5),
   },
   dateTimeText: {
+    color: colors.primary.comet,
+  },
+  autorefreshCheckbox: {
     color: colors.primary.comet,
   },
 }));
@@ -212,7 +217,6 @@ type EventTableProps = {
   sz: 'sm' | 'md' | 'lg',
   inStartDate?: moment,
   inEndDate?: moment,
-  shouldAutorefresh: boolean,
 };
 
 const defaultProps = {
@@ -220,43 +224,54 @@ const defaultProps = {
 };
 
 type UseRefreshingDateRangeHook = (
-  shouldAutorefresh: boolean,
-) => {
+  shouldAutorefreshByDefault: boolean,
+  onDateRangeChange: () => void,
+) => {|
   startDate: moment,
   endDate: moment,
   setStartDate: (date: moment) => void,
   setEndDate: (date: moment) => void,
-};
+  isAutorefreshing: boolean,
+  setIsAutorefreshing: ((boolean => boolean) | boolean) => void,
+|};
 
-export const useRefreshingDateRange: UseRefreshingDateRangeHook = shouldAutorefresh => {
+export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
+  shouldAutorefreshByDefault,
+  onDateRangeChange,
+) => {
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());
-  const [isDateRangeSelectedByUser, setIsDateRangeChanged] = useState(false);
+  const [isAutorefreshing, setIsAutorefreshing] = useState(
+    shouldAutorefreshByDefault,
+  );
 
   useEffect(() => {
-    if (!isDateRangeSelectedByUser && shouldAutorefresh) {
+    if (isAutorefreshing) {
       const interval = setInterval(() => {
         setEndDate(moment());
+        onDateRangeChange();
       }, 10000);
 
       return () => clearInterval(interval);
     }
-  }, [setEndDate, shouldAutorefresh, isDateRangeSelectedByUser]);
+  }, [endDate, startDate, onDateRangeChange, isAutorefreshing]);
 
   const modifiedSetStartDate = useCallback(
     (date: moment) => {
-      setIsDateRangeChanged(true);
+      setIsAutorefreshing(false);
       setStartDate(date);
+      onDateRangeChange();
     },
-    [setIsDateRangeChanged, setStartDate],
+    [onDateRangeChange],
   );
 
   const modifiedSetEndDate = useCallback(
     (date: moment) => {
-      setIsDateRangeChanged(true);
+      setIsAutorefreshing(false);
       setEndDate(date);
+      onDateRangeChange();
     },
-    [setIsDateRangeChanged, setEndDate],
+    [onDateRangeChange],
   );
 
   return {
@@ -264,15 +279,14 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = shouldAutorefr
     endDate,
     setStartDate: modifiedSetStartDate,
     setEndDate: modifiedSetEndDate,
+    isAutorefreshing,
+    setIsAutorefreshing,
   };
 };
 
 export default function EventsTable(props: EventTableProps) {
-  const {eventStream, tags, sz, shouldAutorefresh} = props;
+  const {eventStream, tags, sz} = props;
   const classes = useStyles();
-  const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
-    shouldAutorefresh,
-  );
 
   const [eventCount, setEventCount] = useState(0);
   const tableRef = useRef(null);
@@ -282,6 +296,17 @@ export default function EventsTable(props: EventTableProps) {
     eventStream === 'SUBSCRIBER'
       ? streamNameSessiond
       : streamNameMagmad + ',' + streamNameSessiond;
+
+  const {
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
+    isAutorefreshing,
+    setIsAutorefreshing,
+  } = useRefreshingDateRange(true, () => {
+    tableRef.current && tableRef.current.onQueryChange();
+  });
 
   const startEnd = useMemo(() => {
     const [delta, unit, format] = getStep(startDate, endDate);
@@ -306,6 +331,21 @@ export default function EventsTable(props: EventTableProps) {
     return (
       <Grid container justify="flex-end" alignItems="center" spacing={1}>
         <Grid item>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isAutorefreshing}
+                onChange={() => setIsAutorefreshing(current => !current)}
+              />
+            }
+            label={
+              <Text variant="body3" className={classes.autorefreshCheckbox}>
+                Update Automatically
+              </Text>
+            }
+          />
+        </Grid>
+        <Grid item>
           <Text variant="body3" className={classes.dateTimeText}>
             Filter By Date
           </Text>
@@ -320,7 +360,6 @@ export default function EventsTable(props: EventTableProps) {
             value={startDate}
             onChange={val => {
               setStartDate(val);
-              tableRef.current && tableRef.current.onQueryChange();
             }}
           />
         </Grid>
@@ -338,7 +377,6 @@ export default function EventsTable(props: EventTableProps) {
             value={endDate}
             onChange={val => {
               setEndDate(val);
-              tableRef.current && tableRef.current.onQueryChange();
             }}
           />
         </Grid>

@@ -18,6 +18,8 @@ import type {ActionQuery} from '../../components/ActionTable';
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
+import Checkbox from '@material-ui/core/Checkbox';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
@@ -55,6 +57,9 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(5),
   },
   dateTimeText: {
+    color: colors.primary.comet,
+  },
+  autorefreshCheckbox: {
     color: colors.primary.comet,
   },
 }));
@@ -186,9 +191,16 @@ export default function GatewayLogs() {
   const enqueueSnackbar = useEnqueueSnackbar();
   const tableRef = useRef(null);
 
-  const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
-    true,
-  );
+  const {
+    startDate,
+    endDate,
+    setStartDate,
+    setEndDate,
+    isAutorefreshing,
+    setIsAutorefreshing,
+  } = useRefreshingDateRange(true, () => {
+    tableRef.current && tableRef.current.onQueryChange();
+  });
 
   const startEnd = useMemo(() => {
     const [delta, unit, format] = getStep(startDate, endDate);
@@ -205,6 +217,21 @@ export default function GatewayLogs() {
     return (
       <Grid container justify="flex-end" alignItems="center" spacing={1}>
         <Grid item>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isAutorefreshing}
+                onChange={() => setIsAutorefreshing(current => !current)}
+              />
+            }
+            label={
+              <Text variant="body3" className={classes.autorefreshCheckbox}>
+                Update Automatically
+              </Text>
+            }
+          />
+        </Grid>
+        <Grid item>
           <Text variant="body3" className={classes.dateTimeText}>
             Filter By Date
           </Text>
@@ -219,7 +246,6 @@ export default function GatewayLogs() {
             value={startDate}
             onChange={val => {
               setStartDate(val);
-              tableRef.current && tableRef.current.onQueryChange();
             }}
           />
         </Grid>
@@ -237,7 +263,6 @@ export default function GatewayLogs() {
             value={endDate}
             onChange={val => {
               setEndDate(val);
-              tableRef.current && tableRef.current.onQueryChange();
             }}
           />
         </Grid>
