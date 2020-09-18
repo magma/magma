@@ -1911,10 +1911,10 @@ static void _generate_dl_flow(
       TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
     if (dlflow->ip_proto == IPPROTO_TCP) {
       dlflow->set_params |= TCP_DST_PORT;
-      dlflow->tcp_dst_port = packet_filter->singleremoteport;
+      dlflow->tcp_dst_port = packet_filter->singlelocalport;
     } else if (dlflow->ip_proto == IPPROTO_UDP) {
       dlflow->set_params |= UDP_DST_PORT;
-      dlflow->udp_dst_port = packet_filter->singleremoteport;
+      dlflow->udp_dst_port = packet_filter->singlelocalport;
     }
   }
 }

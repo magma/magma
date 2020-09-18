@@ -579,8 +579,6 @@ void mme_remove_ue_context(
  **/
 ue_mm_context_t* mme_create_new_ue_context(void);
 
-void mme_app_free_pdn_connection(pdn_context_t** const pdn_connection);
-
 void mme_app_ue_context_free_content(ue_mm_context_t* const mme_ue_context_p);
 
 /**

@@ -474,6 +474,8 @@ void MmeNasStateConverter::proto_to_pdn_context(
   proto_to_esm_pdn(pdn_context_proto.esm_data(), &state_pdn_context->esm_data);
   state_pdn_context->is_active = pdn_context_proto.is_active();
   if (pdn_context_proto.has_pco()) {
+    state_pdn_context->pco = (protocol_configuration_options_t*) calloc(
+        1, sizeof(protocol_configuration_options_t));
     NasStateConverter::proto_to_protocol_configuration_options(
         pdn_context_proto.pco(), state_pdn_context->pco);
   }

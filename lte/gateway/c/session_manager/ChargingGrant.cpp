@@ -116,9 +116,11 @@ CreditUsage ChargingGrant::get_credit_usage(
   p_usage.set_bytes_rx(credit_usage.bytes_rx);
   p_usage.set_type(update_type);
 
-  // add the Requested-Service-Unit
-  RequestedUnits requestedUnits = credit.get_requested_credits_units();
-  p_usage.mutable_requested_units()->CopyFrom(requestedUnits);
+  // add the Requested-Service-Unit only if we are not on final grant
+  if (!is_final_grant) {
+    RequestedUnits requestedUnits = credit.get_requested_credits_units();
+    p_usage.mutable_requested_units()->CopyFrom(requestedUnits);
+  }
   return p_usage;
 }
 
