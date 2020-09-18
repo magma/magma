@@ -23,14 +23,16 @@ using grpc::Status;
 namespace {  // anonymous
 using std::experimental::optional;
 
-void call_back_void_upf(grpc::Status, magma::UpfRes response)
+
+//To keep Call back as 	
+void call_back_void_upf(grpc::Status, magma::UPFSessionContextState response)
 {
   //do nothinf but to only passing call back
   //cout <<" Only for testing call back" << endl;
 }
-std::function<void(grpc::Status, magma::UpfRes)>callback  = call_back_void_upf;
+std::function<void(grpc::Status, magma::UPFSessionContextState)>callback  = call_back_void_upf;
 
-
+//Preparation of Set Session request to UPF
 magma::SessionSet create_session_set_req(
   magma::SessionState::SessionCommonInfo info)
 {
@@ -243,11 +245,15 @@ bool AsyncPipelinedClient::setup_lte(
   setup_policy_rpc(setup_policy_req, callback);
   return true;
 }
+
+//Method for Setting UPF Session
 bool AsyncPipelinedClient::set_upf_session(
     const SessionState::SessionCommonInfo info,
-    std::function<void(Status status, UpfRes)> callback) {
-    SessionSet setup_session_req = create_session_set_req(info);
+    std::function<void(Status status, UPFSessionContextState)> callback) {
+//Calling of Create Session Set to prepare the Request	
+    SessionSet setup_session_req = create_session_set_req(info); 
     std::cerr << __LINE__ << " " << __FUNCTION__ <<" calling set_upf_session_rpc" <<"\n";
+//Calling of RPC to Send the Session Request
     set_upf_session_rpc(setup_session_req,callback);
         return true;
 }
@@ -384,13 +390,16 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
   return true;
 }
 
+//RPC definition to Send Set Session request to UPF
  void AsyncPipelinedClient::set_upf_session_rpc(
      const SessionSet& request,
-     std::function<void(Status, UpfRes)> callback) {
-   auto local_resp = new AsyncLocalResponse<UpfRes>(
+     std::function<void(Status, UPFSessionContextState)> callback) {
+   auto local_resp = new AsyncLocalResponse<UPFSessionContextState>(
        std::move(callback), RESPONSE_TIMEOUT);
    PrintGrpcMessage(
        static_cast<const google::protobuf::Message&>(request));
+
+//Cerrors are temporary to check Unit Test Cases and there associated logs
    std::cerr << __LINE__ << " "<< __FUNCTION__ << " GRPC message sending to Upf client details\n";
    std::cerr << __LINE__ << " "<< __FUNCTION__ << " SeId "<<request.seid() <<"\n";
    std::cerr << __LINE__ << " "<< __FUNCTION__ << " Vesion no "<<request.sess_ver_no() <<"\n";

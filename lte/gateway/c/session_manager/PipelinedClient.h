@@ -138,7 +138,7 @@ class PipelinedClient {
 
   virtual bool set_upf_session(
       const SessionState::SessionCommonInfo info,
-      std::function<void(Status status, UpfRes)> callback) = 0;
+      std::function<void(Status status, UPFSessionContextState)> callback) = 0;
 
 };
 
@@ -180,7 +180,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   bool set_upf_session(
      const SessionState::SessionCommonInfo info,
-     std::function<void(Status status, UpfRes)> callback);
+     std::function<void(Status status, UPFSessionContextState)> callback);
   /**
    * Deactivate all flows for a subscriber's session
    * @param imsi - UE to delete all policy flows for
@@ -263,7 +263,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
  private:
  void set_upf_session_rpc(
     const SessionSet& request,
-    std::function<void(Status, UpfRes)> callback);
+    std::function<void(Status, UPFSessionContextState)> callback);
 
   void setup_policy_rpc(
     const SetupPolicyRequest& request,
