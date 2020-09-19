@@ -58,6 +58,9 @@ OAI_FLAGS = $(S6A_FLAGS) -DEMBEDDED_SGW=True -DENABLE_OPENFLOW=True -DSPGW_ENABL
 
 endif
 
+OAI_COMBINED_FLAGS = $(OAI_FLAGS) -DCMAKE_C_FLAGS="-Wno-error=duplicate-decl-specifier -Wno-error=maybe-uninitialized" -DCMAKE_CXX_STANDARD=14 -DCMAKE_CXX_EXTENSIONS=OFF
+#OAI_COMBINED_FLAGS = $(OAI_FLAGS)
+
 $(info OAI_FLAGS $(OAI_FLAGS))
 
 FUZZ_FLAGS = $(OAI_FLAGS) -DFUZZ=True
@@ -129,7 +132,7 @@ build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
 build_oai: build_common ## Build OAI
-	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
+	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_COMBINED_FLAGS))
 
 build_sctpd: build_common ## Build SCTPD
 	$(call run_cmake, $(C_BUILD)/sctpd, $(GATEWAY_C_DIR)/sctpd, )
