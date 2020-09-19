@@ -23,7 +23,7 @@ from magma.common.redis.serializers import get_json_deserializer, \
 
 
 SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi ip_addr rule_id')
-import logging
+
 
 class RuleIDToNumMapper:
     """
@@ -98,7 +98,7 @@ class SessionRuleToVersionMapper:
         incremented.
         """
         encoded_imsi = encode_imsi(imsi)
-        if ip_addr is None:
+        if ip_addr is None or ip_addr.address is None:
             ip_addr_str = ""
         else:
             ip_addr_str = ip_addr.address.decode('utf-8')
@@ -115,7 +115,7 @@ class SessionRuleToVersionMapper:
         """
         Returns the version number given a subscriber and a rule.
         """
-        if ip_addr is None:
+        if ip_addr is None or ip_addr.address is None:
             ip_addr_str = ""
         else:
             ip_addr_str = ip_addr.address.decode('utf-8')

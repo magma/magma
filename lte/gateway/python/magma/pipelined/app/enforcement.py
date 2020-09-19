@@ -36,7 +36,7 @@ from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
-from pprint import pformat
+
 class EnforcementController(PolicyMixin, MagmaController):
     """
     EnforcementController
@@ -214,11 +214,6 @@ class EnforcementController(PolicyMixin, MagmaController):
 
         flow_adds = []
         for flow in rule.flow_list:
-            self.logger.error("See this?")
-            self.logger.error(pformat(flow.match))
-            self.logger.error(flow.match.ip_dst)
-            self.logger.error(flow.match.ip_src)
-
             try:
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, ip_addr, apn_ambr, flow, rule_num, priority,
@@ -349,7 +344,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         priority = self.get_of_priority(rule.priority)
         redirect_request = RedirectionManager.RedirectRequest(
             imsi=imsi,
-            ip_addr=ip_addr,
+            ip_addr=ip_addr.address.decode('utf-8'),
             rule=rule,
             rule_num=rule_num,
             rule_version=rule_version,

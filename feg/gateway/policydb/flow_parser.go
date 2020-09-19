@@ -84,8 +84,14 @@ func getFlowDescriptionFromSplit(matches []string) (*protos.FlowDescription, err
 		Match: &protos.FlowMatch{
 			Direction: direction,
 			IpProto:   proto,
-			Ipv4Src:   src.ip,
-			Ipv4Dst:   dst.ip,
+			IpSrc:     &protos.IPAddress{
+				Version: protos.IPAddress_IPV4,
+				Address: []byte(src.ip),
+			},
+			IpDst:     &protos.IPAddress{
+				Version: protos.IPAddress_IPV4,
+				Address: []byte(dst.ip),
+			},
 		},
 	}
 

@@ -244,9 +244,9 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
       pf_content->singleremoteport = flow_match_rule->udp_dst();
     }
   } else if (flow_match_rule->direction() == FlowMatch::DOWNLINK) {
-    if (!flow_match_rule->ip_dst().address().empty()) {
+    if (!flow_match_rule->ip_src().address().empty()) {
       flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      if (!fillIpv4(pf_content, flow_match_rule->ip_dst().address())) {
+      if (!fillIpv4(pf_content, flow_match_rule->ip_src().address())) {
         return false;
       }
     }

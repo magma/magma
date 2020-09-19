@@ -63,6 +63,13 @@ def flow_match_to_magma_match(match, ip_addr=None):
             value = _get_ip_tuple(value.address.decode('utf-8'))
             if value is None:
                 return
+            # TODO add ipv6
+            if attrib == 'ip_src':
+                match_kwargs['ipv4_src'] = value
+            elif attrib == 'ip_dst':
+                match_kwargs['ipv4_dst'] = value
+            continue
+
         if attrib == 'app_name':
             attrib = DPI_REG
 
@@ -126,8 +133,8 @@ def flip_flow_match(match):
         direction = match.DOWNLINK
 
     return FlowMatch(
-        ipv4_src=getattr(match, 'ipv4_dst', None),
-        ipv4_dst=getattr(match, 'ipv4_src', None),
+        ip_src=getattr(match, 'ip_dst', None),
+        ip_dst=getattr(match, 'ip_src', None),
         tcp_src=getattr(match, 'tcp_dst', None),
         tcp_dst=getattr(match, 'tcp_src', None),
         udp_src=getattr(match, 'udp_dst', None),

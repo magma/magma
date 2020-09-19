@@ -32,6 +32,7 @@ from lte.protos.policydb_pb2 import (
     PolicyRule,
     QosArp,
 )
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.session_manager_pb2 import (
     DynamicRuleInstall,
     PolicyReAuthRequest,
@@ -621,7 +622,9 @@ class SpgwUtil(object):
                     flow_list=[
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="0.0.0.0/0",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="0.0.0.0/0".encode('utf-8')),
                                 tcp_dst=5001,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -630,7 +633,10 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42/24",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42/24".encode('utf-8')
+                                ),
                                 tcp_dst=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -639,7 +645,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_dst=5003,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -648,7 +656,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_dst=5004,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -657,7 +667,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_dst=5005,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -666,7 +678,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ip_src=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_src=5001,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -675,7 +689,8 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="",
+                                ip_src=IPAddress(version=IPAddress.IPV4,
+                                                 address="".encode('utf-8')),
                                 tcp_dst=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -684,7 +699,10 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.64/26",
+                                ip_src=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.64/26".encode('utf-8')
+                                ),
                                 tcp_src=5003,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -693,7 +711,10 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42/16",
+                                ip_src=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42/16".encode('utf-8')
+                                ),
                                 tcp_src=5004,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -702,7 +723,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ip_src=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_src=5005,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -779,14 +802,22 @@ class SessionManagerUtil(object):
                 tcp_src_port = 0
                 tcp_dst_port = 0
 
-            ipv4_src_addr = flow.get("ipv4_src", None)
-            ipv4_dst_addr = flow.get("ipv4_dst", None)
+            ipv4_src_addr = None
+            if flow.get("ipv4_src", None):
+                ipv4_src_addr = IPAddress(
+                    version=IPAddress.IPV4,
+                    address=flow.get("ipv4_src").encode('utf-8'))
+            ipv4_dst_addr = None
+            if flow.get("ipv4_dst", None):
+                ipv4_dst_addr = IPAddress(
+                    version=IPAddress.IPV4,
+                    address=flow.get("ipv4_dst").encode('utf-8'))
 
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ipv4_dst=ipv4_dst_addr,
-                        ipv4_src=ipv4_src_addr,
+                        ip_dst=ipv4_dst_addr,
+                        ip_src=ipv4_src_addr,
                         tcp_src=tcp_src_port,
                         tcp_dst=tcp_dst_port,
                         udp_src=udp_src_port,

@@ -131,10 +131,12 @@ class DPITest(unittest.TestCase):
             udp_src=111, udp_dst=222, direction=FlowMatch.UPLINK
         )
         flow_match_for_no_proto = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_UDP, ip_dst='1.1.1.1'
+            ip_proto=FlowMatch.IPPROTO_UDP,
+            ip_dst=convert_ipv4_str_to_ip_proto('1.1.1.1')
         )
         flow_match_not_added = FlowMatch(
-            ip_proto=FlowMatch.IPPROTO_UDP, ip_src='22.22.22.22'
+            ip_proto=FlowMatch.IPPROTO_UDP,
+            ip_src=convert_ipv4_str_to_ip_proto('22.22.22.22')
         )
         self.dpi_controller.add_classify_flow(
             flow_match_not_added, FlowRequest.FLOW_CREATED,

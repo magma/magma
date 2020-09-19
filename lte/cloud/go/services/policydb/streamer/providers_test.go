@@ -148,8 +148,14 @@ func TestPolicyStreamers(t *testing.T) {
 						Match: &models.FlowMatch{
 							Direction: swag.String("UPLINK"),
 							IPProto:   swag.String("IPPROTO_IP "),
-							IPV4Dst:   "192.168.160.0/24",
-							IPV4Src:   "192.168.128.0/24",
+							IPDst: &models.IPAddress{
+								Version: models.IPAddressVersionIPV4,
+								Address: "192.168.160.0/24",
+							},
+							IPSrc: &models.IPAddress{
+								Version: models.IPAddressVersionIPV4,
+								Address: "192.168.128.0/24",
+							},
 						},
 					},
 				},
@@ -213,8 +219,14 @@ func TestPolicyStreamers(t *testing.T) {
 					Match: &lte_protos.FlowMatch{
 						Direction: lte_protos.FlowMatch_UPLINK,
 						IpProto:   lte_protos.FlowMatch_IPPROTO_IP,
-						Ipv4Dst:   "192.168.160.0/24",
-						Ipv4Src:   "192.168.128.0/24",
+						IpSrc: &lte_protos.IPAddress{
+							Version: lte_protos.IPAddress_IPV4,
+							Address: []byte("192.168.128.0/24"),
+						},
+						IpDst: &lte_protos.IPAddress{
+							Version: lte_protos.IPAddress_IPV4,
+							Address: []byte("192.168.160.0/24"),
+						},
 					},
 					Action: lte_protos.FlowDescription_PERMIT,
 				},
