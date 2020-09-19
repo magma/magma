@@ -34,25 +34,92 @@ if [ "${OS_RELEASE}" = 'ubuntu18.04' ]; then
     LIBGFLAGS=libgflags2.2
     LIBEVENT_VERSION=2.1-6
     LIBICU=libicu60
+elif [ "${OS_RELEASE}" == 'centos8' ] || [ "${OS_RELEASE}" == 'rhel8' ]; then
+    LIBGFLAGS=gflags
+    LIBICU=libicu
 fi
 
 function buildrequires() {
-    echo \
-        libboost-all-dev \
-        libevent-dev \
-        libdouble-conversion-dev \
-        libgoogle-glog-dev \
-        libgflags-dev \
-        libiberty-dev \
-        liblz4-dev \
-        liblzma-dev \
-        libsnappy-dev \
-        zlib1g-dev \
-        binutils-dev \
-        libjemalloc-dev \
-        libssl-dev \
-        pkg-config
+    if [ "${PKGFMT}" == 'deb' ]; then
+        echo \
+            libboost-all-dev \
+            libevent-dev \
+            libdouble-conversion-dev \
+            libgoogle-glog-dev \
+            libgflags-dev \
+            libiberty-dev \
+            liblz4-dev \
+            liblzma-dev \
+            libsnappy-dev \
+            zlib1g-dev \
+            binutils-dev \
+            libjemalloc-dev \
+            libssl-dev \
+            pkg-config
+    else
+        echo \
+            glog-devel \
+            gflags-devel \
+            libicu-devel \
+            boost-devel \
+            libevent-devel \
+            double-conversion-devel \
+            binutils-devel \
+            lz4-devel \
+            xz-devel \
+            snappy \
+            zlib-devel \
+            binutils-devel \
+            jemalloc-devel \
+            openssl-devel \
+            pkg-config
+    fi
 }
+
+function installrequires() {
+    if [ "${PKGFMT}" == 'deb' ]; then
+        echo libc6 \
+             libstdc++6 \
+             libboost-context"$BOOST_VERSION" \
+             libboost-filesystem"$BOOST_VERSION" \
+             libboost-program-options"$BOOST_VERSION" \
+             libboost-regex"$BOOST_VERSION" \
+             libboost-system"$BOOST_VERSION" \
+             libboost-thread"$BOOST_VERSION" \
+             libdouble-conversion1 \
+             libevent-"$LIBEVENT_VERSION" \
+             "${LIBGFLAGS}" \
+             libgoogle-glog0v5 \
+             "${LIBICU}" \
+             libjemalloc1 \
+             liblz4-1 \
+             liblzma5 \
+             libsnappy1v5 \
+             libssl"$SSL_VERSION" \
+             zlib1g
+    else
+        echo glibc \
+             libstdc++ \
+             boost-context \
+             boost-filesystem \
+             boost-program-options \
+             boost-regex \
+             boost-system \
+             boost-thread \
+             double-conversion \
+             libevent \
+             "${LIBGFLAGS}" \
+             glog \
+             "${LIBICU}" \
+             jemalloc \
+             lz4 \
+             xz-libs \
+             snappy \
+             openssl-libs \
+             zlib
+    fi
+}
+
 
 if_subcommand_exec
 
@@ -75,12 +142,15 @@ fi
 
 # build from source
 if [ -d ${WORK_DIR} ]; then
-  rm -rf ${WORK_DIR}
+    rm -rf ${WORK_DIR}
 fi
 mkdir ${WORK_DIR}
 
 # post-install script
-echo sudo /sbin/ldconfig > "${WORK_DIR}"/after_install.sh
+cat <<EOF  > "${WORK_DIR}"/after_install.sh
+#!/bin/bash
+sudo /sbin/ldconfig
+EOF
 
 cd ${WORK_DIR}
 DESTDIR=${WORK_DIR}/install
@@ -113,7 +183,7 @@ EOF
 fi
 
 autoreconf -ivf
-./configure
+LIBS=-lpthread ./configure
 make -j $(nproc)
 make install DESTDIR=${DESTDIR}
 
@@ -147,25 +217,7 @@ fpm \
     --replaces ${PKGNAME} \
     --package ${BUILD_PATH} \
     --after-install "${WORK_DIR}"/after_install.sh \
-    --depends libc6 \
-    --depends libstdc++6 \
-    --depends libboost-context"$BOOST_VERSION" \
-    --depends libboost-filesystem"$BOOST_VERSION" \
-    --depends libboost-program-options"$BOOST_VERSION" \
-    --depends libboost-regex"$BOOST_VERSION" \
-    --depends libboost-system"$BOOST_VERSION" \
-    --depends libboost-thread"$BOOST_VERSION" \
-    --depends libdouble-conversion1 \
-    --depends libevent-"$LIBEVENT_VERSION" \
-    --depends "${LIBGFLAGS}" \
-    --depends libgoogle-glog0v5 \
-    --depends "${LIBICU}" \
-    --depends libjemalloc1 \
-    --depends liblz4-1 \
-    --depends liblzma5 \
-    --depends libsnappy1v5 \
-    --depends libssl"$SSL_VERSION" \
-    --depends zlib1g \
+    $(fpminstallrequires) \
     --exclude usr/local/lib/debug \
     --exclude usr/local/lib/*.a \
     --exclude usr/local/lib/*.la \
