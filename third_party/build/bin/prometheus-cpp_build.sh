@@ -31,7 +31,11 @@ ITERATION=1
 PKGNAME=prometheus-cpp-dev
 
 function buildrequires() {
-    echo build-essential autoconf libtool cmake libprotobuf-dev protobuf-compiler
+    if [ "${PKGFMT}" == 'deb' ]; then
+        echo build-essential autoconf libtool cmake libprotobuf-dev protobuf-compiler
+    else
+        echo autoconf libtool cmake gcc-c++ protobuf-devel
+    fi
 }
 
 if_subcommand_exec
