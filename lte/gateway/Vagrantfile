@@ -82,7 +82,9 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     magma_centos8.vm.provision "shell",
                                inline: "touch /home/vagrant/.profile"
     magma_centos8.vm.provision "shell",
-                               inline: "yum install -y ruby-devel rpm-build; gem install fpm"
+                               inline: "grep -q C_BUILD /home/vagrant/.bash_profile || echo export C_BUILD=/home/vagrant/build/c PYTHON_BUILD=/home/vagrant/build/python MAGMA_ROOT=/home/vagrant/magma >> /home/vagrant/.bash_profile"
+    magma_centos8.vm.provision "shell",
+                               inline: "dnf config-manager --set-enabled PowerTools; dnf install -y epel-release; dnf install -y ruby-devel rpm-build epel-release vim gcc automake autoconf tmux ninja-build yaml-cpp-devel json-devel libxml2-devel libconfig-devel czmq-devel libasan protobuf-devel protobuf-compiler; ln -s /usr/bin/python3 /usr/bin/python; gem install fpm"
 
 #    magma_centos8.vm.provision "ansible" do |ansible|
 #      ansible.host_key_checking = false
