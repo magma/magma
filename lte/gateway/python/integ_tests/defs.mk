@@ -115,6 +115,9 @@ s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_ul_udp_data_multi_ue.py \
+s1aptests/test_attach_ul_tcp_data_multi_ue.py \
+s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
@@ -133,6 +136,9 @@ s1aptests/test_restore_mme_config_after_sanity.py
 #     netmask 255.255.255.0 dev eth1
 # s1aptests/test_attach_dl_udp_data.py \
 # s1aptests/test_attach_dl_tcp_data.py \
+# s1aptests/test_attach_dl_udp_data_multi_ue.py \
+# s1aptests/test_attach_dl_tcp_data_multi_ue.py \
+# s1aptests/test_attach_dl_ul_tcp_data_multi_ue.py \
 # s1aptests/test_attach_detach_attach_dl_tcp_data.py
 
 # TODO flaky tests we should look at
