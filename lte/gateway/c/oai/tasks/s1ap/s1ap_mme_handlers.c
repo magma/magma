@@ -2553,6 +2553,8 @@ int s1ap_handle_paging_request(
       }
     }
   }
+  free_wrapper((void**) &enb_array->elements);
+  free_wrapper((void**) &enb_array);
   free(buffer);
   if (rc != RETURNok) {
     OAILOG_ERROR(
