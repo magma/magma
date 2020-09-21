@@ -54,7 +54,7 @@ const siteConfig = {
     {label: ' | '},
     {href: 'https://github.org/magma', label: 'Code'},
     {label: ' | '},
-    {href: 'https://github.org/community', label: 'Community'},
+    {href: 'https://magmacore.org/community', label: 'Community'},
   ],
 
   // If you have users set above, you add it here:
