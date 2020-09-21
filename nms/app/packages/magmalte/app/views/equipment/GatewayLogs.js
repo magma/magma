@@ -16,10 +16,9 @@
 import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import Checkbox from '@material-ui/core/Checkbox';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import LaunchIcon from '@material-ui/icons/Launch';
 import ListAltIcon from '@material-ui/icons/ListAlt';
@@ -28,7 +27,6 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
-
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
@@ -36,7 +34,7 @@ import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
-import {useRefreshingDateRange} from '../events/EventsTable';
+import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit
@@ -57,9 +55,6 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(5),
   },
   dateTimeText: {
-    color: colors.primary.comet,
-  },
-  autorefreshCheckbox: {
     color: colors.primary.comet,
   },
 }));
@@ -198,7 +193,7 @@ export default function GatewayLogs() {
     setEndDate,
     isAutorefreshing,
     setIsAutorefreshing,
-  } = useRefreshingDateRange(true, () => {
+  } = useRefreshingDateRange(true, 10000, () => {
     tableRef.current && tableRef.current.onQueryChange();
   });
 
@@ -215,78 +210,73 @@ export default function GatewayLogs() {
 
   function LogsFilter() {
     return (
-      <Grid container justify="flex-end" alignItems="center" spacing={1}>
-        <Grid item>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isAutorefreshing}
-                onChange={() => setIsAutorefreshing(current => !current)}
-              />
-            }
-            label={
-              <Text variant="body3" className={classes.autorefreshCheckbox}>
-                Update Automatically
-              </Text>
-            }
-          />
+      <>
+        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid item>
+            <Text variant="body3" className={classes.dateTimeText}>
+              Filter By Date
+            </Text>
+          </Grid>
+          <Grid item>
+            <DateTimePicker
+              autoOk
+              variant="inline"
+              inputVariant="outlined"
+              maxDate={endDate}
+              disableFuture
+              value={startDate}
+              onChange={val => {
+                setStartDate(val);
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <Text variant="body3" className={classes.dateTimeText}>
+              To
+            </Text>
+          </Grid>
+          <Grid item>
+            <DateTimePicker
+              autoOk
+              variant="inline"
+              inputVariant="outlined"
+              disableFuture
+              value={endDate}
+              onChange={val => {
+                setEndDate(val);
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<LaunchIcon />}
+              onClick={() =>
+                exportLogs(
+                  networkId,
+                  gatewayId,
+                  0,
+                  MAX_PAGE_ROW_COUNT,
+                  startDate,
+                  endDate,
+                  actionQuery,
+                  enqueueSnackbar,
+                )
+              }>
+              Export
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item>
-          <Text variant="body3" className={classes.dateTimeText}>
-            Filter By Date
-          </Text>
+        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid item>
+            <AutorefreshCheckbox
+              autorefreshEnabled={isAutorefreshing}
+              onToggle={() => setIsAutorefreshing(current => !current)}
+            />
+          </Grid>
         </Grid>
-        <Grid item>
-          <DateTimePicker
-            autoOk
-            variant="inline"
-            inputVariant="outlined"
-            maxDate={endDate}
-            disableFuture
-            value={startDate}
-            onChange={val => {
-              setStartDate(val);
-            }}
-          />
-        </Grid>
-        <Grid item>
-          <Text variant="body3" className={classes.dateTimeText}>
-            To
-          </Text>
-        </Grid>
-        <Grid item>
-          <DateTimePicker
-            autoOk
-            variant="inline"
-            inputVariant="outlined"
-            disableFuture
-            value={endDate}
-            onChange={val => {
-              setEndDate(val);
-            }}
-          />
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<LaunchIcon />}
-            onClick={() =>
-              exportLogs(
-                networkId,
-                gatewayId,
-                0,
-                MAX_PAGE_ROW_COUNT,
-                startDate,
-                endDate,
-                actionQuery,
-                enqueueSnackbar,
-              )
-            }>
-            Export
-          </Button>
-        </Grid>
-      </Grid>
+      </>
     );
   }
 

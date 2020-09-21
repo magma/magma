@@ -17,12 +17,11 @@ import type {ActionQuery} from '../../components/ActionTable';
 import type {event as MagmaEvent} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import CardTitleRow from '../../components/layout/CardTitleRow';
-import Checkbox from '@material-ui/core/Checkbox';
 import EventChart from './EventChart';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MyLocationIcon from '@material-ui/icons/MyLocation';
@@ -30,12 +29,13 @@ import React from 'react';
 import Text from '../../theme/design-system/Text';
 import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
+import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
 import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {useEffect, useMemo, useRef, useState} from 'react';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -72,9 +72,6 @@ const useStyles = makeStyles(theme => ({
     margin: theme.spacing(5),
   },
   dateTimeText: {
-    color: colors.primary.comet,
-  },
-  autorefreshCheckbox: {
     color: colors.primary.comet,
   },
 }));
@@ -219,71 +216,6 @@ type EventTableProps = {
   inEndDate?: moment,
 };
 
-const defaultProps = {
-  shouldAutorefresh: true,
-};
-
-type UseRefreshingDateRangeHook = (
-  shouldAutorefreshByDefault: boolean,
-  onDateRangeChange: () => void,
-) => {|
-  startDate: moment,
-  endDate: moment,
-  setStartDate: (date: moment) => void,
-  setEndDate: (date: moment) => void,
-  isAutorefreshing: boolean,
-  setIsAutorefreshing: ((boolean => boolean) | boolean) => void,
-|};
-
-export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
-  shouldAutorefreshByDefault,
-  onDateRangeChange,
-) => {
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
-  const [endDate, setEndDate] = useState(moment());
-  const [isAutorefreshing, setIsAutorefreshing] = useState(
-    shouldAutorefreshByDefault,
-  );
-
-  useEffect(() => {
-    if (isAutorefreshing) {
-      const interval = setInterval(() => {
-        setEndDate(moment());
-        onDateRangeChange();
-      }, 10000);
-
-      return () => clearInterval(interval);
-    }
-  }, [endDate, startDate, onDateRangeChange, isAutorefreshing]);
-
-  const modifiedSetStartDate = useCallback(
-    (date: moment) => {
-      setIsAutorefreshing(false);
-      setStartDate(date);
-      onDateRangeChange();
-    },
-    [onDateRangeChange],
-  );
-
-  const modifiedSetEndDate = useCallback(
-    (date: moment) => {
-      setIsAutorefreshing(false);
-      setEndDate(date);
-      onDateRangeChange();
-    },
-    [onDateRangeChange],
-  );
-
-  return {
-    startDate,
-    endDate,
-    setStartDate: modifiedSetStartDate,
-    setEndDate: modifiedSetEndDate,
-    isAutorefreshing,
-    setIsAutorefreshing,
-  };
-};
-
 export default function EventsTable(props: EventTableProps) {
   const {eventStream, tags, sz} = props;
   const classes = useStyles();
@@ -304,7 +236,7 @@ export default function EventsTable(props: EventTableProps) {
     setEndDate,
     isAutorefreshing,
     setIsAutorefreshing,
-  } = useRefreshingDateRange(true, () => {
+  } = useRefreshingDateRange(true, 10000, () => {
     tableRef.current && tableRef.current.onQueryChange();
   });
 
@@ -329,58 +261,53 @@ export default function EventsTable(props: EventTableProps) {
 
   function DateFilter() {
     return (
-      <Grid container justify="flex-end" alignItems="center" spacing={1}>
-        <Grid item>
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={isAutorefreshing}
-                onChange={() => setIsAutorefreshing(current => !current)}
-              />
-            }
-            label={
-              <Text variant="body3" className={classes.autorefreshCheckbox}>
-                Update Automatically
-              </Text>
-            }
-          />
+      <>
+        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid item>
+            <Text variant="body3" className={classes.dateTimeText}>
+              Filter By Date
+            </Text>
+          </Grid>
+          <Grid item>
+            <DateTimePicker
+              autoOk
+              variant="inline"
+              inputVariant="outlined"
+              maxDate={endDate}
+              disableFuture
+              value={startDate}
+              onChange={val => {
+                setStartDate(val);
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <Text variant="body3" className={classes.dateTimeText}>
+              To
+            </Text>
+          </Grid>
+          <Grid item>
+            <DateTimePicker
+              autoOk
+              variant="inline"
+              inputVariant="outlined"
+              disableFuture
+              value={endDate}
+              onChange={val => {
+                setEndDate(val);
+              }}
+            />
+          </Grid>
         </Grid>
-        <Grid item>
-          <Text variant="body3" className={classes.dateTimeText}>
-            Filter By Date
-          </Text>
+        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid item>
+            <AutorefreshCheckbox
+              autorefreshEnabled={isAutorefreshing}
+              onToggle={() => setIsAutorefreshing(current => !current)}
+            />
+          </Grid>
         </Grid>
-        <Grid item>
-          <DateTimePicker
-            autoOk
-            variant="inline"
-            inputVariant="outlined"
-            maxDate={endDate}
-            disableFuture
-            value={startDate}
-            onChange={val => {
-              setStartDate(val);
-            }}
-          />
-        </Grid>
-        <Grid item>
-          <Text variant="body3" className={classes.dateTimeText}>
-            To
-          </Text>
-        </Grid>
-        <Grid item>
-          <DateTimePicker
-            autoOk
-            variant="inline"
-            inputVariant="outlined"
-            disableFuture
-            value={endDate}
-            onChange={val => {
-              setEndDate(val);
-            }}
-          />
-        </Grid>
-      </Grid>
+      </>
     );
   }
 
@@ -531,5 +458,3 @@ export default function EventsTable(props: EventTableProps) {
     </>
   );
 }
-
-EventsTable.defaultProps = defaultProps;
