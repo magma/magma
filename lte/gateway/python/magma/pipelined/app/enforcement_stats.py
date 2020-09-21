@@ -293,7 +293,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if not self.init_finished:
             self.logger.debug('Setup not finished, skipping stats reply')
             return
-        
+
+        if self._datapath_id != ev.msg.datapath.id:
+            self.logger.debug('Ignoring stats from different bridge')
+            return
+
         self.unhandled_stats_msgs.append(ev.msg.body)
         if ev.msg.flags == OFPMPF_REPLY_MORE:
             # Wait for more multi-part responses thats received for the
@@ -378,7 +382,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 self._unmatched_bytes = flow_stat.byte_count
             return current_usage
         # If this is a pass through app name flow ignore stats
-        if flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
+        if SCRATCH_REGS[1] in flow_stat.match and \
+           flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
             return current_usage
         sid = _get_sid(flow_stat)
         ipv4_addr = _get_ipv4(flow_stat)

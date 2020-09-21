@@ -330,6 +330,7 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
 			Action:        protos.UsageMonitoringCredit_DISABLE,
 			MonitoringKey: request.UsageReports[0].MonitoringKey,
 			Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
+
 	}
 
 	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(

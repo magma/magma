@@ -418,7 +418,8 @@ message UsageMonitorUpdate {
 message UsageMonitoringCredit {
   enum Action {
     CONTINUE = 0; // continue monitoring as normal
-    DISABLE = 1; // no need to monitor any more
+    DISABLE = 1; // no need to monitor any more  `AVP: Usage-Monitor-Support`
+    FORCE = 2; // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` // TODO: not implemented on sessiond
   }
   Action action = 1;
   bytes monitoring_key = 2;

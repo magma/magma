@@ -106,12 +106,28 @@ commands:
       - run:
           name: Install Dependencies
           <<: *appdir
-          command: yarn install --frozen-lockfile
+          command: |
+            if [ $(node -v) == 'v6.1.0' ]; then
+              source $NVM_DIR/nvm.sh
+              nvm install stable
+            fi
+            yarn install --frozen-lockfile
       - save_cache:
           name: Save Yarn Package Cache
           key: yarn-packages-{{ checksum "nms/app/yarn.lock" }}
           paths:
             - ~/.cache/yarn
+
+  apt-install-yarn:
+    steps:
+      - run:
+          <<: *appdir
+          command: |
+            sudo apt-get install -y apt-transport-https
+            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+            sudo apt-get update -y
+            sudo apt-get install -y yarn
 
   tag-push-docker:
     description: Tag docker image and push it
@@ -684,6 +700,8 @@ jobs:
     executor: node
     steps:
       - checkout
+      - build/determinator:
+          paths: "nms"
       - run:
           name: install flow
           <<: *appdir
@@ -700,6 +718,8 @@ jobs:
     executor: node
     steps:
       - checkout
+      - build/determinator:
+          paths: "nms"
       - yarn-install
       - run:
           name: eslint
@@ -711,11 +731,37 @@ jobs:
     executor: node
     steps:
       - checkout
+      - build/determinator:
+          paths: "nms"
       - yarn-install
       - run:
           name: yarn test
           <<: *appdir
           command: yarn test:ci
+      - magma_slack_notify
+
+  nms-e2e-test:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
+    steps:
+      - checkout
+      - build/determinator:
+          paths: "nms"
+      - docker/install-dc
+      - apt-install-yarn
+      - yarn-install
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run:
+          command: |
+            source $NVM_DIR/nvm.sh
+            nvm install stable
+            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
+            ./e2e_test_setup.sh
+      - store_artifacts:
+          path: /tmp/nms_artifacts
+
       - magma_slack_notify
 
   nms-build:
@@ -725,6 +771,8 @@ jobs:
       - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
     steps:
       - checkout
+      - build/determinator:
+          paths: "nms"
       - docker/install-dc
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
@@ -928,11 +976,17 @@ workflows:
       - nms-yarn-test:
           requires:
             - nms-flow-test
+      - nms-e2e-test:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
       - nms-build:
           requires:
             - nms-flow-test
             - eslint
             - nms-yarn-test
+            - nms-e2e-test
 
   docusaurus:
    jobs:
