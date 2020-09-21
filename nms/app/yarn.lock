@@ -1476,6 +1476,11 @@
   resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.3.tgz#c7cfde9cebd3c60fd033104295aff3f7adc8e026"
   integrity sha512-sOqcuX+sdcibvPW39Sw8j419qN8ysHvvagyovJYN+7ebXX6dieYKAleUMKPj2+4PTuy3aiEJTn3gh4MPXcK6qw==
 
+"@fbcnms/types@^0.1.5":
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.5.tgz#57a472935c717fae191957ccd820efeaca484018"
+  integrity sha512-4ERRyRUMNrDCEC4tbgzNJmuu/q/0182Aw9OjLThsGiewVK8mTvvQ28CtkcJVhkbXxi1m+kXihTzh+/y+2BPVHQ==
+
 "@fbcnms/ui@^0.1.5":
   version "0.1.5"
   resolved "https://registry.yarnpkg.com/@fbcnms/ui/-/ui-0.1.5.tgz#ec35c5db12f500a081c7bc17e51f57d9f627cdcd"
@@ -7137,6 +7142,11 @@ https-proxy-agent@^4.0.0:
   dependencies:
     agent-base "5"
     debug "4"
+
+https@^1.0.0:
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/https/-/https-1.0.0.tgz#3c37c7ae1a8eeb966904a2ad1e975a194b7ed3a4"
+  integrity sha1-PDfHrhqO65ZpBKKtHpdaGUt+06Q=
 
 human-signals@^1.1.1:
   version "1.1.1"
