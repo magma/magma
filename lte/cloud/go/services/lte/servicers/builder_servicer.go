@@ -21,18 +21,19 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+
+	"github.com/thoas/go-funk"
 )
 
 type builderServicer struct{}
@@ -123,7 +124,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Tac:                      int32(nwEpc.Tac),
 			MmeCode:                  1,
 			MmeGid:                   1,
-			EnableDnsCaching:         shouldEnableDNSCaching(network),
+			EnableDnsCaching:         shouldEnableDNSCaching(cellularGwConfig.DNS),
 			NonEpsServiceControl:     nonEPSServiceMconfig.nonEpsServiceControl,
 			CsfbMcc:                  nonEPSServiceMconfig.csfbMcc,
 			CsfbMnc:                  nonEPSServiceMconfig.csfbMnc,
@@ -161,6 +162,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 				TerminateOnExhaust: false,
 			},
 		},
+		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
 	}
 
 	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
@@ -192,14 +194,6 @@ func validateConfigs(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_
 		return errors.New("Network EPC config is nil")
 	}
 	return nil
-}
-
-func shouldEnableDNSCaching(network configurator.Network) bool {
-	idnsConfig, found := network.Configs[orc8r.DnsdNetworkType]
-	if !found || idnsConfig == nil {
-		return false
-	}
-	return swag.BoolValue(idnsConfig.(*models.NetworkDNSConfig).EnableCaching)
 }
 
 type nonEPSServiceMconfigFields struct {
@@ -382,4 +376,51 @@ func getMobilityDMultuAPNIPAlloc(epc *lte_models.NetworkEpcConfigs) bool {
 		return false
 	}
 	return epc.Mobility.EnableMultiApnIPAllocation
+}
+
+func getGatewayCellularDNSMConfig(gwDns *lte_models.GatewayDNSConfigs) *lte_mconfig.DnsD {
+	if gwDns == nil {
+		return &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+			EnableCaching:     false,
+			LocalTTL:          0,
+			Records:           []*lte_mconfig.GatewayDNSConfigRecordsItems{},
+		}
+	} else {
+		return &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: swag.BoolValue(gwDns.DhcpServerEnabled),
+			EnableCaching:     shouldEnableDNSCaching(gwDns),
+			LocalTTL:          *gwDns.LocalTTL,
+			Records:           getGatewayDnsRecords(gwDns),
+		}
+	}
+}
+
+func getGatewayDnsRecords(dns *lte_models.GatewayDNSConfigs) []*lte_mconfig.GatewayDNSConfigRecordsItems {
+	if dns.Records == nil {
+		return []*lte_mconfig.GatewayDNSConfigRecordsItems{}
+	}
+
+	ret := make([]*lte_mconfig.GatewayDNSConfigRecordsItems, 0, len(dns.Records))
+	for _, record := range dns.Records {
+		recordProto := &lte_mconfig.GatewayDNSConfigRecordsItems{}
+		recordProto.Domain = record.Domain
+		recordProto.ARecord = funk.Map(record.ARecord, func(a strfmt.IPv4) string { return string(a) }).([]string)
+		recordProto.AaaaRecord = funk.Map(record.AaaaRecord, func(a strfmt.IPv6) string { return string(a) }).([]string)
+		recordProto.CnameRecord = make([]string, 0, len(record.CnameRecord))
+		for _, cRecord := range record.CnameRecord {
+			recordProto.CnameRecord = append(recordProto.CnameRecord, cRecord)
+		}
+		ret = append(ret, recordProto)
+	}
+	return ret
+}
+
+func shouldEnableDNSCaching(dns *lte_models.GatewayDNSConfigs) bool {
+	if dns == nil {
+		return false
+	}
+	return swag.BoolValue(dns.EnableCaching)
 }

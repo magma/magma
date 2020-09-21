@@ -42,7 +42,6 @@ setup(
     scripts=[
         'scripts/checkin_cli.py',
         'scripts/directoryd_cli.py',
-        'scripts/generate_dnsd_config.py',
         'scripts/generate_lighttpd_config.py',
         'scripts/generate_nghttpx_config.py',
         'scripts/generate_service_config.py',

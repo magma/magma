@@ -56,6 +56,7 @@ setup(
         'scripts/enodebd_cli.py',
         'scripts/fake_user.py',
         'scripts/feg_hello_cli.py',
+        'scripts/generate_dnsd_config.py',
         'scripts/generate_oai_config.py',
         'scripts/hello_cli.py',
         'scripts/mobility_cli.py',
