@@ -34,7 +34,7 @@ import (
 const (
 	DefaultApn     = "test"
 	DefaultMsisdn  = "5100001234"
-	DefaultRatType = 6
+	DefaultRatType = 1
 )
 
 func TestHsslessAuthenticateUe(t *testing.T) {
@@ -77,9 +77,11 @@ func TestHsslessAuthenticateUe(t *testing.T) {
 
 	tr.WaitForPoliciesToSync()
 
-	ues[0].Msisdn = DefaultMsisdn
-	ues[0].Rat = DefaultRatType
-	ues[0].Apn = DefaultApn
+	ues[0].HsslessCfg = &cwfprotos.AuthenticateRequestHssLess{
+		Msisdn: DefaultMsisdn,
+		Rat:    DefaultRatType,
+		Apn:    DefaultApn,
+	}
 
 	_, err = server.AddUE(context.Background(), ues[0])
 	assert.NoError(t, err)

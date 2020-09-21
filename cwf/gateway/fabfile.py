@@ -146,9 +146,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
     if tests_to_run.value == SubTests.HSSLESS.value:
         _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
         execute(_run_integ_tests, gateway_host, trf_host, tests_to_run, test_re)
-        sys.exit(0)
-
-    execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
+    else:
+        execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
 
     # If we got here means everything work well!!
     if not test_host and not trf_host:

@@ -146,7 +146,6 @@ func getPCRFandOCSnamePerInstance(instanceId int) (pcrfName string, ocsName stri
 	return
 }
 
-
 // TestMultiSessionProxyMonitorAndUsageReportEnforcement is an experimental
 // test to try multiple OCS and PCRF servers. Currenty it only supports 1 UE
 // - Create one UE and add monitoring key and credit

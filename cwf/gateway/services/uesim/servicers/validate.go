@@ -91,7 +91,7 @@ func validateUEDataForHssLess(ue *protos.UEConfig) error {
 		return errors.New("Invalid Argument: UE data cannot be nil")
 	}
 	/*Validate MSISDN */
-	errMSISDN := validateUEMSISDN(ue.GetMsisdn())
+	errMSISDN := validateUEMSISDN(ue.GetHsslessCfg().GetMsisdn())
 	if errMSISDN != nil {
 		return errMSISDN
 	}

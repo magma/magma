@@ -47,7 +47,6 @@ const (
 	DefaultApn                  = "test"
 	DefaultMsisdn               = "5100001234"
 	DefaultRatType              = 6
-
 )
 
 var (
@@ -75,7 +74,6 @@ func init() {
 			"\tUsage: %s [OPTIONS] %s [%s OPTIONS] <IMSI>\n", os.Args[0], disconnectCmd.Name(), disconnectCmd.Name())
 		authFlags.PrintDefaults()
 	}
-
 
 	addUeCmd := cmdRegistry.Add("add_ue", "Add UE to UE Simulator", handleAddUeCmd)
 	addUeFlags := addUeCmd.Flags()
@@ -242,6 +240,10 @@ func handleTrafficGenCmd(cmd *commands.Command, args []string) int {
 	return 0
 }
 
+// getConfiguredSubscribers accepts optional imsi as a parameter and
+// returns array of protos.UEConfig. If no parameter is provided, then all the
+// UEs configured in the uesim.yml are included in the protos.UEConfig.
+
 func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
 	if err != nil {
@@ -257,16 +259,17 @@ func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
 	}
 	var ues []*protos.UEConfig
 	if len(params) > 0 {
+		// Return UEConfig for a single IMSI
 		imsi := params[0]
 		subscriber, ok := rawMap[imsi]
 		if !ok {
 			return nil, fmt.Errorf("unable to find imsi %s in uesim.yml", imsi)
 		}
-		rawMap, ok := subscriber.(map[interface{}]interface{})
+		subscriberCfg, ok := subscriber.(map[interface{}]interface{})
 		if !ok {
-			return nil, fmt.Errorf("unable to convert %T to map %v", subscriber, rawMap)
+			return nil, fmt.Errorf("unable to convert %T to map %v", subscriber, subscriberCfg)
 		}
-		configMap := &config.ConfigMap{RawMap: rawMap}
+		configMap := &config.ConfigMap{RawMap: subscriberCfg}
 
 		ue, err := createUeConfig(imsi, 0, configMap)
 		if err != nil {
@@ -276,16 +279,17 @@ func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
 		return ues, nil
 	}
 
+	// Return UEConfig for all the IMSIs configured in uesim.yml
 	for k, v := range rawMap {
 		imsi, ok := k.(string)
 		if !ok {
 			continue
 		}
-		rawMap, ok := v.(map[interface{}]interface{})
+		subscriberCfg, ok := v.(map[interface{}]interface{})
 		if !ok {
 			continue
 		}
-		configMap := &config.ConfigMap{RawMap: rawMap}
+		configMap := &config.ConfigMap{RawMap: subscriberCfg}
 
 		ue, err := createUeConfig(imsi, 0, configMap)
 		if err != nil {
@@ -344,9 +348,11 @@ func createUeConfig(imsi string, seq_num uint64, configMap *config.ConfigMap) (*
 		AuthKey: authKeyBytes,
 		AuthOpc: opc[:],
 		Seq:     seq_num,
-		Msisdn:  msisdn,
-		Apn:     apn,
-		Rat:     uint32(rat),
+		HsslessCfg: &protos.AuthenticateRequestHssLess{
+			Msisdn: msisdn,
+			Apn:    apn,
+			Rat:    uint32(rat),
+		},
 	}, nil
 
 }

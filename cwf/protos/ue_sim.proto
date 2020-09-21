@@ -22,6 +22,19 @@ option go_package = "magma/cwf/cloud/go/protos";
 // --------------------------------------------------------------------------
 // UE config
 // --------------------------------------------------------------------------
+
+
+message AuthenticateRequestHssLess {
+	// MSISDN
+    string msisdn = 1;
+
+    // APN
+    string apn = 2;
+
+    //RAT
+    uint32 rat = 3;
+}
+
 message UEConfig {
     // Unique identifier for the UE.
     string imsi = 1;
@@ -35,14 +48,10 @@ message UEConfig {
     // Sequence Number (SEQ).
     uint64 seq = 4;
 
-    // MSISDN
-    string msisdn = 5;
+    // HSSLess Config
+    AuthenticateRequestHssLess hssless_cfg = 5;
 
-    // APN
-    string apn = 6;
 
-    //RAT
-    uint32 rat = 7;
 }
 
 message AuthenticateRequest {

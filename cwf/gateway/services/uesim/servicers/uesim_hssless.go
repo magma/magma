@@ -26,11 +26,8 @@ import (
 )
 
 const (
-	imsiPrefix    = "IMSI"
-	defaultUeIp   = "192.168.88.88"
-	defaultApn    = "wifi"
-	KiloBytes     = 1024
-	defaultMSISDN = "5100001234"
+	IMSI_PREFIX    = "IMSI"
+	DEFAULT_UE_IP   = "192.168.88.88"
 )
 
 // UESimServerHssLess tracks all the UEs being simulated.
@@ -79,8 +76,8 @@ func (srv *UESimServerHssLess) Disconnect(ctx context.Context, id *cwfprotos.Dis
 	}
 
 	req := &lte_protos.LocalEndSessionRequest{
-		Sid: makeSID(ue.GetImsi()),
-		Apn: defaultApn,
+		Sid: makeSubscriberId(ue.GetImsi()),
+		Apn: ue.GetHsslessCfg().GetApn(),
 	}
 	_, err = session_manager.EndSession(req)
 	if err != nil {
@@ -93,16 +90,16 @@ func (srv *UESimServerHssLess) Authenticate(ctx context.Context, id *cwfprotos.A
 
 	ue, err := getUE(srv.store, id.GetImsi())
 	if err != nil {
-		return &cwfprotos.AuthenticateResponse{SessionId: ""}, err
+		return &cwfprotos.AuthenticateResponse{}, err
 	}
 
 	req := &lte_protos.LocalCreateSessionRequest{
 		CommonContext: &lte_protos.CommonSessionContext{
-			Sid:     makeSID(ue.GetImsi()),
-			UeIpv4:  defaultUeIp,
-			Apn:     defaultApn,
-			Msisdn:  ([]byte)(ue.GetMsisdn()),
-			RatType: lte_protos.RATType_TGPP_WLAN,
+			Sid:     makeSubscriberId(ue.GetImsi()),
+			UeIpv4:  DEFAULT_UE_IP,
+			Apn:     ue.GetHsslessCfg().GetApn(),
+			Msisdn:  ([]byte)(ue.GetHsslessCfg().GetMsisdn()),
+			RatType: (lte_protos.RATType)(ue.GetHsslessCfg().GetRat()),
 		},
 		RatSpecificContext: &lte_protos.RatSpecificContext{
 			Context: &lte_protos.RatSpecificContext_WlanContext{
@@ -125,9 +122,9 @@ func (srv *UESimServerHssLess) GenTraffic(ctx context.Context, req *cwfprotos.Ge
 	return nil, nil
 }
 
-func makeSID(imsi string) *lte_protos.SubscriberID {
-	if !strings.HasPrefix(imsi, imsiPrefix) {
-		imsi = imsiPrefix + imsi
+func makeSubscriberId(imsi string) *lte_protos.SubscriberID {
+	if !strings.HasPrefix(imsi, IMSI_PREFIX) {
+		imsi = IMSI_PREFIX + imsi
 	}
 	return &lte_protos.SubscriberID{Id: imsi, Type: lte_protos.SubscriberID_IMSI}
 }
