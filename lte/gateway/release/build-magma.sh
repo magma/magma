@@ -259,7 +259,7 @@ if [ -f ${BUILD_PATH} ]; then
   rm ${BUILD_PATH}
 fi
 
-SERVICE_DIR="/etc/systemd/system/"
+SERVICE_DIR="/lib/systemd/system/"
 ANSIBLE_FILES="${MAGMA_ROOT}/lte/gateway/deploy/roles/magma/files"
 
 SCTPD_VERSION_FILE=$(mktemp)
