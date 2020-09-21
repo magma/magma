@@ -22,7 +22,6 @@ require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
 	github.com/Microsoft/go-winio v0.4.14 // indirect
-	github.com/davecgh/go-spew v1.1.1
 	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
 	github.com/docker/go-connections v0.4.0 // indirect
