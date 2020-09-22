@@ -451,6 +451,7 @@ static int _emm_proc_combined_attach_req(
   char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
 
   if (emm_ctx_p->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI) {
+    // Only send LUR for SMS and CSFB_SMS, not SMS_ORC8R
     if (!(strcmp(non_eps_service_control, "SMS")) ||
         !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
       if (is_mme_ue_context_network_access_mode_packet_only(ue_mm_context_p)) {

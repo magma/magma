@@ -45,6 +45,15 @@ generate_cpp_protos("${SGSSRV_FEG_CPP_PROTOS}" "${PROTO_SRCS}"
 generate_grpc_protos("${SGSSRV_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
 
+# SMS Orc8r
+set(SMOSRV_LTE_CPP_PROTOS sms_orc8r)
+set(SMOSRV_LTE_GRPC_PROTOS sms_orc8r)
+generate_cpp_protos("${SMOSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${SMOSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(TASK_GRPC_SERVICE
@@ -52,6 +61,7 @@ add_library(TASK_GRPC_SERVICE
     S6aGatewayImpl.cpp
     S6aServiceImpl.cpp
     CSFBGatewayServiceImpl.cpp
+    SMSOrc8rGatewayServiceImpl.cpp
     spgw_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
