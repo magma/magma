@@ -23,6 +23,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/eap/providers/sim"
 	"magma/feg/gateway/services/eap/providers/sim/metrics"
 )
@@ -57,18 +58,13 @@ type touts struct {
 	sessionAuthenticatedTimeout time.Duration
 }
 
-type plmnIdVal struct {
-	l5 bool
-	b6 byte
-}
-
 type EapSimSrv struct {
 	rwl sync.RWMutex // R/W lock synchronizing maps access
 	// Map of UE Sessions keyed by sessionId
 	sessions map[string]*SessionCtx
 
 	// PLMN IDs map, if not empty -> serve only IMSIs with specified PLMN IDs - Read Only
-	plmnIds map[string]plmnIdVal
+	plmnFilter plmn_filter.PlmnIdVals
 
 	timeouts touts
 }
@@ -115,9 +111,9 @@ func (s *EapSimSrv) SetSessionAuthenticatedTimeout(tout time.Duration) {
 // NewEapSimService creates new Sim Service 'object'
 func NewEapSimService(config *mconfig.EapProviderConfig) (*EapSimSrv, error) {
 	service := &EapSimSrv{
-		sessions: map[string]*SessionCtx{},
-		plmnIds:  map[string]plmnIdVal{},
-		timeouts: defaultTimeouts,
+		sessions:   map[string]*SessionCtx{},
+		plmnFilter: plmn_filter.PlmnIdVals{},
+		timeouts:   defaultTimeouts,
 	}
 	if config != nil {
 		if config.Timeout != nil {
@@ -135,32 +131,15 @@ func NewEapSimService(config *mconfig.EapProviderConfig) (*EapSimSrv, error) {
 					time.Millisecond * time.Duration(config.Timeout.SessionAuthenticatedMs))
 			}
 		}
-		for _, plmnid := range config.PlmnIds {
-			l := len(plmnid)
-			switch l {
-			case 5:
-				service.plmnIds[plmnid] = plmnIdVal{l5: true}
-			case 6:
-				plmnid5 := plmnid[:5]
-				val, _ := service.plmnIds[plmnid5]
-				val.b6 = plmnid[5]
-				service.plmnIds[plmnid5] = val
-			}
-		}
+		service.plmnFilter = plmn_filter.GetPlmnVals(config.PlmnIds, "EAP-SIM")
 	}
 	return service, nil
 }
 
-// CheckPlmnId returns true either if there is no PLMN ID filters (allowlist) configured or
-// one the configured PLMN IDs matches passed IMSI
+// CheckPlmnId returns true either if there is no PLMN ID filters configured or
+// one the configured PLMN IDs matches given IMSI
 func (s *EapSimSrv) CheckPlmnId(imsi sim.IMSI) bool {
-	if len(s.plmnIds) == 0 {
-		return true
-	}
-	if val, ok := s.plmnIds[string(imsi)[:5]]; ok && (val.l5 || (len(imsi) > 5 && val.b6 == imsi[6])) {
-		return true
-	}
-	return false
+	return s == nil || s.plmnFilter.Check(string(imsi))
 }
 
 // Unlock - unlocks the CTX
