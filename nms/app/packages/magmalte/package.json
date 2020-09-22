@@ -14,7 +14,7 @@
     "mockserver": "node -r '@fbcnms/babel-register' scripts/mockServer.js"
   },
   "dependencies": {
-    "@date-io/moment": "1.x",
+    "@date-io/moment": "2.x",
     "@fbcnms/alarms": "^0.1.12",
     "@fbcnms/auth": "^0.1.0",
     "@fbcnms/babel-register": "^0.1.2",
