@@ -53,6 +53,9 @@ services:
   sgs_service:
     ip_address: 127.0.0.1
     port: 50073
+  sms_orc8r_service:
+    ip_address: 127.0.0.1
+    port: 50073
   s6a_service:
     ip_address: 127.0.0.1
     port: 50073

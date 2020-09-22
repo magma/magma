@@ -27,10 +27,31 @@
 #include "3gpp_24.008.h"
 #include "common_ies.h"
 #include "feg/protos/csfb.pb.h"
+#include "lte/protos/sms_orc8r.pb.h"
 
 extern "C" {
 #include "bytes_to_ie.h"
 }
+
+namespace magma {
+using namespace lte;
+
+// SMS Orc8r Downlink
+void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
+    const SMODownlinkUnitdata* msg, itti_sgsap_downlink_unitdata_t* itti_msg) {
+  auto imsi             = msg->imsi();
+  itti_msg->imsi_length = imsi.length();
+  strcpy(itti_msg->imsi, imsi.c_str());
+
+  auto nas_msg = msg->nas_message_container();
+  itti_msg->nas_msg_container =
+      bfromcstr_for_nas_msg_container(nas_msg.c_str(), nas_msg.length());
+
+  return;
+}
+
+} // namespace magma
+
 
 namespace magma {
 using namespace feg;
