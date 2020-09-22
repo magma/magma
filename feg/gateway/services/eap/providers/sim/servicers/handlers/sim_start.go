@@ -75,6 +75,14 @@ func startResponse(s *servicers.EapSimSrv, ctx *protos.Context, req eap.Packet) 
 			} else {
 				imsi = imsi[1:]
 			}
+			if !s.CheckPlmnId(imsi) {
+				s.UpdateSessionTimeout(ctx.SessionId, s.NotificationTimeout())
+				return sim.EapErrorResPacket(
+					identifier,
+					sim.NOTIFICATION_FAILURE,
+					codes.PermissionDenied,
+					"PLMN ID of IMSI: %s is not permitted", imsi)
+			}
 		case sim.AT_NONCE_MT:
 			if a.AttrLen() != 5 {
 				return sim.EapErrorResPacket(
