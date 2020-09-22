@@ -200,12 +200,12 @@ class RestartResilienceTest(unittest.TestCase):
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi1),
-                    ip_addr=convert_ipv4_str_to_ip_proto(sub2_ip),
+                    ip_addr=sub2_ip,
                     dynamic_rules=policies1
                 ),
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi2),
-                    ip_addr=convert_ipv4_str_to_ip_proto(sub2_ip),
+                    ip_addr=sub2_ip,
                     dynamic_rules=policies2
                 ),
             ],
@@ -268,7 +268,7 @@ class RestartResilienceTest(unittest.TestCase):
         setup_flows_request = SetupFlowsRequest(
             requests=[ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(imsi2),
-                ip_addr=convert_ipv4_str_to_ip_proto(sub2_ip),
+                ip_addr=sub2_ip,
                 dynamic_rules=policies
             )],
             epoch=global_epoch
@@ -412,7 +412,7 @@ class RestartResilienceTest(unittest.TestCase):
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
-                    ip_addr=convert_ipv4_str_to_ip_proto(sub_ip),
+                    ip_addr=sub_ip,
                     rule_ids=[policies[0].id, policies[1].id]
                 ),
             ],
@@ -474,7 +474,7 @@ class RestartResilienceTest(unittest.TestCase):
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
-                    ip_addr=convert_ipv4_str_to_ip_proto(sub_ip),
+                    ip_addr=sub_ip,
                     dynamic_rules=[policy]
                 ),
             ],

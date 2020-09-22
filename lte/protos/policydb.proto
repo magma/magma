@@ -133,9 +133,10 @@ message FlowMatch {
   IPAddress ip_src = 10;
   IPAddress ip_dst = 11;
 
-  reserved 1, 2;
-  //string ipv4_src = 1;
-  //string ipv4_dst = 2;
+  // TODO deprecate these after safe move to ip_sr/ip_dst vars
+  //reserved 1, 2;
+  string ipv4_src = 1;
+  string ipv4_dst = 2;
 }
 
 message QosArp {

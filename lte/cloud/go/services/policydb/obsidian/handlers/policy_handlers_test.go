@@ -200,6 +200,113 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tc.ExpectedResult = tests.JSONMarshaler([]string{})
 	tests.RunUnitTest(t, e, tc)
 
+	// Test add invalid policy rule
+	testRule_invalid_rule := &policyModels.PolicyRule{
+		ID: "PolicyRule_invalid",
+		FlowList: []*policyModels.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &policyModels.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPDst: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "42.42.42.42",
+					},
+					IPSrc: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "192.168.0.1/24",
+					},
+					IPV4Dst: "42.42.42.42",
+					IPV4Src: "192.168.0.1/24",
+					TCPDst:  2,
+				},
+			},
+		},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n1/policies/rules",
+		Payload:        testRule_invalid_rule,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createPolicy,
+		ExpectedStatus: 400,
+		ExpectedError:  "Invalid Argument: Can't mix old ipv4_src/ipv4_dst type with the new ip_src/ip_dst",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test add invalid policy rule
+	test_old_ip_policy := &policyModels.PolicyRule{
+		ID: "test_old_ip_policy",
+		FlowList: []*policyModels.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &policyModels.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPV4Dst:   "42.42.42.42",
+					IPV4Src:   "192.168.0.1/24",
+					TCPDst:    2,
+				},
+			},
+		},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n1/policies/rules",
+		Payload:        test_old_ip_policy,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createPolicy,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	test_modified_policy := &policyModels.PolicyRule{
+		ID: "test_old_ip_policy",
+		FlowList: []*policyModels.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &policyModels.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPDst: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "42.42.42.42",
+					},
+					IPSrc: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "192.168.0.1/24",
+					},
+					TCPDst: 2,
+				},
+			},
+		},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
+	}
+
+	// Test Read Rule Using URL based ID
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/networks/n1/policies/rules/test_old_ip_policy",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "test_old_ip_policy"},
+		Handler:        getPolicy,
+		ExpectedStatus: 200,
+		ExpectedResult: test_modified_policy,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Test Multi Match Add Rule
 	testRule = &policyModels.PolicyRule{
 		ID: "Test_mult",

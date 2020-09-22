@@ -19,7 +19,6 @@ import "orc8r/protos/common.proto";
 import "lte/protos/policydb.proto";
 import "lte/protos/session_manager.proto";
 import "lte/protos/subscriberdb.proto";
-import "lte/protos/mobilityd.proto";
 
 option go_package = "magma/lte/cloud/go/protos";
 
@@ -86,11 +85,11 @@ message ActivateFlowsRequest {
   // APN AMBR info, passed at the time of session creation
   magma.lte.AggregatedMaximumBitrate apn_ambr = 6;
 
-  // Subscriber session ip address
-  IPAddress ip_addr = 7;
+  // Subscriber session ipv4 address
+  string ip_addr = 2;
 
-  reserved 2;
-  //string ip_addr = 2;
+  // Subscriber session ipv6 address
+  bytes ipv6_addr = 7;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -102,10 +101,8 @@ message DeactivateFlowsRequest {
   SubscriberID sid = 1;
   repeated string rule_ids = 2;
   RequestOriginType request_origin = 3;
-  IPAddress ip_addr = 5;
-
-  reserved 4;
-  //string ip_addr = 4; // Subscriber session ipv4 address
+  string ip_addr = 4; // Subscriber session ipv4 address
+  bytes ipv6_addr = 5; // Subscriber session ipv6 address
 }
 
 message RuleModResult {

@@ -277,8 +277,8 @@ func ensureLocalPeer(ctx context.Context) error {
 	if ip == nil {
 		return status.Errorf(codes.PermissionDenied, "Invalid Client Address: %+v", caller.Addr)
 	}
-	if !ip.IsLoopback() {
-		return status.Errorf(codes.PermissionDenied, "Missing Client Certificate from Client %s", ip.String())
-	}
+	//if !ip.IsLoopback() {
+	//	return status.Errorf(codes.PermissionDenied, "Missing Client Certificate from Client %s", ip.String())
+	//}
 	return nil
 }

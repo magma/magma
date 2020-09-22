@@ -34,9 +34,9 @@ def add_rule(args):
     policy_dict = PolicyRuleDict()
     arg_list = {'ip_proto': args.ip_proto,
                 'ip_dst': IPAddress(version=IPAddress.IPV4,
-                                    address=args.ip_dst),
+                                    address=args.ipv4_dst.encode('utf-8')),
                 'ip_src': IPAddress(version=IPAddress.IPV4,
-                                    address=args.ip_src),
+                                    address=args.ipv4_src.encode('utf-8')),
                 'tcp_dst': args.tcp_dst,
                 'tcp_src': args.tcp_src,
                 'udp_dst': args.udp_dst,

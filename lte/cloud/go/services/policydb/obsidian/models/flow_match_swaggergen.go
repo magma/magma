@@ -35,6 +35,12 @@ type FlowMatch struct {
 	// ip src
 	IPSrc *IPAddress `json:"ip_src,omitempty" magma_alt_name:"IpSrc"`
 
+	// ipv4 dst
+	IPV4Dst string `json:"ipv4_dst,omitempty" magma_alt_name:"Ipv4Dst"`
+
+	// ipv4 src
+	IPV4Src string `json:"ipv4_src,omitempty" magma_alt_name:"Ipv4Src"`
+
 	// tcp dst
 	TCPDst uint32 `json:"tcp_dst,omitempty" magma_alt_name:"TcpDst"`
 

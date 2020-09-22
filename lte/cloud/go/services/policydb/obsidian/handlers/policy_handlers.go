@@ -254,6 +254,25 @@ func CreateRule(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
+	if rule.FlowList != nil {
+		for _, flow_desc := range rule.FlowList {
+			if flow_desc.Match.IPV4Src != "" {
+				flow_desc.Match.IPSrc = &models.IPAddress{
+					Version: models.IPAddressVersionIPV4,
+					Address: flow_desc.Match.IPV4Src,
+				}
+				flow_desc.Match.IPV4Src = ""
+			}
+			if flow_desc.Match.IPV4Dst != "" {
+				flow_desc.Match.IPDst = &models.IPAddress{
+					Version: models.IPAddressVersionIPV4,
+					Address: flow_desc.Match.IPV4Dst,
+				}
+				flow_desc.Match.IPV4Dst = ""
+			}
+		}
+	}
+
 	// Verify that subscribers and policies exist
 	var allAssocs storage.TKs
 	allAssocs = append(allAssocs, rule.GetParentAssocs()...)
@@ -322,6 +341,25 @@ func UpdateRule(c echo.Context) error {
 	}
 	if ruleID != string(rule.ID) {
 		return obsidian.HttpError(errors.New("rule ID in body does not match URL param"), http.StatusBadRequest)
+	}
+
+	if rule.FlowList != nil {
+		for _, flow_desc := range rule.FlowList {
+			if flow_desc.Match.IPV4Src != "" {
+				flow_desc.Match.IPSrc = &models.IPAddress{
+					Version: models.IPAddressVersionIPV4,
+					Address: flow_desc.Match.IPV4Src,
+				}
+				flow_desc.Match.IPV4Src = ""
+			}
+			if flow_desc.Match.IPV4Dst != "" {
+				flow_desc.Match.IPDst = &models.IPAddress{
+					Version: models.IPAddressVersionIPV4,
+					Address: flow_desc.Match.IPV4Dst,
+				}
+				flow_desc.Match.IPV4Dst = ""
+			}
+		}
 	}
 
 	// 404 if the rule doesn't exist

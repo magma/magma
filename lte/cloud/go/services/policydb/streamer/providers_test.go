@@ -227,6 +227,8 @@ func TestPolicyStreamers(t *testing.T) {
 							Version: lte_protos.IPAddress_IPV4,
 							Address: []byte("192.168.160.0/24"),
 						},
+						Ipv4Dst: "192.168.160.0/24",
+						Ipv4Src: "192.168.128.0/24",
 					},
 					Action: lte_protos.FlowDescription_PERMIT,
 				},

@@ -31,6 +31,7 @@ from lte.protos.pipelined_pb2 import (
     AllTableAssignments,
     TableAssignment)
 from lte.protos.policydb_pb2 import PolicyRule
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -40,6 +41,7 @@ from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
@@ -139,15 +141,16 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         flow install fails after, no traffic will be directed to the
         enforcement_stats flows.
         """
+        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
         logging.debug('Activating GX flows for %s', request.sid.id)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, request.ip_addr, rule_id)
+                request.sid.id, ipv4, rule_id)
         for rule in request.dynamic_rules:
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, request.ip_addr, rule.id)
+                request.sid.id, ipv4, rule.id)
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.ip_addr, request.apn_ambr, request.rule_ids,
+            request.sid.id, ipv4, request.apn_ambr, request.rule_ids,
             request.dynamic_rules)
 
         failed_static_rule_results, failed_dynamic_rule_results = \
@@ -158,7 +161,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         dynamic_rules = \
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
         enforcement_res = self._activate_rules_in_enforcement(
-            request.sid.id, request.ip_addr, request.apn_ambr, static_rule_ids,
+            request.sid.id, ipv4, request.apn_ambr, static_rule_ids,
             dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
@@ -177,20 +180,22 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         flow install fails after, no traffic will be directed to the
         enforcement_stats flows.
         """
+        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
         logging.debug('Activating GY flows for %s', request.sid.id)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, request.ip_addr, rule_id)
+                request.sid.id, ipv4, rule_id)
         for rule in request.dynamic_rules:
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, request.ip_addr, rule.id)
+                request.sid.id, ipv4, rule.id)
 
-        res = self._activate_rules_in_gy(request.sid.id, request.ip_addr, request.apn_ambr,
+        res = self._activate_rules_in_gy(request.sid.id, ipv4, request.apn_ambr,
             request.rule_ids, request.dynamic_rules)
 
         fut.set_result(res)
 
-    def _activate_rules_in_enforcement_stats(self, imsi: str, ip_addr: str,
+    def _activate_rules_in_enforcement_stats(self, imsi: str,
+                                             ip_addr: IPAddress,
                                              apn_ambr: AggregatedMaximumBitrate,
                                              static_rule_ids: List[str],
                                              dynamic_rules: List[PolicyRule]
@@ -204,7 +209,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
-    def _activate_rules_in_enforcement(self, imsi: str, ip_addr: str,
+    def _activate_rules_in_enforcement(self, imsi: str, ip_addr: IPAddress,
                                        apn_ambr: AggregatedMaximumBitrate,
                                        static_rule_ids: List[str],
                                        dynamic_rules: List[PolicyRule]
@@ -217,7 +222,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         _report_enforcement_failures(enforcement_res, imsi)
         return enforcement_res
 
-    def _activate_rules_in_gy(self, imsi: str, ip_addr: str,
+    def _activate_rules_in_gy(self, imsi: str, ip_addr: IPAddress,
                               apn_ambr: AggregatedMaximumBitrate,
                               static_rule_ids: List[str],
                               dynamic_rules: List[PolicyRule]
@@ -246,22 +251,24 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return DeactivateFlowsResult()
 
     def _deactivate_flows_gx(self, request):
+        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
         logging.debug('Deactivating GX flows for %s', request.sid.id)
         if request.rule_ids:
             for rule_id in request.rule_ids:
                 self._service_manager.session_rule_version_mapper \
-                    .update_version(request.sid.id, request.ip_addr,
+                    .update_version(request.sid.id, ipv4,
                                     rule_id)
         else:
             # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, request.ip_addr)
-        self._enforcer_app.deactivate_rules(request.sid.id, request.ip_addr,
+        self._enforcer_app.deactivate_rules(request.sid.id, ipv4,
                                             request.rule_ids)
 
     def _deactivate_flows_gy(self, request):
+        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
         logging.debug('Deactivating GY flows for %s', request.sid.id)
-        self._gy_app.deactivate_rules(request.sid.id, request.ip_addr,
+        self._gy_app.deactivate_rules(request.sid.id, ipv4,
                                       request.rule_ids)
 
     def GetPolicyUsage(self, request, context):

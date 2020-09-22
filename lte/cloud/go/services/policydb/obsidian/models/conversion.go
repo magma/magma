@@ -323,6 +323,15 @@ func (m *FlowDescription) ToProto() *protos.FlowDescription {
 		},
 	}
 	orc8rProtos.FillIn(m.Match, flowDescription.Match)
+
+	// Backwards compatible for old flow match definition
+	if m.Match.IPDst != nil {
+		flowDescription.Match.Ipv4Dst = m.Match.IPDst.Address
+	}
+	if m.Match.IPSrc != nil {
+		flowDescription.Match.Ipv4Src = m.Match.IPSrc.Address
+	}
+
 	return flowDescription
 }
 

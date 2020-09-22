@@ -8,9 +8,9 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: magma_dev
-      POSTGRES_PASSWORD: magma_dev
-      POSTGRES_DB: magma_dev
+      POSTGRES_USER: magma
+      POSTGRES_PASSWORD: magma
+      POSTGRES_DB: magma
     restart: always
 
   maria:
@@ -32,7 +32,7 @@ services:
     environment:
       TEST_MODE: "1"  # Used to run dev scripts on startup
       SQL_DRIVER: postgres
-      DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
+      DATABASE_SOURCE: "dbname=magma user=magma password=magma host=postgres sslmode=disable"
       SQL_DIALECT: psql
 
       # To use MariaDB, use these connection parameters instead:
