@@ -50,14 +50,6 @@ class GYController(PolicyMixin, MagmaController):
     """
     APP_NAME = "gy"
     APP_TYPE = ControllerType.LOGICAL
-    ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
-    # For allowing unlcassified flows for app/service type rules.
-    UNCLASSIFIED_ALLOW_PRIORITY = ENFORCE_DROP_PRIORITY + 1
-    # Should not overlap with the drop flow as drop matches all packets.
-    MIN_GY_PROGRAMMED_FLOW = UNCLASSIFIED_ALLOW_PRIORITY + 1
-    MAX_GY_PRIORITY = flows.MAXIMUM_PRIORITY
-    # Effectively range is 3 -> 65535
-    GY_PRIORITY_RANGE = MAX_GY_PRIORITY - MIN_GY_PROGRAMMED_FLOW
 
     def __init__(self, *args, **kwargs):
         super(GYController, self).__init__(*args, **kwargs)
@@ -65,7 +57,7 @@ class GYController(PolicyMixin, MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
-        self._enforcement_stats_scratch = self._service_manager.get_table_num(
+        self._enforcement_stats_tbl = self._service_manager.get_table_num(
             EnforcementStatsController.APP_NAME)
         self.loop = kwargs['loop']
         self._msg_hub = MessageHub(self.logger)
@@ -306,7 +298,7 @@ class GYController(PolicyMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        priority = self.get_of_priority(rule.priority)
+        priority = self._get_of_priority(rule.priority)
 
         flow_adds = []
         for flow in rule.flow_list:
@@ -353,7 +345,7 @@ class GYController(PolicyMixin, MagmaController):
                     hard_timeout=hard_timeout,
                     priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
-                    resubmit_table=self._enforcement_stats_scratch)
+                    resubmit_table=self._enforcement_stats_tbl)
             )
             flow_match.app_id = get_app_id(
                 PolicyRule.AppName.Name(app_name),
@@ -380,7 +372,7 @@ class GYController(PolicyMixin, MagmaController):
                 hard_timeout=hard_timeout,
                 priority=priority,
                 cookie=rule_num,
-                resubmit_table=self._enforcement_stats_scratch)
+                resubmit_table=self._enforcement_stats_tbl)
             )
         return msgs
 
@@ -435,25 +427,6 @@ class GYController(PolicyMixin, MagmaController):
              parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
              ])
         return actions, instructions
-
-    def get_of_priority(self, precedence):
-        """
-        Lower the precedence higher the importance of the flow in 3GPP.
-        Higher the priority higher the importance of the flow in openflow.
-        Convert precedence to priority:
-        1 - Flows with precedence > 65534 will have min priority which is the
-        min priority for a programmed flow = (default drop + 1)
-        2 - Flows in the precedence range 0-65534 will have priority 65535 -
-        Precedence
-        :param precedence:
-        :return:
-        """
-        if precedence >= self.GY_PRIORITY_RANGE:
-            self.logger.warning(
-                "Flow precedence is higher than OF range using min priority %d",
-                self.MIN_GY_PROGRAMMED_FLOW)
-            return self.MIN_GY_PROGRAMMED_FLOW
-        return self.MAX_GY_PRIORITY - precedence
 
     @set_ev_cls(ofp_event.EventOFPMeterConfigStatsReply, MAIN_DISPATCHER)
     def meter_config_stats_reply_handler(self, ev):
