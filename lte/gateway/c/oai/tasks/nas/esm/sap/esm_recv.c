@@ -251,8 +251,10 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     if (esm_data->apn) bdestroy_wrapper(&esm_data->apn);
     if (mme_config.nas_config.enable_apn_correction) {
       esm_data->apn = mme_app_process_apn_correction(&(emm_context->_imsi), msg->accesspointname);
-      OAILOG_ERROR(
+      OAILOG_INFO(
           LOG_NAS_ESM, "ESM-SAP   - APN CORRECTION (apn = %s)\n", (const char *) bdata(esm_data->apn));
+    } else {
+      esm_data->apn = msg->accesspointname;
     }
   }
 
@@ -580,7 +582,7 @@ esm_cause_t esm_recv_information_response(
   bstring apn = msg->accesspointname;
   if (mme_config.nas_config.enable_apn_correction) {
     apn = mme_app_process_apn_correction(&(emm_context->_imsi), msg->accesspointname);
-    OAILOG_ERROR(
+    OAILOG_INFO(
         LOG_NAS_ESM, "ESM-SAP   - APN CORRECTION (apn = %s)\n", (const char *) bdata(apn));
   }
 

@@ -148,7 +148,10 @@ def _get_attached_enodeb_tacs():
 
 def _get_apn_correction_map_list():
     mme_config = load_service_mconfig("mme", MME())
+    if len(mme_config.apn_correction_map_list) == 0:
+        return get_service_config_value("mme", "apn_correction_map_list", None)
     return mme_config.apn_correction_map_list
+
 
 def _get_context():
     """
