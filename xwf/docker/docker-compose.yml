@@ -16,10 +16,10 @@ services:
     ports:
       - "24224:24224"
     healthcheck:
-        test: ["CMD", "nc", "-vz", "localhost", "24224"]
-        interval: 30s
-        timeout: 10s
-        retries: 15
+      test: ["CMD", "nc", "-vz", "localhost", "24224"]
+      interval: 30s
+      timeout: 10s
+      retries: 15
     environment:
       - SCRIBE_ACCESS_TOKEN=${XWF_SCUBA_ACCESS_TOKEN}
       - SCUBA_TABLE=perfpipe_xwf_openflow_compose_logs
@@ -28,6 +28,7 @@ services:
     privileged: true
     networks:
       - control
+      - server
     environment:
       - APPURL=${APPURL:-https://graph.expresswifi.com}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
@@ -195,6 +196,7 @@ services:
       - OFPROXY_ADDR=ofproxy
       - OFPROXY_PORT=6653
       - ACCESS_TOKEN=${XWF_ACCESSTOKEN}
+      - INSECURE=${INSECURE:-}
     depends_on:
       - ofproxy
       - logrouter
@@ -209,6 +211,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - control
+      - server
     environment:
       - ACCESSTOKEN=${XWF_ACCESSTOKEN}
       - BASE_URL=${APPURL:-https://graph.expresswifi.com}
@@ -273,9 +276,8 @@ volumes:
   configs_templates:
   openvswitch:
 networks:
-  wan:
-  lan:
+  server:
   control:
     ipam:
       config:
-      - subnet: 10.0.12.0/24
+        - subnet: 10.0.12.0/24
