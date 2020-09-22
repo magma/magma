@@ -28,6 +28,7 @@
 #include "ChargingGrant.h"
 
 namespace magma {
+using std::experimental::optional;
 typedef std::unordered_map<
     CreditKey, std::unique_ptr<ChargingGrant>, decltype(&ccHash),
     decltype(&ccEqual)>
@@ -55,10 +56,10 @@ struct RuleSetToApply {
 struct RuleSetBySubscriber {
   std::string imsi;
   std::unordered_map<std::string, RuleSetToApply> rule_set_by_apn;
-  std::experimental::optional<RuleSetToApply> subscriber_wide_rule_set;
+  optional<RuleSetToApply> subscriber_wide_rule_set;
 
   RuleSetBySubscriber(const RulesPerSubscriber& rules_per_subscriber);
-  std::experimental::optional<RuleSetToApply> get_combined_rule_set_for_apn(
+  optional<RuleSetToApply> get_combined_rule_set_for_apn(
       const std::string& apn);
 };
 
@@ -82,7 +83,7 @@ class SessionState {
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
-    std::experimental::optional<AggregatedMaximumBitrate> ambr;
+    optional<AggregatedMaximumBitrate> ambr;
   };
   struct TotalCreditUsage {
     uint64_t monitoring_tx;
@@ -225,8 +226,7 @@ class SessionState {
    * @param rule_id
    * @return the type if the rule exists, {} otherwise.
    */
-  std::experimental::optional<PolicyType> get_policy_type(
-      const std::string& rule_id);
+  optional<PolicyType> get_policy_type(const std::string& rule_id);
 
   bool is_dynamic_rule_installed(const std::string& rule_id);
 
@@ -241,15 +241,15 @@ class SessionState {
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
+  void insert_gy_dynamic_rule(
+      const PolicyRule& rule, RuleLifetime& lifetime,
+      SessionStateUpdateCriteria& update_criteria);
+
   /**
    * Add a static rule to the session which is currently active.
    */
   void activate_static_rule(
       const std::string& rule_id, RuleLifetime& lifetime,
-      SessionStateUpdateCriteria& update_criteria);
-
-  void insert_gy_dynamic_rule(
-      const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -270,6 +270,10 @@ class SessionState {
       const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
+  bool remove_gy_dynamic_rule(
+      const std::string& rule_id, PolicyRule *rule_out,
+      SessionStateUpdateCriteria& update_criteria);
+
   /**
    * Remove a currently active static rule to mark it as deactivated.
    *
@@ -282,9 +286,6 @@ class SessionState {
   bool deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
-  bool remove_gy_dynamic_rule(
-      const std::string& rule_id, PolicyRule *rule_out,
-      SessionStateUpdateCriteria& update_criteria);
 
   bool deactivate_scheduled_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
@@ -367,7 +368,11 @@ class SessionState {
 
   EventTriggerStatus get_event_triggers() {return pending_event_triggers_;}
 
-  bool is_credit_state_redirected(const CreditKey &charging_key) const;
+  bool is_credit_in_final_unit_state(const CreditKey &charging_key) const;
+
+  void get_final_action_restrict_rules(
+      const CreditKey &charging_key,
+      std::vector<std::string> &restrict_rules);
 
   // Monitors
   bool receive_monitor(const UsageMonitoringUpdateResponse &update,
@@ -401,7 +406,16 @@ class SessionState {
   BearerUpdate get_dedicated_bearer_updates(
       RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
       SessionStateUpdateCriteria& uc);
-
+  /**
+   * Determine whether a policy with type+ID needs a bearer to be created
+   * @param policy_type
+   * @param rule_id
+   * @param config
+   * @return an optional wrapped PolicyRule if creation is needed, {} otherwise
+   */
+  std::experimental::optional<PolicyRule> policy_needs_bearer_creation(
+      const PolicyType policy_type, const std::string& rule_id,
+      const SessionConfig& config);
   /**
    *
    * @param rule_set

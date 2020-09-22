@@ -33,6 +33,7 @@ func NewDefaultNetworkConfig() *models.NetworkFederationConfigs {
 				Host:             "magma-fedgw.magma.com",
 				Realm:            "magma.com",
 			},
+			PlmnIds: []string{},
 		},
 		Gx: &models.Gx{
 			DisableGx: swag.Bool(false),

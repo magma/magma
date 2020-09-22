@@ -96,6 +96,9 @@ TEST(test_add_received_credit, test_session_credit) {
   EXPECT_EQ(credit.get_credit(USED_RX), 60);
   EXPECT_EQ(uc.bucket_deltas[USED_TX], 40);
   EXPECT_EQ(uc.bucket_deltas[USED_RX], 60);
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 100);
+
 }
 
 TEST(test_collect_updates, test_session_credit) {
@@ -108,6 +111,9 @@ TEST(test_collect_updates, test_session_credit) {
   credit.receive_credit(gsu, &uc);
   credit.add_used_credit(500, 524, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 1024);
+
   auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 500);
   EXPECT_EQ(update.bytes_rx, 524);
@@ -134,6 +140,9 @@ TEST(test_collect_updates_when_nearly_exhausted, test_session_credit) {
   credit.receive_credit(gsu, &uc);
   credit.add_used_credit(300, 500, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 800);
+
   auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 300);
   EXPECT_EQ(update.bytes_rx, 500);
@@ -158,6 +167,8 @@ TEST(test_collect_updates_none_available, test_session_credit) {
   credit.receive_credit(gsu, &uc);
   credit.add_used_credit(400, 399, uc);
   EXPECT_FALSE(credit.is_quota_exhausted(0.8));
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 799);
 }
 
 // The maximum of reported usage is NOT capped by what is granted even when an
@@ -172,6 +183,8 @@ TEST(test_collect_updates_when_overusing, test_session_credit) {
   credit.receive_credit(gsu, &uc);
   credit.add_used_credit(510, 500, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.total(), 1000);
   auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 510);
   EXPECT_EQ(update.bytes_rx, 500);
@@ -202,12 +215,21 @@ TEST(test_add_rx_tx_credit, test_session_credit) {
   auto update = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update.bytes_tx, 1000);
   EXPECT_EQ(update.bytes_rx, 0);
+  RequestedUnits ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.tx(), 1000);
+  EXPECT_EQ(ru.rx(), 0);
+  EXPECT_EQ(ru.total(), 0);
 
   // receive another tx = 1000, rx = 1000, cumulative: tx = 2000, rx = 2000
   credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TX_AND_RX);
   credit.add_used_credit(50, 2000, uc);
   EXPECT_TRUE(credit.is_quota_exhausted(0.8));
+  ru = credit.get_requested_credits_units();
+  EXPECT_EQ(ru.tx(), 50);
+  EXPECT_EQ(ru.rx(), 1000);
+  EXPECT_EQ(ru.total(), 0);
+
   auto update2 = credit.get_usage_for_reporting(uc);
   EXPECT_EQ(update2.bytes_tx, 50);
   EXPECT_EQ(update2.bytes_rx, 2000);

@@ -42,7 +42,6 @@ setup(
     scripts=[
         'scripts/checkin_cli.py',
         'scripts/directoryd_cli.py',
-        'scripts/generate_dnsd_config.py',
         'scripts/generate_lighttpd_config.py',
         'scripts/generate_nghttpx_config.py',
         'scripts/generate_service_config.py',
@@ -54,6 +53,7 @@ setup(
         'scripts/service_util.py',
         'scripts/service303_cli.py',
         'scripts/show_gateway_info.py',
+        'scripts/traffic_cli.py',
     ],
     install_requires=[
         'setuptools==49.6.0',

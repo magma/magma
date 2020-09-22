@@ -13,6 +13,7 @@
 #pragma once
 
 #include <memory>
+#include <experimental/optional>
 
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <folly/io/async/EventBaseManager.h>
@@ -26,15 +27,30 @@
 
 namespace magma {
 namespace lte {
+using std::experimental::optional;
 
-typedef std::unordered_map<
-    std::string, std::vector<std::unique_ptr<SessionState>>>
-    SessionMap;
 // Value int represents the request numbers needed for requests to PCRF
 typedef std::set<std::string> SessionRead;
 typedef std::unordered_map<
     std::string, std::unordered_map<std::string, SessionStateUpdateCriteria>>
     SessionUpdate;
+
+enum SessionSearchCriteriaType {
+  IMSI_AND_APN        = 0,
+  IMSI_AND_SESSION_ID = 1,
+  IMSI_AND_UE_IPV4    = 2,
+};
+
+struct SessionSearchCriteria {
+  std::string imsi;
+  SessionSearchCriteriaType search_type;
+  std::string secondary_key;
+  SessionSearchCriteria(
+      const std::string p_imsi, SessionSearchCriteriaType p_type,
+      const std::string p_secondary_key)
+      : imsi(p_imsi), search_type(p_type), secondary_key(p_secondary_key) {}
+};
+
 /**
  * SessionStore acts as a broker to storage of sessiond state.
  *
@@ -109,8 +125,7 @@ class SessionStore {
    * @return true if successful, otherwise the update to storage is discarded.
    */
   bool create_sessions(
-      const std::string& subscriber_id,
-      std::vector<std::unique_ptr<SessionState>> sessions);
+      const std::string& subscriber_id, SessionVector sessions);
 
   /**
    * Attempt to update sessions with update criteria. If any update to any of
@@ -121,6 +136,23 @@ class SessionStore {
    * @return true if successful, otherwise the update to storage is discarded.
    */
   bool update_sessions(const SessionUpdate& update_criteria);
+
+  /**
+   * @param session_map
+   * @param id
+   * @return If the session that meets the criteria is found, then it returns an
+   * optional of the iterator. Otherwise, it returns an empty value.
+   *
+   * Usage Example
+   * SessionSearchCriteria criteria(IMSI1, IMSI_AND_SESSION_ID,
+   * SESSION_ID_1);
+   * auto session_it = session_store_.find_session(session_map,
+   * id);
+   * if (!session_it) { // Log session not found };
+   * auto& session = **session_it; // First deference optional, then iterator
+   */
+  optional<SessionVector::iterator> find_session(
+      SessionMap& session_map, SessionSearchCriteria criteria);
 
  private:
   std::shared_ptr<StaticRuleStore> rule_store_;

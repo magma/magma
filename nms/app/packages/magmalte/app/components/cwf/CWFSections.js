@@ -15,6 +15,8 @@
  */
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
+import AlarmIcon from '@material-ui/icons/Alarm';
+import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
 import CWFConfigure from './CWFConfigure';
 import CWFGateways from './CWFGateways';
 import CWFMetrics from './CWFMetrics';
@@ -42,6 +44,12 @@ export function getCWFSections(): SectionsConfigs {
       label: 'Metrics',
       icon: <ShowChartIcon />,
       component: CWFMetrics,
+    },
+    {
+      path: 'alerts',
+      label: 'Alerts',
+      icon: <AlarmIcon />,
+      component: Alarms,
     },
   ];
 

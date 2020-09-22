@@ -513,8 +513,8 @@ static void sgw_add_gtp_tunnel(
     }
   } else {
     OAILOG_DEBUG_UE(
-        LOG_SPGW_APP, imsi64, "Adding tunnel for bearer %u\n",
-        eps_bearer_ctxt_p->eps_bearer_id);
+        LOG_SPGW_APP, imsi64, "Adding tunnel for bearer %u ue addr %x\n",
+        eps_bearer_ctxt_p->eps_bearer_id, ue.s_addr);
     if (eps_bearer_ctxt_p->eps_bearer_id ==
         new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
             .pdn_connection.default_bearer) {
@@ -533,7 +533,7 @@ static void sgw_add_gtp_tunnel(
         struct ipv4flow_dl dlflow;
         _generate_dl_flow(
             &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
-                .packetfiltercontents),
+                  .packetfiltercontents),
             ue.s_addr, &dlflow);
 
         rv = gtpv1u_add_tunnel(
@@ -580,7 +580,6 @@ static void sgw_populate_mbr_bearer_contexts_modified(
       OAILOG_DEBUG_UE(
           LOG_SPGW_APP, imsi64,
           "Rx SGI_UPDATE_ENDPOINT_RESPONSE: REQUEST_ACCEPTED\n");
-
       modify_response_p->bearer_contexts_modified.bearer_contexts[rsp_idx]
           .eps_bearer_id =
           resp_pP->bearer_contexts_to_be_modified[idx].eps_bearer_id;
@@ -908,8 +907,11 @@ int sgw_handle_modify_bearer_request(
           struct in_addr ue = eps_bearer_ctxt_p->paa.ipv4_address;
 
           OAILOG_DEBUG_UE(
-              LOG_SPGW_APP, imsi64, "Delete GTPv1-U tunnel for sgw_teid : %d\n",
-              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
+              LOG_SPGW_APP, imsi64,
+              "Delete GTPv1-U tunnel for sgw_teid : %d"
+              "for bearer %d\n",
+              eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+              eps_bearer_ctxt_p->eps_bearer_id);
           // This is best effort, ignore return code.
           gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
           // delete GTPv1-U tunnel
@@ -923,6 +925,7 @@ int sgw_handle_modify_bearer_request(
         sgi_rsp_idx++;
       }
     }  // for loop
+    sgi_rsp_idx = 0;
     for (idx = 0;
          idx <
          modify_bearer_pP->bearer_contexts_to_be_removed.num_bearer_context;
@@ -1574,8 +1577,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
             // Prepare DL flow rule
             struct ipv4flow_dl dlflow;
             _generate_dl_flow(
-                &(eps_bearer_ctxt_entry_p->tft.packetfilterlist
-                      .createnewtft[i]
+                &(eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
                       .packetfiltercontents),
                 ue.s_addr, &dlflow);
 
@@ -1743,7 +1745,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
           struct ipv4flow_dl dlflow;
           _generate_dl_flow(
               &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
-                  .packetfiltercontents),
+                    .packetfiltercontents),
               eps_bearer_ctxt_p->paa.ipv4_address.s_addr, &dlflow);
           rc = gtp_tunnel_ops->del_tunnel(
               eps_bearer_ctxt_p->paa.ipv4_address,
@@ -1909,10 +1911,10 @@ static void _generate_dl_flow(
       TRAFFIC_FLOW_TEMPLATE_SINGLE_LOCAL_PORT_FLAG) {
     if (dlflow->ip_proto == IPPROTO_TCP) {
       dlflow->set_params |= TCP_DST_PORT;
-      dlflow->tcp_dst_port = packet_filter->singleremoteport;
+      dlflow->tcp_dst_port = packet_filter->singlelocalport;
     } else if (dlflow->ip_proto == IPPROTO_UDP) {
       dlflow->set_params |= UDP_DST_PORT;
-      dlflow->udp_dst_port = packet_filter->singleremoteport;
+      dlflow->udp_dst_port = packet_filter->singlelocalport;
     }
   }
 }

@@ -48,6 +48,9 @@ class ChargingGrantTest : public ::testing::Test {
               RedirectServer_RedirectAddressType_IPV6);
       fa.redirect_server.set_redirect_server_address("addr");
     }
+    else if (action == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+      fa.restrict_rules.push_back("restrict_rule");
+    }
     return fa;
   }
 };
@@ -219,6 +222,30 @@ TEST_F(ChargingGrantTest, test_get_action_redirect) {
   auto term_action    = grant.get_action(uc);
   // Check that the update criteria also includes the changes
   EXPECT_EQ(term_action, REDIRECT);
+
+  // Termination action only returned once
+  auto repeated_action = grant.get_action(uc);
+  EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
+}
+
+TEST_F(ChargingGrantTest, test_get_action_restrict) {
+  ChargingGrant grant = get_default_grant();
+  auto uc             = grant.get_update_criteria();
+  GrantedUnits gsu;
+  uint64_t total_grant = 1024;
+  create_granted_units(&total_grant, NULL, NULL, &gsu);
+
+  // Final with REDIRECT final action
+  grant.is_final_grant = true;
+  grant.final_action_info =
+      get_final_action_info(ChargingCredit_FinalAction_RESTRICT_ACCESS);
+  grant.credit.receive_credit(gsu, &uc);
+  grant.credit.add_used_credit(2048, 0, uc);
+  grant.credit.add_used_credit(30, 20, uc);
+  grant.service_state = SERVICE_NEEDS_DEACTIVATION;
+  auto term_action    = grant.get_action(uc);
+  // Check that the update criteria also includes the changes
+  EXPECT_EQ(term_action, RESTRICT_ACCESS);
 
   // Termination action only returned once
   auto repeated_action = grant.get_action(uc);

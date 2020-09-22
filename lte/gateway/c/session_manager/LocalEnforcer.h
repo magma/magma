@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <iomanip>
 
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
@@ -34,6 +35,8 @@
 #include "SpgwServiceClient.h"
 
 namespace magma {
+using std::experimental::optional;
+typedef std::pair<std::string, std::string> ImsiAndSessionID;
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;
@@ -124,6 +127,10 @@ class LocalEnforcer {
       const std::string& imsi, SessionState& session_state,
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
+
+  void schedule_session_init_bearer_creations(
+      const std::string& imsi, const std::string& session_id,
+      BearerUpdate& update);
 
   /**
    * Initialize credit received from the cloud in the system. This adds all the
@@ -220,12 +227,20 @@ class LocalEnforcer {
       SessionMap& session_map, const PolicyBearerBindingRequest& request,
       SessionUpdate& session_update);
 
+  std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
+
   static uint32_t REDIRECT_FLOW_PRIORITY;
+  static uint32_t BEARER_CREATION_DELAY_ON_SESSION_INIT;
+  // If this is set to true, we will send the timezone along with
+  // CreateSessionRequest
+  static bool SEND_ACCESS_TIMEZONE;
 
  private:
-  struct RedirectInstallInfo {
+  struct FinalActionInstallInfo {
     std::string imsi;
     std::string session_id;
+    ServiceActionType action_type;
+    std::vector<std::string> restrict_rules;
     magma::lte::RedirectServer redirect_server;
   };
   std::shared_ptr<SessionReporter> reporter_;
@@ -243,6 +258,7 @@ class LocalEnforcer {
   long quota_exhaustion_termination_on_init_ms_;
   std::chrono::seconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
+  std::unique_ptr<Timezone> access_timezone_;
 
  private:
   /**
@@ -257,7 +273,7 @@ class LocalEnforcer {
    */
   void complete_termination_for_released_sessions(
       SessionMap& session_map,
-      std::unordered_set<std::string> sessions_with_active_flows,
+      std::unordered_set<ImsiAndSessionID> sessions_with_active_flows,
       SessionUpdate& session_update);
 
   void filter_rule_installs(
@@ -364,7 +380,7 @@ class LocalEnforcer {
    */
   void complete_termination(
       SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, SessionStateUpdateCriteria& uc);
+      const std::string& session_id, SessionUpdate& session_update);
 
   void schedule_static_rule_activation(
       const std::string& imsi, const std::string& ip_addr,
@@ -375,10 +391,12 @@ class LocalEnforcer {
       const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
-      const std::string& imsi, const StaticRuleInstall& static_rule);
+      const std::string& imsi, const std::string& ip_addr,
+      const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
-      const std::string& imsi, DynamicRuleInstall& dynamic_rule);
+      const std::string& imsi, const std::string& ip_addr,
+      DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
@@ -416,7 +434,7 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      std::experimental::optional<AggregatedMaximumBitrate> ambr,
+      optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
@@ -511,17 +529,35 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * Install flow for redirection through pipelined
+   * Install final action flows through pipelined
    */
-  void start_redirect_flow_install(
-      SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
+  void start_final_unit_action_flows_install(
+      SessionMap& session_map, const FinalActionInstallInfo info,
       SessionUpdate& session_update);
 
-  void complete_redirect_flow_install(
-      Status status, DirectoryField resp,
-      const RedirectInstallInfo redirect_info);
+  void complete_final_unit_action_flows_install(
+      Status status, DirectoryField resp, const FinalActionInstallInfo info);
 
-  PolicyRule create_redirect_rule(const RedirectInstallInfo& info);
+  /**
+   * Remove final action flows through pipelined
+   */
+  void cancelling_final_unit_action(
+      const std::unique_ptr<SessionState>& session,
+      const std::vector<std::string>& restrict_rules,
+      SessionStateUpdateCriteria& uc);
+
+  /**
+   * Create redirection rule
+   */
+  PolicyRule create_redirect_rule(const FinalActionInstallInfo& info);
+
+  /**
+   * Populate FinalActionInstallInfo structure with all info
+   * needed to complete final action flows installation.
+   */
+  void populate_final_action_install_info(
+      FinalActionInstallInfo& info,
+      const std::unique_ptr<ServiceAction>& action);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
@@ -559,6 +595,8 @@ class LocalEnforcer {
   void remove_rule_due_to_bearer_creation_failure(
       const std::string& imsi, SessionState& session,
       const std::string& rule_id, SessionStateUpdateCriteria& uc);
+
+  static std::unique_ptr<Timezone> compute_access_timezone();
 };
 
 }  // namespace magma

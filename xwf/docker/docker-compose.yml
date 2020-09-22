@@ -28,6 +28,7 @@ services:
     privileged: true
     networks:
       - control
+      - server
     environment:
       - APPURL=${APPURL:-https://graph.expresswifi.com}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
@@ -131,6 +132,8 @@ services:
       /bin/sh -c "./docker-entrypoint.sh"
     networks:
       - control
+    ports:
+      - "1812:1812/udp"
     logging:
       driver: "json-file"
       options:
@@ -193,6 +196,7 @@ services:
       - OFPROXY_ADDR=ofproxy
       - OFPROXY_PORT=6653
       - ACCESS_TOKEN=${XWF_ACCESSTOKEN}
+      - INSECURE=${INSECURE:-}
     depends_on:
       - ofproxy
       - logrouter
@@ -207,6 +211,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - control
+      - server
     environment:
       - ACCESSTOKEN=${XWF_ACCESSTOKEN}
       - BASE_URL=${APPURL:-https://graph.expresswifi.com}
@@ -271,8 +276,7 @@ volumes:
   configs_templates:
   openvswitch:
 networks:
-  wan:
-  lan:
+  server:
   control:
     ipam:
       config:

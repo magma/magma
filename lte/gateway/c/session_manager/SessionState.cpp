@@ -95,6 +95,7 @@ StoredSessionState SessionState::marshal() {
   std::vector<PolicyRule> scheduled_dynamic_rules;
   scheduled_dynamic_rules_.get_rules(scheduled_dynamic_rules);
   marshaled.scheduled_dynamic_rules = std::move(scheduled_dynamic_rules);
+
   for (auto& it : rule_lifetimes_) {
     marshaled.rule_lifetimes[it.first] = it.second;
   }
@@ -458,7 +459,7 @@ void SessionState::apply_session_dynamic_rule_set(
   };
   for (const auto& dynamic_rule_pair : dynamic_rules) {
     if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
-      MLOG(MINFO) << "installing dynamic rule " << dynamic_rule_pair.first
+      MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first
                   << " for " << session_id_;
       insert_dynamic_rule(dynamic_rule_pair.second, lifetime, uc);
       rules_to_activate.dynamic_rules.push_back(dynamic_rule_pair.second);
@@ -1027,8 +1028,17 @@ static FinalActionInfo get_final_action_info(
   FinalActionInfo final_action_info;
   if (credit.is_final()) {
     final_action_info.final_action = credit.final_action();
-    if (credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-      final_action_info.redirect_server = credit.redirect_server();
+    switch (final_action_info.final_action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        final_action_info.redirect_server = credit.redirect_server();
+        break;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        for (auto rule : credit.restrict_rules()) {
+          final_action_info.restrict_rules.push_back(rule);
+        }
+        break;
+      default: // do nothing;
+        break;
     }
   }
   return final_action_info;
@@ -1262,24 +1272,34 @@ void SessionState::get_charging_updates(
         if (update_type == CreditUsage::REAUTH_REQUIRED) {
           grant->set_reauth_state(REAUTH_PROCESSING, *credit_uc);
         }
-        auto update = grant->get_credit_usage(update_type, *credit_uc, false);
-        key.set_credit_usage(&update);
-        auto credit_req = make_credit_usage_update_req(update);
+        CreditUsage usage = grant->get_credit_usage(update_type, *credit_uc, false);
+        key.set_credit_usage(&usage);
+        auto credit_req = make_credit_usage_update_req(usage);
         update_request_out.mutable_updates()->Add()->CopyFrom(credit_req);
         request_number_++;
         uc.request_number_increment++;
       } break;
       case REDIRECT:
         if (grant->service_state == SERVICE_REDIRECTED) {
-          MLOG(MDEBUG) << "Redirection already activated.";
+          MLOG(MDEBUG) << "Redirection already activated for " << session_id_ ;
           continue;
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
+      case RESTRICT_ACCESS: {
+        if (grant->service_state == SERVICE_RESTRICTED) {
+          MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
+          continue;
+        }
+        auto restrict_rules = action->get_mutable_restrict_rules();
+        grant->set_service_state(SERVICE_RESTRICTED, *credit_uc);
+        for (auto &rule : grant->final_action_info.restrict_rules) {
+          restrict_rules->push_back(rule);
+        }
+      }
       case ACTIVATE_SERVICE:
         action->set_ambr(config_.get_apn_ambr());
       case TERMINATE_SERVICE:
-      case RESTRICT_ACCESS:
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " action type " << action_type;
         action->set_credit_key(key);
@@ -1291,6 +1311,10 @@ void SessionState::get_charging_updates(
         dynamic_rules_.get_rule_definitions_for_charging_key(
             key, *action->get_mutable_rule_definitions());
         actions_out->push_back(std::move(action));
+        break;
+      default:
+        MLOG(MWARNING) << "Unexpected action type " << action_type
+                       << " for " << session_id_;
         break;
     }
   }
@@ -1434,7 +1458,6 @@ bool SessionState::init_new_monitor(
   monitor->level = update.credit().level();
   // validity time and final units not used for monitors
   auto _ = SessionCreditUpdateCriteria{};
-  FinalActionInfo final_action_info;
   auto gsu = update.credit().granted_units();
   monitor->credit.receive_credit(gsu, NULL);
 
@@ -1506,8 +1529,7 @@ void SessionState::bind_policy_to_bearer(
   uc.bearer_id_by_policy       = bearer_id_by_policy_;
 }
 
-std::experimental::optional<PolicyType> SessionState::get_policy_type(
-    const std::string& rule_id) {
+optional<PolicyType> SessionState::get_policy_type(const std::string& rule_id) {
   if (is_static_rule_installed(rule_id)) {
     return STATIC;
   } else if (is_dynamic_rule_installed(rule_id)) {
@@ -1594,13 +1616,24 @@ void SessionState::set_revalidation_time(
   update_criteria.revalidation_time = time;
 }
 
-bool SessionState::is_credit_state_redirected(
+bool SessionState::is_credit_in_final_unit_state(
     const CreditKey& charging_key) const {
   auto it = credit_map_.find(charging_key);
   if (it == credit_map_.end()) {
     return false;
   }
-  return it->second->service_state == SERVICE_REDIRECTED;
+  return (it->second->service_state == SERVICE_REDIRECTED ||
+          it->second->service_state == SERVICE_RESTRICTED);
+}
+
+void SessionState::get_final_action_restrict_rules(
+    const CreditKey& charging_key,
+    std::vector<std::string> &restrict_rules) {
+  auto it = credit_map_.find(charging_key);
+  if (it == credit_map_.end()) {
+    return;
+  }
+  restrict_rules = it->second->final_action_info.restrict_rules;
 }
 
 // QoS/Bearer Management
@@ -1618,26 +1651,37 @@ bool SessionState::policy_has_qos(
   return false;
 }
 
-void SessionState::update_bearer_creation_req(
-    const PolicyType policy_type, const std::string& rule_id,
-    const SessionConfig& config, BearerUpdate& update) {
+std::experimental::optional<PolicyRule>
+SessionState::policy_needs_bearer_creation(
+    const PolicyType policy_type, const std::string& id,
+    const SessionConfig& config) {
   if (!config.rat_specific_context.has_lte_context()) {
-    return;
+    return {};
   }
-  if (bearer_id_by_policy_.find(PolicyID(policy_type, rule_id)) !=
+  if (bearer_id_by_policy_.find(PolicyID(policy_type, id)) !=
       bearer_id_by_policy_.end()) {
     // Policy already has a bearer
-    return;
+    return {};
   }
-  PolicyRule rule;
-  if (!policy_has_qos(policy_type, rule_id, &rule)) {
+  PolicyRule policy;
+  if (!policy_has_qos(policy_type, id, &policy)) {
     // Only create a bearer for policies with QoS
-    return;
+    return {};
   }
   auto default_qci = FlowQos_Qci(
       config.rat_specific_context.lte_context().qos_info().qos_class_id());
-  if (rule.qos().qci() == default_qci) {
+  if (policy.qos().qci() == default_qci) {
     // This QCI is already covered by the default bearer
+    return {};
+  }
+  return policy;
+}
+
+void SessionState::update_bearer_creation_req(
+    const PolicyType policy_type, const std::string& rule_id,
+    const SessionConfig& config, BearerUpdate& update) {
+  auto policy = policy_needs_bearer_creation(policy_type, rule_id, config);
+  if (!policy) {
     return;
   }
 
@@ -1649,7 +1693,7 @@ void SessionState::update_bearer_creation_req(
     update.create_req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
-  update.create_req.mutable_policy_rules()->Add()->CopyFrom(rule);
+  update.create_req.mutable_policy_rules()->Add()->CopyFrom(*policy);
   // We will add the new policyID to bearerID association, once we receive a
   // message from SGW.
 }
@@ -1716,8 +1760,7 @@ RuleSetBySubscriber::RuleSetBySubscriber(
   }
 }
 
-std::experimental::optional<RuleSetToApply>
-RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
+optional<RuleSetToApply> RuleSetBySubscriber::get_combined_rule_set_for_apn(const std::string& apn) {
   const bool apn_rule_set_exists =
       rule_set_by_apn.find(apn) != rule_set_by_apn.end();
   // Apply subscriber wide rule set if it exists. Also apply per-APN rule

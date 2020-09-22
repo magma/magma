@@ -92,18 +92,28 @@ func makeCCRInit(
 	} else {
 		glog.Warning("No RatSpecificContext is specified")
 	}
+	request.Credits = makeUsedCreditsForCCRInit(keys)
+	return request
+}
 
+func makeUsedCreditsForCCRInit(keys []policydb.ChargingKey) []*gy.UsedCredits {
 	usedCredits := make([]*gy.UsedCredits, 0, len(keys))
 	for _, key := range keys {
-		uc := &gy.UsedCredits{RatingGroup: key.RatingGroup}
+		// TODO: move this into configuration on sessiond
+		// Default Requested-Service-Unit value for CCR-I
+		defaultRSU := &protos.RequestedUnits{Total: 10000, Tx: 10000, Rx: 10000}
+
+		uc := &gy.UsedCredits{
+			RatingGroup:    key.RatingGroup,
+			RequestedUnits: defaultRSU,
+		}
 		if key.ServiceIdTracking {
 			sid := key.ServiceIdentifier
 			uc.ServiceIdentifier = &sid
 		}
 		usedCredits = append(usedCredits, uc)
 	}
-	request.Credits = usedCredits
-	return request
+	return usedCredits
 }
 
 // makeCCRInitWithoutChargingKeys creates a CreditControlRequest for an INIT
@@ -261,6 +271,7 @@ func getSingleCreditResponseFromCCA(
 	}
 	res := &protos.CreditUpdateResponse{
 		Success:     success && msccSuccess,
+		SessionId:   request.SessionID,
 		Sid:         imsi,
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),
@@ -306,14 +317,18 @@ func getInitialCreditResponsesFromCCA(request *gy.CreditControlRequest, answer *
 func getSingleChargingCreditFromCCA(
 	credits *gy.ReceivedCredits,
 ) *protos.ChargingCredit {
-	return &protos.ChargingCredit{
-		GrantedUnits:   credits.GrantedUnits.ToProto(),
-		Type:           protos.ChargingCredit_BYTES,
-		ValidityTime:   credits.ValidityTime,
-		IsFinal:        credits.IsFinal,
-		FinalAction:    protos.ChargingCredit_FinalAction(credits.FinalAction),
-		RedirectServer: credits.RedirectServer.ToProto(),
+	chargingCredit := &protos.ChargingCredit{
+		GrantedUnits: credits.GrantedUnits.ToProto(),
+		Type:         protos.ChargingCredit_BYTES,
+		ValidityTime: credits.ValidityTime,
 	}
+	if credits.FinalUnitIndication != nil {
+		chargingCredit.IsFinal = true
+		chargingCredit.FinalAction = protos.ChargingCredit_FinalAction(credits.FinalUnitIndication.FinalAction)
+		chargingCredit.RedirectServer = credits.FinalUnitIndication.RedirectServer.ToProto()
+		chargingCredit.RestrictRules = credits.FinalUnitIndication.RestrictRules
+	}
+	return chargingCredit
 }
 
 // getUpdateRequestsFromUsage returns a slice of CCRs from usage update protos
@@ -333,11 +348,12 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 			UserLocation:  update.UserLocation,
 			Type:          credit_control.CRTUpdate,
 			Credits: []*gy.UsedCredits{&gy.UsedCredits{
-				RatingGroup:  update.Usage.ChargingKey,
-				InputOctets:  update.Usage.BytesTx, // transmit == input
-				OutputOctets: update.Usage.BytesRx, // receive == output
-				TotalOctets:  update.Usage.BytesTx + update.Usage.BytesRx,
-				Type:         gy.UsedCreditsType(update.Usage.Type),
+				RatingGroup:    update.Usage.ChargingKey,
+				InputOctets:    update.Usage.BytesTx, // transmit == input
+				OutputOctets:   update.Usage.BytesRx, // receive == output
+				TotalOctets:    update.Usage.BytesTx + update.Usage.BytesRx,
+				Type:           gy.UsedCreditsType(update.Usage.Type),
+				RequestedUnits: update.Usage.GetRequestedUnits(),
 			}},
 			RatType: gy.GetRATType(update.GetRatType()),
 			TgppCtx: update.GetTgppCtx(),

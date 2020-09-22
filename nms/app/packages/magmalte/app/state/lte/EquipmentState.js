@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {EnodebInfo} from '../components/lte/EnodebUtils';
+import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {
   enodeb_serials,
   gateway_epc_configs,
@@ -341,7 +341,7 @@ export async function RunGatewayCommands(props: GatewayCommandProps) {
 
     default:
       if (props.params != null) {
-        return await MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot(
+        return await MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandGeneric(
           {networkId, gatewayId, parameters: props.params},
         );
       }

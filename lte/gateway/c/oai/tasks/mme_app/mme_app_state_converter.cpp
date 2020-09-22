@@ -474,6 +474,8 @@ void MmeNasStateConverter::proto_to_pdn_context(
   proto_to_esm_pdn(pdn_context_proto.esm_data(), &state_pdn_context->esm_data);
   state_pdn_context->is_active = pdn_context_proto.is_active();
   if (pdn_context_proto.has_pco()) {
+    state_pdn_context->pco = (protocol_configuration_options_t*) calloc(
+        1, sizeof(protocol_configuration_options_t));
     NasStateConverter::proto_to_protocol_configuration_options(
         pdn_context_proto.pco(), state_pdn_context->pco);
   }
@@ -605,6 +607,9 @@ void MmeNasStateConverter::ue_context_to_proto(
       ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
   ue_context_proto->mutable_time_implicit_detach_timer_started()->set_seconds(
       state_ue_context->time_implicit_detach_timer_started);
+  ue_context_proto->mutable_time_paging_response_timer_started()->set_seconds(
+      state_ue_context->time_paging_response_timer_started);
+  ue_context_proto->set_paging_retx_count(state_ue_context->paging_retx_count);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -697,6 +702,9 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       ue_context_proto.time_mobile_reachability_timer_started().seconds();
   state_ue_mm_context->time_implicit_detach_timer_started =
       ue_context_proto.time_implicit_detach_timer_started().seconds();
+  state_ue_mm_context->time_paging_response_timer_started =
+      ue_context_proto.time_paging_response_timer_started().seconds();
+  state_ue_mm_context->paging_retx_count = ue_context_proto.paging_retx_count();
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

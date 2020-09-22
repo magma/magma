@@ -21,6 +21,7 @@ import (
 
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
 	managed_configs "magma/gateway/mconfig"
 )
 
@@ -44,7 +45,7 @@ const (
 
 // Get GetS6aProxyConfigs returns the server config for an HSS based on the
 // input flags and environment variables
-func GetS6aProxyConfigs() (*diameter.DiameterClientConfig, *diameter.DiameterServerConfig) {
+func GetS6aProxyConfigs() *S6aProxyConfig {
 	serviceBaseName := filepath.Base(os.Args[0])
 	serviceBaseName = strings.TrimSuffix(serviceBaseName, filepath.Ext(serviceBaseName))
 	if S6aProxyServiceName != serviceBaseName {
@@ -56,12 +57,13 @@ func GetS6aProxyConfigs() (*diameter.DiameterClientConfig, *diameter.DiameterSer
 	err := managed_configs.GetServiceConfigs(S6aProxyServiceName, configsPtr)
 	if err != nil || configsPtr.Server == nil {
 		log.Printf("%s Managed Configs Load Error: %v", S6aProxyServiceName, err)
-		return &diameter.DiameterClientConfig{
+		return &S6aProxyConfig{
+			ClientCfg: &diameter.DiameterClientConfig{
 				Host:        diameter.GetValueOrEnv(diameter.HostFlag, S6aDiamHostEnv, DefaultS6aDiamHost),
 				Realm:       diameter.GetValueOrEnv(diameter.RealmFlag, S6aDiamRealmEnv, DefaultS6aDiamRealm),
 				ProductName: diameter.GetValueOrEnv(diameter.ProductFlag, S6aDiamProductEnv, diameter.DiamProductName),
 			},
-			&diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+			ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 				Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, ""),
 				Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, S6aNetworkEnv, "sctp"),
 				LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, S6aLocalAddrEnv, "")},
@@ -69,12 +71,15 @@ func GetS6aProxyConfigs() (*diameter.DiameterClientConfig, *diameter.DiameterSer
 				DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, ""),
 				DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, false),
 				OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, false),
-			}
+			},
+			PlmnIds: plmn_filter.PlmnIdVals{},
+		}
 	}
 
 	log.Printf("Loaded %s configs: %+v", S6aProxyServiceName, *configsPtr)
 
-	return &diameter.DiameterClientConfig{
+	return &S6aProxyConfig{
+		ClientCfg: &diameter.DiameterClientConfig{
 			Host:             diameter.GetValueOrEnv(diameter.HostFlag, S6aDiamHostEnv, configsPtr.Server.Host),
 			Realm:            diameter.GetValueOrEnv(diameter.RealmFlag, S6aDiamRealmEnv, configsPtr.Server.Realm),
 			ProductName:      diameter.GetValueOrEnv(diameter.ProductFlag, S6aDiamProductEnv, configsPtr.Server.ProductName),
@@ -82,7 +87,7 @@ func GetS6aProxyConfigs() (*diameter.DiameterClientConfig, *diameter.DiameterSer
 			WatchdogInterval: uint(configsPtr.Server.WatchdogInterval),
 			RetryCount:       uint(configsPtr.Server.RetryCount),
 		},
-		&diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+		ServerCfg: &diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
 			Addr:      diameter.GetValueOrEnv(diameter.AddrFlag, HSSAddrEnv, configsPtr.Server.Address),
 			Protocol:  diameter.GetValueOrEnv(diameter.NetworkFlag, S6aNetworkEnv, configsPtr.Server.Protocol),
 			LocalAddr: diameter.GetValueOrEnv(diameter.LocalAddrFlag, S6aLocalAddrEnv, configsPtr.Server.LocalAddress)},
@@ -90,5 +95,7 @@ func GetS6aProxyConfigs() (*diameter.DiameterClientConfig, *diameter.DiameterSer
 			DestRealm:         diameter.GetValueOrEnv(diameter.DestRealmFlag, HSSRealmEnv, configsPtr.Server.DestRealm),
 			DisableDestHost:   diameter.GetBoolValueOrEnv(diameter.DisableDestHostFlag, DisableDestHostEnv, configsPtr.GetServer().GetDisableDestHost()),
 			OverwriteDestHost: diameter.GetBoolValueOrEnv(diameter.OverwriteDestHostFlag, OverwriteDestHostEnv, configsPtr.GetServer().GetOverwriteDestHost()),
-		}
+		},
+		PlmnIds: plmn_filter.GetPlmnVals(configsPtr.PlmnIds),
+	}
 }

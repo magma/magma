@@ -102,7 +102,7 @@ void S1apStateManager::free_state() {
       ht_rc    = hashtable_ts_get(
           &state_cache_p->enbs, (hash_key_t) assoc_id, (void**) &enb);
       AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
-      AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
+      hashtable_uint64_ts_destroy(&enb->ue_id_coll);
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }

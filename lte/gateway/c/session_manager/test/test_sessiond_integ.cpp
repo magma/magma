@@ -265,9 +265,9 @@ TEST_F(SessiondTest, end_to_end_success) {
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
         "rule3");
     create_credit_update_response(
-        "IMSI1", 1, 1536, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 1, 1536, create_response.mutable_credits()->Add());
     create_credit_update_response(
-        "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 2, 1024, create_response.mutable_credits()->Add());
     // Expect create session with IMSI1
     EXPECT_CALL(
         *controller_mock,
@@ -301,7 +301,7 @@ TEST_F(SessiondTest, end_to_end_success) {
         "IMSI1", 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
     UpdateSessionResponse update_response;
     create_credit_update_response(
-        "IMSI1", 1, 1024, update_response.mutable_responses()->Add());
+        "IMSI1", "1234", 1, 1024, update_response.mutable_responses()->Add());
     // Expect update with IMSI1, charging key 1
     EXPECT_CALL(
         *controller_mock,
@@ -395,9 +395,9 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
         "rule3");
     create_credit_update_response(
-        "IMSI1", 1, 1025, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 1, 1025, create_response.mutable_credits()->Add());
     create_credit_update_response(
-        "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 2, 1024, create_response.mutable_credits()->Add());
     // Expect create session with IMSI1
     EXPECT_CALL(
         *controller_mock,
