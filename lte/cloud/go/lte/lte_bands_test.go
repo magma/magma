@@ -11,12 +11,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package utils_test
+package lte_test
 
 import (
 	"testing"
 
-	"magma/lte/cloud/go/services/cellular/utils"
+	"magma/lte/cloud/go/lte"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -33,7 +33,7 @@ func TestGetBand(t *testing.T) {
 	}
 
 	for earfcndl, bandExpected := range expected {
-		band, err := utils.GetBand(earfcndl)
+		band, err := lte.GetBand(earfcndl)
 		assert.NoError(t, err)
 		assert.Equal(t, bandExpected, band.ID)
 	}
@@ -43,7 +43,7 @@ func TestGetBandError(t *testing.T) {
 	expectedErr := [...]uint32{60140, 60255}
 
 	for _, earfcndl := range expectedErr {
-		_, err := utils.GetBand(earfcndl)
+		_, err := lte.GetBand(earfcndl)
 		assert.Error(t, err, "Invalid EARFCNDL: no matching band")
 	}
 }
