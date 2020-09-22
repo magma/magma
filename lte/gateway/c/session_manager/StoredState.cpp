@@ -171,7 +171,7 @@ std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
       static_cast<int>(stored.grant_tracking_type);
   marshaled["received_granted_units"] =
       stored.received_granted_units.SerializeAsString();
-  marshaled["last_update"] = stored.last_update;
+  marshaled["report_last_credit"] = stored.report_last_credit;
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     marshaled["buckets"][std::to_string(bucket_int)] =
@@ -197,7 +197,7 @@ StoredSessionCredit deserialize_stored_session_credit(
   GrantedUnits received_granted_units;
   received_granted_units.ParseFromString(marshaled["received_granted_units"].getString());
   stored.received_granted_units = received_granted_units;
-  stored.last_update = marshaled["last_update"].getBool();
+  stored.report_last_credit     = marshaled["report_last_credit"].getBool();
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket          = static_cast<Bucket>(bucket_int);

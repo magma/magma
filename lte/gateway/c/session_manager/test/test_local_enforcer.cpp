@@ -1474,9 +1474,9 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   update_2 = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table_2, update_2);
   monitor_updates_2 = update_2[IMSI1][SESSION_ID_1].monitor_credit_map;
-  EXPECT_FALSE(monitor_updates_2["1"].last_update);
-  EXPECT_TRUE(monitor_updates_2["2"].last_update);
-  EXPECT_TRUE(monitor_updates_2["3"].last_update);
+  EXPECT_FALSE(monitor_updates_2["1"].report_last_credit);
+  EXPECT_TRUE(monitor_updates_2["2"].report_last_credit);
+  EXPECT_TRUE(monitor_updates_2["3"].report_last_credit);
   // check session level key will be removed
   EXPECT_EQ(update_2[IMSI1][SESSION_ID_1].updated_session_level_key, "");
 

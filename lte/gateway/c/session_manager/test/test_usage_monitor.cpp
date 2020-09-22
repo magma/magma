@@ -69,7 +69,7 @@ TEST_F(SessionStateTest, test_remove_monitor) {
   session_state->add_rule_usage("rule1", 1, 0, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 1001);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 0);
-  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].last_update);
+  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);
 
   // check last update will be sent
   UpdateSessionRequest update;

@@ -399,7 +399,7 @@ TEST_F(SessionStateTest, test_session_level_key) {
   session_state->add_rule_usage("rule1", 1001, 1, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 6001);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 2001);
-  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].last_update);
+  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);
 
   // check final update will be sent
   UpdateSessionRequest update_2;
@@ -954,7 +954,7 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 1000);
-  EXPECT_FALSE(update_criteria.monitor_credit_map["m1"].last_update);
+  EXPECT_FALSE(update_criteria.monitor_credit_map["m1"].report_last_credit);
   EXPECT_FALSE(update_criteria.monitor_credit_map["m1"].deleted);
 
   // receive a grant with total = 0 (meaning there is no more cuota left and monitor
@@ -965,7 +965,7 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 4000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 2000);
-  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].last_update);
+  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);
   EXPECT_FALSE(update_criteria.monitor_credit_map["m1"].deleted);
 
   // Get the updates that will be sent to core
@@ -977,7 +977,7 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   EXPECT_EQ(update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_TX], 4000);
   EXPECT_EQ(update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_RX], 2000);
   EXPECT_EQ(update_criteria.monitor_credit_map["m1"].service_state, SERVICE_ENABLED);
-  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].last_update);
+  EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].deleted);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].reporting);
 
