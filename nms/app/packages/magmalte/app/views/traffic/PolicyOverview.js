@@ -18,18 +18,21 @@ import type {policy_rule} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
+import {Checkbox} from '@material-ui/core';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -111,6 +114,7 @@ type PolicyRowType = {
   monitoringKey: string,
   rating: string,
   trackingType: string,
+  networkWide: string,
 };
 
 export function PolicyOverview(props: WithAlert) {
@@ -119,6 +123,12 @@ export function PolicyOverview(props: WithAlert) {
   const [currRow, setCurrRow] = useState<PolicyRowType>({});
   const {history, relativeUrl} = useRouter();
   const ctx = useContext(PolicyContext);
+  const lteNetworkCtx = useContext(LteNetworkContext);
+  const lteNetwork = lteNetworkCtx.state;
+  const ruleNames = new Set(
+    lteNetwork?.subscriber_config?.network_wide_rule_names ?? [],
+  );
+
   const policies = ctx.state;
   const policyRows: Array<PolicyRowType> = policies
     ? Object.keys(policies).map((policyID: string) => {
@@ -129,8 +139,9 @@ export function PolicyOverview(props: WithAlert) {
           priority: policyRule.priority,
           numSubscribers: policyRule.assigned_subscribers?.length ?? 0,
           monitoringKey: policyRule.monitoring_key ?? '',
-          rating: policyRule.rating_group?.toString() ?? 'not found',
+          rating: policyRule.rating_group?.toString() ?? 'Not Found',
           trackingType: policyRule.tracking_type ?? 'NO_TRACKING',
+          networkWide: ruleNames.has(policyID) ? 'Enabled' : 'Disabled',
         };
       })
     : [];
@@ -196,6 +207,7 @@ export function PolicyOverview(props: WithAlert) {
               },
               {title: 'Rating', field: 'rating'},
               {title: 'Tracking Type', field: 'trackingType'},
+              {title: 'Network Wide', field: 'networkWide'},
             ]}
             handleCurrRow={(row: PolicyRowType) => setCurrRow(row)}
             menuItems={[
@@ -250,15 +262,42 @@ export function PolicyJsonConfig() {
   const policyID: string = match.params.policyId;
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(PolicyContext);
+  const lteNetworkCtx = useContext(LteNetworkContext);
   const policies = ctx.state;
   const policy: policy_rule = policies[policyID] || DEFAULT_POLICY_CONFIG;
+  const lteNetwork = lteNetworkCtx.state;
+  const [isNetworkWide, setIsNetworkWide] = useState(false);
+
+  useEffect(() => {
+    if (policyID) {
+      setIsNetworkWide(
+        lteNetwork?.subscriber_config?.network_wide_rule_names?.includes(
+          policyID,
+        ),
+      );
+    }
+  }, [policyID]);
   return (
     <JsonEditor
       content={policy}
       error={error}
+      customFilter={
+        <Grid item>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isNetworkWide}
+                onChange={() => setIsNetworkWide(!isNetworkWide)}
+                color="primary"
+              />
+            }
+            label={<Text variant="body2">Network Wide</Text>}
+          />
+        </Grid>
+      }
       onSave={async policy => {
         try {
-          ctx.setState(policyID, policy);
+          await ctx.setState(policy.id, policy, isNetworkWide);
           enqueueSnackbar('Policy saved successfully', {
             variant: 'success',
           });

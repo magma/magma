@@ -14,14 +14,17 @@
  * @format
  */
 'use strict';
-import type {UpdateNetworkProps} from '../../state/lte/NetworkState';
-import type {lte_network} from '@fbcnms/magma-api';
+import type {UpdateNetworkProps as FegLteUpdateNetworkProps} from '../../state/feg_lte/NetworkState';
+import type {UpdateNetworkProps as LteUpdateNetworkProps} from '../../state/lte/NetworkState';
+import type {feg_lte_network, lte_network} from '@fbcnms/magma-api';
 
 import React from 'react';
 
 export type LteNetworkContextType = {
-  state: lte_network,
-  updateNetworks: (props: $Shape<UpdateNetworkProps>) => Promise<void>,
+  state: $Shape<lte_network & feg_lte_network>,
+  updateNetworks: (
+    props: $Shape<LteUpdateNetworkProps & FegLteUpdateNetworkProps>,
+  ) => Promise<void>,
 };
 
 export default React.createContext<LteNetworkContextType>({});

@@ -20,7 +20,11 @@ import React from 'react';
 
 export type PolicyContextType = {
   state: {[string]: policy_rule},
-  setState: (key: policy_id, val?: policy_rule) => Promise<void>,
+  setState: (
+    key: policy_id,
+    val?: policy_rule,
+    isNetworkWide?: boolean,
+  ) => Promise<void>,
 };
 
 export default React.createContext<PolicyContextType>({});
