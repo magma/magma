@@ -229,16 +229,14 @@ export default function EventsTable(props: EventTableProps) {
       ? streamNameSessiond
       : streamNameMagmad + ',' + streamNameSessiond;
 
-  const {
-    startDate,
-    endDate,
-    setStartDate,
-    setEndDate,
-    isAutorefreshing,
-    setIsAutorefreshing,
-  } = useRefreshingDateRange(true, 10000, () => {
-    tableRef.current && tableRef.current.onQueryChange();
-  });
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
+  const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
+    isAutoRefreshing,
+    10000,
+    () => {
+      tableRef.current && tableRef.current.onQueryChange();
+    },
+  );
 
   const startEnd = useMemo(() => {
     const [delta, unit, format] = getStep(startDate, endDate);
@@ -278,6 +276,7 @@ export default function EventsTable(props: EventTableProps) {
               value={startDate}
               onChange={val => {
                 setStartDate(val);
+                setIsAutoRefreshing(false);
               }}
             />
           </Grid>
@@ -295,6 +294,7 @@ export default function EventsTable(props: EventTableProps) {
               value={endDate}
               onChange={val => {
                 setEndDate(val);
+                setIsAutoRefreshing(false);
               }}
             />
           </Grid>
@@ -302,8 +302,8 @@ export default function EventsTable(props: EventTableProps) {
         <Grid container justify="flex-end" alignItems="center" spacing={1}>
           <Grid item>
             <AutorefreshCheckbox
-              autorefreshEnabled={isAutorefreshing}
-              onToggle={() => setIsAutorefreshing(current => !current)}
+              autorefreshEnabled={isAutoRefreshing}
+              onToggle={() => setIsAutoRefreshing(current => !current)}
             />
           </Grid>
         </Grid>

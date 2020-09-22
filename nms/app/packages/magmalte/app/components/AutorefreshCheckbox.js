@@ -24,7 +24,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useCallback, useEffect, useState} from 'react';
 
 export type UseRefreshingDateRangeHook = (
-  shouldAutorefreshByDefault: boolean,
+  isAutoRefreshing: boolean,
   updateInterval: number,
   onDateRangeChange: () => void,
 ) => {|
@@ -32,23 +32,18 @@ export type UseRefreshingDateRangeHook = (
   endDate: moment,
   setStartDate: (date: moment) => void,
   setEndDate: (date: moment) => void,
-  isAutorefreshing: boolean,
-  setIsAutorefreshing: ((boolean => boolean) | boolean) => void,
 |};
 
 export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
-  shouldAutorefreshByDefault,
+  isAutoRefreshing,
   updateInterval,
   onDateRangeChange,
 ) => {
   const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [endDate, setEndDate] = useState(moment());
-  const [isAutorefreshing, setIsAutorefreshing] = useState(
-    shouldAutorefreshByDefault,
-  );
 
   useEffect(() => {
-    if (isAutorefreshing) {
+    if (isAutoRefreshing) {
       const interval = setInterval(() => {
         setEndDate(moment());
         onDateRangeChange();
@@ -56,11 +51,10 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
 
       return () => clearInterval(interval);
     }
-  }, [endDate, startDate, onDateRangeChange, isAutorefreshing, updateInterval]);
+  }, [endDate, startDate, onDateRangeChange, isAutoRefreshing, updateInterval]);
 
   const modifiedSetStartDate = useCallback(
     (date: moment) => {
-      setIsAutorefreshing(false);
       setStartDate(date);
       onDateRangeChange();
     },
@@ -69,7 +63,6 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
 
   const modifiedSetEndDate = useCallback(
     (date: moment) => {
-      setIsAutorefreshing(false);
       setEndDate(date);
       onDateRangeChange();
     },
@@ -81,8 +74,6 @@ export const useRefreshingDateRange: UseRefreshingDateRangeHook = (
     endDate,
     setStartDate: modifiedSetStartDate,
     setEndDate: modifiedSetEndDate,
-    isAutorefreshing,
-    setIsAutorefreshing,
   };
 };
 
