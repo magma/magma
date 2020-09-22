@@ -20,7 +20,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_passthrough
-from magma.pipelined.directoryd_client import get_all_records
+from magma.directoryd.directoryd_client import get_all_records
 
 from ryu.controller import dpset
 from ryu.lib.packet import ether_types, arp

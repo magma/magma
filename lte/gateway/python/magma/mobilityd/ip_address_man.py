@@ -53,9 +53,9 @@ from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.mobilityd_pb2 import GWInfo
 
 from magma.mobilityd import mobility_store as store
-
 from magma.mobilityd.ip_descriptor import IPDesc, IPState, IPType
 from magma.mobilityd.metrics import (IP_ALLOCATED_TOTAL, IP_RELEASED_TOTAL)
+from magma.directoryd.directoryd_client import update_record
 from magma.common.redis.client import get_default_client
 
 from .ip_allocator_dhcp import IPAllocatorDHCP
@@ -323,7 +323,8 @@ class IPAddressManager:
                                   sid, old_ip_desc.ip)
                 else:
                     raise AssertionError("Unexpected internal state")
-
+                threading.Thread(target=update_record,
+                                 args=(str(sid), str(old_ip_desc.ip))).start()
                 logging.info("Allocating the same IP %s for sid %s",
                              old_ip_desc.ip, sid)
                 IP_ALLOCATED_TOTAL.inc()
@@ -342,7 +343,8 @@ class IPAddressManager:
 
             self.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc, IPState.ALLOCATED)
             self.sid_ips_map[sid] = ip_desc
-
+            threading.Thread(target=update_record,
+                             args=(str(sid), str(ip_desc.ip))).start()
             logging.debug("Allocating New IP: %s", str(ip_desc))
             IP_ALLOCATED_TOTAL.inc()
             return ip_desc.ip, ip_desc.vlan_id

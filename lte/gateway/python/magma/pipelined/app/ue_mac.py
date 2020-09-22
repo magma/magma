@@ -23,7 +23,7 @@ from lte.protos.pipelined_pb2 import FlowResponse, SetupFlowsResult, \
     UEMacFlowRequest
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.inout import INGRESS
-from magma.pipelined.directoryd_client import update_record
+from magma.directoryd.directoryd_client import update_record
 from magma.pipelined.imsi import encode_imsi, decode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.app.ipfix import IPFIXController
