@@ -126,8 +126,8 @@ func TestBuilder_Build(t *testing.T) {
 				},
 			},
 			"sessiond": &lte_mconfig.SessionD{
-				LogLevel:     protos.LogLevel_INFO,
-				RelayEnabled: true,
+				LogLevel:         protos.LogLevel_INFO,
+				GxGyRelayEnabled: true,
 				WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 					TerminateOnExhaust: true,
 					Method:             lte_mconfig.WalletExhaustDetection_GxTrackedRules,

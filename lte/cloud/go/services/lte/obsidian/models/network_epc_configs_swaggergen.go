@@ -26,6 +26,14 @@ type NetworkEpcConfigs struct {
 	// default rule id
 	DefaultRuleID string `json:"default_rule_id,omitempty"`
 
+	// gx gy relay enabled
+	// Required: true
+	GxGyRelayEnabled *bool `json:"gx_gy_relay_enabled"`
+
+	// hss relay enabled
+	// Required: true
+	HssRelayEnabled *bool `json:"hss_relay_enabled"`
+
 	// lte auth amf
 	// Required: true
 	// Format: byte
@@ -54,10 +62,6 @@ type NetworkEpcConfigs struct {
 	// Configuration for network services. Services will be instantiated in the listed order.
 	NetworkServices []string `json:"network_services,omitempty"`
 
-	// relay enabled
-	// Required: true
-	RelayEnabled *bool `json:"relay_enabled"`
-
 	// sub profiles
 	SubProfiles map[string]NetworkEpcConfigsSubProfilesAnon `json:"sub_profiles,omitempty"`
 
@@ -71,6 +75,14 @@ type NetworkEpcConfigs struct {
 // Validate validates this network epc configs
 func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
+
+	if err := m.validateGxGyRelayEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHssRelayEnabled(formats); err != nil {
+		res = append(res, err)
+	}
 
 	if err := m.validateLteAuthAmf(formats); err != nil {
 		res = append(res, err)
@@ -96,10 +108,6 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
-	if err := m.validateRelayEnabled(formats); err != nil {
-		res = append(res, err)
-	}
-
 	if err := m.validateSubProfiles(formats); err != nil {
 		res = append(res, err)
 	}
@@ -111,6 +119,24 @@ func (m *NetworkEpcConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateGxGyRelayEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("gx_gy_relay_enabled", "body", m.GxGyRelayEnabled); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *NetworkEpcConfigs) validateHssRelayEnabled(formats strfmt.Registry) error {
+
+	if err := validate.Required("hss_relay_enabled", "body", m.HssRelayEnabled); err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -220,15 +246,6 @@ func (m *NetworkEpcConfigs) validateNetworkServices(formats strfmt.Registry) err
 			return err
 		}
 
-	}
-
-	return nil
-}
-
-func (m *NetworkEpcConfigs) validateRelayEnabled(formats strfmt.Registry) error {
-
-	if err := validate.Required("relay_enabled", "body", m.RelayEnabled); err != nil {
-		return err
 	}
 
 	return nil
