@@ -25,7 +25,7 @@ import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
@@ -34,8 +34,8 @@ import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 import {AltFormField} from '../../components/FormField';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useState} from 'react';
 
 type Props = {
   epcConfigs: network_epc_configs,
@@ -46,32 +46,32 @@ export default function NetworkEpc(props: Props) {
     [
       {
         category: 'Policy Enforcement Enabled',
-        value: props.epcConfigs.relay_enabled ? 'Enabled' : 'Disabled',
+        value: props.epcConfigs?.relay_enabled ? 'Enabled' : 'Disabled',
       },
     ],
     [
       {
         category: 'LTE Auth AMF',
-        value: props.epcConfigs.lte_auth_amf,
+        value: props.epcConfigs?.lte_auth_amf,
         obscure: true,
       },
     ],
     [
       {
         category: 'MCC',
-        value: props.epcConfigs.mcc,
+        value: props.epcConfigs?.mcc,
       },
     ],
     [
       {
         category: 'MNC',
-        value: props.epcConfigs.mnc,
+        value: props.epcConfigs?.mnc,
       },
     ],
     [
       {
         category: 'TAC',
-        value: props.epcConfigs.tac,
+        value: props.epcConfigs?.tac,
       },
     ],
   ];
@@ -91,31 +91,31 @@ export function NetworkEpcEdit(props: EditProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
-  const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>(
-    props.epcConfigs || {
-      cloud_subscriberdb_enabled: false,
-      default_rule_id: 'default_rule_1',
-      lte_auth_amf: 'gAA=',
-      lte_auth_op: 'EREREREREREREREREREREQ==',
-      mcc: '001',
-      mnc: '01',
-      network_services: ['policy_enforcement'],
-      relay_enabled: false,
-      sub_profiles: {},
-      tac: 1,
-    },
-  );
+  const ctx = useContext(LteNetworkContext);
 
+  const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>(
+    props.epcConfigs == null || Object.keys(props.epcConfigs).length === 0
+      ? {
+          cloud_subscriberdb_enabled: false,
+          default_rule_id: 'default_rule_1',
+          lte_auth_amf: 'gAA=',
+          lte_auth_op: 'EREREREREREREREREREREQ==',
+          mcc: '001',
+          mnc: '01',
+          network_services: ['policy_enforcement'],
+          relay_enabled: false,
+          sub_profiles: {},
+          tac: 1,
+        }
+      : props.epcConfigs,
+  );
   const onSave = async () => {
     try {
-      MagmaV1API.putLteByNetworkIdCellularEpc({
-        networkId: props.networkId,
-        config: epcConfigs,
-      });
-      enqueueSnackbar('EPC configs saved successfully', {variant: 'success'});
+      await ctx.updateNetworks({networkId: props.networkId, epcConfigs});
       props.onSave(epcConfigs);
+      enqueueSnackbar('EPC configs saved successfully', {variant: 'success'});
     } catch (e) {
-      setError(e.data?.message ?? e.message);
+      setError(e.response?.data?.message ?? e?.message);
     }
   };
 

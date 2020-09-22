@@ -21,7 +21,7 @@ from magma.common.misc_utils import get_ip_from_if_cidr
 from magma.configuration.exceptions import LoadConfigError
 from magma.configuration.mconfig_managers import load_service_mconfig
 from magma.configuration.service_configs import load_service_config
-from orc8r.protos.mconfig.mconfigs_pb2 import DnsD
+from lte.protos.mconfig.mconfigs_pb2 import DnsD
 
 CONFIG_OVERRIDE_DIR = '/var/opt/magma/tmp'
 
@@ -69,7 +69,7 @@ def get_context():
     dhcp_block_size = cfg['dhcp_block_size']
     available_hosts = list(ipaddress.IPv4Interface(ip).network.hosts())
 
-    context['dhcp_server_enabled'] = mconfig.dhcp_server_enabled or True
+    context['dhcp_server_enabled'] = mconfig.dhcp_server_enabled
     if dhcp_block_size < len(available_hosts):
         context['dhcp_range'] = {
             "lower": str(available_hosts[-dhcp_block_size]),

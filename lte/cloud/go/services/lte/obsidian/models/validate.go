@@ -312,6 +312,14 @@ func (m *GatewayNonEpsConfigs) ValidateModel() error {
 	return nil
 }
 
+func (m *GatewayDNSConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayDNSRecords) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
 func (m *EnodebSerials) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }

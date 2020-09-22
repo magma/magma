@@ -594,7 +594,8 @@ func TestCellularPartialUpdate(t *testing.T) {
 
 	// happy path update epc config
 	epcConfig := lteModels.NewDefaultTDDNetworkConfig().Epc
-	epcConfig.RelayEnabled = swag.Bool(true)
+	epcConfig.HssRelayEnabled = swag.Bool(true)
+	epcConfig.GxGyRelayEnabled = swag.Bool(true)
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            fmt.Sprintf("%s/%s/cellular/epc/", testURLRoot, "n2"),
