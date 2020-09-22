@@ -1486,10 +1486,10 @@
   resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.5.tgz#57a472935c717fae191957ccd820efeaca484018"
   integrity sha512-4ERRyRUMNrDCEC4tbgzNJmuu/q/0182Aw9OjLThsGiewVK8mTvvQ28CtkcJVhkbXxi1m+kXihTzh+/y+2BPVHQ==
 
-"@fbcnms/ui@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@fbcnms/ui/-/ui-0.1.5.tgz#ec35c5db12f500a081c7bc17e51f57d9f627cdcd"
-  integrity sha512-lyJ37kLBwK94REw1Hm4/SkN6y9v7JNA3Ib8C/xeiN+0a8RmBueWb2S5zMvyIA5YDbGuz12z4F0Sfu1iEB07+dw==
+"@fbcnms/ui@^0.1.7":
+  version "0.1.7"
+  resolved "https://registry.yarnpkg.com/@fbcnms/ui/-/ui-0.1.7.tgz#8fbfa9375e5a96ad6dfc1e7726a9bec43af85597"
+  integrity sha512-X/DzVr6wB+U14/Q+41Fqrec+bYjeYSWcNxNCug2Lz8O08xQRKxbly8WmRQEwGG2B03aVDnAN6LHabIQYRZSjbQ==
   dependencies:
     "@material-ui/core" "^4.0.0"
     "@material-ui/icons" "^4.0.0"
