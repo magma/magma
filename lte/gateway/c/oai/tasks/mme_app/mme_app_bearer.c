@@ -2131,7 +2131,8 @@ int mme_app_handle_initial_paging_request(
 /* Send actv_dedicated_bearer_rej to spgw app for the pending dedicated bearers
  * without creating a context as the UE did not respond to paging*/
 void _mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
-    ue_mm_context_t* ue_context_p, emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req) {
+    ue_mm_context_t* ue_context_p,
+    emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = itti_alloc_new_message(
       TASK_MME_APP, S11_NW_INITIATED_ACTIVATE_BEARER_RESP);
@@ -2144,9 +2145,14 @@ void _mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
   }
   itti_s11_nw_init_actv_bearer_rsp_t* s11_nw_init_actv_bearer_rsp =
       &message_p->ittiMsg.s11_nw_init_actv_bearer_rsp;
-  memset(s11_nw_init_actv_bearer_rsp, 0, sizeof(itti_s11_nw_init_actv_bearer_rsp_t));
+  memset(
+      s11_nw_init_actv_bearer_rsp, 0,
+      sizeof(itti_s11_nw_init_actv_bearer_rsp_t));
   // Fetch PDN context
-  pdn_cid_t cid = ue_context_p->bearer_contexts[EBI_TO_INDEX(pending_ded_ber_req->linked_ebi)]->pdn_cx_id;
+  pdn_cid_t cid =
+      ue_context_p
+          ->bearer_contexts[EBI_TO_INDEX(pending_ded_ber_req->linked_ebi)]
+          ->pdn_cx_id;
   pdn_context_t* pdn_context = ue_context_p->pdn_contexts[cid];
   // Fill SGW S11 CP TEID
   s11_nw_init_actv_bearer_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
@@ -2205,7 +2211,7 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
     /* MME shall reset the paging_retx_count as MME reached sending
      * Paging Indication to max retries
      */
-    ue_context_p->paging_retx_count = 0;
+    ue_context_p->paging_retx_count                  = 0;
     ue_context_p->time_paging_response_timer_started = 0;
     /* If there are any pending dedicated bearer requests to be sent to UE
      * send create_dedicated_bearer_reject to SPGW as UE did not respond
@@ -2215,10 +2221,12 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
         _mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
             ue_context_p, ue_context_p->pending_ded_ber_req[idx]);
         if (ue_context_p->pending_ded_ber_req[idx]->tft) {
-          free_traffic_flow_template(&ue_context_p->pending_ded_ber_req[idx]->tft);
+          free_traffic_flow_template(
+              &ue_context_p->pending_ded_ber_req[idx]->tft);
         }
         if (ue_context_p->pending_ded_ber_req[idx]->pco) {
-          free_protocol_configuration_options(&ue_context_p->pending_ded_ber_req[idx]->pco);
+          free_protocol_configuration_options(
+              &ue_context_p->pending_ded_ber_req[idx]->pco);
         }
         free_wrapper((void**) &ue_context_p->pending_ded_ber_req[idx]);
       }
