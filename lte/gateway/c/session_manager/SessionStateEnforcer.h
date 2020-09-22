@@ -36,79 +36,57 @@ limitations under the License.
 #include "SessionStore.h"
 #include "AmfServiceClient.h"
 
+namespace magma {
 
-namespace magma
-{
-class SmSessionContextSendClient {};
-
-//Object flow calss for 5G and composed from 4G LocalEnforcer.
-class SessionStateEnforcer
-{
-   public:
-
-      SessionStateEnforcer(
-      std::shared_ptr<StaticRuleStore> rule_store,
-      SessionStore& session_store,
-      /*M5G specific parameter new objects to communicate UPF and response to AMF*/
+class SessionStateEnforcer {
+ public:
+  SessionStateEnforcer(
+      std::shared_ptr<StaticRuleStore> rule_store, SessionStore& session_store,
+      /*M5G specific parameter new objects to communicate UPF and response to
+         AMF*/
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AmfServiceClient> amf_srv_client,
       magma::mconfig::SessionD mconfig);
-      //std::shared_ptr<SmSessionContextSendClient> SmSession_Context_Send_Client, //Revisit on sending msg back
-      //std::shared_ptr<SpgwServiceClient> spgw_client,
-      //long session_force_termination_timeout_ms,
 
-      ~SessionStateEnforcer() {}
+  ~SessionStateEnforcer() {}
 
-      void attachEventBase(folly::EventBase* evb);
+  void attachEventBase(folly::EventBase* evb);
 
-      // starts the event base thread with loop
-      //void start();//moved to global and get started for both 4G and 5G
+  void stop();
 
-      void stop();
+  folly::EventBase& get_event_base();
 
-      folly::EventBase& get_event_base();
+  /*Member functions*/
+  bool m5g_init_session_credit(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, const SessionConfig& cfg);
+  /*Charging & rule related*/
+  void handle_session_init_rule_updates(
+      SessionMap& session_map, const std::string& imsi,
+      SessionState& session_state);
 
-      /*Member functions*/
-      bool m5g_init_session_credit(SessionMap& session_map,
-		      const std::string& imsi, const std::string& session_ctx_id,
-		      const SessionConfig& cfg);
-      /*Charging & rule related*/
-      bool handle_session_init_rule_updates( SessionMap& session_map,
-		      const std::string& imsi, SessionState& session_state);
-   private:
-    std::vector<std::string> static_rules;
-    //std::vector<PolicyRule> dynamic_rules;
+ private:
+  std::vector<std::string> static_rules;
 
-    ConvergedRuleStore  GlobalRuleList;
-    std::unordered_multimap<std::string,uint32_t> pdr_map_;
-    std::unordered_multimap<std::string,uint32_t> far_map_;
+  ConvergedRuleStore GlobalRuleList;
+  std::unordered_multimap<std::string, uint32_t> pdr_map_;
+  std::unordered_multimap<std::string, uint32_t> far_map_;
 
-    std::shared_ptr<StaticRuleStore> rule_store_;
-    //AsyncEventdClient& eventd_client_;
-    SessionStore& session_store_;
-    // Two new objects are responsible to communicate UPF and AMF 
-    //std::shared_ptr<UpfClient> upf_client_;
-    std::shared_ptr<PipelinedClient> pipelined_client_;
-    std::shared_ptr<SmSessionContextSendClient> SmSession_Context_Send_Client_;
-    std::shared_ptr<AmfServiceClient> amf_srv_client_;
-    //std::unordered_map<std::string, std::vector<std::unique_ptr<SessionState>>>
-    //                  session_map_;
-    folly::EventBase* evb_;
-    std::chrono::seconds retry_timeout_;
-    magma::mconfig::SessionD mconfig_;  // Is this really reqd ?
-    bool static_rule_init();
-    /* To send response back to AMF 
-     * Fill the response structure and call rpc of AmfServiceClient */
-    void prepare_response_to_access(
-		    const std::string& imsi,
-		    SessionState& session_state,
-		    //const std::vector<magma::PolicyRule>& flows,TODO
-		    const magma::lte::M5GSMCause m5gsmcause);
+  std::shared_ptr<StaticRuleStore> rule_store_;
+  SessionStore& session_store_;
+  std::shared_ptr<PipelinedClient> pipelined_client_;
+  std::shared_ptr<AmfServiceClient> amf_srv_client_;
+  folly::EventBase* evb_;
+  std::chrono::seconds retry_timeout_;
+  magma::mconfig::SessionD mconfig_;
+  bool static_rule_init();
+  /* To send response back to AMF
+   * Fill the response structure and call rpc of AmfServiceClient
+   */
+  void prepare_response_to_access(
+      const std::string& imsi, SessionState& session_state,
+      const magma::lte::M5GSMCause m5gsmcause);
 
-    //long session_force_termination_timeout_ms_;
-    //std::shared_ptr<PipelinedClient> pipelined_client_;
- }; //End of class SessionStateEnforcer
+};  // End of class SessionStateEnforcer
 
-} //end namespace magma
-
-
+} // end namespace magma

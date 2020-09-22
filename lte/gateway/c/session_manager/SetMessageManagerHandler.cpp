@@ -28,10 +28,9 @@
 
 using grpc::Status;
 
-namespace magma
-{
+namespace magma {
 
-/**
+/*
  * SetMessageManagerHandler processes gRPC requests for the sessionD
  * This composites the earlier LocalSessionManagerHandlerImpl and uses the
  * exiting functionalities.
@@ -39,17 +38,20 @@ namespace magma
 
 /*Constructor*/
 SetMessageManagerHandler::SetMessageManagerHandler(
-    std::shared_ptr<SessionStateEnforcer> m5genforcer, SessionStore& session_store)
-    : session_store_(session_store),
-      m5g_enforcer_(m5genforcer) {}
+    std::shared_ptr<SessionStateEnforcer> m5genforcer,
+    SessionStore& session_store)
+    : session_store_(session_store), m5g_enforcer_(m5genforcer) {}
 
-/*Building session config with required parameters*/  //TODO on SubscriberID how to assigne or manage
+/* Building session config with required parameters
+ * TODO Note: this function can be removed by implementing 5G specific
+ * SeesionConfig constructor
+ */
 SessionConfig SetMessageManagerHandler::m5g_build_session_config(
-              const SetSMSessionContext& request) {
-  SessionConfig cfg ;
+    const SetSMSessionContext& request) {
+  SessionConfig cfg;
   /*copying pnly 5G specific data to respective elements*/
-  cfg.common_context         = request.common_context();
-  cfg.rat_specific_context   = request.rat_specific_context();
+  cfg.common_context       = request.common_context();
+  cfg.rat_specific_context = request.rat_specific_context();
 
   return cfg;
 }
@@ -61,88 +63,75 @@ SessionConfig SetMessageManagerHandler::m5g_build_session_config(
  * If EXISTING_PDU_SESSION, check on incoming session state and version
  * accordingly take action.
  * As per ASYNC method, response_callback is included but not functional
- * */
+ */
 
 void SetMessageManagerHandler::SetAmfSessionContext(
-		ServerContext* context,
-		const SetSMSessionContext* request,
-		std::function<void(Status, SmContextVoid)> response_callback)
-{
-   auto& request_cpy = *request;
-   //Print the message from AMF
-   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-   response_callback(Status::OK, SmContextVoid());
-   /*The Event Based main_thread invocation and runs to handle session state*/ 
-   m5g_enforcer_->get_event_base().runInEventBaseThread (
+    ServerContext* context, const SetSMSessionContext* request,
+    std::function<void(Status, SmContextVoid)> response_callback) {
+  auto& request_cpy = *request;
+  // Print the message from AMF
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  response_callback(Status::OK, SmContextVoid());
+  /*The Event Based main_thread invocation and runs to handle session state*/
+  m5g_enforcer_->get_event_base().runInEventBaseThread(
       [this, response_callback, request_cpy]() {
-      //[this, context, response_callback, request_cpy]() {
-   std::cerr << __LINE__ << " Entered event loop therad " << __FUNCTION__ << " processing message \n";
-   //extract values from proto
-   auto  imsi = request_cpy.common_context().sid().id();
-   std::string dnn = request_cpy.common_context().apn(); //may not required for demo-1
-   std::string session_id = id_gen_.gen_session_id(imsi);
+        // extract values from proto
+        auto imsi = request_cpy.common_context().sid().id();
+        std::string dnn =
+            request_cpy.common_context().apn();  // may not required for demo-1
+        std::string session_id = id_gen_.gen_session_id(imsi);
 
-   MLOG(MDEBUG) << "Requested imsi from UE: " << imsi
-                 << " Generated sessioncontext ID" << session_id;
-   std::cerr << __LINE__ << " Requested imsi from UE " << imsi << "\n";
-   /*reach complete message from proto message*/
-   SessionConfig cfg = m5g_build_session_config(request_cpy);
-   std::cerr << __LINE__ << " m5g_build_session_config called \n";
+        MLOG(MDEBUG) << "Requested imsi from UE: " << imsi
+                     << " Generated sessioncontext ID" << session_id;
+        /*reach complete message from proto message*/
+        SessionConfig cfg = m5g_build_session_config(request_cpy);
 
-   /*check if it's initial message*/
-   if((cfg.rat_specific_context.m5gsm_session_context().rquest_type() == INITIAL_REQUEST) &&
-      (cfg.common_context.sm_session_state() == CREATING_0)) {
-      /*it's new UE establisment request and need to create the session context*/
-      	 MLOG(MDEBUG) << "AMF request type INITIAL_REQUEST and session state CREATING";
-      	 std::cerr << __LINE__ << " AMF request type INITIAL_REQUEST and session state CREATING \n";
-         /* read the SessionMap from global session_store 
-	  * if not found it will add this imsi
-	  */
-	 //SessionRead req = {imsi};
-         auto session_map = session_store_.read_sessions({imsi});
-	 send_create_session(session_map, imsi, session_id, cfg);
-    }
-  });
+        /*check if it's initial message*/
+        if ((cfg.rat_specific_context.m5gsm_session_context().rquest_type() ==
+             INITIAL_REQUEST) &&
+            (cfg.common_context.sm_session_state() == CREATING_0)) {
+          /* it's new UE establisment request and need to create the session
+           * context
+           */
+          MLOG(MDEBUG)
+              << "AMF request type INITIAL_REQUEST and session state CREATING";
+          /* read the SessionMap from global session_store
+           * if not found it will add this imsi
+           */
+          auto session_map = session_store_.read_sessions({imsi});
+          send_create_session(session_map, imsi, session_id, cfg);
+        }
+      });
 }
 
 /* Creeate respective SessionState and context*/
 void SetMessageManagerHandler::send_create_session(
-		   SessionMap& session_map,
-		   const std::string& imsi,
-		   const std::string& session_id,
-		   const SessionConfig& cfg)
-{
-   auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
-   /* initialization of SessionState for IMSI by SessionStateEnforcer*/
-   bool success = m5g_enforcer_->m5g_init_session_credit(*session_map_ptr,
-		                                 imsi, session_id, cfg);
-   std::cerr << __LINE__ << " " << __FUNCTION__ << " successfully handled m5g_enforcer \n" ;
-   if(!success) {
-      MLOG(MERROR) << "Failed to initialize SessionState for IMSI " << imsi;
-   }
-   else {
-      /* writing of SessionMap in memory through SessionStore object*/
-      if(session_store_.create_sessions(
-                imsi, std::move((*session_map_ptr)[imsi]))) {
-	  std::cerr << __LINE__ << " Successfully initialized 5G session for "
-		    << "subscriber and stored by session_store_.create_sessions \n";
-	  MLOG(MINFO) << "Successfully initialized 5G session for subscriber "
-		          << cfg.common_context.sid().id()
-                          << " with PDU session ID "
-			  << cfg.rat_specific_context.m5gsm_session_context().pdu_session_id();
-      }
-      else {
-	  MLOG(MERROR) << "Failed to initialize 5G session for subscriber"
-		          << cfg.common_context.sid().id()
-                          << " with PDU session ID "
-			  << cfg.rat_specific_context.m5gsm_session_context().pdu_session_id()
-                          << " due to failure writing to SessionStore.";
-      }
-
-   }
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, const SessionConfig& cfg) {
+  auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
+  /* initialization of SessionState for IMSI by SessionStateEnforcer*/
+  bool success = m5g_enforcer_->m5g_init_session_credit(
+      *session_map_ptr, imsi, session_id, cfg);
+  if (!success) {
+    MLOG(MERROR) << "Failed to initialize SessionState for IMSI and returing"
+                 << imsi;
+    return;
+  } else {
+    /* writing of SessionMap in memory through SessionStore object*/
+    if (session_store_.create_sessions(
+            imsi, std::move((*session_map_ptr)[imsi]))) {
+      MLOG(MINFO)
+          << "Successfully initialized 5G session for subscriber "
+          << cfg.common_context.sid().id() << " with PDU session ID "
+          << cfg.rat_specific_context.m5gsm_session_context().pdu_session_id();
+    } else {
+      MLOG(MERROR)
+          << "Failed to initialize 5G session for subscriber"
+          << cfg.common_context.sid().id() << " with PDU session ID "
+          << cfg.rat_specific_context.m5gsm_session_context().pdu_session_id()
+          << " due to failure writing to SessionStore.";
+    }
+  }
 }
 
-
-}//end namespace magma
-
-
+}  // end namespace magma

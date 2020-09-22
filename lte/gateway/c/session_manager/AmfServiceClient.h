@@ -30,29 +30,34 @@ using namespace lte;
  * modification and release request message to AMF
  */
 class AmfServiceClient {
-   public:
-      virtual ~AmfServiceClient() {}
-      virtual bool handle_response_to_access(const magma::SetSMSessionContextAccess& response) = 0;
+ public:
+  virtual ~AmfServiceClient() {}
+  virtual bool handle_response_to_access(
+      const magma::SetSMSessionContextAccess& response) = 0;
 
-}; //end of abstract class
+};  // end of abstract class
 
 class AsyncAmfServiceClient : public GRPCReceiver, public AmfServiceClient {
-   public:
+ public:
+  AsyncAmfServiceClient();
+  // AsyncAmfServiceClient() {}  //TODO  For temorary compilation purpose and
+  // will take out
+  AsyncAmfServiceClient(std::shared_ptr<grpc::Channel> amf_srv_channel);
 
-      AsyncAmfServiceClient();
-      AsyncAmfServiceClient(std::shared_ptr<grpc::Channel> amf_srv_channel);
+  /* This will send response back to AMF for all three request messages
+   * i.e. establish, modification and release messages
+   */
+  bool handle_response_to_access(
+      const magma::SetSMSessionContextAccess& response);
+  // bool handle_response_to_access(const magma::SetSMSessionContextAccess&
+  // response) { return true;}
 
-      /* This will send response back to AMF for all three request messages
-       * i.e. establish, modification and release messages
-       */
-      bool handle_response_to_access(const magma::SetSMSessionContextAccess& response);
-
-    private:
-      static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
-      std::unique_ptr<SmfPduSessionSmContext::Stub> stub_;
-      void handle_response_to_access_rpc(const SetSMSessionContextAccess& response,
-		          std::function<void(Status, SmContextVoid)> callback);
-
+ private:
+  static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
+  std::unique_ptr<SmfPduSessionSmContext::Stub> stub_;
+  void handle_response_to_access_rpc(
+      const SetSMSessionContextAccess& response,
+      std::function<void(Status, SmContextVoid)> callback);
 };
 
-} // namespace magma
+}  // namespace magma
