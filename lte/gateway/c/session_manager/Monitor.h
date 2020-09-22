@@ -44,8 +44,24 @@ struct Monitor {
     return marshaled;
   }
 
+  // Monitor will be deleted when the credit is exhausted and no more grants are received
+  // or when we receive the explicit action
   bool should_delete_monitor(){
     return credit.current_grant_contains_zero() && credit.is_quota_exhausted(1);
+  }
+
+  bool shoould_send_update(){
+    // update trigger by being the final report
+    if (credit.get_last_update()){
+      return true;
+    }
+    // updated trigger due to usage threshold (80%)
+    if (!credit.current_grant_contains_zero() &&
+        credit.is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)){
+      // if grant contains zeros that means we are in final. Do no report
+      return true;
+    }
+    return false;
   }
 };
 

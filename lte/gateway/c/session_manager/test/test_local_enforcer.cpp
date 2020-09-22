@@ -1369,7 +1369,9 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
 // Test an insertion of a usage monitor, both session_level and rule level,
 // and then a deletion. Additionally, test
 // that a rule update from PipelineD for a deleted usage monitor should NOT
-// trigger an update request.
+// trigger an update request,
+// Note the actual deletion ofo a monitor will not happen until last update
+// is sent. So we need to store and read the session to trigger that deletion
 TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   // insert key rule mapping
   insert_static_rule(0, "1", "pcrf_only_active");
@@ -1419,6 +1421,15 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   EXPECT_EQ(update_request_1.updates_size(), 0);
   EXPECT_EQ(update_request_1.usage_monitors_size(), 3);
 
+
+  // IMPORTANT: save the updates into store and reload to trigger
+  // apply_monitor_updates
+  success = session_store->update_sessions(update_1);
+  EXPECT_TRUE(success);
+  session_map  = session_store->read_sessions(SessionRead{IMSI1});
+  update_1 = SessionStore::get_default_session_update(session_map);
+  EXPECT_EQ(session_map.size(), 1);
+
   // Monitor credit addition #2
   // Receive an update with zero grant for mkey=3 & mkey=2, but with
   // credit for mkey=1. That means 3 and 2 will have to stop reporting when
@@ -1463,18 +1474,36 @@ TEST_F(LocalEnforcerTest, test_usage_monitor_disable) {
   update_2 = SessionStore::get_default_session_update(session_map);
   local_enforcer->aggregate_records(session_map, table_2, update_2);
   monitor_updates_2 = update_2[IMSI1][SESSION_ID_1].monitor_credit_map;
-  EXPECT_FALSE(monitor_updates_2["1"].deleted);
-  EXPECT_TRUE(monitor_updates_2["2"].deleted);
-  EXPECT_TRUE(monitor_updates_2["3"].deleted);
+  EXPECT_FALSE(monitor_updates_2["1"].last_update);
+  EXPECT_TRUE(monitor_updates_2["2"].last_update);
+  EXPECT_TRUE(monitor_updates_2["3"].last_update);
   // check session level key will be removed
   EXPECT_EQ(update_2[IMSI1][SESSION_ID_1].updated_session_level_key, "");
 
-  // Collect updates, should have NO updates
+  // Collect updates, should receive three updatesResponses (two of them of the
+  // last updates sent for  2 and 3.
+  // Also it should mark 2 and 3 for deletion
   std::vector<std::unique_ptr<ServiceAction>> actions_2;
   auto update_request_2 =
       local_enforcer->collect_updates(session_map, actions_2, update_2);
   EXPECT_EQ(update_request_2.updates_size(), 0);
-  EXPECT_EQ(update_request_2.usage_monitors_size(), 1);
+  EXPECT_EQ(update_request_2.usage_monitors_size(), 3);
+  monitor_updates_2 = update_2[IMSI1][SESSION_ID_1].monitor_credit_map;
+  EXPECT_FALSE(monitor_updates_2["1"].deleted);
+  EXPECT_TRUE(monitor_updates_2["2"].deleted);
+  EXPECT_TRUE(monitor_updates_2["3"].deleted);
+
+  // Check deletion of monitors
+  // Actual deletion will not happen until we iterate one more timea
+  //local_enforcer->up
+  // IMPORTANT: save the updates into store and reload to trigger
+  success = session_store->update_sessions(update_2);
+  EXPECT_TRUE(success);
+  session_map  = session_store->read_sessions(SessionRead{IMSI1});
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_NE(session_map[IMSI1][0]->get_monitor("1", ALLOWED_TOTAL), 0);
+  EXPECT_EQ(session_map[IMSI1][0]->get_monitor("2", ALLOWED_TOTAL), 0);
+  EXPECT_EQ(session_map[IMSI1][0]->get_monitor("3", ALLOWED_TOTAL), 0);
 }
 
 TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {

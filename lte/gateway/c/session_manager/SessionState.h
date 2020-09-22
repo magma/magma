@@ -376,7 +376,7 @@ class SessionState {
 
   // Monitors
   bool receive_monitor(const UsageMonitoringUpdateResponse &update,
-                       SessionStateUpdateCriteria &uc);
+                       SessionStateUpdateCriteria & session_uc);
 
   uint64_t get_monitor(const std::string &key, Bucket bucket) const;
 
@@ -499,7 +499,7 @@ class SessionState {
       SessionStateUpdateCriteria& uc);
 
   void apply_charging_credit_update(
-      const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
+      const CreditKey &key, SessionCreditUpdateCriteria & credit_uc);
 
   /**
    * Receive the credit grant if the credit update was successful
@@ -539,8 +539,9 @@ class SessionState {
    * @param key : monitoring key for the update
    * @param update : the diff that needs to be applied
    */
-  void apply_monitor_updates(
-      const std::string &key, SessionCreditUpdateCriteria &update);
+  void apply_monitor_updates(const std::string& key,
+                             SessionStateUpdateCriteria& session_uc,
+                             SessionCreditUpdateCriteria& credit_uc);
 
   void add_common_fields_to_usage_monitor_update(UsageMonitoringUpdateRequest* req);
 

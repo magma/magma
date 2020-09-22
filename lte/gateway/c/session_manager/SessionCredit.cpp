@@ -34,13 +34,15 @@ SessionCredit::SessionCredit(
     : buckets_{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0},
       reporting_(false),
       credit_limit_type_(credit_limit_type),
-      grant_tracking_type_(TRACKING_UNSET) {}
+      grant_tracking_type_(TRACKING_UNSET),
+      last_update_(false){}
 
 SessionCredit::SessionCredit(const StoredSessionCredit& marshaled) {
   reporting_              = marshaled.reporting;
   credit_limit_type_      = marshaled.credit_limit_type;
   grant_tracking_type_    = marshaled.grant_tracking_type;
   received_granted_units_ = marshaled.received_granted_units;
+  last_update_            = marshaled.last_update;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
@@ -56,6 +58,7 @@ StoredSessionCredit SessionCredit::marshal() {
   marshaled.credit_limit_type      = credit_limit_type_;
   marshaled.grant_tracking_type    = grant_tracking_type_;
   marshaled.received_granted_units = received_granted_units_;
+  marshaled.last_update            = last_update_;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket             = static_cast<Bucket>(bucket_int);
@@ -69,6 +72,7 @@ SessionCreditUpdateCriteria SessionCredit::get_update_criteria() {
   uc.deleted                = false;
   uc.grant_tracking_type    = grant_tracking_type_;
   uc.received_granted_units = received_granted_units_;
+  uc.last_update            = last_update_;
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket            = static_cast<Bucket>(bucket_int);
@@ -459,6 +463,15 @@ void SessionCredit::set_received_granted_units(
     GrantedUnits& rgu, SessionCreditUpdateCriteria& uc) {
   received_granted_units_   = rgu;
   uc.received_granted_units = rgu;
+}
+
+void SessionCredit::set_last_update(bool last_update, SessionCreditUpdateCriteria& uc){
+  last_update_ = last_update;
+  uc.last_update = last_update;
+}
+
+bool SessionCredit::get_last_update() {
+  return last_update_;
 }
 
 void SessionCredit::add_credit(

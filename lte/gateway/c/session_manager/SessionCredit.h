@@ -103,6 +103,10 @@ class SessionCredit {
   void set_received_granted_units(
       GrantedUnits& rgu, SessionCreditUpdateCriteria& uc);
 
+  void set_last_update(bool last_update, SessionCreditUpdateCriteria& uc);
+
+  bool get_last_update();
+
   /**
    * Add credit to the specified bucket. This does not necessarily correspond
    * to allowed or used credit.
@@ -159,6 +163,7 @@ class SessionCredit {
   GrantTrackingType grant_tracking_type_;
   // stores the granted credits we received the last
   GrantedUnits received_granted_units_;
+  bool last_update_;
 
  private:
   void log_quota_and_usage() const;

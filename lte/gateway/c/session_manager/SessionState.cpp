@@ -351,7 +351,7 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   for (const auto& it : uc.monitor_credit_map) {
     auto key           = it.first;
     auto credit_update = it.second;
-    apply_monitor_updates(key, credit_update);
+    apply_monitor_updates(key, uc, credit_update);
   }
   for (const auto& it : uc.monitor_credit_to_install) {
     auto key            = it.first;
@@ -504,24 +504,28 @@ void SessionState::get_monitor_updates(
     std::vector<std::unique_ptr<ServiceAction>>* actions_out,
     SessionStateUpdateCriteria& update_criteria) {
   for (auto& monitor_pair : monitor_map_) {
+
+    if (!monitor_pair.second->shoould_send_update()){
+      // do not send an update to the core
+      continue;
+    }
+
     auto mkey    = monitor_pair.first;
     auto& credit = monitor_pair.second->credit;
+    auto credit_uc = get_monitor_uc(mkey, update_criteria);
 
-    bool is_partially_exhausted = credit.is_quota_exhausted(
-        SessionCredit::USAGE_REPORTING_THRESHOLD);
-    bool is_totally_exhausted = credit.is_quota_exhausted(1);
-
-    if (!is_partially_exhausted ||
-        (!is_totally_exhausted && credit.current_grant_contains_zero())){
-      // The update will be skipped in case we havent used enough data yet
-      // OR in the case the monitor got a 0 grant and it is not exhausted
-      // (we will only send the last update when it is totally exhausted)
-      continue;
+    std::string last_update_message = "";
+    if (credit.get_last_update()){
+      // in case this is the last report, here we mark the session as to be
+      // deleted
+      credit_uc->deleted = true;
+      last_update_message = " (this is the last updcate sent for this monitor)";
     }
     MLOG(MDEBUG) << "Session " << session_id_ << " monitoring key " << mkey
                  << " updating due to quota exhaustion"
-                 << " with request number " << request_number_;
-    auto credit_uc = get_monitor_uc(mkey, update_criteria);
+                 << " with request number " << request_number_
+                 << last_update_message;
+
     auto usage     = credit.get_usage_for_reporting(*credit_uc);
     auto update =
         make_usage_monitor_update(usage, mkey, monitor_pair.second->level);
@@ -1180,36 +1184,35 @@ ReAuthResult SessionState::reauth_all(
 }
 
 void SessionState::apply_charging_credit_update(
-    const CreditKey& key, SessionCreditUpdateCriteria& credit_update) {
+    const CreditKey& key, SessionCreditUpdateCriteria& credit_uc) {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
     return;
   }
   auto& charging_grant = it->second;
   auto& credit         = charging_grant->credit;
-  if (credit_update.deleted) {
+  if (credit_uc.deleted) {
     credit_map_.erase(key);
     return;
   }
 
   // Credit merging
-  credit.set_grant_tracking_type(
-      credit_update.grant_tracking_type, credit_update);
-  credit.set_received_granted_units(credit_update.received_granted_units,
-                                    credit_update);
+  credit.set_grant_tracking_type(credit_uc.grant_tracking_type, credit_uc);
+  credit.set_received_granted_units(
+      credit_uc.received_granted_units, credit_uc);
+  credit.set_last_update(credit_uc.last_update, credit_uc);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     credit.add_credit(
-        credit_update.bucket_deltas.find(bucket)->second, bucket,
-        credit_update);
+        credit_uc.bucket_deltas.find(bucket)->second, bucket, credit_uc);
   }
 
   // set charging grant
-  charging_grant->is_final_grant    = credit_update.is_final;
-  charging_grant->final_action_info = credit_update.final_action_info;
-  charging_grant->expiry_time       = credit_update.expiry_time;
-  charging_grant->reauth_state      = credit_update.reauth_state;
-  charging_grant->service_state     = credit_update.service_state;
+  charging_grant->is_final_grant    = credit_uc.is_final;
+  charging_grant->final_action_info = credit_uc.final_action_info;
+  charging_grant->expiry_time       = credit_uc.expiry_time;
+  charging_grant->reauth_state      = credit_uc.reauth_state;
+  charging_grant->service_state     = credit_uc.service_state;
 
 }
 
@@ -1323,7 +1326,7 @@ void SessionState::get_charging_updates(
 // Monitors
 bool SessionState::receive_monitor(
     const UsageMonitoringUpdateResponse& update,
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& session_uc) {
   if (!update.has_credit()) {
     // We are overloading UsageMonitoringUpdateResponse/Request with other
     // EventTriggered requests, so we could receive updates that don't affect
@@ -1334,14 +1337,14 @@ bool SessionState::receive_monitor(
   }
   if (update.success() &&
       update.credit().level() == MonitoringLevel::SESSION_LEVEL) {
-    update_session_level_key(update, update_criteria);
+    update_session_level_key(update, session_uc);
   }
   auto mkey = update.credit().monitoring_key();
   auto it = monitor_map_.find(mkey);
 
-  if (update_criteria.monitor_credit_map.find(mkey) !=
-      update_criteria.monitor_credit_map.end() &&
-      update_criteria.monitor_credit_map[mkey].deleted){
+  if (session_uc.monitor_credit_map.find(mkey) !=
+          session_uc.monitor_credit_map.end() &&
+      session_uc.monitor_credit_map[mkey].deleted){
     // This will only happen if the PCRF responds back with more credit when
     // the monitor has already been set to be terminated
     MLOG(MDEBUG) <<"Ignoring Monitor update" << mkey << " update because it "
@@ -1351,35 +1354,66 @@ bool SessionState::receive_monitor(
 
   if (it == monitor_map_.end()) {
     // new credit
-    return init_new_monitor(update, update_criteria);
+    return init_new_monitor(update, session_uc);
   }
-  auto credit_uc = get_monitor_uc(mkey, update_criteria);
+  auto credit_uc = get_monitor_uc(mkey, session_uc);
   if (!update.success()) {
     it->second->credit.mark_failure(update.result_code(), credit_uc);
     return false;
   }
 
-  MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
-  const auto& gsu = update.credit().granted_units();
-  it->second->credit.receive_credit(gsu, credit_uc);
+  if (update.credit().action() == UsageMonitoringCredit::FORCE){
+    MLOG(MINFO) << "UsageMonitoringCredit::FORCE "
+                   "(`AVP: Usage-Monitoring-Report`) instruction "
+                   "not implemented. Will just continue for monitor  " << mkey;
+  }
+
+  if (update.credit().action() == UsageMonitoringCredit::DISABLE) {
+    // Disable mpnitor, no matter if we still have credit
+    MLOG(MINFO) << "Received a forced Disabled action for monitor " << mkey
+                << ". Will remove monitor after update is sent ";
+    // seting last update will deleted monitor after the update is sent.
+    it->second->credit.set_last_update(true, *credit_uc);
+
+  } else {
+    MLOG(MINFO) << session_id_ << " Received monitor credit for " << mkey;
+    const auto& gsu = update.credit().granted_units();
+    it->second->credit.receive_credit(gsu, credit_uc);
+  }
+  
   return true;
 }
 
 void SessionState::apply_monitor_updates(
-    const std::string& key, SessionCreditUpdateCriteria& update) {
+    const std::string& key, SessionStateUpdateCriteria& session_uc,
+    SessionCreditUpdateCriteria& credit_uc) {
   auto it = monitor_map_.find(key);
   if (it == monitor_map_.end()) {
     return;
   }
 
-  auto& credit = it->second->credit;
+  // Actual deletion of monitor
+  if (credit_uc.deleted) {
+    if (it->second->level == MonitoringLevel::SESSION_LEVEL){
+      // session level change
+      MLOG(MINFO) << "Removing Session Level monitor " << key;
+      session_uc.is_session_level_key_updated = true;
+      session_uc.updated_session_level_key = "";
+    }
+    MLOG(MINFO) << "Erasing monitor " << key;
+    monitor_map_.erase(key);
+    return;
+  }
+
   // Credit merging
-  credit.set_grant_tracking_type(update.grant_tracking_type, update);
-  credit.set_received_granted_units(update.received_granted_units,update);
+  auto& credit = it->second->credit;
+  credit.set_grant_tracking_type(credit_uc.grant_tracking_type, credit_uc);
+  credit.set_received_granted_units(credit_uc.received_granted_units,credit_uc);
+  credit.set_last_update(credit_uc.last_update, credit_uc);
   for (int i = USED_TX; i != MAX_VALUES; i++) {
     Bucket bucket = static_cast<Bucket>(i);
     it->second->credit.add_credit(
-        update.bucket_deltas.find(bucket)->second, bucket, update);
+        credit_uc.bucket_deltas.find(bucket)->second, bucket, credit_uc);
   }
 }
 
@@ -1403,17 +1437,14 @@ bool SessionState::add_to_monitor(
   }
 
   auto credit_uc = get_monitor_uc(key, uc);
-  // add credit or delete monitor
-  if (it->second->should_delete_monitor() ){
-    MLOG(MINFO) << "Erasing monitor " << key << " due to quota exhausted";
-    if (it->second->level == MonitoringLevel::SESSION_LEVEL){
-      uc.is_session_level_key_updated = true;
-      uc.updated_session_level_key = "";
-    }
-    credit_uc->deleted = true;
-    monitor_map_.erase(key);
-  } else {
-    it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+
+  it->second->credit.add_used_credit(used_tx, used_rx, *credit_uc);
+
+  // after adding usage we check if monitor is exhausted
+  if (it->second->should_delete_monitor() ) {
+    MLOG(MINFO) << "Quota exhausted for monitor " << key
+                << ". Will remove monitor after update is sent";
+    it->second->credit.set_last_update(true, *credit_uc);
   }
   return true;
 }
