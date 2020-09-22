@@ -14,7 +14,7 @@
  * @format
  */
 
-import type {EnodebInfo} from '../components/lte/EnodebUtils';
+import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {
   enodeb_serials,
   gateway_epc_configs,
