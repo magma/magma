@@ -15,9 +15,9 @@ limitations under the License.
 package integration
 
 import (
-	"fmt"
 	"testing"
 	"time"
+	"fmt"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"
@@ -38,11 +38,11 @@ const (
 )
 
 func TestHsslessAuthenticateUe(t *testing.T) {
-	var imsis []string
-	server, err := setupHssLessTestEnv()
+	fmt.Println("\nRunning TestAuthenticateUe HSSLess...")
+
+	ueSimServer, err := setupHssLessTestEnv()
 	assert.NoError(t, err)
 
-	fmt.Println("\nRunning TestAuthenticateUe HSSLess...")
 	tr := NewTestRunner(t)
 	ruleManager, err := NewRuleManager()
 	assert.NoError(t, err)
@@ -59,10 +59,8 @@ func TestHsslessAuthenticateUe(t *testing.T) {
 
 	imsi := ues[0].GetImsi()
 
-	imsis = append(imsis, imsi)
-
 	// Configure static rule in policyDB and PCRF
-	err = ruleManager.AddStaticPassAllToDBAndPCRFforIMSIs(imsis, "omni-pass-all-1", "1", 1, models.PolicyRuleConfigTrackingTypeONLYOCS, 20)
+	err = ruleManager.AddStaticPassAllToDBAndPCRFforIMSIs([]string{imsi}, "omni-pass-all-1", "1", 1, models.PolicyRuleConfigTrackingTypeONLYOCS, 20)
 	assert.NoError(t, err)
 
 	// Set Credits on OCS
@@ -83,19 +81,19 @@ func TestHsslessAuthenticateUe(t *testing.T) {
 		Apn:    DefaultApn,
 	}
 
-	_, err = server.AddUE(context.Background(), ues[0])
+	_, err = ueSimServer.AddUE(context.Background(), ues[0])
 	assert.NoError(t, err)
 
 	authReq := &cwfprotos.AuthenticateRequest{Imsi: imsi}
 
-	res, err := server.Authenticate(context.Background(), authReq)
+	res, err := ueSimServer.Authenticate(context.Background(), authReq)
 	assert.NoError(t, err)
 	assert.NotNil(t, res)
 
 	time.Sleep(5 * time.Second)
 
 	discReq := &cwfprotos.DisconnectRequest{Imsi: imsi}
-	discRes, err := server.Disconnect(context.Background(), discReq)
+	discRes, err := ueSimServer.Disconnect(context.Background(), discReq)
 	assert.NoError(t, err)
 	assert.NotNil(t, discRes)
 
