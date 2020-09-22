@@ -138,6 +138,7 @@ struct StoredSessionCredit {
   std::unordered_map<Bucket, uint64_t> buckets;
   GrantTrackingType grant_tracking_type;
   GrantedUnits received_granted_units;
+  bool report_last_credit;
 };
 
 struct StoredMonitor {
@@ -236,6 +237,7 @@ struct SessionCreditUpdateCriteria {
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
 
   bool deleted;
+  bool report_last_credit;
 };
 
 struct SessionStateUpdateCriteria {
