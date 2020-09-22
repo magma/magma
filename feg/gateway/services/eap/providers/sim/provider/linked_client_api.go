@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// package aka implements EAP-AKA provider
+// package sim implements EAP-SIM provider
 package provider
 
 import (
@@ -24,42 +24,42 @@ import (
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap/providers"
-	"magma/feg/gateway/services/eap/providers/aka"
-	"magma/feg/gateway/services/eap/providers/aka/servicers"
-	_ "magma/feg/gateway/services/eap/providers/aka/servicers/handlers"
+	"magma/feg/gateway/services/eap/providers/sim"
+	"magma/feg/gateway/services/eap/providers/sim/servicers"
+	_ "magma/feg/gateway/services/eap/providers/sim/servicers/handlers"
 	managed_configs "magma/gateway/mconfig"
 )
 
-func NewService(srvsr *servicers.EapAkaSrv) providers.Method {
-	return &providerImpl{EapAkaSrv: srvsr}
+func NewService(srvsr *servicers.EapSimSrv) providers.Method {
+	return &providerImpl{EapSimSrv: srvsr}
 }
 
-// Handle handles passed EAP-AKA payload & returns corresponding result
-// this Handle implementation is using GRPC based AKA provider service
+// Handle handles passed EAP-SIM payload & returns corresponding result
+// this Handle implementation is using GRPC based SIM provider service
 func (prov *providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
 	if msg == nil {
-		return nil, errors.New("Invalid EAP AKA Message")
+		return nil, errors.New("Invalid EAP SIM Message")
 	}
 	prov.RLock()
-	if prov.EapAkaSrv == nil {
+	if prov.EapSimSrv == nil {
 		// servicer is not initialized, relock, recheck, create
 		prov.RUnlock()
 		prov.Lock()
-		if prov.EapAkaSrv == nil {
-			akaConfigs := &mconfig.EapAkaConfig{}
-			err := managed_configs.GetServiceConfigs(aka.EapAkaServiceName, akaConfigs)
+		if prov.EapSimSrv == nil {
+			simConfigs := &mconfig.EapProviderConfig{}
+			err := managed_configs.GetServiceConfigs(sim.EapSimServiceName, simConfigs)
 			if err != nil {
-				glog.Errorf("Error getting EAP AKA service configs: %s", err)
-				akaConfigs = nil
+				glog.Errorf("Error getting EAP SIM service configs: %s", err)
+				simConfigs = nil
 			}
-			prov.EapAkaSrv, err = servicers.NewEapAkaService(akaConfigs)
-			if err != nil || prov.EapAkaSrv == nil {
-				glog.Fatalf("failed to create EAP AKA Service: %v", err) // should never happen
+			prov.EapSimSrv, err = servicers.NewEapSimService(simConfigs)
+			if err != nil || prov.EapSimSrv == nil {
+				glog.Fatalf("failed to create EAP SIM Service: %v", err) // should never happen
 			}
 		}
 		prov.Unlock()
 		prov.RLock()
 	}
 	defer prov.RUnlock()
-	return prov.EapAkaSrv.HandleImpl(msg)
+	return prov.EapSimSrv.HandleImpl(msg)
 }

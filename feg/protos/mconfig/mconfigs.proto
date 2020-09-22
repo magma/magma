@@ -126,6 +126,21 @@ message EapAkaConfig {
     repeated string PlmnIds = 3;
 }
 
+// EapProviderConfig is a generic EAP provider config for all new providers
+// TODO: It should eventually replace EapAkaConfig as well, but due to the braking nature
+//       of the switch farther planning is required
+message EapProviderConfig {
+    orc8r.LogLevel log_level = 1;
+    message Timeouts {
+        uint32 ChallengeMs = 1;
+        uint32 ErrorNotificationMs = 2;
+        uint32 SessionMs = 3;
+        uint32 SessionAuthenticatedMs = 4;
+    }
+    Timeouts timeout = 2;
+    repeated string PlmnIds = 3;
+}
+
 message AAAConfig {
     orc8r.LogLevel log_level = 1;
     // Idle session TTL

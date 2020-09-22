@@ -11,7 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// package servcers implements EAP-AKA GRPC service
+// package servcers implements EAP-SIM GRPC service
 package servicers
 
 import (
@@ -24,24 +24,24 @@ import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/plmn_filter"
-	"magma/feg/gateway/services/eap/providers/aka"
-	"magma/feg/gateway/services/eap/providers/aka/metrics"
+	"magma/feg/gateway/services/eap/providers/sim"
+	"magma/feg/gateway/services/eap/providers/sim/metrics"
 )
 
 type UserCtx struct {
 	mu         sync.Mutex
 	created    time.Time
-	state      aka.AkaState
+	state      sim.SimState
 	stateTime  time.Time
 	locked     bool
 	Identity   string
-	Imsi       aka.IMSI
+	Imsi       sim.IMSI
 	Profile    *protos.AuthenticationAnswer_UserProfile
 	Identifier uint8
-	Rand,
+	Rand       [][]byte
+	Sres       [][]byte
 	K_aut,
-	MSK,
-	Xres []byte
+	MSK []byte
 	SessionId     string
 	AuthSessionId string
 }
@@ -58,12 +58,7 @@ type touts struct {
 	sessionAuthenticatedTimeout time.Duration
 }
 
-type plmnIdVal struct {
-	l5 bool
-	b6 byte
-}
-
-type EapAkaSrv struct {
+type EapSimSrv struct {
 	rwl sync.RWMutex // R/W lock synchronizing maps access
 	// Map of UE Sessions keyed by sessionId
 	sessions map[string]*SessionCtx
@@ -75,47 +70,47 @@ type EapAkaSrv struct {
 }
 
 var defaultTimeouts = touts{
-	challengeTimeout:            aka.DefaultChallengeTimeout,
-	errorNotificationTimeout:    aka.DefaultErrorNotificationTimeout,
-	sessionTimeout:              aka.DefaultSessionTimeout,
-	sessionAuthenticatedTimeout: aka.DefaultSessionAuthenticatedTimeout,
+	challengeTimeout:            sim.DefaultChallengeTimeout,
+	errorNotificationTimeout:    sim.DefaultErrorNotificationTimeout,
+	sessionTimeout:              sim.DefaultSessionTimeout,
+	sessionAuthenticatedTimeout: sim.DefaultSessionAuthenticatedTimeout,
 }
 
-func (s *EapAkaSrv) ChallengeTimeout() time.Duration {
+func (s *EapSimSrv) ChallengeTimeout() time.Duration {
 	return time.Duration(atomic.LoadInt64((*int64)(&s.timeouts.challengeTimeout)))
 }
 
-func (s *EapAkaSrv) SetChallengeTimeout(tout time.Duration) {
+func (s *EapSimSrv) SetChallengeTimeout(tout time.Duration) {
 	atomic.StoreInt64((*int64)(&s.timeouts.challengeTimeout), int64(tout))
 }
 
-func (s *EapAkaSrv) NotificationTimeout() time.Duration {
+func (s *EapSimSrv) NotificationTimeout() time.Duration {
 	return time.Duration(atomic.LoadInt64((*int64)(&s.timeouts.errorNotificationTimeout)))
 }
 
-func (s *EapAkaSrv) SetNotificationTimeout(tout time.Duration) {
+func (s *EapSimSrv) SetNotificationTimeout(tout time.Duration) {
 	atomic.StoreInt64((*int64)(&s.timeouts.errorNotificationTimeout), int64(tout))
 }
 
-func (s *EapAkaSrv) SessionTimeout() time.Duration {
+func (s *EapSimSrv) SessionTimeout() time.Duration {
 	return time.Duration(atomic.LoadInt64((*int64)(&s.timeouts.sessionTimeout)))
 }
 
-func (s *EapAkaSrv) SetSessionTimeout(tout time.Duration) {
+func (s *EapSimSrv) SetSessionTimeout(tout time.Duration) {
 	atomic.StoreInt64((*int64)(&s.timeouts.sessionTimeout), int64(tout))
 }
 
-func (s *EapAkaSrv) SessionAuthenticatedTimeout() time.Duration {
+func (s *EapSimSrv) SessionAuthenticatedTimeout() time.Duration {
 	return time.Duration(atomic.LoadInt64((*int64)(&s.timeouts.sessionAuthenticatedTimeout)))
 }
 
-func (s *EapAkaSrv) SetSessionAuthenticatedTimeout(tout time.Duration) {
+func (s *EapSimSrv) SetSessionAuthenticatedTimeout(tout time.Duration) {
 	atomic.StoreInt64((*int64)(&s.timeouts.sessionAuthenticatedTimeout), int64(tout))
 }
 
-// NewEapAkaService creates new Aka Service 'object'
-func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
-	service := &EapAkaSrv{
+// NewEapSimService creates new Sim Service 'object'
+func NewEapSimService(config *mconfig.EapProviderConfig) (*EapSimSrv, error) {
+	service := &EapSimSrv{
 		sessions:   map[string]*SessionCtx{},
 		plmnFilter: plmn_filter.PlmnIdVals{},
 		timeouts:   defaultTimeouts,
@@ -136,14 +131,14 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 					time.Millisecond * time.Duration(config.Timeout.SessionAuthenticatedMs))
 			}
 		}
-		service.plmnFilter = plmn_filter.GetPlmnVals(config.PlmnIds, "EAP-AKA")
+		service.plmnFilter = plmn_filter.GetPlmnVals(config.PlmnIds, "EAP-SIM")
 	}
 	return service, nil
 }
 
-// CheckPlmnId returns true either if there is no PLMN ID filters (allowlist) configured or
-// one the configured PLMN IDs matches passed IMSI
-func (s *EapAkaSrv) CheckPlmnId(imsi aka.IMSI) bool {
+// CheckPlmnId returns true either if there is no PLMN ID filters configured or
+// one the configured PLMN IDs matches given IMSI
+func (s *EapSimSrv) CheckPlmnId(imsi sim.IMSI) bool {
 	return s == nil || s.plmnFilter.Check(string(imsi))
 }
 
@@ -157,7 +152,7 @@ func (lockedCtx *UserCtx) Unlock() {
 }
 
 // State returns current CTX state (CTX must be locked)
-func (lockedCtx *UserCtx) State() (aka.AkaState, time.Time) {
+func (lockedCtx *UserCtx) State() (sim.SimState, time.Time) {
 	if !lockedCtx.locked {
 		panic("Expected locked")
 	}
@@ -165,7 +160,7 @@ func (lockedCtx *UserCtx) State() (aka.AkaState, time.Time) {
 }
 
 // SetState updates current CTX state (CTX must be locked)
-func (lockedCtx *UserCtx) SetState(s aka.AkaState) {
+func (lockedCtx *UserCtx) SetState(s sim.SimState) {
 	if !lockedCtx.locked {
 		panic("Expected locked")
 	}
@@ -185,14 +180,14 @@ func (lockedCtx *UserCtx) Lifetime() float64 {
 // InitSession either creates new or updates existing session & user ctx,
 // it session ID into the CTX and initializes session map as well as users map
 // Returns Locked User Ctx
-func (s *EapAkaSrv) InitSession(sessionId string, imsi aka.IMSI) (lockedUserContext *UserCtx) {
+func (s *EapSimSrv) InitSession(sessionId string, imsi sim.IMSI) (lockedUserContext *UserCtx) {
 	var (
 		oldSessionTimer *time.Timer
 	)
 	// create new session with long session wide timeout
 	t := time.Now()
 	newSession := &SessionCtx{UserCtx: &UserCtx{
-		created: t, Imsi: imsi, state: aka.StateCreated, stateTime: t, locked: true, SessionId: sessionId}}
+		created: t, Imsi: imsi, state: sim.StateCreated, stateTime: t, locked: true, SessionId: sessionId}}
 
 	newSession.mu.Lock()
 
@@ -215,7 +210,7 @@ func (s *EapAkaSrv) InitSession(sessionId string, imsi aka.IMSI) (lockedUserCont
 }
 
 // UpdateSessionUnlockCtx sets session ID into the CTX and initializes session map & session timeout
-func (s *EapAkaSrv) UpdateSessionUnlockCtx(lockedCtx *UserCtx, timeout time.Duration) {
+func (s *EapSimSrv) UpdateSessionUnlockCtx(lockedCtx *UserCtx, timeout time.Duration) {
 	if !lockedCtx.locked {
 		panic("Expected locked")
 	}
@@ -251,7 +246,7 @@ func (s *EapAkaSrv) UpdateSessionUnlockCtx(lockedCtx *UserCtx, timeout time.Dura
 
 // UpdateSessionTimeout finds a session with specified ID, if found - cancels its current timeout
 // & schedules the new one. Returns true if the session was found
-func (s *EapAkaSrv) UpdateSessionTimeout(sessionId string, timeout time.Duration) bool {
+func (s *EapSimSrv) UpdateSessionTimeout(sessionId string, timeout time.Duration) bool {
 	var (
 		newSession *SessionCtx
 		exist      bool
@@ -281,14 +276,14 @@ func (s *EapAkaSrv) UpdateSessionTimeout(sessionId string, timeout time.Duration
 	return exist
 }
 
-func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *SessionCtx) {
+func sessionTimeoutCleanup(s *EapSimSrv, sessionId string, mySessionCtx *SessionCtx) {
 	metrics.SessionTimeouts.Inc()
 	if s == nil {
-		glog.Errorf("nil EAP-AKA Server for session ID: %s", sessionId)
+		glog.Errorf("nil EAP-SIM Server for session ID: %s", sessionId)
 		return
 	}
 	var (
-		imsi aka.IMSI
+		imsi sim.IMSI
 		uc   *UserCtx
 	)
 
@@ -311,17 +306,17 @@ func sessionTimeoutCleanup(s *EapAkaSrv, sessionId string, mySessionCtx *Session
 		uc.mu.Lock()
 		state := uc.state
 		uc.mu.Unlock()
-		if state != aka.StateAuthenticated {
-			glog.Warningf("EAP-AKA Session %s timeout for IMSI: %s", sessionId, imsi)
+		if state != sim.StateAuthenticated {
+			glog.Warningf("EAP-SIM Session %s timeout for IMSI: %s", sessionId, imsi)
 		}
 	}
 }
 
 // FindSession finds and returns IMSI of a session and a flag indication if the find succeeded
 // If found, FindSession tries to stop outstanding session timer
-func (s *EapAkaSrv) FindSession(sessionId string) (aka.IMSI, *UserCtx, bool) {
+func (s *EapSimSrv) FindSession(sessionId string) (sim.IMSI, *UserCtx, bool) {
 	var (
-		imsi      aka.IMSI
+		imsi      sim.IMSI
 		lockedCtx *UserCtx
 		timer     *time.Timer
 	)
@@ -348,10 +343,10 @@ func (s *EapAkaSrv) FindSession(sessionId string) (aka.IMSI, *UserCtx, bool) {
 // RemoveSession removes session ID from the session map and attempts to cancel corresponding timer
 // It also removes associated with the session user CTX if any
 // returns associated with the session IMSI or an empty string
-func (s *EapAkaSrv) RemoveSession(sessionId string) aka.IMSI {
+func (s *EapSimSrv) RemoveSession(sessionId string) sim.IMSI {
 	var (
 		timer *time.Timer
-		imsi  aka.IMSI
+		imsi  sim.IMSI
 	)
 	s.rwl.Lock()
 	sessionCtx, exist := s.sessions[sessionId]
@@ -372,9 +367,9 @@ func (s *EapAkaSrv) RemoveSession(sessionId string) aka.IMSI {
 
 // FindAndRemoveSession finds returns IMSI of a session and a flag indication if the find succeeded
 // then it deletes the session ID from the map
-func (s *EapAkaSrv) FindAndRemoveSession(sessionId string) (aka.IMSI, bool) {
+func (s *EapSimSrv) FindAndRemoveSession(sessionId string) (sim.IMSI, bool) {
 	var (
-		imsi  aka.IMSI
+		imsi  sim.IMSI
 		timer *time.Timer
 	)
 	s.rwl.Lock()
@@ -395,7 +390,7 @@ func (s *EapAkaSrv) FindAndRemoveSession(sessionId string) (aka.IMSI, bool) {
 // ResetSessionTimeout finds a session with specified ID, if found - attempts to cancel its current timeout
 // (best effort) & schedules the new one. ResetSessionTimeout does not guarantee that the old timeout cleanup
 // won't be executed
-func (s *EapAkaSrv) ResetSessionTimeout(sessionId string, newTimeout time.Duration) {
+func (s *EapSimSrv) ResetSessionTimeout(sessionId string, newTimeout time.Duration) {
 	var oldTimer *time.Timer
 
 	s.rwl.Lock()
