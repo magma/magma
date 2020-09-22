@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MME_DEPS=("magma@mobilityd" "magma@pipelined" "magma@sessiond" "sctpd")
+MME_DEPS=("magma@mobilityd" "magma@pipelined" "magma@sessiond")
 
 function check_systemd_file {
   service_name=$1
