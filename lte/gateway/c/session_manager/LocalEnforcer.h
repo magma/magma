@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <iomanip>
 
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
@@ -226,8 +227,13 @@ class LocalEnforcer {
       SessionMap& session_map, const PolicyBearerBindingRequest& request,
       SessionUpdate& session_update);
 
+  std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
+
   static uint32_t REDIRECT_FLOW_PRIORITY;
   static uint32_t BEARER_CREATION_DELAY_ON_SESSION_INIT;
+  // If this is set to true, we will send the timezone along with
+  // CreateSessionRequest
+  static bool SEND_ACCESS_TIMEZONE;
 
  private:
   struct FinalActionInstallInfo {
@@ -252,6 +258,7 @@ class LocalEnforcer {
   long quota_exhaustion_termination_on_init_ms_;
   std::chrono::seconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
+  std::unique_ptr<Timezone> access_timezone_;
 
  private:
   /**
@@ -529,15 +536,14 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   void complete_final_unit_action_flows_install(
-      Status status, DirectoryField resp,
-      const FinalActionInstallInfo info);
+      Status status, DirectoryField resp, const FinalActionInstallInfo info);
 
   /**
    * Remove final action flows through pipelined
    */
   void cancelling_final_unit_action(
       const std::unique_ptr<SessionState>& session,
-      const std::vector<std::string> &restrict_rules,
+      const std::vector<std::string>& restrict_rules,
       SessionStateUpdateCriteria& uc);
 
   /**
@@ -550,7 +556,7 @@ class LocalEnforcer {
    * needed to complete final action flows installation.
    */
   void populate_final_action_install_info(
-      FinalActionInstallInfo &info,
+      FinalActionInstallInfo& info,
       const std::unique_ptr<ServiceAction>& action);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
@@ -589,6 +595,8 @@ class LocalEnforcer {
   void remove_rule_due_to_bearer_creation_failure(
       const std::string& imsi, SessionState& session,
       const std::string& rule_id, SessionStateUpdateCriteria& uc);
+
+  static std::unique_ptr<Timezone> compute_access_timezone();
 };
 
 }  // namespace magma
