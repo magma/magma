@@ -11,33 +11,33 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package aka implements EAP-AKA provider
+// Package sim implements EAP-SIM provider
 package provider
 
 import (
 	"sync"
 
 	"magma/feg/gateway/services/eap/providers"
-	"magma/feg/gateway/services/eap/providers/aka"
-	"magma/feg/gateway/services/eap/providers/aka/servicers"
+	"magma/feg/gateway/services/eap/providers/sim"
+	"magma/feg/gateway/services/eap/providers/sim/servicers"
 )
 
-// AKA Provider Implementation
+// SIM Provider Implementation
 type providerImpl struct {
 	sync.RWMutex
-	*servicers.EapAkaSrv
+	*servicers.EapSimSrv
 }
 
 func New() providers.Method {
 	return &providerImpl{}
 }
 
-// String returns EAP AKA Provider name/info
+// String returns EAP SIM Provider name/info
 func (*providerImpl) String() string {
-	return "EAP-AKA"
+	return "EAP-SIM"
 }
 
-// EAPType returns EAP AKA Type - 23
+// EAPType returns EAP SIM Type - 18
 func (*providerImpl) EAPType() uint8 {
-	return aka.TYPE
+	return sim.TYPE
 }
