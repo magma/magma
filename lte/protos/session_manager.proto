@@ -289,6 +289,11 @@ service SessionProxyResponder {
 // CentralSessionController service
 ///////////////////
 
+message Timezone {
+  // Describe a timezone by offset from UTC in minutes
+  int32 offset_minutes = 1;
+}
+
 message CreditUnit {
   bool is_valid = 1;
   uint64 volume = 2;
@@ -477,6 +482,7 @@ message TgppContext {
 }
 
 message CreateSessionRequest {
+  Timezone access_timezone = 1;
   string session_id = 2;
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;

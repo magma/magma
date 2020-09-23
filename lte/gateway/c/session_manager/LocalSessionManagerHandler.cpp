@@ -183,12 +183,16 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 }
 
 static CreateSessionRequest make_create_session_request(
-    const SessionConfig& cfg, const std::string& session_id) {
+    const SessionConfig& cfg, const std::string& session_id,
+    const std::unique_ptr<Timezone>& access_timezone) {
   CreateSessionRequest create_request;
   create_request.set_session_id(session_id);
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
   create_request.mutable_rat_specific_context()->CopyFrom(
       cfg.rat_specific_context);
+  if (access_timezone != nullptr) {
+    create_request.mutable_access_timezone()->CopyFrom(*access_timezone);
+  }
   return create_request;
 }
 
@@ -234,7 +238,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
     const SessionConfig& cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> cb) {
   const auto& imsi = cfg.common_context.sid().id();
-  auto create_req  = make_create_session_request(cfg, session_id);
+  auto create_req  = make_create_session_request(
+      cfg, session_id, enforcer_->get_access_timezone());
   MLOG(MINFO) << "Sending a CreateSessionRequest to fetch policies for "
               << session_id;
   reporter_->report_create_session(
@@ -245,7 +250,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
-          MLOG(MINFO) << "Processing a CreateSessionResponse for " << session_id;
+          MLOG(MINFO) << "Processing a CreateSessionResponse for "
+                      << session_id;
           enforcer_->init_session_credit(
               *session_map_ptr, imsi, session_id, cfg, response);
           bool write_success = session_store_.create_sessions(

@@ -25,8 +25,7 @@ ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {
   final_action_info.final_action = marshaled.final_action_info.final_action;
   final_action_info.redirect_server =
       marshaled.final_action_info.redirect_server;
-  final_action_info.restrict_rules =
-      marshaled.final_action_info.restrict_rules;
+  final_action_info.restrict_rules = marshaled.final_action_info.restrict_rules;
 
   reauth_state   = marshaled.reauth_state;
   service_state  = marshaled.service_state;
@@ -40,12 +39,11 @@ StoredChargingGrant ChargingGrant::marshal() {
   marshaled.final_action_info.final_action = final_action_info.final_action;
   marshaled.final_action_info.redirect_server =
       final_action_info.redirect_server;
-  marshaled.final_action_info.restrict_rules =
-    final_action_info.restrict_rules;
-  marshaled.reauth_state  = reauth_state;
-  marshaled.service_state = service_state;
-  marshaled.expiry_time   = expiry_time;
-  marshaled.credit        = credit.marshal();
+  marshaled.final_action_info.restrict_rules = final_action_info.restrict_rules;
+  marshaled.reauth_state                     = reauth_state;
+  marshaled.service_state                    = service_state;
+  marshaled.expiry_time                      = expiry_time;
+  marshaled.credit                           = credit.marshal();
   return marshaled;
 }
 
@@ -69,7 +67,7 @@ void ChargingGrant::receive_charging_grant(
           final_action_info.restrict_rules.push_back(rule);
         }
         break;
-      default: // do nothing
+      default:  // do nothing
         break;
     }
     log_final_action_info();
@@ -231,7 +229,7 @@ void ChargingGrant::log_final_action_info() const {
       case ChargingCredit_FinalAction_REDIRECT:
         final_action += ", redirect_server: ";
         final_action +=
-          final_action_info.redirect_server.redirect_server_address();
+            final_action_info.redirect_server.redirect_server_address();
         break;
       case ChargingCredit_FinalAction_RESTRICT_ACCESS:
         final_action += ", restrict_rules: { ";
@@ -240,7 +238,7 @@ void ChargingGrant::log_final_action_info() const {
         }
         final_action += "}";
         break;
-      default: // do nothing;
+      default:  // do nothing;
         break;
     }
   }
