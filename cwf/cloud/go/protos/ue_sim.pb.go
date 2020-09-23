@@ -41,7 +41,7 @@ func (m *AuthenticateRequestHssLess) Reset()         { *m = AuthenticateRequestH
 func (m *AuthenticateRequestHssLess) String() string { return proto.CompactTextString(m) }
 func (*AuthenticateRequestHssLess) ProtoMessage()    {}
 func (*AuthenticateRequestHssLess) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_b8f9abc3ccbdb0fd, []int{0}
+	return fileDescriptor_ue_sim_644de2b5a59b2179, []int{0}
 }
 func (m *AuthenticateRequestHssLess) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AuthenticateRequestHssLess.Unmarshal(m, b)
@@ -102,7 +102,7 @@ func (m *UEConfig) Reset()         { *m = UEConfig{} }
 func (m *UEConfig) String() string { return proto.CompactTextString(m) }
 func (*UEConfig) ProtoMessage()    {}
 func (*UEConfig) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_b8f9abc3ccbdb0fd, []int{1}
+	return fileDescriptor_ue_sim_644de2b5a59b2179, []int{1}
 }
 func (m *UEConfig) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_UEConfig.Unmarshal(m, b)
@@ -169,7 +169,7 @@ func (m *AuthenticateRequest) Reset()         { *m = AuthenticateRequest{} }
 func (m *AuthenticateRequest) String() string { return proto.CompactTextString(m) }
 func (*AuthenticateRequest) ProtoMessage()    {}
 func (*AuthenticateRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_b8f9abc3ccbdb0fd, []int{2}
+	return fileDescriptor_ue_sim_644de2b5a59b2179, []int{2}
 }
 func (m *AuthenticateRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AuthenticateRequest.Unmarshal(m, b)
@@ -215,7 +215,7 @@ func (m *AuthenticateResponse) Reset()         { *m = AuthenticateResponse{} }
 func (m *AuthenticateResponse) String() string { return proto.CompactTextString(m) }
 func (*AuthenticateResponse) ProtoMessage()    {}
 func (*AuthenticateResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_b8f9abc3ccbdb0fd, []int{3}
+	return fileDescriptor_ue_sim_644de2b5a59b2179, []int{3}
 }
 func (m *AuthenticateResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_AuthenticateResponse.Unmarshal(m, b)
@@ -261,7 +261,7 @@ func (m *DisconnectRequest) Reset()         { *m = DisconnectRequest{} }
 func (m *DisconnectRequest) String() string { return proto.CompactTextString(m) }
 func (*DisconnectRequest) ProtoMessage()    {}
 func (*DisconnectRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_b8f9abc3ccbdb0fd, []int{4}
+	return fileDescriptor_ue_sim_644de2b5a59b2179, []int{4}
 }
 func (m *DisconnectRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DisconnectRequest.Unmarshal(m, b)
@@ -306,7 +306,7 @@ func (m *DisconnectResponse) Reset()         { *m = DisconnectResponse{} }
 func (m *DisconnectResponse) String() string { return proto.CompactTextString(m) }
 func (*DisconnectResponse) ProtoMessage()    {}
 func (*DisconnectResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_b8f9abc3ccbdb0fd, []int{5}
+	return fileDescriptor_ue_sim_644de2b5a59b2179, []int{5}
 }
 func (m *DisconnectResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_DisconnectResponse.Unmarshal(m, b)
@@ -353,7 +353,7 @@ func (m *GenTrafficRequest) Reset()         { *m = GenTrafficRequest{} }
 func (m *GenTrafficRequest) String() string { return proto.CompactTextString(m) }
 func (*GenTrafficRequest) ProtoMessage()    {}
 func (*GenTrafficRequest) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_b8f9abc3ccbdb0fd, []int{6}
+	return fileDescriptor_ue_sim_644de2b5a59b2179, []int{6}
 }
 func (m *GenTrafficRequest) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GenTrafficRequest.Unmarshal(m, b)
@@ -440,7 +440,7 @@ func (m *GenTrafficResponse) Reset()         { *m = GenTrafficResponse{} }
 func (m *GenTrafficResponse) String() string { return proto.CompactTextString(m) }
 func (*GenTrafficResponse) ProtoMessage()    {}
 func (*GenTrafficResponse) Descriptor() ([]byte, []int) {
-	return fileDescriptor_ue_sim_b8f9abc3ccbdb0fd, []int{7}
+	return fileDescriptor_ue_sim_644de2b5a59b2179, []int{7}
 }
 func (m *GenTrafficResponse) XXX_Unmarshal(b []byte) error {
 	return xxx_messageInfo_GenTrafficResponse.Unmarshal(m, b)
@@ -659,9 +659,9 @@ var _UESim_serviceDesc = grpc.ServiceDesc{
 	Metadata: "cwf/protos/ue_sim.proto",
 }
 
-func init() { proto.RegisterFile("cwf/protos/ue_sim.proto", fileDescriptor_ue_sim_b8f9abc3ccbdb0fd) }
+func init() { proto.RegisterFile("cwf/protos/ue_sim.proto", fileDescriptor_ue_sim_644de2b5a59b2179) }
 
-var fileDescriptor_ue_sim_b8f9abc3ccbdb0fd = []byte{
+var fileDescriptor_ue_sim_644de2b5a59b2179 = []byte{
 	// 649 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0x5d, 0x4f, 0xdb, 0x4a,
 	0x10, 0x25, 0x40, 0x3e, 0x98, 0xe4, 0xea, 0x5e, 0x96, 0x2b, 0x30, 0xb9, 0xdc, 0x34, 0xb2, 0x54,

@@ -50,8 +50,6 @@ message UEConfig {
 
     // HSSLess Config
     AuthenticateRequestHssLess hssless_cfg = 5;
-
-
 }
 
 message AuthenticateRequest {
