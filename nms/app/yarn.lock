@@ -9130,10 +9130,10 @@ mapbox-gl@^0.53.0:
     tinyqueue "^2.0.0"
     vt-pbf "^3.1.1"
 
-mariadb@^2.3.1:
-  version "2.4.1"
-  resolved "https://registry.yarnpkg.com/mariadb/-/mariadb-2.4.1.tgz#dc72d332af467ff653f2e11bbfae27ca131dc7af"
-  integrity sha512-WTM1EfUfqaLh8NdUdSqwX2HVf0mme9CDkfez35E9Txf+VvUVWOMbZY5dSqGhbDDiVXQFJefuwxb8WHUg6J9M2A==
+mariadb@^2.4.2:
+  version "2.4.2"
+  resolved "https://registry.yarnpkg.com/mariadb/-/mariadb-2.4.2.tgz#8d1d5e3211515ff44becad52a975888880df5bdd"
+  integrity sha512-ybK520CO/8Z74MNJ77dEwXjRMhxMbQdpPia+/uJakJWiZoLEmuwSHqs51qWr4FE5WcgHQfL5KCmOiHErR/LpTg==
   dependencies:
     "@types/geojson" "^7946.0.7"
     "@types/node" "^13.9.8"
