@@ -2290,28 +2290,27 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
 
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule3");
-
+  auto& ip = test_cfg_.common_context.ue_ipv4();
   // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-      testing::_, testing::_, testing::_, CheckCount(2),
-      CheckCount(1), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, ip, testing::_, CheckCount(2), CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
   EXPECT_CALL(
       *pipelined_client, update_ipfix_flow(
-      testing::_, testing::_, testing::_, testing::_,
-      testing::_, testing::_))
+                             testing::_, testing::_, testing::_, testing::_,
+                             testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
   local_enforcer->init_session_credit(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
-  // Insert record and aggreagate thems
+  // Insert record and aggregate over them
   RuleRecordTable table;
-  auto& ip = test_cfg_.common_context.ue_ipv4();
   auto record_list = table.mutable_records();
   create_rule_record(IMSI1, ip, "rule1", 1024, 2048, record_list->Add());
   create_rule_record(IMSI1, ip, "rule2", 1024, 2048, record_list->Add());
@@ -2327,11 +2326,17 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   EXPECT_EQ(actions[0]->get_type(), RESTRICT_ACCESS);
   EXPECT_EQ(actions[0]->get_restrict_rules()[0], "rule1");
 
+  EXPECT_CALL(
+      *pipelined_client,
+      add_gy_final_action_flow(IMSI1, ip, CheckCount(1), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
   // Execute actions and asset final action state
   local_enforcer->execute_actions(session_map, actions, update);
 
   const CreditKey& credit_key(1);
-  assert_session_is_in_final_state(session_map, IMSI1, SESSION_ID_1, credit_key, true);
+  assert_session_is_in_final_state(
+      session_map, IMSI1, SESSION_ID_1, credit_key, true);
 
   // Send a ReAuth request
   ChargingReAuthRequest reauth;
@@ -2362,9 +2367,9 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   // when next update is collected, this should trigger an action to activate
   // the flow in pipelined
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-      testing::_, testing::_, testing::_, testing::_,
-      testing::_, testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, ip, testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   actions.clear();
@@ -2372,7 +2377,8 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   local_enforcer->execute_actions(session_map, actions, update);
 
   // Assert that we exited final action state
-  assert_session_is_in_final_state(session_map, IMSI1, SESSION_ID_1, credit_key, false);
+  assert_session_is_in_final_state(
+      session_map, IMSI1, SESSION_ID_1, credit_key, false);
 }
 
 int main(int argc, char** argv) {
