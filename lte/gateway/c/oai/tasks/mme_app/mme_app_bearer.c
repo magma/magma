@@ -2036,7 +2036,7 @@ int mme_app_paging_request_helper(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Paging process attempted for connected UE with id %d\n",
         ue_context_p->mme_ue_s1ap_id);
-    ue_context_p->paging_retx_count = 0;
+    ue_context_p->paging_retx_count                  = 0;
     ue_context_p->time_paging_response_timer_started = 0;
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -2139,8 +2139,7 @@ void _mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
   if (message_p == NULL) {
     OAILOG_ERROR(
         LOG_MME_APP,
-        "Cannot allocte memory to S11_NW_INITIATED_BEARER_ACTV_RSP\n");
-
+        "Cannot allocate memory to S11_NW_INITIATED_BEARER_ACTV_RSP\n");
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
   itti_s11_nw_init_actv_bearer_rsp_t* s11_nw_init_actv_bearer_rsp =
