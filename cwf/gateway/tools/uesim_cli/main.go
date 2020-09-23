@@ -245,6 +245,7 @@ func handleTrafficGenCmd(cmd *commands.Command, args []string) int {
 // UEs configured in the uesim.yml are included in the protos.UEConfig.
 
 func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
+	var imsiArg string
 	uecfg, err := config.GetServiceConfig("", registry.UeSim)
 	if err != nil {
 		return nil, err
@@ -260,23 +261,7 @@ func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
 	var ues []*protos.UEConfig
 	if len(params) > 0 {
 		// Return UEConfig for a single IMSI
-		imsi := params[0]
-		subscriber, ok := rawMap[imsi]
-		if !ok {
-			return nil, fmt.Errorf("unable to find imsi %s in uesim.yml", imsi)
-		}
-		subscriberCfg, ok := subscriber.(map[interface{}]interface{})
-		if !ok {
-			return nil, fmt.Errorf("unable to convert %T to map %v", subscriber, subscriberCfg)
-		}
-		configMap := &config.ConfigMap{RawMap: subscriberCfg}
-
-		ue, err := createUeConfig(imsi, 0, configMap)
-		if err != nil {
-			return nil, err
-		}
-		ues = append(ues, ue)
-		return ues, nil
+		imsiArg = params[0]
 	}
 
 	// Return UEConfig for all the IMSIs configured in uesim.yml
@@ -285,18 +270,20 @@ func getConfiguredSubscribers(params ...string) ([]*protos.UEConfig, error) {
 		if !ok {
 			continue
 		}
-		subscriberCfg, ok := v.(map[interface{}]interface{})
-		if !ok {
-			continue
-		}
-		configMap := &config.ConfigMap{RawMap: subscriberCfg}
+		if imsiArg == "" || imsi == imsiArg {
+			subscriberCfg, ok := v.(map[interface{}]interface{})
+			if !ok {
+				continue
+			}
+			configMap := &config.ConfigMap{RawMap: subscriberCfg}
 
-		ue, err := createUeConfig(imsi, 0, configMap)
-		if err != nil {
-			glog.Error(err)
-			continue
+			ue, err := createUeConfig(imsi, 0, configMap)
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			ues = append(ues, ue)
 		}
-		ues = append(ues, ue)
 	}
 
 	return ues, nil
