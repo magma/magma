@@ -1469,14 +1469,14 @@ void LocalEnforcer::handle_set_session_rules(
   }
 }
 
-ReAuthResult LocalEnforcer::init_charging_reauth(
+ResultCode LocalEnforcer::init_charging_reauth(
     SessionMap& session_map, ChargingReAuthRequest request,
     SessionUpdate& session_update) {
   auto it = session_map.find(request.sid());
   if (it == session_map.end()) {
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                  << " during reauth";
-    return ReAuthResult::SESSION_NOT_FOUND;
+    return ResultCode::SESSION_NOT_FOUND;
   }
   SessionStateUpdateCriteria& uc =
       session_update[request.sid()][request.session_id()];
@@ -1491,7 +1491,7 @@ ReAuthResult LocalEnforcer::init_charging_reauth(
     }
     MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                  << " during reauth";
-    return ReAuthResult::SESSION_NOT_FOUND;
+    return ResultCode::SESSION_NOT_FOUND;
   }
   MLOG(MDEBUG) << "Initiating reauth of all keys for subscriber "
                << request.sid() << " for session" << request.session_id();
@@ -1503,7 +1503,7 @@ ReAuthResult LocalEnforcer::init_charging_reauth(
   MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
                << " during reauth";
 
-  return ReAuthResult::SESSION_NOT_FOUND;
+  return ResultCode::SESSION_NOT_FOUND;
 }
 
 void LocalEnforcer::init_policy_reauth(
@@ -1513,7 +1513,7 @@ void LocalEnforcer::init_policy_reauth(
   if (it == session_map.end()) {
     MLOG(MERROR) << "Could not find session for subscriber " << request.imsi()
                  << " during policy reauth";
-    answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+    answer_out.set_result(ResultCode::SESSION_NOT_FOUND);
     return;
   }
   // For empty session_id, apply changes to all sessions of subscriber
@@ -1535,11 +1535,11 @@ void LocalEnforcer::init_policy_reauth(
       MLOG(MERROR) << "Found a matching IMSI " << request.imsi()
                    << ", but no matching session ID " << request.session_id()
                    << " during policy reauth";
-      answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+      answer_out.set_result(ResultCode::SESSION_NOT_FOUND);
       return;
     }
   }
-  answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
+  answer_out.set_result(ResultCode::UPDATE_INITIATED);
 }
 
 void LocalEnforcer::init_policy_reauth_for_session(

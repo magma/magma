@@ -168,7 +168,7 @@ class LocalEnforcer {
    * Initialize reauth for a subscriber service. If the subscriber cannot be
    * found, the method returns SESSION_NOT_FOUND
    */
-  ReAuthResult init_charging_reauth(
+  ResultCode init_charging_reauth(
       SessionMap& session_map, ChargingReAuthRequest request,
       SessionUpdate& session_update);
 

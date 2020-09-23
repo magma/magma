@@ -171,11 +171,11 @@ class SessionState {
 
   uint64_t get_charging_credit(const CreditKey& key, Bucket bucket) const;
 
-  ReAuthResult reauth_key(
+  ResultCode reauth_key(
       const CreditKey& charging_key,
       SessionStateUpdateCriteria& update_criteria);
 
-  ReAuthResult reauth_all(SessionStateUpdateCriteria& update_criteria);
+  ResultCode reauth_all(SessionStateUpdateCriteria& update_criteria);
 
   void set_charging_credit(
       const CreditKey& key, ChargingGrant charging_grant,

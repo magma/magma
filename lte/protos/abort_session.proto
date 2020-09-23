@@ -12,6 +12,8 @@ limitations under the License.
 */
 syntax = "proto3";
 
+import "lte/protos/session_manager.proto";
+
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
@@ -21,14 +23,7 @@ message AbortSessionRequest {
 }
 
 message AbortSessionResult {
-    enum Code {
-        SESSION_REMOVED = 0;
-        SESSION_NOT_FOUND = 1;
-        USER_NOT_FOUND = 2;
-        GATEWAY_NOT_FOUND = 3;
-        RADIUS_SERVER_ERROR = 4;
-    }
-    Code code = 1;
+    ResultCode code = 1;
     string error_message = 2;
 }
 

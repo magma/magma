@@ -43,7 +43,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
     auto result =
         enforcer_->init_charging_reauth(session_map, request_cpy, update);
     MLOG(MDEBUG) << "Result of Gy (Charging) ReAuthRequest "
-                 << raa_result_to_str(result);
+                 << result_code_to_str(result);
     ChargingReAuthAnswer ans;
     ans.set_result(result);
 
@@ -83,7 +83,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
         SessionStore::get_default_session_update(session_map);
     enforcer_->init_policy_reauth(session_map, request_cpy, ans, update);
     MLOG(MDEBUG) << "Result of Gx (Policy) ReAuthRequest "
-                 << raa_result_to_str(ans.result());
+                 << result_code_to_str(ans.result());
     bool update_success = session_store_.update_sessions(update);
     if (update_success) {
       MLOG(MDEBUG) << "Sending RAA response for Gx ReAuth "

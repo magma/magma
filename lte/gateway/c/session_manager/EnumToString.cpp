@@ -118,7 +118,7 @@ std::string credit_update_type_to_str(CreditUsage::UpdateType update) {
   }
 }
 
-std::string raa_result_to_str(ReAuthResult res) {
+std::string result_code_to_str(ResultCode res) {
   switch (res) {
     case UPDATE_INITIATED:
       return "UPDATE_INITIATED";

@@ -118,7 +118,7 @@ message ChargingReAuthRequest {
 }
 
 message ChargingReAuthAnswer {
-  ReAuthResult result = 1;
+  ResultCode result = 1;
 }
 
 enum EventTrigger {
@@ -209,11 +209,15 @@ message QoSInformation {
   QCI qci = 2;
 }
 
-enum ReAuthResult {
+enum ResultCode {
   UPDATE_INITIATED = 0;
   UPDATE_NOT_NEEDED = 1;
   SESSION_NOT_FOUND = 2;
   OTHER_FAILURE = 3;
+  SESSION_REMOVED = 4;
+  USER_NOT_FOUND = 5;
+  GATEWAY_NOT_FOUND = 6;
+  RADIUS_SERVER_ERROR = 7;
 }
 
 message PolicyReAuthAnswer {
@@ -250,7 +254,7 @@ message PolicyReAuthAnswer {
   }
 
   string session_id = 1;
-  ReAuthResult result = 2;
+  ResultCode result = 2;
   map<string, FailureCode> failed_rules = 3;
 }
 

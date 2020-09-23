@@ -16,7 +16,7 @@ import logging
 from typing import Set
 from lte.protos.policydb_pb2 import InstalledPolicies
 from lte.protos.session_manager_pb2 import PolicyReAuthRequest, \
-    PolicyReAuthAnswer, ReAuthResult
+    PolicyReAuthAnswer, ResultCode
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
 from magma.policydb.rule_map_store import RuleAssignmentsDict
 
@@ -73,7 +73,7 @@ class ReAuthHandler():
         rar: PolicyReAuthRequest,
         answer: PolicyReAuthAnswer,
     ) -> bool:
-        if answer.result == ReAuthResult.Value('OTHER_FAILURE'):
+        if answer.result == ResultCode.Value('OTHER_FAILURE'):
             logging.error('Failed to apply policy updates for subscriber %s',
                           rar.imsi)
             return False
