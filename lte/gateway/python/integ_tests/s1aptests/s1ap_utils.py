@@ -646,7 +646,7 @@ class MagmadUtil(object):
             Restart all magma services on magma_dev VM
             """
         self.exec_command(
-            "sudo service magma@* stop ; sudo service magma@magmad start"
+            "sudo service magma@* stop; sudo service sctpd stop; sudo service magma@magmad start"
         )
         print(
             "Waiting for all services to restart. Sleeping for 60 seconds.."
