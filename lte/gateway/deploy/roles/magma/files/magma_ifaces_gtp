@@ -27,7 +27,7 @@ iface mtr0 inet static
 
 allow-gtp_br0 ipfix0
 iface ipfix0 inet static
-    address 1.2.3.4
+    address 127.0.0.10
     netmask 255.255.255.0
     ovs_bridge gtp_br0
     ovs_type OVSIntPort
