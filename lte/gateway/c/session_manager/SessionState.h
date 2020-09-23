@@ -194,12 +194,12 @@ class SessionState {
   bool is_terminating();
 
   /**
-   * complete_termination checks the FSM state and transitions the state to
+   * can_complete_termination checks the FSM state and transitions the state to
    * TERMINATED, if it can. If the state is ACTIVE or TERMINATED, it will not do
    * anything.
    * This function will return true if the termination happened successfully.
    */
-  bool complete_termination(SessionStateUpdateCriteria& update_criteria);
+  bool can_complete_termination(SessionStateUpdateCriteria& update_criteria);
 
   bool reset_reporting_charging_credit(
       const CreditKey& key, SessionStateUpdateCriteria& update_criteria);
@@ -234,7 +234,7 @@ class SessionState {
    * get_total_credit_usage returns the tx and rx of the session,
    * accounting for all unique keys (charging and monitoring) used by all
    * rules (static and dynamic)
-   * Should be called after complete_termination.
+   * Should be called after can_complete_termination.
    */
   TotalCreditUsage get_total_credit_usage();
 

@@ -139,6 +139,23 @@ std::string raa_result_to_str(ReAuthResult res) {
   }
 }
 
+std::string asr_result_to_str(AbortSessionResult_Code res) {
+  switch (res) {
+    case AbortSessionResult_Code_SESSION_REMOVED:
+      return "SESSION_REMOVED";
+    case AbortSessionResult_Code_SESSION_NOT_FOUND:
+      return "SESSION_NOT_FOUND";
+    case AbortSessionResult_Code_USER_NOT_FOUND:
+      return "USER_NOT_FOUND";
+    case AbortSessionResult_Code_GATEWAY_NOT_FOUND:
+      return "GATEWAY_NOT_FOUND";
+    case AbortSessionResult_Code_RADIUS_SERVER_ERROR:
+      return "RADIUS_SERVER_ERROR";
+    default:
+      return "UNKNOWN_RESULT";
+  }
+}
+
 std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state) {
   switch (state) {
     case SubscriberQuotaUpdate_Type_VALID_QUOTA:

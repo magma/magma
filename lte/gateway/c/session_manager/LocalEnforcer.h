@@ -152,17 +152,28 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * terminate_session handles externally triggered session termination.
-   * This assumes that the termination is coming from the access component, so
-   * it does not notify the termination back to the access component.
+   * handle_termination_from_access handles externally triggered session
+   * termination. This assumes that the termination is coming from the access
+   * component, so it does not notify the termination back to the access
+   * component.
    * @param session_map
    * @param imsi
    * @param apn
    * @param session_update
    */
-  void terminate_session(
+  bool handle_termination_from_access(
       SessionMap& session_map, const std::string& imsi, const std::string& apn,
-      SessionUpdate& session_update);
+      SessionUpdate& session_updates);
+
+  /**
+   * handle abort session - ungraceful termination
+   * 1. Remove all rules attached to the session + update PipelineD
+   * 2. Notify the access component
+   * 3. Remove the session from SessionMap
+   */
+  bool handle_abort_session(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, SessionUpdate& session_updates);
 
   /**
    * Initialize reauth for a subscriber service. If the subscriber cannot be
@@ -368,6 +379,16 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
+   * find_and_terminate_session call start_session_termination on
+   * a session with IMSI + session id.
+   * @return true if start_session_termination was called, false if session was
+   * not found
+   */
+  bool find_and_terminate_session(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, SessionUpdate& session_updates);
+
+  /**
    * Completes the session termination and executes the callback function
    * registered in terminate_session.
    * complete_termination is called some time after terminate_session
@@ -438,16 +459,6 @@ class LocalEnforcer {
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
-
-  /**
-   * find_and_terminate_session call start_session_termination on a session with
-   * IMSI + session id.
-   * @return true if start_session_termination was called, false if session was
-   * not found
-   */
-  bool find_and_terminate_session(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, SessionUpdate& session_update);
 
   /**
    * start_session_termination starts the termination process. This includes:

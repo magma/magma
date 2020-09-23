@@ -355,7 +355,8 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
   insert_static_rule(2, "", "rule3");
 
   auto update = SessionStore::get_default_session_update(session_map);
-  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
+  local_enforcer->handle_termination_from_access(
+      session_map, IMSI1, "IMS", update);
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
@@ -554,7 +555,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
       *reporter,
       report_terminate_session(CheckTerminateRequestCount(IMSI1, 0, 2), _))
       .Times(1);
-  local_enforcer->terminate_session(
+  local_enforcer->handle_termination_from_access(
       session_map, IMSI1, test_cfg_.common_context.apn(), update);
 
   RuleRecordTable empty_table;
@@ -605,7 +606,8 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
 
   session_map = session_store->read_sessions(SessionRead{IMSI1});
   // Collecting terminations should key 1 anyways during reporting
-  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
+  local_enforcer->handle_termination_from_access(
+      session_map, IMSI1, "IMS", update);
 
   EXPECT_CALL(
       *reporter,
@@ -991,7 +993,8 @@ TEST_F(LocalEnforcerTest, test_all) {
       1024);
 
   // Terminate IMSI1
-  local_enforcer->terminate_session(session_map, IMSI1, "IMS", update);
+  local_enforcer->handle_termination_from_access(
+      session_map, IMSI1, "IMS", update);
 
   EXPECT_CALL(
       *reporter,

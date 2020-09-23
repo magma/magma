@@ -326,10 +326,9 @@ void LocalEnforcer::execute_actions(
         break;
       }
       case TERMINATE_SERVICE: {
-        bool terminated = find_and_terminate_session(
+        auto found = find_and_terminate_session(
             session_map, imsi, session_id, session_update);
-        if (!terminated) {
-          // Session not found
+        if (!found) {
           MLOG(MERROR) << "Cannot act on TERMINATE action since session "
                        << session_id << " does not exist";
         }
@@ -352,23 +351,6 @@ void LocalEnforcer::handle_activate_service_action(
           &LocalEnforcer::handle_activate_ue_flows_callback, this,
           action_p->get_imsi(), action_p->get_ip_addr(), action_p->get_ambr(),
           action_p->get_rule_ids(), action_p->get_rule_definitions(), _1, _2));
-}
-
-bool LocalEnforcer::find_and_terminate_session(
-    SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, SessionUpdate& session_update) {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    return false;
-  }
-  for (const auto& session : it->second) {
-    if (session->get_session_id() == session_id) {
-      start_session_termination(
-          imsi, session, true, session_update[imsi][session_id]);
-      return true;
-    }
-  }
-  return false;
 }
 
 // Terminates sessions that correspond to the given IMSI and session.
@@ -1201,51 +1183,37 @@ void LocalEnforcer::report_subscriber_state_to_pipelined(
 
 void LocalEnforcer::complete_termination(
     SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, SessionUpdate& session_update) {
+    const std::string& session_id, SessionUpdate& session_updates) {
   // If the session cannot be found in session_map, or a new session has
   // already begun, do nothing.
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
     // Session is already deleted, or new session already began, ignore.
     MLOG(MDEBUG) << "Could not find session for IMSI " << imsi
                  << " and session ID " << session_id
                  << ". Skipping termination.";
-    return;
   }
-  auto& uc = session_update[imsi][session_id];
-  for (auto session_it = it->second.begin(); session_it != it->second.end();
-       ++session_it) {
-    if ((*session_it)->get_session_id() == session_id) {
-      bool terminated = (*session_it)->complete_termination(uc);
-      if (!terminated) {
-        return;  // error is logged in SessionState's complete_termination
-      }
-      auto termination_req = (*session_it)->make_termination_request(uc);
-      auto logging_cb =
-          SessionReporter::get_terminate_logging_cb(termination_req);
-      reporter_->report_terminate_session(termination_req, logging_cb);
-      // Send to eventd
-      if ((*session_it)->is_radius_cwf_session() == false) {
-        events_reporter_->session_terminated(imsi, *session_it);
-      }
-      // We break the loop below, but for extra code safety in case
-      // someone removes the break in the future, adjust the iterator
-      // after erasing the element
-      uc.is_session_ended = true;
-      it->second.erase(session_it--);
-      MLOG(MDEBUG) << "Successfully terminated session " << session_id;
-      // No session left for this IMSI
-      if (it->second.size() == 0) {
-        session_map.erase(imsi);
-        MLOG(MDEBUG) << "All sessions terminated for " << imsi;
-      }
-      return;
-    }
+  auto& session    = **session_it;
+  auto& session_uc = session_updates[imsi][session_id];
+  if (!session->can_complete_termination(session_uc)) {
+    return;  // error is logged in SessionState's complete_termination
   }
-  // Session Not Found
-  MLOG(MDEBUG) << "Could not find session " << session_id
-               << "to complete termination.";
-  return;  // Session not found, so not terminated
+  auto termination_req = session->make_termination_request(session_uc);
+  auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
+  reporter_->report_terminate_session(termination_req, logging_cb);
+  if (session->is_radius_cwf_session() == false) {
+    events_reporter_->session_terminated(imsi, session);
+  }
+
+  // Delete the session from SessionMap
+  session_uc.is_session_ended = true;
+  session_map[imsi].erase(*session_it);
+  MLOG(MINFO) << session_id << " deleted from SessionMap";
+  if (session_map[imsi].size() == 0) {
+    session_map.erase(imsi);
+    MLOG(MDEBUG) << "All sessions terminated for " << imsi;
+  }
 }
 
 bool LocalEnforcer::rules_to_process_is_not_empty(
@@ -1417,27 +1385,63 @@ void LocalEnforcer::update_session_credits_and_rules(
       session_map, subscribers_to_terminate, session_update);
 }
 
-// terminate_session (for externally triggered EndSession)
-// terminates the session that is associated with the given imsi and apn
-void LocalEnforcer::terminate_session(
+// handle_termination_from_access terminates the session that is
+// associated with the given imsi and apn
+bool LocalEnforcer::handle_termination_from_access(
     SessionMap& session_map, const std::string& imsi, const std::string& apn,
-    SessionUpdate& session_update) {
-  auto it = session_map.find(imsi);
-  if (it == session_map.end()) {
-    MLOG(MERROR) << "Could not find session for IMSI " << imsi
-                 << " during termination";
-    throw SessionNotFound();
+    SessionUpdate& session_updates) {
+  SessionSearchCriteria criteria(imsi, IMSI_AND_APN, apn);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    return false;
   }
-  for (const auto& session : it->second) {
-    auto config     = session->get_config();
-    auto session_id = session->get_session_id();
-    if (config.common_context.apn() == apn) {
-      SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
-      MLOG(MINFO) << "Starting externally triggered termination for "
-                  << session_id;
-      start_session_termination(imsi, session, false, uc);
-    }
+  auto& session          = **session_it;
+  const auto& session_id = session->get_session_id();
+  start_session_termination(
+      imsi, session, false, session_updates[imsi][session_id]);
+  return true;
+}
+
+bool LocalEnforcer::find_and_terminate_session(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, SessionUpdate& session_updates) {
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    return false;
   }
+  auto& session = **session_it;
+  start_session_termination(
+      imsi, session, true, session_updates[imsi][session_id]);
+  return true;
+}
+
+bool LocalEnforcer::handle_abort_session(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, SessionUpdate& session_updates) {
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    return false;
+  }
+  auto& session    = **session_it;
+  auto& session_uc = session_updates[imsi][session_id];
+  // Propagate rule removals to PipelineD and notify Access
+  start_session_termination(imsi, session, true, session_uc);
+  // ASRs do not require a CCR-T, this means we can immediately terminate
+  // without waiting for final usage reports.
+  if (session->is_radius_cwf_session() == false) {
+    events_reporter_->session_terminated(imsi, session);
+  }
+  // Delete the session from SessionMap
+  session_uc.is_session_ended = true;
+  session_map[imsi].erase(*session_it);
+  MLOG(MINFO) << session_id << " deleted from SessionMap";
+  if (session_map[imsi].size() == 0) {
+    session_map.erase(imsi);
+    MLOG(MDEBUG) << "All sessions terminated for " << imsi;
+  }
+  return true;
 }
 
 void LocalEnforcer::handle_set_session_rules(
