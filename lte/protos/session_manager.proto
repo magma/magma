@@ -26,6 +26,7 @@ message RuleRecord {
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
+  string ue_ipv4 = 5;
 }
 
 message RuleRecordTable {
@@ -288,6 +289,11 @@ service SessionProxyResponder {
 // CentralSessionController service
 ///////////////////
 
+message Timezone {
+  // Describe a timezone by offset from UTC in minutes
+  int32 offset_minutes = 1;
+}
+
 message CreditUnit {
   bool is_valid = 1;
   uint64 volume = 2;
@@ -328,7 +334,15 @@ message ChargingCredit {
   FinalAction final_action = 5;
   GrantedUnits granted_units = 6;
   RedirectServer redirect_server = 7;
+  repeated string restrict_rules = 8;
 }
+
+message RequestedUnits {
+  uint64 total = 1;
+  uint64 tx = 2;
+  uint64 rx = 3;
+}
+
 
 message CreditUsage {
   uint64 bytes_tx = 1;
@@ -348,6 +362,7 @@ message CreditUsage {
   UpdateType type = 5;
   bytes monitoring_key = 6;
   ServiceIdentifier service_identifier = 7;
+  RequestedUnits requested_units = 8;
 }
 
 message CreditUsageUpdate {
@@ -386,6 +401,7 @@ message CreditUpdateResponse {
   // When this is set to an infinite limit, field 'credit' should be ignored
   CreditLimitType limit_type = 9;
   TgppContext tgpp_ctx = 10;
+  string session_id = 11;
 }
 
 // PCRF USAGE MONITORING
@@ -407,7 +423,8 @@ message UsageMonitorUpdate {
 message UsageMonitoringCredit {
   enum Action {
     CONTINUE = 0; // continue monitoring as normal
-    DISABLE = 1; // no need to monitor any more
+    DISABLE = 1; // no need to monitor any more  `AVP: Usage-Monitor-Support`
+    FORCE = 2; // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` // TODO: not implemented on sessiond
   }
   Action action = 1;
   bytes monitoring_key = 2;
@@ -465,6 +482,7 @@ message TgppContext {
 }
 
 message CreateSessionRequest {
+  Timezone access_timezone = 1;
   string session_id = 2;
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;

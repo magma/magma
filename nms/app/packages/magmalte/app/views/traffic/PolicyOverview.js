@@ -21,18 +21,17 @@ import Button from '@material-ui/core/Button';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import Text from '@fbcnms/ui/components/design-system/Text';
 import TextField from '@material-ui/core/TextField';
-import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
 const POLICY_TITLE = 'Policies';
 const DEFAULT_POLICY_CONFIG = {
@@ -114,20 +113,16 @@ type PolicyRowType = {
   trackingType: string,
 };
 
-type Props = WithAlert & {
-  policies: {[string]: policy_rule},
-  onDelete?: string => void,
-};
-
-export function PolicyOverview(props: Props) {
+export function PolicyOverview(props: WithAlert) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [currRow, setCurrRow] = useState<PolicyRowType>({});
-  const {history, match, relativeUrl} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-  const policyRows: Array<PolicyRowType> = props.policies
-    ? Object.keys(props.policies).map((policyID: string) => {
-        const policyRule = props.policies[policyID];
+  const {history, relativeUrl} = useRouter();
+  const ctx = useContext(PolicyContext);
+  const policies = ctx.state;
+  const policyRows: Array<PolicyRowType> = policies
+    ? Object.keys(policies).map((policyID: string) => {
+        const policyRule = policies[policyID];
         return {
           policyID: policyRule.id,
           numFlows: policyRule.flow_list.length,
@@ -144,7 +139,7 @@ export function PolicyOverview(props: Props) {
       <Grid container spacing={3}>
         <Grid container>
           <Grid item xs={6}>
-            <Text key="title">
+            <Text key="title" data-testid={`title_${POLICY_TITLE}`}>
               <LibraryBooksIcon /> {POLICY_TITLE}
             </Text>
           </Grid>
@@ -224,13 +219,8 @@ export function PolicyOverview(props: Props) {
                       }
 
                       try {
-                        await MagmaV1API.deleteNetworksByNetworkIdPoliciesRulesByRuleId(
-                          {
-                            networkId: networkId,
-                            ruleId: currRow.policyID,
-                          },
-                        );
-                        props.onDelete?.(currRow.policyID);
+                        // trigger deletion
+                        ctx.setState(currRow.policyID);
                       } catch (e) {
                         enqueueSnackbar(
                           'failed deleting policy ' + currRow.policyID,
@@ -253,43 +243,26 @@ export function PolicyOverview(props: Props) {
     </div>
   );
 }
-type JsonConfigType = {
-  policies: {[string]: policy_rule},
-  onSave?: policy_rule => void,
-};
-export function PolicyJsonConfig(props: JsonConfigType) {
+
+export function PolicyJsonConfig() {
   const {match, history} = useRouter();
   const [error, setError] = useState('');
-  const networkId: string = nullthrows(match.params.networkId);
   const policyID: string = match.params.policyId;
   const enqueueSnackbar = useEnqueueSnackbar();
-  const policy: policy_rule = props.policies[policyID] || DEFAULT_POLICY_CONFIG;
+  const ctx = useContext(PolicyContext);
+  const policies = ctx.state;
+  const policy: policy_rule = policies[policyID] || DEFAULT_POLICY_CONFIG;
   return (
     <JsonEditor
       content={policy}
       error={error}
       onSave={async policy => {
         try {
-          if (policyID) {
-            await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
-              networkId: networkId,
-              ruleId: policyID,
-              policyRule: (policy: policy_rule),
-            });
-            enqueueSnackbar('Policy saved successfully', {
-              variant: 'success',
-            });
-          } else {
-            await MagmaV1API.postNetworksByNetworkIdPoliciesRules({
-              networkId: networkId,
-              policyRule: (policy: policy_rule),
-            });
-            enqueueSnackbar('Policy added successfully', {
-              variant: 'success',
-            });
-          }
+          ctx.setState(policyID, policy);
+          enqueueSnackbar('Policy saved successfully', {
+            variant: 'success',
+          });
           setError('');
-          props.onSave?.(policy);
           history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);

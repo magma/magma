@@ -183,5 +183,6 @@ class RyuDirectSubscriberContext(SubscriberContext):
     def _deactivate_subscriber_rules(self):
         if self._nuke_flows_on_exit:
             def deactivate_flows():
-                self._ec.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
+                self._ec.deactivate_rules(imsi=self.cfg.imsi,
+                                          ip_addr=self.cfg.ip, rule_ids=None)
             hub.joinall([hub.spawn(deactivate_flows)])

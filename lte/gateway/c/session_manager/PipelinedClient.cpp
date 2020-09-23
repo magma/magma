@@ -21,13 +21,16 @@
 using grpc::Status;
 
 namespace {  // anonymous
+using std::experimental::optional;
 
 magma::DeactivateFlowsRequest create_deactivate_req(
-    const std::string& imsi, const std::vector<std::string>& rule_ids,
+    const std::string& imsi, const std::string& ip_addr,
+    const std::vector<std::string>& rule_ids,
     const std::vector<magma::PolicyRule>& dynamic_rules,
     const magma::RequestOriginType_OriginType origin_type) {
   magma::DeactivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
+  req.set_ip_addr(ip_addr);
   req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
   for (const auto& id : rule_ids) {
@@ -41,7 +44,7 @@ magma::DeactivateFlowsRequest create_deactivate_req(
 
 magma::ActivateFlowsRequest create_activate_req(
     const std::string& imsi, const std::string& ip_addr,
-    const std::experimental::optional<magma::AggregatedMaximumBitrate>& ambr,
+    const optional<magma::AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<magma::PolicyRule>& dynamic_rules,
     const magma::RequestOriginType_OriginType origin_type) {
@@ -51,9 +54,9 @@ magma::ActivateFlowsRequest create_activate_req(
   req.mutable_request_origin()->set_type(origin_type);
   if (ambr) {
     // TODO remove log once feature is stable
-    MLOG(MINFO) << "Sending AMBR info for " << imsi << " ip addr " << ip_addr
-                 << "dl " << ambr->max_bandwidth_dl() << "ul "
-                 << ambr->max_bandwidth_ul();
+    MLOG(MINFO) << "Sending AMBR info for " << imsi << ", ip addr=" << ip_addr
+                << ", dl=" << ambr->max_bandwidth_dl()
+                << ", ul=" << ambr->max_bandwidth_ul();
     req.mutable_apn_ambr()->CopyFrom(*ambr);
   }
   auto ids = req.mutable_rule_ids();
@@ -209,13 +212,15 @@ bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
 }
 
 bool AsyncPipelinedClient::deactivate_flows_for_rules(
-    const std::string& imsi, const std::vector<std::string>& rule_ids,
+    const std::string& imsi, const std::string& ip_addr,
+    const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules,
     const RequestOriginType_OriginType origin_type) {
-  auto req = create_deactivate_req(imsi, rule_ids, dynamic_rules, origin_type);
+  auto req = create_deactivate_req(
+      imsi, ip_addr, rule_ids, dynamic_rules, origin_type);
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for subscriber "
-               << imsi;
+               << imsi << " IP " << ip_addr;
   deactivate_flows_rpc(req, [imsi](Status status, DeactivateFlowsResult resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
@@ -227,13 +232,13 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules(
 
 bool AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
-    const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
+    const optional<AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
   MLOG(MDEBUG) << "Activating " << static_rules.size() << " static rules and "
-               << dynamic_rules.size() << " dynamic rules for subscriber "
-               << imsi;
+               << dynamic_rules.size() << " dynamic rules for " << imsi
+               << " and ip " << ip_addr;
   // Activate static rules and dynamic rules separately until bug is fixed in
   // pipelined which crashes if activated at the same time
   auto static_req = create_activate_req(

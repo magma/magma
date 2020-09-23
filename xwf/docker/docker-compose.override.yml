@@ -26,6 +26,8 @@ services:
     build:
       context: ${MAGMA_BASE}../..
       dockerfile: xwf/gateway/integ_tests/gw/Dockerfile
+    environment:
+      - CONNECTION_MODE=ssl
 
   pipelined:
     build:

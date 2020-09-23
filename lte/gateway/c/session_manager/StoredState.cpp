@@ -98,6 +98,12 @@ std::string serialize_stored_final_action_info(const FinalActionInfo& stored) {
   stored.redirect_server.SerializeToString(&redirect_server);
   marshaled["redirect_server"] = redirect_server;
 
+  folly::dynamic restrict_rules = folly::dynamic::array;
+  for (const auto& rule_id : stored.restrict_rules) {
+    restrict_rules.push_back(rule_id);
+  }
+  marshaled["restrict_rules"] = restrict_rules;
+
   std::string serialized = folly::toJson(marshaled);
   return serialized;
 }
@@ -115,6 +121,9 @@ FinalActionInfo deserialize_stored_final_action_info(
   redirect_server.ParseFromString(marshaled["redirect_server"].getString());
   stored.redirect_server = redirect_server;
 
+  for (auto& rule_id : marshaled["restrict_rules"]) {
+    stored.restrict_rules.push_back(rule_id.getString());
+  }
   return stored;
 }
 
@@ -160,6 +169,9 @@ std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
   marshaled["buckets"]           = folly::dynamic::object();
   marshaled["grant_tracking_type"] =
       static_cast<int>(stored.grant_tracking_type);
+  marshaled["received_granted_units"] =
+      stored.received_granted_units.SerializeAsString();
+  marshaled["report_last_credit"] = stored.report_last_credit;
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     marshaled["buckets"][std::to_string(bucket_int)] =
@@ -181,6 +193,12 @@ StoredSessionCredit deserialize_stored_session_credit(
       static_cast<CreditLimitType>(marshaled["credit_limit_type"].getInt());
   stored.grant_tracking_type =
       static_cast<GrantTrackingType>(marshaled["grant_tracking_type"].getInt());
+
+  GrantedUnits received_granted_units;
+  received_granted_units.ParseFromString(marshaled["received_granted_units"].getString());
+  stored.received_granted_units = received_granted_units;
+  stored.report_last_credit     = marshaled["report_last_credit"].getBool();
+
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket          = static_cast<Bucket>(bucket_int);
     stored.buckets[bucket] = static_cast<uint64_t>(std::stoul(

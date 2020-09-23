@@ -54,9 +54,3 @@ echo "###########################"
 echo "Deleting intermediate files"
 echo "###########################"
 rm -f controller.csr rootCA.srl
-
-echo ""
-echo "####################"
-echo "Deleting root CA key"
-echo "####################"
-rm -f rootCA.key

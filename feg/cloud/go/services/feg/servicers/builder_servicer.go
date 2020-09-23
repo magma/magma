@@ -75,12 +75,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	vals := map[string]proto.Message{}
 
 	if s6ac != nil {
-		vals["s6a_proxy"] = &feg_mconfig.S6AConfig{
+		mc := &feg_mconfig.S6AConfig{
 			LogLevel:                protos.LogLevel_INFO,
-			Server:                  s6ac.Server.ToMconfig(),
 			RequestFailureThreshold: healthc.RequestFailureThreshold,
 			MinimumRequestThreshold: healthc.MinimumRequestThreshold,
 		}
+		protos.FillIn(s6ac, mc)
+		vals["s6a_proxy"] = mc
 	}
 
 	if gxc != nil || gyc != nil {
@@ -165,7 +166,6 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	return ret, nil
 }
-
 func getFegConfig(gatewayID string, network configurator.Network, graph configurator.EntityGraph) (*models.GatewayFederationConfigs, error) {
 	fegGW, err := graph.GetEntity(feg.FegGatewayType, gatewayID)
 	if err != nil && err != merrors.ErrNotFound {

@@ -34,7 +34,7 @@ func New() providers.Method {
 
 // String returns EAP AKA Provider name/info
 func (*providerImpl) String() string {
-	return "<Magma EAP-AKA Method Provider>"
+	return "EAP-AKA"
 }
 
 // EAPType returns EAP AKA Type - 23

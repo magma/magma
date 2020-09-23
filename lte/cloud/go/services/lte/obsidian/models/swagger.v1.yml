@@ -26,6 +26,12 @@ magma-gen-meta:
       filename: gateway_epc_configs_swaggergen.go
     - go-struct-name: GatewayNonEpsConfigs
       filename: gateway_non_eps_configs_swaggergen.go
+    - go-struct-name: GatewayDNSConfigs
+      filename: gateway_dns_configs_swaggergen.go
+    - go-struct-name: GatewayDNSRecords
+      filename: gateway_dns_records_swaggergen.go
+    - go-struct-name: DNSConfigRecord
+      filename: dns_config_record_swaggergen.go
     - go-struct-name: LteGateway
       filename: lte_gateway_swaggergen.go
     - go-struct-name: MutableLteGateway
@@ -46,6 +52,7 @@ magma-gen-meta:
       filename: apn_name_swaggergen.go
     - go-struct-name: APN
       filename: apn_swaggergen.go
+
 
 info:
   title: LTE Network Management
@@ -1001,6 +1008,78 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/gateways/{gateway_id}/cellular/dns:
+    get:
+      summary: Get DNS configuration of LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: DNS configuration of the gateway
+          schema:
+            $ref: '#/definitions/gateway_dns_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update DNS configuration of LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: config
+          in: body
+          description: New DNS configuration for the gateway
+          required: true
+          schema:
+            $ref: '#/definitions/gateway_dns_configs'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/gateways/{gateway_id}/cellular/dns/records:
+    get:
+      summary: Get the DNS config records for LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: Custom DNS records for the gateway
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/dns_config_record'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Change all the DNS records for LTE gateway
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: records
+          in: body
+          description: Custom DNS records for the gateway
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/dns_config_record'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/gateways/{gateway_id}/connected_enodeb_serials:
     get:
       summary: Get the SNs of all enodeBs connected to a gateway
@@ -1118,6 +1197,40 @@ paths:
           description: The status of the gateway
           schema:
             $ref: './orc8r-swagger.yml#/definitions/gateway_status'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/gateways/{gateway_id}/vpn:
+    get:
+      summary: Get the gateway VPN configuration
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+      responses:
+        '200':
+          description: The current VPN gateway config
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_vpn_configs'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update the gateway VPN configuration
+      tags:
+        - LTE Gateways
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: './orc8r-swagger-common.yml#/parameters/gateway_id'
+        - name: config
+          in: body
+          description: New VPN configuration
+          required: true
+          schema:
+            $ref: './orc8r-swagger.yml#/definitions/gateway_vpn_configs'
+      responses:
+        '204':
+          description: Success
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -1433,7 +1546,8 @@ definitions:
       - lte_auth_op
       - mcc
       - mnc
-      - relay_enabled
+      - hss_relay_enabled
+      - gx_gy_relay_enabled
       - tac
     properties:
       mcc:
@@ -1490,7 +1604,10 @@ definitions:
       default_rule_id:
         type: string
         example: 'default_rule_1'
-      relay_enabled:
+      hss_relay_enabled:
+        type: boolean
+        example: false
+      gx_gy_relay_enabled:
         type: boolean
         example: false
       cloud_subscriberdb_enabled:
@@ -1571,7 +1688,6 @@ definitions:
       - tier
       - cellular
       - connected_enodeb_serials
-      - apn_resources
     properties:
       device:
         $ref: './orc8r-swagger.yml#/definitions/gateway_device'
@@ -1606,7 +1722,6 @@ definitions:
       - tier
       - cellular
       - connected_enodeb_serials
-      - apn_resources
     properties:
       device:
         $ref: './orc8r-swagger.yml#/definitions/gateway_device'
@@ -1640,6 +1755,8 @@ definitions:
         $ref: '#/definitions/gateway_ran_configs'
       non_eps_service:
         $ref: '#/definitions/gateway_non_eps_configs'
+      dns:
+        $ref: '#/definitions/gateway_dns_configs'
 
   gateway_ran_configs:
     type: object
@@ -1698,7 +1815,6 @@ definitions:
         minLength: 5
         maxLength: 49
 
-
   gateway_non_eps_configs:
     description: Non-EPS service configuration for a gateway
     type: object
@@ -1739,6 +1855,67 @@ definitions:
           - 0
           - 1
           - 2
+
+  gateway_dns_records:
+    type: array
+    items:
+      $ref: '#/definitions/dns_config_record'
+
+  dns_config_record:
+    description: Mapping used for DNS resolving from a domain
+    type: object
+    required:
+      - domain
+    properties:
+      domain:
+        type: string
+        minLength: 1
+        x-nullable: false
+        example: example.com
+      a_record:
+        type: array
+        items:
+          type: string
+          minLength: 1
+          format: ipv4
+          x-nullable: false
+          example: 192.88.99.142
+      aaaa_record:
+        type: array
+        items:
+          type: string
+          minLength: 1
+          format: ipv6
+          x-nullable: false
+          example: 2001:0db8:85a3:0000:0000:8a2e:0370:7334
+      cname_record:
+        type: array
+        items:
+          type: string
+          minLength: 1
+          x-nullable: false
+          example: cname.example.com
+
+  gateway_dns_configs:
+    description: DNS configuration for a gateway
+    type: object
+    required:
+      - enable_caching
+      - local_ttl
+      - dhcp_server_enabled
+    properties:
+      enable_caching:
+        type: boolean
+        example: false
+      local_ttl:
+        type: integer
+        format: int32
+        example: 0
+      dhcp_server_enabled:
+        type: boolean
+        example: true
+      records:
+        $ref: '#/definitions/gateway_dns_records'
 
   enodeb_serials:
     type: array

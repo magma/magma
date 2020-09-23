@@ -98,6 +98,7 @@ message DeactivateFlowsRequest {
   SubscriberID sid = 1;
   repeated string rule_ids = 2;
   RequestOriginType request_origin = 3;
+  string ip_addr = 4; // Subscriber session ipv4 address
 }
 
 message RuleModResult {

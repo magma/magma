@@ -55,7 +55,6 @@
 #define PGW_CONFIG_STRING_DEFAULT_DNS_SEC_IPV4_ADDRESS                         \
   "DEFAULT_DNS_SEC_IPV4_ADDRESS"
 #define PGW_CONFIG_STRING_UE_MTU "UE_MTU"
-#define PGW_RELAY_ENABLED "RELAY_ENABLED"
 #define PGW_CONFIG_STRING_GTPV1U_REALIZATION "GTPV1U_REALIZATION"
 #define PGW_CONFIG_STRING_NO_GTP_KERNEL_AVAILABLE "NO_GTP_KERNEL_AVAILABLE"
 #define PGW_CONFIG_STRING_GTP_KERNEL_MODULE "GTP_KERNEL_MODULE"
@@ -115,7 +114,6 @@ typedef struct pgw_config_s {
 
   bool force_push_pco;
   uint16_t ue_mtu;
-  bool relay_enabled;
   bool enable_nat;
 
   struct {

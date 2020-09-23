@@ -17,7 +17,7 @@ import (
 	"fmt"
 	"net"
 
-	"magma/lte/cloud/go/services/cellular/utils"
+	"magma/lte/cloud/go/lte"
 	"magma/orc8r/cloud/go/services/configurator"
 
 	oerrors "github.com/go-openapi/errors"
@@ -120,16 +120,16 @@ func (m *NetworkRanConfigs) ValidateModel() error {
 	}
 
 	earfcnDl := m.getEarfcnDl()
-	band, err := utils.GetBand(earfcnDl)
+	band, err := lte.GetBand(earfcnDl)
 	if err != nil {
 		return err
 	}
 
-	if tddConfigSet && band.Mode != utils.TDDMode {
+	if tddConfigSet && band.Mode != lte.TDDMode {
 		return errors.Errorf("band %d not a TDD band", band.ID)
 	}
 	if fddConfigSet {
-		if band.Mode != utils.FDDMode {
+		if band.Mode != lte.FDDMode {
 			return errors.Errorf("band %d not a FDD band", band.ID)
 		}
 		if !band.EarfcnULInRange(m.FddConfig.Earfcnul) {
@@ -310,6 +310,14 @@ func (m *GatewayNonEpsConfigs) ValidateModel() error {
 		return oerrors.CompositeValidationError(res...)
 	}
 	return nil
+}
+
+func (m *GatewayDNSConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *GatewayDNSRecords) ValidateModel() error {
+	return m.Validate(strfmt.Default)
 }
 
 func (m *EnodebSerials) ValidateModel() error {

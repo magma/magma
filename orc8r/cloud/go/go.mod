@@ -12,6 +12,7 @@
 module magma/orc8r/cloud/go
 
 replace (
+	k8s.io/client-go => k8s.io/client-go v0.0.0-20191016111102-bec269661e48
 	magma/gateway => ../../gateway/go
 	magma/orc8r/lib/go => ../../lib/go
 	magma/orc8r/lib/go/protos => ../../lib/go/protos
@@ -20,6 +21,11 @@ replace (
 require (
 	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/Masterminds/squirrel v1.1.1-0.20190513200039-d13326f0be73
+	github.com/Microsoft/go-winio v0.4.14 // indirect
+	github.com/davecgh/go-spew v1.1.1
+	github.com/docker/distribution v2.7.1+incompatible // indirect
+	github.com/docker/docker v1.13.1
+	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805
 	github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087
@@ -32,11 +38,13 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1
+	github.com/json-iterator/go v1.1.8 // indirect
 	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
 	github.com/lann/builder v0.0.0-20180802200727-47ae307949d0
 	github.com/lib/pq v1.2.0
 	github.com/mattn/go-sqlite3 v1.11.0
 	github.com/olivere/elastic/v7 v7.0.6
+	github.com/opencontainers/go-digest v1.0.0 // indirect
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/alertmanager v0.17.0
 	github.com/prometheus/client_golang v1.2.1
@@ -44,16 +52,22 @@ require (
 	github.com/prometheus/common v0.7.0
 	github.com/prometheus/procfs v0.0.5
 	github.com/prometheus/prometheus v0.0.0-20190607092147-e23fa22233cf
-	github.com/spf13/cobra v0.0.3
+	github.com/spf13/cobra v0.0.5
+	github.com/spf13/pflag v1.0.5 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/thoas/go-funk v0.7.0
 	github.com/vektra/mockery v0.0.0-20181123154057-e78b021dcbb5
+	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550 // indirect
 	golang.org/x/lint v0.0.0-20190409202823-959b441ac422
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	golang.org/x/tools v0.0.0-20191012152004-8de300cfc20a
 	google.golang.org/grpc v1.27.1
 	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
+	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/yaml.v2 v2.2.8
+	k8s.io/api v0.0.0-20191016110408-35e52d86657a
+	k8s.io/apimachinery v0.0.0-20191004115801-a2eda9f80ab8
+	k8s.io/client-go v11.0.1-0.20190409021438-1a26190bd76a+incompatible
 	magma/gateway v0.0.0
 	magma/orc8r/lib/go v0.0.0-00010101000000-000000000000
 	magma/orc8r/lib/go/protos v0.0.0

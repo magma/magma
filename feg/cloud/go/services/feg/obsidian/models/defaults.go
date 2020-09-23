@@ -162,7 +162,8 @@ func newDefaultHss() *Hss {
 
 func newDefaultS6a() *S6a {
 	return &S6a{
-		Server: newDefaultDiameterClientConfigs(),
+		Server:  newDefaultDiameterClientConfigs(),
+		PlmnIds: []string{"123456"},
 	}
 }
 

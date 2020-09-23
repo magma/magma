@@ -126,7 +126,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     // Don't set event triggers
     // Don't set result code since the response is already successful
     // Don't set any rule installation/uninstallation
-    // Don't set the TgppContext, assume relay disabled
+    // Don't set the TgppContext, assume gx_gy_relay disabled
     return credit_update;
   }
 
@@ -198,7 +198,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
   // 3) Commit session for IMSI1 into SessionStore
-  auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+  auto sessions = SessionVector{};
   EXPECT_EQ(sessions.size(), 0);
   sessions.push_back(std::move(session));
   EXPECT_EQ(sessions.size(), 1);

@@ -102,11 +102,11 @@ const testCases: {[string]: TestCase} = {
   },
   carrier_wifi_network: {
     default: 'gateways',
-    sections: ['gateways', 'configure', 'metrics'],
+    sections: ['gateways', 'configure', 'metrics', 'alerts'],
   },
   xwfm: {
     default: 'gateways',
-    sections: ['gateways', 'configure', 'metrics'],
+    sections: ['gateways', 'configure', 'metrics', 'alerts'],
   },
 };
 

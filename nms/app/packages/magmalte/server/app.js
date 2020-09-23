@@ -55,7 +55,9 @@ const {
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
-const devMode = process.env.NODE_ENV !== 'production';
+// disable secure cookies when e2e test is running
+const devMode =
+  process.env.NODE_ENV !== 'production' || process.env.E2E_TEST === '1';
 
 // Create Sequelize Store
 const SessionStore = connectSession(session.Store);

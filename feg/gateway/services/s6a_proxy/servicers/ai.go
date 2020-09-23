@@ -22,6 +22,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/s6a_proxy/metrics"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -33,7 +34,7 @@ import (
 
 // sendAIR - sends AIR with given Session ID (sid)
 func (s *s6aProxy) sendAIR(sid string, req *protos.AuthenticationInformationRequest, retryCount uint) error {
-	c, err := s.connMan.GetConnection(s.smClient, s.serverCfg)
+	c, err := s.connMan.GetConnection(s.smClient, s.config.ServerCfg)
 	if err != nil {
 		return err
 	}
@@ -99,6 +100,14 @@ func (s *s6aProxy) AuthenticationInformationImpl(
 	res := &protos.AuthenticationInformationAnswer{}
 	if req == nil {
 		return res, Errorf(codes.InvalidArgument, "Nil AI Request")
+	}
+
+	// check if PLMN list exists, and if IMSI belongs to any of that PLMN
+	if !plmn_filter.CheckImsiOnPlmnIdListIfAny(req.UserName, s.config.PlmnIds) {
+		return &protos.AuthenticationInformationAnswer{
+			ErrorCode:     protos.ErrorCode_AUTHENTICATION_REJECTED,
+			EutranVectors: nil,
+		}, nil
 	}
 
 	sid := s.genSID()

@@ -37,7 +37,7 @@ class StoredStateTest : public ::testing::Test {
     return stored;
   }
 
-  FinalActionInfo get_stored_final_action_info() {
+  FinalActionInfo get_stored_redirect_final_action_info() {
     FinalActionInfo stored;
     stored.final_action =
         ChargingCredit_FinalAction::ChargingCredit_FinalAction_REDIRECT;
@@ -46,6 +46,14 @@ class StoredStateTest : public ::testing::Test {
             RedirectServer_RedirectAddressType_IPV6);
     stored.redirect_server.set_redirect_server_address(
         "redirect_server_address");
+    return stored;
+  }
+
+  FinalActionInfo get_stored_restrict_final_action_info() {
+    FinalActionInfo stored;
+    stored.final_action =
+        ChargingCredit_FinalAction::ChargingCredit_FinalAction_RESTRICT_ACCESS;
+    stored.restrict_rules.push_back("restrict_rule");
     return stored;
   }
 
@@ -155,8 +163,8 @@ TEST_F(StoredStateTest, test_stored_session_config) {
   EXPECT_EQ(original_rat_specific, recovered_rat_specific);
 }
 
-TEST_F(StoredStateTest, test_stored_final_action_info) {
-  auto stored = get_stored_final_action_info();
+TEST_F(StoredStateTest, test_stored_redirect_final_action_info) {
+  auto stored = get_stored_redirect_final_action_info();
 
   auto serialized   = serialize_stored_final_action_info(stored);
   auto deserialized = deserialize_stored_final_action_info(serialized);
@@ -171,6 +179,21 @@ TEST_F(StoredStateTest, test_stored_final_action_info) {
   EXPECT_EQ(
       deserialized.redirect_server.redirect_server_address(),
       "redirect_server_address");
+}
+
+TEST_F(StoredStateTest, test_stored_restrict_final_action_info) {
+  auto stored = get_stored_restrict_final_action_info();
+
+  auto serialized   = serialize_stored_final_action_info(stored);
+  auto deserialized = deserialize_stored_final_action_info(serialized);
+
+  EXPECT_EQ(
+      deserialized.final_action,
+      ChargingCredit_FinalAction::ChargingCredit_FinalAction_RESTRICT_ACCESS);
+
+  std::vector<std::string> restrict_rules = {"restrict_rule"};
+  EXPECT_EQ(
+      deserialized.restrict_rules, restrict_rules);
 }
 
 TEST_F(StoredStateTest, test_stored_bearer_id_by_policy) {

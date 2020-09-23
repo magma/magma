@@ -18,13 +18,6 @@
           "orc8r/upgrade_1_2",
           "orc8r/upgrade_1_1"
         ]
-      },
-      {
-        "type": "subcategory",
-        "label": "User Guide",
-        "ids": [
-          "orc8r/ue_metering"
-        ]
       }
     ],
     "NMS User Guide": [
@@ -36,7 +29,8 @@
       "nms/nms_traffic",
       "nms/nms_organizations",
       "nms/nms_developer",
-      "nms/nms_how_to_guide"],
+      "nms/nms_how_to_guide"
+    ],
     "Access Gateway": [
       {
         "type": "subcategory",
@@ -46,6 +40,7 @@
           "lte/config_agw",
           "lte/enodebd",
           "lte/config_apn",
+          "lte/agw_120_upgrade",
           "lte/agw_110_upgrade"
         ]
       },
@@ -58,6 +53,10 @@
           "lte/dev_notes"
         ]
       }
+    ],
+    "Feature Guides": [
+      "howtos/ue_metering",
+      "howtos/config_agw_bridged"
     ],
     "Federation Gateway": [
       {

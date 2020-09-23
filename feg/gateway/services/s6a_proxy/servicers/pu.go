@@ -31,7 +31,7 @@ import (
 
 // sendPUR - sends PUR with given Session ID (sid)
 func (s *s6aProxy) sendPUR(sid string, req *protos.PurgeUERequest, retryCount uint) error {
-	c, err := s.connMan.GetConnection(s.smClient, s.serverCfg)
+	c, err := s.connMan.GetConnection(s.smClient, s.config.ServerCfg)
 	if err != nil {
 		return err
 	}

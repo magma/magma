@@ -18,18 +18,25 @@ const jsonServer = require('json-server');
 const https = require('https');
 const fs = require('fs');
 
-const keyFile = 'mock/.cache/mock_server.key';
-const certFile = 'mock/.cache/mock_server.cert';
+const certFile = process.env.API_CERT_FILENAME ?? '.cache/mock_server.cert';
+const keyFile =
+  process.env.API_PRIVATE_KEY_FILENAME ?? '.cache/mock_server.key';
 
 const server = jsonServer.create();
-const router = jsonServer.router('mock/db.json');
+const router = jsonServer.router('./mock/db.json');
 const middlewares = jsonServer.defaults();
 server.use(middlewares);
 
-const buffer = fs.readFileSync('mock/db.json', 'utf-8');
+const buffer = fs.readFileSync('./mock/db.json', 'utf-8');
 const db = JSON.parse(buffer);
 
 // add custom route handlers
+server.get('/magma/v1/lte/test', (req, res) => {
+  if (req.method === 'GET') {
+    res.status(200).jsonp(db['networksFull']['test']);
+  }
+});
+
 server.get('/magma/v1/networks/test/gateways', (req, res) => {
   if (req.method === 'GET') {
     res.status(200).jsonp(db['networksFull']['test']['gateways']);
@@ -97,6 +104,17 @@ server.get(
     }
   },
 );
+server.get('/magma/v1/networks/test/policies/rules', (req, res) => {
+  if (req.method === 'GET') {
+    res.status(200).jsonp(db['policies']);
+  }
+});
+
+server.get('/magma/v1/networks/test/apns', (req, res) => {
+  if (req.method === 'GET') {
+    res.status(200).jsonp(db['apns']);
+  }
+});
 server.use('/magma/v1', router);
 
 https

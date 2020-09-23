@@ -28,6 +28,7 @@ var defaultConfig = Config{
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
 		},
+		PlmnIds: []string{},
 	},
 	Gx: &GxConfig{
 		DisableGx: false,
