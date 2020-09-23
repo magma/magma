@@ -1,0 +1,24 @@
+image:
+  pullPolicy: IfNotPresent
+  repository: quay.io/kubernetes_incubator/nfs-provisioner
+  tag: v2.3.0
+
+nodeSelector:
+  kubernetes.io/hostname: compute1
+
+persistence:
+  enabled: true
+  size: 200Gi
+  storageClass: nfs-provisioner
+replicaCount: 1
+resources:
+  requests:
+    cpu: 500m
+    memory: 512Mi
+storageClass:
+  create: true
+  defaultClass: true
+  mountOptions:
+  - noatime
+  name: nfs
+  provisionerName: nfs
