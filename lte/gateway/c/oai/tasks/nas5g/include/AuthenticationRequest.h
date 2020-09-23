@@ -23,41 +23,45 @@
 
 using namespace std;
 
-namespace magma5g
-{
-  // AuthenticationRequest Message Class 
-  class AuthenticationRequestMsg
-  {
-    public:
-      #define AUTHENTICATION_REQUEST_MINIMUM_LENGTH 3
-      ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator; 
-      SecurityHeaderTypeMsg securityheadertype; 
-      SpareHalfOctetMsg sparehalfoctet;
-      MessageTypeMsg messagetype;
-      NASKeySetIdentifierMsg naskeysetidentifier;  
-      ABBAMsg abba;
-      AuthenticationParameterRANDMsg authrand;
-      AuthenticationParameterAUTNMsg authautn;
-      EAPMessageMsg eap;
+namespace magma5g {
+// AuthenticationRequest Message Class
+class AuthenticationRequestMsg {
+ public:
+#define AUTHENTICATION_REQUEST_MINIMUM_LENGTH 3
+  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
+  SecurityHeaderTypeMsg securityheadertype;
+  SpareHalfOctetMsg sparehalfoctet;
+  MessageTypeMsg messagetype;
+  NASKeySetIdentifierMsg naskeysetidentifier;
+  ABBAMsg abba;
+  AuthenticationParameterRANDMsg authrand;
+  AuthenticationParameterAUTNMsg authautn;
+  EAPMessageMsg eap;
 
-      AuthenticationRequestMsg();
-      ~AuthenticationRequestMsg();
-      int DecodeAuthenticationRequestMsg(AuthenticationRequestMsg *authenticationrequest, uint8_t *buffer, uint32_t len);
-      int EncodeAuthenticationRequestMsg(AuthenticationRequestMsg *authenticationrequest, uint8_t *buffer, uint32_t len);
-  };
-}
+  AuthenticationRequestMsg();
+  ~AuthenticationRequestMsg();
+  int DecodeAuthenticationRequestMsg(
+      AuthenticationRequestMsg* authenticationrequest, uint8_t* buffer,
+      uint32_t len);
+  int EncodeAuthenticationRequestMsg(
+      AuthenticationRequestMsg* authenticationrequest, uint8_t* buffer,
+      uint32_t len);
+};
+}  // namespace magma5g
 
 /*
    AUTHENTICATION REQUEST message content --- TS 24.501 8.2.1.1
 
-   IEI           Information Element                   Type/Reference                        Presence   Format     Length
+   IEI           Information Element                   Type/Reference Presence
+   Format     Length
 
-         Extended protocol discriminator         Extended protocol discriminator 9.2             M          V          1
-         Security header type                    Security header type            9.3             M          V          1/2
-         Spare half octet                        Spare half                      9.5             M          V          1/2
-         Auth request message                    Message type                    9.7             M          V          1
-   21    Authentication parameter RAND           Authentication parameter RAND 9.11.3.16         O          TV         17
-         (5G authentication challenge)
-   20    Authentication parameter AUTN           Authentication parameter AUTN 9.11.3.15         O          TLV        18
-         (5G authentication challenge)
+         Extended protocol discriminator         Extended protocol
+   discriminator 9.2             M          V          1 Security header type
+   Security header type            9.3             M          V          1/2
+         Spare half octet                        Spare half 9.5             M V
+   1/2 Auth request message                    Message type 9.7             M V
+   1 21    Authentication parameter RAND           Authentication parameter
+   RAND 9.11.3.16         O          TV         17 (5G authentication challenge)
+   20    Authentication parameter AUTN           Authentication parameter
+   AUTN 9.11.3.15         O          TLV        18 (5G authentication challenge)
  */

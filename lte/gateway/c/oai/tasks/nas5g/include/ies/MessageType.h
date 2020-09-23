@@ -12,17 +12,17 @@
 #include <sstream>
 #include <cstdint>
 using namespace std;
-namespace magma5g
-{
-  // MessageType IE Class
-  class MessageTypeMsg
-  {
-    public:
-      uint8_t msgtype;
+namespace magma5g {
+// MessageType IE Class
+class MessageTypeMsg {
+ public:
+  uint8_t msgtype;
 
-      MessageTypeMsg();
-      ~MessageTypeMsg();
-      int EncodeMessageTypeMsg(MessageTypeMsg *messagetype, uint8_t iei, uint8_t * buffer, uint32_t len);
-      int DecodeMessageTypeMsg(MessageTypeMsg * messagetype, uint8_t iei, uint8_t * buffer, uint32_t len);
-  };
-}
+  MessageTypeMsg();
+  ~MessageTypeMsg();
+  int EncodeMessageTypeMsg(
+      MessageTypeMsg* messagetype, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeMessageTypeMsg(
+      MessageTypeMsg* messagetype, uint8_t iei, uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

@@ -10,28 +10,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 #pragma once
 #include <sstream>
 #include <cstdint>
+
 using namespace std;
 namespace magma5g {
-class NASKeySetIdentifierMsg {
+class NASSecurityAlgorithmsMsg {
  public:
-  uint8_t iei;
-  uint8_t tsc : 1;
-  uint8_t naskeysetidentifier : 3;
-#define NAS_KEY_SET_IDENTIFIER_NATIVE 0
-#define NAS_KEY_SET_IDENTIFIER_MIN_LENGTH 1
-#define NAS_KEY_SET_IDENTIFIER_MAPPED 1
-#define NAS_KEY_SET_IDENTIFIER_NOT_AVAILABLE 0x7
+  uint8_t tca;
+  uint8_t tia;
+#define NAS_SECURITY_ALGORITHMS_MINIMUM_LENGTH 1
 
-  NASKeySetIdentifierMsg();
-  ~NASKeySetIdentifierMsg();
-  int EncodeNASKeySetIdentifierMsg(
-      NASKeySetIdentifierMsg* naskeysetidentifier, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
-  int DecodeNASKeySetIdentifierMsg(
-      NASKeySetIdentifierMsg* naskeysetidentifier, uint8_t iei, uint8_t* buffer,
-      uint32_t len);
+  NASSecurityAlgorithmsMsg();
+  ~NASSecurityAlgorithmsMsg();
+  int EncodeNASSecurityAlgorithmsMsg(
+      NASSecurityAlgorithmsMsg* nassecurityalgorithms, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+  int DecodeNASSecurityAlgorithmsMsg(
+      NASSecurityAlgorithmsMsg* nassecurityalgorithms, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

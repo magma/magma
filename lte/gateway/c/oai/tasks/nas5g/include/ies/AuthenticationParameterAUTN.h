@@ -13,20 +13,22 @@
 #include <cstdint>
 using namespace std;
 
-namespace magma5g
-{
-  // AuthenticationParameterAUTN IE Class
-  class AuthenticationParameterAUTNMsg
-  {
-    public:
-      #define AUTN_MIN_LEN 16
-      #define AUTN_MAX_LEN 16
-      uint8_t iei;
-      std::string AUTN;
+namespace magma5g {
+// AuthenticationParameterAUTN IE Class
+class AuthenticationParameterAUTNMsg {
+ public:
+#define AUTN_MIN_LEN 16
+#define AUTN_MAX_LEN 16
+  uint8_t iei;
+  std::string AUTN;
 
-      AuthenticationParameterAUTNMsg();
-      ~AuthenticationParameterAUTNMsg();
-      int EncodeAuthenticationParameterAUTNMsg (AuthenticationParameterAUTNMsg *authenticationparameterautn, uint8_t iei, uint8_t * buffer, uint32_t len);
-      int DecodeAuthenticationParameterAUTNMsg (AuthenticationParameterAUTNMsg *authenticationparameterautn, uint8_t iei, uint8_t * buffer, uint32_t len);
-  };
-}
+  AuthenticationParameterAUTNMsg();
+  ~AuthenticationParameterAUTNMsg();
+  int EncodeAuthenticationParameterAUTNMsg(
+      AuthenticationParameterAUTNMsg* authenticationparameterautn, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationParameterAUTNMsg(
+      AuthenticationParameterAUTNMsg* authenticationparameterautn, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

@@ -16,29 +16,31 @@ limitations under the License.
 #include "SpareHalfOctet.h"
 
 using namespace std;
-namespace magma5g
-{
-    class DeRegistrationAcceptUEInitMsg
-    {
-      public:
-        DeRegistrationAcceptUEInitMsg();
-        ~DeRegistrationAcceptUEInitMsg();
+namespace magma5g {
+class DeRegistrationAcceptUEInitMsg {
+ public:
+  DeRegistrationAcceptUEInitMsg();
+  ~DeRegistrationAcceptUEInitMsg();
 
-        ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator; 
-        SecurityHeaderTypeMsg securityheadertype; 
-        SpareHalfOctetMsg sparehalfoctet;
-        MessageTypeMsg messagetype; 
-        #define DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH 3
-        int DecodeDeRegistrationAcceptUEInitMsg(DeRegistrationAcceptUEInitMsg *deregistrationacceptueinit, uint8_t *buffer, uint32_t len);
-        int EncodeDeRegistrationAcceptUEInitMsg(DeRegistrationAcceptUEInitMsg *deregistrationacceptueinit, uint8_t *buffer, uint32_t len);
-    };
-}
+  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
+  SecurityHeaderTypeMsg securityheadertype;
+  SpareHalfOctetMsg sparehalfoctet;
+  MessageTypeMsg messagetype;
+#define DEREGISTRATION_ACCEPT_UEINIT_MINIMUM_LENGTH 3
+  int DecodeDeRegistrationAcceptUEInitMsg(
+      DeRegistrationAcceptUEInitMsg* deregistrationacceptueinit,
+      uint8_t* buffer, uint32_t len);
+  int EncodeDeRegistrationAcceptUEInitMsg(
+      DeRegistrationAcceptUEInitMsg* deregistrationacceptueinit,
+      uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g
 
 /*
 DEREGISTRATION ACCEPT UE Initiated message content
-IEI  Information Element             Type/Reference                                  Presence   Format     Length
-     Extended protocol discriminator Extended protocol discriminator 9.2             M          V          1
-     Security header type            Security header type            9.3             M          V          1/2
-     Spare half octet                Spare half                      9.5             M          V          1/2
-     De-registration request message Message type                    9.7             M          V          1
+IEI  Information Element             Type/Reference Presence   Format     Length
+     Extended protocol discriminator Extended protocol discriminator 9.2 M V 1
+     Security header type            Security header type            9.3 M V 1/2
+     Spare half octet                Spare half                      9.5 M V 1/2
+     De-registration request message Message type                    9.7 M V 1
 */

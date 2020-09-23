@@ -15,21 +15,23 @@
 
 using namespace std;
 
-namespace magma5g
-{
-  // AuthenticationResponseParameter IE Class
-  class AuthenticationResponseParameterMsg
-  {
-    public:
-      #define AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN 18
-      #define AUTHENTICATION_RESPONSE_PARAMETER_MAX_LEN 18
-      uint8_t iei;
-      uint8_t length;
-      uint8_t ResponseParameter[16];
+namespace magma5g {
+// AuthenticationResponseParameter IE Class
+class AuthenticationResponseParameterMsg {
+ public:
+#define AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN 18
+#define AUTHENTICATION_RESPONSE_PARAMETER_MAX_LEN 18
+  uint8_t iei;
+  uint8_t length;
+  uint8_t ResponseParameter[16];
 
-      AuthenticationResponseParameterMsg();
-      ~AuthenticationResponseParameterMsg();
-      int EncodeAuthenticationResponseParameterMsg(AuthenticationResponseParameterMsg *responseparameter, uint8_t iei, uint8_t * buffer, uint32_t len);
-      int DecodeAuthenticationResponseParameterMsg(AuthenticationResponseParameterMsg *responseparameter, uint8_t iei, uint8_t * buffer, uint32_t len);
-  };
-}
+  AuthenticationResponseParameterMsg();
+  ~AuthenticationResponseParameterMsg();
+  int EncodeAuthenticationResponseParameterMsg(
+      AuthenticationResponseParameterMsg* responseparameter, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+  int DecodeAuthenticationResponseParameterMsg(
+      AuthenticationResponseParameterMsg* responseparameter, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

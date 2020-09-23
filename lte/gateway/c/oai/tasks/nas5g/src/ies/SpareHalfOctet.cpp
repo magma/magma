@@ -5,38 +5,32 @@
 #include "CommonDefs.h"
 
 using namespace std;
-namespace magma5g
-{
-  SpareHalfOctetMsg::SpareHalfOctetMsg()
-  {
-  };
+namespace magma5g {
+SpareHalfOctetMsg::SpareHalfOctetMsg(){};
 
-  SpareHalfOctetMsg::~SpareHalfOctetMsg()
-  {
-  };
+SpareHalfOctetMsg::~SpareHalfOctetMsg(){};
 
-  // Decode SpareHalfOctet IE
-  int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(SpareHalfOctetMsg *sparehalfoctet, uint8_t iei, uint8_t *buffer, uint32_t len) 
-  {
-    int decoded = 0;
+// Decode SpareHalfOctet IE
+int SpareHalfOctetMsg::DecodeSpareHalfOctetMsg(
+    SpareHalfOctetMsg* sparehalfoctet, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  int decoded = 0;
 
-    MLOG(MDEBUG) << "   DecodeSpareHalfOctetMsg : ";
-    sparehalfoctet->spare = (*buffer & 0xf0) >> 4;
-    decoded++;
-    MLOG(MDEBUG) << "Spare = 0x" << hex << int(sparehalfoctet->spare);
-    return (decoded);
-  };
+  MLOG(MDEBUG) << "   DecodeSpareHalfOctetMsg : ";
+  sparehalfoctet->spare = (*buffer & 0xf0) >> 4;
+  MLOG(MDEBUG) << "Spare = 0x" << hex << int(sparehalfoctet->spare);
+  return (decoded);
+};
 
-  // Encode SpareHalfOctet IE
-  int SpareHalfOctetMsg::EncodeSpareHalfOctetMsg(SpareHalfOctetMsg *sparehalfoctet, uint8_t iei, uint8_t * buffer, uint32_t len)
-  {
-    int encoded = 0;
+// Encode SpareHalfOctet IE
+int SpareHalfOctetMsg::EncodeSpareHalfOctetMsg(
+    SpareHalfOctetMsg* sparehalfoctet, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  int encoded = 0;
 
-    MLOG(MDEBUG) << " EncodeSpareHalfOctetMsg : ";
-    *(buffer) = 0x00 | (sparehalfoctet->spare & 0xf) << 4;
-    MLOG(MDEBUG) << "   Spare = 0x" << hex << int(*(buffer));
-    encoded++;
-    return (encoded);
-  };
-}
-
+  MLOG(MDEBUG) << " EncodeSpareHalfOctetMsg : ";
+  *(buffer) = 0x00 | (sparehalfoctet->spare & 0xf) << 4;
+  MLOG(MDEBUG) << "   Spare = 0x" << hex << int(*(buffer));
+  return (encoded);
+};
+}  // namespace magma5g

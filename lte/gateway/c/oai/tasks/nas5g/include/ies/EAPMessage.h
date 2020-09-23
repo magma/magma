@@ -14,18 +14,18 @@
 
 using namespace std;
 
-namespace magma5g
-{
-  class EAPMessageMsg
-  {
-    public:
-      #define EAP_MIN_LENGTH 3
-      uint8_t iei;
-      std::string eap;
+namespace magma5g {
+class EAPMessageMsg {
+ public:
+#define EAP_MIN_LENGTH 3
+  uint8_t iei;
+  std::string eap;
 
-      EAPMessageMsg();
-      ~EAPMessageMsg();
-      int EncodeEAPMessageMsg ( EAPMessageMsg *eapmessage, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
-      int DecodeEAPMessageMsg ( EAPMessageMsg *eapmessage, uint8_t iei, uint8_t * buffer, uint32_t len  ) ;
-  };
-}
+  EAPMessageMsg();
+  ~EAPMessageMsg();
+  int EncodeEAPMessageMsg(
+      EAPMessageMsg* eapmessage, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeEAPMessageMsg(
+      EAPMessageMsg* eapmessage, uint8_t iei, uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

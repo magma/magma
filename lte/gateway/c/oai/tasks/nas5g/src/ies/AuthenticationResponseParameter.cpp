@@ -18,69 +18,73 @@
 
 using namespace std;
 
-namespace magma5g
-{
-  AuthenticationResponseParameterMsg::AuthenticationResponseParameterMsg()
-  {
-  };
+namespace magma5g {
+AuthenticationResponseParameterMsg::AuthenticationResponseParameterMsg(){};
 
-  AuthenticationResponseParameterMsg::~AuthenticationResponseParameterMsg()
-  {
-  };
+AuthenticationResponseParameterMsg::~AuthenticationResponseParameterMsg(){};
 
-  // Decode AuthenticationResponseParameter IE
-  int AuthenticationResponseParameterMsg::DecodeAuthenticationResponseParameterMsg(AuthenticationResponseParameterMsg *responseparameter, uint8_t iei, uint8_t *buffer, uint32_t len) 
-  {
-    uint32_t decoded = 0;
-    uint8_t ielen = 0;
-    
-    MLOG(MDEBUG) << "Decoding Authentication Response Parameter IE";
+// Decode AuthenticationResponseParameter IE
+int AuthenticationResponseParameterMsg::
+    DecodeAuthenticationResponseParameterMsg(
+        AuthenticationResponseParameterMsg* responseparameter, uint8_t iei,
+        uint8_t* buffer, uint32_t len) {
+  uint32_t decoded = 0;
+  uint8_t ielen    = 0;
 
-    if (iei > 0) {
-       CHECK_IEI_DECODER(iei, *buffer);
-       responseparameter -> iei = *(buffer + decoded);
-       MLOG(MDEBUG) << " ElementID : " << hex << int(responseparameter -> iei);
-       decoded++;
-    }
-    responseparameter -> length = *(buffer + decoded);
-    MLOG(MDEBUG) << " Length : " << dec << int(responseparameter -> length);
+  MLOG(MDEBUG) << "Decoding Authentication Response Parameter IE";
+
+  if (iei > 0) {
+    CHECK_IEI_DECODER(iei, *buffer);
+    responseparameter->iei = *(buffer + decoded);
+    MLOG(MDEBUG) << " ElementID : " << hex << int(responseparameter->iei);
     decoded++;
-    for(int i=0; i < 16; i++) {
-       responseparameter -> ResponseParameter[i] = *(buffer + decoded);
-       decoded++;
-    }
-    for(int i=0; i < 16; i++) {
-       MLOG(MDEBUG) << " RES : " << hex << int(responseparameter -> ResponseParameter[i]);
-    }
-    return (decoded);
-  };
+  }
+  responseparameter->length = *(buffer + decoded);
+  MLOG(MDEBUG) << " Length : " << dec << int(responseparameter->length);
+  decoded++;
+  for (int i = 0; i < 16; i++) {
+    responseparameter->ResponseParameter[i] = *(buffer + decoded);
+    decoded++;
+  }
+  for (int i = 0; i < 16; i++) {
+    MLOG(MDEBUG) << " RES : " << hex
+                 << int(responseparameter->ResponseParameter[i]);
+  }
+  return (decoded);
+};
 
-  // Encode AuthenticationResponseParameter IE
-  int AuthenticationResponseParameterMsg::EncodeAuthenticationResponseParameterMsg(AuthenticationResponseParameterMsg *responseparameter, uint8_t iei, uint8_t * buffer, uint32_t len)
-  {
-    uint16_t *lenPtr;
-    uint32_t encoded = 0;
-    #ifdef HANDLE_POST_MVC
-    // Checking IEI and pointer
-    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN, len);
+// Encode AuthenticationResponseParameter IE
+int AuthenticationResponseParameterMsg::
+    EncodeAuthenticationResponseParameterMsg(
+        AuthenticationResponseParameterMsg* responseparameter, uint8_t iei,
+        uint8_t* buffer, uint32_t len) {
+  uint16_t* lenPtr;
+  uint32_t encoded = 0;
+#ifdef HANDLE_POST_MVC
+  // Checking IEI and pointer
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
+      buffer, AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN, len);
 
-    if (iei > 0) {
-      CHECK_IEI_ENCODER((unsigned char)iei, responseparameter->iei);
-      *buffer = iei;
-      MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei" <<  hex << int(*buffer) << endl;
-      encoded++;
-    } 
-    else {
-      return 0;
-    }
-
-    lenPtr = (uint16_t *)(buffer + encoded);
+  if (iei > 0) {
+    CHECK_IEI_ENCODER((unsigned char) iei, responseparameter->iei);
+    *buffer = iei;
+    MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei" << hex
+                 << int(*buffer) << endl;
     encoded++;
-    std::copy(responseparameter->ResponseParameter.begin(), responseparameter->ResponseParameter.end(), buffer + encoded);
-    BUFFER_PRINT_LOG(buffer + encoded, responseparameter->ResponseParameter.length());
-    encoded = encoded + responseparameter->ResponseParameter.length();
-    *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
-    #endif
-    return (encoded);
-  };
-}
+  } else {
+    return 0;
+  }
+
+  lenPtr = (uint16_t*) (buffer + encoded);
+  encoded++;
+  std::copy(
+      responseparameter->ResponseParameter.begin(),
+      responseparameter->ResponseParameter.end(), buffer + encoded);
+  BUFFER_PRINT_LOG(
+      buffer + encoded, responseparameter->ResponseParameter.length());
+  encoded = encoded + responseparameter->ResponseParameter.length();
+  *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
+#endif
+  return (encoded);
+};
+}  // namespace magma5g

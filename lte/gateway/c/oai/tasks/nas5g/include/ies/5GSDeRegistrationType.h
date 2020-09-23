@@ -12,19 +12,20 @@ limitations under the License.
 #include <sstream>
 
 using namespace std;
-namespace magma5g
-{
-    class M5GSDeRegistrationTypeMsg
-    {
-      public:
-        uint8_t switchoff : 1;
-        uint8_t reregistrationrequired : 1;
-        uint8_t accesstype : 2;
- 
-        M5GSDeRegistrationTypeMsg();
-        ~M5GSDeRegistrationTypeMsg();
-        int DecodeM5GSDeRegistrationTypeMsg(M5GSDeRegistrationTypeMsg *m5gsderegistrationtype, uint8_t iei, uint8_t *buffer, uint32_t len);
-        int EncodeM5GSDeRegistrationTypeMsg(M5GSDeRegistrationTypeMsg *m5gsderegistrationtype, uint8_t iei, uint8_t *buffer, uint32_t len);
-   };
-}
+namespace magma5g {
+class M5GSDeRegistrationTypeMsg {
+ public:
+  uint8_t switchoff : 1;
+  uint8_t reregistrationrequired : 1;
+  uint8_t accesstype : 2;
 
+  M5GSDeRegistrationTypeMsg();
+  ~M5GSDeRegistrationTypeMsg();
+  int DecodeM5GSDeRegistrationTypeMsg(
+      M5GSDeRegistrationTypeMsg* m5gsderegistrationtype, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+  int EncodeM5GSDeRegistrationTypeMsg(
+      M5GSDeRegistrationTypeMsg* m5gsderegistrationtype, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

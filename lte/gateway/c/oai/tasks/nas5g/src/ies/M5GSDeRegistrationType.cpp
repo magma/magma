@@ -14,40 +14,41 @@ limitations under the License.
 #include "5GSDeRegistrationType.h"
 #include "CommonDefs.h"
 using namespace std;
-namespace magma5g
-{
-   M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg()
-   {
-   };
+namespace magma5g {
+M5GSDeRegistrationTypeMsg::M5GSDeRegistrationTypeMsg(){};
 
-   M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg()
-   {
-   };
+M5GSDeRegistrationTypeMsg::~M5GSDeRegistrationTypeMsg(){};
 
-   int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(M5GSDeRegistrationTypeMsg *deregistrationtype, uint8_t iei, uint8_t *buffer, uint32_t len) 
-   {
-      uint8_t decoded = 0;
+int M5GSDeRegistrationTypeMsg::DecodeM5GSDeRegistrationTypeMsg(
+    M5GSDeRegistrationTypeMsg* deregistrationtype, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint8_t decoded = 0;
 
-      deregistrationtype->switchoff = (*(buffer + decoded) >> 3) & 0x01;
-      deregistrationtype->reregistrationrequired = (*(buffer + decoded) >> 2) & 0x01;
-      deregistrationtype->accesstype = *(buffer + decoded) & 0x03;
-      decoded++;
-      MLOG(MDEBUG) << "DecodeM5GSDe-RegistrationType : \n   switchoff = " << hex << int(deregistrationtype->switchoff) << endl;
-      MLOG(MDEBUG) << "   reregistrationrequired = " << hex << int(deregistrationtype->reregistrationrequired) << endl;
-      MLOG(MDEBUG) << "   accesstype = " << hex << int(deregistrationtype->accesstype) << endl;
-      return (decoded);
-   };
+  deregistrationtype->switchoff = (*(buffer + decoded) >> 3) & 0x01;
+  deregistrationtype->reregistrationrequired =
+      (*(buffer + decoded) >> 2) & 0x01;
+  deregistrationtype->accesstype = *(buffer + decoded) & 0x03;
+  MLOG(MDEBUG) << "DecodeM5GSDe-RegistrationType : \n   switchoff = " << hex
+               << int(deregistrationtype->switchoff) << endl;
+  MLOG(MDEBUG) << "   reregistrationrequired = " << hex
+               << int(deregistrationtype->reregistrationrequired) << endl;
+  MLOG(MDEBUG) << "   accesstype = " << hex
+               << int(deregistrationtype->accesstype) << endl;
+  return (decoded);
+};
 
-   int M5GSDeRegistrationTypeMsg::EncodeM5GSDeRegistrationTypeMsg(M5GSDeRegistrationTypeMsg *deregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len)
-   {
-      uint8_t encoded = 0;
+int M5GSDeRegistrationTypeMsg::EncodeM5GSDeRegistrationTypeMsg(
+    M5GSDeRegistrationTypeMsg* deregistrationtype, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint8_t encoded = 0;
 
-      *(buffer + encoded) = 0x00 | ((deregistrationtype->switchoff << 3) & 0x08) |
-                            ((deregistrationtype->reregistrationrequired << 2) & 0x04) |
-                            (deregistrationtype->accesstype & 0x03);
-      encoded++;
-      MLOG(MDEBUG) << "In EncodeM5GSDeRegistrationTypeMsg___: DeRegistrationType= " << hex << int(*(buffer + encoded)) << endl;
-      return (encoded);
-   };
-}
-
+  *(buffer + encoded) =
+      0x00 | ((deregistrationtype->switchoff << 3) & 0x08) |
+      ((deregistrationtype->reregistrationrequired << 2) & 0x04) |
+      (deregistrationtype->accesstype & 0x03);
+  encoded++;
+  MLOG(MDEBUG) << "In EncodeM5GSDeRegistrationTypeMsg___: DeRegistrationType= "
+               << hex << int(*(buffer + encoded)) << endl;
+  return (encoded);
+};
+}  // namespace magma5g

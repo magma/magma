@@ -12,20 +12,22 @@ limitations under the License.
 #include <sstream>
 #include <cstdint>
 using namespace std;
-namespace magma5g
-{
-  class M5GSRegistrationResultMsg
-  {
-    public:
-      uint8_t iei;
-      const int REGISTRATION_RESULT_MIN_LENGTH = 2; 
-      uint8_t spare : 4;
-      uint8_t smsallowed : 1;
-      uint8_t registrationresultval : 3;
+namespace magma5g {
+class M5GSRegistrationResultMsg {
+ public:
+  uint8_t iei;
+  const int REGISTRATION_RESULT_MIN_LENGTH = 2;
+  uint8_t spare : 4;
+  uint8_t smsallowed : 1;
+  uint8_t registrationresultval : 3;
 
-      M5GSRegistrationResultMsg();
-      ~M5GSRegistrationResultMsg();
-      int EncodeM5GSRegistrationResultMsg( M5GSRegistrationResultMsg *m5gsregistrationresult, uint8_t iei, uint8_t * buffer, uint32_t len);
-      int DecodeM5GSRegistrationResultMsg( M5GSRegistrationResultMsg *m5gsregistrationresult, uint8_t iei, uint8_t * buffer,uint32_t len);
-  };
-}
+  M5GSRegistrationResultMsg();
+  ~M5GSRegistrationResultMsg();
+  int EncodeM5GSRegistrationResultMsg(
+      M5GSRegistrationResultMsg* m5gsregistrationresult, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+  int DecodeM5GSRegistrationResultMsg(
+      M5GSRegistrationResultMsg* m5gsregistrationresult, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

@@ -16,57 +16,50 @@
 
 using namespace std;
 
-namespace magma5g
-{
-  EAPMessageMsg::EAPMessageMsg()
-  {
-  };
+namespace magma5g {
+EAPMessageMsg::EAPMessageMsg(){};
 
-  EAPMessageMsg::~EAPMessageMsg()
-  {
-  };
+EAPMessageMsg::~EAPMessageMsg(){};
 
-  // Decode EAP Message
-  int EAPMessageMsg::DecodeEAPMessageMsg (EAPMessageMsg *eapmessage, uint8_t iei, uint8_t *buffer, uint32_t len) 
-  {
-    int decoded   = 0;
-    uint8_t ielen = 0;
+// Decode EAP Message
+int EAPMessageMsg::DecodeEAPMessageMsg(
+    EAPMessageMsg* eapmessage, uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int decoded   = 0;
+  uint8_t ielen = 0;
 
-    /*** Will be supported POST MVC ***/
-    if (iei > 0) {
-      CHECK_IEI_DECODER(iei, (unsigned char)*buffer);
-      IES_DECODE_U16(buffer, decoded, ielen);
-    }
-    CHECK_LENGTH_DECODER(len - decoded, ielen);
-    return decoded;
-  };
+  /*** Will be supported POST MVC ***/
+  if (iei > 0) {
+    CHECK_IEI_DECODER(iei, (unsigned char) *buffer);
+    IES_DECODE_U16(buffer, decoded, ielen);
+  }
+  CHECK_LENGTH_DECODER(len - decoded, ielen);
+  return decoded;
+};
 
-  // Encode EAP Message
-  int EAPMessageMsg::EncodeEAPMessageMsg(EAPMessageMsg *eapmessage, uint8_t iei, uint8_t * buffer, uint32_t len)
-  {
-    uint16_t* lenPtr;
-    uint32_t encoded = 0;
+// Encode EAP Message
+int EAPMessageMsg::EncodeEAPMessageMsg(
+    EAPMessageMsg* eapmessage, uint8_t iei, uint8_t* buffer, uint32_t len) {
+  uint16_t* lenPtr;
+  uint32_t encoded = 0;
 
-    // Checking IEI and pointer
-    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EAP_MIN_LENGTH, len);
+  // Checking IEI and pointer
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EAP_MIN_LENGTH, len);
 
-    if (iei > 0) {
-      CHECK_IEI_ENCODER(iei, (unsigned char)eapmessage->iei);
-      *buffer = iei;
-      encoded++;
-    } 
-    else {
-      return 0;
-    }
+  if (iei > 0) {
+    CHECK_IEI_ENCODER(iei, (unsigned char) eapmessage->iei);
+    *buffer = iei;
+    encoded++;
+  } else {
+    return 0;
+  }
 
-    lenPtr = (uint16_t*)(buffer + encoded);
-    encoded += 2;
-    std::copy(eapmessage->eap.begin(), eapmessage->eap.end(), buffer + encoded);
-    BUFFER_PRINT_LOG(buffer + encoded, eapmessage->eap.length());
-    encoded = encoded + eapmessage->eap.length(); 
-    *lenPtr = htons(encoded - 2 - ((iei > 0) ? 1 : 0));
+  lenPtr = (uint16_t*) (buffer + encoded);
+  encoded += 2;
+  std::copy(eapmessage->eap.begin(), eapmessage->eap.end(), buffer + encoded);
+  BUFFER_PRINT_LOG(buffer + encoded, eapmessage->eap.length());
+  encoded = encoded + eapmessage->eap.length();
+  *lenPtr = htons(encoded - 2 - ((iei > 0) ? 1 : 0));
 
-    return encoded;
-  };
-}
-
+  return encoded;
+};
+}  // namespace magma5g

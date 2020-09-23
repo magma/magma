@@ -8,24 +8,28 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #pragma once
 #include <sstream>
 #include <cstdint>
-using namespace std;
-namespace magma5g
-{
-  // M5GSRegistrationType IE Class
-  class M5GSRegistrationTypeMsg
-  {
-    public:
-      uint8_t iei;
-      const int REGISTRATION_TYPE_MIN_LENGTH = 1;
-      uint8_t FOR : 1;
-      uint8_t typeval : 3;
 
-      M5GSRegistrationTypeMsg();
-      ~M5GSRegistrationTypeMsg();
-      int EncodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len);
-      int DecodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len);
-  };
-}
+using namespace std;
+namespace magma5g {
+// M5GSRegistrationType IE Class
+class M5GSRegistrationTypeMsg {
+ public:
+  uint8_t iei;
+  const int REGISTRATION_TYPE_MIN_LENGTH = 1;
+  uint8_t FOR : 1;
+  uint8_t typeval : 3;
+
+  M5GSRegistrationTypeMsg();
+  ~M5GSRegistrationTypeMsg();
+  int EncodeM5GSRegistrationTypeMsg(
+      M5GSRegistrationTypeMsg* m5gsregistrationtype, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+  int DecodeM5GSRegistrationTypeMsg(
+      M5GSRegistrationTypeMsg* m5gsregistrationtype, uint8_t iei,
+      uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

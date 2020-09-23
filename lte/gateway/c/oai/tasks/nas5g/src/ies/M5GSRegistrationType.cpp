@@ -8,6 +8,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+
 #include <iostream>
 #include <sstream>
 #include <cstdint>
@@ -16,41 +17,37 @@ limitations under the License.
 #include <bitset>
 
 using namespace std;
-namespace magma5g
-{
-  M5GSRegistrationTypeMsg::M5GSRegistrationTypeMsg()
-  {
-  };
+namespace magma5g {
+M5GSRegistrationTypeMsg::M5GSRegistrationTypeMsg(){};
 
-  M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg()
-  {
-  };
+M5GSRegistrationTypeMsg::~M5GSRegistrationTypeMsg(){};
 
-  // Decode M5GSRegistrationType Message 
-  int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t *buffer, uint32_t len) 
-  {
-    int decoded = 0;
+// Decode M5GSRegistrationType Message
+int M5GSRegistrationTypeMsg::DecodeM5GSRegistrationTypeMsg(
+    M5GSRegistrationTypeMsg* m5gsregistrationtype, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  int decoded = 0;
 
-    MLOG(MDEBUG) << "   DecodeM5GSRegistrationTypeMsg : "<<"\n";
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER(
-        buffer, REGISTRATION_TYPE_MIN_LENGTH, len);
+  MLOG(MDEBUG) << "   DecodeM5GSRegistrationTypeMsg : ";
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
+      buffer, REGISTRATION_TYPE_MIN_LENGTH, len);
 
-    if (iei > 0) {
-      CHECK_IEI_DECODER((*buffer & 0xf0), iei);
-    }
+  if (iei > 0) {
+    CHECK_IEI_DECODER((*buffer & 0xf0), iei);
+  }
 
-    m5gsregistrationtype->FOR = (*(buffer + decoded) >> 3) & 0x1;
-    m5gsregistrationtype->typeval = *(buffer + decoded) & 0x7;
-    MLOG(MDEBUG) << "      FOR = 0x" << hex << bitset<4>(int(m5gsregistrationtype->FOR))<<"\n";
-    MLOG(MDEBUG) << "      typeval = 0x" << hex << bitset<3>(int(m5gsregistrationtype->typeval))<<"\n";
-    return decoded;
-   };
+  m5gsregistrationtype->FOR     = (*(buffer + decoded) >> 3) & 0x1;
+  m5gsregistrationtype->typeval = *(buffer + decoded) & 0x7;
+  MLOG(MDEBUG) << " FOR = 0x" << hex << int(m5gsregistrationtype->FOR);
+  MLOG(MDEBUG) << " typeval = 0x" << hex << int(m5gsregistrationtype->typeval);
+  return decoded;
+};
 
-   // Encode M5GSRegistrationType Message 
-   int M5GSRegistrationTypeMsg::EncodeM5GSRegistrationTypeMsg(M5GSRegistrationTypeMsg *m5gsregistrationtype, uint8_t iei, uint8_t * buffer, uint32_t len)
-   {
-      // Will be supported POST MVC
-      return 0;
-   };
-}
-
+// Encode M5GSRegistrationType Message
+int M5GSRegistrationTypeMsg::EncodeM5GSRegistrationTypeMsg(
+    M5GSRegistrationTypeMsg* m5gsregistrationtype, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  // Will be supported POST MVC
+  return 0;
+};
+}  // namespace magma5g

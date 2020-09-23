@@ -14,20 +14,18 @@
 
 using namespace std;
 
-namespace magma5g
-{
-  // ABBA IE Class
-  class ABBAMsg
-  {
-    public:
-      #define ABBA_MIN_LEN 2
-      #define ABBA_MAX_LEN 254
-      uint8_t iei;
-      std::string contents;
+namespace magma5g {
+// ABBA IE Class
+class ABBAMsg {
+ public:
+#define ABBA_MIN_LEN 2
+#define ABBA_MAX_LEN 254
+  uint8_t iei;
+  std::string contents;
 
-      ABBAMsg();
-      ~ABBAMsg();
-      int EncodeABBAMsg (ABBAMsg *abba, uint8_t iei, uint8_t * buffer, uint32_t len);
-      int DecodeABBAMsg (ABBAMsg *abba, uint8_t iei, uint8_t * buffer, uint32_t len);
-  };
-}
+  ABBAMsg();
+  ~ABBAMsg();
+  int EncodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer, uint32_t len);
+  int DecodeABBAMsg(ABBAMsg* abba, uint8_t iei, uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

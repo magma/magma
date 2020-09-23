@@ -25,11 +25,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../common/glogwrapper)
 
 set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AmfMessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationAccept.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationRequestUEInit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationAcceptUEInit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationResponse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SecurityModeCommand.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SecurityModeComplete.cpp
     )
 
 set(libnas_ies_OBJS
@@ -47,6 +50,8 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/AuthenticationParameterRAND.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/AuthenticationResponseParameter.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/EAPMessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/NASSecurityAlgorithms.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/UESecurityCapability.cpp
     )
 
 add_library(TASK_NAS5G

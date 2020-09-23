@@ -13,38 +13,38 @@
 #include "ExtendedProtocolDiscriminator.h"
 #include "CommonDefs.h"
 using namespace std;
-namespace magma5g
-{
-  ExtendedProtocolDiscriminatorMsg::ExtendedProtocolDiscriminatorMsg()
-  {
-  };
+namespace magma5g {
+ExtendedProtocolDiscriminatorMsg::ExtendedProtocolDiscriminatorMsg(){};
 
-  ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg()
-  {
-  };
+ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg(){};
 
-  // Decode ExtendedProtocolDiscriminator IE
-  int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(ExtendedProtocolDiscriminatorMsg *extendedprotocoldiscriminator, uint8_t iei, uint8_t *buffer, uint32_t len) 
-  {
-    uint8_t decoded = 0;
+// Decode ExtendedProtocolDiscriminator IE
+int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(
+    ExtendedProtocolDiscriminatorMsg* extendedprotocoldiscriminator,
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
+  uint8_t decoded = 0;
 
-    MLOG(MDEBUG) << "   DecodeExtendedProtocolDiscriminatorMsg : ";
-    extendedprotocoldiscriminator->extendedprotodiscriminator = *(buffer + decoded);
-    decoded++;
-    MLOG(MDEBUG) << " epd = " << hex << int(extendedprotocoldiscriminator->extendedprotodiscriminator); 
-    return (decoded);
-  };
+  MLOG(MDEBUG) << "   DecodeExtendedProtocolDiscriminatorMsg : ";
+  extendedprotocoldiscriminator->extendedprotodiscriminator =
+      *(buffer + decoded);
+  decoded++;
+  MLOG(MDEBUG)
+      << " epd = " << hex
+      << int(extendedprotocoldiscriminator->extendedprotodiscriminator);
+  return (decoded);
+};
 
-  // Encode ExtendedProtocolDiscriminator IE
-  int ExtendedProtocolDiscriminatorMsg::EncodeExtendedProtocolDiscriminatorMsg(ExtendedProtocolDiscriminatorMsg *extendedprotocoldiscriminator, uint8_t iei, uint8_t * buffer, uint32_t len)
-  {
-    int encoded = 0;
+// Encode ExtendedProtocolDiscriminator IE
+int ExtendedProtocolDiscriminatorMsg::EncodeExtendedProtocolDiscriminatorMsg(
+    ExtendedProtocolDiscriminatorMsg* extendedprotocoldiscriminator,
+    uint8_t iei, uint8_t* buffer, uint32_t len) {
+  int encoded = 0;
 
-    MLOG(MDEBUG) << " EncodeExtendedProtocolDiscriminatorMsg : ";
-    *(buffer + encoded) = extendedprotocoldiscriminator->extendedprotodiscriminator;
-    MLOG(MDEBUG) << "epd = 0x" << hex << int(*(buffer + encoded)); 
-    encoded++;
-    return (encoded);
-  };
-}
-
+  MLOG(MDEBUG) << " EncodeExtendedProtocolDiscriminatorMsg : ";
+  *(buffer + encoded) =
+      extendedprotocoldiscriminator->extendedprotodiscriminator;
+  MLOG(MDEBUG) << "epd = 0x" << hex << int(*(buffer + encoded));
+  encoded++;
+  return (encoded);
+};
+}  // namespace magma5g

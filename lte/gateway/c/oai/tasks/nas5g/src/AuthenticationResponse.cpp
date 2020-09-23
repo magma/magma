@@ -15,54 +15,68 @@
 #include "CommonDefs.h"
 
 using namespace std;
-namespace magma5g
-{
-  AuthenticationResponseMsg::AuthenticationResponseMsg()
-  {
-  };
+namespace magma5g {
+AuthenticationResponseMsg::AuthenticationResponseMsg(){};
+AuthenticationResponseMsg::~AuthenticationResponseMsg(){};
 
-  AuthenticationResponseMsg::~AuthenticationResponseMsg()
-  {
-  };
+// Decode AuthenticationResponse Messsage
+int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(
+    AuthenticationResponseMsg* authenticationresponse, uint8_t* buffer,
+    uint32_t len) {
+  uint32_t decoded  = 0;
+  int decodedresult = 0;
 
-  // Decode AuthenticationResponse Messsage
-  int AuthenticationResponseMsg::DecodeAuthenticationResponseMsg(AuthenticationResponseMsg *authenticationresponse, uint8_t* buffer, uint32_t len)
-  {
-    uint32_t decoded = 0;
-    int decodedresult = 0;
+  CHECK_PDU_POINTER_AND_LENGTH_DECODER(
+      buffer, AUTHENTICATION_RESPONSE_MINIMUM_LENGTH, len);
 
-    CHECK_PDU_POINTER_AND_LENGTH_DECODER (buffer, AUTHENTICATION_RESPONSE_MINIMUM_LENGTH, len);
+  MLOG(MDEBUG) << "\n\n---Decoding Authentication Response Message---\n"
+               << endl;
+  if ((decodedresult =
+           authenticationresponse->extendedprotocoldiscriminator
+               .DecodeExtendedProtocolDiscriminatorMsg(
+                   &authenticationresponse->extendedprotocoldiscriminator, 0,
+                   buffer + decoded, len - decoded)) < 0)
+    return decodedresult;
+  else
+    decoded += decodedresult;
+  if ((decodedresult =
+           authenticationresponse->sparehalfoctet.DecodeSpareHalfOctetMsg(
+               &authenticationresponse->sparehalfoctet, 0, buffer + decoded,
+               len - decoded)) < 0)
+    return decodedresult;
+  else
+    decoded += decodedresult;
+  if ((decodedresult = authenticationresponse->securityheadertype
+                           .DecodeSecurityHeaderTypeMsg(
+                               &authenticationresponse->securityheadertype, 0,
+                               buffer + decoded, len - decoded)) < 0)
+    return decodedresult;
+  else
+    decoded += decodedresult;
+  if ((decodedresult = authenticationresponse->messagetype.DecodeMessageTypeMsg(
+           &authenticationresponse->messagetype, 0, buffer + decoded,
+           len - decoded)) < 0)
+    return decodedresult;
+  else
+    decoded += decodedresult;
+  if ((decodedresult = authenticationresponse->responseparameter
+                           .DecodeAuthenticationResponseParameterMsg(
+                               &authenticationresponse->responseparameter,
+                               AUTH_RESPONSE_PARAMETER, buffer + decoded,
+                               len - decoded)) < 0)
+    return decodedresult;
+  else
+    decoded += decodedresult;
 
-    MLOG(MDEBUG) << "\n\n---Decoding Authentication Response Message---\n" << endl;
-    if((decodedresult = authenticationresponse->extendedprotocoldiscriminator.DecodeExtendedProtocolDiscriminatorMsg(&authenticationresponse->extendedprotocoldiscriminator, 0, buffer+decoded, len-decoded))<0)
-      return decodedresult;
-    else
-      decoded += decodedresult;
-    if((decodedresult = authenticationresponse->securityheadertype.DecodeSecurityHeaderTypeMsg(&authenticationresponse->securityheadertype, 0, buffer+decoded, len-decoded))<0)
-      return decodedresult;
-    else
-      decoded += decodedresult;
-    if((decodedresult = authenticationresponse->sparehalfoctet.DecodeSpareHalfOctetMsg(&authenticationresponse->sparehalfoctet, 0, buffer+decoded, len-decoded))<0)
-      return decodedresult;
-    else
-      decoded += decodedresult;
-    if((decodedresult = authenticationresponse->messagetype.DecodeMessageTypeMsg(&authenticationresponse->messagetype, 0, buffer+decoded, len-decoded))<0)
-      return decodedresult;
-    else
-      decoded += decodedresult;
-    if((decodedresult = authenticationresponse->responseparameter.DecodeAuthenticationResponseParameterMsg(&authenticationresponse->responseparameter, AUTH_RESPONSE_PARAMETER, buffer+decoded, len-decoded))<0)
-      return decodedresult;
-    else
-      decoded += decodedresult;
+  return decoded;
+};
 
-    return decoded;
-  };
-
-  // Encode AuthenticationResponse Messsage
-  int AuthenticationResponseMsg::EncodeAuthenticationResponseMsg(AuthenticationResponseMsg *authenticationresponse, uint8_t* buffer, uint32_t len)
-  {
-    uint32_t encoded = 0;
-    //Not Implemented, Will be supported POST MVC
-    return encoded;
-  };
-}
+// Encode AuthenticationResponse Messsage
+int AuthenticationResponseMsg::EncodeAuthenticationResponseMsg(
+    AuthenticationResponseMsg* authenticationresponse, uint8_t* buffer,
+    uint32_t len) {
+  uint32_t encoded = 0;
+  // Not Implemented, Will be supported POST MVC
+  return encoded;
+};
+}  // namespace magma5g

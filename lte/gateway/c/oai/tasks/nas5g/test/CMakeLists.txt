@@ -1,6 +1,11 @@
 find_package(Check REQUIRED)
 find_package(Threads REQUIRED)
 
+#Executable for Registration Request  Message Decode
+add_executable(RegReqDecode RegReqDecode.cpp)
+
+target_link_libraries(RegReqDecode TASK_NAS5G)
+
 #Executable for Registration Accept  Message encode
 add_executable(RegAcptEncode RegAcptEncode.cpp)
 
@@ -25,4 +30,14 @@ target_link_libraries(AuthReqEncode TASK_NAS5G)
 add_executable(AuthResDecode AuthResDecode.cpp)
 
 target_link_libraries(AuthResDecode TASK_NAS5G)
+
+#Executable for Security mode command encode
+add_executable(SecModeCommandEncode SecModeCommandEncode.cpp)
+
+target_link_libraries(SecModeCommandEncode TASK_NAS5G)
+
+#Executable for Security mode complete decode
+add_executable(SecurityModeCompleteDecode SecurityModeCompleteDecode.cpp)
+
+target_link_libraries(SecurityModeCompleteDecode TASK_NAS5G)
 

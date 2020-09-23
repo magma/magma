@@ -10,7 +10,7 @@ limitations under the License.
 */
 #pragma once
 #include <sstream>
-#ifdef HANDLE_POST_MVC 
+#ifdef HANDLE_POST_MVC
 #include "RegistrationRequest.h"
 #include "RegistrationAccept.h"
 #include "registration_complete.h"
@@ -29,45 +29,44 @@ limitations under the License.
 
 using namespace std;
 
-namespace magma5g
-{
-  // Amf NAS Msg Header Class
-  class AmfMsgHeader
-  {
-    public:
-      uint8_t extendedprotocoldiscriminator;
-      uint8_t securityheadertype;
-      uint8_t messagetype;
-  };
+namespace magma5g {
+// Amf NAS Msg Header Class
+class AmfMsgHeader {
+ public:
+  uint8_t extendedprotocoldiscriminator;
+  uint8_t securityheadertype;
+  uint8_t messagetype;
+};
 
-  // Amf NAS Msg Class
-  class AmfMsg
-  {
-    public:
-      AmfMsg();
-      ~AmfMsg();
-      AmfMsgHeader header;
-      #ifdef HANDLE_POST_MVC
-      RegistrationRequestMsg registrationrequestmsg;
-      RegistrationAcceptMsg  registrationacceptmsg;
-      RegistrationCompleteMsg registrationcompletemsg;
-      RegistrationRejectMsg registrationrejectmsg;
-      IdentityRequestMsg identityrequestmsg;
-      IdentityResponseMsg identityresponsemsg;
-      AuthenticationRequestMsg authenticationrequestmsg;
-      AuthenticationResponseMsg authenticationresponsemsg;
-      AuthenticationRejectMsg authenticationrejectmsg;
-      authenticationFailureMsg authenticationfailuremsg;
-      SecurityModeCommandMsg securitymodecommandmsg;
-      SecurityModeCompleteMsg securitymodecompletemsg;
-      DeregistrationRequestMsg deregistrationequesmsg;
-      DregistrationAcceptMsg deregistrationacceptmsg;
-      #endif
-      int M5gNasMessageEncodeMsg (AmfMsg *msg, uint8_t *buffer, uint32_t len);
-      int M5gNasMessageDecodeMsg (AmfMsg *msg, uint8_t *buffer, uint32_t len);
-      int AmfMsgDecodeHeaderMsg (AmfMsgHeader *header, uint8_t *buffer, uint32_t len);
-      int AmfMsgEncodeHeaderMsg (AmfMsgHeader *header, uint8_t *buffer,uint32_t len);
-      int AmfMsgDecodeMsg (AmfMsg *msg, uint8_t *buffer, uint32_t len);
-      int AmfMsgEncodeMsg (AmfMsg *msg, uint8_t *buffer, uint32_t len);
-  };
-}
+// Amf NAS Msg Class
+class AmfMsg {
+ public:
+  AmfMsg();
+  ~AmfMsg();
+  AmfMsgHeader header;
+#ifdef HANDLE_POST_MVC
+  RegistrationRequestMsg registrationrequestmsg;
+  RegistrationAcceptMsg registrationacceptmsg;
+  RegistrationCompleteMsg registrationcompletemsg;
+  RegistrationRejectMsg registrationrejectmsg;
+  IdentityRequestMsg identityrequestmsg;
+  IdentityResponseMsg identityresponsemsg;
+  AuthenticationRequestMsg authenticationrequestmsg;
+  AuthenticationResponseMsg authenticationresponsemsg;
+  AuthenticationRejectMsg authenticationrejectmsg;
+  authenticationFailureMsg authenticationfailuremsg;
+  SecurityModeCommandMsg securitymodecommandmsg;
+  SecurityModeCompleteMsg securitymodecompletemsg;
+  DeregistrationRequestMsg deregistrationequesmsg;
+  DregistrationAcceptMsg deregistrationacceptmsg;
+#endif
+  int M5gNasMessageEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
+  int M5gNasMessageDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
+  int AmfMsgDecodeHeaderMsg(
+      AmfMsgHeader* header, uint8_t* buffer, uint32_t len);
+  int AmfMsgEncodeHeaderMsg(
+      AmfMsgHeader* header, uint8_t* buffer, uint32_t len);
+  int AmfMsgDecodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
+  int AmfMsgEncodeMsg(AmfMsg* msg, uint8_t* buffer, uint32_t len);
+};
+}  // namespace magma5g

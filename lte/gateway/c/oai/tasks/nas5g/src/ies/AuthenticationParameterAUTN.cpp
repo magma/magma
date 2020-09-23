@@ -16,50 +16,47 @@
 
 using namespace std;
 
-namespace magma5g
-{
-  AuthenticationParameterAUTNMsg::AuthenticationParameterAUTNMsg()
-  {
-  };
+namespace magma5g {
+AuthenticationParameterAUTNMsg::AuthenticationParameterAUTNMsg(){};
 
-  AuthenticationParameterAUTNMsg::~AuthenticationParameterAUTNMsg()
-  {
-  };
+AuthenticationParameterAUTNMsg::~AuthenticationParameterAUTNMsg(){};
 
-  // Decode AuthenticationParameterAUTN IE
-  int AuthenticationParameterAUTNMsg::DecodeAuthenticationParameterAUTNMsg(AuthenticationParameterAUTNMsg *autn, uint8_t iei, uint8_t *buffer, uint32_t len) 
-  {
-    uint8_t decoded = 0;
-    /*** Not Implemented, Will be supported POST MVC ***/
-    return (decoded);
-  };
+// Decode AuthenticationParameterAUTN IE
+int AuthenticationParameterAUTNMsg::DecodeAuthenticationParameterAUTNMsg(
+    AuthenticationParameterAUTNMsg* autn, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint8_t decoded = 0;
+  /*** Not Implemented, Will be supported POST MVC ***/
+  return (decoded);
+};
 
-  // Encode AuthenticationParameterAUTN IE
-  int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(AuthenticationParameterAUTNMsg *autn, uint8_t iei, uint8_t * buffer, uint32_t len)
-  {
-    uint16_t *lenPtr;
-    uint32_t encoded = 0;
+// Encode AuthenticationParameterAUTN IE
+int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
+    AuthenticationParameterAUTNMsg* autn, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
+  uint16_t* lenPtr;
+  uint32_t encoded = 0;
 
-    // Checking IEI and pointer
-    CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AUTN_MIN_LEN, len);
+  // Checking IEI and pointer
+  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, AUTN_MIN_LEN, len);
 
-    if (iei > 0) {
-      CHECK_IEI_ENCODER((unsigned char)iei, autn->iei);
-      *buffer = iei;
-      MLOG(MDEBUG) << "In EncodeAuthenticationParameterAUTNMsg: iei" <<  hex << int(*buffer) << endl;
-      encoded++;
-    } 
-    else {
-      return 0;
-    }
-
-    lenPtr = (uint16_t *)(buffer + encoded);
+  if (iei > 0) {
+    CHECK_IEI_ENCODER((unsigned char) iei, autn->iei);
+    *buffer = iei;
+    MLOG(MDEBUG) << "In EncodeAuthenticationParameterAUTNMsg: iei" << hex
+                 << int(*buffer) << endl;
     encoded++;
-    std::copy(autn->AUTN.begin(), autn->AUTN.end(), buffer + encoded);
-    BUFFER_PRINT_LOG(buffer + encoded, autn->AUTN.length());
-    encoded = encoded + autn->AUTN.length();
-    *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
+  } else {
+    return 0;
+  }
 
-    return (encoded);
-  };
-}
+  lenPtr = (uint16_t*) (buffer + encoded);
+  encoded++;
+  std::copy(autn->AUTN.begin(), autn->AUTN.end(), buffer + encoded);
+  BUFFER_PRINT_LOG(buffer + encoded, autn->AUTN.length());
+  encoded = encoded + autn->AUTN.length();
+  *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
+
+  return (encoded);
+};
+}  // namespace magma5g
