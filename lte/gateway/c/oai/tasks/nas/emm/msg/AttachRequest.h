@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -79,6 +79,7 @@
   (1 << 12)
 #define ATTACH_REQUEST_MS_NETWORK_FEATURE_SUPPORT_PRESENT (1 << 13)
 #define ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_PRESENT (1 << 14)
+#define ATTACH_REQUEST_EDRX_PARAMETER_PRESENT (1 << 15)
 
 typedef enum attach_request_iei_tag {
   ATTACH_REQUEST_OLD_PTMSI_SIGNATURE_IEI = GMM_PTMSI_SIGNATURE_IEI,
@@ -101,6 +102,7 @@ typedef enum attach_request_iei_tag {
   ATTACH_REQUEST_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI =
     GMM_VOICE_DOMAIN_PREFERENCE_AND_UE_USAGE_SETTING_IEI,
   ATTACH_REQUEST_NETWORK_RESOURCE_IDENTIFIER_CONTAINER_IEI = 0x10
+  ATTACH_REQUEST_EDRX_PARAMETER_IEI = 0x6e
 } attach_request_iei;
 
 /*
@@ -138,6 +140,7 @@ typedef struct attach_request_msg_tag {
     voicedomainpreferenceandueusagesetting;
   ms_network_feature_support_t msnetworkfeaturesupport;
   network_resource_identifier_container_t networkresourceidentifiercontainer;
+  edrx_parameter_t edrxparameter;
 } attach_request_msg;
 
 int decode_attach_request(
