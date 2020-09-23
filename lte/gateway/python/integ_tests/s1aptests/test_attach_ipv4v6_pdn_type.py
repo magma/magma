@@ -28,19 +28,16 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         """ Test Attach for the UEs that are dual IP stack IPv4v6
             capable """
         # Set PDN TYPE to IPv4V6 i.e. 3. IPV4 is equal to 1
-        # IPV4orIPv6 is equal to 3 in value
         resp_ipv4oripv6 = self._create_attach_ipv4v6_pdn_type_req(
             pdn_type_value=3
         )
         self.assertEqual(
             resp_ipv4oripv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
-        # IPv4andIPv6 is equal to 2
-        resp_ipv4andipv6 = self._create_attach_ipv4v6_pdn_type_req(
-            pdn_type_value=2
-        )
+        # IPv6 is equal to 2
+        resp_ipv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=2)
         self.assertEqual(
-            resp_ipv4andipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            resp_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
 
     def _create_attach_ipv4v6_pdn_type_req(self, pdn_type_value):
