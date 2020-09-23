@@ -19,7 +19,7 @@
     "@fbcnms/auth": "^0.1.0",
     "@fbcnms/babel-register": "^0.1.2",
     "@fbcnms/magma-api": "^0.1.0",
-    "@fbcnms/platform-server": "^0.1.12",
+    "@fbcnms/platform-server": "^0.1.16",
     "@fbcnms/projects": "^0.1.0",
     "@fbcnms/sequelize-models": "^0.1.0",
     "@fbcnms/strings": "^0.1.0",
