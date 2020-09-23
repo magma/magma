@@ -22,11 +22,21 @@ from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
-    DIRECTION_REG
+    DIRECTION_REG, SCRATCH_REGS, RULE_VERSION_REG
 from magma.pipelined.openflow.messages import MsgChannel
 from magma.pipelined.policy_converters import FlowMatchError, \
     convert_ipv4_str_to_ip_proto
 
+from lte.protos.policydb_pb2 import PolicyRule
+from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
+from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.policy_converters import FlowMatchError, \
+    flow_match_to_magma_match
+
+from magma.pipelined.qos.types import QosInfo
+
+PROCESS_STATS = 0x0
+IGNORE_STATS = 0x1
 
 class PolicyMixin(metaclass=ABCMeta):
     """
@@ -283,6 +293,117 @@ class PolicyMixin(metaclass=ABCMeta):
                 self.MIN_ENFORCE_PROGRAMMED_FLOW)
             return self.MIN_ENFORCE_PROGRAMMED_FLOW
         return self.MAX_ENFORCE_PRIORITY - precedence
+
+    def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
+                                     priority, qos, hard_timeout, rule_id, app_name,
+                                     app_service_type, next_table, version, qos_mgr):
+        """
+        Install a flow from a rule. If the flow action is DENY, then the flow
+        will drop the packet. Otherwise, the flow classifies the packet with
+        its matched rule and injects the rule num into the packet's register.
+        """
+        flow_match = flow_match_to_magma_match(flow.match, ip_addr)
+        flow_match.imsi = encode_imsi(imsi)
+        flow_match_actions, instructions = self._get_classify_rule_of_actions(
+            flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr)
+        msgs = []
+        if app_name:
+            # We have to allow initial traffic to pass through, before it gets
+            # classified by DPI, flow match set app_id to unclassified
+            flow_match.app_id = UNCLASSIFIED_PROTO_ID
+            parser = self._datapath.ofproto_parser
+            passthrough_actions = flow_match_actions + \
+                [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
+                                         value=IGNORE_STATS)]
+            msgs.append(
+                flows.get_add_resubmit_current_service_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    flow_match,
+                    passthrough_actions,
+                    hard_timeout=hard_timeout,
+                    priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
+                    cookie=rule_num,
+                    resubmit_table=next_table)
+            )
+            flow_match.app_id = get_app_id(
+                PolicyRule.AppName.Name(app_name),
+                PolicyRule.AppServiceType.Name(app_service_type),
+            )
+
+        if flow.action == flow.DENY:
+            msgs.append(flows.get_add_drop_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                flow_match,
+                flow_match_actions,
+                hard_timeout=hard_timeout,
+                priority=priority,
+                cookie=rule_num)
+            )
+        else:
+            msgs.append(flows.get_add_resubmit_current_service_flow_msg(
+                self._datapath,
+                self.tbl_num,
+                flow_match,
+                flow_match_actions,
+                instructions=instructions,
+                hard_timeout=hard_timeout,
+                priority=priority,
+                cookie=rule_num,
+                resubmit_table=next_table)
+            )
+        return msgs
+
+    def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ip_addr,
+                                      apn_ambr, qos, rule_id, version, qos_mgr):
+        """
+        Returns an action instructions list to be applied for a specific flow.
+        If qos or apn_ambr are set, the appropriate action is returned based
+        on the implementation used (tc vs ovs_meter)
+        """
+        parser = self._datapath.ofproto_parser
+        instructions = []
+
+        # encode the rule id in hex
+        of_note = parser.NXActionNote(list(rule_id.encode()))
+        actions = [of_note]
+        if flow.action == flow.DENY:
+            return actions, instructions
+
+        mbr_ul = qos.max_req_bw_ul
+        mbr_dl = qos.max_req_bw_dl
+        qos_info = None
+        ambr = None
+        d = flow.match.direction
+        if d == flow.match.UPLINK:
+            if apn_ambr:
+                ambr = apn_ambr.max_bandwidth_ul
+            if mbr_ul != 0:
+                qos_info = QosInfo(gbr=qos.gbr_ul, mbr=mbr_ul)
+
+        if d == flow.match.DOWNLINK:
+            if apn_ambr:
+                ambr = apn_ambr.max_bandwidth_dl
+            if mbr_dl != 0:
+                qos_info = QosInfo(gbr=qos.gbr_dl, mbr=mbr_dl)
+
+        if qos_info or ambr:
+            action, inst = qos_mgr.add_subscriber_qos(
+                imsi, ip_addr, ambr, rule_num, d, qos_info)
+
+            self.logger.debug("adding Actions %s instruction %s ", action, inst)
+            if action:
+                actions.append(action)
+
+            if inst:
+                instructions.append(inst)
+
+        actions.extend(
+            [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
+             ])
+        return actions, instructions
 
     @abstractmethod
     def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):

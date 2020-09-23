@@ -12,34 +12,28 @@ limitations under the License.
 """
 from typing import List
 
-from ryu.controller import ofp_event
-from ryu.lib.packet import ether_types
-from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-
-from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.pipelined_pb2 import RuleModResult
-from magma.pipelined.openflow.messages import MessageHub
 
-from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.app.base import MagmaController, ControllerType
-from magma.pipelined.app.inout import EGRESS
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController, \
-    IGNORE_STATS
-from magma.pipelined.qos.qos_meter_impl import MeterManager
+from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.policy_mixin import PolicyMixin
+
+from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, RULE_VERSION_REG, \
-    SCRATCH_REGS
-from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.openflow.messages import MessageHub
+from magma.pipelined.openflow.registers import Direction
+from magma.pipelined.policy_converters import FlowMatchError
 from magma.pipelined.redirect import RedirectionManager, RedirectException
-from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match
-#get_ue_ipv4_match_args
-
+from magma.pipelined.app.inout import EGRESS
 from magma.pipelined.qos.common import QosManager
-from magma.pipelined.qos.types import QosInfo
+from magma.pipelined.qos.qos_meter_impl import MeterManager
+
+from ryu.controller import ofp_event
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.lib.packet import ether_types
+from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
+
 
 class GYController(PolicyMixin, MagmaController):
     """
@@ -303,10 +297,13 @@ class GYController(PolicyMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
+                version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
+                                                                        rule.id)
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
-                    rule.app_service_type))
+                    rule.app_service_type, self._enforcement_stats_tbl,
+                    version, self._qos_mgr))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
@@ -314,119 +311,6 @@ class GYController(PolicyMixin, MagmaController):
                     rule.id, imsi, err)
                 raise err
         return flow_adds
-
-    def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
-                                     priority, qos, hard_timeout, rule_id,
-                                     app_name, app_service_type):
-        """
-        Install a flow from a rule. If the flow action is DENY, then the flow
-        will drop the packet. Otherwise, the flow classifies the packet with
-        its matched rule and injects the rule num into the packet's register.
-        """
-        flow_match = flow_match_to_magma_match(flow.match, ip_addr)
-        flow_match.imsi = encode_imsi(imsi)
-        flow_match_actions, instructions = self._get_classify_rule_of_actions(
-            flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id)
-        msgs = []
-        if app_name:
-            # We have to allow initial traffic to pass through, before it gets
-            # classified by DPI, flow match set app_id to unclassified
-            flow_match.app_id = UNCLASSIFIED_PROTO_ID
-            parser = self._datapath.ofproto_parser
-            passthrough_actions = flow_match_actions + \
-                [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
-                                         value=IGNORE_STATS)]
-            msgs.append(
-                flows.get_add_resubmit_current_service_flow_msg(
-                    self._datapath,
-                    self.tbl_num,
-                    flow_match,
-                    passthrough_actions,
-                    hard_timeout=hard_timeout,
-                    priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
-                    cookie=rule_num,
-                    resubmit_table=self._enforcement_stats_tbl)
-            )
-            flow_match.app_id = get_app_id(
-                PolicyRule.AppName.Name(app_name),
-                PolicyRule.AppServiceType.Name(app_service_type),
-            )
-
-        if flow.action == flow.DENY:
-            msgs.append(flows.get_add_drop_flow_msg(
-                self._datapath,
-                self.tbl_num,
-                flow_match,
-                flow_match_actions,
-                hard_timeout=hard_timeout,
-                priority=priority,
-                cookie=rule_num)
-            )
-        else:
-            msgs.append(flows.get_add_resubmit_current_service_flow_msg(
-                self._datapath,
-                self.tbl_num,
-                flow_match,
-                flow_match_actions,
-                instructions=instructions,
-                hard_timeout=hard_timeout,
-                priority=priority,
-                cookie=rule_num,
-                resubmit_table=self._enforcement_stats_tbl)
-            )
-        return msgs
-
-    def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ip_addr,
-                                      apn_ambr, qos, rule_id):
-        """
-        Returns an action instructions list to be applied for a specific flow.
-        If qos or apn_ambr are set, the appropriate action is returned based
-        on the implementation used (tc vs ovs_meter)
-        """
-        parser = self._datapath.ofproto_parser
-        instructions = []
-
-        # encode the rule id in hex
-        of_note = parser.NXActionNote(list(rule_id.encode()))
-        actions = [of_note]
-        if flow.action == flow.DENY:
-            return actions, instructions
-
-        mbr_ul = qos.max_req_bw_ul
-        mbr_dl = qos.max_req_bw_dl
-        qos_info = None
-        ambr = None
-        d = flow.match.direction
-        if d == flow.match.UPLINK:
-            if apn_ambr:
-                ambr = apn_ambr.max_bandwidth_ul
-            if mbr_ul != 0:
-                qos_info = QosInfo(gbr=qos.gbr_ul, mbr=mbr_ul)
-
-        if d == flow.match.DOWNLINK:
-            if apn_ambr:
-                ambr = apn_ambr.max_bandwidth_dl
-            if mbr_dl != 0:
-                qos_info = QosInfo(gbr=qos.gbr_dl, mbr=mbr_dl)
-
-        if qos_info or ambr:
-            action, inst = self._qos_mgr.add_subscriber_qos(
-                imsi, ip_addr, ambr, rule_num, d, qos_info)
-
-            self.logger.debug("adding Actions %s instruction %s ", action, inst)
-            if action:
-                actions.append(action)
-
-            if inst:
-                instructions.append(inst)
-
-        version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
-                                                                rule_id)
-        actions.extend(
-            [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
-             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
-             ])
-        return actions, instructions
 
     @set_ev_cls(ofp_event.EventOFPMeterConfigStatsReply, MAIN_DISPATCHER)
     def meter_config_stats_reply_handler(self, ev):
