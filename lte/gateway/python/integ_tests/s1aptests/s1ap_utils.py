@@ -533,16 +533,15 @@ class MagmadUtil(object):
         Args:
           cmd: Specify how to configure apn correction mode on AGW,
           should be one of
-            enable: Enable stateless mode, do nothing if already stateless
-            disable: Disable stateless mode, do nothing if already stateful
-            add_map: Add a new apn correction map to the list
+            enable: Enable apn correction feature, do nothing if already enabled
+            disable: Disable apn correction feature, do nothing if already disabled
 
         """
         apn_correction_cmd = ""
         if cmd.name == MagmadUtil.apn_correction_cmds.ENABLE.name:
-            apn_correction_cmd = "sed -i \'s/correction: false/correction: true/g\' /etc/magma/mme.yml && echo 1 > /tmp/ll"
+            apn_correction_cmd = "sed -i \'s/correction: false/correction: true/g\' /etc/magma/mme.yml"
         else:
-            apn_correction_cmd = "sed -i \'s/correction: true/correction: false/g\' /etc/magma/mme.yml && echo 2 > /tmp/ll"
+            apn_correction_cmd = "sed -i \'s/correction: true/correction: false/g\' /etc/magma/mme.yml"
 
         ret_code = self.exec_command(
             "sudo " + apn_correction_cmd)
