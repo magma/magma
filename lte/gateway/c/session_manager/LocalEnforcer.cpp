@@ -50,6 +50,7 @@ uint64_t get_time_in_sec_since_epoch() {
 namespace magma {
 uint32_t LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT = 2000;
 uint32_t LocalEnforcer::REDIRECT_FLOW_PRIORITY                = 2000;
+bool LocalEnforcer::SEND_ACCESS_TIMEZONE                      = false;
 
 using google::protobuf::RepeatedPtrField;
 using google::protobuf::util::TimeUtil;
@@ -93,7 +94,8 @@ LocalEnforcer::LocalEnforcer(
       quota_exhaustion_termination_on_init_ms_(
           quota_exhaustion_termination_on_init_ms),
       retry_timeout_(2),
-      mconfig_(mconfig) {}
+      mconfig_(mconfig),
+      access_timezone_(compute_access_timezone()) {}
 
 void LocalEnforcer::start() {
   evb_->loopForever();
@@ -316,24 +318,23 @@ void LocalEnforcer::execute_actions(
         handle_activate_service_action(session_map, action_p, session_update);
         break;
       case REDIRECT:
-      case RESTRICT_ACCESS:
-        {
-          FinalActionInstallInfo final_info;
-          populate_final_action_install_info(final_info, action_p);
-          start_final_unit_action_flows_install(session_map, final_info, session_update);
-          break;
+      case RESTRICT_ACCESS: {
+        FinalActionInstallInfo final_info;
+        populate_final_action_install_info(final_info, action_p);
+        start_final_unit_action_flows_install(
+            session_map, final_info, session_update);
+        break;
+      }
+      case TERMINATE_SERVICE: {
+        bool terminated = find_and_terminate_session(
+            session_map, imsi, session_id, session_update);
+        if (!terminated) {
+          // Session not found
+          MLOG(MERROR) << "Cannot act on TERMINATE action since session "
+                       << session_id << " does not exist";
         }
-      case TERMINATE_SERVICE:
-        {
-          bool terminated = find_and_terminate_session(
-              session_map, imsi, session_id, session_update);
-          if (!terminated) {
-            // Session not found
-            MLOG(MERROR) << "Cannot act on TERMINATE action since session "
-                         << session_id << " does not exist";
-          }
-          break;
-        }
+        break;
+      }
       case CONTINUE_SERVICE:
         break;
     }
@@ -543,11 +544,11 @@ PolicyRule LocalEnforcer::create_redirect_rule(
 }
 
 void LocalEnforcer::populate_final_action_install_info(
-    FinalActionInstallInfo &info,
-    const std::unique_ptr<ServiceAction>& action){
-  info.imsi = action->get_imsi();
-  info.session_id = action->get_session_id();
-  info.action_type = action->get_type();
+    FinalActionInstallInfo& info,
+    const std::unique_ptr<ServiceAction>& action) {
+  info.imsi           = action->get_imsi();
+  info.session_id     = action->get_session_id();
+  info.action_type    = action->get_type();
   info.restrict_rules = action->get_restrict_rules();
   if (action->is_redirect_server_set()) {
     info.redirect_server = action->get_redirect_server();
@@ -557,98 +558,113 @@ void LocalEnforcer::populate_final_action_install_info(
 void LocalEnforcer::start_final_unit_action_flows_install(
     SessionMap& session_map, const FinalActionInstallInfo final_action_info,
     SessionUpdate& session_update) {
+  const auto &imsi       = final_action_info.imsi,
+             &session_id = final_action_info.session_id;
+  // First check if the UE IPv4 field is filled out & ready to use
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << session_id
+                 << " not found when trying to install final unit action flows";
+    return;
+  }
+  auto ip = (**session_it)->get_config().common_context.ue_ipv4();
+  if (!ip.empty()) {
+    complete_final_unit_action_flows_install(
+        session_map, ip, final_action_info, session_update);
+    return;
+  }
+
+  // If UE IPv4 does not exist in the context, fetch it from DirectoryD
   MLOG(MDEBUG) << "Fetching Subscriber IP address from DirectoryD for "
-               << final_action_info.session_id;
+               << session_id;
   directoryd_client_->get_directoryd_ip_field(
-      final_action_info.imsi,
-      [this, final_action_info](Status status, DirectoryField resp) {
+      imsi, [this, final_action_info](Status status, DirectoryField resp) {
         // This call back gets executed in the DirectoryD client thread, but
         // we want to run the session update logic in the main thread.
-        evb_->runInEventBaseThread([this, final_action_info, status, resp]() {
-          complete_final_unit_action_flows_install(status, resp, final_action_info);
-        });
+        if (!status.ok()) {
+          MLOG(MERROR) << "Could not fetch IP info for "
+                       << final_action_info.session_id
+                       << ". Failing final action flow install error: "
+                       << status.error_message();
+          return;
+        }
+        evb_->runInEventBaseThread(
+            [this, final_action_info, status, resp]() {
+              auto session_map = session_store_.read_sessions_for_deletion(
+                  {final_action_info.imsi});
+              auto session_update =
+                  SessionStore::get_default_session_update(session_map);
+              complete_final_unit_action_flows_install(
+                  session_map, resp.value(), final_action_info, session_update);
+              auto success = session_store_.update_sessions(session_update);
+              if (!success) {
+                MLOG(MERROR)
+                    << "Failed to store final unit action flows update for "
+                    << final_action_info.session_id;
+              }
+            });
       });
 }
 
 void LocalEnforcer::complete_final_unit_action_flows_install(
-    Status status, DirectoryField resp,
-    const FinalActionInstallInfo final_action_info) {
-  const auto& imsi         = final_action_info.imsi;
-  const auto& session_id   = final_action_info.session_id;
+    SessionMap& session_map, const std::string& ip,
+    const FinalActionInstallInfo final_action_info,
+    SessionUpdate& session_update) {
+  const auto& imsi       = final_action_info.imsi;
+  const auto& session_id = final_action_info.session_id;
 
-  MLOG(MDEBUG) << "Received response from DirectoryD on IP addr for "
-               << session_id;
-  if (!status.ok()) {
-    MLOG(MERROR) << "Could not fetch IP info for " << session_id
-                 << ". Failing redirection install error: "
-                 << status.error_message();
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << session_id
+                 << " not found when trying to install final unit action flows";
     return;
   }
-
-  auto ip          = resp.value();
-  auto session_map = session_store_.read_sessions(SessionRead{imsi});
-  auto it          = session_map.find(imsi);
-  if (it == session_map.end()) {
-    MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
-    return;
-  }
-
+  MLOG(MINFO) << "Installing final action "
+              << service_action_type_to_str(final_action_info.action_type)
+              << " flows for " << session_id;
   RuleLifetime lifetime{};
-  auto session_update = session_store_.get_default_session_update(session_map);
-  auto& uc = session_update[imsi][session_id];
-  for (const auto& session : it->second) {
-    if (session->get_session_id() == session_id) {
-      switch (final_action_info.action_type) {
-        case REDIRECT:
-          {
-            // This is GY based REDIRECT, GX redirect will come in as a regular rule
-            std::vector<std::string> static_rules;
-            const auto& rule = create_redirect_rule(final_action_info);
-            // check if the rule has been installed already.
-            if (!session->is_gy_dynamic_rule_installed(rule.id())) {
-              MLOG(MDEBUG) << "Install redirect GY flow in pipelined for "
-                           << session_id;
-              pipelined_client_->add_gy_final_action_flow(
-                  imsi, ip, static_rules, {rule});
-              session->insert_gy_dynamic_rule(rule, lifetime, uc);
-            }
-            break;
-          }
-        case RESTRICT_ACCESS:
-          {
-            MLOG(MDEBUG) << "Install restricted GY flow in pipelined for "
-                         << session_id;
-            pipelined_client_->add_gy_final_action_flow(
-                imsi, ip, final_action_info.restrict_rules, {});
-            break;
-          }
-        default:
-          MLOG(MDEBUG) << "Unexpected final unit action install "
-                       << service_action_type_to_str(final_action_info.action_type)
-                       << " for " << session_id;
-          break;
+  auto& uc      = session_update[imsi][session_id];
+  auto& session = **session_it;
+  switch (final_action_info.action_type) {
+    case REDIRECT: {
+      // This is GY based REDIRECT, GX redirect will come in as a regular
+      // rule
+      std::vector<std::string> static_rules;
+      const auto& rule = create_redirect_rule(final_action_info);
+      // check if the rule has been installed already.
+      if (!session->is_gy_dynamic_rule_installed(rule.id())) {
+        pipelined_client_->add_gy_final_action_flow(
+            imsi, ip, static_rules, {rule});
+        session->insert_gy_dynamic_rule(rule, lifetime, uc);
       }
+      return;
     }
-  }
-  auto success = session_store_.update_sessions(session_update);
-  if (!success) {
-    MLOG(MERROR) << "Failed to store final unit action flows update for " << session_id;
+    case RESTRICT_ACCESS: {
+      pipelined_client_->add_gy_final_action_flow(
+          imsi, ip, final_action_info.restrict_rules, {});
+      return;
+    }
+    default:
+      MLOG(MDEBUG) << "Unexpected final unit action install "
+                   << service_action_type_to_str(final_action_info.action_type)
+                   << " for " << session_id;
+      return;
   }
 }
 
 void LocalEnforcer::cancelling_final_unit_action(
     const std::unique_ptr<SessionState>& session,
-    const std::vector<std::string> &restrict_rules,
+    const std::vector<std::string>& restrict_rules,
     SessionStateUpdateCriteria& uc) {
-
   SessionState::SessionInfo info;
   session->get_session_info(info);
 
   std::vector<PolicyRule> gy_rules_to_deactivate;
   for (const auto& rule : info.gy_dynamic_rules) {
     PolicyRule dy_rule;
-    bool is_dynamic =
-        session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
+    bool is_dynamic = session->remove_gy_dynamic_rule(rule.id(), &dy_rule, uc);
     if (is_dynamic) {
       gy_rules_to_deactivate.push_back(dy_rule);
     }
@@ -1274,11 +1290,10 @@ void LocalEnforcer::update_charging_credits(
     }
     for (const auto& session : it->second) {
       std::string session_id = session->get_session_id();
-      if (session_id != credit_update_resp.session_id()){
-        MLOG(MDEBUG) <<
-            "Not updating credit because this update is for session" <<
-            credit_update_resp.session_id() <<
-            " and this is session " << session_id;
+      if (session_id != credit_update_resp.session_id()) {
+        MLOG(MDEBUG) << "Not updating credit because this update is for session"
+                     << credit_update_resp.session_id()
+                     << " and this is session " << session_id;
         continue;
       }
 
@@ -1330,16 +1345,16 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
 
     for (const auto& session : it->second) {
       std::string session_id = session->get_session_id();
-      if (session_id != usage_monitor_resp.session_id()){
-        MLOG(MDEBUG) <<
-                     "Not updating monitor because this update is for session" <<
-                     usage_monitor_resp.session_id() <<
-                     " and this is session " << session_id;
+      if (session_id != usage_monitor_resp.session_id()) {
+        MLOG(MDEBUG)
+            << "Not updating monitor because this update is for session"
+            << usage_monitor_resp.session_id() << " and this is session "
+            << session_id;
         continue;
       }
 
-      auto& uc = session_update[imsi][session->get_session_id()];
-      const auto& config    = session->get_config();
+      auto& uc           = session_update[imsi][session->get_session_id()];
+      const auto& config = session->get_config();
       session->receive_monitor(usage_monitor_resp, uc);
       session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);
 
@@ -2002,6 +2017,32 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
   pipelined_client_->deactivate_flows_for_rules(
       imsi, session.get_config().common_context.ue_ipv4(),
       static_rule_to_remove, dynamic_rule_to_remove, RequestOriginType::GX);
+}
+
+std::unique_ptr<Timezone> LocalEnforcer::compute_access_timezone() {
+  if (!SEND_ACCESS_TIMEZONE) {
+    MLOG(MWARNING) << "send_access_timezone field is not set, not computing "
+                      "timezone information";
+    return nullptr;
+  }
+  Timezone timezone;
+  time_t now           = std::time(NULL);
+  auto const localtime = *std::localtime(&now);
+  std::ostringstream os;
+  os << std::put_time(&localtime, "%z");
+  std::string s = os.str();
+  // s is in ISO 8601 format: "±HHMM"
+  if (s.size() < 5) {
+    MLOG(MERROR) << "Failed to set access timezone";
+    return nullptr;
+  }
+  int hours            = std::stoi(s.substr(0, 3), nullptr, 10);
+  int minutes          = std::stoi(s[0] + s.substr(3), nullptr, 10);
+  int total_offset_min = hours * 60 + minutes;
+  MLOG(MINFO) << "Access timezone is UTC " << (total_offset_min >= 0 ? "+" : "")
+              << total_offset_min << " minutes";
+  timezone.set_offset_minutes(total_offset_min);
+  return std::make_unique<Timezone>(timezone);
 }
 
 static void handle_command_level_result_code(

@@ -69,7 +69,7 @@ type EapAkaSrv struct {
 	sessions map[string]*SessionCtx
 
 	// PLMN IDs map, if not empty -> serve only IMSIs with specified PLMN IDs - Read Only
-	plmnIds plmn_filter.PlmnIdVals
+	plmnFilter plmn_filter.PlmnIdVals
 
 	timeouts touts
 }
@@ -116,9 +116,9 @@ func (s *EapAkaSrv) SetSessionAuthenticatedTimeout(tout time.Duration) {
 // NewEapAkaService creates new Aka Service 'object'
 func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 	service := &EapAkaSrv{
-		sessions: map[string]*SessionCtx{},
-		plmnIds:  plmn_filter.PlmnIdVals{},
-		timeouts: defaultTimeouts,
+		sessions:   map[string]*SessionCtx{},
+		plmnFilter: plmn_filter.PlmnIdVals{},
+		timeouts:   defaultTimeouts,
 	}
 	if config != nil {
 		if config.Timeout != nil {
@@ -136,7 +136,7 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 					time.Millisecond * time.Duration(config.Timeout.SessionAuthenticatedMs))
 			}
 		}
-		service.plmnIds = plmn_filter.GetPlmnVals(config.PlmnIds)
+		service.plmnFilter = plmn_filter.GetPlmnVals(config.PlmnIds, "EAP-AKA")
 	}
 	return service, nil
 }
@@ -144,7 +144,7 @@ func NewEapAkaService(config *mconfig.EapAkaConfig) (*EapAkaSrv, error) {
 // CheckPlmnId returns true either if there is no PLMN ID filters (allowlist) configured or
 // one the configured PLMN IDs matches passed IMSI
 func (s *EapAkaSrv) CheckPlmnId(imsi aka.IMSI) bool {
-	return plmn_filter.CheckImsiOnPlmnIdListIfAny(string(imsi), s.plmnIds)
+	return s == nil || s.plmnFilter.Check(string(imsi))
 }
 
 // Unlock - unlocks the CTX

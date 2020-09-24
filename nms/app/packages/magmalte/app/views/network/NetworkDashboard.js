@@ -13,19 +13,13 @@
  * @flow strict-local
  * @format
  */
-import type {
-  lte_network,
-  network_epc_configs,
-  network_ran_configs,
-} from '@fbcnms/magma-api';
 
 import AddEditNetworkButton from './NetworkEdit';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import NetworkEpc from './NetworkEpc';
 import NetworkInfo from './NetworkInfo';
 import NetworkKPI from './NetworkKPIs';
@@ -33,13 +27,12 @@ import NetworkRanConfig from './NetworkRanConfig';
 import React from 'react';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useCallback, useState} from 'react';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -64,27 +57,7 @@ const useStyles = makeStyles(theme => ({
 
 export default function NetworkDashboard() {
   const classes = useStyles();
-
-  const {history, match, relativePath, relativeUrl} = useRouter();
-  const networkId: string = nullthrows(match.params.networkId);
-
-  const [networkInfo, setNetworkInfo] = useState<lte_network>({});
-  const [isInfoLoading, setIsInfoLoading] = useState(true);
-
-  const {error} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkId,
-    {
-      networkId: networkId,
-    },
-    useCallback(networkInfo => {
-      setNetworkInfo(networkInfo);
-      setIsInfoLoading(false);
-    }, []),
-  );
-
-  if (isInfoLoading && !error) {
-    return <LoadingFiller />;
-  }
+  const {history, relativePath, relativeUrl} = useRouter();
 
   return (
     <>
@@ -120,25 +93,10 @@ export default function NetworkDashboard() {
       />
 
       <Switch>
-        <Route
-          path={relativePath('/json')}
-          render={() => (
-            <NetworkJsonConfig
-              network={networkInfo}
-              onSave={network => setNetworkInfo(network)}
-            />
-          )}
-        />
+        <Route path={relativePath('/json')} component={NetworkJsonConfig} />
         <Route
           path={relativePath('/network')}
-          render={() => (
-            <NetworkDashboardInternal
-              network={networkInfo}
-              onSave={network => {
-                setNetworkInfo(network);
-              }}
-            />
-          )}
+          component={NetworkDashboardInternal}
         />
         <Redirect to={relativeUrl('/network')} />
       </Switch>
@@ -146,29 +104,24 @@ export default function NetworkDashboard() {
   );
 }
 
-type Props = {
-  network: lte_network,
-  onSave?: lte_network => void,
-};
-
-export function NetworkJsonConfig(props: Props) {
+export function NetworkJsonConfig() {
   const {match} = useRouter();
   const [error, setError] = useState('');
   const networkId: string = nullthrows(match.params.networkId);
   const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(LteNetworkContext);
 
   return (
     <JsonEditor
-      content={props.network}
+      content={ctx.state}
       error={error}
       onSave={async lteNetwork => {
         try {
-          await MagmaV1API.putLteByNetworkId({networkId, lteNetwork});
+          ctx.updateNetworks({networkId, lteNetwork});
           enqueueSnackbar('Network saved successfully', {
             variant: 'success',
           });
           setError('');
-          props.onSave?.(lteNetwork);
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -177,70 +130,13 @@ export function NetworkJsonConfig(props: Props) {
   );
 }
 
-export function NetworkDashboardInternal(props: Props) {
-  const {match} = useRouter();
+export function NetworkDashboardInternal() {
   const classes = useStyles();
-  const networkId: string = nullthrows(match.params.networkId);
-  const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
-  const [lteRanConfigs, setLteRanConfigs] = useState<network_ran_configs>({});
-  const [isEpcLoading, setIsEpcLoading] = useState(true);
-  const [isRanLoading, setIsRanLoading] = useState(true);
+  const ctx = useContext(LteNetworkContext);
 
-  const {error: epcError} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularEpc,
-    {
-      networkId: networkId,
-    },
-    useCallback(epc => {
-      setEpcConfigs(epc);
-      setIsEpcLoading(false);
-    }, []),
-  );
-
-  const {error: ranError} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularRan,
-    {
-      networkId: networkId,
-    },
-    useCallback(lteRanConfigs => {
-      setLteRanConfigs(lteRanConfigs);
-      setIsRanLoading(false);
-    }, []),
-  );
-
-  const {response: policyRules, isLoading: isPolicyLoading} = useMagmaAPI(
-    MagmaV1API.getNetworksByNetworkIdPoliciesRules,
-    {
-      networkId: networkId,
-    },
-  );
-
-  const {response: apns, isLoading: isAPNsLoading} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdApns,
-    {
-      networkId: networkId,
-    },
-  );
-
-  if (
-    (isEpcLoading && !epcError) ||
-    (isRanLoading && !ranError) ||
-    isPolicyLoading ||
-    isAPNsLoading
-  ) {
-    return <LoadingFiller />;
-  }
-
-  const editProps = {
-    lteNetwork: props.network,
-    lteRanConfigs: lteRanConfigs,
-    epcConfigs: epcConfigs,
-    onSaveNetworkInfo: lteNetwork => {
-      props.onSave?.(lteNetwork);
-    },
-    onSaveEpcConfigs: setEpcConfigs,
-    onSaveLteRanConfigs: setLteRanConfigs,
-  };
+  const epcConfigs = ctx.state.cellular?.epc;
+  const lteRanConfigs = ctx.state.cellular?.ran;
+  const lteDnsConfig = ctx.state?.dns;
 
   function editNetwork() {
     return (
@@ -249,7 +145,6 @@ export function NetworkDashboardInternal(props: Props) {
         isLink={true}
         editProps={{
           editTable: 'info',
-          ...editProps,
         }}
       />
     );
@@ -262,7 +157,6 @@ export function NetworkDashboardInternal(props: Props) {
         isLink={true}
         editProps={{
           editTable: 'ran',
-          ...editProps,
         }}
       />
     );
@@ -275,7 +169,6 @@ export function NetworkDashboardInternal(props: Props) {
         isLink={true}
         editProps={{
           editTable: 'epc',
-          ...editProps,
         }}
       />
     );
@@ -285,17 +178,20 @@ export function NetworkDashboardInternal(props: Props) {
       <Grid container spacing={4}>
         <Grid item xs={12}>
           <CardTitleRow label="Overview" />
-          <NetworkKPI apns={apns} policyRules={policyRules} />
+          <NetworkKPI />
         </Grid>
         <Grid item xs={12} md={6}>
           <Grid container spacing={4}>
             <Grid item xs={12}>
               <CardTitleRow label="Network" filter={editNetwork} />
-              <NetworkInfo lteNetwork={props.network} />
+              <NetworkInfo lteNetwork={ctx.state} />
             </Grid>
             <Grid item xs={12}>
               <CardTitleRow label="RAN" filter={editRAN} />
-              <NetworkRanConfig lteRanConfigs={lteRanConfigs} />
+              <NetworkRanConfig
+                lteDnsConfig={lteDnsConfig}
+                lteRanConfigs={lteRanConfigs}
+              />
             </Grid>
           </Grid>
         </Grid>

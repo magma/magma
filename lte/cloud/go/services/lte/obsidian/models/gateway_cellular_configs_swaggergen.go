@@ -17,6 +17,9 @@ import (
 // swagger:model gateway_cellular_configs
 type GatewayCellularConfigs struct {
 
+	// dns
+	DNS *GatewayDNSConfigs `json:"dns,omitempty"`
+
 	// epc
 	// Required: true
 	Epc *GatewayEpcConfigs `json:"epc"`
@@ -33,6 +36,10 @@ type GatewayCellularConfigs struct {
 func (m *GatewayCellularConfigs) Validate(formats strfmt.Registry) error {
 	var res []error
 
+	if err := m.validateDNS(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateEpc(formats); err != nil {
 		res = append(res, err)
 	}
@@ -48,6 +55,24 @@ func (m *GatewayCellularConfigs) Validate(formats strfmt.Registry) error {
 	if len(res) > 0 {
 		return errors.CompositeValidationError(res...)
 	}
+	return nil
+}
+
+func (m *GatewayCellularConfigs) validateDNS(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.DNS) { // not required
+		return nil
+	}
+
+	if m.DNS != nil {
+		if err := m.DNS.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("dns")
+			}
+			return err
+		}
+	}
+
 	return nil
 }
 

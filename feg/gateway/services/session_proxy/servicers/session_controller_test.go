@@ -395,6 +395,7 @@ func standardUsageTest(
 				Id: IMSI1,
 			},
 		},
+		AccessTimezone: &protos.Timezone{OffsetMinutes: 3600},
 	})
 	mocksGx.AssertExpectations(t)
 	mocksGy.AssertExpectations(t)
@@ -1912,7 +1913,6 @@ func TestSessionControllerRevalidationTimerUsed(t *testing.T) {
 }
 
 func TestSessionControllerUseGyForAuthOnlyRevalidationTimerUsed(t *testing.T) {
-
 	numberServers := 1
 	mockConfig := getTestConfig()
 	mockConfig[0].UseGyForAuthOnly = true
