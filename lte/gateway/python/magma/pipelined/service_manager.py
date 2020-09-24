@@ -50,6 +50,8 @@ from magma.pipelined.app.conntrack import ConntrackController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
+from magma.pipelined.app.ipv6_router_solicitation import \
+    IPV6RouterSolicitationController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -254,6 +256,7 @@ class ServiceManager:
     UE_MAC_ADDRESS_SERVICE_NAME = 'ue_mac'
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
+    IPV6_ROUTER_SOLICITATION_SERVICE_NAME = 'ipv6_router_solicitation'
     TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
     IPFIX_SERVICE_NAME = 'ipfix'
@@ -316,6 +319,12 @@ class ServiceManager:
                 module=AccessControlController.__module__,
                 type=AccessControlController.APP_TYPE,
                 order_priority=400),
+        ],
+        IPV6_ROUTER_SOLICITATION_SERVICE_NAME: [
+            App(name=IPV6RouterSolicitationController.APP_NAME,
+                module=IPV6RouterSolicitationController.__module__,
+                type=IPV6RouterSolicitationController.APP_TYPE,
+                order_priority=210),
         ],
         TUNNEL_LEARN_SERVICE_NAME: [
             App(name=TunnelLearnController.APP_NAME,
