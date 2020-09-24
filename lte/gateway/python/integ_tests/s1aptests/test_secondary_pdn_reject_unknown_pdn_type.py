@@ -68,7 +68,7 @@ class TestSecondaryPdnRejectUnknownPdnType(unittest.TestCase):
 
         # Send PDN Connectivity Request
         apn = "ims"
-        # PDN Type 1 = IPv6, 2 = IPv6, 3 = IPv4v6
+        # PDN Type 1 = IPv4, 2 = IPv6, 3 = IPv4v6
         self._s1ap_wrapper.sendPdnConnectivityReq(ue_id, apn, pdn_type=2)
         # Receive PDN Connectivity reject
         response = self._s1ap_wrapper.s1_util.get_response()
