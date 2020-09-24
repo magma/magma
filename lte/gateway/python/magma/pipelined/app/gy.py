@@ -187,7 +187,7 @@ class GYController(PolicyMixin, MagmaController):
         # from rule.flow_list, confirm that this is the expected behaviour
         redirect_request = RedirectionManager.RedirectRequest(
             imsi=imsi,
-            ip_addr=ip_addr,
+            ip_addr=ip_addr.address.decode('utf-8'),
             rule=rule,
             rule_num=rule_num,
             rule_version=rule_version,
