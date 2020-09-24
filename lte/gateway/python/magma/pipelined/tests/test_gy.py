@@ -21,7 +21,8 @@ from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
 from magma.pipelined.app.gy import GYController
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.policy_converters import flow_match_to_magma_match
+from magma.pipelined.policy_converters import flow_match_to_magma_match, \
+        convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.packet_builder import TCPPacketBuilder, \
         IPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -168,10 +169,10 @@ class GYTableTest(unittest.TestCase):
 
     def test_subscriber_restrict_policy(self):
         """
-        Add policy to subscriber, send 4096 packets
+        Add restrict policy to subscriber, send 4096 packets
 
         Assert:
-            Packets are properly matched with the 'simple_match' policy
+            Packets are properly matched with the 'restrict_match' policy
             Send /20 (4096) packets, match /16 (256) packets
         """
         fake_controller_setup(self.gy_controller)
@@ -179,7 +180,8 @@ class GYTableTest(unittest.TestCase):
         sub_ip = '192.168.128.74'
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/24', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('8.8.8.0/24'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
@@ -201,7 +203,7 @@ class GYTableTest(unittest.TestCase):
         )
         pkt_sender = ScapyPacketInjector(self.IFACE)
         packet = IPPacketBuilder()\
-            .set_ip_layer('45.10.0.0/20', sub_ip)\
+            .set_ip_layer('8.8.8.8', sub_ip)\
             .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00")\
             .build()
         flow_query = FlowQuery(
@@ -217,12 +219,11 @@ class GYTableTest(unittest.TestCase):
             FlowTest(flow_query, pkts_matched)
         ], lambda: wait_after_send(self.testing_controller))
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
-                                             self.service_manager)
+                                             self.service_manager,
+                                             include_stats=False)
 
         with isolator, sub_context, flow_verifier, snapshot_verifier:
             pkt_sender.send(packet)
-
-        flow_verifier.verify()
 
 if __name__ == "__main__":
     unittest.main()

@@ -132,11 +132,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return fut.result()
 
 
-    def _update_version(self, request: ActivateFlowsRequest):
+    def _update_version(self, request: ActivateFlowsRequest, ipv4: IPAddress):
         """
         Update version for a given subscriber and rule.
         """
-        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
         for rule_id in request.rule_ids:
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ipv4, rule_id)
@@ -155,7 +154,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GX flows for %s', request.sid.id)
-        self._update_version(request)
+        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
+        self._update_version(request, ipv4)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, ipv4, request.apn_ambr, request.rule_ids,
@@ -190,10 +190,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GY flows for %s', request.sid.id)
-        self._update_version(request)
+        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
+        self._update_version(request, ipv4)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.ip_addr, request.apn_ambr, request.rule_ids,
+            request.sid.id, ipv4, request.apn_ambr, request.rule_ids,
             request.dynamic_rules)
 
         failed_static_rule_results, failed_dynamic_rule_results = \
@@ -204,7 +205,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         dynamic_rules = \
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
 
-        gy_res = self._activate_rules_in_gy(request.sid.id, request.ip_addr, request.apn_ambr,
+        gy_res = self._activate_rules_in_gy(request.sid.id, ipv4, request.apn_ambr,
             static_rule_ids, dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
@@ -279,7 +280,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         else:
             # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, request.ip_addr)
+                request.sid.id, ipv4)
         self._enforcer_app.deactivate_rules(request.sid.id, ipv4,
                                             request.rule_ids)
 
@@ -288,7 +289,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         logging.debug('Deactivating GY flows for %s', request.sid.id)
         # all flows are deactivated
         self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, request.ip_addr)
+                request.sid.id, ipv4)
         self._gy_app.deactivate_rules(request.sid.id, ipv4,
                                       request.rule_ids)
 

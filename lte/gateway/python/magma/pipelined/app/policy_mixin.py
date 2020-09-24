@@ -24,14 +24,12 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
     DIRECTION_REG, SCRATCH_REGS, RULE_VERSION_REG
 from magma.pipelined.openflow.messages import MsgChannel
-from magma.pipelined.policy_converters import FlowMatchError, \
-    convert_ipv4_str_to_ip_proto
 
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match
+    flow_match_to_magma_match, convert_ipv4_str_to_ip_proto
 
 from magma.pipelined.qos.types import QosInfo
 
@@ -304,7 +302,7 @@ class PolicyMixin(metaclass=ABCMeta):
         """
         flow_match = flow_match_to_magma_match(flow.match, ip_addr)
         flow_match.imsi = encode_imsi(imsi)
-        flow_match_actions, instructions = self._get_classify_rule_of_actions(
+        flow_match_actions, instructions = self._get_action_for_rule(
             flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr)
         msgs = []
         if app_name:
@@ -355,8 +353,8 @@ class PolicyMixin(metaclass=ABCMeta):
             )
         return msgs
 
-    def _get_classify_rule_of_actions(self, flow, rule_num, imsi, ip_addr,
-                                      apn_ambr, qos, rule_id, version, qos_mgr):
+    def _get_action_for_rule(self, flow, rule_num, imsi, ip_addr,
+                             apn_ambr, qos, rule_id, version, qos_mgr):
         """
         Returns an action instructions list to be applied for a specific flow.
         If qos or apn_ambr are set, the appropriate action is returned based
@@ -390,7 +388,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
         if qos_info or ambr:
             action, inst = qos_mgr.add_subscriber_qos(
-                imsi, ip_addr, ambr, rule_num, d, qos_info)
+                imsi, ip_addr.address.decode('utf8'), ambr, rule_num, d, qos_info)
 
             self.logger.debug("adding Actions %s instruction %s ", action, inst)
             if action:
