@@ -67,6 +67,8 @@ static int _default_eps_bearer_activate(
 static int _default_eps_bearer_activate_in_bearer_setup_req(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg);
 
+//extern int _pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
+
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -345,8 +347,20 @@ int esm_proc_default_eps_bearer_context_reject(
        */
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     }
-  }
 
+    ue_mm_context_t* ue_context_p =
+        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+    if (!ue_context_p) {
+      OAILOG_ERROR(
+        LOG_NAS_ESM,
+        "ESM-PROC  - ue_context_p is NULL \n");
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+    }
+    // Send delete session req to spgw
+    mme_app_send_delete_session_request(
+        ue_context_p, ebi, pid);
+    ue_context_p->pdn_contexts[pid]->ue_rej_act_def_req = true;
+  }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 

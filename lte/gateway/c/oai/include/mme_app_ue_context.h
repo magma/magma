@@ -241,6 +241,7 @@ typedef struct pdn_context_s {
   bool is_active;
 
   protocol_configuration_options_t* pco;
+  bool ue_rej_act_def_req;
 } pdn_context_t;
 
 typedef enum {

@@ -80,6 +80,7 @@
 #endif
 
 extern task_zmq_ctx_t mme_app_task_zmq_ctx;
+extern int _pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
 
 int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi) {
   OAILOG_FUNC_IN(LOG_MME_APP);
@@ -928,6 +929,23 @@ void mme_app_handle_delete_session_rsp(
   } else {
     if (ue_context_p->ue_context_rel_cause == S1AP_INVALID_CAUSE) {
       ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
+    }
+    pdn_cid_t pid = ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]->pdn_cx_id;
+    if (ue_context_p->pdn_contexts[pid]->ue_rej_act_def_req) {
+      ue_context_p->pdn_contexts[pid]->ue_rej_act_def_req = false;
+      _pdn_connectivity_delete(&ue_context_p->emm_context, pid);
+     // Free PDN context
+      if (ue_context_p->pdn_contexts[pid]) {
+        free_wrapper((void**) &ue_context_p->pdn_contexts[pid]);
+      }
+      // Free bearer context entry
+      for (uint8_t bid = 0; bid < BEARERS_PER_UE; bid++) {
+        if ((ue_context_p->bearer_contexts[bid]) &&
+          (ue_context_p->bearer_contexts[bid]->ebi == delete_sess_resp_pP->lbi)) {
+          free_wrapper((void**) &ue_context_p->bearer_contexts[bid]);
+        }
+      }
+      OAILOG_FUNC_OUT(LOG_MME_APP);
     }
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
