@@ -87,7 +87,7 @@ setup(
         'lxml==4.2.1',
         'ryu>=4.30',
         'spyne==2.12.16',
-        'scapy==2.4.3',
+        'scapy==2.4.4',
         'flask>=1.0.2',
         'aioeventlet>=0.4',
         'aiodns>=1.1.1',
