@@ -19,8 +19,9 @@ import type {GrafanaDBData} from './Dashboards';
 
 export const XWFMDBData = (networks: Array<string>): GrafanaDBData => {
   return {
-    title: 'XWF-M Container/Node Stats',
-    description: '',
+    title: 'Container/Node Stats',
+    description:
+      'This dashboard shows stats from node_exporter and cAdvisor if those services are installed on your gateways.',
     templates: [getNetworkTemplate(networks), gatewayTemplate],
     rows: [
       {

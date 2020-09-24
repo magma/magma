@@ -24,7 +24,8 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
     DIRECTION_REG
 from magma.pipelined.openflow.messages import MsgChannel
-from magma.pipelined.policy_converters import FlowMatchError
+from magma.pipelined.policy_converters import FlowMatchError, \
+    convert_ipv4_str_to_ip_proto
 
 
 class PolicyMixin(metaclass=ABCMeta):
@@ -111,7 +112,7 @@ class PolicyMixin(metaclass=ABCMeta):
         msg_list = []
         for add_flow_req in requests:
             imsi = add_flow_req.sid.id
-            ip_addr = add_flow_req.ip_addr
+            ip_addr = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
             apn_ambr = add_flow_req.apn_ambr
             static_rule_ids = add_flow_req.rule_ids
             dynamic_rules = add_flow_req.dynamic_rules
@@ -155,7 +156,7 @@ class PolicyMixin(metaclass=ABCMeta):
     def _process_redirection_rules(self, requests):
         for add_flow_req in requests:
             imsi = add_flow_req.sid.id
-            ip_addr = add_flow_req.ip_addr
+            ip_addr = convert_ipv4_str_to_ip_proto(add_flow_req.ip_addr)
             static_rule_ids = add_flow_req.rule_ids
             dynamic_rules = add_flow_req.dynamic_rules
             for rule_id in static_rule_ids:
