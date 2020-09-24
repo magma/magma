@@ -61,7 +61,9 @@
     dest: /usr/local/bin/{{ item }}
     force: yes
     remote_src: yes
+    mode: 0755
   with_items:
+    - config_stateless_agw.py
     - create_oai_certs.py
     - generate_oai_config.py
     - generate_dnsd_config.py
