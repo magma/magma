@@ -47,6 +47,9 @@ type Subscriber struct {
 	// monitoring
 	Monitoring *SubscriberStatus `json:"monitoring,omitempty"`
 
+	// msisdn
+	Msisdn Msisdn `json:"msisdn,omitempty"`
+
 	// Optional name associated with the subscriber
 	Name string `json:"name,omitempty"`
 
@@ -87,6 +90,10 @@ func (m *Subscriber) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateMonitoring(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateMsisdn(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -229,6 +236,22 @@ func (m *Subscriber) validateMonitoring(formats strfmt.Registry) error {
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *Subscriber) validateMsisdn(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Msisdn) { // not required
+		return nil
+	}
+
+	if err := m.Msisdn.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("msisdn")
+		}
+		return err
 	}
 
 	return nil
