@@ -21,30 +21,30 @@ import (
 // swagger:model policy_rule_config
 type PolicyRuleConfig struct {
 
-	AppName json.RawMessage
+	AppName json.RawMessage `json:"app_name,omitempty"`
 
-	AppServiceType json.RawMessage
+	AppServiceType json.RawMessage `json:"app_service_type,omitempty"`
 
 	// flow list
 	// Required: true
 	FlowList []*FlowDescription `json:"flow_list"`
 
-	MonitoringKey json.RawMessage
+	MonitoringKey json.RawMessage `json:"monitoring_key,omitempty"`
 
-	Priority json.RawMessage
+	Priority json.RawMessage `json:"priority"`
 
-	RatingGroup json.RawMessage
+	RatingGroup json.RawMessage `json:"rating_group,omitempty"`
 
-	Redirect json.RawMessage
+	Redirect json.RawMessage `json:"redirect,omitempty"`
 
-	TrackingType json.RawMessage
+	TrackingType json.RawMessage `json:"tracking_type,omitempty"`
 }
 
 // FlowDescription flow description
 // swagger:model flow_description
 type FlowDescription struct {
 
-	Action json.RawMessage
+	Action json.RawMessage `json:"action"`
 
 	// match
 	// Required: true
