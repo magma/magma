@@ -13,48 +13,38 @@
 
 package types
 
+import (
+	"encoding/json"
+)
+
 // PolicyRuleConfig policy rule config
 // swagger:model policy_rule_config
 type PolicyRuleConfig struct {
 
-	// app name
-	// Enum: [NO_APP_NAME FACEBOOK FACEBOOK_MESSENGER INSTAGRAM YOUTUBE GOOGLE GMAIL GOOGLE_DOCS NETFLIX APPLE MICROSOFT REDDIT WHATSAPP GOOGLE_PLAY APPSTORE AMAZON WECHAT TIKTOK TWITTER WIKIPEDIA GOOGLE_MAPS YAHOO IMO]
-	AppName string `json:"app_name,omitempty"`
+	AppName json.RawMessage
 
-	// app service type
-	// Enum: [NO_SERVICE_TYPE CHAT AUDIO VIDEO]
-	AppServiceType string `json:"app_service_type,omitempty"`
+	AppServiceType json.RawMessage
 
 	// flow list
 	// Required: true
 	FlowList []*FlowDescription `json:"flow_list"`
 
-	// monitoring key
-	MonitoringKey string `json:"monitoring_key,omitempty"`
+	MonitoringKey json.RawMessage
 
-	// priority
-	// Required: true
-	Priority *uint32 `json:"priority"`
+	Priority json.RawMessage
 
-	// rating group
-	RatingGroup uint32 `json:"rating_group,omitempty"`
+	RatingGroup json.RawMessage
 
-	// redirect
-	Redirect *RedirectInformation `json:"redirect,omitempty"`
+	Redirect json.RawMessage
 
-	// tracking type
-	// Enum: [ONLY_OCS ONLY_PCRF OCS_AND_PCRF NO_TRACKING]
-	TrackingType string `json:"tracking_type,omitempty"`
+	TrackingType json.RawMessage
 }
 
 // FlowDescription flow description
 // swagger:model flow_description
 type FlowDescription struct {
 
-	// action
-	// Required: true
-	// Enum: [PERMIT DENY]
-	Action *string `json:"action"`
+	Action json.RawMessage
 
 	// match
 	// Required: true

@@ -27,13 +27,11 @@ func (m RuleNames) ValidateModel() error {
 }
 
 func (m *PolicyRule) ValidateModel() error {
-	if m.FlowList != nil {
-		for _, flow := range m.FlowList {
-			if flow.Match != nil {
-				errMatch := flow.Match.ValidateModel()
-				if errMatch != nil {
-					return errMatch
-				}
+	for _, flow := range m.FlowList {
+		if flow.Match != nil {
+			errMatch := flow.Match.ValidateModel()
+			if errMatch != nil {
+				return errMatch
 			}
 		}
 	}

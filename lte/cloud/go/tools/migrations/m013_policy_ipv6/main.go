@@ -40,22 +40,16 @@ import (
 
 // Duplicated from configurator
 const (
-	entityTable      = "cfg_entities"
-	entityAssocTable = "cfg_assocs"
+	entityTable = "cfg_entities"
 
 	entConfCol = "config"
-	entGidCol  = "graph_id"
 	entKeyCol  = "\"key\""
-	entNidCol  = "network_id"
 	entPkCol   = "pk"
 	entTypeCol = "type"
 )
 
 const (
-	basenameEntType   = "base_name"
-	policyEntType     = "policy"
-	subscriberEntType = "subscriber"
-	qosProfileEntType = "policy_qos_profile"
+	policyEntType = "policy"
 )
 
 var (
@@ -75,7 +69,6 @@ func init() {
 	_ = flag.Set("alsologtostderr", "true") // enable printing to console
 }
 
-// main runs the policy_qos migration.
 // Migration without SQL error will result in `SUCCESS` printed to stderr.
 func main() {
 	defer glog.Flush()
@@ -103,18 +96,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 	defer func() { _ = sc.Clear() }()
 	builder := sqorc.GetSqlBuilder().RunWith(sc)
 
-	edges := []migrations.AssocDirection{
-		{FromType: subscriberEntType, ToType: basenameEntType}, // subscriber -> base_name
-		{FromType: subscriberEntType, ToType: policyEntType},   // subscriber -> policy
-		{FromType: basenameEntType, ToType: policyEntType},     // base_name -> policy
-	}
-
-	err := migrations.SetAssocDirections(builder, edges)
-	if err != nil {
-		return nil, err
-	}
-
-	err = migratePolicyRules(tx, builder)
+	err := migratePolicyRules(tx, builder)
 	if err != nil {
 		return nil, err
 	}
@@ -126,13 +108,11 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 	return nil, nil
 }
 
-// migratePolicyRules derives and creates a policy_qos_profile entity for each
-// existing policy entity.
-// Also removes the Qos field from existing policy entities.
+// Changes the old ipv4_src/ipv4_dst strings to ip_src/ip_dst IPAddress structure
 func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error {
 	// Get all existing policy ents
 	rows, err := builder.
-		Select(entPkCol, entKeyCol, entNidCol, entGidCol, entConfCol).
+		Select(entPkCol, entKeyCol, entConfCol).
 		From(entityTable).
 		Where(squirrel.Eq{entTypeCol: policyEntType}).
 		RunWith(tx).Query()
@@ -144,7 +124,7 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 		var key string
 		old := policyEnt{}
 		var confBytes []byte
-		err = rows.Scan(&old.pk, &key, &old.network, &old.gid, &confBytes)
+		err = rows.Scan(&old.pk, &key, &confBytes)
 		if err != nil {
 			return errors.Wrap(err, "scan policy")
 		}
@@ -176,37 +156,21 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 			TrackingType:   c.TrackingType,
 		}
 
-		if c.FlowList != nil {
-			var newFlowList []*types.FlowDescription
-			for _, flow_desc := range c.FlowList {
-				fd := &types.FlowDescription{
-					Action: flow_desc.Action,
-					Match: &types.FlowMatch{
-						Direction: flow_desc.Match.Direction,
-						IPProto:   flow_desc.Match.IPProto,
-						TCPDst: flow_desc.Match.TCPDst,
-						TCPSrc: flow_desc.Match.TCPSrc,
-						UDPDst: flow_desc.Match.UDPDst,
-						UDPSrc: flow_desc.Match.UDPSrc,
-					},
-				}
-				if flow_desc.Match.IPV4Src != "" {
-                    fd.Match.IPSrc = &types.IPAddress{
-                        Version: types.IPAddressVersionIPV4,
-                        Address: flow_desc.Match.IPV4Src,
-                    }
-                }
-				if flow_desc.Match.IPV4Dst != "" {
-                    fd.Match.IPDst = &types.IPAddress{
-                        Version: types.IPAddressVersionIPV4,
-                        Address: flow_desc.Match.IPV4Dst,
-                    }
-                }
-				newFlowList = append(newFlowList, fd)
+		for _, flow_desc := range c.FlowList {
+			fd := &types.FlowDescription{
+				Action: flow_desc.Action,
+				Match: &types.FlowMatch{
+					Direction: flow_desc.Match.Direction,
+					IPProto:   flow_desc.Match.IPProto,
+					IPSrc:     get_ip_address(flow_desc.Match.IPV4Src),
+					IPDst:     get_ip_address(flow_desc.Match.IPV4Dst),
+					TCPDst:    flow_desc.Match.TCPDst,
+					TCPSrc:    flow_desc.Match.TCPSrc,
+					UDPDst:    flow_desc.Match.UDPDst,
+					UDPSrc:    flow_desc.Match.UDPSrc,
+				},
 			}
-			newConf.FlowList = newFlowList
-		} else {
-			newConf.FlowList = nil
+			newConf.FlowList = append(newConf.FlowList, fd)
 		}
 
 		newBytes, err := json.Marshal(newConf)
@@ -230,4 +194,14 @@ func migratePolicyRules(tx *sql.Tx, builder squirrel.StatementBuilderType) error
 	}
 
 	return nil
+}
+
+func get_ip_address(ip string) *types.IPAddress {
+	if ip == "" {
+		return nil
+	}
+	return &types.IPAddress {
+		Version: types.IPAddressVersionIPV4,
+		Address: ip,
+	}
 }

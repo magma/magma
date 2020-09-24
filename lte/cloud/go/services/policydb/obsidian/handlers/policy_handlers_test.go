@@ -239,7 +239,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Test add invalid policy rule
+	// Test old ip(ipv4_src/ipvr_dst) is properly converted to new ip_src/ip_dst
 	test_old_ip_policy := &policyModels.PolicyRule{
 		ID: "test_old_ip_policy",
 		FlowList: []*policyModels.FlowDescription{
