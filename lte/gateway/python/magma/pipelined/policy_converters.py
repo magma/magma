@@ -82,10 +82,12 @@ def flow_match_to_magma_match(match, ip_addr=None):
         else:
             ip_src_reg = 'ipv6_src'
             ip_dst_reg = 'ipv6_dst'
-        if _get_direction_for_match(match) == Direction.OUT:
-            match_kwargs[ip_src_reg] = ip_addr.address.decode('utf-8')
-        else:
-            match_kwargs[ip_dst_reg] = ip_addr.address.decode('utf-8')
+
+        if ip_addr.address.decode('utf-8'):
+            if _get_direction_for_match(match) == Direction.OUT:
+                match_kwargs[ip_src_reg] = ip_addr.address.decode('utf-8')
+            else:
+                match_kwargs[ip_dst_reg] = ip_addr.address.decode('utf-8')
 
     return MagmaMatch(direction=_get_direction_for_match(match),
                       **match_kwargs)
@@ -155,6 +157,9 @@ def get_ue_ipv4_match_args(ip_addr, direction):
         else:
             ip_src_reg = 'ipv6_src'
             ip_dst_reg = 'ipv6_dst'
+
+        if not ip_addr.address.decode('utf-8'):
+            return ip_match
 
         if direction == Direction.OUT:
             ip_match = {ip_src_reg: ip_addr.address.decode('utf-8')}
