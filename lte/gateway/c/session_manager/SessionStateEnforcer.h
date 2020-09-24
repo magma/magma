@@ -30,8 +30,8 @@ limitations under the License.
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
 #include <lte/protos/policydb.pb.h>
-#include "RuleStore.h"
 #include "PipelinedClient.h"
+#include "RuleStore.h"
 #include "SessionState.h"
 #include "SessionStore.h"
 #include "AmfServiceClient.h"

@@ -81,7 +81,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
             request_cpy.common_context().apn();  // may not required for demo-1
         std::string session_id = id_gen_.gen_session_id(imsi);
 
-        MLOG(MDEBUG) << "Requested imsi from UE: " << imsi
+        MLOG(MDEBUG) << "Requested session from UE with IMSI: " << imsi
                      << " Generated sessioncontext ID" << session_id;
         /*reach complete message from proto message*/
         SessionConfig cfg = m5g_build_session_config(request_cpy);
@@ -95,8 +95,8 @@ void SetMessageManagerHandler::SetAmfSessionContext(
            */
           MLOG(MDEBUG)
               << "AMF request type INITIAL_REQUEST and session state CREATING";
-          /* read the SessionMap from global session_store
-           * if not found it will add this imsi
+          /* Read the SessionMap from global session_store,
+           * if it is not found, it will be added w.r.t imsi
            */
           auto session_map = session_store_.read_sessions({imsi});
           send_create_session(session_map, imsi, session_id, cfg);
@@ -113,8 +113,8 @@ void SetMessageManagerHandler::send_create_session(
   bool success = m5g_enforcer_->m5g_init_session_credit(
       *session_map_ptr, imsi, session_id, cfg);
   if (!success) {
-    MLOG(MERROR) << "Failed to initialize SessionState for IMSI and returing"
-                 << imsi;
+     MLOG(MERROR) << "Failed to initialize SessionStore for 5G session " 
+	                   << session_id <<" IMSI "<< " imsi";
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/

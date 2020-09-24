@@ -33,7 +33,8 @@
 #include "EnumToString.h"
 #include "SessionStateEnforcer.h"
 
-namespace magma {
+namespace magma 
+{
 // temp routine
 void call_back_void_upf(grpc::Status, magma::UpfRes response) {
   // do nothinf but to only passing call back
@@ -83,14 +84,13 @@ bool SessionStateEnforcer::m5g_init_session_credit(
    */
   auto exist_imsi = session_map.find(imsi);
   if (exist_imsi == session_map.end()) {
-    // First time a session is created for IMSI in the SessionMap
-    MLOG(MDEBUG) << "First session for IMSI " << imsi
-                 << " with session context ID " << session_id;
+    //First time a session is created for IMSI in the SessionMap
     session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
   } else {
-    MLOG(MINFO) << "Sanjay inside else session exist session for IMSI " << imsi;
     session_map[imsi].push_back(std::move(session_state));
   }
+  MLOG(MDEBUG) << "Added a session ("<< session_map[imsi].size() <<") for IMSI " 
+	       << imsi << " with session context ID " << session_id;
   return true;
 }
 
@@ -99,22 +99,18 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
     SessionState& session_state) {
   auto itp = pdr_map_.equal_range(imsi);
   for (auto itr = itp.first; itr != itp.second; itr++) {
-    /* Get the PDR numbers, now  get the rules from global static rule
-     * list
-     */
+     //Get the PDR numbers, now  get the rules from global static rule list
     SetGroupPDR rule;
     GlobalRuleList.get_rule(itr->second, &rule);
-    session_state.insert_with_static_rules(&rule);
+    session_state.insert_pdr(&rule);
   }
   auto itf = far_map_.equal_range(imsi);
   for (auto itr = itf.first; itr != itf.second; itr++) {
-    /* Get the PDR numbers, now  get the rules from global static rule
-     * list
-     */
+    // Get the PDR number, from global static rule list
     SetGroupFAR rule;
     GlobalRuleList.get_rule(itr->second, &rule);
     // Add to the the session vector
-    session_state.insert_with_static_rules(&rule);
+    session_state.insert_far(&rule);
   }
   auto ip_addr = session_state.get_config()
                      .rat_specific_context.m5gsm_session_context()
@@ -123,8 +119,8 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
   SessionState::SessionInfo sess_info;
   sess_info.imsi       = imsi;
   sess_info.ip_addr    = ip_addr;
-  sess_info.Pdr_rules_ = session_state.get_5g_static_pdr_rules();
-  sess_info.Far_rules_ = session_state.get_5g_static_far_rules();
+  sess_info.Pdr_rules_ = session_state.get_all_pdr_rules();
+  sess_info.Far_rules_ = session_state.get_all_far_rules();
   session_state.sess_infocopy(&sess_info);
 
   /* session_state elments are filled with rules. State needs to be
@@ -150,11 +146,11 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
   return;
 }
 
-/* To send response back to AMF
+/* To prepare response back to AMF
  * Fill the response structure from session context message
- * and call rpc of AmfServiceClient
- * TODO  const std::vector<magma::PolicyRule>& flows
- *            ==> related to AuthorizedQosRules authorized_qos_rules.
+ * and call rpc of AmfServiceClient.
+ * TODO Recheck, if this can be part of AmfServiceClient and
+ * move this function to AmfServiceClient object context.
  */
 void SessionStateEnforcer::prepare_response_to_access(
     const std::string& imsi, SessionState& session_state,
@@ -207,8 +203,7 @@ void SessionStateEnforcer::prepare_response_to_access(
 }
 
 bool SessionStateEnforcer::static_rule_init() {
-  // Static PDR, FAR, QDR, URR and BAR mapping  and also
-  //  Define 1 PDR and FAR
+  //Static PDR, FAR, QDR, URR and BAR mapping  and also define 1 PDR and FAR
   SetGroupPDR reqpdr1, reqpdr2;
   SetGroupFAR reqf;
   magma::PDI pdireq;
