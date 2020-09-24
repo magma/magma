@@ -33,6 +33,8 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationResponse.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SecurityModeCommand.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SecurityModeComplete.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/IdentityRequest.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/IdentityResponse.cpp
     )
 
 set(libnas_ies_OBJS
@@ -52,6 +54,7 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/EAPMessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/NASSecurityAlgorithms.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/UESecurityCapability.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/5GSIdentityType.cpp
     )
 
 add_library(TASK_NAS5G

@@ -1,22 +1,22 @@
-find_package(Check REQUIRED)
+find_package(Check REQUIRED) 
 find_package(Threads REQUIRED)
 
-#Executable for Registration Request  Message Decode
+#Executable for Registration Request Message Decode
 add_executable(RegReqDecode RegReqDecode.cpp)
 
 target_link_libraries(RegReqDecode TASK_NAS5G)
 
-#Executable for Registration Accept  Message encode
+#Executable for Registration Accept Message encode
 add_executable(RegAcptEncode RegAcptEncode.cpp)
 
 target_link_libraries(RegAcptEncode TASK_NAS5G)
 
-#Executable for De-Registration Request(UE)  Message decode
+#Executable for De - Registration Request(UE) Message decode
 add_executable(DeRegReqDecode DeRegReqDecode.cpp)
 
 target_link_libraries(DeRegReqDecode TASK_NAS5G)
 
-#Executable for De-Registration Accept(UE)  Message encode
+#Executable for De - Registration Accept(UE) Message encode
 add_executable(DeRegAcptEncode DeRegAcptEncode.cpp)
 
 target_link_libraries(DeRegAcptEncode TASK_NAS5G)
@@ -41,3 +41,12 @@ add_executable(SecurityModeCompleteDecode SecurityModeCompleteDecode.cpp)
 
 target_link_libraries(SecurityModeCompleteDecode TASK_NAS5G)
 
+#Executable for Identity Request encode
+add_executable(IdentityRequestEncode IdentityRequestEncode.cpp)
+
+target_link_libraries(IdentityRequestEncode TASK_NAS5G)
+
+#Executable for Identity Response decode
+add_executable(IdentityResponseDecode IdentityResponseDecode.cpp)
+
+target_link_libraries(IdentityResponseDecode TASK_NAS5G)
