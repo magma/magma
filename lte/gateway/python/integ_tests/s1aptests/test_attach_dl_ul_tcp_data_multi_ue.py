@@ -45,15 +45,19 @@ class TestAttachDlUlTcpDataMultiUe(unittest.TestCase):
 
         dl_reqs = reqs[::2]
         ul_reqs = reqs[1::2]
-        print("************************* Running UE downlink (TCP) for UE "
-              "ids ", dl_reqs, " and uplink (TCP) for UE ids", ul_reqs)
+        print(
+            "************************* Running UE downlink (TCP) for UE Ids",
+            [req.ue_id for req in dl_reqs],
+            "and uplink (TCP) for UE Ids",
+            [req.ue_id for req in ul_reqs],
+        )
         dl_tests = self._s1ap_wrapper.configDownlinkTest(*dl_reqs, duration=1)
         ul_tests = self._s1ap_wrapper.configUplinkTest(*ul_reqs, duration=1)
         with dl_tests.combine(dl_tests, ul_tests) as test:
             test.verify()
 
         for req in reqs:
-            print("************************* Running UE detach for UE id ",
+            print("************************* Running UE detach for UE id",
                   req.ue_id)
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
