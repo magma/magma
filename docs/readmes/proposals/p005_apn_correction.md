@@ -1,5 +1,5 @@
 ---
-id: p004_apn_correction
+id: p005_apn_correction
 title: MME APN Correction 
 hide_title: true
 ---
@@ -15,12 +15,12 @@ During session establishment, the phone may have an APN configured already.
 In this case, this APN will be used as it has a higher precedence over the
 one provided by the SIM card.
 
-This behavior requires a feature to override this value at the MME level
-based on IMSI prefixes prior to interrogating the HSS and creating the PDN
-session.
+This feature enables the overriding of UE requested APN with a network
+specified APN via IMSI prefix based filtering. Up to 10 IMSI prefix filters
+and corresponding APNs to overwrite with can be defined.
 
-This document describes the support of APN correction.
-
+Note that the APN correction applies to a federated set up only where HSS
+is used.
 
 ## Proposition
 
@@ -42,12 +42,10 @@ Request when requesting connectivity to an additional PDN.
 3/ If no APN is included in the ESM Information Response or PDN Connectivity
 Request message, then the UE is connected to the default APN.
 
+The APN correction, if enabled by setting enable_apn_correction to true, will
+overwrite the APN requested by UE for UEs with matching imsi_prefix filter
+specified as part of apn_correction_map_list with the value of key apn_override.
 
-The APN correction will be implemented upon reception of one of these two
-messages, PDN Connectivity Request or ESM Information Response. It will
-provide the possibility to filter IMSIs based on a prefix configured in the
-mme.yml or mconfig. 
-The APN is then overridden with the configured value.
 
 ```
 cat /etc/magma/mme.yml
@@ -58,7 +56,7 @@ apn_correction_map_list:
           apn_override: "magma.ipv4"
 ```
 
-The configuration will be limited to a maximum of 10 imsi prefix.
+The configuration will be limited to a maximum of 10 imsi prefix filters.
 
 
 ## How We Will Change Magma
@@ -84,8 +82,14 @@ APN based on the MME NAS config.
 This function will be called upon reception of the ESM Information Request or PDN
 Connectivity Request.
 
+Mconfig proto description will be changed to support APN correction configuration
+pending the support of mme config in swagger and NMS.
+
+**ORC8R Change**
+
+Exposing MME configuration to swagger will be supported in a later phase.
 
 **NMS Change**
 
-Exposing APN configuration to NMS will be supported in a later phase.
+Exposing APN correction configuration to NMS will be supported in a later phase.
 
