@@ -27,7 +27,7 @@ import express from 'express';
 
 import MagmaV1API from '../magma';
 import {AccessRoles} from '@fbcnms/auth/roles';
-import {CWF, FEG, FEG_LTE, LTE, SYMPHONY, XWFM} from '@fbcnms/types/network';
+import {CWF, FEG, FEG_LTE, LTE, XWFM} from '@fbcnms/types/network';
 import {access} from '@fbcnms/auth/access';
 import {difference} from 'lodash';
 
@@ -44,7 +44,8 @@ const DEFAULT_CELLULAR_CONFIG: network_cellular_configs = {
     mcc: '001',
     mnc: '01',
     network_services: ['policy_enforcement'],
-    relay_enabled: false,
+    hss_relay_enabled: false,
+    gx_gy_relay_enabled: false,
     sub_profiles: {},
     tac: 1,
   },
@@ -176,20 +177,6 @@ router.post(
               served_network_ids: data.servedNetworkIDs.split(','),
               swx: {},
             },
-          },
-        });
-      } else if (data.networkType === SYMPHONY) {
-        resp = await MagmaV1API.postSymphony({
-          symphonyNetwork: {
-            ...commonField,
-          },
-        });
-      } else {
-        await MagmaV1API.postNetworks({
-          network: {
-            ...commonField,
-            type: data.networkType,
-            dns: DEFAULT_DNS_CONFIG,
           },
         });
       }
