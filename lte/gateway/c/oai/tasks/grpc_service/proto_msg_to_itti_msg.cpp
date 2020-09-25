@@ -198,8 +198,10 @@ void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
   strcpy(itti_msg->imsi, imsi.c_str());
 
   auto nas_msg = msg->nas_message_container();
-  itti_msg->nas_msg_container =
-      bfromcstr_for_nas_msg_container(nas_msg.c_str(), nas_msg.length());
+  if (nas_msg.c_str(), nas_msg.length() > 0) {
+    itti_msg->nas_msg_container =
+        bfromcstr_with_str_len(nas_msg.c_str(), nas_msg.length());
+  }
 
   return;
 }

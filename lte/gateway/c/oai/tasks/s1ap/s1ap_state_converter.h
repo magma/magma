@@ -53,6 +53,20 @@ class S1apStateConverter : StateConverter {
       const s1ap_imsi_map_t* s1ap_imsi_map, oai::S1apImsiMap* s1ap_imsi_proto);
 
   /**
+   * Serializes supported_ta_list_t to SupportedTaList proto
+   */
+  static void supported_ta_list_to_proto(
+      const supported_ta_list_t* supported_ta_list,
+      oai::SupportedTaList* supported_ta_list_proto);
+
+  /**
+   * Serializes supported_tai_items_t to supported_tai_item proto
+   */
+  static void supported_tai_item_to_proto(
+      const supported_tai_items_t* state_supported_tai_item,
+      oai::SupportedTaiItems* supported_tai_item_proto);
+
+  /**
    * Deserializes s1ap_imsi_map_t from S1apImsiMap proto
    */
   static void proto_to_s1ap_imsi_map(
@@ -68,6 +82,14 @@ class S1apStateConverter : StateConverter {
 
   static void proto_to_ue(
       const oai::UeDescription& proto, ue_description_t* ue);
+
+  static void proto_to_supported_tai_items(
+      supported_tai_items_t* supported_tai_item_state,
+      const oai::SupportedTaiItems& supported_tai_item_proto);
+
+  static void proto_to_supported_ta_list(
+      supported_ta_list_t* supported_ta_list_state,
+      const oai::SupportedTaList& supported_ta_list_proto);
 
  private:
   S1apStateConverter();
