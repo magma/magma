@@ -930,9 +930,13 @@ void mme_app_handle_delete_session_rsp(
     if (ue_context_p->ue_context_rel_cause == S1AP_INVALID_CAUSE) {
       ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
     }
+    /* If UE has rejected activate default eps bearer request message
+     * delete the pdn context
+     */
     pdn_cid_t pid = ue_context_p->bearer_contexts[EBI_TO_INDEX(delete_sess_resp_pP->lbi)]->pdn_cx_id;
     if (ue_context_p->pdn_contexts[pid]->ue_rej_act_def_req) {
       ue_context_p->pdn_contexts[pid]->ue_rej_act_def_req = false;
+      // Free the contents of PDN session
       _pdn_connectivity_delete(&ue_context_p->emm_context, pid);
      // Free PDN context
       if (ue_context_p->pdn_contexts[pid]) {
@@ -943,6 +947,7 @@ void mme_app_handle_delete_session_rsp(
         if ((ue_context_p->bearer_contexts[bid]) &&
           (ue_context_p->bearer_contexts[bid]->ebi == delete_sess_resp_pP->lbi)) {
           free_wrapper((void**) &ue_context_p->bearer_contexts[bid]);
+          break;
         }
       }
       OAILOG_FUNC_OUT(LOG_MME_APP);

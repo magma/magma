@@ -67,8 +67,6 @@ static int _default_eps_bearer_activate(
 static int _default_eps_bearer_activate_in_bearer_setup_req(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg);
 
-//extern int _pdn_connectivity_delete(emm_context_t* emm_context, pdn_cid_t pid);
-
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
