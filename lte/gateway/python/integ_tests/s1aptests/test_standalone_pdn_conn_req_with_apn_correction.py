@@ -26,7 +26,6 @@ class TestStandAlonePdnConnReqWithApnCorrection(unittest.TestCase):
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-                stateless_mode=MagmadUtil.stateless_cmds.DISABLE,
                 apn_correction=MagmadUtil.apn_correction_cmds.ENABLE)
 
     def tearDown(self):

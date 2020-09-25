@@ -1081,7 +1081,7 @@ int mme_config_parse_file(mme_config_t* config_pP) {
           OAILOG_INFO(LOG_MME_APP, "Number of apn correction map configured =%d\n", num);
           AssertFatal(
               num <= MAX_APN_CORRECTION_MAP_LIST,
-              "Number of apn correction mmap configured:%d exceeds the maximum number supported"
+              "Number of apn correction map configured:%d exceeds the maximum number supported"
               ":%d \n",
               num, MAX_APN_CORRECTION_MAP_LIST);
 
