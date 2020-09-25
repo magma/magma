@@ -84,7 +84,8 @@ func NewExt(interval, ttl time.Duration) (*Impl, chan struct{}) {
 	return cache, cache.Gc(interval, ttl) // start garbage collector with given interval & ttl
 }
 
-// Get retrieves one auth vector from cache if available, adjusts cache and returns the vector, returns nil otherwise
+// Get retrieves up to neededNumber of auth vectors from cache if available, adjusts cache and returns the vectors,
+// returns nil if there no vectors left to return
 func (swxCache *Impl) Get(imsi string, neededNumber int) *protos.AuthenticationAnswer {
 	swxCache.mu.Lock()
 	defer swxCache.mu.Unlock()
