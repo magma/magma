@@ -15,8 +15,8 @@
  */
 
 import type {
-  lte_network,
-  network_dns_config,
+  federated_network_configs,
+  feg_lte_network,
   network_epc_configs,
   network_id,
   network_ran_configs,
@@ -25,14 +25,15 @@ import type {
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
+import {UpdateNetworkState as UpdateLteNetworkState} from '../lte/NetworkState';
 export type UpdateNetworkProps = {
   networkId: network_id,
-  lteNetwork?: lte_network,
+  lteNetwork?: feg_lte_network & {subscriber_config: network_subscriber_config},
+  federation?: federated_network_configs,
   epcConfigs?: network_epc_configs,
   lteRanConfigs?: network_ran_configs,
-  lteDnsConfig?: network_dns_config,
   subscriberConfig?: network_subscriber_config,
-  setLteNetwork: lte_network => void,
+  setLteNetwork: feg_lte_network => void,
   refreshState: boolean,
 };
 
@@ -41,7 +42,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
   const requests = [];
   if (props.lteNetwork) {
     requests.push(
-      await MagmaV1API.putLteByNetworkId({
+      await MagmaV1API.putFegLteByNetworkId({
         networkId: networkId,
         lteNetwork: {
           ...props.lteNetwork,
@@ -49,41 +50,43 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
       }),
     );
   }
-
-  if (props.epcConfigs) {
+  if (props.federation) {
     requests.push(
-      await MagmaV1API.putLteByNetworkIdCellularEpc({
-        networkId: props.networkId,
-        config: props.epcConfigs,
-      }),
-    );
-  }
-  if (props.lteRanConfigs) {
-    requests.push(
-      await MagmaV1API.putLteByNetworkIdCellularRan({
-        networkId: props.networkId,
-        config: props.lteRanConfigs,
-      }),
-    );
-  }
-  if (props.lteDnsConfig) {
-    requests.push(
-      await MagmaV1API.putLteByNetworkIdDns({
-        networkId: props.networkId,
-        config: props.lteDnsConfig,
+      await MagmaV1API.putFegLteByNetworkIdFederation({
+        networkId: networkId,
+        config: props.federation,
       }),
     );
   }
   if (props.subscriberConfig) {
     requests.push(
-      await MagmaV1API.putLteByNetworkIdSubscriberConfig({
+      await MagmaV1API.putFegLteByNetworkIdSubscriberConfig({
         networkId: props.networkId,
         record: props.subscriberConfig,
       }),
     );
   }
+  if (props.epcConfigs != null || props.lteRanConfigs != null) {
+    await UpdateLteNetworkState({
+      networkId,
+      setLteNetwork: _ => {},
+      epcConfigs: props.epcConfigs,
+      lteRanConfigs: props.lteRanConfigs,
+      refreshState: false,
+    });
+  }
   await Promise.all(requests);
   if (props.refreshState) {
-    setLteNetwork(await MagmaV1API.getLteByNetworkId({networkId}));
+    const [fegLteResp, fegLteSubscriberConfigResp] = await Promise.allSettled([
+      MagmaV1API.getFegLteByNetworkId({networkId}),
+      MagmaV1API.getFegLteByNetworkIdSubscriberConfig({networkId}),
+    ]);
+    if (fegLteResp.value) {
+      let subscriber_config = {};
+      if (fegLteSubscriberConfigResp.value) {
+        subscriber_config = fegLteSubscriberConfigResp.value;
+      }
+      setLteNetwork({...fegLteResp.value, subscriber_config});
+    }
   }
 }

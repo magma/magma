@@ -32,7 +32,7 @@ import axios from 'axios';
 
 import nullthrows from '@fbcnms/util/nullthrows';
 import {AllNetworkTypes} from '@fbcnms/types/network';
-import {CWF, FEG} from '@fbcnms/types/network';
+import {CWF, FEG, FEG_LTE} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
 import {useState} from 'react';
 
@@ -121,7 +121,7 @@ export default function NetworkDialog(props: Props) {
             ))}
           </Select>
         </FormControl>
-        {networkType === CWF && (
+        {(networkType === CWF || networkType === FEG_LTE) && (
           <TextField
             name="fegNetworkID"
             label="Federation Network ID"
