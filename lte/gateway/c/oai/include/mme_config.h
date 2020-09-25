@@ -57,7 +57,6 @@
 #define MAX_MNC_LENGTH 3
 #define MIN_MNC_LENGTH 2
 #define CIDR_SPLIT_LIST_COUNT 2
-#define MAX_APN_CORRECTION_MAP_LIST 10
 
 #define MME_CONFIG_STRING_MME_CONFIG "MME"
 #define MME_CONFIG_STRING_PID_DIRECTORY "PID_DIRECTORY"
@@ -117,8 +116,7 @@
 #define MME_CONFIG_STRING_NETWORK_INTERFACES_CONFIG "NETWORK_INTERFACES"
 #define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S1_MME                            \
   "MME_INTERFACE_NAME_FOR_S1_MME"
-#define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S1_MME                              \
-  "MME_IPV4_ADDRESS_FOR_S1_MME"
+#define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S1_MME "MME_IPV4_ADDRESS_FOR_S1_MME"
 #define MME_CONFIG_STRING_INTERFACE_NAME_FOR_S11_MME                           \
   "MME_INTERFACE_NAME_FOR_S11_MME"
 #define MME_CONFIG_STRING_IPV4_ADDRESS_FOR_S11_MME                             \
@@ -150,14 +148,6 @@
   "DISABLE_ESM_INFORMATION_PROCEDURE"
 #define MME_CONFIG_STRING_NAS_FORCE_PUSH_DEDICATED_BEARER                      \
   "FORCE_PUSH_DEDICATED_BEARER"
-#define MME_CONFIG_STRING_NAS_ENABLE_APN_CORRECTION                            \
-  "ENABLE_APN_CORRECTION"
-#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_LIST                          \
-  "APN_CORRECTION_MAP_LIST"
-#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_IMSI_PREFIX                   \
-  "APN_CORRECTION_MAP_IMSI_PREFIX"
-#define MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_APN_OVERRIDE                  \
-  "APN_CORRECTION_MAP_APN_OVERRIDE"
 
 #define MME_CONFIG_STRING_SGW_CONFIG "S-GW"
 
@@ -237,16 +227,6 @@ typedef struct itti_config_s {
   bstring log_file;
 } itti_config_t;
 
-typedef struct apn_map_s {
-  bstring imsi_prefix;
-  bstring apn_override;
-} apn_map_t;
-
-typedef struct apn_map_config_s {
-  int nb;
-  apn_map_t apn_map[MAX_APN_CORRECTION_MAP_LIST];
-} apn_map_config_t;
-
 typedef struct nas_config_s {
   uint8_t prefered_integrity_algorithm[8];
   uint8_t prefered_ciphering_algorithm[8];
@@ -264,9 +244,6 @@ typedef struct nas_config_s {
   bool force_reject_tau;
   bool force_reject_sr;
   bool disable_esm_information;
-  // apn correction
-  bool enable_apn_correction;
-  apn_map_config_t apn_map_config;
 } nas_config_t;
 
 typedef struct sgs_config_s {

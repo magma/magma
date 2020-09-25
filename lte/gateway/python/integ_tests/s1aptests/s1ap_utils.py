@@ -389,7 +389,6 @@ class SubscriberUtil(object):
 class MagmadUtil(object):
     stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
-    apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -527,30 +526,6 @@ class MagmadUtil(object):
                 + " MME configuration. Error: Unknown error"
             )
 
-    def config_apn_correction(self, cmd):
-        """
-        Configure the apn correction mode on the access gateway
-
-        Args:
-          cmd: Specify how to configure apn correction mode on AGW,
-          should be one of
-            enable: Enable apn correction feature, do nothing if already enabled
-            disable: Disable apn correction feature, do nothing if already disabled
-
-        """
-        apn_correction_cmd = ""
-        if cmd.name == MagmadUtil.apn_correction_cmds.ENABLE.name:
-            apn_correction_cmd = "sed -i \'s/correction: false/correction: true/g\' /etc/magma/mme.yml"
-        else:
-            apn_correction_cmd = "sed -i \'s/correction: true/correction: false/g\' /etc/magma/mme.yml"
-
-        ret_code = self.exec_command(
-            "sudo " + apn_correction_cmd)
-
-        if ret_code == 0:
-            print("APN Correction configured")
-        else:
-            print("APN Correction failed")
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """

@@ -146,13 +146,6 @@ def _get_attached_enodeb_tacs():
     return attached_enodeb_tacs
 
 
-def _get_apn_correction_map_list():
-    mme_config = load_service_mconfig("mme", MME())
-    if len(mme_config.apn_correction_map_list) == 0:
-        return get_service_config_value("mme", "apn_correction_map_list", None)
-    return mme_config.apn_correction_map_list
-
-
 def _get_context():
     """
     Create the context which has the interface IP and the OAI log level to use.
@@ -186,8 +179,6 @@ def _get_context():
         "ovs_uplink_mac",
     ):
         context[key] = get_service_config_value("spgw", key, "")
-    context["enable_apn_correction"] = get_service_config_value("mme", "enable_apn_correction", "")
-    context["apn_correction_map_list"] = _get_apn_correction_map_list()
     return context
 
 
