@@ -22,6 +22,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/gateway/service_registry"
+	"magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/util"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -365,8 +366,10 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 			},
 		})
 	}
-	// Argentina TZ (UTC-3hrs) TODO: Make it so that it takes the FeG's timezone
-	//m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0})))
+	if request.AccessTimezone != nil {
+		timezone := GetTimezoneByte(request.AccessTimezone)
+		m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(datatype.OctetString(string([]byte{timezone}))))
+	}
 }
 
 // getAdditionalAvps retrieves any extra AVPs based on the type of request.
@@ -419,7 +422,7 @@ func (gxClient *GxClient) getEventTriggerAVP(eventTrigger EventTrigger) *diam.AV
 }
 
 // getAPNfromConfig returns a new apn value to overwrite the one in the request based on list of regex definied in Gx config.
-// If Virtual APN config is not defined, the function returnis OCSOverwriteApn instead.
+// If Virtual APN config is not defined, the function returns OCSOverwriteApn instead.
 // Input: GxGlobalConfig and the APN received from the request
 // Output: Overwritten apn value
 func getAPNfromConfig(gxGlobalConfig *GxGlobalConfig, request_apn string) datatype.UTF8String {
@@ -485,4 +488,25 @@ func getDefaultFramedIpv4Addr() net.IP {
 		return ipV4
 	}
 	return ipV4V6
+}
+
+// TS 23.040 Section 9.2.3.11
+func GetTimezoneByte(timezone *protos.Timezone) byte {
+	// AVP expects time difference from UTC in increments of 15 minutes
+	offsetMinutes := timezone.GetOffsetMinutes()
+	increments := offsetMinutes / 15
+	if increments < 0 {
+		increments = -increments
+	}
+	// Expected format (8 bits total):
+	// bit 0-2 = tens digit
+	// bit 3   = 0 if offset is positive, 1 if it is negative
+	// bit 4-7 = ones digit
+	bottom := (increments / 10) & 0x07
+	if offsetMinutes < 0 {
+		bottom |= 0x08
+	}
+	top := (increments % 10) & 0x07
+	encodedTimezone := byte(top<<4 + bottom)
+	return encodedTimezone
 }

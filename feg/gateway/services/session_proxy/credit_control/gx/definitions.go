@@ -45,25 +45,26 @@ const (
 
 // CreditControlRequest represents a call over gx
 type CreditControlRequest struct {
-	SessionID     string
-	Type          credit_control.CreditRequestType
-	IMSI          string
-	RequestNumber uint32
-	IPAddr        string
-	SpgwIPV4      string
-	Apn           string
-	Msisdn        []byte
-	Imei          string
-	PlmnID        string
-	UserLocation  []byte
-	GcID          string
-	Qos           *QosRequestInfo
-	UsageReports  []*UsageReport
-	HardwareAddr  []byte
-	IPCANType     credit_control.IPCANType
-	RATType       credit_control.RATType
-	TgppCtx       *protos.TgppContext
-	EventTrigger  EventTrigger
+	SessionID      string
+	Type           credit_control.CreditRequestType
+	IMSI           string
+	RequestNumber  uint32
+	IPAddr         string
+	SpgwIPV4       string
+	Apn            string
+	Msisdn         []byte
+	Imei           string
+	PlmnID         string
+	UserLocation   []byte
+	GcID           string
+	Qos            *QosRequestInfo
+	UsageReports   []*UsageReport
+	HardwareAddr   []byte
+	IPCANType      credit_control.IPCANType
+	RATType        credit_control.RATType
+	TgppCtx        *protos.TgppContext
+	EventTrigger   EventTrigger
+	AccessTimezone *protos.Timezone
 }
 
 type QosRequestInfo struct {
