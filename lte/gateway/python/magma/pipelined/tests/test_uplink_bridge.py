@@ -171,9 +171,6 @@ class UplinkBridgeWithNonNATTest(unittest.TestCase):
 
         # dummy uplink interface
         vlan = "10"
-        subprocess.Popen(["ovs-vsctl", "set", "port", cls.UPLINK_BRIDGE,
-                          "tag=" + vlan]).wait()
-        assert get_ovsdb_port_tag(cls.UPLINK_BRIDGE) == vlan
 
         BridgeTools.create_internal_iface(cls.UPLINK_BRIDGE,
                                           cls.UPLINK_DHCP, None)
@@ -197,7 +194,6 @@ class UplinkBridgeWithNonNATTest(unittest.TestCase):
         cls = self.__class__
         assert_bridge_snapshot_match(self, self.UPLINK_BRIDGE, self.service_manager,
                                      include_stats=False)
-        self.assertEqual(get_ovsdb_port_tag(cls.UPLINK_BRIDGE), '[]')
 
 
 class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
@@ -276,9 +272,6 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
         # validate vlan id set
         vlan = "10"
         BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
-        subprocess.Popen(["ovs-vsctl", "set", "port", cls.UPLINK_BRIDGE,
-                          "tag=" + vlan]).wait()
-        assert get_ovsdb_port_tag(cls.UPLINK_BRIDGE) == vlan
 
         BridgeTools.create_internal_iface(cls.UPLINK_BRIDGE,
                                           cls.UPLINK_DHCP, None)
@@ -303,7 +296,6 @@ class UplinkBridgeWithNonNATTestVlan(unittest.TestCase):
         assert_bridge_snapshot_match(self, self.UPLINK_BRIDGE, self.service_manager,
                                      include_stats=False)
 
-        self.assertEqual(get_ovsdb_port_tag(cls.UPLINK_BRIDGE), cls.VLAN_TAG)
 
 class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
     BRIDGE = 'testing_br'
@@ -314,7 +306,7 @@ class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
     UPLINK_DHCP = 'test_dhcp0'
     UPLINK_PATCH = 'test_patch_p2'
     UPLINK_ETH_PORT = 'test_eth3'
-    VLAN_TAG='100'
+    VLAN_TAG='500'
     SGi_IP="1.6.5.7"
 
     @classmethod
@@ -370,9 +362,6 @@ class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
         # validate vlan id set
         vlan = "10"
         BridgeTools.create_bridge(cls.UPLINK_BRIDGE, cls.UPLINK_BRIDGE)
-        subprocess.Popen(["ovs-vsctl", "set", "port", cls.UPLINK_BRIDGE,
-                          "tag=" + vlan]).wait()
-        assert get_ovsdb_port_tag(cls.UPLINK_BRIDGE) == vlan
 
         set_ip_cmd = ["ip",
                       "addr", "replace",
@@ -403,7 +392,6 @@ class UplinkBridgeWithNonNATTest_IP_VLAN(unittest.TestCase):
         cls = self.__class__
         assert_bridge_snapshot_match(self, self.UPLINK_BRIDGE, self.service_manager,
                                      include_stats=False)
-        self.assertEqual(get_ovsdb_port_tag(cls.UPLINK_BRIDGE), cls.VLAN_TAG)
 
         self.assertIn(cls.SGi_IP, get_iface_ipv4(cls.UPLINK_BRIDGE), "ip not found")
 
@@ -591,6 +579,7 @@ class UplinkBridgeTestNatIPAddr(unittest.TestCase):
 
         assert_bridge_snapshot_match(self, self.UPLINK_BRIDGE, self.service_manager)
         self.assertIn(cls.SGi_IP, get_iface_ipv4(cls.BRIDGE_ETH_PORT), "ip not found")
+
 
 if __name__ == "__main__":
     unittest.main()
