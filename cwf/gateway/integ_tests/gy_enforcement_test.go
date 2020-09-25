@@ -648,14 +648,11 @@ func TestGyAbortSessionRequest(t *testing.T) {
 //   Generate traffic and assert the CCR-I is received.
 // - Generate 5M traffic to exceed 100% of the quota to trigger service restriction.
 // - Assert that UE flows are NOT deleted and data was passed.
-// - Generate an additional 2M traffic and assert that only Gy flows matched. Gx flows stats
-//   remains unchanged.
+// - Generate an additional 2M traffic and assert that only Gy flows matched.
 // - Send a Charging ReAuth request to top up quota and assert that the
 //   response is successful
 // - Assert that CCR-U was is generated
 // - Generate 2M traffic and assert that UE flows are NOT deleted and data was passed.
-// NOTE : Once Gy rules statistics will be fully supported, we can assert amount of data
-// passed by gy flows..
 func TestGyCreditExhaustionRestrict(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionRestrict...")
 
@@ -726,8 +723,8 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and no extra data hit gx rules
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", 4*MegaBytes, 5*MegaBytes)
+	// Check that UE mac flow was not removed and flow data hit restrict rule
+	verifyPolicyUsage(t, tr, ue.GetImsi(), "restrict-pass-user", 0, 2*MegaBytes)
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
