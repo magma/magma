@@ -40,6 +40,7 @@
     name: dhcpd
     state: restarted
     daemon_reload: yes
+    enabled: yes
   tags:
     - no_ci
   become: true
@@ -47,7 +48,7 @@
 - name: make rc local file so firewall rules persist reboots
   template:
      src: rc.local.j2
-     dest: /etc/rc.local
+     dest: /etc/rc.d/rc.local
      mode: 0775
   tags:
     - no_ci
