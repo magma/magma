@@ -158,6 +158,17 @@ MME :
         T3486                                 =  8                              # UNUSED in seconds (default is 8s)
         T3489                                 =  4                              # UNUSED in seconds (default is 4s)
         T3495                                 =  8                              # UNUSED in seconds (default is 8s)
+
+        # APN CORRECTION FEATURE
+        ENABLE_APN_CORRECTION                 = "{{ enable_apn_correction }}"
+        APN_CORRECTION_MAP_LIST               = (
+          {% for apn_map in apn_correction_map_list -%}
+          {
+            APN_CORRECTION_MAP_IMSI_PREFIX = "{{ apn_map.imsi_prefix }}" ;
+            APN_CORRECTION_MAP_APN_OVERRIDE = "{{ apn_map.apn_override }}" ;
+          }{% if not loop.last %},{% endif %}
+         {% endfor %}
+        );
     };
 
     SGS :
