@@ -12,12 +12,14 @@
  */
 #include "SessionManagerServer.h"
 #include "magma_logging.h"
-
+#include <chrono>
+#include <ctime>
 using grpc::ServerContext;
 using grpc::Status;
 
 namespace magma {
-
+auto timenow =
+      chrono::system_clock::to_time_t(chrono::system_clock::now());
 AsyncService::AsyncService(std::unique_ptr<ServerCompletionQueue> cq)
     : cq_(std::move(cq)) {}
 
@@ -58,6 +60,17 @@ void LocalSessionManagerAsyncService::init_call_data() {
   new BindPolicy2BearerCallData(cq_.get(), *this, *handler_);
   new SetSessionRulesCallData(cq_.get(), *this, *handler_);
 }
+
+/*Landing object invocation object call for 5G*/
+AmfPduSessionSmContextAsyncService::AmfPduSessionSmContextAsyncService(
+    std::unique_ptr<ServerCompletionQueue> cq,
+    std::unique_ptr<SetMessageManager> handler)
+    : AsyncService(std::move(cq)), handler_(std::move(handler)) {}
+
+void AmfPduSessionSmContextAsyncService::init_call_data() {
+  new SetAmfSessionContextCallData(cq_.get(), *this, *handler_);
+  MLOG(MINFO) << "Initializing new call data for SetAmfSessionContext";
+ }
 
 SessionProxyResponderAsyncService::SessionProxyResponderAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
