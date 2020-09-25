@@ -18,7 +18,7 @@ import {isEqual, sortBy} from 'lodash';
 
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
-import {CWF, XWFM} from '@fbcnms/types/network';
+import {CWF} from '@fbcnms/types/network';
 import {
   CWFAccessPointDBData,
   CWFGatewayDBData,
@@ -504,11 +504,9 @@ export async function syncDashboards(
       dashboardData(createDashboard(AnalyticsDBData(networks)).generate()),
     );
   }
-  if (await hasNetworkOfType(XWFM, networks)) {
-    const xwfmNetworks = await networksOfType(XWFM, networks);
-    posts.push(
-      dashboardData(createDashboard(XWFMDBData(xwfmNetworks)).generate()),
-    );
+  // TODO: When XWFM networks are a real thing change this to XWFM
+  if (await hasNetworkOfType(CWF, networks)) {
+    posts.push(dashboardData(createDashboard(XWFMDBData(networks)).generate()));
   }
 
   for (const post of posts) {
@@ -614,26 +612,6 @@ function organizationsEqual(
     nmsOrg.name == orc8rTenant.name &&
     isEqual(sortBy(nmsOrg.networkIDs), sortBy(orc8rTenant.networks))
   );
-}
-
-async function networksOfType(
-  type: network_type,
-  networks: Array<string>,
-): Promise<Array<string>> {
-  const ret = [];
-  for (const networkId of networks) {
-    try {
-      const networkInfo = await MagmaV1API.getNetworksByNetworkId({networkId});
-      if (networkInfo.type === type) {
-        ret.push(networkId);
-      }
-    } catch (error) {
-      logger.error(
-        `Error retrieving network info for network while building dashboards: ${networkId}. Error: ${error}`,
-      );
-    }
-  }
-  return ret;
 }
 
 async function hasNetworkOfType(

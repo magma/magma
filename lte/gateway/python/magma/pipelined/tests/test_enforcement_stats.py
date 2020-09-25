@@ -21,6 +21,7 @@ from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
     RedirectInformation
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
     TCPPacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -147,12 +148,14 @@ class EnforcementStatsTest(unittest.TestCase):
         """ Create 2 policy rules for the subscriber """
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         flow_list2 = [FlowDescription(
             match=FlowMatch(
-                ipv4_src='45.10.0.0/24', direction=FlowMatch.DOWNLINK),
+                ip_src=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                direction=FlowMatch.DOWNLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
@@ -162,9 +165,9 @@ class EnforcementStatsTest(unittest.TestCase):
         enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
                          imsi + '|rx_match' + '|' + sub_ip]
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, sub_ip, 'tx_match')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'tx_match')
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, sub_ip, 'rx_match')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policies[0].id] = policies[0]
@@ -248,7 +251,7 @@ class EnforcementStatsTest(unittest.TestCase):
         )
         stat_name = imsi + '|redir_test' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, sub_ip, 'redir_test')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'redir_test')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
@@ -305,12 +308,13 @@ class EnforcementStatsTest(unittest.TestCase):
 
         flow_list = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, sub_ip, 'rule1')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
@@ -349,13 +353,14 @@ class EnforcementStatsTest(unittest.TestCase):
 
         flow_list = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
         enf_stat_name = imsi + '|rule1' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, sub_ip, 'rule1')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
@@ -390,9 +395,10 @@ class EnforcementStatsTest(unittest.TestCase):
             self.enforcement_stats_controller._report_usage.reset_mock()
             pkt_sender.send(packet)
             self.service_manager.session_rule_version_mapper. \
-                update_version(imsi, sub_ip, 'rule1')
-            self.enforcement_controller.deactivate_rules(imsi, sub_ip,
-                                                         [policy.id])
+                update_version(imsi, convert_ipv4_str_to_ip_proto(sub_ip),
+                               'rule1')
+            self.enforcement_controller.deactivate_rules(
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
 
         wait_for_enforcement_stats(self.enforcement_stats_controller,
                                    [enf_stat_name])
@@ -427,13 +433,14 @@ class EnforcementStatsTest(unittest.TestCase):
 
         flow_list = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
         enf_stat_name = imsi + '|rule1' + '|' + sub_ip
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, sub_ip, 'rule1')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policy.id] = policy
@@ -470,14 +477,16 @@ class EnforcementStatsTest(unittest.TestCase):
 
             self.enforcement_stats_controller._report_usage.reset_mock()
             self.service_manager.session_rule_version_mapper. \
-                update_version(imsi, sub_ip, 'rule1')
-            self.enforcement_controller.deactivate_rules(imsi, sub_ip,
-                                                         [policy.id])
-            self.enforcement_controller.activate_rules(imsi, sub_ip,
-                                                       None, [policy.id], [])
-            self.enforcement_stats_controller.activate_rules(imsi, sub_ip,
-                                                             None, [policy.id],
-                                                             [])
+                update_version(imsi, convert_ipv4_str_to_ip_proto(sub_ip),
+                               'rule1')
+            self.enforcement_controller.deactivate_rules(
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
+            self.enforcement_controller.activate_rules(
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
+                [])
+            self.enforcement_stats_controller.activate_rules(
+                imsi, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
+                [])
             pkt_sender.send(packet)
 
         wait_for_enforcement_stats(self.enforcement_stats_controller,

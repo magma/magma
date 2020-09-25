@@ -536,7 +536,8 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   void complete_final_unit_action_flows_install(
-      Status status, DirectoryField resp, const FinalActionInstallInfo info);
+      SessionMap& session_map, const std::string& ipv4,
+      const FinalActionInstallInfo info, SessionUpdate& session_update);
 
   /**
    * Remove final action flows through pipelined

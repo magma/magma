@@ -254,6 +254,8 @@ func CreateRule(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
+	updateToNewIPModel(rule.FlowList)
+
 	// Verify that subscribers and policies exist
 	var allAssocs storage.TKs
 	allAssocs = append(allAssocs, rule.GetParentAssocs()...)
@@ -323,6 +325,8 @@ func UpdateRule(c echo.Context) error {
 	if ruleID != string(rule.ID) {
 		return obsidian.HttpError(errors.New("rule ID in body does not match URL param"), http.StatusBadRequest)
 	}
+
+	updateToNewIPModel(rule.FlowList)
 
 	// 404 if the rule doesn't exist
 	oldEnt, err := configurator.LoadEntity(
@@ -462,4 +466,23 @@ func getNetworkAndParam(c echo.Context, paramName string) (string, string, *echo
 		return "", "", err
 	}
 	return vals[0], vals[1], nil
+}
+
+func updateToNewIPModel(flowList []*models.FlowDescription) {
+	for _, flow_desc := range flowList {
+		if flow_desc.Match.IPV4Src != "" {
+			flow_desc.Match.IPSrc = &models.IPAddress{
+				Version: models.IPAddressVersionIPV4,
+				Address: flow_desc.Match.IPV4Src,
+			}
+			flow_desc.Match.IPV4Src = ""
+		}
+		if flow_desc.Match.IPV4Dst != "" {
+			flow_desc.Match.IPDst = &models.IPAddress{
+				Version: models.IPAddressVersionIPV4,
+				Address: flow_desc.Match.IPV4Dst,
+			}
+			flow_desc.Match.IPV4Dst = ""
+		}
+	}
 }

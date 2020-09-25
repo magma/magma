@@ -558,84 +558,99 @@ void LocalEnforcer::populate_final_action_install_info(
 void LocalEnforcer::start_final_unit_action_flows_install(
     SessionMap& session_map, const FinalActionInstallInfo final_action_info,
     SessionUpdate& session_update) {
+  const auto &imsi       = final_action_info.imsi,
+             &session_id = final_action_info.session_id;
+  // First check if the UE IPv4 field is filled out & ready to use
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << session_id
+                 << " not found when trying to install final unit action flows";
+    return;
+  }
+  auto ip = (**session_it)->get_config().common_context.ue_ipv4();
+  if (!ip.empty()) {
+    complete_final_unit_action_flows_install(
+        session_map, ip, final_action_info, session_update);
+    return;
+  }
+
+  // If UE IPv4 does not exist in the context, fetch it from DirectoryD
   MLOG(MDEBUG) << "Fetching Subscriber IP address from DirectoryD for "
-               << final_action_info.session_id;
+               << session_id;
   directoryd_client_->get_directoryd_ip_field(
-      final_action_info.imsi,
-      [this, final_action_info](Status status, DirectoryField resp) {
+      imsi, [this, final_action_info](Status status, DirectoryField resp) {
         // This call back gets executed in the DirectoryD client thread, but
         // we want to run the session update logic in the main thread.
-        evb_->runInEventBaseThread([this, final_action_info, status, resp]() {
-          complete_final_unit_action_flows_install(
-              status, resp, final_action_info);
-        });
+        if (!status.ok()) {
+          MLOG(MERROR) << "Could not fetch IP info for "
+                       << final_action_info.session_id
+                       << ". Failing final action flow install error: "
+                       << status.error_message();
+          return;
+        }
+        evb_->runInEventBaseThread(
+            [this, final_action_info, status, resp]() {
+              auto session_map = session_store_.read_sessions_for_deletion(
+                  {final_action_info.imsi});
+              auto session_update =
+                  SessionStore::get_default_session_update(session_map);
+              complete_final_unit_action_flows_install(
+                  session_map, resp.value(), final_action_info, session_update);
+              auto success = session_store_.update_sessions(session_update);
+              if (!success) {
+                MLOG(MERROR)
+                    << "Failed to store final unit action flows update for "
+                    << final_action_info.session_id;
+              }
+            });
       });
 }
 
 void LocalEnforcer::complete_final_unit_action_flows_install(
-    Status status, DirectoryField resp,
-    const FinalActionInstallInfo final_action_info) {
+    SessionMap& session_map, const std::string& ip,
+    const FinalActionInstallInfo final_action_info,
+    SessionUpdate& session_update) {
   const auto& imsi       = final_action_info.imsi;
   const auto& session_id = final_action_info.session_id;
 
-  MLOG(MDEBUG) << "Received response from DirectoryD on IP addr for "
-               << session_id;
-  if (!status.ok()) {
-    MLOG(MERROR) << "Could not fetch IP info for " << session_id
-                 << ". Failing redirection install error: "
-                 << status.error_message();
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << session_id
+                 << " not found when trying to install final unit action flows";
     return;
   }
-
-  auto ip          = resp.value();
-  auto session_map = session_store_.read_sessions(SessionRead{imsi});
-  auto it          = session_map.find(imsi);
-  if (it == session_map.end()) {
-    MLOG(MDEBUG) << "Session for IMSI " << imsi << " not found";
-    return;
-  }
-
+  MLOG(MINFO) << "Installing final action "
+              << service_action_type_to_str(final_action_info.action_type)
+              << " flows for " << session_id;
   RuleLifetime lifetime{};
-  auto session_update = session_store_.get_default_session_update(session_map);
-  auto& uc            = session_update[imsi][session_id];
-  for (const auto& session : it->second) {
-    if (session->get_session_id() == session_id) {
-      switch (final_action_info.action_type) {
-        case REDIRECT: {
-          // This is GY based REDIRECT, GX redirect will come in as a regular
-          // rule
-          std::vector<std::string> static_rules;
-          const auto& rule = create_redirect_rule(final_action_info);
-          // check if the rule has been installed already.
-          if (!session->is_gy_dynamic_rule_installed(rule.id())) {
-            MLOG(MDEBUG) << "Install redirect GY flow in pipelined for "
-                         << session_id;
-            pipelined_client_->add_gy_final_action_flow(
-                imsi, ip, static_rules, {rule});
-            session->insert_gy_dynamic_rule(rule, lifetime, uc);
-          }
-          break;
-        }
-        case RESTRICT_ACCESS: {
-          MLOG(MDEBUG) << "Install restricted GY flow in pipelined for "
-                       << session_id;
-          pipelined_client_->add_gy_final_action_flow(
-              imsi, ip, final_action_info.restrict_rules, {});
-          break;
-        }
-        default:
-          MLOG(MDEBUG) << "Unexpected final unit action install "
-                       << service_action_type_to_str(
-                              final_action_info.action_type)
-                       << " for " << session_id;
-          break;
+  auto& uc      = session_update[imsi][session_id];
+  auto& session = **session_it;
+  switch (final_action_info.action_type) {
+    case REDIRECT: {
+      // This is GY based REDIRECT, GX redirect will come in as a regular
+      // rule
+      std::vector<std::string> static_rules;
+      const auto& rule = create_redirect_rule(final_action_info);
+      // check if the rule has been installed already.
+      if (!session->is_gy_dynamic_rule_installed(rule.id())) {
+        pipelined_client_->add_gy_final_action_flow(
+            imsi, ip, static_rules, {rule});
+        session->insert_gy_dynamic_rule(rule, lifetime, uc);
       }
+      return;
     }
-  }
-  auto success = session_store_.update_sessions(session_update);
-  if (!success) {
-    MLOG(MERROR) << "Failed to store final unit action flows update for "
-                 << session_id;
+    case RESTRICT_ACCESS: {
+      pipelined_client_->add_gy_final_action_flow(
+          imsi, ip, final_action_info.restrict_rules, {});
+      return;
+    }
+    default:
+      MLOG(MDEBUG) << "Unexpected final unit action install "
+                   << service_action_type_to_str(final_action_info.action_type)
+                   << " for " << session_id;
+      return;
   }
 }
 

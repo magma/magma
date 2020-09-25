@@ -13,6 +13,16 @@ aliases:
         only:
           - master
           - develop
+  - &lte_build_verify
+    paths: "orc8r lte"
+  - &federated_build_verify
+    paths: "orc8r lte feg"
+  - &all_gateways_build_verify
+    paths: "orc8r lte feg cwf"
+  - &nms_build_verify
+    paths: "nms"
+  - &orc8r_build_verify
+    paths: "orc8r"
 
 executors:
   node:
@@ -49,7 +59,12 @@ orbs:
           - run:
               name: Checking for changes
               command: |
-                paths=".circleci <<parameters.paths>>"
+                if [ "${CIRCLE_BRANCH}" = "master" ]; then
+                  echo "Determinator does not run on master"
+                  exit 0
+                fi
+
+                paths=".circleci circleci <<parameters.paths>>"
                 echo "Checking paths [$paths]"
                 for path in $paths; do
                   if [[ $(git diff master^ --name-only $path) ]]; then
@@ -206,6 +221,8 @@ commands:
         type: string
     steps:
       - checkout
+      - build/determinator:
+          <<: *lte_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           name: Install tools
@@ -399,6 +416,8 @@ jobs:
       - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - docker/install-dc
       - run:
           name: "Set Python Version"
@@ -413,12 +432,14 @@ jobs:
   insync-checkin:
     machine:
       image: ubuntu-1604:201903-01
-      docker_layer_caching: true
+      #docker_layer_caching: true
     environment:
       - MAGMA_ROOT=/home/circleci/project
       - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - docker/install-dc
       - run: sudo apt-get update
       - run:
@@ -445,6 +466,8 @@ jobs:
       - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - docker/install-dc
       - run: sudo apt-get update
       - run:
@@ -475,6 +498,8 @@ jobs:
       - GOPROXY=https://proxy.golang.org
     steps:
       - checkout
+      - build/determinator:
+          <<: *orc8r_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run-with-retry:
           command: go mod download
@@ -493,6 +518,8 @@ jobs:
       - GO111MODULE=on
     steps:
       - checkout
+      - build/determinator:
+          <<: *federated_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
@@ -513,6 +540,8 @@ jobs:
       - MAGMA_ROOT=/home/circleci/project
     steps:
       - checkout
+      - build/determinator:
+          <<: *federated_build_verify
       - run:
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
@@ -536,6 +565,8 @@ jobs:
       - GOPROXY=https://proxy.golang.org
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
@@ -553,6 +584,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - magma_integ_test:
           stack: cwf
           test: 'True'
@@ -577,6 +610,8 @@ jobs:
       - DOCKER_REGISTRY=cwf_
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - docker/install-dc
       - run:
           name: Build CWAG containers
@@ -608,6 +643,8 @@ jobs:
       - SWAGGER_CODEGEN_JAR=/home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
+      - build/determinator:
+          <<: *lte_build_verify
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
       - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
@@ -629,6 +666,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - build/determinator:
+          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'True'
@@ -639,6 +678,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - build/determinator:
+          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'False'
@@ -658,6 +699,8 @@ jobs:
       - GOPROXY=https://proxy.golang.org
     steps:
       - checkout
+      - build/determinator:
+          paths: "cwf/k8s"
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
@@ -678,6 +721,8 @@ jobs:
       - MAGMA_ROOT=/home/circleci/project
     steps:
       - checkout
+      - build/determinator:
+          paths: "cwf/k8s"
       - docker/install-dc
       - run:
           command: |
@@ -701,7 +746,7 @@ jobs:
     steps:
       - checkout
       - build/determinator:
-          paths: "nms"
+          <<: *nms_build_verify
       - run:
           name: install flow
           <<: *appdir
@@ -719,7 +764,7 @@ jobs:
     steps:
       - checkout
       - build/determinator:
-          paths: "nms"
+          <<: *nms_build_verify
       - yarn-install
       - run:
           name: eslint
@@ -732,7 +777,7 @@ jobs:
     steps:
       - checkout
       - build/determinator:
-          paths: "nms"
+          <<: *nms_build_verify
       - yarn-install
       - run:
           name: yarn test
@@ -748,7 +793,7 @@ jobs:
     steps:
       - checkout
       - build/determinator:
-          paths: "nms"
+          <<: *nms_build_verify
       - docker/install-dc
       - apt-install-yarn
       - yarn-install
@@ -772,7 +817,7 @@ jobs:
     steps:
       - checkout
       - build/determinator:
-          paths: "nms"
+          <<: *nms_build_verify
       - docker/install-dc
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:

@@ -153,3 +153,17 @@ Note when SessionD receives a grant which includes Final Unit Indicaton, it
 will continue tracking this charging key until any of its quotas is exhausted. 
 Once it is exhausted, Final Unit Action (termnate, redirect, restrict) 
 will be executed.
+
+#### Enabling Restriction
+In addition to Final Unit Action AVP, OCS must include a list of Filter-ID AVP in the
+final grant. These filters reference static policy rule identifiers that are pre-provisioned
+in PCRF and should contain an explicit DENY rule for non allowed traffic.
+
+Note that static rules referenced in Filter-ID must not be activated by Gx Interface due to a
+limitation in pipelined.
+
+#### Enabling Redirection
+In addition to Final Unit Action AVP, OCS must include a Redirect-Information AVP which
+includes the redirect server address and the address type (URL/IPV4) in the final grant.
+
+Note that SIP_URI and IPV6 are not supported.

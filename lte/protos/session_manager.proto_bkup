@@ -294,11 +294,6 @@ service SessionProxyResponder {
 // CentralSessionController service
 ///////////////////
 
-message Timezone {
-  // Describe a timezone by offset from UTC in minutes
-  int32 offset_minutes = 1;
-}
-
 message CreditUnit {
   bool is_valid = 1;
   uint64 volume = 2;
@@ -428,8 +423,7 @@ message UsageMonitorUpdate {
 message UsageMonitoringCredit {
   enum Action {
     CONTINUE = 0; // continue monitoring as normal
-    DISABLE = 1; // no need to monitor any more  `AVP: Usage-Monitor-Support`
-    FORCE = 2; // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` // TODO: not implemented on sessiond
+    DISABLE = 1; // no need to monitor any more
   }
   Action action = 1;
   bytes monitoring_key = 2;
@@ -487,7 +481,6 @@ message TgppContext {
 }
 
 message CreateSessionRequest {
-  Timezone access_timezone = 1;
   string session_id = 2;
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
@@ -725,11 +718,12 @@ message SetSMSessionContext {
   CommonSessionContext common_context = 1;  //Common message for 4g, 5g and WiFi.
   RatSpecificContext   rat_specific_context = 2;
 }
-
-//TODO This supposed to be empty message and the element will be removed later
 message SmContextVoid {
+
   string output = 1;
+
 }
+
 
 //SET API for 3 procedures request from AMF to SMF
         service AmfPduSessionSmContext {
@@ -740,7 +734,7 @@ message SmContextVoid {
 
 //4G response message has not been refactored yet. Hence only considering M5G.
 message RatSpecificContextAccess {
-  //oneof context {//TODO need to be implemented after 4G refactored
+  //oneof context {
     //LTESessionContextAccess lte_context = 1;
     M5GSMSessionContextAccess m5g_session_context_rsp = 2;
   //}
