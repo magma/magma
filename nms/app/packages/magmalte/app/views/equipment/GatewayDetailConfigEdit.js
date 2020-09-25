@@ -17,6 +17,7 @@ import type {
   challenge_key,
   enodeb_serials,
   gateway_device,
+  gateway_dns_configs,
   gateway_epc_configs,
   gateway_logging_configs,
   gateway_ran_configs,
@@ -671,23 +672,35 @@ export function EPCEdit(props: Props) {
   );
 }
 
+const DEFAULT_DNS_CONFIG = {
+  enable_caching: false,
+  local_ttl: 0,
+  records: [],
+};
+
 export function RanEdit(props: Props) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
   const enbsCtx = useContext(EnodebContext);
-  const handleRanChange = (key: string, val) => {
-    setRanConfig({...ranConfig, [key]: val});
-  };
   const [ranConfig, setRanConfig] = useState<gateway_ran_configs>(
     props.gateway?.cellular.ran || DEFAULT_GATEWAY_CONFIG.cellular.ran,
   );
-
+  const [dnsConfig, setDnsConfig] = useState<gateway_dns_configs>(
+    props.gateway?.cellular.dns ?? {},
+  );
   const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
     props.gateway?.connected_enodeb_serials ||
       DEFAULT_GATEWAY_CONFIG.connected_enodeb_serials,
   );
+  const handleRanChange = (key: string, val) => {
+    setRanConfig({...ranConfig, [key]: val});
+  };
+  const handleDnsChange = (key: string, val) => {
+    setDnsConfig({...dnsConfig, [key]: val});
+  };
+
   const onSave = async () => {
     try {
       const gateway = {
@@ -702,6 +715,9 @@ export function RanEdit(props: Props) {
         gatewayId: gateway.id,
         enbs: connectedEnodebs,
         ranConfigs: ranConfig,
+        dnsConfig: Object.keys(dnsConfig).length
+          ? {...DEFAULT_DNS_CONFIG, ...dnsConfig}
+          : undefined,
       });
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
@@ -723,6 +739,7 @@ export function RanEdit(props: Props) {
           )}
           <AltFormField label={'PCI'}>
             <OutlinedInput
+              disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
               data-testid="pci"
               placeholder="Enter PCI"
               type="number"
@@ -753,28 +770,43 @@ export function RanEdit(props: Props) {
               }}
               input={
                 <OutlinedInput
+                  disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
                   className={
                     connectedEnodebs.length ? '' : classes.selectPlaceholder
                   }
                 />
               }>
-              {Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
-                <MenuItem key={enbSerial} value={enbSerial}>
-                  <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
-                  <ListItemText
-                    primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
-                    secondary={enbSerial}
-                  />
-                </MenuItem>
-              ))}
+              {enbsCtx?.state &&
+                Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
+                  <MenuItem key={enbSerial} value={enbSerial}>
+                    <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
+                    <ListItemText
+                      primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
+                      secondary={enbSerial}
+                    />
+                  </MenuItem>
+                ))}
             </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>
             <Switch
+              disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
               onChange={() =>
                 handleRanChange('transmit_enabled', !ranConfig.transmit_enabled)
               }
               checked={ranConfig.transmit_enabled}
+            />
+          </AltFormField>
+          <AltFormField label={'eNodeB DHCP Service'}>
+            <Switch
+              data-testid="enbDhcpService"
+              onChange={() =>
+                handleDnsChange(
+                  'dhcp_server_enabled',
+                  !(dnsConfig?.dhcp_server_enabled ?? true),
+                )
+              }
+              checked={dnsConfig?.dhcp_server_enabled ?? true}
             />
           </AltFormField>
         </List>
