@@ -83,35 +83,43 @@
     - name: Install network config  file for passthrough
       become: true
       template: src=ifcfg-gw0 dest=/etc/sysconfig/network-scripts/ifcfg-{{ uplink_if }}
-      when: uplink_if is defined 
+      when: uplink_if is not none
 
     - name: bring up uplink interface
       become: true
       shell: ifup {{ item }}
       with_items:
         - "{{ uplink_if }}"
-      when: uplink_if is defined 
+      when: uplink_if is not none
 
     - name: bring up uplink patch 
       become: true
       shell: ifup uplink_patch
-      when: downlink_if is not defined
+      when: downlink_if is none
 
     - name: Install downlink file
       become: true
       template: src=ifcfg-downlink dest=/etc/sysconfig/network-scripts/ifcfg-{{ downlink_if }}
-      when: downlink_if is defined
+      when: downlink_if is not none
 
     - name: bring up downlink interface
       become: true
       shell: ifup {{ item }}
       with_items:
         - "{{ downlink_if }}"
-      when: downlink_if is defined 
+      when: downlink_if is not none
 
 - name: Enable IP forwarding
   become: true
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
+
+- name: Add kernel paramters for arp
+  become: true
+  sysctl: name={{ item }} value=32768 sysctl_set=yes state=present reload=yes
+  with_items:
+     - "net.ipv4.neigh.default.gc_thresh1"
+     - "net.ipv4.neigh.default.gc_thresh2"
+     - "net.ipv4.neigh.default.gc_thresh3"
 
 - name: Load TLS PKI for XWF bridge
   block:

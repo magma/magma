@@ -14,14 +14,19 @@
  * @format
  */
 import 'jest-dom/extend-expect';
+import ApnContext from '../../../components/context/ApnContext';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
+import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
+
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {SetApnState} from '../../../state/lte/ApnState';
+import {SetPolicyState} from '../../../state/lte/PolicyState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
@@ -99,16 +104,32 @@ const policies = {
 };
 
 describe('<TrafficDashboard />', () => {
-  beforeEach(() => {
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull.mockResolvedValue(
-      policies,
-    );
-    MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
-  });
-  afterEach(() => {
-    axiosMock.get.mockClear();
-  });
+  const networkId = 'test';
+  const policyCtx = {
+    state: policies,
+    setState: (key, value?) => {
+      return SetPolicyState({
+        policies,
+        setPolicies: () => {},
+        networkId,
+        key,
+        value,
+      });
+    },
+  };
+
+  const apnCtx = {
+    state: apns,
+    setState: (key, value?) => {
+      return SetApnState({
+        apns,
+        setApns: () => {},
+        networkId,
+        key,
+        value,
+      });
+    },
+  };
 
   const Wrapper = () => (
     <MemoryRouter
@@ -116,10 +137,14 @@ describe('<TrafficDashboard />', () => {
       initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
         <MuiStylesThemeProvider theme={defaultTheme}>
-          <Route
-            path="/nms/:networkId/traffic/policy"
-            component={TrafficDashboard}
-          />
+          <PolicyContext.Provider value={policyCtx}>
+            <ApnContext.Provider value={apnCtx}>
+              <Route
+                path="/nms/:networkId/traffic/policy"
+                component={TrafficDashboard}
+              />
+            </ApnContext.Provider>
+          </PolicyContext.Provider>
         </MuiStylesThemeProvider>
       </MuiThemeProvider>
     </MemoryRouter>
@@ -130,12 +155,6 @@ describe('<TrafficDashboard />', () => {
       <Wrapper />,
     );
     await wait();
-
-    expect(
-      MagmaAPIBindings.getNetworksByNetworkIdPoliciesRulesViewFull,
-    ).toHaveBeenCalledTimes(1);
-
-    expect(MagmaAPIBindings.getLteByNetworkIdApns).toHaveBeenCalledTimes(1);
 
     // Policy tab
     expect(getByTestId('title_Policies')).toHaveTextContent('Policies');

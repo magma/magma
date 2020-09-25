@@ -344,7 +344,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         priority = self.get_of_priority(rule.priority)
         redirect_request = RedirectionManager.RedirectRequest(
             imsi=imsi,
-            ip_addr=ip_addr,
+            ip_addr=ip_addr.address.decode('utf-8'),
             rule=rule,
             rule_num=rule_num,
             rule_version=rule_version,
@@ -390,7 +390,7 @@ class EnforcementController(PolicyMixin, MagmaController):
 
         if qos_info or ambr:
             action, inst = self._qos_mgr.add_subscriber_qos(
-                imsi, ip_addr, ambr, rule_num, d, qos_info)
+                imsi, ip_addr.address.decode('utf8'), ambr, rule_num, d, qos_info)
 
             self.logger.debug("adding Actions %s instruction %s ", action, inst)
             if action:

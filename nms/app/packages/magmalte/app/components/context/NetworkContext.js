@@ -14,7 +14,6 @@
  * @format
  */
 'use strict';
-
 import React from 'react';
 
 export type NetworkContextType = {

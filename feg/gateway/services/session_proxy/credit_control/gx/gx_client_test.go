@@ -37,10 +37,11 @@ import (
 )
 
 const (
-	testIMSI1 = "1234"
-	testIMSI2 = "4321"
-	testIMSI3 = "4499"
-	testIMSI4 = "5000"
+	testIMSI1   = "1234"
+	testIMSI2   = "4321"
+	testIMSI3   = "4499"
+	testIMSI4   = "5000"
+	HOUR_IN_MIN = 60
 )
 
 var (
@@ -413,6 +414,17 @@ func TestDefaultFramedIpv4Addr(t *testing.T) {
 
 	_, err = lastMsg.FindAVP(avp.FramedIPv6Prefix, 0)
 	assert.EqualError(t, err, "AVP not found")
+}
+
+func TestTimezoneConversion(t *testing.T) {
+	// Test behind UTC (negative offset)
+	pTimezone := &protos.Timezone{OffsetMinutes: -8 * HOUR_IN_MIN}
+	convertedTimezone := gx.GetTimezoneByte(pTimezone)
+	assert.Equal(t, byte(0x2b), convertedTimezone)
+	// Test ahead UTC (positive offset)
+	pTimezone = &protos.Timezone{OffsetMinutes: 1 * HOUR_IN_MIN}
+	convertedTimezone = gx.GetTimezoneByte(pTimezone)
+	assert.Equal(t, byte(0x40), convertedTimezone)
 }
 
 func getClientConfig() *diameter.DiameterClientConfig {
