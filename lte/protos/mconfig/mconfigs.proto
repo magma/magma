@@ -246,14 +246,6 @@ message MME {
 
     // Enable relaying S6a messages via FeG RPC
     bool hss_relay_enabled = 23;
-
-    // Apn Correction feature
-    bool enable_apn_correction = 24;
-    message ApnCorrectionMap {
-      string imsi_prefix = 1;
-      string apn_override = 2;
-    }
-    repeated ApnCorrectionMap apn_correction_map_list = 25;
 }
 
 
