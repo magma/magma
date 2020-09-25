@@ -48,7 +48,7 @@ message UEConfig {
     // Sequence Number (SEQ).
     uint64 seq = 4;
 
-    // HSSLess Config
+    // HSSLess Configuration
     AuthenticateRequestHssLess hssless_cfg = 5;
 }
 
