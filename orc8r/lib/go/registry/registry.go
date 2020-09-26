@@ -16,9 +16,14 @@ package registry
 
 import (
 	"fmt"
+	"os"
 	"strings"
 	"sync"
 	"time"
+
+	"magma/orc8r/lib/go/protos"
+	registry_client "magma/orc8r/lib/go/registry/client"
+	"magma/orc8r/lib/go/service/middleware/unary"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
@@ -27,6 +32,17 @@ import (
 )
 
 const (
+	ServiceRegistryServiceName = "service_registry"
+
+	HelmReleaseNameEnvVar     = "HELM_RELEASE_NAME"
+	ServiceRegistryModeEnvVar = "SERVICE_REGISTRY_MODE"
+	DockerRegistryMode        = "docker"
+	K8sRegistryMode           = "k8s"
+	YamlRegistryMode          = "yaml"
+
+	HttpServerPort  = 8080
+	GrpcServicePort = 9180
+
 	annotationFieldSeparator = ","
 )
 
@@ -37,6 +53,9 @@ type ServiceRegistry struct {
 
 	cloudConnMu      sync.RWMutex
 	cloudConnections map[string]cloudConnection
+
+	serviceRegistryMode string
+	releaseName         string
 }
 
 type cloudConnection struct {
@@ -52,10 +71,15 @@ var localKeepaliveParams = keepalive.ClientParameters{
 
 // New creates and returns a new registry
 func New() *ServiceRegistry {
+	registryMode := os.Getenv(ServiceRegistryModeEnvVar)
+	releaseName := os.Getenv(HelmReleaseNameEnvVar)
 	return &ServiceRegistry{
-		ServiceConnections: map[string]*grpc.ClientConn{},
-		ServiceLocations:   map[string]ServiceLocation{},
-		cloudConnections:   map[string]cloudConnection{}}
+		ServiceConnections:  map[string]*grpc.ClientConn{},
+		ServiceLocations:    map[string]ServiceLocation{},
+		cloudConnections:    map[string]cloudConnection{},
+		serviceRegistryMode: registryMode,
+		releaseName:         releaseName,
+	}
 }
 
 // AddService add a new service.
@@ -106,30 +130,52 @@ func (r *ServiceRegistry) RemoveServicesWithLabel(label string) {
 }
 
 // ListAllServices lists the names of all registered services.
-func (r *ServiceRegistry) ListAllServices() []string {
+func (r *ServiceRegistry) ListAllServices() ([]string, error) {
 	r.RLock()
 	defer r.RUnlock()
 
-	services := make([]string, 0, len(r.ServiceLocations))
-	for service := range r.ServiceLocations {
-		services = append(services, service)
+	switch r.serviceRegistryMode {
+	case DockerRegistryMode, K8sRegistryMode:
+		client, err := r.getServiceRegistryServiceClient()
+		if err != nil {
+			return []string{}, err
+		}
+		return registry_client.ListAllServices(client)
+	case YamlRegistryMode:
+		fallthrough
+	default:
+		services := make([]string, 0, len(r.ServiceLocations))
+		for service := range r.ServiceLocations {
+			services = append(services, service)
+		}
+		return services, nil
 	}
-	return services
 }
 
 // FindServices returns the names of all registered services that have
 // the passed label.
-func (r *ServiceRegistry) FindServices(label string) []string {
+func (r *ServiceRegistry) FindServices(label string) ([]string, error) {
 	r.RLock()
 	defer r.RUnlock()
 
-	var ret []string
-	for service, location := range r.ServiceLocations {
-		if location.HasLabel(label) {
-			ret = append(ret, service)
+	switch r.serviceRegistryMode {
+	case DockerRegistryMode, K8sRegistryMode:
+		client, err := r.getServiceRegistryServiceClient()
+		if err != nil {
+			return []string{}, err
 		}
+		return registry_client.FindServices(client, label)
+	case YamlRegistryMode:
+		fallthrough
+	default:
+		var ret []string
+		for service, location := range r.ServiceLocations {
+			if location.HasLabel(label) {
+				ret = append(ret, service)
+			}
+		}
+		return ret, nil
 	}
-	return ret
 }
 
 // GetServiceAddress returns the RPC address of the service.
@@ -139,15 +185,53 @@ func (r *ServiceRegistry) GetServiceAddress(service string) (string, error) {
 	defer r.RUnlock()
 	service = strings.ToLower(service)
 
-	location, ok := r.ServiceLocations[service]
-	if !ok {
-		return "", fmt.Errorf("service %s not registered", service)
+	switch r.serviceRegistryMode {
+	case DockerRegistryMode, K8sRegistryMode:
+		client, err := r.getServiceRegistryServiceClient()
+		if err != nil {
+			return "", err
+		}
+		return registry_client.GetServiceAddress(client, service)
+	case YamlRegistryMode:
+		fallthrough
+	default:
+		location, ok := r.ServiceLocations[service]
+		if !ok {
+			return "", fmt.Errorf("service %s not registered", service)
+		}
+		if location.Port == 0 {
+			return "", fmt.Errorf("service %s is not available", service)
+		}
+		return fmt.Sprintf("%s:%d", location.Host, location.Port), nil
 	}
-	if location.Port == 0 {
-		return "", fmt.Errorf("service %s is not available", service)
-	}
+}
 
-	return fmt.Sprintf("%s:%d", location.Host, location.Port), nil
+// GetHttpServerAddress returns the HTTP address of the service from global registry
+// The service needs to be added to the registry before this.
+func (r *ServiceRegistry) GetHttpServerAddress(service string) (string, error) {
+	r.RLock()
+	defer r.RUnlock()
+	service = strings.ToLower(service)
+
+	switch r.serviceRegistryMode {
+	case DockerRegistryMode, K8sRegistryMode:
+		client, err := r.getServiceRegistryServiceClient()
+		if err != nil {
+			return "", err
+		}
+		return registry_client.GetHttpServerAddress(client, service)
+	case YamlRegistryMode:
+		fallthrough
+	default:
+		location, ok := r.ServiceLocations[service]
+		if !ok {
+			return "", fmt.Errorf("service %s not registered", service)
+		}
+		if location.EchoPort == 0 {
+			return "", fmt.Errorf("service %s is not available", service)
+		}
+		return fmt.Sprintf("%s:%d", location.Host, location.EchoPort), nil
+	}
 }
 
 // GetServiceProxyAliases returns the proxy_aliases, if any, of the service.
@@ -171,15 +255,21 @@ func (r *ServiceRegistry) GetServicePort(service string) (int, error) {
 	defer r.RUnlock()
 	service = strings.ToLower(service)
 
-	location, ok := r.ServiceLocations[service]
-	if !ok {
-		return 0, fmt.Errorf("service %s not registered", service)
+	// TODO: Update Docker/K8s service registry to return standard gRPC port
+	// once controller image is split
+	switch r.serviceRegistryMode {
+	case DockerRegistryMode, K8sRegistryMode, YamlRegistryMode:
+		fallthrough
+	default:
+		location, ok := r.ServiceLocations[service]
+		if !ok {
+			return 0, fmt.Errorf("service %s not registered", service)
+		}
+		if location.Port == 0 {
+			return 0, fmt.Errorf("service %s not available", service)
+		}
+		return location.Port, nil
 	}
-	if location.Port == 0 {
-		return 0, fmt.Errorf("service %s not available", service)
-	}
-
-	return location.Port, nil
 }
 
 // GetEchoServerPort returns the listening port for the service's echo server.
@@ -189,15 +279,21 @@ func (r *ServiceRegistry) GetEchoServerPort(service string) (int, error) {
 	defer r.RUnlock()
 	service = strings.ToLower(service)
 
-	location, ok := r.ServiceLocations[service]
-	if !ok {
-		return 0, fmt.Errorf("failed to get echo server port: service '%s' not registered", service)
+	// TODO: Update Docker/K8s service registry to return standard HTTP port
+	// once controller image is split
+	switch r.serviceRegistryMode {
+	case DockerRegistryMode, K8sRegistryMode, YamlRegistryMode:
+		fallthrough
+	default:
+		location, ok := r.ServiceLocations[service]
+		if !ok {
+			return 0, fmt.Errorf("failed to get echo server port: service '%s' not registered", service)
+		}
+		if location.EchoPort == 0 {
+			return 0, fmt.Errorf("echo server port for service %s is not available", service)
+		}
+		return location.EchoPort, nil
 	}
-	if location.EchoPort == 0 {
-		return 0, fmt.Errorf("echo server port for service %s is not available", service)
-	}
-
-	return location.EchoPort, nil
 }
 
 // GetAnnotation returns the annotation value for the passed annotation name.
@@ -206,16 +302,26 @@ func (r *ServiceRegistry) GetAnnotation(service, annotationName string) (string,
 	defer r.RUnlock()
 	service = strings.ToLower(service)
 
-	location, ok := r.ServiceLocations[strings.ToLower(service)]
-	if !ok {
-		return "", fmt.Errorf("service %s not registered", service)
+	switch r.serviceRegistryMode {
+	case DockerRegistryMode, K8sRegistryMode:
+		client, err := r.getServiceRegistryServiceClient()
+		if err != nil {
+			return "", err
+		}
+		return registry_client.GetAnnotation(client, service, annotationName)
+	case YamlRegistryMode:
+		fallthrough
+	default:
+		location, ok := r.ServiceLocations[strings.ToLower(service)]
+		if !ok {
+			return "", fmt.Errorf("service %s not registered", service)
+		}
+		annotationValue, ok := location.Annotations[annotationName]
+		if !ok {
+			return "", fmt.Errorf("service %s doesn't have annotation values for %s", service, annotationName)
+		}
+		return annotationValue, nil
 	}
-	annotationValue, ok := location.Annotations[annotationName]
-	if !ok {
-		return "", fmt.Errorf("service %s doesn't have annotation values for %s", service, annotationName)
-	}
-
-	return annotationValue, nil
 }
 
 // GetAnnotationList returns the comma-split fields of the value for the passed
@@ -243,15 +349,9 @@ func (r *ServiceRegistry) GetAnnotationList(service, annotationName string) ([]s
 // The service needs to be added to the registry before this.
 func (r *ServiceRegistry) GetConnection(service string) (*grpc.ClientConn, error) {
 	service = strings.ToLower(service)
-
 	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
-
-	opts := []grpc.DialOption{grpc.WithBackoffMaxDelay(GrpcMaxDelaySec * time.Second), grpc.WithBlock()}
-	if *grpcKeepAlive {
-		opts = append(opts, grpc.WithKeepaliveParams(localKeepaliveParams))
-	}
-	return r.GetConnectionImpl(ctx, service, opts...)
+	return r.GetConnectionImpl(ctx, service, r.getGRPCDialOptions()...)
 }
 
 func (r *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
@@ -294,6 +394,40 @@ func (r *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string,
 
 	r.ServiceConnections[service] = newConn
 	return newConn, nil
+}
+
+func (r *ServiceRegistry) getServiceRegistryServiceClient() (protos.ServiceRegistryClient, error) {
+	addr := r.getServiceRegistryServiceAddress()
+	if len(addr) == 0 {
+		return nil, fmt.Errorf("Service registry address is empty")
+	}
+	conn, err := GetClientConnection(context.Background(), addr, r.getGRPCDialOptions()...)
+	if err != nil {
+		return nil, err
+	}
+	return protos.NewServiceRegistryClient(conn), nil
+}
+
+func (r *ServiceRegistry) getGRPCDialOptions() []grpc.DialOption {
+	opts := []grpc.DialOption{grpc.WithBackoffMaxDelay(GrpcMaxDelaySec * time.Second), grpc.WithBlock()}
+	if *grpcKeepAlive {
+		opts = append(opts, grpc.WithKeepaliveParams(localKeepaliveParams))
+	}
+	if r.serviceRegistryMode == K8sRegistryMode || r.serviceRegistryMode == DockerRegistryMode {
+		opts = append(opts, grpc.WithUnaryInterceptor(unary.UnaryCloudClientInterceptor))
+	}
+	return opts
+}
+
+func (r *ServiceRegistry) getServiceRegistryServiceAddress() string {
+	// Use hardcoded address for service_registry service as we can't
+	// dynamically discover the service registry service itself
+	if r.serviceRegistryMode == DockerRegistryMode {
+		return fmt.Sprintf("service_registry:%d", GrpcServicePort)
+	} else if r.serviceRegistryMode == K8sRegistryMode {
+		return fmt.Sprintf("%s-service-registry:%d", r.releaseName, GrpcServicePort)
+	}
+	return ""
 }
 
 func (r *ServiceRegistry) addUnsafe(location ServiceLocation) {
