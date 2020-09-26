@@ -18,6 +18,7 @@ metadata:
   labels:
     app.kubernetes.io/component: controller
 {{ include "labels" . | indent 4 }}
+{{ include "orc8r-app-labels" . | indent 4 }}
 spec:
   {{- with .Values.controller.podDisruptionBudget.minAvailable }}
   minAvailable: {{ . }}
@@ -28,5 +29,4 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/component: controller
-{{ include "selector-labels" . | indent 6 }}
 {{- end }}

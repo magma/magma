@@ -15,8 +15,17 @@ limitations under the License.
 app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: helm
-app.kubernetes.io/part-of: magma
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+{{- end -}}
+
+{{/* Label for orc8r non-applications */}}
+{{- define "orc8r-labels" -}}
+app.kubernetes.io/part-of: orc8r
+{{- end -}}
+
+{{/* Label for orc8r applications */}}
+{{- define "orc8r-app-labels" -}}
+app.kubernetes.io/part-of: orc8r-app
 {{- end -}}
 
 {{/* Generate selector labels */}}
