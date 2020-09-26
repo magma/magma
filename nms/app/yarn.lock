@@ -1429,10 +1429,10 @@
     morgan "^1.9.1"
     winston "^3.0.0"
 
-"@fbcnms/platform-server@^0.1.12":
-  version "0.1.13"
-  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.13.tgz#071f4bf148b26ed904f39fc0f2a65361b1306cb5"
-  integrity sha512-W5Z15WXivYZXzn7Lseq4Swc4E3e1rAM/ExMcBG7UrBSNvnrAY8izTDQoFn7AdL5e2fXJe+DdsGthAKQplDeI3g==
+"@fbcnms/platform-server@^0.1.16":
+  version "0.1.16"
+  resolved "https://registry.yarnpkg.com/@fbcnms/platform-server/-/platform-server-0.1.16.tgz#c3e63b365a197a6046041796c89019754a7a18b4"
+  integrity sha512-IgzDgpXeGZfthS6Xy8VEp398HdNifyj4f9GxFsNpPpozUCFr5c6n4hc9iLfFGUnrB18tegaDBb6mv6KAm7GDeQ==
   dependencies:
     "@fbcnms/auth" "^0.1.0"
     "@fbcnms/babel-register" "^0.1.0"
@@ -1481,12 +1481,7 @@
   resolved "https://registry.yarnpkg.com/@fbcnms/strings/-/strings-0.1.0.tgz#50dae22b4cb7cb7d1a30c013d0b40c96b741a1f1"
   integrity sha512-w1Z12YAhufVCsKL1lcO4+wwfwnQPwaLZyE5jjt36yg/2fcCRrpv55r3V+7M/VDc8wDOK4yRgJwiwEuOPrrwfKw==
 
-"@fbcnms/types@^0.1.2":
-  version "0.1.3"
-  resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.3.tgz#c7cfde9cebd3c60fd033104295aff3f7adc8e026"
-  integrity sha512-sOqcuX+sdcibvPW39Sw8j419qN8ysHvvagyovJYN+7ebXX6dieYKAleUMKPj2+4PTuy3aiEJTn3gh4MPXcK6qw==
-
-"@fbcnms/types@^0.1.5":
+"@fbcnms/types@^0.1.2", "@fbcnms/types@^0.1.5":
   version "0.1.5"
   resolved "https://registry.yarnpkg.com/@fbcnms/types/-/types-0.1.5.tgz#57a472935c717fae191957ccd820efeaca484018"
   integrity sha512-4ERRyRUMNrDCEC4tbgzNJmuu/q/0182Aw9OjLThsGiewVK8mTvvQ28CtkcJVhkbXxi1m+kXihTzh+/y+2BPVHQ==
