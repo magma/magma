@@ -358,7 +358,10 @@ int esm_proc_default_eps_bearer_context_reject(
     }
     // Send delete session req to spgw
     mme_app_send_delete_session_request(ue_context_p, ebi, pid);
-    ue_context_p->pdn_contexts[pid]->ue_rej_act_def_req = true;
+    /* Set ue_rej_act_def_ber_req flag in order to delete the PDN session
+     * after receiving delete session rsp from spgw
+     */
+    ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = true;
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
