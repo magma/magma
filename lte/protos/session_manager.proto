@@ -57,6 +57,7 @@ message CommonSessionContext {
   //PDU session state to mirror with AMF or MME
   SMSessionFSMState sm_session_state = 7;
   uint32 sm_session_version = 9;
+  string ue_ipv6 = 10;
 }
 
 message RatSpecificContext {
