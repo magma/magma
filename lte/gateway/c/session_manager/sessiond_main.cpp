@@ -217,8 +217,11 @@ int main(int argc, char* argv[]) {
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
 
-  //AMF service client to handle response message
-  auto amf_srv_client = std::make_shared<magma::AsyncAmfServiceClient>();
+  std::shared_ptr<magma::AsyncAmfServiceClient> amf_srv_client;
+  if (converged_access) {
+    //AMF service client to handle response message
+    amf_srv_client = std::make_shared<magma::AsyncAmfServiceClient>();
+  }
   // Case on config, setup the appropriate client for the access component
   std::thread access_response_handling_thread;
   if (config["support_carrier_wifi"].as<bool>()) {
