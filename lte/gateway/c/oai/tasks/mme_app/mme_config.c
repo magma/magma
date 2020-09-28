@@ -522,16 +522,8 @@ int mme_config_parse_file(mme_config_t *config_pP)
     }
 
     if ((config_setting_lookup_string(
-          setting_mme,
-          MME_CONFIG_STRING_IP_CAPABILITY,
-          (const char **) &astring))) {
-      config_pP->ip_capability = bfromcstr(astring);
-    }
-
-    if ((config_setting_lookup_string(
-          setting_mme,
-          MME_CONFIG_STRING_USE_STATELESS,
-          (const char **) &astring))) {
+            setting_mme, MME_CONFIG_STRING_USE_STATELESS,
+            (const char**) &astring))) {
       config_pP->use_stateless = parse_bool(astring);
     }
 
@@ -1251,83 +1243,63 @@ void mme_config_display(mme_config_t *config_pP)
 #endif
   OAILOG_INFO(LOG_CONFIG, "Configuration:\n");
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- File .................................: %s\n",
-    bdata(config_pP->config_file));
+      LOG_CONFIG, "- File .................................: %s\n",
+      bdata(config_pP->config_file));
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Realm ................................: %s\n",
-    bdata(config_pP->realm));
+      LOG_CONFIG, "- Realm ................................: %s\n",
+      bdata(config_pP->realm));
   OAILOG_INFO(
-    LOG_CONFIG,
-    "  full network name ....................: %s\n",
-    bdata(config_pP->full_network_name));
+      LOG_CONFIG, "  full network name ....................: %s\n",
+      bdata(config_pP->full_network_name));
   OAILOG_INFO(
-    LOG_CONFIG,
-    "  short network name ...................: %s\n",
-    bdata(config_pP->short_network_name));
+      LOG_CONFIG, "  short network name ...................: %s\n",
+      bdata(config_pP->short_network_name));
   OAILOG_INFO(
-    LOG_CONFIG,
-    "  Daylight Saving Time..................: %d\n",
-    config_pP->daylight_saving_time);
+      LOG_CONFIG, "  Daylight Saving Time..................: %d\n",
+      config_pP->daylight_saving_time);
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Run mode .............................: %s\n",
-    (RUN_MODE_TEST == config_pP->run_mode) ? "TEST" : "NORMAL");
+      LOG_CONFIG, "- Run mode .............................: %s\n",
+      (RUN_MODE_TEST == config_pP->run_mode) ? "TEST" : "NORMAL");
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Max eNBs .............................: %u\n",
-    config_pP->max_enbs);
+      LOG_CONFIG, "- Max eNBs .............................: %u\n",
+      config_pP->max_enbs);
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Max UEs ..............................: %u\n",
-    config_pP->max_ues);
+      LOG_CONFIG, "- Max UEs ..............................: %u\n",
+      config_pP->max_ues);
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- IMS voice over PS session in S1 ......: %s\n",
-    config_pP->eps_network_feature_support.ims_voice_over_ps_session_in_s1 ==
-        0 ?
-      "false" :
-      "true");
+      LOG_CONFIG, "- IMS voice over PS session in S1 ......: %s\n",
+      config_pP->eps_network_feature_support.ims_voice_over_ps_session_in_s1 ==
+              0 ?
+          "false" :
+          "true");
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Emergency bearer services in S1 mode .: %s\n",
-    config_pP->eps_network_feature_support
-          .emergency_bearer_services_in_s1_mode == 0 ?
-      "false" :
-      "true");
+      LOG_CONFIG, "- Emergency bearer services in S1 mode .: %s\n",
+      config_pP->eps_network_feature_support
+                  .emergency_bearer_services_in_s1_mode == 0 ?
+          "false" :
+          "true");
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Location services via epc ............: %s\n",
-    config_pP->eps_network_feature_support.location_services_via_epc == 0 ?
-      "false" :
-      "true");
+      LOG_CONFIG, "- Location services via epc ............: %s\n",
+      config_pP->eps_network_feature_support.location_services_via_epc == 0 ?
+          "false" :
+          "true");
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Extended service request .............: %s\n",
-    config_pP->eps_network_feature_support.extended_service_request == 0 ?
-      "false" :
-      "true");
+      LOG_CONFIG, "- Extended service request .............: %s\n",
+      config_pP->eps_network_feature_support.extended_service_request == 0 ?
+          "false" :
+          "true");
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Unauth IMSI support ..................: %s\n",
-    config_pP->unauthenticated_imsi_supported == 0 ? "false" : "true");
+      LOG_CONFIG, "- Unauth IMSI support ..................: %s\n",
+      config_pP->unauthenticated_imsi_supported == 0 ? "false" : "true");
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Relative capa ........................: %u\n",
-    config_pP->relative_capacity);
+      LOG_CONFIG, "- Relative capa ........................: %u\n",
+      config_pP->relative_capacity);
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- Statistics timer .....................: %u (seconds)\n\n",
-    config_pP->mme_statistic_timer);
+      LOG_CONFIG, "- Statistics timer .....................: %u (seconds)\n\n",
+      config_pP->mme_statistic_timer);
   OAILOG_INFO(
-    LOG_CONFIG,
-    "- IP Capability ........................: %s\n\n",
-    bdata(config_pP->ip_capability));
-  OAILOG_INFO(
-    LOG_CONFIG,
-    "- Use Stateless ........................: %s\n\n",
-    config_pP->use_stateless ? "true" : "false");
+      LOG_CONFIG, "- Use Stateless ........................: %s\n\n",
+      config_pP->use_stateless ? "true" : "false");
   OAILOG_INFO(LOG_CONFIG, "- CSFB:\n");
   OAILOG_INFO(
     LOG_CONFIG,

@@ -28,8 +28,6 @@ MME :
     # Display statistics about whole system (expressed in seconds)
     MME_STATISTIC_TIMER                       = 10;
 
-    IP_CAPABILITY = "IPV4";                                                   # UE PDN_TYPE
-
     USE_STATELESS = "{{ use_stateless }}";
 
     INTERTASK_INTERFACE :

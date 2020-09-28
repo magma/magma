@@ -2,9 +2,9 @@
  * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under 
+ * The OpenAirInterface Software Alliance licenses this file to You under
  * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.  
+ * except in compliance with the License.
  * You may obtain a copy of the License at
  *
  *      http://www.apache.org/licenses/LICENSE-2.0
@@ -65,15 +65,11 @@
    PDN connection handlers
 */
 static pdn_cid_t _pdn_connectivity_create(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  const pdn_cid_t pdn_cid,
-  const context_identifier_t context_identifier,
-  const_bstring const apn,
-  pdn_type_t pdn_type,
-  const_bstring const pdn_addr,
-  protocol_configuration_options_t *const pco,
-  const bool is_emergency);
+    emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
+    const context_identifier_t context_identifier, const_bstring const apn,
+    pdn_type_t pdn_type, const_bstring const pdn_addr,
+    protocol_configuration_options_t* const pco, const bool is_emergency,
+    esm_cause_t* esm_cause);
 
 proc_tid_t _pdn_connectivity_delete(
   emm_context_t *emm_context,
@@ -126,18 +122,12 @@ proc_tid_t _pdn_connectivity_delete(
  **                                                                        **
  ***************************************************************************/
 int esm_proc_pdn_connectivity_request(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  const pdn_cid_t pdn_cid,
-  const context_identifier_t context_identifier,
-  const esm_proc_pdn_request_t request_type,
-  const_bstring const apn,
-  esm_proc_pdn_type_t pdn_type,
-  const_bstring const pdn_addr,
-  bearer_qos_t *default_qos,
-  protocol_configuration_options_t *const pco,
-  esm_cause_t *esm_cause)
-{
+    emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
+    const context_identifier_t context_identifier,
+    const esm_proc_pdn_request_t request_type, const_bstring const apn,
+    pdn_type_t pdn_type, const_bstring const pdn_addr,
+    bearer_qos_t* default_qos, protocol_configuration_options_t* const pco,
+    esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc = RETURNok;
   mme_ue_s1ap_id_t ue_id =
@@ -164,7 +154,6 @@ int esm_proc_pdn_connectivity_request(
   /*
    * Check network IP capabilities
    */
-  *esm_cause = ESM_CAUSE_SUCCESS;
   OAILOG_DEBUG(
     LOG_NAS_ESM,
     "ESM-PROC  - _esm_data.conf.features %08x for (ue_id = %u)\n",
@@ -182,15 +171,8 @@ int esm_proc_pdn_connectivity_request(
    * Create new PDN connection
    */
   rc = _pdn_connectivity_create(
-    emm_context,
-    pti,
-    pdn_cid,
-    context_identifier,
-    apn,
-    pdn_type,
-    pdn_addr,
-    pco,
-    is_emergency);
+      emm_context, pti, pdn_cid, context_identifier, apn, pdn_type, pdn_addr,
+      pco, is_emergency, esm_cause);
 
   if (rc < 0) {
     OAILOG_WARNING(
@@ -351,16 +333,11 @@ int esm_proc_pdn_connectivity_failure(
  **                                                                        **
  ***************************************************************************/
 static int _pdn_connectivity_create(
-  emm_context_t *emm_context,
-  const proc_tid_t pti,
-  const pdn_cid_t pdn_cid,
-  const context_identifier_t context_identifier,
-  const_bstring const apn,
-  pdn_type_t pdn_type,
-  const_bstring const pdn_addr,
-  protocol_configuration_options_t *const pco,
-  const bool is_emergency)
-{
+    emm_context_t* emm_context, const proc_tid_t pti, const pdn_cid_t pdn_cid,
+    const context_identifier_t context_identifier, const_bstring const apn,
+    pdn_type_t pdn_type, const_bstring const pdn_addr,
+    protocol_configuration_options_t* const pco, const bool is_emergency,
+    esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   ue_mm_context_t *ue_mm_context =
     PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
@@ -399,6 +376,9 @@ static int _pdn_connectivity_create(
        * Set the emergency bearer services indicator
        */
       pdn_context->esm_data.is_emergency = is_emergency;
+
+      // Set the esm cause
+      pdn_context->esm_data.esm_cause = *esm_cause;
 
       if (pco) {
         if (!pdn_context->pco) {

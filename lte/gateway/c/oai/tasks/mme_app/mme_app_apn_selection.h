@@ -40,10 +40,10 @@
 #include "bstrlib.h"
 #include "common_types.h"
 #include "mme_app_ue_context.h"
+#include "esm_proc.h"
 
-struct apn_configuration_s *mme_app_select_apn(
-  ue_mm_context_t *const ue_context,
-  const_bstring const ue_selected_apn);
+struct apn_configuration_s* mme_app_select_apn(
+    ue_mm_context_t* const ue_context, int* esm_cause);
 
 struct apn_configuration_s *mme_app_get_apn_config(
   ue_mm_context_t *const ue_context,
