@@ -135,6 +135,14 @@ class PipelinedClient {
     const std::string &ip_addr,
     const std::vector<std::string> &static_rules,
     const std::vector<PolicyRule> &dynamic_rules) = 0;
+
+  /**
+   * Set up a Session of type SetMessage to be sent to UPF
+   */ 
+  virtual bool set_upf_session(
+      const SessionState::SessionInfo info,
+      std::function<void(Status status, UpfRes)> callback) = 0;
+
 };
 
 /**
@@ -242,17 +250,23 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
     const std::vector<std::string> &static_rules,
     const std::vector<PolicyRule> &dynamic_rules);
 
+  bool set_upf_session(
+     const SessionState::SessionInfo info,
+     std::function<void(Status status, UpfRes)> callback);
+  
   void handle_add_ue_mac_callback(
       const magma::UEMacFlowRequest req,
       const int retries,
       Status status,
       FlowResponse resp);
+  
 
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6; // seconds
   std::unique_ptr<Pipelined::Stub> stub_;
 
  private:
+
   void setup_policy_rpc(
     const SetupPolicyRequest& request,
     std::function<void(Status, SetupFlowsResult)> callback);
@@ -284,6 +298,10 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   void delete_ue_mac_flow_rpc(
     const UEMacFlowRequest &request,
     std::function<void(Status, FlowResponse)> callback);
+ 
+  void set_upf_session_rpc(
+    const SessionSet& request,
+    std::function<void(Status, UpfRes)> callback);
 };
 
 } // namespace magma
