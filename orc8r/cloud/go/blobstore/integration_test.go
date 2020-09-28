@@ -47,6 +47,11 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 	)
 	assert.NoError(t, err)
 	assert.Empty(t, getManyActual)
+
+	getAllActual, err := blobstore.GetAllOfType(store, "network", "t")
+	assert.NoError(t, err)
+	assert.Empty(t, getAllActual)
+
 	assert.NoError(t, store.Commit())
 
 	// Workflow test
@@ -119,6 +124,15 @@ func integration(t *testing.T, fact blobstore.BlobStorageFactory) {
 		},
 		getManyActual,
 	)
+
+	getAllActual, err = blobstore.GetAllOfType(store, "network1", "t2")
+	assert.NoError(t, err)
+	sort.Slice(getAllActual, getBlobsComparator(getAllActual))
+	getAllExpected := []blobstore.Blob{
+		{Type: "t2", Key: "k1", Value: []byte("v3"), Version: 2},
+		{Type: "t2", Key: "k2", Value: []byte("v4"), Version: 1},
+	}
+	assert.Equal(t, getAllExpected, getAllActual)
 
 	getManyActual, err = store.GetMany("network2", []storage.TypeAndKey{
 		{Type: "t3", Key: "k3"},

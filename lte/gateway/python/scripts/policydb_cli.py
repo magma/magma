@@ -17,6 +17,7 @@ import argparse
 import grpc
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule, \
     EnableStaticRuleRequest, DisableStaticRuleRequest
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2_grpc import PolicyDBStub
 from magma.common.rpc_utils import grpc_wrapper
 from magma.policydb.rule_store import PolicyRuleDict
@@ -32,8 +33,10 @@ def add_rule(args):
     rule_id = args.rule_id
     policy_dict = PolicyRuleDict()
     arg_list = {'ip_proto': args.ip_proto,
-                'ipv4_dst': args.ipv4_dst,
-                'ipv4_src': args.ipv4_src,
+                'ip_dst': IPAddress(version=IPAddress.IPV4,
+                                    address=args.ipv4_dst.encode('utf-8')),
+                'ip_src': IPAddress(version=IPAddress.IPV4,
+                                    address=args.ipv4_src.encode('utf-8')),
                 'tcp_dst': args.tcp_dst,
                 'tcp_src': args.tcp_src,
                 'udp_dst': args.udp_dst,

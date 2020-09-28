@@ -10,11 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 from typing import List
 from collections import defaultdict
 
 from lte.protos.pipelined_pb2 import RuleModResult
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.session_manager_pb2 import RuleRecord, \
     RuleRecordTable
 from ryu.controller import dpset, ofp_event
@@ -26,7 +26,8 @@ from ryu.lib.packet import ether_types
 
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
-from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
+    PROCESS_STATS
 from magma.pipelined.policy_converters import get_ue_ipv4_match_args
 from magma.pipelined.openflow import messages, flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
@@ -39,8 +40,6 @@ from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
 
 
 ETH_FRAME_SIZE_BYTES = 14
-PROCESS_STATS = 0x0
-IGNORE_STATS = 0x1
 
 
 class EnforcementStatsController(PolicyMixin, MagmaController):
@@ -419,7 +418,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         for deletable_stat in self._old_flow_stats(stats_msgs):
             stat_rule_id = self._get_rule_id(deletable_stat)
             stat_sid = _get_sid(deletable_stat)
-            ipv4_addr = _get_ipv4(deletable_stat)
+            ipv4_addr_str = _get_ipv4(deletable_stat)
+            ipv4_addr = None
+            if ipv4_addr_str:
+                ipv4_addr = IPAddress(version=IPAddress.IPV4,
+                                      address=ipv4_addr_str.encode('utf-8'))
             rule_version = _get_version(deletable_stat)
 
             try:
@@ -451,7 +454,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
                 rule_id = self._get_rule_id(stat)
                 sid = _get_sid(stat)
-                ipv4_addr = _get_ipv4(stat)
+                ipv4_addr_str = _get_ipv4(stat)
+                ipv4_addr = None
+                if ipv4_addr_str:
+                    ipv4_addr = IPAddress(version=IPAddress.IPV4,
+                                          address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
                 if rule_id == "":
                     continue

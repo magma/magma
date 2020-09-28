@@ -16,6 +16,113 @@ limitations under the License.
 // the RPC implementation.
 package subscriberdb
 
-const EntityType = "subscriber"
+import (
+	"context"
 
-const ServiceName = "SUBSCRIBERDB"
+	"magma/lte/cloud/go/services/subscriberdb/protos"
+	merrors "magma/orc8r/lib/go/errors"
+	"magma/orc8r/lib/go/registry"
+
+	"github.com/golang/glog"
+)
+
+// ListMSISDNs returns the tracked MSISDNs, keyed by their associated IMSI.
+func ListMSISDNs(networkID string) (map[string]string, error) {
+	msisdns := map[string]string{}
+
+	client, err := getClient()
+	if err != nil {
+		return msisdns, err
+	}
+
+	res, err := client.GetMSISDNs(
+		context.Background(),
+		&protos.GetMSISDNsRequest{
+			NetworkId: networkID,
+			Msisdns:   nil, // list all
+		},
+	)
+	if err != nil {
+		return msisdns, err
+	}
+
+	return res.ImsisByMsisdn, nil
+}
+
+// GetIMSIForMSISDN returns the IMSI associated with the passed MSISDN.
+// If not found, returns ErrNotFound from magma/orc8r/lib/go/errors.
+func GetIMSIForMSISDN(networkID, msisdn string) (string, error) {
+	client, err := getClient()
+	if err != nil {
+		return "", err
+	}
+
+	res, err := client.GetMSISDNs(
+		context.Background(),
+		&protos.GetMSISDNsRequest{
+			NetworkId: networkID,
+			Msisdns:   []string{msisdn},
+		},
+	)
+	if err != nil {
+		return "", err
+	}
+
+	msisdn, ok := res.ImsisByMsisdn[msisdn]
+	if !ok {
+		return "", merrors.ErrNotFound
+	}
+
+	return msisdn, nil
+}
+
+func SetIMSIForMSISDN(networkID, msisdn, imsi string) error {
+	client, err := getClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.SetMSISDN(
+		context.Background(),
+		&protos.SetMSISDNRequest{
+			NetworkId: networkID,
+			Msisdn:    msisdn,
+			Imsi:      imsi,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func DeleteMSISDN(networkID, msisdn string) error {
+	client, err := getClient()
+	if err != nil {
+		return err
+	}
+
+	_, err = client.DeleteMSISDN(
+		context.Background(),
+		&protos.DeleteMSISDNRequest{
+			NetworkId: networkID,
+			Msisdn:    msisdn,
+		},
+	)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func getClient() (protos.SubscriberLookupClient, error) {
+	conn, err := registry.GetConnection(ServiceName)
+	if err != nil {
+		initErr := merrors.NewInitError(err, ServiceName)
+		glog.Error(initErr)
+		return nil, initErr
+	}
+	return protos.NewSubscriberLookupClient(conn), nil
+}

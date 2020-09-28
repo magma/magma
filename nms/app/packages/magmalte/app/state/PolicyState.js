@@ -34,14 +34,12 @@ export async function SetPolicyState(props: Props) {
         networkId: networkId,
         policyRule: value,
       });
-      setPolicies({...policies, [key]: value});
     } else {
       await MagmaV1API.putNetworksByNetworkIdPoliciesRulesByRuleId({
         networkId: networkId,
         ruleId: key,
         policyRule: value,
       });
-      setPolicies({...policies, [key]: value});
     }
     const policyRule = await MagmaV1API.getNetworksByNetworkIdPoliciesRulesByRuleId(
       {
@@ -49,6 +47,7 @@ export async function SetPolicyState(props: Props) {
         ruleId: key,
       },
     );
+
     if (policyRule) {
       const newPolicies = {...policies, [key]: policyRule};
       setPolicies(newPolicies);

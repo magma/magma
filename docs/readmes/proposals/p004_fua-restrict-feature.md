@@ -1,6 +1,12 @@
-# Magma Final Unit Action - Service Restriction Feature
+---
+id: p004_fua_restrict_feature
+title: Service Restriction Feature
+hide_title: true
+---
 
-*Status: In-Review*\
+# Final Unit Action - Service Restriction Feature
+
+*Status: Accepted*\
 *Author: @ymasmoudi*\
 *Last Updated: 08/27*
 

@@ -18,18 +18,19 @@ import type {AppContextAppData} from '@fbcnms/ui/context/AppContext';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
+import apiControllerRoutes from '../apicontroller/routes';
 import asyncHandler from '@fbcnms/util/asyncHandler';
 import express from 'express';
+import networkRoutes from '../network/routes';
 import staticDist from '@fbcnms/webpack-config/staticDist';
 import userMiddleware from '@fbcnms/auth/express';
 import {AccessRoles} from '@fbcnms/auth/roles';
 import {MAPBOX_ACCESS_TOKEN} from '@fbcnms/platform-server/config';
 
+import {TABS} from '@fbcnms/types/tabs';
 import {access} from '@fbcnms/auth/access';
 import {getEnabledFeatures} from '@fbcnms/platform-server/features';
 import {masterOrgMiddleware} from '@fbcnms/platform-server/master/middleware';
-
-import {TABS} from '@fbcnms/types/tabs';
 
 const router: express.Router<FBCNMSRequest, ExpressResponse> = express.Router();
 
@@ -75,14 +76,8 @@ router.use(
   require('@fbcnms/platform-server/admin/routes').default,
 );
 router.get('/admin*', access(AccessRoles.SUPERUSER), handleReact('admin'));
-router.use(
-  '/nms/apicontroller',
-  require('@fbcnms/platform-server/apicontroller/routes').default,
-);
-router.use(
-  '/nms/network',
-  require('@fbcnms/platform-server/network/routes').default,
-);
+router.use('/nms/apicontroller', apiControllerRoutes);
+router.use('/nms/network', networkRoutes);
 
 router.use('/logger', require('@fbcnms/platform-server/logger/routes'));
 router.use('/test', require('@fbcnms/platform-server/test/routes'));

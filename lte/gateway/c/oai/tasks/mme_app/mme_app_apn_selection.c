@@ -30,6 +30,7 @@
 #include "mme_app_ue_context.h"
 #include "mme_app_apn_selection.h"
 #include "emm_data.h"
+#include "conversions.h"
 
 //------------------------------------------------------------------------------
 int select_pdn_type(
@@ -189,4 +190,21 @@ struct apn_configuration_s* mme_app_get_apn_config(
     }
   }
   return NULL;
+}
+
+bstring mme_app_process_apn_correction(imsi_t *imsi, bstring accesspointname) {
+  int i;
+  char imsi_str[IMSI_BCD_DIGITS_MAX + 1];
+  apn_map_config_t config = mme_config.nas_config.apn_map_config;
+
+  IMSI_TO_STRING(imsi, imsi_str, IMSI_BCD_DIGITS_MAX + 1);
+  for (i=0; i < config.nb; i++) {
+    const char *imsi_prefix = bdata(config.apn_map[i].imsi_prefix);
+    int imsi_prefix_len = strlen(imsi_prefix);
+    if ((imsi_prefix_len <= IMSI_BCD_DIGITS_MAX) &&
+        !strncmp(imsi_prefix, imsi_str, imsi_prefix_len)) {
+      return config.apn_map[i].apn_override;
+    }
+  }
+  return accesspointname;
 }

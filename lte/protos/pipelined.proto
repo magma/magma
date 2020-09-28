@@ -73,9 +73,6 @@ message RequestOriginType {
 message ActivateFlowsRequest {
   SubscriberID sid = 1;
 
-  // Subscriber session ipv4 address
-  string ip_addr = 2;
-
   // List of static rules obtained from PCRF
   repeated string rule_ids = 3;
 
@@ -87,6 +84,12 @@ message ActivateFlowsRequest {
 
   // APN AMBR info, passed at the time of session creation
   magma.lte.AggregatedMaximumBitrate apn_ambr = 6;
+
+  // Subscriber session ipv4 address
+  string ip_addr = 2;
+
+  // Subscriber session ipv6 address
+  bytes ipv6_addr = 7;
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -99,6 +102,7 @@ message DeactivateFlowsRequest {
   repeated string rule_ids = 2;
   RequestOriginType request_origin = 3;
   string ip_addr = 4; // Subscriber session ipv4 address
+  bytes ipv6_addr = 5; // Subscriber session ipv6 address
 }
 
 message RuleModResult {
