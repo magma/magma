@@ -172,6 +172,12 @@ int main(int argc, char* argv[]) {
   auto config =
       magma::ServiceConfigLoader{}.load_service_config(SESSIOND_SERVICE);
   magma::set_verbosity(get_log_verbosity(config, mconfig));
+  bool converged_access = false;
+  // Check converged sesiond is enebaled or not
+  if ((config["converged_access"].IsDefined()) &&
+      (config["converged_access"].as<bool>())) {
+    converged_access = true;
+  }
   MLOG(MINFO) << "Starting Session Manager";
   folly::EventBase* evb = folly::EventBaseManager::get()->getEventBase();
 
@@ -210,6 +216,9 @@ int main(int argc, char* argv[]) {
 
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
+
+  //AMF service client to handle response message
+  auto amf_srv_client = std::make_shared<magma::AsyncAmfServiceClient>();
   // Case on config, setup the appropriate client for the access component
   std::thread access_response_handling_thread;
   if (config["support_carrier_wifi"].as<bool>()) {
@@ -283,9 +292,43 @@ int main(int argc, char* argv[]) {
   magma::SessionProxyResponderAsyncService proxy_service(
       server.GetNewCompletionQueue(), std::move(proxy_handler));
   server.AddServiceToServer(&local_service);
+  MLOG(MINFO) << "Add localservice";
   server.AddServiceToServer(&proxy_service);
+  MLOG(MINFO) << "Add proxyservice";
+  std::thread access_common_message_thread;
+  /* Initialize the main thread of session managment by folly event to handle
+   * logical component of 5G of SessionD
+   */
+  auto conv_session_enforcer = std::make_shared <magma::SessionStateEnforcer>(
+      rule_store, *session_store, pipelined_client, amf_srv_client, mconfig);
+  // 5G related async msg handler service framework creation
+  auto conv_set_message_handler = std::make_unique<magma::SetMessageManagerHandler>(
+      conv_session_enforcer, *session_store);
+  MLOG(MINFO) << "session enforcer";
+  // 5G specific services to handle set messages from AMF and mme
+  magma::AmfPduSessionSmContextAsyncService conv_set_message_service(
+      server.GetNewCompletionQueue(), std::move(conv_set_message_handler));
+  MLOG(MINFO) << "Amfpdusessionsmcontext set message started";
+  // 5G related services
+  if (converged_access) {
+    MLOG(MINFO) << "converged  GRPC Added";
+    server.AddServiceToServer(&conv_set_message_service);
+  }
   server.Start();
 
+  // 5G set message handling thread from access.
+  access_common_message_thread = std::thread([&]() {
+    if (converged_access) {
+      MLOG(MDEBUG) << "Started access message thread";
+      conv_set_message_service
+          .wait_for_requests();    // block here instead of on server
+      conv_set_message_service.stop();  // stop queue after server shutsdown
+    }
+  });
+  // 5G related SessionStateEnforcer main thread start to handled session state
+  conv_session_enforcer->attachEventBase(evb);
+  // session_enforcer->sync_sessions_on_restart(time(NULL));//not part of drop-1
+  // MVC
   std::thread local_thread([&]() {
     MLOG(MINFO) << "Started local service thread";
     local_service.wait_for_requests();  // block here instead of on server
@@ -296,11 +339,14 @@ int main(int argc, char* argv[]) {
     proxy_service.wait_for_requests();  // block here instead of on server
     proxy_service.stop();               // stop queue after server shuts down
   });
-
   // Block on main local_enforcer (to keep evb in this thread)
   local_enforcer->attachEventBase(evb);
+  MLOG(MDEBUG) << "local enforcer Attached EventBase to evb";
   local_enforcer->sync_sessions_on_restart(time(NULL));
-  local_enforcer->start();
+  MLOG(MDEBUG) << "Synced session on restart";
+  evb->loopForever();
+  MLOG(MINFO) << "Stoping.. session manager GRPC server";
+
   server.Stop();
 
   // Clean up threads & resources
@@ -312,6 +358,10 @@ int main(int argc, char* argv[]) {
   restart_handler_thread.join();
   policy_loader_thread.join();
   access_response_handling_thread.join();
+  if (converged_access) {
+    // 5G related thread join
+    access_common_message_thread.join();
+  }
   free(session_store);
 
   return 0;
