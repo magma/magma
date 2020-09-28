@@ -1491,6 +1491,7 @@ func (m *NodeID) GetNodeId() string {
 	return ""
 }
 
+//ToDo latest state change will reflect in upcoming proto
 type FsmState struct {
 	State                FsmState_FsmState `protobuf:"varint,1,opt,name=state,proto3,enum=magma.lte.FsmState_FsmState" json:"state,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}          `json:"-"`
@@ -1965,6 +1966,7 @@ func (m *EthPackFilter) GetEthertype() uint32 {
 	return 0
 }
 
+//ToDo ApplyAction will be simplified and will reflect in upcoming proto
 type ApplyAction struct {
 	ApplyAction          []ApplyAction_Action `protobuf:"varint,1,rep,packed,name=apply_action,json=applyAction,proto3,enum=magma.lte.ApplyAction_Action" json:"apply_action,omitempty"`
 	XXX_NoUnkeyedLiteral struct{}             `json:"-"`
@@ -2410,7 +2412,7 @@ func (m *SetGroupPDR) GetActivePredRule() string {
 	return ""
 }
 
-//FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment $
+//FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
 type SetGroupFAR struct {
 	FarId                uint32       `protobuf:"varint,1,opt,name=far_id,json=farId,proto3" json:"far_id,omitempty"`
 	SessVerNo            int32        `protobuf:"varint,2,opt,name=sess_ver_no,json=sessVerNo,proto3" json:"sess_ver_no,omitempty"`
@@ -2491,6 +2493,7 @@ func (m *SetGroupFAR) GetBarId() uint32 {
 }
 
 //SET message - SMF to Upf Session Requests
+//ToDo Flattening of SessionSet is in progress so will be updated along with addressing the comments
 type SessionSet struct {
 	Seid                 string         `protobuf:"bytes,1,opt,name=seid,proto3" json:"seid,omitempty"`
 	SessVerNo            int32          `protobuf:"varint,2,opt,name=sess_ver_no,json=sessVerNo,proto3" json:"sess_ver_no,omitempty"`
@@ -2578,6 +2581,7 @@ func (m *SessionSet) GetSetGrFar() []*SetGroupFAR {
 	return nil
 }
 
+//ToDo Response will reflect in upcoming proto
 type UpfRes struct {
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
