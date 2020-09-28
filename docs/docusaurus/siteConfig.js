@@ -34,7 +34,7 @@ const siteConfig = {
   // Used for publishing and more
   projectName: 'magma',
   organizationName: 'magma',  
-  url: 'https://magmacore.org', // Your website URL
+  url: 'https://docs.magmacore.org', // Your website URL
   baseUrl: '/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
