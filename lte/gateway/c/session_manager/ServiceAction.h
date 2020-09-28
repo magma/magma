@@ -60,6 +60,12 @@ class ServiceAction {
     return *this;
   }
 
+  ServiceAction &set_ipv6_addr(const std::string &ipv6_addr)
+  {
+    ipv6_addr_ = std::make_unique<std::string>(ipv6_addr);
+    return *this;
+  }
+
   ServiceAction &set_credit_key(const CreditKey &credit_key) {
     credit_key_ = credit_key;
     return *this;
@@ -92,6 +98,8 @@ class ServiceAction {
    * or throws a nullptr exception if there is none stored
    */
   const std::string &get_ip_addr() const { return *ip_addr_; }
+
+  const std::string &get_ipv6_addr() const { return *ipv6_addr_; }
 
   const CreditKey &get_credit_key() const { return credit_key_; }
 
@@ -143,6 +151,7 @@ class ServiceAction {
   std::unique_ptr<std::string> imsi_;
   std::unique_ptr<std::string> session_id_;
   std::unique_ptr<std::string> ip_addr_;
+  std::unique_ptr<std::string> ipv6_addr_;
   CreditKey credit_key_;
   std::vector<std::string> rule_ids_;
   std::vector<PolicyRule> rule_definitions_;

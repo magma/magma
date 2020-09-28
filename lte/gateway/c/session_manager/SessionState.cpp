@@ -760,6 +760,7 @@ bool SessionState::is_radius_cwf_session() const {
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi    = imsi_;
   info.ip_addr = config_.common_context.ue_ipv4();
+  info.ipv6_addr = config_.common_context.ue_ipv6();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
@@ -1366,6 +1367,7 @@ void SessionState::get_charging_updates(
         action->set_credit_key(key);
         action->set_imsi(imsi_);
         action->set_ip_addr(config_.common_context.ue_ipv4());
+        action->set_ipv6_addr(config_.common_context.ue_ipv6());
         action->set_session_id(session_id_);
         static_rules_.get_rule_ids_for_charging_key(
             key, *action->get_mutable_rule_ids());
@@ -1781,6 +1783,7 @@ void SessionState::update_bearer_creation_req(
     update.needs_creation = true;
     update.create_req.mutable_sid()->CopyFrom(config.common_context.sid());
     update.create_req.set_ip_addr(config.common_context.ue_ipv4());
+    //TODO ipv6 add to the bearer request or remove ipv4
     update.create_req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
@@ -1813,6 +1816,7 @@ void SessionState::update_bearer_deletion_req(
     auto& req             = update.delete_req;
     req.mutable_sid()->CopyFrom(config.common_context.sid());
     req.set_ip_addr(config.common_context.ue_ipv4());
+    //TODO ipv6 add to the bearer request or remove ipv4
     req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }

@@ -55,7 +55,9 @@ TEST_F(StoreClientTest, test_read_and_write) {
   auto sid3                   = id_gen_.gen_session_id(imsi3);
   SessionConfig cfg;
   cfg.common_context =
-      build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_WLAN);
+      build_common_context("", "128.0.0.1",
+                           "2001:0db8:0a0b:12f0:0000:0000:0000:0001",
+                           "APN", msisdn, TGPP_WLAN);
   const auto& wlan = build_wlan_context("0f:10:2e:12:3a:55", radius_session_id);
   cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
   auto rule_store   = std::make_shared<StaticRuleStore>();

@@ -58,24 +58,48 @@ class SessionStoreTest : public ::testing::Test {
   std::unique_ptr<SessionState> get_session(
       const std::string& imsi, std::string session_id,
       std::shared_ptr<StaticRuleStore> rule_store) {
-    return get_session(imsi, session_id, "APN", rule_store);
+    return get_session(imsi, session_id, IP2, IPv6_2, "APN", rule_store);
   }
 
   std::unique_ptr<SessionState> get_session(
-      const std::string& imsi, std::string session_id, const std::string& apn,
+      const std::string& imsi, std::string session_id, std::string ip_addr,
+      std::string ipv6_addr, const std::string& apn,
       std::shared_ptr<StaticRuleStore> rule_store) {
     std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
     SessionConfig cfg;
     cfg.common_context =
-        build_common_context(imsi, IP2, apn, MSISDN, TGPP_WLAN);
-    const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
-    cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
+        build_common_context(imsi, ip_addr, ipv6_addr, apn, MSISDN, TGPP_WLAN);
+    const auto& wlan_context = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+    cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan_context);
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
         imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
   }
 
+  std::unique_ptr<SessionState> get_lte_session(
+      const std::string& imsi, std::string session_id,
+      std::shared_ptr<StaticRuleStore> rule_store) {
+    return get_lte_session(imsi, session_id, IP2, IPv6_1, "APN", rule_store);
+  }
+
+  std::unique_ptr<SessionState> get_lte_session(
+      const std::string& imsi, std::string session_id, std::string ip_addr,
+      std::string ipv6_addr, const std::string& apn,
+      std::shared_ptr<StaticRuleStore> rule_store) {
+    SessionConfig cfg;
+    cfg.common_context =
+      build_common_context(imsi, ip_addr, ipv6_addr, apn, MSISDN, TGPP_LTE);
+    QosInformationRequest qos_info;
+    qos_info.set_apn_ambr_dl(32);
+    qos_info.set_apn_ambr_dl(64);
+    const auto& lte_context = build_lte_context(imsi, "", "", "", "", 0, &qos_info);
+    cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
+    auto tgpp_context   = TgppContext{};
+    auto pdp_start_time = 12345;
+    return std::make_unique<SessionState>(
+        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
+  }
   UsageMonitoringUpdateResponse* get_monitoring_update() {
     auto units = new GrantedUnits();
     auto total = new CreditUnit();
@@ -496,15 +520,20 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto rule_store = std::make_shared<StaticRuleStore>();
   SessionStore session_store(rule_store);
   SessionMap session_map = {};
-  auto session1          = get_session(IMSI1, SESSION_ID_1, "APN1", rule_store);
-  auto session2          = get_session(IMSI1, SESSION_ID_2, "APN2", rule_store);
+  auto session1          = get_session(IMSI1, SESSION_ID_1, IP1, IPv6_1, "APN1", rule_store);
+  auto session2          = get_session(IMSI1, SESSION_ID_2, IP2, IPv6_2, "APN2", rule_store);
+  auto session3          = get_lte_session(IMSI3, SESSION_ID_3, IP3, IPv6_3, "APN2", rule_store);
+  auto session4          = get_lte_session(IMSI3, SESSION_ID_4, IP4, IPv6_4, "APN2", rule_store);
+
   session_map[IMSI1]     = SessionVector{};
   session_map[IMSI1].push_back(std::move(session1));
   session_map[IMSI1].push_back(std::move(session2));
+  session_map[IMSI3].push_back(std::move(session3));
+  session_map[IMSI3].push_back(std::move(session4));
 
-  // Non-existing subscriber: IMSI3
-  SessionSearchCriteria id1_fail1(IMSI3, IMSI_AND_SESSION_ID, SESSION_ID_1);
-  SessionSearchCriteria id1_fail2(IMSI3, IMSI_AND_APN, "NON-EXISTING");
+  // Non-existing subscriber: IMSI4
+  SessionSearchCriteria id1_fail1(IMSI4, IMSI_AND_SESSION_ID, SESSION_ID_1);
+  SessionSearchCriteria id1_fail2(IMSI4, IMSI_AND_APN, "NON-EXISTING");
   EXPECT_FALSE(session_store.find_session(session_map, id1_fail1));
   EXPECT_FALSE(session_store.find_session(session_map, id1_fail2));
 
@@ -521,19 +550,51 @@ TEST_F(SessionStoreTest, test_get_session) {
   EXPECT_TRUE(optional_it1);
   auto& found_session1 = **optional_it1;
   EXPECT_EQ(found_session1->get_session_id(), SESSION_ID_1);
+
   // Happy Path! IMSI+APN
   SessionSearchCriteria id1_success_apn(IMSI1, IMSI_AND_APN, "APN2");
   auto optional_it2 = session_store.find_session(session_map, id1_success_apn);
   EXPECT_TRUE(optional_it2);
   auto& found_session2 = **optional_it2;
   EXPECT_EQ(found_session2->get_config().common_context.apn(), "APN2");
+
   // Happy Path! IMSI+UE IPv4
-  SessionSearchCriteria id1_success_ip(IMSI1, IMSI_AND_UE_IPV4, IP2);
-  auto optional_it3 = session_store.find_session(session_map, id1_success_ip);
+  SessionSearchCriteria id1_success_ipv4(IMSI1, IMSI_AND_UE_IPV4, IP2);
+  auto optional_it3 = session_store.find_session(session_map, id1_success_ipv4);
   EXPECT_TRUE(optional_it3);
   auto& found_session3 = **optional_it3;
   EXPECT_EQ(found_session3->get_config().common_context.ue_ipv4(), IP2);
-}
+
+  // Happy Path! LTE IMSI+UE IPv4 or IPv6
+  SessionSearchCriteria id1_success_ipv46(IMSI3, IMSI_AND_UE_IPV4_OR_IPV6, IP3);
+  auto optional_it46 = session_store.find_session(session_map, id1_success_ipv46);
+  EXPECT_TRUE(optional_it46);
+  auto& found_session4 = **optional_it46;
+  EXPECT_EQ(found_session4->get_config().common_context.ue_ipv4(), IP3);
+  SessionSearchCriteria  id1_success_ipv46b(IMSI3, IMSI_AND_UE_IPV4_OR_IPV6, IPv6_3);
+  auto optional_it46b = session_store.find_session(session_map, id1_success_ipv46b);
+  EXPECT_TRUE(optional_it46b);
+  auto& found_session46b = **optional_it46b;
+  EXPECT_EQ(found_session46b->get_config().common_context.ue_ipv6(), IPv6_3);
+
+  // Happy Path! cwag IMSI+UE IPv4 or IPv6
+  SessionSearchCriteria id1_success_cwag1(IMSI1, IMSI_AND_UE_IPV4_OR_IPV6, "");
+  auto optional_it_cwag1 = session_store.find_session(session_map, id1_success_cwag1);
+  EXPECT_TRUE(optional_it_cwag1);
+  auto& found_session_cwag1 = **optional_it_cwag1;
+  EXPECT_EQ(found_session_cwag1->get_config().common_context.apn() , "APN1");
+
+
+  // Not found IMSI+UE Dual Stack (IPv4 and IPv6)
+  /*
+  SessionSearchCriteria id1_success_ipv4_cwag(IMSI1, IMSI_AND_UE_IPV4, "");
+  auto optional_it5 = session_store.find_session(session_map, id1_success_ipv4_cwag);
+  EXPECT_TRUE(optional_it5);
+  auto& found_session5= **optional_it5;
+  EXPECT_EQ(found_session5->get_config().common_context.ue_ipv4(), IP2);
+  EXPECT_EQ(found_session5->get_config().common_context.ue_ipv6(), IPv6_2);
+*/
+   }
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

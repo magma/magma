@@ -96,6 +96,7 @@ class SessionState {
     } FSid;
     std::string imsi;
     std::string ip_addr;
+    std::string ipv6_addr;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;

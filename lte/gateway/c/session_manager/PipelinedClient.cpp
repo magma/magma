@@ -64,12 +64,13 @@ magma::SessionSet create_session_set_req(
 
 magma::DeactivateFlowsRequest create_deactivate_req(
     const std::string& imsi, const std::string& ip_addr,
-    const std::vector<std::string>& rule_ids,
+    const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
     const std::vector<magma::PolicyRule>& dynamic_rules,
     const magma::RequestOriginType_OriginType origin_type) {
   magma::DeactivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
+  req.set_ipv6_addr(ipv6_addr);
   req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
   for (const auto& id : rule_ids) {
@@ -83,6 +84,7 @@ magma::DeactivateFlowsRequest create_deactivate_req(
 
 magma::ActivateFlowsRequest create_activate_req(
     const std::string& imsi, const std::string& ip_addr,
+    const std::string& ipv6_addr,
     const optional<magma::AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<magma::PolicyRule>& dynamic_rules,
@@ -90,10 +92,12 @@ magma::ActivateFlowsRequest create_activate_req(
   magma::ActivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
+  req.set_ipv6_addr(ipv6_addr);
   req.mutable_request_origin()->set_type(origin_type);
   if (ambr) {
     // TODO remove log once feature is stable
     MLOG(MINFO) << "Sending AMBR info for " << imsi << ", ip addr=" << ip_addr
+                << " " << ipv6_addr
                 << ", dl=" << ambr->max_bandwidth_dl()
                 << ", ul=" << ambr->max_bandwidth_ul();
     req.mutable_apn_ambr()->CopyFrom(*ambr);
@@ -138,14 +142,14 @@ magma::SetupPolicyRequest create_setup_policy_req(
   std::vector<magma::ActivateFlowsRequest> activation_reqs;
   for (auto it = infos.begin(); it != infos.end(); it++) {
     auto gx_activate_req = create_activate_req(
-        it->imsi, it->ip_addr, it->ambr, it->static_rules, it->dynamic_rules,
-        magma::RequestOriginType::GX);
+        it->imsi, it->ip_addr, it->ipv6_addr, it->ambr,
+        it->static_rules, it->dynamic_rules, magma::RequestOriginType::GX);
     activation_reqs.push_back(gx_activate_req);
     if (!it->gy_dynamic_rules.empty()) {
       std::vector<std::string> static_rules;
       auto gy_activate_req = create_activate_req(
-          it->imsi, it->ip_addr, {}, static_rules, it->gy_dynamic_rules,
-          magma::RequestOriginType::GY);
+          it->imsi, it->ip_addr, it->ipv6_addr, {}, static_rules,
+          it->gy_dynamic_rules, magma::RequestOriginType::GY);
       activation_reqs.push_back(gy_activate_req);
     }
   }
@@ -261,14 +265,14 @@ bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
 
 bool AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
-    const std::vector<std::string>& rule_ids,
+    const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules,
     const RequestOriginType_OriginType origin_type) {
   auto req = create_deactivate_req(
-      imsi, ip_addr, rule_ids, dynamic_rules, origin_type);
+      imsi, ip_addr, ipv6_addr, rule_ids, dynamic_rules, origin_type);
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for subscriber "
-               << imsi << " IP " << ip_addr;
+               << imsi << " IP " << ip_addr << " " << ipv6_addr;
   deactivate_flows_rpc(req, [imsi](Status status, DeactivateFlowsResult resp) {
     if (!status.ok()) {
       MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
@@ -280,21 +284,22 @@ bool AsyncPipelinedClient::deactivate_flows_for_rules(
 
 bool AsyncPipelinedClient::activate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
+    const std::string& ipv6_addr,
     const optional<AggregatedMaximumBitrate>& ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules,
     std::function<void(Status status, ActivateFlowsResult)> callback) {
   MLOG(MDEBUG) << "Activating " << static_rules.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for " << imsi
-               << " and ip " << ip_addr;
+               << " and ip " << ip_addr << " " << ipv6_addr ;
   // Activate static rules and dynamic rules separately until bug is fixed in
   // pipelined which crashes if activated at the same time
   auto static_req = create_activate_req(
-      imsi, ip_addr, ambr, static_rules, std::vector<PolicyRule>(),
+      imsi, ip_addr, ipv6_addr, ambr, static_rules, std::vector<PolicyRule>(),
       RequestOriginType::GX);
   activate_flows_rpc(static_req, callback);
   auto dynamic_req = create_activate_req(
-      imsi, ip_addr, ambr, std::vector<std::string>(), dynamic_rules,
+      imsi, ip_addr, ipv6_addr, ambr, std::vector<std::string>(), dynamic_rules,
       RequestOriginType::GX);
   activate_flows_rpc(dynamic_req, callback);
   return true;
@@ -351,11 +356,11 @@ bool AsyncPipelinedClient::update_subscriber_quota_state(
 
 bool AsyncPipelinedClient::add_gy_final_action_flow(
     const std::string& imsi, const std::string& ip_addr,
-    const std::vector<std::string>& static_rules,
+    const std::string& ipv6_addr, const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules) {
   MLOG(MDEBUG) << "Activating GY final action for subscriber " << imsi;
   auto static_req = create_activate_req(
-      imsi, ip_addr, {}, static_rules, std::vector<PolicyRule>(),
+      imsi, ip_addr, ipv6_addr, {}, static_rules, std::vector<PolicyRule>(),
       RequestOriginType::GY);
   activate_flows_rpc(
       static_req, [imsi](Status status, ActivateFlowsResult resp) {
@@ -365,7 +370,7 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
         }
       });
   auto dynamic_req = create_activate_req(
-      imsi, ip_addr, {}, std::vector<std::string>(), dynamic_rules,
+      imsi, ip_addr, ipv6_addr, {}, std::vector<std::string>(), dynamic_rules,
       RequestOriginType::GY);
   activate_flows_rpc(
       dynamic_req, [imsi](Status status, ActivateFlowsResult resp) {
