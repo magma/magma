@@ -216,9 +216,14 @@ int main(int argc, char* argv[]) {
 
   std::shared_ptr<magma::AsyncSpgwServiceClient> spgw_client;
   std::shared_ptr<aaa::AsyncAAAClient> aaa_client;
+  std::shared_ptr<magma::AsyncAmfServiceClient> amf_srv_client;
 
-  //AMF service client to handle response message
-  auto amf_srv_client = std::make_shared<magma::AsyncAmfServiceClient>();
+  if (converged_access) {
+    // AMF service client to handle response message
+    amf_srv_client = std::make_shared<magma::AsyncAmfServiceClient>();
+    spgw_client    = nullptr;
+    aaa_client     = nullptr;
+  }
   // Case on config, setup the appropriate client for the access component
   std::thread access_response_handling_thread;
   if (config["support_carrier_wifi"].as<bool>()) {
@@ -228,6 +233,7 @@ int main(int argc, char* argv[]) {
       aaa_client->rpc_response_loop();
     });
     spgw_client                     = nullptr;
+    amf_srv_client                  = nullptr;
   } else {
     spgw_client = std::make_shared<magma::AsyncSpgwServiceClient>();
     access_response_handling_thread = std::thread([&]() {
@@ -235,6 +241,7 @@ int main(int argc, char* argv[]) {
       spgw_client->rpc_response_loop();
     });
     aaa_client                      = nullptr;
+    amf_srv_client                  = nullptr;
   }
 
   // Setup SessionReporter which talks to the policy component
@@ -295,38 +302,43 @@ int main(int argc, char* argv[]) {
   MLOG(MINFO) << "Add localservice";
   server.AddServiceToServer(&proxy_service);
   MLOG(MINFO) << "Add proxyservice";
-  std::thread access_common_message_thread;
-  /* Initialize the main thread of session managment by folly event to handle
-   * logical component of 5G of SessionD
-   */
-  auto conv_session_enforcer = std::make_shared <magma::SessionStateEnforcer>(
-      rule_store, *session_store, pipelined_client, amf_srv_client, mconfig);
-  // 5G related async msg handler service framework creation
-  auto conv_set_message_handler = std::make_unique<magma::SetMessageManagerHandler>(
-      conv_session_enforcer, *session_store);
-  MLOG(MINFO) << "session enforcer";
-  // 5G specific services to handle set messages from AMF and mme
-  magma::AmfPduSessionSmContextAsyncService conv_set_message_service(
-      server.GetNewCompletionQueue(), std::move(conv_set_message_handler));
-  MLOG(MINFO) << "Amfpdusessionsmcontext set message started";
-  // 5G related services
+
+  magma::AmfPduSessionSmContextAsyncService* conv_set_message_service = nullptr;
   if (converged_access) {
+    // Initialize the main thread of session management by folly event to handle
+    // logical component of 5G of SessionD
+    auto conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
+        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig);
+    // 5G related async msg handler service framework creation
+    auto conv_set_message_handler =
+        std::make_unique<magma::SetMessageManagerHandler>(
+            conv_session_enforcer, *session_store);
+    MLOG(MINFO) << "session enforcer";
+    // 5G specific services to handle set messages from AMF and mme
+    conv_set_message_service = new magma::AmfPduSessionSmContextAsyncService(
+        server.GetNewCompletionQueue(), std::move(conv_set_message_handler));
+    MLOG(MINFO) << "Amfpdusessionsmcontext set message started";
+    // 5G related services
     MLOG(MINFO) << "converged  GRPC Added";
-    server.AddServiceToServer(&conv_set_message_service);
+    server.AddServiceToServer(conv_set_message_service);
+
+    // 5G related SessionStateEnforcer main thread start to handled session
+    // state
+    conv_session_enforcer->attachEventBase(evb);
   }
+
   server.Start();
 
   // 5G set message handling thread from access.
-  access_common_message_thread = std::thread([&]() {
+  std::thread access_common_message_thread([&]() {
+    // conv_set_message_service is initialized only if it is converged_access
     if (converged_access) {
       MLOG(MDEBUG) << "Started access message thread";
       conv_set_message_service
-          .wait_for_requests();    // block here instead of on server
-      conv_set_message_service.stop();  // stop queue after server shutsdown
+          ->wait_for_requests();         // block here instead of on server
+      conv_set_message_service->stop();  // stop queue after server shutsdown
     }
   });
-  // 5G related SessionStateEnforcer main thread start to handled session state
-  conv_session_enforcer->attachEventBase(evb);
   // session_enforcer->sync_sessions_on_restart(time(NULL));//not part of drop-1
   // MVC
   std::thread local_thread([&]() {
@@ -360,6 +372,7 @@ int main(int argc, char* argv[]) {
   access_response_handling_thread.join();
   if (converged_access) {
     // 5G related thread join
+    free(conv_set_message_service);
     access_common_message_thread.join();
   }
   free(session_store);
