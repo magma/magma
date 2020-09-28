@@ -36,6 +36,15 @@ from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
     stop_ryu_app_thread, create_service_manager, wait_after_send, \
     SnapshotVerifier
 
+from scapy.arch import get_if_hwaddr, get_if_addr
+from scapy.data import ETHER_BROADCAST, ETH_P_ALL
+from scapy.error import Scapy_Exception
+from scapy.layers.l2 import ARP, Ether, Dot1Q
+from scapy.layers.inet6 import IPv6, ICMPv6ND_RS, ICMPv6NDOptSrcLLAddr, \
+    ICMPv6NDOptPrefixInfo, ICMPv6ND_NS
+from scapy.sendrecv import srp1, sendp
+
+from ryu.lib import hub
 
 def _pkt_total(stats):
     return sum(n.packets for n in stats)
@@ -121,13 +130,25 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         """
         Verify that a UPLINK->UE arp request is properly matched
         """
+        hub.sleep(5)
+        ll_addr = get_if_hwaddr('testing_br')
+        print(ll_addr)
+        
         pkt_sender = ScapyPacketInjector(self.IFACE)
-        arp_packet = ARPPacketBuilder() \
-            .set_ether_layer(self.UE_MAC, self.OTHER_MAC) \
-            .set_arp_layer(self.UE_IP) \
-            .set_arp_hwdst(self.UE_MAC) \
-            .set_arp_src(self.OTHER_MAC, self.OTHER_IP) \
-            .build()
+
+        pkt_rs = Ether(dst=self.UE_MAC, src=self.OTHER_MAC)
+        pkt_rs /= IPv6(src='fe80::24c3:d0ff:fef3:dd82',
+                       dst='ff02::2')
+        pkt_rs /= ICMPv6ND_RS()
+        pkt_rs /= ICMPv6NDOptSrcLLAddr(lladdr=ll_addr)
+
+        pkt_ns = Ether(dst=self.UE_MAC, src=self.OTHER_MAC)
+        pkt_ns /= IPv6(src='fe80::24c3:d0ff:fef3:dd82',
+                       dst='ff02::2')
+        pkt_ns /= ICMPv6ND_NS()
+        pkt_ns /= ICMPv6NDOptSrcLLAddr(lladdr=ll_addr)
+
+        print(pkt_rs.show())
 
         dlink_args = RyuForwardFlowArgsBuilder(self._tbl_num) \
             .set_eth_match(eth_dst=self.UE_MAC, eth_src=self.OTHER_MAC) \
@@ -139,8 +160,12 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
                                              self.service_manager)
 
         with isolator, snapshot_verifier:
-            pkt_sender.send(arp_packet)
+            pkt_sender.send(pkt_rs)
+            pkt_sender.send(pkt_ns)
             wait_after_send(self.testing_controller)
+
+
+        hub.sleep(1)
 
 
 
