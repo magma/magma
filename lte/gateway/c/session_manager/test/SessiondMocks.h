@@ -70,11 +70,14 @@ public:
        .WillByDefault(Return(true));
    ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _))
        .WillByDefault(Return(true));
-   ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
+   ON_CALL(*this, delete_ue_mac_flow(_, _))
+	   .WillByDefault(Return(true));
    ON_CALL(*this, update_ipfix_flow(_, _, _, _, _, _))
        .WillByDefault(Return(true));
    ON_CALL(*this, add_gy_final_action_flow(_, _, _, _))
        .WillByDefault(Return(true));
+   ON_CALL(*this, set_upf_session(_, _))
+	.WillByDefault(Return(true));
    ON_CALL(*this, update_subscriber_quota_state(_)).WillByDefault(Return(true));
  }
 
@@ -120,11 +123,6 @@ public:
       const std::string &ap_mac_addr,
       const std::string &ap_name,
       std::function<void(Status status, FlowResponse)> callback));
-  MOCK_METHOD2(
-    delete_ue_mac_flow,
-    bool(
-      const SubscriberID &sid,
-      const std::string &ue_mac_addr));
   MOCK_METHOD6(
     update_ipfix_flow,
     bool(
@@ -134,6 +132,15 @@ public:
       const std::string &ap_mac_addr,
       const std::string &ap_name,
       const uint64_t &pdp_start_time));
+  MOCK_METHOD1(
+    update_subscriber_quota_state,
+    bool(
+      const std::vector<SubscriberQuotaUpdate>& updates));
+  MOCK_METHOD2(
+    delete_ue_mac_flow,
+    bool(
+      const SubscriberID &sid,
+      const std::string &ue_mac_addr));
   MOCK_METHOD4(
     add_gy_final_action_flow,
     bool(
@@ -141,9 +148,11 @@ public:
       const std::string &ip_addr,
       const std::vector<std::string> &static_rules,
       const std::vector<PolicyRule> &dynamic_rules));
-  MOCK_METHOD1(
-    update_subscriber_quota_state,
-    bool(const std::vector<SubscriberQuotaUpdate>& updates));
+  MOCK_METHOD2(
+    set_upf_session,
+    bool(
+	 const SessionState::SessionInfo info,
+	 std::function<void(Status status, UpfRes)> callback));
 };
 
 class MockDirectorydClient : public AsyncDirectorydClient {
