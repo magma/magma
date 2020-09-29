@@ -55,8 +55,8 @@ MATCHER_P2(CheckActivateFlows, imsi, rule_count, "") {
 }
 
 MATCHER_P6(
-    CheckSessionInfos, imsi_list, ip_address_list, ipv6_address_list,
-    cfg, static_rule_lists, dynamic_rule_ids_lists, "") {
+    CheckSessionInfos, imsi_list, ip_address_list, ipv6_address_list, cfg,
+    static_rule_lists, dynamic_rule_ids_lists, "") {
   auto infos = static_cast<const std::vector<SessionState::SessionInfo>>(arg);
 
   if (infos.size() != imsi_list.size()) return false;

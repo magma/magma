@@ -47,8 +47,7 @@ class ChargingGrantTest : public ::testing::Test {
           RedirectServer_RedirectAddressType::
               RedirectServer_RedirectAddressType_IPV6);
       fa.redirect_server.set_redirect_server_address("addr");
-    }
-    else if (action == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+    } else if (action == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
       fa.restrict_rules.push_back("restrict_rule");
     }
     return fa;
@@ -287,7 +286,8 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   // Now receive new quota (not final unit)
   uc = grant.get_update_criteria();  // reset UC
   grant.credit.receive_credit(gsu, &uc);
-  // we overused, so we take into consideration the 2000 we used plus granted 1000
+  // we overused, so we take into consideration the 2000 we used plus granted
+  // 1000
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);

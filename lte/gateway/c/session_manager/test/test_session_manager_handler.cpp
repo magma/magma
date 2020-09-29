@@ -63,8 +63,8 @@ class SessionManagerHandlerTest : public ::testing::Test {
     session_map_ = SessionMap{};
 
     session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
-        local_enforcer, reporter.get(), directoryd_client,
-        events_reporter, *session_store);
+        local_enforcer, reporter.get(), directoryd_client, events_reporter,
+        *session_store);
   }
 
   void insert_static_rule(
@@ -163,8 +163,9 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   CreateSessionResponse response;
   auto sid = id_gen_.gen_session_id(IMSI1);
   SessionConfig cfg;
-  cfg.common_context = build_common_context(IMSI1, IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
-  auto lte_context   = build_lte_context(
+  cfg.common_context =
+      build_common_context(IMSI1, IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
+  auto lte_context = build_lte_context(
       "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
   cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
 
@@ -192,7 +193,8 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   // context
   LocalCreateSessionRequest request;
   grpc::ServerContext create_context;
-  auto common = build_common_context(IMSI1, IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
+  auto common =
+      build_common_context(IMSI1, IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
   request.mutable_common_context()->CopyFrom(common);
   lte_context = build_lte_context(
       "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
@@ -228,7 +230,8 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   // trigger a terminate for the existing and a creation for the new session
   LocalCreateSessionRequest request2;
   grpc::ServerContext create_context2;
-  common = build_common_context(IMSI1, "", "", APN1, "different msisdn", TGPP_LTE);
+  common =
+      build_common_context(IMSI1, "", "", APN1, "different msisdn", TGPP_LTE);
   request2.mutable_common_context()->CopyFrom(common);
   lte_context = build_lte_context(
       "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
@@ -341,8 +344,9 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
   const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
   const std::string& apn                 = "apn1";
   SessionConfig cfg;
-  cfg.common_context = build_common_context(IMSI1, "", "", apn, MSISDN, TGPP_WLAN);
-  const auto& wlan   = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  cfg.common_context =
+      build_common_context(IMSI1, "", "", apn, MSISDN, TGPP_WLAN);
+  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
   cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   auto session_map = session_store->read_sessions({IMSI1});

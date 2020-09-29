@@ -36,7 +36,7 @@ void SessionProxyResponderHandlerImpl::ChargingReAuth(
                << request->session_id() << " and charging_key "
                << request->charging_key();
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy,
-                                                       response_callback]() {
+                                                    response_callback]() {
     auto session_map = session_store_.read_sessions({request_cpy.sid()});
     SessionUpdate update =
         SessionStore::get_default_session_update(session_map);
@@ -75,7 +75,7 @@ void SessionProxyResponderHandlerImpl::PolicyReAuth(
   MLOG(MDEBUG) << "Received a Gx (Policy) ReAuthRequest for session_id "
                << request->session_id();
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy,
-                                                       response_callback]() {
+                                                    response_callback]() {
     PolicyReAuthAnswer ans;
     auto session_map = session_store_.read_sessions({request_cpy.imsi()});
     SessionUpdate update =
@@ -112,7 +112,7 @@ void SessionProxyResponderHandlerImpl::AbortSession(
   const auto session_id = request->session_id();
   MLOG(MINFO) << "Received an ASR for session_id " << session_id;
   enforcer_->get_event_base().runInEventBaseThread([this, imsi, session_id,
-                                                       response_callback]() {
+                                                    response_callback]() {
     grpc::Status status = Status::OK;
     AbortSessionResult answer;
     auto session_map = session_store_.read_sessions({imsi});

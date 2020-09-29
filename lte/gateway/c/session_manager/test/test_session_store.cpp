@@ -89,11 +89,12 @@ class SessionStoreTest : public ::testing::Test {
       std::shared_ptr<StaticRuleStore> rule_store) {
     SessionConfig cfg;
     cfg.common_context =
-      build_common_context(imsi, ip_addr, ipv6_addr, apn, MSISDN, TGPP_LTE);
+        build_common_context(imsi, ip_addr, ipv6_addr, apn, MSISDN, TGPP_LTE);
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
-    const auto& lte_context = build_lte_context(imsi, "", "", "", "", 0, &qos_info);
+    const auto& lte_context =
+        build_lte_context(imsi, "", "", "", "", 0, &qos_info);
     cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
     auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
@@ -163,31 +164,31 @@ class SessionStoreTest : public ::testing::Test {
     credit2.buckets[REPORTING_RX]  = 6;
     credit2.buckets[REPORTED_TX]   = 7;
     credit2.buckets[REPORTED_RX]   = 8;
-    credit2.buckets[ALLOWED_FLOOR_TOTAL] = 9;
-    credit2.buckets[ALLOWED_FLOOR_TX]    = 10;
-    credit2.buckets[ALLOWED_FLOOR_RX]    = 11;
-    monitor2.level                 = SESSION_LEVEL;
-    monitor2.credit                = credit2;
+    credit2.buckets[ALLOWED_FLOOR_TOTAL]                       = 9;
+    credit2.buckets[ALLOWED_FLOOR_TX]                          = 10;
+    credit2.buckets[ALLOWED_FLOOR_RX]                          = 11;
+    monitor2.level                                             = SESSION_LEVEL;
+    monitor2.credit                                            = credit2;
     update_criteria.monitor_credit_to_install[monitoring_key2] = monitor2;
 
     // Monitoring credit updates
     SessionCreditUpdateCriteria monitoring_update{};
-    monitoring_update.reauth_state  = REAUTH_NOT_NEEDED;
-    monitoring_update.expiry_time   = 0;
-    auto bucket_deltas              = std::unordered_map<Bucket, uint64_t>{};
-    bucket_deltas[USED_TX]          = 111;
-    bucket_deltas[USED_RX]          = 333;
-    bucket_deltas[ALLOWED_TOTAL]    = 2;
-    bucket_deltas[ALLOWED_TX]       = 3;
-    bucket_deltas[ALLOWED_RX]       = 4;
-    bucket_deltas[REPORTING_TX]     = 5;
-    bucket_deltas[REPORTING_RX]     = 6;
-    bucket_deltas[REPORTED_TX]      = 7;
-    bucket_deltas[REPORTED_RX]      = 8;
+    monitoring_update.reauth_state     = REAUTH_NOT_NEEDED;
+    monitoring_update.expiry_time      = 0;
+    auto bucket_deltas                 = std::unordered_map<Bucket, uint64_t>{};
+    bucket_deltas[USED_TX]             = 111;
+    bucket_deltas[USED_RX]             = 333;
+    bucket_deltas[ALLOWED_TOTAL]       = 2;
+    bucket_deltas[ALLOWED_TX]          = 3;
+    bucket_deltas[ALLOWED_RX]          = 4;
+    bucket_deltas[REPORTING_TX]        = 5;
+    bucket_deltas[REPORTING_RX]        = 6;
+    bucket_deltas[REPORTED_TX]         = 7;
+    bucket_deltas[REPORTED_RX]         = 8;
     bucket_deltas[ALLOWED_FLOOR_TOTAL] = 9;
     bucket_deltas[ALLOWED_FLOOR_TX]    = 10;
     bucket_deltas[ALLOWED_FLOOR_RX]    = 11;
-    monitoring_update.bucket_deltas = bucket_deltas;
+    monitoring_update.bucket_deltas    = bucket_deltas;
 
     update_criteria.monitor_credit_map =
         std::unordered_map<std::string, SessionCreditUpdateCriteria>{};
@@ -520,12 +521,16 @@ TEST_F(SessionStoreTest, test_get_session) {
   auto rule_store = std::make_shared<StaticRuleStore>();
   SessionStore session_store(rule_store);
   SessionMap session_map = {};
-  auto session1          = get_session(IMSI1, SESSION_ID_1, IP1, IPv6_1, "APN1", rule_store);
-  auto session2          = get_session(IMSI1, SESSION_ID_2, IP2, IPv6_2, "APN2", rule_store);
-  auto session3          = get_lte_session(IMSI3, SESSION_ID_3, IP3, IPv6_3, "APN2", rule_store);
-  auto session4          = get_lte_session(IMSI3, SESSION_ID_4, IP4, IPv6_4, "APN2", rule_store);
+  auto session1 =
+      get_session(IMSI1, SESSION_ID_1, IP1, IPv6_1, "APN1", rule_store);
+  auto session2 =
+      get_session(IMSI1, SESSION_ID_2, IP2, IPv6_2, "APN2", rule_store);
+  auto session3 =
+      get_lte_session(IMSI3, SESSION_ID_3, IP3, IPv6_3, "APN2", rule_store);
+  auto session4 =
+      get_lte_session(IMSI3, SESSION_ID_4, IP4, IPv6_4, "APN2", rule_store);
 
-  session_map[IMSI1]     = SessionVector{};
+  session_map[IMSI1] = SessionVector{};
   session_map[IMSI1].push_back(std::move(session1));
   session_map[IMSI1].push_back(std::move(session2));
   session_map[IMSI3].push_back(std::move(session3));
@@ -567,34 +572,37 @@ TEST_F(SessionStoreTest, test_get_session) {
 
   // Happy Path! LTE IMSI+UE IPv4 or IPv6
   SessionSearchCriteria id1_success_ipv46(IMSI3, IMSI_AND_UE_IPV4_OR_IPV6, IP3);
-  auto optional_it46 = session_store.find_session(session_map, id1_success_ipv46);
+  auto optional_it46 =
+      session_store.find_session(session_map, id1_success_ipv46);
   EXPECT_TRUE(optional_it46);
   auto& found_session4 = **optional_it46;
   EXPECT_EQ(found_session4->get_config().common_context.ue_ipv4(), IP3);
-  SessionSearchCriteria  id1_success_ipv46b(IMSI3, IMSI_AND_UE_IPV4_OR_IPV6, IPv6_3);
-  auto optional_it46b = session_store.find_session(session_map, id1_success_ipv46b);
+  SessionSearchCriteria id1_success_ipv46b(
+      IMSI3, IMSI_AND_UE_IPV4_OR_IPV6, IPv6_3);
+  auto optional_it46b =
+      session_store.find_session(session_map, id1_success_ipv46b);
   EXPECT_TRUE(optional_it46b);
   auto& found_session46b = **optional_it46b;
   EXPECT_EQ(found_session46b->get_config().common_context.ue_ipv6(), IPv6_3);
 
   // Happy Path! cwag IMSI+UE IPv4 or IPv6
   SessionSearchCriteria id1_success_cwag1(IMSI1, IMSI_AND_UE_IPV4_OR_IPV6, "");
-  auto optional_it_cwag1 = session_store.find_session(session_map, id1_success_cwag1);
+  auto optional_it_cwag1 =
+      session_store.find_session(session_map, id1_success_cwag1);
   EXPECT_TRUE(optional_it_cwag1);
   auto& found_session_cwag1 = **optional_it_cwag1;
-  EXPECT_EQ(found_session_cwag1->get_config().common_context.apn() , "APN1");
-
+  EXPECT_EQ(found_session_cwag1->get_config().common_context.apn(), "APN1");
 
   // Not found IMSI+UE Dual Stack (IPv4 and IPv6)
   /*
   SessionSearchCriteria id1_success_ipv4_cwag(IMSI1, IMSI_AND_UE_IPV4, "");
-  auto optional_it5 = session_store.find_session(session_map, id1_success_ipv4_cwag);
-  EXPECT_TRUE(optional_it5);
-  auto& found_session5= **optional_it5;
+  auto optional_it5 = session_store.find_session(session_map,
+  id1_success_ipv4_cwag); EXPECT_TRUE(optional_it5); auto& found_session5=
+  **optional_it5;
   EXPECT_EQ(found_session5->get_config().common_context.ue_ipv4(), IP2);
   EXPECT_EQ(found_session5->get_config().common_context.ue_ipv6(), IPv6_2);
 */
-   }
+}
 
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);

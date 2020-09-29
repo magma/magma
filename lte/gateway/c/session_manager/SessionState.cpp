@@ -758,8 +758,8 @@ bool SessionState::is_radius_cwf_session() const {
 }
 
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
-  info.imsi    = imsi_;
-  info.ip_addr = config_.common_context.ue_ipv4();
+  info.imsi      = imsi_;
+  info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
@@ -1407,7 +1407,7 @@ bool SessionState::receive_monitor(
       session_uc.monitor_credit_map[mkey].deleted) {
     // This will only happen if the PCRF responds back with more credit when
     // the monitor has already been set to be terminated
-    MLOG(MDEBUG) << session_id_<< "Ignoring  update for monitor " << mkey
+    MLOG(MDEBUG) << session_id_ << "Ignoring  update for monitor " << mkey
                  << " because it has been set for deletion";
     return false;
   }
@@ -1423,7 +1423,8 @@ bool SessionState::receive_monitor(
   }
 
   if (update.credit().action() == UsageMonitoringCredit::FORCE) {
-    MLOG(MINFO) << session_id_ << " Received UsageMonitoringCredit::FORCE "
+    MLOG(MINFO) << session_id_
+                << " Received UsageMonitoringCredit::FORCE "
                    "(`AVP: Usage-Monitoring-Report`) instruction "
                    "not implemented. Will just continue for monitor  "
                 << mkey;
@@ -1783,7 +1784,7 @@ void SessionState::update_bearer_creation_req(
     update.needs_creation = true;
     update.create_req.mutable_sid()->CopyFrom(config.common_context.sid());
     update.create_req.set_ip_addr(config.common_context.ue_ipv4());
-    //TODO ipv6 add to the bearer request or remove ipv4
+    // TODO ipv6 add to the bearer request or remove ipv4
     update.create_req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
@@ -1816,7 +1817,7 @@ void SessionState::update_bearer_deletion_req(
     auto& req             = update.delete_req;
     req.mutable_sid()->CopyFrom(config.common_context.sid());
     req.set_ip_addr(config.common_context.ue_ipv4());
-    //TODO ipv6 add to the bearer request or remove ipv4
+    // TODO ipv6 add to the bearer request or remove ipv4
     req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
