@@ -20,7 +20,8 @@ namespace magma {
 using namespace lte;
 
 CommonSessionContext build_common_context(
-    const std::string& imsi, const std::string& ue_ipv4, const std::string& apn,
+    const std::string& imsi, const std::string& ue_ipv4,
+    const std::string& ue_ipv6, const std::string& apn,
     const std::string& msisdn, const RATType rat_type);
 
 LTESessionContext build_lte_context(

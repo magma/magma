@@ -29,6 +29,7 @@ const std::string SESSION_ID = "session_id";
 const std::string IMSI = "imsi";
 const std::string IMEI = "imei";
 const std::string IP_ADDR = "ip_addr";
+const std::string IPV6_ADDR = "ipv6_addr";
 const std::string MAC_ADDR = "mac_addr";
 const std::string MSISDN = "msisdn";
 const std::string SPGW_IP = "spgw_ip";
@@ -64,6 +65,7 @@ void EventsReporterImpl::session_created(
   folly::dynamic event_value = folly::dynamic::object;
   event_value[IMSI]           = imsi;
   event_value[IP_ADDR]        = session_context.common_context.ue_ipv4();
+  event_value[IPV6_ADDR]      = session_context.common_context.ue_ipv6();
   event_value[MSISDN]         = session_context.common_context.msisdn();
   event_value[APN]            = session_context.common_context.apn();
   event_value[SESSION_ID]     = session_id;
@@ -125,6 +127,7 @@ void EventsReporterImpl::session_updated(
   event_value[IMSI]          = imsi;
   event_value[SESSION_ID]    = session_id;
   event_value[IP_ADDR]       = session_context.common_context.ue_ipv4();
+  event_value[IPV6_ADDR]       = session_context.common_context.ue_ipv6();
   event_value[APN]           = session_context.common_context.apn();
   event_value[MAC_ADDR]      = get_mac_addr(session_context);
 
@@ -152,6 +155,7 @@ void EventsReporterImpl::session_update_failure(
   event_value[IMSI]              = imsi;
   event_value[SESSION_ID]        = session_id;
   event_value[IP_ADDR]           = session_context.common_context.ue_ipv4();
+  event_value[IPV6_ADDR]         = session_context.common_context.ue_ipv6();
   event_value[MAC_ADDR]          = get_mac_addr(session_context);
   event_value[APN]               = session_context.common_context.apn();
   event_value[FAILURE_REASON]    = failure_reason;
@@ -182,6 +186,7 @@ void EventsReporterImpl::session_terminated(
   folly::dynamic event_value           = folly::dynamic::object;
   event_value[IMSI]                    = imsi;
   event_value[IP_ADDR]                 = session_cfg.common_context.ue_ipv4();
+  event_value[IPV6_ADDR]               = session_cfg.common_context.ue_ipv6();
   event_value[MSISDN]                  = session_cfg.common_context.msisdn();
   event_value[APN]                     = session_cfg.common_context.apn();
   event_value[SESSION_ID]              = session->get_session_id();

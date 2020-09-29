@@ -89,7 +89,7 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     std::string mac_addr        = "0f:10:2e:12:3a:55";
     SessionConfig cfg;
     cfg.common_context =
-        build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_WLAN);
+        build_common_context("", "128.0.0.1", "", "APN", msisdn, TGPP_WLAN);
     const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
     auto tgpp_context = TgppContext{};
@@ -225,7 +225,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   grpc::ServerContext create_context;
   EXPECT_CALL(
       *pipelined_client,
-      activate_flows_for_rules(imsi, _, _, CheckCount(1), _, _))
+      activate_flows_for_rules(imsi, _, _, _, CheckCount(1), _, _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, request,
