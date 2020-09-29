@@ -17,23 +17,43 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
+	"magma/lte/cloud/go/services/subscriberdb/protos"
+	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/sqorc"
+	"magma/orc8r/cloud/go/storage"
 
 	"github.com/golang/glog"
 )
 
-// NOTE: subscriberdb service currently attaches no servicers.
-// It still fulfills the service303 interface, and is kept around for future dev updates.
 func main() {
-	// Create the service
+	// Create service
 	srv, err := service.NewOrchestratorService(lte.ModuleName, subscriberdb.ServiceName)
 	if err != nil {
-		glog.Fatalf("Error creating service: %s", err)
+		glog.Fatalf("Error creating service: %v", err)
 	}
+
+	// Init storage
+	db, err := sqorc.Open(storage.SQLDriver, storage.DatabaseSource)
+	if err != nil {
+		glog.Fatalf("Error opening db connection: %v", err)
+	}
+	fact := blobstore.NewEntStorage(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
+	err = fact.InitializeFactory()
+	if err != nil {
+		glog.Fatalf("Error initializing directory storage: %v", err)
+	}
+
+	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
+	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact))
+
+	// Run service
 	err = srv.Run()
 	if err != nil {
-		glog.Fatalf("Error while running service and echo server: %s", err)
+		glog.Fatalf("Error while running service and echo server: %v", err)
 	}
+
 }

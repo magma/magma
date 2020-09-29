@@ -80,6 +80,7 @@ func TestGxClient(t *testing.T) {
 		IMSI:          testIMSI1,
 		RequestNumber: 0,
 		IPAddr:        "192.168.1.1",
+		IPv6Addr:      "2001:0db8:0a0b:12f0:0000:0000:0000:FFFF",
 		SpgwIPV4:      "10.10.10.10",
 		Apn:           "gx.Apn.magma.com",
 	}
@@ -90,7 +91,9 @@ func TestGxClient(t *testing.T) {
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
 	assert.Equal(t, 5, len(answer.RuleInstallAVP))
-	assertReceivedAPNonPCRF(t, pcrf, "gx.Apn.magma.com")
+	assertReceivedAPNonPCRF(t, pcrf, ccrInit.Apn)
+	assertReceivedIPv4onPCRF(t, pcrf, ccrInit.IPAddr)
+	assertReceivedIPv6onPCRF(t, pcrf, ccrInit.IPv6Addr)
 
 	var ruleNames []string
 	var ruleBaseNames []string
@@ -589,4 +592,32 @@ func assertReceivedAPNonPCRF(t *testing.T, pcrf *mock_pcrf.PCRFServer, expectedA
 	receivedAPN, err := avpReceived.FindAVP("Called-Station-Id", 0)
 	assert.NoError(t, err)
 	assert.Equal(t, fmt.Sprintf("UTF8String{%s},Padding:0", expectedAPN), receivedAPN.Data.String())
+}
+
+func assertReceivedIPv4onPCRF(t *testing.T, pcrf *mock_pcrf.PCRFServer, expectedIPv4 string) {
+	// convert ip string into ip AVP (octetstring)
+	ipv4 := net.ParseIP(expectedIPv4).To4()
+	ipv4OctetString := datatype.OctetString([]byte(ipv4))
+	expectedIPv4avp := diam.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, ipv4OctetString)
+
+	avpReceived, err := pcrf.GetLastAVPreceived()
+	assert.NoError(t, err)
+	receivedFramedIPAddress, err := avpReceived.FindAVP(avp.FramedIPAddress, 0)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedIPv4avp.Data, receivedFramedIPAddress.Data)
+}
+
+func assertReceivedIPv6onPCRF(t *testing.T, pcrf *mock_pcrf.PCRFServer, expectedIPv6 string) {
+	// convert ip string into ip AVP (octetstring)
+	ipv6 := net.ParseIP(expectedIPv6).To16()
+	ipv6OctetString := datatype.OctetString([]byte(ipv6))
+	expectedIPv6avp := diam.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, ipv6OctetString[0:8])
+
+	avpReceived, err := pcrf.GetLastAVPreceived()
+	assert.NoError(t, err)
+	receivedFramedIPv6Prefix, err := avpReceived.FindAVP(avp.FramedIPv6Prefix, 0)
+	assert.NoError(t, err)
+
+	assert.Equal(t, expectedIPv6avp.Data, receivedFramedIPv6Prefix.Data)
 }

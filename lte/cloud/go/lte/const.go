@@ -73,7 +73,7 @@ const (
 	RatingGroupEntityType      = "rating_group"
 	SubscriberEntityType       = "subscriber"
 
-	// BaseNameStreamName etc. are streamer stream names.
+	// ApnRuleMappingsStreamName etc. are streamer stream names.
 	ApnRuleMappingsStreamName  = "apn_rule_mappings"
 	BaseNameStreamName         = "base_names"
 	NetworkWideRulesStreamName = "network_wide_rules"
@@ -81,11 +81,14 @@ const (
 	RatingGroupStreamName      = "rating_groups"
 	SubscriberStreamName       = "subscriberdb"
 
-	// EnodebStateType etc. are denote types of state replicated from AGWs
+	// EnodebStateType etc. denote types of state replicated from AGWs.
 	EnodebStateType    = "single_enodeb"
 	ICMPStateType      = "icmp_monitoring"
 	MMEStateType       = "MME"
 	MobilitydStateType = "mobilityd_ipdesc_record"
 	S1APStateType      = "S1AP"
 	SPGWStateType      = "SPGW"
+
+	// MSISDNBlobstoreType etc. denote blob types stored in blobstore tables.
+	MSISDNBlobstoreType = "msisdn"
 )

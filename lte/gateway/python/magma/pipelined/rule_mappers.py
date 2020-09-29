@@ -15,6 +15,7 @@ import threading
 from collections import namedtuple
 from typing import Optional
 
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.imsi import encode_imsi
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisHashDict
@@ -90,7 +91,7 @@ class SessionRuleToVersionMapper:
         self._version_by_imsi_and_rule[key] = \
             (version % self.VERSION_LIMIT) + 1
 
-    def update_version(self, imsi: str, ip_addr: str,
+    def update_version(self, imsi: str, ip_addr: IPAddress,
                        rule_id: Optional[str] = None):
         """
         Increment the version number for a given subscriber and rule. If the
@@ -111,7 +112,7 @@ class SessionRuleToVersionMapper:
             else:
                 self._update_version_unsafe(imsi, ip_addr_str, rule_id)
 
-    def get_version(self, imsi: str, ip_addr: str, rule_id: str) -> int:
+    def get_version(self, imsi: str, ip_addr: IPAddress, rule_id: str) -> int:
         """
         Returns the version number given a subscriber and a rule.
         """

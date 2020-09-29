@@ -70,3 +70,7 @@ func (m *IcmpStatus) ValidateModel() error {
 	}
 	return nil
 }
+
+func (m *MsisdnAssignment) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}

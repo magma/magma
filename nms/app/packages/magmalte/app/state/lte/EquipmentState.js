@@ -17,6 +17,7 @@
 import type {EnodebInfo} from '../../components/lte/EnodebUtils';
 import type {
   enodeb_serials,
+  gateway_dns_configs,
   gateway_epc_configs,
   gateway_id,
   gateway_ran_configs,
@@ -256,6 +257,7 @@ export type UpdateGatewayProps = {
   magmadConfigs?: magmad_gateway_configs,
   epcConfigs?: gateway_epc_configs,
   ranConfigs?: gateway_ran_configs,
+  dnsConfig?: gateway_dns_configs,
   enbs?: enodeb_serials,
   networkId: network_id,
   setLteGateways: ({[string]: lte_gateway}) => void,
@@ -263,7 +265,7 @@ export type UpdateGatewayProps = {
 
 export async function UpdateGateway(props: UpdateGatewayProps) {
   const {networkId, gatewayId, setLteGateways} = props;
-  if (props.tierId !== undefined) {
+  if (props.tierId !== undefined && props.tierId !== '') {
     await MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdTier({
       networkId,
       gatewayId: gatewayId,
@@ -271,7 +273,7 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
     });
   }
   const requests = [];
-  if (props.magmadConfigs !== undefined) {
+  if (props.magmadConfigs) {
     requests.push(
       MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdMagmad({
         networkId,
@@ -280,7 +282,7 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
       }),
     );
   }
-  if (props.epcConfigs !== undefined) {
+  if (props.epcConfigs) {
     requests.push(
       MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellularEpc({
         networkId,
@@ -289,7 +291,7 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
       }),
     );
   }
-  if (props.ranConfigs !== undefined) {
+  if (props.ranConfigs) {
     requests.push(
       MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellularRan({
         networkId,
@@ -299,12 +301,22 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
     );
   }
 
-  if (props.enbs !== undefined) {
+  if (props.enbs) {
     requests.push(
       MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdConnectedEnodebSerials({
         networkId,
         gatewayId: gatewayId,
         serials: props.enbs,
+      }),
+    );
+  }
+
+  if (props.dnsConfig) {
+    requests.push(
+      MagmaV1API.putLteByNetworkIdGatewaysByGatewayIdCellularDns({
+        networkId,
+        gatewayId: gatewayId,
+        config: props.dnsConfig,
       }),
     );
   }

@@ -26,7 +26,7 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetApnState} from '../../../state/lte/ApnState';
-import {SetPolicyState} from '../../../state/lte/PolicyState';
+import {SetPolicyState} from '../../../state/PolicyState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
@@ -175,21 +175,21 @@ describe('<TrafficDashboard />', () => {
     expect(rowItemsPolicy[1]).toHaveTextContent('0');
     expect(rowItemsPolicy[1]).toHaveTextContent('1');
     expect(rowItemsPolicy[1]).toHaveTextContent('0');
-    expect(rowItemsPolicy[1]).toHaveTextContent('not found');
+    expect(rowItemsPolicy[1]).toHaveTextContent('Not Found');
     expect(rowItemsPolicy[1]).toHaveTextContent('NO_TRACKING');
 
     expect(rowItemsPolicy[2]).toHaveTextContent('policy_1');
     expect(rowItemsPolicy[2]).toHaveTextContent('2');
     expect(rowItemsPolicy[2]).toHaveTextContent('1');
     expect(rowItemsPolicy[2]).toHaveTextContent('0');
-    expect(rowItemsPolicy[2]).toHaveTextContent('not found');
+    expect(rowItemsPolicy[2]).toHaveTextContent('Not Found');
     expect(rowItemsPolicy[2]).toHaveTextContent('NO_TRACKING');
 
     expect(rowItemsPolicy[3]).toHaveTextContent('policy_2');
     expect(rowItemsPolicy[3]).toHaveTextContent('0');
     expect(rowItemsPolicy[3]).toHaveTextContent('10');
     expect(rowItemsPolicy[3]).toHaveTextContent('0');
-    expect(rowItemsPolicy[3]).toHaveTextContent('not found');
+    expect(rowItemsPolicy[3]).toHaveTextContent('Not Found');
     expect(rowItemsPolicy[3]).toHaveTextContent('NO_TRACKING');
 
     // click the actions button for policy 0

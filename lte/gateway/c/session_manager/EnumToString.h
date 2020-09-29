@@ -14,6 +14,7 @@
 
 #include "StoredState.h"
 #include "ServiceAction.h"
+#include <lte/protos/abort_session.pb.h>
 
 namespace magma {
 std::string reauth_state_to_str(ReAuthState state);
@@ -29,6 +30,8 @@ std::string session_fsm_state_to_str(SessionFsmState state);
 std::string credit_update_type_to_str(CreditUsage::UpdateType update);
 
 std::string raa_result_to_str(ReAuthResult res);
+
+std::string asr_result_to_str(AbortSessionResult_Code res);
 
 std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state);
 
