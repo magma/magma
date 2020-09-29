@@ -111,7 +111,7 @@ class ConntrackTest(unittest.TestCase):
         """
         sub_ip = '145.254.160.237' # extracted from pcap don't change
         sub = SubContextConfig('IMSI001010000000013', sub_ip,
-                               default_ambr_config, self._tbl_num)
+                               default_ambr_config, self._tbl_num, 0, 0)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),

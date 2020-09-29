@@ -110,7 +110,7 @@ class TunnelLearnTest(unittest.TestCase):
         """
         # Set up subscribers
         sub = SubContextConfig('IMSI001010000000013', '192.168.128.74',
-                               default_ambr_config, self._tbl_num)
+                               default_ambr_config, self._tbl_num, 0, 0)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),

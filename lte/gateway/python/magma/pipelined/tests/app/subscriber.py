@@ -25,7 +25,7 @@ from magma.subscriberdb.sid import SIDUtils
 from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 
 SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'ambr',
-                                                'table_id'])
+                                                'table_id', 'match_teid', 'action_teid'])
 default_ambr_config = None
 
 def try_grpc_call_with_retries(grpc_call, retry_count=5, retry_interval=1):
@@ -149,8 +149,9 @@ class RyuDirectSubscriberContext(SubscriberContext):
     """
 
     def __init__(self, imsi, ip, enforcement_controller, table_id=5,
-                 enforcement_stats_controller=None, nuke_flows_on_exit=True):
-        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
+                 enforcement_stats_controller=None, nuke_flows_on_exit=True,
+                 match_teid=0, action_teid=0):
+        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id, match_teid, action_teid)
         self._dynamic_rules = []
         self._static_rule_names = []
         self._ec = enforcement_controller
@@ -173,14 +174,18 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
                 static_rule_ids=self._static_rule_names,
-                dynamic_rules=self._dynamic_rules)
+                dynamic_rules=self._dynamic_rules,
+                match_teid=self.cfg.match_teid,
+                action_teid=self.cfg.action_teid)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
                     static_rule_ids=self._static_rule_names,
-                    dynamic_rules=self._dynamic_rules)
+                    dynamic_rules=self._dynamic_rules,
+                    match_teid=self.cfg.match_teid,
+                    action_teid=self.cfg.action_teid)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):

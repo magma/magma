@@ -161,7 +161,7 @@ class GYController(PolicyMixin, MagmaController):
                                                         num)
         self._qos_mgr.remove_subscriber_qos(imsi, num)
 
-    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule, match_teid=0, action_teid=0):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -193,7 +193,7 @@ class GYController(PolicyMixin, MagmaController):
     def _get_default_flow_msgs_for_subscriber(self, *_):
         return None
 
-    def _install_default_flow_for_subscriber(self, *_):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr, match_teid=0, action_teid=0):
         pass
 
     def _delete_all_flows(self, datapath):

@@ -157,7 +157,7 @@ class MockPipelinedClient : public PipelinedClient {
       set_upf_session,
       bool(
           const SessionState::SessionInfo info,
-          std::function<void(Status status, UpfRes)> callback));
+          std::function<void(Status status, UPFSessionContextState)> callback));
 };
 
 class MockDirectorydClient : public AsyncDirectorydClient {

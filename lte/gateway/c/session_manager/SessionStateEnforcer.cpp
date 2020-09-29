@@ -35,7 +35,7 @@
 
 namespace magma {
 // temp routine
-void call_back_void_upf(grpc::Status, magma::UpfRes response) {
+void call_back_void_upf(grpc::Status, magma::UPFSessionContextState response) {
   // do nothinf but to only passing call back
 }
 
@@ -207,25 +207,25 @@ bool SessionStateEnforcer::static_rule_init() {
   SetGroupFAR reqf;
   magma::PDI pdireq;
   reqpdr1.set_pdr_id(1);
-  reqpdr1.set_sess_ver_no(2);
+  //reqpdr1.set_sess_ver_no(2);
   reqpdr1.set_precedence(5);
-  reqpdr1.set_far_id(1);
+  //reqpdr1.set_far_id(1);
   pdireq.set_src_interface(3);
   pdireq.set_net_instance("downlink");
   pdireq.set_ue_ip_adr("10.10.1.1");
   GlobalRuleList.insert_rule(1, reqpdr1);
   reqpdr2.set_pdr_id(2);
-  reqpdr2.set_sess_ver_no(1);
+  //reqpdr2.set_sess_ver_no(1);
   reqpdr2.set_precedence(2);
-  reqpdr2.set_far_id(2);
+  //reqpdr2.set_far_id(2);
   pdireq.set_src_interface(3);
   pdireq.set_net_instance("uplink");
   pdireq.set_ue_ip_adr("10.10.1.2");
   GlobalRuleList.insert_rule(2, reqpdr2);
   SetGroupFAR far1;
-  far1.set_far_id(1);
-  far1.set_sess_ver_no(4);
-  far1.set_bar_id(6);
+  //far1.set_far_id(1);
+  //far1.set_sess_ver_no(4);
+  //far1.set_bar_id(6);
   GlobalRuleList.insert_rule(1, far1);
 
   // subscriber Id 1 to PDR 1 and FAR 1

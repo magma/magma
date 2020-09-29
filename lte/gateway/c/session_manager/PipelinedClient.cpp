@@ -22,10 +22,10 @@ using grpc::Status;
 namespace {  // anonymous
 using std::experimental::optional;
 
-void call_back_void_upf(grpc::Status, magma::UpfRes response) {
+void call_back_void_upf(grpc::Status, magma::UPFSessionContextState response) {
   MLOG(MDEBUG) << "Handle UPF response reached";  // ToDo
 }
-std::function<void(grpc::Status, magma::UpfRes)> callback = call_back_void_upf;
+std::function<void(grpc::Status, magma::UPFSessionContextState)> callback = call_back_void_upf;
 
 // Preparation of Set Session request to UPF
 magma::SessionSet create_session_set_req(
@@ -33,16 +33,16 @@ magma::SessionSet create_session_set_req(
   magma::SessionSet req;
   magma::lte::Fsm_state_FsmState state         = info.state;
   std::string seid                             = info.sess_id;
-  uint32_t sess_ver_no                         = info.ver_no;
+  //uint32_t sess_ver_no                         = info.ver_no;
   magma::SessionState::SessionInfo::NodeId tmp = info.nodeId;
   std::string node_id                          = tmp.node_id;
-  uint64_t f_seid_                             = info.Seid.f_seid;
-  req.set_seid(seid);
-  req.set_sess_ver_no(sess_ver_no);
+  //uint64_t f_seid_                             = info.Seid.f_seid;
+  //req.set_seid(seid);
+  //req.set_sess_ver_no(sess_ver_no);
   req.mutable_node_id()->set_node_id(node_id);
   req.mutable_node_id()->set_node_id_type(magma::NodeID::IPv4);
   req.mutable_state()->set_state(state);
-  req.mutable_f_seid()->set_f_seid(f_seid_);
+  //req.mutable_f_seid()->set_f_seid(f_seid_);
 
   std::vector<magma::SetGroupPDR> pdr_reqs;
   std::vector<magma::SetGroupFAR> far_reqs;
@@ -53,10 +53,10 @@ magma::SessionSet create_session_set_req(
   for (const auto& final_req : pdr_reqs) {
     mut_pdr_requests->Add()->CopyFrom(final_req);
   }
-  auto mut_far_requests = req.mutable_set_gr_far();
-  for (const auto& final_req : far_reqs) {
-    mut_far_requests->Add()->CopyFrom(final_req);
-  }
+  //auto mut_far_requests = req.mutable_set_gr_far();
+  //for (const auto& final_req : far_reqs) {
+  //  mut_far_requests->Add()->CopyFrom(final_req);
+  //}
   return req;
 }
 
@@ -243,7 +243,7 @@ bool AsyncPipelinedClient::setup_lte(
 // Method to Setup UPF Session
 bool AsyncPipelinedClient::set_upf_session(
     const SessionState::SessionInfo info,
-    std::function<void(Status status, UpfRes)> callback) {
+    std::function<void(Status status, UPFSessionContextState)> callback) {
   SessionSet setup_session_req = create_session_set_req(info);
   set_upf_session_rpc(setup_session_req, callback);
   return true;
@@ -406,19 +406,19 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
 
 // RPC definition to Send Set Session request to UPF
 void AsyncPipelinedClient::set_upf_session_rpc(
-    const SessionSet& request, std::function<void(Status, UpfRes)> callback) {
+    const SessionSet& request, std::function<void(Status, UPFSessionContextState)> callback) {
   auto local_resp =
-      new AsyncLocalResponse<UpfRes>(std::move(callback), RESPONSE_TIMEOUT);
+      new AsyncLocalResponse<UPFSessionContextState>(std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
   for (int i = 0; i < request.set_gr_pdr_size(); i++) {
     const magma::SetGroupPDR pdr_ = request.set_gr_pdr(i);
   }
-  for (int i = 0; i < request.set_gr_far_size(); i++) {
-    const magma::SetGroupPDR pdr_ = request.set_gr_pdr(i);
-  }
-  for (int i = 0; i < request.set_gr_far_size(); i++) {
-    const magma::SetGroupFAR far_ = request.set_gr_far(i);
-  }
+  //for (int i = 0; i < request.set_gr_far_size(); i++) {
+  //  const magma::SetGroupPDR pdr_ = request.set_gr_pdr(i);
+  //}
+  //for (int i = 0; i < request.set_gr_far_size(); i++) {
+  //  const magma::SetGroupFAR far_ = request.set_gr_far(i);
+  //}
   local_resp->set_response_reader(std::move(
       stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_)));
 }

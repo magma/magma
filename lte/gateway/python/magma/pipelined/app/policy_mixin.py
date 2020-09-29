@@ -182,7 +182,8 @@ class PolicyMixin(metaclass=ABCMeta):
                 if rule.redirect.support == rule.redirect.ENABLED:
                     self._install_redirect_flow(imsi, ip_addr, rule)
 
-    def activate_rules(self, imsi, ip_addr, apn_ambr, static_rule_ids, dynamic_rules):
+    def activate_rules(self, imsi, ip_addr, apn_ambr, static_rule_ids, dynamic_rules,
+                       match_teid=0, action_teid=0):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -207,21 +208,25 @@ class PolicyMixin(metaclass=ABCMeta):
             )
         static_results = []
         for rule_id in static_rule_ids:
-            res = self._install_flow_for_static_rule(imsi, ip_addr, apn_ambr, rule_id)
+            res = self._install_flow_for_static_rule(imsi, ip_addr, apn_ambr, rule_id,
+                                                     match_teid, action_teid)
+
             static_results.append(RuleModResult(rule_id=rule_id, result=res))
         dyn_results = []
         for rule in dynamic_rules:
-            res = self._install_flow_for_rule(imsi, ip_addr, apn_ambr, rule)
+            res = self._install_flow_for_rule(imsi, ip_addr, apn_ambr, rule,
+                                              match_teid, action_teid)
             dyn_results.append(RuleModResult(rule_id=rule.id, result=res))
 
         # Install a base flow for when no rule is matched.
-        self._install_default_flow_for_subscriber(imsi, ip_addr)
+        self._install_default_flow_for_subscriber(imsi, ip_addr,
+                                                  match_teid, action_teid)
         return ActivateFlowsResult(
             static_rule_results=static_results,
             dynamic_rule_results=dyn_results,
         )
 
-    def _install_flow_for_static_rule(self, imsi, ip_addr, apn_ambr, rule_id):
+    def _install_flow_for_static_rule(self, imsi, ip_addr, apn_ambr, rule_id, match_teid=0, action_teid=0):
         """
         Install a flow to get stats for a particular static rule id. The rule
         will be loaded from Redis and installed.
@@ -235,7 +240,7 @@ class PolicyMixin(metaclass=ABCMeta):
         if rule is None:
             self.logger.error("Could not find rule for rule_id: %s", rule_id)
             return RuleModResult.FAILURE
-        return self._install_flow_for_rule(imsi, ip_addr, apn_ambr, rule)
+        return self._install_flow_for_rule(imsi, ip_addr, apn_ambr, rule, match_teid, action_teid)
 
     def _wait_for_rule_responses(self, imsi, rule, chan):
         def fail(err):
@@ -270,14 +275,16 @@ class PolicyMixin(metaclass=ABCMeta):
     def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id, app_name,
                                      app_service_type, next_table, version, qos_mgr,
-                                     copy_table):
+                                     copy_table, teid=0):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with
         its matched rule and injects the rule num into the packet's register.
         """
         parser = self._datapath.ofproto_parser
-        flow_match = flow_match_to_magma_match(flow.match, ip_addr)
+
+        flow_match = flow_match_to_magma_match(flow.match, ip_addr, teid)
+
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions, instructions = self._get_action_for_rule(
             flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr)
@@ -387,7 +394,7 @@ class PolicyMixin(metaclass=ABCMeta):
         return actions, instructions
 
     @abstractmethod
-    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule, match_teid=0, action_teid=0):
         """
         Install a flow given a rule. Subclass should implement this.
 
@@ -399,7 +406,7 @@ class PolicyMixin(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr, match_teid=0, action_teid=0):
         """
         Install a flow for the subscriber in the event no rule is matched.
         Subclass should implement this.

@@ -571,6 +571,17 @@ service CentralSessionController {
 }
 
 ////////////5GSMCONTEXT/////////////
+
+message NodeID {
+  enum NodeIDType {
+    IPv4 = 0;
+    IPv6 = 1;
+    FQDN = 2;
+    }
+  NodeIDType node_id_type = 1;
+  string node_id = 2;
+}
+
 //PduSessionType
 enum PduSessionType {
    IPV4 = 0;
@@ -791,3 +802,134 @@ service SmfPduSessionSmContext {
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
 }
 
+
+// Node Level Messages from UPF. Purely Event Based.
+message UPFNodeState {
+    string upf_id = 1;
+
+    oneof upf_node_messages {
+         // Message for establishing association
+         UPFAssociationState associaton_state = 2;
+
+         // Contains node information and any GTPU Peer failure report.
+         UPFNodeReport node_report = 3;
+
+    }
+}
+
+//15.8 (Sec 8.2.82 User Plane IP Resource Information)
+message UserPlaneIPResourceSchema {
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 teid_range_indication = 3;
+    uint32 teid_range = 4;
+    string assoc_network_instance = 5;
+
+    enum InterfaceValue {    // 15.8 (Sec 8.2.2) Source Interface
+       ACCESS = 0;
+       CORE = 1;
+       LAN  = 2;
+       CP_FUNCTION = 3;
+    }
+    uint32 assoc_source_interface = 6;
+}
+
+
+
+// 15.8 (Sec 7.4.4.3) : PFCP Association Update Reqest.
+message UPFAssociationState {
+
+  // Version of the associated state
+  uint32 state_version = 2;
+
+  enum AssociationState {
+     STARTED=0;
+     INITIATED=1;
+     ESTABLISHED=2;
+     MODIFIED=3;
+     RELEASE=4;
+  }
+
+  //Association state of the UPF
+  AssociationState assoc_state = 3;
+
+  // Time when UPF got started
+  google.protobuf.Timestamp recovery_time_stamp = 4;
+
+  // Feature set supported by UPF
+  UPFFeatureSet feature_set = 5;
+
+  // User plane IP Resource schema
+  repeated UserPlaneIPResourceSchema ip_resource_schema = 6;
+
+  google.protobuf.Timestamp graceful_release_period = 7;
+
+}
+
+
+message UPFFeatureSet {
+  // 15.8 (Sec 8.2.25) :  UP Function Features
+  bool downlink_data_buffering_cp = 1;   // Downlink Data Buffering in CP function supported in UPF
+  bool downlink_data_notification_delay = 2;
+                                           // Buffering parameter, Downlink DataNotification Delay supported by UPF
+  bool dl_buffering_duration = 3;        // Buffering parameter, DL Buffering Duration is supported by UPF
+  bool traffic_steering = 4;             // Traffic Steering is supported by the UPF
+  bool f_teid = 5;                       // F-TEID allocation/release in the UP function is supported by UPF
+  bool pfd_management = 6;               // PFD Management is supported by UPF
+  bool header_enrichment_uplink = 7;     // Header enrichment of Uplink Traffic is supported by UPF
+  bool traffic_redirection_enforcement = 8;
+                                         // Traffic Redirection Enforcement in the UP function is supported in UPF
+  bool end_of_marker_packet = 9;         // Sending End of Marker packets supported by the UPF
+  bool pdi_optimization_signalling = 10; // Support PDI optimized signalling in UPF
+  bool ul_dl_buffering_control = 11;     // Support of UL/DL Buffering Control
+  bool quota_application_to_apply = 12;  // The UPF supports being provisioned with the Quota Action to apply
+  bool trace = 13;                       // The UPF supports Trace
+  bool frame_routing = 14;               // UPF supports Framed Routing
+  bool pfd_contents = 15;
+}
+
+
+//15.8 (Sec 7.4.5.1) : PFCP Node Report Request
+message UPFNodeReport {
+    uint32 state_version = 2;                                        // Version of the report
+    LoadControlInformation load_control_info = 3;                    // Load Control Information
+    OverloadControlInformation overload_control_info = 4;            // OverLoad Control Information
+}
+
+// 15.8 (Table 7.5.3.3-1) : Load Control Information
+message LoadControlInformation {
+   uint32 load_control_seq_number = 1;   // Sec 6.2.3.3.2.1
+   uint32 load_metric = 2;               // Sec 6.2.3.3.2.2
+}
+
+// 15.8 (Sec 8.2.35) : Timer
+message OverloadTimer {
+  uint32 timer_unit = 1;
+  uint32 timer_value = 2;
+}
+
+// 15.8 (Sec 7.5.3.4) : Overload Control Information
+message OverloadControlInformation {
+   uint32 overload_ctrl_seqno = 1;
+   uint32 overload_reduction_metric = 2;
+   OverloadTimer period_of_validity = 3;
+   uint32 flags = 4;
+}
+
+// Current Session snapshot in UPF.
+message UPFSessionState {
+  string subscriber_id = 1;       // Subscriber ID
+  int32 session_version = 2;      // Successful Version number snapshot from UPF. If its not the expected parse Failure report.
+  uint32 local_f_teid = 3;        // Local TEID to uniquely identify the session
+}
+
+// Perodic Session snapshot information from UPF to SMF
+message UPFSessionConfigState {
+     repeated UPFSessionState upf_session_state = 1;
+}
+
+// Set Interface from Pipelined
+service SetInterfaceForUserPlane {
+    rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
+    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
+}

@@ -162,7 +162,7 @@ class EnforcementController(PolicyMixin, MagmaController):
 
         return remaining_flows
 
-    def _get_rule_match_flow_msgs(self, imsi, ip_addr, apn_ambr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, ip_addr, apn_ambr, rule, match_teid=0, action_teid=0):
         """
         Get flow msgs to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -178,13 +178,27 @@ class EnforcementController(PolicyMixin, MagmaController):
         flow_adds = []
         for flow in rule.flow_list:
             try:
-                version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
-                                                                        rule.id)
+                teid=0
+                if flow.match.direction == flow.match.UPLINK:
+                    teid = match_teid
+                elif flow.match.direction == flow.match.DOWNLINK:
+                    teid = action_teid
+
+              
+                if teid:
+                    version = self._session_rule_version_mapper.\
+                                   get_ng_version_by_subscriber(imsi)
+                else:                   
+                    version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
+                                                                            rule.id)
+
+                self.logger.info("teid=%d, version=%d", teid, version)     
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
                     rule.app_service_type, self.next_main_table,
-                    version, self._qos_mgr, self._enforcement_stats_tbl))
+                    version, self._qos_mgr, self._enforcement_stats_tbl,
+                    teid))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
@@ -193,7 +207,7 @@ class EnforcementController(PolicyMixin, MagmaController):
                 raise err
         return flow_adds
 
-    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule, match_teid=0, action_teid=0):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -213,7 +227,8 @@ class EnforcementController(PolicyMixin, MagmaController):
 
         flow_adds = []
         try:
-            flow_adds = self._get_rule_match_flow_msgs(imsi, ip_addr, apn_ambr, rule)
+            flow_adds = self._get_rule_match_flow_msgs(imsi, ip_addr, apn_ambr, rule,
+                                                       match_teid, action_teid)
         except FlowMatchError:
             return RuleModResult.FAILURE
 
@@ -247,7 +262,7 @@ class EnforcementController(PolicyMixin, MagmaController):
     def _get_default_flow_msgs_for_subscriber(self, *_):
         pass
 
-    def _install_default_flow_for_subscriber(self, *_):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr, match_teid=0, action_teid=0):
         pass
 
     def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):
@@ -266,14 +281,50 @@ class EnforcementController(PolicyMixin, MagmaController):
                            imsi=encode_imsi(imsi), **ip_match_in)
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           cookie=cookie, cookie_mask=mask)
+
         ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
         match = MagmaMatch(eth_type=get_eth_type(ip_addr),
                            imsi=encode_imsi(imsi), **ip_match_out)
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           cookie=cookie, cookie_mask=mask)
+
         self._redirect_manager.deactivate_flow_for_rule(self._datapath, imsi,
                                                         num)
         self._qos_mgr.remove_subscriber_qos(imsi, num)
+
+    def _deactivate_ng_flow_for_rule(self, imsi, ip_addr, rule_id, match_teid=0, action_teid=0):
+        """
+        Deactivate a specific rule using the flow cookie for a subscriber
+        """
+        try:
+            num = self._rule_mapper.get_rule_num(rule_id)
+        except KeyError:
+            self.logger.error('Could not find rule id %s', rule_id)
+            return
+        cookie, mask = (num, flows.OVS_COOKIE_MATCH_ALL)
+
+        if action_teid:
+            ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
+            ip_match_in.update({'tunnel_id': action_teid})
+
+            match = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                               imsi=encode_imsi(imsi), **ip_match_in)
+            flows.delete_flow(self._datapath, self.tbl_num, match,
+                              cookie=cookie, cookie_mask=mask)
+
+        if match_teid:
+            ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
+            ip_match_out.update({'tunnel_id': match_teid})
+
+            match = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                              imsi=encode_imsi(imsi), **ip_match_out)
+            flows.delete_flow(self._datapath, self.tbl_num, match,
+                              cookie=cookie, cookie_mask=mask)
+
+        #TODO
+        #self._redirect_manager.deactivate_flow_for_rule(self._datapath, imsi,
+        #                                                num)
+        #self._qos_mgr.remove_subscriber_qos(imsi, num)
 
     def _deactivate_flows_for_subscriber(self, imsi, ip_addr):
         """ Deactivate all rules for specified subscriber session """
@@ -281,6 +332,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         match = MagmaMatch(eth_type=get_eth_type(ip_addr),
                            imsi=encode_imsi(imsi), **ip_match_in)
         flows.delete_flow(self._datapath, self.tbl_num, match)
+
         ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
         match = MagmaMatch(eth_type=get_eth_type(ip_addr),
                            imsi=encode_imsi(imsi), **ip_match_out)
@@ -290,7 +342,31 @@ class EnforcementController(PolicyMixin, MagmaController):
                                                                imsi)
         self._qos_mgr.remove_subscriber_qos(imsi)
 
-    def deactivate_rules(self, imsi, ip_addr, rule_ids):
+    def _deactivate_ng_flows_for_subscriber(self, imsi, ip_addr, match_teid=0, action_teid=0):
+        """ Deactivate all rules for specified subscriber session """
+
+        if action_teid:
+            ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
+            ip_match_in.update({'tunnel_id': action_teid})
+
+            match = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                               imsi=encode_imsi(imsi), **ip_match_in)
+            flows.delete_flow(self._datapath, self.tbl_num, match)
+
+        if match_teid:
+            ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
+            ip_match_out.update({'tunnel_id': match_teid})
+
+            match = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                               imsi=encode_imsi(imsi), **ip_match_out)
+            flows.delete_flow(self._datapath, self.tbl_num, match)
+
+         #TODO
+         #self._redirect_manager.deactivate_flows_for_subscriber(self._datapath,
+         #                                                      imsi)
+         #self._qos_mgr.remove_subscriber_qos(imsi)
+
+    def deactivate_rules(self, imsi, ip_addr, rule_ids, match_teid=0, action_teid=0):
         """
         Deactivate flows for a subscriber.
             Only imsi -> remove all rules for imsi
@@ -316,7 +392,13 @@ class EnforcementController(PolicyMixin, MagmaController):
             return
 
         if not rule_ids:
-            self._deactivate_flows_for_subscriber(imsi, ip_addr)
+            if match_teid or action_teid:
+                self._deactivate_ng_flows_for_subscriber(imsi, ip_addr, match_teid, action_teid)
+            else:
+                self._deactivate_flows_for_subscriber(imsi, ip_addr)
         else:
             for rule_id in rule_ids:
-                self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)
+                if match_teid or action_teid:
+                    self._deactivate_ng_flow_for_rule(imsi, ip_addr, rule_id, match_teid, action_teid)
+                else:
+                    self._deactivate_flow_for_rule(imsi, ip_addr, rule_id)

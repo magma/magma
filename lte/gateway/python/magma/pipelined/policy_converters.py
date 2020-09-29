@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import ipaddress
-
 from lte.protos.policydb_pb2 import FlowMatch
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.openflow.magma_match import MagmaMatch
@@ -41,7 +40,7 @@ def _check_pkt_protocol(match):
     return True
 
 
-def flow_match_to_magma_match(match, ip_addr=None):
+def flow_match_to_magma_match(match, ip_addr=None, teid=0):
     '''
     Convert a FlowMatch to a MagmaMatch object
 
@@ -96,6 +95,9 @@ def flow_match_to_magma_match(match, ip_addr=None):
                 match_kwargs[ip_src_reg] = ip_addr.address.decode('utf-8')
             else:
                 match_kwargs[ip_dst_reg] = ip_addr.address.decode('utf-8')
+
+    if teid:
+        match_kwargs['tunnel_id'] = teid
 
     return MagmaMatch(direction=_get_direction_for_match(match),
                       **match_kwargs)
@@ -173,6 +175,7 @@ def get_ue_ip_match_args(ip_addr: IPAddress, direction: Direction):
             ip_match = {ip_src_reg: ip_addr.address.decode('utf-8')}
         else:
             ip_match = {ip_dst_reg: ip_addr.address.decode('utf-8')}
+
     return ip_match
 
 

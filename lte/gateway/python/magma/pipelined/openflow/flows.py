@@ -159,11 +159,18 @@ def add_flow(datapath, table, match, actions=None, instructions=None,
 
     ryu_match = parser.OFPMatch(**match.ryu_match)
 
-    mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
-                            match=ryu_match, instructions=inst,
-                            table_id=table, cookie=cookie,
-                            idle_timeout=idle_timeout,
-                            hard_timeout=hard_timeout)
+    # cookie value is used for discard and forward data for GTP
+    if cookie > 0:
+        mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+                                match=ryu_match,table_id=table,
+                                out_group=ofproto.OFPG_ANY,
+                                out_port=ofproto.OFPP_ANY, cookie=cookie)
+    else:
+        mod = parser.OFPFlowMod(datapath=datapath, priority=priority,
+                                match=ryu_match, instructions=inst,
+                                table_id=table, cookie=cookie,
+                                idle_timeout=idle_timeout,
+                                hard_timeout=hard_timeout)
 
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)

@@ -21,6 +21,7 @@ from magma.pipelined.app.inout import INGRESS
 from ryu.lib.packet import ether_types
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.utils import Utils
+from magma.pipelined.openflow.registers import load_gtp_port_num
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 
@@ -45,6 +46,7 @@ class Classifier(MagmaController):
         self.next_table = self._service_manager.get_table_num(INGRESS)
         self._uplink_port = OFPP_LOCAL
         self._datapath = None
+        self.logger.info("CLASSIFIER APP Launched with gtp_port=%d", self.config.gtp_port)
 
     def _get_config(self, config_dict):
         port_name = None
@@ -96,90 +98,97 @@ class Classifier(MagmaController):
                        goto_table=self.config.internal_sampling_fwd_tbl)
 
 
-    def _add_tunnel_flows(self, precedence:int, i_teid:int,
-                          o_teid:int, ue_ip_adr:str,
-                          enodeb_ip_addr:str, sid:int = None):
+    def add_tunnel_flows(self, precedence:int, i_teid:int,
+                         o_teid:int, ue_ip_adr:str,
+                         enodeb_ip_addr:str, sid:int = None):
 
         parser = self._datapath.ofproto_parser
         priority = Utils.get_of_priority(precedence)
-        # Add flow for gtp port
-        match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
-        actions = [parser.OFPActionSetField(eth_src=GTP_PORT_MAC),
-                   parser.OFPActionSetField(eth_dst="ff:ff:ff:ff:ff:ff")]
-        if sid:
-            actions.append(parser.OFPActionSetField(metadata=sid))
+        # Add flow for gtp port for Uplink Tunnel
+        if i_teid:
+            match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
-        flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                       priority=priority, goto_table=self.next_table)
+            actions = [parser.OFPActionSetField(eth_src=GTP_PORT_MAC),
+                       parser.OFPActionSetField(eth_dst="ff:ff:ff:ff:ff:ff")]
+            if sid:
+                actions.append(parser.OFPActionSetField(metadata=sid))
 
-        # Add flow for LOCAL port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,in_port=self._uplink_port,
-                           ipv4_dst=ue_ip_adr)
-        actions = [parser.OFPActionSetField(tunnel_id=o_teid),
-                   parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr)]
-        if sid:
-            actions.append(parser.OFPActionSetField(metadata=sid))
+            flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
+                           priority=priority, goto_table=self.next_table)
 
-        flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                       priority=priority, goto_table=self.next_table)
+        # Install Downlink Tunnel
+        if ue_ip_adr:
+            if o_teid and enodeb_ip_addr:
+                match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,in_port=self._uplink_port,
+                                  ipv4_dst=ue_ip_adr)
+                actions = [parser.OFPActionSetField(tunnel_id=o_teid),
+                           parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
+                           load_gtp_port_num(parser, self.config.gtp_port)]
+                if sid:
+                    actions.append(parser.OFPActionSetField(metadata=sid))
 
-        # Add flow for mtr port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           in_port=self.config.mtr_port,
-                           ipv4_dst=ue_ip_adr)
+                flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
+                               priority=priority, goto_table=self.next_table)
 
-        flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                       priority=priority, goto_table=self.next_table)
+            # Add flow for mtr port
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               in_port=self.config.mtr_port,
+                               ipv4_dst=ue_ip_adr)
+
+            flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
+                           priority=priority, goto_table=self.next_table)
        
-        # Add ARP flow for LOCAL port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
-                           in_port=self._uplink_port, arp_tpa=ue_ip_adr)
-        if sid:
-            actions = [parser.OFPActionSetField(metadata=sid)]
+            # Add ARP flow for LOCAL port
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                               in_port=self._uplink_port, arp_tpa=ue_ip_adr)
+            if sid:
+                actions = [parser.OFPActionSetField(metadata=sid)]
 
-        flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                       priority=priority, goto_table=self.next_table)
+            flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
+                           priority=priority, goto_table=self.next_table)
 
-        # Add ARP flow for mtr port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+            # Add ARP flow for mtr port
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
                                in_port=self.config.mtr_port,
                                arp_tpa=ue_ip_adr)
 
-        flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
-                       priority=priority, goto_table=self.next_table)
+            flows.add_flow(self._datapath, self.tbl_num, match, actions=actions,
+                           priority=priority, goto_table=self.next_table)
 
 
-    def _delete_tunnel_flows(self, i_teid:int, ue_ip_adr:str):
+    def delete_tunnel_flows(self, i_teid:int, ue_ip_adr:str):
 
         # Delete flow for gtp port
-        match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
+        if i_teid:
+            match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
-        flows.delete_flow(self._datapath, self.tbl_num, match)
+            flows.delete_flow(self._datapath, self.tbl_num, match)
 
         # Delete flow for LOCAL port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           in_port=self._uplink_port, ipv4_dst=ue_ip_adr)
+        if ue_ip_adr:
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               in_port=self._uplink_port, ipv4_dst=ue_ip_adr)
 
-        flows.delete_flow(self._datapath, self.tbl_num, match)
+            flows.delete_flow(self._datapath, self.tbl_num, match)
 
-        # Delete flow for mtr port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                           in_port=self.config.mtr_port,ipv4_dst=ue_ip_adr)
+            # Delete flow for mtr port
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               in_port=self.config.mtr_port,ipv4_dst=ue_ip_adr)
 
-        flows.delete_flow(self._datapath, self.tbl_num, match)
+            flows.delete_flow(self._datapath, self.tbl_num, match)
 
-        # Delete ARP flow for LOCAL port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
-                           in_port=self._uplink_port, arp_tpa=ue_ip_adr)
+            # Delete ARP flow for LOCAL port
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                               in_port=self._uplink_port, arp_tpa=ue_ip_adr)
 
-        flows.delete_flow(self._datapath, self.tbl_num, match)
+            flows.delete_flow(self._datapath, self.tbl_num, match)
 
-        # Delete ARP flow for mtr port
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
-                           in_port=self.config.mtr_port, arp_tpa=ue_ip_adr)
+            # Delete ARP flow for mtr port
+            match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
+                               in_port=self.config.mtr_port, arp_tpa=ue_ip_adr)
 
-        flows.delete_flow(self._datapath, self.tbl_num, match)
+            flows.delete_flow(self._datapath, self.tbl_num, match)
 
 
     def _discard_tunnel_flows(self, precedence:int, i_teid:int,

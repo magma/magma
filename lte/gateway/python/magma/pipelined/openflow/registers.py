@@ -61,6 +61,11 @@ def load_direction(parser, direction: Direction):
         raise Exception("Invalid direction")
     return parser.NXActionRegLoad2(dst=DIRECTION_REG, value=direction.value)
 
+def load_gtp_port_num(parser, gtp_port_num):
+    """
+    Wrapper for loading the gtp_port_num register
+    """
+    return parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=gtp_port_num)
 
 def is_valid_direction(direction: Direction):
     return isinstance(direction, Direction)

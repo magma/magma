@@ -16,7 +16,7 @@ import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
 from scapy.all import Ether, IP, IPv6, ARP, TCP, UDP, ICMP, DHCP, BOOTP, \
     wrpcap, rdpcap
-
+from scapy.contrib.gtp import GTP_U_Header
 
 '''
 
@@ -93,6 +93,9 @@ UDP
     len        : ShortField           = (None)
     chksum     : XShortField          = (None)
 
+GTP_U_Header
+    teid       : IntField             = (None)
+    length     : ShortField           = (None)
 
 Example usage:
 
@@ -123,6 +126,7 @@ class ScapyPacket:
         self.ARP = ARP()
         self.TCP = TCP()
         self.UDP = UDP()
+        self.GTP_U_Header = GTP_U_Header()
         self.ICMP = ICMP()
         self.BOOTP = BOOTP()
         self.DHCP = DHCP()
@@ -188,6 +192,15 @@ class PacketBuilder(abc.ABC):
         raise NotImplementedError()
 
     @abc.abstractmethod
+    def _set_gtp_u_header(self, **kwargs):
+        """
+        Set the GTPU layer of the packet
+        Args:
+            fields (dict): GTPU layer fields
+        """
+        raise NotImplementedError()
+
+    @abc.abstractmethod
     def _set_bootp(self, **kwargs):
         """
         Set the BOOTP layer of the packet
@@ -243,6 +256,10 @@ class ScapyPacketBuilder(PacketBuilder):
     def _set_udp(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self.packet.UDP, key, value)
+
+    def _set_gtp_u_header(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self.packet.GTP_U_Header, key, value)
 
     def _set_bootp(self, **kwargs):
         for key, value in kwargs.items():
@@ -364,6 +381,14 @@ class UDPPacketBuilder(IPPacketBuilder):
     def build(self):
         return self.packet.Ether / self.packet.IP / self.packet.UDP
 
+class GTPUHeaderPacketBuilder(UDPPacketBuilder):
+    def set_gtp_u_header_layer(self, teid, length, gtp_type):
+        self._set_gtp_u_header(teid=teid, length=length, gtp_type=gtp_type)
+        return self
+
+    def build(self, EncapIP):
+        return self.packet.Ether / self.packet.IP / self.packet.UDP / self.packet.GTP_U_Header \
+               / EncapIP
 
 class BOOTPPacketBuilder(UDPPacketBuilder):
     def set_bootp_layer(self, op, yiaddr, siaddr, chaddr):

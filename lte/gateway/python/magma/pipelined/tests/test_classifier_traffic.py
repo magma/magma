@@ -124,7 +124,7 @@ class GTPTrafficTest(unittest.TestCase):
 
         # Attach the tunnel flows towards UE.
         seid1 = 5000
-        self.classifier_controller._add_tunnel_flows(65525, 1, 1000,
+        self.classifier_controller.add_tunnel_flows(65525, 1, 1000,
                                                      "192.168.128.30",
                                                       self.EnodeB_IP, seid1)
         # Create a set of packets

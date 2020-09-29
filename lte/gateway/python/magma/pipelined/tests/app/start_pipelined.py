@@ -119,6 +119,9 @@ class PipelinedController(Enum):
     Classifier = Controller(
         'magma.pipelined.app.classifier', 'classifier'
    )
+    NGServiceController = Controller(
+        'magma.pipelined.app.ng_services', 'ng_services'
+    )
 
 def assert_pipelined_not_running():
     """
