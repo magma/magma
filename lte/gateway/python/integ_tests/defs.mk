@@ -117,31 +117,32 @@ s1aptests/test_attach_mobile_reachability_timer_expiry.py \
 s1aptests/test_attach_implicit_detach_timer_expiry.py \
 s1aptests/test_attach_ul_udp_data.py \
 s1aptests/test_attach_ul_tcp_data.py \
+s1aptests/test_attach_ul_udp_data_multi_ue.py \
+s1aptests/test_attach_ul_tcp_data_multi_ue.py \
+s1aptests/test_attach_detach_two_pdns_with_tcptraffic.py \
 s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
+s1aptests/test_attach_detach_attach_ul_tcp_data.py \
+s1aptests/test_attach_dl_udp_data.py \
+s1aptests/test_attach_dl_tcp_data.py \
+s1aptests/test_attach_dl_udp_data_multi_ue.py \
+s1aptests/test_attach_dl_tcp_data_multi_ue.py \
+s1aptests/test_attach_dl_ul_tcp_data_multi_ue.py \
+s1aptests/test_attach_detach_attach_dl_tcp_data.py \
+s1aptests/test_data_flow_after_service_request.py \
+s1aptests/test_paging_request.py \
+s1aptests/test_multi_enb_paging_request.py \
 s1aptests/test_attach_asr.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
+s1aptests/test_implicit_detach_timer_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
-s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_restore_mme_config_after_sanity.py
-
-# These test cases pass without memory leaks, but needs DL-route in TRF server
-# sudo /sbin/route add -net 192.168.128.0 gw 192.168.60.142
-#     netmask 255.255.255.0 dev eth1
-# s1aptests/test_attach_dl_udp_data.py \
-# s1aptests/test_attach_dl_tcp_data.py \
-# s1aptests/test_attach_dl_udp_data_multi_ue.py \
-# s1aptests/test_attach_dl_tcp_data_multi_ue.py \
-# s1aptests/test_attach_dl_ul_tcp_data_multi_ue.py \
-# s1aptests/test_attach_detach_attach_dl_tcp_data.py \
-# s1aptests/test_paging_request.py \
-# s1aptests/test_multi_enb_paging_request.py
 
 # TODO flaky tests we should look at
 # s1aptests/test_enb_complete_reset.py \
