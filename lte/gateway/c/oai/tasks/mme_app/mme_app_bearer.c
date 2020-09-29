@@ -1827,7 +1827,13 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
    * is active. If so,then abort the attach procedure and release the UE
    * context.
    */
-  ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD;
+  ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  // Remove enb_s1ap_id_key from the hashtable
+  hashtable_uint64_ts_remove(
+    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+    (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
     nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);

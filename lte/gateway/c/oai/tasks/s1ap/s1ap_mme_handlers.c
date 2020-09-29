@@ -1132,9 +1132,7 @@ int s1ap_handle_ue_context_release_command(
 
     if (ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
         ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
-        ue_context_release_command_pP->cause ==
-            S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD ||
-        ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID) {
+        ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID ) {
       s1ap_remove_ue(state, ue_ref_p);
     } else {
       rc = s1ap_mme_generate_ue_context_release_command(
