@@ -154,8 +154,16 @@ add_library(SESSION_MANAGER
     MeteringReporter.h
     GrpcMagmaUtils.cpp
     GrpcMagmaUtils.h
+    SetMessageManagerHandler.h
+    SetMessageManagerHandler.cpp
+    SessionStateEnforcer.h
+    SessionStateEnforcer.cpp
+    AmfServiceClient.h
+    AmfServiceClient.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS})
+
+
 
 target_link_libraries(SESSION_MANAGER
   SERVICE303_LIB SERVICE_REGISTRY ASYNC_GRPC CONFIG POLICYDB EVENTD
@@ -175,8 +183,8 @@ if (CLANG_FORMAT)
 endif ()
 
 add_executable(sessiond ${PROJECT_SOURCE_DIR}/sessiond_main.cpp)
-
 target_link_libraries (sessiond SESSION_MANAGER)
+
 
 if (BUILD_TESTS)
   ENABLE_TESTING()

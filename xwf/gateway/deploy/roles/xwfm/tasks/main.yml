@@ -120,6 +120,8 @@
      - "net.ipv4.neigh.default.gc_thresh1"
      - "net.ipv4.neigh.default.gc_thresh2"
      - "net.ipv4.neigh.default.gc_thresh3"
+  tags:
+    - no_ci
 
 - name: Load TLS PKI for XWF bridge
   block:

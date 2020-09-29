@@ -27,7 +27,7 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
     # - updated vbguest-tool
     magma.vm.box = "fbcmagma/magma_dev"
     magma.vm.hostname = "magma-dev"
-    magma.vm.box_version = "1.0.1594511934"
+    magma.vm.box_version = "1.0.1594511999"
     magma.vbguest.auto_update = false
 
     # Create a private network, which allows host-only access to the machine
