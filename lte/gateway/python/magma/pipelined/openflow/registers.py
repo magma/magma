@@ -21,6 +21,7 @@ DPI_REG = 'reg10'
 TEST_PACKET_REG = 'reg5'
 PASSTHROUGH_REG = 'reg6'
 VLAN_TAG_REG = 'reg7'
+TUN_PORT_REG = 'reg8'
 
 # Local scratch registers (These registers are reset when submitting to
 # another app):

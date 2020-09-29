@@ -46,7 +46,7 @@ export default function NetworkEpc(props: Props) {
     [
       {
         category: 'Policy Enforcement Enabled',
-        value: props.epcConfigs?.relay_enabled ? 'Enabled' : 'Disabled',
+        value: props.epcConfigs?.hss_relay_enabled ? 'Enabled' : 'Disabled',
       },
     ],
     [
@@ -103,7 +103,8 @@ export function NetworkEpcEdit(props: EditProps) {
           mcc: '001',
           mnc: '01',
           network_services: ['policy_enforcement'],
-          relay_enabled: false,
+          hss_relay_enabled: false,
+          gx_gy_relay_enabled: false,
           sub_profiles: {},
           tac: 1,
         }
@@ -131,7 +132,7 @@ export function NetworkEpcEdit(props: EditProps) {
           <AltFormField label={'Policy Enforcement Enabled'}>
             <Select
               variant={'outlined'}
-              value={epcConfigs.relay_enabled ? 1 : 0}
+              value={epcConfigs.hss_relay_enabled ? 1 : 0}
               onChange={({target}) => {
                 setEpcConfigs({
                   ...epcConfigs,

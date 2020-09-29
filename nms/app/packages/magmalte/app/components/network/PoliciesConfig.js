@@ -71,6 +71,12 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
     {networkId: networkID},
     setBaseNames,
   );
+  const {response: qosProfiles} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdPolicyQosProfiles,
+    {
+      networkId: networkID,
+    },
+  );
 
   if (!ruleIDs || !baseNames) {
     return <LoadingFiller />;
@@ -145,6 +151,7 @@ function PoliciesConfig(props: WithAlert & {mirrorNetwork?: string}) {
         path={relativePath('/add')}
         component={() => (
           <PolicyRuleEditDialog
+            qosProfiles={qosProfiles ?? {}}
             mirrorNetwork={props.mirrorNetwork}
             onCancel={() => history.push(relativeUrl(''))}
             onSave={ruleID => {
@@ -231,6 +238,14 @@ const RuleRow = withAlert((props: Props) => {
     undefined,
     lastRefreshTime,
   );
+  const {response: qosProfiles} = useMagmaAPI(
+    MagmaV1API.getLteByNetworkIdPolicyQosProfiles,
+    {
+      networkId: networkID,
+    },
+    undefined,
+    lastRefreshTime,
+  );
 
   const onDeleteRule = async () => {
     const confirmed = await props.confirm(
@@ -283,6 +298,7 @@ const RuleRow = withAlert((props: Props) => {
           component={() =>
             rule ? (
               <PolicyRuleEditDialog
+                qosProfiles={qosProfiles ?? {}}
                 mirrorNetwork={props.mirrorNetwork}
                 rule={rule}
                 onCancel={() => history.push(relativeUrl(''))}

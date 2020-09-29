@@ -236,20 +236,29 @@ func (gxClient *GxClient) createCreditControlMessage(
 	m.NewAVP(avp.IPCANType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.IPCANType))
 	m.NewAVP(avp.RATType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.RATType))
 
+	// IPv4
 	if ip := net.ParseIP(request.IPAddr); ipNotZeros(ip) {
 		if ipV4 := ip.To4(); ipV4 != nil {
 			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(ipV4))
 		} else if gxClient.framedIpv4AddrRequired {
 			defaultIp := getDefaultFramedIpv4Addr()
 			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(defaultIp))
-		} else if ipV6 := ip.To16(); ipV6 != nil {
-			m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(ipV6))
 		}
 	} else if gxClient.framedIpv4AddrRequired {
 		defaultIp := getDefaultFramedIpv4Addr()
 		m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(defaultIp))
 	} else if (!gxClient.dontUseEUIIpIfEmpty) && len(request.HardwareAddr) >= 6 {
 		m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(Ipv6PrefixFromMAC(request.HardwareAddr)))
+	}
+
+	// IPv6
+	if ipv6 := net.ParseIP(request.IPv6Addr); ipv6 != nil {
+		if parsedIpv6 := ipv6.To16(); parsedIpv6 != nil {
+			// RFC 3162 2.3.
+			// strip prefix (length of 64)
+			ipV6Prefix := parsedIpv6.Mask(net.CIDRMask(64, 128))[:8]
+			m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(ipV6Prefix))
+		}
 	}
 
 	apn := getAPNfromConfig(globalConfig, request.Apn)
