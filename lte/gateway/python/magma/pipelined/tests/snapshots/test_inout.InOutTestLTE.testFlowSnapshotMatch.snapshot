@@ -1,0 +1,10 @@
+ cookie=0x0, table=ingress(main_table), n_packets=0, n_bytes=0, priority=10,in_port=LOCAL actions=set_field:0x10->reg1,resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ingress(main_table), n_packets=0, n_bytes=0, priority=10,in_port=211 actions=set_field:0x10->reg1,resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ingress(main_table), n_packets=0, n_bytes=0, priority=0,ip actions=set_field:0x1->reg1,resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=middle(main_table), n_packets=0, n_bytes=0, priority=15,reg6=0x1 actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=middle(main_table), n_packets=0, n_bytes=0, priority=12,ip,reg1=0x1,vlan_tci=0x0000/0x1000,nw_dst=1.2.3.4 actions=output:211
+ cookie=0x0, table=middle(main_table), n_packets=0, n_bytes=0, priority=12,ip,reg1=0x1,vlan_tci=0x1000/0x1000,nw_dst=1.2.3.4 actions=strip_vlan,output:211
+ cookie=0x0, table=middle(main_table), n_packets=0, n_bytes=0, priority=10 actions=resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=egress(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x10,vlan_tci=0x0000/0x1000 actions=output:NXM_NX_REG8[]
+ cookie=0x0, table=egress(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x10,vlan_tci=0x1000/0x1000 actions=strip_vlan,output:NXM_NX_REG8[]
+ cookie=0x0, table=egress(main_table), n_packets=0, n_bytes=0, priority=0,reg1=0x1 actions=LOCAL

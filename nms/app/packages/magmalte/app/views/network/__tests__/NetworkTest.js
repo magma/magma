@@ -61,7 +61,8 @@ describe('<NetworkDashboard />', () => {
     mcc: '001',
     mnc: '01',
     network_services: ['dpi', 'policy_enforcement'],
-    relay_enabled: false,
+    hss_relay_enabled: false,
+    gx_gy_relay_enabled: false,
     sub_profiles: {
       additionalProp1: {
         max_dl_bit_rate: 20000000,
@@ -505,7 +506,8 @@ describe('<NetworkDashboard />', () => {
         mcc: '003',
         mnc: '02',
         network_services: ['policy_enforcement'],
-        relay_enabled: false,
+        hss_relay_enabled: false,
+        gx_gy_relay_enabled: false,
         sub_profiles: {},
         tac: 1,
       },

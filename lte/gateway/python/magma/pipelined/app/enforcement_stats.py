@@ -10,7 +10,6 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 from typing import List
 from collections import defaultdict
 
@@ -27,7 +26,8 @@ from ryu.lib.packet import ether_types
 
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
-from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
+    PROCESS_STATS
 from magma.pipelined.policy_converters import get_ue_ipv4_match_args
 from magma.pipelined.openflow import messages, flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
@@ -40,8 +40,6 @@ from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
 
 
 ETH_FRAME_SIZE_BYTES = 14
-PROCESS_STATS = 0x0
-IGNORE_STATS = 0x1
 
 
 class EnforcementStatsController(PolicyMixin, MagmaController):

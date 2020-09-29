@@ -20,6 +20,7 @@ import type {
   network_epc_configs,
   network_id,
   network_ran_configs,
+  network_subscriber_config,
 } from '@fbcnms/magma-api';
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
@@ -30,6 +31,7 @@ export type UpdateNetworkProps = {
   epcConfigs?: network_epc_configs,
   lteRanConfigs?: network_ran_configs,
   lteDnsConfig?: network_dns_config,
+  subscriberConfig?: network_subscriber_config,
   setLteNetwork: lte_network => void,
   refreshState: boolean,
 };
@@ -37,7 +39,7 @@ export type UpdateNetworkProps = {
 export async function UpdateNetworkState(props: UpdateNetworkProps) {
   const {networkId, setLteNetwork} = props;
   const requests = [];
-  if (props.lteNetwork !== undefined) {
+  if (props.lteNetwork) {
     requests.push(
       await MagmaV1API.putLteByNetworkId({
         networkId: networkId,
@@ -48,7 +50,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
     );
   }
 
-  if (props.epcConfigs !== undefined) {
+  if (props.epcConfigs) {
     requests.push(
       await MagmaV1API.putLteByNetworkIdCellularEpc({
         networkId: props.networkId,
@@ -56,7 +58,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
       }),
     );
   }
-  if (props.lteRanConfigs !== undefined) {
+  if (props.lteRanConfigs) {
     requests.push(
       await MagmaV1API.putLteByNetworkIdCellularRan({
         networkId: props.networkId,
@@ -64,7 +66,7 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
       }),
     );
   }
-  if (props.lteDnsConfig !== undefined) {
+  if (props.lteDnsConfig) {
     requests.push(
       await MagmaV1API.putLteByNetworkIdDns({
         networkId: props.networkId,
@@ -72,7 +74,14 @@ export async function UpdateNetworkState(props: UpdateNetworkProps) {
       }),
     );
   }
-
+  if (props.subscriberConfig) {
+    requests.push(
+      await MagmaV1API.putLteByNetworkIdSubscriberConfig({
+        networkId: props.networkId,
+        record: props.subscriberConfig,
+      }),
+    );
+  }
   await Promise.all(requests);
   if (props.refreshState) {
     setLteNetwork(await MagmaV1API.getLteByNetworkId({networkId}));

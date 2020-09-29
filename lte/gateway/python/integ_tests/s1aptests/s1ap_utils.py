@@ -271,8 +271,10 @@ class S1ApUtil(object):
                 ip = ipaddress.ip_address(bytes(addr[:4]))
                 with self._lock:
                     self._ue_ip_map[ue_id] = ip
-            else:
-                raise ValueError("PDN TYPE %s not supported" % pdn_type)
+            elif S1ApUtil.CM_ESM_PDN_IPV6 == pdn_type:
+                print("IPv6 PDN type received")
+            elif S1ApUtil.CM_ESM_PDN_IPV4V6 == pdn_type:
+                print("IPv4v6 PDN type received")
         return msg
 
     def receive_emm_info(self):
@@ -389,6 +391,7 @@ class SubscriberUtil(object):
 class MagmadUtil(object):
     stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
+    apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -526,6 +529,30 @@ class MagmadUtil(object):
                 + " MME configuration. Error: Unknown error"
             )
 
+    def config_apn_correction(self, cmd):
+        """
+        Configure the apn correction mode on the access gateway
+
+        Args:
+          cmd: Specify how to configure apn correction mode on AGW,
+          should be one of
+            enable: Enable apn correction feature, do nothing if already enabled
+            disable: Disable apn correction feature, do nothing if already disabled
+
+        """
+        apn_correction_cmd = ""
+        if cmd.name == MagmadUtil.apn_correction_cmds.ENABLE.name:
+            apn_correction_cmd = "sed -i \'s/correction: false/correction: true/g\' /etc/magma/mme.yml"
+        else:
+            apn_correction_cmd = "sed -i \'s/correction: true/correction: false/g\' /etc/magma/mme.yml"
+
+        ret_code = self.exec_command(
+            "sudo " + apn_correction_cmd)
+
+        if ret_code == 0:
+            print("APN Correction configured")
+        else:
+            print("APN Correction failed")
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """

@@ -14,7 +14,7 @@
  * @format
  */
 import type {DataRows} from '../../components/DataGrid';
-import type {lte_network} from '@fbcnms/magma-api';
+import type {feg_lte_network, lte_network} from '@fbcnms/magma-api';
 
 import Button from '@material-ui/core/Button';
 import DataGrid from '../../components/DataGrid';
@@ -23,20 +23,24 @@ import DialogContent from '@material-ui/core/DialogContent';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
+import NetworkContext from '../../components/context/NetworkContext';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import axios from 'axios';
 
 import {AltFormField} from '../../components/FormField';
+import {FEG_LTE} from '@fbcnms/types/network';
 import {LTE} from '@fbcnms/types/network';
 import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
-  lteNetwork: lte_network,
+  lteNetwork: $Shape<lte_network & feg_lte_network>,
 };
 
 export default function NetworkInfo(props: Props) {
+  const networkCtx = useContext(NetworkContext);
+
   const kpiData: DataRows[] = [
     [
       {
@@ -57,21 +61,32 @@ export default function NetworkInfo(props: Props) {
       },
     ],
   ];
+  if (networkCtx.networkType === FEG_LTE) {
+    kpiData.push([
+      {
+        category: 'Federation',
+        value: props.lteNetwork?.federation?.feg_network_id || '-',
+      },
+    ]);
+  }
   return <DataGrid data={kpiData} testID="info" />;
 }
 
 type EditProps = {
   saveButtonTitle: string,
-  lteNetwork: lte_network,
+  lteNetwork: $Shape<lte_network & feg_lte_network>,
   onClose: () => void,
-  onSave: lte_network => void,
+  onSave: ($Shape<lte_network & feg_lte_network>) => void,
 };
 
 export function NetworkInfoEdit(props: EditProps) {
   const [error, setError] = useState('');
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(LteNetworkContext);
-  const [lteNetwork, setLteNetwork] = useState<lte_network>(props.lteNetwork);
+  const networkCtx = useContext(NetworkContext);
+  const [lteNetwork, setLteNetwork] = useState<
+    $Shape<lte_network & feg_lte_network>,
+  >(props.lteNetwork);
 
   const onSave = async () => {
     if (props.lteNetwork?.id) {
@@ -144,7 +159,22 @@ export function NetworkInfoEdit(props: EditProps) {
               }
             />
           </AltFormField>
-
+          {networkCtx.networkType === FEG_LTE && (
+            <AltFormField label={'Federation'}>
+              <OutlinedInput
+                data-testid="federation"
+                placeholder="Enter Federation Network ID"
+                fullWidth={true}
+                value={lteNetwork.federation?.feg_network_id ?? ''}
+                onChange={({target}) =>
+                  setLteNetwork({
+                    ...lteNetwork,
+                    federation: {feg_network_id: target.value},
+                  })
+                }
+              />
+            </AltFormField>
+          )}
           <AltFormField label={'Add Description'}>
             <OutlinedInput
               data-testid="networkDescription"

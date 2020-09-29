@@ -393,11 +393,11 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
     def testFlowSnapshotMatch(self):
-        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+        snapshot_verifier = SnapshotVerifier(self,
+                                             self.BRIDGE,
                                              self.service_manager,
                                              max_sleep_time=20,
-                                             datapath=InOutTestNonNATBasicFlows.inout_controller._datapath,
-                                             try_snapshot=True)
+                                             datapath=InOutTestNonNATBasicFlows.inout_controller._datapath)
 
         with snapshot_verifier:
             pass

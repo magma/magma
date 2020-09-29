@@ -52,3 +52,7 @@ support_stateless: false
 
 # Redis table name for session state.
 sessions_table: sessiond:sessions
+
+# Set to true if converged access set message support is required or 5g access
+# support is required
+converged_access: true
