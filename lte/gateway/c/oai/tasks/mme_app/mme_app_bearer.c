@@ -2083,10 +2083,10 @@ int mme_app_paging_request_helper(
       RETURNerror) {
     OAILOG_ERROR_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
-        "Failed to send to Paging Indication to S1ap for "
+        "Failed to send Paging Indication to S1ap for "
         "ue_id" MME_UE_S1AP_ID_FMT "\n",
         ue_context_p->mme_ue_s1ap_id);
-    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
 
   /* MME shall store the time when Paging Indication sent for

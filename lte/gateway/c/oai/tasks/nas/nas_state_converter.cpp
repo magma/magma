@@ -92,17 +92,6 @@ void NasStateConverter::partial_tai_list_to_proto(
   }
 }
 
-void NasStateConverter::tai_list_to_proto(
-    const tai_list_t* state_tai_list, oai::TaiList* tai_list_proto) {
-  tai_list_proto->set_numberoflists(state_tai_list->numberoflists);
-  for (int idx = 0; idx < state_tai_list->numberoflists; idx++) {
-    oai::PartialTaiList* partial_tai_list =
-        tai_list_proto->add_partial_tai_lists();
-    partial_tai_list_to_proto(
-        &state_tai_list->partial_tai_list[idx], partial_tai_list);
-  }
-}
-
 void NasStateConverter::proto_to_partial_tai_list(
     const oai::PartialTaiList& partial_tai_list_proto,
     partial_tai_list_t* state_partial_tai_list) {
@@ -142,6 +131,17 @@ void NasStateConverter::proto_to_partial_tai_list(
             partial_tai_list_proto.tac(idx);
       }
     } break;
+  }
+}
+
+void NasStateConverter::tai_list_to_proto(
+    const tai_list_t* state_tai_list, oai::TaiList* tai_list_proto) {
+  tai_list_proto->set_numberoflists(state_tai_list->numberoflists);
+  for (int idx = 0; idx < state_tai_list->numberoflists; idx++) {
+    oai::PartialTaiList* partial_tai_list =
+        tai_list_proto->add_partial_tai_lists();
+    partial_tai_list_to_proto(
+        &state_tai_list->partial_tai_list[idx], partial_tai_list);
   }
 }
 

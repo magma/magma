@@ -225,7 +225,7 @@ bstring bfromcstr(const char* str) {
   return b;
 }
 
-/*  bstring bfromcstr_with_str_len (const char * str)
+/*  bstring bfromcstr_with_str_len (const char * str, int len)
  *
  *  Create a bstring which contains the contents of the '\0' terminated char *
  *  buffer str.
