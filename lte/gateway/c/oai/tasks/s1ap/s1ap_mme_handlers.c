@@ -987,6 +987,10 @@ static int s1ap_mme_generate_ue_context_release_command(
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_ue_not_available_for_ps_service;
       break;
+    case S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD:
+      cause_type  = S1ap_Cause_PR_nas;
+      cause_value = S1ap_CauseNas_unspecified;
+      break;
     default:
       OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Unknown cause for context release");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -1132,8 +1136,6 @@ int s1ap_handle_ue_context_release_command(
 
     if (ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
         ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
-        ue_context_release_command_pP->cause ==
-            S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD ||
         ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID) {
       s1ap_remove_ue(state, ue_ref_p);
     } else {

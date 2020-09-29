@@ -524,6 +524,7 @@ void mme_app_handle_conn_est_cnf(
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
   } else {
+    ue_context_p->time_ics_rsp_timer_started = time(NULL);
     OAILOG_INFO_UE(
         LOG_MME_APP, emm_context._imsi64,
         "MME APP : Sent Initial context Setup Request and Started guard timer "
@@ -1504,6 +1505,7 @@ void mme_app_handle_initial_context_setup_rsp(
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
+    ue_context_p->time_ics_rsp_timer_started = 0;
   }
 
   if (mme_app_send_modify_bearer_request_for_active_pdns(
@@ -1820,6 +1822,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
   }
   *imsi64 = ue_context_p->emm_context._imsi64;
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->time_ics_rsp_timer_started         = 0;
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is
    * active. If so then release the S1AP context and move the UE back to idle
@@ -1888,6 +1891,7 @@ void mme_app_handle_initial_context_setup_failure(
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
+    ue_context_p->time_implicit_detach_timer_started = 0;
   }
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is
