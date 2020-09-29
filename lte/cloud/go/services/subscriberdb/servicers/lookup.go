@@ -18,6 +18,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
+	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/storage"
 	merrors "magma/orc8r/lib/go/errors"
@@ -27,15 +28,27 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-func NewLookupServicer(factory blobstore.BlobStorageFactory) protos.SubscriberLookupServer {
-	return &LookupServicer{factory: factory}
-}
-
-type LookupServicer struct {
+// lookupServicer translates subscriber aliases to their IMSI.
+//
+// MSISDN is stored as a blobstore table, MSISDN -> IMSI.
+//
+// IP is stored as a SQL table with two string columns:
+//	- IP
+//	- IMSI.APN
+// Each subscriber should have at most one IP per APN, so the IP+IMSI+APN
+// triplet is enforced to be unique.
+type lookupServicer struct {
 	factory blobstore.BlobStorageFactory
+	store   subscriberdb_storage.IPLookup
 }
 
-func (l *LookupServicer) GetMSISDNs(ctx context.Context, req *protos.GetMSISDNsRequest) (*protos.GetMSISDNsResponse, error) {
+// NewLookupServicer returns a new subscriber lookup servicer.
+// Stores should be initialized by the caller.
+func NewLookupServicer(msisdnFact blobstore.BlobStorageFactory, ipStore subscriberdb_storage.IPLookup) protos.SubscriberLookupServer {
+	return &lookupServicer{factory: msisdnFact, store: ipStore}
+}
+
+func (l *lookupServicer) GetMSISDNs(ctx context.Context, req *protos.GetMSISDNsRequest) (*protos.GetMSISDNsResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -69,7 +82,7 @@ func (l *LookupServicer) GetMSISDNs(ctx context.Context, req *protos.GetMSISDNsR
 	return res, store.Commit()
 }
 
-func (l *LookupServicer) SetMSISDN(ctx context.Context, req *protos.SetMSISDNRequest) (*protos.SetMSISDNResponse, error) {
+func (l *lookupServicer) SetMSISDN(ctx context.Context, req *protos.SetMSISDNRequest) (*protos.SetMSISDNResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -101,7 +114,7 @@ func (l *LookupServicer) SetMSISDN(ctx context.Context, req *protos.SetMSISDNReq
 	return &protos.SetMSISDNResponse{}, store.Commit()
 }
 
-func (l *LookupServicer) DeleteMSISDN(ctx context.Context, req *protos.DeleteMSISDNRequest) (*protos.DeleteMSISDNResponse, error) {
+func (l *lookupServicer) DeleteMSISDN(ctx context.Context, req *protos.DeleteMSISDNRequest) (*protos.DeleteMSISDNResponse, error) {
 	if err := req.Validate(); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
@@ -121,6 +134,30 @@ func (l *LookupServicer) DeleteMSISDN(ctx context.Context, req *protos.DeleteMSI
 	}
 
 	return &protos.DeleteMSISDNResponse{}, store.Commit()
+}
+
+func (l *lookupServicer) GetIPs(ctx context.Context, req *protos.GetIPsRequest) (*protos.GetIPsResponse, error) {
+	if err := req.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	ipMappings, err := l.store.GetIPs(req.NetworkId, req.Ips)
+	if err != nil {
+		return nil, makeErr(err, "get IPs from store")
+	}
+
+	res := &protos.GetIPsResponse{IpMappings: ipMappings}
+	return res, nil
+}
+
+func (l *lookupServicer) SetIPs(ctx context.Context, req *protos.SetIPsRequest) (*protos.SetIPsResponse, error) {
+	if err := req.Validate(); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
+	}
+	err := l.store.SetIPs(req.NetworkId, req.IpMappings)
+	if err != nil {
+		return nil, makeErr(err, "set IP mappings to store")
+	}
+	return &protos.SetIPsResponse{}, nil
 }
 
 func makeErr(err error, wrap string) error {
