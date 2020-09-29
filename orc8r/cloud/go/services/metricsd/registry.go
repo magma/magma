@@ -23,13 +23,15 @@ import (
 )
 
 // GetMetricsExporters returns all registered metrics exporters.
-func GetMetricsExporters() []exporters.Exporter {
-	services := registry.FindServices(orc8r.MetricsExporterLabel)
-
+func GetMetricsExporters() ([]exporters.Exporter, error) {
+	services, err := registry.FindServices(orc8r.MetricsExporterLabel)
+	if err != nil {
+		return []exporters.Exporter{}, err
+	}
 	var exps []exporters.Exporter
 	for _, s := range services {
 		exps = append(exps, exporters.NewRemoteExporter(s))
 	}
 
-	return exps
+	return exps, nil
 }

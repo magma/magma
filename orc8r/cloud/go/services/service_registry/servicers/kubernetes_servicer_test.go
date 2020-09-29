@@ -18,8 +18,8 @@ import (
 	"os"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/service_registry"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
@@ -70,7 +70,7 @@ func TestK8sGetServiceAddress(t *testing.T) {
 	}
 	response, err := servicer.GetServiceAddress(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, response.GetAddress(), fmt.Sprintf("orc8r-service1:%d", service_registry.GrpcServicePort))
+	assert.Equal(t, response.GetAddress(), fmt.Sprintf("orc8r-service1:%d", registry.GrpcServicePort))
 
 	mockClient.Services(servicer.namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
 	_, err = servicer.GetServiceAddress(context.Background(), req)
@@ -84,7 +84,7 @@ func TestK8sGetHttpServerAddress(t *testing.T) {
 	}
 	response, err := servicer.GetHttpServerAddress(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, response.GetAddress(), fmt.Sprintf("orc8r-service1:%d", service_registry.HttpServerPort))
+	assert.Equal(t, response.GetAddress(), fmt.Sprintf("orc8r-service1:%d", registry.HttpServerPort))
 
 	mockClient.Services(servicer.namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
 	_, err = servicer.GetHttpServerAddress(context.Background(), req)
@@ -112,7 +112,7 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 			Namespace: namespace,
 			Name:      "orc8r-service1",
 			Labels: map[string]string{
-				partOfLabel: "orc8r",
+				partOfLabel: partOfOrc8rApp,
 				"label1":    "true",
 				"label2":    "true",
 			},
@@ -125,11 +125,11 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 			Ports: []corev1.ServicePort{
 				{
 					Name: grpcPortName,
-					Port: service_registry.GrpcServicePort,
+					Port: registry.GrpcServicePort,
 				},
 				{
 					Name: httpPortName,
-					Port: service_registry.HttpServerPort,
+					Port: registry.HttpServerPort,
 				},
 			},
 			Type:      corev1.ServiceTypeClusterIP,
@@ -141,7 +141,7 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 			Namespace: namespace,
 			Name:      "foo-service-2",
 			Labels: map[string]string{
-				partOfLabel: "orc8r",
+				partOfLabel: partOfOrc8rApp,
 				"label2":    "true",
 				"label3":    "true",
 			},
@@ -154,7 +154,7 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 			Ports: []corev1.ServicePort{
 				{
 					Name: grpcPortName,
-					Port: service_registry.GrpcServicePort,
+					Port: registry.GrpcServicePort,
 				},
 			},
 			Type:      corev1.ServiceTypeClusterIP,
