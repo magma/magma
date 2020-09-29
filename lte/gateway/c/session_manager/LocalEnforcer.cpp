@@ -70,9 +70,9 @@ static SubscriberQuotaUpdate make_subscriber_quota_update(
     const std::string& imsi, const std::string& ue_mac_addr,
     const SubscriberQuotaUpdate_Type state);
 
-static bool does_session_ip_match(const SessionConfig& config,
-                                  const std::string& ip_addr,
-                                  const std::string& ipv6_addr);
+static bool does_session_ip_match(
+    const SessionConfig& config, const std::string& ip_addr,
+    const std::string& ipv6_addr);
 
 LocalEnforcer::LocalEnforcer(
     std::shared_ptr<SessionReporter> reporter,
@@ -195,7 +195,7 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
       }
 
       session->sync_rules_to_time(current_time, uc);
-      const auto& ip_addr = session->get_config().common_context.ue_ipv4();
+      const auto& ip_addr   = session->get_config().common_context.ue_ipv4();
       const auto& ipv6_addr = session->get_config().common_context.ue_ipv6();
 
       for (std::string rule_id : session->get_static_rules()) {
@@ -203,7 +203,8 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         if (lifetime.deactivation_time > current_time) {
           auto rule_install =
               session->get_static_rule_install(rule_id, lifetime);
-          schedule_static_rule_deactivation(imsi, ip_addr, ipv6_addr, rule_install);
+          schedule_static_rule_deactivation(
+              imsi, ip_addr, ipv6_addr, rule_install);
         }
       }
       // Schedule rule activations / deactivations
@@ -212,7 +213,8 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         auto rule_install = session->get_static_rule_install(rule_id, lifetime);
         schedule_static_rule_activation(imsi, ip_addr, ipv6_addr, rule_install);
         if (lifetime.deactivation_time > current_time) {
-          schedule_static_rule_deactivation(imsi, ip_addr, ipv6_addr, rule_install);
+          schedule_static_rule_deactivation(
+              imsi, ip_addr, ipv6_addr, rule_install);
         }
       }
 
@@ -223,7 +225,8 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         if (lifetime.deactivation_time > current_time) {
           auto rule_install =
               session->get_dynamic_rule_install(rule_id, lifetime);
-          schedule_dynamic_rule_deactivation(imsi, ip_addr, ipv6_addr, rule_install);
+          schedule_dynamic_rule_deactivation(
+              imsi, ip_addr, ipv6_addr, rule_install);
         }
       }
       rule_ids.clear();
@@ -232,9 +235,11 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         auto lifetime = session->get_rule_lifetime(rule_id);
         auto rule_install =
             session->get_dynamic_rule_install(rule_id, lifetime);
-        schedule_dynamic_rule_activation(imsi, ip_addr, ipv6_addr, rule_install);
+        schedule_dynamic_rule_activation(
+            imsi, ip_addr, ipv6_addr, rule_install);
         if (lifetime.deactivation_time > current_time) {
-          schedule_dynamic_rule_deactivation(imsi, ip_addr, ipv6_addr, rule_install);
+          schedule_dynamic_rule_deactivation(
+              imsi, ip_addr, ipv6_addr, rule_install);
         }
       }
     }
@@ -356,13 +361,9 @@ void LocalEnforcer::handle_activate_service_action(
       action_p->get_rule_definitions(),
       std::bind(
           &LocalEnforcer::handle_activate_ue_flows_callback, this,
-          action_p->get_imsi(),
-          action_p->get_ip_addr(),
-          action_p->get_ipv6_addr(),
-          action_p->get_ambr(),
-          action_p->get_rule_ids(),
-          action_p->get_rule_definitions(), _1, _2)
-      );
+          action_p->get_imsi(), action_p->get_ip_addr(),
+          action_p->get_ipv6_addr(), action_p->get_ambr(),
+          action_p->get_rule_ids(), action_p->get_rule_definitions(), _1, _2));
 }
 
 // Terminates sessions that correspond to the given IMSI and session.
@@ -445,10 +446,8 @@ void LocalEnforcer::remove_all_rules_for_termination(
     uc.dynamic_rules_to_uninstall.insert(dynamic_rule.id());
   }
   pipelined_client_->deactivate_flows_for_rules(
-      imsi,
-      session->get_config().common_context.ue_ipv4(),
-      session->get_config().common_context.ue_ipv6(),
-      rules.static_rules,
+      imsi, session->get_config().common_context.ue_ipv4(),
+      session->get_config().common_context.ue_ipv6(), rules.static_rules,
       rules.dynamic_rules, RequestOriginType::GX);
 }
 
@@ -565,7 +564,7 @@ void LocalEnforcer::start_final_unit_action_flows_install(
                  << " not found when trying to install final unit action flows";
     return;
   }
-  auto ip_addr = (**session_it)->get_config().common_context.ue_ipv4();
+  auto ip_addr   = (**session_it)->get_config().common_context.ue_ipv4();
   auto ipv6_addr = (**session_it)->get_config().common_context.ue_ipv6();
   if (!ip_addr.empty() || !ipv6_addr.empty()) {
     complete_final_unit_action_flows_install(
@@ -597,7 +596,8 @@ void LocalEnforcer::start_final_unit_action_flows_install(
               // TODO ipv6 store and get ipv6 from directoryd
               std::string ipv6_addr = "";
               complete_final_unit_action_flows_install(
-                  session_map, ip_addr, ipv6_addr, final_action_info, session_update);
+                  session_map, ip_addr, ipv6_addr, final_action_info,
+                  session_update);
               auto success = session_store_.update_sessions(session_update);
               if (!success) {
                 MLOG(MERROR)
@@ -807,8 +807,7 @@ void LocalEnforcer::schedule_static_rule_activation(
                   std::bind(
                       &LocalEnforcer::handle_activate_ue_flows_callback, this,
                       imsi, ip_addr, ipv6_addr, ambr, static_rules,
-                      empty_dynamic_rules, _1, _2)
-                  );
+                      empty_dynamic_rules, _1, _2));
             }
           }
           session_store_.update_sessions(session_update);
@@ -852,9 +851,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
                   std::bind(
                       &LocalEnforcer::handle_activate_ue_flows_callback, this,
                       imsi, ip_addr, ipv6_addr, ambr, empty_static_rules,
-                      dynamic_rules,
-                      _1, _2)
-                  );
+                      dynamic_rules, _1, _2));
             }
           }
           session_store_.update_sessions(session_update);
@@ -865,8 +862,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
 
 void LocalEnforcer::schedule_static_rule_deactivation(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr,
-    const StaticRuleInstall& static_rule) {
+    const std::string& ipv6_addr, const StaticRuleInstall& static_rule) {
   std::vector<std::string> static_rules{static_rule.rule_id()};
 
   auto delta = time_difference_from_now(static_rule.deactivation_time());
@@ -888,9 +884,11 @@ void LocalEnforcer::schedule_static_rule_deactivation(
           auto session_update =
               session_store_.get_default_session_update(session_map);
           pipelined_client_->deactivate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, static_rules, {}, RequestOriginType::GX);
+              imsi, ip_addr, ipv6_addr, static_rules, {},
+              RequestOriginType::GX);
           for (const auto& session : it->second) {
-            if (does_session_ip_match(session->get_config(), ip_addr, ipv6_addr)){
+            if (does_session_ip_match(
+                    session->get_config(), ip_addr, ipv6_addr)) {
               auto& uc = session_update[imsi][session->get_session_id()];
               if (!session->deactivate_static_rule(rule_id, uc)) {
                 MLOG(MWARNING) << "Could not find rule " << rule_id << "for "
@@ -906,8 +904,7 @@ void LocalEnforcer::schedule_static_rule_deactivation(
 
 void LocalEnforcer::schedule_dynamic_rule_deactivation(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr,
-    DynamicRuleInstall& dynamic_rule) {
+    const std::string& ipv6_addr, DynamicRuleInstall& dynamic_rule) {
   PolicyRule* policy = dynamic_rule.release_policy_rule();
   std::vector<PolicyRule> dynamic_rules{*policy};
 
@@ -929,9 +926,11 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
           auto session_update =
               session_store_.get_default_session_update(session_map);
           pipelined_client_->deactivate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, {}, dynamic_rules, RequestOriginType::GX);
+              imsi, ip_addr, ipv6_addr, {}, dynamic_rules,
+              RequestOriginType::GX);
           for (const auto& session : it->second) {
-            if (does_session_ip_match(session->get_config(), ip_addr, ipv6_addr)){
+            if (does_session_ip_match(
+                    session->get_config(), ip_addr, ipv6_addr)) {
               auto& uc = session_update[imsi][session->get_session_id()];
               session->remove_dynamic_rule(rule_id, NULL, uc);
             }
@@ -1629,7 +1628,7 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const std::string& imsi, const SessionConfig& config,
     const RulesToProcess& rules_to_activate,
     const RulesToProcess& rules_to_deactivate, bool always_send_activate) {
-  const auto ip_addr = config.common_context.ue_ipv4();
+  const auto ip_addr   = config.common_context.ue_ipv4();
   const auto ipv6_addr = config.common_context.ue_ipv6();
   if (always_send_activate ||
       rules_to_process_is_not_empty(rules_to_activate)) {
@@ -1784,7 +1783,8 @@ void LocalEnforcer::process_rules_to_install(
       rules_to_activate.dynamic_rules.push_back(rule_install.policy_rule());
     }
     if (deactivation_time > current_time) {
-      schedule_dynamic_rule_deactivation(imsi, ip_addr, ipv6_addr, rule_install);
+      schedule_dynamic_rule_deactivation(
+          imsi, ip_addr, ipv6_addr, rule_install);
     } else if (deactivation_time > 0) {
       session.remove_dynamic_rule(rule_install.policy_rule().id(), NULL, uc);
       rules_to_deactivate.dynamic_rules.push_back(rule_install.policy_rule());
@@ -1836,8 +1836,7 @@ void LocalEnforcer::schedule_revalidation(
 
 void LocalEnforcer::handle_activate_ue_flows_callback(
     const std::string& imsi, const std::string& ip_addr,
-    const std::string& ipv6_addr,
-    optional<AggregatedMaximumBitrate> ambr,
+    const std::string& ipv6_addr, optional<AggregatedMaximumBitrate> ambr,
     const std::vector<std::string>& static_rules,
     const std::vector<PolicyRule>& dynamic_rules, Status status,
     ActivateFlowsResult resp) {
@@ -2049,8 +2048,8 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
   }
   pipelined_client_->deactivate_flows_for_rules(
       imsi, session.get_config().common_context.ue_ipv4(),
-      session.get_config().common_context.ue_ipv6(),
-      static_rule_to_remove, dynamic_rule_to_remove, RequestOriginType::GX);
+      session.get_config().common_context.ue_ipv6(), static_rule_to_remove,
+      dynamic_rule_to_remove, RequestOriginType::GX);
 }
 
 std::unique_ptr<Timezone> LocalEnforcer::compute_access_timezone() {
@@ -2148,10 +2147,11 @@ static SubscriberQuotaUpdate make_subscriber_quota_update(
   return update;
 }
 
-static bool does_session_ip_match(const SessionConfig& config,
-                    const std::string& ip_addr, const std::string& ipv6_addr){
+static bool does_session_ip_match(
+    const SessionConfig& config, const std::string& ip_addr,
+    const std::string& ipv6_addr) {
   // cwag case
-  if(config.rat_specific_context.has_wlan_context()){
+  if (config.rat_specific_context.has_wlan_context()) {
     // for cwag we do not have more than one session, so it will always match
     return true;
   }
@@ -2159,22 +2159,22 @@ static bool does_session_ip_match(const SessionConfig& config,
   auto ue_ip_addr   = config.common_context.ue_ipv4();
   auto ue_ipv6_addr = config.common_context.ue_ipv6();
   // Dual Stack case (ipv4 AND ipv6)
-  if (ue_ip_addr.size()!=0 && ue_ipv6_addr.size()!=0){
+  if (ue_ip_addr.size() != 0 && ue_ipv6_addr.size() != 0) {
     return ue_ip_addr == ip_addr && ue_ipv6_addr == ipv6_addr;
   }
   // ipv4 only case
-  if (ue_ip_addr.size()!=0 && ue_ipv6_addr.size()==0){
+  if (ue_ip_addr.size() != 0 && ue_ipv6_addr.size() == 0) {
     return ue_ip_addr == ip_addr;
   }
   // ipv6 only case
-  if (ue_ip_addr.size()==0 && ue_ipv6_addr.size()!=0){
+  if (ue_ip_addr.size() == 0 && ue_ipv6_addr.size() != 0) {
     return ue_ipv6_addr == ipv6_addr;
   }
   MLOG(MWARNING) << "IP address stored does not match with request."
-                    " Stored = " << ue_ip_addr <<" " << ue_ipv6_addr <<
-                    " Request = " << ip_addr << " " << ipv6_addr;
+                    " Stored = "
+                 << ue_ip_addr << " " << ue_ipv6_addr
+                 << " Request = " << ip_addr << " " << ipv6_addr;
   return false;
 }
-
 
 }  // namespace magma

@@ -150,7 +150,7 @@ optional<SessionVector::iterator> SessionStore::find_session(
       case IMSI_AND_UE_IPV4_OR_IPV6:
         // cwag case (cwag doesn't store ip)
         if ((*it)->get_config().common_context.rat_type() ==
-            RATType::TGPP_WLAN){
+            RATType::TGPP_WLAN) {
           return it;
         }
         // lte case

@@ -113,8 +113,9 @@ void SetMessageManagerHandler::send_create_session(
   bool success = m5g_enforcer_->m5g_init_session_credit(
       *session_map_ptr, imsi, session_id, cfg);
   if (!success) {
-     MLOG(MERROR) << "Failed to initialize SessionStore for 5G session " 
-	                   << session_id <<" IMSI "<< " imsi";
+    MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
+                 << session_id << " IMSI "
+                 << " imsi";
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/

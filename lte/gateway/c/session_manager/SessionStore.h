@@ -36,10 +36,10 @@ typedef std::unordered_map<
     SessionUpdate;
 
 enum SessionSearchCriteriaType {
-  IMSI_AND_APN              = 0,
-  IMSI_AND_SESSION_ID       = 1,
-  IMSI_AND_UE_IPV4          = 2,
-  IMSI_AND_UE_IPV4_OR_IPV6  = 3,
+  IMSI_AND_APN             = 0,
+  IMSI_AND_SESSION_ID      = 1,
+  IMSI_AND_UE_IPV4         = 2,
+  IMSI_AND_UE_IPV4_OR_IPV6 = 3,
 };
 
 struct SessionSearchCriteria {

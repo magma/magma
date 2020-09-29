@@ -106,17 +106,15 @@ void create_charging_credit(
   credit->set_type(ChargingCredit::BYTES);
   credit->set_is_final(true);
   credit->set_final_action(action);
-  credit->mutable_redirect_server()->set_redirect_server_address(redirect_server);
+  credit->mutable_redirect_server()->set_redirect_server_address(
+      redirect_server);
   credit->add_restrict_rules(restrict_rule);
 }
 
 void create_credit_update_response(
-  const std::string& imsi,
-  const std::string session_id,
-    uint32_t charging_key,
-  CreditLimitType limit_type,
-  CreditUpdateResponse* response)
-{
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, CreditLimitType limit_type,
+    CreditUpdateResponse* response) {
   response->set_success(true);
   response->set_sid(imsi);
   response->set_session_id(session_id);
@@ -128,9 +126,9 @@ void create_credit_update_response(
 void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
     uint32_t charging_key, uint64_t volume, CreditUpdateResponse* response) {
-  create_credit_update_response(imsi, session_id, charging_key, volume, false, response);
+  create_credit_update_response(
+      imsi, session_id, charging_key, volume, false, response);
 }
-
 
 void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
@@ -148,8 +146,9 @@ void create_credit_update_response(
     uint32_t charging_key, uint64_t volume, ChargingCredit_FinalAction action,
     std::string redirect_server, std::string restrict_rule,
     CreditUpdateResponse* response) {
-  create_charging_credit(volume, action,
-      redirect_server, restrict_rule, response->mutable_credit());
+  create_charging_credit(
+      volume, action, redirect_server, restrict_rule,
+      response->mutable_credit());
   response->set_success(true);
   response->set_sid(imsi);
   response->set_session_id(session_id);
@@ -157,27 +156,18 @@ void create_credit_update_response(
 }
 
 void create_charging_credit(
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
-    bool is_final,
-    ChargingCredit* credit)
-{
-  create_granted_units(&total_volume, &tx_volume, &rx_volume, credit->mutable_granted_units());
+    uint64_t total_volume, uint64_t tx_volume, uint64_t rx_volume,
+    bool is_final, ChargingCredit* credit) {
+  create_granted_units(
+      &total_volume, &tx_volume, &rx_volume, credit->mutable_granted_units());
   credit->set_type(ChargingCredit::BYTES);
   credit->set_is_final(is_final);
 }
 
 void create_credit_update_response(
-    const std::string& imsi,
-    const std::string session_id,
-    uint32_t charging_key,
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
-    bool is_final,
-    CreditUpdateResponse* response)
-{
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, uint64_t total_volume, uint64_t tx_volume,
+    uint64_t rx_volume, bool is_final, CreditUpdateResponse* response) {
   create_charging_credit(
       total_volume, tx_volume, rx_volume, is_final, response->mutable_credit());
   response->set_success(true);
@@ -201,15 +191,12 @@ void create_usage_update(
 void create_monitor_credit(
     const std::string& m_key, MonitoringLevel level, uint64_t volume,
     UsageMonitoringCredit* credit) {
-  create_monitor_credit(m_key, level, volume, 0 , 0, credit);
+  create_monitor_credit(m_key, level, volume, 0, 0, credit);
 }
 
 void create_monitor_credit(
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
-    UsageMonitoringCredit* credit) {
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume, UsageMonitoringCredit* credit) {
   credit->mutable_granted_units()->mutable_total()->set_volume(total_volume);
   credit->mutable_granted_units()->mutable_total()->set_is_valid(true);
   credit->mutable_granted_units()->mutable_tx()->set_volume(tx_volume);
@@ -220,13 +207,10 @@ void create_monitor_credit(
   credit->set_monitoring_key(m_key);
 }
 
-
 void create_monitor_update_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume,
     UsageMonitoringUpdateResponse* response) {
   std::vector<EventTrigger> event_triggers;
   create_monitor_update_response(
@@ -236,8 +220,8 @@ void create_monitor_update_response(
 
 void create_monitor_update_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t volume, UsageMonitoringUpdateResponse* response) {
+    const std::string& m_key, MonitoringLevel level, uint64_t volume,
+    UsageMonitoringUpdateResponse* response) {
   std::vector<EventTrigger> event_triggers;
   create_monitor_update_response(
       imsi, session_id, m_key, level, volume, event_triggers, 0, response);
@@ -245,26 +229,25 @@ void create_monitor_update_response(
 
 void create_monitor_update_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t volume, const std::vector<EventTrigger>& event_triggers,
+    const std::string& m_key, MonitoringLevel level, uint64_t volume,
+    const std::vector<EventTrigger>& event_triggers,
     const uint64_t revalidation_time_unix_ts,
     UsageMonitoringUpdateResponse* response) {
   create_monitor_update_response(
-      imsi, session_id, m_key, level, volume, 0, 0,
-      event_triggers, revalidation_time_unix_ts, response);
+      imsi, session_id, m_key, level, volume, 0, 0, event_triggers,
+      revalidation_time_unix_ts, response);
 }
 
 void create_monitor_update_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume,
     const std::vector<EventTrigger>& event_triggers,
     const uint64_t revalidation_time_unix_ts,
     UsageMonitoringUpdateResponse* response) {
-  create_monitor_credit(m_key, level, total_volume, tx_volume, rx_volume,
-                        response->mutable_credit());
+  create_monitor_credit(
+      m_key, level, total_volume, tx_volume, rx_volume,
+      response->mutable_credit());
   response->set_success(true);
   response->set_sid(imsi);
   response->set_session_id(session_id);
@@ -325,8 +308,8 @@ void create_subscriber_quota_update(
 
 void create_session_create_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& monitoring_key,
-    std::vector<std::string>& static_rules, CreateSessionResponse* response) {
+    const std::string& monitoring_key, std::vector<std::string>& static_rules,
+    CreateSessionResponse* response) {
   create_monitor_update_response(
       imsi, session_id, monitoring_key, MonitoringLevel::PCC_RULE_LEVEL, 2048,
       response->mutable_usage_monitors()->Add());

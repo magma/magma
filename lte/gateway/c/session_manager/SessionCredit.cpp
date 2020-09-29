@@ -469,7 +469,7 @@ void SessionCredit::set_received_granted_units(
 
 void SessionCredit::set_report_last_credit(
     bool report_last_credit, SessionCreditUpdateCriteria& uc) {
-  report_last_credit_ = report_last_credit;
+  report_last_credit_   = report_last_credit;
   uc.report_last_credit = report_last_credit;
 }
 
