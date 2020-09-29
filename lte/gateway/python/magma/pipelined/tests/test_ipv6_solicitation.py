@@ -62,9 +62,9 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
     OTHER_IP = '1.2.3.4'
 
     @classmethod
-    @unittest.mock.patch('netifaces.ifaddresses',
-                return_value=[[{'addr': '00:11:22:33:44:55'}]])
-    @unittest.mock.patch('netifaces.AF_LINK', 0)
+    # @unittest.mock.patch('netifaces.ifaddresses',
+    #             return_value=[[{'addr': '00:11:22:33:44:55'}]])
+    # @unittest.mock.patch('netifaces.AF_LINK', 0)
     def setUpClass(cls, *_):
         """
         Starts the thread which launches ryu apps
