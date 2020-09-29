@@ -38,6 +38,10 @@ from lte.protos.session_manager_pb2 import (
     PolicyReAuthRequest,
     QoSInformation,
 )
+from lte.protos.abort_session_pb2 import (
+    AbortSessionRequest,
+    AbortSessionResult,
+)
 from lte.protos.spgw_service_pb2 import (
     CreateBearerRequest,
     DeleteBearerRequest,
@@ -45,6 +49,7 @@ from lte.protos.spgw_service_pb2 import (
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
+from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
@@ -788,6 +793,9 @@ class SessionManagerUtil(object):
         self._session_stub = SessionProxyResponderStub(
             get_rpc_channel("sessiond")
         )
+        self._abort_session_stub = AbortSessionResponderStub(
+            get_rpc_channel("sessiond")
+        )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
         )
@@ -917,5 +925,26 @@ class SessionManagerUtil(object):
                 revalidation_time=None,
                 usage_monitoring_credits=[],
                 qos_info=qos,
+            )
+        )
+
+    def create_AbortSessionRequest(self, imsi: str) -> AbortSessionResult:
+        # Get SessionID
+        req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+        try:
+            res = self._directorydstub.GetDirectoryField(
+                req, DEFAULT_GRPC_TIMEOUT
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
+                imsi,
+                err.code(),
+                err.details(),
+            )
+        return self._abort_session_stub.AbortSession(
+            AbortSessionRequest(
+                session_id=res.value,
+                user_name=imsi,
             )
         )

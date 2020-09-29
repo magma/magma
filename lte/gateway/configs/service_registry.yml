@@ -35,6 +35,9 @@ services:
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
+  abort_session:
+    ip_address: 127.0.0.1
+    port: 50065
   test_service:
     ip_address: 127.0.0.1
     port: 50066

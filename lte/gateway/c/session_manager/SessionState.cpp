@@ -630,7 +630,7 @@ SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
   return subscriber_quota_state_;
 }
 
-bool SessionState::complete_termination(SessionStateUpdateCriteria& uc) {
+bool SessionState::can_complete_termination(SessionStateUpdateCriteria& uc) {
   switch (curr_state_) {
     case SESSION_ACTIVE:
       MLOG(MERROR) << "Encountered unexpected state 'ACTIVE' when "
