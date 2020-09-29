@@ -27,8 +27,20 @@ cp xwf/gateway/configs/* /etc/magma/
 cp orc8r/gateway/configs/templates/* /etc/magma/
 
 echo "get xwfwhoami"
-curl -X POST -k https://graph.expresswifi.com/openflow/configxwfm?access_token=$ACCESSTOKEN | jq -r .configxwfm > /etc/xwfwhoami
 
+ret=1
+counter=0
+until [[ ${ret} -eq 0 || ${counter} -gt 10  ]]; do
+    echo "performing curl"
+    result=$( curl -X POST "https://graph.expresswifi.com/openflow/configxwfm?access_token=${ACCESSTOKEN}" )
+    echo $result | grep -q  configxwfm
+    ret=$?
+    echo "Counter: $counter -> $ret"
+    let counter+=1
+    sleep 5
+done
+
+echo "$result" | jq -r .configxwfm > /etc/xwfwhoami
 echo "run XWF ansible"
 ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP} connection_mode=$CONNECTION_MODE" \
 xwf/gateway/deploy/xwf.yml -i "localhost," --skip-tags "install,install_docker,no_ci" -c local -v
