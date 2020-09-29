@@ -1,3 +1,4 @@
+{{/*
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -8,22 +9,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+*/}}
 
-apiVersion: v2
-appVersion: "1.0"
-description: A Helm chart for magma orchestrator's wifi module
-name: wifi-orc8r
-version: 0.1.0
-engine: gotpl
-sources:
-  - https://github.com/magma/magma
-keywords:
-  - magma
-  - or8cr
-  - wifi-orc8r
-
-# Library chart for common orchestrator module components
-dependencies:
-- name: orc8rlib
-  version: 0.1.1
-  repository: file://../../../../orc8r/cloud/helm/orc8rlib
+{{- include "orc8rlib.service" (list . "dispatcher.service") -}}
+{{- define "dispatcher.service" -}}
+metadata:
+  name: {{ .Release.Name }}-dispatcher
+  labels:
+    {{- with .Values.dispatcher.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.dispatcher.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  ports:
+    - name: grpc
+      port: 9180
+      targetPort: 9096
+{{- end -}}
