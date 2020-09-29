@@ -70,6 +70,13 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._redirect_manager = None
         self._qos_mgr = None
         self._clean_restart = kwargs['config']['clean_restart']
+        self._redirect_manager = RedirectionManager(
+            self._bridge_ip_address,
+            self.logger,
+            self.tbl_num,
+            self._enforcement_stats_tbl,
+            self._redirect_scratch,
+            self._session_rule_version_mapper)
 
     def initialize_on_connect(self, datapath):
         """
@@ -81,14 +88,6 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._datapath = datapath
         self._qos_mgr = QosManager(datapath, self.loop, self._config)
         self._qos_mgr.setup()
-
-        self._redirect_manager = RedirectionManager(
-            self._bridge_ip_address,
-            self.logger,
-            self.tbl_num,
-            self._enforcement_stats_tbl,
-            self._redirect_scratch,
-            self._session_rule_version_mapper)
 
     def cleanup_on_disconnect(self, datapath):
         """
