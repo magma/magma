@@ -30,7 +30,7 @@ echo "get xwfwhoami"
 curl -X POST -k https://graph.expresswifi.com/openflow/configxwfm?access_token=$ACCESSTOKEN | jq -r .configxwfm > /etc/xwfwhoami
 
 echo "run XWF ansible"
-ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP} connection_mode=$CONNECTION_MODE" \
+ANSIBLE_CONFIG=xwf/gateway/ansible.cfg ansible-playbook -e xwf_ctrl_ip="${CtrlIP} connection_mode=$CONNECTION_MODE"  -e dry_run="true"\
 xwf/gateway/deploy/xwf.yml -i "localhost," --skip-tags "install,install_docker,no_ci" -c local -v
 
 echo "run DNS server"
