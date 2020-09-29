@@ -120,7 +120,7 @@
      - "net.ipv4.neigh.default.gc_thresh1"
      - "net.ipv4.neigh.default.gc_thresh2"
      - "net.ipv4.neigh.default.gc_thresh3"
-  when: dry_run == "true"
+  when: dry_run == "false"
 
 - name: Load TLS PKI for XWF bridge
   block:
