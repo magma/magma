@@ -32,10 +32,15 @@ from lte.protos.policydb_pb2 import (
     PolicyRule,
     QosArp,
 )
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.session_manager_pb2 import (
     DynamicRuleInstall,
     PolicyReAuthRequest,
     QoSInformation,
+)
+from lte.protos.abort_session_pb2 import (
+    AbortSessionRequest,
+    AbortSessionResult,
 )
 from lte.protos.spgw_service_pb2 import (
     CreateBearerRequest,
@@ -44,6 +49,7 @@ from lte.protos.spgw_service_pb2 import (
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
+from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
 
@@ -270,8 +276,10 @@ class S1ApUtil(object):
                 ip = ipaddress.ip_address(bytes(addr[:4]))
                 with self._lock:
                     self._ue_ip_map[ue_id] = ip
-            else:
-                raise ValueError("PDN TYPE %s not supported" % pdn_type)
+            elif S1ApUtil.CM_ESM_PDN_IPV6 == pdn_type:
+                print("IPv6 PDN type received")
+            elif S1ApUtil.CM_ESM_PDN_IPV4V6 == pdn_type:
+                print("IPv4v6 PDN type received")
         return msg
 
     def receive_emm_info(self):
@@ -388,6 +396,7 @@ class SubscriberUtil(object):
 class MagmadUtil(object):
     stateless_cmds = Enum("stateless_cmds", "CHECK DISABLE ENABLE")
     config_update_cmds = Enum("config_update_cmds", "MODIFY RESTORE")
+    apn_correction_cmds = Enum("apn_correction_cmds", "DISABLE ENABLE")
 
     def __init__(self, magmad_client):
         """
@@ -525,6 +534,30 @@ class MagmadUtil(object):
                 + " MME configuration. Error: Unknown error"
             )
 
+    def config_apn_correction(self, cmd):
+        """
+        Configure the apn correction mode on the access gateway
+
+        Args:
+          cmd: Specify how to configure apn correction mode on AGW,
+          should be one of
+            enable: Enable apn correction feature, do nothing if already enabled
+            disable: Disable apn correction feature, do nothing if already disabled
+
+        """
+        apn_correction_cmd = ""
+        if cmd.name == MagmadUtil.apn_correction_cmds.ENABLE.name:
+            apn_correction_cmd = "sed -i \'s/correction: false/correction: true/g\' /etc/magma/mme.yml"
+        else:
+            apn_correction_cmd = "sed -i \'s/correction: true/correction: false/g\' /etc/magma/mme.yml"
+
+        ret_code = self.exec_command(
+            "sudo " + apn_correction_cmd)
+
+        if ret_code == 0:
+            print("APN Correction configured")
+        else:
+            print("APN Correction failed")
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """
@@ -621,7 +654,9 @@ class SpgwUtil(object):
                     flow_list=[
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="0.0.0.0/0",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="0.0.0.0/0".encode('utf-8')),
                                 tcp_dst=5001,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -630,7 +665,10 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42/24",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42/24".encode('utf-8')
+                                ),
                                 tcp_dst=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -639,7 +677,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_dst=5003,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -648,7 +688,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_dst=5004,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -657,7 +699,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_dst="192.168.129.42",
+                                ip_dst=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_dst=5005,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.UPLINK,
@@ -666,7 +710,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ip_src=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_src=5001,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -675,7 +721,8 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="",
+                                ip_src=IPAddress(version=IPAddress.IPV4,
+                                                 address="".encode('utf-8')),
                                 tcp_dst=5002,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -684,7 +731,10 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.64/26",
+                                ip_src=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.64/26".encode('utf-8')
+                                ),
                                 tcp_src=5003,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -693,7 +743,10 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42/16",
+                                ip_src=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42/16".encode('utf-8')
+                                ),
                                 tcp_src=5004,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -702,7 +755,9 @@ class SpgwUtil(object):
                         ),
                         FlowDescription(
                             match=FlowMatch(
-                                ipv4_src="192.168.129.42",
+                                ip_src=IPAddress(
+                                    version=IPAddress.IPV4,
+                                    address="192.168.129.42".encode('utf-8')),
                                 tcp_src=5005,
                                 ip_proto=FlowMatch.IPPROTO_TCP,
                                 direction=FlowMatch.DOWNLINK,
@@ -736,6 +791,9 @@ class SessionManagerUtil(object):
         Initialize sessionManager util.
         """
         self._session_stub = SessionProxyResponderStub(
+            get_rpc_channel("sessiond")
+        )
+        self._abort_session_stub = AbortSessionResponderStub(
             get_rpc_channel("sessiond")
         )
         self._directorydstub = GatewayDirectoryServiceStub(
@@ -779,14 +837,22 @@ class SessionManagerUtil(object):
                 tcp_src_port = 0
                 tcp_dst_port = 0
 
-            ipv4_src_addr = flow.get("ipv4_src", None)
-            ipv4_dst_addr = flow.get("ipv4_dst", None)
+            ipv4_src_addr = None
+            if flow.get("ipv4_src", None):
+                ipv4_src_addr = IPAddress(
+                    version=IPAddress.IPV4,
+                    address=flow.get("ipv4_src").encode('utf-8'))
+            ipv4_dst_addr = None
+            if flow.get("ipv4_dst", None):
+                ipv4_dst_addr = IPAddress(
+                    version=IPAddress.IPV4,
+                    address=flow.get("ipv4_dst").encode('utf-8'))
 
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ipv4_dst=ipv4_dst_addr,
-                        ipv4_src=ipv4_src_addr,
+                        ip_dst=ipv4_dst_addr,
+                        ip_src=ipv4_src_addr,
                         tcp_src=tcp_src_port,
                         tcp_dst=tcp_dst_port,
                         udp_src=udp_src_port,
@@ -859,5 +925,26 @@ class SessionManagerUtil(object):
                 revalidation_time=None,
                 usage_monitoring_credits=[],
                 qos_info=qos,
+            )
+        )
+
+    def create_AbortSessionRequest(self, imsi: str) -> AbortSessionResult:
+        # Get SessionID
+        req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+        try:
+            res = self._directorydstub.GetDirectoryField(
+                req, DEFAULT_GRPC_TIMEOUT
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
+                imsi,
+                err.code(),
+                err.details(),
+            )
+        return self._abort_session_stub.AbortSession(
+            AbortSessionRequest(
+                session_id=res.value,
+                user_name=imsi,
             )
         )

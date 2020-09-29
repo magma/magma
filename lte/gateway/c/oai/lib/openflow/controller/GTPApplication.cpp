@@ -281,6 +281,9 @@ void GTPApplication::add_downlink_tunnel_flow(
       new of13::TunnelIPv4Dst(ev.get_enb_ip().s_addr));
   apply_dl_inst.add_action(set_tunnel_dst);
 
+  of13::SetFieldAction set_tunnel_port(new of13::NXMReg8(gtp_port_num_));
+  apply_dl_inst.add_action(set_tunnel_port);
+
   // add imsi to packet metadata to pass to other tables
   add_imsi_metadata(apply_dl_inst, imsi);
 

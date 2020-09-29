@@ -112,6 +112,7 @@ MAGMA_DEPS=(
     "libboost-chrono-dev" # required for folly
     "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
+    "python3-scapy >= 2.4.3-4"
     )
 
 # OAI runtime dependencies
@@ -131,7 +132,7 @@ OAI_DEPS=(
 
 # OVS runtime dependencies
 OVS_DEPS=(
-    "magma-libfluid >= 0.1.0.4"
+    "magma-libfluid >= 0.1.0.5"
     "libopenvswitch >= 2.8.9"
     "openvswitch-switch >= 2.8.9"
     "openvswitch-common >= 2.8.9"

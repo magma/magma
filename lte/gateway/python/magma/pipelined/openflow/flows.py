@@ -15,6 +15,7 @@ import logging
 from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import SCRATCH_REGS, REG_ZERO_VAL
+from ryu.ofproto.nicira_ext import ofs_nbits
 
 logger = logging.getLogger(__name__)
 
@@ -64,7 +65,8 @@ def add_drop_flow(datapath, table, match, actions=None, instructions=None,
 
 def add_output_flow(datapath, table, match, actions=None, instructions=None,
                     priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
-                    idle_timeout=0, hard_timeout=0, output_port=None,
+                    idle_timeout=0, hard_timeout=0,
+                    output_port=None, output_reg=None,
                     copy_table=None, max_len=None):
     """
     Add a flow to a table that sends the packet to the specified port
@@ -97,7 +99,8 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
         datapath, table, match, actions=actions,
         instructions=instructions, priority=priority,
         cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
-        copy_table=copy_table, output_port=output_port, max_len=max_len)
+        copy_table=copy_table, output_port=output_port, output_reg=output_reg,
+        max_len=max_len)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
@@ -285,7 +288,8 @@ def get_add_drop_flow_msg(datapath, table, match, actions=None,
 def get_add_output_flow_msg(datapath, table, match, actions=None,
                             instructions=None, priority=MINIMUM_PRIORITY,
                             cookie=0x0, idle_timeout=0, hard_timeout=0,
-                            output_port=None, copy_table=None, max_len=None):
+                            output_port=None, output_reg=None,
+                            copy_table=None, max_len=None):
     """
     Add a flow to a table that sends the packet to the specified port
 
@@ -312,16 +316,23 @@ def get_add_output_flow_msg(datapath, table, match, actions=None,
         MagmaOFError: if the flow can't be added
         Exception: If the actions contain NXActionResubmitTable.
     """
-    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
 
+    ofproto, parser = datapath.ofproto, datapath.ofproto_parser
     _check_resubmit_action(actions, parser)
 
     if actions is None:
         actions = []
-    if max_len is None:
-        output_action = parser.OFPActionOutput(output_port)
+
+    if output_reg is not None:
+        output_action = parser.NXActionOutputReg2(ofs_nbits=ofs_nbits(0, 31),
+                                                   src=output_reg,
+                                                   max_len=1234)
     else:
-        output_action = parser.OFPActionOutput(output_port, max_len)
+        if max_len is None:
+            output_action = parser.OFPActionOutput(output_port)
+        else:
+            output_action = parser.OFPActionOutput(output_port, max_len)
+
     actions = actions + [
         output_action,
     ]
@@ -560,6 +571,7 @@ def _check_resubmit_action(actions, parser):
         actions is not None and \
         any(isinstance(action, parser.NXActionResubmitTable) for action in
             actions)
+
     if resubmit_action_exists:
         raise Exception(
             'Actions list should not contain NXActionResubmitTable',

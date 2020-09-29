@@ -33,6 +33,7 @@ package hacluster
 import (
 	"context"
 	"fmt"
+	"reflect"
 	"strconv"
 	"time"
 
@@ -210,15 +211,17 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 	if initErr != nil {
 		reqLogger.Error(initErr, "did failover occur", strconv.FormatBool(failover))
 	}
-	hacluster.Status = updatedStatus
-	updateErr := r.client.Status().Update(context.TODO(), hacluster)
-	if updateErr != nil {
-		if failover {
-			reqLogger.Error(updateErr, "Updating hacluster status with promoted active failed", "promoted active", standbyGateway)
+	if !reflect.DeepEqual(hacluster.Status, updatedStatus) {
+		hacluster.Status = updatedStatus
+		updateErr := r.client.Status().Update(context.TODO(), hacluster)
+		if updateErr != nil {
+			if failover {
+				reqLogger.Error(updateErr, "Updating hacluster status with promoted active failed", "promoted active", standbyGateway)
+				return reconcile.Result{}, updateErr
+			}
+			reqLogger.Error(updateErr, "Updating hacluster status failed")
 			return reconcile.Result{}, updateErr
 		}
-		reqLogger.Error(updateErr, "Updating hacluster status failed")
-		return reconcile.Result{}, updateErr
 	}
 
 	reqLogger.Info("Reconciled request")

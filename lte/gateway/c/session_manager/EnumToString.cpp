@@ -81,13 +81,19 @@ std::string grant_type_to_str(GrantTrackingType grant_type) {
 std::string session_fsm_state_to_str(SessionFsmState state) {
   switch (state) {
     case SESSION_ACTIVE:
+    case ACTIVE:
       return "SESSION_ACTIVE";
     case SESSION_TERMINATED:
       return "SESSION_TERMINATED";
     case SESSION_TERMINATION_SCHEDULED:
       return "SESSION_TERMINATION_SCHEDULED";
     case SESSION_RELEASED:
+    case RELEASE:
       return "SESSION_RELEASED";
+    case CREATING:
+      return "SESSION_CREATING";
+    case CREATED:
+      return "SESSION_CREATED";
     default:
       return "INVALID SESSION FSM STATE";
   }
@@ -128,6 +134,23 @@ std::string raa_result_to_str(ReAuthResult res) {
       return "SESSION_NOT_FOUND";
     case OTHER_FAILURE:
       return "OTHER_FAILURE";
+    default:
+      return "UNKNOWN_RESULT";
+  }
+}
+
+std::string asr_result_to_str(AbortSessionResult_Code res) {
+  switch (res) {
+    case AbortSessionResult_Code_SESSION_REMOVED:
+      return "SESSION_REMOVED";
+    case AbortSessionResult_Code_SESSION_NOT_FOUND:
+      return "SESSION_NOT_FOUND";
+    case AbortSessionResult_Code_USER_NOT_FOUND:
+      return "USER_NOT_FOUND";
+    case AbortSessionResult_Code_GATEWAY_NOT_FOUND:
+      return "GATEWAY_NOT_FOUND";
+    case AbortSessionResult_Code_RADIUS_SERVER_ERROR:
+      return "RADIUS_SERVER_ERROR";
     default:
       return "UNKNOWN_RESULT";
   }

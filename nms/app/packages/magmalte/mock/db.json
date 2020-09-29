@@ -1404,6 +1404,75 @@
       }
     }
   },
+  "policies" : {
+    "test1": {
+      "flow_list": [],
+      "id": "test",
+      "priority": 10,
+      "redirect": {
+        "address_type": "IPv4",
+        "server_address": "http://localhost:8080",
+        "support": "ENABLED"
+      }
+    },
+    "test2": {
+      "flow_list": [],
+      "id": "test",
+      "priority": 10,
+      "redirect": {
+        "address_type": "IPv4",
+        "server_address": "http://localhost:8080",
+        "support": "ENABLED"
+      }
+    }
+  },
+  "apns" : {
+    "internet": {
+      "apn_configuration": {
+        "ambr": {
+          "max_bandwidth_dl": 200000000,
+          "max_bandwidth_ul": 100000000
+        },
+        "qos_profile": {
+          "class_id": 9,
+          "preemption_capability": true,
+          "preemption_vulnerability": false,
+          "priority_level": 15
+        }
+      },
+      "apn_name": "internet"
+    },
+    "magma.ipv4": {
+      "apn_configuration": {
+        "ambr": {
+          "max_bandwidth_dl": 200000000,
+          "max_bandwidth_ul": 100000000
+        },
+        "qos_profile": {
+          "class_id": 9,
+          "preemption_capability": false,
+          "preemption_vulnerability": false,
+          "priority_level": 15
+        }
+      },
+      "apn_name": "magma.ipv4"
+    },
+    "oai.ipv4": {
+      "apn_configuration": {
+        "ambr": {
+          "max_bandwidth_dl": 200000000,
+          "max_bandwidth_ul": 100000000
+        },
+        "qos_profile": {
+          "class_id": 9,
+          "preemption_capability": true,
+          "preemption_vulnerability": false,
+          "priority_level": 15
+        }
+      },
+      "apn_name": "oai.ipv4"
+    }
+  },
   "networksFull": {
     "test" : {
       "type": "lte",

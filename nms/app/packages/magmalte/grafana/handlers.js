@@ -18,6 +18,7 @@ import {isEqual, sortBy} from 'lodash';
 
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
 import {AnalyticsDBData} from './dashboards/AnalyticsDashboards';
+import {CWF} from '@fbcnms/types/network';
 import {
   CWFAccessPointDBData,
   CWFGatewayDBData,
@@ -32,6 +33,7 @@ import {
   createDashboard,
 } from './dashboards/Dashboards';
 import {Organization} from '@fbcnms/sequelize-models';
+import {XWFMDBData} from './dashboards/XWFMDashboards';
 import {apiCredentials} from '@fbcnms/platform-server/config';
 
 import type {
@@ -43,7 +45,7 @@ import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {GrafanaClient, GrafanaResponse} from './GrafanaAPI';
 import type {OrganizationType} from '@fbcnms/sequelize-models/models/organization';
 import type {UserType} from '@fbcnms/sequelize-models/models/user';
-import type {tenant} from '@fbcnms/magma-api';
+import type {network_type, tenant} from '@fbcnms/magma-api';
 
 const logger = require('@fbcnms/logging').getLogger(module);
 
@@ -490,7 +492,7 @@ export async function syncDashboards(
   ];
 
   // If an org contains CWF networks, add the CWF-specific dashboards
-  if (await hasCWFNetwork(networks)) {
+  if (await hasNetworkOfType(CWF, networks)) {
     posts.push(
       dashboardData(createDashboard(CWFNetworkDBData(networks)).generate()),
       dashboardData(createDashboard(CWFAccessPointDBData(networks)).generate()),
@@ -501,6 +503,10 @@ export async function syncDashboards(
     posts.push(
       dashboardData(createDashboard(AnalyticsDBData(networks)).generate()),
     );
+  }
+  // TODO: When XWFM networks are a real thing change this to XWFM
+  if (await hasNetworkOfType(CWF, networks)) {
+    posts.push(dashboardData(createDashboard(XWFMDBData(networks)).generate()));
   }
 
   for (const post of posts) {
@@ -608,11 +614,14 @@ function organizationsEqual(
   );
 }
 
-async function hasCWFNetwork(networks: Array<string>): Promise<boolean> {
+async function hasNetworkOfType(
+  type: network_type,
+  networks: Array<string>,
+): Promise<boolean> {
   for (const networkId of networks) {
     try {
       const networkInfo = await MagmaV1API.getNetworksByNetworkId({networkId});
-      if (networkInfo.type === 'carrier_wifi_network') {
+      if (networkInfo.type === type) {
         return true;
       }
     } catch (error) {

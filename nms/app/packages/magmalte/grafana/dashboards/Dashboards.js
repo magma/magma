@@ -79,7 +79,7 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
     templates: [getNetworkTemplate(networkIDs)],
     rows: [
       {
-        title: '',
+        title: 'Connections',
         panels: [
           {
             title: 'Number of Connected UEs',
@@ -104,6 +104,27 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
             aggregates: {avg: true, max: true},
           },
           {
+            title: 'Attach Success Rate',
+            targets: [
+              {
+                expr:
+                  '(sum by(networkID) (increase(ue_attach{action="attach_accept_sent",networkID=~"$networkID"}[3h]))) * 100 / (sum by(networkID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort",networkID=~"$networkID"}[3h])))',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            yMax: 100,
+          },
+          {
+            title: 'Duplicate Attach Requests (1h Increase)',
+            targets: [
+              {
+                expr:
+                  'sum by(networkID) (increase(duplicate_attach_request{networkID=~"$networkID"}[1h]))',
+                legend: '{{networkID}}',
+              },
+            ],
+          },
+          {
             title: 'Number of Connected eNBs',
             targets: [
               {
@@ -114,63 +135,152 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
             ],
             aggregates: {avg: true, max: true},
           },
+        ],
+      },
+      {
+        title: 'S1',
+        panels: [
           {
-            title: 'S1 Setup',
+            title: 'S1 Setup (Rate)',
             targets: [
               {
-                expr: 'sum(s1_setup{networkID=~"$networkID"}) by (networkID)',
+                expr:
+                  'sum(rate(s1_setup{networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: 'Total: {{networkID}}',
               },
               {
                 expr:
-                  'sum(s1_setup{networkID=~"$networkID",result="success"}) by (networkID)',
+                  'sum(rate(s1_setup{networkID=~"$networkID",result="success"}[5m])) by (networkID)',
                 legendFormat: 'Success: {{networkID}}',
               },
               {
                 expr:
-                  'sum(s1_setup{networkID=~"$networkID"})by(networkID)-sum(s1_setup{result="success",networkID=~"$networkID"}) by (networkID)',
+                  'sum(rate(s1_setup{networkID=~"$networkID"}[5m]))by(networkID)-sum(rate(s1_setup{result="success",networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: 'Failure: {{networkID}}',
               },
             ],
           },
           {
-            title: 'Attach/Reg Attempts',
+            title: 'S1 Setup (1h Increase)',
             targets: [
               {
-                expr: 'sum(ue_attach{networkID=~"$networkID"}) by (networkID)',
+                expr:
+                  'sum(increase(s1_setup{networkID=~"$networkID"}[1h])) by (networkID)',
                 legendFormat: 'Total: {{networkID}}',
               },
               {
                 expr:
-                  'sum(ue_attach{networkID=~"$networkID",result="attach_proc_successful"}) by (networkID)',
+                  'sum(increase(s1_setup{networkID=~"$networkID",result="success"}[1h])) by (networkID)',
                 legendFormat: 'Success: {{networkID}}',
               },
               {
                 expr:
-                  'sum(ue_attach{networkID=~"$networkID"}) by (networkID) -sum(s1_setup{result="attach_proc_successful",networkID=~"$networkID"}) by (networkID)',
+                  'sum(increase(s1_setup{networkID=~"$networkID"}[1h]))by(networkID)-sum(increase(s1_setup{result="success",networkID=~"$networkID"}[1h])) by (networkID)',
+                legendFormat: 'Failure: {{networkID}}',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Attach/Detach',
+        panels: [
+          {
+            title: 'Attach/Reg Attempts (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ue_attach{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: 'Total: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(rate(ue_attach{networkID=~"$networkID",result="attach_proc_successful"}[5m])) by (networkID)',
+                legendFormat: 'Success: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(rate(ue_attach{networkID=~"$networkID"}[5m])) by (networkID) -sum(rate(s1_setup{result="attach_proc_successful",networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: 'Failure: {{networkID}}',
               },
             ],
           },
           {
-            title: 'Detach/Dereg Attempts',
+            title: 'Attach/Reg Attempts (1h Increase)',
             targets: [
               {
-                expr: 'sum(ue_detach{networkID=~"$networkID"}) by (networkID)',
+                expr:
+                  'sum(increase(ue_attach{networkID=~"$networkID"}[1h])) by (networkID)',
                 legendFormat: 'Total: {{networkID}}',
               },
               {
                 expr:
-                  'sum(ue_detach{networkID=~"$networkID",result="attach_proc_successful"}) by (networkID)',
+                  'sum(increase(ue_attach{networkID=~"$networkID",result="attach_proc_successful"}[1h])) by (networkID)',
                 legendFormat: 'Success: {{networkID}}',
               },
               {
                 expr:
-                  'sum(ue_detach{networkID=~"$networkID"}) by (networkID) -sum(s1_setup{result="attach_proc_successful",networkID=~"$networkID"}) by (networkID)',
+                  'sum(increase(ue_attach{networkID=~"$networkID"}[1h])) by (networkID) -sum(increase(s1_setup{result="attach_proc_successful",networkID=~"$networkID"}[1h])) by (networkID)',
                 legendFormat: 'Failure: {{networkID}}',
               },
             ],
           },
+          {
+            title: 'Detach/Dereg Attempts (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(ue_detach{networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: 'Total: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(rate(ue_detach{networkID=~"$networkID",result="attach_proc_successful"}[5m])) by (networkID)',
+                legendFormat: 'Success: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(rate(ue_detach{networkID=~"$networkID"}[5m])) by (networkID) -sum(rate(s1_setup{result="attach_proc_successful",networkID=~"$networkID"}[5m])) by (networkID)',
+                legendFormat: 'Failure: {{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 'Detach/Dereg Attempts (1h Increase)',
+            targets: [
+              {
+                expr:
+                  'sum(increase(ue_detach{networkID=~"$networkID"}[1h])) by (networkID)',
+                legendFormat: 'Total: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(increase(ue_detach{networkID=~"$networkID",result="attach_proc_successful"}[1h])) by (networkID)',
+                legendFormat: 'Success: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(increase(ue_detach{networkID=~"$networkID"}[1h])) by (networkID) -sum(increase(s1_setup{result="attach_proc_successful",networkID=~"$networkID"}[1h])) by (networkID)',
+                legendFormat: 'Failure: {{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 'Attach Success Rate',
+            targets: [
+              {
+                expr:
+                  '(sum by(networkID) (increase(ue_attach{action="attach_accept_sent",networkID=~"$networkID"}[3h]))) * 100 / (sum by(networkID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort",networkID=~"$networkID"}[3h])))',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            yMax: 100,
+          },
+        ],
+      },
+      {
+        title: 'Connection Status',
+        panels: [
           {
             title: 'GPS Connection Uptime',
             targets: [
@@ -192,25 +302,129 @@ export const NetworkDBData = (networkIDs: Array<string>): GrafanaDBData => {
               },
             ],
           },
+        ],
+      },
+      {
+        title: 'Service Requests',
+        panels: [
           {
-            title: 'Service Requests',
+            title: 'Service Requests (Rate)',
             targets: [
               {
                 expr:
-                  'sum(service_request{networkID=~"$networkID"}) by (networkID)',
+                  'sum(rate(service_request{networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: 'Total: {{networkID}}',
               },
               {
                 expr:
-                  'sum(service_request{networkID=~"$networkID",result="success"}) by (networkID)',
+                  'sum(rate(service_request{networkID=~"$networkID",result="success"}[5m])) by (networkID)',
                 legendFormat: 'Success: {{networkID}}',
               },
               {
                 expr:
-                  'sum(service_request{networkID=~"$networkID"}) by (networkID)-sum(s1_setup{result="success",networkID=~"$networkID"}) by (networkID)',
+                  'sum(rate(service_request{networkID=~"$networkID"}[5m])) by (networkID)-sum(rate(s1_setup{result="success",networkID=~"$networkID"}[5m])) by (networkID)',
                 legendFormat: 'Failure: {{networkID}}',
               },
             ],
+          },
+          {
+            title: 'Service Requests (1h Increase)',
+            targets: [
+              {
+                expr:
+                  'sum(increase(service_request{networkID=~"$networkID"}[1h])) by (networkID)',
+                legendFormat: 'Total: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(increase(service_request{networkID=~"$networkID",result="success"}[1h])) by (networkID)',
+                legendFormat: 'Success: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(increase(service_request{networkID=~"$networkID"}[1h])) by (networkID)-sum(increase(s1_setup{result="success",networkID=~"$networkID"}[1h])) by (networkID)',
+                legendFormat: 'Failure: {{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 'Service Request Success Rate',
+            targets: [
+              {
+                expr:
+                  'round((sum by(networkID) (increase(service_request{networkID=~"$networkID", result="success"}[3h]))) *100 / ((sum by(networkID) (increase(service_request{networkID=~"$networkID", result="failure"}[3h]))) + (sum by(networkID) (increase(service_request{networkID=~"$networkID", result="success"}[3h])))))',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            yMax: 100,
+          },
+        ],
+      },
+      {
+        title: 's6a',
+        panels: [
+          {
+            title: 's6a Auth Failure (Rate)',
+            targets: [
+              {
+                expr: 'rate(s6a_auth_failure{networkID=~"$networkID"}[5m])',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 's6a Auth Failure (1h Increase)',
+            targets: [
+              {
+                expr: 'increase(s6a_auth_failure{networkID=~"$networkID"}[1h])',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 's6a Auth Success (Rate)',
+            targets: [
+              {
+                expr: 'rate(s6a_auth_success{networkID=~"$networkID"}[5m])',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 's6a Auth Success (1h Increase)',
+            targets: [
+              {
+                expr: 'increase(s6a_auth_success{networkID=~"$networkID"}[1h])',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 's6a Authentication Success Rate',
+            targets: [
+              {
+                expr:
+                  'sum by(networkID) (increase(s6a_auth_success{networkID=~"$networkID"}[3h]) * 100) / (sum by (networkID) (increase(s6a_auth_success{networkID=~"$networkID"}[3h])) + sum by(networkID) (increase(s6a_auth_failure{networkID=~"$networkID"}[3h])))',
+                legendFormat: '{{networkID}}',
+              },
+            ],
+            yMax: 100,
+          },
+        ],
+      },
+      {
+        title: 'Sessions',
+        panels: [
+          {
+            title: 'Session Create Success Rate',
+            targets: [
+              {
+                expr:
+                  '(sum by(networkID) (increase(mme_spgw_create_session_rsp{networkID=~"$networkID", result="success"}[3h]) * 100)) / (sum by(networkID) (increase(mme_spgw_create_session_rsp{networkID=~"$networkID"}[3h])))',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+            yMax: 100,
           },
         ],
       },
@@ -226,7 +440,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
     templates: [getNetworkTemplate(networkIDs), gatewayTemplate],
     rows: [
       {
-        title: '',
+        title: 'Connections',
         panels: [
           {
             title: 'E-Node B Status',
@@ -234,7 +448,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'enodeb_rf_tx_enabled{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
           },
@@ -244,17 +458,43 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'ue_connected{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
           },
+          {
+            title: 'Attach Success Rate',
+            targets: [
+              {
+                expr:
+                  '(sum by(networkID,gatewayID) (increase(ue_attach{action="attach_accept_sent",networkID=~"$networkID",gatewayID=~"$gatewayID"}[3h]))) * 100 / (sum by(networkID,gatewayID) (increase(ue_attach{action=~"attach_accept_sent|attach_reject_sent|attach_abort",networkID=~"$networkID",gatewayID=~"$gatewayID"}[3h])))',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+            yMax: 100,
+          },
+          {
+            title: 'Duplicate Attach Requests (1h Increase)',
+            targets: [
+              {
+                expr:
+                  'sum by(networkID,gatewayID) (increase(duplicate_attach_request{networkID=~"$networkID",gatewayID=~"$gatewayID"}[1h]))',
+                legend: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+          },
+        ],
+      },
+      {
+        title: 'Traffic',
+        panels: [
           {
             title: 'Download Throughput',
             targets: [
               {
                 expr:
-                  'pdcp_user_plane_bytes_dl{gatewayID=~"$gatewayID",service="enodebd",networkID=~"$networkID"}/1000',
-                legendFormat: '{{gatewayID}}',
+                  'rate(pdcp_user_plane_bytes_dl{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
             unit: 'Bps',
@@ -264,19 +504,80 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
             targets: [
               {
                 expr:
-                  'pdcp_user_plane_bytes_ul{gatewayID=~"$gatewayID",service="enodebd",networkID=~"$networkID"}/1000',
-                legendFormat: '{{gatewayID}}',
+                  'rate(pdcp_user_plane_bytes_ul{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
             unit: 'Bps',
           },
+        ],
+      },
+      {
+        title: 'Service Requests',
+        panels: [
+          {
+            title: 'Service Requests (Rate)',
+            targets: [
+              {
+                expr:
+                  'sum(rate(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])) by (gatewayID,networkID)',
+                legendFormat: 'Total: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(rate(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID",result="success"}[5m])) by (gatewayID,networkID)',
+                legendFormat: 'Success: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(rate(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])) by (gatewayID,networkID)-sum(rate(s1_setup{gatewayID=~"$gatewayID",result="success",networkID=~"$networkID"}[5m])) by (gatewayID,networkID)',
+                legendFormat: 'Failure: {{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 'Service Requests (1h Increase)',
+            targets: [
+              {
+                expr:
+                  'sum(increase(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID"}[1h])) by (gatewayID,networkID)',
+                legendFormat: 'Total: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(increase(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID",result="success"}[1h])) by (gatewayID,networkID)',
+                legendFormat: 'Success: {{networkID}}',
+              },
+              {
+                expr:
+                  'sum(increase(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID"}[1h])) by (gatewayID,networkID)-sum(increase(s1_setup{gatewayID=~"$gatewayID",result="success",networkID=~"$networkID"}[1h])) by (gatewayID,networkID)',
+                legendFormat: 'Failure: {{networkID}}',
+              },
+            ],
+          },
+          {
+            title: 'Service Request Success Rate',
+            targets: [
+              {
+                expr:
+                  'round((sum by(gatewayID,networkID) (increase(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID", result="success"}[3h]))) *100 / ((sum by(gatewayID,networkID) (increase(service_request{gatewayID=~"$gatewayID",networkID=~"$networkID", result="failure"}[3h]))) + (sum by(gatewayID,networkID) (increase(service_request{networkID=~"$networkID", result="success"}[3h])))))',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+            yMax: 100,
+          },
+        ],
+      },
+      {
+        title: 'Miscellaneous',
+        panels: [
           {
             title: 'Latency',
             targets: [
               {
                 expr:
                   'magmad_ping_rtt_ms{gatewayID=~"$gatewayID",networkID=~"$networkID",metric="rtt_ms"}',
-                legendFormat: '{{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
             unit: 's',
@@ -287,7 +588,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'cpu_percent{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
             unit: 'percent',
@@ -298,7 +599,7 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'temperature{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}} - {{sensor}}',
+                legendFormat: '{{networkID}} - {{gatewayID}} - {{sensor}}',
               },
             ],
             yMin: null,
@@ -310,20 +611,82 @@ export const GatewayDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'disk_percent{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
             unit: 'percent',
           },
+        ],
+      },
+      {
+        title: 's6a',
+        panels: [
           {
-            title: 's6a Auth Failure',
+            title: 's6a Auth Failure (Rate)',
             targets: [
               {
                 expr:
-                  's6a_auth_failure{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}',
+                  'rate(s6a_auth_failure{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
+          },
+          {
+            title: 's6a Auth Failure (1h Increase)',
+            targets: [
+              {
+                expr:
+                  'increase(s6a_auth_failure{gatewayID=~"$gatewayID",networkID=~"$networkID"}[1h])',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+          },
+          {
+            title: 's6a Auth Success (Rate)',
+            targets: [
+              {
+                expr:
+                  'rate(s6a_auth_success{gatewayID=~"$gatewayID",networkID=~"$networkID"}[5m])',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+          },
+          {
+            title: 's6a Auth Success (1h Increase)',
+            targets: [
+              {
+                expr:
+                  'increase(s6a_auth_success{gatewayID=~"$gatewayID",networkID=~"$networkID"}[1h])',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+          },
+          {
+            title: 's6a Authentication Success Rate',
+            targets: [
+              {
+                expr:
+                  'sum by(networkID,gatewayID) (increase(s6a_auth_success{gatewayID=~"$gatewayID",networkID=~"$networkID"}[3h]) * 100) / (sum by (gatewayID,networkID) (increase(s6a_auth_success{gatewayID=~"$gatewayID",networkID=~"$networkID"}[3h])) + sum by(gatewayID,networkID) (increase(s6a_auth_failure{gatewayID=~"$gatewayID",networkID=~"$networkID"}[3h])))',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+            yMax: 100,
+          },
+        ],
+      },
+      {
+        title: 'Sessions',
+        panels: [
+          {
+            title: 'Session Create Success Rate',
+            targets: [
+              {
+                expr:
+                  '(sum by(gatewayID,networkID) (increase(mme_spgw_create_session_rsp{gatewayID=~"$gatewayID",networkID=~"$networkID", result="success"}[3h]) * 100)) / (sum by(gatewayID,networkID) (increase(mme_spgw_create_session_rsp{gatewayID=~"$gatewayID",networkID=~"$networkID"}[3h])))',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
+              },
+            ],
+            yMax: 100,
           },
         ],
       },
@@ -413,7 +776,7 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'mem_free{gatewayID=~"$gatewayID"}/mem_total{gatewayID=~"$gatewayID",networkID=~"$networkID"} * 100',
-                legendFormat: '{{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
           },
@@ -423,7 +786,7 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'temperature{gatewayID=~"$gatewayID",sensor="coretemp_0",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}} - {{sensor}}',
+                legendFormat: '{{networkID}} - {{gatewayID}} - {{sensor}}',
               },
             ],
             unit: 'percent',
@@ -434,7 +797,7 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'virtual_memory_percent{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
             unit: 'percent',
@@ -445,7 +808,7 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'magmad_ping_rtt_ms{gatewayID=~"$gatewayID",service="magmad",host="8.8.8.8",metric="rtt_ms",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}',
               },
             ],
             unit: 's',
@@ -456,7 +819,7 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'process_uptime_seconds{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}-{{service}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}-{{service}}',
               },
             ],
             unit: 's',
@@ -467,7 +830,7 @@ export const InternalDBData = (networkIDs: Array<string>): GrafanaDBData => {
               {
                 expr:
                   'unexpected_service_restarts{gatewayID=~"$gatewayID",networkID=~"$networkID"}',
-                legendFormat: '{{gatewayID}}-{{service_name}}',
+                legendFormat: '{{networkID}} - {{gatewayID}}-{{service_name}}',
               },
             ],
           },
@@ -519,6 +882,7 @@ type PanelParams = {
   targets: Array<{expr: string, legendFormat?: string}>,
   unit?: string,
   yMin?: ?number,
+  yMax?: number,
   aggregates?: {avg?: boolean, max?: boolean},
   description?: string,
 };
@@ -543,6 +907,10 @@ function newPanel(params: PanelParams) {
     pan.state.grid.leftMin = null;
   } else {
     pan.state.grid.leftMin = params.yMin ?? 0;
+  }
+
+  if (params.yMax !== null && params.yMax !== undefined) {
+    pan.state.grid.leftMax = params.yMax;
   }
 
   pan.state.legend.avg = params.aggregates?.avg ?? false;

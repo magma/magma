@@ -2036,7 +2036,7 @@ int mme_app_paging_request_helper(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Paging process attempted for connected UE with id %d\n",
         ue_context_p->mme_ue_s1ap_id);
-    ue_context_p->paging_retx_count = 0;
+    ue_context_p->paging_retx_count                  = 0;
     ue_context_p->time_paging_response_timer_started = 0;
     OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
   }
@@ -2127,6 +2127,59 @@ int mme_app_handle_initial_paging_request(
       ue_context_p, true, true /* s-tmsi */, CN_DOMAIN_PS);
 }
 
+//------------------------------------------------------------------------------
+/* Send actv_dedicated_bearer_rej to spgw app for the pending dedicated bearers
+ * without creating a context as the UE did not respond to paging*/
+void _mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
+    ue_mm_context_t* ue_context_p,
+    emm_cn_activate_dedicated_bearer_req_t* pending_ded_ber_req) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  MessageDef* message_p = itti_alloc_new_message(
+      TASK_MME_APP, S11_NW_INITIATED_ACTIVATE_BEARER_RESP);
+  if (message_p == NULL) {
+    OAILOG_ERROR(
+        LOG_MME_APP,
+        "Cannot allocate memory to S11_NW_INITIATED_BEARER_ACTV_RSP\n");
+    OAILOG_FUNC_OUT(LOG_MME_APP);
+  }
+  itti_s11_nw_init_actv_bearer_rsp_t* s11_nw_init_actv_bearer_rsp =
+      &message_p->ittiMsg.s11_nw_init_actv_bearer_rsp;
+  memset(
+      s11_nw_init_actv_bearer_rsp, 0,
+      sizeof(itti_s11_nw_init_actv_bearer_rsp_t));
+  // Fetch PDN context
+  pdn_cid_t cid =
+      ue_context_p
+          ->bearer_contexts[EBI_TO_INDEX(pending_ded_ber_req->linked_ebi)]
+          ->pdn_cx_id;
+  pdn_context_t* pdn_context = ue_context_p->pdn_contexts[cid];
+  // Fill SGW S11 CP TEID
+  s11_nw_init_actv_bearer_rsp->sgw_s11_teid = pdn_context->s_gw_teid_s11_s4;
+  int msg_bearer_index                      = 0;
+
+  s11_nw_init_actv_bearer_rsp->cause.cause_value = REQUEST_REJECTED;
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+      .eps_bearer_id = pending_ded_ber_req->linked_ebi;
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+      .cause.cause_value = REQUEST_REJECTED;
+
+  /* SGW S1U teid. This IE shall be sent on the S11 interface.
+   * It shall be used to fetch context
+   */
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index]
+      .s1u_sgw_fteid.teid = pending_ded_ber_req->sgw_fteid.teid;
+  s11_nw_init_actv_bearer_rsp->bearer_contexts.num_bearer_context++;
+
+  message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+
+  OAILOG_INFO_UE(
+      LOG_MME_APP, ue_context_p->emm_context._imsi64,
+      "Sending create_dedicated_bearer_rej to SGW with EBI %u s1u teid %u\n",
+      pending_ded_ber_req->linked_ebi, pending_ded_ber_req->sgw_fteid.teid);
+  send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SPGW, message_p);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
 void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   mme_ue_s1ap_id_t mme_ue_s1ap_id = *((mme_ue_s1ap_id_t*) (args));
@@ -2157,15 +2210,23 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
     /* MME shall reset the paging_retx_count as MME reached sending
      * Paging Indication to max retries
      */
-    ue_context_p->paging_retx_count = 0;
+    ue_context_p->paging_retx_count                  = 0;
     ue_context_p->time_paging_response_timer_started = 0;
     /* If there are any pending dedicated bearer requests to be sent to UE
      * send create_dedicated_bearer_reject to SPGW as UE did not respond
      * to Paging and free the memory*/
     for (uint8_t idx = 0; idx < BEARERS_PER_UE; idx++) {
       if (ue_context_p->pending_ded_ber_req[idx]) {
-        mme_app_handle_create_dedicated_bearer_rej(
-            ue_context_p, ue_context_p->pending_ded_ber_req[idx]->linked_ebi);
+        _mme_app_send_actv_dedicated_bearer_rej_for_pending_bearers(
+            ue_context_p, ue_context_p->pending_ded_ber_req[idx]);
+        if (ue_context_p->pending_ded_ber_req[idx]->tft) {
+          free_traffic_flow_template(
+              &ue_context_p->pending_ded_ber_req[idx]->tft);
+        }
+        if (ue_context_p->pending_ded_ber_req[idx]->pco) {
+          free_protocol_configuration_options(
+              &ue_context_p->pending_ded_ber_req[idx]->pco);
+        }
         free_wrapper((void**) &ue_context_p->pending_ded_ber_req[idx]);
       }
     }
