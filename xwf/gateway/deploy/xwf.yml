@@ -29,7 +29,7 @@
          - install
     - role: xwfm
     - role: dhcpd
-      when: uplink_if is not defined
+      when: uplink_if is none
     - role: docker
       tags:
          - install_docker

@@ -183,12 +183,16 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 }
 
 static CreateSessionRequest make_create_session_request(
-    const SessionConfig& cfg, const std::string& session_id) {
+    const SessionConfig& cfg, const std::string& session_id,
+    const std::unique_ptr<Timezone>& access_timezone) {
   CreateSessionRequest create_request;
   create_request.set_session_id(session_id);
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
   create_request.mutable_rat_specific_context()->CopyFrom(
       cfg.rat_specific_context);
+  if (access_timezone != nullptr) {
+    create_request.mutable_access_timezone()->CopyFrom(*access_timezone);
+  }
   return create_request;
 }
 
@@ -234,7 +238,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
     const SessionConfig& cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> cb) {
   const auto& imsi = cfg.common_context.sid().id();
-  auto create_req  = make_create_session_request(cfg, session_id);
+  auto create_req  = make_create_session_request(
+      cfg, session_id, enforcer_->get_access_timezone());
   MLOG(MINFO) << "Sending a CreateSessionRequest to fetch policies for "
               << session_id;
   reporter_->report_create_session(
@@ -245,7 +250,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
-          MLOG(MINFO) << "Processing a CreateSessionResponse for " << session_id;
+          MLOG(MINFO) << "Processing a CreateSessionResponse for "
+                      << session_id;
           enforcer_->init_session_credit(
               *session_map_ptr, imsi, session_id, cfg, response);
           bool write_success = session_store_.create_sessions(
@@ -446,26 +452,29 @@ void LocalSessionManagerHandlerImpl::EndSession(
 void LocalSessionManagerHandlerImpl::end_session(
     SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
-  try {
-    auto update = SessionStore::get_default_session_update(session_map);
-    enforcer_->terminate_session(session_map, sid.id(), apn, update);
-
-    bool update_success = session_store_.update_sessions(update);
-    if (update_success) {
-      response_callback(Status::OK, LocalEndSessionResponse());
-    } else {
-      auto status = Status(
-          grpc::ABORTED,
-          "EndSession no longer valid due to another update that "
-          "occurred to the session first.");
-      response_callback(status, LocalEndSessionResponse());
-    }
-  } catch (const SessionNotFound& ex) {
+  auto update = SessionStore::get_default_session_update(session_map);
+  MLOG(MINFO) << "Received a termination request from Access for " << sid.id()
+              << " apn " << apn;
+  auto found = enforcer_->handle_termination_from_access(
+      session_map, sid.id(), apn, update);
+  if (!found) {
     MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-                 << sid.id();
+                 << sid.id() << " apn " << apn;
     Status status(grpc::FAILED_PRECONDITION, "Session not found");
     response_callback(status, LocalEndSessionResponse());
+    return;
   }
+  bool update_success = session_store_.update_sessions(update);
+  if (!update_success) {
+    auto status = Status(
+        grpc::ABORTED,
+        "EndSession no longer valid due to another update that "
+        "occurred to the session first.");
+    response_callback(status, LocalEndSessionResponse());
+    return;
+  }
+  // Success
+  response_callback(Status::OK, LocalEndSessionResponse());
 }
 
 void LocalSessionManagerHandlerImpl::report_session_update_event(

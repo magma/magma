@@ -1,7 +1,0 @@
-clang
-curl
-g++
-libgflags-dev
-libgoogle-glog-dev
-libprotobuf-dev
-protobuf-compiler

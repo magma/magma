@@ -25,6 +25,7 @@ import (
 	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	subscriberModels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
+	subscriberdbTestInit "magma/lte/cloud/go/services/subscriberdb/test_init"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -643,6 +644,166 @@ func TestGetSubscriber(t *testing.T) {
 				},
 			},
 		},
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetSubscriberByAlias(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
+
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	subscriberdbTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	subscriberdbHandlers := handlers.GetHandlers()
+
+	subURLBase := "/magma/v1/lte/:network_id/subscribers"
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
+
+	msisdnURLBase := "/magma/v1/lte/:network_id/msisdns"
+	msisdnURLManage := "/magma/v1/lte/:network_id/msisdns/:msisdn"
+	getAllMSISDNs := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLBase, obsidian.GET).HandlerFunc
+	postMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLBase, obsidian.POST).HandlerFunc
+	getMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.GET).HandlerFunc
+	deleteMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.DELETE).HandlerFunc
+
+	// MSISDNs initially empty
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/msisdns",
+		Handler:        getAllMSISDNs,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]string{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// List all => empty
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase,
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// List one => 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?msisdn=13109976224",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create default subscriber profile
+	_, err = configurator.CreateEntity(
+		"n0",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Name: "Jane Doe",
+		},
+	)
+	assert.NoError(t, err)
+
+	// Create MSISDN->IMSI mapping
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n0/msisdns",
+		Payload:        &subscriberModels.MsisdnAssignment{ID: "IMSI1234567890", Msisdn: "msisdn0"},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		Handler:        postMSISDN,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create another MSISDN->IMSI mapping
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n0/msisdns",
+		Payload:        &subscriberModels.MsisdnAssignment{ID: "IMSI9999999999", Msisdn: "msisdn1"},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		Handler:        postMSISDN,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get MSISDN => MSISDN exists
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/msisdns/msisdn0",
+		Handler:        getMSISDN,
+		ParamNames:     []string{"network_id", "msisdn"},
+		ParamValues:    []string{"n0", "msisdn0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler("IMSI1234567890"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get subscriber by MSISDN
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?msisdn=msisdn0",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
+			"IMSI1234567890": {
+				ID:     "IMSI1234567890",
+				Name:   "Jane Doe",
+				Config: &subscriberModels.SubscriberConfig{Lte: nil},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete MSISDN->IMSI mapping
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            msisdnURLManage,
+		Handler:        deleteMSISDN,
+		ParamNames:     []string{"network_id", "msisdn"},
+		ParamValues:    []string{"n0", "msisdn0"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get MSISDN => 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/msisdns/msisdn0",
+		Handler:        getMSISDN,
+		ParamNames:     []string{"network_id", "msisdn"},
+		ParamValues:    []string{"n0", "msisdn0"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get subscriber by MSISDN => 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?msisdn=msisdn0",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
 	}
 	tests.RunUnitTest(t, e, tc)
 }

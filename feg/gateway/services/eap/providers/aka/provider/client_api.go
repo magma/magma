@@ -73,6 +73,6 @@ func (*providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
 	return cli.Handle(context.Background(), msg)
 }
 
-func NewServiced(_ *servicers.EapAkaSrv) providers.Method {
+func NewService(_ *servicers.EapAkaSrv) providers.Method {
 	return New()
 }

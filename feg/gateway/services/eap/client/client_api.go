@@ -20,11 +20,19 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/golang/glog"
+
 	"magma/feg/gateway/services/aaa/protos"
 	"magma/feg/gateway/services/eap"
 	"magma/feg/gateway/services/eap/providers"
 	"magma/feg/gateway/services/eap/providers/registry"
 )
+
+var supportedEapTypes []uint8 // a read only copy of supported types for internal use
+
+func init() {
+	supportedEapTypes = SupportedTypes()
+}
 
 // HandleIdentityResponse passes Identity EAP payload to corresponding method provider & returns corresponding
 // EAP result
@@ -42,16 +50,28 @@ func HandleIdentityResponse(providerType uint8, msg *protos.Eap) (*protos.Eap, e
 			"Invalid EAP Method Type for Identity Response: %d. Expecting EAP Identity (%d)",
 			msg.Payload[eap.EapMsgMethodType], eap.MethodIdentity)
 	}
+	td := eap.Packet(msg.Payload).TypeData()
 	if msg.Ctx != nil {
-		td := eap.Packet(msg.Payload).TypeData()
 		if len(td) > 0 {
 			msg.Ctx.Identity = string(td)
 		}
 	}
-	p := registry.GetProvider(providerType)
+	var p providers.Method
+	if providerType == 0 && len(td) > 0 { // no EAP type specified, find a provider willing to handle the Identity
+		for _, typ := range supportedEapTypes {
+			pt := registry.GetProvider(typ)
+			if pt != nil && pt.WillHandleIdentity(td) {
+				p = pt
+				break
+			}
+		}
+	} else {
+		p = registry.GetProvider(providerType)
+	}
 	if p == nil {
 		return newFailureMsg(msg), unsupportedProviderError(providerType)
 	}
+	glog.V(2).Infof("Handling %s (%d)", p.String(), providerType)
 	return p.Handle(msg)
 }
 

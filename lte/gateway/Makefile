@@ -67,6 +67,8 @@ all: build
 
 build: build_python build_common build_oai build_sctpd build_session_manager ## Build all
 
+smf_build: build_session_manager  ## Build only sessionD component make smf_build
+
 test: test_python test_oai test_session_manager ## Run all tests
 
 clean: clean_python  ## Clean all builds
@@ -147,6 +149,10 @@ scan_oai: ## Scan OAI
 
 format_oai: ## Format OAI
 	find $(GATEWAY_C_DIR)/oai \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
+format_session_manager: ## Format SessionD
+	find $(GATEWAY_C_DIR)/session_manager \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 
 test_python: stop ## Run all Python-specific tests
