@@ -57,7 +57,8 @@ def main():
     # listening for clients.
     def serve():
         # Waiting for subscribers to be added to store
-        yield from store.on_ready()
+        if not store.list_subscribers():
+            yield from store.on_ready()
 
         if service.config['s6a_over_grpc']:
             s6a_proxy_servicer = S6aProxyRpcServicer(processor)
