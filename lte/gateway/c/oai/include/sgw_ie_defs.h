@@ -147,20 +147,6 @@ typedef struct {
 typedef struct {
   uint8_t mcc[3];
   uint8_t mnc[3];
-  uint16_t tac;
-} Tai_t;
-
-typedef struct {
-  plmn_t plmn;
-  uint8_t mcc[3];
-  uint8_t mnc[3];
-  eci_t
-      cell_identity; /*!< \brief  The ECI shall be of fixed length of 28 bits */
-} Ecgi_t;
-
-typedef struct {
-  uint8_t mcc[3];
-  uint8_t mnc[3];
   uint16_t lac;
 } Lai_t;
 
