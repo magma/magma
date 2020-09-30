@@ -123,27 +123,44 @@ bool SessionStore::update_sessions(const SessionUpdate& update_criteria) {
 
 optional<SessionVector::iterator> SessionStore::find_session(
     SessionMap& session_map, SessionSearchCriteria criteria) {
-  auto it = session_map.find(criteria.imsi);
-  if (it == session_map.end()) {
+  auto sm_it = session_map.find(criteria.imsi);
+  if (sm_it == session_map.end()) {
     return {};
   }
-  auto& sessions = it->second;
+  auto& sessions = sm_it->second;
   for (auto it = sessions.begin(); it != sessions.end(); ++it) {
     switch (criteria.search_type) {
       case IMSI_AND_SESSION_ID:
         if ((*it)->get_session_id() == criteria.secondary_key) {
           return it;
         }
+        break;
       case IMSI_AND_APN:
         if ((*it)->get_config().common_context.apn() ==
             criteria.secondary_key) {
           return it;
         }
+        break;
       case IMSI_AND_UE_IPV4:
         if ((*it)->get_config().common_context.ue_ipv4() ==
             criteria.secondary_key) {
           return it;
         }
+        break;
+      case IMSI_AND_UE_IPV4_OR_IPV6:
+        // cwag case (cwag doesn't store ip)
+        if ((*it)->get_config().common_context.rat_type() ==
+            RATType::TGPP_WLAN) {
+          return it;
+        }
+        // lte case
+        if ((*it)->get_config().common_context.ue_ipv4() ==
+                criteria.secondary_key ||
+            (*it)->get_config().common_context.ue_ipv6() ==
+                criteria.secondary_key) {
+          return it;
+        }
+        break;
     }
     continue;
   }

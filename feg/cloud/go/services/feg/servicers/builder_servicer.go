@@ -68,6 +68,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	hss := gwConfig.Hss
 	swxc := gwConfig.Swx
 	eapAka := gwConfig.EapAka
+	eapSim := gwConfig.EapSim
 	aaa := gwConfig.AaaServer
 	csfb := gwConfig.Csfb
 	healthc := protos.SafeInit(healthConfig).(*models.Health)
@@ -145,6 +146,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		mc := &feg_mconfig.EapAkaConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(eapAka, mc)
 		vals["eap_aka"] = mc
+	}
+
+	if eapSim != nil {
+		mc := &feg_mconfig.EapSimConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(eapSim, mc)
+		vals["eap_sim"] = mc
 	}
 
 	if aaa != nil {

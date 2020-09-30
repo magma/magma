@@ -144,6 +144,21 @@ commands:
             sudo apt-get update -y
             sudo apt-get install -y yarn
 
+  apt-install-chrome:
+    steps:
+      - run:
+          <<: *appdir
+          command: |
+            # Install latest chrome dev package
+            # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
+            # installs, work.
+            curl -sS https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+            echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
+            sudo apt-get update -y
+            sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
+            sudo rm -rf /var/lib/apt/lists/*
+
+
   tag-push-docker:
     description: Tag docker image and push it
     parameters:
@@ -514,6 +529,7 @@ jobs:
   feg-precommit:
     docker:
       - image: circleci/golang:1.13-stretch-node-browsers-legacy
+    resource_class: medium+
     environment:
       - GO111MODULE=on
     steps:
@@ -536,6 +552,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
+    resource_class: large
     environment:
       - MAGMA_ROOT=/home/circleci/project
     steps:
@@ -790,12 +807,15 @@ jobs:
       image: ubuntu-1604:201903-01
     environment:
       - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
     steps:
       - checkout
       - build/determinator:
           <<: *nms_build_verify
       - docker/install-dc
       - apt-install-yarn
+      - apt-install-chrome
       - yarn-install
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:

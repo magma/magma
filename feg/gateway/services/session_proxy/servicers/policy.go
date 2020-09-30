@@ -46,6 +46,7 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 		IMSI:           imsi,
 		RequestNumber:  0,
 		IPAddr:         common.GetUeIpv4(),
+		IPv6Addr:       common.GetUeIpv6(),
 		Apn:            common.GetApn(),
 		Msisdn:         common.GetMsisdn(),
 		RATType:        gx.GetRATType(ratType),

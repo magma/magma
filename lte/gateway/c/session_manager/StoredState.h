@@ -130,6 +130,11 @@ enum SessionFsmState {
   SESSION_TERMINATED            = 4,
   SESSION_TERMINATION_SCHEDULED = 5,
   SESSION_RELEASED              = 6,
+  CREATING                      = 7,
+  CREATED                       = 8,
+  ACTIVE                        = 9,
+  INACTIVE                      = 10,
+  RELEASE                       = 11,
 };
 
 struct StoredSessionCredit {
@@ -205,6 +210,8 @@ struct StoredSessionState {
   std::string session_id;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
+  // 5G session version handling
+  uint32_t current_version;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;

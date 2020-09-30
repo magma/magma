@@ -8,6 +8,18 @@ message S1apTimer {
   int32 sec = 2; // long
 }
 
+message SupportedTaiItems {
+  uint32 tac = 1;
+  uint32 bplmnlist_count = 2;
+  repeated bytes bplmns = 3;
+}
+
+// supported_ta_list_t
+message SupportedTaList {
+  uint32 list_count = 1;
+  repeated SupportedTaiItems supported_tai_items = 2;
+}
+
 message EnbDescription {
   uint32 enb_id = 1;
 
@@ -22,6 +34,7 @@ message EnbDescription {
   uint32 outstreams = 9;      // sctp_stream_id_t
 
   map<uint64, uint64> ue_ids = 10; // enb_ue_s1ap_id -> comp_s1ap_id
+  SupportedTaList supported_ta_list = 11; // TAs supported by eNB
 }
 
 message UeDescription {

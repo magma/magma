@@ -63,20 +63,16 @@ func NewGatewayHealthServicer(
 	}
 }
 
-// Disable disables datapath and service functionality.
-// It disables datapath functionality by adding a drop rule for ICMP on eth1
-// of the gateway to ensure the standby gateway's GRE tunnel is perceived as
-// being down by the AP/WLC. It disables service functionality by stopping to
-// ensure the RADIUS server is perceived as being down.
+// Disable disables gateway to be a standby. This is done by removing the
+// transport VIP from the gateway and restarting the AAA service.
 func (s *GatewayHealthServicer) Disable(ctx context.Context, req *protos.DisableMessage) (*orcprotos.Void, error) {
 	ret := &orcprotos.Void{}
-	err := s.systemHealth.Disable()
-	if err != nil {
-		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
-		return ret, err
+	// If already disabled, disable is a no-op
+	if s.currentState == disabled {
+		events.LogGatewayHealthSuccessEvent(events.GatewayDemotionSucceededEvent)
+		return ret, nil
 	}
-	// Stop the RADIUS server so that the WLC perceives it as down.
-	err = s.serviceHealth.Stop(radiusServiceName)
+	err := s.systemHealth.Disable()
 	if err != nil {
 		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
 		return ret, err
@@ -87,16 +83,20 @@ func (s *GatewayHealthServicer) Disable(ctx context.Context, req *protos.Disable
 		events.LogGatewayHealthFailedEvent(events.GatewayDemotionFailedEvent, err.Error())
 		return ret, err
 	}
-	s.greProbe.Stop()
 	events.LogGatewayHealthSuccessEvent(events.GatewayDemotionSucceededEvent)
 	s.currentState = disabled
 	return ret, nil
 }
 
-// Enable ensures ICMP is enabled on eth1, then restarts radius and sessiond
-// to trigger initialization of the gateway.
+// Enable enables the gateway to be active. This is done by adding the
+// transport VIP to the gateway and restarting sessiond and the radius server.
 func (s *GatewayHealthServicer) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
 	ret := &orcprotos.Void{}
+	// If already enabled, enable is a no-op
+	if s.currentState == enabled {
+		events.LogGatewayHealthSuccessEvent(events.GatewayPromotionSucceededEvent)
+		return ret, nil
+	}
 	err := s.systemHealth.Enable()
 	if err != nil {
 		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
@@ -112,7 +112,6 @@ func (s *GatewayHealthServicer) Enable(ctx context.Context, req *orcprotos.Void)
 		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
 		return ret, err
 	}
-	err = s.greProbe.Start()
 	if err != nil {
 		events.LogGatewayHealthFailedEvent(events.GatewayPromotionFailedEvent, err.Error())
 		return ret, err
@@ -187,17 +186,11 @@ func (s *GatewayHealthServicer) getServiceHealth() *protos.HealthStatus {
 	}
 	glog.V(1).Infof("unhealthy services: %v", unhealthyServices)
 
-	// TODO: Remove radius logic once transport failover is introduced
-	unhealthyStatus := &protos.HealthStatus{
-		Health:        protos.HealthStatus_UNHEALTHY,
-		HealthMessage: fmt.Sprintf("The following services were unhealthy: %v", unhealthyServices),
-	}
-	if len(unhealthyServices) > 0 && s.currentState == enabled {
-		return unhealthyStatus
-	} else if len(unhealthyServices) > 1 && s.currentState == disabled {
-		return unhealthyStatus
-	} else if len(unhealthyServices) == 1 && s.currentState == disabled && unhealthyServices[0] != radiusServiceName {
-		return unhealthyStatus
+	if len(unhealthyServices) > 0 {
+		return &protos.HealthStatus{
+			Health:        protos.HealthStatus_UNHEALTHY,
+			HealthMessage: fmt.Sprintf("The following services were unhealthy: %v", unhealthyServices),
+		}
 	}
 	return &protos.HealthStatus{
 		Health:        protos.HealthStatus_HEALTHY,

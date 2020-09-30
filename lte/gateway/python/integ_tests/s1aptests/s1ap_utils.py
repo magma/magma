@@ -38,6 +38,10 @@ from lte.protos.session_manager_pb2 import (
     PolicyReAuthRequest,
     QoSInformation,
 )
+from lte.protos.abort_session_pb2 import (
+    AbortSessionRequest,
+    AbortSessionResult,
+)
 from lte.protos.spgw_service_pb2 import (
     CreateBearerRequest,
     DeleteBearerRequest,
@@ -45,8 +49,10 @@ from lte.protos.spgw_service_pb2 import (
 from lte.protos.spgw_service_pb2_grpc import SpgwServiceStub
 from magma.subscriberdb.sid import SIDUtils
 from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
+from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
+from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 
 DEFAULT_GRPC_TIMEOUT = 10
 
@@ -68,6 +74,12 @@ class S1ApUtil(object):
 
     _cond = threading.Condition()
     _msg = Queue()
+
+    MAX_NUM_RETRIES = 5
+    datapath = get_datapath()
+    SPGW_TABLE = 0
+    GTP_PORT = 32768
+    LOCAL_PORT = "LOCAL"
 
     class Msg(object):
         def __init__(self, msg_type, msg_p, msg_len):
@@ -271,8 +283,10 @@ class S1ApUtil(object):
                 ip = ipaddress.ip_address(bytes(addr[:4]))
                 with self._lock:
                     self._ue_ip_map[ue_id] = ip
-            else:
-                raise ValueError("PDN TYPE %s not supported" % pdn_type)
+            elif S1ApUtil.CM_ESM_PDN_IPV6 == pdn_type:
+                print("IPv6 PDN type received")
+            elif S1ApUtil.CM_ESM_PDN_IPV4V6 == pdn_type:
+                print("IPv4v6 PDN type received")
         return msg
 
     def receive_emm_info(self):
@@ -307,6 +321,152 @@ class S1ApUtil(object):
 
         with self._lock:
             del self._ue_ip_map[ue_id]
+
+    def _verify_dl_flow(self, dl_flow_rules=None):
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+
+        # Verify the total number of DL flows for this UE ip address
+        num_dl_flows = 1
+        for key, value in dl_flow_rules.items():
+            ipv4_src_addr = None
+            tcp_src_port = 0
+            ip_proto = 0
+            ue_ip_str = str(key)
+            # Set to 1 for the default bearer
+            total_num_dl_flows_to_be_verified = 1
+            for item in value:
+                for flow in item:
+                    if flow["direction"] == "DL":
+                        total_num_dl_flows_to_be_verified += 1
+            total_dl_ovs_flows_created = get_flows(
+                self.datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {
+                        "nw_dst": ue_ip_str,
+                        "eth_type": 2048,
+                        "in_port": self.LOCAL_PORT,
+                    },
+                },
+            )
+            assert (
+                len(total_dl_ovs_flows_created)
+                == total_num_dl_flows_to_be_verified
+            )
+
+            # Now verify the rules for every flow
+            for item in value:
+                for flow in item:
+                    if flow["direction"] == "DL":
+                        ipv4_src_addr = flow["ipv4_src"]
+                        tcp_src_port = flow["tcp_src_port"]
+                        ip_proto = (
+                            FlowMatch.IPPROTO_TCP
+                            if (flow["ip_proto"] == "TCP")
+                            else FlowMatch.IPPROTO_UDP
+                        )
+                        for i in range(self.MAX_NUM_RETRIES):
+                            print("Get downlink flows: attempt ", i)
+                            downlink_flows = get_flows(
+                                self.datapath,
+                                {
+                                    "table_id": self.SPGW_TABLE,
+                                    "match": {
+                                        "nw_dst": ue_ip_str,
+                                        "eth_type": 2048,
+                                        "in_port": self.LOCAL_PORT,
+                                        "ipv4_src": ipv4_src_addr,
+                                        "tcp_src": tcp_src_port,
+                                        "ip_proto": ip_proto,
+                                    },
+                                },
+                            )
+                            if len(downlink_flows) >= num_dl_flows:
+                                break
+                            time.sleep(
+                                5
+                            )  # sleep for 5 seconds before retrying
+                        assert (
+                            len(downlink_flows) >= num_dl_flows
+                        ), "Downlink flow missing for UE"
+                        assert (
+                            downlink_flows[0]["match"]["ipv4_dst"] == ue_ip_str
+                        )
+                        actions = downlink_flows[0]["instructions"][0][
+                            "actions"
+                        ]
+                        has_tunnel_action = any(
+                            action
+                            for action in actions
+                            if action["field"] == "tunnel_id"
+                            and action["type"] == "SET_FIELD"
+                        )
+                        assert bool(has_tunnel_action)
+
+    def verify_flow_rules(self, num_ul_flows, dl_flow_rules=None):
+        # Check if UL and DL OVS flows are created
+        print("************ Verifying flow rules")
+        # UPLINK
+        print("Checking for uplink flow")
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(self.MAX_NUM_RETRIES):
+            print("Get uplink flows: attempt ", i)
+            uplink_flows = get_flows(
+                self.datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {"in_port": self.GTP_PORT},
+                },
+            )
+            if len(uplink_flows) == num_ul_flows:
+                break
+            time.sleep(5)  # sleep for 5 seconds before retrying
+        assert len(uplink_flows) == num_ul_flows, "Uplink flow missing for UE"
+        assert uplink_flows[0]["match"]["tunnel_id"] is not None
+
+        # DOWNLINK
+        print("Checking for downlink flow")
+        self._verify_dl_flow(dl_flow_rules)
+
+    def verify_paging_flow_rules(self, ip_list):
+        # Check if paging flows are created
+        print("************ Verifying paging flow rules")
+        num_paging_flows_to_be_verified = 1
+        for ip in ip_list:
+            ue_ip_str = str(ip)
+            print("Verifying paging flow for ip", ue_ip_str)
+            for i in range(self.MAX_NUM_RETRIES):
+                print("Get paging flows: attempt ", i)
+                paging_flows = get_flows(
+                    self.datapath,
+                    {
+                        "table_id": self.SPGW_TABLE,
+                        "match": {
+                            "nw_dst": ue_ip_str,
+                            "eth_type": 2048,
+                            "priority": 5,
+                        },
+                    },
+                )
+                if len(paging_flows) == num_paging_flows_to_be_verified:
+                    break
+                time.sleep(5)  # sleep for 5 seconds before retrying
+            assert (
+                len(paging_flows) == num_paging_flows_to_be_verified
+            ), "Paging flow missing for UE"
+
+            # TODO - Verify that the action is to send to controller
+            """controller_port = 4294967293
+            actions = paging_flows[0]["instructions"][0]["actions"]
+            has_tunnel_action = any(
+                action
+                for action in actions
+                if action["type"] == "OUTPUT"
+                and action["port"] == controller_port
+            )
+            assert bool(has_tunnel_action)"""
 
 
 class SubscriberUtil(object):
@@ -786,6 +946,9 @@ class SessionManagerUtil(object):
         self._session_stub = SessionProxyResponderStub(
             get_rpc_channel("sessiond")
         )
+        self._abort_session_stub = AbortSessionResponderStub(
+            get_rpc_channel("sessiond")
+        )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
         )
@@ -915,5 +1078,26 @@ class SessionManagerUtil(object):
                 revalidation_time=None,
                 usage_monitoring_credits=[],
                 qos_info=qos,
+            )
+        )
+
+    def create_AbortSessionRequest(self, imsi: str) -> AbortSessionResult:
+        # Get SessionID
+        req = GetDirectoryFieldRequest(id=imsi, field_key="session_id")
+        try:
+            res = self._directorydstub.GetDirectoryField(
+                req, DEFAULT_GRPC_TIMEOUT
+            )
+        except grpc.RpcError as err:
+            logging.error(
+                "GetDirectoryFieldRequest error for id: %s! [%s] %s",
+                imsi,
+                err.code(),
+                err.details(),
+            )
+        return self._abort_session_stub.AbortSession(
+            AbortSessionRequest(
+                session_id=res.value,
+                user_name=imsi,
             )
         )
