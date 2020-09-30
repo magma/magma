@@ -77,3 +77,6 @@ services:
   dpid:
     ip_address: 127.0.0.1
     port: 50077
+  sms_orc8r_service:
+    ip_address: 127.0.0.1
+    port: 50078
