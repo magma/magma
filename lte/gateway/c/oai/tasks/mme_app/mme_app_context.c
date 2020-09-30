@@ -336,9 +336,6 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
       mme_app_free_bearer_context(&ue_context_p->bearer_contexts[i]);
     }
   }
-  if (ue_context_p->ue_radio_capability) {
-    bdestroy_wrapper(&ue_context_p->ue_radio_capability);
-  }
 
   if (ue_context_p->s11_procedures) {
     mme_app_delete_s11_procedures(ue_context_p);
@@ -2330,6 +2327,7 @@ static void mme_app_resume_timers(
   OAILOG_FUNC_IN(LOG_MME_APP);
   time_t current_time = time(NULL);
   time_t lapsed_time  = current_time - start_time;
+  OAILOG_DEBUG(LOG_MME_APP, "Handling :%s timer \n", timer_name);
 
   /* Below condition validates whether timer has expired before MME recovers
    * from restart, so MME shall handle as timer expiry
