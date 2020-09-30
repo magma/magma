@@ -34,6 +34,12 @@ message IPAddress {
 message AllocateIPAddressResponse {
   IPAddress ip_addr = 1;
   string vlan = 2;
+
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+  }
+  IPVersion version  = 3;
 }
 
 message IPLookupRequest {
@@ -114,6 +120,11 @@ message RemoveIPBlockRequest {
   // force: If true, remove all IP blocks regardless of whether IPs have been
   // allocated
   bool force = 2;
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+  }
+  IPVersion version = 3;
 }
 
 message RemoveIPBlockResponse {

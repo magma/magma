@@ -22,6 +22,7 @@ from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
     add_MobilityServiceServicer_to_server
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import return_void
+from magma.mobilityd.ip_descriptor import IPDesc
 from magma.subscriberdb.sid import SIDUtils
 from .ip_address_man import IPAddressManager, IPNotInUseError, \
     MappingNotFoundError
@@ -31,6 +32,7 @@ from .ip_allocator_pool import IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError
 
 from .ip_allocator_base import DuplicatedIPAllocationError
+from .ipv6_allocator_pool import IPv6AllocatorPool, MaxRandIIDCalculationError
 
 
 def _get_ip_block(ip_block_str):
@@ -62,27 +64,34 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                                                 subscriberdb_rpc_stub=subscriberdb_rpc_stub,
                                                 mconfig=mconfig)
 
-        # Load IP block from the configurable mconfig file
+        # Load IPv4 block from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates
-        ip_block = _get_ip_block(mconfig.ip_block)
-        if ip_block is not None:
+        ipv4_block = _get_ip_block(mconfig.ip_block)
+        if ipv4_block is not None:
             try:
-                self.add_ip_block(ip_block)
+                self.add_ip_block(ipv4_block)
             except OverlappedIPBlocksError:
-                logging.error("Overlapped IP block: %s", ip_block)
-            except IPVersionNotSupportedError:
-                logging.error(
-                    "IP version not supported for IP block: %s", ip_block)
+                logging.error("Overlapped IPv4 block: %s", ipv4_block)
+
+        # TODO: Add IPv6 allocator to IP Address manager, for now support
+        # POOL allocation
+        self._ipv6_allocator = IPv6AllocatorPool(config=config)
+        ipv6_block = _get_ip_block(config['ipv6_prefix_block'])
+        if ipv6_block is not None:
+            try:
+                self.add_ip_block(ipv6_block)
+            except OverlappedIPBlocksError:
+                logging.error("Overlapped IPv6 block: %s", ipv6_block)
 
     def add_to_server(self, server):
         """ Add the servicer to a gRPC server """
         add_MobilityServiceServicer_to_server(self, server)
 
     def add_ip_block(self, ip_block):
-        """ Add IP block to the IP allocator. Currently, only IPv4 is supported.
+        """ Add IP block to the IP allocator.
 
             Args:
-                ipblock (ipaddress.ip_network): ip network to add
+                ip_block (ipaddress.ip_network): ip network to add
                 e.g. ipaddress.ip_network("10.0.0.0/24")
 
             Raise:
@@ -94,8 +103,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         if ip_block.version == 4:
             self._ipv4_allocator.add_ip_block(ip_block)
             logging.info("Added block %s to the IPv4 address pool", ip_block)
-        else:
-            raise IPVersionNotSupportedError
+        elif ip_block.version == 6:
+            logging.info("Assigned IPv6 block: %s", ip_block)
+            self._ipv6_allocator.add_ip_block(ip_block)
 
     @return_void
     def AddIPBlock(self, ipblock_msg, context):
@@ -164,13 +174,13 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
 
     def AllocateIPAddress(self, request, context):
         """ Allocate an IP address from the free IP pool """
+        ip_addr = IPAddress()
+        composite_sid = SIDUtils.to_str(request.sid)
+        if request.apn:
+            composite_sid = composite_sid + "." + request.apn
+
         if request.version == AllocateIPRequest.IPV4:
             try:
-                ip_addr = IPAddress()
-                composite_sid = SIDUtils.to_str(request.sid)
-                if request.apn:
-                    composite_sid = composite_sid + "." + request.apn
-
                 ip, vlan = self._ipv4_allocator.alloc_ip_address(composite_sid)
                 logging.info("Allocated IPv4 %s for sid %s for apn %s"
                              % (ip, SIDUtils.to_str(request.sid), request.apn))
@@ -187,19 +197,30 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             except DuplicateIPAssignmentError:
                 context.set_details('IP has been allocated for other subscriber')
                 context.set_code(grpc.StatusCode.ALREADY_EXISTS)
-        else:
-            self._unimplemented_ip_version_error(context)
+        elif request.version == AllocateIPRequest.IPV6:
+            try:
+                ip = self._ipv6_allocator.alloc_ip_address(composite_sid, 0)
+                logging.info("Allocated IPv6 %s for sid %s for apn %s"
+                             % (ip, SIDUtils.to_str(request.sid), request.apn))
+                ip_addr.version = IPAddress.IPV6
+                ip_addr.address = ip.packed
+            except MaxRandIIDCalculationError:
+                context.set_details('Could not calculate IID for IPv6 address')
+                context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
+            return AllocateIPAddressResponse(ip_addr=ip_addr, vlan="")
         return AllocateIPAddressResponse()
 
     @return_void
     def ReleaseIPAddress(self, request, context):
         """ Release an allocated IP address """
+
+        ip = ipaddress.ip_address(request.ip.address)
+        composite_sid = SIDUtils.to_str(request.sid)
+        if request.apn:
+            composite_sid = composite_sid + "." + request.apn
+
         if request.ip.version == IPAddress.IPV4:
             try:
-                ip = ipaddress.ip_address(request.ip.address)
-                composite_sid = SIDUtils.to_str(request.sid)
-                if request.apn:
-                    composite_sid = composite_sid + "." + request.apn
                 self._ipv4_allocator.release_ip_address(
                     composite_sid, ip)
                 logging.info("Released IPv4 %s for sid %s"
@@ -211,16 +232,30 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 context.set_details('(SID, IP) map not found: (%s, %s)'
                                     % (SIDUtils.to_str(request.sid), ip))
                 context.set_code(grpc.StatusCode.NOT_FOUND)
-        else:
-            self._unimplemented_ip_version_error(context)
+        elif request.ip.version == IPAddress.IPV6:
+            ip_desc = IPDesc(ip=ip, sid=composite_sid)
+            try:
+                self._ipv6_allocator.release_ip(ip_desc)
+                logging.info("Released IPv6 %s for sid %s"
+                             % (ip, SIDUtils.to_str(request.sid)))
+            except IPNotInUseError:
+                context.set_details('IP %s not in use' % ip)
+                context.set_code(grpc.StatusCode.NOT_FOUND)
 
     def RemoveIPBlock(self, request, context):
         """ Attempt to remove IP blocks and return the removed blocks """
-        removed_blocks = self._ipv4_allocator.remove_ip_blocks(
+        if request.version == IPAddress.IPV4:
+            allocator = self._ipv4_allocator
+            version = IPAddress.IPV4
+        else:
+            allocator = self._ipv6_allocator
+            version = IPAddress.IPV6
+
+        removed_blocks = allocator.remove_ip_blocks(
             *[self._ipblock_msg_to_ipblock(ipblock_msg, context)
                 for ipblock_msg in request.ip_blocks],
             force=request.force)
-        removed_block_msgs = [IPBlock(version=IPAddress.IPV4,
+        removed_block_msgs = [IPBlock(version=version,
                                       net_address=block.network_address.packed,
                                       prefix_len=block.prefixlen)
                                       for block in removed_blocks]
