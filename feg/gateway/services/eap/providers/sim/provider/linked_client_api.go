@@ -46,7 +46,7 @@ func (prov *providerImpl) Handle(msg *protos.Eap) (*protos.Eap, error) {
 		prov.RUnlock()
 		prov.Lock()
 		if prov.EapSimSrv == nil {
-			simConfigs := &mconfig.EapProviderConfig{}
+			simConfigs := &mconfig.EapSimConfig{}
 			err := managed_configs.GetServiceConfigs(sim.EapSimServiceName, simConfigs)
 			if err != nil {
 				glog.Errorf("Error getting EAP SIM service configs: %s", err)

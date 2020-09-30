@@ -11,34 +11,20 @@
  * limitations under the License.
  */
 
-package service_registry
+package client
 
 import (
 	"context"
 
-	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/registry"
-
-	"github.com/golang/glog"
 )
 
-func getServiceRegistryClient() (protos.ServiceRegistryClient, error) {
-	conn, err := registry.GetConnection(ServiceName)
-	if err != nil {
-		initErr := merrors.NewInitError(err, ServiceName)
-		glog.Error(initErr)
-		return nil, initErr
-	}
-	return protos.NewServiceRegistryClient(conn), err
-}
+const (
+	ServiceName = "service_registry"
+)
 
 // ListAllServices returns the service name of all services in the registry.
-func ListAllServices() ([]string, error) {
-	client, err := getServiceRegistryClient()
-	if err != nil {
-		return []string{}, err
-	}
+func ListAllServices(client protos.ServiceRegistryClient) ([]string, error) {
 	req := &protos.Void{}
 	res, err := client.ListAllServices(context.Background(), req)
 	if err != nil {
@@ -48,11 +34,7 @@ func ListAllServices() ([]string, error) {
 }
 
 // FindServices returns all services in that have the provided label.
-func FindServices(label string) ([]string, error) {
-	client, err := getServiceRegistryClient()
-	if err != nil {
-		return []string{}, err
-	}
+func FindServices(client protos.ServiceRegistryClient, label string) ([]string, error) {
 	req := &protos.FindServicesRequest{
 		Label: label,
 	}
@@ -65,11 +47,7 @@ func FindServices(label string) ([]string, error) {
 
 // GetServiceAddress return the address of the gRPC server for the provided
 // service.
-func GetServiceAddress(service string) (string, error) {
-	client, err := getServiceRegistryClient()
-	if err != nil {
-		return "", err
-	}
+func GetServiceAddress(client protos.ServiceRegistryClient, service string) (string, error) {
 	req := &protos.GetServiceAddressRequest{
 		Service: service,
 	}
@@ -82,11 +60,7 @@ func GetServiceAddress(service string) (string, error) {
 
 // GetHttpServerAddress returns the address of the HTTP server for the provided
 // service.
-func GetHttpServerAddress(service string) (string, error) {
-	client, err := getServiceRegistryClient()
-	if err != nil {
-		return "", err
-	}
+func GetHttpServerAddress(client protos.ServiceRegistryClient, service string) (string, error) {
 	req := &protos.GetHttpServerAddressRequest{
 		Service: service,
 	}
@@ -99,11 +73,7 @@ func GetHttpServerAddress(service string) (string, error) {
 
 // GetAnnotation returns the annotation value for the provided service and
 // annotation.
-func GetAnnotation(service string, annotation string) (string, error) {
-	client, err := getServiceRegistryClient()
-	if err != nil {
-		return "", err
-	}
+func GetAnnotation(client protos.ServiceRegistryClient, service string, annotation string) (string, error) {
 	req := &protos.GetAnnotationRequest{
 		Service:    service,
 		Annotation: annotation,

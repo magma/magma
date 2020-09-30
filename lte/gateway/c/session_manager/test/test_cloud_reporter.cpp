@@ -106,8 +106,7 @@ TEST_F(SessionReporterTest, test_single_call) {
   CreateSessionRequest request;
   reporter->report_create_session(
       request,
-      [this, &promise1]
-      (Status status, CreateSessionResponse response_out) {
+      [this, &promise1](Status status, CreateSessionResponse response_out) {
         mock_callback.create_callback(status, response_out);
         promise1.set_value();
       });
@@ -116,7 +115,8 @@ TEST_F(SessionReporterTest, test_single_call) {
   std::thread([&]() {
     promise1.get_future().wait();
     evb.terminateLoopSoon();
-  }).detach();
+  })
+      .detach();
 
   set_timeout(1000);
 
@@ -168,7 +168,8 @@ TEST_F(SessionReporterTest, test_multi_call) {
     promise2.get_future().wait();
     promise3.get_future().wait();
     evb.terminateLoopSoon();
-  }).detach();
+  })
+      .detach();
 
   set_timeout(1000);
 

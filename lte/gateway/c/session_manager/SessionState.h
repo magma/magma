@@ -77,25 +77,25 @@ struct BearerUpdate {
  */
 class SessionState {
  public:
-
   struct SessionInfo {
-    enum  upfNodeType {
-	   	IPv4 = 0,
-        IPv6 = 1,
-       FQDN = 2,
+    enum upfNodeType {
+      IPv4 = 0,
+      IPv6 = 1,
+      FQDN = 2,
     };
 
     typedef struct tNodeId {
       upfNodeType node_id_type;
       char node_id[40];
-    }NodeId;
+    } NodeId;
 
-    typedef struct  Fseid {
-	uint64_t  f_seid;
-	NodeId  Nid;
+    typedef struct Fseid {
+      uint64_t f_seid;
+      NodeId Nid;
     } FSid;
     std::string imsi;
     std::string ip_addr;
+    std::string ipv6_addr;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;

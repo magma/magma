@@ -68,6 +68,8 @@ services:
       MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
       MYSQL_DIALECT: mariadb
       E2E_TEST: 1
+      # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
     healthcheck:
       test: curl -If localhost:8081/healthz
     restart: on-failure

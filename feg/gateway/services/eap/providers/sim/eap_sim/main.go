@@ -40,7 +40,7 @@ func main() {
 		glog.Fatalf("Error creating EAP SIM service: %s", err)
 	}
 
-	simConfigs := &mconfig.EapProviderConfig{}
+	simConfigs := &mconfig.EapSimConfig{}
 	err = managed_configs.GetServiceConfigs(sim.EapSimServiceName, simConfigs)
 	if err != nil {
 		glog.Errorf("Error getting EAP SIM service configs: %s", err)

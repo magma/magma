@@ -103,7 +103,8 @@ class SessionCredit {
   void set_received_granted_units(
       GrantedUnits& rgu, SessionCreditUpdateCriteria& uc);
 
-  void set_report_last_credit(bool report_last_credit, SessionCreditUpdateCriteria& uc);
+  void set_report_last_credit(
+      bool report_last_credit, SessionCreditUpdateCriteria& uc);
 
   bool is_report_last_credit();
 

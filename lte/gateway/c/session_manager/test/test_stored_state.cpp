@@ -28,8 +28,8 @@ class StoredStateTest : public ::testing::Test {
  protected:
   SessionConfig get_stored_session_config() {
     SessionConfig stored;
-    stored.common_context =
-        build_common_context("IMSI1", "ue_ipv4", "apn", "msisdn", TGPP_WLAN);
+    stored.common_context = build_common_context(
+        "IMSI1", "ue_ipv4", "ue_ipv6", "apn", "msisdn", TGPP_WLAN);
     const auto& lte_context = build_lte_context(
         "192.168.0.2", "imei", "plmn_id", "imsi_plmn_id", "user_location", 321,
         nullptr);
@@ -132,9 +132,9 @@ class StoredStateTest : public ::testing::Test {
     magma::lte::TgppContext tgpp_context;
     tgpp_context.set_gx_dest_host("gx");
     tgpp_context.set_gy_dest_host("gy");
-    stored.tgpp_context = tgpp_context;
+    stored.tgpp_context   = tgpp_context;
     stored.pdp_start_time = 112233;
-    stored.pdp_end_time = 332211;
+    stored.pdp_end_time   = 332211;
 
     stored.pending_event_triggers[REVALIDATION_TIMEOUT] = READY;
     stored.revalidation_time.set_seconds(32);
@@ -192,8 +192,7 @@ TEST_F(StoredStateTest, test_stored_restrict_final_action_info) {
       ChargingCredit_FinalAction::ChargingCredit_FinalAction_RESTRICT_ACCESS);
 
   std::vector<std::string> restrict_rules = {"restrict_rule"};
-  EXPECT_EQ(
-      deserialized.restrict_rules, restrict_rules);
+  EXPECT_EQ(deserialized.restrict_rules, restrict_rules);
 }
 
 TEST_F(StoredStateTest, test_stored_bearer_id_by_policy) {

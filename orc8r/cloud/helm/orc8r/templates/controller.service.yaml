@@ -16,6 +16,7 @@ metadata:
   labels:
     app.kubernetes.io/component: controller
 {{ include "labels" . | indent 4 }}
+{{ include "orc8r-labels" . | indent 4 }}
     {{- with .Values.controller.service.labels }}
 {{ toYaml . | indent 4}}
     {{- end}}
@@ -26,7 +27,6 @@ metadata:
 spec:
   selector:
     app.kubernetes.io/component: controller
-{{ include "selector-labels" . | indent 4 }}
   type: {{ .Values.controller.service.type }}
   ports:
     {{- with .Values.controller.service }}
