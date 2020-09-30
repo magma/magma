@@ -51,8 +51,8 @@ class RpcTests(unittest.TestCase):
         config = {'persist_to_redis': False,
                   'redis_port': None,
                   'allocator_type': "ip_pool",
-                  'ipv6_prefix_block': 'fedd:5:6c::/48',
-                  'ipv6_ip_allocator_type': 'RANDOM',
+                  'ipv6_prefix_block': 'fe80:5:6c::/48',
+                  'ipv6_session_prefix_alloc_mode': 'RANDOM',
                   }
         self._servicer = MobilityServiceRpcServicer(mconfig, config)
         self._servicer.add_to_server(self._rpc_server)
@@ -673,12 +673,12 @@ class RpcTests(unittest.TestCase):
                                     apn=self._apn0)
 
         ip_msg = self._stub.AllocateIPAddress(request)
-        self.assertTrue(ipaddress.ip_address(ip_msg.ip_list[0].address) in
+        self.assertTrue(ipaddress.ip_address(ip_msg.ip_addr.address) in
                         self._ipv6_block)
 
         # ReleaseIPAddress
         release_request = ReleaseIPRequest(
             sid=self._sid1,
-            ip=ip_msg.ip_list[0],
+            ip=ip_msg.ip_addr,
             apn=self._apn0)
         self._stub.ReleaseIPAddress(release_request)

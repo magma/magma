@@ -76,16 +76,15 @@ def allocate_ip_handler(client, args):
     request.apn = args.apn
 
     response = client.AllocateIPAddress(request)
-    ip_list_msg = response.ip_list
-    for ip_msg in ip_list_msg:
-        if ip_msg.version == IPAddress.IPV4:
-            ip = ipaddress.IPv4Address(ip_msg.address)
-            print("IPv4 address allocated: %s" % ip)
-        elif ip_msg.version == IPAddress.IPV6:
-            ip = ipaddress.IPv6Address(ip_msg.address)
-            print("IPv6 address allocated: %s" % ip)
-        else:
-            print("Error: unknown IP version")
+    ip_msg = response.ip_addr
+    if ip_msg.version == IPAddress.IPV4:
+        ip = ipaddress.IPv4Address(ip_msg.address)
+        print("IPv4 address allocated: %s" % ip)
+    elif ip_msg.ip_addr.version == IPAddress.IPV6:
+        ip = ipaddress.IPv6Address(ip_msg.ip_addr.address)
+        print("IPv6 address allocated: %s" % ip)
+    else:
+        print("Error: unknown IP version")
 
 
 @grpc_wrapper

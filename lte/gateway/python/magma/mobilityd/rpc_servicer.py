@@ -22,6 +22,7 @@ from lte.protos.mobilityd_pb2_grpc import MobilityServiceServicer, \
     add_MobilityServiceServicer_to_server
 from lte.protos.subscriberdb_pb2 import SubscriberID
 from magma.common.rpc_utils import return_void
+from magma.mobilityd.ip_descriptor import IPDesc
 from magma.subscriberdb.sid import SIDUtils
 from .ip_address_man import IPAddressManager, IPNotInUseError, \
     MappingNotFoundError
@@ -29,7 +30,8 @@ from .ip_allocator_base import DuplicateIPAssignmentError, \
     DuplicatedIPAllocationError, IPBlockNotFoundError, NoAvailableIPError, \
     OverlappedIPBlocksError
 
-from .ipv6_allocator_pool import MaxCalculationError
+from .ip_allocator_base import DuplicatedIPAllocationError
+from .ipv6_allocator_pool import IPv6AllocatorPool, MaxRandIIDCalculationError
 
 
 def _get_ip_block(ip_block_str):
@@ -70,6 +72,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             except OverlappedIPBlocksError:
                 logging.error("Overlapped IPv4 block: %s", ipv4_block)
 
+        # TODO: Add IPv6 allocator to IP Address manager, for now support
+        # POOL allocation
+        self._ipv6_allocator = IPv6AllocatorPool(config=config)
         ipv6_block = _get_ip_block(config['ipv6_prefix_block'])
         if ipv6_block is not None:
             try:
@@ -94,7 +99,12 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 IPVersionNotSupportedError: if given IP version of the IP block
                 is not supported
         """
-        self._ip_address_man.add_ip_block(ip_block)
+        if ip_block.version == 4:
+            self._ipv4_allocator.add_ip_block(ip_block)
+            logging.info("Added block %s to the IPv4 address pool", ip_block)
+        elif ip_block.version == 6:
+            logging.info("Assigned IPv6 block: %s", ip_block)
+            self._ipv6_allocator.add_ip_block(ip_block)
 
     @return_void
     def AddIPBlock(self, ipblock_msg, context):
@@ -169,24 +179,34 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             composite_sid = composite_sid + "." + request.apn
 
         if request.version == AllocateIPRequest.IPV4:
-            return self._get_allocate_ip_response(composite_sid + ",ipv4",
-                                                  IPAddress.IPV4, context,
-                                                  ip_addr, request)
+            try:
+                ip, vlan = self._ipv4_allocator.alloc_ip_address(composite_sid)
+                logging.info("Allocated IPv4 %s for sid %s for apn %s"
+                             % (ip, SIDUtils.to_str(request.sid), request.apn))
+                ip_addr.version = IPAddress.IPV4
+                ip_addr.address = ip.packed
+                return AllocateIPAddressResponse(ip_addr=ip_addr,
+                                                 vlan=str(vlan))
+            except NoAvailableIPError:
+                context.set_details('No free IPv4 IP available')
+                context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
+            except DuplicatedIPAllocationError:
+                context.set_details('IP has been allocated for this subscriber')
+                context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            except DuplicateIPAssignmentError:
+                context.set_details('IP has been allocated for other subscriber')
+                context.set_code(grpc.StatusCode.ALREADY_EXISTS)
         elif request.version == AllocateIPRequest.IPV6:
-            return self._get_allocate_ip_response(composite_sid + ",ipv6",
-                                                  IPAddress.IPV6, context,
-                                                  ip_addr, request)
-        elif request.version == AllocateIPRequest.IPV4V6:
-            ipv4_response = self._get_allocate_ip_response(
-                composite_sid + ",ipv4", IPAddress.IPV4,
-                context, ip_addr, request)
-            ipv6_response = self._get_allocate_ip_response(
-                composite_sid + ",ipv6", IPAddress.IPV6,
-                context, ip_addr, request)
-            ip_addr_list = ipv4_response.ip_list + ipv6_response.ip_list
-            # Get vlan from IPv4 Allocate response
-            return AllocateIPAddressResponse(ip_list=ip_addr_list,
-                                             vlan=ipv4_response.vlan)
+            try:
+                ip = self._ipv6_allocator.alloc_ip_address(composite_sid, 0)
+                logging.info("Allocated IPv6 %s for sid %s for apn %s"
+                             % (ip, SIDUtils.to_str(request.sid), request.apn))
+                ip_addr.version = IPAddress.IPV6
+                ip_addr.address = ip.packed
+            except MaxRandIIDCalculationError:
+                context.set_details('Could not calculate IID for IPv6 address')
+                context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
+            return AllocateIPAddressResponse(ip_addr=ip_addr, vlan="")
         return AllocateIPAddressResponse()
 
     @return_void
@@ -199,40 +219,45 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             composite_sid = composite_sid + "." + request.apn
 
         if request.ip.version == IPAddress.IPV4:
-            composite_sid = composite_sid + ",ipv4"
+            try:
+                self._ipv4_allocator.release_ip_address(
+                    composite_sid, ip)
+                logging.info("Released IPv4 %s for sid %s"
+                             % (ip, SIDUtils.to_str(request.sid)))
+            except IPNotInUseError:
+                context.set_details('IP %s not in use' % ip)
+                context.set_code(grpc.StatusCode.NOT_FOUND)
+            except MappingNotFoundError:
+                context.set_details('(SID, IP) map not found: (%s, %s)'
+                                    % (SIDUtils.to_str(request.sid), ip))
+                context.set_code(grpc.StatusCode.NOT_FOUND)
         elif request.ip.version == IPAddress.IPV6:
-            composite_sid = composite_sid + ",ipv6"
-
-        try:
-            self._ip_address_man.release_ip_address(composite_sid, ip,
-                                                    request.ip.version)
-            logging.info("Released IP %s for sid %s"
-                         % (ip, SIDUtils.to_str(request.sid)))
-        except IPNotInUseError:
-            context.set_details('IP %s not in use' % ip)
-            context.set_code(grpc.StatusCode.NOT_FOUND)
-        except MappingNotFoundError:
-            context.set_details('(SID, IP) map not found: (%s, %s)'
-                                % (SIDUtils.to_str(request.sid), ip))
-            context.set_code(grpc.StatusCode.NOT_FOUND)
+            ip_desc = IPDesc(ip=ip, sid=composite_sid)
+            try:
+                self._ipv6_allocator.release_ip(ip_desc)
+                logging.info("Released IPv6 %s for sid %s"
+                             % (ip, SIDUtils.to_str(request.sid)))
+            except IPNotInUseError:
+                context.set_details('IP %s not in use' % ip)
+                context.set_code(grpc.StatusCode.NOT_FOUND)
 
     def RemoveIPBlock(self, request, context):
         """ Attempt to remove IP blocks and return the removed blocks """
-        removed_blocks = self._ip_address_man.remove_ip_blocks(
+        if request.version == IPAddress.IPV4:
+            allocator = self._ipv4_allocator
+            version = IPAddress.IPV4
+        else:
+            allocator = self._ipv6_allocator
+            version = IPAddress.IPV6
+
+        removed_blocks = allocator.remove_ip_blocks(
             *[self._ipblock_msg_to_ipblock(ipblock_msg, context)
               for ipblock_msg in request.ip_blocks],
             force=request.force)
-
-        removed_block_msgs = []
-        for block in removed_blocks:
-            if block.version == 4:
-                removed_block_msgs.append(IPBlock(version=IPAddress.IPV4,
-                                                  net_address=block.network_address.packed,
-                                                  prefix_len=block.prefixlen))
-            elif block.version == 6:
-                removed_block_msgs.append(IPBlock(version=IPAddress.IPV6,
-                                                  net_address=block.network_address.packed,
-                                                  prefix_len=block.prefixlen))
+        removed_block_msgs = [IPBlock(version=version,
+                                      net_address=block.network_address.packed,
+                                      prefix_len=block.prefixlen)
+                                      for block in removed_blocks]
 
         resp = RemoveIPBlockResponse()
         resp.ip_blocks.extend(removed_block_msgs)
