@@ -84,7 +84,6 @@ class IPv6AllocatorPool(IPAllocator):
         :return: Full IPv6 address
         """
         with self._lock:
-
             # Take available ipv6 host from network
             ipv6_addr_part = next(self._assigned_ip_block.hosts())
 
@@ -98,7 +97,7 @@ class IPv6AllocatorPool(IPAllocator):
                 raise MaxRandIIDCalculationError(
                     'Could not get IPv6 IID for sid: %s', sid)
 
-            ipv6_addr = ipv6_addr_part + session_prefix_part + iid_part
+            ipv6_addr = ipv6_addr_part + (session_prefix_part * iid_part)
             return ipv6_addr
 
     def release_ip(self, ip_desc: IPDesc):
@@ -117,7 +116,9 @@ class IPv6AllocatorPool(IPAllocator):
                 raise IPNotInUseError('IP %s not allocated', ip_addr)
 
             if ip_addr in self._assigned_ip_block and session_prefix:
-                iid_part = int(ip_addr) - ipv6_addr_part - int(session_prefix)
+                # Extract IID part of the given IPv6 prefix and session prefix
+                iid_part = float(
+                    (int(ip_addr) - ipv6_addr_part) / int(session_prefix))
 
                 if iid_part in self._allocated_iid:
                     del self._sid_session_prefix_allocated[sid]
@@ -135,7 +136,7 @@ class IPv6AllocatorPool(IPAllocator):
         for i in range(MAX_RAND_IID_CALC_TRIES):
             rand_iid_bits = random.getrandbits(length)
             if rand_iid_bits not in self._allocated_iid:
-                self._allocated_iid.add(rand_iid_bits)
+                self._allocated_iid.add(float(rand_iid_bits))
                 return rand_iid_bits
         return None
 
