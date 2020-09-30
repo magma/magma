@@ -36,7 +36,14 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
-	exporterServicer := servicers.NewPushExporterServicer(srv.Config.MustGetStrings(orchestrator.PrometheusPushAddresses))
+	// Use GRPC exporter if configured, otherwise fallback on regular exporter
+	grpcAddresses, err := srv.Config.GetStrings(orchestrator.PrometheusGRPCPushAddresses)
+	var exporterServicer exporter_protos.MetricsExporterServer
+	if err == nil {
+		exporterServicer = servicers.NewGRPCPushExporterServicer(grpcAddresses)
+	} else {
+		exporterServicer = servicers.NewPushExporterServicer(srv.Config.MustGetStrings(orchestrator.PrometheusPushAddresses))
+	}
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())

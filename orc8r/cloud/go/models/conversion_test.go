@@ -15,6 +15,7 @@ package models_test
 
 import (
 	"encoding/json"
+	"fmt"
 	"testing"
 
 	"magma/orc8r/cloud/go/models"
@@ -42,8 +43,9 @@ func TestJSONMapToProtobufStruct(t *testing.T) {
 
 	actualProtobufStruct, err := models.JSONMapToProtobufStruct(jsonMap)
 
+	// TODO: remove string conversion when https://github.com/stretchr/testify/issues/758 is fixed
 	assert.NoError(t, err)
-	assert.Equal(t, expectedProtobufStruct, actualProtobufStruct)
+	assert.Equal(t, fmt.Sprintf("%+v", expectedProtobufStruct), fmt.Sprintf("%+v", actualProtobufStruct))
 }
 
 func TestProtobufStructToJSONMap(t *testing.T) {

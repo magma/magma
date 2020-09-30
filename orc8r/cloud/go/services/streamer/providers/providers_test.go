@@ -14,6 +14,7 @@ limitations under the License.
 package providers_test
 
 import (
+	"fmt"
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
@@ -81,7 +82,9 @@ func TestMconfigStreamer_Configurator(t *testing.T) {
 		assert.NoError(t, err)
 		actual := &protos.GatewayConfigs{}
 		err = protos.Unmarshal(actualMarshaled.Updates[0].Value, actual)
+
+		// TODO: remove string conversion when https://github.com/stretchr/testify/issues/758 is fixed
 		assert.NoError(t, err)
-		assert.Equal(t, expected, actual.ConfigsByKey)
+		assert.Equal(t, fmt.Sprintf("%+v", expected), fmt.Sprintf("%+v", actual.ConfigsByKey))
 	})
 }

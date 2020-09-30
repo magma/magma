@@ -70,7 +70,7 @@ func TestHSSClient(t *testing.T) {
 	subRes, err = hss.GetSubscriberData(expectedID)
 	assert.Nil(t, subRes)
 	expectedErr := storage.NewUnknownSubscriberError(expectedID)
-	assert.Exactly(t, storage.ConvertStorageErrorToGrpcStatus(expectedErr), err)
+	assert.Exactly(t, storage.ConvertStorageErrorToGrpcStatus(expectedErr).Error(), err.Error())
 
 	_, err = srv.StopService(context.Background(), &orcprotos.Void{})
 	assert.NoError(t, err)
