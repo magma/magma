@@ -12,21 +12,15 @@ limitations under the License.
 """
 
 import unittest
-import time
 import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from magma.pipelined.openflow.registers import DIRECTION_REG
-from magma.pipelined.tests.app.flow_query import RyuRestFlowQuery
+from magma.pipelined.ipv6_store import get_ipv6_interface_id, get_ipv6_prefix
 from magma.pipelined.app.ipv6_router_solicitation import \
     IPV6RouterSolicitationController
-from magma.pipelined.tests.app.table_isolation import RyuRestTableIsolator,\
-    RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.bridge_util import BridgeTools
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder,\
-    ARPPacketBuilder
 from magma.pipelined.tests.app.start_pipelined import TestSetup, \
     PipelinedController
 from magma.pipelined.openflow.registers import DIRECTION_REG, Direction
@@ -37,17 +31,9 @@ from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
     SnapshotVerifier
 
 from scapy.arch import get_if_hwaddr, get_if_addr
-from scapy.data import ETHER_BROADCAST, ETH_P_ALL
-from scapy.error import Scapy_Exception
 from scapy.layers.l2 import ARP, Ether, Dot1Q
 from scapy.layers.inet6 import IPv6, ICMPv6ND_RS, ICMPv6NDOptSrcLLAddr, \
     ICMPv6NDOptPrefixInfo, ICMPv6ND_NS
-from scapy.sendrecv import srp1, sendp
-
-from ryu.lib import hub
-
-def _pkt_total(stats):
-    return sum(n.packets for n in stats)
 
 
 class IPV6RouterSolicitationTableTest(unittest.TestCase):
@@ -62,9 +48,12 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
     OTHER_IP = '1.2.3.4'
 
     @classmethod
-    # @unittest.mock.patch('netifaces.ifaddresses',
-    #             return_value=[[{'addr': '00:11:22:33:44:55'}]])
-    # @unittest.mock.patch('netifaces.AF_LINK', 0)
+    @unittest.mock.patch('netifaces.ifaddresses', return_value=[
+        [{'addr': '00:11:22:33:44:55'}],
+        [{'addr': 'fe80::706e:85ff:fe67:14f%testing_br'}]]
+    )
+    @unittest.mock.patch('netifaces.AF_LINK', 0)
+    @unittest.mock.patch('netifaces.AF_INET6', 1)
     def setUpClass(cls, *_):
         """
         Starts the thread which launches ryu apps
@@ -121,6 +110,10 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         cls.solicitation_controller = ipv6_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
 
+        cls._prefix_dict = {}
+        cls.solicitation_controller._prefix_mapper._prefix_by_interface = \
+            cls._prefix_dict
+
     @classmethod
     def tearDownClass(cls):
         stop_ryu_app_thread(cls.thread)
@@ -130,25 +123,27 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         """
         Verify that a UPLINK->UE arp request is properly matched
         """
-        hub.sleep(5)
         ll_addr = get_if_hwaddr('testing_br')
-        print(ll_addr)
         
         pkt_sender = ScapyPacketInjector(self.IFACE)
 
         pkt_rs = Ether(dst=self.UE_MAC, src=self.OTHER_MAC)
-        pkt_rs /= IPv6(src='fe80::24c3:d0ff:fef3:dd82',
+        pkt_rs /= IPv6(src='fe80:24c3:d0ff:fef3:9d21:4407:d337:1928',
                        dst='ff02::2')
         pkt_rs /= ICMPv6ND_RS()
         pkt_rs /= ICMPv6NDOptSrcLLAddr(lladdr=ll_addr)
 
         pkt_ns = Ether(dst=self.UE_MAC, src=self.OTHER_MAC)
-        pkt_ns /= IPv6(src='fe80::24c3:d0ff:fef3:dd82',
+        pkt_ns /= IPv6(src='fe80::9d21:4407:d337:1928',
                        dst='ff02::2')
-        pkt_ns /= ICMPv6ND_NS()
+        pkt_ns /= ICMPv6ND_NS(tgt='abcd:87:3::')
         pkt_ns /= ICMPv6NDOptSrcLLAddr(lladdr=ll_addr)
 
-        print(pkt_rs.show())
+        ipv6_addr = 'ab22:5:6c:9:9d21:4407:d337:1928'
+        interface = get_ipv6_interface_id(ipv6_addr)
+        prefix = get_ipv6_prefix(ipv6_addr)
+        self.service_manager.interface_to_prefix_mapper.save_prefix(
+            interface, prefix)
 
         dlink_args = RyuForwardFlowArgsBuilder(self._tbl_num) \
             .set_eth_match(eth_dst=self.UE_MAC, eth_src=self.OTHER_MAC) \
@@ -163,10 +158,6 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
             pkt_sender.send(pkt_rs)
             pkt_sender.send(pkt_ns)
             wait_after_send(self.testing_controller)
-
-
-        hub.sleep(1)
-
 
 
 if __name__ == "__main__":

@@ -198,6 +198,8 @@ class StartThread(object):
             InternalIPAllocator(self._test_setup.config)
         contexts['session_rule_version_mapper'] = \
             self._test_setup.service_manager.session_rule_version_mapper
+        contexts['interface_to_prefix_mapper'] = \
+            self._test_setup.service_manager.interface_to_prefix_mapper
         contexts['app_futures'] = app_futures
         contexts['config'] = self._test_setup.config
         contexts['mconfig'] = self._test_setup.mconfig
