@@ -171,8 +171,6 @@ bool LocalEnforcer::setup(
 }
 
 void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
-  std::unordered_set<std::string> imsis_to_terminate;
-
   auto session_map    = session_store_.read_all_sessions();
   auto session_update = SessionStore::get_default_session_update(session_map);
   // Update the sessions so that their rules match the current timestamp
@@ -180,10 +178,6 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
     const auto& imsi = it.first;
     for (auto& session : it.second) {
       auto& uc = session_update[it.first][session->get_session_id()];
-      // Reschedule termination if it was pending before
-      if (session->get_state() == SESSION_TERMINATION_SCHEDULED) {
-        imsis_to_terminate.insert(imsi);
-      }
       // Reschedule Revalidation Timer if it was pending before
       auto triggers   = session->get_event_triggers();
       auto trigger_it = triggers.find(REVALIDATION_TIMEOUT);
@@ -242,11 +236,11 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
               imsi, ip_addr, ipv6_addr, rule_install);
         }
       }
+      // Reschedule termination if subscriber has no quota
+      if (terminate_on_wallet_exhaust()) {
+        handle_session_init_subscriber_quota_state(imsi, *session);
+      }
     }
-  }
-  if (!imsis_to_terminate.empty()) {
-    MLOG(MDEBUG) << "Scheduling termination for one or more IMSIs";
-    schedule_termination(imsis_to_terminate);
   }
   bool success = session_store_.update_sessions(session_update);
   if (success) {
@@ -1144,17 +1138,13 @@ bool LocalEnforcer::is_wallet_exhausted(SessionState& session_state) {
 }
 
 void LocalEnforcer::handle_session_init_subscriber_quota_state(
-    const std::string& imsi, SessionState& session_state) {
-  // TODO This method only used for session creation and not updates, so
-  // UpdateCriteria is unused.
-  auto _ = get_default_update_criteria();
-  if (is_wallet_exhausted(session_state)) {
+    const std::string& imsi, SessionState& session) {
+  if (is_wallet_exhausted(session)) {
     handle_subscriber_quota_state_change(
-        imsi, session_state, SubscriberQuotaUpdate_Type_NO_QUOTA);
+        imsi, session, SubscriberQuotaUpdate_Type_NO_QUOTA);
     // Schedule a session termination for a configured number of seconds after
     // session create
-    session_state.mark_as_awaiting_termination(_);
-    MLOG(MINFO) << imsi << " Scheduling session for subscriber "
+    MLOG(MINFO) << "Scheduling session for session " << session.get_session_id()
                 << "to be terminated in "
                 << quota_exhaustion_termination_on_init_ms_ << " ms";
     auto imsi_set = std::unordered_set<std::string>{imsi};
@@ -1164,7 +1154,7 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
 
   // Valid Quota
   handle_subscriber_quota_state_change(
-      imsi, session_state, SubscriberQuotaUpdate_Type_VALID_QUOTA);
+      imsi, session, SubscriberQuotaUpdate_Type_VALID_QUOTA);
   return;
 }
 
