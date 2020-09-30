@@ -295,7 +295,7 @@ class InOutController(MagmaController):
                                                  resubmit_table=next_table)
 
         # set a direction bit for outgoing (pn -> inet) traffic for remaining traffic
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP)
+        match = MagmaMatch()
         actions = [load_direction(parser, Direction.OUT)]
         flows.add_resubmit_next_service_flow(dp, self._ingress_tbl_num, match,
                                              actions=actions,
