@@ -20,6 +20,7 @@
 #include <gmp.h>  // gross but necessary to link spgw_config.h
 
 #include "OpenflowController.h"
+#include "gtpv1u.h"
 
 namespace openflow {
 
@@ -130,6 +131,15 @@ class GTPApplication : public Application {
       const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
       uint32_t port_number);
 
+  /**
+   * Add uplink port match to UL flows
+   * @param uplink_fm OF flow mod msg
+   * @param gtp_port GTP port from event
+   * @param i_tei tunnel id.
+   */
+  void add_uplink_match(
+    of13::FlowMod& uplink_fm, uint32_t gtp_port, uint32_t i_tei);
+
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
   static const std::string GTP_PORT_MAC;
@@ -137,7 +147,7 @@ class GTPApplication : public Application {
   static const uint32_t LOW_PRIORITY = 0;
 
   const std::string uplink_mac_;
-  const uint32_t gtp_port_num_;
+  const uint32_t gtp0_port_num_;
   // Internal port number for monitoring service
   const uint32_t mtr_port_num_;
   // Internal port for sampling internal ipfix packets
