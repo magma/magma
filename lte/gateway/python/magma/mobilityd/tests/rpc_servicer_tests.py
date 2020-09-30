@@ -50,7 +50,10 @@ class RpcTests(unittest.TestCase):
         # Add the servicer
         config = {'persist_to_redis': False,
                   'redis_port': None,
-                  'allocator_type': "ip_pool"}
+                  'allocator_type': "ip_pool",
+                  'ipv6_prefix_block': 'fe80:5:6c::/48',
+                  'ipv6_session_prefix_alloc_mode': 'RANDOM',
+                  }
         self._servicer = MobilityServiceRpcServicer(mconfig, config)
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
@@ -68,6 +71,7 @@ class RpcTests(unittest.TestCase):
                                   prefix_len=self._prefix_len)
         self._block = ipaddress.ip_network(
             "%s/%s" % (self._netaddr, self._prefix_len))
+        self._ipv6_block = ipaddress.ip_network(config['ipv6_prefix_block'])
         self._sid0 = SIDUtils.to_pb('IMSI0')
         self._sid1 = SIDUtils.to_pb('IMSI1')
         self._sid2 = SIDUtils.to_pb('IMSI2')
@@ -76,14 +80,6 @@ class RpcTests(unittest.TestCase):
 
     def tearDown(self):
         self._rpc_server.stop(0)
-
-    def test_add_ipv6_block_to_servicer(self):
-        """ add IPv6 block (ipaddress.ipblock) directly to servicer should
-        raise IPVersionNotSupportedError
-        """
-        ip = ipaddress.ip_address("fc::")
-        with self.assertRaises(IPVersionNotSupportedError):
-            self._servicer.add_ip_block(ip)
 
     def test_add_invalid_ip_block(self):
         """ adding invalid ipblock should raise INVALID_ARGUMENT """
@@ -669,38 +665,20 @@ class RpcTests(unittest.TestCase):
         expect.ip_block_list.extend([self._block_msg])
         self.assertEqual(expect, resp)
 
-    def test_ipv6_unimplemented(self):
-        """ ipv6 requests should raise UNIMPLEMENTED """
-        ip = ipaddress.ip_address("fc::")
-        block = IPBlock(version=IPBlock.IPV6,
-                        net_address=ip.packed,
-                        prefix_len=120)
-        # AddIPBlock
-        with self.assertRaises(grpc.RpcError) as err:
-            self._stub.AddIPBlock(block)
-        self.assertEqual(err.exception.code(),
-                         grpc.StatusCode.UNIMPLEMENTED)
-        # ListAllocatedIPs
-        with self.assertRaises(grpc.RpcError) as err:
-            self._stub.ListAllocatedIPs(block)
-        self.assertEqual(err.exception.code(),
-                         grpc.StatusCode.UNIMPLEMENTED)
-
+    def test_ipv6(self):
+        """ ipv6 requests should work for allocate / release IP requests """
         # AllocateIPAddress
         request = AllocateIPRequest(sid=self._sid1,
                                     version=AllocateIPRequest.IPV6,
                                     apn=self._apn0)
-        with self.assertRaises(grpc.RpcError) as err:
-            self._stub.AllocateIPAddress(request)
-        self.assertEqual(err.exception.code(),
-                         grpc.StatusCode.UNIMPLEMENTED)
+
+        ip_msg = self._stub.AllocateIPAddress(request)
+        self.assertTrue(ipaddress.ip_address(ip_msg.ip_addr.address) in
+                        self._ipv6_block)
 
         # ReleaseIPAddress
         release_request = ReleaseIPRequest(
-            sid=self._sid0,
-            ip=IPAddress(version=IPAddress.IPV6),
+            sid=self._sid1,
+            ip=ip_msg.ip_addr,
             apn=self._apn0)
-        with self.assertRaises(grpc.RpcError) as err:
-            self._stub.ReleaseIPAddress(release_request)
-        self.assertEqual(err.exception.code(),
-                         grpc.StatusCode.UNIMPLEMENTED)
+        self._stub.ReleaseIPAddress(release_request)

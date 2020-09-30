@@ -35,6 +35,8 @@ def add_ip_block_handler(client, args):
     ipblock_msg = IPBlock()
     if ipblock.version == 4:
         ipblock_msg.version = IPBlock.IPV4
+    if ipblock.version == 6:
+        ipblock_msg.version = IPBlock.IPV6
     else:
         print("Error: IP version %d is not supported yet" % ipblock.version)
         return
@@ -62,6 +64,14 @@ def allocate_ip_handler(client, args):
         return
 
     request = AllocateIPRequest()
+    if int(args.version) == 4:
+        request.version = AllocateIPRequest.IPV4
+    elif int(args.version) == 6:
+        request.version = AllocateIPRequest.IPV6
+    else:
+        print("Error: IP version %d is not supported yet" % args.version)
+        return
+
     request.sid.CopyFrom(sid_msg)
     request.version = AllocateIPRequest.IPV4
     request.apn = args.apn
@@ -71,8 +81,8 @@ def allocate_ip_handler(client, args):
     if ip_msg.version == IPAddress.IPV4:
         ip = ipaddress.IPv4Address(ip_msg.address)
         print("IPv4 address allocated: %s" % ip)
-    elif ip_msg.version == IPAddress.IPV6:
-        ip = ipaddress.IPv6Address(ip_msg.address)
+    elif ip_msg.ip_addr.version == IPAddress.IPV6:
+        ip = ipaddress.IPv6Address(ip_msg.ip_addr.address)
         print("IPv6 address allocated: %s" % ip)
     else:
         print("Error: unknown IP version")
@@ -108,6 +118,7 @@ def release_ip_handler(client, args):
     request.ip.CopyFrom(ip_msg)
 
     client.ReleaseIPAddress(request)
+    print("IPv6 address released: %s" % ipaddress.ip_address(ip_msg.address))
 
 
 @grpc_wrapper
@@ -220,7 +231,11 @@ def main():
     subparser = subparsers.add_parser(
         'allocate_ip', help='Allocate an IP address')
     subparser.add_argument('sid', help='Subscriber ID, e.g. "IMSI12345"')
+<<<<<<< HEAD
     subparser.add_argument('apn', help='Access Point Name, e.g. "internet"')
+=======
+    subparser.add_argument('version', help='Version, e.g. 4')
+>>>>>>> Adding basic support for IPv6 allocation on mobilityd
     subparser.set_defaults(func=allocate_ip_handler)
 
     # release_ip
