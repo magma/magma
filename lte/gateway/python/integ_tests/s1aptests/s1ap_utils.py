@@ -20,6 +20,8 @@ import threading
 import time
 from enum import Enum
 from queue import Queue
+from typing import Optional
+
 import grpc
 import subprocess
 
@@ -593,6 +595,23 @@ class MagmadUtil(object):
             stderr=subprocess.DEVNULL,
         )
 
+    def exec_command_output(self, command):
+        """
+        Run a command remotly on magma_dev VM.
+
+        Args:
+            command: command (str) to be executed on remote host
+            e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
+
+        """
+        data = self._data
+        data["command"] = '"' + command + '"'
+        param_list = shlex.split(self._command.format(**data))
+        return subprocess.check_output(
+            param_list,
+            shell=False,
+        ).decode("utf-8")
+
     def config_stateless(self, cmd):
         """
         Configure the stateless mode on the access gateway
@@ -1101,3 +1120,20 @@ class SessionManagerUtil(object):
                 user_name=imsi,
             )
         )
+
+
+class GTPBridgeUtils:
+    def __init__(self):
+        self.magma_utils = MagmadUtil(None)
+        ret = self.magma_utils.exec_command_output("sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
+        if "false" in ret:
+            self.gtp_port_name = "gtp0"
+        else:
+            self.gtp_port_name = "g_8d3ca8c0"
+
+    def get_gtp_port_no(self) -> Optional[int]:
+        output = self.magma_utils.exec_command_output("sudo ovsdb-client dump Interface name ofport")
+        for line in output.split('\n'):
+            if self.gtp_port_name in line:
+                port_info = line.split()
+                return port_info[1]
