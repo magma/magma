@@ -29,6 +29,7 @@
 #include "3gpp_24.007.h"
 #include "3gpp_24.008.h"
 #include "3gpp_29.274.h"
+#include "TrackingAreaIdentity.h"
 
 typedef uint8_t DelayValue_t;
 typedef uint32_t SequenceNumber_t;
@@ -176,8 +177,8 @@ typedef struct {
     Cgi_t cgi;
     Sai_t sai;
     Rai_t rai;
-    Tai_t tai;
-    Ecgi_t ecgi;
+    tai_t tai;
+    ecgi_t ecgi;
     Lai_t lai;
   } s;
 } Uli_t;
