@@ -52,7 +52,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        * * * *      Mobile terminating SMS - Uplink Nas Transport message
        */
       OAILOG_DEBUG(LOG_SMS_ORC8R, "Received SGSAP_UPLINK_UNITDATA message \n");
-      send_uplink_unitdata(&received_message_p->ittiMsg.sgsap_uplink_unitdata);
+      send_smo_uplink_unitdata(&received_message_p->ittiMsg.sgsap_uplink_unitdata);
     } break;
 
     case TERMINATE_MESSAGE: {
