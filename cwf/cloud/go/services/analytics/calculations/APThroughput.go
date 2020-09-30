@@ -29,6 +29,7 @@ type APThroughputCalculation struct {
 }
 
 func (x *APThroughputCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]Result, error) {
+	glog.Infof("Calculating AP Throughput. Days: %d, Direction: %s", x.Days, x.Direction)
 	// Get datapoints for throughput when the value is not 0 segmented by apn
 	avgRateQuery := fmt.Sprintf(`avg(rate(octets_%s[3m]) > 0) by (%s, %s)`, x.Direction, APNLabel, metrics.NetworkLabelName)
 
@@ -53,8 +54,7 @@ func (x *APThroughputCalculation) Calculate(prometheusClient query_api.Prometheu
 			labels:     combineLabels(x.Labels, map[string]string{APNLabel: apn, metrics.NetworkLabelName: nID, DirectionLabel: string(x.Direction)}),
 		})
 	}
-	for _, res := range results {
-		x.RegisteredGauge.With(res.labels).Set(res.value)
-	}
+	registerResults(x.CalculationParams, results)
+
 	return results, nil
 }

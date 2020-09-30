@@ -19,7 +19,7 @@ shopt -s extglob
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.1.0 # magma version number
+VERSION=1.2.0 # magma version number
 SCTPD_MIN_VERSION=1.0.2 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
@@ -112,6 +112,7 @@ MAGMA_DEPS=(
     "libboost-chrono-dev" # required for folly
     "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
+    "python3-scapy >= 2.4.3-4"
     )
 
 # OAI runtime dependencies
@@ -126,11 +127,17 @@ OAI_DEPS=(
     "liblfds710"
     "magma-sctpd >= ${SCTPD_MIN_VERSION}"
     "libczmq-dev >= 4.0.2-7"
+    "oai-gtp >= 4.9-5"
     )
 
 # OVS runtime dependencies
 OVS_DEPS=(
-    "magma-libfluid >= 0.1.0.4"
+    "magma-libfluid >= 0.1.0.5"
+    "libopenvswitch >= 2.8.9"
+    "openvswitch-switch >= 2.8.9"
+    "openvswitch-common >= 2.8.9"
+    "python-openvswitch >= 2.8.9"
+    "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.9"
     )
 
 # generate string for FPM
@@ -227,11 +234,18 @@ FULL_VERSION=${VERSION}-$(date +%s)-${COMMIT_HASH}
 # library will be dropped in $PY_TMP_BUILD/usr/lib/python3/dist-packages
 # scripts will be dropped in $PY_TMP_BUILD/usr/bin.
 # Use pydep to generate the lockfile and python deps
+# update magma.lockfile if needed (see Makefile)
+# adjust mtime of a setup.py to force update
+# (e.g. `touch ${PY_LTE}/setup.py`)
+pushd "${RELEASE_DIR}" || exit 1
+make -e magma.lockfile
+popd
+
 cd ${PY_ORC8R}
 make protos
 PKG_VERSION=${FULL_VERSION} ${PY_VERSION} setup.py install --root ${PY_TMP_BUILD} --install-layout deb \
     --no-compile --single-version-externally-managed
-${RELEASE_DIR}/pydep finddep -l ${RELEASE_DIR}/magma.lockfile setup.py
+
 ORC8R_PY_DEPS=`${RELEASE_DIR}/pydep lockfile ${RELEASE_DIR}/magma.lockfile`
 
 cd ${PY_LTE}

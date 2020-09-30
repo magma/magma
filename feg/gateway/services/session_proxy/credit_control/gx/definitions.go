@@ -27,6 +27,14 @@ const (
 	RuleLevel    MonitoringLevel = 0x1
 )
 
+type MonitoringSupport uint8
+
+const UsageMonitoringDisabled MonitoringSupport = 0x0
+
+type MonitoringReport uint8
+
+const UsageMonitoringReport MonitoringReport = 0x0
+
 type EventTrigger uint32
 
 const (
@@ -37,25 +45,27 @@ const (
 
 // CreditControlRequest represents a call over gx
 type CreditControlRequest struct {
-	SessionID     string
-	Type          credit_control.CreditRequestType
-	IMSI          string
-	RequestNumber uint32
-	IPAddr        string
-	SpgwIPV4      string
-	Apn           string
-	Msisdn        []byte
-	Imei          string
-	PlmnID        string
-	UserLocation  []byte
-	GcID          string
-	Qos           *QosRequestInfo
-	UsageReports  []*UsageReport
-	HardwareAddr  []byte
-	IPCANType     credit_control.IPCANType
-	RATType       credit_control.RATType
-	TgppCtx       *protos.TgppContext
-	EventTrigger  EventTrigger
+	SessionID      string
+	Type           credit_control.CreditRequestType
+	IMSI           string
+	RequestNumber  uint32
+	IPAddr         string
+	IPv6Addr       string
+	SpgwIPV4       string
+	Apn            string
+	Msisdn         []byte
+	Imei           string
+	PlmnID         string
+	UserLocation   []byte
+	GcID           string
+	Qos            *QosRequestInfo
+	UsageReports   []*UsageReport
+	HardwareAddr   []byte
+	IPCANType      credit_control.IPCANType
+	RATType        credit_control.RATType
+	TgppCtx        *protos.TgppContext
+	EventTrigger   EventTrigger
+	AccessTimezone *protos.Timezone
 }
 
 type QosRequestInfo struct {
@@ -150,6 +160,8 @@ type UsageMonitoringInfo struct {
 	MonitoringKey      []byte                             `avp:"Monitoring-Key"`
 	GrantedServiceUnit *credit_control.GrantedServiceUnit `avp:"Granted-Service-Unit"`
 	Level              MonitoringLevel                    `avp:"Usage-Monitoring-Level"`
+	Support            *MonitoringSupport                 `avp:"Usage-Monitoring-Support"`
+	Report             *MonitoringReport                  `avp:"Usage-Monitoring-Report"`
 }
 
 // CCADiameterMessage is a gx CCA message as defined in 3GPP 29.212

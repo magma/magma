@@ -174,9 +174,9 @@ Status SpgwServiceImpl::CreateBearer(
           " Destination IP address: %s"
           " Destination TCP port: %d"
           " Destination UDP port: %d \n",
-          flow.match().ip_proto(), flow.match().ipv4_src().c_str(),
+          flow.match().ip_proto(), flow.match().ip_src().address().c_str(),
           flow.match().tcp_src(), flow.match().udp_src(),
-          flow.match().ipv4_dst().c_str(), flow.match().tcp_dst(),
+          flow.match().ip_dst().address().c_str(), flow.match().tcp_dst(),
           flow.match().udp_dst());
     }
 
@@ -193,15 +193,22 @@ Status SpgwServiceImpl::DeleteBearer(
     DeleteBearerResult* response) {
   OAILOG_INFO(LOG_UTIL, "Received DeleteBearer GRPC request\n");
   itti_gx_nw_init_deactv_bearer_request_t itti_msg;
-  itti_msg.imsi_length = request->sid().id().size();
-  strcpy(itti_msg.imsi, request->sid().id().c_str());
+  std::string imsi = request->sid().id();
+  // If north bound is sessiond itself, IMSI prefix is used;
+  // in S1AP tests, IMSI prefix is not used
+  // Strip off any IMSI prefix
+  if (imsi.compare(0, 4, "IMSI") == 0) {
+    imsi = imsi.substr(4, std::string::npos);
+  }
+  itti_msg.imsi_length = imsi.size();
+  strcpy(itti_msg.imsi, imsi.c_str());
   itti_msg.lbi           = request->link_bearer_id();
-  itti_msg.no_of_bearers = request->eps_bearer_ids_size();
+  itti_msg.no_of_bearers = 1;
   for (int i = 0; i < request->eps_bearer_ids_size() && i < BEARERS_PER_UE;
        i++) {
-    itti_msg.ebi[i] = request->eps_bearer_ids(i);
+    itti_msg.ebi[0] = request->eps_bearer_ids(i);
+    send_deactivate_bearer_request_itti(&itti_msg);
   }
-  send_deactivate_bearer_request_itti(&itti_msg);
   return Status::OK;
 }
 
@@ -216,16 +223,20 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
   // Else, remote server is TCP source
   // GRPC interface does not support a third option (e.g., bidirectional)
   if (flow_match_rule->direction() == FlowMatch::UPLINK) {
-    if (!flow_match_rule->ipv4_dst().empty()) {
-      flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      if (!fillIpv4(pf_content, flow_match_rule->ipv4_dst())) {
-        return false;
+    if (!flow_match_rule->ip_dst().address().empty()) {
+      if (flow_match_rule->ip_dst().version() ==
+          flow_match_rule->ip_dst().IPV4) {
+        flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
+        if (!fillIpv4(pf_content, flow_match_rule->ip_dst().address())) {
+          return false;
+        }
       }
-    }
-    if (!flow_match_rule->ipv6_dst().empty()) {
-      flags |= TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
-      if (!fillIpv6(pf_content, flow_match_rule->ipv6_dst())) {
-        return false;
+      if (flow_match_rule->ip_dst().version() ==
+          flow_match_rule->ip_dst().IPV6) {
+        flags |= TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
+        if (!fillIpv6(pf_content, flow_match_rule->ip_dst().address())) {
+          return false;
+        }
       }
     }
     if (flow_match_rule->tcp_src() != 0) {
@@ -243,9 +254,9 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
       pf_content->singleremoteport = flow_match_rule->udp_dst();
     }
   } else if (flow_match_rule->direction() == FlowMatch::DOWNLINK) {
-    if (!flow_match_rule->ipv4_src().empty()) {
+    if (!flow_match_rule->ip_src().address().empty()) {
       flags |= TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG;
-      if (!fillIpv4(pf_content, flow_match_rule->ipv4_src())) {
+      if (!fillIpv4(pf_content, flow_match_rule->ip_src().address())) {
         return false;
       }
     }

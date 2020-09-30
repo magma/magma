@@ -40,6 +40,7 @@ struct SessionConfig {
 struct FinalActionInfo {
   ChargingCredit_FinalAction final_action;
   RedirectServer redirect_server;
+  std::vector<std::string> restrict_rules;
 };
 
 enum EventTriggerState {
@@ -97,6 +98,7 @@ enum ServiceState {
 };
 
 enum GrantTrackingType {
+  TRACKING_UNSET  = -1,
   TOTAL_ONLY      = 0,
   TX_ONLY         = 1,
   RX_ONLY         = 2,
@@ -128,6 +130,11 @@ enum SessionFsmState {
   SESSION_TERMINATED            = 4,
   SESSION_TERMINATION_SCHEDULED = 5,
   SESSION_RELEASED              = 6,
+  CREATING                      = 7,
+  CREATED                       = 8,
+  ACTIVE                        = 9,
+  INACTIVE                      = 10,
+  RELEASE                       = 11,
 };
 
 struct StoredSessionCredit {
@@ -135,6 +142,8 @@ struct StoredSessionCredit {
   CreditLimitType credit_limit_type;
   std::unordered_map<Bucket, uint64_t> buckets;
   GrantTrackingType grant_tracking_type;
+  GrantedUnits received_granted_units;
+  bool report_last_credit;
 };
 
 struct StoredMonitor {
@@ -201,6 +210,8 @@ struct StoredSessionState {
   std::string session_id;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
+  // 5G session version handling
+  uint32_t current_version;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;
   std::vector<std::string> static_rule_ids;
@@ -227,10 +238,13 @@ struct SessionCreditUpdateCriteria {
   // Maintained by SessionCredit
   bool reporting;
   GrantTrackingType grant_tracking_type;
+  GrantedUnits received_granted_units;
+
   // Do not mark REPORTING buckets, but do mark REPORTED
   std::unordered_map<Bucket, uint64_t> bucket_deltas;
 
   bool deleted;
+  bool report_last_credit;
 };
 
 struct SessionStateUpdateCriteria {

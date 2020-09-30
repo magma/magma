@@ -1,8 +1,8 @@
  cookie=0x0, table=ue_mac(main_table), n_packets=0, n_bytes=0, priority=12,dl_src=5e:cc:cc:b1:49:4b actions=set_field:0x48c2739fd9c3->metadata,resubmit(,ue_mac(scratch_table_0)),set_field:0->reg0,set_field:0->reg3
  cookie=0x0, table=ue_mac(main_table), n_packets=4, n_bytes=384, priority=12,dl_dst=5e:cc:cc:b1:49:4b actions=set_field:0x48c2739fd9c3->metadata,resubmit(,ue_mac(scratch_table_0)),set_field:0->reg0,set_field:0->reg3
  cookie=0x0, table=ue_mac(main_table), n_packets=0, n_bytes=0, priority=10,arp actions=resubmit(,ingress(main_table)),set_field:0->reg0,set_field:0->reg3
- cookie=0x0, table=ingress(main_table), n_packets=0, n_bytes=0, priority=10,in_port=32768 actions=set_field:0x1->reg1,resubmit(,arpd(main_table)),set_field:0->reg0,set_field:0->reg3
  cookie=0x0, table=ingress(main_table), n_packets=4, n_bytes=384, priority=10,in_port=LOCAL actions=set_field:0x10->reg1,resubmit(,arpd(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=ingress(main_table), n_packets=0, n_bytes=0, priority=0,ip actions=set_field:0x1->reg1,resubmit(,arpd(main_table)),set_field:0->reg0,set_field:0->reg3
  cookie=0x0, table=arpd(main_table), n_packets=0, n_bytes=0, priority=12,arp,reg1=0x10,arp_tpa=1.2.3.4,arp_op=2 actions=set_field:0x1->reg6,resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3
  cookie=0x0, table=arpd(main_table), n_packets=0, n_bytes=0, priority=12,arp,reg1=0x10,arp_tpa=1.2.3.4,arp_op=1 actions=move:NXM_OF_ETH_SRC[]->NXM_OF_ETH_DST[],mod_dl_src:00:aa:bb:cc:dd:ee,load:0x2->NXM_OF_ARP_OP[],move:NXM_NX_ARP_SHA[]->NXM_NX_ARP_THA[],load:0xaabbccddee->NXM_NX_ARP_SHA[],move:NXM_OF_ARP_TPA[]->NXM_NX_REG0[],move:NXM_OF_ARP_SPA[]->NXM_OF_ARP_TPA[],move:NXM_NX_REG0[]->NXM_OF_ARP_SPA[],IN_PORT
  cookie=0x0, table=arpd(main_table), n_packets=0, n_bytes=0, priority=12,arp,reg1=0x10,arp_tpa=1.1.1.1,arp_op=2 actions=set_field:0x1->reg6,resubmit(,middle(main_table)),set_field:0->reg0,set_field:0->reg3

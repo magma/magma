@@ -20,8 +20,13 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/clock"
+	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/services/certifier"
+	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/lib/go/metrics"
+	"magma/orc8r/lib/go/protos"
+	unarylib "magma/orc8r/lib/go/service/middleware/unary"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/prometheus/client_golang/prometheus"
@@ -31,11 +36,6 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/peer"
 	"google.golang.org/grpc/status"
-
-	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/services/certifier"
-	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
-	"magma/orc8r/lib/go/protos"
 )
 
 // SetIdentityFromContext is an identity decorator implements Identity injector
@@ -122,6 +122,10 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 			// One CSN is found, find Identity associated with it
 			var gwIdentity *protos.Identity
 			var certExpTime int64
+			// Check if SN is the reserved value used for all inter-orc8r calls
+			if snlist[0] == unarylib.ORC8R_CLIENT_CERT_VALUE {
+				return newCtx, newReq, resp, nil
+			}
 			gwIdentity, certExpTime, err = findGatewayIdentity(snlist[0], ctxMetadata)
 			if err == nil {
 				// If a valid GW Identity is found, add it into CTX for use

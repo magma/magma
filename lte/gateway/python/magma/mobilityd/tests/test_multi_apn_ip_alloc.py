@@ -370,8 +370,8 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
 
         # check if retrieved ip is the same as the one allocated
         self.assertEqual(ip0, ip0_returned)
-        self.assertEqual(ip0, ipaddress.ip_address(wild_assigned_ip))
-        self.check_type(sid, IPType.STATIC)
-        self.check_vlan(sid, vlan_wild)
+        self.assertNotEqual(ip0, ipaddress.ip_address(wild_assigned_ip))
+        self.check_type(sid, IPType.IP_POOL)
+        self.check_vlan(sid, 0)
         self.check_gw_info(vlan, None, None)
 

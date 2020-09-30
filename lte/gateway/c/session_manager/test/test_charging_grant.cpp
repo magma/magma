@@ -47,6 +47,8 @@ class ChargingGrantTest : public ::testing::Test {
           RedirectServer_RedirectAddressType::
               RedirectServer_RedirectAddressType_IPV6);
       fa.redirect_server.set_redirect_server_address("addr");
+    } else if (action == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+      fa.restrict_rules.push_back("restrict_rule");
     }
     return fa;
   }
@@ -83,10 +85,10 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   ChargingGrant grant = get_default_grant();
   GrantedUnits gsu;
   uint64_t total_grant = 1000;
-  FinalActionInfo final_action_info;
+  create_granted_units(&total_grant, NULL, NULL, &gsu);
 
   auto uc = grant.get_update_criteria();
-  create_granted_units(&total_grant, NULL, NULL, &gsu);
+
   grant.credit.receive_credit(gsu, &uc);
   grant.is_final_grant = false;
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
@@ -108,6 +110,8 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   EXPECT_FALSE(grant.get_update_type(&update_type));
 
   // Receive a final grant
+  total_grant = 0;
+  create_granted_units(&total_grant, NULL, NULL, &gsu);
   grant.credit.receive_credit(gsu, &uc);
   EXPECT_EQ(uc.grant_tracking_type, TOTAL_ONLY);
   grant.is_final_grant = true;
@@ -223,6 +227,30 @@ TEST_F(ChargingGrantTest, test_get_action_redirect) {
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
+TEST_F(ChargingGrantTest, test_get_action_restrict) {
+  ChargingGrant grant = get_default_grant();
+  auto uc             = grant.get_update_criteria();
+  GrantedUnits gsu;
+  uint64_t total_grant = 1024;
+  create_granted_units(&total_grant, NULL, NULL, &gsu);
+
+  // Final with REDIRECT final action
+  grant.is_final_grant = true;
+  grant.final_action_info =
+      get_final_action_info(ChargingCredit_FinalAction_RESTRICT_ACCESS);
+  grant.credit.receive_credit(gsu, &uc);
+  grant.credit.add_used_credit(2048, 0, uc);
+  grant.credit.add_used_credit(30, 20, uc);
+  grant.service_state = SERVICE_NEEDS_DEACTIVATION;
+  auto term_action    = grant.get_action(uc);
+  // Check that the update criteria also includes the changes
+  EXPECT_EQ(term_action, RESTRICT_ACCESS);
+
+  // Termination action only returned once
+  auto repeated_action = grant.get_action(uc);
+  EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
+}
+
 // test_tolerance_quota_exhausted checks that user will not be terminated if
 // quota is exhausted but not final unit indication is received.
 // That can happen if the quota reported by pipeline is too big and we go over
@@ -258,10 +286,13 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   // Now receive new quota (not final unit)
   uc = grant.get_update_criteria();  // reset UC
   grant.credit.receive_credit(gsu, &uc);
-  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 2000);
+  // we overused, so we take into consideration the 2000 we used plus granted
+  // 1000
+  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
-  EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 1000);
+  // we overused, so the delta is the overusage
+  EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 2000);
 
   // Trigger an update again, we expect the rest to be reported
   uc = grant.get_update_criteria();  // reset UC
@@ -280,18 +311,18 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   grant.final_action_info =
       get_final_action_info(ChargingCredit_FinalAction_TERMINATE);
   grant.credit.receive_credit(gsu, &uc);
-  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
+  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 4000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
   EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 1000);
 
   // Use enough credit to exceed the given quota
   uc = grant.get_update_criteria();  // reset UC
-  credit.add_used_credit(1500, 0, uc);
-  EXPECT_EQ(uc.bucket_deltas[USED_TX], 1500);
-  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
+  credit.add_used_credit(2000, 0, uc);
+  EXPECT_EQ(uc.bucket_deltas[USED_TX], 2000);
+  EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 4000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
-  EXPECT_EQ(credit.get_credit(USED_TX), 3500);
+  EXPECT_EQ(credit.get_credit(USED_TX), 4000);
   EXPECT_TRUE(credit.is_quota_exhausted(1));  // 100% exceeded
   EXPECT_TRUE(grant.should_deactivate_service());
   grant.set_service_state(SERVICE_NEEDS_DEACTIVATION, uc);

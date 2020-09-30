@@ -135,7 +135,8 @@ func Handle(m modules.Context, c *modules.RequestContext, r *radius.Request, nex
 
 	HandleEapPacket.Start()
 	// Check if EAP method is supported
-	if eapPacket.EAPType != packet.EAPTypeAKA && eapPacket.EAPType != packet.EAPTypeIDENTITY {
+	if eapPacket.EAPType != packet.EAPTypeAKA && eapPacket.EAPType != packet.EAPTypeSIM &&
+		eapPacket.EAPType != packet.EAPTypeIDENTITY {
 		c.Logger.Error("Unsupported EAP method requested", zap.Int("eap_method", int(eapPacket.EAPType)))
 		HandleEapPacket.Failure(fmt.Sprintf("unsupported_eap_type_%d", int(eapPacket.EAPType)))
 	}

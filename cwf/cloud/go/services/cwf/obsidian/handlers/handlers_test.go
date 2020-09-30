@@ -26,6 +26,7 @@ import (
 	models3 "magma/feg/cloud/go/services/feg/obsidian/models"
 	plugin4 "magma/lte/cloud/go/plugin"
 	"magma/orc8r/cloud/go/clock"
+	models5 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
 	"magma/orc8r/cloud/go/orc8r"
@@ -238,16 +239,8 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// setup fixtures in backend
-	_, err = configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-	)
-	assert.NoError(t, err)
-
-	seedCwfGateway(t)
+	seedCwfTier(t, "n1")
+	seedCwfGateway(t, "g1", "hw1")
 
 	reqRecord := &directoryd.DirectoryRecord{
 		LocationHistory: []string{"hw1"},
@@ -375,15 +368,7 @@ func TestCwfGateways(t *testing.T) {
 	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
 	getHealthStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways/:gateway_id/health_status", obsidian.GET).HandlerFunc
 	seedCwfNetworks(t)
-
-	// setup fixtures in backend
-	_, err := configurator.CreateEntities(
-		"n1",
-		[]configurator.NetworkEntity{
-			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
-		},
-	)
-	assert.NoError(t, err)
+	seedCwfTier(t, "n1")
 
 	// Test CreateGateway
 	payload := &models2.MutableCwfGateway{
@@ -710,6 +695,126 @@ func TestCwfGateways(t *testing.T) {
 	}
 }
 
+func TestCwfHaPairs(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &plugin2.CwfOrchestratorPlugin{})
+	clock.SetAndFreezeClock(t, time.Unix(1000000, 0))
+	defer clock.UnfreezeClock(t)
+	test_init.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+
+	e := echo.New()
+	obsidianHandlers := handlers.GetHandlers()
+	listHaPairs := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs", obsidian.GET).HandlerFunc
+	createHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs", obsidian.POST).HandlerFunc
+	getHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.GET).HandlerFunc
+	updateHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.PUT).HandlerFunc
+	deleteHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.DELETE).HandlerFunc
+
+	seedCwfNetworks(t)
+	seedCwfTier(t, "n1")
+	seedCwfGateway(t, "g1", "hw1")
+	seedCwfGateway(t, "g2", "hw2")
+
+	// Test List HA Pairs empty
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/ha_pairs",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listHaPairs,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(make(map[string]*models2.CwfHaPair, 0)),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	cwfHaPair := &models2.CwfHaPair{
+		HaPairID:   "pair1",
+		GatewayID1: "g1",
+		GatewayID2: "g2",
+		Config: &models2.CwfHaPairConfigs{
+			TransportVirtualIP: "10.10.10.11",
+		},
+	}
+	// Create HA Pair
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/cwf/n1/ha_pairs",
+		Payload:        tests.JSONMarshaler(cwfHaPair),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createHaPair,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler("pair1"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get HA Pair
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        getHaPair,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(cwfHaPair),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Update HA Pair
+	cwfHaPair.Config.TransportVirtualIP = "127.0.0.1"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
+		Payload:        tests.JSONMarshaler(cwfHaPair),
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        updateHaPair,
+		ExpectedStatus: 200,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// List HA Pairs
+	expectedMap := map[string]*models2.CwfHaPair{
+		"pair1": cwfHaPair,
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/ha_pairs",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listHaPairs,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedMap),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete HA Pair
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        deleteHaPair,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Ensure HA Pair is deleted
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        getHaPair,
+		ExpectedStatus: 404,
+		ExpectedError:  "Not found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+}
+
 // n1, n3 are cwf networks, n2, n5 are not
 func seedCwfNetworks(t *testing.T) {
 	fegNetworkID := "n5"
@@ -827,17 +932,17 @@ func reportGatewayHealthStatus(t *testing.T, ctx context.Context, gatewayID stri
 	assert.NoError(t, err)
 }
 
-func seedCwfGateway(t *testing.T) {
+func seedCwfGateway(t *testing.T, id string, hwId string) {
 	e := echo.New()
 	obsidianHandlers := handlers.GetHandlers()
 	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/gateways", obsidian.POST).HandlerFunc
 
 	payload := &models2.MutableCwfGateway{
 		Device: &models.GatewayDevice{
-			HardwareID: "hw1",
+			HardwareID: hwId,
 			Key:        &models.ChallengeKey{KeyType: "ECHO"},
 		},
-		ID:          "g1",
+		ID:          models5.GatewayID(id),
 		Name:        "foobar",
 		Description: "foo bar",
 		CarrierWifi: &models2.GatewayCwfConfigs{
@@ -869,4 +974,15 @@ func seedCwfGateway(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
+}
+
+func seedCwfTier(t *testing.T, networkID string) {
+	// setup fixtures in backend
+	_, err := configurator.CreateEntities(
+		networkID,
+		[]configurator.NetworkEntity{
+			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
+		},
+	)
+	assert.NoError(t, err)
 }

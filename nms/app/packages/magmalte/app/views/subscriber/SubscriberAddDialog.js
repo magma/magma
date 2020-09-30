@@ -25,7 +25,6 @@ import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '@material-ui/core/DialogTitle';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
-import Link from '@material-ui/core/Link';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
 import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
@@ -102,6 +101,9 @@ const useStyles = makeStyles(theme => ({
     width: '50%',
     fullWidth: true,
   },
+  selectPlaceholder: {
+    opacity: 0.5,
+  },
 }));
 
 const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
@@ -154,8 +156,8 @@ function parseSubscriberFile(fileObj: File) {
             imsi: items[1],
             authKey: items[2],
             authOpc: items[3],
-            dataPlan: items[4],
-            state: items[5] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+            state: items[4] === 'ACTIVE' ? 'ACTIVE' : 'INACTIVE',
+            dataPlan: items[5],
             apns: items[6]
               .split('|')
               .map(item => item.trim())
@@ -192,9 +194,9 @@ export function EditSubscriberButton() {
   return (
     <>
       <EditSubscriberDialog open={open} onClose={() => setOpen(false)} />
-      <Link component="button" variant="body2" onClick={() => setOpen(true)}>
+      <Button component="button" variant="text" onClick={() => setOpen(true)}>
         {'Edit'}
-      </Link>
+      </Button>
     </>
   );
 }
@@ -243,6 +245,7 @@ function EditSubscriberDialog(props: DialogProps) {
 }
 
 function AddSubscriberDetails(props: DialogProps) {
+  const classes = useStyles();
   const ctx = useContext(SubscriberContext);
   const {match} = useRouter();
 
@@ -344,6 +347,7 @@ function AddSubscriberDetails(props: DialogProps) {
               editComponent: props => (
                 <OutlinedInput
                   variant="outlined"
+                  placeholder="Enter Name"
                   type="text"
                   value={props.value}
                   onChange={e => props.onChange(e.target.value)}
@@ -356,6 +360,7 @@ function AddSubscriberDetails(props: DialogProps) {
               editComponent: props => (
                 <OutlinedInput
                   type="text"
+                  placeholder="Enter IMSI"
                   variant="outlined"
                   value={props.value}
                   onChange={e => props.onChange(e.target.value)}
@@ -367,6 +372,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'authKey',
               editComponent: props => (
                 <PasswordInput
+                  placeholder="Key"
                   value={props.value}
                   onChange={v => props.onChange(v)}
                 />
@@ -377,6 +383,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'authOpc',
               editComponent: props => (
                 <PasswordInput
+                  placeholder="OPC"
                   value={props.value}
                   onChange={v => props.onChange(v)}
                 />
@@ -417,8 +424,18 @@ function AddSubscriberDetails(props: DialogProps) {
                     multiple
                     value={props.value ?? []}
                     onChange={({target}) => props.onChange(target.value)}
-                    renderValue={selected => selected.join(', ')}
-                    input={<OutlinedInput />}>
+                    displayEmpty={true}
+                    renderValue={selected => {
+                      if (!selected.length) {
+                        return 'Select APNs';
+                      }
+                      return selected.join(', ');
+                    }}
+                    input={
+                      <OutlinedInput
+                        className={props.value ? '' : classes.selectPlaceholder}
+                      />
+                    }>
                     {apns.map((k: string, idx: number) => (
                       <MenuItem key={idx} value={k}>
                         <Checkbox
@@ -604,6 +621,7 @@ function EditSubscriberDetails(props: DialogProps) {
           <AltFormField label={'Subscriber Name'}>
             <OutlinedInput
               className={classes.input}
+              placeholder="Enter Name"
               fullWidth={true}
               value={subscriberState.name}
               onChange={({target}) =>
@@ -645,6 +663,7 @@ function EditSubscriberDetails(props: DialogProps) {
           <AltFormField label={'Auth Key'}>
             <PasswordInput
               className={classes.input}
+              placeholder="Enter Auth Key"
               value={authKey}
               error={authKey && !isValidHex(authKey)}
               onChange={v => setAuthKey(v)}
@@ -653,6 +672,7 @@ function EditSubscriberDetails(props: DialogProps) {
           <AltFormField label={'Auth OPC'}>
             <PasswordInput
               value={authOpc}
+              placeholder="Enter Auth OPC"
               className={classes.input}
               error={authOpc && !isValidHex(authOpc)}
               onChange={v => setAuthOpc(v)}

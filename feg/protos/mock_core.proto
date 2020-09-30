@@ -113,13 +113,28 @@ service MockOCS {
     rpc AssertExpectations(magma.orc8r.Void) returns (GyCreditControlResult) {}
 }
 
+enum FinalUnitAction {
+    Terminate = 0;
+    Redirect = 1;
+    Restrict = 2;
+}
+
+message RedirectServer {
+    string RedirectServerAddress = 1;
+}
+
+message FinalUnitIndication {
+    RedirectServer redirect_server = 1;
+    FinalUnitAction final_unit_action = 2;
+    repeated string restrict_rules = 3;
+}
+
 message OCSConfig {
     Octets max_usage_octets = 1;
     uint32 max_usage_time = 2;
     uint32 validity_time = 3;
     bool use_mock_driver = 4;
-    string redirect_address = 5;
-    FinalUnitAction final_unit_action = 6;
+    FinalUnitIndication final_unit_indication = 5;
 }
 
 message CreditInfo {
@@ -173,12 +188,12 @@ message AccountRules {
 
 message RuleDefinition {
     string rule_name = 1;
-	uint32 rating_group = 2;
-	uint32 precedence = 3;
-	string monitoring_key = 4;
-	repeated string flow_descriptions = 5;
-	magma.lte.RedirectInformation redirect_information = 7;
-	magma.lte.FlowQos qos_information = 8;
+    uint32 rating_group = 2;
+    uint32 precedence = 3;
+    string monitoring_key = 4;
+    repeated string flow_descriptions = 5;
+    magma.lte.RedirectInformation redirect_information = 7;
+    magma.lte.FlowQos qos_information = 8;
 }
 
 message UsageMonitorConfiguration {
@@ -303,25 +318,13 @@ message GyCreditControlAnswer {
     bool link_failure = 5;
 }
 
-enum FinalUnitAction {
-    Terminate = 0;
-    Redirect = 1;
-    Restrict = 2;
-}
-
-message RedirectServer {
-    string RedirectServerAddress = 1;
-}
-
 message QuotaGrant {
     uint32 rating_group = 1;
     Octets granted_service_unit = 2;
     uint32 validity_time = 3;
     uint32 result_code = 4;
-
     bool is_final_credit = 11;
-    FinalUnitAction final_unit_action = 12;
-    RedirectServer redirect_server = 13;
+    FinalUnitIndication final_unit_indication = 12;
 }
 
 // AVP: 1067

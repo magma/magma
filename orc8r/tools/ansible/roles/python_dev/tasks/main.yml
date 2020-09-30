@@ -100,7 +100,7 @@
 
 - name: install the package, force reinstall to the latest version
   pip:
-    name: setuptools
+    name: setuptools==49.6.0
     state: forcereinstall
     executable: pip3
 

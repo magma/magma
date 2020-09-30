@@ -25,6 +25,6 @@ sudo ovs-vsctl --may-exist add-port uplink_br0 uplink_patch \
   -- --may-exist add-port cwag_br0 cwag_patch \
   -- set Interface cwag_patch type=patch  options:peer=uplink_patch
 
-{% if downlink_if is defined %}
+{% if downlink_if is not none %}
 sudo ovs-vsctl --may-exist add-port uplink_br0 {{ downlink_if }}
 {% endif %}

@@ -19,6 +19,7 @@ import (
 	"testing"
 
 	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/feg/gateway/services/swx_proxy/servicers"
@@ -83,13 +84,13 @@ func InitTestMconfig(t *testing.T, addr string, verify bool) error {
 
 	// Note we get only get index 0
 	cfg := servicers.GetSwxProxyConfig()[0]
-	if !cfg.IsHlrClient("001020000000055") {
+	if !plmn_filter.CheckImsiOnPlmnIdListIfAny("001020000000055", cfg.HlrPlmnIds) {
 		t.Fatalf("IMSI 001020000000055 should be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
 	}
-	if !cfg.IsHlrClient("001030000000055") {
+	if !plmn_filter.CheckImsiOnPlmnIdListIfAny("001030000000055", cfg.HlrPlmnIds) {
 		t.Fatalf("IMSI 001030000000055 should be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
 	}
-	if cfg.IsHlrClient("001010000000055") {
+	if plmn_filter.CheckImsiOnPlmnIdListIfAny("001010000000055", cfg.HlrPlmnIds) {
 		t.Fatalf("IMSI 001010000000055 should NOT be HLR IMSI, HLR PLMN ID Map: %+v", cfg.HlrPlmnIds)
 	}
 

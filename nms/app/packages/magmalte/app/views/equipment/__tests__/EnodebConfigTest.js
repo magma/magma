@@ -25,7 +25,7 @@ import defaultTheme from '../../../theme/default.js';
 
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {SetEnodebState} from '../../../state/EquipmentState';
+import {SetEnodebState} from '../../../state/lte/EquipmentState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
@@ -88,7 +88,7 @@ describe('<AddEditEnodeButton />', () => {
   });
 
   const AddWrapper = () => {
-    const [enbInf, setEnbInfo] = useState({});
+    const [enbInf, setEnbInfo] = useState({testEnodebSerial0: enbInfo});
     return (
       <MemoryRouter initialEntries={['/nms/test/enode']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
@@ -188,6 +188,21 @@ describe('<AddEditEnodeButton />', () => {
     let enbName = getByTestId('name').firstChild;
     let enbDesc = getByTestId('description').firstChild;
 
+    // test adding an existing enodeb
+    if (enbSerial instanceof HTMLInputElement) {
+      fireEvent.change(enbSerial, {target: {value: 'testEnodebSerial0'}});
+    } else {
+      throw 'invalid type';
+    }
+
+    fireEvent.click(getByText('Save And Continue'));
+    await wait();
+
+    expect(getByTestId('configEditError')).toHaveTextContent(
+      'eNodeB testEnodebSerial0 already exists',
+    );
+
+    // test adding new enodeb
     if (
       enbSerial instanceof HTMLInputElement &&
       enbName instanceof HTMLInputElement &&

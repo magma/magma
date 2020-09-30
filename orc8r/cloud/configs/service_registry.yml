@@ -115,3 +115,8 @@ services:
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/tenants,
         /magma/v1/tenants/:tenants_id,
+
+  service_registry:
+    host: "localhost"
+    port: 9180
+    proxy_type: "clientcert"

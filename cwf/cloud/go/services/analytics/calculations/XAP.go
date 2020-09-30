@@ -15,6 +15,7 @@ package calculations
 
 import (
 	"fmt"
+	"github.com/golang/glog"
 	"magma/cwf/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
 )
@@ -29,6 +30,8 @@ type XAPCalculation struct {
 // Calculate returns the number of unique users who have had a session in the
 // past X days and have used over `thresholdBytes` data in that time
 func (x *XAPCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]Result, error) {
+	glog.Infof("Calculating XAP. Days: %d", x.Days)
+
 	// List the users who have had an active session over the last X days
 	uniqueUsersQuery := fmt.Sprintf(`count(max_over_time(active_sessions[%dd]) >= 1) by (imsi,networkID)`, x.Days)
 	// List the users who have used at least x.ThresholdBytes of data in the last X days
@@ -42,8 +45,7 @@ func (x *XAPCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]
 	}
 
 	results := makeVectorResults(vec, x.Labels, x.Name)
-	for _, res := range results {
-		x.RegisteredGauge.With(res.labels).Set(res.value)
-	}
+	registerResults(x.CalculationParams, results)
+
 	return results, nil
 }

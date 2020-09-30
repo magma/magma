@@ -257,7 +257,7 @@ class RuleMappingsStreamerCallbackTest(unittest.TestCase):
 def get_SetSessionRules_side_effect(
     called_with: List[SessionRules],
 ) -> Callable[[SessionRules], Void]:
-    def side_effect(session_rules: SessionRules) -> Void:
+    def side_effect(session_rules: SessionRules, timeout: float) -> Void:
         called_with.append(session_rules)
         return Void()
     return side_effect

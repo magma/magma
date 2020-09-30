@@ -22,6 +22,7 @@ import (
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control"
 	"magma/gateway/service_registry"
+	"magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/util"
 
 	"github.com/fiorix/go-diameter/v4/diam"
@@ -235,20 +236,29 @@ func (gxClient *GxClient) createCreditControlMessage(
 	m.NewAVP(avp.IPCANType, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.IPCANType))
 	m.NewAVP(avp.RATType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(request.RATType))
 
+	// IPv4
 	if ip := net.ParseIP(request.IPAddr); ipNotZeros(ip) {
 		if ipV4 := ip.To4(); ipV4 != nil {
 			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(ipV4))
 		} else if gxClient.framedIpv4AddrRequired {
 			defaultIp := getDefaultFramedIpv4Addr()
 			m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(defaultIp))
-		} else if ipV6 := ip.To16(); ipV6 != nil {
-			m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(ipV6))
 		}
 	} else if gxClient.framedIpv4AddrRequired {
 		defaultIp := getDefaultFramedIpv4Addr()
 		m.NewAVP(avp.FramedIPAddress, avp.Mbit, 0, datatype.IPv4(defaultIp))
 	} else if (!gxClient.dontUseEUIIpIfEmpty) && len(request.HardwareAddr) >= 6 {
 		m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(Ipv6PrefixFromMAC(request.HardwareAddr)))
+	}
+
+	// IPv6
+	if ipv6 := net.ParseIP(request.IPv6Addr); ipv6 != nil {
+		if parsedIpv6 := ipv6.To16(); parsedIpv6 != nil {
+			// RFC 3162 2.3.
+			// strip prefix (length of 64)
+			ipV6Prefix := parsedIpv6.Mask(net.CIDRMask(64, 128))[:8]
+			m.NewAVP(avp.FramedIPv6Prefix, avp.Mbit, 0, datatype.OctetString(ipV6Prefix))
+		}
 	}
 
 	apn := getAPNfromConfig(globalConfig, request.Apn)
@@ -365,8 +375,10 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 			},
 		})
 	}
-	// Argentina TZ (UTC-3hrs) TODO: Make it so that it takes the FeG's timezone
-	//m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0})))
+	if request.AccessTimezone != nil {
+		timezone := GetTimezoneByte(request.AccessTimezone)
+		m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(datatype.OctetString(string([]byte{timezone, 0}))))
+	}
 }
 
 // getAdditionalAvps retrieves any extra AVPs based on the type of request.
@@ -419,7 +431,7 @@ func (gxClient *GxClient) getEventTriggerAVP(eventTrigger EventTrigger) *diam.AV
 }
 
 // getAPNfromConfig returns a new apn value to overwrite the one in the request based on list of regex definied in Gx config.
-// If Virtual APN config is not defined, the function returnis OCSOverwriteApn instead.
+// If Virtual APN config is not defined, the function returns OCSOverwriteApn instead.
 // Input: GxGlobalConfig and the APN received from the request
 // Output: Overwritten apn value
 func getAPNfromConfig(gxGlobalConfig *GxGlobalConfig, request_apn string) datatype.UTF8String {
@@ -485,4 +497,26 @@ func getDefaultFramedIpv4Addr() net.IP {
 		return ipV4
 	}
 	return ipV4V6
+}
+
+// TS 23.040 Section 9.2.3.11
+// https://osqa-ask.wireshark.org/questions/26682/3gpp-timezone-decoding-logic
+func GetTimezoneByte(timezone *protos.Timezone) byte {
+	// AVP expects time difference from UTC in increments of 15 minutes
+	offsetMinutes := timezone.GetOffsetMinutes()
+	increments := offsetMinutes / 15
+	if increments < 0 {
+		increments = -increments
+	}
+	// Expected format (8 bits total):
+	// bit 0-2 = tens digit
+	// bit 3   = 0 if offset is positive, 1 if it is negative
+	// bit 4-7 = ones digit
+	tens := (increments / 10) & 0x07 // range 0-7
+	if offsetMinutes < 0 {
+		tens |= 0x08
+	}
+	ones := (increments % 10) & 0x0F // range 0-9
+	encodedTimezone := byte(ones<<4 + tens)
+	return byte(encodedTimezone)
 }

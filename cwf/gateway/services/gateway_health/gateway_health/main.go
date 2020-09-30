@@ -16,6 +16,7 @@ package main
 import (
 	"flag"
 	"net"
+	"os"
 	"strings"
 
 	mconfigprotos "magma/cwf/cloud/go/protos/mconfig"
@@ -40,7 +41,7 @@ const (
 	defaultCpuUtilPct       = 0.9
 	defaultGREProbeInterval = 10
 	defaultICMPPktCount     = 3
-	defaultICMPInterface    = "eth1"
+	defaultInterface        = "eth1"
 )
 
 func main() {
@@ -51,7 +52,15 @@ func main() {
 	}
 	cfg := getHealthMconfig()
 	probe := gre_probe.NewICMPProbe(cfg.GrePeers, cfg.GreProbeInterval, int(cfg.IcmpProbePktCount))
-	systemHealth, err := system_health.NewCWAGSystemHealthProvider(defaultICMPInterface)
+
+	// TODO: Use mconfig VIP
+	transportVIP := os.Getenv("TRANSPORT_VIP")
+	if len(transportVIP) == 0 {
+		glog.Warningf("No transport VIP has been specified. If running with HA enabled, this is a critical error!")
+	} else if _, _, err := net.ParseCIDR(transportVIP); err != nil {
+		glog.Fatalf("Transport VIP must be specified with a subnet (i.e. 10.10.10.10/24)")
+	}
+	systemHealth, err := system_health.NewCWAGSystemHealthProvider(defaultInterface, transportVIP)
 	if err != nil {
 		glog.Fatalf("Error creating CWAGServiceHealthProvider: %s", err)
 	}
@@ -104,7 +113,6 @@ func getHealthMconfig() *mconfigprotos.CwfGatewayHealthConfig {
 func removeSubnetEndpoints(endpoints []*mconfigprotos.CwfGatewayHealthConfigGrePeer) []*mconfigprotos.CwfGatewayHealthConfigGrePeer {
 	ret := []*mconfigprotos.CwfGatewayHealthConfigGrePeer{}
 	for _, endpoint := range endpoints {
-		_, _, err := net.ParseCIDR(endpoint.Ip)
 		parsedIP, _, err := net.ParseCIDR(endpoint.Ip)
 		if err != nil {
 			ret = append(ret, endpoint)

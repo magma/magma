@@ -14,13 +14,19 @@
 package calculations
 
 import (
+	"fmt"
+	"github.com/golang/glog"
+	"github.com/google/go-cmp/cmp"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
 	"magma/cwf/cloud/go/services/analytics/query_api"
+	"sort"
+	"strings"
 )
 
 const (
 	APNLabel       = "apn"
+	AuthCodeLabel  = "code"
 	DaysLabel      = "days"
 	DirectionLabel = "direction"
 )
@@ -30,10 +36,11 @@ type Calculation interface {
 }
 
 type CalculationParams struct {
-	Days            int
-	RegisteredGauge *prometheus.GaugeVec
-	Labels          prometheus.Labels
-	Name            string
+	Days                int
+	RegisteredGauge     *prometheus.GaugeVec
+	Labels              prometheus.Labels
+	Name                string
+	ExpectedGaugeLabels []string
 }
 
 type Result struct {
@@ -104,4 +111,35 @@ func combineLabels(l1, l2 map[string]string) map[string]string {
 		retLabels[l] = v
 	}
 	return retLabels
+}
+
+func registerResults(calc CalculationParams, results []Result) {
+	for _, res := range results {
+		if !checkLabelsMatch(calc.ExpectedGaugeLabels, res.labels) {
+			glog.Errorf("Unmatched labels in APThroughput Calculation. Expected: %s, Received: %s", calc.ExpectedGaugeLabels, printLabels(res.labels))
+			continue
+		}
+		calc.RegisteredGauge.With(res.labels).Set(res.value)
+		glog.Infof("Set metric %s{%s} value: %f\n", res.metricName, printLabels(res.labels), res.value)
+	}
+}
+
+func checkLabelsMatch(expectedLabels []string, labels prometheus.Labels) bool {
+	givenLabels := []string{}
+	for l := range labels {
+		givenLabels = append(givenLabels, l)
+	}
+	sort.Strings(givenLabels)
+	sort.Strings(expectedLabels)
+	return cmp.Equal(givenLabels, expectedLabels)
+}
+
+func printLabels(labels prometheus.Labels) string {
+	str := strings.Builder{}
+	str.WriteString("{")
+	for key, val := range labels {
+		str.WriteString(fmt.Sprintf("%s=\"%s\"", key, val))
+	}
+	str.WriteString("}")
+	return str.String()
 }

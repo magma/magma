@@ -10,9 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-prometheusPushAddresses:
-  - "http://prometheus-cache:9091/metrics"
-
 prometheusQueryAddress: "http://prometheus:9090"
 
 alertmanagerApiURL: "http://alertmanager:9093/api/v2"

@@ -30,6 +30,7 @@ from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     PktsToSend, SubTest, create_service_manager, start_ryu_app_thread, \
     stop_ryu_app_thread, wait_after_send, SnapshotVerifier, \
@@ -113,7 +114,8 @@ class EnforcementTableTest(unittest.TestCase):
         sub_ip = '192.168.128.74'
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/24', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
@@ -169,7 +171,8 @@ class EnforcementTableTest(unittest.TestCase):
         imsi = 'IMSI000000000000001'
         sub_ip = '192.168.128.45'
         flow_list = [FlowDescription(
-            match=FlowMatch(ipv4_src='9999.0.0.0/24'),
+            match=FlowMatch(
+                ip_src=convert_ipv4_str_to_ip_proto('9999.0.0.0/24')),
             action=FlowDescription.DENY
         )]
         policy = PolicyRule(id='invalid', priority=2, flow_list=flow_list)
@@ -205,7 +208,8 @@ class EnforcementTableTest(unittest.TestCase):
         sub_ip = '192.168.128.74'
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_src='15.0.0.0/24', direction=FlowMatch.DOWNLINK),
+                ip_src=convert_ipv4_str_to_ip_proto('15.0.0.0/24'),
+                direction=FlowMatch.DOWNLINK),
             action=FlowDescription.DENY)
         ]
         flow_list2 = [FlowDescription(
@@ -269,7 +273,8 @@ class EnforcementTableTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         pkt_sender = ScapyPacketInjector(self.IFACE)
         ip_match = [FlowDescription(
-            match=FlowMatch(ipv4_src='8.8.8.0/24', direction=1),
+            match=FlowMatch(ip_src=convert_ipv4_str_to_ip_proto('8.8.8.0/24'),
+                            direction=1),
             action=1)
         ]
         tcp_match = [FlowDescription(

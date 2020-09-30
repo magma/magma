@@ -31,7 +31,7 @@ message("Proto_srcs are ${PROTO_SRCS}")
 add_library(SERVICE303_LIB
   MagmaService.cpp
   MetricsSingleton.cpp
-  MetricsSingleton.cpp
+  MetricsHelpers.cpp
   ProcFileUtils.cpp
   ${PROTO_SRCS}
   ${PROTO_HDRS}

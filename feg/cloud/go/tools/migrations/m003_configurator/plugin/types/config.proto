@@ -99,6 +99,16 @@ message EapAkaConfig {
     repeated string PlmnIds = 2;
 }
 
+message EapSimConfig {
+    message Timeouts {
+        uint32 ChallengeMs = 1;
+        uint32 ErrorNotificationMs = 2;
+        uint32 SessionMs = 3;
+        uint32 SessionAuthenticatedMs = 4;
+    }
+    Timeouts timeout = 1;
+    repeated string PlmnIds = 2;
+}
 
 message AAAConfig {
     uint32 IdleSessionTimeoutMs = 1; // Idle session TTL
@@ -116,4 +126,5 @@ message Config {
     HealthConfig health = 10;
     EapAkaConfig eap_aka = 11;
     AAAConfig aaa_server = 12;
+    EapSimConfig eap_sim = 13;
 }
