@@ -11,18 +11,17 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */}}
 {{/* Generate basic labels */}}
-{{- define "labels" -}}
+{{- define "default-labels" -}}
 app.kubernetes.io/name: {{ .Chart.Name }}
 app.kubernetes.io/component: {{ .Chart.Name }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/managed-by: helm
-app.kubernetes.io/part-of: orc8r
+app.kubernetes.io/part-of: orc8r-app
 helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
 {{- end -}}
 
 {{/* Generate selector labels */}}
-{{- define "selector-labels" -}}
-app.kubernetes.io/name: {{ .Chart.Name }}
-app.kubernetes.io/component: {{ .Chart.Name }}
-app.kubernetes.io/instance: {{ .Release.Name }}
+{{/* TODO: Add back instance, name labels after the controller is split */}}
+{{- define "default-selector-labels" -}}
+app.kubernetes.io/component: controller
 {{- end -}}

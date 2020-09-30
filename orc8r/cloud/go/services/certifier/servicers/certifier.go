@@ -28,6 +28,7 @@ import (
 	"magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/security/cert"
+	unarylib "magma/orc8r/lib/go/service/middleware/unary"
 
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/ptypes"
@@ -256,6 +257,10 @@ func (srv *CertifierServer) SignAddCertificate(ctx context.Context, csrMsg *prot
 	}
 	// add to table
 	snString := cert.SerialToString(sn)
+	// Ensure serial number is not the orc8r client reserved SN
+	if snString == unarylib.ORC8R_CLIENT_CERT_VALUE {
+		return nil, status.Errorf(codes.InvalidArgument, "Invalid Serial Number")
+	}
 	err = srv.store.PutCertInfo(snString, certInfo)
 	if err != nil {
 		return nil, status.Errorf(codes.Aborted, "Error adding CertificateInfo: %s", err)
@@ -329,6 +334,10 @@ func (srv *CertifierServer) AddCertificate(ctx context.Context, req *certprotos.
 		return res, status.Errorf(codes.InvalidArgument, "Invalid Serial Number")
 	}
 	snStr := cert.SerialToString(x509Cert.SerialNumber)
+	// Ensure serial number is not the orc8r client reserved SN
+	if snStr == unarylib.ORC8R_CLIENT_CERT_VALUE {
+		return res, status.Errorf(codes.InvalidArgument, "Invalid Serial Number")
+	}
 	// Verify that the certificate is signed by our CA
 	if err = srv.verifyCert(x509Cert, req.CertType); err != nil {
 		return res, status.Errorf(

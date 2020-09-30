@@ -33,8 +33,7 @@
 #include "EnumToString.h"
 #include "SessionStateEnforcer.h"
 
-namespace magma 
-{
+namespace magma {
 // temp routine
 void call_back_void_upf(grpc::Status, magma::UpfRes response) {
   // do nothinf but to only passing call back
@@ -50,8 +49,7 @@ SessionStateEnforcer::SessionStateEnforcer(
       pipelined_client_(pipelined_client),
       amf_srv_client_(amf_srv_client),
       retry_timeout_(1),
-      mconfig_(mconfig)
-{
+      mconfig_(mconfig) {
   // for now this is the right place, need to move if find  anohter right place
   static_rule_init();
 }
@@ -84,13 +82,14 @@ bool SessionStateEnforcer::m5g_init_session_credit(
    */
   auto exist_imsi = session_map.find(imsi);
   if (exist_imsi == session_map.end()) {
-    //First time a session is created for IMSI in the SessionMap
+    // First time a session is created for IMSI in the SessionMap
     session_map[imsi] = std::vector<std::unique_ptr<SessionState>>();
   } else {
     session_map[imsi].push_back(std::move(session_state));
   }
-  MLOG(MDEBUG) << "Added a session ("<< session_map[imsi].size() <<") for IMSI " 
-	       << imsi << " with session context ID " << session_id;
+  MLOG(MDEBUG) << "Added a session (" << session_map[imsi].size()
+               << ") for IMSI " << imsi << " with session context ID "
+               << session_id;
   return true;
 }
 
@@ -99,7 +98,7 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
     SessionState& session_state) {
   auto itp = pdr_map_.equal_range(imsi);
   for (auto itr = itp.first; itr != itp.second; itr++) {
-     //Get the PDR numbers, now  get the rules from global static rule list
+    // Get the PDR numbers, now  get the rules from global static rule list
     SetGroupPDR rule;
     GlobalRuleList.get_rule(itr->second, &rule);
     session_state.insert_pdr(&rule);
@@ -203,7 +202,7 @@ void SessionStateEnforcer::prepare_response_to_access(
 }
 
 bool SessionStateEnforcer::static_rule_init() {
-  //Static PDR, FAR, QDR, URR and BAR mapping  and also define 1 PDR and FAR
+  // Static PDR, FAR, QDR, URR and BAR mapping  and also define 1 PDR and FAR
   SetGroupPDR reqpdr1, reqpdr2;
   SetGroupFAR reqf;
   magma::PDI pdireq;

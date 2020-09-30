@@ -57,16 +57,25 @@ func HandleIdentityResponse(providerType uint8, msg *protos.Eap) (*protos.Eap, e
 		}
 	}
 	var p providers.Method
-	if providerType == 0 && len(td) > 0 { // no EAP type specified, find a provider willing to handle the Identity
-		for _, typ := range supportedEapTypes {
-			pt := registry.GetProvider(typ)
-			if pt != nil && pt.WillHandleIdentity(td) {
-				p = pt
-				break
+	if providerType == 0 { // no EAP type specified, find a provider willing to handle the Identity
+		if len(td) > 0 {
+			for _, typ := range supportedEapTypes {
+				pt := registry.GetProvider(typ)
+				if pt != nil && pt.WillHandleIdentity(td) {
+					p = pt
+					break
+				}
 			}
 		}
 	} else {
 		p = registry.GetProvider(providerType)
+	}
+	if p == nil && len(supportedEapTypes) > 0 {
+		// we still have no viable provider, try the first one available (AKA)
+		p = registry.GetProvider(supportedEapTypes[0])
+		if p != nil {
+			glog.Warningf("No EAP Provider found for Identity: '%s', trying %s", string(td), p.String())
+		}
 	}
 	if p == nil {
 		return newFailureMsg(msg), unsupportedProviderError(providerType)

@@ -43,7 +43,11 @@ func (srv *MetricsControllerServer) Push(ctx context.Context, in *protos.PushedM
 		return new(protos.Void), nil
 	}
 
-	for _, e := range metricsd.GetMetricsExporters() {
+	metricsExporters, err := metricsd.GetMetricsExporters()
+	if err != nil {
+		return &protos.Void{}, err
+	}
+	for _, e := range metricsExporters {
 		metricsToSubmit := pushedMetricsToMetricsAndContext(in)
 		err := e.Submit(metricsToSubmit)
 		if err != nil {
@@ -66,7 +70,11 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	glog.V(2).Infof("collecting %v metrics from gateway %v\n", len(in.Family), in.GatewayId)
 
 	metricsToSubmit := metricsContainerToMetricAndContexts(in, networkID, gatewayID)
-	for _, e := range metricsd.GetMetricsExporters() {
+	metricsExporters, err := metricsd.GetMetricsExporters()
+	if err != nil {
+		return &protos.Void{}, err
+	}
+	for _, e := range metricsExporters {
 		err := e.Submit(metricsToSubmit)
 		if err != nil {
 			glog.Error(err)
@@ -81,7 +89,12 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_proto.MetricFamily, hostName string) {
 	for family := range inputChan {
 		metricsToSubmit := preprocessCloudMetrics(family, hostName)
-		for _, e := range metricsd.GetMetricsExporters() {
+		metricsExporters, err := metricsd.GetMetricsExporters()
+		if err != nil {
+			glog.Error(err)
+			continue
+		}
+		for _, e := range metricsExporters {
 			err := e.Submit([]exporters.MetricAndContext{metricsToSubmit})
 			if err != nil {
 				glog.Error(err)

@@ -55,16 +55,8 @@
   become: true
   when: gateway_mode == 'gateway'
 
-- name: make sure rc local service starts at boot
-  systemd:
-    name: 'rc-local'
-    state: started
-    enabled: yes
-  tags:
-    - no_ci
-
 - name: execute the rc.local file
-  shell: /etc/rc.local
+  shell: /etc/rc.d/rc.local
   when: gateway_mode == 'gateway'
   tags:
     - no_ci

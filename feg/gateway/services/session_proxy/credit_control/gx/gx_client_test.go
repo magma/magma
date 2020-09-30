@@ -421,9 +421,18 @@ func TestDefaultFramedIpv4Addr(t *testing.T) {
 
 func TestTimezoneConversion(t *testing.T) {
 	// Test behind UTC (negative offset)
-	pTimezone := &protos.Timezone{OffsetMinutes: -8 * HOUR_IN_MIN}
+	pTimezone := &protos.Timezone{OffsetMinutes: -6 * HOUR_IN_MIN}
 	convertedTimezone := gx.GetTimezoneByte(pTimezone)
+	assert.Equal(t, byte(0x4a), convertedTimezone)
+
+	pTimezone = &protos.Timezone{OffsetMinutes: -8 * HOUR_IN_MIN}
+	convertedTimezone = gx.GetTimezoneByte(pTimezone)
 	assert.Equal(t, byte(0x2b), convertedTimezone)
+
+	pTimezone = &protos.Timezone{OffsetMinutes: -7 * HOUR_IN_MIN}
+	convertedTimezone = gx.GetTimezoneByte(pTimezone)
+	assert.Equal(t, byte(0x8a), convertedTimezone)
+
 	// Test ahead UTC (positive offset)
 	pTimezone = &protos.Timezone{OffsetMinutes: 1 * HOUR_IN_MIN}
 	convertedTimezone = gx.GetTimezoneByte(pTimezone)

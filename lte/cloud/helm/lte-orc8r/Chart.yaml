@@ -25,5 +25,5 @@ keywords:
 # Library chart for common orchestrator module components
 dependencies:
 - name: orc8rlib
-  version: 0.1.0
+  version: 0.1.1
   repository: file://../../../../orc8r/cloud/helm/orc8rlib

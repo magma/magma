@@ -12,8 +12,17 @@ func NewDefaultNetworkCarrierWifiConfigs() *NetworkCarrierWifiConfigs {
 		},
 		DefaultRuleID: &defaultRuleID,
 		EapAka: &fegmodels.EapAka{
-			PlmnIds: []string{"123456"},
+			PlmnIds: []string{},
 			Timeout: &fegmodels.EapAkaTimeouts{
+				ChallengeMs:            20000,
+				ErrorNotificationMs:    10000,
+				SessionAuthenticatedMs: 5000,
+				SessionMs:              43200000,
+			},
+		},
+		EapSim: &fegmodels.EapSim{
+			PlmnIds: []string{},
+			Timeout: &fegmodels.EapSimTimeouts{
 				ChallengeMs:            20000,
 				ErrorNotificationMs:    10000,
 				SessionAuthenticatedMs: 5000,

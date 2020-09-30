@@ -88,7 +88,15 @@ $ helm install \
     --name postgresql \
     --namespace magma \
     --set postgresqlPassword=postgres,postgresqlDatabase=magma,fullnameOverride=postgresql \
-    stable/postgresql
+    bitnami/postgresql
+```
+
+Note: If the postgresql pod is crashing with error : `unable to write
+to directory /bitnami/...`, redeploy with `--values=<vals.yml>`:
+
+```bash
+volumePermissions:
+  enabled: true
 ```
 
 - Copy orchestrator secrets (this replaces the secret management steps for
@@ -113,13 +121,13 @@ kubectl exec -it -n magma \
     /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
 
-- Port forward traffic to orchestrator proxy:
+- Port forward traffic to orchestrator nginx proxy:
 ```bash
-kubectl port-forward -n magma svc/orc8r-proxy 9443:9443
+kubectl port-forward -n magma svc/orc8r-nginx-proxy 8443:8443
 
 # If using minikube, run:
-minikube service orc8r-proxy -n magma --https
+minikube service orc8r-nginx-proxy -n magma --https
 ```
 
-- Orchestrator proxy should be reachable via https://localhost:9443 and
+- Orchestrator proxy should be reachable via https://localhost:8443 and
 requires magma client certificate to be installed on browser.

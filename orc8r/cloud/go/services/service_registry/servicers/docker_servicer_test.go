@@ -173,7 +173,7 @@ type MockDockerClient struct {
 	mock.Mock
 }
 
-func (m MockDockerClient) ContainerList(ctx context.Context, options types.ContainerListOptions) ([]types.Container, error) {
+func (m *MockDockerClient) ContainerList(ctx context.Context, options types.ContainerListOptions) ([]types.Container, error) {
 	args := m.Called(ctx, options)
 	return args.Get(0).([]types.Container), args.Error(1)
 }
