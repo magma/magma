@@ -17,4 +17,8 @@ const (
 	// PrometheusPushAddresses is the orchestrator.yml key for the list of
 	// addresses to which the metrics exporter will push Prometheus metrics
 	PrometheusPushAddresses = "prometheusPushAddresses"
+
+	// PrometheusGRPCPushAddress is the orchestrator.yml key for the GRPC address
+	// to which the metrics exporter will push Prometheus metrics
+	PrometheusGRPCPushAddress = "prometheusGRPCPushAddress"
 )
