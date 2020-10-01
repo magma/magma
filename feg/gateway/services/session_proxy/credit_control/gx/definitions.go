@@ -50,6 +50,7 @@ type CreditControlRequest struct {
 	IMSI           string
 	RequestNumber  uint32
 	IPAddr         string
+	IPv6Addr       string
 	SpgwIPV4       string
 	Apn            string
 	Msisdn         []byte

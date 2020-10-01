@@ -124,6 +124,10 @@ class NasStateConverter : StateConverter {
       const partial_tai_list_t* state_partial_tai_list,
       oai::PartialTaiList* partial_tai_list_proto);
 
+  static void proto_to_partial_tai_list(
+      const oai::PartialTaiList& partial_tai_list_proto,
+      partial_tai_list_t* state_partial_tai_list);
+
   static void nas_timer_to_proto(
       const nas_timer_t& state_nas_timer, oai::Timer* timer_proto);
 

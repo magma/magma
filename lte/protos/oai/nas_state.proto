@@ -29,7 +29,10 @@ message IdentityTuple {
 message PartialTaiList {
   uint32 type_of_list = 1;
   uint32 number_of_elements = 2;
-  string tai_plmn_tacs = 3;
+  repeated  Tai tai_many_plmn = 3;
+  Tai tai_one_plmn_consecutive_tacs = 4;
+  bytes plmn = 5;
+  repeated uint32 tac = 6;
 }
 
 // tai_list_t

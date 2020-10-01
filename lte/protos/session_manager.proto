@@ -57,6 +57,7 @@ message CommonSessionContext {
   //PDU session state to mirror with AMF or MME
   SMSessionFSMState sm_session_state = 7;
   uint32 sm_session_version = 9;
+  string ue_ipv6 = 10;
 }
 
 message RatSpecificContext {
@@ -489,6 +490,7 @@ message TgppContext {
 message CreateSessionRequest {
   Timezone access_timezone = 1;
   string session_id = 2;
+  RequestedUnits requested_units = 3;
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
 }

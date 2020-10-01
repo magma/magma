@@ -313,23 +313,23 @@ func (m *FlowDescription) ToProto() *protos.FlowDescription {
 	flowDescription.Match = &protos.FlowMatch{
 		Direction: protos.FlowMatch_Direction(protos.FlowMatch_Direction_value[swag.StringValue(m.Match.Direction)]),
 		IpProto:   protos.FlowMatch_IPProto(protos.FlowMatch_IPProto_value[*m.Match.IPProto]),
-		IpSrc: &protos.IPAddress{
-			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPSrc.Version]),
-			Address: []byte(m.Match.IPSrc.Address),
-		},
-		IpDst: &protos.IPAddress{
-			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPDst.Version]),
-			Address: []byte(m.Match.IPDst.Address),
-		},
 	}
 	orc8rProtos.FillIn(m.Match, flowDescription.Match)
 
 	// Backwards compatible for old flow match definition
-	if m.Match.IPDst != nil {
-		flowDescription.Match.Ipv4Dst = m.Match.IPDst.Address
-	}
 	if m.Match.IPSrc != nil {
+		flowDescription.Match.IpSrc = &protos.IPAddress{
+			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPSrc.Version]),
+			Address: []byte(m.Match.IPSrc.Address),
+		}
 		flowDescription.Match.Ipv4Src = m.Match.IPSrc.Address
+	}
+	if m.Match.IPDst != nil {
+		flowDescription.Match.IpDst = &protos.IPAddress{
+			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPDst.Version]),
+			Address: []byte(m.Match.IPDst.Address),
+		}
+		flowDescription.Match.Ipv4Dst = m.Match.IPDst.Address
 	}
 
 	return flowDescription

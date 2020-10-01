@@ -956,6 +956,7 @@ definitions:
       - default_rule_id
       - network_services
       - eap_aka
+      - eap_sim
       - aaa_server
     properties:
       default_rule_id:
@@ -975,6 +976,8 @@ definitions:
           - 'policy_enforcement'
       eap_aka:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
+      eap_sim:
+        $ref: './feg-swagger.yml#/definitions/eap_sim'
       aaa_server:
         $ref: './feg-swagger.yml#/definitions/aaa_server'
       li_ues:
@@ -1172,6 +1175,7 @@ definitions:
     properties:
       transport_virtual_ip:
         type: string
-        format: ipv4
+        minLength: 5
+        maxLength: 49
         x-nullable: false
-        example: "10.10.10.12"
+        example: '192.168.128.0/32'

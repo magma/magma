@@ -147,7 +147,9 @@ controller:
     targetPort: 8080
     # port range exposed by controller
     portStart: 9079
-    portEnd: 9108
+    portEnd: 9117
+    httpPortStart: 10079
+    httpPortEnd: 10117
 
   # controller image
   image:
@@ -166,6 +168,8 @@ controller:
       port: 5432
       user: postgres
       pass: postgres
+    service_registry:
+      mode: "yaml"
 
   migration:
     new_handlers: 0
@@ -197,6 +201,101 @@ controller:
   # Assign proxy to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
+
+accessd:
+  service:
+    labels: {}
+    annotations: {}
+
+bootstrapper:
+  service:
+    labels: {}
+    annotations: {}
+
+certifier:
+  service:
+    labels: {}
+    annotations: {}
+
+configurator:
+  service:
+    labels: {}
+    annotations: {}
+
+device:
+  service:
+    labels: {}
+    annotations: {}
+
+directoryd:
+  service:
+    labels: {}
+    annotations: {}
+
+dispatcher:
+  service:
+    labels: {}
+    annotations: {}
+
+metricsd:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/alerts,
+        /magma/v1/networks/:network_id/metrics,
+        /magma/v1/networks/:network_id/prometheus,
+        /magma/v1/tenants/:tenant_id/metrics,
+        /magma/v1/tenants/targets_metadata,
+
+obsidian:
+  service:
+    labels: {}
+    annotations: {}
+
+orchestrator:
+  service:
+    labels:
+      orc8r.io/mconfig_builder: "true"
+      orc8r.io/metrics_exporter: "true"
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/state_indexer: "true"
+      orc8r.io/stream_provider: "true"
+    annotations:
+      orc8r.io/state_indexer_types: "directory_record"
+      orc8r.io/state_indexer_version: "1"
+      orc8r.io/stream_provider_streams: "configs"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /,
+        /magma/v1/channels,
+        /magma/v1/events,
+        /magma/v1/networks,
+        /magma/v1/networks/:network_id,
+
+service_registry:
+  service:
+    labels: {}
+    annotations: {}
+
+state:
+  service:
+    labels: {}
+    annotations: {}
+
+streamer:
+  service:
+    labels: {}
+    annotations: {}
+
+tenants:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/tenants,
+        /magma/v1/tenants/:tenants_id,
 
 # Set True to create a CloudWatch agent to monitor metrics
 cloudwatch:

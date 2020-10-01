@@ -37,3 +37,4 @@ ovs_internal_sampling_fwd_tbl_number: 201
 
 # Non-NAT specific config
 ovs_uplink_port_number: 2
+ovs_multi_tunnel: false

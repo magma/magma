@@ -22,6 +22,7 @@ namespace magma {
 
 float SessionCredit::USAGE_REPORTING_THRESHOLD             = 0.8;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
+uint64_t SessionCredit::DEFAULT_REQUESTED_UNITS            = 200000;
 
 // by default, enable service & finite credit
 SessionCredit::SessionCredit() : SessionCredit(SERVICE_ENABLED, FINITE) {}
@@ -310,6 +311,14 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(
   return usage;
 }
 
+RequestedUnits SessionCredit::get_initial_requested_credits_units() {
+  RequestedUnits requestedUnits;
+  requestedUnits.set_total(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  requestedUnits.set_rx(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  requestedUnits.set_tx(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  return requestedUnits;
+}
+
 RequestedUnits SessionCredit::get_requested_credits_units() {
   RequestedUnits requestedUnits;
   uint64_t buckets_used_total = buckets_[USED_TX] + buckets_[USED_RX];
@@ -469,7 +478,7 @@ void SessionCredit::set_received_granted_units(
 
 void SessionCredit::set_report_last_credit(
     bool report_last_credit, SessionCreditUpdateCriteria& uc) {
-  report_last_credit_ = report_last_credit;
+  report_last_credit_   = report_last_credit;
   uc.report_last_credit = report_last_credit;
 }
 

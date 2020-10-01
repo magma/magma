@@ -734,7 +734,7 @@ func TestCwfHaPairs(t *testing.T) {
 		GatewayID1: "g1",
 		GatewayID2: "g2",
 		Config: &models2.CwfHaPairConfigs{
-			TransportVirtualIP: "10.10.10.11",
+			TransportVirtualIP: "10.10.10.11/24",
 		},
 	}
 	// Create HA Pair
@@ -763,7 +763,7 @@ func TestCwfHaPairs(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Update HA Pair
-	cwfHaPair.Config.TransportVirtualIP = "127.0.0.1"
+	cwfHaPair.Config.TransportVirtualIP = "127.0.0.1/24"
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",

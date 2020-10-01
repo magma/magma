@@ -73,13 +73,13 @@ func ocsTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig)
 func provisionRestrictRules(t *testing.T, tr *TestRunner, ruleManager *RuleManager) {
 	// Set a block all rule to be installed by the final unit action
 	err := ruleManager.AddStaticRuleToDB(
-		getStaticDenyAll("restrict-deny-all", "restrict-key", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 200),
+		getStaticDenyAll("restrict-deny-all", "mkey-ocs", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 200),
 	)
 	assert.NoError(t, err)
 
 	// set a pass rule for traffic from TrafficCltIPP
 	err = ruleManager.AddStaticRuleToDB(
-		getStaticPassTraffic("restrict-pass-user", TrafficCltIP, MATCH_ALL, "restrict-key", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 100, nil),
+		getStaticPassTraffic("restrict-pass-user", TrafficCltIP, MATCH_ALL, "mkey-ocs", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 100, nil),
 	)
 	assert.NoError(t, err)
 

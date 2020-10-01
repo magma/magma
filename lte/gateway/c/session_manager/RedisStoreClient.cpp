@@ -171,7 +171,8 @@ std::string RedisStoreClient::serialize_session_vec(
   return serialized;
 }
 
-SessionVector RedisStoreClient::deserialize_session_vec(std::string serialized) {
+SessionVector RedisStoreClient::deserialize_session_vec(
+    std::string serialized) {
   SessionVector session_vec;
   auto folly_serialized = folly::StringPiece(serialized);
   try {

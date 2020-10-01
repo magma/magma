@@ -355,6 +355,9 @@ func createHAPairHandler(c echo.Context) error {
 	if err := c.Bind(haPair); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
+	if err := haPair.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
 	_, err := configurator.CreateEntity(networkID, haPair.ToEntity())
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)

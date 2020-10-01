@@ -146,11 +146,11 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:         protos.LogLevel_INFO,
-			LteAuthOp:        nwEpc.LteAuthOp,
-			LteAuthAmf:       nwEpc.LteAuthAmf,
-			SubProfiles:      getSubProfiles(nwEpc),
-			HssRelayEnabled:  swag.BoolValue(nwEpc.HssRelayEnabled),
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       nwEpc.LteAuthOp,
+			LteAuthAmf:      nwEpc.LteAuthAmf,
+			SubProfiles:     getSubProfiles(nwEpc),
+			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,

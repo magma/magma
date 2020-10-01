@@ -425,7 +425,7 @@ def expected_snapshot(test_case: TestCase,
             for line in file:
                 prev_snapshot.append(line.rstrip('\n'))
     except OSError as e:
-        fail(test_case, str(e), bridge_name, snapshot_name, current_snapshot)
+        fail(test_case, str(e), bridge_name, combined_name, current_snapshot)
 
     return snapshot_file, prev_snapshot
 
@@ -461,7 +461,7 @@ def assert_bridge_snapshot_match(test_case: TestCase, bridge_name: str,
                                          fromfile='previous snapshot',
                                          tofile='current snapshot'))),
              bridge_name,
-             snapshot_name,
+             snapshot_file,
              current_snapshot)
 
 

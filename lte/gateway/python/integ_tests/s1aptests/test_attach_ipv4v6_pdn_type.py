@@ -28,15 +28,16 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         """ Test Attach for the UEs that are dual IP stack IPv4v6
             capable """
         # Set PDN TYPE to IPv4V6 i.e. 3. IPV4 is equal to 1
-        # IPV4orIPv6 is equal to 3 in value
-        resp_ipv4oripv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=3)
-        self.assertEqual(
-            resp_ipv4oripv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        resp_ipv4_ipv6 = self._create_attach_ipv4v6_pdn_type_req(
+            pdn_type_value=3
         )
-        # IPv4andIPv6 is equal to 2
-        resp_ipv4andipv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=2)
         self.assertEqual(
-            resp_ipv4andipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            resp_ipv4_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
+        # IPv6 is equal to 2
+        resp_ipv6 = self._create_attach_ipv4v6_pdn_type_req(pdn_type_value=2)
+        self.assertEqual(
+            resp_ipv6.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
 
     def _create_attach_ipv4v6_pdn_type_req(self, pdn_type_value):
@@ -59,8 +60,11 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         attach_req.useOldSecCtxt = sec_ctxt
         attach_req.pdnType_pr = pdn_type
 
-        print("********Triggering Attach Request with PDN Type IPv4v6 test, "
-              "pdn_type_value", pdn_type_value)
+        print(
+            "********Triggering Attach Request with PDN Type IPv4v6 test, "
+            "pdn_type_value",
+            pdn_type_value,
+        )
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
         )
@@ -89,6 +93,14 @@ class TestAttachIpv4v6PdnType(unittest.TestCase):
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SEC_MOD_COMPLETE, sec_mode_complete
         )
+        # Attach Reject will be sent since IPv6 PDN Type is not configured
+        if pdn_type_value == 2:
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
+            )
+            return self._s1ap_wrapper.s1_util.get_response()
+
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value

@@ -152,17 +152,28 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * terminate_session handles externally triggered session termination.
-   * This assumes that the termination is coming from the access component, so
-   * it does not notify the termination back to the access component.
+   * handle_termination_from_access handles externally triggered session
+   * termination. This assumes that the termination is coming from the access
+   * component, so it does not notify the termination back to the access
+   * component.
    * @param session_map
    * @param imsi
    * @param apn
    * @param session_update
    */
-  void terminate_session(
+  bool handle_termination_from_access(
       SessionMap& session_map, const std::string& imsi, const std::string& apn,
-      SessionUpdate& session_update);
+      SessionUpdate& session_updates);
+
+  /**
+   * handle abort session - ungraceful termination
+   * 1. Remove all rules attached to the session + update PipelineD
+   * 2. Notify the access component
+   * 3. Remove the session from SessionMap
+   */
+  bool handle_abort_session(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, SessionUpdate& session_updates);
 
   /**
    * Initialize reauth for a subscriber service. If the subscriber cannot be
@@ -368,6 +379,16 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
+   * find_and_terminate_session call start_session_termination on
+   * a session with IMSI + session id.
+   * @return true if start_session_termination was called, false if session was
+   * not found
+   */
+  bool find_and_terminate_session(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, SessionUpdate& session_updates);
+
+  /**
    * Completes the session termination and executes the callback function
    * registered in terminate_session.
    * complete_termination is called some time after terminate_session
@@ -384,19 +405,19 @@ class LocalEnforcer {
 
   void schedule_static_rule_activation(
       const std::string& imsi, const std::string& ip_addr,
-      const StaticRuleInstall& static_rule);
+      const std::string& ipv6_addr, const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_activation(
       const std::string& imsi, const std::string& ip_addr,
-      const DynamicRuleInstall& dynamic_rule);
+      const std::string& ipv6_addr, const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
       const std::string& imsi, const std::string& ip_addr,
-      const StaticRuleInstall& static_rule);
+      const std::string& ipv6_addr, const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
       const std::string& imsi, const std::string& ip_addr,
-      DynamicRuleInstall& dynamic_rule);
+      const std::string& ipv6_addr, DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
@@ -434,20 +455,10 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      optional<AggregatedMaximumBitrate> ambr,
+      const std::string& ipv6_addr, optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
-
-  /**
-   * find_and_terminate_session call start_session_termination on a session with
-   * IMSI + session id.
-   * @return true if start_session_termination was called, false if session was
-   * not found
-   */
-  bool find_and_terminate_session(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, SessionUpdate& session_update);
 
   /**
    * start_session_termination starts the termination process. This includes:
@@ -536,8 +547,9 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   void complete_final_unit_action_flows_install(
-      SessionMap& session_map, const std::string& ipv4,
-      const FinalActionInstallInfo info, SessionUpdate& session_update);
+      SessionMap& session_map, const std::string& ip_addr,
+      const std::string& ipv6_addrs, const FinalActionInstallInfo info,
+      SessionUpdate& session_update);
 
   /**
    * Remove final action flows through pipelined

@@ -78,13 +78,44 @@ struct BearerUpdate {
 class SessionState {
  public:
   struct SessionInfo {
+    enum upfNodeType {
+      IPv4 = 0,
+      IPv6 = 1,
+      FQDN = 2,
+    };
+
+    typedef struct tNodeId {
+      upfNodeType node_id_type;
+      char node_id[40];
+    } NodeId;
+
+    typedef struct Fseid {
+      uint64_t f_seid;
+      NodeId Nid;
+    } FSid;
     std::string imsi;
     std::string ip_addr;
+    std::string ipv6_addr;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
     optional<AggregatedMaximumBitrate> ambr;
+    // 5G specific extensions
+    std::vector<SetGroupPDR> Pdr_rules_;
+    std::vector<SetGroupFAR> Far_rules_;
+    magma::lte::Fsm_state_FsmState state;
+    std::string sess_id;
+    uint32_t ver_no;
+    NodeId nodeId;
+    FSid Seid;
+    // 5G specific extension routines
   };
+
+  /* To remove below routine  once the UPF node core logic
+   * get completed
+   */
+  void sess_infocopy(struct SessionInfo*);
+
   struct TotalCreditUsage {
     uint64_t monitoring_tx;
     uint64_t monitoring_rx;
@@ -105,6 +136,24 @@ class SessionState {
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
 
   StoredSessionState marshal();
+
+  // 5G processing constructor without response contxt as set-interface msg
+  SessionState(
+      const std::string& imsi, const std::string& session_ctx_id,
+      const SessionConfig& cfg, StaticRuleStore& rule_store);
+
+  /* methods of new messages of 5G and handle other message*/
+  uint32_t get_current_version();
+
+  void set_current_version(int new_session_version);
+
+  void insert_pdr(SetGroupPDR* rule);
+
+  void insert_far(SetGroupFAR* rule);
+
+  std::vector<SetGroupPDR>& get_all_pdr_rules();
+
+  std::vector<SetGroupFAR>& get_all_far_rules();
 
   /**
    * Updates rules to be scheduled, active, or removed, depending on the
@@ -135,22 +184,15 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
-  /**
-   * mark_as_awaiting_termination transitions the session state from
-   * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
-   */
-  void mark_as_awaiting_termination(
-      SessionStateUpdateCriteria& update_criteria);
-
   bool is_terminating();
 
   /**
-   * complete_termination checks the FSM state and transitions the state to
+   * can_complete_termination checks the FSM state and transitions the state to
    * TERMINATED, if it can. If the state is ACTIVE or TERMINATED, it will not do
    * anything.
    * This function will return true if the termination happened successfully.
    */
-  bool complete_termination(SessionStateUpdateCriteria& update_criteria);
+  bool can_complete_termination(SessionStateUpdateCriteria& update_criteria);
 
   bool reset_reporting_charging_credit(
       const CreditKey& key, SessionStateUpdateCriteria& update_criteria);
@@ -185,7 +227,7 @@ class SessionState {
    * get_total_credit_usage returns the tx and rx of the session,
    * accounting for all unique keys (charging and monitoring) used by all
    * rules (static and dynamic)
-   * Should be called after complete_termination.
+   * Should be called after can_complete_termination.
    */
   TotalCreditUsage get_total_credit_usage();
 
@@ -245,15 +287,15 @@ class SessionState {
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
-  void insert_gy_dynamic_rule(
-      const PolicyRule& rule, RuleLifetime& lifetime,
-      SessionStateUpdateCriteria& update_criteria);
-
   /**
    * Add a static rule to the session which is currently active.
    */
   void activate_static_rule(
       const std::string& rule_id, RuleLifetime& lifetime,
+      SessionStateUpdateCriteria& update_criteria);
+
+  void insert_gy_dynamic_rule(
+      const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -450,6 +492,12 @@ class SessionState {
   SessionConfig config_;
   uint64_t pdp_start_time_;
   uint64_t pdp_end_time_;
+  /*5G related message to handle session state context */
+  uint32_t current_version_;  // To compare with incoming session version
+  // All 5G specific rules
+  // use as shared_ptr to check
+  std::vector<SetGroupPDR> PdrList_;
+  std::vector<SetGroupFAR> FarList_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;

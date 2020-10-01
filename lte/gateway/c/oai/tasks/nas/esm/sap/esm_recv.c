@@ -294,53 +294,13 @@ esm_cause_t esm_recv_pdn_connectivity_request(
       "ESM-PROC  - _esm_data.conf.features %08x, esm pdn type = %d\n",
       _esm_data.conf.features, esm_data->pdn_type);
   emm_context->emm_cause = ESM_CAUSE_SUCCESS;
-  switch (_esm_data.conf.features & (MME_API_IPV4 | MME_API_IPV6)) {
-    case (MME_API_IPV4 | MME_API_IPV6):
-      /*
-       * The network supports both IPv4 and IPv6 connection
-       */
-      if ((esm_data->pdn_type == ESM_PDN_TYPE_IPV4V6) &&
-          (_esm_data.conf.features & MME_API_SINGLE_ADDR_BEARERS)) {
-        /*
-         * The network supports single IP version bearers only
-         */
-        emm_context->emm_cause = ESM_CAUSE_SINGLE_ADDRESS_BEARERS_ONLY_ALLOWED;
-      }
-      break;
-
-    case MME_API_IPV6:
-      /*
-       * The network supports connection to IPv6 only
-       */
-      if (esm_data->pdn_type != ESM_PDN_TYPE_IPV6) {
-        emm_context->emm_cause = ESM_CAUSE_PDN_TYPE_IPV6_ONLY_ALLOWED;
-      }
-      break;
-
-    case MME_API_IPV4:
-      /*
-       * The network supports connection to IPv4 only
-       */
-      if (esm_data->pdn_type != ESM_PDN_TYPE_IPV4) {
-        emm_context->emm_cause = ESM_CAUSE_PDN_TYPE_IPV4_ONLY_ALLOWED;
-      }
-      break;
-
-    default:
-      OAILOG_ERROR(
-          LOG_NAS_ESM,
-          "ESM-PROC  - _esm_data.conf.features incorrect value (no IPV4 or "
-          "IPV6 "
-          ") %X for (ue_id = %u)\n",
-          _esm_data.conf.features, ue_id);
-  }
 
   if (is_standalone) {
     ue_mm_context_t* ue_mm_context_p =
         mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     // Select APN
-    struct apn_configuration_s* apn_config = mme_app_select_apn(
-        ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn);
+    struct apn_configuration_s* apn_config =
+        mme_app_select_apn(ue_mm_context_p, &esm_cause);
 
     /*
      * Execute the PDN connectivity procedure requested by the UE
@@ -350,7 +310,23 @@ esm_cause_t esm_recv_pdn_connectivity_request(
           LOG_NAS_ESM,
           "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
           ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_ACCESS_POINT_NAME);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+    }
+
+    /* Check if a session already exists for this APN. Only 1 session
+     * is supported per APN
+     */
+    for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
+      if (ue_mm_context_p->pdn_contexts[itr]) {
+        if (!(strcmp(
+                (const char*) ue_mm_context_p->pdn_contexts[itr]
+                    ->apn_subscribed->data,
+                apn_config->service_selection)) &&
+            (ue_mm_context_p->pdn_contexts[itr]->is_active)) {
+          OAILOG_FUNC_RETURN(
+              LOG_NAS_ESM, ESM_CAUSE_MULTIPLE_PDN_CONNECTIONS_NOT_ALLOWED);
+        }
+      }
     }
 
     /* Find a free PDN Connection ID*/
@@ -374,7 +350,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     rc                       = esm_proc_pdn_connectivity_request(
         emm_context, pti, pdn_cid, apn_config->context_identifier,
         emm_context->esm_ctx.esm_proc_data->request_type, esm_data->apn,
-        esm_data->pdn_type, esm_data->pdn_addr, &esm_data->bearer_qos,
+        apn_config->pdn_type, esm_data->pdn_addr, &esm_data->bearer_qos,
         (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
             &emm_context->esm_ctx.esm_proc_data->pco :
             NULL,
