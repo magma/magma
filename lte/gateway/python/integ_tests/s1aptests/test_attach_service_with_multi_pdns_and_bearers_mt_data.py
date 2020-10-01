@@ -22,9 +22,6 @@ import ipaddress
 
 
 class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
-    SPGW_TABLE = 0
-    GTP_PORT = 32768
-    LOCAL_PORT = "LOCAL"
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()

@@ -22,9 +22,6 @@ from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 
 
 class TestAttachServiceWithMultiPdnsAndBearersMultiUe(unittest.TestCase):
-    SPGW_TABLE = 0
-    GTP_PORT = 32768
-    LOCAL_PORT = "LOCAL"
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
@@ -40,7 +37,6 @@ class TestAttachServiceWithMultiPdnsAndBearersMultiUe(unittest.TestCase):
         + detach. Repeat for 4 UEs"""
         num_ues = 4
         ue_ids = []
-        # 2 PDNs + 2 dedicated bearers per UE.Totally 16 UL flows for 4 UEs
         default_ips = []
         sec_ips = []
 

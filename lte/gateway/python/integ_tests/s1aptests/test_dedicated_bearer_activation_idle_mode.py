@@ -22,8 +22,6 @@ import ipaddress
 
 
 class TestDedicatedBearerActivationIdleMode(unittest.TestCase):
-    SPGW_TABLE = 0
-    LOCAL_PORT = "LOCAL"
 
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
