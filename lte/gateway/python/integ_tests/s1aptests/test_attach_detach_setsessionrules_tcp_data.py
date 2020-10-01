@@ -48,9 +48,9 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
 
-        ims = {
-            "apn_name": "ims",  # APN-name
-            "qci": 5,  # qci
+        internet = {
+            "apn_name": "internet",  # APN-name
+            "qci": 9,  # qci
             "priority": 15,  # priority
             "pre_cap": 0,  # preemption-capability
             "pre_vul": 0,  # preemption-vulnerability
@@ -59,7 +59,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
         }
 
         # APN list to be configured
-        apn_list = [ims]
+        apn_list = [internet]
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -128,150 +128,150 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                 "pre_vul": 1,  # pre-emption vulnerability
             }
 
-            # policy_id = "tcp_udp_1"
-
-            # print("Sleeping for 5 seconds")
-            # time.sleep(5)
-            # print(
-            #     "********************** Set Session Rule for IMSI",
-            #     "".join([str(i) for i in req.imsi]),
-            # )
-            # self._sessionManager_util.send_SetSessionRules(
-            #     "IMSI" + "".join([str(i) for i in req.imsi]),
-            #     policy_id,
-            #     flow_list,
-            #     qos,
-            # )
-
-            # # Receive Activate dedicated bearer request
-            # response = self._s1ap_wrapper.s1_util.get_response()
-            # self.assertEqual(
-            #     response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
-            # )
-            # act_ded_ber_ctxt_req = response.cast(
-            #     s1ap_types.UeActDedBearCtxtReq_t
-            # )
-
-            # # Send Activate dedicated bearer accept
-            # self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            #     req.ue_id, act_ded_ber_ctxt_req.bearerId
-            # )
-
-            # policy_id = "tcp_udp_2"
-            # print("Sleeping for 5 seconds")
-            # time.sleep(5)
-            # print(
-            #     "********************** Set Session Rule for IMSI",
-            #     "".join([str(i) for i in req.imsi]),
-            # )
-            # self._sessionManager_util.send_SetSessionRules(
-            #     "IMSI" + "".join([str(i) for i in req.imsi]),
-            #     policy_id,
-            #     flow_list,
-            #     qos,
-            # )
-            # # First rule is replaced by the second rule
-            # # Triggers a delete bearer followed by a create bearer request
-            # # Receive Deactivate dedicated bearer request
-            # response = self._s1ap_wrapper.s1_util.get_response()
-            # self.assertEqual(
-            #     response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
-            # )
-            # deactivate_ber_ctxt_req = response.cast(
-            #     s1ap_types.UeDeActvBearCtxtReq_t
-            # )
-
-            # # Send Deactivate dedicated bearer accept
-            # self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
-            #     req.ue_id, deactivate_ber_ctxt_req.bearerId
-            # )
-
-            # # Receive Activate dedicated bearer request
-            # response = self._s1ap_wrapper.s1_util.get_response()
-            # self.assertEqual(
-            #     response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
-            # )
-            # act_ded_ber_ctxt_req = response.cast(
-            #     s1ap_types.UeActDedBearCtxtReq_t
-            # )
-
-            # # Send Activate dedicated bearer accept
-            # self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            #     req.ue_id, act_ded_ber_ctxt_req.bearerId
-            # )
-
-            # Check if UL and DL OVS flows are created
-            # UPLINK
-            # print("Checking for uplink flow")
-            # # try at least 5 times before failing as gateway
-            # # might take some time to install the flows in ovs
-            # for i in range(MAX_NUM_RETRIES):
-            #     print("Get uplink flows: attempt ", i)
-            #     uplink_flows = get_flows(
-            #         datapath,
-            #         {
-            #             "table_id": self.SPGW_TABLE,
-            #             "match": {"in_port": self.GTP_PORT},
-            #         },
-            #     )
-            #     if len(uplink_flows) > 1:
-            #         break
-            #     time.sleep(5)  # sleep for 5 seconds before retrying
-
-            # assert len(uplink_flows) > 1, "Uplink flow missing for UE"
-            # self.assertIsNotNone(
-            #     uplink_flows[0]["match"]["tunnel_id"],
-            #     "Uplink flow missing tunnel id match",
-            # )
-
-            # # DOWNLINK
-            # print("Checking for downlink flow")
-            # ue_ip = str(self._s1ap_wrapper._s1_util.get_ip(req.ue_id))
-            # # try at least 5 times before failing as gateway
-            # # might take some time to install the flows in ovs
-            # for i in range(MAX_NUM_RETRIES):
-            #     print("Get downlink flows: attempt ", i)
-            #     downlink_flows = get_flows(
-            #         datapath,
-            #         {
-            #             "table_id": self.SPGW_TABLE,
-            #             "match": {
-            #                 "nw_dst": ue_ip,
-            #                 "eth_type": 2048,
-            #                 "in_port": self.LOCAL_PORT,
-            #             },
-            #         },
-            #     )
-            #     if len(downlink_flows) > 1:
-            #         break
-            #     time.sleep(5)  # sleep for 5 seconds before retrying
-
-            # assert len(downlink_flows) > 1, "Downlink flow missing for UE"
-            # self.assertEqual(
-            #     downlink_flows[0]["match"]["ipv4_dst"],
-            #     ue_ip,
-            #     "UE IP match missing from downlink flow",
-            # )
-
-            # actions = downlink_flows[0]["instructions"][0]["actions"]
-            # has_tunnel_action = any(
-            #     action
-            #     for action in actions
-            #     if action["field"] == "tunnel_id"
-            #     and action["type"] == "SET_FIELD"
-            # )
-            # self.assertTrue(
-            #     has_tunnel_action, "Downlink flow missing set tunnel action"
-            # )
-
-            # print("Sleeping for 5 seconds")
-            # time.sleep(5)
-            # with self._s1ap_wrapper.configUplinkTest(req, duration=20, is_udp=True) as test:
-            #     test.verify()
+            policy_id = "tcp_udp_1"
 
             print("Sleeping for 5 seconds")
             time.sleep(5)
-            with self._s1ap_wrapper.configDownlinkTest(req, duration=1, is_udp=True) as test:
+            print(
+                "********************** Set Session Rule for IMSI",
+                "".join([str(i) for i in req.imsi]),
+            )
+            self._sessionManager_util.send_SetSessionRules(
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                policy_id,
+                flow_list,
+                qos,
+            )
+
+            # Receive Activate dedicated bearer request
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            )
+            act_ded_ber_ctxt_req = response.cast(
+                s1ap_types.UeActDedBearCtxtReq_t
+            )
+
+            # Send Activate dedicated bearer accept
+            self._s1ap_wrapper.sendActDedicatedBearerAccept(
+                req.ue_id, act_ded_ber_ctxt_req.bearerId
+            )
+
+            policy_id = "tcp_udp_2"
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+            print(
+                "********************** Set Session Rule for IMSI",
+                "".join([str(i) for i in req.imsi]),
+            )
+            self._sessionManager_util.send_SetSessionRules(
+                "IMSI" + "".join([str(i) for i in req.imsi]),
+                policy_id,
+                flow_list,
+                qos,
+            )
+            # First rule is replaced by the second rule
+            # Triggers a delete bearer followed by a create bearer request
+            # Receive Deactivate dedicated bearer request
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
+            )
+            deactivate_ber_ctxt_req = response.cast(
+                s1ap_types.UeDeActvBearCtxtReq_t
+            )
+
+            # Send Deactivate dedicated bearer accept
+            self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
+                req.ue_id, deactivate_ber_ctxt_req.bearerId
+            )
+
+            # Receive Activate dedicated bearer request
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+            )
+            act_ded_ber_ctxt_req = response.cast(
+                s1ap_types.UeActDedBearCtxtReq_t
+            )
+
+            # Send Activate dedicated bearer accept
+            self._s1ap_wrapper.sendActDedicatedBearerAccept(
+                req.ue_id, act_ded_ber_ctxt_req.bearerId
+            )
+
+            # Check if UL and DL OVS flows are created
+            # UPLINK
+            print("Checking for uplink flow")
+            # try at least 5 times before failing as gateway
+            # might take some time to install the flows in ovs
+            for i in range(MAX_NUM_RETRIES):
+                print("Get uplink flows: attempt ", i)
+                uplink_flows = get_flows(
+                    datapath,
+                    {
+                        "table_id": self.SPGW_TABLE,
+                        "match": {"in_port": self.GTP_PORT},
+                    },
+                )
+                if len(uplink_flows) > 1:
+                    break
+                time.sleep(5)  # sleep for 5 seconds before retrying
+
+            assert len(uplink_flows) > 1, "Uplink flow missing for UE"
+            self.assertIsNotNone(
+                uplink_flows[0]["match"]["tunnel_id"],
+                "Uplink flow missing tunnel id match",
+            )
+
+            # DOWNLINK
+            print("Checking for downlink flow")
+            ue_ip = str(self._s1ap_wrapper._s1_util.get_ip(req.ue_id))
+            # try at least 5 times before failing as gateway
+            # might take some time to install the flows in ovs
+            for i in range(MAX_NUM_RETRIES):
+                print("Get downlink flows: attempt ", i)
+                downlink_flows = get_flows(
+                    datapath,
+                    {
+                        "table_id": self.SPGW_TABLE,
+                        "match": {
+                            "nw_dst": ue_ip,
+                            "eth_type": 2048,
+                            "in_port": self.LOCAL_PORT,
+                        },
+                    },
+                )
+                if len(downlink_flows) > 1:
+                    break
+                time.sleep(5)  # sleep for 5 seconds before retrying
+
+            assert len(downlink_flows) > 1, "Downlink flow missing for UE"
+            self.assertEqual(
+                downlink_flows[0]["match"]["ipv4_dst"],
+                ue_ip,
+                "UE IP match missing from downlink flow",
+            )
+
+            actions = downlink_flows[0]["instructions"][0]["actions"]
+            has_tunnel_action = any(
+                action
+                for action in actions
+                if action["field"] == "tunnel_id"
+                and action["type"] == "SET_FIELD"
+            )
+            self.assertTrue(
+                has_tunnel_action, "Downlink flow missing set tunnel action"
+            )
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+            with self._s1ap_wrapper.configUplinkTest(req, duration=20, is_udp=False) as test:
+                test.verify()
+
+            print("Sleeping for 5 seconds")
+            time.sleep(5)
+            with self._s1ap_wrapper.configDownlinkTest(req, duration=1, is_udp=False) as test:
                 test.verify()
 
             print("Sleeping for 5 seconds")
