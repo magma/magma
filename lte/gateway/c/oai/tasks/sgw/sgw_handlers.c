@@ -504,7 +504,7 @@ static void sgw_add_gtp_tunnel(
   if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection
           .ue_suspended_for_ps_handover) {
     rv = gtp_tunnel_ops->forward_data_on_tunnel(
-        ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
+        ue, NULL, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
         DEFAULT_PRECEDENCE);
     if (rv < 0) {
       OAILOG_ERROR_UE(
@@ -520,7 +520,7 @@ static void sgw_add_gtp_tunnel(
             .pdn_connection.default_bearer) {
       // Set default precedence and tft for default bearer
       rv = gtpv1u_add_tunnel(
-          ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          ue, NULL, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
       if (rv < 0) {
         OAILOG_ERROR_UE(
@@ -537,7 +537,7 @@ static void sgw_add_gtp_tunnel(
             ue.s_addr, &dlflow);
 
         rv = gtpv1u_add_tunnel(
-            ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            ue, NULL, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u, imsi, &dlflow,
             eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                 .eval_precedence);
@@ -693,7 +693,7 @@ int sgw_handle_sgi_endpoint_deleted(
       if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
               .pdn_connection.ue_suspended_for_ps_handover) {
         rv = gtp_tunnel_ops->forward_data_on_tunnel(
-            ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
+            ue, NULL, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
             DEFAULT_PRECEDENCE);
         if (rv < 0) {
           OAILOG_ERROR_UE(
@@ -707,7 +707,7 @@ int sgw_handle_sgi_endpoint_deleted(
           eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
       rv = gtp_tunnel_ops->del_tunnel(enb,
-          ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          ue, NULL, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
@@ -920,7 +920,7 @@ int sgw_handle_modify_bearer_request(
           gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
           // delete GTPv1-U tunnel
           rv = gtp_tunnel_ops->del_tunnel(enb,
-              ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+              ue, NULL, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
         }
         populate_sgi_end_point_update(
@@ -1033,7 +1033,7 @@ int sgw_handle_delete_session_request(
                            .ipv4_address.s_addr;
 
             rv = gtp_tunnel_ops->del_tunnel(enb,
-                eps_bearer_ctxt_p->paa.ipv4_address,
+                eps_bearer_ctxt_p->paa.ipv4_address, NULL,
                 eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_p->enb_teid_S1u, NULL);
             if (rv < 0) {
@@ -1198,7 +1198,7 @@ int sgw_handle_release_access_bearers_request(
                            .ipv4_address.s_addr;
 
         rv = gtp_tunnel_ops->del_tunnel(enb,
-            eps_bearer_ctxt->paa.ipv4_address,
+            eps_bearer_ctxt->paa.ipv4_address, NULL,
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt->enb_teid_S1u, NULL);
         if (rv < 0) {
@@ -1430,7 +1430,7 @@ int sgw_handle_suspend_notification(
       // delete GTPv1-U tunnel
       struct in_addr ue = eps_bearer_entry_p->paa.ipv4_address;
       rv                = gtp_tunnel_ops->discard_data_on_tunnel(
-          ue, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up, NULL);
+          ue, NULL, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64, "ERROR in Disabling DL data on TUNNEL\n");
@@ -1594,7 +1594,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
                 ue.s_addr, &dlflow);
 
             rc = gtpv1u_add_tunnel(
-                ue, vlan, enb, eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
+                ue, NULL, vlan, enb, eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_entry_p->enb_teid_S1u, imsi, &dlflow,
                 eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
                     .eval_precedence);
@@ -1695,7 +1695,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
                            .ipv4_address.s_addr;
 
           rc = gtp_tunnel_ops->del_tunnel(enb,
-              eps_bearer_ctxt_p->paa.ipv4_address,
+              eps_bearer_ctxt_p->paa.ipv4_address, NULL,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
           if (rc < 0) {
@@ -1769,7 +1769,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
                            .ipv4_address.s_addr;
 
           rc = gtp_tunnel_ops->del_tunnel(enb,
-              eps_bearer_ctxt_p->paa.ipv4_address,
+              eps_bearer_ctxt_p->paa.ipv4_address, NULL,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, &dlflow);
           if (rc < 0) {

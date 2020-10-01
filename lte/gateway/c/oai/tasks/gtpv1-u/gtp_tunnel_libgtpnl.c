@@ -149,7 +149,9 @@ int libgtpnl_reset(void) {
 }
 
 int libgtpnl_add_tunnel(
-    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
+    struct in_addr ue, __attribute__((unused)) struct in6_addr *ue_ipv6,
+    __attribute__((unused)) int vlan, struct in_addr enb,
+    uint32_t i_tei, uint32_t o_tei,
     Imsi_t imsi, struct ipv4flow_dl* flow_dl) {
   struct gtp_tunnel* t;
   int ret;
@@ -173,7 +175,9 @@ int libgtpnl_add_tunnel(
 }
 
 int libgtpnl_del_tunnel(__attribute__((unused)) struct in_addr enb,
-    __attribute__((unused)) struct in_addr ue, uint32_t i_tei, uint32_t o_tei,
+    __attribute__((unused)) struct in_addr ue,
+    __attribute__((unused)) struct in6_addr *ue_ipv6,
+    uint32_t i_tei, uint32_t o_tei,
     struct ipv4flow_dl* flow_dl) {
   struct gtp_tunnel* t;
   int ret;
