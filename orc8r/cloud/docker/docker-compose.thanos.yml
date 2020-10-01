@@ -1,0 +1,83 @@
+# This compose file installs the required thanos components for orchestrator, as well as overriding
+# some configurations to make thanos work properly. It is NOT recommended to use this in any
+# production setting, but rather just as a way of development testing and experimentation.
+
+version: "3.7"
+
+services:
+  prometheus:
+    command:
+      - "--config.file=/etc/prometheus/prometheus-thanos.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.min-block-duration=2h"
+      - "--storage.tsdb.max-block-duration=2h"
+      - "--storage.tsdb.retention.time=6h"
+      - "--web.enable-lifecycle"
+
+  thanosSidecar:
+    image: thanosio/thanos:master-2020-09-30-e4941a5c
+    volumes:
+      - /Users/smithscott/prometheus_docker_data:/prometheus
+      - /Users/smithscott/prometheus_objstore_data:/objstorage:ro
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs/thanos:/etc/thanos:ro
+    command:
+      - "sidecar"
+      - "--tsdb.path=/prometheus"
+      - "--prometheus.url=http://prometheus:9090"
+      - "--grpc-address=0.0.0.0:19090" # Store API endpoint for querier
+      - "--objstore.config-file=/etc/thanos/objstore.yml"
+
+  thanosQuery:
+    image: thanosio/thanos:master-2020-09-30-e4941a5c
+    ports:
+      - 19192:19192/tcp # query UI
+    command:
+      - "query"
+      - "--http-address=0.0.0.0:19192"
+      - "--store=thanosSidecar:19090"
+      - "--store=thanosStore:10901"
+
+  thanosRuler:
+    image: thanosio/thanos:master-2020-09-30-e4941a5c
+    volumes:
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs/thanos:/etc/thanos
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs/alert_rules:/etc/configs/alert_rules
+    ports:
+      - 10903:10902/tcp
+    command:
+      - "rule"
+      - "--eval-interval=30s"
+      - "--rule-file=/etc/configs/alert_rules/*"
+      - "--alertmanagers.url=http://alertmanager:9093"
+      - "--query=http://thanosQuery:19192"
+      - "--objstore.config-file=/etc/thanos/objstore.yml"
+
+  thanosCompactor:
+    image: thanosio/thanos:master-2020-09-30-e4941a5c
+    volumes:
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs/thanos:/etc/thanos
+    command:
+      - "compact"
+      - "--objstore.config-file=/etc/thanos/objstore.yml"
+      - "--retention.resolution-raw=365d"
+      - "--retention.resolution-5m=365d"
+      - "--retention.resolution-1h=365d"
+      - "--wait"
+
+  thanosStore:
+    image: thanosio/thanos:master-2020-09-30-e4941a5c
+    ports:
+      - 10901:10901/tcp
+    volumes:
+      - $PWD/../../../orc8r/cloud/docker/metrics-configs/thanos:/etc/thanos
+    command:
+      - "store"
+      - "--objstore.config-file=/etc/thanos/objstore.yml"
+
+  prometheus-configurer:
+    command:
+      - "-port=9100"
+      - "-rules-dir=/etc/configs/alert_rules/"
+      - "-prometheusURL=thanosRuler:10902"
+      - "-multitenant-label=networkID"
+      - "-restrict-queries"
