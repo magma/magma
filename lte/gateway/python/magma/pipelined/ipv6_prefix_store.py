@@ -27,7 +27,6 @@ class InterfaceIDToPrefixMapper:
     """
 
     def __init__(self):
-        self.redis_cli = get_default_client()
         self._prefix_by_interface = PrefixDict()
         self._lock = threading.Lock()  # write lock
 
