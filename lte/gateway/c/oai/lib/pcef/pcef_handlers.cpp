@@ -210,7 +210,7 @@ static int get_uli_from_session_req(
     return 0;
   }
 
-  uli[0] = saved_req->uli.present;
+  uli[0] = 130;  // TAI and ECGI - defined in 29.061
 
   // TAI as defined in 29.274 8.21.4
   uli[1] = ((saved_req->uli.s.tai.mcc_digit2 & 0xf) << 4) |
