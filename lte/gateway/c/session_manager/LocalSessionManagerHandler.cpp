@@ -190,9 +190,15 @@ static CreateSessionRequest make_create_session_request(
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
   create_request.mutable_rat_specific_context()->CopyFrom(
       cfg.rat_specific_context);
+
   if (access_timezone != nullptr) {
     create_request.mutable_access_timezone()->CopyFrom(*access_timezone);
   }
+
+  const RequestedUnits requestedUnits =
+      SessionCredit::get_initial_requested_credits_units();
+  create_request.mutable_requested_units()->CopyFrom(requestedUnits);
+
   return create_request;
 }
 

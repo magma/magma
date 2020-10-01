@@ -112,6 +112,13 @@
     state: directory
   when: full_provision
 
+- name: Add Magma dependency package directory
+  become: no
+  file:
+    path: '{{ magma_deps }}/'
+    state: directory
+  when: full_provision
+
 - name: Enable IP forwarding
   sysctl: name="net.ipv4.ip_forward" value=1 sysctl_set=yes state=present reload=yes
   when: full_provision

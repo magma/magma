@@ -17,8 +17,8 @@ import (
 	"fmt"
 	"strings"
 
-	"magma/orc8r/cloud/go/services/service_registry"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/api/types/filters"
@@ -117,7 +117,7 @@ func (s *DockerServiceRegistryServicer) GetServiceAddress(ctx context.Context, r
 	// the services don't need to expose any ports. We can use a standardized
 	// port for the gRPC service address.
 	return &protos.GetServiceAddressResponse{
-		Address: fmt.Sprintf("%s:%d", req.GetService(), service_registry.GrpcServicePort),
+		Address: fmt.Sprintf("%s:%d", req.GetService(), registry.GrpcServicePort),
 	}, nil
 }
 
@@ -138,7 +138,7 @@ func (s *DockerServiceRegistryServicer) GetHttpServerAddress(ctx context.Context
 	// the services don't need to expose any ports. We can use a standardized
 	// port for the HTTP server address.
 	return &protos.GetHttpServerAddressResponse{
-		Address: fmt.Sprintf("%s:%d", req.GetService(), service_registry.HttpServerPort),
+		Address: fmt.Sprintf("%s:%d", req.GetService(), registry.HttpServerPort),
 	}, nil
 }
 

@@ -50,7 +50,6 @@ class MeteringReporter {
   void report_traffic(
       const std::string& imsi, const std::string& session_id,
       const std::string& traffic_direction, double unreported_usage_bytes);
-
 };
 
 }  // namespace lte

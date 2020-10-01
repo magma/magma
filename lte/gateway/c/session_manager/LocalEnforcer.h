@@ -405,19 +405,19 @@ class LocalEnforcer {
 
   void schedule_static_rule_activation(
       const std::string& imsi, const std::string& ip_addr,
-      const StaticRuleInstall& static_rule);
+      const std::string& ipv6_addr, const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_activation(
       const std::string& imsi, const std::string& ip_addr,
-      const DynamicRuleInstall& dynamic_rule);
+      const std::string& ipv6_addr, const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
       const std::string& imsi, const std::string& ip_addr,
-      const StaticRuleInstall& static_rule);
+      const std::string& ipv6_addr, const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
       const std::string& imsi, const std::string& ip_addr,
-      DynamicRuleInstall& dynamic_rule);
+      const std::string& ipv6_addr, DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
@@ -455,7 +455,7 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      optional<AggregatedMaximumBitrate> ambr,
+      const std::string& ipv6_addr, optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
@@ -547,8 +547,9 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   void complete_final_unit_action_flows_install(
-      SessionMap& session_map, const std::string& ipv4,
-      const FinalActionInstallInfo info, SessionUpdate& session_update);
+      SessionMap& session_map, const std::string& ip_addr,
+      const std::string& ipv6_addrs, const FinalActionInstallInfo info,
+      SessionUpdate& session_update);
 
   /**
    * Remove final action flows through pipelined

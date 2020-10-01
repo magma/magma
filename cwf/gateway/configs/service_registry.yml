@@ -67,6 +67,9 @@ services:
     port: 9109
   # If modifying the port, ensure the healthcheck at
   # magma/cwf/gateway/docker/docker-compose.yml is updated
+  eap_sim:
+    ip_address: 127.0.0.1
+    port: 9118
   eap_aka:
     ip_address: 127.0.0.1
     port: 9123

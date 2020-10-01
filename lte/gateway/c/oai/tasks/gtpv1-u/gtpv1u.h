@@ -129,7 +129,7 @@ struct gtp_tunnel_ops {
   int (*add_tunnel)(
       struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
       Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl);
-  int (*del_tunnel)(
+  int (*del_tunnel)(struct in_addr enb,
       struct in_addr ue, uint32_t i_tei, uint32_t o_tei,
       struct ipv4flow_dl* flow_dl);
   int (*discard_data_on_tunnel)(

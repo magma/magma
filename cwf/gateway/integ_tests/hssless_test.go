@@ -15,9 +15,9 @@ limitations under the License.
 package integration
 
 import (
+	"fmt"
 	"testing"
 	"time"
-	"fmt"
 
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/cwf/gateway/registry"

@@ -29,7 +29,7 @@ using namespace lte;
  * create/delete to PGW
  */
 class SpgwServiceClient {
-public:
+ public:
   /**
    * Delete a default bearer (all session bearers)
    * @param imsi - msi to identify a UE
@@ -37,9 +37,9 @@ public:
    * @param linked_bearer_id - identifier for link bearer
    * @return true if the operation was successful
    */
-  virtual bool delete_default_bearer(const std::string &imsi,
-                                     const std::string &apn_ip_addr,
-                                     const uint32_t linked_bearer_id) = 0;
+  virtual bool delete_default_bearer(
+      const std::string& imsi, const std::string& apn_ip_addr,
+      const uint32_t linked_bearer_id) = 0;
 
   /**
    * Delete a dedicated bearer
@@ -63,7 +63,7 @@ public:
  * asynchronously to PGW.
  */
 class AsyncSpgwServiceClient : public GRPCReceiver, public SpgwServiceClient {
-public:
+ public:
   AsyncSpgwServiceClient();
 
   AsyncSpgwServiceClient(std::shared_ptr<grpc::Channel> pgw_channel);
@@ -74,9 +74,9 @@ public:
    * @param linked_bearer_id - identifier for link bearer
    * @return true if the operation was successful
    */
-  bool delete_default_bearer(const std::string &imsi,
-                             const std::string &apn_ip_addr,
-                             const uint32_t linked_bearer_id);
+  bool delete_default_bearer(
+      const std::string& imsi, const std::string& apn_ip_addr,
+      const uint32_t linked_bearer_id);
 
   /**
    * Delete a dedicated bearer
@@ -111,4 +111,4 @@ public:
       std::function<void(Status, CreateBearerResult)> callback);
 };
 
-} // namespace magma
+}  // namespace magma

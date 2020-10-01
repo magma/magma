@@ -86,21 +86,20 @@ def package(vcs='hg', all_deps="False",
     hash = pkg.get_commit_hash(vcs)
 
     with cd('~/magma/lte/gateway'):
+        # Generate magma dependency packages
+        run('mkdir -p ~/magma-deps')
+        print("Generating lte/setup.py and orc8r/setup.py magma dependency packages")
+        run('./release/pydep finddep --install-from-repo -b --build-output ~/magma-deps'
+            + (' -l ./release/magma.lockfile')
+            + ' python/setup.py'
+            + (' %s/setup.py' % ORC8R_AGW_PYTHON_ROOT))
+
         print("Building magma package, picking up commit %s..." % hash)
         run('make clean')
         build_type = "Debug" if env.debug_mode else "RelWithDebInfo"
         run('./release/build-magma.sh -h "%s" -t %s --cert %s --proxy %s' %
             (hash, build_type, cert_file, proxy_config))
 
-        # Generate magma dependency packages
-        run('mkdir -p ~/magma-deps')
-        print("Generating lte/setup.py magma dependency packages")
-        run(
-            './release/pydep finddep -b --build-output ~/magma-deps python/setup.py')
-
-        print("Generating orc8r/setup.py magma dependency packages")
-        run(
-            './release/pydep finddep -b --build-output ~/magma-deps %s/setup.py' % ORC8R_AGW_PYTHON_ROOT)
 
         run('rm -rf ~/magma-packages')
         run('mkdir -p ~/magma-packages')

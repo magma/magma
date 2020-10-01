@@ -20,6 +20,8 @@ import threading
 import time
 from enum import Enum
 from queue import Queue
+from typing import Optional
+
 import grpc
 import subprocess
 
@@ -52,6 +54,7 @@ from lte.protos.session_manager_pb2_grpc import SessionProxyResponderStub
 from lte.protos.abort_session_pb2_grpc import AbortSessionResponderStub
 from orc8r.protos.directoryd_pb2 import GetDirectoryFieldRequest
 from orc8r.protos.directoryd_pb2_grpc import GatewayDirectoryServiceStub
+from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 
 DEFAULT_GRPC_TIMEOUT = 10
 
@@ -73,6 +76,12 @@ class S1ApUtil(object):
 
     _cond = threading.Condition()
     _msg = Queue()
+
+    MAX_NUM_RETRIES = 5
+    datapath = get_datapath()
+    SPGW_TABLE = 0
+    GTP_PORT = 32768
+    LOCAL_PORT = "LOCAL"
 
     class Msg(object):
         def __init__(self, msg_type, msg_p, msg_len):
@@ -315,6 +324,152 @@ class S1ApUtil(object):
         with self._lock:
             del self._ue_ip_map[ue_id]
 
+    def _verify_dl_flow(self, dl_flow_rules=None):
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+
+        # Verify the total number of DL flows for this UE ip address
+        num_dl_flows = 1
+        for key, value in dl_flow_rules.items():
+            ipv4_src_addr = None
+            tcp_src_port = 0
+            ip_proto = 0
+            ue_ip_str = str(key)
+            # Set to 1 for the default bearer
+            total_num_dl_flows_to_be_verified = 1
+            for item in value:
+                for flow in item:
+                    if flow["direction"] == "DL":
+                        total_num_dl_flows_to_be_verified += 1
+            total_dl_ovs_flows_created = get_flows(
+                self.datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {
+                        "nw_dst": ue_ip_str,
+                        "eth_type": 2048,
+                        "in_port": self.LOCAL_PORT,
+                    },
+                },
+            )
+            assert (
+                len(total_dl_ovs_flows_created)
+                == total_num_dl_flows_to_be_verified
+            )
+
+            # Now verify the rules for every flow
+            for item in value:
+                for flow in item:
+                    if flow["direction"] == "DL":
+                        ipv4_src_addr = flow["ipv4_src"]
+                        tcp_src_port = flow["tcp_src_port"]
+                        ip_proto = (
+                            FlowMatch.IPPROTO_TCP
+                            if (flow["ip_proto"] == "TCP")
+                            else FlowMatch.IPPROTO_UDP
+                        )
+                        for i in range(self.MAX_NUM_RETRIES):
+                            print("Get downlink flows: attempt ", i)
+                            downlink_flows = get_flows(
+                                self.datapath,
+                                {
+                                    "table_id": self.SPGW_TABLE,
+                                    "match": {
+                                        "nw_dst": ue_ip_str,
+                                        "eth_type": 2048,
+                                        "in_port": self.LOCAL_PORT,
+                                        "ipv4_src": ipv4_src_addr,
+                                        "tcp_src": tcp_src_port,
+                                        "ip_proto": ip_proto,
+                                    },
+                                },
+                            )
+                            if len(downlink_flows) >= num_dl_flows:
+                                break
+                            time.sleep(
+                                5
+                            )  # sleep for 5 seconds before retrying
+                        assert (
+                            len(downlink_flows) >= num_dl_flows
+                        ), "Downlink flow missing for UE"
+                        assert (
+                            downlink_flows[0]["match"]["ipv4_dst"] == ue_ip_str
+                        )
+                        actions = downlink_flows[0]["instructions"][0][
+                            "actions"
+                        ]
+                        has_tunnel_action = any(
+                            action
+                            for action in actions
+                            if action["field"] == "tunnel_id"
+                            and action["type"] == "SET_FIELD"
+                        )
+                        assert bool(has_tunnel_action)
+
+    def verify_flow_rules(self, num_ul_flows, dl_flow_rules=None):
+        # Check if UL and DL OVS flows are created
+        print("************ Verifying flow rules")
+        # UPLINK
+        print("Checking for uplink flow")
+        # try at least 5 times before failing as gateway
+        # might take some time to install the flows in ovs
+        for i in range(self.MAX_NUM_RETRIES):
+            print("Get uplink flows: attempt ", i)
+            uplink_flows = get_flows(
+                self.datapath,
+                {
+                    "table_id": self.SPGW_TABLE,
+                    "match": {"in_port": self.GTP_PORT},
+                },
+            )
+            if len(uplink_flows) == num_ul_flows:
+                break
+            time.sleep(5)  # sleep for 5 seconds before retrying
+        assert len(uplink_flows) == num_ul_flows, "Uplink flow missing for UE"
+        assert uplink_flows[0]["match"]["tunnel_id"] is not None
+
+        # DOWNLINK
+        print("Checking for downlink flow")
+        self._verify_dl_flow(dl_flow_rules)
+
+    def verify_paging_flow_rules(self, ip_list):
+        # Check if paging flows are created
+        print("************ Verifying paging flow rules")
+        num_paging_flows_to_be_verified = 1
+        for ip in ip_list:
+            ue_ip_str = str(ip)
+            print("Verifying paging flow for ip", ue_ip_str)
+            for i in range(self.MAX_NUM_RETRIES):
+                print("Get paging flows: attempt ", i)
+                paging_flows = get_flows(
+                    self.datapath,
+                    {
+                        "table_id": self.SPGW_TABLE,
+                        "match": {
+                            "nw_dst": ue_ip_str,
+                            "eth_type": 2048,
+                            "priority": 5,
+                        },
+                    },
+                )
+                if len(paging_flows) == num_paging_flows_to_be_verified:
+                    break
+                time.sleep(5)  # sleep for 5 seconds before retrying
+            assert (
+                len(paging_flows) == num_paging_flows_to_be_verified
+            ), "Paging flow missing for UE"
+
+            # TODO - Verify that the action is to send to controller
+            """controller_port = 4294967293
+            actions = paging_flows[0]["instructions"][0]["actions"]
+            has_tunnel_action = any(
+                action
+                for action in actions
+                if action["type"] == "OUTPUT"
+                and action["port"] == controller_port
+            )
+            assert bool(has_tunnel_action)"""
+
 
 class SubscriberUtil(object):
     """
@@ -439,6 +594,23 @@ class MagmadUtil(object):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+
+    def exec_command_output(self, command):
+        """
+        Run a command remotly on magma_dev VM.
+
+        Args:
+            command: command (str) to be executed on remote host
+            e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
+
+        """
+        data = self._data
+        data["command"] = '"' + command + '"'
+        param_list = shlex.split(self._command.format(**data))
+        return subprocess.check_output(
+            param_list,
+            shell=False,
+        ).decode("utf-8")
 
     def config_stateless(self, cmd):
         """
@@ -948,3 +1120,20 @@ class SessionManagerUtil(object):
                 user_name=imsi,
             )
         )
+
+
+class GTPBridgeUtils:
+    def __init__(self):
+        self.magma_utils = MagmadUtil(None)
+        ret = self.magma_utils.exec_command_output("sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
+        if "false" in ret:
+            self.gtp_port_name = "gtp0"
+        else:
+            self.gtp_port_name = "g_8d3ca8c0"
+
+    def get_gtp_port_no(self) -> Optional[int]:
+        output = self.magma_utils.exec_command_output("sudo ovsdb-client dump Interface name ofport")
+        for line in output.split('\n'):
+            if self.gtp_port_name in line:
+                port_info = line.split()
+                return port_info[1]

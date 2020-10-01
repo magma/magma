@@ -390,7 +390,6 @@ TEST_F(SessionStateTest, test_session_level_key) {
   EXPECT_EQ(single_update.bytes_tx(), 5000);
   EXPECT_EQ(single_update.bytes_rx(), 2000);
 
-
   // Send 0 value traffic which will indicate monitor must be disabled after
   // going out of quota
   receive_credit_from_pcrf("m1", 0, MonitoringLevel::SESSION_LEVEL);
@@ -406,9 +405,9 @@ TEST_F(SessionStateTest, test_session_level_key) {
   std::vector<std::unique_ptr<ServiceAction>> actions_2;
   session_state->get_updates(update_2, &actions_2, update_criteria);
   // TODO: session level seemsd to be adding total values, no deltas
-  //EXPECT_EQ(
+  // EXPECT_EQ(
   //   update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_TX], 1001);
-  //EXPECT_EQ(
+  // EXPECT_EQ(
   //    update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_RX], 1);
   EXPECT_EQ(actions_2.size(), 0);
   EXPECT_EQ(update_2.updates_size(), 0);
@@ -720,7 +719,7 @@ TEST_F(SessionStateTest, test_final_restrict_credit_install) {
   bool is_final = true;
   auto p_credit = charge_resp.mutable_credit();
   create_charging_credit(1024, is_final, p_credit);
-  //auto restrict_rules = p_credit->restrict_rules();
+  // auto restrict_rules = p_credit->restrict_rules();
   p_credit->add_restrict_rules("restrict-rule");
   p_credit->set_final_action(ChargingCredit_FinalAction_RESTRICT_ACCESS);
 
@@ -784,19 +783,34 @@ TEST_F(SessionStateTest, test_multiple_final_action_empty_grant) {
 
   receive_credit_from_ocs(1, 3000, 2000, 2000, false);
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
-  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.buckets[ALLOWED_TOTAL],3000);
-  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.buckets[ALLOWED_TX],2000);
-  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)]
-          .credit.buckets[ALLOWED_RX],2000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_TOTAL],
+      3000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_TX],
+      2000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_RX],
+      2000);
   // received granted units
-  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)].
-          credit.received_granted_units.total().volume(),3000);
-  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)].
-          credit.received_granted_units.tx().volume(),2000);
-  EXPECT_EQ(update_criteria.charging_credit_to_install[CreditKey(1)].
-          credit.received_granted_units.rx().volume(),2000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.received_granted_units.total()
+          .volume(),
+      3000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.received_granted_units.tx()
+          .volume(),
+      2000);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.received_granted_units.rx()
+          .volume(),
+      2000);
 
   // add usage for 2 times to go over quota
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
@@ -842,12 +856,21 @@ TEST_F(SessionStateTest, test_multiple_final_action_empty_grant) {
       SERVICE_ENABLED);
   EXPECT_FALSE(update_criteria.charging_credit_map[CreditKey(1)].reporting);
   // received granted units
-  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].
-            received_granted_units.total().volume(),0);
-  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].
-          received_granted_units.tx().volume(),0);
-  EXPECT_EQ(update_criteria.charging_credit_map[CreditKey(1)].
-          received_granted_units.rx().volume(),0);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)]
+          .received_granted_units.total()
+          .volume(),
+      0);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)]
+          .received_granted_units.tx()
+          .volume(),
+      0);
+  EXPECT_EQ(
+      update_criteria.charging_credit_map[CreditKey(1)]
+          .received_granted_units.rx()
+          .volume(),
+      0);
 
   // force to check for the state (no traffic sent)
   session_state->add_rule_usage("rule1", 0, 0, update_criteria);
@@ -932,24 +955,40 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   update_criteria = get_default_update_criteria();
 
   // get credit
-  receive_credit_from_pcrf("m1", 3000, 2000, 2000, MonitoringLevel::PCC_RULE_LEVEL);
+  receive_credit_from_pcrf(
+      "m1", 3000, 2000, 2000, MonitoringLevel::PCC_RULE_LEVEL);
   EXPECT_EQ(update_criteria.monitor_credit_to_install.size(), 1);
-  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_TOTAL],3000);
-  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_TX],2000);
-  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"]
-                .credit.buckets[ALLOWED_RX],2000);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_to_install["m1"]
+          .credit.buckets[ALLOWED_TOTAL],
+      3000);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_to_install["m1"]
+          .credit.buckets[ALLOWED_TX],
+      2000);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_to_install["m1"]
+          .credit.buckets[ALLOWED_RX],
+      2000);
   // received granted units
-  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"].
-      credit.received_granted_units.total().volume(),3000);
-  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"].
-      credit.received_granted_units.tx().volume(),2000);
-  EXPECT_EQ(update_criteria.monitor_credit_to_install["m1"].
-      credit.received_granted_units.rx().volume(),2000);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_to_install["m1"]
+          .credit.received_granted_units.total()
+          .volume(),
+      3000);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_to_install["m1"]
+          .credit.received_granted_units.tx()
+          .volume(),
+      2000);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_to_install["m1"]
+          .credit.received_granted_units.rx()
+          .volume(),
+      2000);
 
   // reset update_criteria (before any add_rule_usage)
-  //update_criteria = get_default_update_criteria();
+  // update_criteria = get_default_update_criteria();
   // add usage for 2 times to go over quota
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 2000);
@@ -957,11 +996,11 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   EXPECT_FALSE(update_criteria.monitor_credit_map["m1"].report_last_credit);
   EXPECT_FALSE(update_criteria.monitor_credit_map["m1"].deleted);
 
-  // receive a grant with total = 0 (meaning there is no more cuota left and monitor
-  // needs to be removed once quota is exhausted
+  // receive a grant with total = 0 (meaning there is no more cuota left and
+  // monitor needs to be removed once quota is exhausted
   receive_credit_from_pcrf("m1", 0, 100, 200, MonitoringLevel::PCC_RULE_LEVEL);
   // reset update_criteria (before any add_rule_usage)
-  //update_criteria = get_default_update_criteria();
+  // update_criteria = get_default_update_criteria();
   session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
   EXPECT_EQ(session_state->get_monitor("m1", USED_TX), 4000);
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 2000);
@@ -974,9 +1013,12 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   session_state->get_updates(update, &actions, update_criteria);
   EXPECT_EQ(actions.size(), 0);
   EXPECT_EQ(update.usage_monitors_size(), 1);
-  EXPECT_EQ(update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_TX], 4000);
-  EXPECT_EQ(update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_RX], 2000);
-  EXPECT_EQ(update_criteria.monitor_credit_map["m1"].service_state, SERVICE_ENABLED);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_TX], 4000);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_map["m1"].bucket_deltas[USED_RX], 2000);
+  EXPECT_EQ(
+      update_criteria.monitor_credit_map["m1"].service_state, SERVICE_ENABLED);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].report_last_credit);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].deleted);
   EXPECT_TRUE(update_criteria.monitor_credit_map["m1"].reporting);

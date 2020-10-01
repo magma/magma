@@ -377,7 +377,7 @@ func (gxClient *GxClient) getInitAvps(m *diam.Message, request *CreditControlReq
 	}
 	if request.AccessTimezone != nil {
 		timezone := GetTimezoneByte(request.AccessTimezone)
-		m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(datatype.OctetString(string([]byte{timezone}))))
+		m.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(datatype.OctetString(string([]byte{timezone, 0}))))
 	}
 }
 
@@ -500,6 +500,7 @@ func getDefaultFramedIpv4Addr() net.IP {
 }
 
 // TS 23.040 Section 9.2.3.11
+// https://osqa-ask.wireshark.org/questions/26682/3gpp-timezone-decoding-logic
 func GetTimezoneByte(timezone *protos.Timezone) byte {
 	// AVP expects time difference from UTC in increments of 15 minutes
 	offsetMinutes := timezone.GetOffsetMinutes()
@@ -511,11 +512,11 @@ func GetTimezoneByte(timezone *protos.Timezone) byte {
 	// bit 0-2 = tens digit
 	// bit 3   = 0 if offset is positive, 1 if it is negative
 	// bit 4-7 = ones digit
-	bottom := (increments / 10) & 0x07
+	tens := (increments / 10) & 0x07 // range 0-7
 	if offsetMinutes < 0 {
-		bottom |= 0x08
+		tens |= 0x08
 	}
-	top := (increments % 10) & 0x07
-	encodedTimezone := byte(top<<4 + bottom)
-	return encodedTimezone
+	ones := (increments % 10) & 0x0F // range 0-9
+	encodedTimezone := byte(ones<<4 + tens)
+	return byte(encodedTimezone)
 }

@@ -26,8 +26,8 @@ import (
 )
 
 const (
-	IMSI_PREFIX    = "IMSI"
-	DEFAULT_UE_IP   = "192.168.88.88"
+	IMSI_PREFIX   = "IMSI"
+	DEFAULT_UE_IP = "192.168.88.88"
 )
 
 // UESimServerHssLess tracks all the UEs being simulated.

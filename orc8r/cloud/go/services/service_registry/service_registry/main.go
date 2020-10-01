@@ -18,9 +18,9 @@ import (
 
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
-	"magma/orc8r/cloud/go/services/service_registry"
 	"magma/orc8r/cloud/go/services/service_registry/servicers"
 	"magma/orc8r/lib/go/protos"
+	"magma/orc8r/lib/go/registry"
 
 	"github.com/docker/docker/client"
 	"github.com/golang/glog"
@@ -29,28 +29,22 @@ import (
 )
 
 func main() {
-	srv, err := service.NewOrchestratorService(orc8r.ModuleName, service_registry.ServiceName)
+	srv, err := service.NewOrchestratorService(orc8r.ModuleName, registry.ServiceRegistryServiceName)
 	if err != nil {
 		glog.Fatalf("Error creating service registry service %s", err)
 	}
-	registryModeEnvValue := os.Getenv(service_registry.ServiceRegistryModeEnvVar)
-
-	var serviceRegistryServicer protos.ServiceRegistryServer
+	registryModeEnvValue := os.Getenv(registry.ServiceRegistryModeEnvVar)
 	switch registryModeEnvValue {
-	case service_registry.DockerServiceRegistry:
-		glog.Infof("Registry Mode set to %s. Creating Docker service registry", service_registry.DockerServiceRegistry)
+	case registry.DockerRegistryMode:
+		glog.Infof("Registry Mode set to %s. Creating Docker service registry", registry.DockerRegistryMode)
 		dockerCli, err := client.NewEnvClient()
 		if err != nil {
 			glog.Fatalf("Error creating docker client for service registry servicer: %s", err)
 		}
-		serviceRegistryServicer = servicers.NewDockerServiceRegistryServicer(dockerCli)
-	case service_registry.K8sServiceRegistry:
-	default:
-		if registryModeEnvValue != "1" {
-			glog.Infof("Registry Mode %s is invalid. Defaulting to k8s service registry", registryModeEnvValue)
-		} else {
-			glog.Infof("Registry Mode set to %s. Creating k8s service registry", service_registry.K8sServiceRegistry)
-		}
+		servicer := servicers.NewDockerServiceRegistryServicer(dockerCli)
+		protos.RegisterServiceRegistryServer(srv.GrpcServer, servicer)
+	case registry.K8sRegistryMode:
+		glog.Infof("Registry Mode set to %s. Creating k8s service registry", registry.K8sRegistryMode)
 		config, err := rest.InClusterConfig()
 		if err != nil {
 			glog.Fatalf("Error querying kubernetes config: %s", err)
@@ -59,12 +53,14 @@ func main() {
 		if err != nil {
 			glog.Fatalf("Error creating kubernetes clientset: %s", err)
 		}
-		serviceRegistryServicer, err = servicers.NewKubernetesServiceRegistryServicer(clientset.CoreV1())
+		servicer, err := servicers.NewKubernetesServiceRegistryServicer(clientset.CoreV1())
 		if err != nil {
 			glog.Fatal(err)
 		}
+		protos.RegisterServiceRegistryServer(srv.GrpcServer, servicer)
+	default:
+		glog.Infof("Registry Mode set to %s. Not creating service registry servicer", registryModeEnvValue)
 	}
-	protos.RegisterServiceRegistryServer(srv.GrpcServer, serviceRegistryServicer)
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error while running service: %s", err)
