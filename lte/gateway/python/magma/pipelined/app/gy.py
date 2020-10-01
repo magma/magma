@@ -63,6 +63,7 @@ class GYController(PolicyMixin, MagmaController):
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
         self._clean_restart = kwargs['config']['clean_restart']
         self._qos_mgr = None
+        self._setup_type = self._config['setup_type']
         self._redirect_manager = \
             RedirectionManager(
                 self._bridge_ip_address,
@@ -71,7 +72,9 @@ class GYController(PolicyMixin, MagmaController):
                 self._service_manager.get_table_num(EGRESS),
                 self._redirect_scratch,
                 self._session_rule_version_mapper
-            ).set_cwf_args(
+            )
+        if self._setup_type == 'CWF':
+            self._redirect_manager.set_cwf_args(
                 internal_ip_allocator=kwargs['internal_ip_allocator'],
                 arp=kwargs['app_futures']['arpd'],
                 mac_rewrite=self._mac_rewr,
@@ -233,8 +236,12 @@ class GYController(PolicyMixin, MagmaController):
             rule_version=rule_version,
             priority=priority)
         try:
-            self._redirect_manager.setup_cwf_redirect(
-                self._datapath, self.loop, redirect_request)
+            if self._setup_type == 'CWF':
+                self._redirect_manager.setup_cwf_redirect(
+                    self._datapath, self.loop, redirect_request)
+            else:
+                self._redirect_manager.setup_lte_redirect(
+                    self._datapath, self.loop, redirect_request)
             return RuleModResult.SUCCESS
         except RedirectException as err:
             self.logger.error(

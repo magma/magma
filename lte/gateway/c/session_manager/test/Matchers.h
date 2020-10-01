@@ -19,6 +19,8 @@
 
 #include "SessiondMocks.h"
 
+#include <google/protobuf/util/message_differencer.h>
+
 using ::testing::Test;
 
 namespace magma {
@@ -41,6 +43,18 @@ MATCHER_P(CheckUpdateRequestNumber, request_number, "") {
     return req_number == request_number;
   }
   return false;
+}
+
+MATCHER_P(CheckCoreRequest, expected_request, "") {
+  auto req    = static_cast<const CreateSessionRequest&>(arg);
+  auto ex_req = static_cast<const CreateSessionRequest&>(expected_request);
+  if (!google::protobuf::util::MessageDifferencer::Equals(
+          ex_req.requested_units(), req.requested_units())) {
+    return false;
+  }
+
+  // Add other check for the request
+  return true;
 }
 
 MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {

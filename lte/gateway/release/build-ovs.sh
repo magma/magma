@@ -85,9 +85,9 @@ cd ovs
 git checkout ${OVS_VERSION}
 cp $PATCH_ROOT/*.patch $WORK_DIR/ovs
 cp -r "${FLOWBASED_PATH}" "${WORK_DIR}/ovs/flow-based-gtp-linux-v4.9"
-git am ${PATCHES}
+git apply ${PATCHES}
 # vlan fix
-git cherry-pick $VLAN_FIX
+git show $VLAN_FIX | git apply -3 -
 
 ./boot.sh
 # Building OVS user packages

@@ -114,24 +114,6 @@
       "sysdep": "python3-hyperframe",
       "version": "5.2.0"
     },
-    "h2": {
-      "root": true,
-      "source": "pypi",
-      "sysdep": "python3-h2",
-      "version": "3.2.0"
-    },
-    "hpack": {
-      "root": true,
-      "source": "pypi",
-      "sysdep": "python3-hpack",
-      "version": "3.0"
-    },
-    "hyperframe": {
-      "root": false,
-      "source": "pypi",
-      "sysdep": "python3-hyperframe",
-      "version": "5.2.0"
-    },
     "idna": {
       "root": true,
       "source": "pypi",

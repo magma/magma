@@ -23,7 +23,6 @@ from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 
 class TestAttachASR(unittest.TestCase):
     SPGW_TABLE = 0
-    GTP_PORT = 32768
     LOCAL_PORT = "LOCAL"
 
     def setUp(self):

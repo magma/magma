@@ -14,14 +14,17 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "lte/protos/subscriberdb.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
 
+// smsd-gw component of service
 service SMSOrc8rService {
     rpc SMOUplink (SMOUplinkUnitdata) returns (magma.orc8r.Void) {}
 }
 
+// MME component of service
 service SMSOrc8rGatewayService {
     rpc SMODownlink (SMODownlinkUnitdata) returns (magma.orc8r.Void) {}
 }
@@ -41,4 +44,15 @@ message SMOUplinkUnitdata {
     bytes mobile_station_classmark2 = 5;
     bytes tai = 6;
     bytes e_cgi = 7;
+}
+
+message MessageList {
+	repeated SMODownlinkUnitdata messages = 1;
+}
+
+// smsd-cloud service definition
+service SmsD {
+	rpc ReportDelivery(SMOUplinkUnitdata) returns (magma.orc8r.Void) {}
+
+	rpc GetMessages(magma.lte.SubscriberIDSet) returns (MessageList) {}
 }
