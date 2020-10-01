@@ -114,7 +114,7 @@ SessionState::SessionState(
       config_(marshaled.config),
       pdp_start_time_(marshaled.pdp_start_time),
       pdp_end_time_(marshaled.pdp_end_time),
-      // 5G session version handlimg
+      // 5G session version handling
       current_version_(marshaled.current_version),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
@@ -174,19 +174,20 @@ SessionState::SessionState(
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
 
-/*For 5G which doesn't have response context*/
 SessionState::SessionState(
-    const std::string& imsi, const std::string& session_ctx_id,
+    const std::string& imsi, const std::string& session_id,
     const SessionConfig& cfg, StaticRuleStore& rule_store)
     : imsi_(imsi),
-      session_id_(session_ctx_id),
+      session_id_(session_id),
       // Request number set to 1, because request 0 is INIT call
       request_number_(1),
-      /*current state would be CREATING and version would be 0 */
       curr_state_(CREATING),
       config_(cfg),
+      pdp_start_time_(0),
+      pdp_end_time_(0),
       current_version_(0),
-      static_rules_(rule_store) {}
+      static_rules_(rule_store),
+      credit_map_(4, &ccHash, &ccEqual) {}
 
 /* get-set methods of new messages  for 5G*/
 uint32_t SessionState::get_current_version() {
@@ -795,6 +796,10 @@ uint64_t SessionState::get_pdp_end_time() {
   return pdp_end_time_;
 }
 
+void SessionState::set_pdp_start_time(uint64_t epoch) {
+  pdp_start_time_ = epoch;
+}
+
 void SessionState::set_pdp_end_time(uint64_t epoch) {
   pdp_end_time_ = epoch;
 }
@@ -1033,6 +1038,11 @@ void SessionState::install_scheduled_static_rule(
 
 uint32_t SessionState::get_credit_key_count() {
   return credit_map_.size() + monitor_map_.size();
+}
+
+bool SessionState::is_creating_or_active() {
+  return curr_state_ == CREATING || curr_state_ == CREATED ||
+         curr_state_ == SESSION_ACTIVE;
 }
 
 bool SessionState::is_active() {

@@ -981,7 +981,8 @@ void LocalEnforcer::filter_rule_installs(
 void LocalEnforcer::handle_session_init_rule_updates(
     const std::string& imsi, SessionState& session_state,
     const CreateSessionResponse& response,
-    std::unordered_set<uint32_t>& charging_credits_received) {
+    std::unordered_set<uint32_t>& charging_credits_received,
+    SessionStateUpdateCriteria& session_uc) {
   RulesToProcess rules_to_activate;
   RulesToProcess rules_to_deactivate;
   std::vector<StaticRuleInstall> static_rule_installs =
@@ -991,10 +992,9 @@ void LocalEnforcer::handle_session_init_rule_updates(
   filter_rule_installs(
       static_rule_installs, dynamic_rule_installs, charging_credits_received);
 
-  SessionStateUpdateCriteria uc;  // TODO remove unused UC
   process_rules_to_install(
       session_state, imsi, static_rule_installs, dynamic_rule_installs,
-      rules_to_activate, rules_to_deactivate, uc);
+      rules_to_activate, rules_to_deactivate, session_uc);
 
   // activate_flows_for_rules() should be called even if there is no rule
   // to activate, because pipelined activates a "drop all packet" rule
@@ -1005,7 +1005,7 @@ void LocalEnforcer::handle_session_init_rule_updates(
 
   if (config.common_context.rat_type() == TGPP_LTE) {
     auto bearer_updates = session_state.get_dedicated_bearer_updates(
-        rules_to_activate, rules_to_deactivate, uc);
+        rules_to_activate, rules_to_deactivate, session_uc);
     if (bearer_updates.needs_creation) {
       // If a bearer creation is needed, we need to delay this by a few seconds
       // so that the attach fully completes before.
@@ -1078,6 +1078,63 @@ void LocalEnforcer::schedule_session_init_bearer_creations(
       LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT);
 }
 
+void LocalEnforcer::initialize_creating_session(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, const SessionConfig& cfg) {
+  MLOG(MINFO) << "Initializing " << session_id;
+  auto session =
+      std::make_unique<SessionState>(imsi, session_id, cfg, *rule_store_);
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    // First time a session is created for IMSI
+    MLOG(MDEBUG) << "First session for " << imsi << " with SessionID "
+                 << session_id;
+    session_map[imsi] = SessionVector();
+  }
+  session_map[imsi].push_back(std::move(session));
+}
+
+void LocalEnforcer::process_create_session_response(
+    std::unique_ptr<SessionState>& session, const std::string& imsi,
+    const std::string& session_id, const CreateSessionResponse& response,
+    SessionStateUpdateCriteria& session_uc) {
+  const auto time_since_epoch = get_time_in_sec_since_epoch();
+  session->set_tgpp_context(response.tgpp_ctx(), session_uc);
+  session->set_fsm_state(CREATED, session_uc);
+  session->set_pdp_start_time(time_since_epoch);
+
+  std::unordered_set<uint32_t> charging_credits_received;
+  for (const auto& credit : response.credits()) {
+    if (session->receive_charging_credit(credit, session_uc)) {
+      charging_credits_received.insert(credit.charging_key());
+    }
+  }
+  // We don't have to check 'success' field for monitors because command level
+  // errors are handled in session proxy for the init exchange
+  for (const auto& monitor : response.usage_monitors()) {
+    session->receive_monitor(monitor, session_uc);
+  }
+
+  handle_session_init_rule_updates(
+      imsi, *session, response, charging_credits_received, session_uc);
+
+  if (revalidation_required(response.event_triggers())) {
+    schedule_revalidation(
+        imsi, *session, response.revalidation_time(), session_uc);
+  }
+
+  if (terminate_on_wallet_exhaust()) {
+    handle_session_init_subscriber_quota_state(imsi, *session);
+  }
+  if (session->is_radius_cwf_session() == false) {
+    update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
+  }
+  // TODO transition from CREATED->ACTIVE once we've received confirmation from
+  // PipelineD. For now, we will just transition to ACTIVE once we propagate
+  // rule updates
+  session->set_fsm_state(SESSION_ACTIVE, session_uc);
+}
+
 void LocalEnforcer::init_session_credit(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, const SessionConfig& cfg,
@@ -1086,11 +1143,11 @@ void LocalEnforcer::init_session_credit(
   auto session_state          = std::make_unique<SessionState>(
       imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(),
       time_since_epoch);
+  // TODO this uc is not doing anything here, modify interface
+  auto uc = get_default_update_criteria();
 
   std::unordered_set<uint32_t> charging_credits_received;
   for (const auto& credit : response.credits()) {
-    // TODO this uc is not doing anything here, modify interface
-    auto uc = get_default_update_criteria();
     if (session_state->receive_charging_credit(credit, uc)) {
       charging_credits_received.insert(credit.charging_key());
     }
@@ -1098,13 +1155,11 @@ void LocalEnforcer::init_session_credit(
   // We don't have to check 'success' field for monitors because command level
   // errors are handled in session proxy for the init exchange
   for (const auto& monitor : response.usage_monitors()) {
-    // TODO this uc is not doing anything here, modify interface
-    auto uc = get_default_update_criteria();
     session_state->receive_monitor(monitor, uc);
   }
 
   handle_session_init_rule_updates(
-      imsi, *session_state, response, charging_credits_received);
+      imsi, *session_state, response, charging_credits_received, uc);
 
   update_ipfix_flow(imsi, cfg, time_since_epoch);
 

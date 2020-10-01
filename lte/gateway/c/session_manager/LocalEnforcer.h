@@ -126,11 +126,21 @@ class LocalEnforcer {
   void handle_session_init_rule_updates(
       const std::string& imsi, SessionState& session_state,
       const CreateSessionResponse& response,
-      std::unordered_set<uint32_t>& charging_credits_received);
+      std::unordered_set<uint32_t>& charging_credits_received,
+      SessionStateUpdateCriteria& session_uc);
 
   void schedule_session_init_bearer_creations(
       const std::string& imsi, const std::string& session_id,
       BearerUpdate& update);
+
+  void initialize_creating_session(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, const SessionConfig& cfg);
+
+  void process_create_session_response(
+      std::unique_ptr<SessionState>& session, const std::string& imsi,
+      const std::string& session_id, const CreateSessionResponse& response,
+      SessionStateUpdateCriteria& session_updates);
 
   /**
    * Initialize credit received from the cloud in the system. This adds all the

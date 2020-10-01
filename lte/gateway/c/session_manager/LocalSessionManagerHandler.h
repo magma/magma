@@ -168,7 +168,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * @param cb - callback needed to respond to the original
    * LocalCreateSessionRequest
    */
-  void handle_create_session_cwf(
+  bool handle_create_session_cwf(
       SessionMap& session_map, const std::string& sid, SessionConfig cfg,
       std::function<void(Status, LocalCreateSessionResponse)> cb);
 
@@ -195,7 +195,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * @param cb - callback needed to respond to the original
    * LocalCreateSessionRequest
    */
-  void handle_create_session_lte(
+  bool handle_create_session_lte(
       SessionMap& session_map, const std::string& sid, SessionConfig cfg,
       std::function<void(Status, LocalCreateSessionResponse)> cb);
 
@@ -205,7 +205,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * gRPC caller.
    */
   void send_create_session(
-      SessionMap& session_map, const std::string& sid, const SessionConfig& cfg,
+      const std::string& sid, const SessionConfig& cfg,
       std::function<void(grpc::Status, LocalCreateSessionResponse)> cb);
 
   void handle_setup_callback(
