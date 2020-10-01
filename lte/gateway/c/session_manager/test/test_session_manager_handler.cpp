@@ -272,8 +272,22 @@ TEST_F(SessionManagerHandlerTest, test_create_session) {
   create_credit_update_response(
       IMSI1, "1234", 2, 1024, create_response.mutable_credits()->Add());
 
-  // Ensure session is reported as it is not a duplicate
-  EXPECT_CALL(*reporter, report_create_session(_, _)).Times(1);
+  // create expected request for report_create_session call
+  RequestedUnits expected_requestedUnits;
+  expected_requestedUnits.set_total(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  expected_requestedUnits.set_rx(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  expected_requestedUnits.set_tx(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  CreateSessionRequest expected_request;
+  expected_request.mutable_requested_units()->CopyFrom(expected_requestedUnits);
+  expected_request.mutable_common_context()->CopyFrom(request.common_context());
+  expected_request.mutable_rat_specific_context()->CopyFrom(
+      request.rat_specific_context());
+
+  EXPECT_CALL(
+      *reporter, report_create_session(CheckCoreRequest(expected_request), _))
+      .Times(1);
+
+  // create session and expect one call
   session_manager->CreateSession(
       &server_context, &request,
       [this](grpc::Status status, LocalCreateSessionResponse response_out) {});
