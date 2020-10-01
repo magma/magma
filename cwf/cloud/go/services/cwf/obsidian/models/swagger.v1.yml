@@ -1175,6 +1175,7 @@ definitions:
     properties:
       transport_virtual_ip:
         type: string
-        format: ipv4
+        minLength: 5
+        maxLength: 49
         x-nullable: false
-        example: "10.10.10.12"
+        example: '192.168.128.0/32'
