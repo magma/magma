@@ -175,7 +175,6 @@ class IPAddressManager:
             ip_allocator = IpAllocatorPool(self._assigned_ip_blocks,
                                            self.ip_state_map,
                                            self.sid_ips_map)
-            self.ipv6_allocator = IPv6AllocatorPool(config=config)
         elif self.allocator_type == MobilityD.DHCP:
             iface = config.get('dhcp_iface', 'dhcp0')
             retry_limit = config.get('retry_limit', 300)
@@ -201,6 +200,9 @@ class IPAddressManager:
         else:
             self.ip_allocator = ip_allocator
 
+        # Init IPv6 allocator, for now only POOL mode is supported for IPv6
+        self.ipv6_allocator = IPv6AllocatorPool(config=config)
+
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
 
@@ -213,25 +215,17 @@ class IPAddressManager:
         Raises:
             OverlappedIPBlocksError: if the given IP block overlaps with
             existing ones
-        """
-        with self._lock:
-            self.ip_allocator.add_ip_block(ipblock)
-
-    def add_ipv6_block(self, ipblock: ip_network):
-        """ Add IPv6 block to assigned ip block in IPv6 allocator
-
-        IP block should not overlap.
-
-        Args:
-            ipblock (ipaddress.ip_network): ipv6 network to add
-
-        Raises:
             InvalidIPv6NetworkError: if IPv6 block is invalid
-            OverlappedIPBlocksError: if the given IP block overlaps with
-            existing ones
         """
         with self._lock:
-            self.ipv6_allocator.add_ip_block(ipblock)
+            if ipblock.version == 4:
+                self.ip_allocator.add_ip_block(ipblock)
+                logging.info("Added block %s to the IPv4 address pool", ipblock)
+            elif ipblock.version == 6:
+                self.ipv6_allocator.add_ip_block(ipblock)
+                logging.info("Added block %s to the IPv6 address pool", ipblock)
+            else:
+                logging.warning("Failing to add IPBlock as is invalid")
 
     def remove_ip_blocks(self, *_ipblocks: List[ip_network],
                          force: bool = False) -> List[ip_network]:
@@ -261,21 +255,16 @@ class IPAddressManager:
         """
 
         with self._lock:
-            ip_blocks_deleted = self.ip_allocator.remove_ip_blocks(_ipblocks, _force=force)
+            ipv4_blocks, ipv6_blocks = [], []
+            for b in _ipblocks:
+                if b.version == 4:
+                    ipv4_blocks.append(b)
+                elif b.version == 6:
+                    ipv6_blocks.append(b)
+            ipv4_blocks_deleted = self.ip_allocator.remove_ip_blocks(_ipblocks, _force=force)
+            ipv6_blocks_deleted = self.ipv6_allocator.remove_ip_blocks(_ipblocks)
 
-        return ip_blocks_deleted
-
-    def remove_ipv6_blocks(self, *_ipblocks: List[ip_network]) -> List[ip_network]:
-        """
-        Removes the IPv6 block if it's assigned as IPv6 allocator supports
-        one assigned IP block
-        :param _ipblocks:
-        :return: deleted assigned IP block
-        """
-        with self._lock:
-            ip_blocks_deleted = self.ipv6_allocator.remove_ip_blocks(_ipblocks)
-
-        return ip_blocks_deleted
+        return list(ipv4_blocks_deleted) + ipv6_blocks_deleted
 
     def list_added_ip_blocks(self) -> List[ip_network]:
         """ List IP blocks added to the IP allocator
