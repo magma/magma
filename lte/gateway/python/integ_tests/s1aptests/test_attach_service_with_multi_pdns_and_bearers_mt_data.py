@@ -22,7 +22,6 @@ import ipaddress
 
 
 class TestAttachServiceWithMultiPdnsAndBearersMtData(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._sessionManager_util = SessionManagerUtil()

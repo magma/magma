@@ -22,7 +22,6 @@ from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 
 
 class TestAttachServiceWithMultiPdnsAndBearersMultiUe(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._sessionManager_util = SessionManagerUtil()
