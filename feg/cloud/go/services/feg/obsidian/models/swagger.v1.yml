@@ -1122,7 +1122,6 @@ definitions:
       - gy
       - swx
       - eap_aka
-      - eap_sim
       - aaa_server
       - served_network_ids
       - health
@@ -1431,7 +1430,6 @@ definitions:
       - gy
       - swx
       - eap_aka
-      - eap_sim
       - aaa_server
       - served_network_ids
       - health

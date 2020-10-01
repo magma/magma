@@ -956,7 +956,6 @@ definitions:
       - default_rule_id
       - network_services
       - eap_aka
-      - eap_sim
       - aaa_server
     properties:
       default_rule_id:
