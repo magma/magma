@@ -106,7 +106,7 @@ class TrafficUtil(object):
 
     def exec_command(self, command):
         """
-        Run a command remotly on magma_trfserver VM.
+        Run a command remotely on magma_trfserver VM.
 
         Args:
             command: command (str) to be executed on remote host
