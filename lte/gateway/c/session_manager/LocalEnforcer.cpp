@@ -1078,6 +1078,62 @@ void LocalEnforcer::schedule_session_init_bearer_creations(
       LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT);
 }
 
+void LocalEnforcer::initialize_creating_session(
+    SessionMap& session_map, const std::string& imsi,
+    const std::string& session_id, const SessionConfig& cfg) {
+  MLOG(MINFO) << "Initializing " << session_id;
+  auto session =
+      std::make_unique<SessionState>(imsi, session_id, cfg, *rule_store_);
+  auto it = session_map.find(imsi);
+  if (it == session_map.end()) {
+    // First time a session is created for IMSI
+    MLOG(MDEBUG) << "First session for " << imsi << " with SessionID "
+                 << session_id;
+    session_map[imsi] = SessionVector();
+  }
+  session_map[imsi].push_back(std::move(session));
+}
+
+void LocalEnforcer::process_create_session_response(
+    std::unique_ptr<SessionState>& session, const std::string& imsi,
+    const std::string& session_id, const CreateSessionResponse& response,
+    SessionStateUpdateCriteria& session_uc) {
+  const auto time_since_epoch = get_time_in_sec_since_epoch();
+  session->set_tgpp_context(response.tgpp_ctx(), session_uc);
+  session->set_fsm_state(CREATED, session_uc);
+  session->set_pdp_start_time(time_since_epoch);
+
+  std::unordered_set<uint32_t> charging_credits_received;
+  for (const auto& credit : response.credits()) {
+    if (session->receive_charging_credit(credit, session_uc)) {
+      charging_credits_received.insert(credit.charging_key());
+    }
+  }
+  // We don't have to check 'success' field for monitors because command level
+  // errors are handled in session proxy for the init exchange
+  for (const auto& monitor : response.usage_monitors()) {
+    session->receive_monitor(monitor, session_uc);
+  }
+
+  handle_session_init_rule_updates(
+      imsi, *session, response, charging_credits_received);
+
+  if (revalidation_required(response.event_triggers())) {
+    schedule_revalidation(
+        imsi, *session, response.revalidation_time(), session_uc);
+  }
+
+  if (terminate_on_wallet_exhaust()) {
+    handle_session_init_subscriber_quota_state(imsi, *session);
+  }
+  if (session->is_radius_cwf_session() == false) {
+    update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
+  }
+  // TODO transition from CREATED->ACTIVE once we've received confirmation from
+  // PipelineD.
+  session->set_fsm_state(SESSION_ACTIVE, session_uc);
+}
+
 void LocalEnforcer::init_session_credit(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, const SessionConfig& cfg,

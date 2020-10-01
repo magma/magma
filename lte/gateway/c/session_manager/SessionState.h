@@ -130,17 +130,16 @@ class SessionState {
       const magma::lte::TgppContext& tgpp_context, uint64_t pdp_start_time);
 
   SessionState(
+      const std::string& imsi, const std::string& session_id,
+      const SessionConfig& cfg, StaticRuleStore& rule_store);
+
+  SessionState(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
 
   static std::unique_ptr<SessionState> unmarshal(
       const StoredSessionState& marshaled, StaticRuleStore& rule_store);
 
   StoredSessionState marshal();
-
-  // 5G processing constructor without response contxt as set-interface msg
-  SessionState(
-      const std::string& imsi, const std::string& session_ctx_id,
-      const SessionConfig& cfg, StaticRuleStore& rule_store);
 
   /* methods of new messages of 5G and handle other message*/
   uint32_t get_current_version();
@@ -263,6 +262,8 @@ class SessionState {
 
   uint64_t get_pdp_start_time();
 
+  void set_pdp_start_time(uint64_t epoch);
+
   void set_pdp_end_time(uint64_t epoch);
 
   uint64_t get_pdp_end_time();
@@ -380,6 +381,8 @@ class SessionState {
   DynamicRuleStore& get_gy_dynamic_rules();
 
   uint32_t total_monitored_rules_count();
+
+  bool is_creating_or_active();
 
   bool is_active();
 
