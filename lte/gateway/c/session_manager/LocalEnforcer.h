@@ -126,7 +126,8 @@ class LocalEnforcer {
   void handle_session_init_rule_updates(
       const std::string& imsi, SessionState& session_state,
       const CreateSessionResponse& response,
-      std::unordered_set<uint32_t>& charging_credits_received);
+      std::unordered_set<uint32_t>& charging_credits_received,
+      SessionStateUpdateCriteria& session_uc);
 
   void schedule_session_init_bearer_creations(
       const std::string& imsi, const std::string& session_id,
