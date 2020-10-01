@@ -16,7 +16,8 @@ import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from magma.pipelined.ipv6_store import get_ipv6_interface_id, get_ipv6_prefix
+from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id,\
+    get_ipv6_prefix
 from magma.pipelined.app.ipv6_router_solicitation import \
     IPV6RouterSolicitationController
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -158,7 +159,6 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
             pkt_sender.send(pkt_rs)
             pkt_sender.send(pkt_ns)
             wait_after_send(self.testing_controller)
-
 
 if __name__ == "__main__":
     unittest.main()

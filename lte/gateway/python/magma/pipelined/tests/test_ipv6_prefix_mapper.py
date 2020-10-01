@@ -13,8 +13,8 @@ limitations under the License.
 
 import unittest
 
-from magma.pipelined.ipv6_store import InterfaceIDToPrefixMapper
-from magma.pipelined.ipv6_store import get_ipv6_interface_id, get_ipv6_prefix
+from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper, \
+    get_ipv6_interface_id, get_ipv6_prefix
 
 
 class InterfaceMappersTest(unittest.TestCase):
