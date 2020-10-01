@@ -16,9 +16,10 @@ import warnings
 from concurrent.futures import Future
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from magma.pipelined.ipv6_store import get_ipv6_interface_id, get_ipv6_prefix
-from magma.pipelined.app.ipv6_router_solicitation import \
-    IPV6RouterSolicitationController
+from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id,\
+    get_ipv6_prefix
+from magma.pipelined.app.ipv6_solicitation import \
+    IPV6SolicitationController
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import TestSetup, \
@@ -65,8 +66,8 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         super(IPV6RouterSolicitationTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([],
-            ['ipv6_router_solicitation'])
-        cls._tbl_num = cls.service_manager.get_table_num(IPV6RouterSolicitationController.APP_NAME)
+            ['ipv6_solicitation'])
+        cls._tbl_num = cls.service_manager.get_table_num(IPV6SolicitationController.APP_NAME)
 
         ipv6_controller_reference = Future()
         testing_controller_reference = Future()
@@ -93,7 +94,9 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
                 'virtual_interface': cls.BRIDGE,
                 'local_ue_eth_addr': True,
                 'quota_check_ip': '1.2.3.4',
+                'ipv6_router_addr': 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce',
                 'clean_restart': True,
+                'virtual_mac': 'd6:34:bc:81:5d:40',
                 'enable_nat': True,
             },
             mconfig=PipelineD(
@@ -127,13 +130,13 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         
         pkt_sender = ScapyPacketInjector(self.IFACE)
 
-        pkt_rs = Ether(dst=self.UE_MAC, src=self.OTHER_MAC)
+        pkt_rs = Ether(dst=self.OTHER_MAC, src=self.UE_MAC)
         pkt_rs /= IPv6(src='fe80:24c3:d0ff:fef3:9d21:4407:d337:1928',
                        dst='ff02::2')
         pkt_rs /= ICMPv6ND_RS()
         pkt_rs /= ICMPv6NDOptSrcLLAddr(lladdr=ll_addr)
 
-        pkt_ns = Ether(dst=self.UE_MAC, src=self.OTHER_MAC)
+        pkt_ns = Ether(dst=self.OTHER_MAC, src=self.UE_MAC)
         pkt_ns /= IPv6(src='fe80::9d21:4407:d337:1928',
                        dst='ff02::2')
         pkt_ns /= ICMPv6ND_NS(tgt='abcd:87:3::')
@@ -145,11 +148,11 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         self.service_manager.interface_to_prefix_mapper.save_prefix(
             interface, prefix)
 
-        dlink_args = RyuForwardFlowArgsBuilder(self._tbl_num) \
-            .set_eth_match(eth_dst=self.UE_MAC, eth_src=self.OTHER_MAC) \
-            .set_reg_value(DIRECTION_REG, Direction.IN) \
+        ulink_args = RyuForwardFlowArgsBuilder(self._tbl_num) \
+            .set_eth_match(eth_dst=self.OTHER_MAC, eth_src=self.UE_MAC) \
+            .set_reg_value(DIRECTION_REG, Direction.OUT) \
             .build_requests()
-        isolator = RyuDirectTableIsolator(dlink_args, self.testing_controller)
+        isolator = RyuDirectTableIsolator(ulink_args, self.testing_controller)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

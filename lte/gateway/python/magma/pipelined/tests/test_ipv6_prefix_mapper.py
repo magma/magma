@@ -13,8 +13,8 @@ limitations under the License.
 
 import unittest
 
-from magma.pipelined.ipv6_store import InterfaceIDToPrefixMapper
-from magma.pipelined.ipv6_store import get_ipv6_interface_id, get_ipv6_prefix
+from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper, \
+    get_ipv6_interface_id, get_ipv6_prefix
 
 
 class InterfaceMappersTest(unittest.TestCase):
@@ -24,11 +24,13 @@ class InterfaceMappersTest(unittest.TestCase):
 
     def test_prefix_mapper_test(self):
         ipv6_addrs = ['ba10:5:6c:9:9d21:4407:d337:1928',
-                      '321b:534:6c:9:999:0:d337:1928']
+                      '321b:534:6c:9:999:0:d337:1928',
+                      '222b:5334:111c:111::d337:1928']
         prefixes = [get_ipv6_prefix(ipv6_addrs[0]),
                     get_ipv6_prefix(ipv6_addrs[1])]
         interfaces = [get_ipv6_interface_id(ipv6_addrs[0]),
-                      get_ipv6_interface_id(ipv6_addrs[1])]
+                      get_ipv6_interface_id(ipv6_addrs[1]),
+                      get_ipv6_interface_id(ipv6_addrs[2])]
         self._interface_to_prefix_mapper.save_prefix(
             interfaces[0], prefixes[0])
         self.assertEqual(
@@ -50,6 +52,11 @@ class InterfaceMappersTest(unittest.TestCase):
             self._interface_to_prefix_mapper.get_prefix(
                 interfaces[0]),
             '321b:534:6c:9::')
+
+        self.assertEqual(
+            self._interface_to_prefix_mapper.get_prefix(
+                interfaces[2]),
+            None)
 
 
 if __name__ == "__main__":

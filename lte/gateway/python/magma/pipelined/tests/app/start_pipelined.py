@@ -65,8 +65,8 @@ class PipelinedController(Enum):
         'magma.pipelined.app.arp', 'arpd'
     )
     IPV6RouterSolicitation = Controller(
-        'magma.pipelined.app.ipv6_router_solicitation',
-        'ipv6_router_solicitation'
+        'magma.pipelined.app.ipv6_solicitation',
+        'ipv6_solicitation'
     )
     GY = Controller(
         'magma.pipelined.app.gy', 'gy'

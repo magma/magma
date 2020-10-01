@@ -50,8 +50,8 @@ from magma.pipelined.app.conntrack import ConntrackController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
-from magma.pipelined.app.ipv6_router_solicitation import \
-    IPV6RouterSolicitationController
+from magma.pipelined.app.ipv6_solicitation import \
+    IPV6SolicitationController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -68,7 +68,7 @@ from magma.pipelined.app.uplink_bridge import UplinkBridgeController
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
-from magma.pipelined.ipv6_store import InterfaceIDToPrefixMapper
+from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from ryu.base.app_manager import AppManager
 
@@ -257,7 +257,7 @@ class ServiceManager:
     UE_MAC_ADDRESS_SERVICE_NAME = 'ue_mac'
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
-    IPV6_ROUTER_SOLICITATION_SERVICE_NAME = 'ipv6_router_solicitation'
+    ipv6_solicitation_SERVICE_NAME = 'ipv6_solicitation'
     TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
     IPFIX_SERVICE_NAME = 'ipfix'
@@ -321,10 +321,10 @@ class ServiceManager:
                 type=AccessControlController.APP_TYPE,
                 order_priority=400),
         ],
-        IPV6_ROUTER_SOLICITATION_SERVICE_NAME: [
-            App(name=IPV6RouterSolicitationController.APP_NAME,
-                module=IPV6RouterSolicitationController.__module__,
-                type=IPV6RouterSolicitationController.APP_TYPE,
+        ipv6_solicitation_SERVICE_NAME: [
+            App(name=IPV6SolicitationController.APP_NAME,
+                module=IPV6SolicitationController.__module__,
+                type=IPV6SolicitationController.APP_TYPE,
                 order_priority=210),
         ],
         TUNNEL_LEARN_SERVICE_NAME: [
