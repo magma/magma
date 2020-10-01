@@ -30,7 +30,7 @@ import (
 	managed_configs "magma/gateway/mconfig"
 )
 
-func NewServiced(srvsr *servicers.EapAkaSrv) providers.Method {
+func NewService(srvsr *servicers.EapAkaSrv) providers.Method {
 	return &providerImpl{EapAkaSrv: srvsr}
 }
 

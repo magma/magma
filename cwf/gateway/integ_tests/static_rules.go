@@ -29,37 +29,12 @@ func getUsageInformation(monitorKey string, quota uint64) *protos.UsageMonitorin
 	}
 }
 
+const MATCH_ALL = "0.0.0.0/0"
+
 func getStaticPassAll(
 	ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32, qos *lteProtos.FlowQos,
 ) *lteProtos.PolicyRule {
-	rule := &models.PolicyRuleConfig{
-		FlowList: []*models.FlowDescription{
-			{
-				Action: swag.String("PERMIT"),
-				Match: &models.FlowMatch{
-					Direction: swag.String("UPLINK"),
-					IPProto:   swag.String("IPPROTO_IP"),
-					IPV4Dst:   "0.0.0.0/0",
-					IPV4Src:   "0.0.0.0/0",
-				},
-			},
-			{
-				Action: swag.String("PERMIT"),
-				Match: &models.FlowMatch{
-					Direction: swag.String("DOWNLINK"),
-					IPProto:   swag.String("IPPROTO_IP"),
-					IPV4Dst:   "0.0.0.0/0",
-					IPV4Src:   "0.0.0.0/0",
-				},
-			},
-		},
-		MonitoringKey: monitoringKey,
-		Priority:      swag.Uint32(priority),
-		TrackingType:  trackingType,
-		RatingGroup:   ratingGroup,
-	}
-
-	return rule.ToProto(ruleID, qos)
+	return getStaticPassTraffic(ruleID, MATCH_ALL, MATCH_ALL, monitoringKey, ratingGroup, trackingType, priority, qos)
 }
 
 func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) *lteProtos.PolicyRule {
@@ -70,8 +45,14 @@ func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 				Match: &models.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
-					IPV4Dst:   "0.0.0.0/0",
-					IPV4Src:   "0.0.0.0/0",
+					IPDst: &models.IPAddress{
+						Version: models.IPAddressVersionIPV4,
+						Address: "0.0.0.0/0",
+					},
+					IPSrc: &models.IPAddress{
+						Version: models.IPAddressVersionIPV4,
+						Address: "0.0.0.0/0",
+					},
 				},
 			},
 			{
@@ -79,8 +60,14 @@ func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 				Match: &models.FlowMatch{
 					Direction: swag.String("DOWNLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
-					IPV4Dst:   "0.0.0.0/0",
-					IPV4Src:   "0.0.0.0/0",
+					IPDst: &models.IPAddress{
+						Version: models.IPAddressVersionIPV4,
+						Address: "0.0.0.0/0",
+					},
+					IPSrc: &models.IPAddress{
+						Version: models.IPAddressVersionIPV4,
+						Address: "0.0.0.0/0",
+					},
 				},
 			},
 		},
@@ -91,4 +78,50 @@ func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 	}
 
 	return rule.ToProto(ruleID, nil)
+}
+
+func getStaticPassTraffic(
+	ruleID string, srcIP string, dstIP string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32, qos *lteProtos.FlowQos,
+) *lteProtos.PolicyRule {
+	rule := &models.PolicyRuleConfig{
+		FlowList: []*models.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
+					IPDst: &models.IPAddress{
+						Version: models.IPAddressVersionIPV4,
+						Address: dstIP,
+					},
+					IPSrc: &models.IPAddress{
+						Version: models.IPAddressVersionIPV4,
+						Address: srcIP,
+					},
+					IPV4Dst: dstIP,
+					IPV4Src: srcIP,
+				},
+			},
+			{
+				Action: swag.String("PERMIT"),
+				Match: &models.FlowMatch{
+					Direction: swag.String("DOWNLINK"),
+					IPProto:   swag.String("IPPROTO_IP"),
+					IPDst: &models.IPAddress{
+						Version: models.IPAddressVersionIPV4,
+						Address: srcIP,
+					},
+					IPSrc: &models.IPAddress{
+						Version: models.IPAddressVersionIPV4,
+						Address: dstIP,
+					},
+				},
+			},
+		},
+		MonitoringKey: monitoringKey,
+		Priority:      swag.Uint32(priority),
+		TrackingType:  trackingType,
+		RatingGroup:   ratingGroup,
+	}
+	return rule.ToProto(ruleID, qos)
 }

@@ -43,7 +43,7 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {RunGatewayCommands} from '../../state/EquipmentState';
+import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';

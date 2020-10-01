@@ -66,8 +66,16 @@ spec:
               maxItems: 2
               minItems: 1
               type: array
+            maxConsecutiveActiveErrors:
+              description: MaxConsecutiveActiveErrors denotes the maximum number of
+                errors the HACluster's active can have fetching health status before
+                a failover occurs
+              maximum: 5
+              minimum: 1
+              type: integer
           required:
           - gatewayResourceNames
+          - maxConsecutiveActiveErrors
           type: object
         status:
           description: HAClusterStatus defines the observed state of HACluster
@@ -80,6 +88,16 @@ spec:
               description: ActiveInitState denotes the initialization state of the
                 active in the HACluster
               type: string
+            consecutiveActiveErrors:
+              description: ConsecutiveActiveErrors denotes the number of consecutive
+                errors that have occurred when the active has been called for health
+                status
+              type: integer
+            consecutiveStandbyErrors:
+              description: ConsecutiveStandbyErrors denotes the number of consecutive
+                errors that have occurred when the standby has been called for health
+                status
+              type: integer
             standbyInitState:
               description: StandbyInitState denotes the initialization state of the
                 standby in the HACluster
@@ -87,6 +105,8 @@ spec:
           required:
           - active
           - activeInitState
+          - consecutiveActiveErrors
+          - consecutiveStandbyErrors
           - standbyInitState
           type: object
       type: object

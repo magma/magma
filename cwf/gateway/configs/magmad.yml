@@ -18,6 +18,7 @@ magma_services:
   - pipelined
   - sessiond
   - eap_aka
+  - eap_sim
   - aaa_server
   - redis
   - radius
@@ -91,6 +92,7 @@ metricsd:
     - pipelined
     - sessiond
     - eap_aka
+    - eap_sim
     - aaa_server
     - radiusd
     - directoryd

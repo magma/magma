@@ -1,9 +1,7 @@
 /*
 Copyright 2020 The Magma Authors.
-
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -86,20 +84,21 @@ func NewExt(interval, ttl time.Duration) (*Impl, chan struct{}) {
 	return cache, cache.Gc(interval, ttl) // start garbage collector with given interval & ttl
 }
 
-// Get retrieves one auth vector from cache if available, adjusts cache and returns the vector, returns nil otherwise
-func (swxCache *Impl) Get(imsi string) *protos.AuthenticationAnswer {
+// Get retrieves up to neededNumber of auth vectors from cache if available, adjusts cache and returns the vectors,
+// returns nil if there no vectors left to return
+func (swxCache *Impl) Get(imsi string, neededNumber int) *protos.AuthenticationAnswer {
 	swxCache.mu.Lock()
 	defer swxCache.mu.Unlock()
 	ent, found := swxCache.data.vectors[imsi]
 	if found {
-		if len(ent.ans.SipAuthVectors) <= 1 {
+		if len(ent.ans.SipAuthVectors) <= neededNumber {
 			delete(swxCache.data.vectors, imsi)
 			heap.Remove(&swxCache.data, ent.idx)
 			return ent.ans
 		}
 		res := *ent.ans // copy answer
-		res.SipAuthVectors = res.SipAuthVectors[:1]
-		ent.ans.SipAuthVectors = ent.ans.SipAuthVectors[1:]
+		res.SipAuthVectors = res.SipAuthVectors[:neededNumber]
+		ent.ans.SipAuthVectors = ent.ans.SipAuthVectors[neededNumber:]
 		ent.lastUsed = time.Now()
 		heap.Fix(&swxCache.data, ent.idx)
 		return &res
@@ -120,30 +119,34 @@ func (swxCache *Impl) Remove(imsi string) *protos.AuthenticationAnswer {
 	return nil
 }
 
-// Put adds ans vectors into the cache after extracting the first vector from the list, which it returns back to
-// the caller in the returned AuthenticationAnswer
-func (swxCache *Impl) Put(ans *protos.AuthenticationAnswer) *protos.AuthenticationAnswer {
+// Put adds ans vectors into the cache after extracting the first neededNumber vectors from the list,
+// which it returns back to the caller in the returned AuthenticationAnswer
+func (swxCache *Impl) Put(ans *protos.AuthenticationAnswer, neededNumber int) *protos.AuthenticationAnswer {
 	if ans == nil || len(ans.UserName) == 0 {
 		return ans
 	}
+	if neededNumber <= 0 {
+		neededNumber = 1
+	}
 	swxCache.mu.Lock()
 	defer swxCache.mu.Unlock()
-	// delete old cache if present
+	// merge with the old cache if present
 	ent, found := swxCache.data.vectors[ans.UserName]
+	// Under normal, non-concurrent UE usage, the UE vectors cache should already be empty
+	// but, if not - clean it
 	if found {
 		heap.Remove(&swxCache.data, ent.idx)
 	}
-	if len(ans.SipAuthVectors) <= 1 {
+	if len(ans.SipAuthVectors) <= neededNumber {
 		if found {
 			delete(swxCache.data.vectors, ans.UserName)
 		}
-		return ans // only one vector, nothing to cache, just return it
+		return ans // only needed # of vectors, nothing to cache, just return it
 	}
-
 	// cash & return the first vector in a cloned answer
 	res := *ans // copy answer
-	res.SipAuthVectors = res.SipAuthVectors[:1]
-	ans.SipAuthVectors = ans.SipAuthVectors[1:]
+	res.SipAuthVectors = res.SipAuthVectors[:neededNumber]
+	ans.SipAuthVectors = ans.SipAuthVectors[neededNumber:]
 
 	ent = &authEnt{lastUsed: time.Now(), ans: ans}
 	swxCache.data.vectors[ans.UserName] = ent

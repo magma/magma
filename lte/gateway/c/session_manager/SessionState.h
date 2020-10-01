@@ -78,13 +78,44 @@ struct BearerUpdate {
 class SessionState {
  public:
   struct SessionInfo {
+    enum upfNodeType {
+      IPv4 = 0,
+      IPv6 = 1,
+      FQDN = 2,
+    };
+
+    typedef struct tNodeId {
+      upfNodeType node_id_type;
+      char node_id[40];
+    } NodeId;
+
+    typedef struct Fseid {
+      uint64_t f_seid;
+      NodeId Nid;
+    } FSid;
     std::string imsi;
     std::string ip_addr;
+    std::string ipv6_addr;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
     optional<AggregatedMaximumBitrate> ambr;
+    // 5G specific extensions
+    std::vector<SetGroupPDR> Pdr_rules_;
+    std::vector<SetGroupFAR> Far_rules_;
+    magma::lte::Fsm_state_FsmState state;
+    std::string sess_id;
+    uint32_t ver_no;
+    NodeId nodeId;
+    FSid Seid;
+    // 5G specific extension routines
   };
+
+  /* To remove below routine  once the UPF node core logic
+   * get completed
+   */
+  void sess_infocopy(struct SessionInfo*);
+
   struct TotalCreditUsage {
     uint64_t monitoring_tx;
     uint64_t monitoring_rx;
@@ -106,6 +137,24 @@ class SessionState {
 
   StoredSessionState marshal();
 
+  // 5G processing constructor without response contxt as set-interface msg
+  SessionState(
+      const std::string& imsi, const std::string& session_ctx_id,
+      const SessionConfig& cfg, StaticRuleStore& rule_store);
+
+  /* methods of new messages of 5G and handle other message*/
+  uint32_t get_current_version();
+
+  void set_current_version(int new_session_version);
+
+  void insert_pdr(SetGroupPDR* rule);
+
+  void insert_far(SetGroupFAR* rule);
+
+  std::vector<SetGroupPDR>& get_all_pdr_rules();
+
+  std::vector<SetGroupFAR>& get_all_far_rules();
+
   /**
    * Updates rules to be scheduled, active, or removed, depending on the
    * specified time.
@@ -119,8 +168,9 @@ class SessionState {
   /**
    * add_rule_usage adds used TX/RX bytes to a particular rule
    */
-  void add_rule_usage( const std::string& rule_id, uint64_t used_tx,
-    uint64_t used_rx, SessionStateUpdateCriteria& update_criteria);
+  void add_rule_usage(
+      const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
+      SessionStateUpdateCriteria& update_criteria);
 
   /**
    * get_updates collects updates and adds them to a UpdateSessionRequest
@@ -144,12 +194,12 @@ class SessionState {
   bool is_terminating();
 
   /**
-   * complete_termination checks the FSM state and transitions the state to
+   * can_complete_termination checks the FSM state and transitions the state to
    * TERMINATED, if it can. If the state is ACTIVE or TERMINATED, it will not do
    * anything.
    * This function will return true if the termination happened successfully.
    */
-  bool complete_termination(SessionStateUpdateCriteria& update_criteria);
+  bool can_complete_termination(SessionStateUpdateCriteria& update_criteria);
 
   bool reset_reporting_charging_credit(
       const CreditKey& key, SessionStateUpdateCriteria& update_criteria);
@@ -164,24 +214,27 @@ class SessionState {
    *         a success. Also it must either be an infinite credit rating group,
    *         or have associated credit grant.
    */
-  bool receive_charging_credit(const CreditUpdateResponse &update,
-                               SessionStateUpdateCriteria &update_criteria);
+  bool receive_charging_credit(
+      const CreditUpdateResponse& update,
+      SessionStateUpdateCriteria& update_criteria);
 
-  uint64_t get_charging_credit(const CreditKey &key, Bucket bucket) const;
+  uint64_t get_charging_credit(const CreditKey& key, Bucket bucket) const;
 
-  ReAuthResult reauth_key(const CreditKey &charging_key,
-                               SessionStateUpdateCriteria &update_criteria);
+  ReAuthResult reauth_key(
+      const CreditKey& charging_key,
+      SessionStateUpdateCriteria& update_criteria);
 
-  ReAuthResult reauth_all(SessionStateUpdateCriteria &update_criteria);
+  ReAuthResult reauth_all(SessionStateUpdateCriteria& update_criteria);
 
-  void set_charging_credit(const CreditKey &key,
-    ChargingGrant charging_grant, SessionStateUpdateCriteria &uc);
+  void set_charging_credit(
+      const CreditKey& key, ChargingGrant charging_grant,
+      SessionStateUpdateCriteria& uc);
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
    * accounting for all unique keys (charging and monitoring) used by all
    * rules (static and dynamic)
-   * Should be called after complete_termination.
+   * Should be called after can_complete_termination.
    */
   TotalCreditUsage get_total_credit_usage();
 
@@ -241,15 +294,15 @@ class SessionState {
       const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
-  void insert_gy_dynamic_rule(
-      const PolicyRule& rule, RuleLifetime& lifetime,
-      SessionStateUpdateCriteria& update_criteria);
-
   /**
    * Add a static rule to the session which is currently active.
    */
   void activate_static_rule(
       const std::string& rule_id, RuleLifetime& lifetime,
+      SessionStateUpdateCriteria& update_criteria);
+
+  void insert_gy_dynamic_rule(
+      const PolicyRule& rule, RuleLifetime& lifetime,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -271,7 +324,7 @@ class SessionState {
       SessionStateUpdateCriteria& update_criteria);
 
   bool remove_gy_dynamic_rule(
-      const std::string& rule_id, PolicyRule *rule_out,
+      const std::string& rule_id, PolicyRule* rule_out,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -285,7 +338,6 @@ class SessionState {
    */
   bool deactivate_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
-
 
   bool deactivate_scheduled_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
@@ -334,54 +386,58 @@ class SessionState {
 
   uint32_t get_credit_key_count();
 
-  void set_fsm_state(
-    SessionFsmState new_state, SessionStateUpdateCriteria& uc);
+  void set_fsm_state(SessionFsmState new_state, SessionStateUpdateCriteria& uc);
 
   StaticRuleInstall get_static_rule_install(
-    const std::string& rule_id, const RuleLifetime& lifetime);
+      const std::string& rule_id, const RuleLifetime& lifetime);
 
   DynamicRuleInstall get_dynamic_rule_install(
-    const std::string& rule_id, const RuleLifetime& lifetime);
+      const std::string& rule_id, const RuleLifetime& lifetime);
 
   SessionFsmState get_state();
 
   // Event Triggers
   void add_new_event_trigger(
-  magma::lte::EventTrigger trigger,
-  SessionStateUpdateCriteria& update_criteria);
+      magma::lte::EventTrigger trigger,
+      SessionStateUpdateCriteria& update_criteria);
 
   void mark_event_trigger_as_triggered(
-    magma::lte::EventTrigger trigger,
-    SessionStateUpdateCriteria& update_criteria);
+      magma::lte::EventTrigger trigger,
+      SessionStateUpdateCriteria& update_criteria);
 
   void set_event_trigger(
-    magma::lte::EventTrigger trigger, const EventTriggerState value,
-    SessionStateUpdateCriteria& update_criteria);
+      magma::lte::EventTrigger trigger, const EventTriggerState value,
+      SessionStateUpdateCriteria& update_criteria);
 
-  void remove_event_trigger(magma::lte::EventTrigger trigger,
-    SessionStateUpdateCriteria& update_criteria);
+  void remove_event_trigger(
+      magma::lte::EventTrigger trigger,
+      SessionStateUpdateCriteria& update_criteria);
 
-  void set_revalidation_time(const google::protobuf::Timestamp& time,
-                             SessionStateUpdateCriteria& update_criteria);
+  void set_revalidation_time(
+      const google::protobuf::Timestamp& time,
+      SessionStateUpdateCriteria& update_criteria);
 
-  google::protobuf::Timestamp get_revalidation_time() {return revalidation_time_;}
+  google::protobuf::Timestamp get_revalidation_time() {
+    return revalidation_time_;
+  }
 
-  EventTriggerStatus get_event_triggers() {return pending_event_triggers_;}
+  EventTriggerStatus get_event_triggers() { return pending_event_triggers_; }
 
-  bool is_credit_in_final_unit_state(const CreditKey &charging_key) const;
+  bool is_credit_in_final_unit_state(const CreditKey& charging_key) const;
 
   void get_final_action_restrict_rules(
-      const CreditKey &charging_key,
-      std::vector<std::string> &restrict_rules);
+      const CreditKey& charging_key, std::vector<std::string>& restrict_rules);
 
   // Monitors
-  bool receive_monitor(const UsageMonitoringUpdateResponse &update,
-                       SessionStateUpdateCriteria &uc);
+  bool receive_monitor(
+      const UsageMonitoringUpdateResponse& update,
+      SessionStateUpdateCriteria& session_uc);
 
-  uint64_t get_monitor(const std::string &key, Bucket bucket) const;
+  uint64_t get_monitor(const std::string& key, Bucket bucket) const;
 
-  bool add_to_monitor(const std::string &key, uint64_t used_tx,
-                      uint64_t used_rx, SessionStateUpdateCriteria &uc);
+  bool add_to_monitor(
+      const std::string& key, uint64_t used_tx, uint64_t used_rx,
+      SessionStateUpdateCriteria& uc);
 
   void set_monitor(
       const std::string& key, Monitor monitor, SessionStateUpdateCriteria& uc);
@@ -443,6 +499,12 @@ class SessionState {
   SessionConfig config_;
   uint64_t pdp_start_time_;
   uint64_t pdp_end_time_;
+  /*5G related message to handle session state context */
+  uint32_t current_version_;  // To compare with incoming session version
+  // All 5G specific rules
+  // use as shared_ptr to check
+  std::vector<SetGroupPDR> PdrList_;
+  std::vector<SetGroupFAR> FarList_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;
@@ -499,7 +561,7 @@ class SessionState {
       SessionStateUpdateCriteria& uc);
 
   void apply_charging_credit_update(
-      const CreditKey &key, SessionCreditUpdateCriteria &credit_update);
+      const CreditKey& key, SessionCreditUpdateCriteria& credit_uc);
 
   /**
    * Receive the credit grant if the credit update was successful
@@ -512,7 +574,7 @@ class SessionState {
    *         or have associated credit grant.
    */
   bool init_charging_credit(
-    const CreditUpdateResponse &update, SessionStateUpdateCriteria &uc);
+      const CreditUpdateResponse& update, SessionStateUpdateCriteria& uc);
 
   /**
    * Return true if any credit unit is valid and has non-zero volume
@@ -540,9 +602,11 @@ class SessionState {
    * @param update : the diff that needs to be applied
    */
   void apply_monitor_updates(
-      const std::string &key, SessionCreditUpdateCriteria &update);
+      const std::string& key, SessionStateUpdateCriteria& session_uc,
+      SessionCreditUpdateCriteria& credit_uc);
 
-  void add_common_fields_to_usage_monitor_update(UsageMonitoringUpdateRequest* req);
+  void add_common_fields_to_usage_monitor_update(
+      UsageMonitoringUpdateRequest* req);
 
   /**
    * Returns true if the specified rule should be active at that time
@@ -555,20 +619,20 @@ class SessionState {
   bool should_rule_be_deactivated(const std::string& rule_id, std::time_t time);
 
   SessionCreditUpdateCriteria* get_credit_uc(
-    const CreditKey &key, SessionStateUpdateCriteria &uc);
+      const CreditKey& key, SessionStateUpdateCriteria& uc);
 
   CreditUsageUpdate make_credit_usage_update_req(CreditUsage& usage) const;
 
   bool init_new_monitor(
-    const UsageMonitoringUpdateResponse &update,
-    SessionStateUpdateCriteria &update_criteria);
+      const UsageMonitoringUpdateResponse& update,
+      SessionStateUpdateCriteria& update_criteria);
 
   void update_session_level_key(
-    const UsageMonitoringUpdateResponse &update,
-    SessionStateUpdateCriteria &update_criteria);
+      const UsageMonitoringUpdateResponse& update,
+      SessionStateUpdateCriteria& update_criteria);
 
   SessionCreditUpdateCriteria* get_monitor_uc(
-    const std::string &key, SessionStateUpdateCriteria &uc);
+      const std::string& key, SessionStateUpdateCriteria& uc);
 
   void fill_protos_tgpp_context(magma::lte::TgppContext* tgpp_context) const;
 

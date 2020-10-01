@@ -33,9 +33,12 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
 	monitoringKey := []byte("monitor")
 	monitoringKey2 := []byte("monitor2")
+	monitoringKey3 := []byte("monitor3")
 	bearerID := "bearer1"
 	var ratingGroup uint32 = 42
 	var totalOctets uint64 = 2048
+	var monitorSupport_0 gx.MonitoringSupport = gx.UsageMonitoringDisabled
+	var monitorReport_0 gx.MonitoringReport = gx.UsageMonitoringReport
 	var qci uint32 = 1
 	var monitoringLevel gx.MonitoringLevel = gx.SessionLevel
 	currentTime := time.Now()
@@ -75,9 +78,20 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 				Level: monitoringLevel,
 			},
 			{
-				MonitoringKey:      monitoringKey2,
+				MonitoringKey: monitoringKey2,
+				GrantedServiceUnit: &credit_control.GrantedServiceUnit{
+					InputOctets:  &totalOctets,
+					OutputOctets: &totalOctets,
+					TotalOctets:  &totalOctets,
+				},
+				Level:   monitoringLevel,
+				Support: &monitorSupport_0,
+			},
+			{
+				MonitoringKey:      monitoringKey3,
 				GrantedServiceUnit: nil,
 				Level:              monitoringLevel,
+				Report:             &monitorReport_0,
 			},
 		},
 		Qos: &gx.QosInformation{
@@ -146,6 +160,21 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			{
 				Action:        protos.UsageMonitoringCredit_DISABLE,
 				MonitoringKey: []byte(monitoringKey2),
+				GrantedUnits: &protos.GrantedUnits{
+					Total: &protos.CreditUnit{IsValid: true, Volume: totalOctets},
+					Tx:    &protos.CreditUnit{IsValid: true, Volume: totalOctets},
+					Rx:    &protos.CreditUnit{IsValid: true, Volume: totalOctets},
+				},
+				Level: protos.MonitoringLevel(monitoringLevel),
+			},
+			{
+				Action: protos.UsageMonitoringCredit_FORCE,
+				GrantedUnits: &protos.GrantedUnits{
+					Total: &protos.CreditUnit{IsValid: false},
+					Tx:    &protos.CreditUnit{IsValid: false},
+					Rx:    &protos.CreditUnit{IsValid: false},
+				},
+				MonitoringKey: []byte(monitoringKey3),
 				Level:         protos.MonitoringLevel(monitoringLevel),
 			},
 		},

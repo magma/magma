@@ -34,7 +34,7 @@ services:
       SQL_DRIVER: postgres
       DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
       SQL_DIALECT: psql
-
+      SERVICE_REGISTRY_MODE: "yaml" # YAML backed service registry
       # To use MariaDB, use these connection parameters instead:
       # SQL_DRIVER: mysql
       # DATABASE_SOURCE: "magma_dev:magma_dev@(maria)/magma_dev"

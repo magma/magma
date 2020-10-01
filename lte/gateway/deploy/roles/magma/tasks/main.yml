@@ -64,6 +64,7 @@
   with_items:
     - create_oai_certs.py
     - generate_oai_config.py
+    - generate_dnsd_config.py
   when: full_provision
 
 - name: Create symlink for stateless scripts
@@ -108,6 +109,13 @@
   become: no
   file:
     path: '{{ magma_repo }}/'
+    state: directory
+  when: full_provision
+
+- name: Add Magma dependency package directory
+  become: no
+  file:
+    path: '{{ magma_deps }}/'
     state: directory
   when: full_provision
 

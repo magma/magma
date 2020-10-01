@@ -116,14 +116,22 @@ func (s *AuthServer) ServeRADIUS(w radius.ResponseWriter, r *radius.Request) {
 		err    error
 	)
 	if eapp.Code() == eap.ResponseCode && eapp.Type() == eap.MethodIdentity {
-		for _, method := range s.authMethods {
-			eapRes, err = s.authenticator.HandleIdentity(r.Context(), &protos.EapIdentity{
-				Payload: eapp,
-				Ctx:     sessionCtx,
-				Method:  uint32(method),
-			})
-			if err == nil {
-				break
+		// First, try to let authenticator choose matching provider
+		eapRes, err = s.authenticator.HandleIdentity(r.Context(), &protos.EapIdentity{
+			Payload: eapp,
+			Ctx:     sessionCtx,
+		})
+		if err != nil {
+			// couldn't find matching provider, iterate over all available providers
+			for _, method := range s.authMethods {
+				eapRes, err = s.authenticator.HandleIdentity(r.Context(), &protos.EapIdentity{
+					Payload: eapp,
+					Ctx:     sessionCtx,
+					Method:  uint32(method),
+				})
+				if err == nil {
+					break
+				}
 			}
 		}
 	} else {
