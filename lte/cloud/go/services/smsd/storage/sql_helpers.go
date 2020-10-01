@@ -16,6 +16,7 @@ package storage
 import (
 	"database/sql"
 	"fmt"
+	"sort"
 	"time"
 
 	"magma/orc8r/cloud/go/sqorc"
@@ -145,8 +146,13 @@ func getRefsAndMessagesToEncode(messages tSmsByPk, refsMask *[256]bool, refCount
 		return nil
 	}
 
+	// Sort map keys for deterministic testing
+	sortedPks := funk.Keys(messages).([]string)
+	sort.Strings(sortedPks)
+
 	refsToAllocate := map[string][]byte{}
-	for pk, msg := range messages {
+	for _, pk := range sortedPks {
+		msg := messages[pk]
 		numFreeRefs := getNumFreeRefs(refsMask)
 
 		// Easy case - refs already allocated, this message has timed out.
