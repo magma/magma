@@ -65,6 +65,8 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
             'dhcp_iface': 't0uplink_p0',
             'retry_limit': 50,
             'persist_to_redis': False,
+            'ipv6_prefix_block': 'fedd:5:6c::/48',
+            'ipv6_session_prefix_alloc_mode': 'RANDOM'
         }
         mconfig = MobilityD(ip_allocator_type=MobilityD.DHCP,
                             static_ip_enabled=False)

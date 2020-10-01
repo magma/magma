@@ -60,9 +60,11 @@ from magma.common.redis.client import get_default_client
 
 from .ip_allocator_dhcp import IPAllocatorDHCP
 from .ip_allocator_pool import IpAllocatorPool
+from .ipv6_allocator_pool import IPv6AllocatorPool
 from .ip_allocator_static import IPAllocatorStaticWrapper
 from .ip_allocator_multi_apn import IPAllocatorMultiAPNWrapper
-from .ip_allocator_base import DuplicateIPAssignmentError
+from .ip_allocator_base import DuplicateIPAssignmentError, IPNotInUseError, \
+    MappingNotFoundError
 
 from .ip_descriptor_map import IpDescriptorMap
 from .uplink_gw import UplinkGatewayInfo
@@ -173,6 +175,7 @@ class IPAddressManager:
             ip_allocator = IpAllocatorPool(self._assigned_ip_blocks,
                                            self.ip_state_map,
                                            self.sid_ips_map)
+            self.ipv6_allocator = IPv6AllocatorPool(config=config)
         elif self.allocator_type == MobilityD.DHCP:
             iface = config.get('dhcp_iface', 'dhcp0')
             retry_limit = config.get('retry_limit', 300)
@@ -214,6 +217,22 @@ class IPAddressManager:
         with self._lock:
             self.ip_allocator.add_ip_block(ipblock)
 
+    def add_ipv6_block(self, ipblock: ip_network):
+        """ Add IPv6 block to assigned ip block in IPv6 allocator
+
+        IP block should not overlap.
+
+        Args:
+            ipblock (ipaddress.ip_network): ipv6 network to add
+
+        Raises:
+            InvalidIPv6NetworkError: if IPv6 block is invalid
+            OverlappedIPBlocksError: if the given IP block overlaps with
+            existing ones
+        """
+        with self._lock:
+            self.ipv6_allocator.add_ip_block(ipblock)
+
     def remove_ip_blocks(self, *_ipblocks: List[ip_network],
                          force: bool = False) -> List[ip_network]:
         """ Makes the indicated block(s) unavailable for allocation
@@ -246,6 +265,18 @@ class IPAddressManager:
 
         return ip_blocks_deleted
 
+    def remove_ipv6_blocks(self, *_ipblocks: List[ip_network]) -> List[ip_network]:
+        """
+        Removes the IPv6 block if it's assigned as IPv6 allocator supports
+        one assigned IP block
+        :param _ipblocks:
+        :return: deleted assigned IP block
+        """
+        with self._lock:
+            ip_blocks_deleted = self.ipv6_allocator.remove_ip_blocks(_ipblocks)
+
+        return ip_blocks_deleted
+
     def list_added_ip_blocks(self) -> List[ip_network]:
         """ List IP blocks added to the IP allocator
 
@@ -253,8 +284,17 @@ class IPAddressManager:
              copy of the list of assigned IP blocks
         """
         with self._lock:
-            ip_blocks = self.ip_allocator.list_added_ip_blocks();
+            ip_blocks = self.ip_allocator.list_added_ip_blocks()
         return ip_blocks
+
+    def get_assigned_ipv6_block(self) -> ip_network:
+        """
+        Returns currently assigned block to IPv6 allocator
+        :return: ip_network object for assigned block
+        """
+        with self._lock:
+            ip_block = self.ipv6_allocator.list_added_ip_blocks()[0]
+        return ip_block
 
     def list_allocated_ips(self, ipblock: ip_network) -> List[ip_address]:
         """ List IP addresses allocated from a given IP block
@@ -347,6 +387,15 @@ class IPAddressManager:
             IP_ALLOCATED_TOTAL.inc()
             return ip_desc.ip, ip_desc.vlan_id
 
+    def alloc_ipv6_address(self, sid: str) -> ip_address:
+        """
+        Allocates IPv6 address for given SID
+        :param sid: composite SID => IMSI + APN
+        :return: allocated IPv6 address
+        """
+        with self._lock:
+            return self.ipv6_allocator.alloc_ip_address(sid, 0)
+
     def get_sid_ip_table(self) -> List[Tuple[str, ip_address]]:
         """ Return list of tuples (sid, ip) """
         with self._lock:
@@ -405,6 +454,17 @@ class IPAddressManager:
             IP_RELEASED_TOTAL.inc()
 
             self._try_set_recycle_timer()  # start the timer to recycle
+
+    def release_ipv6_address(self, sid: str, ip: ip_address):
+        """
+        Releases IPv6 Address if the composite SID and session ID prefix
+        of IP Address is found.
+        :param sid: composite SID (IMSI + APN)
+        :param ip: IPv6 address to release
+        """
+        with self._lock:
+            ip_desc = IPDesc(ip=ip, sid=sid)
+            self.ipv6_allocator.release_ip(ip_desc)
 
     def list_gateway_info(self) -> List[GWInfo]:
         with self._lock:
@@ -465,15 +525,4 @@ class IPAddressManager:
                 else:
                     self._recycle_reaped_ips()
 
-
-class IPNotInUseError(Exception):
-    """ Exception thrown when releasing an IP address that is not found in the
-    used list
-    """
-    pass
-
-
-class MappingNotFoundError(Exception):
-    """ Exception thrown when releasing a non-exising SID-IP mapping """
-    pass
 
