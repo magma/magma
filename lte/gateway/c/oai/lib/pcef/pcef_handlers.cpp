@@ -235,7 +235,7 @@ static int get_uli_from_session_req(
   uli[12] = saved_req->uli.s.ecgi.cell_identity.cell_id & 0xff;
   uli[13] = '\0';
 
-  char hex_uli[2*ULI_DATA_SIZE+1];
+  char hex_uli[3*ULI_DATA_SIZE+1];
   OAILOG_DEBUG(
       LOG_SPGW_APP, "Session request ULI %s",
       bytes_to_hex(uli, ULI_DATA_SIZE, hex_uli));

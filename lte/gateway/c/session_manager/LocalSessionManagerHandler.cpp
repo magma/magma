@@ -592,7 +592,7 @@ std::string LocalSessionManagerHandlerImpl::bytes_to_hex(const std::string& s)
     for (std::string::size_type i = 0; i < s.length(); ++i)
     {
         c = (unsigned int)(unsigned char)s[i];
-        ret << std::hex << std::setfill('0') <<
+        ret << " " << std::hex << std::setfill('0') <<
             std::setw(2) << (std::nouppercase) << c;
     }
     return ret.str();
