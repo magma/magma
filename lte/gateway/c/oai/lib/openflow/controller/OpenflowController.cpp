@@ -94,7 +94,8 @@ void OpenflowController::dispatch_event(const ControllerEvent& ev) {
 void OpenflowController::inject_external_event(
     std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) ) {
   if (latest_ofconn_ == NULL) {
-    OAILOG_ERROR(LOG_GTPV1U, "Null connection on event type %d", ev->get_type());
+    OAILOG_ERROR(
+        LOG_GTPV1U, "Null connection on event type %d", ev->get_type());
     throw std::runtime_error("Controller not connected to switch:\n");
   }
   ev->set_of_connection(latest_ofconn_);
