@@ -39,7 +39,7 @@ class TestIPV6Allocator(unittest.TestCase):
 
     def setUp(self):
         self._config = {
-            'ipv6_prefix_block': 'fe80:5:6c::/48',
+            'ipv6_prefix_block': 'fedd:5:6c::/48',
             'ipv6_session_prefix_alloc_mode': 'RANDOM'
 
         }

@@ -51,7 +51,7 @@ class RpcTests(unittest.TestCase):
         config = {'persist_to_redis': False,
                   'redis_port': None,
                   'allocator_type': "ip_pool",
-                  'ipv6_prefix_block': 'fe80:5:6c::/48',
+                  'ipv6_prefix_block': 'fedd:5:6c::/48',
                   'ipv6_session_prefix_alloc_mode': 'RANDOM',
                   }
         self._servicer = MobilityServiceRpcServicer(mconfig, config)
