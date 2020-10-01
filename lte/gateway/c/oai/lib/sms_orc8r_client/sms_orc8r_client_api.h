@@ -27,7 +27,7 @@ extern "C" {
 #include "intertask_interface.h"
 #include "sgs_messages_types.h"
 
-void send_uplink_unitdata(const itti_sgsap_uplink_unitdata_t* msg);
+void send_smo_uplink_unitdata(const itti_sgsap_uplink_unitdata_t* msg);
 
 #ifdef __cplusplus
 }
