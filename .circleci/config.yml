@@ -919,6 +919,7 @@ jobs:
             env
             docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
             cd ${MAGMA_ROOT}/xwf/docker/
+            docker-compose pull || true
             docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
 
   xwfm-deploy:
