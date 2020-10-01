@@ -128,6 +128,8 @@ def remove_ip_block_handler(client, args):
         ipblock_msg = IPBlock()
         if ipblock.version == 4:
             ipblock_msg.version = IPBlock.IPV4
+        elif ipblock.version == 6:
+            ipblock_msg.version = IPBlock.IPV6
         else:
             print(
                 "Error: IP version %d is not supported yet" % ipblock.version)
@@ -138,7 +140,7 @@ def remove_ip_block_handler(client, args):
 
     request = RemoveIPBlockRequest(ip_blocks=ipblock_msgs, force=args.force)
     remove_response = client.RemoveIPBlock(request)
-    print("IPv4 Blocks Removed: ")
+    print("IP Blocks Removed: ")
     for block_msg in remove_response.ip_blocks:
         ip = ipaddress.ip_address(block_msg.net_address)
         block = ipaddress.ip_network("%s/%d" % (ip, block_msg.prefix_len))
