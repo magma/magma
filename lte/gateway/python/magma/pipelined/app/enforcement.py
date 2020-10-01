@@ -241,7 +241,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             rule_version=rule_version,
             priority=priority)
         try:
-            self._redirect_manager.handle_redirection(
+            self._redirect_manager.setup_lte_redirect(
                 self._datapath, self.loop, redirect_request)
             return RuleModResult.SUCCESS
         except RedirectException as err:
