@@ -68,7 +68,7 @@ from magma.pipelined.app.uplink_bridge import UplinkBridgeController
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
-from magma.pipelined.ipv6_store import InterfaceIDToPrefixMapper
+from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from ryu.base.app_manager import AppManager
 

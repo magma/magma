@@ -19,9 +19,8 @@ from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.ipv6_store import get_ipv6_interface_id
-from magma.pipelined.openflow.registers import Direction, load_passthrough, \
-    TUN_PORT_REG
+from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id
+from magma.pipelined.openflow.registers import Direction
 
 from ryu.controller import dpset
 from ryu.ofproto.inet import IPPROTO_ICMPV6
@@ -70,14 +69,13 @@ class IPV6RouterSolicitationController(MagmaController):
         self._prefix_mapper = kwargs['interface_to_prefix_mapper']
         self._datapath = None
 
-        self.logger.error(self.config.ll_addr)
-        self.logger.error(self.config.ipv6_src)
-
     def _get_config(self, config_dict):
         addrs = netifaces.ifaddresses(config_dict['bridge_name'])
         ll_addr = addrs[netifaces.AF_LINK][0]['addr']
-        if '%' in addrs[netifaces.AF_INET6][0]['addr']:
-            ipv6_str, _ = addrs[netifaces.AF_INET6][0]['addr'].split('%')
+        ipv6_str = config_dict['ipv6_router_addr']
+        self.logger.info("IPv6 Router using ll_addr %s, and src ip %s",
+                         ll_addr, ipv6_str)
+
         return self.IPv6RouterConfig(
             ipv6_src=ipv6_str,
             ll_addr=ll_addr,
@@ -103,39 +101,52 @@ class IPV6RouterSolicitationController(MagmaController):
         Install flows that match on RS/NS and trigger packet in message, that
         will respond with RA/NA.
         """
-        ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+        ofproto = datapath.ofproto
 
         match_rs = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
                               ipv6_src='fe80::/10',
                               ip_proto=IPPROTO_ICMPV6,
                               icmpv6_type=icmpv6.ND_ROUTER_SOLICIT,
-                              direction=Direction.IN)
+                              direction=Direction.OUT)
 
         flows.add_output_flow(datapath, self.tbl_num,
                               match=match_rs, actions=[],
                               priority=flows.DEFAULT_PRIORITY,
                               output_port=ofproto.OFPP_CONTROLLER,
-                              copy_table=self.next_table,
                               max_len=ofproto.OFPCML_NO_BUFFER)
 
-        match_ns = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
-                              ipv6_src='fe80::/10',
-                              ip_proto=IPPROTO_ICMPV6,
-                              icmpv6_type=icmpv6.ND_NEIGHBOR_SOLICIT,
-                              direction=Direction.IN)
+        match_ns_ue = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                 ipv6_src='fe80::/10',
+                                 ip_proto=IPPROTO_ICMPV6,
+                                 icmpv6_type=icmpv6.ND_NEIGHBOR_SOLICIT,
+                                 direction=Direction.OUT)
 
         flows.add_output_flow(datapath, self.tbl_num,
-                              match=match_ns, actions=[],
+                              match=match_ns_ue, actions=[],
                               priority=flows.DEFAULT_PRIORITY,
                               output_port=ofproto.OFPP_CONTROLLER,
-                              copy_table=self.next_table,
                               max_len=ofproto.OFPCML_NO_BUFFER)
 
-    def _send_router_advertisement(self, prefix: str, output_port):
+        match_ns_sgi = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                  ipv6_src='fe80::/10',
+                                  ip_proto=IPPROTO_ICMPV6,
+                                  icmpv6_type=icmpv6.ND_NEIGHBOR_SOLICIT,
+                                  direction=Direction.IN)
+
+        flows.add_output_flow(datapath, self.tbl_num,
+                              match=match_ns_sgi, actions=[],
+                              priority=flows.DEFAULT_PRIORITY,
+                              output_port=ofproto.OFPP_CONTROLLER,
+                              max_len=ofproto.OFPCML_NO_BUFFER)
+
+    def _send_router_advertisement(self, ue_ll_ipv6: str, tun_id: int,
+                                   tun_ipv4_dst: str, output_port):
         """
         Generates the Router Advertisement response packet
         """
         ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
+
+        prefix = self.get_custom_prefix(ue_ll_ipv6)
 
         pkt = packet.Packet()
         pkt.add_protocol(
@@ -170,7 +181,10 @@ class IPV6RouterSolicitationController(MagmaController):
         )
         pkt.serialize()
 
-        actions_out = [parser.OFPActionOutput(port=output_port)]
+        actions_out = [
+            parser.NXActionSetTunnel(tun_id=tun_id),
+            parser.NXActionRegLoad2(dst='tun_ipv4_dst', value=tun_ipv4_dst),
+            parser.OFPActionOutput(port=output_port)]
         out = parser.OFPPacketOut(datapath=self._datapath,
                                   buffer_id=ofproto.OFP_NO_BUFFER,
                                   in_port=ofproto.OFPP_CONTROLLER,
@@ -178,7 +192,8 @@ class IPV6RouterSolicitationController(MagmaController):
                                   data=pkt.data)
         self._datapath.send_msg(out)
 
-    def _send_neighbor_advertisement(self, target_ipv6, output_port):
+    def _send_neighbor_advertisement(self, target_ipv6: str, tun_id: int,
+                                     tun_ipv4_dst: str, output_port):
         """
         Generates the Neighbor Advertisement response packet
         """
@@ -210,7 +225,10 @@ class IPV6RouterSolicitationController(MagmaController):
         )
         pkt.serialize()
 
-        actions_out = [parser.OFPActionOutput(port=output_port)]
+        actions_out = [
+            parser.NXActionSetTunnel(tun_id=tun_id),
+            parser.NXActionRegLoad2(dst='tun_ipv4_dst', value=tun_ipv4_dst),
+            parser.OFPActionOutput(port=output_port)]
         out = parser.OFPPacketOut(datapath=self._datapath,
                                   buffer_id=ofproto.OFP_NO_BUFFER,
                                   in_port=ofproto.OFPP_CONTROLLER,
@@ -224,34 +242,39 @@ class IPV6RouterSolicitationController(MagmaController):
         Process the packet in message, reply with RA/NA packets
         """
         msg = ev.msg
+
         if self.tbl_num != msg.table_id:
             # Intended for other application
             return
 
+        if 'tunnel_id' not in ev.msg.match:
+            self.logger.error("Packet missing the tunnel_id, can't reply")
+            return
+
+        if 'tun_ipv4_src' not in ev.msg.match:
+            self.logger.error("Packet missing the tun_ipv4_dst, can't reply")
+            return
+
         in_port = ev.msg.match['in_port']
+        tun_id = ev.msg.match['tunnel_id']
+        tun_ipv4_src = ev.msg.match['tun_ipv4_src']
 
         pkt = packet.Packet(msg.data)
-
-        self.logger.error("______ PKT ______")
-        self.logger.error("______ PKT ______")
-        self.logger.error(ev.msg)
-        self.logger.error(pformat(ev.msg))
+        #TODO rm
         for p in pkt.protocols:
-            self.logger.error(p)
+            self.logger.debug(p)
 
         ipv6_header = pkt.get_protocols(ipv6.ipv6)[0]
         icmpv6_header = pkt.get_protocols(icmpv6.icmpv6)[0]
 
-        prefix = self.get_custom_prefix(ipv6_header)
         if icmpv6_header.type_ == icmpv6.ND_ROUTER_SOLICIT:
-            self.logger.error("Recieved router soli MSG---------------")
-            self._send_router_advertisement(prefix, in_port)
+            self.logger.debug("Received router solicitation MSG")
+            self._send_router_advertisement(ipv6_header.src, tun_id,
+                                            tun_ipv4_src, in_port)
         elif icmpv6_header.type_ == icmpv6.ND_NEIGHBOR_SOLICIT:
-            self.logger.error("Recieved neighbor soli MSG---------------")
-            self._send_neighbor_advertisement(icmpv6_header.data.dst, in_port)
-
-        self.logger.error("______ PKT ______")
-        self.logger.error("______ PKT ______")
+            self.logger.debug("Received neighbor solicitation MSG")
+            self._send_neighbor_advertisement(icmpv6_header.data.dst, tun_id,
+                                              tun_ipv4_src, in_port)
 
     def handle_restart(self):
         pass
@@ -262,11 +285,11 @@ class IPV6RouterSolicitationController(MagmaController):
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
 
-    def get_custom_prefix(self, ipv6_header):
+    def get_custom_prefix(self, ue_ll_ipv6: str) -> str:
         """
         Retrieve the custom prefix by extracting the interface id out of the
         packet
         """
 
-        interface_id = get_ipv6_interface_id(ipv6_header.src)
+        interface_id = get_ipv6_interface_id(ue_ll_ipv6)
         return self._prefix_mapper.get_prefix(interface_id)
