@@ -56,6 +56,7 @@
 #define SGW_CONFIG_STRING_OVS_INTERNAL_SAMPLING_FWD_TBL_NUM "INTERNAL_SAMPLING_FWD_TBL_NUM"
 #define SGW_CONFIG_STRING_OVS_UPLINK_PORT_NUM "UPLINK_PORT_NUM"
 #define SGW_CONFIG_STRING_OVS_UPLINK_MAC "UPLINK_MAC"
+#define SGW_CONFIG_STRING_OVS_MULTI_TUNNEL "MULTI_TUNNEL"
 
 #define SPGW_ABORT_ON_ERROR true
 #define SPGW_WARN_ON_ERROR false
@@ -68,6 +69,7 @@ typedef struct ovs_config_s {
   int internal_sampling_fwd_tbl_num;
   int uplink_port_num;
   bstring uplink_mac;
+  bool multi_tunnel;
 } ovs_config_t;
 
 typedef struct sgw_config_s {

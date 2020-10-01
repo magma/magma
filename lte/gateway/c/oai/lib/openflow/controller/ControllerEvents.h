@@ -164,11 +164,13 @@ class AddGTPTunnelEvent : public ExternalEvent {
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, int vlan,  const struct in_addr enb_ip,
       const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
-      const struct ipv4flow_dl* dl_flow, const uint32_t dl_flow_precedence);
+      const struct ipv4flow_dl* dl_flow, const uint32_t dl_flow_precedence,
+      uint32_t gtp_port_no);
 
   AddGTPTunnelEvent(
       const struct in_addr ue_ip, int vlan,  const struct in_addr enb_ip,
-      const uint32_t in_tei, const uint32_t out_tei, const char* imsi);
+      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+      uint32_t gtp_port_no);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
@@ -179,6 +181,7 @@ class AddGTPTunnelEvent : public ExternalEvent {
   const bool is_dl_flow_valid() const;
   const struct ipv4flow_dl& get_dl_flow() const;
   const uint32_t get_dl_flow_precedence() const;
+  const uint32_t get_gtp_portno() const;
 
  private:
   const UeNetworkInfo ue_info_;
@@ -189,6 +192,7 @@ class AddGTPTunnelEvent : public ExternalEvent {
   const struct ipv4flow_dl dl_flow_;
   const bool dl_flow_valid_;
   const uint32_t dl_flow_precedence_;
+  const uint32_t gtp_portno_;
 };
 
 /*
@@ -198,20 +202,24 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
  public:
   DeleteGTPTunnelEvent(
       const struct in_addr ue_ip, const uint32_t in_tei,
-      const struct ipv4flow_dl* dl_flow);
-  DeleteGTPTunnelEvent(const struct in_addr ue_ip, const uint32_t in_tei);
+      const struct ipv4flow_dl* dl_flow,
+      uint32_t gtp_port_no);
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, const uint32_t in_tei,
+      uint32_t gtp_port_no);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
   const uint32_t get_in_tei() const;
   const bool is_dl_flow_valid() const;
   const struct ipv4flow_dl& get_dl_flow() const;
+  const uint32_t get_gtp_portno() const;
 
  private:
   const UeNetworkInfo ue_info_;
   const uint32_t in_tei_;
   const struct ipv4flow_dl dl_flow_;
   const bool dl_flow_valid_;
+  const uint32_t gtp_portno_;
 };
 
 /*

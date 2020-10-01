@@ -40,7 +40,7 @@ GTPApplication::GTPApplication(
     uint32_t internal_sampling_port_num, uint32_t internal_sampling_fwd_tbl_num,
     uint32_t uplink_port_num)
     : uplink_mac_(uplink_mac),
-      gtp_port_num_(gtp_port_num),
+      gtp0_port_num_(gtp_port_num),
       mtr_port_num_(mtr_port_num),
       internal_sampling_port_num_(internal_sampling_port_num),
       internal_sampling_fwd_tbl_num_(internal_sampling_fwd_tbl_num),
@@ -103,8 +103,11 @@ void GTPApplication::install_internal_pkt_fwd_flow(
 /*
  * Helper method to add matching for adding/deleting the uplink flow
  */
-void add_uplink_match(
+void GTPApplication::add_uplink_match(
     of13::FlowMod& uplink_fm, uint32_t gtp_port, uint32_t i_tei) {
+  if (gtp_port == 0) {
+    gtp_port = GTPApplication::gtp0_port_num_;
+  }
   // Match on tunnel id and gtp in port
   of13::InPort gtp_port_match(gtp_port);
   uplink_fm.add_oxm_field(gtp_port_match);
@@ -128,7 +131,7 @@ void GTPApplication::add_uplink_tunnel_flow(
       convert_precedence_to_priority(ev.get_dl_flow_precedence());
   of13::FlowMod uplink_fm =
       messenger.create_default_flow_mod(0, of13::OFPFC_ADD, flow_priority);
-  add_uplink_match(uplink_fm, gtp_port_num_, ev.get_in_tei());
+  add_uplink_match(uplink_fm, ev.get_gtp_portno(), ev.get_in_tei());
 
   // Set eth src and dst
   of13::ApplyActions apply_ul_inst;
@@ -173,7 +176,7 @@ void GTPApplication::delete_uplink_tunnel_flow(
   uplink_fm.out_port(of13::OFPP_ANY);
   uplink_fm.out_group(of13::OFPG_ANY);
 
-  add_uplink_match(uplink_fm, gtp_port_num_, ev.get_in_tei());
+  add_uplink_match(uplink_fm, ev.get_gtp_portno(), ev.get_in_tei());
 
   messenger.send_of_msg(uplink_fm, ev.get_connection());
 }
@@ -281,7 +284,12 @@ void GTPApplication::add_downlink_tunnel_flow(
       new of13::TunnelIPv4Dst(ev.get_enb_ip().s_addr));
   apply_dl_inst.add_action(set_tunnel_dst);
 
-  of13::SetFieldAction set_tunnel_port(new of13::NXMReg8(gtp_port_num_));
+  int gtp_port = ev.get_gtp_portno();
+  if (gtp_port == 0) {
+    gtp_port = GTPApplication::gtp0_port_num_;
+  }
+
+  of13::SetFieldAction set_tunnel_port(new of13::NXMReg8(gtp_port));
   apply_dl_inst.add_action(set_tunnel_port);
 
   // add imsi to packet metadata to pass to other tables
@@ -367,7 +375,7 @@ void GTPApplication::discard_uplink_tunnel_flow(
   uplink_fm.cookie(cookie);
   uplink_fm.cookie_mask(cookie);
 
-  add_uplink_match(uplink_fm, gtp_port_num_, ev.get_in_tei());
+  add_uplink_match(uplink_fm, gtp0_port_num_, ev.get_in_tei());
 
   messenger.send_of_msg(uplink_fm, ev.get_connection());
 }
@@ -404,7 +412,7 @@ void GTPApplication::forward_uplink_tunnel_flow(
   uplink_fm.cookie(cookie);
   uplink_fm.cookie_mask(cookie);
 
-  add_uplink_match(uplink_fm, gtp_port_num_, ev.get_in_tei());
+  add_uplink_match(uplink_fm, gtp0_port_num_, ev.get_in_tei());
 
   messenger.send_of_msg(uplink_fm, ev.get_connection());
 }
