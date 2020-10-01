@@ -94,12 +94,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                 IPVersionNotSupportedError: if given IP version of the IP block
                 is not supported
         """
-        if ip_block.version == 4:
-            self._ip_address_man.add_ip_block(ip_block)
-            logging.info("Added block %s to the IPv4 address pool", ip_block)
-        elif ip_block.version == 6:
-            logging.info("Assigned IPv6 block: %s", ip_block)
-            self._ip_address_man.add_ipv6_block(ip_block)
+        self._ip_address_man.add_ip_block(ip_block)
 
     @return_void
     def AddIPBlock(self, ipblock_msg, context):
@@ -239,17 +234,12 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
 
     def RemoveIPBlock(self, request, context):
         """ Attempt to remove IP blocks and return the removed blocks """
-        if request.version == IPAddress.IPV4:
-            removed_blocks = self._ip_address_man.remove_ip_blocks(
-                *[self._ipblock_msg_to_ipblock(ipblock_msg, context)
-                  for ipblock_msg in request.ip_blocks],
-                force=request.force)
-        else:
-            removed_blocks = self._ip_address_man.remove_ipv6_blocks(
-                *[self._ipblock_msg_to_ipblock(ipblock_msg, context)
-                  for ipblock_msg in request.ip_blocks])
+        removed_blocks = self._ip_address_man.remove_ip_blocks(
+            *[self._ipblock_msg_to_ipblock(ipblock_msg, context)
+              for ipblock_msg in request.ip_blocks],
+            force=request.force)
 
-        removed_block_msgs = [IPBlock(version=request.version,
+        removed_block_msgs = [IPBlock(version=block.version,
                                       net_address=block.network_address.packed,
                                       prefix_len=block.prefixlen)
                               for block in removed_blocks]
@@ -270,7 +260,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return IPAddress()
 
-        version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
+        version = IPAddress.IPv4 if ip.version == 4 else IPAddress.IPV6
         return IPAddress(version=version, address=ip.packed)
 
     def GetSubscriberIDFromIP(self, ip_addr, context):
