@@ -106,7 +106,8 @@ class NetworkEPCConfig:
         self.mcc = mcc
         self.mnc = mnc
         self.tac = tac
-        self.relay_enabled = relay_enabled
+        self.gx_gy_relay_enabled = relay_enabled
+        self.hss_relay_enabled = relay_enabled
 
 
 class NetworkCellularConfig:

@@ -20,6 +20,7 @@ import abc
 import grpc
 from lte.protos.pipelined_pb2 import ActivateFlowsRequest, \
     DeactivateFlowsRequest
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from ryu.lib import hub
 
 from magma.subscriberdb.sid import SIDUtils
@@ -166,15 +167,16 @@ class RyuDirectSubscriberContext(SubscriberContext):
 
     def _activate_subscriber_rules(self):
         def activate_flows():
-            self._ec.activate_rules(imsi=self.cfg.imsi,
-                                    ip_addr=self.cfg.ip,
-                                    apn_ambr=default_ambr_config,
-                                    static_rule_ids=self._static_rule_names,
-                                    dynamic_rules=self._dynamic_rules)
+            self._ec.activate_rules(
+                imsi=self.cfg.imsi,
+                ip_addr=convert_ipv4_str_to_ip_proto(self.cfg.ip),
+                apn_ambr=default_ambr_config,
+                static_rule_ids=self._static_rule_names,
+                dynamic_rules=self._dynamic_rules)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
-                    ip_addr=self.cfg.ip,
+                    ip_addr=convert_ipv4_str_to_ip_proto(self.cfg.ip),
                     apn_ambr=default_ambr_config,
                     static_rule_ids=self._static_rule_names,
                     dynamic_rules=self._dynamic_rules)
@@ -183,5 +185,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
     def _deactivate_subscriber_rules(self):
         if self._nuke_flows_on_exit:
             def deactivate_flows():
-                self._ec.deactivate_rules(imsi=self.cfg.imsi, rule_ids=None)
+                self._ec.deactivate_rules(
+                    imsi=self.cfg.imsi,
+                    ip_addr=convert_ipv4_str_to_ip_proto(self.cfg.ip),
+                    rule_ids=None)
             hub.joinall([hub.spawn(deactivate_flows)])

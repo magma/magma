@@ -36,9 +36,18 @@ Terraform values.
 
 Some Terraform values for recent Orchestrator releases are summarized below
 
+### v1.2.0
+Verified with Terraform version `0.13.1`. The latest Terraform version will
+likely work as well.
+
+- `v1.2` [patch branch](https://github.com/magma/magma/tree/v1.2)
+- `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.2`
+Terraform module source
+- `1.4.35` Helm chart version
+
 ### v1.1.0
-Verified with Terraform version `0.12.29`. The latest
-Terraform version will likely work as well.
+Verified with Terraform version `0.12.29`. The latest Terraform version will
+likely work as well.
 
 - `v1.1` [patch branch](https://github.com/magma/magma/tree/v1.1)
 - `github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.1`

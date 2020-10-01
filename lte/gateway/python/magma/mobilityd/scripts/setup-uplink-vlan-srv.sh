@@ -15,10 +15,15 @@
 
 br_name=$1
 tag=$2
+network_id=$3
+
+if [[ -z $network_id ]]; then
+        network_id="200"
+fi
 
 prefix="vt$tag"
-ip_addr="10.200.$tag.111/24"
-router_ip="10.200.$tag.211"
+ip_addr="10.$network_id.$tag.111/24"
+router_ip="10.$network_id.$tag.211"
 
 ip link del "$prefix"_port
 ip link add "$prefix"_port type veth peer name  "$prefix"_port1
@@ -42,7 +47,7 @@ then
 	kill "$PID"
 fi
 
-sed "s/.x./."$tag"./g" /home/vagrant/magma/lte/gateway/python/magma/mobilityd/scripts/dnsd.x.conf > /tmp/dns."$tag".conf
+sed "s/.x./."$network_id.$tag"./g" /home/vagrant/magma/lte/gateway/python/magma/mobilityd/scripts/dnsd.x.conf > /tmp/dns."$tag".conf
 sleep 1
 ip netns exec "$prefix"_dhcp_srv  /usr/sbin/dnsmasq -q --conf-file=/tmp/dns."$tag".conf --log-queries --log-facility=/var/log/"$prefix"dnsmasq."$tag".test.log &
 

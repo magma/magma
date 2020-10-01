@@ -14,6 +14,7 @@
 package main
 
 import (
+	"flag"
 	"magma/cwf/cloud/go/services/analytics/calculations"
 	"strconv"
 	"time"
@@ -54,6 +55,8 @@ var (
 )
 
 func main() {
+	flag.Parse()
+
 	// Create the service
 	srv, err := service.NewOrchestratorService(cwf.ModuleName, ServiceName)
 	if err != nil {
@@ -66,11 +69,11 @@ func main() {
 		analysisSchedule = providedSchedule
 	}
 
-	calculations := getAnalyticsCalculations()
+	calcs := getAnalyticsCalculations()
 	promAPIClient := getPrometheusClient()
 	exporter := getExporterIfRequired(srv)
 
-	analyzer := analytics.NewPrometheusAnalyzer(promAPIClient, calculations, exporter)
+	analyzer := analytics.NewPrometheusAnalyzer(promAPIClient, calcs, exporter)
 	err = analyzer.Schedule(analysisSchedule)
 	if err != nil {
 		glog.Fatalf("Error scheduling analyzer: %s", err)
@@ -100,14 +103,25 @@ func getExporterIfRequired(srv *service.OrchestratorService) analytics.Exporter 
 	return nil
 }
 
+var (
+	xapLabels                   = []string{calculations.DaysLabel, metrics.NetworkLabelName}
+	userThroughputLabels        = []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel}
+	userConsumptionLabels       = []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel}
+	hourlyUserConsumptionLabels = []string{"hours", metrics.NetworkLabelName, calculations.DirectionLabel}
+	apThroughputLabels          = []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, calculations.APNLabel}
+	authenticationsLabels       = []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.AuthCodeLabel}
+)
+
 func getAnalyticsCalculations() []calculations.Calculation {
-	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName})
-	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
-	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel})
-	hourlyUserConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionHourlyMetricName}, []string{"hours", metrics.NetworkLabelName, calculations.DirectionLabel})
-	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName, calculations.DirectionLabel, calculations.APNLabel})
-	authenticationsGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: authenticationsMetricName}, []string{calculations.DaysLabel, metrics.NetworkLabelName})
-	prometheus.MustRegister(xapGauge, userThroughputGauge, userConsumptionGauge, hourlyUserConsumptionGauge, apThroughputGauge, authenticationsGauge)
+	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, xapLabels)
+	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, userThroughputLabels)
+	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, userConsumptionLabels)
+	hourlyUserConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionHourlyMetricName}, hourlyUserConsumptionLabels)
+	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, apThroughputLabels)
+	authenticationsGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: authenticationsMetricName}, authenticationsLabels)
+
+	prometheus.MustRegister(xapGauge, userThroughputGauge, userConsumptionGauge,
+		hourlyUserConsumptionGauge, apThroughputGauge, authenticationsGauge)
 
 	allCalculations := make([]calculations.Calculation, 0)
 
@@ -135,10 +149,11 @@ func getXAPCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName s
 	for _, dayParam := range daysList {
 		calcs = append(calcs, &calculations.XAPCalculation{
 			CalculationParams: calculations.CalculationParams{
-				Days:            dayParam,
-				RegisteredGauge: gauge,
-				Labels:          prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-				Name:            metricName,
+				Days:                dayParam,
+				RegisteredGauge:     gauge,
+				Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+				Name:                metricName,
+				ExpectedGaugeLabels: xapLabels,
 			},
 		})
 	}
@@ -151,10 +166,11 @@ func getUserThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, m
 		for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
 			calcs = append(calcs, &calculations.UserThroughputCalculation{
 				CalculationParams: calculations.CalculationParams{
-					Days:            dayParam,
-					RegisteredGauge: gauge,
-					Labels:          prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-					Name:            metricName,
+					Days:                dayParam,
+					RegisteredGauge:     gauge,
+					Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+					Name:                metricName,
+					ExpectedGaugeLabels: userThroughputLabels,
 				},
 				Direction:     dir,
 				QueryStepSize: daysToQueryStepSize[dayParam],
@@ -170,10 +186,11 @@ func getAPThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, met
 		for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
 			calcs = append(calcs, &calculations.APThroughputCalculation{
 				CalculationParams: calculations.CalculationParams{
-					Days:            dayParam,
-					RegisteredGauge: gauge,
-					Labels:          prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-					Name:            metricName,
+					Days:                dayParam,
+					RegisteredGauge:     gauge,
+					Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+					Name:                metricName,
+					ExpectedGaugeLabels: apThroughputLabels,
 				},
 				Direction:     dir,
 				QueryStepSize: daysToQueryStepSize[dayParam],
@@ -189,10 +206,11 @@ func getUserConsumptionCalculations(daysList []int, gauge *prometheus.GaugeVec, 
 		for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
 			calcs = append(calcs, &calculations.UserConsumptionCalculation{
 				CalculationParams: calculations.CalculationParams{
-					Days:            dayParam,
-					RegisteredGauge: gauge,
-					Labels:          prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-					Name:            metricName,
+					Days:                dayParam,
+					RegisteredGauge:     gauge,
+					Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+					Name:                metricName,
+					ExpectedGaugeLabels: userConsumptionLabels,
 				},
 				Direction: dir,
 			})
@@ -206,9 +224,10 @@ func get1hourConsumptionCalculation(gauge *prometheus.GaugeVec, metricName strin
 	for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
 		calcs = append(calcs, &calculations.UserConsumptionCalculation{
 			CalculationParams: calculations.CalculationParams{
-				RegisteredGauge: gauge,
-				Labels:          prometheus.Labels{"hours": "1"},
-				Name:            metricName,
+				RegisteredGauge:     gauge,
+				Labels:              prometheus.Labels{"hours": "1"},
+				Name:                metricName,
+				ExpectedGaugeLabels: hourlyUserConsumptionLabels,
 			},
 			Direction: dir,
 			Hours:     1,
@@ -222,10 +241,11 @@ func getAuthenticationCalculations(daysList []int, gauge *prometheus.GaugeVec, m
 	for _, dayParam := range daysList {
 		calcs = append(calcs, &calculations.AuthenticationsCalculation{
 			CalculationParams: calculations.CalculationParams{
-				Days:            dayParam,
-				RegisteredGauge: gauge,
-				Labels:          prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-				Name:            metricName,
+				Days:                dayParam,
+				RegisteredGauge:     gauge,
+				Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+				Name:                metricName,
+				ExpectedGaugeLabels: authenticationsLabels,
 			},
 		})
 	}

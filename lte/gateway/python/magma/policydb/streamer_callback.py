@@ -133,9 +133,9 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
         update = SessionRules(rules_per_subscriber=all_subscriber_rules)
 
         try:
-            self._session_mgr_stub.SetSessionRules(update)
-        except grpc.RpcError:
-            logging.error('Unable to apply apn->policy updates')
+            self._session_mgr_stub.SetSessionRules(update, timeout=5)
+        except grpc.RpcError as e:
+            logging.error('Unable to apply apn->policy updates %s', str(e))
 
     def _are_sub_policies_updated(
         self,

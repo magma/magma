@@ -237,7 +237,6 @@ function GatewayTableRaw(props: WithAlert) {
               title: 'Hardware ID',
               field: 'hardwareId',
               editable: 'never',
-              width: 250,
             },
             {
               title: 'Current Version',

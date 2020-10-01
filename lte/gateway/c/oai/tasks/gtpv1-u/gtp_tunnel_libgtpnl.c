@@ -172,7 +172,7 @@ int libgtpnl_add_tunnel(
   return ret;
 }
 
-int libgtpnl_del_tunnel(
+int libgtpnl_del_tunnel(__attribute__((unused)) struct in_addr enb,
     __attribute__((unused)) struct in_addr ue, uint32_t i_tei, uint32_t o_tei,
     struct ipv4flow_dl* flow_dl) {
   struct gtp_tunnel* t;

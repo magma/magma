@@ -37,7 +37,8 @@
     "sessiond": {
       "@type": "type.googleapis.com/magma.mconfig.SessionD",
       "logLevel": "INFO",
-      "relayEnabled": true
+      "relayEnabled": true,
+      "gxGyRelayEnabled": true
     },
     "redirectd": {
       "@type": "type.googleapis.com/magma.mconfig.RedirectD",

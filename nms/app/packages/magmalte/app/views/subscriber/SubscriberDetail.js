@@ -101,11 +101,16 @@ export default function SubscriberDetail() {
   const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const subscriberId: string = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  // TODO: render a "Not found" component if the IMSI is not found
+  const subscriberInfo = ctx.state?.[subscriberId] || {};
 
   return (
     <>
       <div className={classes.topBar}>
-        <Text variant="body2">Subscriber/{subscriberId}</Text>
+        <Text variant="body2">
+          Subscriber/{subscriberInfo.name ?? subscriberId}
+        </Text>
       </div>
 
       <AppBar position="static" color="default" className={classes.tabBar}>
@@ -208,7 +213,7 @@ function Info(props: {subscriberInfo: subscriber}) {
   const kpiData: DataRows[] = [
     [
       {
-        value: props.subscriberInfo.id,
+        value: props.subscriberInfo.name ?? props.subscriberInfo.id,
         statusCircle: false,
       },
     ],
@@ -242,11 +247,13 @@ function Status({subscriberInfo}: {subscriberInfo: subscriber}) {
         category: 'Gateway ID',
         value: gwId,
         statusCircle: false,
+        tooltip: 'latest gateway connected to the subscriber',
       },
       {
         category: 'eNodeB SN',
         value: featureUnsupported,
         statusCircle: false,
+        tooltip: 'not supported',
       },
     ],
     [
@@ -254,10 +261,12 @@ function Status({subscriberInfo}: {subscriberInfo: subscriber}) {
         category: 'Connection Status',
         value: statusUnknown,
         statusCircle: false,
+        tooltip: 'not supported',
       },
       {
         category: 'UE Latency',
-        value: statusUnknown,
+        value: subscriberInfo.monitoring?.icmp?.latency_ms ?? statusUnknown,
+        unit: subscriberInfo.monitoring?.icmp?.latency_ms ? 'ms' : '',
         statusCircle: false,
       },
     ],

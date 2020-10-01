@@ -79,6 +79,7 @@ typedef uint64_t enb_s1ap_id_key_t;
  * invalid
  */
 #define INVALID_MME_UE_S1AP_ID 0x0
+#define INVALID_ENB_UE_S1AP_ID 0x0
 
 //------------------------------------------------------------------------------
 // TEIDs

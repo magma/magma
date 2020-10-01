@@ -47,6 +47,8 @@ magma-gen-meta:
       filename: base_name_record_swaggergen.go
     - go-struct-name: NetworkSubscriberConfig
       filename: network_subscriber_config_swaggergen.go
+    - go-struct-name: IPAddress
+      filename: ip_address_swaggergen.go
 
 info:
   title: LTE Policy Management
@@ -786,6 +788,12 @@ definitions:
         format: ip-address
         example: "0.0.0.0/0"
         x-go-custom-tag: 'magma_alt_name:"Ipv4Dst"'
+      ip_src:
+        $ref: '#/definitions/ip_address'
+        x-go-custom-tag: 'magma_alt_name:"IpSrc"'
+      ip_dst:
+        $ref: '#/definitions/ip_address'
+        x-go-custom-tag: 'magma_alt_name:"IpDst"'
       tcp_src:
         type: integer
         format: uint32
@@ -907,3 +915,17 @@ definitions:
         type: boolean
         example: false
         default: false
+
+  ip_address:
+    description: IP address
+    type: object
+    properties:
+      version:
+        type: string
+        enum:
+          - IPv4
+          - IPv6
+      address:
+        type: string
+        format: ip-address
+        example: "192.168.0.1/24"

@@ -315,6 +315,23 @@ func (m *FlowDescription) ToProto() *protos.FlowDescription {
 		IpProto:   protos.FlowMatch_IPProto(protos.FlowMatch_IPProto_value[*m.Match.IPProto]),
 	}
 	orc8rProtos.FillIn(m.Match, flowDescription.Match)
+
+	// Backwards compatible for old flow match definition
+	if m.Match.IPSrc != nil {
+		flowDescription.Match.IpSrc = &protos.IPAddress{
+			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPSrc.Version]),
+			Address: []byte(m.Match.IPSrc.Address),
+		}
+		flowDescription.Match.Ipv4Src = m.Match.IPSrc.Address
+	}
+	if m.Match.IPDst != nil {
+		flowDescription.Match.IpDst = &protos.IPAddress{
+			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPDst.Version]),
+			Address: []byte(m.Match.IPDst.Address),
+		}
+		flowDescription.Match.Ipv4Dst = m.Match.IPDst.Address
+	}
+
 	return flowDescription
 }
 
@@ -423,9 +440,11 @@ func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
 	proto := &protos.FlowQos{
 		MaxReqBwUl: swag.Uint32Value(m.MaxReqBwUl),
 		MaxReqBwDl: swag.Uint32Value(m.MaxReqBwDl),
-		GbrUl:      swag.Uint32Value(m.Gbr.Uplink),
-		GbrDl:      swag.Uint32Value(m.Gbr.Downlink),
 		Qci:        protos.FlowQos_Qci(m.ClassID),
+	}
+	if m.Gbr != nil {
+		proto.GbrUl = swag.Uint32Value(m.Gbr.Uplink)
+		proto.GbrDl = swag.Uint32Value(m.Gbr.Downlink)
 	}
 	if m.Arp != nil {
 		arp := &protos.QosArp{PriorityLevel: swag.Uint32Value(m.Arp.PriorityLevel)}

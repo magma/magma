@@ -27,12 +27,12 @@ from scapy.layers.inet import IP, UDP
 from scapy.sendrecv import sendp
 from threading import Condition
 
-from magma.mobilityd.mac import MacAddress, create_mac_from_sid
+from magma.mobilityd.mac import MacAddress, hex_to_mac
 from magma.mobilityd.dhcp_desc import DHCPState, DHCPDescriptor
 from magma.mobilityd.uplink_gw import UplinkGatewayInfo
 
 LOG = logging.getLogger('mobilityd.dhcp.sniff')
-
+DHCP_ACTIVE_STATES = [DHCPState.ACK, DHCPState.OFFER]
 
 class DHCPClient:
     THREAD_YIELD_TIME = .1
@@ -42,7 +42,7 @@ class DHCPClient:
                  gw_info: UplinkGatewayInfo,
                  dhcp_wait: Condition,
                  iface: str = "dhcp0",
-                 lease_renew_wait_min: int = 30):
+                 lease_renew_wait_min: int = 200):
         """
         Implement DHCP client to allocate IP for given Mac address.
         DHCP client state is maintained in user provided hash table.
@@ -133,7 +133,7 @@ class DHCPClient:
         pkt /= UDP(sport=68, dport=67)
         pkt /= BOOTP(op=1, chaddr=mac.as_hex(), xid=pkt_xid, ciaddr=ciaddr)
         pkt /= DHCP(options=dhcp_opts)
-        LOG.debug("DHCP pkt %s", pkt.show(dump=True))
+        LOG.debug("DHCP pkt xmit %s", pkt.show(dump=True))
 
         sendp(pkt, iface=self._dhcp_interface, verbose=0)
 
@@ -181,12 +181,9 @@ class DHCPClient:
                 for dhcp_record in self.dhcp_client_state.values():
                     logging.debug("monitor: %s", dhcp_record)
                     # Only process active records.
-                    if dhcp_record.state != DHCPState.ACK and \
-                       dhcp_record.state != DHCPState.REQUEST:
+                    if dhcp_record.state not in DHCP_ACTIVE_STATES:
                         continue
-                    # ignore already released IPs.
-                    if dhcp_record.state == DHCPState.RELEASE:
-                        continue
+
                     now = datetime.datetime.now()
                     logging.debug("monitor time: %s", now)
                     request_state = DHCPState.REQUEST
@@ -218,7 +215,9 @@ class DHCPClient:
         return None
 
     def _process_dhcp_pkt(self, packet, state: DHCPState):
-        mac_addr = create_mac_from_sid(packet[Ether].dst)
+        LOG.debug("DHCP pkt recv %s", packet.show(dump=True))
+
+        mac_addr = MacAddress(hex_to_mac(packet[BOOTP].chaddr.hex()[0:12]))
         vlan = ""
         if Dot1Q in packet:
             vlan = str(packet[Dot1Q].vlan)
@@ -232,7 +231,7 @@ class DHCPClient:
                 if subnet_mask is not None:
                     ip_subnet = IPv4Network(ip_offered + "/" + subnet_mask, strict=False)
                 else:
-                    ip_subnet = None
+                    ip_subnet = IPv4Network(ip_offered + "/" + "32", strict=False)
 
                 dhcp_router_opt = self._get_option(packet, "router")
                 if dhcp_router_opt is not None:
@@ -271,16 +270,12 @@ class DHCPClient:
         if DHCP not in packet:
             return
 
-        LOG.debug("DHCP type %s", packet[DHCP].options[0][1])
-
         # Match DHCP offer
         if packet[DHCP].options[0][1] == int(DHCPState.OFFER):
-            LOG.debug("Offer %s (%s) ", packet[IP].src, packet[Ether].src)
             self._process_dhcp_pkt(packet, DHCPState.OFFER)
 
         # Match DHCP ack
         elif packet[DHCP].options[0][1] == int(DHCPState.ACK):
-            LOG.debug("Acked %s (%s) ", packet[IP].src, packet[Ether].src)
             self._process_dhcp_pkt(packet, DHCPState.ACK)
 
         # TODO handle other DHCP protocol events.

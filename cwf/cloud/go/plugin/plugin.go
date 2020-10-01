@@ -48,6 +48,7 @@ func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		configurator.NewNetworkConfigSerde(cwf.CwfNetworkType, &models.NetworkCarrierWifiConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(cwf.CwfGatewayType, &models.GatewayCwfConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(cwf.CwfHAPairType, &models.CwfHaPairConfigs{}),
 		state.NewStateSerde(cwf.CwfSubscriberDirectoryType, &models.CwfSubscriberDirectoryRecord{}),
 		state.NewStateSerde(cwf.CwfClusterHealthType, &models.CarrierWifiNetworkClusterStatus{}),
 		state.NewStateSerde(cwf.CwfGatewayHealthType, &models.CarrierWifiGatewayHealthStatus{}),

@@ -13,6 +13,8 @@
  * @flow strict-local
  * @format
  */
+import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DashboardIcon from '@material-ui/icons/Dashboard';
@@ -27,13 +29,16 @@ import SettingsIcon from '@material-ui/icons/Settings';
 import SettingsInputAntennaIcon from '@material-ui/icons/SettingsInputAntenna';
 import TopBar from '../../components/TopBar';
 import nullthrows from '@fbcnms/util/nullthrows';
+import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {EnodebJsonConfig} from './EnodebDetailConfig';
 import {EnodebStatus, EnodebSummary} from './EnodebDetailSummaryStatus';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 const useStyles = makeStyles(theme => ({
@@ -53,15 +58,11 @@ const useStyles = makeStyles(theme => ({
       background: colors.primary.mirage,
     },
   },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
 }));
 const CHART_TITLE = 'Bandwidth Usage';
 
 export function EnodebDetail() {
   const ctx = useContext(EnodebContext);
-  const classes = useStyles();
   const {relativePath, relativeUrl, match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
@@ -75,47 +76,13 @@ export function EnodebDetail() {
             label: 'Overview',
             to: '/overview',
             icon: DashboardIcon,
-            filters: (
-              <Grid
-                container
-                justify="flex-end"
-                alignItems="center"
-                spacing={2}>
-                <Grid item>
-                  <Button className={classes.appBarBtnSecondary}>
-                    Secondary Action
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button className={classes.appBarBtn} variant="contained">
-                    Reboot
-                  </Button>
-                </Grid>
-              </Grid>
-            ),
+            filters: <EnodebRebootButton />,
           },
           {
             label: 'Config',
             to: '/config',
             icon: SettingsIcon,
-            filters: (
-              <Grid
-                container
-                justify="flex-end"
-                alignItems="center"
-                spacing={2}>
-                <Grid item>
-                  <Button className={classes.appBarBtnSecondary}>
-                    Secondary Action
-                  </Button>
-                </Grid>
-                <Grid item>
-                  <Button className={classes.appBarBtn} variant="contained">
-                    Reboot
-                  </Button>
-                </Grid>
-              </Grid>
-            ),
+            filters: <EnodebRebootButton />,
           },
         ]}
       />
@@ -133,6 +100,64 @@ export function EnodebDetail() {
     </>
   );
 }
+
+function EnodebRebootButtonInternal(props: WithAlert) {
+  const classes = useStyles();
+  const ctx = useContext(EnodebContext);
+  const {match} = useRouter();
+  const networkId: string = nullthrows(match.params.networkId);
+  const enodebSerial: string = nullthrows(match.params.enodebSerial);
+  const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const gatewayId = enbInfo?.enb_state?.reporting_gateway_id;
+  const enqueueSnackbar = useEnqueueSnackbar();
+
+  const handleClick = () => {
+    if (gatewayId == null) {
+      enqueueSnackbar('Unable to trigger reboot, reporting gateway not found', {
+        variant: 'error',
+      });
+      return;
+    }
+
+    props
+      .confirm(`Are you sure you want to reboot ${enodebSerial}?`)
+      .then(async confirmed => {
+        if (!confirmed) {
+          return;
+        }
+        const params = {
+          command: 'reboot_enodeb',
+          params: {shell_params: {[enodebSerial]: {}}},
+        };
+
+        try {
+          await RunGatewayCommands({
+            networkId,
+            gatewayId,
+            command: 'generic',
+            params,
+          });
+          enqueueSnackbar('eNodeB reboot triggered successfully', {
+            variant: 'success',
+          });
+        } catch (e) {
+          enqueueSnackbar(e.response?.data?.message ?? e.message, {
+            variant: 'error',
+          });
+        }
+      });
+  };
+
+  return (
+    <Button
+      variant="contained"
+      className={classes.appBarBtn}
+      onClick={handleClick}>
+      Reboot
+    </Button>
+  );
+}
+const EnodebRebootButton = withAlert(EnodebRebootButtonInternal);
 
 function Overview() {
   const ctx = useContext(EnodebContext);

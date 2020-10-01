@@ -35,6 +35,7 @@ const (
 	FEG_HELLO     = "FEG_HELLO"
 	AAA_SERVER    = "AAA_SERVER"
 	EAP           = "EAP"
+	EAP_SIM       = "EAP_SIM"
 	EAP_AKA       = "EAP_AKA"
 	RADIUSD       = "RADIUSD"
 	RADIUS        = "RADIUS"
@@ -87,6 +88,7 @@ func init() {
 	addLocalService(RADIUS, 9108)
 	addLocalService(EAP, 9109)
 	addLocalService(AAA_SERVER, 9109)
+	addLocalService(EAP_SIM, 9118)
 	addLocalService(EAP_AKA, 9123)
 	addLocalService(SWX_PROXY, 9110)
 	addLocalService(RADIUSD, 9115)

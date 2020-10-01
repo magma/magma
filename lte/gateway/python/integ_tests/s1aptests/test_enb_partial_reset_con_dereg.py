@@ -114,14 +114,14 @@ class TestEnbPartialReset(unittest.TestCase):
         reset_req.r = s1ap_types.R()
         reset_req.r.partialRst = s1ap_types.PartialReset()
         reset_req.r.partialRst.numOfConn = num_ues
-        reset_req.r.partialRst.ueIdLst = (
-            ctypes.c_ubyte * reset_req.r.partialRst.numOfConn
+        reset_req.r.partialRst.ueS1apIdPairList  = (
+            (s1ap_types.UeS1apIdPair) * reset_req.r.partialRst.numOfConn
         )()
         for indx in range(reset_req.r.partialRst.numOfConn):
-            reset_req.r.partialRst.ueIdLst[indx] = ue_ids[indx]
+            reset_req.r.partialRst.ueS1apIdPairList[indx].ueId = ue_ids[indx]
             print(
-                "Reset_req.r.partialRst.ueIdLst[indx]",
-                reset_req.r.partialRst.ueIdLst[indx],
+                "Reset_req.r.partialRst.ueS1apIdPairList[indx].ueId",
+                reset_req.r.partialRst.ueS1apIdPairList[indx].ueId,
                 indx,
             )
         print("ue_ids", ue_ids)

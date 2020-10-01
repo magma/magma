@@ -19,6 +19,7 @@ import AccessAlarmIcon from '@material-ui/icons/AccessAlarm';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import CellWifiIcon from '@material-ui/icons/CellWifi';
+import DashboardAlertTable from '../../components/DashboardAlertTable';
 import DashboardIcon from '@material-ui/icons/Dashboard';
 import EventsTable from '../../views/events/EventsTable';
 import GatewayConfig from './GatewayDetailConfig';
@@ -42,7 +43,7 @@ import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {GatewayJsonConfig} from './GatewayDetailConfig';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {RunGatewayCommands} from '../../state/EquipmentState';
+import {RunGatewayCommands} from '../../state/lte/EquipmentState';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useContext} from 'react';
@@ -167,6 +168,12 @@ export function GatewayDetail() {
               tags={gwCtx.state[gatewayId].device.hardware_id}
               sz="lg"
             />
+          )}
+        />
+        <Route
+          path={relativePath('/alert')}
+          render={() => (
+            <DashboardAlertTable labelFilters={{gatewayID: gatewayId}} />
           )}
         />
         <Route path={relativePath('/overview')} component={GatewayOverview} />

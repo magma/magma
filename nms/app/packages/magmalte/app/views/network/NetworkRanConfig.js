@@ -24,7 +24,7 @@ import FddConfig from './NetworkRanFddConfig';
 import FormLabel from '@material-ui/core/FormLabel';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
@@ -32,8 +32,8 @@ import Select from '@material-ui/core/Select';
 import TddConfig from './NetworkRanTddConfig';
 
 import {AltFormField, FormDivider} from '../../components/FormField';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useState} from 'react';
 
 type Props = {
   lteRanConfigs: network_ran_configs,
@@ -50,7 +50,7 @@ export default function NetworkRan(props: Props) {
     [
       {
         category: 'Special Subframe Pattern',
-        value: props.lteRanConfigs.tdd_config?.special_subframe_pattern || '-',
+        value: props.lteRanConfigs?.tdd_config?.special_subframe_pattern || '-',
       },
     ],
     [
@@ -116,24 +116,28 @@ type BandType = 'tdd' | 'fdd';
 const ValidBandwidths = [3, 5, 10, 15, 20];
 
 export function NetworkRanEdit(props: EditProps) {
+  const ctx = useContext(LteNetworkContext);
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const [bandType, setBandType] = useState<BandType>('tdd');
   const defaultTddConfig = {
-    earfcndl: 0,
-    special_subframe_pattern: 0,
-    subframe_assignment: 0,
+    earfcndl: 44590,
+    special_subframe_pattern: 7,
+    subframe_assignment: 2,
   };
   const defaulFddConfig = {
     earfcndl: 0,
     earfcnul: 0,
   };
+
   const [lteRanConfigs, setLteRanConfigs] = useState(
-    props?.lteRanConfigs || {
-      bandwidth_mhz: 20,
-      fdd_config: undefined,
-      tdd_config: defaultTddConfig,
-    },
+    props.lteRanConfigs == null || Object.keys(props.lteRanConfigs).length === 0
+      ? {
+          bandwidth_mhz: 20,
+          fdd_config: undefined,
+          tdd_config: defaultTddConfig,
+        }
+      : props.lteRanConfigs,
   );
 
   const onSave = async () => {
@@ -145,15 +149,16 @@ export function NetworkRanEdit(props: EditProps) {
     } else {
       config.tdd_config = undefined;
     }
+
     try {
-      await MagmaV1API.putLteByNetworkIdCellularRan({
+      await ctx.updateNetworks({
         networkId: props.networkId,
-        config: config,
+        lteRanConfigs: config,
       });
       enqueueSnackbar('RAN configs saved successfully', {variant: 'success'});
-      props.onSave(config);
+      props.onSave(lteRanConfigs);
     } catch (e) {
-      setError(e.response.data?.message ?? e.message);
+      setError(e.response?.data?.message ?? e?.message);
     }
   };
 

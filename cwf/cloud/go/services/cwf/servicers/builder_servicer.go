@@ -115,11 +115,17 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	}
 
 	eapAka := nwConfig.EapAka
+	eapSim := nwConfig.EapSim
 	aaa := nwConfig.AaaServer
 	if eapAka != nil {
 		mc := &feg_mconfig.EapAkaConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(eapAka, mc)
 		ret["eap_aka"] = mc
+	}
+	if eapSim != nil {
+		mc := &feg_mconfig.EapSimConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(eapSim, mc)
+		ret["eap_sim"] = mc
 	}
 	if aaa != nil {
 		mc := &feg_mconfig.AAAConfig{LogLevel: protos.LogLevel_INFO}
@@ -137,8 +143,8 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &lte_mconfig.SessionD{
-		LogLevel:     protos.LogLevel_INFO,
-		RelayEnabled: true,
+		LogLevel:         protos.LogLevel_INFO,
+		GxGyRelayEnabled: true,
 		WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 			TerminateOnExhaust: true,
 			Method:             lte_mconfig.WalletExhaustDetection_GxTrackedRules,

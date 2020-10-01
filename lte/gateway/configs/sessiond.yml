@@ -38,8 +38,25 @@ support_carrier_wifi: false
 # quota.
 cwf_quota_exhaustion_termination_on_init_ms: 30000
 
+# On session creation, we want to delay the bearer creation requests to after
+# the attach has completed. This value indicates how many ms to wait before
+# sending the bearer create request.
+bearer_creation_delay_on_session_init: 2000
+
+# If this flag is set, we will send the GW's timezone information to the policy
+# component as part of CreateSessionRequest.
+send_access_timezone: true
+
 # Set to true to store session state in Redis for persistence.
 support_stateless: false
 
 # Redis table name for session state.
 sessions_table: sessiond:sessions
+
+# Set to true if converged access set message support is required or 5g access
+# support is required
+converged_access: true
+
+# Sets the amount of octets that will be requested on the CCR-I for credit if
+# credit is given. If unset, defaults to 200000
+default_requested_units: 200000

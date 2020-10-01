@@ -249,7 +249,13 @@ esm_cause_t esm_recv_pdn_connectivity_request(
    */
   if (msg->presencemask & PDN_CONNECTIVITY_REQUEST_ACCESS_POINT_NAME_PRESENT) {
     if (esm_data->apn) bdestroy_wrapper(&esm_data->apn);
-    esm_data->apn = msg->accesspointname;
+    if (mme_config.nas_config.enable_apn_correction) {
+      esm_data->apn = mme_app_process_apn_correction(&(emm_context->_imsi), msg->accesspointname);
+      OAILOG_INFO(
+          LOG_NAS_ESM, "ESM-SAP   - APN CORRECTION (apn = %s)\n", (const char *) bdata(esm_data->apn));
+    } else {
+      esm_data->apn = msg->accesspointname;
+    }
   }
 
   if (msg->presencemask &
@@ -295,6 +301,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     // Select APN
     struct apn_configuration_s* apn_config =
         mme_app_select_apn(ue_mm_context_p, &esm_cause);
+
     /*
      * Execute the PDN connectivity procedure requested by the UE
      */
@@ -304,6 +311,22 @@ esm_cause_t esm_recv_pdn_connectivity_request(
           "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
           ue_id);
       OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+    }
+
+    /* Check if a session already exists for this APN. Only 1 session
+     * is supported per APN
+     */
+    for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
+      if (ue_mm_context_p->pdn_contexts[itr]) {
+        if (!(strcmp(
+                (const char*) ue_mm_context_p->pdn_contexts[itr]
+                    ->apn_subscribed->data,
+                apn_config->service_selection)) &&
+            (ue_mm_context_p->pdn_contexts[itr]->is_active)) {
+          OAILOG_FUNC_RETURN(
+              LOG_NAS_ESM, ESM_CAUSE_MULTIPLE_PDN_CONNECTIONS_NOT_ALLOWED);
+        }
+      }
     }
 
     /* Find a free PDN Connection ID*/
@@ -532,6 +555,13 @@ esm_cause_t esm_recv_information_response(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
+  bstring apn = msg->accesspointname;
+  if (mme_config.nas_config.enable_apn_correction) {
+    apn = mme_app_process_apn_correction(&(emm_context->_imsi), msg->accesspointname);
+    OAILOG_INFO(
+        LOG_NAS_ESM, "ESM-SAP   - APN CORRECTION (apn = %s)\n", (const char *) bdata(apn));
+  }
+
   /*
    * Message processing
    */
@@ -539,7 +569,7 @@ esm_cause_t esm_recv_information_response(
    * Execute the PDN disconnect procedure requested by the UE
    */
   int pid = esm_proc_esm_information_response(
-      emm_context, pti, msg->accesspointname,
+      emm_context, pti, apn,
       &msg->protocolconfigurationoptions, &esm_cause);
 
   bdestroy_wrapper((bstring*) &msg->accesspointname);

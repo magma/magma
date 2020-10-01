@@ -32,9 +32,8 @@ import (
 func (srv *CentralSessionController) sendInitialGxRequestOrGenerateEmptyResponse(imsi string, pReq *protos.CreateSessionRequest) (*gx.CreditControlAnswer, error) {
 	if srv.cfg.DisableGx {
 		return generateGxLessCCAInit()
-	} else {
-		return srv.sendInitialGxRequest(imsi, pReq)
 	}
+	return srv.sendInitialGxRequest(imsi, pReq)
 }
 
 // sendInitialGxRequest sends the inital request to PCRF. Returns a response
@@ -42,15 +41,17 @@ func (srv *CentralSessionController) sendInitialGxRequest(imsi string, pReq *pro
 	common := pReq.GetCommonContext()
 	ratType := common.GetRatType()
 	request := &gx.CreditControlRequest{
-		SessionID:     pReq.GetSessionId(),
-		Type:          credit_control.CRTInit,
-		IMSI:          imsi,
-		RequestNumber: 0,
-		IPAddr:        common.GetUeIpv4(),
-		Apn:           common.GetApn(),
-		Msisdn:        common.GetMsisdn(),
-		RATType:       gx.GetRATType(ratType),
-		IPCANType:     gx.GetIPCANType(ratType),
+		SessionID:      pReq.GetSessionId(),
+		Type:           credit_control.CRTInit,
+		IMSI:           imsi,
+		RequestNumber:  0,
+		IPAddr:         common.GetUeIpv4(),
+		IPv6Addr:       common.GetUeIpv6(),
+		Apn:            common.GetApn(),
+		Msisdn:         common.GetMsisdn(),
+		RATType:        gx.GetRATType(ratType),
+		IPCANType:      gx.GetIPCANType(ratType),
+		AccessTimezone: pReq.GetAccessTimezone(),
 	}
 
 	if pReq.RatSpecificContext != nil {
@@ -330,6 +331,7 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
 			Action:        protos.UsageMonitoringCredit_DISABLE,
 			MonitoringKey: request.UsageReports[0].MonitoringKey,
 			Level:         protos.MonitoringLevel(request.UsageReports[0].Level)}
+
 	}
 
 	res.EventTriggers, res.RevalidationTime = gx.GetEventTriggersRelatedInfo(
