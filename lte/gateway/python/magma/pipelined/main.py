@@ -125,10 +125,11 @@ def main():
         start_check_quota_server(run_flask, bridge_ip, no_quota_port, False,
                                  on_exit_server_thread)
 
-    collector = GTPStatsCollector(
-        service.config['ovs_gtp_stats_polling_interval'],
-        service.loop)
-    collector.start()
+    if service.config['setup_type'] == 'LTE':
+        collector = GTPStatsCollector(
+            service.config['ovs_gtp_stats_polling_interval'],
+            service.loop)
+        collector.start()
 
     # Run the service loop
     service.run()
