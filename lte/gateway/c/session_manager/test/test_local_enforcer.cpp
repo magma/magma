@@ -63,7 +63,7 @@ class LocalEnforcerTest : public ::testing::Test {
 
   void initialize_lte_test_config() {
     test_cfg_.common_context =
-        build_common_context("", IP1, IPv6_1, "IMS", "", TGPP_LTE);
+        build_common_context("", IP1, IPv6_1, APN1, "", TGPP_LTE);
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
@@ -358,7 +358,7 @@ TEST_F(LocalEnforcerTest, test_aggregate_records_for_termination) {
 
   auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->handle_termination_from_access(
-      session_map, IMSI1, "IMS", update);
+      session_map, IMSI1, APN1, update);
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
@@ -609,7 +609,7 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   session_map = session_store->read_sessions(SessionRead{IMSI1});
   // Collecting terminations should key 1 anyways during reporting
   local_enforcer->handle_termination_from_access(
-      session_map, IMSI1, "IMS", update);
+      session_map, IMSI1, APN1, update);
 
   EXPECT_CALL(
       *reporter,
@@ -943,7 +943,7 @@ TEST_F(LocalEnforcerTest, test_all) {
 
   // Terminate IMSI1
   local_enforcer->handle_termination_from_access(
-      session_map, IMSI1, "IMS", update);
+      session_map, IMSI1, APN1, update);
 
   EXPECT_CALL(
       *reporter,
@@ -1474,7 +1474,7 @@ TEST_F(LocalEnforcerTest, test_rar_create_dedicated_bearer) {
 
   SessionConfig test_volte_cfg;
   test_volte_cfg.common_context =
-      build_common_context("", IP1, IPv6_1, "", "IMS", TGPP_LTE);
+      build_common_context("", IP1, IPv6_1, "", APN1, TGPP_LTE);
   const auto& lte_context =
       build_lte_context("", "", "", "", "", 1, &test_qos_info);
   test_volte_cfg.rat_specific_context.mutable_lte_context()->CopyFrom(
@@ -2241,6 +2241,73 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
 
   local_enforcer->setup(
       session_map, epoch, [](Status status, SetupFlowsResult resp) {});
+}
+
+TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, ChargingCredit_FinalAction_REDIRECT,
+      "12.7.7.4", "", response.mutable_credits()->Add());
+
+  auto static_rule = response.mutable_static_rules()->Add();
+  static_rule->set_rule_id("static_1");
+
+  insert_static_rule(1, "", "static_1");
+  auto& ip_addr   = test_cfg_.common_context.ue_ipv4();
+  auto& ipv6_addr = test_cfg_.common_context.ue_ipv6();
+  // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
+  EXPECT_CALL(
+      *pipelined_client, activate_flows_for_rules(
+                             IMSI1, ip_addr, ipv6_addr, testing::_,
+                             CheckCount(1), CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  // Insert record and aggregate over them
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(
+      IMSI1, ip_addr, "static_1", 1024, 2048, record_list->Add());
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  // Collect actions and verify that restrict action is in the list
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto usage_updates =
+      local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(actions.size(), 1);
+  EXPECT_EQ(actions[0]->get_type(), REDIRECT);
+  EXPECT_EQ(
+      actions[0]->get_redirect_server().redirect_server_address(), "12.7.7.4");
+
+  EXPECT_CALL(
+      *pipelined_client,
+      add_gy_final_action_flow(
+          IMSI1, ip_addr, ipv6_addr, CheckCount(0), CheckCount(1)))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  // Execute actions and asset final action state
+  local_enforcer->execute_actions(session_map, actions, update);
+  const CreditKey& credit_key(1);
+  assert_session_is_in_final_state(
+      session_map, IMSI1, SESSION_ID_1, credit_key, true);
+
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          IMSI1, ip_addr, ipv6_addr, std::vector<std::string>{"static_1"},
+          CheckCount(0), RequestOriginType::GX))
+      .WillOnce(testing::Return(true));
+  EXPECT_CALL(
+      *pipelined_client, deactivate_flows_for_rules(
+                             IMSI1, ip_addr, ipv6_addr, CheckCount(0),
+                             CheckCount(1), RequestOriginType::GY))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  local_enforcer->handle_termination_from_access(
+      session_map, IMSI1, APN1, update);
 }
 
 TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {

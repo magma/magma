@@ -332,16 +332,6 @@ class LocalEnforcer {
       RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc);
 
   /**
-   * Populate existing rules from a specific session;
-   * used to delete flow rules for a PDN session,
-   * distinct APNs are assumed to have mutually exclusive
-   * rules.
-   */
-  void populate_rules_from_session_to_remove(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      RulesToProcess& rules_to_deactivate);
-
-  /**
    * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
    * rules_to_activate and rules_to_deactivate. Modifies session state.
    * TODO separate out logic that modifies state vs logic that does not.

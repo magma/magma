@@ -1102,6 +1102,18 @@ static FinalActionInfo get_final_action_info(
   return final_action_info;
 }
 
+RulesToProcess SessionState::get_all_final_unit_rules() {
+  RulesToProcess rules;
+  for (auto& credit_pair : credit_map_) {
+    auto& grant = credit_pair.second;
+    if (grant->service_state == SERVICE_RESTRICTED) {
+      rules.static_rules = grant->final_action_info.restrict_rules;
+    }
+  }
+  get_gy_dynamic_rules().get_rules(rules.dynamic_rules);
+  return rules;
+}
+
 bool SessionState::reset_reporting_charging_credit(
     const CreditKey& key, SessionStateUpdateCriteria& update_criteria) {
   auto it = credit_map_.find(key);
