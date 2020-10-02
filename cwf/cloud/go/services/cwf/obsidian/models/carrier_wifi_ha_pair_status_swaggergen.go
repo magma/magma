@@ -13,17 +13,17 @@ import (
 	"github.com/go-openapi/validate"
 )
 
-// CarrierWifiNetworkClusterStatus Status of a Carrier Wifi HA cluster
-// swagger:model carrier_wifi_network_cluster_status
-type CarrierWifiNetworkClusterStatus struct {
+// CarrierWifiHaPairStatus Status of a Carrier Wifi HA pair status
+// swagger:model carrier_wifi_ha_pair_status
+type CarrierWifiHaPairStatus struct {
 
 	// active gateway
 	// Required: true
 	ActiveGateway string `json:"active_gateway"`
 }
 
-// Validate validates this carrier wifi network cluster status
-func (m *CarrierWifiNetworkClusterStatus) Validate(formats strfmt.Registry) error {
+// Validate validates this carrier wifi ha pair status
+func (m *CarrierWifiHaPairStatus) Validate(formats strfmt.Registry) error {
 	var res []error
 
 	if err := m.validateActiveGateway(formats); err != nil {
@@ -36,7 +36,7 @@ func (m *CarrierWifiNetworkClusterStatus) Validate(formats strfmt.Registry) erro
 	return nil
 }
 
-func (m *CarrierWifiNetworkClusterStatus) validateActiveGateway(formats strfmt.Registry) error {
+func (m *CarrierWifiHaPairStatus) validateActiveGateway(formats strfmt.Registry) error {
 
 	if err := validate.RequiredString("active_gateway", "body", string(m.ActiveGateway)); err != nil {
 		return err
@@ -46,7 +46,7 @@ func (m *CarrierWifiNetworkClusterStatus) validateActiveGateway(formats strfmt.R
 }
 
 // MarshalBinary interface implementation
-func (m *CarrierWifiNetworkClusterStatus) MarshalBinary() ([]byte, error) {
+func (m *CarrierWifiHaPairStatus) MarshalBinary() ([]byte, error) {
 	if m == nil {
 		return nil, nil
 	}
@@ -54,8 +54,8 @@ func (m *CarrierWifiNetworkClusterStatus) MarshalBinary() ([]byte, error) {
 }
 
 // UnmarshalBinary interface implementation
-func (m *CarrierWifiNetworkClusterStatus) UnmarshalBinary(b []byte) error {
-	var res CarrierWifiNetworkClusterStatus
+func (m *CarrierWifiHaPairStatus) UnmarshalBinary(b []byte) error {
+	var res CarrierWifiHaPairStatus
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}
