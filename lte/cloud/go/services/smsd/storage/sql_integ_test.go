@@ -47,7 +47,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	// Empty-case tests:
 	// No SMSs when you list them
 	// No SMSs to deliver
-	actualMessages, err := store.GetSMSs("n1", nil, false, nil, nil)
+	actualMessages, err := store.GetSMSs("n1", nil, nil, false, nil, nil)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
 
@@ -75,7 +75,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedMessages := []*storage.SMS{
 		{
@@ -145,7 +145,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	assert.Equal(t, expectedMessages, actualMessages)
 
 	// Double-check the all message list output
-	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedAllMessages := []*storage.SMS{
 		expectedMessages[0],
@@ -175,7 +175,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedAllMessages[0].DeliveryError = "foobar"
 	assert.Equal(t, expectedAllMessages, actualMessages)
@@ -208,7 +208,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1"}, 0)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
-	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedAllMessages[0] = &storage.SMS{
 		Pk:            "1",
@@ -369,7 +369,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	}
 	assert.Equal(t, expectedMessages, actualMessages)
 
-	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedAllMessages = []*storage.SMS{
 		{
@@ -424,8 +424,14 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	}
 	assert.Equal(t, expectedAllMessages, actualMessages)
 
+	// Check PK filter
+	actualMessages, err = store.GetSMSs("n1", []string{"1", "2", "3", "4"}, nil, false, nil, nil)
+	assert.NoError(t, err)
+	expectedAllMessages = expectedAllMessages[0:4]
+	assert.Equal(t, expectedAllMessages, actualMessages)
+
 	// Make sure things are gated across networks
-	actualMessages, err = store.GetSMSs("n2", nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n2", nil, nil, false, nil, nil)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
 
@@ -436,7 +442,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	// Delete all messages
 	err = store.DeleteSMSs("n1", []string{"1", "2", "3", "4", "5"})
 	assert.NoError(t, err)
-	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, nil, false, nil, nil)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
 }

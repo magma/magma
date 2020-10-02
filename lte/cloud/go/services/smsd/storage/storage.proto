@@ -18,6 +18,11 @@ import "google/protobuf/timestamp.proto";
 
 option go_package = "storage";
 
+// Since the gateway-facing GRPC interface for this service doesn't actually
+// use these proto types and the REST handlers are implemented by directly
+// using the storage interface, we could actually just swagger types for these.
+// For now, I'll keep them here.
+
 // SMS represents a message tracked by the smsd service
 message SMS {
     // pk uniquely identifies an SMS message (generated unique key)
