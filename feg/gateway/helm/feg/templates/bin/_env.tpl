@@ -19,7 +19,8 @@ BUILD_CONTEXT={{ .Values.feg.repo.url }}#{{ .Values.feg.repo.branch }}
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
 CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml
 SNOWFLAKE_PATH=/etc/snowflake
-
+CONFIGS_DEFAULT_VOLUME=/etc/magma
+CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_VOLUME=/var/opt/magma/configs
 
