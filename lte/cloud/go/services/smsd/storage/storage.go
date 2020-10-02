@@ -44,7 +44,7 @@ type SMSStorage interface {
 	// be delivered.
 	// startTime defaults to epoch if nil
 	// endTime defaults to current time if nil
-	GetSMSs(imsis []string, onlyWaiting bool, startTime, endTime *time.Time) ([]*SMS, error)
+	GetSMSs(networkID string, imsis []string, onlyWaiting bool, startTime, endTime *time.Time) ([]*SMS, error)
 
 	// GetSMSsToDeliver will return a collection of messages that need to be
 	// delivered. For each IMSI requested, this will return a maximum of 256
@@ -57,18 +57,18 @@ type SMSStorage interface {
 	//
 	// WARNING: Concurrent calls to this method with intersecting IMSI sets
 	// will result in undefined behavior.
-	GetSMSsToDeliver(imsis []string, timeoutThreshold time.Duration) ([]*SMS, error)
+	GetSMSsToDeliver(networkID string, imsis []string, timeoutThreshold time.Duration) ([]*SMS, error)
 
 	// CreateSMS creates a new SMS message. The auto-generated pk for the
 	// message is returned.
-	CreateSMS(sms MutableSMS) (string, error)
+	CreateSMS(networkID string, sms MutableSMS) (string, error)
 
 	// DeleteSMSs deletes messages by pk. Semantics are all or nothing.
-	DeleteSMSs(pks []string) error
+	DeleteSMSs(networkID string, pks []string) error
 
 	// ReportDelivery reports delivery status of a set of SMSs
 	// Map keys for both arguments are IMSIs
-	ReportDelivery(deliveredMessages map[string][]SMSRef, failedMessages map[string][]SMSFailureReport) error
+	ReportDelivery(networkID string, deliveredMessages map[string][]SMSRef, failedMessages map[string][]SMSFailureReport) error
 }
 
 // SMSReferenceCounter is a functional interface that wraps the logic to
