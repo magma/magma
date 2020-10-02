@@ -35,6 +35,7 @@ const (
 	imsiIdx  = "smsd_sms_imsi_idx"
 
 	pkCol        = "pk"
+	nidCol       = "network_id"
 	deliveredCol = "is_delivered"
 	imsiCol      = "imsi"
 	sourceCol    = "src_msisdn"
@@ -94,6 +95,7 @@ func (s *sqlSMSStorage) Init() (err error) {
 
 	_, err = s.builder.CreateTable(smsTable).
 		IfNotExists().
+		Column(nidCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
 		Column(pkCol).Type(sqorc.ColumnTypeText).PrimaryKey().EndColumn().
 		Column(deliveredCol).Type(sqorc.ColumnTypeBool).NotNull().Default(false).EndColumn().
 		Column(imsiCol).Type(sqorc.ColumnTypeText).NotNull().EndColumn().
@@ -109,11 +111,11 @@ func (s *sqlSMSStorage) Init() (err error) {
 		return
 	}
 
-	// index on imsi col
+	// index on (nid, imsi)
 	_, err = s.builder.CreateIndex(imsiIdx).
 		IfNotExists().
 		On(smsTable).
-		Columns(imsiCol).
+		Columns(nidCol, imsiCol).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -138,16 +140,17 @@ func (s *sqlSMSStorage) Init() (err error) {
 	return
 }
 
-func (s *sqlSMSStorage) GetSMSs(imsis []string, onlyWaiting bool, startTime, endTime *time.Time) ([]*SMS, error) {
+func (s *sqlSMSStorage) GetSMSs(networkID string, imsis []string, onlyWaiting bool, startTime, endTime *time.Time) ([]*SMS, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		/*
 			SELECT * FROM smsd_messages
 			LEFT JOIN smsd_refs ON smsd_refs.sms_id = smsd_messages.pk
-			[[ WHERE (smsd_messages.imsi IN {imsis} AND NOT smsd_messages.is_delivered AND smsd_messages.time_created_sec > ... AND smsd_messages.time_created_sec < ... ]]
+			[[ WHERE (smsd_messages.network_id = {networkID} AND smsd_messages.imsi IN {imsis} AND NOT smsd_messages.is_delivered AND smsd_messages.time_created_sec > ... AND smsd_messages.time_created_sec < ... ]]
 		*/
 		builder := s.builder.Select(allCols...).
 			From(smsTable).
 			LeftJoin(fmt.Sprintf("%s ON %s=%s", refsTable, getFQColName(refsTable, refSmsCol), getFQColName(smsTable, pkCol))).
+			Where(sq.Eq{getFQColName(smsTable, nidCol): networkID}).
 			RunWith(tx)
 		if !funk.IsEmpty(imsis) {
 			builder = builder.Where(sq.Eq{getFQColName(smsTable, imsiCol): imsis})
@@ -187,7 +190,7 @@ func (s *sqlSMSStorage) GetSMSs(imsis []string, onlyWaiting bool, startTime, end
 	return ret, nil
 }
 
-func (s *sqlSMSStorage) GetSMSsToDeliver(imsis []string, timeoutThreshold time.Duration) ([]*SMS, error) {
+func (s *sqlSMSStorage) GetSMSsToDeliver(networkID string, imsis []string, timeoutThreshold time.Duration) ([]*SMS, error) {
 	if funk.IsEmpty(imsis) {
 		return []*SMS{}, nil
 	}
@@ -217,17 +220,17 @@ func (s *sqlSMSStorage) GetSMSsToDeliver(imsis []string, timeoutThreshold time.D
 			return nil, errors.Wrap(err, "failed to create timestmap")
 		}
 
-		err = garbageCollectExpiredRefs(tx, s.builder, imsis, timeoutSecs)
+		err = garbageCollectExpiredRefs(tx, s.builder, networkID, imsis, timeoutSecs)
 		if err != nil {
 			return nil, err
 		}
 
-		smsByImsi, err := loadMessagesToSend(tx, s.builder, imsis, timeoutSecs)
+		smsByImsi, err := loadMessagesToSend(tx, s.builder, networkID, imsis, timeoutSecs)
 		if err != nil {
 			return nil, err
 		}
 
-		refsMasksByImsi, err := loadRefsMasks(tx, s.builder, imsis)
+		refsMasksByImsi, err := loadRefsMasks(tx, s.builder, networkID, imsis)
 		if err != nil {
 			return nil, err
 		}
@@ -270,14 +273,14 @@ func (s *sqlSMSStorage) GetSMSsToDeliver(imsis []string, timeoutThreshold time.D
 	return retCasted, nil
 }
 
-func (s *sqlSMSStorage) CreateSMS(sms MutableSMS) (string, error) {
+func (s *sqlSMSStorage) CreateSMS(networkID string, sms MutableSMS) (string, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		pk := s.idGenerator.New()
 		timeCreated := clock.Now().Unix()
 
 		_, err := s.builder.Insert(smsTable).
-			Columns(pkCol, imsiCol, sourceCol, messageCol, createdCol).
-			Values(pk, sms.Imsi, sms.SourceMsisdn, sms.Message, timeCreated).
+			Columns(pkCol, nidCol, imsiCol, sourceCol, messageCol, createdCol).
+			Values(pk, networkID, sms.Imsi, sms.SourceMsisdn, sms.Message, timeCreated).
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -293,10 +296,10 @@ func (s *sqlSMSStorage) CreateSMS(sms MutableSMS) (string, error) {
 	return iPK.(string), nil
 }
 
-func (s *sqlSMSStorage) DeleteSMSs(pks []string) error {
+func (s *sqlSMSStorage) DeleteSMSs(networkID string, pks []string) error {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		_, err := s.builder.Delete(smsTable).
-			Where(sq.Eq{pkCol: pks}).
+			Where(sq.Eq{nidCol: networkID, pkCol: pks}).
 			RunWith(tx).
 			Exec()
 		if err != nil {
@@ -309,7 +312,7 @@ func (s *sqlSMSStorage) DeleteSMSs(pks []string) error {
 	return err
 }
 
-func (s *sqlSMSStorage) ReportDelivery(deliveredMessages map[string][]SMSRef, failedMessages map[string][]SMSFailureReport) error {
+func (s *sqlSMSStorage) ReportDelivery(networkID string, deliveredMessages map[string][]SMSRef, failedMessages map[string][]SMSFailureReport) error {
 	// TODO: what should we do in this case when we get a delivery digest for
 	//  a message we don't know about?
 	//  We probably don't want to error out the whole call
@@ -324,17 +327,17 @@ func (s *sqlSMSStorage) ReportDelivery(deliveredMessages map[string][]SMSRef, fa
 		allImsis = funk.UniqString(allImsis)
 
 		// We need to map IMSI-ref_num back to message pk first
-		pksByRef, err := loadPksByRefs(tx, s.builder, allImsis)
+		pksByRef, err := loadPksByRefs(tx, s.builder, networkID, allImsis)
 		if err != nil {
 			return nil, err
 		}
 
-		err = markMessagesAsDelivered(tx, s.builder, deliveredMessages, pksByRef)
+		err = markMessagesAsDelivered(tx, s.builder, networkID, deliveredMessages, pksByRef)
 		if err != nil {
 			return nil, err
 		}
 
-		err = processFailedMessages(tx, s.builder, failedMessages, pksByRef)
+		err = processFailedMessages(tx, s.builder, networkID, failedMessages, pksByRef)
 		if err != nil {
 			return nil, err
 		}

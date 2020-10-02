@@ -30,20 +30,23 @@ import (
 
 type tSmsByPk = map[string]*SMS
 
-func garbageCollectExpiredRefs(tx *sql.Tx, builder sqorc.StatementBuilder, imsis []string, timeoutSecs int64) error {
+func garbageCollectExpiredRefs(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string, imsis []string, timeoutSecs int64) error {
 	/*
 		DELETE FROM smsd_refs
 		WHERE sms_id IN (
 			SELECT sms_id FROM smsd_refs
 			INNER JOIN smsd_messages on smsd_refs.sms_id = smsd_messages.pk
-			WHERE imsi IN {imsis} AND ref_created_sec < {timeout} AND num_attempts >= {limit}
+			WHERE network_id = {nid} AND imsi IN {imsis} AND ref_created_sec < {timeout} AND num_attempts >= {limit}
 		)
 	*/
 	subSelect, selectArgs, _ := builder.Select(refSmsCol).
 		From(refsTable).
 		JoinClause(fmt.Sprintf("INNER JOIN %s ON %s=%s", smsTable, getFQColName(refsTable, refSmsCol), getFQColName(smsTable, pkCol))).
 		Where(sq.And{
-			sq.Eq{getFQColName(smsTable, imsiCol): imsis},
+			sq.Eq{
+				getFQColName(smsTable, nidCol):  networkID,
+				getFQColName(smsTable, imsiCol): imsis,
+			},
 			sq.Lt{getFQColName(refsTable, refCreatedCol): timeoutSecs},
 			sq.GtOrEq{getFQColName(smsTable, attemptsCol): maxRetries},
 		}).
@@ -58,11 +61,13 @@ func garbageCollectExpiredRefs(tx *sql.Tx, builder sqorc.StatementBuilder, imsis
 	return nil
 }
 
-func loadMessagesToSend(tx *sql.Tx, builder sqorc.StatementBuilder, imsis []string, timeoutSecs int64) (map[string]tSmsByPk, error) {
+func loadMessagesToSend(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string, imsis []string, timeoutSecs int64) (map[string]tSmsByPk, error) {
 	/*
 		SELECT * FROM smsd_messages
 		LEFT OUTER JOIN smsd_refs ON smsd_messages.pk = smsd_refs.sms_id
 		WHERE
+			smsd_messages.network_id = {nid}
+			AND
 			smsd_messages.imsi IN {imsis}
 			AND
 			(smsd_refs.sms_id is NULL OR smsd_refs.ref_created_sec < {timeout})
@@ -76,7 +81,10 @@ func loadMessagesToSend(tx *sql.Tx, builder sqorc.StatementBuilder, imsis []stri
 		JoinClause(fmt.Sprintf("LEFT OUTER JOIN %s ON %s=%s", refsTable, getFQColName(smsTable, pkCol), getFQColName(refsTable, refSmsCol))).
 		Where(
 			sq.And{
-				sq.Eq{getFQColName(smsTable, imsiCol): imsis},
+				sq.Eq{
+					getFQColName(smsTable, nidCol):  networkID,
+					getFQColName(smsTable, imsiCol): imsis,
+				},
 				sq.Or{
 					sq.Eq{getFQColName(refsTable, refSmsCol): nil},
 					sq.Lt{getFQColName(refsTable, refCreatedCol): timeoutSecs},
@@ -99,16 +107,19 @@ func loadMessagesToSend(tx *sql.Tx, builder sqorc.StatementBuilder, imsis []stri
 	return smsByImsi, nil
 }
 
-func loadRefsMasks(tx *sql.Tx, builder sqorc.StatementBuilder, imsis []string) (map[string]*[256]bool, error) {
+func loadRefsMasks(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string, imsis []string) (map[string]*[256]bool, error) {
 	/*
 		SELECT smsd_messages.imsi, smsd_refs.ref_num FROM smsd_refs
 		INNER JOIN smsd_messages ON smsd_refs.sms_id = smsd_messages.pk
-		WHERE smsd_messages.imsi IN {imsis}
+		WHERE smsd_messages.network_id = {nid} AND smsd_messages.imsi IN {imsis}
 	*/
 	rows, err := builder.Select(getFQColName(smsTable, imsiCol), getFQColName(refsTable, refCol)).
 		From(refsTable).
 		JoinClause(fmt.Sprintf("INNER JOIN %s ON %s=%s", smsTable, getFQColName(refsTable, refSmsCol), getFQColName(smsTable, pkCol))).
-		Where(sq.Eq{getFQColName(smsTable, imsiCol): imsis}).
+		Where(sq.Eq{
+			getFQColName(smsTable, nidCol):  networkID,
+			getFQColName(smsTable, imsiCol): imsis,
+		}).
 		RunWith(tx).
 		Query()
 	if err != nil {
@@ -218,16 +229,19 @@ type imsiAndRef struct {
 
 // This will return a super-set of the refs that we actually care about but
 // crafting it in another way is way too complicated.
-func loadPksByRefs(tx *sql.Tx, builder sqorc.StatementBuilder, imsis []string) (map[imsiAndRef]string, error) {
+func loadPksByRefs(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string, imsis []string) (map[imsiAndRef]string, error) {
 	/*
 		SELECT smsd_messages.imsi, smsd_refs.sms_id, smsd_refs.ref_num FROM smsd_refs
 		INNER JOIN smsd_messages ON smsd_messages.pk = smsd_refs.sms_id
-		WHERE smsd_messages.imsi IN {imsis}
+		WHERE smsd_messages.network_id = {nid} AND smsd_messages.imsi IN {imsis}
 	*/
 	rows, err := builder.Select(getFQColName(smsTable, imsiCol), getFQColName(refsTable, refSmsCol), getFQColName(refsTable, refCol)).
 		From(refsTable).
 		JoinClause(fmt.Sprintf("INNER JOIN %s ON %s=%s", smsTable, getFQColName(smsTable, pkCol), getFQColName(refsTable, refSmsCol))).
-		Where(sq.Eq{getFQColName(smsTable, imsiCol): imsis}).
+		Where(sq.Eq{
+			getFQColName(smsTable, nidCol):  networkID,
+			getFQColName(smsTable, imsiCol): imsis,
+		}).
 		RunWith(tx).
 		Query()
 	if err != nil {
@@ -249,7 +263,7 @@ func loadPksByRefs(tx *sql.Tx, builder sqorc.StatementBuilder, imsis []string) (
 	return ret, nil
 }
 
-func markMessagesAsDelivered(tx *sql.Tx, builder sqorc.StatementBuilder, deliveredMessages map[string][]SMSRef, pksByRef map[imsiAndRef]string) error {
+func markMessagesAsDelivered(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string, deliveredMessages map[string][]SMSRef, pksByRef map[imsiAndRef]string) error {
 	// For delivered messages, mark them as such in the table and delete
 	// all the refs that have been allocated for them.
 	var deliveredPks []string
@@ -267,15 +281,26 @@ func markMessagesAsDelivered(tx *sql.Tx, builder sqorc.StatementBuilder, deliver
 	_, err := builder.Update(smsTable).
 		Set(deliveredCol, true).
 		Set(errorCol, sql.NullString{Valid: false}).
-		Where(sq.Eq{pkCol: deliveredPks}).
+		Where(sq.Eq{nidCol: networkID, pkCol: deliveredPks}).
 		RunWith(tx).
 		Exec()
 	if err != nil {
 		return errors.Wrap(err, "failed to mark SMSs as delivered")
 	}
 
+	// Subquery to limit operation to this network
+	/*
+		DELETE FROM smsd_refs
+		WHERE sms_id IN (
+			SELECT pk FROM smsd_messages WHERE network_id = {nid} AND pk IN {pks}
+		)
+	*/
+	subSelect, selectArgs, _ := builder.Select(pkCol).
+		From(smsTable).
+		Where(sq.Eq{nidCol: networkID, pkCol: deliveredPks}).
+		ToSql()
 	_, err = builder.Delete(refsTable).
-		Where(sq.Eq{refSmsCol: deliveredPks}).
+		Where(sq.Expr(fmt.Sprintf("%s IN (%s)", refSmsCol, subSelect), selectArgs...)).
 		RunWith(tx).
 		Exec()
 	if err != nil {
@@ -285,7 +310,7 @@ func markMessagesAsDelivered(tx *sql.Tx, builder sqorc.StatementBuilder, deliver
 	return nil
 }
 
-func processFailedMessages(tx *sql.Tx, builder sqorc.StatementBuilder, failedMessages map[string][]SMSFailureReport, pksByRef map[imsiAndRef]string) error {
+func processFailedMessages(tx *sql.Tx, builder sqorc.StatementBuilder, networkID string, failedMessages map[string][]SMSFailureReport, pksByRef map[imsiAndRef]string) error {
 	sc := sq.NewStmtCache(tx)
 	defer sqorc.ClearStatementCacheLogOnError(sc, "processFailedMessages")
 
@@ -304,7 +329,7 @@ func processFailedMessages(tx *sql.Tx, builder sqorc.StatementBuilder, failedMes
 			// Set error message
 			_, err := builder.Update(smsTable).
 				Set(errorCol, sql.NullString{Valid: true, String: report.ErrorMessage}).
-				Where(sq.Eq{pkCol: pk}).
+				Where(sq.Eq{nidCol: networkID, pkCol: pk}).
 				RunWith(sc).
 				Exec()
 			if err != nil {
@@ -318,14 +343,14 @@ func processFailedMessages(tx *sql.Tx, builder sqorc.StatementBuilder, failedMes
 		DELETE FROM smsd_refs
 		WHERE sms_id IN (
 			SELECT pk FROM smsd_messages
-			WHERE pk IN {pks} AND num_attempts >= 3
+			WHERE network_id = {nid} AND pk IN {pks} AND num_attempts >= 3
 		)
 	*/
 	subSelect, selectArgs, _ := builder.Select(pkCol).
 		From(smsTable).
 		Where(
 			sq.And{
-				sq.Eq{pkCol: failedPks},
+				sq.Eq{nidCol: networkID, pkCol: failedPks},
 				sq.GtOrEq{attemptsCol: maxRetries},
 			},
 		).

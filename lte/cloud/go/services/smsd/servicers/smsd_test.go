@@ -25,6 +25,7 @@ import (
 	"magma/lte/cloud/go/services/smsd/storage/mocks"
 	"magma/lte/cloud/go/sms_ll"
 	mocks2 "magma/lte/cloud/go/sms_ll/mocks"
+	protos2 "magma/orc8r/lib/go/protos"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/timestamp"
@@ -35,10 +36,11 @@ func TestSMSDServicer_GetMessages(t *testing.T) {
 	store := new(mocks.SMSStorage)
 	serde := new(mocks2.SMSSerde)
 	srv := servicers.NewSMSDServicer(store, serde)
+	ctx := getTestContext(context.Background())
 
 	// 0 case
-	store.On("GetSMSsToDeliver", []string{"IMSI1"}, 6*time.Minute).Return([]*storage.SMS{}, nil).Once()
-	actual, err := srv.GetMessages(context.Background(), &protos.GetMessagesRequest{Imsis: []string{"IMSI1"}})
+	store.On("GetSMSsToDeliver", "n1", []string{"IMSI1"}, 6*time.Minute).Return([]*storage.SMS{}, nil).Once()
+	actual, err := srv.GetMessages(ctx, &protos.GetMessagesRequest{Imsis: []string{"IMSI1"}})
 	assert.NoError(t, err)
 	assert.Empty(t, actual.Messages)
 
@@ -53,7 +55,7 @@ func TestSMSDServicer_GetMessages(t *testing.T) {
 	serde.On("EncodeMessage", "barbaz", "456", expClock, []uint8{0x2, 0x3}).
 		Return([][]byte{{0x2, 0x3}, {0x4, 0x5}}, nil).
 		Once()
-	store.On("GetSMSsToDeliver", []string{"IMSI1"}, 6*time.Minute).
+	store.On("GetSMSsToDeliver", "n1", []string{"IMSI1"}, 6*time.Minute).
 		Return(
 			[]*storage.SMS{
 				{
@@ -79,7 +81,7 @@ func TestSMSDServicer_GetMessages(t *testing.T) {
 		).
 		Times(2)
 
-	actual, err = srv.GetMessages(context.Background(), &protos.GetMessagesRequest{Imsis: []string{"IMSI1"}})
+	actual, err = srv.GetMessages(ctx, &protos.GetMessagesRequest{Imsis: []string{"IMSI1"}})
 	assert.NoError(t, err)
 	expected := &protos.GetMessagesResponse{
 		Messages: []*protos.SMODownlinkUnitdata{
@@ -108,14 +110,14 @@ func TestSMSDServicer_GetMessages(t *testing.T) {
 	serde.On("EncodeMessage", "foobar", "123", expClock, []uint8{0x1, 0x2}).
 		Return(nil, errors.New("oopsies")).
 		Once()
-	actual, err = srv.GetMessages(context.Background(), &protos.GetMessagesRequest{Imsis: []string{"IMSI1"}})
-	assert.EqualError(t, err, "could not encode message 1: oopsies")
+	actual, err = srv.GetMessages(ctx, &protos.GetMessagesRequest{Imsis: []string{"IMSI1"}})
+	assert.EqualError(t, err, "rpc error: code = Internal desc = could not encode message 1: oopsies")
 	assert.Empty(t, actual.Messages)
 
 	// Error fetching from store
-	store.On("GetSMSsToDeliver", []string{"IMSI2", "IMSI3"}, 6*time.Minute).Return(nil, errors.New("oop")).Once()
-	actual, err = srv.GetMessages(context.Background(), &protos.GetMessagesRequest{Imsis: []string{"IMSI2", "IMSI3"}})
-	assert.EqualError(t, err, "oop")
+	store.On("GetSMSsToDeliver", "n1", []string{"IMSI2", "IMSI3"}, 6*time.Minute).Return(nil, errors.New("oop")).Once()
+	actual, err = srv.GetMessages(ctx, &protos.GetMessagesRequest{Imsis: []string{"IMSI2", "IMSI3"}})
+	assert.EqualError(t, err, "rpc error: code = Internal desc = oop")
 	assert.Empty(t, actual.Messages)
 
 	serde.AssertExpectations(t)
@@ -126,9 +128,10 @@ func TestSMSDServicer_ReportDelivery(t *testing.T) {
 	store := new(mocks.SMSStorage)
 	serde := new(mocks2.SMSSerde)
 	srv := servicers.NewSMSDServicer(store, serde)
+	ctx := getTestContext(context.Background())
 
 	// 0 case
-	_, err := srv.ReportDelivery(context.Background(), &protos.ReportDeliveryRequest{Report: nil})
+	_, err := srv.ReportDelivery(ctx, &protos.ReportDeliveryRequest{Report: nil})
 	assert.NoError(t, err)
 
 	// Happy paths, delivered and failed messages
@@ -137,13 +140,13 @@ func TestSMSDServicer_ReportDelivery(t *testing.T) {
 	expNasContainer := []byte{0x1, 0x2}
 
 	// args are refs so modifications below will update the mock expectation
-	store.On("ReportDelivery", expDelivered, expFailed).
+	store.On("ReportDelivery", "n1", expDelivered, expFailed).
 		Return(nil).
 		Twice()
 	serde.On("DecodeDelivery", expNasContainer).
 		Return(sms_ll.SMSDeliveryReport{Reference: 1, IsSuccessful: true}, nil).
 		Once()
-	_, err = srv.ReportDelivery(context.Background(), &protos.ReportDeliveryRequest{Report: &protos.SMOUplinkUnitdata{
+	_, err = srv.ReportDelivery(ctx, &protos.ReportDeliveryRequest{Report: &protos.SMOUplinkUnitdata{
 		Imsi:                "IMSI1",
 		NasMessageContainer: expNasContainer,
 	}})
@@ -157,15 +160,15 @@ func TestSMSDServicer_ReportDelivery(t *testing.T) {
 	serde.On("DecodeDelivery", expNasContainer).
 		Return(sms_ll.SMSDeliveryReport{Reference: 1, IsSuccessful: false, ErrorMessage: "foobar"}, nil).
 		Twice()
-	_, err = srv.ReportDelivery(context.Background(), &protos.ReportDeliveryRequest{Report: &protos.SMOUplinkUnitdata{
+	_, err = srv.ReportDelivery(ctx, &protos.ReportDeliveryRequest{Report: &protos.SMOUplinkUnitdata{
 		Imsi:                "IMSI1",
 		NasMessageContainer: expNasContainer,
 	}})
 	assert.NoError(t, err)
 
 	// storage error
-	store.On("ReportDelivery", expDelivered, expFailed).Return(errors.New("store")).Once()
-	_, err = srv.ReportDelivery(context.Background(), &protos.ReportDeliveryRequest{Report: &protos.SMOUplinkUnitdata{
+	store.On("ReportDelivery", "n1", expDelivered, expFailed).Return(errors.New("store")).Once()
+	_, err = srv.ReportDelivery(ctx, &protos.ReportDeliveryRequest{Report: &protos.SMOUplinkUnitdata{
 		Imsi:                "IMSI1",
 		NasMessageContainer: expNasContainer,
 	}})
@@ -175,7 +178,7 @@ func TestSMSDServicer_ReportDelivery(t *testing.T) {
 	serde.On("DecodeDelivery", expNasContainer).
 		Return(sms_ll.SMSDeliveryReport{}, errors.New("serde")).
 		Once()
-	_, err = srv.ReportDelivery(context.Background(), &protos.ReportDeliveryRequest{Report: &protos.SMOUplinkUnitdata{
+	_, err = srv.ReportDelivery(ctx, &protos.ReportDeliveryRequest{Report: &protos.SMOUplinkUnitdata{
 		Imsi:                "IMSI1",
 		NasMessageContainer: expNasContainer,
 	}})
@@ -189,4 +192,8 @@ func tsProto(t *testing.T, ti time.Time) *timestamp.Timestamp {
 	ret, err := ptypes.TimestampProto(ti)
 	assert.NoError(t, err)
 	return ret
+}
+
+func getTestContext(ctx context.Context) context.Context {
+	return protos2.NewGatewayIdentity("hw1", "n1", "gw1").NewContextWithIdentity(ctx)
 }

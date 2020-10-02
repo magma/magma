@@ -47,29 +47,35 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	// Empty-case tests:
 	// No SMSs when you list them
 	// No SMSs to deliver
-	actualMessages, err := store.GetSMSs(nil, false, nil, nil)
+	actualMessages, err := store.GetSMSs("n1", nil, false, nil, nil)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
 
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1", "IMSI2"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1", "IMSI2"}, 0)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
 
 	// Create 1 SMS each for 2 subs
-	_, err = store.CreateSMS(storage.MutableSMS{
-		Imsi:         "IMSI1",
-		SourceMsisdn: "123",
-		Message:      "hello world",
-	})
+	_, err = store.CreateSMS(
+		"n1",
+		storage.MutableSMS{
+			Imsi:         "IMSI1",
+			SourceMsisdn: "123",
+			Message:      "hello world",
+		},
+	)
 	assert.NoError(t, err)
-	_, err = store.CreateSMS(storage.MutableSMS{
-		Imsi:         "IMSI2",
-		SourceMsisdn: "456",
-		Message:      "goodbye world",
-	})
+	_, err = store.CreateSMS(
+		"n1",
+		storage.MutableSMS{
+			Imsi:         "IMSI2",
+			SourceMsisdn: "456",
+			Message:      "goodbye world",
+		},
+	)
 	assert.NoError(t, err)
 
-	actualMessages, err = store.GetSMSs(nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedMessages := []*storage.SMS{
 		{
@@ -103,7 +109,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
 
 	// Ask for SMSs to deliver for IMSI1
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1"}, 0)
 	assert.NoError(t, err)
 	expectedMessages = []*storage.SMS{
 		{
@@ -123,7 +129,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	assert.Equal(t, expectedMessages, actualMessages)
 
 	// Should get nothing back from another call
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1"}, 0)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
 
@@ -132,14 +138,14 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	frozenClock += 10000
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
 
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1"}, 0)
 	assert.NoError(t, err)
 	expectedMessages[0].LastDeliveryAttemptTime = timestampProto(t, frozenClock)
 	expectedMessages[0].AttemptCount = 2
 	assert.Equal(t, expectedMessages, actualMessages)
 
 	// Double-check the all message list output
-	actualMessages, err = store.GetSMSs(nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedAllMessages := []*storage.SMS{
 		expectedMessages[0],
@@ -162,13 +168,14 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	// number again but attempt time and count advanced
 	// Also include an unknown message
 	err = store.ReportDelivery(
+		"n1",
 		map[string][]storage.SMSRef{"IMSI3": {0x1}},
 		map[string][]storage.SMSFailureReport{
 			"IMSI1": {{Ref: 0, ErrorMessage: "foobar"}},
 		},
 	)
 	assert.NoError(t, err)
-	actualMessages, err = store.GetSMSs(nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedAllMessages[0].DeliveryError = "foobar"
 	assert.Equal(t, expectedAllMessages, actualMessages)
@@ -180,7 +187,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	frozenClock += 1000
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
 
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1"}, 0)
 	assert.NoError(t, err)
 	expectedMessages[0].LastDeliveryAttemptTime = timestampProto(t, frozenClock)
 	expectedMessages[0].AttemptCount = 3
@@ -189,6 +196,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	// Mark this message as failed delivery again, time it out, and we should
 	// no longer see it as a message that needs to be sent (exceeded retry)
 	err = store.ReportDelivery(
+		"n1",
 		nil,
 		map[string][]storage.SMSFailureReport{
 			"IMSI1": {{Ref: 0, ErrorMessage: "barbaz"}},
@@ -197,10 +205,10 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	assert.NoError(t, err)
 	frozenClock += 1000
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1"}, 0)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
-	actualMessages, err = store.GetSMSs(nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedAllMessages[0] = &storage.SMS{
 		Pk:            "1",
@@ -217,22 +225,28 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	assert.Equal(t, expectedAllMessages, actualMessages)
 
 	// Create new SMSs: 1 for imsi2, 1 for imsi3
-	_, err = store.CreateSMS(storage.MutableSMS{
-		Imsi:         "IMSI2",
-		SourceMsisdn: "789",
-		Message:      "message 3",
-	})
+	_, err = store.CreateSMS(
+		"n1",
+		storage.MutableSMS{
+			Imsi:         "IMSI2",
+			SourceMsisdn: "789",
+			Message:      "message 3",
+		},
+	)
 	assert.NoError(t, err)
-	_, err = store.CreateSMS(storage.MutableSMS{
-		Imsi:         "IMSI3",
-		SourceMsisdn: "123",
-		Message:      "message 4",
-	})
+	_, err = store.CreateSMS(
+		"n1",
+		storage.MutableSMS{
+			Imsi:         "IMSI3",
+			SourceMsisdn: "123",
+			Message:      "message 4",
+		},
+	)
 	assert.NoError(t, err)
 
 	// Allocate 2 ref nums per message this time
 	refCounter.numRefs = 2
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1", "IMSI2", "IMSI3"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1", "IMSI2", "IMSI3"}, 0)
 	assert.NoError(t, err)
 	expectedMessages = []*storage.SMS{
 		{
@@ -276,6 +290,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 
 	// Mark both imsi2 as delivered, imsi3 as failed
 	err = store.ReportDelivery(
+		"n1",
 		map[string][]storage.SMSRef{
 			"IMSI2": {0x0, 0x1, 0x2, 0x3},
 		},
@@ -291,7 +306,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	// Another query should return only the message for imsi3
 	frozenClock += 1000
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1", "IMSI2", "IMSI3"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1", "IMSI2", "IMSI3"}, 0)
 	assert.NoError(t, err)
 	expectedMessages = []*storage.SMS{
 		{
@@ -311,6 +326,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 
 	// Mark it as delivered
 	err = store.ReportDelivery(
+		"n1",
 		map[string][]storage.SMSRef{
 			"IMSI3": {0x0, 0x1},
 		},
@@ -321,18 +337,21 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	// No more messages to send
 	frozenClock += 1000
 	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1", "IMSI2", "IMSI3"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1", "IMSI2", "IMSI3"}, 0)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
 
 	// Create a new message for imsi1 and verify refs get re-used
-	_, err = store.CreateSMS(storage.MutableSMS{
-		Imsi:         "IMSI1",
-		SourceMsisdn: "123",
-		Message:      "message 5",
-	})
+	_, err = store.CreateSMS(
+		"n1",
+		storage.MutableSMS{
+			Imsi:         "IMSI1",
+			SourceMsisdn: "123",
+			Message:      "message 5",
+		},
+	)
 	assert.NoError(t, err)
-	actualMessages, err = store.GetSMSsToDeliver([]string{"IMSI1", "IMSI2", "IMSI3"}, 0)
+	actualMessages, err = store.GetSMSsToDeliver("n1", []string{"IMSI1", "IMSI2", "IMSI3"}, 0)
 	assert.NoError(t, err)
 	expectedMessages = []*storage.SMS{
 		{
@@ -350,7 +369,7 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	}
 	assert.Equal(t, expectedMessages, actualMessages)
 
-	actualMessages, err = store.GetSMSs(nil, false, nil, nil)
+	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
 	assert.NoError(t, err)
 	expectedAllMessages = []*storage.SMS{
 		{
@@ -405,10 +424,19 @@ func TestSQLSMSStorage_Integration(t *testing.T) {
 	}
 	assert.Equal(t, expectedAllMessages, actualMessages)
 
-	// Delete all messages
-	err = store.DeleteSMSs([]string{"1", "2", "3", "4", "5"})
+	// Make sure things are gated across networks
+	actualMessages, err = store.GetSMSs("n2", nil, false, nil, nil)
 	assert.NoError(t, err)
-	actualMessages, err = store.GetSMSs(nil, false, nil, nil)
+	assert.Empty(t, actualMessages)
+
+	actualMessages, err = store.GetSMSsToDeliver("n2", []string{"IMSI1", "IMSI2", "IMSI3"}, 0)
+	assert.NoError(t, err)
+	assert.Empty(t, actualMessages)
+
+	// Delete all messages
+	err = store.DeleteSMSs("n1", []string{"1", "2", "3", "4", "5"})
+	assert.NoError(t, err)
+	actualMessages, err = store.GetSMSs("n1", nil, false, nil, nil)
 	assert.NoError(t, err)
 	assert.Empty(t, actualMessages)
 }

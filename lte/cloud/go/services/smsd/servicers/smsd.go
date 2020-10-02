@@ -20,9 +20,12 @@ import (
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/smsd/storage"
 	"magma/lte/cloud/go/sms_ll"
+	"magma/orc8r/cloud/go/identity"
 
 	"github.com/golang/protobuf/ptypes"
 	"github.com/pkg/errors"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const defaultTimeout = 6 * time.Minute
@@ -36,10 +39,15 @@ func NewSMSDServicer(store storage.SMSStorage, serde sms_ll.SMSSerde) lteProtos.
 	return &smsdServicer{store: store, serde: serde}
 }
 
-func (s *smsdServicer) GetMessages(_ context.Context, request *lteProtos.GetMessagesRequest) (*lteProtos.GetMessagesResponse, error) {
-	messages, err := s.store.GetSMSsToDeliver(request.Imsis, defaultTimeout)
+func (s *smsdServicer) GetMessages(ctx context.Context, request *lteProtos.GetMessagesRequest) (*lteProtos.GetMessagesResponse, error) {
+	networkID, err := identity.GetClientNetworkID(ctx)
 	if err != nil {
 		return &lteProtos.GetMessagesResponse{}, err
+	}
+
+	messages, err := s.store.GetSMSsToDeliver(networkID, request.Imsis, defaultTimeout)
+	if err != nil {
+		return &lteProtos.GetMessagesResponse{}, status.Error(codes.Internal, err.Error())
 	}
 
 	ret := &lteProtos.GetMessagesResponse{}
@@ -50,11 +58,11 @@ func (s *smsdServicer) GetMessages(_ context.Context, request *lteProtos.GetMess
 		// using the API.
 		createdTime, err := ptypes.Timestamp(storedSMS.CreatedTime)
 		if err != nil {
-			return &lteProtos.GetMessagesResponse{}, errors.Wrapf(err, "could not encode message timestamp %s", storedSMS.Pk)
+			return &lteProtos.GetMessagesResponse{}, status.Errorf(codes.Internal, "could not encode message timestamp %s: %s", storedSMS.Pk, err)
 		}
 		encodedMessages, err := s.serde.EncodeMessage(storedSMS.Message, storedSMS.SourceMsisdn, createdTime, storedSMS.RefNums)
 		if err != nil {
-			return &lteProtos.GetMessagesResponse{}, errors.Wrapf(err, "could not encode message %s", storedSMS.Pk)
+			return &lteProtos.GetMessagesResponse{}, status.Errorf(codes.Internal, "could not encode message %s: %s", storedSMS.Pk, err)
 		}
 
 		for _, encoded := range encodedMessages {
@@ -67,18 +75,22 @@ func (s *smsdServicer) GetMessages(_ context.Context, request *lteProtos.GetMess
 	return ret, nil
 }
 
-func (s *smsdServicer) ReportDelivery(_ context.Context, request *lteProtos.ReportDeliveryRequest) (*lteProtos.ReportDeliveryResponse, error) {
+func (s *smsdServicer) ReportDelivery(ctx context.Context, request *lteProtos.ReportDeliveryRequest) (*lteProtos.ReportDeliveryResponse, error) {
 	ret := &lteProtos.ReportDeliveryResponse{}
 	if request.Report == nil {
 		return ret, nil
 	}
-	delivered, failed := map[string][]storage.SMSRef{}, map[string][]storage.SMSFailureReport{}
+	networkID, err := identity.GetClientNetworkID(ctx)
+	if err != nil {
+		return ret, err
+	}
 
 	decoded, err := s.serde.DecodeDelivery(request.Report.NasMessageContainer)
 	if err != nil {
 		return ret, errors.Wrap(err, "failed to decode report")
 	}
 
+	delivered, failed := map[string][]storage.SMSRef{}, map[string][]storage.SMSFailureReport{}
 	if decoded.IsSuccessful {
 		delivered[request.Report.Imsi] = append(delivered[request.Report.Imsi], decoded.Reference)
 	} else {
@@ -88,7 +100,7 @@ func (s *smsdServicer) ReportDelivery(_ context.Context, request *lteProtos.Repo
 		})
 	}
 
-	err = s.store.ReportDelivery(delivered, failed)
+	err = s.store.ReportDelivery(networkID, delivered, failed)
 	if err != nil {
 		return ret, errors.Wrap(err, "failed to report delivery")
 	}
