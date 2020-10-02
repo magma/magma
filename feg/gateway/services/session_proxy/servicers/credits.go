@@ -260,10 +260,13 @@ func getSingleCreditResponseFromCCA(
 ) *protos.CreditUpdateResponse {
 	success := answer.ResultCode == diameter.SuccessCode
 	imsi := credit_control.AddIMSIPrefix(request.IMSI)
+
 	if len(answer.Credits) == 0 {
 		return &protos.CreditUpdateResponse{
-			Success: false,
-			Sid:     imsi,
+			Success:    false,
+			Sid:        imsi,
+			SessionId:  request.SessionID,
+			ResultCode: answer.ResultCode,
 		}
 	}
 	receivedCredit := answer.Credits[0]

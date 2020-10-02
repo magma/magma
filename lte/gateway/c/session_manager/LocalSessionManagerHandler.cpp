@@ -584,18 +584,16 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
   response_callback(Status::OK, Void());
 }
 
-std::string LocalSessionManagerHandlerImpl::bytes_to_hex(const std::string& s)
-{
-   std::ostringstream ret;
+std::string LocalSessionManagerHandlerImpl::bytes_to_hex(const std::string& s) {
+  std::ostringstream ret;
 
-    unsigned int c;
-    for (std::string::size_type i = 0; i < s.length(); ++i)
-    {
-        c = (unsigned int)(unsigned char)s[i];
-        ret << " " << std::hex << std::setfill('0') <<
-            std::setw(2) << (std::nouppercase) << c;
-    }
-    return ret.str();
+  unsigned int c;
+  for (std::string::size_type i = 0; i < s.length(); ++i) {
+    c = (unsigned int) (unsigned char) s[i];
+    ret << " " << std::hex << std::setfill('0') << std::setw(2)
+        << (std::nouppercase) << c;
+  }
+  return ret.str();
 }
 
 void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
