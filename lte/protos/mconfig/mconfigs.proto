@@ -196,6 +196,7 @@ message MME {
         NON_EPS_SERVICE_CONTROL_OFF = 0;
         NON_EPS_SERVICE_CONTROL_CSFB_SMS = 1;
         NON_EPS_SERVICE_CONTROL_SMS = 2;
+        NON_EPS_SERVICE_CONTROL_SMS_ORC8R = 3;
     }
 
     orc8r.LogLevel log_level = 1;
@@ -216,7 +217,7 @@ message MME {
     // Enable credit control tracking with OCS and forwarding S6a related
     // requests to Federated GW
     bool relay_enabled = 8;
-    // For indicating one of the three modes
+    // For indicating one of the four modes
     NonEPSServiceControl non_eps_service_control = 9;
     // Mobile country code for CSFB
     string csfb_mcc = 10;
