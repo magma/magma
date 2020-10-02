@@ -236,6 +236,9 @@ int main(int argc, char* argv[]) {
       MLOG(MINFO) << "Started AAA Client response thread";
       aaa_client->rpc_response_loop();
     });
+    /* for 4G cwf doesn't need amf_srv_client object and
+     * for 5G cwf not yet supported.
+     */
     spgw_client                     = nullptr;
     amf_srv_client                  = nullptr;
   } else {
@@ -245,7 +248,6 @@ int main(int argc, char* argv[]) {
       spgw_client->rpc_response_loop();
     });
     aaa_client                      = nullptr;
-    amf_srv_client                  = nullptr;
   }
 
   // Setup SessionReporter which talks to the policy component
@@ -312,7 +314,8 @@ int main(int argc, char* argv[]) {
     // Initialize the main thread of session management by folly event to handle
     // logical component of 5G of SessionD
     auto conv_session_enforcer = std::make_shared<magma::SessionStateEnforcer>(
-        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig);
+        rule_store, *session_store, pipelined_client, amf_srv_client, mconfig,
+        config["session_force_termination_timeout_ms"].as<long>());
     // 5G related async msg handler service framework creation
     auto conv_set_message_handler =
         std::make_unique<magma::SetMessageManagerHandler>(

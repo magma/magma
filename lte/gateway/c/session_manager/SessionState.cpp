@@ -193,8 +193,11 @@ uint32_t SessionState::get_current_version() {
   return current_version_;
 }
 
-void SessionState::set_current_version(int new_session_version) {
+void SessionState::set_current_version(int new_session_version,
+	           SessionStateUpdateCriteria& uc) {
   current_version_ = new_session_version;
+  uc.is_current_version_updated = true;
+  uc.updated_current_version = new_session_version;
 }
 /* Add PDR rule to this rules session list */
 void SessionState::insert_pdr(SetGroupPDR* rule) {
@@ -204,6 +207,12 @@ void SessionState::insert_pdr(SetGroupPDR* rule) {
 /* Add FAR rule to this rules session list */
 void SessionState::insert_far(SetGroupFAR* rule) {
   FarList_.push_back(*rule);
+}
+
+/* Remove all Pdr, FAR rules */ 
+void SessionState::remove_all_rules() {
+  PdrList_.clear();
+  FarList_.clear();
 }
 
 /* It gets all PDR rule list of the session */
@@ -220,7 +229,25 @@ std::vector<SetGroupFAR>& SessionState::get_all_far_rules() {
 void SessionState::sess_infocopy(struct SessionInfo* info) {
   // Static SessionInfo vlaue till UPF node value implementation
   // gets stablized.
-  info->state               = magma::lte::Fsm_state_FsmState_CREATING;
+  int curr_state = get_state();
+  switch (curr_state) {
+    case CREATING:
+  	info->state =  magma::lte::Fsm_state_FsmState_CREATING;
+	break;
+    case CREATED:
+  	info->state =  magma::lte::Fsm_state_FsmState_CREATED;
+	break;
+    case ACTIVE:
+  	info->state =  magma::lte::Fsm_state_FsmState_ACTIVE;
+	break;
+    case RELEASE:
+  	info->state =  magma::lte::Fsm_state_FsmState_RELEASE;
+	break;
+    case INACTIVE:
+	 default:
+  	info->state =  magma::lte::Fsm_state_FsmState_INACTIVE;
+	break;
+  }
   info->sess_id             = "1122334455667788";
   info->ver_no              = 1;
   info->nodeId.node_id_type = SessionInfo::IPv4;
@@ -252,6 +279,10 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   SessionStateUpdateCriteria _;
   if (uc.is_fsm_updated) {
     curr_state_ = uc.updated_fsm_state;
+  }
+
+  if (uc.is_current_version_updated) {
+    current_version_ = uc.updated_current_version;
   }
 
   if (uc.is_pending_event_triggers_updated) {

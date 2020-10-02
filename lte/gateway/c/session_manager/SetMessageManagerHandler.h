@@ -29,6 +29,7 @@
 using grpc::Server;
 using grpc::ServerContext;
 using grpc::Status;
+
 namespace magma {
 using namespace orc8r;
 
@@ -79,6 +80,9 @@ class SetMessageManagerHandler : public SetMessageManager {
   /*initialize the session message from proto message*/
   SessionConfig m5g_build_session_config(const SetSMSessionContext& request);
 
-};  // of class SetMessageManagerHandlerImpl
+  /*Release request message handling*/
+  void initiate_release_session(
+      SessionMap& session_map, const std::string& dnn, const std::string& imsi);
+};  // end of class SetMessageManagerHandlerImpl
 
 }  // end namespace magma

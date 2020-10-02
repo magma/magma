@@ -148,11 +148,14 @@ class SessionState {
   /* methods of new messages of 5G and handle other message*/
   uint32_t get_current_version();
 
-  void set_current_version(int new_session_version);
+  void set_current_version(int new_session_version,
+	  SessionStateUpdateCriteria& uc);
 
   void insert_pdr(SetGroupPDR* rule);
 
   void insert_far(SetGroupFAR* rule);
+
+  void remove_all_rules();
 
   std::vector<SetGroupPDR>& get_all_pdr_rules();
 
