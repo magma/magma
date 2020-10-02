@@ -60,8 +60,9 @@ using namespace std::placeholders;
 // For command level result codes, we will mark the subscriber to be terminated
 // if the result code indicates a permanent failure.
 static void handle_command_level_result_code(
-    const std::string& imsi, const uint32_t result_code,
-    std::unordered_set<std::string>& subscribers_to_terminate);
+    const std::string& imsi, const std::string& session_id,
+    const uint32_t result_code,
+    std::unordered_set<ImsiAndSessionID>& sessions_to_terminate);
 static bool is_valid_mac_address(const char* mac);
 static bool parse_apn(
     const std::string& apn, std::string& mac_addr, std::string& name);
@@ -650,7 +651,7 @@ void LocalEnforcer::complete_final_unit_action_flows_install(
   }
 }
 
-void LocalEnforcer::cancelling_final_unit_action(
+void LocalEnforcer::cancel_final_unit_action(
     const std::unique_ptr<SessionState>& session,
     const std::vector<std::string>& restrict_rules,
     SessionStateUpdateCriteria& uc) {
@@ -1009,55 +1010,53 @@ void LocalEnforcer::schedule_session_init_bearer_creations(
   evb_->runAfterDelay(
       [this, imsi, session_id, bearer_updates]() mutable {
         auto session_map = session_store_.read_sessions({imsi});
-        auto it          = session_map.find(imsi);
-        if (it == session_map.end()) {
+        SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+        auto session_it = session_store_.find_session(session_map, criteria);
+        if (!session_it) {
           MLOG(MWARNING) << "Ignoring dedicated bearer creations from session "
                             "creation for "
                          << session_id << " since it no longer exists";
           return;
         }
-        for (auto& session : it->second) {
-          if (session->get_session_id() != session_id) {
-            continue;
-          }
-          // Skip bearer update if it is no longer ACTIVE
-          if (session->get_state() != SESSION_ACTIVE) {
-            MLOG(MWARNING) << "Ignoring dedicated bearer create request from"
-                           << " session creation for " << session_id
-                           << " since the session is no longer active";
-            return;
-          }
-          // Check that the policies are still installed and needs a
-          // bearer
-          auto rules = bearer_updates.create_req.mutable_policy_rules();
-          auto it    = rules->begin();
-          while (it != rules->end()) {
-            auto policy_type = session->get_policy_type(it->id());
-            if (!policy_type) {
-              MLOG(MWARNING) << "Ignoring dedicated bearer create request from"
-                             << " session creation for " << session_id
-                             << " policy ID: " << it->id()
-                             << " since the policy is no longer active in the "
-                                "session";
-              it = rules->erase(it);
-              continue;
-            }
-            if (!session->policy_needs_bearer_creation(
-                    *policy_type, it->id(), session->get_config())) {
-              MLOG(MWARNING) << "Ignoring dedicated bearer create request from "
-                             << "session creation for " << session_id
-                             << " and policy ID: " << it->id()
-                             << " since the policy no longer needs a bearer";
-              it = rules->erase(it);
-              continue;
-            }
-            ++it;
-          }
-          if (rules->size() > 0) {
-            propagate_bearer_updates_to_mme(bearer_updates);
-          }
+        auto& session = **session_it;
+
+        // Skip bearer update if it is no longer ACTIVE
+        if (session->get_state() != SESSION_ACTIVE) {
+          MLOG(MWARNING) << "Ignoring dedicated bearer create request from"
+                         << " session creation for " << session_id
+                         << " since the session is no longer active";
           return;
         }
+        // Check that the policies are still installed and needs a
+        // bearer
+        auto rules = bearer_updates.create_req.mutable_policy_rules();
+        auto it    = rules->begin();
+        while (it != rules->end()) {
+          auto policy_type = session->get_policy_type(it->id());
+          if (!policy_type) {
+            MLOG(MWARNING) << "Ignoring dedicated bearer create request from"
+                           << " session creation for " << session_id
+                           << " policy ID: " << it->id()
+                           << " since the policy is no longer active in the "
+                              "session";
+            it = rules->erase(it);
+            continue;
+          }
+          if (!session->policy_needs_bearer_creation(
+                  *policy_type, it->id(), session->get_config())) {
+            MLOG(MWARNING) << "Ignoring dedicated bearer create request from "
+                           << "session creation for " << session_id
+                           << " and policy ID: " << it->id()
+                           << " since the policy no longer needs a bearer";
+            it = rules->erase(it);
+            continue;
+          }
+          ++it;
+        }
+        if (rules->size() > 0) {
+          propagate_bearer_updates_to_mme(bearer_updates);
+        }
+        return;
         // No need to update session store for bearer creations.
         // SessionStore will be updated once the bearer binding
         // completes/fails.
@@ -1112,7 +1111,7 @@ void LocalEnforcer::init_session_credit(
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
     // First time a session is created for IMSI
-    MLOG(MDEBUG) << "First session for IMSI " << imsi << " with session ID "
+    MLOG(MDEBUG) << "First session for " << imsi << " with SessionID "
                  << session_id;
     session_map[imsi] = SessionVector();
   }
@@ -1144,11 +1143,13 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
         imsi, session, SubscriberQuotaUpdate_Type_NO_QUOTA);
     // Schedule a session termination for a configured number of seconds after
     // session create
-    MLOG(MINFO) << "Scheduling session for session " << session.get_session_id()
-                << "to be terminated in "
+    const auto session_id = session.get_session_id();
+    MLOG(MINFO) << "Scheduling session for session " << session_id
+                << " to be terminated in "
                 << quota_exhaustion_termination_on_init_ms_ << " ms";
-    auto imsi_set = std::unordered_set<std::string>{imsi};
-    schedule_termination(imsi_set);
+    auto sessions_to_terminate = std::unordered_set<ImsiAndSessionID>{
+        ImsiAndSessionID(imsi, session_id)};
+    schedule_termination(sessions_to_terminate);
     return;
   }
 
@@ -1159,17 +1160,19 @@ void LocalEnforcer::handle_session_init_subscriber_quota_state(
 }
 
 void LocalEnforcer::schedule_termination(
-    std::unordered_set<std::string>& imsis) {
+    std::unordered_set<ImsiAndSessionID>& sessions) {
   evb_->runAfterDelay(
-      [this, imsis] {
+      [this, sessions] {
         SessionRead req;
-        req.insert(imsis.begin(), imsis.end());
+        for (auto& imsi_and_session_id : sessions) {
+          req.insert(imsi_and_session_id.first);
+        }
         auto session_map = session_store_.read_sessions_for_deletion(req);
 
         SessionUpdate session_update =
             SessionStore::get_default_session_update(session_map);
 
-        terminate_multiple_services(session_map, imsis, session_update);
+        terminate_multiple_sessions(session_map, sessions, session_update);
         bool end_success = session_store_.update_sessions(session_update);
         if (end_success) {
           MLOG(MDEBUG) << "Succeeded in updating session store with "
@@ -1236,148 +1239,143 @@ bool LocalEnforcer::rules_to_process_is_not_empty(
          rules_to_process.dynamic_rules.size() > 0;
 }
 
-void LocalEnforcer::terminate_multiple_services(
-    SessionMap& session_map, const std::unordered_set<std::string>& imsis,
+void LocalEnforcer::terminate_multiple_sessions(
+    SessionMap& session_map,
+    const std::unordered_set<ImsiAndSessionID>& sessions,
     SessionUpdate& session_update) {
-  for (const auto& imsi : imsis) {
-    auto it = session_map.find(imsi);
-    if (it == session_map.end()) {
-      continue;
+  for (const auto& imsi_and_session_id : sessions) {
+    const auto &imsi       = imsi_and_session_id.first,
+               &session_id = imsi_and_session_id.second;
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MWARNING) << "Session " << session_id
+                     << " not found for termination";
+      return;
     }
-    for (const auto& session : it->second) {
-      auto& uc = session_update[imsi][session->get_session_id()];
-      start_session_termination(imsi, session, true, uc);
-    }
+    auto& session = **session_it;
+    auto& uc      = session_update[imsi][session_id];
+    start_session_termination(imsi, session, true, uc);
   }
 }
 
 void LocalEnforcer::update_charging_credits(
     SessionMap& session_map, const UpdateSessionResponse& response,
-    std::unordered_set<std::string>& subscribers_to_terminate,
+    std::unordered_set<ImsiAndSessionID>& sessions_to_terminate,
     SessionUpdate& session_update) {
   for (const auto& credit_update_resp : response.responses()) {
-    const std::string& imsi = credit_update_resp.sid();
+    const std::string& imsi       = credit_update_resp.sid();
+    const std::string& session_id = credit_update_resp.session_id();
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not find session for " << session_id
+                   << " during charging update for RG "
+                   << credit_update_resp.charging_key();
+      continue;
+    }
+    auto& session = **session_it;
 
     if (!credit_update_resp.success()) {
       handle_command_level_result_code(
-          imsi, credit_update_resp.result_code(), subscribers_to_terminate);
+          imsi, session_id, credit_update_resp.result_code(),
+          sessions_to_terminate);
       continue;
     }
 
-    auto it = session_map.find(imsi);
-    if (it == session_map.end()) {
-      MLOG(MERROR) << "Could not find session for IMSI "
-                   << credit_update_resp.sid() << " during update";
-      continue;
-    }
-    for (const auto& session : it->second) {
-      std::string session_id = session->get_session_id();
-      if (session_id != credit_update_resp.session_id()) {
-        MLOG(MDEBUG) << "Not updating credit because this update is for session"
-                     << credit_update_resp.session_id()
-                     << " and this is session " << session_id;
-        continue;
-      }
+    auto& uc = session_update[imsi][session_id];
+    const auto& credit_key(credit_update_resp);
+    // We need to retrieve restrict_rules and is_final_action_state
+    // prior to receiving charging credit as they will be updated.
+    std::vector<std::string> restrict_rules;
+    session->get_final_action_restrict_rules(credit_key, restrict_rules);
+    bool is_final_action_state =
+        session->is_credit_in_final_unit_state(credit_key);
+    session->receive_charging_credit(credit_update_resp, uc);
+    session->set_tgpp_context(credit_update_resp.tgpp_ctx(), uc);
 
-      auto& uc = session_update[imsi][session_id];
-      const auto& credit_key(credit_update_resp);
-      // We need to retrive restrict_rules and is_final_action_state
-      // prior to receiving charging credit as they will be updated.
-      std::vector<std::string> restrict_rules;
-      session->get_final_action_restrict_rules(credit_key, restrict_rules);
-      bool is_final_action_state =
-          session->is_credit_in_final_unit_state(credit_key);
-      session->receive_charging_credit(credit_update_resp, uc);
-      session->set_tgpp_context(credit_update_resp.tgpp_ctx(), uc);
-
-      if (is_final_action_state) {
-        // We need to cancel final unit action flows installed in pipelined here
-        // following the reception of new charging credit.
-        cancelling_final_unit_action(session, restrict_rules, uc);
-      }
+    if (is_final_action_state) {
+      // We need to cancel final unit action flows installed in pipelined here
+      // following the reception of new charging credit.
+      cancel_final_unit_action(session, restrict_rules, uc);
     }
   }
 }
 
 void LocalEnforcer::update_monitoring_credits_and_rules(
     SessionMap& session_map, const UpdateSessionResponse& response,
-    std::unordered_set<std::string>& subscribers_to_terminate,
+    std::unordered_set<ImsiAndSessionID>& sessions_to_terminate,
     SessionUpdate& session_update) {
   // Since revalidation timer is session wide, we will only schedule one for
   // the entire session. The expectation is that if event triggers should be
   // included in all monitors or none.
   // To keep track of which timer is already tracked, we will have a set of
   // IMSIs that have pending re-validations
-  std::unordered_set<std::string> imsis_with_revalidation;
+  std::unordered_set<ImsiAndSessionID> sessions_with_revalidation;
   for (const auto& usage_monitor_resp : response.usage_monitor_responses()) {
-    const std::string& imsi = usage_monitor_resp.sid();
+    const std::string& imsi       = usage_monitor_resp.sid();
+    const std::string& session_id = usage_monitor_resp.session_id();
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not find session for " << session_id
+                   << " during monitoring update for mkey "
+                   << usage_monitor_resp.credit().monitoring_key();
+      continue;
+    }
+    auto& session = **session_it;
 
     if (!usage_monitor_resp.success()) {
       handle_command_level_result_code(
-          imsi, usage_monitor_resp.result_code(), subscribers_to_terminate);
+          imsi, session_id, usage_monitor_resp.result_code(),
+          sessions_to_terminate);
       continue;
     }
 
-    auto it = session_map.find(imsi);
-    if (it == session_map.end()) {
-      MLOG(MERROR) << "Could not find session for IMSI " << imsi
-                   << " during update";
-      continue;
+    auto& uc           = session_update[imsi][session_id];
+    const auto& config = session->get_config();
+    session->receive_monitor(usage_monitor_resp, uc);
+    session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);
+
+    RulesToProcess rules_to_activate;
+    RulesToProcess rules_to_deactivate;
+
+    process_rules_to_remove(
+        imsi, session, usage_monitor_resp.rules_to_remove(),
+        rules_to_deactivate, uc);
+
+    process_rules_to_install(
+        *session, imsi, to_vec(usage_monitor_resp.static_rules_to_install()),
+        to_vec(usage_monitor_resp.dynamic_rules_to_install()),
+        rules_to_activate, rules_to_deactivate, uc);
+
+    propagate_rule_updates_to_pipelined(
+        imsi, config, rules_to_activate, rules_to_deactivate, false);
+
+    if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
+      sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
     }
 
-    for (const auto& session : it->second) {
-      std::string session_id = session->get_session_id();
-      if (session_id != usage_monitor_resp.session_id()) {
-        MLOG(MDEBUG)
-            << "Not updating monitor because this update is for session"
-            << usage_monitor_resp.session_id() << " and this is session "
-            << session_id;
-        continue;
-      }
+    auto imsi_and_session_id = ImsiAndSessionID(imsi, session_id);
+    if (revalidation_required(usage_monitor_resp.event_triggers()) &&
+        sessions_with_revalidation.count(imsi_and_session_id) == 0) {
+      // All usage monitors under the same session will have the same event
+      // trigger. See proto message / FeG for why. We will modify this input
+      // logic later (Move event trigger out of UsageMonitorResponse), but
+      // here we use a set to indicate whether a timer is already accounted
+      // for.
+      // Only schedule if no other revalidation timer was scheduled for
+      // this session
+      auto revalidation_time = usage_monitor_resp.revalidation_time();
+      sessions_with_revalidation.insert(imsi_and_session_id);
+      schedule_revalidation(imsi, *session, revalidation_time, uc);
+    }
 
-      auto& uc           = session_update[imsi][session->get_session_id()];
-      const auto& config = session->get_config();
-      session->receive_monitor(usage_monitor_resp, uc);
-      session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);
-
-      RulesToProcess rules_to_activate;
-      RulesToProcess rules_to_deactivate;
-
-      process_rules_to_remove(
-          imsi, session, usage_monitor_resp.rules_to_remove(),
-          rules_to_deactivate, uc);
-
-      process_rules_to_install(
-          *session, imsi, to_vec(usage_monitor_resp.static_rules_to_install()),
-          to_vec(usage_monitor_resp.dynamic_rules_to_install()),
+    if (config.common_context.rat_type() == TGPP_LTE) {
+      const auto update = session->get_dedicated_bearer_updates(
           rules_to_activate, rules_to_deactivate, uc);
-
-      propagate_rule_updates_to_pipelined(
-          imsi, config, rules_to_activate, rules_to_deactivate, false);
-
-      if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
-        subscribers_to_terminate.insert(imsi);
-      }
-
-      if (revalidation_required(usage_monitor_resp.event_triggers()) &&
-          imsis_with_revalidation.count(imsi) == 0) {
-        // All usage monitors under the same session will have the same event
-        // trigger. See proto message / FeG for why. We will modify this input
-        // logic later (Move event trigger out of UsageMonitorResponse), but
-        // here we use a set to indicate whether a timer is already accounted
-        // for.
-        // Only schedule if no other revalidation timer was scheduled for
-        // this IMSI
-        auto revalidation_time = usage_monitor_resp.revalidation_time();
-        imsis_with_revalidation.insert(imsi);
-        schedule_revalidation(imsi, *session, revalidation_time, uc);
-      }
-
-      if (config.common_context.rat_type() == TGPP_LTE) {
-        const auto update = session->get_dedicated_bearer_updates(
-            rules_to_activate, rules_to_deactivate, uc);
-        propagate_bearer_updates_to_mme(update);
-      }
+      propagate_bearer_updates_to_mme(update);
     }
   }
 }
@@ -1388,15 +1386,15 @@ void LocalEnforcer::update_session_credits_and_rules(
   // These subscribers will include any subscriber that received a permanent
   // diameter error code. Additionally, it will also include CWF sessions that
   // have run out of monitoring quota.
-  std::unordered_set<std::string> subscribers_to_terminate;
+  std::unordered_set<ImsiAndSessionID> sessions_to_terminate;
 
   update_charging_credits(
-      session_map, response, subscribers_to_terminate, session_update);
+      session_map, response, sessions_to_terminate, session_update);
   update_monitoring_credits_and_rules(
-      session_map, response, subscribers_to_terminate, session_update);
+      session_map, response, sessions_to_terminate, session_update);
 
-  terminate_multiple_services(
-      session_map, subscribers_to_terminate, session_update);
+  terminate_multiple_sessions(
+      session_map, sessions_to_terminate, session_update);
 }
 
 // handle_termination_from_access terminates the session that is
@@ -1505,73 +1503,65 @@ void LocalEnforcer::handle_set_session_rules(
 ReAuthResult LocalEnforcer::init_charging_reauth(
     SessionMap& session_map, ChargingReAuthRequest request,
     SessionUpdate& session_update) {
-  auto it = session_map.find(request.sid());
-  if (it == session_map.end()) {
-    MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
-                 << " during reauth";
+  const std::string &imsi = request.sid(), &session_id = request.session_id();
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "Could not find session " << session_id
+                 << " for charging ReAuth";
     return ReAuthResult::SESSION_NOT_FOUND;
   }
-  SessionStateUpdateCriteria& uc =
-      session_update[request.sid()][request.session_id()];
-  if (request.type() == ChargingReAuthRequest::SINGLE_SERVICE) {
-    MLOG(MDEBUG) << "Initiating reauth of key " << request.charging_key()
-                 << " for subscriber " << request.sid() << " for session "
-                 << request.session_id();
-    for (const auto& session : it->second) {
-      if (session->get_session_id() == request.session_id()) {
-        return session->reauth_key(CreditKey(request), uc);
-      }
+  auto& session                  = **session_it;
+  SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
+  switch (request.type()) {
+    case ChargingReAuthRequest::SINGLE_SERVICE: {
+      MLOG(MDEBUG) << "Initiating ReAuth of RG " << request.charging_key()
+                   << " for session " << session_id;
+      return session->reauth_key(CreditKey(request), uc);
     }
-    MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
-                 << " during reauth";
-    return ReAuthResult::SESSION_NOT_FOUND;
-  }
-  MLOG(MDEBUG) << "Initiating reauth of all keys for subscriber "
-               << request.sid() << " for session" << request.session_id();
-  for (const auto& session : it->second) {
-    if (session->get_session_id() == request.session_id()) {
+    case ChargingReAuthRequest::ENTIRE_SESSION: {
+      MLOG(MDEBUG) << "Initiating ReAuth of all RGs for session " << session_id;
       return session->reauth_all(uc);
     }
+    default:
+      MLOG(MDEBUG) << "Received ChargingReAuthType " << request.type()
+                   << " for " << session_id;
+      return ReAuthResult::OTHER_FAILURE;
   }
-  MLOG(MERROR) << "Could not find session for subscriber " << request.sid()
-               << " during reauth";
-
-  return ReAuthResult::SESSION_NOT_FOUND;
 }
 
 void LocalEnforcer::init_policy_reauth(
     SessionMap& session_map, PolicyReAuthRequest request,
     PolicyReAuthAnswer& answer_out, SessionUpdate& session_update) {
-  auto it = session_map.find(request.imsi());
+  const std::string &imsi = request.imsi(), &session_id = request.session_id();
+  auto it = session_map.find(imsi);
   if (it == session_map.end()) {
-    MLOG(MERROR) << "Could not find session for subscriber " << request.imsi()
-                 << " during policy reauth";
+    MLOG(MERROR) << "Could not find subscriber " << imsi
+                 << " during policy ReAuth";
     answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
     return;
   }
   // For empty session_id, apply changes to all sessions of subscriber
   // Changes are applied on a best-effort basis, so failures for one session
   // won't stop changes from being applied for subsequent sessions.
-  if (request.session_id() == "") {
+  if (session_id == "") {
     for (const auto& session : it->second) {
       init_policy_reauth_for_session(request, session, session_update);
     }
-  } else {
-    bool session_id_valid = false;
-    for (const auto& session : it->second) {
-      if (session->get_session_id() == request.session_id()) {
-        session_id_valid = true;
-        init_policy_reauth_for_session(request, session, session_update);
-      }
-    }
-    if (!session_id_valid) {
-      MLOG(MERROR) << "Found a matching IMSI " << request.imsi()
-                   << ", but no matching session ID " << request.session_id()
-                   << " during policy reauth";
-      answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
-      return;
-    }
+    answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
+    return;
   }
+
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "Could not find session " << session_id
+                 << " during policy ReAuth";
+    answer_out.set_result(ReAuthResult::SESSION_NOT_FOUND);
+    return;
+  }
+  auto& session = **session_it;
+  init_policy_reauth_for_session(request, session, session_update);
   answer_out.set_result(ReAuthResult::UPDATE_INITIATED);
 }
 
@@ -1806,18 +1796,17 @@ void LocalEnforcer::schedule_revalidation(
         std::move([=] {
           MLOG(MINFO) << "Revalidation timeout! for " << session_id;
           auto session_map = session_store_.read_sessions(req);
+          SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+          auto session_it = session_store_.find_session(session_map, criteria);
+          if (!session_it) {
+            MLOG(MERROR) << session_id << " not found for revalidation";
+            return;
+          }
+          auto& session = **session_it;
           SessionUpdate update =
               SessionStore::get_default_session_update(session_map);
-          for (const auto& session_pair : session_map) {
-            for (const auto& session : session_pair.second) {
-              std::string imsi = session_pair.first;
-              if (session->get_session_id() == session_id) {
-                auto& uc = update[imsi][session_id];
-                session->mark_event_trigger_as_triggered(
-                    REVALIDATION_TIMEOUT, uc);
-              }
-            }
-          }
+          auto& uc = update[imsi][session_id];
+          session->mark_event_trigger_as_triggered(REVALIDATION_TIMEOUT, uc);
           session_store_.update_sessions(update);
         }),
         delta);
@@ -2069,19 +2058,20 @@ std::unique_ptr<Timezone> LocalEnforcer::compute_access_timezone() {
 }
 
 static void handle_command_level_result_code(
-    const std::string& imsi, const uint32_t result_code,
-    std::unordered_set<std::string>& subscribers_to_terminate) {
+    const std::string& imsi, const std::string& session_id,
+    const uint32_t result_code,
+    std::unordered_set<ImsiAndSessionID>& sessions_to_terminate) {
   const bool is_permanent_failure =
       DiameterCodeHandler::is_permanent_failure(result_code);
   if (is_permanent_failure) {
-    MLOG(MERROR) << imsi
+    MLOG(MERROR) << session_id
                  << " Received permanent failure result code: " << result_code
-                 << " during update. Terminating Subscriber.";
-    subscribers_to_terminate.insert(imsi);
+                 << " during update. Terminating session.";
+    sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
   } else {
     // only log transient errors for now
-    MLOG(MERROR) << "Received result code: " << result_code << "for IMSI "
-                 << imsi << "during update";
+    MLOG(MERROR) << "Received result code: " << result_code << "for "
+                 << session_id << "during update";
   }
 }
 
