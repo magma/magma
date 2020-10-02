@@ -55,3 +55,9 @@ services:
         /magma/v1/lte/:network_id/policy_qos_profiles,
         /magma/v1/networks/:network_id/policies,
         /magma/v1/networks/:network_id/rating_groups,
+
+  smsd:
+    host: "localhost"
+    port: 9120
+    echo_port: 10086
+    proxy_type: "clientcert"

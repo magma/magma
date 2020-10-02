@@ -14,7 +14,6 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
-import "lte/protos/subscriberdb.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
@@ -46,13 +45,23 @@ message SMOUplinkUnitdata {
     bytes e_cgi = 7;
 }
 
-message MessageList {
-	repeated SMODownlinkUnitdata messages = 1;
-}
-
 // smsd-cloud service definition
 service SmsD {
-	rpc ReportDelivery(SMOUplinkUnitdata) returns (magma.orc8r.Void) {}
+	rpc ReportDelivery(ReportDeliveryRequest) returns (ReportDeliveryResponse) {}
 
-	rpc GetMessages(magma.lte.SubscriberIDSet) returns (MessageList) {}
+    rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
+}
+
+message ReportDeliveryResponse {}
+
+message ReportDeliveryRequest {
+    SMOUplinkUnitdata report = 1;
+}
+
+message GetMessagesRequest {
+    repeated string imsis = 1;
+}
+
+message GetMessagesResponse {
+    repeated SMODownlinkUnitdata messages = 1;
 }
