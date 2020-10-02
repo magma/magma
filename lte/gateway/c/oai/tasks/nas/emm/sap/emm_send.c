@@ -1362,8 +1362,11 @@ int emm_send_authentication_request(
   emm_msg->authenticationparameterrand =
       blk2bstr((const void*) msg->rand, AUTH_RAND_SIZE);
   if (!emm_msg->authenticationparameterrand) {
+
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
+
+  OAILOG_INFO(LOG_NAS_EMM, "RAND Parameter to check MAC Failure %p\n", emm_msg->authenticationparameterrand);
   /*
    * Mandatory - Authentication parameter AUTN
    */

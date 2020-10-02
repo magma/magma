@@ -240,7 +240,10 @@ int nas_message_decrypt(
   /*
    * Decode the header
    */
+OAILOG_STREAM_HEX(
+      OAILOG_LEVEL_INFO, LOG_NAS, "Buffer Length for Incoming NAS message: ", inbuf, length);
   int size = nas_message_header_decode(inbuf, header, length, status, &is_sr);
+
 
   if (size < 0) {
     OAILOG_DEBUG(LOG_NAS, "MESSAGE TOO SHORT\n");
@@ -267,7 +270,9 @@ int nas_message_decrypt(
     uint32_t mac = _nas_message_get_mac(
         inbuf + offset, length - offset, SECU_DIRECTION_UPLINK,
         emm_security_context);
-
+    OAILOG_INFO(LOG_NAS, "MAC-VALUE %u\n", mac);
+   OAILOG_STREAM_HEX(
+      OAILOG_LEVEL_INFO, LOG_NAS, "Checking NAS MAC length: ", inbuf + offset, length - offset);
     /*
      * Check NAS message integrity
      */
@@ -421,7 +426,7 @@ int nas_message_decode(
 
     /*
      * Check NAS message integrity
-     */
+    */
 
     // Compare last 2 LSB bytes for SR
     short_mac = mac & 0x0000FFFF;
