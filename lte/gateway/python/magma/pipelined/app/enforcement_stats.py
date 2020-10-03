@@ -505,8 +505,8 @@ def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     ip_match = get_ue_ipv4_match_args(ip_addr, direction)
 
     return MagmaMatch(imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
-                      direction=direction, reg2=rule_num, rule_version=version,
-                      **ip_match)
+                      direction=direction, rule_num=rule_num,
+                      rule_version=version, **ip_match)
 
 
 def _delta_usage_maps(current_usage, last_usage):
