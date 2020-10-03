@@ -160,18 +160,18 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if request.ip_addr:
             ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
             if request.request_origin.type == RequestOriginType.GX:
-                ret_ipv4 = self._install_flows_gx(request, fut, ipv4)
+                ret_ipv4 = self._install_flows_gx(request, ipv4)
             else:
-                ret_ipv4 = self._install_flows_gy(request, fut, ipv4)
+                ret_ipv4 = self._install_flows_gy(request, ipv4)
             ret.static_rule_results += ret_ipv4.static_rule_results
             ret.dynamic_rule_results += ret_ipv4.dynamic_rule_results
         if request.ipv6_addr:
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
             self._update_ipv6_prefix_store(request.ipv6_addr)
             if request.request_origin.type == RequestOriginType.GX:
-                ret_ipv6 = self._install_flows_gx(request, fut, ipv6)
+                ret_ipv6 = self._install_flows_gx(request, ipv6)
             else:
-                ret_ipv6 = self._install_flows_gy(request, fut, ipv6)
+                ret_ipv6 = self._install_flows_gy(request, ipv6)
             ret.static_rule_results += ret_ipv6.static_rule_results
             ret.dynamic_rule_results += ret_ipv6.dynamic_rule_results
 
