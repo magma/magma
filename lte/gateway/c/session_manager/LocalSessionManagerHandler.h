@@ -224,6 +224,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
           response_callback);
 
   void log_create_session(SessionConfig& cfg);
+
+  std::string bytes_to_hex(const std::string& s);
 };
 
 }  // namespace magma
