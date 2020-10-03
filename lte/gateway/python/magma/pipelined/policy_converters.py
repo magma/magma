@@ -193,3 +193,8 @@ def _get_direction_for_match(flow_match):
 def convert_ipv4_str_to_ip_proto(ipv4_str):
     return IPAddress(version=IPAddress.IPV4,
                      address=ipv4_str.encode('utf-8'))
+
+
+def convert_ipv6_bytes_to_ip_proto(ipv4_str):
+    return IPAddress(version=IPAddress.IPV6,
+                     address=ipv4_str)
