@@ -102,7 +102,7 @@ class IPV6RouterSolicitationController(MagmaController):
         Install flows that match on RS/NS and trigger packet in message, that
         will respond with RA/NA.
         """
-        ofproto, parser = datapath.ofproto, datapath.ofproto_parser
+        ofproto = datapath.ofproto
 
         match_rs = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
                               ipv6_src='fe80::/10',
