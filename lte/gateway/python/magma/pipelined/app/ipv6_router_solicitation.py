@@ -20,8 +20,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id
-from magma.pipelined.openflow.registers import Direction, load_passthrough, \
-    TUN_PORT_REG
+from magma.pipelined.openflow.registers import Direction
 
 from ryu.controller import dpset
 from ryu.ofproto.inet import IPPROTO_ICMPV6

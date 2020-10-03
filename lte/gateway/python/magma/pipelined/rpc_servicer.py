@@ -151,11 +151,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 request.sid.id, ipv4, rule.id)
 
     def _activate_flows(self, request: ActivateFlowsRequest,
-                           fut: 'Future[ActivateFlowsResult]'
-                           ) -> None:
+                        fut: 'Future[ActivateFlowsResult]'
+                        ) -> None:
         """
         Activate flows for ipv4 / ipv6 or both
-
         """
         ret = ActivateFlowsResult()
         if request.ip_addr:
