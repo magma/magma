@@ -585,7 +585,7 @@ pipeline {
     success {
       script {
           def color = "good"
-          def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
+          def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
           echo message
           sendSocialMediaMessage(slack_channel,color, message)
       }
@@ -593,7 +593,7 @@ pipeline {
     unsuccessful {
       script {
           def color = "danger"
-          def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
+          def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
           echo message
           sendSocialMediaMessage(slack_channel,color, message)
       }
