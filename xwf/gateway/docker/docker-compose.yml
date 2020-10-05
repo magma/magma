@@ -112,7 +112,7 @@ services:
   logrouter:
     <<: *service
     image: ${DOCKER_REGISTRY}logrouter
-    container_name: local_fluentbit
+    container_name: logrouter
     ports:
       - "24224:24224"
     healthcheck:
