@@ -13,20 +13,20 @@
  * @flow strict-local
  * @format
  */
-import DashboardAlertTable from '../DashboardAlertTable';
-import DashboardKPIs from '../DashboardKPIs';
-import EventAlertChart from '../EventAlertChart';
-import EventsTable from '../../views/events/EventsTable';
+import DashboardAlertTable from '../../../components/DashboardAlertTable';
+import DashboardKPIs from '../../../components/DashboardKPIs';
+import EventAlertChart from '../../../components/EventAlertChart';
+import EventsTable from '../../events/EventsTable';
 import Grid from '@material-ui/core/Grid';
 import React, {useState} from 'react';
-import Text from '../../theme/design-system/Text';
-import TopBar from '../TopBar';
+import Text from '../../../theme/design-system/Text';
+import TopBar from '../../../components/TopBar';
 import moment from 'moment';
 
 import {DateTimePicker} from '@material-ui/pickers';
 import {NetworkCheck} from '@material-ui/icons';
 import {Redirect, Route, Switch} from 'react-router-dom';
-import {colors} from '../../theme/default';
+import {colors} from '../../../theme/default';
 import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
 
