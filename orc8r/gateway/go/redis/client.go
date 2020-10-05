@@ -31,10 +31,17 @@ type RedisStateClient struct {
 
 // RedisStateSerde defines an interfaces for state serialization
 type RedisStateSerde interface {
+	// Serialize defines a method to serialize the state and state's version
+	// into a byte slice. Version is expected to be incremented each time the
+	// state is updated. This field is used to keep the gateway state in sync
+	// with the orc8r.
 	Serialize(in interface{}, version uint64) ([]byte, error)
 
+	// Deserialize defines a method to deserialize the stored state into an
+	// interface of the serde's internal data instance.
 	Deserialize(in []byte) (interface{}, error)
 
+	// GetStateType defines a method to fetch the serde's state type.
 	GetStateType() string
 }
 

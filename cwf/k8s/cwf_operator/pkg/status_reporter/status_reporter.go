@@ -30,9 +30,9 @@ type StatusReporter struct {
 }
 
 const (
-	redisEnvVar      = "REDIS_ADDR"
-	healthStateType  = "cwf_gateway_health"
-	clusterStateType = "cwf_cluster_health"
+	redisEnvVar     = "REDIS_ADDR"
+	healthStateType = "cwf_gateway_health"
+	haPairStateType = "cwf_ha_pair_status"
 )
 
 func NewStatusReporter() *StatusReporter {
@@ -45,10 +45,10 @@ func NewStatusReporter() *StatusReporter {
 		}
 	}
 	gatewayHealthStateSerde := redis.NewJsonStateSerde(healthStateType, &models.CarrierWifiGatewayHealthStatus{})
-	clusterStateSerde := redis.NewJsonStateSerde(clusterStateType, &models.CarrierWifiNetworkClusterStatus{})
+	haPairStateSerde := redis.NewJsonStateSerde(haPairStateType, &models.CarrierWifiHaPairStatus{})
 	return &StatusReporter{
 		redisHealthClient:  redis.NewDefaultRedisStateClient(redisAddr, gatewayHealthStateSerde),
-		redisClusterClient: redis.NewDefaultRedisStateClient(redisAddr, clusterStateSerde),
+		redisClusterClient: redis.NewDefaultRedisStateClient(redisAddr, haPairStateSerde),
 	}
 }
 
@@ -72,7 +72,7 @@ func (r *StatusReporter) UpdateHAClusterStatus(
 			standbyGatewayID = resource.GatewayID
 		}
 	}
-	err := r.updateClusterStatus(spec.HAPairID, activeGatewayID)
+	err := r.updateHaPairStatus(spec.HAPairID, activeGatewayID)
 	if err != nil {
 		log.Error(err, "")
 	}
@@ -86,11 +86,11 @@ func (r *StatusReporter) UpdateHAClusterStatus(
 	}
 }
 
-func (r *StatusReporter) updateClusterStatus(pairID string, activeGateway string) error {
-	clusterStatus := models.CarrierWifiNetworkClusterStatus{
+func (r *StatusReporter) updateHaPairStatus(pairID string, activeGateway string) error {
+	haPairStatus := models.CarrierWifiHaPairStatus{
 		ActiveGateway: activeGateway,
 	}
-	return r.redisClusterClient.Set(pairID, clusterStatus)
+	return r.redisClusterClient.Set(pairID, haPairStatus)
 }
 
 func (r *StatusReporter) updateGatewayHealthStatus(gatewayID string, healthStatus *protos.HealthStatus) error {
