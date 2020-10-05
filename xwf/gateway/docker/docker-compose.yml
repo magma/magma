@@ -91,6 +91,8 @@ services:
     <<: *service
     image: ${DOCKER_REGISTRY}goradius:${IMAGE_VERSION}
     container_name: radius
+    depends_on:
+      - "logrouter"
     environment:
       - ODS_ACCESS_TOKEN=${ODS_ACCESS_TOKEN}
       - SCUBA_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
