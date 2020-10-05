@@ -223,6 +223,8 @@ class SessionState {
       const CreditKey& key, ChargingGrant charging_grant,
       SessionStateUpdateCriteria& uc);
 
+  RulesToProcess get_all_final_unit_rules();
+
   /**
    * get_total_credit_usage returns the tx and rx of the session,
    * accounting for all unique keys (charging and monitoring) used by all

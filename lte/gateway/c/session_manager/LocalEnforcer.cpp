@@ -432,18 +432,31 @@ void LocalEnforcer::handle_force_termination_timeout(
 void LocalEnforcer::remove_all_rules_for_termination(
     const std::string& imsi, const std::unique_ptr<SessionState>& session,
     SessionStateUpdateCriteria& uc) {
-  RulesToProcess rules;
-  populate_rules_from_session_to_remove(imsi, session, rules);
-  for (const std::string& static_rule : rules.static_rules) {
+  SessionState::SessionInfo info;
+  session->get_session_info(info);
+
+  for (const std::string& static_rule : info.static_rules) {
     uc.static_rules_to_uninstall.insert(static_rule);
   }
-  for (const PolicyRule& dynamic_rule : rules.dynamic_rules) {
-    uc.dynamic_rules_to_uninstall.insert(dynamic_rule.id());
+  for (const PolicyRule& gx_dynamic_rule : info.dynamic_rules) {
+    uc.dynamic_rules_to_uninstall.insert(gx_dynamic_rule.id());
   }
+  for (const PolicyRule& gy_dynamic_rule : info.gy_dynamic_rules) {
+    uc.gy_dynamic_rules_to_uninstall.insert(gy_dynamic_rule.id());
+  }
+
+  const auto ip_addr   = session->get_config().common_context.ue_ipv4();
+  const auto ipv6_addr = session->get_config().common_context.ue_ipv6();
   pipelined_client_->deactivate_flows_for_rules(
-      imsi, session->get_config().common_context.ue_ipv4(),
-      session->get_config().common_context.ue_ipv6(), rules.static_rules,
-      rules.dynamic_rules, RequestOriginType::GX);
+      imsi, ip_addr, ipv6_addr, info.static_rules, info.dynamic_rules,
+      RequestOriginType::GX);
+
+  auto gy_rules = session->get_all_final_unit_rules();
+  if (!gy_rules.static_rules.empty() || !gy_rules.dynamic_rules.empty()) {
+    pipelined_client_->deactivate_flows_for_rules(
+        imsi, ip_addr, ipv6_addr, gy_rules.static_rules, gy_rules.dynamic_rules,
+        RequestOriginType::GY);
+  }
 }
 
 void LocalEnforcer::notify_termination_to_access_service(
@@ -1665,19 +1678,6 @@ void LocalEnforcer::process_rules_to_remove(
                        << imsi << " during static rule removal";
       rules_to_deactivate.static_rules.push_back(rule_id);
     }
-  }
-}
-
-void LocalEnforcer::populate_rules_from_session_to_remove(
-    const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    RulesToProcess& rules_to_deactivate) {
-  SessionState::SessionInfo info;
-  session->get_session_info(info);
-  for (const auto& policyrule : info.dynamic_rules) {
-    rules_to_deactivate.dynamic_rules.push_back(policyrule);
-  }
-  for (const auto& staticrule : info.static_rules) {
-    rules_to_deactivate.static_rules.push_back(staticrule);
   }
 }
 
