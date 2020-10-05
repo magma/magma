@@ -14,8 +14,12 @@ import logging
 from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
+from collections import OrderedDict
 
 import grpc
+
+from lte.protos.session_manager_pb2 import (
+    UPFSessionState)
 from lte.protos import pipelined_pb2_grpc
 from lte.protos.pipelined_pb2 import (
     SetupFlowsResult,
@@ -29,7 +33,15 @@ from lte.protos.pipelined_pb2 import (
     SetupQuotaRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
-    TableAssignment)
+    TableAssignment,
+    FailureRuleInformation,
+    SessionSet,
+    Fsm_state,
+    UPFSessionContextState,
+    ApplyAction,
+    OffendingIE,
+    CauseIE)
+
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
@@ -533,7 +545,24 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                             scratch_tables=tables.scratch_tables) for
             app_name, tables in table_assignments.items()])
 
+    def SetSMFSessions(self, request, context):
 
+        logging.info (request)
+        
+        if request.state in [Fsm_state.CREATED, Fsm_state.ACTIVE, Fsm_state.RELEASE]:
+             response =\
+                        UPFSessionContextState(cause_info=CauseIE(cause_ie=CauseIE.REQUEST_ACCEPTED),
+                                              session_snaphot=UPFSessionState(seid=request.seid,
+                                                                sess_ver_no=request.sess_ver_no))
+             logging.info(response)
+             return response
+
+        else:
+            response =\
+                     UPFSessionContextState(cause_info=CauseIE(cause_ie=CauseIE.REQUEST_ACCEPTED),
+                                           session_snaphot=UPFSessionState(seid=request.seid,
+                                           sess_ver_no=request.sess_ver_no))
+            logging.info(response)
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
                                         List[RuleModResult]]:

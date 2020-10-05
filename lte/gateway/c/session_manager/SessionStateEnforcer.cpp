@@ -35,7 +35,7 @@
 
 namespace magma {
 // temp routine
-void call_back_void_upf(grpc::Status, magma::UpfRes response) {
+void call_back_void_upf(grpc::Status, magma::UPFSessionContextState response) {
   // do nothinf but to only passing call back
 }
 

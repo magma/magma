@@ -377,8 +377,48 @@ message SessionSet {
 }
 
 //ToDo Response will reflect in upcoming proto
-message UpfRes {}
+message  UPFSessionContextState {
+    CauseIE cause_info = 1;
+    UPFSessionState session_snaphot = 2;
+    FailureRuleInformation failure_rule_id = 3; // The session and version which failed in UPF
+}
 
+message CauseIE {
+   //15.8, Table 8.2.1-1
+   enum CauseValues {
+       RESERVED = 0;
+       REQUEST_ACCEPTED = 1;
+       REQUEST_REJECTED_NO_REASON = 2;
+       SESSION_CONTEXT_NOT_FOUND = 3;
+       MANDATORY_IE_MISSING = 4;
+       CONDITIONAL_IE_MISSING = 5;
+       INVALID_LENGTH = 6;
+       MANDATORY_IE_INCORRECT = 7;
+       INVALID_FORWARDING_POLICY = 8;
+       INVALID_F_TEID_ALLOCATION_OPTION = 9;
+       NO_ESTABLISHED_PFCP_ASSOCIATION = 10;
+       RULE_CREATION_OR_MODIFICATION_FAILURE = 11;
+       PFCP_ENTRY_IN_CONGESTION = 12;
+       NO_RESOURCES_AVAILABLE = 13;
+       SERVICE_NOT_SUPPORTED = 14;
+       SYSTEM_FAILURE = 15;
+   }
+
+   CauseValues cause_ie=1;
+}
+
+message FailureRuleInformation {
+   OffendingIE pdr = 1;
+   OffendingIE far = 2;
+   OffendingIE qer = 3;
+   OffendingIE urr = 4;
+   OffendingIE bar = 5;
+}
+
+message OffendingIE {
+    uint32 identifier = 1;
+    uint32 version = 2;
+}
 
 // --------------------------------------------------------------------------
 // Pipelined gateway RPC service
@@ -389,7 +429,7 @@ service Pipelined {
   // Smf to Upf rpc
   // ------------
 
-  rpc SetSMFSessions(SessionSet) returns (UpfRes) {}
+  rpc SetSMFSessions(SessionSet) returns (UPFSessionContextState) {}
 
   // ----------------
   // Enforcement App:

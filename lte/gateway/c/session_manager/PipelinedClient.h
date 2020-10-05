@@ -136,7 +136,7 @@ class PipelinedClient {
    */
   virtual bool set_upf_session(
       const SessionState::SessionInfo info,
-      std::function<void(Status status, UpfRes)> callback) = 0;
+      std::function<void(Status status, UPFSessionContextState)> callback) = 0;
 };
 
 /**
@@ -240,7 +240,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   bool set_upf_session(
       const SessionState::SessionInfo info,
-      std::function<void(Status status, UpfRes)> callback);
+      std::function<void(Status status, UPFSessionContextState)> callback);
 
   void handle_add_ue_mac_callback(
       const magma::UEMacFlowRequest req, const int retries, Status status,
@@ -284,7 +284,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       std::function<void(Status, FlowResponse)> callback);
 
   void set_upf_session_rpc(
-      const SessionSet& request, std::function<void(Status, UpfRes)> callback);
+    const SessionSet& request, std::function<void(Status, UPFSessionContextState)> callback);
 };
 
 }  // namespace magma
