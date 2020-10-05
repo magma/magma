@@ -1041,7 +1041,7 @@ uint32_t SessionState::get_credit_key_count() {
 }
 
 bool SessionState::is_creating_or_active() {
-  return curr_state_ == CREATING && curr_state_ == CREATED &&
+  return curr_state_ == CREATING || curr_state_ == CREATED ||
          curr_state_ == SESSION_ACTIVE;
 }
 
