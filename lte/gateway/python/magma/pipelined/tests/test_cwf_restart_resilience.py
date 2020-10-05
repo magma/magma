@@ -17,27 +17,12 @@ from unittest.mock import MagicMock
 
 import warnings
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
-    RedirectInformation
 from lte.protos.pipelined_pb2 import SetupUEMacRequest, UEMacFlowRequest
 from magma.subscriberdb.sid import SIDUtils
-from magma.pipelined.app.enforcement import EnforcementController
-from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import global_epoch
-from magma.pipelined.policy_converters import flow_match_to_magma_match, \
-    convert_ipv4_str_to_ip_proto
-from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
-    as FlowQuery
-from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
-    TCPPacketBuilder
-from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
     TestSetup
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext, default_ambr_config
-from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
-    RyuForwardFlowArgsBuilder
-from magma.pipelined.app.base import global_epoch
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     create_service_manager, start_ryu_app_thread, stop_ryu_app_thread, \
     wait_after_send, SnapshotVerifier, get_enforcement_stats, \
@@ -52,13 +37,6 @@ class CWFRestartResilienceTest(unittest.TestCase):
     UE_BLOCK = '192.168.128.0/24'
     DPI_PORT = 'mon1'
     DPI_IP = '1.1.1.1'
-
-    def _wait_func(self, stat_names):
-        def func():
-            wait_after_send(self.testing_controller)
-            wait_for_enforcement_stats(self.enforcement_stats_controller,
-                                       stat_names)
-        return func
 
     @classmethod
     @unittest.mock.patch('netifaces.ifaddresses',
@@ -78,6 +56,7 @@ class CWFRestartResilienceTest(unittest.TestCase):
         cls.service_manager = create_service_manager([], ['ue_mac', 'arpd'])
 
         ue_mac_controller_reference = Future()
+        arp_controller_reference = Future()
         testing_controller_reference = Future()
 
         def mock_thread_safe(cmd, body):
@@ -95,7 +74,7 @@ class CWFRestartResilienceTest(unittest.TestCase):
                 PipelinedController.UEMac:
                     ue_mac_controller_reference,
                 PipelinedController.Arp:
-                    Future(),
+                    arp_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.StartupFlows:
@@ -138,16 +117,23 @@ class CWFRestartResilienceTest(unittest.TestCase):
 
         cls.ue_mac_controller = ue_mac_controller_reference.result()
         cls.testing_controller = testing_controller_reference.result()
+        cls.arp_controller = arp_controller_reference.result()
+        cls.arp_controller.add_arp_response_flow = MagicMock()
 
     @classmethod
     def tearDownClass(cls):
         stop_ryu_app_thread(cls.thread)
         BridgeTools.destroy_bridge(cls.BRIDGE)
 
-    def test_ue_mac_restart(self):
+    @unittest.mock.patch('magma.pipelined.app.arp.get_all_records',
+                         return_value=[])
+    def test_ue_mac_restart(self, _):
         """
+        Verify that default flows are properly installed with empty setup
+
+        Verify that ue mac flows are properly restored
         """
-        imsi1 = 'IMSI111111111111111'#= 'IMSI010000000088888'
+        imsi1 = 'IMSI111111111111111'
         imsi2 = 'IMSI222222222222222'
         mac1 = '5e:cc:cc:b1:aa:aa'
         mac2 = 'b2:6a:f3:b3:2f:4c'
@@ -158,7 +144,8 @@ class CWFRestartResilienceTest(unittest.TestCase):
             ue_mac_controller=self.ue_mac_controller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
-                                             'default_flows')
+                                             'default_flows',
+                                             include_stats=False)
         with snapshot_verifier:
             pass
 
@@ -190,6 +177,7 @@ class CWFRestartResilienceTest(unittest.TestCase):
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
-                                             'recovery_flows')
+                                             'recovery_flows',
+                                             include_stats=False)
         with snapshot_verifier:
             pass
