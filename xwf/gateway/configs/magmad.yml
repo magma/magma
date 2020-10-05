@@ -75,10 +75,10 @@ metricsd:
     - pipelined
     - radiusd
 
-metric_scrape_targets:
-  - url: http://localhost:8080/metrics
-    name: cAdvisor
-    interval: 60
-  - url: http://localhost:8081/metrics
-    name: node_exporter
-    interval: 60
+  metric_scrape_targets:
+    - url: http://localhost:8080/metrics
+      name: cAdvisor
+      interval: 60
+    - url: http://localhost:8081/metrics
+      name: node_exporter
+      interval: 60
