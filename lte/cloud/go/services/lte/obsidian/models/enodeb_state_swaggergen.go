@@ -42,9 +42,8 @@ type EnodebState struct {
 	GpsLongitude *string `json:"gps_longitude"`
 
 	// ip address
-	// Required: true
 	// Format: ipv4
-	IPAddress *strfmt.IPv4 `json:"ip_address"`
+	IPAddress strfmt.IPv4 `json:"ip_address,omitempty"`
 
 	// mme connected
 	// Required: true
@@ -187,8 +186,8 @@ func (m *EnodebState) validateGpsLongitude(formats strfmt.Registry) error {
 
 func (m *EnodebState) validateIPAddress(formats strfmt.Registry) error {
 
-	if err := validate.Required("ip_address", "body", m.IPAddress); err != nil {
-		return err
+	if swag.IsZero(m.IPAddress) { // not required
+		return nil
 	}
 
 	if err := validate.FormatOf("ip_address", "body", "ipv4", m.IPAddress.String(), formats); err != nil {

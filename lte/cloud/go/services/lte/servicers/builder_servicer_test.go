@@ -576,7 +576,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 		Config: &lte_models.EnodebConfiguration{
 			CellID:          swag.Uint32(42),
 			DeviceClass:     "Baicells ID TDD/FDD",
-			TransmitEnabled: swag.Bool(true),
+			TransmitEnabled: true,
 		},
 		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
 	}
@@ -763,7 +763,7 @@ func newDefaultEnodebConfig() *lte_models.EnodebConfiguration {
 		CellID:                 swag.Uint32(138777000),
 		Tac:                    15000,
 		BandwidthMhz:           20,
-		TransmitEnabled:        swag.Bool(true),
+		TransmitEnabled:        true,
 		DeviceClass:            "Baicells ID TDD/FDD",
 	}
 }

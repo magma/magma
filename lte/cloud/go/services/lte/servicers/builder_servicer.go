@@ -294,11 +294,12 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
 			SpecialSubframePattern: int32(cellularEnbConfig.SpecialSubframePattern),
 			Pci:                    int32(cellularEnbConfig.Pci),
-			TransmitEnabled:        swag.BoolValue(cellularEnbConfig.TransmitEnabled),
+			TransmitEnabled:        cellularEnbConfig.TransmitEnabled,
 			DeviceClass:            cellularEnbConfig.DeviceClass,
 			BandwidthMhz:           int32(cellularEnbConfig.BandwidthMhz),
 			Tac:                    int32(cellularEnbConfig.Tac),
 			CellId:                 int32(swag.Uint32Value(cellularEnbConfig.CellID)),
+			IpAddress:              cellularEnbConfig.IPAddress.String(),
 		}
 
 		// override zero values with network/gateway configs

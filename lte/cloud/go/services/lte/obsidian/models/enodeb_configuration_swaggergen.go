@@ -29,12 +29,15 @@ type EnodebConfiguration struct {
 	CellID *uint32 `json:"cell_id"`
 
 	// device class
-	// Required: true
 	// Enum: [Baicells Nova-233 G2 OD FDD Baicells Nova-243 OD TDD Baicells Neutrino 224 ID FDD Baicells ID TDD/FDD NuRAN Cavium OC-LTE]
-	DeviceClass string `json:"device_class"`
+	DeviceClass string `json:"device_class,omitempty"`
 
 	// earfcndl
 	Earfcndl uint32 `json:"earfcndl,omitempty"`
+
+	// ip address
+	// Format: ipv4
+	IPAddress strfmt.IPv4 `json:"ip_address,omitempty"`
 
 	// pci
 	// Maximum: 503
@@ -55,8 +58,7 @@ type EnodebConfiguration struct {
 	Tac uint32 `json:"tac,omitempty"`
 
 	// transmit enabled
-	// Required: true
-	TransmitEnabled *bool `json:"transmit_enabled"`
+	TransmitEnabled bool `json:"transmit_enabled,omitempty"`
 }
 
 // Validate validates this enodeb configuration
@@ -75,6 +77,10 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateIPAddress(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validatePci(formats); err != nil {
 		res = append(res, err)
 	}
@@ -88,10 +94,6 @@ func (m *EnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateTac(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateTransmitEnabled(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -188,12 +190,25 @@ func (m *EnodebConfiguration) validateDeviceClassEnum(path, location string, val
 
 func (m *EnodebConfiguration) validateDeviceClass(formats strfmt.Registry) error {
 
-	if err := validate.RequiredString("device_class", "body", string(m.DeviceClass)); err != nil {
-		return err
+	if swag.IsZero(m.DeviceClass) { // not required
+		return nil
 	}
 
 	// value enum
 	if err := m.validateDeviceClassEnum("device_class", "body", m.DeviceClass); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebConfiguration) validateIPAddress(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPAddress) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("ip_address", "body", "ipv4", m.IPAddress.String(), formats); err != nil {
 		return err
 	}
 
@@ -254,15 +269,6 @@ func (m *EnodebConfiguration) validateTac(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MaximumInt("tac", "body", int64(m.Tac), 65535, false); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *EnodebConfiguration) validateTransmitEnabled(formats strfmt.Registry) error {
-
-	if err := validate.Required("transmit_enabled", "body", m.TransmitEnabled); err != nil {
 		return err
 	}
 

@@ -10,13 +10,14 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+from typing import Optional, Tuple
 
 from lte.protos.mconfig import mconfigs_pb2
 
 
 def get_enb_rf_tx_desired(
-    mconfig: mconfigs_pb2.EnodebD,
-    enb_serial: str,
+        mconfig: mconfigs_pb2.EnodebD,
+        enb_serial: str,
 ) -> bool:
     """ True if the mconfig specifies to enable transmit on the eNB """
     if mconfig.enb_configs_by_serial is not None and \
@@ -43,3 +44,18 @@ def is_enb_registered(mconfig: mconfigs_pb2.EnodebD, enb_serial: str) -> bool:
         else:
             return False
     return True
+
+
+def get_sn_enb_id_registered(mconfig: mconfigs_pb2.EnodebD, enb_id: int) -> \
+                             Tuple[str, Optional[mconfigs_pb2.EnodebD.EnodebConfig]]:
+    """
+    Returns single eNB status if:
+        - the eNodeB is registered by serial to the Access Gateway
+        - cell ID is found in eNB status by serial
+    """
+    if mconfig.enb_configs_by_serial is not None and \
+            len(mconfig.enb_configs_by_serial) > 0:
+        for sn, enb in mconfig.enb_configs_by_serial.items():
+            if enb_id == enb.cell_id:
+                return sn, enb
+    return "", None

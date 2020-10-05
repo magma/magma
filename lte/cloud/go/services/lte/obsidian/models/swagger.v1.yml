@@ -1942,7 +1942,6 @@ definitions:
     required:
       - serial
       - name
-      - config
     properties:
       serial:
         type: string
@@ -1970,9 +1969,10 @@ definitions:
     minLength: 1
     required:
       - cell_id
-      - device_class
-      - transmit_enabled
     properties:
+      ip_address:
+        type: string
+        format: ipv4
       earfcndl:
         type: integer
         format: uint32
@@ -2044,7 +2044,6 @@ definitions:
       - ptp_connected
       - mme_connected
       - fsm_state
-      - ip_address
     properties:
       time_reported:
         type: integer

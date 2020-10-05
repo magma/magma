@@ -59,6 +59,9 @@ services:
   sms_mme_service:
     ip_address: 127.0.0.1
     port: 50073
+  s1ap_service:
+    ip_address: 127.0.0.1
+    port: 50073
   s6a_service:
     ip_address: 127.0.0.1
     port: 50073

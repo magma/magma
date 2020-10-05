@@ -22,8 +22,7 @@ type Enodeb struct {
 	AttachedGatewayID string `json:"attached_gateway_id,omitempty"`
 
 	// config
-	// Required: true
-	Config *EnodebConfiguration `json:"config"`
+	Config *EnodebConfiguration `json:"config,omitempty"`
 
 	// description
 	Description string `json:"description,omitempty"`
@@ -63,8 +62,8 @@ func (m *Enodeb) Validate(formats strfmt.Registry) error {
 
 func (m *Enodeb) validateConfig(formats strfmt.Registry) error {
 
-	if err := validate.Required("config", "body", m.Config); err != nil {
-		return err
+	if swag.IsZero(m.Config) { // not required
+		return nil
 	}
 
 	if m.Config != nil {

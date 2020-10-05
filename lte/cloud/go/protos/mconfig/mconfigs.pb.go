@@ -428,6 +428,7 @@ type EnodebD_EnodebConfig struct {
 	BandwidthMhz           int32    `protobuf:"varint,7,opt,name=bandwidth_mhz,json=bandwidthMhz,proto3" json:"bandwidth_mhz,omitempty"`
 	Tac                    int32    `protobuf:"varint,8,opt,name=tac,proto3" json:"tac,omitempty"`
 	CellId                 int32    `protobuf:"varint,9,opt,name=cell_id,json=cellId,proto3" json:"cell_id,omitempty"`
+	IpAddress              string   `protobuf:"bytes,10,opt,name=ip_address,json=ipAddress,proto3" json:"ip_address,omitempty"`
 	XXX_NoUnkeyedLiteral   struct{} `json:"-"`
 	XXX_unrecognized       []byte   `json:"-"`
 	XXX_sizecache          int32    `json:"-"`
@@ -519,6 +520,13 @@ func (m *EnodebD_EnodebConfig) GetCellId() int32 {
 		return m.CellId
 	}
 	return 0
+}
+
+func (m *EnodebD_EnodebConfig) GetIpAddress() string {
+	if m != nil {
+		return m.IpAddress
+	}
+	return ""
 }
 
 //------------------------------------------------------------------------------
