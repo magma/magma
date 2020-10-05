@@ -1130,7 +1130,8 @@ void LocalEnforcer::process_create_session_response(
     update_ipfix_flow(imsi, session->get_config(), time_since_epoch);
   }
   // TODO transition from CREATED->ACTIVE once we've received confirmation from
-  // PipelineD.
+  // PipelineD. For now, we will just transition to ACTIVE once we propagate
+  // rule updates
   session->set_fsm_state(SESSION_ACTIVE, session_uc);
 }
 

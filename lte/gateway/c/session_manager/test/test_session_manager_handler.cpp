@@ -60,11 +60,13 @@ class SessionManagerHandlerTest : public ::testing::Test {
         .detach();
 
     local_enforcer->attachEventBase(evb);
-    session_map_ = SessionMap{};
 
     session_manager = std::make_shared<LocalSessionManagerHandlerImpl>(
         local_enforcer, reporter.get(), directoryd_client, events_reporter,
         *session_store);
+    wlan_context = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+    lte_context  = build_lte_context(
+        "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
   }
 
   void insert_static_rule(
@@ -76,6 +78,62 @@ class SessionManagerHandlerTest : public ::testing::Test {
     rule.set_monitoring_key(m_key);
     rule.set_tracking_type(PolicyRule::OCS_AND_PCRF);
     rule_store->insert_rule(rule);
+  }
+
+  void create_new_wlan_session(
+      std::string imsi, std::string session_id, std::string apn,
+      std::string msisdn) {
+    SessionConfig cfg;
+    cfg.common_context =
+        build_common_context(IMSI1, "", "", "apn1", MSISDN, TGPP_WLAN);
+    cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan_context);
+    create_new_session(imsi, session_id, cfg);
+  }
+
+  void create_new_lte_session(
+      std::string imsi, std::string session_id, std::string apn,
+      std::string msisdn) {
+    SessionConfig cfg;
+    cfg.common_context =
+        build_common_context(IMSI1, IP1, IPv6_1, apn, MSISDN, TGPP_LTE);
+    cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
+    create_new_session(imsi, session_id, cfg);
+  }
+
+  void create_new_session(
+      std::string imsi, std::string session_id, SessionConfig& cfg) {
+    CreateSessionResponse response;
+    std::vector<std::string> static_rules{"rule1"};
+
+    // Initialize the session in session store
+    auto session_map = session_store->read_sessions({imsi});
+    local_enforcer->initialize_creating_session(
+        session_map, imsi, session_id, cfg);
+    EXPECT_EQ(session_map[IMSI1].size(), 1);
+    EXPECT_EQ(session_map[IMSI1][0]->get_state(), CREATING);
+
+    bool write_success =
+        session_store->create_sessions(IMSI1, std::move(session_map[imsi]));
+    EXPECT_TRUE(write_success);
+
+    response.set_session_id(session_id);
+
+    create_session_create_response(
+        imsi, session_id, monitoring_key, static_rules, &response);
+    create_credit_update_response(
+        imsi, session_id, 1, 1025, response.mutable_credits()->Add());
+
+    session_map = session_store->read_sessions({imsi});
+    EXPECT_TRUE(session_map.find(imsi) != session_map.end());
+    EXPECT_EQ(session_map[imsi].size(), 1);
+    auto updates = SessionStore::get_default_session_update(session_map);
+    local_enforcer->process_create_session_response(
+        session_map[imsi][0], imsi, session_id, response,
+        updates[imsi][SESSION_ID_1]);
+    EXPECT_EQ(session_map[IMSI1].size(), 1);
+    EXPECT_EQ(session_map[IMSI1][0]->get_state(), SESSION_ACTIVE);
+    write_success = session_store->update_sessions(updates);
+    EXPECT_TRUE(write_success);
   }
 
  protected:
@@ -90,51 +148,30 @@ class SessionManagerHandlerTest : public ::testing::Test {
   std::shared_ptr<MockEventsReporter> events_reporter;
   SessionIDGenerator id_gen_;
   folly::EventBase* evb;
-  SessionMap session_map_;
+  WLANSessionContext wlan_context;
+  LTESessionContext lte_context;
 };
 
-TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
+TEST_F(SessionManagerHandlerTest, test_manual_create_session_cwf_recycling) {
   // 1) Insert the entry for a rule
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
   std::vector<std::string> static_rules{"rule1"};
 
-  LocalCreateSessionRequest request;
-  CreateSessionResponse response;
-  const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  SessionConfig cfg;
-  cfg.common_context =
-      build_common_context(IMSI1, "", "", "apn1", MSISDN, TGPP_WLAN);
-  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
-  cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
-
-  response.set_session_id(SESSION_ID_1);
-  // Only the active sessions are not recycled, to ensure that
-  // this session is not automatically scheduled for termination
-  // when RAT Type is WLAN, it needs monitoring keys...
-  create_session_create_response(
-      IMSI1, SESSION_ID_1, monitoring_key, static_rules, &response);
-  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1536, response.mutable_credits()->Add());
+  create_new_wlan_session(IMSI1, SESSION_ID_1, "apn1", MSISDN);
 
   auto session_map = session_store->read_sessions({IMSI1});
-  local_enforcer->init_session_credit(
-      session_map, IMSI1, SESSION_ID_1, cfg, response);
-  bool write_success =
-      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
-  EXPECT_TRUE(write_success);
-  session_map = session_store->read_sessions({IMSI1});
-  auto it     = session_map.find(IMSI1);
+  auto it          = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
-  auto& session = session_map[IMSI1][0];
-  EXPECT_EQ(session->get_config().common_context.apn(), "apn1");
+  EXPECT_EQ(session_map[IMSI1][0]->get_config().common_context.apn(), "apn1");
 
   grpc::ServerContext create_context;
+  LocalCreateSessionRequest request;
+
   auto common = build_common_context(IMSI1, "", "", "apn2", MSISDN, TGPP_WLAN);
   request.mutable_common_context()->CopyFrom(common);
   request.mutable_rat_specific_context()->mutable_wlan_context()->CopyFrom(
-      wlan);  // use same WLAN config as previous
+      wlan_context);  // use same WLAN config as previous
 
   // Ensure session is not reported as its a duplicate
   EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
@@ -155,38 +192,66 @@ TEST_F(SessionManagerHandlerTest, test_create_session_cfg) {
   EXPECT_EQ(session_apn2->get_config().common_context.apn(), "apn2");
 }
 
-TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
+TEST_F(SessionManagerHandlerTest, test_create_session_cwf_recycling) {
   // 1) Insert the entry for a rule
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
   std::vector<std::string> static_rules{"rule1"};
 
+  LocalCreateSessionRequest request;
   CreateSessionResponse response;
-  auto sid = id_gen_.gen_session_id(IMSI1);
-  SessionConfig cfg;
-  cfg.common_context =
-      build_common_context(IMSI1, IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
-  auto lte_context = build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
-  cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
+  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
 
-  response.set_session_id(sid);
-  create_session_create_response(
-      IMSI1, sid, monitoring_key, static_rules, &response);
-  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, sid, 1, 1536, response.mutable_credits()->Add());
+  grpc::ServerContext create_context1;
+  auto common = build_common_context(IMSI1, "", "", "apn1", MSISDN, TGPP_WLAN);
+  request.mutable_common_context()->CopyFrom(common);
+  request.mutable_rat_specific_context()->mutable_wlan_context()->CopyFrom(
+      wlan);  // use same WLAN config as previous
+  EXPECT_CALL(*reporter, report_create_session(_, _)).Times(1);
+  session_manager->CreateSession(
+      &create_context1, &request,
+      [this](grpc::Status status, LocalCreateSessionResponse response_out) {});
 
+  // Run session creation in the EventBase loop
+  // It needs to loop once here.
+  evb->loopOnce();
+
+  // Check that session is created
   auto session_map = session_store->read_sessions({IMSI1});
-  local_enforcer->init_session_credit(session_map, IMSI1, sid, cfg, response);
-  bool write_success =
-      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
-  EXPECT_TRUE(write_success);
-  session_map = session_store->read_sessions({IMSI1});
-  auto it     = session_map.find(IMSI1);
+  auto it          = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
-  auto& session = session_map[IMSI1][0];
-  EXPECT_EQ(session->get_config().common_context.apn(), APN1);
+  EXPECT_EQ(session_map[IMSI1][0]->get_config().common_context.apn(), "apn1");
+
+  grpc::ServerContext create_context2;
+  common = build_common_context(IMSI1, "", "", "apn2", MSISDN, TGPP_WLAN);
+  request.mutable_common_context()->CopyFrom(common);
+  request.mutable_rat_specific_context()->mutable_wlan_context()->CopyFrom(
+      wlan);  // use same WLAN config as previous
+
+  // Ensure session is not reported as its a duplicate
+  EXPECT_CALL(*reporter, report_create_session(_, _)).Times(0);
+  session_manager->CreateSession(
+      &create_context2, &request,
+      [this](grpc::Status status, LocalCreateSessionResponse response_out) {});
+
+  // Run session creation in the EventBase loop
+  // It needs to loop once here.
+  evb->loopOnce();
+
+  // Assert the internal session config is updated to the new one
+  session_map = session_store->read_sessions({IMSI1});
+  it          = session_map.find(IMSI1);
+  EXPECT_FALSE(it == session_map.end());
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  auto& session_apn2 = session_map[IMSI1][0];
+  EXPECT_EQ(session_apn2->get_config().common_context.apn(), "apn2");
+}
+
+TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
+  // 1) Insert the entry for a rule
+  insert_static_rule(rule_store, monitoring_key, 1, "rule1");
+
+  create_new_lte_session(IMSI1, SESSION_ID_1, APN1, MSISDN);
 
   // Only active, identical sessions can be recycled for LTE
   // The previously created session is active and this request has the same
@@ -196,8 +261,6 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   auto common =
       build_common_context(IMSI1, IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
   request.mutable_common_context()->CopyFrom(common);
-  lte_context = build_lte_context(
-      "spgw_ip", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
   request.mutable_rat_specific_context()->mutable_lte_context()->CopyFrom(
       lte_context);
 
@@ -219,8 +282,8 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   evb->loopOnce();
 
   // Assert the internal session config is updated to the new one
-  session_map = session_store->read_sessions({IMSI1});
-  it          = session_map.find(IMSI1);
+  auto session_map = session_store->read_sessions({IMSI1});
+  auto it          = session_map.find(IMSI1);
   EXPECT_FALSE(it == session_map.end());
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   auto& session_apn2 = session_map[IMSI1][0];
@@ -303,35 +366,17 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   insert_static_rule(rule_store, monitoring_key, 1, "rule1");
 
   // 2) Create a session
-  CreateSessionResponse response;
-  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1025, response.mutable_credits()->Add());
-  SessionConfig cfg = {};
-  cfg.common_context =
-      build_common_context(IMSI1, IP1, IPv6_1, "APN", MSISDN, TGPP_LTE);
-  const auto& lte_context = build_lte_context(
-      "127.0.0.1", "imei", "plmn_id", "imsi_plmn_id", "user_loc", 1, nullptr);
-  cfg.rat_specific_context.mutable_lte_context()->CopyFrom(lte_context);
-  auto session_map = session_store->read_sessions({IMSI1});
-  EXPECT_CALL(
-      *events_reporter,
-      session_created(IMSI1, SESSION_ID_1, testing::_, testing::_))
-      .Times(1);
-  local_enforcer->init_session_credit(
-      session_map, IMSI1, SESSION_ID_1, cfg, response);
-  bool write_success =
-      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
-  EXPECT_TRUE(write_success);
+  create_new_lte_session(IMSI1, SESSION_ID_1, APN1, MSISDN);
 
   // Check the request number
   auto session_map_2 = session_store->read_sessions(SessionRead{IMSI1});
   EXPECT_EQ(session_map_2[IMSI1].front()->get_request_number(), 1);
-  // 2) ReportRuleStats
+
+  // 3) ReportRuleStats
   grpc::ServerContext server_context;
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(IMSI1, IP1, "rule1", 512, 512, record_list->Add());
+  create_rule_record(IMSI1, IP1, "rule1", 1024, 1024, record_list->Add());
 
   EXPECT_CALL(
       *reporter, report_updates(CheckUpdateRequestNumber(1), testing::_))
@@ -342,7 +387,7 @@ TEST_F(SessionManagerHandlerTest, test_report_rule_stats) {
   evb->loopOnce();
 
   session_map_2 = session_store->read_sessions(SessionRead{IMSI1});
-  EXPECT_EQ(session_map_2[IMSI1].front()->get_request_number(), 2);
+  EXPECT_EQ(session_map_2[IMSI1].front()->get_request_number(), 3);
   evb->loopOnce();
 }
 
@@ -352,30 +397,14 @@ TEST_F(SessionManagerHandlerTest, test_end_session) {
 
   // 2) Create a session
   CreateSessionResponse response;
-  response.mutable_static_rules()->Add()->mutable_rule_id()->assign("rule1");
-  create_credit_update_response(
-      IMSI1, SESSION_ID_1, 1, 1025, response.mutable_credits()->Add());
-  const std::string& hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-  const std::string& apn                 = "apn1";
-  SessionConfig cfg;
-  cfg.common_context =
-      build_common_context(IMSI1, "", "", apn, MSISDN, TGPP_WLAN);
-  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
-  cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
-
-  auto session_map = session_store->read_sessions({IMSI1});
-  local_enforcer->init_session_credit(
-      session_map, IMSI1, SESSION_ID_1, cfg, response);
-  bool write_success =
-      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
-  EXPECT_TRUE(write_success);
+  create_new_lte_session(IMSI1, SESSION_ID_1, APN1, MSISDN);
 
   // 3) EndSession
-  session_map = session_store->read_sessions({IMSI1});
+  auto session_map = session_store->read_sessions({IMSI1});
   EXPECT_EQ(session_map[IMSI1].size(), 1);
   LocalEndSessionRequest end_request;
   end_request.mutable_sid()->set_id(IMSI1);
-  end_request.set_apn("apn1");
+  end_request.set_apn(APN1);
   grpc::ServerContext server_context;
 
   EXPECT_CALL(*reporter, report_terminate_session(_, _)).Times(1);
