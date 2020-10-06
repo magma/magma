@@ -12,7 +12,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import argparse
-
+import socket
 import requests
 import urllib3
 import jsonpickle
@@ -177,7 +177,7 @@ def register_gateway(url: str, network_id: str, hardware_id: str, tier_id: str):
     gid = get_next_gateway_id(url, network_id)
     grePeer = AllowedGREPeers(ip="192.168.128.2", key=100)
     data = Gateway(
-        name=f"XWFM Gateway {gid}",
+        name=socket.gethostname().strip(),
         description=f"XWFM Gateway {gid}",
         tier="default",
         id=f"fbc_gw_{gid}",
