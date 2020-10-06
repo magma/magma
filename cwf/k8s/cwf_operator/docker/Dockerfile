@@ -77,7 +77,7 @@ COPY --from=builder /var/opt/magma/bin/manager ${OPERATOR}
 
 COPY cwf/k8s/cwf_operator/docker/entrypoint /usr/local/bin
 COPY cwf/k8s/cwf_operator/docker/user_setup /usr/local/bin
-COPY cwf/gateway/helm/cwf /helm-charts/cwf
+COPY cwf/gateway/helm/cwf-kubevirt /helm-charts/cwf
 RUN  /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
