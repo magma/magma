@@ -24,7 +24,7 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.openflow.registers import Direction
 from magma.pipelined.policy_converters import FlowMatchError, \
-    get_ue_ipv4_match_args
+    get_ue_ip_match_args
 from magma.pipelined.redirect import RedirectionManager, RedirectException
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.qos.qos_meter_impl import MeterManager
@@ -282,12 +282,12 @@ class EnforcementController(PolicyMixin, MagmaController):
             return
         cookie, mask = (num, flows.OVS_COOKIE_MATCH_ALL)
 
-        ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
+        ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            imsi=encode_imsi(imsi), **ip_match_in)
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           cookie=cookie, cookie_mask=mask)
-        ip_match_out = get_ue_ipv4_match_args(ip_addr, Direction.OUT)
+        ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            imsi=encode_imsi(imsi), **ip_match_out)
         flows.delete_flow(self._datapath, self.tbl_num, match,
@@ -298,11 +298,11 @@ class EnforcementController(PolicyMixin, MagmaController):
 
     def _deactivate_flows_for_subscriber(self, imsi, ip_addr):
         """ Deactivate all rules for specified subscriber session """
-        ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
+        ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            imsi=encode_imsi(imsi), **ip_match_in)
         flows.delete_flow(self._datapath, self.tbl_num, match)
-        ip_match_out = get_ue_ipv4_match_args(ip_addr, Direction.OUT)
+        ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            imsi=encode_imsi(imsi), **ip_match_out)
         flows.delete_flow(self._datapath, self.tbl_num, match)

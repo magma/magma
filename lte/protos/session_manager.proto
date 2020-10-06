@@ -27,6 +27,7 @@ message RuleRecord {
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
   string ue_ipv4 = 5;
+  string ue_ipv6 = 6;
 }
 
 message RuleRecordTable {

@@ -147,7 +147,7 @@ def flip_flow_match(match):
     )
 
 
-def get_ue_ipv4_match_args(ip_addr, direction):
+def get_ue_ip_match_args(ip_addr, direction):
     ip_match = {}
 
     if ip_addr:

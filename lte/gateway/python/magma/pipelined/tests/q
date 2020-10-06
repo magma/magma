@@ -1,0 +1,7 @@
+/home/vagrant/build/python/lib/python3.5/site-packages/scapy/config.py:411: CryptographyDeprecationWarning: Python 3.5 support will be dropped in the next release ofcryptography. Please upgrade your Python.
+  import cryptography
+.
+----------------------------------------------------------------------
+Ran 1 test in 6.264s
+
+OK
