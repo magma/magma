@@ -1283,7 +1283,7 @@ void LocalEnforcer::update_charging_credits(
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MERROR) << "Could not find session for " << session_id
+      MLOG(MERROR) << "Could not find session " << session_id
                    << " during charging update for RG "
                    << credit_update_resp.charging_key();
       continue;
@@ -2061,18 +2061,25 @@ static void handle_command_level_result_code(
     const std::string& imsi, const std::string& session_id,
     const uint32_t result_code,
     std::unordered_set<ImsiAndSessionID>& sessions_to_terminate) {
-  const bool is_permanent_failure =
-      DiameterCodeHandler::is_permanent_failure(result_code);
-  if (is_permanent_failure) {
-    MLOG(MERROR) << session_id
-                 << " Received permanent failure result code: " << result_code
-                 << " during update. Terminating session.";
+  if (DiameterCodeHandler::is_permanent_failure(result_code)) {
+    MLOG(MERROR) << session_id << " Received permanent failure result code "
+                 << result_code << " during update. Terminating session "
+                 << session_id;
     sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
-  } else {
-    // only log transient errors for now
-    MLOG(MERROR) << "Received result code: " << result_code << "for "
-                 << session_id << "during update";
+    return;
   }
+
+  if (DiameterCodeHandler::is_terminator_failure(result_code)) {
+    MLOG(MERROR) << session_id << " Received failure result code "
+                 << result_code << " during update. Terminating session "
+                 << session_id;
+    sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
+    return;
+  }
+
+  // TODO: deal with other error codes
+  MLOG(MERROR) << "Received Unimplemented result code " << result_code
+               << " for " << session_id << " during update. Not action taken";
 }
 
 static bool is_valid_mac_address(const char* mac) {
