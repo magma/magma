@@ -140,7 +140,7 @@ func (s *sqlSMSStorage) Init() (err error) {
 	return
 }
 
-func (s *sqlSMSStorage) GetSMSs(networkID string, imsis []string, onlyWaiting bool, startTime, endTime *time.Time) ([]*SMS, error) {
+func (s *sqlSMSStorage) GetSMSs(networkID string, pks []string, imsis []string, onlyWaiting bool, startTime, endTime *time.Time) ([]*SMS, error) {
 	txFn := func(tx *sql.Tx) (interface{}, error) {
 		/*
 			SELECT * FROM smsd_messages
@@ -152,6 +152,9 @@ func (s *sqlSMSStorage) GetSMSs(networkID string, imsis []string, onlyWaiting bo
 			LeftJoin(fmt.Sprintf("%s ON %s=%s", refsTable, getFQColName(refsTable, refSmsCol), getFQColName(smsTable, pkCol))).
 			Where(sq.Eq{getFQColName(smsTable, nidCol): networkID}).
 			RunWith(tx)
+		if !funk.IsEmpty(pks) {
+			builder = builder.Where(sq.Eq{getFQColName(smsTable, pkCol): pks})
+		}
 		if !funk.IsEmpty(imsis) {
 			builder = builder.Where(sq.Eq{getFQColName(smsTable, imsiCol): imsis})
 		}

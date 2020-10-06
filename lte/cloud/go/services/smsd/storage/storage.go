@@ -38,13 +38,16 @@ type SMSStorage interface {
 	// GetSMSs returns all SMS messages in a time window matching the
 	// provided IMSI and status filters.
 	//
+	// If pks is non-empty, this will fetch only the specified messages, as
+	// long as they are in the specified network.
 	// If imsis is non-empty, this will query for all SMS messages tracked in
-	// the system.
+	// the system, otherwise this method will additionally filter on
+	// destination IMSI.
 	// If onlyWaiting is true, this will only query for messages that need to
 	// be delivered.
 	// startTime defaults to epoch if nil
 	// endTime defaults to current time if nil
-	GetSMSs(networkID string, imsis []string, onlyWaiting bool, startTime, endTime *time.Time) ([]*SMS, error)
+	GetSMSs(networkID string, pks []string, imsis []string, onlyWaiting bool, startTime, endTime *time.Time) ([]*SMS, error)
 
 	// GetSMSsToDeliver will return a collection of messages that need to be
 	// delivered. For each IMSI requested, this will return a maximum of 256

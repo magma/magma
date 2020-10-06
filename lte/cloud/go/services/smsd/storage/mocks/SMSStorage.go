@@ -50,13 +50,13 @@ func (_m *SMSStorage) DeleteSMSs(networkID string, pks []string) error {
 	return r0
 }
 
-// GetSMSs provides a mock function with given fields: networkID, imsis, onlyWaiting, startTime, endTime
-func (_m *SMSStorage) GetSMSs(networkID string, imsis []string, onlyWaiting bool, startTime *time.Time, endTime *time.Time) ([]*storage.SMS, error) {
-	ret := _m.Called(networkID, imsis, onlyWaiting, startTime, endTime)
+// GetSMSs provides a mock function with given fields: networkID, pks, imsis, onlyWaiting, startTime, endTime
+func (_m *SMSStorage) GetSMSs(networkID string, pks []string, imsis []string, onlyWaiting bool, startTime *time.Time, endTime *time.Time) ([]*storage.SMS, error) {
+	ret := _m.Called(networkID, pks, imsis, onlyWaiting, startTime, endTime)
 
 	var r0 []*storage.SMS
-	if rf, ok := ret.Get(0).(func(string, []string, bool, *time.Time, *time.Time) []*storage.SMS); ok {
-		r0 = rf(networkID, imsis, onlyWaiting, startTime, endTime)
+	if rf, ok := ret.Get(0).(func(string, []string, []string, bool, *time.Time, *time.Time) []*storage.SMS); ok {
+		r0 = rf(networkID, pks, imsis, onlyWaiting, startTime, endTime)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*storage.SMS)
@@ -64,8 +64,8 @@ func (_m *SMSStorage) GetSMSs(networkID string, imsis []string, onlyWaiting bool
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(string, []string, bool, *time.Time, *time.Time) error); ok {
-		r1 = rf(networkID, imsis, onlyWaiting, startTime, endTime)
+	if rf, ok := ret.Get(1).(func(string, []string, []string, bool, *time.Time, *time.Time) error); ok {
+		r1 = rf(networkID, pks, imsis, onlyWaiting, startTime, endTime)
 	} else {
 		r1 = ret.Error(1)
 	}

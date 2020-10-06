@@ -20,6 +20,7 @@ import (
 	"magma/lte/cloud/go/services/smsd/servicers"
 	storage2 "magma/lte/cloud/go/services/smsd/storage"
 	"magma/lte/cloud/go/sms_ll"
+	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -39,8 +40,13 @@ func main() {
 		glog.Fatalf("error opening db conn: %v", err)
 	}
 	store := storage2.NewSQLSMSStorage(db, sqorc.GetSqlBuilder(), &storage2.DefaultSMSReferenceCounter{}, &storage.UUIDGenerator{})
+	err = store.Init()
+	if err != nil {
+		glog.Fatalf("error initializing smsd storage: %s", err)
+	}
 
-	// TODO: attach handlers for API
+	restServicer := servicers.NewRESTServicer(store)
+	obsidian.AttachHandlers(srv.EchoServer, restServicer.GetHandlers())
 	protos.RegisterSmsDServer(srv.GrpcServer, servicers.NewSMSDServicer(store, &sms_ll.DefaultSMSSerde{}))
 
 	err = srv.Run()
