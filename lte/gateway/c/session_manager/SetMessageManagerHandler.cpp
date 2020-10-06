@@ -124,7 +124,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
          * if it is not found, it will be added w.r.t imsi
          */
         auto session_map = session_store_.read_sessions({imsi});
-        send_create_session(session_map, imsi, session_id, cfg);
+        send_create_session(session_map, imsi, session_id, cfg, dnn);
       }
     });
   }  // end of else
@@ -133,15 +133,36 @@ void SetMessageManagerHandler::SetAmfSessionContext(
 /* Creeate respective SessionState and context*/
 void SetMessageManagerHandler::send_create_session(
     SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, const SessionConfig& cfg) {
+    const std::string& session_id, const SessionConfig& cfg,
+    const std::string& dnn) {
+  /* If it is new session to be created, check for same DNN exists 
+   * for same IMSI, i.e if IMSI found and respective DNN found in 
+   * SessionStore, then return from here and nothing to do
+   * as already same session exist, its duplicate request
+   */
+  auto imsi_exist = session_map.find(imsi);
+  if(!(imsi_exist == session_map.end())) {
+    //Requested IMSI exists, but check for DNN
+    for (auto& session : imsi_exist->second) {
+      auto existing_config = session->get_config();
+      if(existing_config.common_context.apn() == dnn) {
+        //DNN or APN found and return from here
+        MLOG(MERROR)
+            << "Duplicate request of same DNN " << dnn
+	    << " of IMSI " << imsi << " nothing to do";
+	return;
+        
+      }
+    }
+  }
+
   auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
   /* initialization of SessionState for IMSI by SessionStateEnforcer*/
   bool success = m5g_enforcer_->m5g_init_session_credit(
       *session_map_ptr, imsi, session_id, cfg);
   if (!success) {
     MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
-                 << session_id << " IMSI "
-		 << imsi;
+                 << session_id << " IMSI " << imsi;
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/
@@ -169,7 +190,14 @@ void SetMessageManagerHandler::initiate_release_session(
   // TODO as modification and dynamic rules are not implemented this may
   // return empty map.
   auto update = SessionStore::get_default_session_update(session_map);
-  m5g_enforcer_->m5g_release_session(session_map, imsi, dnn, update);
+  bool exist = 
+     m5g_enforcer_->m5g_release_session(session_map, imsi, dnn, update);
+  //If no entry found, nothing to do and return from here
+  if(!exist){
+    MLOG(MERROR) << "Entry not found in SessionStore for subscriber"
+                 << imsi;
+    return;
+  }
 
   bool update_success = session_store_.update_sessions(update);
   /* No need to respond AMF through gRPC as AMF has informed SessionD

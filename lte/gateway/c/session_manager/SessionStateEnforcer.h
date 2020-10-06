@@ -67,9 +67,14 @@ class SessionStateEnforcer {
       SessionState& session_state);
 
   /*Release request handle*/
-  void m5g_release_session(
+  bool m5g_release_session(
       SessionMap& session_map, const std::string& imsi,
       const std::string& dnn, SessionUpdate& session_update);
+
+  /*Handle and update respective session upon receiving message from UPF*/
+  void m5g_update_session_state_message_from_upf(
+      const std::string& imsi, const std::string& session_id,
+      SessionFsmState new_state);
 
  private:
   std::vector<std::string> static_rules;
