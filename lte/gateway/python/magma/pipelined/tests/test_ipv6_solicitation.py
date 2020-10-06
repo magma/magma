@@ -94,6 +94,7 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
                 'virtual_interface': cls.BRIDGE,
                 'local_ue_eth_addr': True,
                 'quota_check_ip': '1.2.3.4',
+                'ipv6_router_addr': 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce',
                 'clean_restart': True,
                 'enable_nat': True,
             },
@@ -128,13 +129,13 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         
         pkt_sender = ScapyPacketInjector(self.IFACE)
 
-        pkt_rs = Ether(dst=self.UE_MAC, src=self.OTHER_MAC)
+        pkt_rs = Ether(dst=self.OTHER_MAC, src=self.UE_MAC)
         pkt_rs /= IPv6(src='fe80:24c3:d0ff:fef3:9d21:4407:d337:1928',
                        dst='ff02::2')
         pkt_rs /= ICMPv6ND_RS()
         pkt_rs /= ICMPv6NDOptSrcLLAddr(lladdr=ll_addr)
 
-        pkt_ns = Ether(dst=self.UE_MAC, src=self.OTHER_MAC)
+        pkt_ns = Ether(dst=self.OTHER_MAC, src=self.UE_MAC)
         pkt_ns /= IPv6(src='fe80::9d21:4407:d337:1928',
                        dst='ff02::2')
         pkt_ns /= ICMPv6ND_NS(tgt='abcd:87:3::')
@@ -146,11 +147,11 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         self.service_manager.interface_to_prefix_mapper.save_prefix(
             interface, prefix)
 
-        dlink_args = RyuForwardFlowArgsBuilder(self._tbl_num) \
-            .set_eth_match(eth_dst=self.UE_MAC, eth_src=self.OTHER_MAC) \
-            .set_reg_value(DIRECTION_REG, Direction.IN) \
+        ulink_args = RyuForwardFlowArgsBuilder(self._tbl_num) \
+            .set_eth_match(eth_dst=self.OTHER_MAC, eth_src=self.UE_MAC) \
+            .set_reg_value(DIRECTION_REG, Direction.OUT) \
             .build_requests()
-        isolator = RyuDirectTableIsolator(dlink_args, self.testing_controller)
+        isolator = RyuDirectTableIsolator(ulink_args, self.testing_controller)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

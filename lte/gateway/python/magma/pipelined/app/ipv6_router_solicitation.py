@@ -69,14 +69,13 @@ class IPV6RouterSolicitationController(MagmaController):
         self._prefix_mapper = kwargs['interface_to_prefix_mapper']
         self._datapath = None
 
-        self.logger.error(self.config.ll_addr)
-        self.logger.error(self.config.ipv6_src)
-
     def _get_config(self, config_dict):
         addrs = netifaces.ifaddresses(config_dict['bridge_name'])
         ll_addr = addrs[netifaces.AF_LINK][0]['addr']
-        if '%' in addrs[netifaces.AF_INET6][0]['addr']:
-            ipv6_str, _ = addrs[netifaces.AF_INET6][0]['addr'].split('%')
+        ipv6_str = config_dict['ipv6_router_addr']
+        self.logger.info("IPv6 Router using ll_addr %s, and src ip %s",
+                         ll_addr, ipv6_str)
+
         return self.IPv6RouterConfig(
             ipv6_src=ipv6_str,
             ll_addr=ll_addr,
@@ -108,26 +107,36 @@ class IPV6RouterSolicitationController(MagmaController):
                               ipv6_src='fe80::/10',
                               ip_proto=IPPROTO_ICMPV6,
                               icmpv6_type=icmpv6.ND_ROUTER_SOLICIT,
-                              direction=Direction.IN)
+                              direction=Direction.OUT)
 
         flows.add_output_flow(datapath, self.tbl_num,
                               match=match_rs, actions=[],
                               priority=flows.DEFAULT_PRIORITY,
                               output_port=ofproto.OFPP_CONTROLLER,
-                              copy_table=self.next_table,
                               max_len=ofproto.OFPCML_NO_BUFFER)
 
-        match_ns = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
-                              ipv6_src='fe80::/10',
-                              ip_proto=IPPROTO_ICMPV6,
-                              icmpv6_type=icmpv6.ND_NEIGHBOR_SOLICIT,
-                              direction=Direction.IN)
+        match_ns_ue = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                 ipv6_src='fe80::/10',
+                                 ip_proto=IPPROTO_ICMPV6,
+                                 icmpv6_type=icmpv6.ND_NEIGHBOR_SOLICIT,
+                                 direction=Direction.OUT)
 
         flows.add_output_flow(datapath, self.tbl_num,
-                              match=match_ns, actions=[],
+                              match=match_ns_ue, actions=[],
                               priority=flows.DEFAULT_PRIORITY,
                               output_port=ofproto.OFPP_CONTROLLER,
-                              copy_table=self.next_table,
+                              max_len=ofproto.OFPCML_NO_BUFFER)
+
+        match_ns_sgi = MagmaMatch(eth_type=ether_types.ETH_TYPE_IPV6,
+                                  ipv6_src='fe80::/10',
+                                  ip_proto=IPPROTO_ICMPV6,
+                                  icmpv6_type=icmpv6.ND_NEIGHBOR_SOLICIT,
+                                  direction=Direction.IN)
+
+        flows.add_output_flow(datapath, self.tbl_num,
+                              match=match_ns_sgi, actions=[],
+                              priority=flows.DEFAULT_PRIORITY,
+                              output_port=ofproto.OFPP_CONTROLLER,
                               max_len=ofproto.OFPCML_NO_BUFFER)
 
     def _send_router_advertisement(self, ue_ll_ipv6: str, tun_id, tun_ipv4_dst,
@@ -243,6 +252,14 @@ class IPV6RouterSolicitationController(MagmaController):
             # Intended for other application
             return
 
+        if 'tunnel_id' not in ev.msg.match:
+            self.logger.error("Packet missing the tunnel_id, can't reply")
+            return
+
+        if 'tun_ipv4_src' not in ev.msg.match:
+            self.logger.error("Packet missing the tun_ipv4_dst, can't reply")
+            return
+
         in_port = ev.msg.match['in_port']
         if 'tunnel_id' not in ev.msg.match:
             self.logger.debug("Packet missing the tunnel_id, can't reply")
@@ -255,7 +272,7 @@ class IPV6RouterSolicitationController(MagmaController):
         pkt = packet.Packet(msg.data)
 
         for p in pkt.protocols:
-            self.logger.error(p)
+            self.logger.debug(p)
 
         ipv6_header = pkt.get_protocols(ipv6.ipv6)[0]
         icmpv6_header = pkt.get_protocols(icmpv6.icmpv6)[0]
