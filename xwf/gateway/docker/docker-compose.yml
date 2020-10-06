@@ -109,6 +109,8 @@ services:
     <<: *service
     image: ${DOCKER_REGISTRY}gateway_go:${IMAGE_VERSION}
     container_name: radiusd
+    extra_hosts:
+      - radius:${HOST_DOCKER_INTERNAL}
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/radiusd -logtostderr=true -v=0
 
   logrouter:
