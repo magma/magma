@@ -40,6 +40,7 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
+	stateTypes "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/swag"
@@ -648,7 +649,7 @@ func TestGetSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
-func TestGetSubscriberByAlias(t *testing.T) {
+func TestGetSubscriberByMSISDN(t *testing.T) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
 
@@ -804,6 +805,148 @@ func TestGetSubscriberByAlias(t *testing.T) {
 		ParamValues:    []string{"n0"},
 		ExpectedStatus: 404,
 		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetSubscriberByIP(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
+
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	subscriberdbTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	subscriberdbHandlers := handlers.GetHandlers()
+
+	subURLBase := "/magma/v1/lte/:network_id/subscribers"
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
+
+	// List one => none found
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.1",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create default subscriber profiles
+	_, err = configurator.CreateEntities(
+		"n0",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+				Name: "Jane Doe",
+			},
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI0000000001",
+				Name: "John Doe",
+			},
+		},
+	)
+	assert.NoError(t, err)
+
+	// List one => still not found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.1",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Report IP state: Jane has an IP
+	_, err = configurator.CreateEntity(
+		"n0",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"},
+	)
+	assert.NoError(t, err)
+	ctx := test_utils.GetContextWithCertificate(t, "hw0")
+	mobilitydState := &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAQ=="}} // 127.0.0.1
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", mobilitydState)
+	// Wait for state to be indexed
+	time.Sleep(time.Second)
+
+	// List one => found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.1",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
+			"IMSI1234567890": {
+				ID:         "IMSI1234567890",
+				Name:       "Jane Doe",
+				Config:     &subscriberModels.SubscriberConfig{Lte: nil},
+				Monitoring: &subscriberModels.SubscriberStatus{},
+				State: &subscriberModels.SubscriberState{
+					Mobility: []*subscriberModels.SubscriberIPAllocation{{Apn: "oai.ipv4", IP: "127.0.0.1"}},
+				},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Report IP state: Jane has new IP
+	mobilitydState = &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAg=="}} // 127.0.0.2
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", mobilitydState)
+	// Wait for state to be indexed
+	time.Sleep(time.Second)
+
+	// List one => IP changed means not found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.1",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Report IP state: John has Jane's new IP
+	mobilitydState = &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAg=="}} // 127.0.0.2
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI0000000001.oai.ipv4", mobilitydState)
+	// Wait for state to be indexed
+	time.Sleep(time.Second)
+
+	// Delete Jane's new IP
+	err = state.DeleteStates("n0", []stateTypes.ID{{Type: lte.MobilitydStateType, DeviceID: "IMSI1234567890.oai.ipv4"}})
+	assert.NoError(t, err)
+
+	// List one => found John (and only John -- Jane should be filtered out)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.2",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
+			"IMSI0000000001": {
+				ID:         "IMSI0000000001",
+				Name:       "John Doe",
+				Config:     &subscriberModels.SubscriberConfig{Lte: nil},
+				Monitoring: &subscriberModels.SubscriberStatus{},
+				State: &subscriberModels.SubscriberState{
+					Mobility: []*subscriberModels.SubscriberIPAllocation{{Apn: "oai.ipv4", IP: "127.0.0.2"}},
+				},
+			},
+		}),
 	}
 	tests.RunUnitTest(t, e, tc)
 }
