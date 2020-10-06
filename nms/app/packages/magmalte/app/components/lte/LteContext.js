@@ -297,7 +297,7 @@ export function PolicyProvider(props: Props) {
       setIsLoading(false);
     };
     fetchState();
-  }, [networkId, enqueueSnackbar]);
+  }, [networkId, networkType, lteNetworkCtx, enqueueSnackbar]);
 
   if (isLoading) {
     return <LoadingFiller />;
@@ -533,7 +533,7 @@ export function LteNetworkContextProvider(props: Props) {
       setIsLoading(false);
     };
     fetchState();
-  }, [networkId, enqueueSnackbar]);
+  }, [networkId, networkCtx, enqueueSnackbar]);
 
   if (isLoading) {
     return <LoadingFiller />;
