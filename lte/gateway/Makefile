@@ -67,6 +67,8 @@ all: build
 
 build: build_python build_common build_oai build_sctpd build_session_manager ## Build all
 
+smf_build: build_session_manager  ## Build only sessionD component make smf_build
+
 test: test_python test_oai test_session_manager ## Run all tests
 
 clean: clean_python  ## Clean all builds
@@ -163,6 +165,12 @@ test_oai: build_common ## Run all OAI-specific tests
 # This works with test_dpi and test_session_manager
 test_%: stop build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+
+# format and test c/session_manager
+precommit_sm: format_session_manager test_session_manager
+
+# format and test c/oai
+precommit_oai: format_oai test_oai
 
 # TODO: include coverage of dpim when it is included in make build
 COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info

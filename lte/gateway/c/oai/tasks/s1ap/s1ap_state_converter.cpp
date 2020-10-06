@@ -93,6 +93,8 @@ void S1apStateConverter::enb_to_proto(
 
   // store ue_ids
   hashtable_uint64_ts_to_proto(&enb->ue_id_coll, proto->mutable_ue_ids());
+  supported_ta_list_to_proto(
+      &enb->supported_ta_list, proto->mutable_supported_ta_list());
 }
 
 void S1apStateConverter::proto_to_enb(
@@ -129,6 +131,8 @@ void S1apStateConverter::proto_to_enb(
           LOG_S1AP, "Failed to insert mme_ue_s1ap_id in ue_coll_id hashtable");
     }
   }
+  proto_to_supported_ta_list(
+      &enb->supported_ta_list, proto.supported_ta_list());
 }
 void S1apStateConverter::ue_to_proto(
     const ue_description_t* ue, oai::UeDescription* proto) {
@@ -171,5 +175,75 @@ void S1apStateConverter::proto_to_s1ap_imsi_map(
       s1ap_imsi_proto.mme_ue_id_imsi_map(), s1ap_imsi_map->mme_ue_id_imsi_htbl);
 }
 
+void S1apStateConverter::supported_ta_list_to_proto(
+    const supported_ta_list_t* supported_ta_list,
+    oai::SupportedTaList* supported_ta_list_proto) {
+  supported_ta_list_proto->set_list_count(supported_ta_list->list_count);
+  for (int idx = 0; idx < supported_ta_list->list_count; idx++) {
+    OAILOG_DEBUG(LOG_S1AP, "Writing Supported TAI list at index %d", idx);
+    oai::SupportedTaiItems* supported_tai_item =
+        supported_ta_list_proto->add_supported_tai_items();
+    supported_tai_item_to_proto(
+        &supported_ta_list->supported_tai_items[idx], supported_tai_item);
+  }
+}
+
+void S1apStateConverter::proto_to_supported_ta_list(
+    supported_ta_list_t* supported_ta_list_state,
+    const oai::SupportedTaList& supported_ta_list_proto) {
+  supported_ta_list_state->list_count = supported_ta_list_proto.list_count();
+  for (int idx = 0; idx < supported_ta_list_state->list_count; idx++) {
+    OAILOG_DEBUG(LOG_MME_APP, "reading bearer context at index %d", idx);
+    proto_to_supported_tai_items(
+        &supported_ta_list_state->supported_tai_items[idx],
+        supported_ta_list_proto.supported_tai_items(idx));
+  }
+}
+
+void S1apStateConverter::supported_tai_item_to_proto(
+    const supported_tai_items_t* state_supported_tai_item,
+    oai::SupportedTaiItems* supported_tai_item_proto) {
+  supported_tai_item_proto->set_tac(state_supported_tai_item->tac);
+  supported_tai_item_proto->set_bplmnlist_count(
+      state_supported_tai_item->bplmnlist_count);
+  char plmn_array[PLMN_BYTES] = {0};
+  for (int idx = 0; idx < state_supported_tai_item->bplmnlist_count; idx++) {
+    plmn_array[0] =
+        (char) (state_supported_tai_item->bplmns[idx].mcc_digit1 + ASCII_ZERO);
+    plmn_array[1] =
+        (char) (state_supported_tai_item->bplmns[idx].mcc_digit2 + ASCII_ZERO);
+    plmn_array[2] =
+        (char) (state_supported_tai_item->bplmns[idx].mcc_digit3 + ASCII_ZERO);
+    plmn_array[3] =
+        (char) (state_supported_tai_item->bplmns[idx].mnc_digit1 + ASCII_ZERO);
+    plmn_array[4] =
+        (char) (state_supported_tai_item->bplmns[idx].mnc_digit2 + ASCII_ZERO);
+    plmn_array[5] =
+        (char) (state_supported_tai_item->bplmns[idx].mnc_digit3 + ASCII_ZERO);
+    supported_tai_item_proto->add_bplmns(plmn_array);
+  }
+}
+
+void S1apStateConverter::proto_to_supported_tai_items(
+    supported_tai_items_t* supported_tai_item_state,
+    const oai::SupportedTaiItems& supported_tai_item_proto) {
+  supported_tai_item_state->tac = supported_tai_item_proto.tac();
+  supported_tai_item_state->bplmnlist_count =
+      supported_tai_item_proto.bplmnlist_count();
+  for (int idx = 0; idx < supported_tai_item_state->bplmnlist_count; idx++) {
+    supported_tai_item_state->bplmns[idx].mcc_digit1 =
+        (int) (supported_tai_item_proto.bplmns(idx)[0]) - ASCII_ZERO;
+    supported_tai_item_state->bplmns[idx].mcc_digit2 =
+        (int) (supported_tai_item_proto.bplmns(idx)[1]) - ASCII_ZERO;
+    supported_tai_item_state->bplmns[idx].mcc_digit3 =
+        (int) (supported_tai_item_proto.bplmns(idx)[2]) - ASCII_ZERO;
+    supported_tai_item_state->bplmns[idx].mnc_digit1 =
+        (int) (supported_tai_item_proto.bplmns(idx)[3]) - ASCII_ZERO;
+    supported_tai_item_state->bplmns[idx].mnc_digit2 =
+        (int) (supported_tai_item_proto.bplmns(idx)[4]) - ASCII_ZERO;
+    supported_tai_item_state->bplmns[idx].mnc_digit3 =
+        (int) (supported_tai_item_proto.bplmns(idx)[5]) - ASCII_ZERO;
+  }
+}
 }  // namespace lte
 }  // namespace magma

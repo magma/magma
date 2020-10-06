@@ -37,6 +37,9 @@
     - role: containers
       tags:
          - no_ci
+    - role: exporter
+      tags:
+         - no_ci
     - role: provision
       tags:
          - no_ci

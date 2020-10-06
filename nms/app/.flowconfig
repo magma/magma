@@ -43,6 +43,7 @@
 [untyped]
 // TODO - fix flow error in core packages
 .*/node_modules/@fbcnms/ui/insights/Alarms/AlarmApi.js
+.*/node_modules/@fbcnms/platform-server/network/routes.js
 .*/node_modules/@fbcnms/babel-register
 
 [options]

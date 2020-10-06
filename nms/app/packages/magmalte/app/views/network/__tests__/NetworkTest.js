@@ -61,7 +61,8 @@ describe('<NetworkDashboard />', () => {
     mcc: '001',
     mnc: '01',
     network_services: ['dpi', 'policy_enforcement'],
-    relay_enabled: false,
+    hss_relay_enabled: false,
+    gx_gy_relay_enabled: false,
     sub_profiles: {
       additionalProp1: {
         max_dl_bit_rate: 20000000,
@@ -75,6 +76,11 @@ describe('<NetworkDashboard />', () => {
         max_dl_bit_rate: 20000000,
         max_ul_bit_rate: 100000000,
       },
+    },
+    mobility: {
+      ip_allocation_mode: 'NAT',
+      enable_static_ip_assignments: false,
+      enable_multi_apn_ip_allocation: false,
     },
     tac: 1,
   };
@@ -505,8 +511,14 @@ describe('<NetworkDashboard />', () => {
         mcc: '003',
         mnc: '02',
         network_services: ['policy_enforcement'],
-        relay_enabled: false,
+        hss_relay_enabled: false,
+        gx_gy_relay_enabled: false,
         sub_profiles: {},
+        mobility: {
+          ip_allocation_mode: 'NAT',
+          enable_static_ip_assignments: false,
+          enable_multi_apn_ip_allocation: false,
+        },
         tac: 1,
       },
       networkId: 'testNetworkID',

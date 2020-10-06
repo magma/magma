@@ -163,6 +163,7 @@ typedef enum {
   LOG_MSC,
   LOG_ITTI,
   LOG_SGS,
+  LOG_SMS_ORC8R,
   LOG_ASYNC_SYSTEM,
   LOG_ASSERT,
   MAX_LOG_PROTOS,
@@ -362,6 +363,9 @@ int append_log_ctx_info_prefix_id(
     time_t* cur_time, const char* short_source_fileP);
 
 const char* const get_short_file_name(const char* const source_file_nameP);
+
+// Return the hex representation of a char array
+char* bytes_to_hex(char* byte_array, int length, char* hex_array);
 
 #define OAILOG_LOG_CONFIGURE log_configure
 #define OAILOG_LEVEL_STR2INT log_level_str2int

@@ -1,23 +1,5 @@
 {
   "dependencies": {
-    "Jinja2": {
-      "root": false,
-      "source": "pypi",
-      "sysdep": "python3-jinja2",
-      "version": "2.10"
-    },
-    "MarkupSafe": {
-      "root": false,
-      "source": "apt",
-      "sysdep": "python3-markupsafe",
-      "version": "0.23"
-    },
-    "Werkzeug": {
-      "root": false,
-      "source": "pypi",
-      "sysdep": "python3-werkzeug",
-      "version": "0.14"
-    },
     "aiodns": {
       "root": true,
       "source": "apt",
@@ -50,9 +32,9 @@
     },
     "click": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-click",
-      "version": "5.1"
+      "version": "7.1.2"
     },
     "cython": {
       "root": true,
@@ -62,9 +44,9 @@
     },
     "dnspython": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-dnspython",
-      "version": "1.15.0"
+      "version": "1.16.0"
     },
     "docker": {
       "root": true,
@@ -82,7 +64,7 @@
       "root": true,
       "source": "pypi",
       "sysdep": "python3-eventlet",
-      "version": "0.24"
+      "version": "0.26.1"
     },
     "fire": {
       "root": true,
@@ -110,9 +92,9 @@
     },
     "greenlet": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-greenlet",
-      "version": "0.3"
+      "version": "0.4.16"
     },
     "h2": {
       "root": true,
@@ -124,7 +106,7 @@
       "root": true,
       "source": "pypi",
       "sysdep": "python3-hpack",
-      "version": "3.0"
+      "version": "3.0.0"
     },
     "hyperframe": {
       "root": false,
@@ -138,11 +120,23 @@
       "sysdep": "python3-idna",
       "version": "2.8"
     },
+    "importlib-resources": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-importlib-resources",
+      "version": "3.0.0"
+    },
     "itsdangerous": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-itsdangerous",
-      "version": "0.24"
+      "version": "1.1.0"
+    },
+    "jinja2": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-jinja2",
+      "version": "2.10"
     },
     "lxml": {
       "root": true,
@@ -150,11 +144,17 @@
       "sysdep": "python3-lxml",
       "version": "4.2.1"
     },
+    "markupsafe": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-markupsafe",
+      "version": "1.1.1"
+    },
     "monotonic": {
       "root": false,
       "source": "pypi",
       "sysdep": "python3-monotonic",
-      "version": "1.4"
+      "version": "1.5"
     },
     "msgpack": {
       "root": false,
@@ -164,9 +164,9 @@
     },
     "netaddr": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-netaddr",
-      "version": "0.7.18-2"
+      "version": "0.8.0"
     },
     "oslo.config": {
       "root": false,
@@ -182,15 +182,9 @@
     },
     "pbr": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-pbr",
-      "version": "0.11"
-    },
-    "pycares": {
-      "root": false,
-      "source": "apt",
-      "sysdep": "python3-pycares",
-      "version": "1.0.0"
+      "version": "5.4.5"
     },
     "pycrypto": {
       "root": true,
@@ -224,9 +218,9 @@
     },
     "repoze.lru": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-repoze.lru",
-      "version": "0.3"
+      "version": "0.7"
     },
     "requests": {
       "root": true,
@@ -236,9 +230,9 @@
     },
     "routes": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-routes",
-      "version": "2.3.1-2"
+      "version": "2.4.1"
     },
     "ryu": {
       "root": true,
@@ -266,27 +260,21 @@
     },
     "stevedore": {
       "root": false,
-      "source": "apt",
+      "source": "pypi",
       "sysdep": "python3-stevedore",
-      "version": "1.5.0"
+      "version": "1.32.0"
     },
     "termcolor": {
       "root": false,
       "source": "apt",
       "sysdep": "python3-termcolor",
-      "version": "1.1.0-1"
+      "version": "1.1.0"
     },
     "tinyrpc": {
       "root": false,
       "source": "pypi",
       "sysdep": "python3-tinyrpc",
       "version": "1.0.4"
-    },
-    "trollius": {
-      "root": false,
-      "source": "pypi",
-      "sysdep": "python3-trollius",
-      "version": "0.3"
     },
     "urllib3": {
       "root": true,
@@ -306,11 +294,23 @@
       "sysdep": "python3-websocket-client",
       "version": "0.56.0"
     },
+    "werkzeug": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-werkzeug",
+      "version": "0.14"
+    },
     "wsgiserver": {
       "root": true,
       "source": "pypi",
       "sysdep": "python3-wsgiserver",
       "version": "1.3"
+    },
+    "zipp": {
+      "root": false,
+      "source": "pypi",
+      "sysdep": "python3-zipp",
+      "version": "1.2.0"
     }
   },
   "root_packages": {
@@ -318,7 +318,7 @@
       "version": "1.1.1"
     },
     "aioeventlet": {
-      "version": "0.4"
+      "version": "0.5.1"
     },
     "certifi": {
       "version": "2019.6.16"
@@ -336,7 +336,7 @@
       "version": "0.0.3"
     },
     "eventlet": {
-      "version": "0.24"
+      "version": "0.26.1"
     },
     "fire": {
       "version": "0.2.0"
@@ -354,7 +354,7 @@
       "version": "3.2.0"
     },
     "hpack": {
-      "version": "3.0"
+      "version": "3.0.0"
     },
     "idna": {
       "version": "2.8"

@@ -48,10 +48,12 @@ std::unique_ptr<SessionState> SessionState::unmarshal(
 StoredSessionState SessionState::marshal() {
   StoredSessionState marshaled{};
 
-  marshaled.fsm_state              = curr_state_;
-  marshaled.config                 = config_;
-  marshaled.imsi                   = imsi_;
-  marshaled.session_id             = session_id_;
+  marshaled.fsm_state  = curr_state_;
+  marshaled.config     = config_;
+  marshaled.imsi       = imsi_;
+  marshaled.session_id = session_id_;
+  // 5G session version handling
+  marshaled.current_version        = current_version_;
   marshaled.subscriber_quota_state = subscriber_quota_state_;
   marshaled.tgpp_context           = tgpp_context_;
   marshaled.request_number         = request_number_;
@@ -112,6 +114,8 @@ SessionState::SessionState(
       config_(marshaled.config),
       pdp_start_time_(marshaled.pdp_start_time),
       pdp_end_time_(marshaled.pdp_end_time),
+      // 5G session version handlimg
+      current_version_(marshaled.current_version),
       subscriber_quota_state_(marshaled.subscriber_quota_state),
       tgpp_context_(marshaled.tgpp_context),
       static_rules_(rule_store),
@@ -169,6 +173,61 @@ SessionState::SessionState(
       tgpp_context_(tgpp_context),
       static_rules_(rule_store),
       credit_map_(4, &ccHash, &ccEqual) {}
+
+/*For 5G which doesn't have response context*/
+SessionState::SessionState(
+    const std::string& imsi, const std::string& session_ctx_id,
+    const SessionConfig& cfg, StaticRuleStore& rule_store)
+    : imsi_(imsi),
+      session_id_(session_ctx_id),
+      // Request number set to 1, because request 0 is INIT call
+      request_number_(1),
+      /*current state would be CREATING and version would be 0 */
+      curr_state_(CREATING),
+      config_(cfg),
+      current_version_(0),
+      static_rules_(rule_store) {}
+
+/* get-set methods of new messages  for 5G*/
+uint32_t SessionState::get_current_version() {
+  return current_version_;
+}
+
+void SessionState::set_current_version(int new_session_version) {
+  current_version_ = new_session_version;
+}
+/* Add PDR rule to this rules session list */
+void SessionState::insert_pdr(SetGroupPDR* rule) {
+  PdrList_.push_back(*rule);
+}
+
+/* Add FAR rule to this rules session list */
+void SessionState::insert_far(SetGroupFAR* rule) {
+  FarList_.push_back(*rule);
+}
+
+/* It gets all PDR rule list of the session */
+std::vector<SetGroupPDR>& SessionState::get_all_pdr_rules() {
+  return PdrList_;
+}
+
+/* It gets all FAR rule list of the session */
+std::vector<SetGroupFAR>& SessionState::get_all_far_rules() {
+  return FarList_;
+}
+
+/*temporary copy to be removed after upf node code completes */
+void SessionState::sess_infocopy(struct SessionInfo* info) {
+  // Static SessionInfo vlaue till UPF node value implementation
+  // gets stablized.
+  info->state               = magma::lte::Fsm_state_FsmState_CREATING;
+  info->sess_id             = "1122334455667788";
+  info->ver_no              = 1;
+  info->nodeId.node_id_type = SessionInfo::IPv4;
+  strcpy(info->nodeId.node_id, "192.168.2.1");
+  memcpy(&(info->Seid.Nid), &(info->nodeId), sizeof(SessionInfo::NodeId));
+  info->Seid.f_seid = 1122334455667788;
+}
 
 static UsageMonitorUpdate make_usage_monitor_update(
     const SessionCredit::Usage& usage_in, const std::string& monitoring_key,
@@ -505,13 +564,21 @@ void SessionState::get_monitor_updates(
     SessionStateUpdateCriteria& update_criteria) {
   for (auto& monitor_pair : monitor_map_) {
     if (!monitor_pair.second->should_send_update()) {
-      // do not send an update to the core
-      continue;
+      continue;  // no update
     }
 
     auto mkey      = monitor_pair.first;
     auto& credit   = monitor_pair.second->credit;
     auto credit_uc = get_monitor_uc(mkey, update_criteria);
+
+    if (curr_state_ == SESSION_RELEASED) {
+      MLOG(MDEBUG)
+          << "Session " << session_id_
+          << " is in Session Released state. Not sending update to the core"
+             "for monitor "
+          << mkey;
+      continue;  // no update
+    }
 
     std::string last_update_message = "";
     if (credit.is_report_last_credit()) {
@@ -520,6 +587,7 @@ void SessionState::get_monitor_updates(
       credit_uc->deleted  = true;
       last_update_message = " (this is the last updcate sent for this monitor)";
     }
+
     MLOG(MDEBUG) << "Session " << session_id_ << " monitoring key " << mkey
                  << " updating due to quota exhaustion"
                  << " with request number " << request_number_
@@ -562,16 +630,11 @@ void SessionState::get_updates(
   get_event_trigger_updates(update_request_out, actions_out, update_criteria);
 }
 
-void SessionState::mark_as_awaiting_termination(
-    SessionStateUpdateCriteria& update_criteria) {
-  set_fsm_state(SESSION_TERMINATION_SCHEDULED, update_criteria);
-}
-
 SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
   return subscriber_quota_state_;
 }
 
-bool SessionState::complete_termination(SessionStateUpdateCriteria& uc) {
+bool SessionState::can_complete_termination(SessionStateUpdateCriteria& uc) {
   switch (curr_state_) {
     case SESSION_ACTIVE:
       MLOG(MERROR) << "Encountered unexpected state 'ACTIVE' when "
@@ -699,8 +762,9 @@ bool SessionState::is_radius_cwf_session() const {
 }
 
 void SessionState::get_session_info(SessionState::SessionInfo& info) {
-  info.imsi    = imsi_;
-  info.ip_addr = config_.common_context.ue_ipv4();
+  info.imsi      = imsi_;
+  info.ip_addr   = config_.common_context.ue_ipv4();
+  info.ipv6_addr = config_.common_context.ue_ipv6();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
@@ -1047,6 +1111,18 @@ static FinalActionInfo get_final_action_info(
   return final_action_info;
 }
 
+RulesToProcess SessionState::get_all_final_unit_rules() {
+  RulesToProcess rules;
+  for (auto& credit_pair : credit_map_) {
+    auto& grant = credit_pair.second;
+    if (grant->service_state == SERVICE_RESTRICTED) {
+      rules.static_rules = grant->final_action_info.restrict_rules;
+    }
+  }
+  get_gy_dynamic_rules().get_rules(rules.dynamic_rules);
+  return rules;
+}
+
 bool SessionState::reset_reporting_charging_credit(
     const CreditKey& key, SessionStateUpdateCriteria& update_criteria) {
   auto it = credit_map_.find(key);
@@ -1264,6 +1340,14 @@ void SessionState::get_charging_updates(
         if (!grant->get_update_type(&update_type)) {
           break;  // no update
         }
+        if (curr_state_ == SESSION_RELEASED) {
+          MLOG(MDEBUG)
+              << "Session " << session_id_
+              << " is in Released state. Not sending update to the core"
+                 "for rating group "
+              << key;
+          break;  // no update
+        }
         // Create Update struct
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " updating due to type "
@@ -1307,6 +1391,7 @@ void SessionState::get_charging_updates(
         action->set_credit_key(key);
         action->set_imsi(imsi_);
         action->set_ip_addr(config_.common_context.ue_ipv4());
+        action->set_ipv6_addr(config_.common_context.ue_ipv6());
         action->set_session_id(session_id_);
         static_rules_.get_rule_ids_for_charging_key(
             key, *action->get_mutable_rule_ids());
@@ -1346,7 +1431,7 @@ bool SessionState::receive_monitor(
       session_uc.monitor_credit_map[mkey].deleted) {
     // This will only happen if the PCRF responds back with more credit when
     // the monitor has already been set to be terminated
-    MLOG(MDEBUG) << session_id_<< "Ignoring  update for monitor " << mkey
+    MLOG(MDEBUG) << session_id_ << "Ignoring  update for monitor " << mkey
                  << " because it has been set for deletion";
     return false;
   }
@@ -1362,7 +1447,8 @@ bool SessionState::receive_monitor(
   }
 
   if (update.credit().action() == UsageMonitoringCredit::FORCE) {
-    MLOG(MINFO) << session_id_ << " Received UsageMonitoringCredit::FORCE "
+    MLOG(MINFO) << session_id_
+                << " Received UsageMonitoringCredit::FORCE "
                    "(`AVP: Usage-Monitoring-Report`) instruction "
                    "not implemented. Will just continue for monitor  "
                 << mkey;
@@ -1722,6 +1808,7 @@ void SessionState::update_bearer_creation_req(
     update.needs_creation = true;
     update.create_req.mutable_sid()->CopyFrom(config.common_context.sid());
     update.create_req.set_ip_addr(config.common_context.ue_ipv4());
+    // TODO ipv6 add to the bearer request or remove ipv4
     update.create_req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }
@@ -1754,6 +1841,7 @@ void SessionState::update_bearer_deletion_req(
     auto& req             = update.delete_req;
     req.mutable_sid()->CopyFrom(config.common_context.sid());
     req.set_ip_addr(config.common_context.ue_ipv4());
+    // TODO ipv6 add to the bearer request or remove ipv4
     req.set_link_bearer_id(
         config.rat_specific_context.lte_context().bearer_id());
   }

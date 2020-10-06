@@ -58,14 +58,28 @@ spec:
         spec:
           description: HAClusterSpec defines the desired state of HACluster
           properties:
-            gatewayResourceNames:
-              description: GatewayResourceNames denotes the list of all gateway resource
-                names in the HACluster
+            gatewayResources:
+              description: GatewayResources denotes the list of all gateway resources
+                in the HACluster
               items:
-                type: string
+                description: GatewayResource defines a gateway in the HACluster
+                properties:
+                  gatewayID:
+                    type: string
+                  helmReleaseName:
+                    type: string
+                required:
+                - gatewayID
+                - helmReleaseName
+                type: object
               maxItems: 2
               minItems: 1
               type: array
+            haPairID:
+              description: HAPairID specifies the associate pair ID in the orchestrator
+                with this HACluster
+              minLength: 1
+              type: string
             maxConsecutiveActiveErrors:
               description: MaxConsecutiveActiveErrors denotes the maximum number of
                 errors the HACluster's active can have fetching health status before
@@ -74,7 +88,8 @@ spec:
               minimum: 1
               type: integer
           required:
-          - gatewayResourceNames
+          - gatewayResources
+          - haPairID
           - maxConsecutiveActiveErrors
           type: object
         status:

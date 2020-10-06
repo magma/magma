@@ -28,7 +28,7 @@ import {NetworkInfoEdit} from './NetworkInfo';
 import {NetworkRanEdit} from './NetworkRanConfig';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 
 const NETWORK_TITLE = 'Network';
 const EPC_TITLE = 'Epc';
@@ -130,9 +130,12 @@ export function NetworkEditDialog(props: DialogProps) {
   const [tabPos, setTabPos] = React.useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
+  useEffect(() => {
+    setLteNetwork(editProps ? ctx.state : {});
+    setEpcConfigs(editProps ? ctx.state.cellular?.epc ?? {} : {});
+  }, [open]);
+
   const onClose = () => {
-    setLteNetwork({});
-    setEpcConfigs({});
     setTabPos(0);
     props.onClose();
   };

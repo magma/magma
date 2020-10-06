@@ -646,8 +646,11 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       (network_access_mode_t) ue_context_proto.network_access_mode();
   state_ue_mm_context->access_restriction_data =
       ue_context_proto.access_restriction_data();
-  state_ue_mm_context->apn_oi_replacement =
-      bfromcstr(ue_context_proto.apn_oi_replacement().c_str());
+  if (ue_context_proto.apn_oi_replacement().length() > 0) {
+    state_ue_mm_context->apn_oi_replacement = bfromcstr_with_str_len(
+        ue_context_proto.apn_oi_replacement().c_str(),
+        ue_context_proto.apn_oi_replacement().length());
+  }
   state_ue_mm_context->mme_teid_s11 = ue_context_proto.mme_teid_s11();
   StateConverter::proto_to_ambr(
       ue_context_proto.subscribed_ue_ambr(),
@@ -662,8 +665,9 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   proto_to_bearer_context_list(ue_context_proto, state_ue_mm_context);
   state_ue_mm_context->ue_radio_capability = nullptr;
   if (ue_context_proto.ue_radio_capability().length() > 0) {
-    state_ue_mm_context->ue_radio_capability =
-        bfromcstr(ue_context_proto.ue_radio_capability().c_str());
+    state_ue_mm_context->ue_radio_capability = bfromcstr_with_str_len(
+        ue_context_proto.ue_radio_capability().c_str(),
+        ue_context_proto.ue_radio_capability().length());
   }
   state_ue_mm_context->send_ue_purge_request =
       ue_context_proto.send_ue_purge_request();

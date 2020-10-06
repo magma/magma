@@ -55,10 +55,6 @@ const {
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 
-// disable secure cookies when e2e test is running
-const devMode =
-  process.env.NODE_ENV !== 'production' || process.env.E2E_TEST === '1';
-
 // Create Sequelize Store
 const SessionStore = connectSession(session.Store);
 const sequelizeSessionStore = new SessionStore({db: sequelize});
@@ -70,7 +66,7 @@ app.use(organizationMiddleware());
 app.use(appMiddleware());
 app.use(
   sessionMiddleware({
-    devMode,
+    devMode: DEV_MODE,
     sessionStore: sequelizeSessionStore,
     sessionToken:
       process.env.SESSION_TOKEN || 'fhcfvugnlkkgntihvlekctunhbbdbjiu',
@@ -93,6 +89,7 @@ app.set('views', path.join(__dirname, '..', 'views'));
 app.set('view engine', 'pug');
 
 // Routes
+// TO DO - fix this in webpack-dev-middleware code in fbc-js-core
 app.use(
   webpackSmartMiddleware({
     devMode: DEV_MODE,

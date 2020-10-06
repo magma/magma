@@ -49,5 +49,6 @@
     name: docker
 
 - name: start docker service
-  service: name=docker state=started
+  systemd: name=docker state=started enabled=yes
+
 

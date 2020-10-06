@@ -2,10 +2,9 @@ version: "3.7"
 
 # Standard logging for each service
 x-logging: &logging_anchor
-  driver: "json-file"
+  driver: "journald"
   options:
-    max-size: "10mb"
-    max-file: "10"
+    tag: "{{.Name}}/{{.ID}}"
 
 # Standard volumes mounted
 x-volumes: &volumes_anchor
@@ -13,6 +12,8 @@ x-volumes: &volumes_anchor
   - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
   - ${CERTS_VOLUME}:/var/opt/magma/certs
   - ${CONFIGS_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
 
 # Standard volumes plus the snowflake
 x-snowflake-volumes: &snowflake_volumes
@@ -20,6 +21,8 @@ x-snowflake-volumes: &snowflake_volumes
   - ${CONTROL_PROXY_PATH}:/etc/magma/control_proxy.yml
   - ${CERTS_VOLUME}:/var/opt/magma/certs
   - ${CONFIGS_VOLUME}:/var/opt/magma/configs
+  - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+  - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
   - ${SNOWFLAKE_PATH}:/etc/snowflake
 
 # Use generic go anchor to avoid repetition for go services
@@ -51,6 +54,13 @@ services:
     environment:
       USE_REMOTE_SWX_PROXY: 0
     command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_aka -logtostderr=true -v=0
+
+  eap_sim:
+    <<: *goservice
+    container_name: eap_sim
+    environment:
+      USE_REMOTE_SWX_PROXY: 0
+    command: envdir /var/opt/magma/envdir /var/opt/magma/bin/eap_sim -logtostderr=true -v=0
 
   eventd:
     <<: *pyservice
@@ -116,6 +126,8 @@ services:
       - ${CERTS_VOLUME}:/var/opt/magma/certs
       - ${CONFIGS_VOLUME}:/var/opt/magma/configs
       - ${SNOWFLAKE_PATH}:/etc/snowflake
+      - ${CONFIGS_DEFAULT_VOLUME}:/etc/magma
+      - ${CONFIGS_TEMPLATES_PATH}:/etc/magma/templates
       - /var/run/docker.sock:/var/run/docker.sock
       - ./:/var/opt/magma/docker
     environment:

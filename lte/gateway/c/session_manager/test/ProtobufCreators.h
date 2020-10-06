@@ -20,7 +20,8 @@ namespace magma {
 using namespace lte;
 
 CommonSessionContext build_common_context(
-    const std::string& imsi, const std::string& ue_ipv4, const std::string& apn,
+    const std::string& imsi, const std::string& ue_ipv4,
+    const std::string& ue_ipv6, const std::string& apn,
     const std::string& msisdn, const RATType rat_type);
 
 LTESessionContext build_lte_context(
@@ -55,8 +56,7 @@ void create_credit_update_response(
 
 void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
-    uint32_t charging_key, uint64_t volume,
-    CreditUpdateResponse* response);
+    uint32_t charging_key, uint64_t volume, CreditUpdateResponse* response);
 
 void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
@@ -66,14 +66,13 @@ void create_credit_update_response(
 
 void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
-    uint32_t charging_key, uint64_t total_volume,
-    uint64_t tx_volume, uint64_t rx_volume, bool is_final,
-    CreditUpdateResponse* response);
+    uint32_t charging_key, uint64_t total_volume, uint64_t tx_volume,
+    uint64_t rx_volume, bool is_final, CreditUpdateResponse* response);
 
 void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
-    uint32_t charging_key, uint64_t volume,
-    bool is_final, CreditUpdateResponse* response);
+    uint32_t charging_key, uint64_t volume, bool is_final,
+    CreditUpdateResponse* response);
 
 void create_charging_credit(
     uint64_t total_volume, uint64_t tx_volume, uint64_t rx_volume,
@@ -89,38 +88,31 @@ void create_monitor_credit(
     UsageMonitoringCredit* response);
 
 void create_monitor_credit(
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
-    UsageMonitoringCredit* credit);
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume, UsageMonitoringCredit* credit);
 
 void create_monitor_update_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume,
     UsageMonitoringUpdateResponse* response);
 
 void create_monitor_update_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t volume, UsageMonitoringUpdateResponse* response);
+    const std::string& m_key, MonitoringLevel level, uint64_t volume,
+    UsageMonitoringUpdateResponse* response);
 
 void create_monitor_update_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t volume, const std::vector<EventTrigger>& event_triggers,
+    const std::string& m_key, MonitoringLevel level, uint64_t volume,
+    const std::vector<EventTrigger>& event_triggers,
     const uint64_t revalidation_time_unix_ts,
     UsageMonitoringUpdateResponse* response);
 
 void create_monitor_update_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& m_key, MonitoringLevel level,
-    uint64_t total_volume,
-    uint64_t tx_volume,
-    uint64_t rx_volume,
+    const std::string& m_key, MonitoringLevel level, uint64_t total_volume,
+    uint64_t tx_volume, uint64_t rx_volume,
     const std::vector<EventTrigger>& event_triggers,
     const uint64_t revalidation_time_unix_ts,
     UsageMonitoringUpdateResponse* response);
@@ -149,8 +141,8 @@ void create_subscriber_quota_update(
 
 void create_session_create_response(
     const std::string& imsi, const std::string session_id,
-    const std::string& monitoring_key,
-    std::vector<std::string>& static_rules, CreateSessionResponse* response);
+    const std::string& monitoring_key, std::vector<std::string>& static_rules,
+    CreateSessionResponse* response);
 
 void create_policy_rule(
     const std::string& rule_id, const std::string& m_key, uint32_t rating_group,

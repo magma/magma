@@ -38,6 +38,12 @@ type HAClusterInitState string
 type CarrierWifiAccessGatewayHealthCondition string
 type CarrierWifiAccessGatewayInitState string
 
+// GatewayResource defines a gateway in the HACluster
+type GatewayResource struct {
+	HelmReleaseName string `json:"helmReleaseName"`
+	GatewayID       string `json:"gatewayID"`
+}
+
 const (
 	Initialized   HAClusterInitState = "Initialized"
 	Uninitialized HAClusterInitState = "Uninitialized"
@@ -47,11 +53,16 @@ const (
 
 // HAClusterSpec defines the desired state of HACluster
 type HAClusterSpec struct {
-	// GatewayResourceNames denotes the list of all gateway resource names in
-	// the HACluster
+	// GatewayResources denotes the list of all gateway resources in the
+	// HACluster
 	// +kubebuilder:validation:MaxItems=2
 	// +kubebuilder:validation:MinItems=1
-	GatewayResourceNames []string `json:"gatewayResourceNames"`
+	GatewayResources []GatewayResource `json:"gatewayResources"`
+
+	// HAPairID specifies the associated pair ID in the orchestrator with this
+	// HACluster
+	// +kubebuilder:validation:MinLength=1
+	HAPairID string `json:"haPairID"`
 
 	// MaxConsecutiveActiveErrors denotes the maximum number of errors the
 	// HACluster's active can have fetching health status before a failover
@@ -59,6 +70,7 @@ type HAClusterSpec struct {
 	// +kubebuilder:validation:Minimum=1
 	// +kubebuilder:validation:Maximum=5
 	MaxConsecutiveActiveErrors int `json:"maxConsecutiveActiveErrors"`
+
 	// Important: Run "make gen" to regenerate code after modifying this file
 }
 

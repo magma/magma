@@ -12,12 +12,13 @@
  */
 #include "SessionManagerServer.h"
 #include "magma_logging.h"
-
+#include <chrono>
+#include <ctime>
 using grpc::ServerContext;
 using grpc::Status;
 
 namespace magma {
-
+auto timenow = chrono::system_clock::to_time_t(chrono::system_clock::now());
 AsyncService::AsyncService(std::unique_ptr<ServerCompletionQueue> cq)
     : cq_(std::move(cq)) {}
 
@@ -59,14 +60,34 @@ void LocalSessionManagerAsyncService::init_call_data() {
   new SetSessionRulesCallData(cq_.get(), *this, *handler_);
 }
 
+/*Landing object invocation object call for 5G*/
+AmfPduSessionSmContextAsyncService::AmfPduSessionSmContextAsyncService(
+    std::unique_ptr<ServerCompletionQueue> cq,
+    std::unique_ptr<SetMessageManager> handler)
+    : AsyncService(std::move(cq)), handler_(std::move(handler)) {}
+
+void AmfPduSessionSmContextAsyncService::init_call_data() {
+  new SetAmfSessionContextCallData(cq_.get(), *this, *handler_);
+  MLOG(MINFO) << "Initializing new call data for SetAmfSessionContext";
+}
+
 SessionProxyResponderAsyncService::SessionProxyResponderAsyncService(
     std::unique_ptr<ServerCompletionQueue> cq,
-    std::unique_ptr<SessionProxyResponderHandler> handler)
-    : AsyncService(std::move(cq)), handler_(std::move(handler)) {}
+    std::shared_ptr<SessionProxyResponderHandler> handler)
+    : AsyncService(std::move(cq)), handler_(handler) {}
 
 void SessionProxyResponderAsyncService::init_call_data() {
   new ChargingReAuthCallData(cq_.get(), *this, *handler_);
   new PolicyReAuthCallData(cq_.get(), *this, *handler_);
+}
+
+AbortSessionResponderAsyncService::AbortSessionResponderAsyncService(
+    std::unique_ptr<ServerCompletionQueue> cq,
+    std::shared_ptr<SessionProxyResponderHandler> handler)
+    : AsyncService(std::move(cq)), handler_(handler) {}
+
+void AbortSessionResponderAsyncService::init_call_data() {
+  new AbortSessionCallData(cq_.get(), *this, *handler_);
 }
 
 template<class GRPCService, class RequestType, class ResponseType>
@@ -74,10 +95,14 @@ AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::AsyncGRPCRequest(
     ServerCompletionQueue* cq, GRPCService& service)
     : cq_(cq), status_(PROCESS), responder_(&ctx_), service_(service) {}
 
+// Internal state management logic for AsyncGRPCRequest
+// Once a request has started processing, create a new AsyncGRPCRequest to
+// standby for new requests. After a request has finished processing, delete the
+// object.
 template<class GRPCService, class RequestType, class ResponseType>
 void AsyncGRPCRequest<GRPCService, RequestType, ResponseType>::proceed() {
   if (status_ == PROCESS) {
-    clone();
+    clone();  // Create another stand by CallData
     process();
     status_ = FINISH;
   } else {

@@ -91,6 +91,8 @@ services:
     <<: *service
     image: ${DOCKER_REGISTRY}goradius:${IMAGE_VERSION}
     container_name: radius
+    depends_on:
+      - "logrouter"
     environment:
       - ODS_ACCESS_TOKEN=${ODS_ACCESS_TOKEN}
       - SCUBA_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
@@ -112,7 +114,7 @@ services:
   logrouter:
     <<: *service
     image: ${DOCKER_REGISTRY}logrouter
-    container_name: local_fluentbit
+    container_name: logrouter
     ports:
       - "24224:24224"
     healthcheck:
@@ -124,3 +126,14 @@ services:
       - SCRIBE_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
       - SCUBA_TABLE=perfpipe_xwf_xwfm_logs
       - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
+
+  cadvisor:
+    image: gcr.io/google-containers/cadvisor:latest
+    container_name: cadvisor
+    ports:
+    - 8080:8080
+    volumes:
+    - /:/rootfs:ro
+    - /var/run:/var/run:rw
+    - /sys:/sys:ro
+    - /var/lib/docker/:/var/lib/docker:ro
