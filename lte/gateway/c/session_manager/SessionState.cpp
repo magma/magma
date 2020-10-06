@@ -564,13 +564,21 @@ void SessionState::get_monitor_updates(
     SessionStateUpdateCriteria& update_criteria) {
   for (auto& monitor_pair : monitor_map_) {
     if (!monitor_pair.second->should_send_update()) {
-      // do not send an update to the core
-      continue;
+      continue;  // no update
     }
 
     auto mkey      = monitor_pair.first;
     auto& credit   = monitor_pair.second->credit;
     auto credit_uc = get_monitor_uc(mkey, update_criteria);
+
+    if (curr_state_ == SESSION_RELEASED) {
+      MLOG(MDEBUG)
+          << "Session " << session_id_
+          << " is in Session Released state. Not sending update to the core"
+             "for monitor "
+          << mkey;
+      continue;  // no update
+    }
 
     std::string last_update_message = "";
     if (credit.is_report_last_credit()) {
@@ -579,6 +587,7 @@ void SessionState::get_monitor_updates(
       credit_uc->deleted  = true;
       last_update_message = " (this is the last updcate sent for this monitor)";
     }
+
     MLOG(MDEBUG) << "Session " << session_id_ << " monitoring key " << mkey
                  << " updating due to quota exhaustion"
                  << " with request number " << request_number_
@@ -1329,6 +1338,14 @@ void SessionState::get_charging_updates(
       case CONTINUE_SERVICE: {
         CreditUsage::UpdateType update_type;
         if (!grant->get_update_type(&update_type)) {
+          break;  // no update
+        }
+        if (curr_state_ == SESSION_RELEASED) {
+          MLOG(MDEBUG)
+              << "Session " << session_id_
+              << " is in Released state. Not sending update to the core"
+                 "for rating group "
+              << key;
           break;  // no update
         }
         // Create Update struct
