@@ -16,11 +16,14 @@ package test_init
 import (
 	"testing"
 
+	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/services/subscriberdb"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	"magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/orc8r"
+	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/test_utils"
 
@@ -29,18 +32,26 @@ import (
 
 func StartTestService(t *testing.T) {
 	// Create service
-	srv, lis := test_utils.NewTestService(t, orc8r.ModuleName, subscriberdb.ServiceName)
+	labels := map[string]string{
+		orc8r.StateIndexerLabel: "true",
+	}
+	annotations := map[string]string{
+		orc8r.StateIndexerVersionAnnotation: "1",
+		orc8r.StateIndexerTypesAnnotation:   lte.MobilitydStateType,
+	}
+	srv, lis := test_utils.NewTestOrchestratorService(t, orc8r.ModuleName, subscriberdb.ServiceName, labels, annotations)
 
 	// Init storage
 	db, err := sqorc.Open("sqlite3", ":memory:")
 	assert.NoError(t, err)
 	fact := blobstore.NewSQLBlobStorageFactory(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
-	err = fact.InitializeFactory()
+	assert.NoError(t, fact.InitializeFactory())
+	ipStore := storage.NewIPLookup(db, sqorc.GetSqlBuilder())
+	assert.NoError(t, ipStore.Initialize())
 
 	// Add servicers
-	servicer := servicers.NewLookupServicer(fact)
-	assert.NoError(t, err)
-	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicer)
+	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
+	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 
 	// Run service
 	go srv.RunTest(lis)

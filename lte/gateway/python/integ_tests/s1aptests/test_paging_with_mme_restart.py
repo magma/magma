@@ -39,7 +39,8 @@ class TestPagingWithMmeRestart(unittest.TestCase):
                 and starts Paging Response timer, while timer is running
                 mme restarts, once mme restarts, mme shall be able to resume
                 Paging response timer
-        Step4 : On expiry of Paging Response timer, mme shall re-send Paging message
+        Step4 : On expiry of Paging Response timer, mme shall re-send Paging
+                message
         Step5 : In response to Paging message, UE sends Service Request message
         Step6 : Expecting normal flow of DL data
         """
@@ -95,7 +96,7 @@ class TestPagingWithMmeRestart(unittest.TestCase):
         ) as test:
             response = self._s1ap_wrapper.s1_util.get_response()
             self.assertTrue(response, s1ap_types.tfwCmd.UE_PAGING_IND.value)
-            print("************************ Received Paging Indication");
+            print("************************ Received Paging Indication")
 
             print("************************* Restarting MME service on",
                   "gateway")
@@ -111,10 +112,9 @@ class TestPagingWithMmeRestart(unittest.TestCase):
              Indication again
 
              Currently Paging Response timer is set to 4 seconds defined by
-             macro, MME_APP_PAGING_RESPONSE_TIMER_VALUE in mme_app_ue_context.h file.
-             With current timer value, Paging Indication is not re-transmitted
-             because timer expires before MME restarts '''
-
+             macro, MME_APP_PAGING_RESPONSE_TIMER_VALUE in mme_app_ue_context.h
+             file With current timer value, Paging Indication is not
+             re-transmitted because timer expires before MME restarts '''
 
             '''print("************************ wait on Paging Indication");
             response = self._s1ap_wrapper.s1_util.get_response()
