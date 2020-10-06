@@ -35,6 +35,7 @@ services:
     environment:
       API_CERT_FILENAME: /run/secrets/api_cert
       API_PRIVATE_KEY_FILENAME: /run/secrets/api_key
+      PUPPETEER_SKIP_DOWNLOAD: "true"
     secrets:
       - api_cert
       - api_key
@@ -43,7 +44,7 @@ services:
     build:
       context: ../..
       dockerfile: packages/magmalte/Dockerfile
-    command: "/usr/local/bin/wait-for-it.sh -s -t 30 mariadb:3306 -- yarn run start:prod"
+    command: "/usr/local/bin/wait-for-it.sh -s -t 30 mariadb:3306 -- yarn run start:dev"
     volumes:
       - ../../packages/fbcnms-magma-api:/usr/src/packages/fbcnms-magma-api
       - ../../packages/magmalte/app:/usr/src/packages/magmalte/app
@@ -67,9 +68,8 @@ services:
       MYSQL_PASS: password
       MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
       MYSQL_DIALECT: mariadb
-      E2E_TEST: 1
       # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
-      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: "true"
+      PUPPETEER_SKIP_DOWNLOAD: "true"
     healthcheck:
       test: curl -If localhost:8081/healthz
     restart: on-failure
