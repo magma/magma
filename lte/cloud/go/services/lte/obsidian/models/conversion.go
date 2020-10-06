@@ -159,8 +159,8 @@ func (m *LteGateway) FromBackendModels(
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
 
-	for _, ent := range loadedEntsByTK.Filter(lte.APNResourceEntityType) {
-		r := (&ApnResource{}).FromEntity(ent)
+	for _, tk := range cellularGateway.Associations.Filter(lte.APNResourceEntityType) {
+		r := (&ApnResource{}).FromEntity(loadedEntsByTK[tk])
 		m.ApnResources[string(r.ApnName)] = *r
 	}
 
