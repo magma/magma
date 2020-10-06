@@ -358,22 +358,6 @@ esm_cause_t esm_recv_pdn_connectivity_request(
 
     // Update qci
     esm_data->bearer_qos.qci = apn_config->subscribed_qos.qci;
-<<<<<<< HEAD
-    rc = esm_proc_pdn_connectivity_request(
-      emm_context,
-      pti,
-      pdn_cid,
-      apn_config->context_identifier,
-      emm_context->esm_ctx.esm_proc_data->request_type,
-      esm_data->apn,
-      esm_data->pdn_type,
-      esm_data->pdn_addr,
-      &esm_data->bearer_qos,
-      (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
-        &emm_context->esm_ctx.esm_proc_data->pco :
-        NULL,
-      &esm_cause);
-=======
     rc                       = esm_proc_pdn_connectivity_request(
         emm_context, pti, pdn_cid, apn_config->context_identifier,
         emm_context->esm_ctx.esm_proc_data->request_type, esm_data->apn,
@@ -382,7 +366,6 @@ esm_cause_t esm_recv_pdn_connectivity_request(
             &emm_context->esm_ctx.esm_proc_data->pco :
             NULL,
         &esm_cause);
->>>>>>> c5d19299d... [agw][lte] PDN type selection based on the UE subscription data and the PDN type requested by UE (#2851)
 
     if (rc != RETURNerror) {
       /*
