@@ -94,8 +94,8 @@ func createChallengeRequest(
 		if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 			errCode = se.GRPCStatus().Code()
 		}
-		errMsg := fmt.Sprint("IMSI:", string(lockedCtx.Imsi), " ", err.Error())
-		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, errCode, errMsg)
+		err = fmt.Errorf( "IMSI %s: %s", string(lockedCtx.Imsi), err)
+		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, errCode, err.Error())
 	}
 	if ans == nil {
 		return aka.EapErrorResPacket(
