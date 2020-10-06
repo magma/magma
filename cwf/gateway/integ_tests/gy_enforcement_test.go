@@ -441,11 +441,10 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, ue.GetImsi()), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
@@ -526,11 +525,10 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 	// Trigger a ReAuth to force an update request
 	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, ue.GetImsi()), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Wait for a termination to propagate
@@ -729,11 +727,10 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, ue.GetImsi()), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS

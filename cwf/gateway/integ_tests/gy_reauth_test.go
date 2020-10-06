@@ -111,11 +111,10 @@ func TestGyReAuth(t *testing.T) {
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(imsi, ratingGroup)
-	tr.WaitForReAuthToProcess()
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Generate over 1M of data to check that initial quota was updated
