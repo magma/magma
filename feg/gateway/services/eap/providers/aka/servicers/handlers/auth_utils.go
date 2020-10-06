@@ -19,7 +19,6 @@ import (
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
-	"github.com/pkg/errors"
 
 	swx_protos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/eap"
@@ -95,9 +94,8 @@ func createChallengeRequest(
 		if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 			errCode = se.GRPCStatus().Code()
 		}
-		errMsg := fmt.Sprint("IMSI:", string(lockedCtx.Imsi))
-		err = errors.Wrap(err, errMsg)
-		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, errCode, err.Error())
+		errMsg := fmt.Sprint("IMSI:", string(lockedCtx.Imsi), " ", err.Error())
+		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, errCode, errMsg)
 	}
 	if ans == nil {
 		return aka.EapErrorResPacket(
