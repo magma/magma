@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuites>
+	<testsuite tests="9" failures="1" time="174.880000" name="magma/cwf/gateway/integ_tests">
+		<properties>
+			<property name="go.version" value="go1.12.4 linux/amd64"></property>
+		</properties>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyCreditExhaustionRedirect" time="27.740000">
+			<failure message="Failed" type="">=== RUN   TestGyCreditExhaustionRedirect&#xA;&#xA;Running TestGyCreditExhaustionRedirect...&#xA;************************* TestRunner setup&#xA;Adding Mock HSS service at 192.168.70.101:9204&#xA;Adding Mock PCRF service at 192.168.70.101:9202&#xA;Adding Mock OCS service at 192.168.70.101:9201&#xA;Adding Pipelined service at 192.168.70.101:8443&#xA;Adding Redis service at 192.168.70.101:6380&#xA;Adding Directoryd service at 192.168.70.101:8443&#xA;************************* Configuring 1 UE(s), PCRF instance: PCRF_REMOTE&#xA;Added UE to Simulator, HSS_REMOTE, PCRF_REMOTE, and OCS_REMOTE:&#xA;&#x9;IMSI: 131766976952615&#x9;Key: 6b38546ef713c030de7e6e3c1a7c20c0&#x9;Opc: 30d2fa5229f70a817f6ab8eb8c220a6a&#x9;Seq: 5216406167578&#xA;Successfully configured UE(s)&#xA;************************* Adding PCRF Usage Monitor for UE with IMSI: 131766976952615&#xA;************************* Adding a Pass-All static rule: static-pass-all-ocs1&#xA;************************* Adding a Pass-All static rule: static-pass-all-ocs2&#xA;************************* Adding PCRF Rule for UE with IMSI: 131766976952615 with ruleNames=[static-pass-all-ocs1 static-pass-all-ocs2], baseNames=[]&#xA;************************* Authenticating UE with IMSI: 131766976952615&#xA;Finished Authenticating UE&#xA;************************* Generating Traffic for UE with Req: imsi:&#34;131766976952615&#34; volume:&lt;value:&#34;5M&#34; &gt; &#xA;Record sid:&#34;IMSI131766976952615&#34; rule_id:&#34;static-pass-all-ocs2&#34; bytes_tx:4841215 bytes_rx:26661 &#xA;Record sid:&#34;IMSI131766976952615&#34; rule_id:&#34;static-pass-all-ocs1&#34; &#xA;Record sid:&#34;IMSI131766976952615&#34; rule_id:&#34;redirect&#34; ue_ipv4:&#34;192.168.128.2&#34; &#xA;Asserting all Gy expectations were met...&#xA;Passed!&#xA;************************* Generating Traffic for UE with Req: imsi:&#34;131766976952615&#34; volume:&lt;value:&#34;2M&#34; &gt; &#xA;Record sid:&#34;IMSI131766976952615&#34; rule_id:&#34;static-pass-all-ocs2&#34; bytes_tx:2134686 bytes_rx:74982 &#xA;************************* Sending a disconnect request UE with IMSI: 131766976952615&#xA;Finished Discconnecting UE&#xA;wait for flows to get deactivated&#xA;Asserting all Gy expectations were met...&#xA;Passed!&#xA;--- FAIL: TestGyCreditExhaustionRedirect (27.74s)&#xA;    gy_enforcement_test.go:485: &#xA;        &#x9;Error Trace:&#x9;gy_enforcement_test.go:485&#xA;        &#x9;Error:      &#x9;Expected nil, but got: 3&#xA;        &#x9;Test:       &#x9;TestGyCreditExhaustionRedirect&#xA;</failure>
+		</testcase>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyCreditExhaustionWithCRRU" time="17.780000"></testcase>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyCreditValidityTime" time="14.430000"></testcase>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyCreditExhaustionWithoutCRRU" time="14.450000"></testcase>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyLinksFailureOCStoFEG" time="7.050000"></testcase>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyCreditUpdateCommandLevelFail" time="17.130000"></testcase>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyAbortSessionRequest" time="16.590000"></testcase>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyCreditExhaustionRestrict" time="34.480000"></testcase>
+		<testcase classname="magma/cwf/gateway/integ_tests" name="TestGyReAuth" time="25.230000"></testcase>
+	</testsuite>
+</testsuites>
