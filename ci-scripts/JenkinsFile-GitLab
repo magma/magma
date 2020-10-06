@@ -23,7 +23,7 @@ def GIT_URL = "github.com/magma/magma"
 def GIT_BRANCH = "master"
 def GIT_COMMIT
 
-def slack_channel = "#magma-ci"
+def slack_channel = "#magma-ci-bot"
 
 // Location of the executor node
 def nodeExecutor = params.nodeExecutor
