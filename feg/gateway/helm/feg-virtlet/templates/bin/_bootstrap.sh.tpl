@@ -1,3 +1,4 @@
+#!/bin/bash
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -9,13 +10,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-apiVersion: "1.0"
-description: Magma Federated Gateway
-name: feg
-version: 0.1.8
-home: https://github.com/facebookincubator/magma
-sources:
-  - https://github.com/facebookincubator/magma
-keywords:
-  - magma
-  - feg
+set -u -e
+set -o pipefail
+apt-get update
+apt-get install -y graphviz autoconf automake bzip2 debhelper dh-autoreconf libssl-dev libtool openssl procps python-all python-twisted-conch python-zopeinterface python-six build-essential fakeroot
+{{ if .Values.gateway.extra }}
+{{ .Values.gateway.extra }}
+{{- end }}

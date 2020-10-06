@@ -11,6 +11,7 @@
 # limitations under the License.
 */}}
 
+{{- if eq .Values.runtime_type "virtlet" }}
 {{- if .Values.manifests.deployment }}
 {{- $envAll := . }}
 
@@ -115,7 +116,7 @@ metadata:
   labels:
 {{ tuple $envAll "feg" "gateway" | include "labels" | indent 4 }}
 spec:
-  replicas: {{ .Values.pod.replicas.server }}
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
 {{ tuple $envAll "feg" "gateway" | include "selector-labels" | indent 6 }}
@@ -124,23 +125,23 @@ spec:
       labels:
 {{ tuple $envAll "feg" "gateway" | include "selector-labels" | indent 8 }}
       annotations:
-        {{ if .Values.pod.cni.interface }}
-        cni: {{ .Values.pod.cni.interface | quote }}
+        {{ if .Values.network.interface }}
+        cni: {{ .Values.network.interface | quote }}
         {{- end }}
         kubernetes.io/target-runtime: virtlet.cloud
-        VirtletVCPUCount: {{ .Values.virtlet.vcpuCount | quote }}
-        VirtletRootVolumeSize: {{ .Values.virtlet.rootVolumeSize }}
-        VirtletDiskDriver: {{ .Values.virtlet.diskDriver }}
-        {{ if .Values.virtlet.sshKeys }}
+        VirtletVCPUCount: {{ .Values.gateway.vcpuCount | quote }}
+        VirtletRootVolumeSize: {{ .Values.gateway.rootVolumeSize }}
+        VirtletDiskDriver: {{ .Values.gateway.diskDriver }}
+        {{ if .Values.gateway.sshKeys }}
         VirtletSSHKeys: |
-          {{ .Values.virtlet.sshKeys }}
+          {{ .Values.gateway.sshKeys }}
         {{- end }}
         VirtletCloudInitUserData: |
-          {{ if .Values.virtlet.ssh_pwauth }}
-          ssh_pwauth: {{ .Values.virtlet.ssh_pwauth }}
+          {{ if .Values.gateway.ssh_pwauth }}
+          ssh_pwauth: {{ .Values.gateway.ssh_pwauth }}
           {{- end }}
-{{ if .Values.virtlet.user }}
-{{ toYaml .Values.virtlet.user | indent 10 }}
+{{ if .Values.gateway.user }}
+{{ toYaml .Values.gateway.user | indent 10 }}
 {{- end }}
           runcmd:
           - /opt/magma/bootstrap.sh
@@ -168,7 +169,7 @@ spec:
         - name: {{ $envAll.Release.Name}}
           image: {{ $envAll.Values.image.repository | quote }}
           imagePullPolicy: {{ $envAll.Values.image.pullPolicy }}
-{{ tuple $envAll $envAll.Values.pod.resources.server | include "kubernetes_resources" | indent 10 }}
+{{ toYaml .Values.resources | indent 10 }}
           tty: true
           stdin: true
           volumeMounts:
@@ -217,4 +218,5 @@ spec:
           secret:
             secretName: {{ $envAll.Values.secret.configs.feg }}
         {{- end }}
+{{- end }}
 {{- end }}

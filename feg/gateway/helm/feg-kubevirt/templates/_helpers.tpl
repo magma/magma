@@ -32,4 +32,15 @@ release_group: {{ $envAll.Values.release_group | default $envAll.Release.Name }}
 app.kubernetes.io/name: {{ $application }}
 app.kubernetes.io/component: {{ $component }}
 app.kubernetes.io/instance: {{ $envAll.Release.Name }}
+app.kubernetes.io/managed-by: helm
+app.kubernetes.io/part-of: magma
+{{- end -}}
+
+{{/* Helper for file path */}}
+{{- define "template" -}}
+{{- $name := index . 0 -}}
+{{- $context := index . 1 -}}
+{{- $last := base $context.Template.Name }}
+{{- $filepath := $context.Template.Name | replace $last $name -}}
+{{ include $filepath $context }}
 {{- end -}}

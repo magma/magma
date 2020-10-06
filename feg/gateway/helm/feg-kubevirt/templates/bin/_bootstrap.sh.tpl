@@ -14,6 +14,6 @@ set -u -e
 set -o pipefail
 apt-get update
 apt-get install -y graphviz autoconf automake bzip2 debhelper dh-autoreconf libssl-dev libtool openssl procps python-all python-twisted-conch python-zopeinterface python-six build-essential fakeroot
-{{ if .Values.virtlet.extra }}
-{{ .Values.virtlet.extra }}
+{{ if .Values.kubevirt.extra }}
+{{ .Values.kubevirt.extra }}
 {{- end }}

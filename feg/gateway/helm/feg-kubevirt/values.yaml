@@ -9,7 +9,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Default values for agw.
+# Default values for FeG.
 # This is a YAML-formatted file.
 # Declare name/value pairs to be passed into your templates.
 # name: value
@@ -21,20 +21,33 @@ release_group: null
 imagePullSecrets: []
 # - name: orc8r-secrets-registry
 
-# secrets sub-chart configuration.
+## secrets sub-chart configuration.
+## Enable it when using it on K8S and want to use same machine ID and gw_key
+
 secrets:
   create: false
+#  secret:
+#    enabled: true
+#    gwinfo:
+#      gw_challenge.key: |-
+#        -----BEGIN EC PRIVATE KEY-----
+#        MIGkAgEBBDDnfY3HT8joMBPrpDemifgvX2BiI0O0Y2UcwtosEoUAoU9HTN9tBxi9
+#        ---------
+#        ---------
+#        -----END EC PRIVATE KEY-----
+#      snowflake: |-
+#        c108a923-2abe-4ca8-ad70-7a1177137cc3
 
 # Define which secrets should be mounted by pods.
 secret:
   certs: orc8r-secrets-certs
 #  gwinfo: feg-secrets-gwinfo
 
-## Key Values for docker inside VM
+## Key Values for docker inside VM ( FeG services )
 feg:
   type: feg
   image:
-    docker_registry: ""
+    docker_registry: docker.io/feg_
     tag: "latest"
     #username:
     #password:
@@ -45,33 +58,43 @@ feg:
     bootstrap_address: bootstrap-legacy.magma.svc.cluster.local
     bootstrap_port: 443
   repo:
-    url: https://github.com/facebookincubator/magma/
-    branch: master
+    url: https://github.com/magma/magma.git
+    branch: "master"
 
-## Key Values for VM running using virtlet runtime
+## Base image repository and pullpolicy
 image:
-  repository: virtlet.cloud/cloud-images.ubuntu.com/bionic/current/bionic-server-cloudimg-amd64.img
-  pullPolicy: IfNotPresent
+  repository:
+  pullPolicy:
+
+# VMI replication
+replicas: 1
 
 nameOverride: ""
 fullnameOverride: ""
 
 labels:
-  node_selector_key: extraRuntime
-  node_selector_value: virtlet
+  node_selector_key: sriov
+  node_selector_value: "True"
 
-pod:
-  replicas:
-    server: 1
-  resources:
-    enabled: true
-    server:
-      requests:
-        memory: "2048Mi"
-        cpu: "100m"
-      limits:
-        memory: "4096Mi"
-        cpu: "2000m"
+resources:
+  requests:
+    memory: "2048Mi"
+    cpu: "2"
+  limits:
+    memory: "4096Mi"
+    cpu: "2"
+
+## When using Kubevirt with calico and Multus, default eth0 will be calico
+## and user can add multiple interfaces with below format
+
+#network:
+#  interface:
+#  - name: bridge-eth1
+#    type: bridge
+
+#  - name: sriov-eth2
+#    type: sriov
+
 service:
   type: LoadBalancer
   ports:
@@ -96,12 +119,7 @@ tolerations: []
 
 affinity: {}
 
-virtlet:
-  vcpuCount: 2
-  rootVolumeSize: 20Gi
-  diskDriver: virtio
-  sshKeys: |
-    ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQCaJEcFDXEK2ZbX0ZLS1EIYFZRbDAc
+kubevirt:
   ssh_pwauth: True
   user:
     users:
@@ -115,10 +133,9 @@ virtlet:
       passwd: "$6$rounds=4096$wPs4Hz4tfs$a8ssMnlvH.3GX88yxXKF2cKMlVULsnydoOKgkuStTErTq2dzKZiIx9R/pPWWh5JLxzoZEx7lsSX5T2jW5WISi1"
       sudo: ALL=(ALL) NOPASSWD:ALL
 
+
+## FeG Global Manifests
 manifests:
   deployment: true
   service: true
   configmap_env: true
-  configmap_bin: true
-  secrets: true
-  rbac: true
