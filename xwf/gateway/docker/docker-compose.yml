@@ -91,6 +91,8 @@ services:
     <<: *service
     image: ${DOCKER_REGISTRY}goradius:${IMAGE_VERSION}
     container_name: radius
+    depends_on:
+      - "logrouter"
     environment:
       - ODS_ACCESS_TOKEN=${ODS_ACCESS_TOKEN}
       - SCUBA_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
@@ -112,7 +114,7 @@ services:
   logrouter:
     <<: *service
     image: ${DOCKER_REGISTRY}logrouter
-    container_name: local_fluentbit
+    container_name: logrouter
     ports:
       - "24224:24224"
     healthcheck:

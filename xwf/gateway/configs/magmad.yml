@@ -39,7 +39,7 @@ bootstrap_config:
   challenge_key: /var/opt/magma/certs/gw_challenge.key
 
 # Flags indicating the magmad features to be enabled
-enable_config_streamer: True
+enable_config_streamer: False
 enable_upgrade_manager: True
 enable_network_monitor: True
 enable_sync_rpc: True
@@ -74,3 +74,11 @@ metricsd:
     - magmad
     - pipelined
     - radiusd
+
+  metric_scrape_targets:
+    - url: http://localhost:8080/metrics
+      name: cAdvisor
+      interval: 60
+    - url: http://localhost:8081/metrics
+      name: node_exporter
+      interval: 60

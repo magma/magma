@@ -114,6 +114,18 @@ typedef struct paging_tai_list_s {
 #define MOBILE_NETWORK_CODE_ATTR_XML_STR "mnc"
 #endif
 
+// Copy TAIs
+#define COPY_TAI(tai_dst, tai_src)                                             \
+  do {                                                                         \
+    tai_dst.mcc_digit2 = tai_src.mcc_digit2;                                   \
+    tai_dst.mcc_digit1 = tai_src.mcc_digit1;                                   \
+    tai_dst.mnc_digit3 = tai_src.mnc_digit3;                                   \
+    tai_dst.mcc_digit3 = tai_src.mcc_digit3;                                   \
+    tai_dst.mnc_digit2 = tai_src.mnc_digit2;                                   \
+    tai_dst.mnc_digit1 = tai_src.mnc_digit1;                                   \
+    tai_dst.tac        = tai_src.tac;                                          \
+  } while (0)
+
 int encode_tracking_area_identity(
     tai_t* tai, uint8_t iei, uint8_t* buffer, uint32_t len);
 int decode_tracking_area_identity(

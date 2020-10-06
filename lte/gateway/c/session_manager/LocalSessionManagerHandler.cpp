@@ -190,9 +190,15 @@ static CreateSessionRequest make_create_session_request(
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
   create_request.mutable_rat_specific_context()->CopyFrom(
       cfg.rat_specific_context);
+
   if (access_timezone != nullptr) {
     create_request.mutable_access_timezone()->CopyFrom(*access_timezone);
   }
+
+  const RequestedUnits requestedUnits =
+      SessionCredit::get_initial_requested_credits_units();
+  create_request.mutable_requested_units()->CopyFrom(requestedUnits);
+
   return create_request;
 }
 
@@ -578,6 +584,20 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
   response_callback(Status::OK, Void());
 }
 
+std::string LocalSessionManagerHandlerImpl::bytes_to_hex(const std::string& s)
+{
+   std::ostringstream ret;
+
+    unsigned int c;
+    for (std::string::size_type i = 0; i < s.length(); ++i)
+    {
+        c = (unsigned int)(unsigned char)s[i];
+        ret << " " << std::hex << std::setfill('0') <<
+            std::setw(2) << (std::nouppercase) << c;
+    }
+    return ret.str();
+}
+
 void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
   const auto& imsi = cfg.common_context.sid().id();
   const auto& apn  = cfg.common_context.apn();
@@ -587,7 +607,8 @@ void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
     const auto& lte = cfg.rat_specific_context.lte_context();
     create_message += ", default bearer ID:" + std::to_string(lte.bearer_id()) +
                       ", PLMN ID:" + lte.plmn_id() +
-                      ", IMSI PLMN ID:" + lte.imsi_plmn_id();
+                      ", IMSI PLMN ID:" + lte.imsi_plmn_id() +
+                      ", User location:" + bytes_to_hex(lte.user_location());
   } else if (cfg.rat_specific_context.has_wlan_context()) {
     create_message +=
         ", MAC addr:" + cfg.rat_specific_context.wlan_context().mac_addr();

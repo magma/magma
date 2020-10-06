@@ -52,8 +52,9 @@ var (
 	imsis_noprefix = []string{IMSI1_NOPREFIX, IMSI2_NOPREFIX}
 	ismis_uint64   = []uint64{IMSI1_uint64, IMSI2_uint64}
 	// as many ports as servers
-	ocs_server_ports  = []string{"3869", "3870", "3871", "3872", "3873"}
-	pcrf_server_ports = []string{"3879", "3880", "3881", "3882", "3883"}
+	ocs_server_ports      = []string{"3869", "3870", "3871", "3872", "3873"}
+	pcrf_server_ports     = []string{"3879", "3880", "3881", "3882", "3883"}
+	initialRequestedUnits = &protos.RequestedUnits{Total: 10000, Tx: 10000, Rx: 10000}
 )
 
 // ---- MockPolicyClient ----
@@ -189,7 +190,8 @@ func TestStartSessionGxFail(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -256,7 +258,8 @@ func TestStartSessionGyFail(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -389,7 +392,8 @@ func standardUsageTest(
 		mock.MatchedBy(getGyCCRMatcher(IMSI1_NOPREFIX, multiReqType)),
 	).Return(nil).Run(returnDefaultGyResponse).Once()
 	createResponse, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -549,7 +553,8 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 	ctx := context.Background()
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	response, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -596,7 +601,8 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 	mockControlParams[idx].Config.DisableGx = true
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	response, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -1563,7 +1569,8 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 	ctx := context.Background()
 
 	res, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -1632,7 +1639,8 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -1705,7 +1713,8 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -1783,7 +1792,8 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 	srv := servicers.NewCentralSessionControllers(mockControlParams, mockPolicyDb, mockMux)
 	ctx := context.Background()
 	_, err = srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,
@@ -1880,7 +1890,8 @@ func revalidationTimerTest(
 	}
 
 	createResponse, err := srv.CreateSession(ctx, &protos.CreateSessionRequest{
-		SessionId: genSessionID(IMSI1),
+		SessionId:      genSessionID(IMSI1),
+		RequestedUnits: initialRequestedUnits,
 		CommonContext: &protos.CommonSessionContext{
 			Sid: &protos.SubscriberID{
 				Id: IMSI1,

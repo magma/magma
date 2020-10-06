@@ -1,0 +1,65 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: Create target directory
+  file: path={{ node_exporter_dest_dir }} state=directory mode=0755
+
+- name: download prometheus node exporter binary
+  get_url:
+    url: "{{ node_exporter_url }}"
+    dest: "{{ node_exporter_dest_dir }}/{{ node_exporter_name }}.tar.gz"
+
+- name: unarchive binary tarball
+  unarchive:
+    copy: no
+    src: "{{ node_exporter_dest_dir }}/{{ node_exporter_name }}.tar.gz"
+    dest: "{{ node_exporter_dest_dir }}/"
+    creates: "{{ node_exporter_dest_dir }}/{{ node_exporter_name }}/node_exporter"
+  register: node_exporter_updated
+  notify:
+    - restart node-exporter
+
+- name: update group and owner for files
+  file:
+    path: "{{ node_exporter_name }}"
+    state: directory
+    recurse: yes
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+  when: node_exporter_updated is changed
+
+- name: create symlink to the current release
+  file:
+    src: "{{ node_exporter_dest_dir }}/{{ node_exporter_name }}/node_exporter"
+    path: "{{ node_exporter_root_dir }}/node_exporter_current"
+    state: link
+
+- name: create systemd service unit
+  template:
+    src: node_exporter.j2
+    dest: /etc/systemd/system/node-exporter.service
+    owner: "{{ node_exporter_user }}"
+    group: "{{ node_exporter_group }}"
+    mode: 0644
+  when: service_mgr | default(ansible_service_mgr) == 'systemd'
+  notify:
+    - reenable node-exporter service
+    - restart node-exporter
+
+- meta: flush_handlers
+
+- name: ensure node-exporter service is enabled and started
+  service:
+    name: node-exporter
+    state: started
+    enabled: yes

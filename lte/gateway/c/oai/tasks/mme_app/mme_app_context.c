@@ -850,6 +850,11 @@ void mme_remove_ue_context(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
+  // First, notify directoryd of removal
+  _directoryd_remove_location(
+      ue_context_p->emm_context._imsi64,
+      ue_context_p->emm_context._imsi.length);
+
   // Release emm and esm context
   delete_mme_ue_state(ue_context_p->emm_context._imsi64);
   _clear_emm_ctxt(&ue_context_p->emm_context);
@@ -934,9 +939,6 @@ void mme_remove_ue_context(
           ue_context_p->enb_ue_s1ap_id, ue_context_p->mme_ue_s1ap_id);
   }
 
-  _directoryd_remove_location(
-      ue_context_p->emm_context._imsi64,
-      ue_context_p->emm_context._imsi.length);
   free_wrapper((void**) &ue_context_p);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

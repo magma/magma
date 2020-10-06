@@ -621,11 +621,6 @@ void SessionState::get_updates(
   get_event_trigger_updates(update_request_out, actions_out, update_criteria);
 }
 
-void SessionState::mark_as_awaiting_termination(
-    SessionStateUpdateCriteria& update_criteria) {
-  set_fsm_state(SESSION_TERMINATION_SCHEDULED, update_criteria);
-}
-
 SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
   return subscriber_quota_state_;
 }
@@ -1105,6 +1100,18 @@ static FinalActionInfo get_final_action_info(
     }
   }
   return final_action_info;
+}
+
+RulesToProcess SessionState::get_all_final_unit_rules() {
+  RulesToProcess rules;
+  for (auto& credit_pair : credit_map_) {
+    auto& grant = credit_pair.second;
+    if (grant->service_state == SERVICE_RESTRICTED) {
+      rules.static_rules = grant->final_action_info.restrict_rules;
+    }
+  }
+  get_gy_dynamic_rules().get_rules(rules.dynamic_rules);
+  return rules;
 }
 
 bool SessionState::reset_reporting_charging_credit(

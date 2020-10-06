@@ -16,7 +16,6 @@ package main
 import (
 	"flag"
 	"net"
-	"os"
 	"strings"
 
 	mconfigprotos "magma/cwf/cloud/go/protos/mconfig"
@@ -53,8 +52,7 @@ func main() {
 	cfg := getHealthMconfig()
 	probe := gre_probe.NewICMPProbe(cfg.GrePeers, cfg.GreProbeInterval, int(cfg.IcmpProbePktCount))
 
-	// TODO: Use mconfig VIP
-	transportVIP := os.Getenv("TRANSPORT_VIP")
+	transportVIP := cfg.GetClusterVirtualIp()
 	if len(transportVIP) == 0 {
 		glog.Warningf("No transport VIP has been specified. If running with HA enabled, this is a critical error!")
 	} else if _, _, err := net.ParseCIDR(transportVIP); err != nil {

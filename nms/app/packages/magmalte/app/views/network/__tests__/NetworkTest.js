@@ -77,6 +77,11 @@ describe('<NetworkDashboard />', () => {
         max_ul_bit_rate: 100000000,
       },
     },
+    mobility: {
+      ip_allocation_mode: 'NAT',
+      enable_static_ip_assignments: false,
+      enable_multi_apn_ip_allocation: false,
+    },
     tac: 1,
   };
 
@@ -509,6 +514,11 @@ describe('<NetworkDashboard />', () => {
         hss_relay_enabled: false,
         gx_gy_relay_enabled: false,
         sub_profiles: {},
+        mobility: {
+          ip_allocation_mode: 'NAT',
+          enable_static_ip_assignments: false,
+          enable_multi_apn_ip_allocation: false,
+        },
         tac: 1,
       },
       networkId: 'testNetworkID',
