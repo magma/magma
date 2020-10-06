@@ -39,7 +39,7 @@ SMSOrc8rClient& SMSOrc8rClient::get_instance() {
 SMSOrc8rClient::SMSOrc8rClient() {
   // Create channel
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      "sms_orc8r_service", ServiceRegistrySingleton::LOCAL);
+      "smsd", ServiceRegistrySingleton::LOCAL);
   // Create stub for LocalSessionManager gRPC service
   stub_ = SMSOrc8rService::NewStub(channel);
   std::thread resp_loop_thread([&]() { rpc_response_loop(); });
