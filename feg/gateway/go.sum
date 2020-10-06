@@ -101,8 +101,6 @@ github.com/eapache/queue v1.1.0/go.mod h1:6eCeP0CKFpHLu8blIFXhExK/dRa7WDZfr6jVFP
 github.com/elastic/gosigar v0.9.0/go.mod h1:cdorVVzy1fhmEqmtgqkoE3bYtCfSCkVyjTyCIo22xvs=
 github.com/elazarl/go-bindata-assetfs v1.0.0/go.mod h1:v+YaWX3bdea5J/mo8dSETolEo7R71Vk1u8bnjau5yw4=
 github.com/elazarl/goproxy v0.0.0-20170405201442-c4fc26588b6e/go.mod h1:/Zj4wYkgs4iZTTu3o/KG3Itv/qCCa8VVMlb3i9OVuzc=
-github.com/emakeev/go-diameter/v4 v4.0.9 h1:qthxfOFHA73DgtrM19VaBiPPM7Mzaa/FRqwVaMmjFFM=
-github.com/emakeev/go-diameter/v4 v4.0.9/go.mod h1:Qx/+pf+c9sBUHWq1d7EH3bkdwN8U0mUpdy9BieDw6UQ=
 github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe h1:AtQCu1EME1N7Gwb4BNcpeKNxPmMK6G2QCeN+rVJO1EM=
 github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe/go.mod h1:kEQPRPTu2Cm00AIGJ0SWq8pOfa9kPZozrZ5/2XN2PB4=
 github.com/emicklei/go-restful v0.0.0-20170410110728-ff4f55a20633/go.mod h1:otzb+WCGbkyDHkqmQmT5YD2WR4BBwUdeQoFo8l/7tVs=
@@ -115,6 +113,8 @@ github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805 h1:Gqrw3IfjW
 github.com/facebookincubator/ent v0.0.0-20191128071424-29c7b0a0d805/go.mod h1:3CGvz1m+D78JUti7JFkY6AkKj88McWuT80UcamLqEJQ=
 github.com/facebookincubator/prometheus-configmanager v0.0.0-20200717220759-a8282767b087/go.mod h1:QYNiJqdUaKpx1O/85lKrba3zZeAX+p9/pk/8NdTk+QY=
 github.com/fatih/color v1.7.0/go.mod h1:Zm6kSWBoL9eyXnKyktHP6abPY2pDugNf5KwzbycvMj4=
+github.com/fiorix/go-diameter/v4 v4.0.2 h1:JVxecvfWqqvZWVO6PLTwUj/CV7CusaqYtz40WNYfWvI=
+github.com/fiorix/go-diameter/v4 v4.0.2/go.mod h1:Qx/+pf+c9sBUHWq1d7EH3bkdwN8U0mUpdy9BieDw6UQ=
 github.com/fortytw2/leaktest v1.3.0 h1:u8491cBMTQ8ft8aeV+adlcytMZylmA5nnwwkRZjI8vw=
 github.com/fortytw2/leaktest v1.3.0/go.mod h1:jDsjWgpAGjm2CA7WthBh/CdZYEPF31XHquHwclZch5g=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=
