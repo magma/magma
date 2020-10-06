@@ -77,6 +77,9 @@ static void _generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t s_addr,
     struct ipv4flow_dl* dlflow);
 
+static bool does_bearer_context_hold_valid_enb_ip(
+    ip_address_t enb_ip_address_S1u);
+
 #if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
 #else
@@ -903,7 +906,9 @@ int sgw_handle_modify_bearer_request(
 
         // Send end marker to eNB and then delete the tunnel if enb_ip is
         // different
-        if (is_enb_ip_address_same(
+        if (does_bearer_context_hold_valid_enb_ip(
+                eps_bearer_ctxt_p->enb_ip_address_S1u) &&
+            is_enb_ip_address_same(
                 &modify_bearer_pP->bearer_contexts_to_be_modified
                      .bearer_contexts[idx]
                      .s1_eNB_fteid,
@@ -1794,7 +1799,6 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       s11_pcrf_ded_bearer_deactv_rsp->cause, ebi);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
-
 bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p) {
   bool rc = true;
 
@@ -1938,4 +1942,28 @@ static void _generate_dl_flow(
       dlflow->udp_dst_port = packet_filter->singlelocalport;
     }
   }
+}
+
+static bool does_bearer_context_hold_valid_enb_ip(
+    ip_address_t enb_ip_address_S1u) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  struct in6_addr ipv6_address = {0};
+  switch (enb_ip_address_S1u.pdn_type) {
+    case IPv4:
+      if (enb_ip_address_S1u.address.ipv4_address.s_addr) {
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
+      }
+    case IPv4_AND_v6:
+    case IPv6:
+      if (memcmp(
+              &ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),
+              sizeof(struct in6_addr)) != 0) {
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
+      }
+      break;
+    default:
+      OAILOG_ERROR(LOG_SPGW_APP, "Invalid pdn-type \n");
+      break;
+  }
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, false);
 }
