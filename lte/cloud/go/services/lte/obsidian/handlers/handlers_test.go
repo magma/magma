@@ -3002,6 +3002,17 @@ func TestAPNResource(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
+	apn2 := newAPN("apn2")
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/:network_id/apns",
+		Payload:        apn2,
+		Handler:        postAPN,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
 
 	// Post, successful
 	gw.ApnResources = lteModels.ApnResources{"apn0": {ApnName: "apn0", ID: "res0", VlanID: 4}}
@@ -3102,7 +3113,11 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Put, create new APN resource
-	gw.ApnResources = lteModels.ApnResources{"apn1": {ApnName: "apn1", ID: "res1", VlanID: 4}}
+	// TODO: make sure that this works
+	gw.ApnResources = lteModels.ApnResources{
+		"apn1": {ApnName: "apn1", ID: "res1", VlanID: 4},
+		"apn2": {ApnName: "apn2", ID: "res2", VlanID: 4},
+	}
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
@@ -3183,7 +3198,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get, APN resource is gone due to cascading delete
-	gw.ApnResources = lteModels.ApnResources{}
+	gw.ApnResources = lteModels.ApnResources{"apn2": {ApnName: "apn2", ID: "res2", VlanID: 4}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
