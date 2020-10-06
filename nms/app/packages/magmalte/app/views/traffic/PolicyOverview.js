@@ -276,7 +276,7 @@ export function PolicyJsonConfig() {
         ),
       );
     }
-  }, [policyID]);
+  }, [policyID, lteNetwork]);
   return (
     <JsonEditor
       content={policy}
