@@ -103,9 +103,8 @@
 
 - name: place the cron file
   copy:
-   src: xwfm_cron
+   content: "*/5 * * * * root /var/opt/magma/docker/xwfm_update.sh"
    dest: /etc/cron.d/xwfm_cron
-   mode: '0755'
 
 - name: bring up the containers.
   script: xwfm_update.sh
