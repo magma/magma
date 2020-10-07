@@ -105,6 +105,7 @@ void nas_stop_T3489(esm_context_t *const esm_ctx)
       if (nas_timer_callback_args) {
         esm_ebr_timer_data_t* data =
             (esm_ebr_timer_data_t*) nas_timer_callback_args;
+        data->ctx = NULL;
         bdestroy_wrapper(&data->msg);
         free_wrapper((void**) &data);
       }
