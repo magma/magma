@@ -136,7 +136,7 @@ bool ChargingGrant::get_update_type(
     *update_type = CreditUsage::REAUTH_REQUIRED;
     return true;
   }
-  if (is_final_grant && credit.is_quota_exhausted(1)) {
+  if (is_final_grant) {
     // Don't request updates if this is the final grant
     return false;
   }
