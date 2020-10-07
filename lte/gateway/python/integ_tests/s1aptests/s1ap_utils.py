@@ -967,7 +967,7 @@ class SessionManagerUtil(object):
             get_rpc_channel("sessiond")
         )
         self._abort_session_stub = AbortSessionResponderStub(
-            get_rpc_channel("sessiond")
+            get_rpc_channel("abort_session_service")
         )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
