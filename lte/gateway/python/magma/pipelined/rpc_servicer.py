@@ -42,6 +42,7 @@ from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
+from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id, get_ipv6_prefix
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
@@ -131,6 +132,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                             request, fut)
         return fut.result()
 
+    def _update_ipv6_prefix_store(self, ipv6_addr):
+        interface = get_ipv6_interface_id(ipv6_addr)
+        prefix = get_ipv6_prefix(ipv6_addr)
+        self._service_manager.interface_to_prefix_mapper.save_prefix(
+            interface, prefix)
 
     def _update_version(self, request: ActivateFlowsRequest, ipv4: IPAddress):
         """
@@ -156,6 +162,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         logging.debug('Activating GX flows for %s', request.sid.id)
         ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
         self._update_version(request, ipv4)
+        if request.ipv6_addr:
+            self._update_ipv6_prefix_store(request.ipv6_addr)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
             request.sid.id, ipv4, request.apn_ambr, request.rule_ids,
