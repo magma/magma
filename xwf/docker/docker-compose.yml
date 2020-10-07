@@ -50,6 +50,8 @@ services:
       - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
       - ODS_ENTITY=ofproxy
       - OFPRADIUS=${OFPRADIUS:-0}
+      - METERURL=${METERURL:-}
+      - AWSENDPOINT=${AWSENDPOINT:-}
     logging: *logging_anchor
     depends_on:
       - logrouter
@@ -262,6 +264,7 @@ services:
       - SRCPORT=6653
       - DSTPORT=6653
       - FORWARD=ofproxy-mt
+      - VPCEndPointID=${XWF_VPCEndPointID}
     networks:
       - control
     logging: *logging_anchor

@@ -84,7 +84,6 @@ class S1ApUtil(object):
     MAX_NUM_RETRIES = 5
     datapath = get_datapath()
     SPGW_TABLE = 0
-    GTP_PORT = 32768
     LOCAL_PORT = "LOCAL"
 
     class Msg(object):
@@ -127,6 +126,7 @@ class S1ApUtil(object):
 
         # Maintain a map of UE IDs to IPs
         self._ue_ip_map = {}
+        self.gtpBridgeUtil = GTPBridgeUtils()
 
     def cleanup(self):
         """
@@ -438,6 +438,7 @@ class S1ApUtil(object):
                         assert bool(has_tunnel_action)
 
     def verify_flow_rules(self, num_ul_flows, dl_flow_rules=None):
+        GTP_PORT = self.gtpBridgeUtil.get_gtp_port_no()
         # Check if UL and DL OVS flows are created
         print("************ Verifying flow rules")
         # UPLINK
@@ -450,7 +451,7 @@ class S1ApUtil(object):
                 self.datapath,
                 {
                     "table_id": self.SPGW_TABLE,
-                    "match": {"in_port": self.GTP_PORT},
+                    "match": {"in_port": GTP_PORT},
                 },
             )
             if len(uplink_flows) == num_ul_flows:

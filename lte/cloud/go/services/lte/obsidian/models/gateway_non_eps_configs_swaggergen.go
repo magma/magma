@@ -41,7 +41,7 @@ type GatewayNonEpsConfigs struct {
 
 	// non eps service control
 	// Required: true
-	// Enum: [0 1 2]
+	// Enum: [0 1 2 3]
 	NonEpsServiceControl *uint32 `json:"non_eps_service_control"`
 }
 
@@ -143,7 +143,7 @@ var gatewayNonEpsConfigsTypeNonEpsServiceControlPropEnum []interface{}
 
 func init() {
 	var res []uint32
-	if err := json.Unmarshal([]byte(`[0,1,2]`), &res); err != nil {
+	if err := json.Unmarshal([]byte(`[0,1,2,3]`), &res); err != nil {
 		panic(err)
 	}
 	for _, v := range res {

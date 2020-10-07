@@ -156,6 +156,13 @@ class QosManager(object):
                 intf = 'nat_iface' if d == FlowMatch.UPLINK else 'enodeb_iface'
                 TrafficClass.dump_class_state(config[intf], v)
 
+    def redisAvailable(self):
+        try:
+            self._qos_store.client.ping()
+        except ConnectionError:
+            return False
+        return True
+
     def __init__(self, datapath, loop, config):
         self._qos_enabled = config["qos"]["enable"]
         if not self._qos_enabled:
@@ -167,11 +174,19 @@ class QosManager(object):
         self.impl = QosManager.get_impl(datapath, loop, config)
         self._qos_store = QosStore(self.__class__.__name__)
         self._initialized = False
+        self._redis_conn_retry_secs = 1
 
     def setup(self):
         if not self._qos_enabled:
             return
-        self._setupInternal()
+
+        if self.redisAvailable():
+            return self._setupInternal()
+        else:
+            LOG.info("failed to connect to redis..retrying in %d secs",
+                     self._redis_conn_retry_secs)
+            self._loop.call_later(self._redis_conn_retry_secs, self.setup)
+
 
     def _setupInternal(self):
         if self._clean_restart:

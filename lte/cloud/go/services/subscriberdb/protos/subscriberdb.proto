@@ -20,6 +20,14 @@ option go_package = "protos";
 // alternative identifiers.
 // Stores the following mappings
 //  - MSISDN -> IMSI
+//  - IP -> IMSI
+//
+// Notes:
+//  - MSISDN
+//    - Each MSISDN is enforced to map to at most 1 IMSI
+//  - IP
+//    - Each IP is expected to map to at most 1 IMSI, but this is not enforced,
+//      deferring to caller-enforcement as-required
 service SubscriberLookup {
   // GetMSISDNs returns MSISDN -> IMSI mappings.
   rpc GetMSISDNs (GetMSISDNsRequest) returns (GetMSISDNsResponse) {}
@@ -29,8 +37,14 @@ service SubscriberLookup {
   rpc SetMSISDN (SetMSISDNRequest) returns (SetMSISDNResponse) {}
 
   // DeleteMSISDN removes the MSISDN -> IMSI mapping.
-  // Error if MSISDN has already been assigned.
   rpc DeleteMSISDN (DeleteMSISDNRequest) returns (DeleteMSISDNResponse) {}
+
+  // GetIPs returns IP -> IMSI mappings.
+  rpc GetIPs (GetIPsRequest) returns (GetIPsResponse) {}
+
+  // SetIPs creates an IP -> IMSI mapping.
+  // Error if IP has already been assigned.
+  rpc SetIPs (SetIPsRequest) returns (SetIPsResponse) {}
 }
 
 message GetMSISDNsRequest {
@@ -65,3 +79,34 @@ message DeleteMSISDNRequest {
 }
 
 message DeleteMSISDNResponse {}
+
+message GetIPsRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // ips whose IMSIs should be retrieved
+  // An empty list returns all tracked IPs
+  repeated string ips = 2;
+}
+
+message GetIPsResponse {
+  // ip_mappings found
+  repeated IPMapping ip_mappings = 1;
+}
+
+message SetIPsRequest {
+  // network_id of the subscriber
+  string network_id = 1;
+  // ip_mappings to set
+  repeated IPMapping ip_mappings = 2;
+}
+
+message SetIPsResponse {}
+
+message IPMapping {
+  // ip to set
+  string ip = 1;
+  // imsi whose IP should be set
+  string imsi = 2;
+  // apn under which this IMSI is assigned the IP
+  string apn = 3;
+}

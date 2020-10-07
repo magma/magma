@@ -22,11 +22,10 @@ ip netns exec ns5 dhclient -1 veth5
 echo "the ip we got is:"
 ip netns exec ns5 ifconfig veth5
 echo "requesting url \n"
-ip netns exec ns5 curl -I www.google.com
+ip netns exec ns5 curl -s -I www.google.com
 echo "cleaning up \n"
 ip netns exec ns5 ip link del veth5
 ps -ef |grep dhclient | grep veth | awk '{ print $2 }' | xargs kill -9
 ovs-vsctl del-port uplink_br0 veth6
 ip netns del ns5
-ip link del veth5 type veth peer name veth6
 

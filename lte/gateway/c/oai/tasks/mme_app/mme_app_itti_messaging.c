@@ -235,6 +235,11 @@ int mme_app_send_s11_create_session_req(
   } else {
     session_request_p->msisdn.length = 0;
   }
+
+  // Fill User Location Information
+  session_request_p->uli.present = 0;   // initialize the presencemask
+  mme_app_get_user_location_information(&session_request_p->uli, ue_mm_context);
+
   session_request_p->rat_type = RAT_EUTRAN;
 
   // default bearer already created by NAS
