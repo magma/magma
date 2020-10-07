@@ -714,6 +714,7 @@ func TestCwfHaPairs(t *testing.T) {
 		Config: &models2.CwfHaPairConfigs{
 			TransportVirtualIP: "10.10.10.11/24",
 		},
+		State: &models2.CarrierWifiHaPairState{},
 	}
 	// Create HA Pair
 	tc = tests.Test{
@@ -728,6 +729,28 @@ func TestCwfHaPairs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Report pair status
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	haPairReq := &models2.CarrierWifiHaPairStatus{
+		ActiveGateway: "g1",
+	}
+	reportHaPairStatus(t, ctx, "pair1", haPairReq)
+	healthyStatus := &models2.CarrierWifiGatewayHealthStatus{
+		Status:      "HEALTHY",
+		Description: "OK",
+	}
+	reportGatewayHealthStatus(t, ctx, "g1", healthyStatus)
+	unhealthyStatus := &models2.CarrierWifiGatewayHealthStatus{
+		Status:      "UNHEALTHY",
+		Description: "Services 'foo' is unhealthy",
+	}
+	reportGatewayHealthStatus(t, ctx, "g2", unhealthyStatus)
+
+	cwfHaPair.State = &models2.CarrierWifiHaPairState{
+		HaPairStatus:   haPairReq,
+		Gateway1Health: healthyStatus,
+		Gateway2Health: unhealthyStatus,
+	}
 	// Get HA Pair
 	tc = tests.Test{
 		Method:         "GET",
@@ -768,8 +791,8 @@ func TestCwfHaPairs(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	haPairReq := &models2.CarrierWifiHaPairStatus{
+	ctx = test_utils.GetContextWithCertificate(t, "hw1")
+	haPairReq = &models2.CarrierWifiHaPairStatus{
 		ActiveGateway: "g1",
 	}
 	reportHaPairStatus(t, ctx, "pair1", haPairReq)
