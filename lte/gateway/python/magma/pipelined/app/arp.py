@@ -165,7 +165,7 @@ class ArpController(MagmaController):
 
         for rec in records:
             if rec.id not in attached_ues and \
-               rec.id.replace('imsi', '') not in attached_ues:
+               rec.id.replace('IMSI', '') not in attached_ues:
                 self.logger.debug(
                     "%s is in directoryd, but not an active UE", rec.id)
                 continue
