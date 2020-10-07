@@ -62,10 +62,12 @@ def allocate_ip_handler(client, args):
         return
 
     request = AllocateIPRequest()
-    request.version = AllocateIPRequest.IPV4
     request.sid.CopyFrom(sid_msg)
+    request.version = AllocateIPRequest.IPV4
+    request.apn = args.apn
 
-    ip_msg = client.AllocateIPAddress(request)
+    response = client.AllocateIPAddress(request)
+    ip_msg = response.ip_addr
     if ip_msg.version == IPAddress.IPV4:
         ip = ipaddress.IPv4Address(ip_msg.address)
         print("IPv4 address allocated: %s" % ip)
@@ -218,6 +220,7 @@ def main():
     subparser = subparsers.add_parser(
         'allocate_ip', help='Allocate an IP address')
     subparser.add_argument('sid', help='Subscriber ID, e.g. "IMSI12345"')
+    subparser.add_argument('apn', help='Access Point Name, e.g. "internet"')
     subparser.set_defaults(func=allocate_ip_handler)
 
     # release_ip

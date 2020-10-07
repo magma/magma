@@ -161,8 +161,24 @@ enum DiameterResultCode {
 
 class DiameterCodeHandler {
  public:
-  static bool is_transient_failure(const uint32_t code);
-
+  /** Diameter code of form 5xxx marks a permanent failure
+   * @param code
+   * @return
+   */
   static bool is_permanent_failure(const uint32_t code);
+
+  /** Individual messages included in terminator_codes list will trigger a
+   * session termination. This function is run before is_permanent_failure
+   * @param code
+   * @return
+   */
+  static bool is_terminator_failure(const uint32_t code);
+
+  /** Diameter code of form 4xxx marks a transient failure. Normally used after
+   * running is_terminator_failure
+   * @param code
+   * @return
+   */
+  static bool is_transient_failure(const uint32_t code);
 };
 }  // namespace magma

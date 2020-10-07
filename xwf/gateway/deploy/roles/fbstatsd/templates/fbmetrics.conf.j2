@@ -1,0 +1,12 @@
+[settings]
+hostname=localhost
+port=1055
+timed=false
+{% if nat_interfae is not none %}
+network_interfaces={{ nat_interface }}
+{% else %}
+network_interfaces={{ uplink_interface }}
+{% endif %}
+[mounts]
+name=/
+

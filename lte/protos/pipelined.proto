@@ -215,7 +215,6 @@ message Fsm_state {
   enum FsmState {
         SESSION_ACTIVE                        = 0;
         SESSION_TERMINATED                    = 4;
-        SESSION_TERMINATION_SCHEDULED         = 5;
         SESSION_RELEASED                      = 6;
         CREATING                              = 7;
         CREATED                               = 8;

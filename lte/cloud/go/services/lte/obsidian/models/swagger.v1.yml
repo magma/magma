@@ -1855,6 +1855,7 @@ definitions:
           - 0
           - 1
           - 2
+          - 3 
 
   gateway_dns_records:
     type: array

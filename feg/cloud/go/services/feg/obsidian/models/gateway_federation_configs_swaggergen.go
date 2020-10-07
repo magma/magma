@@ -29,8 +29,7 @@ type GatewayFederationConfigs struct {
 	EapAka *EapAka `json:"eap_aka"`
 
 	// eap sim
-	// Required: true
-	EapSim *EapSim `json:"eap_sim"`
+	EapSim *EapSim `json:"eap_sim,omitempty"`
 
 	// gx
 	// Required: true
@@ -171,8 +170,8 @@ func (m *GatewayFederationConfigs) validateEapAka(formats strfmt.Registry) error
 
 func (m *GatewayFederationConfigs) validateEapSim(formats strfmt.Registry) error {
 
-	if err := validate.Required("eap_sim", "body", m.EapSim); err != nil {
-		return err
+	if swag.IsZero(m.EapSim) { // not required
+		return nil
 	}
 
 	if m.EapSim != nil {

@@ -69,7 +69,6 @@ func TestCwfNetworks(t *testing.T) {
 	getNetworkFederationConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/federation", obsidian.GET).HandlerFunc
 	getCarrierWifiConfig := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/carrier_wifi", obsidian.GET).HandlerFunc
 	getSubscriberDirectory := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/subscribers/:subscriber_id/directory_record", obsidian.GET).HandlerFunc
-	getClusterStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/cluster_status", obsidian.GET).HandlerFunc
 	getCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.GET).HandlerFunc
 	updateCarrierWifiLiUes := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/:li_ues", obsidian.PUT).HandlerFunc
 
@@ -267,28 +266,6 @@ func TestCwfNetworks(t *testing.T) {
 		Handler:        getSubscriberDirectory,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedRecord),
-	}
-	tests.RunUnitTest(t, e, tc)
-
-	ctx = test_utils.GetContextWithCertificate(t, "hw1")
-	clusterReq := &models2.CarrierWifiNetworkClusterStatus{
-		ActiveGateway: "g1",
-	}
-	reportClusterStatus(t, ctx, clusterReq)
-	expectedRes := &models2.CarrierWifiNetworkClusterStatus{
-		ActiveGateway: "g1",
-	}
-
-	// Test Get Network HA status
-	tc = tests.Test{
-		Method:         "GET",
-		URL:            "/magma/v1/cwf/n1/cluster_status",
-		Payload:        nil,
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
-		Handler:        getClusterStatus,
-		ExpectedStatus: 200,
-		ExpectedResult: expectedRes,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -711,6 +688,7 @@ func TestCwfHaPairs(t *testing.T) {
 	getHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.GET).HandlerFunc
 	updateHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.PUT).HandlerFunc
 	deleteHaPair := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id", obsidian.DELETE).HandlerFunc
+	getHaPairStatus := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/cwf/:network_id/ha_pairs/:ha_pair_id/status", obsidian.GET).HandlerFunc
 
 	seedCwfNetworks(t)
 	seedCwfTier(t, "n1")
@@ -734,7 +712,7 @@ func TestCwfHaPairs(t *testing.T) {
 		GatewayID1: "g1",
 		GatewayID2: "g2",
 		Config: &models2.CwfHaPairConfigs{
-			TransportVirtualIP: "10.10.10.11",
+			TransportVirtualIP: "10.10.10.11/24",
 		},
 	}
 	// Create HA Pair
@@ -763,7 +741,7 @@ func TestCwfHaPairs(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Update HA Pair
-	cwfHaPair.Config.TransportVirtualIP = "127.0.0.1"
+	cwfHaPair.Config.TransportVirtualIP = "127.0.0.1/24"
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            "/magma/v1/cwf/n1/ha_pairs/pair1",
@@ -787,6 +765,28 @@ func TestCwfHaPairs(t *testing.T) {
 		Handler:        listHaPairs,
 		ExpectedStatus: 200,
 		ExpectedResult: tests.JSONMarshaler(expectedMap),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	ctx := test_utils.GetContextWithCertificate(t, "hw1")
+	haPairReq := &models2.CarrierWifiHaPairStatus{
+		ActiveGateway: "g1",
+	}
+	reportHaPairStatus(t, ctx, "pair1", haPairReq)
+	expectedRes := &models2.CarrierWifiHaPairStatus{
+		ActiveGateway: "g1",
+	}
+
+	// Test Get HA pair status
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/cwf/n1/hair_pairs/pair1/status",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "ha_pair_id"},
+		ParamValues:    []string{"n1", "pair1"},
+		Handler:        getHaPairStatus,
+		ExpectedStatus: 200,
+		ExpectedResult: expectedRes,
 	}
 	tests.RunUnitTest(t, e, tc)
 
@@ -890,16 +890,16 @@ func reportSubscriberDirectoryRecord(t *testing.T, ctx context.Context, id strin
 	assert.NoError(t, err)
 }
 
-func reportClusterStatus(t *testing.T, ctx context.Context, req *models2.CarrierWifiNetworkClusterStatus) {
+func reportHaPairStatus(t *testing.T, ctx context.Context, pairID string, req *models2.CarrierWifiHaPairStatus) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(state.SerdeDomain, cwf.CwfClusterHealthType, req)
+	serializedRecord, err := serde.Serialize(state.SerdeDomain, cwf.CwfHAPairStatusType, req)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
-			Type:     cwf.CwfClusterHealthType,
-			DeviceID: "cluster",
+			Type:     cwf.CwfHAPairStatusType,
+			DeviceID: pairID,
 			Value:    serializedRecord,
 			Version:  1,
 		},
