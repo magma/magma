@@ -288,9 +288,9 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
   }
 
   if (session_request->uli.present) {
-    char uli[sizeof(Uli_t)];
-    memcpy(&uli, &session_request->uli, sizeof(Uli_t));
-    proto->set_uli(uli);
+    char uli[sizeof(Uli_t)] = "";
+    memcpy(uli, &session_request->uli, sizeof(Uli_t));
+    proto->set_uli(uli, sizeof(Uli_t));
   }
 
   proto->mutable_serving_network()->set_mcc(
@@ -383,7 +383,6 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
   }
 
   if (proto.uli().length() > 0) {
-    session_request->uli.present = true;
     memcpy(&session_request->uli, proto.uli().c_str(), sizeof(Uli_t));
   }
   memcpy(

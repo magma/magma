@@ -47,7 +47,12 @@ paths:
         - in: query
           name: msisdn
           type: string
-          description: Get a single subscriber via MSISDN
+          description: Filter to subscribers with the passed MSISDN
+          required: false
+        - in: query
+          name: ip
+          type: string
+          description: Filter to subscribers assigned the passed IP address
           required: false
       responses:
         '200':

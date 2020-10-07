@@ -184,13 +184,6 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
-  /**
-   * mark_as_awaiting_termination transitions the session state from
-   * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
-   */
-  void mark_as_awaiting_termination(
-      SessionStateUpdateCriteria& update_criteria);
-
   bool is_terminating();
 
   /**
@@ -229,6 +222,8 @@ class SessionState {
   void set_charging_credit(
       const CreditKey& key, ChargingGrant charging_grant,
       SessionStateUpdateCriteria& uc);
+
+  RulesToProcess get_all_final_unit_rules();
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,

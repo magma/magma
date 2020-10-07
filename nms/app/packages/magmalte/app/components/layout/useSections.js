@@ -33,12 +33,19 @@ import {useContext, useEffect, useState} from 'react';
 
 export default function useSections(): SectionsConfigs {
   const {networkId} = useContext<NetworkContextType>(NetworkContext);
-  const {isFeatureEnabled} = useContext(AppContext);
+  const {user, isFeatureEnabled} = useContext(AppContext);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const alertsEnabled = isFeatureEnabled('alerts');
   const logsEnabled = isFeatureEnabled('logs');
   const dashboardV2Enabled = isFeatureEnabled('dashboard_v2');
+  let dashboardV2EnabledFegCwf = false;
 
+  // enable dashboard v2 for cwf and feg in test mode
+  if (user && user.tenant !== '') {
+    if (user.tenant.endsWith('-test') && dashboardV2Enabled) {
+      dashboardV2EnabledFegCwf = true;
+    }
+  }
   useEffect(() => {
     const fetchNetworkType = async () => {
       if (networkId) {
@@ -60,9 +67,9 @@ export default function useSections(): SectionsConfigs {
     case WIFI:
       return getMeshSections(alertsEnabled);
     case CWF:
-      return getCWFSections();
+      return getCWFSections(dashboardV2EnabledFegCwf);
     case FEG:
-      return getFEGSections();
+      return getFEGSections(dashboardV2EnabledFegCwf);
     case LTE:
     default: {
       if (dashboardV2Enabled) {

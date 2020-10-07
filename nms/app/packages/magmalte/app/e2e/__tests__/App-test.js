@@ -14,38 +14,19 @@
  * @format
  */
 
-const puppeteer = require('puppeteer');
-
-const user = {
-  email: 'admin@magma.test',
-  passwd: 'password1234',
-};
-
-const DASHBOARD_SELECTOR = `//span[text()='Dashboard']`;
-const LOGINFORM_SELECTOR = `//span[text()='Magma']`;
-const ARTIFACTS_DIR = `/tmp/nms_artifacts/`;
+import puppeteer from 'puppeteer';
+import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
 describe('NMS dashboard', () => {
   test('NMS loads correctly', async () => {
     const browser = await puppeteer.launch({
       args: ['--ignore-certificate-errors'],
-      headless: false,
+      headless: true,
       defaultViewport: null,
     });
     const page = await browser.newPage();
     try {
-      await page.goto('https://magma-test.localhost/');
-      await page.waitForXPath(LOGINFORM_SELECTOR);
-      await page.click('input[name=email]');
-      await page.type('input[name=email]', user.email);
-
-      await page.click('input[name=password]');
-      await page.type('input[name=password]', user.passwd);
-
-      await page.click('button');
-      await page.waitForXPath(DASHBOARD_SELECTOR, {
-        timeout: 15000,
-      });
+      await SimulateNMSLogin(page);
     } catch (err) {
       await page.screenshot({path: ARTIFACTS_DIR + 'failed.png'});
       browser.close();

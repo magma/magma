@@ -1,3 +1,16 @@
+/*
+ *  Copyright 2020 The Magma Authors.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree.
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package sms_ll
 
 import (
@@ -23,9 +36,9 @@ type rpAddressElement struct {
 func (rpadde rpAddressElement) getNumberOctets() int {
 	l := int(rpadde.length)
 	if l%2 == 0 {
-		return l/2
+		return l / 2
 	} else {
-		return (l+1)/2 // last half-octet is padded with 0xf
+		return (l + 1) / 2 // last half-octet is padded with 0xf
 	}
 }
 
@@ -67,9 +80,9 @@ func (rpadde *rpAddressElement) unmarshalBinary(input []byte) (int, error) {
 // generally don't use an SMSC, so we just set the number to 11.
 func newFakeRpAddressElement() rpAddressElement {
 	return rpAddressElement{
-		numberInfo: 0xb9, // network specific number, private numbering plan
-		number: []byte{0x11}, // 1 1
-		length: 0x2,
+		numberInfo: 0xb9,         // network specific number, private numbering plan
+		number:     []byte{0x11}, // 1 1
+		length:     0x2,
 	}
 }
 
@@ -86,9 +99,9 @@ func createRpUserElement(data []byte) (rpUserElement, error) {
 	}
 
 	return rpUserElement{
-		iei: RpUdeIei,
+		iei:    RpUdeIei,
 		length: byte(len(data)),
-		tpdu: data,
+		tpdu:   data,
 	}, nil
 
 }
@@ -124,8 +137,8 @@ type rpCauseElement struct {
 	iei        byte // Never serialized
 	length     byte
 	cause      byte
-	diagnostic byte // Optional
-	cause_str  string // Derived
+	diagnostic byte   // Optional
+	causeStr   string // Derived
 }
 
 func (rpce rpCauseElement) marshalBinary() []byte {
@@ -139,7 +152,7 @@ func (rpce rpCauseElement) marshalBinary() []byte {
 func (rpce *rpCauseElement) unmarshalBinary(input []byte) (int, error) {
 	if cs, ok := RpCauseStr[input[1]]; ok {
 		rpce.cause = input[1]
-		rpce.cause_str = cs
+		rpce.causeStr = cs
 	} else {
 		return 0, smsRpError(fmt.Sprintf("Invalid cause: %x", rpce.cause))
 	}
@@ -293,55 +306,55 @@ const (
 
 const (
 	// RP Cause types (TS24.011 Table 8.4)
-	RpCauseUnassigned               = 0x1
-	RpCauseOpBarred                = 0x8
-	RpCauseCallBarred              = 0xa
-	RpCauseReserved                 = 0xb
+	RpCauseUnassigned             = 0x1
+	RpCauseOpBarred               = 0x8
+	RpCauseCallBarred             = 0xa
+	RpCauseReserved               = 0xb
 	RpCauseSmTransferRejected     = 0x15
-	RpCauseMemExceeded             = 0x16
-	RpCauseDestOutOfOrder        = 0x1b
-	RpCauseUnidentifiedSub         = 0x1c
-	RpCauseFacilityRejected        = 0x1d
-	RpCauseUnknownSub              = 0x1e
-	RpCauseNetOutOfOrder         = 0x26
-	RpCauseTempFailure             = 0x29
-	RpCauseCongestion               = 0x2a
-	RpCauseResourceUnavailable     = 0x2f
-	RpCauseRequestedFacNotSub    = 0x32
-	RpCauseRequestedFacNotImpl   = 0x45
-	RpCauseInvalidSmTransRef     = 0x51
+	RpCauseMemExceeded            = 0x16
+	RpCauseDestOutOfOrder         = 0x1b
+	RpCauseUnidentifiedSub        = 0x1c
+	RpCauseFacilityRejected       = 0x1d
+	RpCauseUnknownSub             = 0x1e
+	RpCauseNetOutOfOrder          = 0x26
+	RpCauseTempFailure            = 0x29
+	RpCauseCongestion             = 0x2a
+	RpCauseResourceUnavailable    = 0x2f
+	RpCauseRequestedFacNotSub     = 0x32
+	RpCauseRequestedFacNotImpl    = 0x45
+	RpCauseInvalidSmTransRef      = 0x51
 	RpCauseSemIncorrectMessage    = 0x5f
 	RpCauseInvalidMandantoryInfo  = 0x60
-	RpCauseMsgTypeNotImpl        = 0x61
-	RpCauseMsgTypeNotCompatible  = 0x62
+	RpCauseMsgTypeNotImpl         = 0x61
+	RpCauseMsgTypeNotCompatible   = 0x62
 	RpCauseInfoElementNonexistant = 0x63
-	RpCauseProtocolError           = 0x6f
-	RpCauseInterworking             = 0x7f
+	RpCauseProtocolError          = 0x6f
+	RpCauseInterworking           = 0x7f
 )
 
 var RpCauseStr = map[byte]string{
-	RpCauseUnassigned:               "Unassigned (unallocated) number",
-	RpCauseOpBarred:                "Operator determined barring",
-	RpCauseCallBarred:              "Call barred",
-	RpCauseReserved:                 "Reserved",
+	RpCauseUnassigned:             "Unassigned (unallocated) number",
+	RpCauseOpBarred:               "Operator determined barring",
+	RpCauseCallBarred:             "Call barred",
+	RpCauseReserved:               "Reserved",
 	RpCauseSmTransferRejected:     "Short message transfer rejected",
-	RpCauseMemExceeded:             "Memory capacity exceeded",
-	RpCauseDestOutOfOrder:        "Destination out of order",
-	RpCauseUnidentifiedSub:         "Unidentified subscriber",
-	RpCauseFacilityRejected:        "Facility rejected",
-	RpCauseUnknownSub:              "Unknown subscriber",
-	RpCauseNetOutOfOrder:         "Network out of order",
-	RpCauseTempFailure:             "Temporary failure",
-	RpCauseCongestion:               "Congestion",
-	RpCauseResourceUnavailable:     "Resources unavailable, unspecified",
-	RpCauseRequestedFacNotSub:    "Requested facility not subscribed",
-	RpCauseRequestedFacNotImpl:   "Requested facility not implemented",
-	RpCauseInvalidSmTransRef:     "Invalid short message transfer reference value",
+	RpCauseMemExceeded:            "Memory capacity exceeded",
+	RpCauseDestOutOfOrder:         "Destination out of order",
+	RpCauseUnidentifiedSub:        "Unidentified subscriber",
+	RpCauseFacilityRejected:       "Facility rejected",
+	RpCauseUnknownSub:             "Unknown subscriber",
+	RpCauseNetOutOfOrder:          "Network out of order",
+	RpCauseTempFailure:            "Temporary failure",
+	RpCauseCongestion:             "Congestion",
+	RpCauseResourceUnavailable:    "Resources unavailable, unspecified",
+	RpCauseRequestedFacNotSub:     "Requested facility not subscribed",
+	RpCauseRequestedFacNotImpl:    "Requested facility not implemented",
+	RpCauseInvalidSmTransRef:      "Invalid short message transfer reference value",
 	RpCauseSemIncorrectMessage:    "Semantically incorrect message",
 	RpCauseInvalidMandantoryInfo:  "Invalid mandantory information",
-	RpCauseMsgTypeNotImpl:        "Message type not non-existent or not implemented",
-	RpCauseMsgTypeNotCompatible:  "Message not compatible with short message protocol state",
+	RpCauseMsgTypeNotImpl:         "Message type not non-existent or not implemented",
+	RpCauseMsgTypeNotCompatible:   "Message not compatible with short message protocol state",
 	RpCauseInfoElementNonexistant: "Information element non-existent or not implemented",
-	RpCauseProtocolError:           "Protocol error, unspecified",
-	RpCauseInterworking:             "Interworking, unspecified",
+	RpCauseProtocolError:          "Protocol error, unspecified",
+	RpCauseInterworking:           "Interworking, unspecified",
 }

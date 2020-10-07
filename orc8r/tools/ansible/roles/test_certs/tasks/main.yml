@@ -32,7 +32,7 @@
   copy:
     src: '{{ magma_root }}/.cache/test_certs/rootCA.pem'
     dest: /var/opt/magma/certs/rootCA.pem
-    force: no
+    force: yes
     remote_src: yes
   when: full_provision
 
