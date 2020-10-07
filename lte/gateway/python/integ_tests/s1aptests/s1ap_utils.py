@@ -975,9 +975,7 @@ class SessionManagerUtil(object):
         """
         for flow in flow_list:
             flow_direction = flow["direction"]
-            print("flow_direction", flow_direction)
             ip_protocol = flow["ip_proto"]
-            print("ip_proto", ip_protocol)
             if ip_protocol == FlowMatch.IPPROTO_TCP:
                 udp_src_port = 0
                 udp_dst_port = 0
