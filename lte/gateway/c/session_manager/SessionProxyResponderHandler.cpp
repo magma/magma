@@ -108,7 +108,13 @@ void SessionProxyResponderHandlerImpl::AbortSession(
     ServerContext* context, const AbortSessionRequest* request,
     std::function<void(Status, AbortSessionResult)> response_callback) {
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(*request));
-  const auto imsi       = request->user_name();
+  auto imsi = request->user_name();
+  // SessionD currently stores IMSIs with the 'IMSI' prefix so append if it is
+  // not there already
+  if (imsi.find("IMSI") == std::string::npos) {
+    imsi = "IMSI" + imsi;
+    MLOG(MDEBUG) << "Appended 'IMSI' to ASR user_name: " << imsi;
+  }
   const auto session_id = request->session_id();
   MLOG(MINFO) << "Received an ASR for session_id " << session_id;
   enforcer_->get_event_base().runInEventBaseThread([this, imsi, session_id,
