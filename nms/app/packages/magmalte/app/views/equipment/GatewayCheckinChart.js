@@ -39,13 +39,13 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
+const CHART_COLORS = [colors.secondary.dodgerBlue];
+const TITLE = 'Frequency of Gateway Check-Ins';
+
 export default function () {
   const classes = useStyles();
   const [timeRange, setTimeRange] = useState<TimeRange>('3_hours');
-  const state = {
-    title: 'Frequency of Gateway Check-Ins',
-    legendLabels: ['Check-Ins', 'Events'],
-  };
+
   const chartStyle: ChartStyle = {
     data: {
       lineTension: 0.2,
@@ -104,16 +104,17 @@ export default function () {
       />
       <Card elevation={0}>
         <CardHeader
-          title={<Text variant="body2">{state.title}</Text>}
+          title={<Text variant="body2">{TITLE}</Text>}
           subheader={
             <AsyncMetric
+              height={300}
               style={chartStyle}
-              label={state.title}
-              unit=""
+              label={TITLE}
+              unit="Count"
               queries={['sum(checkin_status)']}
               timeRange={timeRange}
-              startEnd={undefined}
-              legendLabels={state.legendLabels}
+              legendLabels={['Check-Ins']}
+              chartColors={CHART_COLORS}
             />
           }
         />

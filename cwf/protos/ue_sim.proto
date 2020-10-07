@@ -22,6 +22,19 @@ option go_package = "magma/cwf/cloud/go/protos";
 // --------------------------------------------------------------------------
 // UE config
 // --------------------------------------------------------------------------
+
+
+message AuthenticateRequestHssLess {
+	// MSISDN
+    string msisdn = 1;
+
+    // APN
+    string apn = 2;
+
+    //RAT
+    uint32 rat = 3;
+}
+
 message UEConfig {
     // Unique identifier for the UE.
     string imsi = 1;
@@ -34,6 +47,9 @@ message UEConfig {
 
     // Sequence Number (SEQ).
     uint64 seq = 4;
+
+    // HSSLess Configuration
+    AuthenticateRequestHssLess hssless_cfg = 5;
 }
 
 message AuthenticateRequest {
@@ -43,6 +59,7 @@ message AuthenticateRequest {
 
 message AuthenticateResponse {
     bytes radiusPacket = 1;
+    string sessionId = 2;
 }
 
 message DisconnectRequest {
@@ -58,8 +75,8 @@ message GenTrafficRequest {
     string imsi = 1;
     google.protobuf.StringValue volume = 2;
     google.protobuf.StringValue bitrate = 3;
-    uint64 timeInSecs = 4;    
-    uint64 reportingIntervalInSecs = 5;    
+    uint64 timeInSecs = 4;
+    uint64 reportingIntervalInSecs = 5;
     bool reverseMode = 6;
     // Configure a max timeout iperf client will run
     uint32 timeout = 7;

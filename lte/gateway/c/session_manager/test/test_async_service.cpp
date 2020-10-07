@@ -74,7 +74,7 @@ class AsyncServiceTest : public ::testing::Test {
     grpc::ClientContext create_context;
     LocalCreateSessionResponse create_resp;
     LocalCreateSessionRequest request;
-    request.mutable_sid()->set_id("IMSI1");
+    request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
     auto status = stub->CreateSession(&create_context, request, &create_resp);
     EXPECT_TRUE(status.ok());
   }

@@ -18,6 +18,7 @@ import (
 
 	mcfgprotos "magma/feg/cloud/go/protos/mconfig"
 	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
 	"magma/feg/gateway/services/swx_proxy/cache"
 	"magma/gateway/mconfig"
 
@@ -49,7 +50,6 @@ const (
 // the values in mconfig or default values provided
 func GetSwxProxyConfig() []*SwxProxyConfig {
 	configsPtr := &mcfgprotos.SwxConfig{}
-	hlrPlmnIds := map[string]PlmnIdVal{}
 	err := mconfig.GetServiceConfigs(SwxProxyServiceName, configsPtr)
 
 	if err != nil || !isSWxMConfiValid(configsPtr) {
@@ -75,28 +75,15 @@ func GetSwxProxyConfig() []*SwxProxyConfig {
 				RegisterOnAuth:        DefaultRegisterOnAuth,
 				DeriveUnregisterRealm: DefaultDeriveUnregisterRealm,
 				CacheTTLSeconds:       uint32(cache.DefaultTtl.Seconds()),
-				HlrPlmnIds:            hlrPlmnIds,
+				HlrPlmnIds:            plmn_filter.PlmnIdVals{},
 			},
 		}
 	}
 
 	glog.V(2).Infof("Loaded %s configs: %+v", SwxProxyServiceName, *configsPtr)
 
-	for _, plmnid := range configsPtr.HlrPlmnIds {
-		glog.Infof("Adding HLR PLMN ID: %s", plmnid)
-		l := len(plmnid)
-		switch l {
-		case 5:
-			hlrPlmnIds[plmnid] = PlmnIdVal{l5: true}
-		case 6:
-			plmnid5 := plmnid[:5]
-			val, _ := hlrPlmnIds[plmnid5]
-			val.b6 = plmnid[5]
-			hlrPlmnIds[plmnid5] = val
-		default:
-			glog.Warningf("Invalid HLR PLMN ID: %s", plmnid)
-		}
-	}
+	hlrPlmnIds := plmn_filter.GetPlmnVals(configsPtr.HlrPlmnIds, "HLR")
+
 	ttl := configsPtr.CacheTTLSeconds
 	if ttl < uint32(cache.DefaultGcInterval.Seconds()) {
 		ttl = uint32(cache.DefaultTtl.Seconds())
@@ -164,15 +151,6 @@ func ValidateSwxProxyConfig(config *SwxProxyConfig) error {
 		return fmt.Errorf("Nil server config provided")
 	}
 	return config.ServerCfg.Validate()
-}
-
-func (config *SwxProxyConfig) IsHlrClient(imsi string) bool {
-	if config != nil && len(config.HlrPlmnIds) > 0 {
-		if val, ok := config.HlrPlmnIds[string(imsi)[:5]]; ok && (val.l5 || (len(imsi) > 5 && val.b6 == imsi[6])) {
-			return true
-		}
-	}
-	return false
 }
 
 // isSWxMConfiValid check if required fields are present on SwxConfig proto

@@ -111,6 +111,19 @@ type TransactionalBlobStorage interface {
 	IncrementVersion(networkID string, id storage.TypeAndKey) error
 }
 
+// GetAllOfType returns all blobs in the network of the passed type.
+func GetAllOfType(store TransactionalBlobStorage, networkID, typ string) ([]Blob, error) {
+	filter := CreateSearchFilter(nil, []string{typ}, nil, nil)
+	criteria := LoadCriteria{LoadValue: true}
+
+	blobsByNetwork, err := store.Search(filter, criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	return blobsByNetwork[networkID], nil
+}
+
 // ListKeysByNetwork returns all blob keys, keyed by network ID.
 func ListKeysByNetwork(store TransactionalBlobStorage) (map[string][]storage.TypeAndKey, error) {
 	filter := CreateSearchFilter(nil, nil, nil, nil)

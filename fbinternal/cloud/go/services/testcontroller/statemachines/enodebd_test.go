@@ -403,15 +403,15 @@ func Test_EnodebdE2ETestStateMachine_TrafficScript(t *testing.T) {
 
 	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
 	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
-		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
-		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"returncode": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
+		"stdout":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr":     {Kind: &structpb.Value_StringValue{StringValue: "unable to connect to magmawifi"}},
 	}
 	// ---
 	// Traffic test 1 fails, traffic script failing
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test1_1", testConfig, nil)
-	assert.EqualError(t, err, "Traffic script failed")
+	assert.EqualError(t, err, "Traffic script failed. Return Code: 1, Stdout: , Stderr: unable to connect to magmawifi")
 	assert.Equal(t, "traffic_test1_2", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
 
@@ -424,7 +424,7 @@ func Test_EnodebdE2ETestStateMachine_TrafficScript(t *testing.T) {
 	// Traffic test 2 fails, traffic script failing
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test2_1", testConfig, nil)
-	assert.EqualError(t, err, "Traffic script failed")
+	assert.EqualError(t, err, "Traffic script failed. Return Code: 1, Stdout: , Stderr: unable to connect to magmawifi")
 	assert.Equal(t, "traffic_test2_2", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
 
@@ -434,9 +434,9 @@ func Test_EnodebdE2ETestStateMachine_TrafficScript(t *testing.T) {
 	assert.Equal(t, time.Minute, actualDuration)
 
 	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
-		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
-		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"returncode": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+		"stdout":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
 	}
 	// ---
 	// Traffic Test 1
@@ -555,16 +555,16 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
 	testConfig.EnodebConfig.Pci = 261
 	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
-		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
-		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"returncode": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
+		"stdout":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr":     {Kind: &structpb.Value_StringValue{StringValue: "unable to connect to magmawifi"}},
 	}
 
 	// ---
 	// Traffic Test 3 fails, traffic script failing
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test3_1", testConfig, nil)
-	assert.EqualError(t, err, "Traffic script failed")
+	assert.EqualError(t, err, "Traffic script failed. Return Code: 1, Stdout: , Stderr: unable to connect to magmawifi")
 	assert.Equal(t, "traffic_test3_2", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
 
@@ -577,7 +577,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	// Traffic Test 4 fails, traffic script failing
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test4_1", testConfig, nil)
-	assert.EqualError(t, err, "Traffic script failed")
+	assert.EqualError(t, err, "Traffic script failed. Return Code: 1, Stdout: , Stderr: unable to connect to magmawifi")
 	assert.Equal(t, "traffic_test4_2", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
 
@@ -587,9 +587,9 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	assert.Equal(t, time.Minute, actualDuration)
 
 	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
-		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
-		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"returncode": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+		"stdout":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
 	}
 
 	// ---
@@ -735,15 +735,15 @@ func Test_EnodebdE2ETestStateMachine_SubscriberState(t *testing.T) {
 	assert.Equal(t, time.Minute, actualDuration)
 
 	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
-		"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
-		"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-		"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"returncode": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
+		"stdout":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
+		"stderr":     {Kind: &structpb.Value_StringValue{StringValue: "unable to connect to magmawifi"}},
 	}
 	// ---
 	// Traffic test 6 fail, traffic script failing
 	// ---
 	actualState, actualDuration, err = sm.Run("traffic_test6_1", testConfig, nil)
-	assert.EqualError(t, err, "Traffic script failed")
+	assert.EqualError(t, err, "Traffic script failed. Return Code: 1, Stdout: , Stderr: unable to connect to magmawifi")
 	assert.Equal(t, "traffic_test6_2", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
 
@@ -827,7 +827,7 @@ func RegisterAGW(t *testing.T) {
 				Associations: []storage.TypeAndKey{{Type: orc8r.UpgradeTierEntityType, Key: "t1"}},
 			},
 			{
-				Type:       lte.CellularEnodebType,
+				Type:       lte.CellularEnodebEntityType,
 				Key:        "1202000038269KP0037",
 				PhysicalID: "1202000038269KP0037",
 				Config: &ltemodels.EnodebConfiguration{
@@ -867,7 +867,7 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 		AgwConfig: &models.AgwTestConfig{
 			PackageRepo:     swag.String("https://packages.magma.etagecom.io"),
 			ReleaseChannel:  swag.String("stretch-beta"),
-			SLACKWebhook:    swag.String("https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"),
+			SlackWebhook:    swag.String("https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"),
 			TargetGatewayID: swag.String("g1"),
 			TargetTier:      swag.String("t1"),
 		},
@@ -897,9 +897,9 @@ func GetMockObjects() (*mockMagmadClient, *protos.GenericCommandResponse) {
 	mockMagmad := &mockMagmadClient{}
 	mockResponse := &structpb.Struct{
 		Fields: map[string]*structpb.Value{
-			"result": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
-			"stdout": {Kind: &structpb.Value_StringValue{StringValue: ""}},
-			"stderr": {Kind: &structpb.Value_StringValue{StringValue: ""}},
+			"returncode": {Kind: &structpb.Value_NumberValue{NumberValue: float64(0)}},
+			"stdout":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
+			"stderr":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
 		},
 	}
 	mockGenericCommandResp := &protos.GenericCommandResponse{

@@ -67,11 +67,7 @@ func GetPartialNetworkHandlers(path string, model PartialNetworkModel, configKey
 	if configKey != "" {
 		ret = append(ret, GetPartialDeleteNetworkHandler(path, configKey))
 	}
-	return []obsidian.Handler{
-		GetPartialReadNetworkHandler(path, model),
-		GetPartialUpdateNetworkHandler(path, model),
-		GetPartialDeleteNetworkHandler(path, configKey),
-	}
+	return ret
 }
 
 // GetPartialReadNetworkHandler returns a GET obsidian handler at the specified path.

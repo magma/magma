@@ -20,6 +20,7 @@ import type {
   federation_gateway,
   gateway_federation_configs,
   gx,
+  virtual_apn_rule,
 } from '@fbcnms/magma-api';
 
 import AppBar from '@material-ui/core/AppBar';
@@ -31,6 +32,7 @@ import DialogContent from '@material-ui/core/DialogContent';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import InputLabel from '@material-ui/core/InputLabel';
+import KeyValueFields from '@fbcnms/magmalte/app/components/KeyValueFields';
 import LoadingFillerBackdrop from '@fbcnms/ui/components/LoadingFillerBackdrop';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -72,10 +74,6 @@ type Props = {|
 type SCTPValues = {
   server_address: string,
   local_address: string,
-};
-
-type overWriteAPN = {
-  apn: string,
 };
 
 function getSCTPConfigs(cfg: SCTPValues): csfb {
@@ -125,10 +123,22 @@ function getDiameterServerConfig(
   };
 }
 
-function getOverwriteAPN(overwrite_apn: ?string): overWriteAPN {
-  return {
-    apn: overwrite_apn || '',
-  };
+function getVirtualApnRules(
+  rules: ?Array<virtual_apn_rule>,
+): ?Array<[string, string]> {
+  return rules?.map(entry => {
+    return [entry.apn_filter || '', entry.apn_overwrite || ''];
+  });
+}
+
+function virtualApnRulesToObject(
+  props: ?Array<[string, string]>,
+): ?Array<virtual_apn_rule> {
+  return props
+    ?.filter(p => p[0])
+    .map(pair => {
+      return {apn_filter: pair[0], apn_overwrite: pair[1]};
+    });
 }
 
 export default function FEGGatewayDialog(props: Props) {
@@ -156,13 +166,13 @@ export default function FEGGatewayDialog(props: Props) {
     getInitialSCTPConfigs(editingGateway?.federation?.csfb),
   );
 
-  const [gxOverwriteAPN, setGxOverwriteAPN] = useState<overWriteAPN>(
-    getOverwriteAPN(editingGateway?.federation?.gx?.overwrite_apn),
-  );
+  const [gxVirtualApnRules, setGxVirtualApnRules] = useState<?Array<
+    [string, string],
+  >>(getVirtualApnRules(editingGateway?.federation?.gx?.virtual_apn_rules));
 
-  const [gyOverwriteAPN, setGyOverwriteAPN] = useState<overWriteAPN>(
-    getOverwriteAPN(editingGateway?.federation?.gy?.overwrite_apn),
-  );
+  const [gyVirtualApnRules, setGyVirtualApnRules] = useState<?Array<
+    [string, string],
+  >>(getVirtualApnRules(editingGateway?.federation?.gy?.virtual_apn_rules));
 
   const networkID = nullthrows(match.params.networkId);
   const {response: tiers, isLoading} = useMagmaAPI(
@@ -178,20 +188,19 @@ export default function FEGGatewayDialog(props: Props) {
 
   const getFederationConfigs = (): gateway_federation_configs => ({
     aaa_server: {},
-    csfb: {},
     eap_aka: {},
     gx: {
       server: getDiameterConfigs(gx).server,
-      overwrite_apn: gxOverwriteAPN.apn,
+      virtual_apn_rules: virtualApnRulesToObject(gxVirtualApnRules) || [],
     },
     gy: {
       server: getDiameterConfigs(gy).server,
       init_method: 2,
-      overwrite_apn: gyOverwriteAPN.apn,
+      virtual_apn_rules: virtualApnRulesToObject(gyVirtualApnRules) || [],
     },
     health: {},
     hss: {},
-    s6a: getDiameterConfigs(s6a),
+    s6a: {...getDiameterConfigs(s6a), plmn_ids: []},
     served_network_ids: [],
     swx: {...getDiameterConfigs(swx)},
     csfb: {...getSCTPConfigs(csfb)},
@@ -259,9 +268,15 @@ export default function FEGGatewayDialog(props: Props) {
         />
       );
       contentOverwriteAPN = (
-        <OverwriteAPN_Field
-          onChange={setGxOverwriteAPN}
-          values={gxOverwriteAPN}
+        <KeyValueFields
+          key_label="APN Filter"
+          value_label="APN Overwrite"
+          onChange={setGxVirtualApnRules}
+          keyValuePairs={
+            gxVirtualApnRules && gxVirtualApnRules.length
+              ? gxVirtualApnRules
+              : [['', '']]
+          }
         />
       );
       break;
@@ -274,9 +289,15 @@ export default function FEGGatewayDialog(props: Props) {
         />
       );
       contentOverwriteAPN = (
-        <OverwriteAPN_Field
-          onChange={setGyOverwriteAPN}
-          values={gyOverwriteAPN}
+        <KeyValueFields
+          key_label="APN Filter"
+          value_label="APN Overwrite"
+          onChange={setGyVirtualApnRules}
+          keyValuePairs={
+            gyVirtualApnRules && gyVirtualApnRules.length
+              ? gyVirtualApnRules
+              : [['', '']]
+          }
         />
       );
       break;
@@ -357,27 +378,6 @@ function SCTPFields(props: {values: SCTPValues, onChange: SCTPValues => void}) {
         value={values.local_address}
         onChange={onChange('local_address')}
         placeholder="example.magma.com:5555"
-      />
-    </>
-  );
-}
-
-function OverwriteAPN_Field(props: {
-  values: overWriteAPN,
-  onChange: overWriteAPN => void,
-}) {
-  const classes = useStyles();
-  const {values} = props;
-  const onChange = field => event =>
-    props.onChange({...values, [field]: event.target.value});
-  return (
-    <>
-      <TextField
-        label="Overwrite APN"
-        className={classes.input}
-        value={values.apn}
-        onChange={onChange('apn')}
-        placeholder=""
       />
     </>
   );

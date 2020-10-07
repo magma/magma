@@ -54,25 +54,17 @@ class SessiondTest : public ::testing::Test {
     spgw_client       = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     events_reporter   = std::make_shared<MockEventsReporter>();
     auto rule_store   = std::make_shared<StaticRuleStore>();
-    session_store = std::make_shared<SessionStore>(rule_store);
+    session_store     = std::make_shared<SessionStore>(rule_store);
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
 
     reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     auto default_mconfig = get_default_mconfig();
-    monitor = std::make_shared<LocalEnforcer>(
-      reporter,
-      rule_store,
-      *session_store,
-      pipelined_client,
-      directoryd_client,
-      events_reporter,
-      spgw_client,
-      nullptr,
-      SESSION_TERMINATION_TIMEOUT_MS,
-      0,
-      default_mconfig);
+    monitor              = std::make_shared<LocalEnforcer>(
+        reporter, rule_store, *session_store, pipelined_client,
+        directoryd_client, events_reporter, spgw_client, nullptr,
+        SESSION_TERMINATION_TIMEOUT_MS, 0, default_mconfig);
     session_map = SessionMap{};
 
     local_service =
@@ -80,8 +72,8 @@ class SessiondTest : public ::testing::Test {
     session_manager = std::make_shared<LocalSessionManagerAsyncService>(
         local_service->GetNewCompletionQueue(),
         std::make_unique<LocalSessionManagerHandlerImpl>(
-          monitor, reporter.get(), directoryd_client,
-          events_reporter, *session_store));
+            monitor, reporter.get(), directoryd_client, events_reporter,
+            *session_store));
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
         local_service->GetNewCompletionQueue(),
@@ -265,18 +257,21 @@ TEST_F(SessiondTest, end_to_end_success) {
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
         "rule3");
     create_credit_update_response(
-        "IMSI1", 1, 1536, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 1, 1536, create_response.mutable_credits()->Add());
     create_credit_update_response(
-        "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 2, 1024, create_response.mutable_credits()->Add());
     // Expect create session with IMSI1
     EXPECT_CALL(
         *controller_mock,
         CreateSession(testing::_, CheckCreateSession("IMSI1"), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
-          testing::SetArgPointee<2>(create_response),
-          testing::Return(grpc::Status::OK)));
-    EXPECT_CALL(*events_reporter, session_created(testing::_)).Times(1);
+            testing::SetArgPointee<2>(create_response),
+            testing::Return(grpc::Status::OK)));
+    EXPECT_CALL(
+        *events_reporter,
+        session_created("IMSI1", testing::_, testing::_, testing::_))
+        .Times(1);
 
     // Temporary fix for pipelined client in sessiond introduces separate calls
     // for static and dynamic rules. So here is the call for static rules.
@@ -290,13 +285,15 @@ TEST_F(SessiondTest, end_to_end_success) {
         ActivateFlows(testing::_, CheckActivateFlows("IMSI1", 0), testing::_))
         .Times(1);
 
-    EXPECT_CALL(*events_reporter, session_updated(testing::_)).Times(1);
+    EXPECT_CALL(
+        *events_reporter, session_updated("IMSI1", testing::_, testing::_))
+        .Times(1);
     CreditUsageUpdate expected_update;
     create_usage_update(
         "IMSI1", 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
     UpdateSessionResponse update_response;
     create_credit_update_response(
-        "IMSI1", 1, 1024, update_response.mutable_responses()->Add());
+        "IMSI1", "1234", 1, 1024, update_response.mutable_responses()->Add());
     // Expect update with IMSI1, charging key 1
     EXPECT_CALL(
         *controller_mock,
@@ -321,9 +318,10 @@ TEST_F(SessiondTest, end_to_end_success) {
         TerminateSession(testing::_, CheckTerminate("IMSI1"), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
-          testing::SetArgPointee<2>(terminate_response),
-          SetEndPromise(&end_promise, Status::OK)));
-    EXPECT_CALL(*events_reporter, session_terminated(testing::_)).Times(1);
+            testing::SetArgPointee<2>(terminate_response),
+            SetEndPromise(&end_promise, Status::OK)));
+    EXPECT_CALL(*events_reporter, session_terminated("IMSI1", testing::_))
+        .Times(1);
   }
 
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
@@ -333,9 +331,6 @@ TEST_F(SessiondTest, end_to_end_success) {
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
-  // TODO @themarwhal deprecate
-  request.mutable_sid()->set_id("IMSI1");
-  request.set_rat_type(RATType::TGPP_LTE);
   request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
@@ -392,9 +387,9 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
         "rule3");
     create_credit_update_response(
-        "IMSI1", 1, 1025, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 1, 1025, create_response.mutable_credits()->Add());
     create_credit_update_response(
-        "IMSI1", 2, 1024, create_response.mutable_credits()->Add());
+        "IMSI1", "1234", 2, 1024, create_response.mutable_credits()->Add());
     // Expect create session with IMSI1
     EXPECT_CALL(
         *controller_mock,
@@ -433,9 +428,6 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
-  // TODO @themarwhal deprecate
-  request.mutable_sid()->set_id("IMSI1");
-  request.set_rat_type(RATType::TGPP_LTE);
   request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);

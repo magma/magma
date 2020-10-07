@@ -25,6 +25,7 @@ import (
 	magmav1alpha1 "magma/cwf/k8s/cwf_operator/pkg/apis/magma/v1alpha1"
 	"magma/cwf/k8s/cwf_operator/pkg/health_client"
 	"magma/cwf/k8s/cwf_operator/pkg/registry"
+	"magma/cwf/k8s/cwf_operator/pkg/status_reporter"
 	"magma/feg/cloud/go/protos"
 	orcprotos "magma/orc8r/lib/go/protos"
 
@@ -54,8 +55,14 @@ func TestHAClusterControllerSingleGateway(t *testing.T) {
 		name      = "cwf-operator"
 		namespace = "test"
 		gw        = "test-gw"
+		gwID      = "test-gw1"
 	)
-	gateways := []string{gw}
+	gateways := []magmav1alpha1.GatewayResource{
+		{
+			HelmReleaseName: gw,
+			GatewayID:       gwID,
+		},
+	}
 	r := initTestReconciler(gateways, name, namespace, map[string]string{})
 	// Mock request to simulate Reconcile() being called on an event for a
 	// watched resource .
@@ -87,9 +94,20 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 		name      = "cwf-operator"
 		namespace = "test"
 		gw        = "test-gw1"
+		gwID      = "test-gwID1"
 		gw2       = "test-gw2"
+		gwID2     = "test-gwID2"
 	)
-	gateways := []string{gw, gw2}
+	gateways := []magmav1alpha1.GatewayResource{
+		{
+			HelmReleaseName: gw,
+			GatewayID:       gwID,
+		},
+		{
+			HelmReleaseName: gw2,
+			GatewayID:       gwID2,
+		},
+	}
 	mockServicer := &mockHealthServicer{}
 	mockServicer2 := &mockHealthServicer{}
 	addr := runMockService(t, mockServicer)
@@ -136,15 +154,13 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 	mockCluster := &magmav1alpha1.HACluster{}
 	err = r.client.Get(context.Background(), req.NamespacedName, mockCluster)
 	assert.NoError(t, err)
-	assert.Equal(t, gw, mockCluster.Status.Active)
-	assert.Equal(t, magmav1alpha1.Uninitialized, mockCluster.Status.ActiveInitState)
-	assert.Equal(t, magmav1alpha1.Uninitialized, mockCluster.Status.StandbyInitState)
+	assertClusterStatus(t, gw, magmav1alpha1.Uninitialized, magmav1alpha1.Uninitialized, 0, 0, mockCluster.Status)
 
 	// Test proper error handling if a configured gateway doesn't actually exist
 	mockServicer.On("GetHealthStatus", mock.Anything, mock.Anything).Return(healthyStatus, nil).Once()
 	mockServicer.On("Enable", mock.Anything, mock.Anything).Return(void, nil).Once()
 	_, err = r.Reconcile(req)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 	mockServicer.AssertExpectations(t)
 
 	// Create gw2 resource
@@ -161,15 +177,13 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 	assert.NoError(t, err)
 	mockServicer.AssertExpectations(t)
 	mockServicer2.AssertExpectations(t)
-	mockcluster := &magmav1alpha1.HACluster{}
-	err = r.client.Get(context.Background(), req.NamespacedName, mockcluster)
+	mockCluster = &magmav1alpha1.HACluster{}
+	err = r.client.Get(context.Background(), req.NamespacedName, mockCluster)
 	assert.NoError(t, err)
-	assert.Equal(t, gw, mockcluster.Status.Active)
-	assert.Equal(t, magmav1alpha1.Initialized, mockcluster.Status.ActiveInitState)
-	assert.Equal(t, magmav1alpha1.Initialized, mockcluster.Status.StandbyInitState)
+	assertClusterStatus(t, gw, magmav1alpha1.Initialized, magmav1alpha1.Initialized, 0, 0, mockCluster.Status)
 
 	// Test successful failover
-	mockServicer.On("GetHealthStatus", mock.Anything, mock.Anything).Return(unhealthyStatus, fmt.Errorf("err connecting")).Once()
+	mockServicer.On("GetHealthStatus", mock.Anything, mock.Anything).Return(unhealthyStatus, nil).Once()
 	mockServicer2.On("GetHealthStatus", mock.Anything, mock.Anything).Return(healthyStatus, nil).Once()
 	mockServicer2.On("Enable", mock.Anything, mock.Anything).Return(void, nil).Once()
 	mockServicer.On("Disable", mock.Anything, mock.Anything).Return(void, nil).Once()
@@ -180,9 +194,7 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 	mockCluster = &magmav1alpha1.HACluster{}
 	err = r.client.Get(context.Background(), req.NamespacedName, mockCluster)
 	assert.NoError(t, err)
-	assert.Equal(t, gw2, mockCluster.Status.Active)
-	assert.Equal(t, magmav1alpha1.Initialized, mockCluster.Status.ActiveInitState)
-	assert.Equal(t, magmav1alpha1.Initialized, mockCluster.Status.StandbyInitState)
+	assertClusterStatus(t, gw2, magmav1alpha1.Initialized, magmav1alpha1.Initialized, 0, 0, mockCluster.Status)
 
 	// Test failover and active init failure
 	mockServicer2.On("GetHealthStatus", mock.Anything, mock.Anything).Return(unhealthyStatus, nil).Once()
@@ -190,20 +202,19 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 	mockServicer.On("Enable", mock.Anything, mock.Anything).Return(void, fmt.Errorf("session restart failed")).Once()
 	mockServicer2.On("Disable", mock.Anything, mock.Anything).Return(void, nil).Once()
 	_, err = r.Reconcile(req)
-	assert.Error(t, err)
+	assert.NoError(t, err)
 	mockServicer.AssertExpectations(t)
 	mockServicer2.AssertExpectations(t)
 	mockCluster = &magmav1alpha1.HACluster{}
 	err = r.client.Get(context.Background(), req.NamespacedName, mockCluster)
 	assert.NoError(t, err)
-	assert.Equal(t, gw, mockCluster.Status.Active)
-	assert.Equal(t, magmav1alpha1.Uninitialized, mockCluster.Status.ActiveInitState)
-	assert.Equal(t, magmav1alpha1.Initialized, mockCluster.Status.StandbyInitState)
+	assertClusterStatus(t, gw, magmav1alpha1.Uninitialized, magmav1alpha1.Initialized, 0, 0, mockCluster.Status)
 
-	// Test both unhealthy, but active uninitialized
+	// Test both unhealthy, both should be re-initialized
 	mockServicer.On("GetHealthStatus", mock.Anything, mock.Anything).Return(unhealthyStatus, nil).Once()
 	mockServicer2.On("GetHealthStatus", mock.Anything, mock.Anything).Return(unhealthyStatus, nil).Once()
 	mockServicer.On("Enable", mock.Anything, mock.Anything).Return(void, nil).Once()
+	mockServicer2.On("Disable", mock.Anything, mock.Anything).Return(void, nil).Once()
 	_, err = r.Reconcile(req)
 	assert.NoError(t, err)
 	mockServicer.AssertExpectations(t)
@@ -211,12 +222,57 @@ func TestHAClusterControllerTwoGateways(t *testing.T) {
 	mockCluster = &magmav1alpha1.HACluster{}
 	err = r.client.Get(context.Background(), req.NamespacedName, mockCluster)
 	assert.NoError(t, err)
-	assert.Equal(t, gw, mockCluster.Status.Active)
-	assert.Equal(t, magmav1alpha1.Initialized, mockCluster.Status.ActiveInitState)
-	assert.Equal(t, magmav1alpha1.Initialized, mockCluster.Status.StandbyInitState)
+	assertClusterStatus(t, gw, magmav1alpha1.Initialized, magmav1alpha1.Initialized, 0, 0, mockCluster.Status)
+
+	// Test active unreachable, first error
+	mockServicer.On("GetHealthStatus", mock.Anything, mock.Anything).Return(unhealthyStatus, fmt.Errorf("err connecting")).Once()
+	_, err = r.Reconcile(req)
+	assert.NoError(t, err)
+	mockServicer.AssertExpectations(t)
+	mockCluster = &magmav1alpha1.HACluster{}
+	err = r.client.Get(context.Background(), req.NamespacedName, mockCluster)
+	assert.NoError(t, err)
+	assertClusterStatus(t, gw, magmav1alpha1.Initialized, magmav1alpha1.Initialized, 1, 0, mockCluster.Status)
+
+	// Test active unreachable, second error causes failover, disable fails
+	mockServicer.On("GetHealthStatus", mock.Anything, mock.Anything).Return(unhealthyStatus, fmt.Errorf("err connecting")).Once()
+	mockServicer2.On("GetHealthStatus", mock.Anything, mock.Anything).Return(healthyStatus, nil).Once()
+	mockServicer2.On("Enable", mock.Anything, mock.Anything).Return(void, nil).Once()
+	mockServicer.On("Disable", mock.Anything, mock.Anything).Return(void, fmt.Errorf("Unavailable")).Once()
+	_, err = r.Reconcile(req)
+	assert.NoError(t, err)
+	mockServicer.AssertExpectations(t)
+	mockServicer2.AssertExpectations(t)
+	mockCluster = &magmav1alpha1.HACluster{}
+	err = r.client.Get(context.Background(), req.NamespacedName, mockCluster)
+	assert.NoError(t, err)
+	assertClusterStatus(t, gw2, magmav1alpha1.Initialized, magmav1alpha1.Uninitialized, 0, 0, mockCluster.Status)
+
+	// Ensure standby got deleted due to failed init
+	podlist := &corev1.PodList{}
+	err = r.client.List(context.TODO(), podlist)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(podlist.Items))
+	assert.Equal(t, gwPod2.Name, podlist.Items[0].Name)
 }
 
-func initTestReconciler(gateways []string, name string, namespace string, svcsToAddrs map[string]string) *ReconcileHACluster {
+func assertClusterStatus(
+	t *testing.T,
+	expectedActive string,
+	expectedActiveInit magmav1alpha1.HAClusterInitState,
+	expectedStandbyInit magmav1alpha1.HAClusterInitState,
+	expectedActiveFailures int,
+	expectedStandbyFailures int,
+	actualStatus magmav1alpha1.HAClusterStatus,
+) {
+	assert.Equal(t, expectedActive, actualStatus.Active)
+	assert.Equal(t, expectedActiveInit, actualStatus.ActiveInitState)
+	assert.Equal(t, expectedStandbyInit, actualStatus.StandbyInitState)
+	assert.Equal(t, expectedActiveFailures, actualStatus.ConsecutiveActiveErrors)
+	assert.Equal(t, expectedStandbyFailures, actualStatus.ConsecutiveStandbyErrors)
+}
+
+func initTestReconciler(gateways []magmav1alpha1.GatewayResource, name string, namespace string, svcsToAddrs map[string]string) *ReconcileHACluster {
 	// An haCluster resource with metadata and spec.
 	haCluster := &magmav1alpha1.HACluster{
 		ObjectMeta: metav1.ObjectMeta{
@@ -224,7 +280,8 @@ func initTestReconciler(gateways []string, name string, namespace string, svcsTo
 			Namespace: namespace,
 		},
 		Spec: magmav1alpha1.HAClusterSpec{
-			GatewayResourceNames: gateways,
+			GatewayResources:           gateways,
+			MaxConsecutiveActiveErrors: 2,
 		},
 	}
 	// Objects to track in the fake client.
@@ -249,6 +306,7 @@ func initTestReconciler(gateways []string, name string, namespace string, svcsTo
 				ConnectionRegistry: registry.NewK8sConnectionRegistry(),
 			},
 		},
+		statusReporter:       status_reporter.NewStatusReporter(),
 		gatewayHealthService: healthSvcName,
 	}
 }

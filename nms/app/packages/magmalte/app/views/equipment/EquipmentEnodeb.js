@@ -82,6 +82,7 @@ export default function Enodeb() {
       <Grid container justify="space-between" spacing={3}>
         <Grid item xs={12}>
           <DateTimeMetricChart
+            unit={'Throughput(mb/s)'}
             title={CHART_TITLE}
             queries={[
               `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
@@ -144,7 +145,7 @@ function EnodebTableRaw(props: WithAlert) {
           ),
         },
         {title: 'Session State Name', field: 'sessionName'},
-        {title: 'Health', field: 'health'},
+        {title: 'Health', field: 'health', width: 100},
         {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
       ]}
       handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}

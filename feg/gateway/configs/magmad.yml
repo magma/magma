@@ -22,6 +22,7 @@ magma_services:
   - health
   - swx_proxy
   - eap_aka
+  - eap_sim
   - aaa_server
 
 # List of services that don't provide service303 interface
@@ -66,6 +67,7 @@ metricsd:
   sync_interval: 60 # How frequently to sync to cloud in seconds
   grpc_timeout: 10 # Timeout in seconds
   queue_length: 1000 # Number of failed samples to enqueue for resend
+  max_grpc_msg_size_mb: 4 # Max message size for gRPC channel in MBs
   # List of services for metricsd to poll
   services:
     - magmad
@@ -73,6 +75,7 @@ metricsd:
     - s6a_proxy
     - swx_proxy
     - eap_aka
+    - eap_sim
     - aaa_server
     - csfb
 

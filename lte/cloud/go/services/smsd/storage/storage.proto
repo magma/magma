@@ -1,0 +1,70 @@
+/*
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+syntax = "proto3";
+
+package magma.lte.smsd.storage;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "storage";
+
+// Since the gateway-facing GRPC interface for this service doesn't actually
+// use these proto types and the REST handlers are implemented by directly
+// using the storage interface, we could actually just swagger types for these.
+// For now, I'll keep them here.
+
+// SMS represents a message tracked by the smsd service
+message SMS {
+    // pk uniquely identifies an SMS message (generated unique key)
+    string pk = 1;
+    // delivery status of the SMS
+    MessageStatus status = 2;
+
+    // destination for the message
+    string imsi = 10;
+    // source MSISDN for the mesasge, to be encoded into the SMS
+    string sourceMsisdn = 11;
+    // the desired message content of the SMS
+    string message = 12;
+
+    // time at which the message was created in the system
+    google.protobuf.Timestamp createdTime = 20;
+    // time that we last tried delivering this message. if status is delivered,
+    // this will be the delivery time
+    google.protobuf.Timestamp lastDeliveryAttemptTime = 21;
+    // number of times we've attempted to send this SMS
+    uint32 attemptCount = 22;
+    // error message from the most recent failed delivery attempt
+    string deliveryError = 23;
+
+    // Internal field which holds the reference numbers assigned to an SMS
+    // which is in flight.
+    // Value is a bytearray because one message could result in multiple SMSs
+    // being sent to the UE.
+    // If this field is non-empty, the message is in flight. Otherwise, it has
+    // yet to be delivered to an AGW.
+    bytes refNums = 30;
+}
+
+enum MessageStatus {
+    WAITING = 0;
+    DELIVERED = 1;
+    FAILED = 2;
+}
+
+// MutableSMS encapsulates the state that service clients are allowed to set.
+message MutableSMS {
+    string imsi = 1;
+    string sourceMsisdn = 2;
+    string message = 3;
+}

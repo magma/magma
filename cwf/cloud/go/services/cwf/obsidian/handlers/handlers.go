@@ -48,12 +48,14 @@ const (
 	ManageNetworkDNSPath           = ManageNetworkPath + obsidian.UrlSep + "dns"
 	ManageNetworkCarrierWifiPath   = ManageNetworkPath + obsidian.UrlSep + "carrier_wifi"
 	ManageNetworkFederationPath    = ManageNetworkPath + obsidian.UrlSep + "federation"
+	ListNetworkHAPairsPath         = ManageNetworkPath + obsidian.UrlSep + "ha_pairs"
+	ManageNetworkHAPairsPath       = ListNetworkHAPairsPath + obsidian.UrlSep + ":ha_pair_id"
+	ManageNetworkHAPairsStatusPath = ManageNetworkHAPairsPath + obsidian.UrlSep + "status"
 	ManageNetworkSubscriberPath    = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
 	ManageNetworkBaseNamesPath     = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
 	ManageNetworkRuleNamesPath     = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
 	ManageNetworkBaseNamePath      = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
 	ManageNetworkRuleNamePath      = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
-	ManageNetworkClusterStatusPath = ManageNetworkPath + obsidian.UrlSep + "cluster_status"
 	ManageNetworkLiUesPath         = ManageNetworkPath + obsidian.UrlSep + ":li_ues"
 
 	Gateways                      = "gateways"
@@ -75,16 +77,22 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(ListGatewaysPath, cwf.CwfGatewayType, makeCwfGateways),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, &cwfModels.MutableCwfGateway{}, makeCwfGateways),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
-		handlers.GetDeleteGatewayHandler(ManageGatewayPath, cwf.CwfGatewayType),
+		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
-		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
+		{Path: ManageNetworkHAPairsStatusPath, Methods: obsidian.GET, HandlerFunc: getHAPairStatusHandler},
 		{Path: ManageGatewayHealthStatusPath, Methods: obsidian.GET, HandlerFunc: getHealthStatusHandler},
 		{Path: SubscriberDirectoryRecordPath, Methods: obsidian.GET, HandlerFunc: getSubscriberDirectoryHandler},
+
+		{Path: ListNetworkHAPairsPath, Methods: obsidian.GET, HandlerFunc: listHAPairsHandler},
+		{Path: ListNetworkHAPairsPath, Methods: obsidian.POST, HandlerFunc: createHAPairHandler},
+		{Path: ManageNetworkHAPairsPath, Methods: obsidian.GET, HandlerFunc: getHAPairHandler},
+		{Path: ManageNetworkHAPairsPath, Methods: obsidian.PUT, HandlerFunc: updateHAPairHandler},
+		{Path: ManageNetworkHAPairsPath, Methods: obsidian.DELETE, HandlerFunc: deleteHAPairHandler},
 
 		{Path: ManageNetworkBaseNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberBaseName},
 		{Path: ManageNetworkRuleNamePath, Methods: obsidian.POST, HandlerFunc: lteHandlers.AddNetworkWideSubscriberRuleName},
@@ -116,7 +124,7 @@ func GetHandlers() []obsidian.Handler {
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateMagmadGatewayFromModel(c, &cwfModels.MutableCwfGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &cwfModels.MutableCwfGateway{}); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -128,7 +136,7 @@ func getGateway(c echo.Context) error {
 		return nerr
 	}
 
-	magmadModel, nerr := handlers.LoadMagmadGatewayModel(nid, gid)
+	magmadModel, nerr := handlers.LoadMagmadGateway(nid, gid)
 	if nerr != nil {
 		return nerr
 	}
@@ -162,8 +170,20 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateMagmadGatewayFromModel(c, nid, gid, &cwfModels.MutableCwfGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &cwfModels.MutableCwfGateway{}); nerr != nil {
 		return nerr
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func deleteGateway(c echo.Context) error {
+	nid, gid, nerr := obsidian.GetNetworkAndGatewayIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+	err := handlers.DeleteMagmadGateway(nid, gid, storage.TKs{{Type: cwf.CwfGatewayType, Key: gid}})
+	if err != nil {
+		return makeErr(err)
 	}
 	return c.NoContent(http.StatusNoContent)
 }
@@ -173,12 +193,12 @@ type cwfAndMagmadGateway struct {
 }
 
 func makeCwfGateways(
-	entsByTK map[storage.TypeAndKey]configurator.NetworkEntity,
+	entsByTK configurator.NetworkEntitiesByTK,
 	devicesByID map[string]interface{},
 	statusesByID map[string]*orc8rModels.GatewayStatus,
 ) map[string]handlers.GatewayModel {
 	gatewayEntsByKey := map[string]*cwfAndMagmadGateway{}
-	for tk, ent := range entsByTK {
+	for tk, ent := range entsByTK.MultiFilter(orc8r.MagmadGatewayType, cwf.CwfGatewayType) {
 		existing, found := gatewayEntsByKey[tk.Key]
 		if !found {
 			existing = &cwfAndMagmadGateway{}
@@ -252,8 +272,8 @@ func convertDirectoryRecordToSubscriberRecord(iRecord interface{}) (*cwfModels.C
 	return c, nil
 }
 
-func getClusterStatusHandler(c echo.Context) error {
-	nid, nerr := obsidian.GetNetworkId(c)
+func getHAPairStatusHandler(c echo.Context) error {
+	nid, haPairID, nerr := getNetworkIDAndHaPairID(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -267,13 +287,13 @@ func getClusterStatusHandler(c echo.Context) error {
 	if network.Type != cwf.CwfNetworkType {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, cwf.CwfNetworkType))
 	}
-	reportedClusterStatus, err := state.GetState(nid, cwf.CwfClusterHealthType, "cluster")
+	reportedClusterStatus, err := state.GetState(nid, cwf.CwfHAPairStatusType, haPairID)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	clusterStatus, ok := reportedClusterStatus.ReportedState.(*cwfModels.CarrierWifiNetworkClusterStatus)
+	clusterStatus, ok := reportedClusterStatus.ReportedState.(*cwfModels.CarrierWifiHaPairStatus)
 	if !ok {
 		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to ClusterStatus"), http.StatusInternalServerError)
 	}
@@ -303,4 +323,123 @@ func getHealthStatusHandler(c echo.Context) error {
 		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to HealthStatus"), http.StatusInternalServerError)
 	}
 	return c.JSON(http.StatusOK, healthState)
+}
+
+func listHAPairsHandler(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	haPairEnts, err := configurator.LoadAllEntitiesInNetwork(nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria())
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	ret := make(map[string]*cwfModels.CwfHaPair, len(haPairEnts))
+	for _, haPairEnt := range haPairEnts {
+		cwfHaPair := &cwfModels.CwfHaPair{}
+		err = cwfHaPair.FromBackendModels(haPairEnt)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		ret[haPairEnt.Key] = cwfHaPair
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func createHAPairHandler(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	haPair := new(cwfModels.CwfHaPair)
+	if err := c.Bind(haPair); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := haPair.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	_, err := configurator.CreateEntity(networkID, haPair.ToEntity())
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusCreated, haPair.HaPairID)
+}
+
+func getHAPairHandler(c echo.Context) error {
+	networkID, haPairID, nerr := getNetworkIDAndHaPairID(c)
+	if nerr != nil {
+		return nerr
+	}
+	ent, err := configurator.LoadEntity(
+		networkID,
+		cwf.CwfHAPairType,
+		haPairID,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+	)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	cwfHaPair := &cwfModels.CwfHaPair{}
+	err = cwfHaPair.FromBackendModels(ent)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, cwfHaPair)
+}
+
+func updateHAPairHandler(c echo.Context) error {
+	networkID, haPairID, nerr := getNetworkIDAndHaPairID(c)
+	if nerr != nil {
+		return nerr
+	}
+	mutableHaPair := new(cwfModels.MutableCwfHaPair)
+	if err := c.Bind(mutableHaPair); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := mutableHaPair.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	// 404 if pair doesn't exist
+	exists, err := configurator.DoesEntityExist(networkID, cwf.CwfHAPairType, haPairID)
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "Failed to check if ha pair exists"), http.StatusInternalServerError)
+	}
+	if !exists {
+		return echo.ErrNotFound
+	}
+	_, err = configurator.UpdateEntity(networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID))
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusOK)
+}
+
+func deleteHAPairHandler(c echo.Context) error {
+	networkID, haPairID, nerr := getNetworkIDAndHaPairID(c)
+	if nerr != nil {
+		return nerr
+	}
+	err := configurator.DeleteEntity(networkID, cwf.CwfHAPairType, haPairID)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getNetworkIDAndHaPairID(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "ha_pair_id")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
+}
+
+func makeErr(err error) *echo.HTTPError {
+	if err == merrors.ErrNotFound {
+		return echo.ErrNotFound
+	}
+	return obsidian.HttpError(err, http.StatusInternalServerError)
 }

@@ -82,7 +82,7 @@ func TestAssignmentsServicer(t *testing.T) {
 				},
 			},
 			{
-				Type: lte.CellularGatewayType, Key: testGwLogicalId,
+				Type: lte.CellularGatewayEntityType, Key: testGwLogicalId,
 				Config: newDefaultGatewayConfig(),
 				Associations: []storage.TypeAndKey{
 					{Type: lte.SubscriberEntityType, Key: testSubscriberId},
@@ -92,7 +92,7 @@ func TestAssignmentsServicer(t *testing.T) {
 				Type: orc8r.MagmadGatewayType, Key: testGwLogicalId,
 				Name: "foobar", Description: "foo bar",
 				PhysicalID:   testGwHwId,
-				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayType, Key: testGwLogicalId}},
+				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: testGwLogicalId}},
 			},
 		},
 	)

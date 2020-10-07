@@ -4,32 +4,43 @@
     "Orchestrator": [
       {
         "type": "subcategory",
-        "label": "Deploying Orchestrator",
+        "label": "Deploy Orchestrator",
         "ids": [
           "orc8r/deploy_intro",
           "orc8r/deploy_build",
-          "orc8r/deploy_install",
-          "orc8r/deploy_upgrade"
+          "orc8r/deploy_install"
         ]
       },
       {
         "type": "subcategory",
-        "label": "Orchestrator Users Guide",
+        "label": "Upgrade Orchestrator",
         "ids": [
-          "orc8r/ue_metering"
+          "orc8r/upgrade_1_2",
+          "orc8r/upgrade_1_1"
         ]
       }
     ],
-    "NMS User Guide": ["nms/nms_organizations", "nms/nms_grafana"],
+    "NMS User Guide": [
+      "nms/nms_overview",
+      "nms/nms_dashboard",
+      "nms/nms_equipment",
+      "nms/nms_network",
+      "nms/nms_subscriber",
+      "nms/nms_traffic",
+      "nms/nms_organizations",
+      "nms/nms_developer",
+      "nms/nms_how_to_guide"
+    ],
     "Access Gateway": [
       {
         "type": "subcategory",
-        "label": "Deploying AGWs",
+        "label": "Deploy AGWs",
         "ids": [
           "lte/setup_deb",
           "lte/config_agw",
           "lte/enodebd",
           "lte/config_apn",
+          "lte/agw_120_upgrade",
           "lte/agw_110_upgrade"
         ]
       },
@@ -43,10 +54,14 @@
         ]
       }
     ],
+    "Feature Guides": [
+      "howtos/ue_metering",
+      "howtos/config_agw_bridged"
+    ],
     "Federation Gateway": [
       {
         "type": "subcategory",
-        "label": "Deploying FeG",
+        "label": "Deploy FeG",
         "ids": [
           "feg/deploy_intro",
           "feg/deploy_build",
@@ -54,6 +69,11 @@
         ]
       }
     ],
-    "FAQ": ["faq/magma_faq"]
+    "FAQ": ["faq/magma_faq"],
+    "Proposals": [
+      "proposals/p001_vpn_config_from_api",
+      "proposals/p002_scaled_prometheus_pipeline",
+      "proposals/p003_qos_enforcement"
+    ]
   }
 }

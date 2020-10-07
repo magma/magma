@@ -57,25 +57,28 @@ const useStyles = makeStyles(theme => ({
 }));
 
 export function GatewayJsonConfig() {
-  const {match} = useRouter();
+  const {match, history} = useRouter();
   const [error, setError] = useState('');
   const gatewayId: string = nullthrows(match.params.gatewayId);
   const enqueueSnackbar = useEnqueueSnackbar();
   const ctx = useContext(GatewayContext);
   const gwInfo = ctx.state[gatewayId];
-  const {status, ...gwInfoJson} = gwInfo;
-
+  const {['status']: _status, ...gwInfoJson} = gwInfo;
   return (
     <JsonEditor
-      content={gwInfoJson}
+      content={{
+        ...gwInfoJson,
+        connected_enodeb_serials: gwInfoJson.connected_enodeb_serials ?? [],
+      }}
       error={error}
       onSave={async gateway => {
         try {
-          await ctx.setState(gatewayId, {...gateway, status});
+          await ctx.setState(gatewayId, gateway);
           enqueueSnackbar('Gateway saved successfully', {
             variant: 'success',
           });
           setError('');
+          history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);
         }
@@ -336,14 +339,23 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
   const enbInfo =
     gwInfo.connected_enodeb_serials?.reduce(
       (enbs: {[string]: EnodebInfo}, serial: string) => {
-        if (enbCtx.state.enbInfo[serial] != null) {
+        if (enbCtx?.state?.enbInfo?.[serial] != null) {
           enbs[serial] = enbCtx.state.enbInfo[serial];
         }
         return enbs;
       },
       {},
     ) || {};
+  const dhcpServiceStatus = gwInfo.cellular.dns?.dhcp_server_enabled ?? true;
   const ran: DataRows[] = [
+    [
+      {
+        category: 'eNodeB DHCP Service',
+        value: dhcpServiceStatus ? 'Enabled' : 'Disabled',
+        statusCircle: true,
+        status: dhcpServiceStatus,
+      },
+    ],
     [
       {
         category: 'PCI',

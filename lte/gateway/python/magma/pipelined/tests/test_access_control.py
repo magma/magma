@@ -23,7 +23,7 @@ from magma.pipelined.openflow.registers import Direction
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder
 from magma.pipelined.tests.app.start_pipelined import TestSetup, \
     PipelinedController
-from magma.pipelined.tests.app.subscriber import SubContextConfig
+from magma.pipelined.tests.app.subscriber import SubContextConfig, default_ambr_config
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
@@ -131,7 +131,7 @@ class AccessControlTestLTE(unittest.TestCase):
         """
         # Set up subscribers
         sub = SubContextConfig('IMSI001010000000013', '192.168.128.74',
-                               self._tbl_num)
+                               default_ambr_config, self._tbl_num)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -189,7 +189,7 @@ class AccessControlTestLTE(unittest.TestCase):
         """
         # Set up subscribers
         sub = SubContextConfig('IMSI001010000000013', '192.168.128.74',
-                               self._tbl_num)
+                               default_ambr_config, self._tbl_num)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),
@@ -247,7 +247,7 @@ class AccessControlTestLTE(unittest.TestCase):
         """
         # Set up subscribers
         sub = SubContextConfig('IMSI001010000000013', '192.168.128.74',
-                               self._tbl_num)
+                               default_ambr_config, self._tbl_num)
 
         isolator = RyuDirectTableIsolator(
             RyuForwardFlowArgsBuilder.from_subscriber(sub).build_requests(),

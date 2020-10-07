@@ -28,8 +28,9 @@ const (
 )
 
 type address struct {
-	ip   string
-	port uint32
+	ip      string
+	version protos.IPAddress_IPVersion
+	port    uint32
 }
 
 // GetFlowDescriptionFromFlowString returns a proto.FlowDescription from a IPFilterRule string
@@ -84,11 +85,20 @@ func getFlowDescriptionFromSplit(matches []string) (*protos.FlowDescription, err
 		Match: &protos.FlowMatch{
 			Direction: direction,
 			IpProto:   proto,
-			Ipv4Src:   src.ip,
-			Ipv4Dst:   dst.ip,
 		},
 	}
-
+	if src.ip != "" {
+		rule.Match.IpSrc = &protos.IPAddress{
+			Version: src.version,
+			Address: []byte(src.ip),
+		}
+	}
+	if dst.ip != "" {
+		rule.Match.IpDst = &protos.IPAddress{
+			Version: dst.version,
+			Address: []byte(dst.ip),
+		}
+	}
 	if proto == protos.FlowMatch_IPPROTO_TCP {
 		rule.Match.TcpSrc = src.port
 		rule.Match.TcpDst = dst.port
@@ -144,12 +154,18 @@ func parseAddress(addr string) (*address, error) {
 		return nil, fmt.Errorf("Invalid format for address %s", addr)
 	}
 	ipAddr := matches[0]
+	version := protos.IPAddress_IPV4
 	if ipAddr == "any" {
-		return &address{ip: "", port: 0}, nil
+		return &address{ip: "", version: version, port: 0}, nil
+	}
+
+	// Easy check if its an ipv6 addr
+	if strings.Count(ipAddr, ":") >= 2 {
+		version = protos.IPAddress_IPV6
 	}
 
 	if len(matches) < 2 {
-		return &address{ip: ipAddr, port: 0}, nil
+		return &address{ip: ipAddr, version: version, port: 0}, nil
 	}
 
 	// Don't support port ranges for now
@@ -157,5 +173,5 @@ func parseAddress(addr string) (*address, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &address{ip: ipAddr, port: uint32(portInt)}, nil
+	return &address{ip: ipAddr, version: version, port: uint32(portInt)}, nil
 }

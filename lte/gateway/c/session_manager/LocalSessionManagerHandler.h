@@ -56,6 +56,20 @@ class LocalSessionManagerHandler {
       ServerContext* context, const LocalEndSessionRequest* request,
       std::function<void(Status, LocalEndSessionResponse)>
           response_callback) = 0;
+
+  /**
+   * Bind the returned bearer id to the policy for which it is created
+   */
+  virtual void BindPolicy2Bearer(
+      ServerContext* context, const PolicyBearerBindingRequest* request,
+      std::function<void(Status, PolicyBearerBindingResponse)>
+          response_callback) = 0;
+  /**
+   * Update active rules for session
+   */
+  virtual void SetSessionRules(
+      ServerContext* context, const SessionRules* request,
+      std::function<void(Status, Void)> response_callback) = 0;
 };
 
 /**
@@ -94,6 +108,24 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       ServerContext* context, const LocalEndSessionRequest* request,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
+  /**
+   * Bind the returned bearer id to the policy for which it is created; if
+   * the returned bearer id is 0 then the dedicated bearer request is rejected
+   */
+  void BindPolicy2Bearer(
+      ServerContext* context, const PolicyBearerBindingRequest* request,
+      std::function<void(Status, PolicyBearerBindingResponse)>
+          response_callback);
+
+  /**
+   * Update active rules for session
+   * Get the SessionMap for the updates, apply the set rules and update the
+   * store. The rule updates should be also propagated to PipelineD
+   */
+  void SetSessionRules(
+      ServerContext* context, const SessionRules* request,
+      std::function<void(Status, Void)> response_callback);
+
  private:
   SessionStore& session_store_;
   std::shared_ptr<LocalEnforcer> enforcer_;
@@ -119,7 +151,8 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   std::string convert_mac_addr_to_str(const std::string& mac_addr);
 
   void add_session_to_directory_record(
-      const std::string& imsi, const std::string& session_id);
+      const std::string& imsi, const std::string& session_id,
+      const std::string& msisdn);
 
   /**
    * handle_create_session_cwf handles a sequence of actions needed for the
@@ -130,15 +163,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * NOT send a CreateSession request into FeG/PolicyDB.
    * Otherwise, we will go through the procedure of creating a new context.
    * @param session_map - SessionMap that contains all sessions with IMSI
-   * @param request - the original request coming in from AAA
    * @param sid - newly created SessionID
    * @param cfg - newly created SessionConfig from the LocalCreateSessionRequest
    * @param cb - callback needed to respond to the original
    * LocalCreateSessionRequest
    */
   void handle_create_session_cwf(
-      SessionMap& session_map, const LocalCreateSessionRequest& request,
-      const std::string& sid, SessionConfig cfg,
+      SessionMap& session_map, const std::string& sid, SessionConfig cfg,
       std::function<void(Status, LocalCreateSessionResponse)> cb);
 
   /**
@@ -159,15 +190,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
    * a CreateSession request into FeG/PolicyDB.
    * Otherwise, we will go through the procedure of creating a new context.
    * @param session_map - SessionMap that contains all sessions with IMSI
-   * @param request - the original request coming in from MMS
    * @param sid - newly created SessionID
    * @param cfg - newly created SessionConfig from the LocalCreateSessionRequest
    * @param cb - callback needed to respond to the original
    * LocalCreateSessionRequest
    */
   void handle_create_session_lte(
-      SessionMap& session_map, const LocalCreateSessionRequest& request,
-      const std::string& sid, SessionConfig cfg,
+      SessionMap& session_map, const std::string& sid, SessionConfig cfg,
       std::function<void(Status, LocalCreateSessionResponse)> cb);
 
   /**
@@ -182,35 +211,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void handle_setup_callback(
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
 
-  SessionConfig build_session_config(const LocalCreateSessionRequest& request);
-
-  /**
-   * Get the most recently written state of sessions for Creation
-   * Does not get any other sessions.
-   *
-   * NOTE: Call only from the main EventBase thread, otherwise there will
-   *       be undefined behavior.
-   */
-  SessionMap get_sessions_for_creation(const std::string& imsi);
-
-  /**
-   * Get the most recently written state of sessions for reporting usage.
-   * Does not get sessions that are not required for reporting.
-   *
-   * NOTE: Call only from the main EventBase thread, otherwise there will
-   *       be undefined behavior.
-   */
-  SessionMap get_sessions_for_reporting(const RuleRecordTable& request);
-
-  /**
-   * Get the most recently written state of the session that is to be deleted.
-   * Does not get any other sessions.
-   *
-   * NOTE: Call only from the main EventBase thread, otherwise there will
-   *       be undefined behavior.
-   */
-  SessionMap get_sessions_for_deletion(const std::string& imsi);
-
   void report_session_update_event(
       SessionMap& session_map, SessionUpdate& session_update);
 
@@ -222,6 +222,10 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       Status status, const std::string& sid,
       std::function<void(Status, LocalCreateSessionResponse)>
           response_callback);
+
+  void log_create_session(SessionConfig& cfg);
+
+  std::string bytes_to_hex(const std::string& s);
 };
 
 }  // namespace magma

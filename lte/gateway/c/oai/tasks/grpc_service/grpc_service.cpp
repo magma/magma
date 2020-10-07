@@ -21,6 +21,7 @@
 #include <memory>
 
 #include "CSFBGatewayServiceImpl.h"
+#include "SMSOrc8rGatewayServiceImpl.h"
 #include "S6aGatewayImpl.h"
 #include "S6aServiceImpl.h"
 #include "SpgwServiceImpl.h"
@@ -33,6 +34,7 @@ using grpc::InsecureServerCredentials;
 using grpc::Server;
 using grpc::ServerBuilder;
 using magma::CSFBGatewayServiceImpl;
+using magma::SMSOrc8rGatewayServiceImpl;
 using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
 using magma::SpgwServiceImpl;
@@ -41,6 +43,7 @@ static SpgwServiceImpl spgw_service;
 static S6aServiceImpl s6a_service;
 static S6aGatewayImpl s6a_proxy;
 static CSFBGatewayServiceImpl sgs_service;
+static SMSOrc8rGatewayServiceImpl sms_orc8r_service;
 static std::unique_ptr<Server> server;
 
 // TODO Candidate: GRPC service may be evolved into a
@@ -58,6 +61,7 @@ void start_grpc_service(bstring server_address) {
   builder.RegisterService(&s6a_proxy);
   builder.RegisterService(&s6a_service);
   builder.RegisterService(&sgs_service);
+  builder.RegisterService(&sms_orc8r_service);
   server = builder.BuildAndStart();
 }
 

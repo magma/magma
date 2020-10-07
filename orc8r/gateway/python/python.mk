@@ -42,7 +42,7 @@ $(PYTHON_BUILD):
 	mkdir -p $(PYTHON_BUILD)
 
 $(SITE_PACKAGES_DIR)/setuptools: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) "setuptools>=41.0.1"
+	$(VIRT_ENV_PIP_INSTALL) "setuptools==49.6.0"  # newer than 41.0.1
 
 swagger:: swagger_prereqs $(SWAGGER_LIST)
 swagger_prereqs:

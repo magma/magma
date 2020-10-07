@@ -1,0 +1,7 @@
+DEVICE=uplink_br0
+ONBOOT=yes
+DEVICETYPE=ovs
+TYPE=OVSBridge
+BOOTPROTO=static
+HOTPLUG=no
+OVS_EXTRA="set-fail-mode $DEVICE secure -- set-controller $DEVICE {{ connection_mode }}:{{ xwf_ctrl_ip }}:6653"

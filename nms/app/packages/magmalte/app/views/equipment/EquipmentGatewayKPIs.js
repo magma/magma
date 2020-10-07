@@ -100,12 +100,31 @@ export default function EquipmentGatewayKPIs() {
 
   const kpiData: DataRows[] = [
     [
-      {category: 'Max Latency', value: maxLatency, unit: 'ms'},
-      {category: 'Min Latency', value: minLatency, unit: 'ms'},
-      {category: 'Avg Latency', value: avgLatency, unit: 'ms'},
+      {
+        category: 'Max Latency',
+        value: maxLatency,
+        unit: 'ms',
+        tooltip:
+          'Max ping latency(for host 8.8.8.8) observed across all gateways',
+      },
+      {
+        category: 'Min Latency',
+        value: minLatency,
+        unit: 'ms',
+        tooltip:
+          'Min ping latency(for host 8.8.8.8) observed across all gateways',
+      },
+      {
+        category: 'Avg Latency',
+        value: avgLatency,
+        unit: 'ms',
+        tooltip:
+          'Avg ping latency(for host 8.8.8.8) observed across all gateways',
+      },
       {
         category: '% Healthy Gateways',
         value: pctHealthyGw,
+        tooltip: '% of gateways which have checked in within last 5 minutes',
       },
     ],
   ];

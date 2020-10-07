@@ -29,14 +29,13 @@ import (
 	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
-//   respond with a rule install (usage-enforcement-static-pass-all), 250KB of
+//   respond with a rule install (usage-enforcement-static-pass-all), 1MB of
 //   quota.
 //   Generate traffic and assert the CCR-I is received.
 // - Set an expectation for a CCR-U with >80% of data usage to be sent up to
@@ -87,13 +86,14 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("900K")}}
+	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "900K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: *swag.String("200K")}}
+	req = &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "200K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
@@ -176,7 +176,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
-
+	tr.WaitForEnforcementStatsToSync()
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)

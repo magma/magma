@@ -48,6 +48,8 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
+	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"})
+	assert.NoError(t, err)
 
 	// 1 sub without a profile on the backend (should fill as "default"), the
 	// other inactive with a sub profile
@@ -55,7 +57,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	// other without
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
 		{
-			Type: lte.ApnEntityType, Key: "apn1",
+			Type: lte.APNEntityType, Key: "apn1",
 			Config: &lte_models.ApnConfiguration{
 				Ambr: &lte_models.AggregatedMaximumBitrate{
 					MaxBandwidthDl: swag.Uint32(42),
@@ -70,7 +72,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 			},
 		},
 		{
-			Type: lte.ApnEntityType, Key: "apn2",
+			Type: lte.APNEntityType, Key: "apn2",
 			Config: &lte_models.ApnConfiguration{
 				Ambr: &lte_models.AggregatedMaximumBitrate{
 					MaxBandwidthDl: swag.Uint32(42),
@@ -94,7 +96,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 				},
 				StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.ApnEntityType, Key: "apn1"}, {Type: lte.ApnEntityType, Key: "apn2"}},
+			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
 		},
 		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 	})
@@ -181,6 +183,47 @@ func TestSubscriberdbStreamer(t *testing.T) {
 
 	expectedProtos[0].Lte.AssignedPolicies = []string{"r1", "r2"}
 	expectedProtos[0].Lte.AssignedBaseNames = []string{"bn1"}
+	expected = funk.Map(
+		expectedProtos,
+		func(sub *lte_protos.SubscriberData) *protos.DataUpdate {
+			data, err := proto.Marshal(sub)
+			assert.NoError(t, err)
+			return &protos.DataUpdate{Key: "IMSI" + sub.Sid.Id, Value: data}
+		},
+	)
+	actual, err = provider.GetUpdates("hw1", nil)
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// Create gateway-specific APN configuration
+	var writes []configurator.EntityWriteOperation
+	writes = append(writes, configurator.NetworkEntity{
+		NetworkID: "n1",
+		Type:      lte.APNResourceEntityType,
+		Key:       "resource1",
+		Config: &lte_models.ApnResource{
+			ApnName:    "apn1",
+			GatewayIP:  "172.16.254.1",
+			GatewayMac: "00:0a:95:9d:68:16",
+			ID:         "resource1",
+			VlanID:     42,
+		},
+		Associations: storage.TKs{{Type: lte.APNEntityType, Key: "apn1"}},
+	})
+	writes = append(writes, configurator.EntityUpdateCriteria{
+		Type:              lte.CellularGatewayEntityType,
+		Key:               gw.Key,
+		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource1"}},
+	})
+	err = configurator.WriteEntities("n1", writes...)
+	assert.NoError(t, err)
+
+	expectedProtos[0].Non_3Gpp.ApnConfig[0].Resource = &lte_protos.APNConfiguration_APNResource{
+		ApnName:    "apn1",
+		GatewayIp:  "172.16.254.1",
+		GatewayMac: "00:0a:95:9d:68:16",
+		VlanId:     42,
+	}
 	expected = funk.Map(
 		expectedProtos,
 		func(sub *lte_protos.SubscriberData) *protos.DataUpdate {

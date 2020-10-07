@@ -31,6 +31,7 @@ import (
 const (
 	TEST_PLMN_ID = "\x00\xF1\x10"
 	TEST_IMSI    = "001010000000001"
+	TEST_IMSI_2  = "001030000000001"
 	VENDOR_3GPP  = diameter.Vendor3GPP
 )
 

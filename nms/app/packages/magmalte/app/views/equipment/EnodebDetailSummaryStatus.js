@@ -54,12 +54,16 @@ export function EnodebStatus() {
         value: isEnbHealthy ? 'Good' : 'Bad',
         statusCircle: true,
         status: isEnbHealthy,
+        tooltip: isEnbHealthy
+          ? 'eNodeB transmit config and status match'
+          : 'mismatch in eNodeB transmit config and status',
       },
       {
         category: 'Transmit Enabled',
         value: enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled',
         statusCircle: true,
         status: enbInfo.enb.config.transmit_enabled,
+        tooltip: 'current transmit configuration on the eNodeB',
       },
     ],
     [

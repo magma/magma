@@ -1,4 +1,4 @@
-// +build multi_session_proxy
+// +build all
 
 /*
  * Copyright 2020 The Magma Authors.
@@ -42,8 +42,7 @@ type multipleScenarioElement struct {
 	IMSIs       []string
 }
 
-func generateMultipleScenarioAndAddSubscribers(t *testing.T, numUEs int) (*TestRunner, []*multipleScenarioElement) {
-	tr := NewTestRunnerWithTwoPCRFandOCS(t)
+func generateMultipleScenarioAndAddSubscribers(t *testing.T, tr *TestRunner, numUEs int) []*multipleScenarioElement {
 	// get the instance per IMSI based on the algorithm to distribuite IMSIs on FEG
 	IMSIs := generateRandomIMSIS(numUEs, nil)
 	IMSIsPerInstance := make([][]string, numInstances, numInstances)
@@ -118,7 +117,7 @@ func generateMultipleScenarioAndAddSubscribers(t *testing.T, numUEs int) (*TestR
 				IMSIs,
 			})
 	}
-	return tr, scenario
+	return scenario
 }
 
 func checkIMSIsListsAreEqual(UEs []*cwfprotos.UEConfig, IMSIs []string) bool {
@@ -147,26 +146,49 @@ func getPCRFandOCSnamePerInstance(instanceId int) (pcrfName string, ocsName stri
 	return
 }
 
-// TODO:
-//  * Support for multiple UEs (depends on UEsim service)
-//  * Check OCS credit has been reported (right now sessiond sends CCR after accounts
-//    are deleted from OCS and PCRF)
 // TestMultiSessionProxyMonitorAndUsageReportEnforcement is an experimental
 // test to try multiple OCS and PCRF servers. Currenty it only supports 1 UE
 // - Create one UE and add monitoring key and credit
 // - Attach UE, tranfer data, detach
 // - Check that the Monitored data by the PCRF instance is good
+// TODO:
+//  * Support for multiple UEs (depends on UEsim service)
+//  * Check OCS credit has been reported (right now sessiond sends CCR after accounts
+//    are deleted from OCS and PCRF)
 func TestMultiSessionProxyMonitorAndUsageReportEnforcement(t *testing.T) {
-	fmt.Println("\nRunning TestMultiSessionProxyUsageReportEnforcement...")
+	fmt.Println("\nRunning TestMultiSessionProxyMonitorAndUsageReportEnforcement...")
+	tr := NewTestRunnerWithTwoPCRFandOCS(t)
+
+	// Overwrite the mconfig to enable multiproxy with OCS2 and PCRF2
+	err := tr.OverwriteMConfig("./gateway.mconfig.multi_session_proxy", "session_proxy")
+	assert.NoError(t, err)
+	assert.NoError(t, tr.RestartService("ocs"))
+	assert.NoError(t, tr.RestartService("pcrf"))
+	assert.NoError(t, tr.RestartService("ocs2"))
+	assert.NoError(t, tr.RestartService("pcrf2"))
+	assert.NoError(t, tr.RestartService("ingress"))
+	time.Sleep(3 * time.Second)
+	assert.NoError(t, tr.RestartService("session_proxy"))
 
 	// TODO: this only works with 1 user because UEsim can only use one single MAC address
-	tr, scenario := generateMultipleScenarioAndAddSubscribers(t, 1)
+	scenario := generateMultipleScenarioAndAddSubscribers(t, tr, 1)
 	defer func() {
 		// Clear hss, ocs, and pcrf
 		for _, scenarioElmnt := range scenario {
 			assert.NoError(t, scenarioElmnt.ruleManager.RemoveInstalledRules())
 		}
 		assert.NoError(t, tr.CleanUp())
+
+		err = tr.OverwriteMConfig("gateway.mconfig", "session_proxy")
+		assert.NoError(t, err)
+		assert.NoError(t, tr.RestartService("ocs"))
+		assert.NoError(t, tr.RestartService("pcrf"))
+		assert.NoError(t, tr.RestartService("ingress"))
+		time.Sleep(3 * time.Second)
+		assert.NoError(t, tr.RestartService("session_proxy"))
+		// ignore ocs2 and pcrf2 errors
+		tr.RestartService("ocs2")
+		tr.RestartService("pcrf2")
 	}()
 
 	tr.WaitForPoliciesToSync()

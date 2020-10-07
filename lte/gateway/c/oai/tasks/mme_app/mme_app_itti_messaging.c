@@ -235,6 +235,11 @@ int mme_app_send_s11_create_session_req(
   } else {
     session_request_p->msisdn.length = 0;
   }
+
+  // Fill User Location Information
+  session_request_p->uli.present = 0;   // initialize the presencemask
+  mme_app_get_user_location_information(&session_request_p->uli, ue_mm_context);
+
   session_request_p->rat_type = RAT_EUTRAN;
 
   // default bearer already created by NAS
@@ -379,7 +384,8 @@ int mme_app_send_s11_create_session_req(
  **                                                                        **
  ** name:    nas_itti_sgsap_uplink_unitdata                                **
  **                                                                        **
- ** description: Send itti mesage to SGS task to send NAS message          **
+ ** description: Send itti mesage to SGS or SMS_ORC8R task to send NAS     **
+ **              message.                                                  **
  **                                                                        **
  ** inputs:  imsi : IMSI of UE                                             **
  **          imsi_len : Length of IMSI                                     **
@@ -393,7 +399,7 @@ int mme_app_send_s11_create_session_req(
 void nas_itti_sgsap_uplink_unitdata(
     const char* const imsi, uint8_t imsi_len, bstring nas_msg,
     imeisv_t* imeisv_pP, MobileStationClassmark2* mobilestationclassmark2_pP,
-    tai_t* tai_pP, ecgi_t* ecgi_pP) {
+    tai_t* tai_pP, ecgi_t* ecgi_pP, bool sms_orc8r_enabled) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   MessageDef* message_p = NULL;
   int uetimezone        = 0;
@@ -465,14 +471,28 @@ void nas_itti_sgsap_uplink_unitdata(
 
   IMSI_STRING_TO_IMSI64(imsi, &message_p->ittiMsgHeader.imsi);
   imsi64_t imsi64 = message_p->ittiMsgHeader.imsi;
-  if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p) !=
-      RETURNok) {
-    OAILOG_ERROR_UE(
-        LOG_MME_APP, imsi64,
-        "Failed to send SGSAP Uplink Unitdata to SGS task\n");
+
+  // Check if we're in SMS_ORC8R and send to the appropriate task if so
+  if (sms_orc8r_enabled) {
+    if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SMS_ORC8R, message_p) !=
+        RETURNok) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, imsi64,
+          "Failed to send SGSAP Uplink Unitdata to SMS_ORC8R task\n");
+    } else {
+      OAILOG_DEBUG_UE(
+          LOG_MME_APP, imsi64, "Sent SGSAP Uplink Unitdata to SMS_ORC8R task\n");
+    }
   } else {
-    OAILOG_DEBUG_UE(
-        LOG_MME_APP, imsi64, "Sent SGSAP Uplink Unitdata to SGS task\n");
+    if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p) !=
+        RETURNok) {
+      OAILOG_ERROR_UE(
+          LOG_MME_APP, imsi64,
+          "Failed to send SGSAP Uplink Unitdata to SGS task\n");
+    } else {
+      OAILOG_DEBUG_UE(
+          LOG_MME_APP, imsi64, "Sent SGSAP Uplink Unitdata to SGS task\n");
+    }
   }
 
   OAILOG_FUNC_OUT(LOG_MME_APP);

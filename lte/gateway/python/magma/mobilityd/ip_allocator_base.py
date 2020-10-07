@@ -44,7 +44,7 @@ class IPAllocator(ABC):
         ...
 
     @abstractmethod
-    def alloc_ip_address(self, sid: str) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan_id: int) -> IPDesc:
         ...
 
     @abstractmethod
@@ -74,5 +74,13 @@ class NoAvailableIPError(Exception):
 
 class DuplicatedIPAllocationError(Exception):
     """ Exception thrown when an IP has already been allocated to a UE
+    """
+    pass
+
+
+class DuplicateIPAssignmentError(Exception):
+    """ Exception thrown when underlying IP allocator assigns duplicate
+    Ip address to two different SID. This also catches dup IP across
+    two different APNs or overlaps in IP-POOL.
     """
     pass

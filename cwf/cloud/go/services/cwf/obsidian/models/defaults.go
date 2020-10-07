@@ -1,17 +1,28 @@
 package models
 
+import fegmodels "magma/feg/cloud/go/services/feg/obsidian/models"
+
 func NewDefaultNetworkCarrierWifiConfigs() *NetworkCarrierWifiConfigs {
 	defaultRuleID := "default_rule_1"
 	return &NetworkCarrierWifiConfigs{
-		AaaServer: &AaaServer{
+		AaaServer: &fegmodels.AaaServer{
 			AccountingEnabled:    false,
 			CreateSessionOnAuth:  false,
-			IDLESessionTimeoutMs: 21600000,
+			IdleSessionTimeoutMs: 21600000,
 		},
 		DefaultRuleID: &defaultRuleID,
-		EapAka: &EapAka{
-			PlmnIds: []string{"123456"},
-			Timeout: &EapAkaTimeout{
+		EapAka: &fegmodels.EapAka{
+			PlmnIds: []string{},
+			Timeout: &fegmodels.EapAkaTimeouts{
+				ChallengeMs:            20000,
+				ErrorNotificationMs:    10000,
+				SessionAuthenticatedMs: 5000,
+				SessionMs:              43200000,
+			},
+		},
+		EapSim: &fegmodels.EapSim{
+			PlmnIds: []string{},
+			Timeout: &fegmodels.EapSimTimeouts{
 				ChallengeMs:            20000,
 				ErrorNotificationMs:    10000,
 				SessionAuthenticatedMs: 5000,

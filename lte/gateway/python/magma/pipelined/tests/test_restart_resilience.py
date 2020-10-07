@@ -25,7 +25,8 @@ from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import global_epoch
-from magma.pipelined.policy_converters import flow_match_to_magma_match
+from magma.pipelined.policy_converters import flow_match_to_magma_match, \
+    convert_ipv4_str_to_ip_proto
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
     as FlowQuery
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
@@ -33,7 +34,7 @@ from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
     TestSetup
-from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
+from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext, default_ambr_config
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
@@ -166,16 +167,19 @@ class RestartResilienceTest(unittest.TestCase):
         flow_list1 = [
             FlowDescription(
                 match=FlowMatch(
-                    ipv4_dst='45.10.0.0/24', direction=FlowMatch.UPLINK),
+                    ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                    direction=FlowMatch.UPLINK),
                 action=FlowDescription.PERMIT),
             FlowDescription(
                 match=FlowMatch(
-                    ipv4_dst='45.11.0.0/24', direction=FlowMatch.UPLINK),
+                    ip_dst=convert_ipv4_str_to_ip_proto('45.11.0.0/24'),
+                    direction=FlowMatch.UPLINK),
                 action=FlowDescription.PERMIT)
         ]
         flow_list2 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='10.10.1.0/24', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('10.10.1.0/24'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policies1 = [
@@ -184,21 +188,24 @@ class RestartResilienceTest(unittest.TestCase):
         policies2 = [
             PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2)
         ]
-        enf_stat_name = [imsi1 + '|sub1_rule_temp', imsi2 + '|sub2_rule_keep']
+        enf_stat_name = [imsi1 + '|sub1_rule_temp' + '|' + sub2_ip,
+                         imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
 
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi1, 'sub1_rule_temp')
+            imsi1, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub1_rule_temp')
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi2, 'sub2_rule_keep')
+            imsi2, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub2_rule_keep')
 
         setup_flows_request = SetupFlowsRequest(
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi1),
+                    ip_addr=sub2_ip,
                     dynamic_rules=policies1
                 ),
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi2),
+                    ip_addr=sub2_ip,
                     dynamic_rules=policies2
                 ),
             ],
@@ -246,7 +253,8 @@ class RestartResilienceTest(unittest.TestCase):
 
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='24.10.0.0/24', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('24.10.0.0/24'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
@@ -254,11 +262,13 @@ class RestartResilienceTest(unittest.TestCase):
             PolicyRule(id='sub2_rule_keep', priority=3, flow_list=flow_list2)
         ]
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi2, 'sub2_new_rule')
-        enf_stat_name = [imsi2 + '|sub2_new_rule', imsi2 + '|sub2_rule_keep']
+            imsi2, convert_ipv4_str_to_ip_proto(sub2_ip), 'sub2_new_rule')
+        enf_stat_name = [imsi2 + '|sub2_new_rule' + '|' + sub2_ip,
+                         imsi2 + '|sub2_rule_keep' + '|' + sub2_ip]
         setup_flows_request = SetupFlowsRequest(
             requests=[ActivateFlowsRequest(
                 sid=SIDUtils.to_pb(imsi2),
+                ip_addr=sub2_ip,
                 dynamic_rules=policies
             )],
             epoch=global_epoch
@@ -320,23 +330,26 @@ class RestartResilienceTest(unittest.TestCase):
         """ Create 2 policy rules for the subscriber """
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/25', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/25'),
+        direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         flow_list2 = [FlowDescription(
             match=FlowMatch(
-                ipv4_src='45.10.0.0/24', direction=FlowMatch.DOWNLINK),
+                ip_src=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+        direction=FlowMatch.DOWNLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
             PolicyRule(id='tx_match', priority=3, flow_list=flow_list1),
             PolicyRule(id='rx_match', priority=5, flow_list=flow_list2)
         ]
-        enf_stat_name = [imsi + '|tx_match', imsi + '|rx_match']
+        enf_stat_name = [imsi + '|tx_match' + '|' + sub_ip,
+                         imsi + '|rx_match' + '|' + sub_ip]
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'tx_match')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'tx_match')
         self.service_manager.session_rule_version_mapper.update_version(
-            imsi, 'rx_match')
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rx_match')
 
         """ Setup subscriber, setup table_isolation to fwd pkts """
         self._static_rule_dict[policies[0].id] = policies[0]
@@ -399,6 +412,7 @@ class RestartResilienceTest(unittest.TestCase):
             requests=[
                 ActivateFlowsRequest(
                     sid=SIDUtils.to_pb(imsi),
+                    ip_addr=sub_ip,
                     rule_ids=[policies[0].id, policies[1].id]
                 ),
             ],
@@ -492,17 +506,20 @@ class RestartResilienceTest(unittest.TestCase):
             permit_outbound.append(FlowQuery(
                 self._tbl_num, self.testing_controller,
                 match=flow_match_to_magma_match(
-                    FlowMatch(ipv4_dst=ip, direction=FlowMatch.UPLINK))
+                    FlowMatch(ip_dst=convert_ipv4_str_to_ip_proto(ip),
+                              direction=FlowMatch.UPLINK))
             ))
             permit_inbound.append(FlowQuery(
                 self._tbl_num, self.testing_controller,
                 match=flow_match_to_magma_match(
-                    FlowMatch(ipv4_src=ip, direction=FlowMatch.DOWNLINK))
+                    FlowMatch(ip_src=convert_ipv4_str_to_ip_proto(ip),
+                              direction=FlowMatch.DOWNLINK))
             ))
 
         learn_action_flow = flow_match_to_magma_match(
             FlowMatch(ip_proto=6, direction=FlowMatch.DOWNLINK,
-                      ipv4_src=self.BRIDGE_IP_ADDRESS, ipv4_dst=sub_ip)
+                ip_src=convert_ipv4_str_to_ip_proto(self.BRIDGE_IP_ADDRESS),
+                ip_dst=convert_ipv4_str_to_ip_proto(sub_ip))
         )
         learn_action_query = FlowQuery(self._tbl_num, self.testing_controller,
                                        learn_action_flow)

@@ -58,3 +58,6 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "cwf-operator"
+            # Replace value for redis server address to enable status reporting
+            # - name: REDIS_ADDR
+            #  value: localhost:6380

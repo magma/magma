@@ -28,7 +28,7 @@ import (
 
 type remoteProvider struct {
 	// service name of the provider
-	// should always be uppercase to match service registry convention
+	// should always be lowercase to match service registry convention
 	service string
 	// stream name
 	stream string
@@ -37,7 +37,7 @@ type remoteProvider struct {
 // NewRemoteProvider returns a stream provider that forwards its methods to the
 // remote stream provider servicer.
 func NewRemoteProvider(serviceName, stream string) StreamProvider {
-	return &remoteProvider{service: strings.ToUpper(serviceName), stream: stream}
+	return &remoteProvider{service: strings.ToLower(serviceName), stream: stream}
 }
 
 func (r *remoteProvider) GetStreamName() string {

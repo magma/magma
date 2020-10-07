@@ -15,10 +15,12 @@ package plugin
 
 import (
 	"magma/cwf/cloud/go/cwf"
+	cwf_service "magma/cwf/cloud/go/services/cwf"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
+	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -46,15 +48,16 @@ func (*CwfOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
 		configurator.NewNetworkConfigSerde(cwf.CwfNetworkType, &models.NetworkCarrierWifiConfigs{}),
 		configurator.NewNetworkEntityConfigSerde(cwf.CwfGatewayType, &models.GatewayCwfConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(cwf.CwfHAPairType, &models.CwfHaPairConfigs{}),
 		state.NewStateSerde(cwf.CwfSubscriberDirectoryType, &models.CwfSubscriberDirectoryRecord{}),
-		state.NewStateSerde(cwf.CwfClusterHealthType, &models.CarrierWifiNetworkClusterStatus{}),
+		state.NewStateSerde(cwf.CwfHAPairStatusType, &models.CarrierWifiHaPairStatus{}),
 		state.NewStateSerde(cwf.CwfGatewayHealthType, &models.CarrierWifiGatewayHealthStatus{}),
 	}
 }
 
-func (*CwfOrchestratorPlugin) GetMconfigBuilders() []configurator.MconfigBuilder {
-	return []configurator.MconfigBuilder{
-		&Builder{},
+func (*CwfOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
+	return []mconfig.Builder{
+		mconfig.NewRemoteBuilder(cwf_service.ServiceName),
 	}
 }
 

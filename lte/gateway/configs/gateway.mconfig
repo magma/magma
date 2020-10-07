@@ -4,7 +4,9 @@
       "@type": "type.googleapis.com/magma.mconfig.MobilityD",
       "logLevel": "INFO",
       "ipBlock": "192.168.128.0/24",
-      "ip_allocator_type": "IP_POOL"
+      "ip_allocator_type": "IP_POOL",
+      "static_ip_enabled": true,
+      "multi_apn_ip_alloc": true
     },
     "mme": {
       "@type": "type.googleapis.com/magma.mconfig.MME",
@@ -16,6 +18,7 @@
       "tac": 1,
       "enableDnsCaching": false,
       "relayEnabled": false,
+      "hssRelayEnabled": false,
       "cloudSubscriberdbEnabled": false,
       "nonEpsServiceControl": 0,
       "csfbMcc": "001",
@@ -99,7 +102,8 @@
     "sessiond": {
       "@type": "type.googleapis.com/magma.mconfig.SessionD",
       "logLevel": "INFO",
-      "relayEnabled": false
+      "relayEnabled": false,
+      "gxGyRelayEnabled": false
     },
     "td-agent-bit": {
       "@type": "type.googleapis.com/magma.mconfig.FluentBit",

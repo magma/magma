@@ -23,6 +23,7 @@ import (
 	fegProtos "magma/feg/cloud/go/protos"
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
+	"strings"
 
 	"math"
 	"math/rand"
@@ -96,8 +97,10 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	ruleKey := fmt.Sprintf("static-ULQos-%d", ki)
 
 	uplinkBwMax := uint32(1000000)
-	qos := &models.FlowQos{MaxReqBwUl: &uplinkBwMax}
-	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
+	rule := getStaticPassAll(
+		ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwMax},
+	)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
@@ -132,6 +135,19 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	time.Sleep(3 * time.Second)
 }
 
+func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
+	cmdList := [][]string{
+		{"pipelined_cli.py", "debug", "display_flows"},
+	}
+	cmdOutputList, err := tr.RunCommandInContainer("pipelined", cmdList)
+	if err != nil || len(cmdList) != 1 {
+		fmt.Printf("error dumping pipelined state %v", err)
+		return false
+	}
+
+	return strings.Contains(cmdOutputList[0].output, ruleName)
+}
+
 //TestGxDownlinkTrafficQosEnforcement
 // This test verifies the QOS configuration(downlink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -161,8 +177,8 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 	ruleKey := fmt.Sprintf("static-DLQos-%d", ki)
 
 	downlinkBwMax := uint32(1000000)
-	qos := &models.FlowQos{MaxReqBwDl: &downlinkBwMax}
-	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, qos)
+	qos := lteProtos.FlowQos{MaxReqBwDl: downlinkBwMax}
+	rule := getStaticPassAll(ruleKey, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3, &qos)
 
 	err = ruleManager.AddStaticRuleToDB(rule)
 	assert.NoError(t, err)
@@ -186,6 +202,13 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
 		Timeout:     60,
 	}
+
+	// wait for rule to be installed
+	waitForRuleToBeInstalled := func() bool {
+		return checkIfRuleInstalled(tr, ruleKey)
+	}
+	assert.Eventually(t, waitForRuleToBeInstalled, time.Minute, 2*time.Second)
+
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
 	// Assert that enforcement_stats rules are properly installed and the right
@@ -243,10 +266,10 @@ func TestGxQosDowngradeWithCCAUpdate(t *testing.T) {
 	uplinkBwFinal := uint32(500000)
 
 	rule1 := getStaticPassAll(rule1Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 3, &models.FlowQos{MaxReqBwUl: &uplinkBwInitial})
+		models.PolicyRuleTrackingTypeONLYPCRF, 3, &lteProtos.FlowQos{MaxReqBwUl: uplinkBwInitial})
 
 	rule2 := getStaticPassAll(rule2Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 2, &models.FlowQos{MaxReqBwUl: &uplinkBwFinal})
+		models.PolicyRuleTrackingTypeONLYPCRF, 2, &lteProtos.FlowQos{MaxReqBwUl: uplinkBwFinal})
 
 	for _, r := range []*lteProtos.PolicyRule{rule1, rule2} {
 		err = ruleManager.AddStaticRuleToDB(r)
@@ -356,10 +379,14 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 	rule2Key := fmt.Sprintf("static-RAR-%d", ki)
 	uplinkBwInitial := uint32(2000000)
 	uplinkBwFinal := uint32(500000)
-	rule1 := getStaticPassAll(rule1Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
-		&models.FlowQos{MaxReqBwUl: &uplinkBwInitial})
-	rule2 := getStaticPassAll(rule2Key, monitorKey, 0,
-		models.PolicyRuleTrackingTypeONLYPCRF, 1, &models.FlowQos{MaxReqBwUl: &uplinkBwFinal})
+	rule1 := getStaticPassAll(
+		rule1Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 3,
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwInitial},
+	)
+	rule2 := getStaticPassAll(
+		rule2Key, monitorKey, 0, models.PolicyRuleTrackingTypeONLYPCRF, 1,
+		&lteProtos.FlowQos{MaxReqBwUl: uplinkBwFinal},
+	)
 
 	for _, r := range []*lteProtos.PolicyRule{rule1, rule2} {
 		err = ruleManager.AddStaticRuleToDB(r)

@@ -139,19 +139,40 @@ class ExternalEvent : public ControllerEvent {
 };
 
 /*
+ * This object contains info about UE IP and vlan.
+ * Together this uniquely identifies a UE.
+ */
+
+class UeNetworkInfo {
+ public:
+  UeNetworkInfo(const struct in_addr ue_ip);
+  UeNetworkInfo(const struct in_addr ue_ip, int vlan);
+
+  const struct in_addr& get_ip() const;
+  const int get_vlan() const;
+
+ private:
+  const struct in_addr ue_ip_;
+  const int vlan_;
+};
+
+/*
  * Event triggered by SPGW to add a GTP tunnel for a UE
  */
 class AddGTPTunnelEvent : public ExternalEvent {
  public:
   AddGTPTunnelEvent(
-      const struct in_addr ue_ip, const struct in_addr enb_ip,
+      const struct in_addr ue_ip, int vlan,  const struct in_addr enb_ip,
       const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
-      const struct ipv4flow_dl* dl_flow, const uint32_t dl_flow_precedence);
+      const struct ipv4flow_dl* dl_flow, const uint32_t dl_flow_precedence,
+      uint32_t gtp_port_no);
 
   AddGTPTunnelEvent(
-      const struct in_addr ue_ip, const struct in_addr enb_ip,
-      const uint32_t in_tei, const uint32_t out_tei, const char* imsi);
+      const struct in_addr ue_ip, int vlan,  const struct in_addr enb_ip,
+      const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
+      uint32_t gtp_port_no);
 
+  const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
   const struct in_addr& get_enb_ip() const;
   const uint32_t get_in_tei() const;
@@ -160,9 +181,10 @@ class AddGTPTunnelEvent : public ExternalEvent {
   const bool is_dl_flow_valid() const;
   const struct ipv4flow_dl& get_dl_flow() const;
   const uint32_t get_dl_flow_precedence() const;
+  const uint32_t get_gtp_portno() const;
 
  private:
-  const struct in_addr ue_ip_;
+  const UeNetworkInfo ue_info_;
   const struct in_addr enb_ip_;
   const uint32_t in_tei_;
   const uint32_t out_tei_;
@@ -170,6 +192,7 @@ class AddGTPTunnelEvent : public ExternalEvent {
   const struct ipv4flow_dl dl_flow_;
   const bool dl_flow_valid_;
   const uint32_t dl_flow_precedence_;
+  const uint32_t gtp_portno_;
 };
 
 /*
@@ -179,19 +202,24 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
  public:
   DeleteGTPTunnelEvent(
       const struct in_addr ue_ip, const uint32_t in_tei,
-      const struct ipv4flow_dl* dl_flow);
-  DeleteGTPTunnelEvent(const struct in_addr ue_ip, const uint32_t in_tei);
+      const struct ipv4flow_dl* dl_flow,
+      uint32_t gtp_port_no);
+  DeleteGTPTunnelEvent(const struct in_addr ue_ip, const uint32_t in_tei,
+      uint32_t gtp_port_no);
 
+  const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
   const uint32_t get_in_tei() const;
   const bool is_dl_flow_valid() const;
   const struct ipv4flow_dl& get_dl_flow() const;
+  const uint32_t get_gtp_portno() const;
 
  private:
-  const struct in_addr ue_ip_;
+  const UeNetworkInfo ue_info_;
   const uint32_t in_tei_;
   const struct ipv4flow_dl dl_flow_;
   const bool dl_flow_valid_;
+  const uint32_t gtp_portno_;
 };
 
 /*
@@ -211,6 +239,7 @@ class HandleDataOnGTPTunnelEvent : public ExternalEvent {
       const struct in_addr ue_ip, const uint32_t in_tei,
       const ControllerEventType event_type);
 
+  const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
   const uint32_t get_in_tei() const;
   const bool is_dl_flow_valid() const;
@@ -218,7 +247,7 @@ class HandleDataOnGTPTunnelEvent : public ExternalEvent {
   const uint32_t get_dl_flow_precedence() const;
 
  private:
-  const struct in_addr ue_ip_;
+  const UeNetworkInfo ue_info_;
   const uint32_t in_tei_;
   const struct ipv4flow_dl dl_flow_;
   const bool dl_flow_valid_;
@@ -233,10 +262,11 @@ class AddPagingRuleEvent : public ExternalEvent {
  public:
   AddPagingRuleEvent(const struct in_addr ue_ip);
 
+  const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
 
  private:
-  const struct in_addr ue_ip_;
+  const UeNetworkInfo ue_info_;
 };
 
 /*
@@ -247,10 +277,11 @@ class DeletePagingRuleEvent : public ExternalEvent {
  public:
   DeletePagingRuleEvent(const struct in_addr ue_ip);
 
+  const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;
 
  private:
-  const struct in_addr ue_ip_;
+  const UeNetworkInfo ue_info_;
 };
 
 }  // namespace openflow

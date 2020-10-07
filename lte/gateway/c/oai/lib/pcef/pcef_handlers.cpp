@@ -62,36 +62,6 @@ static void pcef_fill_create_session_req(
     std::string& imsi, std::string& ip, ebi_t eps_bearer_id,
     const struct pcef_create_session_data* session_data,
     magma::LocalCreateSessionRequest* sreq) {
-  // TODO Remove once we migrate all fields to be handled by
-  // CommonSessionContext and LTESessionContext
-  sreq->mutable_sid()->set_id("IMSI" + imsi);
-  sreq->set_rat_type(magma::RATType::TGPP_LTE);
-  sreq->set_ue_ipv4(ip);
-  sreq->set_apn(session_data->apn);
-  sreq->set_msisdn(session_data->msisdn, session_data->msisdn_len);
-  sreq->set_bearer_id(eps_bearer_id);
-  sreq->set_spgw_ipv4(session_data->sgw_ip);
-  sreq->set_plmn_id(session_data->mcc_mnc, session_data->mcc_mnc_len);
-  sreq->set_imsi_plmn_id(
-      session_data->imsi_mcc_mnc, session_data->imsi_mcc_mnc_len);
-
-  if (session_data->imeisv_exists) {
-    sreq->set_imei(session_data->imeisv, IMEISV_DIGITS_MAX);
-  }
-  if (session_data->uli_exists) {
-    sreq->set_user_location(session_data->uli, ULI_DATA_SIZE);
-  }
-
-  // QoS Info
-  magma::QosInformationRequest qos_info;
-  qos_info.set_apn_ambr_dl(session_data->ambr_dl);
-  qos_info.set_apn_ambr_ul(session_data->ambr_ul);
-  qos_info.set_priority_level(session_data->pl);
-  qos_info.set_preemption_capability(session_data->pci);
-  qos_info.set_preemption_vulnerability(session_data->pvi);
-  qos_info.set_qos_class_id(session_data->qci);
-  sreq->mutable_qos_info()->CopyFrom(qos_info);
-
   // Common Context
   auto common_context = sreq->mutable_common_context();
   common_context->mutable_sid()->set_id("IMSI" + imsi);
@@ -112,8 +82,17 @@ static void pcef_fill_create_session_req(
     lte_context->set_imei(session_data->imeisv, IMEISV_DIGITS_MAX);
   }
   if (session_data->uli_exists) {
+    OAILOG_DEBUG(LOG_SPGW_APP, "Sending ULI to PCEF");
     lte_context->set_user_location(session_data->uli, ULI_DATA_SIZE);
   }
+  // QoS Info
+  magma::QosInformationRequest qos_info;
+  qos_info.set_apn_ambr_dl(session_data->ambr_dl);
+  qos_info.set_apn_ambr_ul(session_data->ambr_ul);
+  qos_info.set_priority_level(session_data->pl);
+  qos_info.set_preemption_capability(session_data->pci);
+  qos_info.set_preemption_vulnerability(session_data->pvi);
+  qos_info.set_qos_class_id(session_data->qci);
   lte_context->mutable_qos_info()->CopyFrom(qos_info);
 }
 
@@ -151,6 +130,21 @@ bool pcef_end_session(char* imsi, char* apn) {
         return;  // For now, do nothing. TODO: handle errors asynchronously
       });
   return true;
+}
+
+void pcef_send_policy2bearer_binding(
+    const char* imsi, uint8_t default_bearer_id, char* policy_rule_name,
+    uint8_t eps_bearer_id) {
+  magma::PolicyBearerBindingRequest request;
+  request.mutable_sid()->set_id("IMSI" + std::string(imsi));
+  request.set_linked_bearer_id(default_bearer_id);
+  request.set_policy_rule_id(policy_rule_name);
+  request.set_bearer_id(eps_bearer_id);
+  magma::PCEFClient::bind_policy2bearer(
+      request,
+      [&](grpc::Status status, magma::PolicyBearerBindingResponse response) {
+        return;  // For now, do nothing. TODO: handle errors asynchronously
+      });
 }
 
 /*
@@ -219,23 +213,32 @@ static int get_uli_from_session_req(
   uli[0] = 130;  // TAI and ECGI - defined in 29.061
 
   // TAI as defined in 29.274 8.21.4
-  uli[1] = ((saved_req->uli.s.tai.mcc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mcc[0] & 0xf));
-  uli[2] = ((saved_req->uli.s.tai.mnc[2] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mcc[2] & 0xf));
-  uli[3] = ((saved_req->uli.s.tai.mnc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mnc[0] & 0xf));
+  uli[1] = ((saved_req->uli.s.tai.mcc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.mcc_digit1 & 0xf));
+  uli[2] = ((saved_req->uli.s.tai.mnc_digit3 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.mcc_digit3 & 0xf));
+  uli[3] = ((saved_req->uli.s.tai.mnc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.mnc_digit1 & 0xf));
   uli[4] = (saved_req->uli.s.tai.tac >> 8) & 0xff;
   uli[5] = saved_req->uli.s.tai.tac & 0xff;
 
   // ECGI as defined in 29.274 8.21.5
-  uli[6] = ((saved_req->uli.s.ecgi.mcc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mcc[0] & 0xf));
-  uli[7] = ((saved_req->uli.s.ecgi.mnc[2] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mcc[2] & 0xf));
-  uli[8] = ((saved_req->uli.s.ecgi.mnc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mnc[0] & 0xf));
-  uli[9] = '\0';
+  uli[6] = ((saved_req->uli.s.ecgi.plmn.mcc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.ecgi.plmn.mcc_digit1 & 0xf));
+  uli[7] = ((saved_req->uli.s.ecgi.plmn.mnc_digit3 & 0xf) << 4) |
+           ((saved_req->uli.s.ecgi.plmn.mcc_digit3 & 0xf));
+  uli[8] = ((saved_req->uli.s.ecgi.plmn.mnc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.ecgi.plmn.mnc_digit1 & 0xf));
+  uli[9] = (saved_req->uli.s.ecgi.cell_identity.enb_id >> 16) & 0xf;
+  uli[10] = (saved_req->uli.s.ecgi.cell_identity.enb_id >> 8) & 0xff;
+  uli[11] = saved_req->uli.s.ecgi.cell_identity.enb_id & 0xff;
+  uli[12] = saved_req->uli.s.ecgi.cell_identity.cell_id & 0xff;
+  uli[13] = '\0';
+
+  char hex_uli[3*ULI_DATA_SIZE+1];
+  OAILOG_DEBUG(
+      LOG_SPGW_APP, "Session request ULI %s",
+      bytes_to_hex(uli, ULI_DATA_SIZE, hex_uli));
   return 1;
 }
 

@@ -180,7 +180,7 @@ class IpAllocatorPool(IPAllocator):
                if self._ip_state_map.test_ip_state(ip, IPState.ALLOCATED)]
         return res
 
-    def alloc_ip_address(self, sid: str) -> IPDesc:
+    def alloc_ip_address(self, sid: str, vlan: int) -> IPDesc:
         """ Allocate an IP address from the free list
 
         Assumption: one-to-one mappings between SID and IP.
@@ -195,6 +195,7 @@ class IpAllocatorPool(IPAllocator):
             NoAvailableIPError: if run out of available IP addresses
             DuplicatedIPAllocationError: if an IP has been allocated to a UE
                 with the same IMSI
+        TODO: Add support of per APN IP-POOL
         """
         # if an IP is not yet allocated for the UE, allocate a new IP
         if self._ip_state_map.get_ip_count(IPState.FREE):

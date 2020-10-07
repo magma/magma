@@ -17,6 +17,11 @@
  *      contact@openairinterface.org
  */
 
+
+def GIT_URL = "github.com/magma/magma"
+
+def GIT_BRANCH = "master"
+def GIT_COMMIT
 // Location of the executor node
 def nodeExecutor = params.nodeExecutor
 
@@ -32,31 +37,23 @@ pipeline {
   agent {
     label nodeExecutor
   }
+  parameters {
+    string(name: 'MagmaVmDockerResources', defaultValue: 'lock')
+    string(name: 'Host_CN_CI_2nd_Server_Flag', defaultValue: '1')
+    string(name: 'Host_CN_CI_2nd_Server', defaultValue: 'bm_slave_1')
+  } 
   options {
     disableConcurrentBuilds()
     timestamps()
     ansiColor('xterm')
     lock(cn_ci_resource)
-    gitLabConnection('OAI GitLab')
-    gitlabBuilds(builds: [
-      "Activate-AGW-VM",
-      "Build-Run-AGW1",
-      //"Build-Orchestrator",
-      //"Run-Orchestrator",
-      "Activate-Test-VM",
-      "Test-AGW1-noS11",
-      "Activate-Traffic-VM",
-      "Start-Traffic-Server0",
-      "Build-Run-AGW1-w-S11",
-      "Start-Traffic-Server1",
-      "Test-AGW1-w-S11"
-    ])
   }
 
   stages {
     stage ("Verify Parameters") {
       steps {
         script {
+          cleanWs()
           JOB_TIMESTAMP = sh returnStdout: true, script: 'date --utc --rfc-3339=seconds | sed -e "s#+00:00##"'
           JOB_TIMESTAMP = JOB_TIMESTAMP.trim()
 
@@ -65,7 +62,7 @@ pipeline {
             new_host_flag = params.Host_CN_CI_2nd_Server_Flag
             if (new_host_flag) {
               new_host = params.Host_CN_CI_2nd_Server
-              new_host_user = params.Host_CN_CI_2nd_Server_Login
+              
               echo "1st Node   is ${NODE_NAME}"
               echo "2nd Node   is ${new_host}"
             } else {
@@ -80,45 +77,30 @@ pipeline {
     stage ("Retrieve and Prepare Source Code") {
       steps {
         script {
-          echo "Git URL         is ${GIT_URL}"
-          echo "GitLab Act      is ${env.gitlabActionType}"
-          sh "git clean -x -d -e .cache -e lte/gateway/.vagrant -f > /dev/null 2>&1"
-          if ("MERGE".equals(env.gitlabActionType)) {
-            // since a bit, in push events, gitlabUserEmail is not populated
-            gitCommitAuthorEmailAddr = env.gitlabUserEmail
-            echo "GitLab Usermail is ${gitCommitAuthorEmailAddr}"
-            // GitLab-Jenkins plugin integration is lacking to perform the merge by itself
-            // Doing it manually --> it may have merge conflicts
-            gitlabCommitStatus(name: "Mergeability") {
-              sh "./ci-scripts/doGitLabMerge.sh --src-branch ${env.gitlabSourceBranch} --src-commit ${env.gitlabMergeRequestLastCommit} --target-branch ${env.gitlabTargetBranch} --target-commit ${GIT_COMMIT}"
-            }
-          } else {
-            echo "Git Branch      is ${GIT_BRANCH}"
-            echo "Git Commit      is ${GIT_COMMIT}"
-            // since a bit, in push events, gitlabUserEmail is not populated
-            gitCommitAuthorEmailAddr = sh returnStdout: true, script: 'git log -n1 --pretty=format:%ae ${GIT_COMMIT}'
-            gitCommitAuthorEmailAddr = gitCommitAuthorEmailAddr.trim()
-            echo "GitLab Usermail is ${gitCommitAuthorEmailAddr}"
-            sh "git log -n1 --pretty=format:\"%s\" > .git/CI_COMMIT_MSG"
-          }
-          TEMP_COMMIT = sh returnStdout: true, script: 'git log -n1 --pretty=format:"%H"'
-          TEMP_COMMIT = TEMP_COMMIT.trim()
+            checkout changelog: false, poll: false, scm: [$class: 'GitSCM', branches: [[name: '${sha1}']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+            GIT_COMMIT = sh returnStdout: true, script: 'git log -1 --pretty="%H"'
+            sh "git clean -x -d -e .cache -e lte/gateway/.vagrant -f > /dev/null 2>&1"
+            TEMP_COMMIT = sh returnStdout: true, script: 'git log -n1 --pretty=format:"%H"'
+            TEMP_COMMIT = TEMP_COMMIT.trim()
 
-          sh "tar -cjhf /tmp/converged_mme.tar.bz2 .git"
-          sh "mv /tmp/converged_mme.tar.bz2 ."
-          copyTo2ndServer('converged_mme.tar.bz2', '.', new_host_flag, new_host_user, new_host)
-          myShCmd('git checkout -f ' + TEMP_COMMIT, new_host_flag, new_host_user, new_host)
-          myShCmd('git clean -x -d -e .cache -e lte/gateway/.vagrant -f > /dev/null 2>&1', new_host_flag, new_host_user, new_host)
-          myShCmd('git status --ignored', new_host_flag, new_host_user, new_host)
-          sh "mkdir -p archives"
-          myShCmd('mkdir -p archives', new_host_flag, new_host_user, new_host)
+            sh "tar -cjhf /tmp/converged_mme.tar.bz2 .git"
+            sh "mv /tmp/converged_mme.tar.bz2 ."
+            
+            copyTo2ndServer('converged_mme.tar.bz2', '.', new_host_flag, new_host_user, new_host)
+            
+            myShCmd('git checkout -f ' + TEMP_COMMIT, new_host_flag, new_host_user, new_host)
+            myShCmd('git clean -x -d -e .cache -e lte/gateway/.vagrant -f > /dev/null 2>&1', new_host_flag, new_host_user, new_host)
+            myShCmd('git status --ignored', new_host_flag, new_host_user, new_host)
+            sh "mkdir -p archives"
+            myShCmd('mkdir -p archives', new_host_flag, new_host_user, new_host)
+          
         }
       }
       post {
         failure {
           script {
             def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): Merge Conflicts -- Cannot perform CI"
-            addGitLabMRComment comment: message
+            echo message
             currentBuild.result = 'FAILURE'
           }
         }
@@ -129,7 +111,6 @@ pipeline {
         stage ("Provision the AGW VM") {
           steps {
             script {
-              gitlabCommitStatus(name: "Activate-AGW-VM") {
                 myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma && vagrant up magma', 'archives/magma_vagrant_up.log', new_host_flag, new_host_user, new_host)
                 // Making that magma services are all down. Should be the case after wake-up
                 try {
@@ -137,16 +118,12 @@ pipeline {
                 } catch (Exception e) {
                   echo "Fine. Let it go..."
                 }
-              }
             }
           }
         }
         stage ("Build Orchestrator") {
           steps {
             script {
-              //gitlabCommitStatus(name: "Build-Orchestrator") {
-              //  myShCmdWithLog('cd orc8r/cloud/docker && ./build.py -a', 'archives/orchestrator_build.log', new_host_flag, new_host_user, new_host)
-              //}
               echo "Not at the moment"
             }
           }
@@ -158,7 +135,6 @@ pipeline {
         stage ("Build AGW1 - noS11") {
           steps {
             script {
-              gitlabCommitStatus(name: "Build-Run-AGW1") {
                 // Manual removal of build dirs
                 try {
                   myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo rm -Rf build/c build/python"', new_host_flag, new_host_user, new_host)
@@ -187,7 +163,6 @@ pipeline {
                 } catch (Exception e) {
                   echo "Checking magma@* status failed but still moving on!"
                 }
-              }
             }
           }
           post {
@@ -237,10 +212,10 @@ pipeline {
             }
           }
         }
-        // Running CLANG-FORMATTING check in parallel to gain time
         stage ('Code Formatting Checker') {
           steps {
             script {
+              myShCmd('docker stop ci-cn-clang-formatter || true && docker rm ci-cn-clang-formatter || true', new_host_flag, new_host_user, new_host)
               myShCmd('docker run --name ci-cn-clang-formatter -d ubuntu:bionic /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -it ci-cn-clang-formatter /bin/bash -c "apt-get update && apt-get upgrade --yes" > archives/clang_format_install.log', new_host_flag, new_host_user, new_host)
               myShCmd('docker exec -it ci-cn-clang-formatter /bin/bash -c "apt-get install --yes git tree bzip2" >> archives/clang_format_install.log', new_host_flag, new_host_user, new_host)
@@ -252,11 +227,7 @@ pipeline {
 
               // We install a dedicated version (installed on our CI server).
               myShCmd('docker cp /opt/clang-format/9.0.0/bin/clang-format ci-cn-clang-formatter:/usr/local/bin', new_host_flag, new_host_user, new_host)
-              if ("MERGE".equals(env.gitlabActionType)) {
-                myShCmd('docker exec -it ci-cn-clang-formatter /bin/bash -c "cd /home && ./ci-scripts/checkCodingFormattingRules.sh --src-branch ' + env.ghprbSourceBranch +' --target-branch ' + env.ghprbTargetBranch + '"', new_host_flag, new_host_user, new_host)
-              } else {
                 myShCmd('docker exec -it ci-cn-clang-formatter /bin/bash -c "cd /home && ./ci-scripts/checkCodingFormattingRules.sh"', new_host_flag, new_host_user, new_host)
-              }
             }
           }
           post {
@@ -280,9 +251,6 @@ pipeline {
         stage ("Run Orchestrator") {
           steps {
             script {
-              //gitlabCommitStatus(name: "Run-Orchestrator") {
-              //  myShCmdWithLog('cd orc8r/cloud/docker && ./run.sh',  'archives/orchestrator_start.log', new_host_flag, new_host_user, new_host)
-              //}
               echo "Not at the moment"
             }
           }
@@ -290,21 +258,16 @@ pipeline {
         stage ("Provision the Test VM") {
           steps {
             script {
-              gitlabCommitStatus(name: "Activate-Test-VM") {
                 myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma_test && vagrant up magma_test', 'archives/magma_vagrant_test_up.log', new_host_flag, new_host_user, new_host)
-                // The Traffic Testcases are disabled from the Mandatory suite --> will be run manually
-                myShCmd('sed -i -f ci-scripts/removeLastUlTestCases.sed lte/gateway/python/integ_tests/defs.mk', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/ && make"', 'archives/magma_vagrant_test_make1.log', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && make"', 'archives/magma_vagrant_test_make2.log', new_host_flag, new_host_user, new_host)
-              }
             }
           }
         }
         stage ("Provision the Traffic VM") {
           steps {
             script {
-              sh "sleep 180"
-              gitlabCommitStatus(name: "Activate-Traffic-VM") {
+              sh "sleep 60"
                 myShCmdWithLog('cd lte/gateway && vagrant destroy --force magma_trfserver && vagrant up magma_trfserver', 'archives/magma_vagrant_trfserver_up.log', new_host_flag, new_host_user, new_host)
                 try {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo apt update"', 'archives/magma_vagrant_trfserver_apt_get_update.log', new_host_flag, new_host_user, new_host)
@@ -312,7 +275,7 @@ pipeline {
                   echo "Known issue with magma-custom.io public key?"
                 }
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo apt install --yes psmisc net-tools iproute"', 'archives/magma_vagrant_trfserver_killall_install.log', new_host_flag, new_host_user, new_host)
-              }
+                myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo ip route add 192.168.128.0/24 via 192.168.129.1 dev eth2"', new_host_flag, new_host_user, new_host)
             }
           }
         }
@@ -324,7 +287,6 @@ pipeline {
           steps {
             script {
               echo "Disabling TCP checksumming on Traffic VM"
-              gitlabCommitStatus(name: "Start-Traffic-Server0") {
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"', 'archives/magma_vagrant_trfserve_disable_tcp_checksumming.log', new_host_flag, new_host_user, new_host)
                 echo "Starting the Traffic server in foreground"
                 try {
@@ -332,14 +294,12 @@ pipeline {
                 } catch (Exception e) {
                   echo "Moving on!"
                 }
-              }
             }
           }
         }
         stage ("Test-AGW1-noS11") {
           steps {
             script {
-              gitlabCommitStatus(name: "Test-AGW1-noS11") {
                 echo "Disabling TCP checksumming on all VMs"
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"', 'archives/magma_vagrant_disable_tcp_checksumming.log', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"', 'archives/magma_vagrant_test_disable_tcp_checksumming.log', new_host_flag, new_host_user, new_host)
@@ -349,10 +309,9 @@ pipeline {
 
                 echo "Starting the integration Tests - S1AP Tester"
                 // We have removed the traffic testcases from mandatory suite.
-                timeout (time: 20, unit: 'MINUTES') {
+                timeout (time: 30, unit: 'MINUTES') {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
                 }
-                // Adding a few tests not in the mandatory suite and the UL traffic scenarios (launched manually)
                 timeout (time: 45, unit: 'SECONDS') {
                   try {
                     myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_ul_udp_data.py"', 'archives/magma_run_s1ap_tester.log', new_host_flag, new_host_user, new_host)
@@ -388,7 +347,6 @@ pipeline {
                 } catch (Exception e) {
                   echo "Maybe Traffic server crashed"
                 }
-              }
             }
           }
           post {
@@ -411,9 +369,9 @@ pipeline {
                 }
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make stop"', 'archives/magma_vagrant_make_stop.log', new_host_flag, new_host_user, new_host)
                 // Retrieving the sys logs and mme log for more debugging.
-                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/syslog"', 'archives/magma_dev_syslog.log', new_host_flag, new_host_user, new_host)
-                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/mme.log"', 'archives/magma_dev_mme.log', new_host_flag, new_host_user, new_host)
-                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "sudo cat /var/log/syslog"', 'archives/magma_test_syslog.log', new_host_flag, new_host_user, new_host)
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo cp /var/log/syslog archives/magma_dev_syslog.log"', new_host_flag, new_host_user, new_host)
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo cp /var/log/mme.log archives/magma_dev_mme.log"', new_host_flag, new_host_user, new_host)
+                myShCmd('cd lte/gateway && vagrant ssh magma_test -c "sudo cp /var/log/syslog archives/magma_test_syslog.log"', new_host_flag, new_host_user, new_host)
               }
             }
             success {
@@ -440,87 +398,82 @@ pipeline {
         }
       }
     }
-    stage ("Re-Build MME-S11") {
-      steps {
-        script {
-          gitlabCommitStatus(name: "Build-Run-AGW1-w-S11") {
-            // Adapt the interface and the container IP address for S11 --> SPGW-C
-            myShCmd('sed -i -f ci-scripts/adapt-mme-yaml.sed lte/gateway/configs/mme.yml', new_host_flag, new_host_user, new_host)
-            myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make clean"', 'archives/magma_vagrant_make_clean2.log', new_host_flag, new_host_user, new_host)
-            // Re-building w/ S11 enabled
-            sh "echo 'make FEATURES=\"mme\" run' > make_mme_run.sh"
-            copyTo2ndServer('make_mme_run.sh', 'lte/gateway', new_host_flag, new_host_user, new_host)
-            timeout (time: 15, unit: 'MINUTES') {
-              // removing the magma/.cache/gateway folder with speed down build from 3 minutes to 27 minutes
-              myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_run.sh && ./make_mme_run.sh"', 'archives/magma_vagrant_make_run2.log', new_host_flag, new_host_user, new_host)
-            }
-            sh "echo 'make FEATURES=\"mme\" status' > make_mme_status.sh"
-            copyTo2ndServer('make_mme_status.sh', 'lte/gateway', new_host_flag, new_host_user, new_host)
-            try {
-              myShCmd('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_status.sh && ./make_mme_status.sh > ../../archives/magma_status2.log"', new_host_flag, new_host_user, new_host)
-            } catch (Exception e) {
-              echo "Status may return an error"
-            }
-          }
+stage ("Re-Build MME-S11") {
+  steps {
+    script {
+        // Adapt the interface and the container IP address for S11 --> SPGW-C
+        myShCmd('sed -i -f ci-scripts/adapt-mme-yaml.sed lte/gateway/configs/mme.yml', new_host_flag, new_host_user, new_host)
+        myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make clean"', 'archives/magma_vagrant_make_clean2.log', new_host_flag, new_host_user, new_host)
+        // Re-building w/ S11 enabled
+        sh "echo 'make FEATURES=\"mme\" run' > make_mme_run.sh"
+        copyTo2ndServer('make_mme_run.sh', 'lte/gateway', new_host_flag, new_host_user, new_host)
+        timeout (time: 15, unit: 'MINUTES') {
+          // removing the magma/.cache/gateway folder with speed down build from 3 minutes to 27 minutes
+          myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_run.sh && ./make_mme_run.sh"', 'archives/magma_vagrant_make_run2.log', new_host_flag, new_host_user, new_host)
         }
-      }
-      post {
-        always {
-          script {
-            try {
-              copyFrom2ndServer('archives/magma_status2.log', 'archives', new_host_flag, new_host_user, new_host)
-            } catch (Exception e) {
-              echo "Maybe we failed before retrieving the Magma Services Status"
-            }
-          }
+        sh "echo 'make FEATURES=\"mme\" status' > make_mme_status.sh"
+        copyTo2ndServer('make_mme_status.sh', 'lte/gateway', new_host_flag, new_host_user, new_host)
+        try {
+          myShCmd('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_status.sh && ./make_mme_status.sh > ../../archives/magma_status2.log"', new_host_flag, new_host_user, new_host)
+        } catch (Exception e) {
+          echo "Status may return an error"
+        }
+    }
+  }
+  post {
+    always {
+      script {
+        try {
+          copyFrom2ndServer('archives/magma_status2.log', 'archives', new_host_flag, new_host_user, new_host)
+        } catch (Exception e) {
+          echo "Maybe we failed before retrieving the Magma Services Status"
         }
       }
     }
-    stage ("Deploy SPGW-CUPS") {
-      steps {
-        script {
-          mySh2Cmd('git clean -ff', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('./scripts/syncComponents.sh', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker network create --attachable --subnet 192.168.61.128/26 --ip-range 192.168.61.128/26 magma-oai-public-net', new_host_flag, new_host_user, new_host)
-          // We are fixing IP addresses to easy scripting
-          mySh2Cmd('docker run --privileged --name magma-oai-spgwc --network magma-oai-public-net --ip 192.168.61.130 -d oai-spgwc:develop /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker run --privileged --name magma-oai-spgwu-tiny --network magma-oai-public-net --ip 192.168.61.131 -d oai-spgwu-tiny:develop /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
-          // Configure the containers
-          mySh2Cmd('python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --from_docker_file --apn=magma.ipv4', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=192.168.61.130 --sxu=eth0 --s1u=eth0 --from_docker_file', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker cp ./spgwc-cfg.sh magma-oai-spgwc:/openair-spgwc', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker exec -it magma-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker cp ./spgwu-cfg.sh magma-oai-spgwu-tiny:/openair-spgwu-tiny', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker exec -it magma-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"', new_host_flag, new_host_user, new_host)
-          // adapting the UE IP pool to magma test setup
-          myShCmd('docker cp ./ci-scripts/adapt-spgwc-pool-ip.sed magma-oai-spgwc:/openair-spgwc', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker exec -it magma-oai-spgwc /bin/bash -c "sed -i -f adapt-spgwc-pool-ip.sed etc/spgw_c.conf"', new_host_flag, new_host_user, new_host)
-          myShCmd('docker cp ./ci-scripts/adapt-spgwu-pool-ip.sed magma-oai-spgwu-tiny:/openair-spgwu-tiny', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker exec -it magma-oai-spgwu-tiny /bin/bash -c "sed -i -f adapt-spgwu-pool-ip.sed etc/spgw_u.conf"', new_host_flag, new_host_user, new_host)
+  }
+}
+stage ("Deploy SPGW-CUPS") {
+  steps {
+    script {
+      mySh2Cmd('git clean -ff', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('./scripts/syncComponents.sh', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker network create --attachable --subnet 192.168.61.128/26 --ip-range 192.168.61.128/26 magma-oai-public-net', new_host_flag, new_host_user, new_host)
+      // We are fixing IP addresses to easy scripting
+      mySh2Cmd('docker run --privileged --name magma-oai-spgwc --network magma-oai-public-net --ip 192.168.61.130 -d oai-spgwc:develop /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker run --privileged --name magma-oai-spgwu-tiny --network magma-oai-public-net --ip 192.168.61.131 -d oai-spgwu-tiny:develop /bin/bash -c "sleep infinity"', new_host_flag, new_host_user, new_host)
+      // Configure the containers
+      mySh2Cmd('python3 component/oai-spgwc/ci-scripts/generateConfigFiles.py --kind=SPGW-C --s11c=eth0 --sxc=eth0 --from_docker_file --apn=oai.ipv4', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('python3 component/oai-spgwu-tiny/ci-scripts/generateConfigFiles.py --kind=SPGW-U --sxc_ip_addr=192.168.61.130 --sxu=eth0 --s1u=eth0 --from_docker_file', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker cp ./spgwc-cfg.sh magma-oai-spgwc:/openair-spgwc', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker exec -it magma-oai-spgwc /bin/bash -c "cd /openair-spgwc && chmod 777 spgwc-cfg.sh && ./spgwc-cfg.sh"', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker cp ./spgwu-cfg.sh magma-oai-spgwu-tiny:/openair-spgwu-tiny', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker exec -it magma-oai-spgwu-tiny /bin/bash -c "cd /openair-spgwu-tiny && chmod 777 spgwu-cfg.sh && ./spgwu-cfg.sh"', new_host_flag, new_host_user, new_host)
+      // adapting the UE IP pool to magma test setup
+      myShCmd('docker cp ./ci-scripts/adapt-spgwc-pool-ip.sed magma-oai-spgwc:/openair-spgwc', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker exec -it magma-oai-spgwc /bin/bash -c "sed -i -f adapt-spgwc-pool-ip.sed etc/spgw_c.conf"', new_host_flag, new_host_user, new_host)
+      myShCmd('docker cp ./ci-scripts/adapt-spgwu-pool-ip.sed magma-oai-spgwu-tiny:/openair-spgwu-tiny', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker exec -it magma-oai-spgwu-tiny /bin/bash -c "sed -i -f adapt-spgwu-pool-ip.sed etc/spgw_u.conf"', new_host_flag, new_host_user, new_host)
 
-          // Start cNFs
-          mySh2Cmd('docker exec -d magma-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
-          mySh2Cmd('docker exec -d magma-oai-spgwu-tiny /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
-
-          //mySh2Cmd('', new_host_flag, new_host_user, new_host)
-        }
-      }
+      // Start cNFs
+      mySh2Cmd('docker exec -d magma-oai-spgwc /bin/bash -c "nohup ./bin/oai_spgwc -o -c ./etc/spgw_c.conf > spgwc_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
+      mySh2Cmd('docker exec -d magma-oai-spgwu-tiny /bin/bash -c "nohup ./bin/oai_spgwu -o -c ./etc/spgw_u.conf > spgwu_check_run.log 2>&1"', new_host_flag, new_host_user, new_host)
     }
+  }
+}
     stage ("Testing -- w-S11") {
       parallel {
         stage ("Start Traffic Server -- S11") {
           steps {
             script {
               myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo ip addr add 192.168.61.128/26 dev eth0"', new_host_flag, new_host_user, new_host)
+              myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo ip route del 192.168.128.0/24 via 192.168.129.1 dev eth2"', new_host_flag, new_host_user, new_host)
               myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo ip route add 192.168.128.0/24 via 192.168.61.131 dev eth0"', new_host_flag, new_host_user, new_host)
-              gitlabCommitStatus(name: "Start-Traffic-Server1") {
                 echo "Starting the Traffic server in foreground"
                 try {
                   myShCmd('cd lte/gateway && vagrant ssh magma_trfserver -c "sudo traffic_server.py 192.168.60.144 62462 > magma/archives/magma_trfserver_run1.log 2>&1"', new_host_flag, new_host_user, new_host)
                 } catch (Exception e) {
                   echo "Moving on!"
                 }
-              }
             }
           }
         }
@@ -529,7 +482,6 @@ pipeline {
             script {
               // making sure the TRF server is up
               sh "sleep 60"
-              gitlabCommitStatus(name: "Test-AGW1-w-S11") {
                 echo "Starting the integration Tests - S1AP Tester"
                 timeout (time: 10, unit: 'MINUTES') {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach.py"', 'archives/magma_run_s1ap_tester_s11.log', new_host_flag, new_host_user, new_host)
@@ -559,16 +511,22 @@ pipeline {
                 } catch (Exception e) {
                   echo "oai_spgwu may already be killed"
                 }
-              }
             }
           }
           post {
             always {
               script {
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make stop"', 'archives/magma_vagrant_make_stop2.log', new_host_flag, new_host_user, new_host)
+
                 // Retrieving the sys logs and mme log for more debugging.
-                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/syslog"', 'archives/magma_dev_syslog_s11.log', new_host_flag, new_host_user, new_host)
-                myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo cat /var/log/mme.log"', 'archives/magma_dev_mme_s11.log', new_host_flag, new_host_user, new_host)
-                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "sudo cat /var/log/syslog"', 'archives/magma_test_syslog_s11.log', new_host_flag, new_host_user, new_host)
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo cp /var/log/syslog archives/magma_dev_syslog_s11.log"', new_host_flag, new_host_user, new_host)
+                try {
+                  myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo cp /var/log/mme.log archives/magma_dev_mme_s11.log"', new_host_flag, new_host_user, new_host)
+                  myShCmd('docker cp magma-oai-spgwc:/openair-spgwc/spgwc_check_run.log archives', new_host_flag, new_host_user, new_host)
+                } catch (Exception e) {
+                  echo "MME log may not be available"
+                }
+                myShCmd('cd lte/gateway && vagrant ssh magma_test -c "sudo cp /var/log/syslog archives/magma_test_syslog_s11.log"', new_host_flag, new_host_user, new_host)
                 // Retrieving the container logs
                 myShCmd('docker cp magma-oai-spgwc:/openair-spgwc/spgwc_check_run.log archives', new_host_flag, new_host_user, new_host)
                 myShCmd('docker cp magma-oai-spgwu-tiny:/openair-spgwu-tiny/spgwu_check_run.log archives', new_host_flag, new_host_user, new_host)
@@ -625,15 +583,8 @@ pipeline {
           echo "We may not have created the CUPS docker network"
         }
 
-        //myShCmdWithLog('docker rm -f fluentd orc8r_proxy_1 orc8r_controller_1 orc8r_kibana_1 orc8r_maria_1 orc8r_postgres_1 elasticsearch', 'archives/orchestrator_stop.log', new_host_flag, new_host_user, new_host)
-        //myShCmdWithLog('docker network prune --force', 'archives/orchestrator_network_prune.log', new_host_flag, new_host_user, new_host)
-
         // Generate HTML report
-        if ("MERGE".equals(env.gitlabActionType)) {
-          sh "python3 ci-scripts/generateHtmlReport.py --job_name=${JOB_NAME} --job_id=${BUILD_ID} --job_url=${BUILD_URL} --git_url=${GIT_URL} --git_src_branch=${env.gitlabSourceBranch} --git_src_commit=${env.gitlabMergeRequestLastCommit} --git_merge_request=True --git_target_branch=${env.gitlabTargetBranch} --git_target_commit=${GIT_COMMIT}"
-        } else {
-          sh "python3 ci-scripts/generateHtmlReport.py --job_name=${JOB_NAME} --job_id=${BUILD_ID} --job_url=${BUILD_URL} --git_url=${GIT_URL} --git_src_branch=${GIT_BRANCH} --git_src_commit=${GIT_COMMIT}"
-        }
+        sh "python3 ci-scripts/generateHtmlReport.py --job_name=${JOB_NAME} --job_id=${BUILD_ID} --job_url=${BUILD_URL} --git_url=${GIT_URL} --git_src_branch=${GIT_BRANCH} --git_src_commit=${GIT_COMMIT}"
         sh "sed -i -e 's#TEMPLATE_TIME#${JOB_TIMESTAMP}#' test_results_magma_converged_mme.html"
         if (fileExists('test_results_magma_converged_mme.html')) {
           archiveArtifacts artifacts: 'test_results_magma_converged_mme.html'
@@ -644,36 +595,19 @@ pipeline {
         if (fileExists('magma_logs.zip')) {
           archiveArtifacts artifacts: 'magma_logs.zip'
         }
-
-        // Sending an email to the contributor
-        emailext attachmentsPattern: '*results*.html',
-          body: '''Hi,
-
-Here are attached HTML report files for $PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!
-
-Regards,
-OAI CI Team''',
-          replyTo: 'no-reply@openairinterface.org',
-          subject: '$PROJECT_NAME - Build # $BUILD_NUMBER - $BUILD_STATUS!',
-          to: gitCommitAuthorEmailAddr
-
         myShCmd('git stash && git stash clear', new_host_flag, new_host_user, new_host)
       }
     }
     success {
       script {
-        if ("MERGE".equals(env.gitlabActionType)) {
           def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): passed (" + BUILD_URL + ")"
-           addGitLabMRComment comment: message
-        }
+          echo message
       }
     }
     unsuccessful {
       script {
-        if ("MERGE".equals(env.gitlabActionType)) {
           def message = "OAI " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
-          addGitLabMRComment comment: message
-        }
+          echo message
       }
     }
   }
@@ -681,28 +615,49 @@ OAI CI Team''',
 
 def copyTo2ndServer(filename, destination, flag, user, host) {
   if (flag) {
-    if ("converged_mme.tar.bz2".equals(filename)) {
-      sh "ssh ${user}@${host} 'mkdir -p /home/${user}/CI-Magma'"
-      sh "ssh ${user}@${host} 'sudo rm -Rf /home/${user}/CI-Magma/.git'"
-    }
-    sh "scp ${filename} ${user}@${host}:/home/${user}/CI-Magma/${destination}"
-    if ("converged_mme.tar.bz2".equals(filename)) {
-      sh "ssh ${user}@${host} 'cd /home/${user}/CI-Magma && tar -xjf ${filename}'"
-      //sh "ssh ${user}@${host} 'rm -f /home/${user}/CI-Magma/converged_mme.tar.bz2'"
-      sh "ssh ${user}@${host} 'mv /home/${user}/CI-Magma/converged_mme.tar.bz2 /tmp'"
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: 'packet-jenkins-lab-key', 
+        keyFileVariable: 'KEY_FILE', 
+        passphraseVariable: 'PASS', 
+        usernameVariable: 'USER')]) {
+          if ("converged_mme.tar.bz2".equals(filename)) {
+            echo "ssh -i '${KEY_FILE}' ${USER}@${host} 'mkdir -p /home/${USER}/CI-Magma'"
+            sh "ssh  -i '${KEY_FILE}' ${USER}@${host} 'mkdir -p /home/${USER}/CI-Magma'"
+            sh "ssh -i '${KEY_FILE}' ${USER}@${host} 'sudo rm -Rf /home/${USER}/CI-Magma/.git'"
+          }
+          sh "scp -i '${KEY_FILE}' ${filename} ${USER}@${host}:/home/${USER}/CI-Magma/${destination}"
+          if ("converged_mme.tar.bz2".equals(filename)) {
+            sh "ssh -i '${KEY_FILE}' ${USER}@${host} 'cd /home/${USER}/CI-Magma && tar -xjf ${filename}'"
+            sh "ssh -i '${KEY_FILE}' ${USER}@${host} 'mv /home/${USER}/CI-Magma/converged_mme.tar.bz2 /tmp'"
+          }
     }
   }
 }
 
 def copyFrom2ndServer(filename, target, flag, user, host) {
   if (flag) {
-    sh "scp ${user}@${host}:/home/${user}/CI-Magma/${filename} ${target}"
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: 'packet-jenkins-lab-key', 
+        keyFileVariable: 'KEY_FILE', 
+        passphraseVariable: 'PASS', 
+        usernameVariable: 'USER')]) {
+            sh "scp -i '${KEY_FILE}' ${USER}@${host}:/home/${USER}/CI-Magma/${filename} ${target}"
+    }
   }
 }
 
 def myShCmd(cmd, flag, user, host) {
   if (flag) {
-    sh "ssh -t -t ${user}@${host} 'cd /home/${user}/CI-Magma && ${cmd}'"
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: 'packet-jenkins-lab-key', 
+        keyFileVariable: 'KEY_FILE', 
+        passphraseVariable: 'PASS', 
+        usernameVariable: 'USER')]) {
+          sh "ssh -i '${KEY_FILE}' -t -t ${USER}@${host} 'cd /home/${USER}/CI-Magma && ${cmd}'"
+        }
   } else {
     sh "${cmd}"
   }
@@ -710,7 +665,14 @@ def myShCmd(cmd, flag, user, host) {
 
 def myShCmdWithLog(cmd, logFile, flag, user, host) {
   if (flag) {
-    sh "ssh -t -t ${user}@${host} 'cd /home/${user}/CI-Magma && ${cmd}' > ${logFile} 2>&1"
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: 'packet-jenkins-lab-key', 
+        keyFileVariable: 'KEY_FILE', 
+        passphraseVariable: 'PASS', 
+        usernameVariable: 'USER')]) {
+          sh "ssh -i '${KEY_FILE}' -t -t ${USER}@${host} 'cd /home/${USER}/CI-Magma && ${cmd}' > ${logFile} 2>&1"
+    }
   } else {
     sh "${cmd} > ${logFile} 2>&1"
   }
@@ -718,7 +680,14 @@ def myShCmdWithLog(cmd, logFile, flag, user, host) {
 
 def myShCmdWithLogAppend(cmd, logFile, flag, user, host) {
   if (flag) {
-    sh "ssh -t -t ${user}@${host} 'cd /home/${user}/CI-Magma && ${cmd}' >> ${logFile} 2>&1"
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: 'packet-jenkins-lab-key', 
+        keyFileVariable: 'KEY_FILE', 
+        passphraseVariable: 'PASS', 
+        usernameVariable: 'USER')]) {
+          sh "ssh -i '${KEY_FILE}' -t -t ${USER}@${host} 'cd /home/${USER}/CI-Magma && ${cmd}' >> ${logFile} 2>&1"
+        }
   } else {
     sh "${cmd} >> ${logFile} 2>&1"
   }
@@ -726,7 +695,14 @@ def myShCmdWithLogAppend(cmd, logFile, flag, user, host) {
 
 def myShRetCmd(cmd, flag, user, host) {
   if (flag) {
-    ret = sh returnStdout: true, script: "ssh -t -t ${user}@${host} 'cd /home/${user}/CI-Magma && ${cmd}'"
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: 'packet-jenkins-lab-key', 
+        keyFileVariable: 'KEY_FILE', 
+        passphraseVariable: 'PASS', 
+        usernameVariable: 'USER')]) {
+          ret = sh returnStdout: true, script: "ssh -i '${KEY_FILE}' -t -t ${USER}@${host} 'cd /home/${USER}/CI-Magma && ${cmd}'"
+        }
   } else {
     ret = sh returnStdout: true, script: "${cmd}"
   }
@@ -736,8 +712,17 @@ def myShRetCmd(cmd, flag, user, host) {
 
 def mySh2Cmd(cmd, flag, user, host) {
   if (flag) {
-    sh "ssh -t -t ${user}@${host} 'cd /home/${user}/CI-Magma-Epc-Fed && ${cmd}'"
+    withCredentials([
+      sshUserPrivateKey(
+        credentialsId: 'packet-jenkins-lab-key', 
+        keyFileVariable: 'KEY_FILE', 
+        passphraseVariable: 'PASS', 
+        usernameVariable: 'USER')]) {
+          sh "ssh -i '${KEY_FILE}' -t -t ${USER}@${host} 'mkdir -p /home/${USER}/CI-Magma-Epc-Fed'"
+          sh "ssh -i '${KEY_FILE}' -t -t ${USER}@${host} 'cd /home/${USER}/CI-Magma-Epc-Fed && ${cmd}'"
+        }
   } else {
+    sh "mkdir -p ~/CI-Magma-Epc-Fed"
     sh "cd ~/CI-Magma-Epc-Fed && ${cmd}"
   }
 }

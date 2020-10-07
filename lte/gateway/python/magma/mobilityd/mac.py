@@ -28,14 +28,17 @@ class MacAddress:
 
         return bytes.fromhex(self.mac_address.replace(':', ''))
 
-    def as_redis_key(self) -> str:
+    def as_redis_key(self, vlan: str) -> str:
         """
         Convert MAC address string to redis key. Redis does not
         allow ':' in the key, so use '_' instead
         Returns: str to make redis happy
         """
-
-        return str(self.mac_address).replace(':', '_').lower()
+        key = str(self.mac_address).replace(':', '_').lower()
+        if vlan:
+            return "v{}.{}".format(vlan, key)
+        else:
+            return key
 
     def __str__(self):
         return self.mac_address

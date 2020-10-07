@@ -80,22 +80,22 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
     @unittest.skipIf(os.getuid(), reason="needs root user")
     def test_ip_alloc(self):
         sid1 = "IMSI02917"
-        ip1 = self._dhcp_allocator.alloc_ip_address(sid1)
+        ip1, _ = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
         dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
         dhcp_store = self._dhcp_allocator._dhcp_store
 
-        self.assertEqual(str(dhcp_gw_info.getIP()), "192.168.128.211")
+        self.assertEqual(str(dhcp_gw_info.get_gw_ip()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)
 
         # wait for DHCP release
         threading.Event().wait(7)
         mac1 = create_mac_from_sid(sid1)
-        dhcp_state1 = dhcp_store.get(mac1.as_redis_key())
+        dhcp_state1 = dhcp_store.get(mac1.as_redis_key(None))
 
         self.assertEqual(dhcp_state1.state_requested, DHCPState.RELEASE)
 
-        ip1_1 = self._dhcp_allocator.alloc_ip_address(sid1)
+        ip1_1, _ = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
         self.assertEqual(str(ip1), str(ip1_1))
 
@@ -103,15 +103,15 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         threading.Event().wait(5)
         self.assertEqual(self._dhcp_allocator.list_added_ip_blocks(), [])
 
-        ip1 = self._dhcp_allocator.alloc_ip_address("IMSI02918")
+        ip1, _ = self._dhcp_allocator.alloc_ip_address("IMSI02918")
         self.assertEqual(str(ip1), "192.168.128.146")
         self.assertEqual(self._dhcp_allocator.list_added_ip_blocks(),
                          [ip_network('192.168.128.0/24')])
 
-        ip2 = self._dhcp_allocator.alloc_ip_address("IMSI029192")
+        ip2, _ = self._dhcp_allocator.alloc_ip_address("IMSI029192")
         self.assertNotEqual(ip1, ip2)
 
-        ip3 = self._dhcp_allocator.alloc_ip_address("IMSI0432")
+        ip3, _ = self._dhcp_allocator.alloc_ip_address("IMSI0432")
         self.assertNotEqual(ip1, ip3)
         self.assertNotEqual(ip2, ip3)
         # release unallocated IP of SID
@@ -123,7 +123,7 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
                          [ip_network('192.168.128.0/24')])
 
         sid4 = "IMSI54321"
-        ip4 = self._dhcp_allocator.alloc_ip_address(sid4)
+        ip4, _ = self._dhcp_allocator.alloc_ip_address(sid4)
         threading.Event().wait(1)
         self._dhcp_allocator.release_ip_address(sid4, ip4)
         self.assertEqual(self._dhcp_allocator.list_added_ip_blocks(),
@@ -132,10 +132,10 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         # wait for DHCP release
         threading.Event().wait(7)
         mac4 = create_mac_from_sid(sid4)
-        dhcp_state = dhcp_store.get(mac4.as_redis_key())
+        dhcp_state = dhcp_store.get(mac4.as_redis_key(None))
 
         self.assertEqual(dhcp_state.state_requested, DHCPState.RELEASE)
-        ip4_2 = self._dhcp_allocator.alloc_ip_address(sid4)
+        ip4_2, _ = self._dhcp_allocator.alloc_ip_address(sid4)
         self.assertEqual(ip4, ip4_2)
 
         try:

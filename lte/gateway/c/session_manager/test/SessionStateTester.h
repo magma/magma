@@ -29,17 +29,27 @@ class SessionStateTest : public ::testing::Test {
  protected:
   virtual void SetUp() {
     SessionConfig test_sstate_cfg;
-    auto tgpp_ctx = TgppContext();
+    auto tgpp_ctx       = TgppContext();
+    auto pdp_start_time = 12345;
     create_tgpp_context("gx.dest.com", "gy.dest.com", &tgpp_ctx);
     rule_store    = std::make_shared<StaticRuleStore>();
     session_state = std::make_shared<SessionState>(
-        "imsi", "session", test_sstate_cfg, *rule_store, tgpp_ctx);
+        "imsi", "session", test_sstate_cfg, *rule_store, tgpp_ctx,
+        pdp_start_time);
     update_criteria = get_default_update_criteria();
   }
   enum RuleType {
     STATIC  = 0,
     DYNAMIC = 1,
   };
+
+  void insert_static_rule_into_store(
+      uint32_t rating_group, const std::string& m_key,
+      const std::string& rule_id) {
+    PolicyRule rule;
+    create_policy_rule(rule_id, m_key, rating_group, &rule);
+    rule_store->insert_rule(rule);
+  }
 
   void insert_rule(
       uint32_t rating_group, const std::string& m_key,
@@ -128,22 +138,34 @@ class SessionStateTest : public ::testing::Test {
 
   void receive_credit_from_ocs(uint32_t rating_group, uint64_t volume) {
     CreditUpdateResponse charge_resp;
-    create_credit_update_response("IMSI1", rating_group, volume, &charge_resp);
+    create_credit_update_response(
+        "IMSI1", "1234", rating_group, volume, &charge_resp);
     session_state->receive_charging_credit(charge_resp, update_criteria);
   }
 
-  void receive_credit_from_ocs(uint32_t rating_group, uint64_t total_volume,
-                               uint64_t tx_volume,uint64_t rx_volume, bool is_final) {
+  void receive_credit_from_ocs(
+      uint32_t rating_group, uint64_t total_volume, uint64_t tx_volume,
+      uint64_t rx_volume, bool is_final) {
     CreditUpdateResponse charge_resp;
-    create_credit_update_response("IMSI1", rating_group,total_volume, tx_volume,
-                                  rx_volume, is_final, &charge_resp);
+    create_credit_update_response(
+        "IMSI1", "1234", rating_group, total_volume, tx_volume, rx_volume,
+        is_final, &charge_resp);
     session_state->receive_charging_credit(charge_resp, update_criteria);
   }
 
   void receive_credit_from_pcrf(
       const std::string& mkey, uint64_t volume, MonitoringLevel level) {
     UsageMonitoringUpdateResponse monitor_resp;
-    create_monitor_update_response("IMSI1", mkey, level, volume, &monitor_resp);
+    receive_credit_from_pcrf(mkey, volume, 0, 0, level);
+  }
+
+  void receive_credit_from_pcrf(
+      const std::string& mkey, uint64_t total_volume, uint64_t tx_volume,
+      uint64_t rx_volume, MonitoringLevel level) {
+    UsageMonitoringUpdateResponse monitor_resp;
+    create_monitor_update_response(
+        "IMSI1", "1234", mkey, level, total_volume, tx_volume, rx_volume,
+        &monitor_resp);
     session_state->receive_monitor(monitor_resp, update_criteria);
   }
 

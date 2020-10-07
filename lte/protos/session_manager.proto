@@ -26,6 +26,7 @@ message RuleRecord {
   string rule_id = 2;
   uint64 bytes_tx = 3;
   uint64 bytes_rx = 4;
+  string ue_ipv4 = 5;
 }
 
 message RuleRecordTable {
@@ -39,23 +40,10 @@ message RuleRecordTable {
 enum RATType {
   TGPP_LTE = 0;  // will map to 06 (EUTRAN, 3GPP TS 29.274) for Gy, 1004 (EUTRAN, 3GPP TS 29.212) S6a, Gx
   TGPP_WLAN = 1; // will map to 03 (WLAN, 3GPP TS 29.274) for Gy, 0 (WLAN, 3GPP TS 29.212) S6a, Gx
+  TGPP_NR = 2;
 }
 
 message LocalCreateSessionRequest {
-  SubscriberID sid = 1; // Included in Common ctx
-  string ue_ipv4 = 2; // Included in Common ctx
-  string spgw_ipv4 = 3; // Included in LTE ctx
-  string apn = 4; // Included in Common ctx
-  string imei = 6; // Included in LTE ctx
-  string plmn_id = 7; // Included in LTE ctx
-  string imsi_plmn_id = 8; // Included in LTE ctx
-  bytes user_location = 9; // Included in LTE ctx
-  QosInformationRequest qos_info = 10; // Included in LTE ctx
-  bytes msisdn = 11; // Included in Common ctx
-  RATType rat_type = 12; // Included in Common ctx
-  bytes hardware_addr = 13; // MAC Address for WLAN
-  string radius_session_id = 14; // Included in WLAN ctx
-  uint32 bearer_id = 15; // Included in LTE ctx
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
 }
@@ -66,12 +54,17 @@ message CommonSessionContext {
   string apn = 4;
   bytes msisdn = 5;
   RATType rat_type = 6;
+  //PDU session state to mirror with AMF or MME
+  SMSessionFSMState sm_session_state = 7;
+  uint32 sm_session_version = 9;
+  string ue_ipv6 = 10;
 }
 
 message RatSpecificContext {
   oneof context {
     LTESessionContext lte_context = 17;
     WLANSessionContext wlan_context = 18;
+    M5GSMSessionContext m5gsm_session_context = 19;
   }
 }
 
@@ -101,6 +94,16 @@ message LocalEndSessionRequest {
 }
 
 message LocalEndSessionResponse {
+}
+
+message PolicyBearerBindingRequest {
+  SubscriberID sid = 1;
+  uint32 linked_bearer_id = 2;
+  string policy_rule_id = 3;
+  uint32 bearer_id = 4;
+}
+
+message PolicyBearerBindingResponse {
 }
 
 message ChargingReAuthRequest {
@@ -252,12 +255,32 @@ message PolicyReAuthAnswer {
   map<string, FailureCode> failed_rules = 3;
 }
 
+message RuleSet {
+  bool apply_subscriber_wide = 1; // Apply the rules to all sessions for IMSI
+  string apn = 2;
+  repeated StaticRuleInstall static_rules = 3;
+  repeated DynamicRuleInstall dynamic_rules = 4;
+}
+
+message RulesPerSubscriber {
+  string imsi = 1;
+  repeated RuleSet rule_set = 3;
+}
+
+message SessionRules {
+  repeated RulesPerSubscriber rules_per_subscriber = 1;
+}
+
 service LocalSessionManager {
   rpc ReportRuleStats(RuleRecordTable) returns (orc8r.Void) {}
 
   rpc CreateSession(LocalCreateSessionRequest) returns (LocalCreateSessionResponse) {}
 
   rpc EndSession(LocalEndSessionRequest) returns (LocalEndSessionResponse) {}
+
+  rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
+  // A set interface of subscribers -> currently active rules
+  rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
 }
 
 service SessionProxyResponder {
@@ -271,6 +294,11 @@ service SessionProxyResponder {
 ///////////////////
 // CentralSessionController service
 ///////////////////
+
+message Timezone {
+  // Describe a timezone by offset from UTC in minutes
+  int32 offset_minutes = 1;
+}
 
 message CreditUnit {
   bool is_valid = 1;
@@ -312,7 +340,15 @@ message ChargingCredit {
   FinalAction final_action = 5;
   GrantedUnits granted_units = 6;
   RedirectServer redirect_server = 7;
+  repeated string restrict_rules = 8;
 }
+
+message RequestedUnits {
+  uint64 total = 1;
+  uint64 tx = 2;
+  uint64 rx = 3;
+}
+
 
 message CreditUsage {
   uint64 bytes_tx = 1;
@@ -332,6 +368,7 @@ message CreditUsage {
   UpdateType type = 5;
   bytes monitoring_key = 6;
   ServiceIdentifier service_identifier = 7;
+  RequestedUnits requested_units = 8;
 }
 
 message CreditUsageUpdate {
@@ -370,6 +407,7 @@ message CreditUpdateResponse {
   // When this is set to an infinite limit, field 'credit' should be ignored
   CreditLimitType limit_type = 9;
   TgppContext tgpp_ctx = 10;
+  string session_id = 11;
 }
 
 // PCRF USAGE MONITORING
@@ -391,7 +429,8 @@ message UsageMonitorUpdate {
 message UsageMonitoringCredit {
   enum Action {
     CONTINUE = 0; // continue monitoring as normal
-    DISABLE = 1; // no need to monitor any more
+    DISABLE = 1; // no need to monitor any more  `AVP: Usage-Monitor-Support`
+    FORCE = 2; // monitor no matter if credit is exhausted `AVP: Usage-Monitor-Report` // TODO: not implemented on sessiond
   }
   Action action = 1;
   bytes monitoring_key = 2;
@@ -449,20 +488,9 @@ message TgppContext {
 }
 
 message CreateSessionRequest {
-  SubscriberID subscriber = 1;
+  Timezone access_timezone = 1;
   string session_id = 2;
-  string ue_ipv4 = 3;
-  string spgw_ipv4 = 4;
-  string apn = 5;
-  string imei = 7;
-  string plmn_id = 8;
-  string imsi_plmn_id = 9;
-  bytes user_location = 10;
-  QosInformationRequest qos_info = 11;
-  bytes  msisdn = 12;
-  string gc_id = 13;
-  RATType rat_type = 14;
-  bytes hardware_addr = 15; // MAC Address for WLAN
+  RequestedUnits requested_units = 3;
   CommonSessionContext common_context = 16;
   RatSpecificContext rat_specific_context = 17;
 }
@@ -537,3 +565,225 @@ service CentralSessionController {
   // Terminates session in OCS/PCRF for a subscriber
   rpc TerminateSession(SessionTerminateRequest) returns (SessionTerminateResponse) {}
 }
+
+////////////5GSMCONTEXT/////////////
+//PduSessionType
+enum PduSessionType {
+   IPV4 = 0;
+   IPV6 = 1;
+   IPV4IPV6 = 2;
+   UNSTRUCTURED = 3;
+}
+
+
+//SscMode
+enum SscMode {
+   SSC_MODE_1 = 0;
+   SSC_MODE_2 = 1;
+   SSC_MODE_3 = 2;
+}
+//M5GSMCapability
+message M5GSMCapability {
+   bool reflective_qos = 1;
+   bool multi_homed_ipv6_pdu_session = 2;
+}
+//M5GSMCause
+enum M5GSMCause {
+     OPERATOR_DETERMINED_BARRING = 0;                              //actual value 8
+     INSUFFICIENT_RESOURCES = 1;                                   //actual value 26
+     MISSING_OR_UNKNOWN_DNN = 2;                                   //actual value 27
+     UNKNOWN_PDU_SESSION_TYPE = 3;                                 //actual value 28
+     USER_AUTHENTICATION_OR_AUTHORIZATION_FAILED = 4;              //actual value 29
+     REQUEST_REJECTED_UNSPECIFIED = 5;                             //actual value 31
+     SERVICE_OPTION_NOT_SUPPORTED = 6;                             //actual value 32
+     REQUESTED_SERVICE_OPTION_NOT_SUBSCRIBED = 7;                  //actual value 33
+     SERVICE_OPTION_TEMPORARILY_OUT_OF_ORDER = 8;                  //actual value 34
+     REGULAR_DEACTIVATION = 10;                                    //actual value 36
+     NETWORK_FAILURE = 11;                                         //actual value 38
+     REACTIVATION_REQUESTED = 12;                                  //actual value 39
+     INVALID_PDU_SESSION_IDENTITY = 13;                            //actual value 43
+     SEMANTIC_ERRORS_IN_PACKET_FILTER = 14;                        //actual value 44
+     SYNTACTICAL_ERROR_IN_PACKET_FILTER = 15;                      //actual value 45
+     OUT_OF_LADN_SERVICE_AREA = 16;                                //actual value 46
+     PTI_MISMATCH = 17;                                            //actual value 47
+     PDU_SESSION_TYPE_IPV4_ONLY_ALLOWED = 18;                      //actual value 5
+     PDU_SESSION_TYPE_IPV6_ONLY_ALLOWED = 19;                      //actual value 51
+     PDU_SESSION_DOES_NOT_EXIST = 20;                              //actual value 54
+     INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE_AND_DNN = 21;       //actual value 67
+     NOT_SUPPORTED_SSC_MODE = 22;                                  //actual value 68
+     INSUFFICIENT_RESOURCES_FOR_SPECIFIC_SLICE = 23;               //actual value 69
+     MISSING_OR_UNKNOWN_DNN_IN_A_SLICE = 24;                       //actual value 70
+     INVALID_PTI_VALUE = 25;                                       //actual value 81
+     MAXIMUM_DATA_RATE_PER_UE_FOR_USER_PLANE_INTEGRITY_PROTECTION_IS_TOO_LOW = 26;//actual value 82
+     SEMANTIC_ERROR_IN_THE_QOS_OPERATION = 27;                     //actual value 83
+     SYNTACTICAL_ERROR_IN_THE_QOS_OPERATION = 28;                  //actual value 84
+     INVALID_MAPPED_EPS_BEARER_IDENTITY = 29;                      //actual value 85
+     SEMANTICALLY_INCORRECT_MESSAGE = 30;                          //actual value 95
+     INVALID_MANDATORY_INFORMATION = 31;                           //actual value 96
+     MESSAGE_TYPE_NON_EXISTENT_OR_NOT_IMPLEMENTED = 32;            //actual value 97
+     MESSAGE_TYPE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 33;     //actual value 98
+     INFORMATION_ELEMENT_NON_EXISTENT_OR_NOT_IMPLEMENTED = 34;     //actual value 99
+     CONDITIONAL_IE_ERROR = 35;                                    //actual value 100
+     MESSAGE_NOT_COMPATIBLE_WITH_THE_PROTOCOL_STATE = 36;          //actual value 101
+     PROTOCOL_ERROR_UNSPECIFIED = 37;
+     PTI_ALREADY_IN_USE = 38;                                      //actual value 111
+     OPERATION_SUCCESS = 40;//Response other than failure
+}
+//RequestType
+enum RequestType {
+   INITIAL_REQUEST = 0;
+   EXISTING_PDU_SESSION = 1;
+   INITIAL_EMERGENCY_REQUEST =2;
+   EXISTING_EMERGENCY_PDU_SESSION = 3;
+   MODIFICATION_REQUEST = 4;
+}
+//AccessType
+enum AccessType {
+  M_3GPP_ACCESS_3GPP = 0;
+  NON_3GPP_ACCESS = 1;
+}
+//DnnSelectionMode
+enum DnnSelectionMode {
+    VERIFIED = 0;
+    UE_DNN_NOT_VERIFIED = 1;
+    NW_DNN_NOT_VERIFIED = 2;
+}
+
+//RatType
+//Define enum TS-29.571 - section 5.4.3 structure Imported from session_manager.proto file.
+
+//RequestedQosRules and AuthorizedQosRules
+message QosRules {
+   uint32 qos_rule_identifier = 1;
+   bool dqr = 2;
+   uint32 number_of_packet_filters = 3;
+   repeated int32 packet_filter_identifier = 4;
+   uint32 qos_rule_precedence = 5;
+   bool segregation = 6;
+   uint32 qos_flow_identifier = 7;
+}
+
+message LadnServiceArea {
+   string dnn_value = 1;
+   repeated TrackingAreaIdentityList identity_list = 2;
+}
+message TrackingAreaIdentityList {
+   repeated TypeOfList type_of_list = 1;
+   repeated int32 number_of_elements = 2;
+   string MCC=3;
+   string MNC=4;
+   string TAC= 5;          // tac is havaing length 8 bytes,MCC is 3 bytes, MNC is 3 bytes
+}
+enum TypeOfList  {
+   LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_NON_CONSECUTIVE_TAC_VALUES = 0;
+   LIST_OF_TACS_BELONGING_TO_ONE_PLMN_WITH_CONSECUTIVE_TAC_VALUES = 1;
+   LIST_OF_TAIS_BELONGING_TO_DIFFERENT_PLMNS = 2;
+}
+enum priorityaccess  {
+   High = 0;
+   Normal = 1;
+   Low = 2;
+}
+
+enum SMSessionFSMState {
+        CREATING_0 = 0;
+        CREATE_1 = 1;
+        ACTIVE_2 = 2;
+        INACTIVE_3 =3;
+        RELEASED_4 = 4;
+}
+
+
+//PDU session Establishment from AMF to SMF
+//SET MESSSAGE
+message M5GSMSessionContext {
+  bytes pdu_session_id = 1;   //One byte
+  RequestType rquest_type = 2;        //Define ENUM 24-501 - 9.11.3.47 . 1 byte. i.e. initial requerst, existing pdusession etc...
+  RedirectServer pdu_address = 3; //IP address. Imported from session_manager.proto file
+  priorityaccess priority_access = 4;
+  AccessType access_type = 5;     //Define enum TS-29.571 - section 5.4.3
+  SubscriberID sid = 25;
+  string imei = 8; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
+  string gpsi = 9; //Lenght is 10 bytes + 2 bytes country code generic public subscription id.
+  string user_location_info = 10; //up to 6 byte. TS-23.003 - 28.15.3
+  string pcf_id = 11; //length 16 bytes as UUID "Universally Unique IDentifier" TS-29.571 to ietf rfc 4122
+  //Variable length of 20 bytes. TS-23.003 - 28.8 & TS-23.501 5.9.8
+  repeated LadnServiceArea ladn_service_area = 12; //Length is 10 bytes, like PLMN
+  bool pdu_session_status_notification_sub = 13;   //Subscription For PDU Session Status Notification true or false
+  DnnSelectionMode dnn_selection_mode = 14;       // TS-29-502 - 6.1.6.3.10
+  string trace_requirment = 15;                   // TS-29.571 5.6.
+  bytes integrity_protection_max_data_rate = 16;  //Length is 3 bytes, TS-24.501 9.11.4.7
+  PduSessionType pdu_session_type = 17;
+  SscMode ssc_mode = 18;
+  M5GSMCapability m5g_sm_capability = 19;  // max size go up to 15 bytes. TLV and 9.11.4.1.
+  uint32 max_pkt_filter_supported = 20;    //Maximum no. of supported packet filters
+  bool pdu_session_req_always_on = 21;     //Always-on PDU session requested TS-24.501 9.11.4.4
+  string sm_pdu_dn_req = 22;               //SM PDU DN request container. Max size up to 255. TLV and 9.11.4.16.
+  M5GSMCause m5gsm_cause = 23;
+  QosRules requested_qos_rules = 24; //TS-24501 - 9.11.4.13 minimum 7 and max 65538, variable length.
+}
+
+message SetSMSessionContext {
+  CommonSessionContext common_context = 1;  //Common message for 4g, 5g and WiFi.
+  RatSpecificContext   rat_specific_context = 2;
+}
+
+//TODO This supposed to be empty message and the element will be removed later
+message SmContextVoid {
+  string output = 1;
+}
+
+//SET API for 3 procedures request from AMF to SMF
+        service AmfPduSessionSmContext {
+                rpc SetAmfSessionContext (SetSMSessionContext) returns (SmContextVoid);
+        }
+
+////////// SET MESSAGE PROTO DEFINATION OF SMF TO AMF ON RESPONSE /////////////
+
+//4G response message has not been refactored yet. Hence only considering M5G.
+message RatSpecificContextAccess {
+  //oneof context {//TODO need to be implemented after 4G refactored
+    //LTESessionContextAccess lte_context = 1;
+    M5GSMSessionContextAccess m5g_session_context_rsp = 2;
+  //}
+}
+
+//AuthorizedQosRules
+//The purpose of the QoS rules information element is to indicate a set of QoS rules to be used by the UE, 
+//where each QoS rule is a set of parameters.
+//a) for classification and marking of uplink user traffic; and
+//b) for identification of a QoS flow which the network is to use for a particular downlink user traffic.
+//As the UE needs to be aware of a QoS flow which the network is to use for a particular downlink user traffic
+//e.g. to determine whether a resource is available for downlink media of a media stream of an SDP media
+//description provided by the UE in an IMS session.
+
+message M5GSMSessionContextAccess{
+    //One byte, received from UE. For 5G pdu_session_id. 
+    bytes pdu_session_id = 1;
+    //selected PDU session TS-24501 - 9.11.4.11
+    PduSessionType    pdu_session_type = 2;
+    //selected session and service continuty mode TS-24501 - 9.11.4.16
+    SscMode selected_ssc_mode = 3; 
+    //TS-24501 - 9.11.4.3 - minimum 7 and max 65538, variable length
+    repeated QosRules authorized_qos_rules = 4; 
+    //TS-24501 - 9.11.4.14 PDU session Aggregate Maximum Bit Rate imported from subscriberdb.proto
+    AggregatedMaximumBitrate session_ambr = 5;
+    M5GSMCause M5gsm_cause = 6; //TS-24501 - 9.11.4.2
+    //PDU session is requested to be established as always-on PDU session.
+    bool always_on_pdu_session_indication = 7; 
+    SscMode allowed_ssc_mode = 8; //Indicates SSC mode.
+    bool M5gsm_congetion_re_attempt_indicator = 9;
+    //IP address. Imported from session_manager.proto file.
+    RedirectServer pdu_address = 12;
+}
+
+message SetSMSessionContextAccess {
+  CommonSessionContext common_context = 1;  //Common message for 4g, 5g and WiFi.
+  RatSpecificContextAccess   rat_specific_context = 2;
+}
+
+// RPC service and method
+service SmfPduSessionSmContext {
+ rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
+}
+

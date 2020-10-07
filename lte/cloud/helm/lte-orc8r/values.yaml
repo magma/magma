@@ -1,0 +1,47 @@
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+lte:
+  service:
+    labels:
+      orc8r.io/stream_provider: "true"
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/lte,/magma/v1/lte/:network_id"
+      orc8r.io/stream_provider_streams: "base_names,network_wide_rules,policydb,apn_rule_mappings,subscriberdb,rating_groups"
+
+policydb:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/networks/:network_id/policies,
+        /magma/v1/networks/:network_id/rating_groups
+
+subscriberdb:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+      orc8r.io/state_indexer: "true"
+    annotations:
+      orc8r.io/state_indexer_types: "mobilityd_ipdesc_record"
+      orc8r.io/state_indexer_version: "1"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/lte/:network_id/msisdns,
+        /magma/v1/lte/:network_id/subscribers,
+
+smsd:
+  service:
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/lte/:network_id/sms"

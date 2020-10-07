@@ -19,7 +19,7 @@ import type {MetricGraphConfig} from '@fbcnms/ui/insights/Metrics';
 import AppBar from '@material-ui/core/AppBar';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import GatewayMetrics from '@fbcnms/ui/insights/GatewayMetrics';
-import Grafana from '@fbcnms/ui/insights/Grafana';
+import Grafana from '../Grafana';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import NetworkKPIs from './NetworkKPIs';
 import React, {useContext} from 'react';
@@ -274,25 +274,48 @@ export default function () {
           indicatorColor="primary"
           textColor="inherit"
           className={classes.tabs}>
-          <Tab component={NestedRouteLink} label="Gateways" to="/gateways" />
-          <Tab component={NestedRouteLink} label="Network" to="/network" />
-          <Tab component={NestedRouteLink} label="Internal" to="/internal" />
-          {grafanaEnabled && (
+          {!grafanaEnabled ? (
+            <>
+              <Tab
+                component={NestedRouteLink}
+                label="Gateways"
+                to="/gateways"
+              />
+              <Tab component={NestedRouteLink} label="Network" to="/network" />
+              <Tab
+                component={NestedRouteLink}
+                label="Internal"
+                to="/internal"
+              />
+            </>
+          ) : (
             <Tab component={NestedRouteLink} label="Grafana" to="/grafana" />
           )}
         </Tabs>
       </AppBar>
       <Switch>
-        <Route
-          path={relativePath('/gateways')}
-          component={GatewayMetricsGraphs}
-        />
-        <Route path={relativePath('/network')} component={NetworkKPIs} />
-        <Route path={relativePath('/internal')} component={InternalMetrics} />
-        {grafanaEnabled && (
-          <Route path={relativePath('/grafana')} component={GrafanaDashboard} />
+        {!grafanaEnabled ? (
+          <>
+            <Route
+              path={relativePath('/gateways')}
+              component={GatewayMetricsGraphs}
+            />
+            <Route path={relativePath('/network')} component={NetworkKPIs} />
+            <Route
+              path={relativePath('/internal')}
+              component={InternalMetrics}
+            />
+            <Redirect to={relativeUrl('/gateways')} />
+          </>
+        ) : (
+          <>
+            <Route
+              path={relativePath('/grafana')}
+              component={GrafanaDashboard}
+            />
+            <Redirect to={relativeUrl('/grafana')} />
+          </>
         )}
-        <Redirect to={relativeUrl('/gateways')} />
       </Switch>
     </>
   );

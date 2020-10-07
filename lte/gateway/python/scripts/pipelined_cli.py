@@ -26,6 +26,7 @@ from lte.protos.pipelined_pb2 import (
 from lte.protos.policydb_pb2 import RedirectInformation
 from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
 from magma.subscriberdb.sid import SIDUtils
 from magma.configuration.service_configs import load_service_config
 from magma.pipelined.bridge_util import BridgeTools
@@ -76,9 +77,11 @@ def activate_dynamic_rule(client, args):
             hard_timeout=args.hard_timeout,
             flow_list=[
                 FlowDescription(match=FlowMatch(
-                    ipv4_dst=args.ipv4_dst, direction=FlowMatch.UPLINK)),
+                    ipv4_dst=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
+                    direction=FlowMatch.UPLINK)),
                 FlowDescription(match=FlowMatch(
-                    ipv4_src=args.ipv4_dst, direction=FlowMatch.DOWNLINK)),
+                    ipv4_src=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
+                    direction=FlowMatch.DOWNLINK)),
             ],
         )],
         request_origin=RequestOriginType(type=RequestOriginType.GX))
@@ -90,7 +93,7 @@ def activate_dynamic_rule(client, args):
 def activate_gy_redirect(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        ip_addr=args.ipv4,
+        ip_addr=convert_ipv4_str_to_ip_proto(args.ipv4),
         dynamic_rules=[PolicyRule(
             id=args.rule_id,
             priority=999,

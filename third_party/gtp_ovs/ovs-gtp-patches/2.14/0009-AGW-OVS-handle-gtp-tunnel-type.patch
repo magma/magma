@@ -1,0 +1,53 @@
+From 52fc1ed034847c5d5f725f45fe03a67571260a8e Mon Sep 17 00:00:00 2001
+From: Pravin B Shelar <pbshelar@fb.com>
+Date: Wed, 23 Sep 2020 04:01:59 +0000
+Subject: [PATCH 09/10] AGW: OVS: handle gtp tunnel type
+
+magma GTP implementation defines gtp as tunnel type for OVS tunnel.
+But upstream ovs it is defined as gtpu. This patch maps older name to
+new type.
+This patch can be removed once the transition to new OVS binaries is done.
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
+---
+ debian/ifupdown.sh                          | 6 +++++-
+ rhel/etc_sysconfig_network-scripts_ifup-ovs | 4 ++++
+ 2 files changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/debian/ifupdown.sh b/debian/ifupdown.sh
+index 9a7772d03..a85c5a46e 100755
+--- a/debian/ifupdown.sh
++++ b/debian/ifupdown.sh
+@@ -77,9 +77,13 @@ if [ "${MODE}" = "start" ]; then
+                     ${OVS_EXTRA+-- $OVS_EXTRA}
+                 ;;
+         OVSTunnel)
++                if [ "$IF_OVS_TUNNEL_TYPE" = "gtp" ]; then
++                    OVS_TUNNEL_TYPE="gtpu"
++                fi
++
+                 ovs_vsctl -- --may-exist add-port "${IF_OVS_BRIDGE}"\
+                     "${IFACE}" ${IF_OVS_OPTIONS} -- set Interface "${IFACE}" \
+-                    type=${IF_OVS_TUNNEL_TYPE} ${IF_OVS_TUNNEL_OPTIONS} \
++                    type=${OVS_TUNNEL_TYPE} ${IF_OVS_TUNNEL_OPTIONS} \
+                     ${OVS_EXTRA+-- $OVS_EXTRA}
+                 ;;
+         *)
+diff --git a/rhel/etc_sysconfig_network-scripts_ifup-ovs b/rhel/etc_sysconfig_network-scripts_ifup-ovs
+index 0955c0e1f..14f133888 100755
+--- a/rhel/etc_sysconfig_network-scripts_ifup-ovs
++++ b/rhel/etc_sysconfig_network-scripts_ifup-ovs
+@@ -153,6 +153,10 @@ case "$TYPE" in
+                 ;;
+         OVSTunnel)
+                 ifup_ovs_bridge
++
++                if [ "$OVS_TUNNEL_TYPE" = "gtp" ]; then
++                    OVS_TUNNEL_TYPE="gtpu"
++                fi
+                 ovs-vsctl -t ${TIMEOUT} \
+                         -- --if-exists del-port "$OVS_BRIDGE" "$DEVICE" \
+                         -- add-port "$OVS_BRIDGE" "$DEVICE" $OVS_OPTIONS \
+-- 
+2.17.1
+

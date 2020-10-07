@@ -176,6 +176,8 @@ export default function WifiMeshDialog(props: Props) {
             label="Enable XWF"
           />
           <KeyValueFields
+            key_label="key"
+            value_label="value"
             keyValuePairs={additionalProps || [['', '']]}
             onChange={setAdditionalProps}
           />

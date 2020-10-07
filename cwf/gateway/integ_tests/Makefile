@@ -12,6 +12,7 @@ AUTH=Authenticate
 GX=Gx
 GY=Gy
 MULTISP=MultiSessionProxy
+HSSLESS=Hssless
 
 define execute_test
  	echo "Running test: $(1)"
@@ -43,6 +44,14 @@ multi_session_proxy:
 	echo "Running Multi Session Proxy Tests..."
 	go test -run $(MULTISP)
 
+hssless:
+	echo "Running HSS Less Tests..."
+	$(foreach test,$(HSSLESS),$(call execute_test,$(test));)
+
 restart:
 	echo "Running restart tests..."
 	go test -tags=restart -timeout 20m
+
+precommit:
+	go fmt ./...
+	go test --tags=all -c ./...

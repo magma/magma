@@ -55,7 +55,7 @@
 /*
    Timer handlers
 */
-static void _default_eps_bearer_activate_t3485_handler(void*);
+static void _default_eps_bearer_activate_t3485_handler(void*, imsi64_t* imsi64);
 
 /* Maximum value of the activate default EPS bearer context request
    retransmission counter */
@@ -345,8 +345,24 @@ int esm_proc_default_eps_bearer_context_reject(
        */
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     }
-  }
 
+    ue_mm_context_t* ue_context_p =
+        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+    if (!ue_context_p) {
+      OAILOG_ERROR(
+          LOG_NAS_ESM,
+          "ESM-PROC  - ue_context_p is NULL for ue_id" MME_UE_S1AP_ID_FMT
+          ", ebi %u\n",
+          ue_id, ebi);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
+    }
+    // Send delete session req to spgw
+    mme_app_send_delete_session_request(ue_context_p, ebi, pid);
+    /* Set ue_rej_act_def_ber_req flag in order to delete the PDN session
+     * after receiving delete session rsp from spgw
+     */
+    ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = true;
+  }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
 
@@ -447,7 +463,8 @@ int esm_proc_default_eps_bearer_context_failure(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _default_eps_bearer_activate_t3485_handler(void* args) {
+static void _default_eps_bearer_activate_t3485_handler(
+    void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
 
@@ -469,6 +486,7 @@ static void _default_eps_bearer_activate_t3485_handler(void* args) {
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
         esm_ebr_timer_data->count);
 
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < DEFAULT_EPS_BEARER_ACTIVATE_COUNTER_MAX) {
       /*
        * Re-send activate default EPS bearer context request message

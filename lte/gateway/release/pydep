@@ -33,12 +33,19 @@ pass as a parameter to fpm.
 """
 
 import argparse
+import apt  # type: ignore
 import contextlib
+import copy
 import functools
 import glob
 import hashlib
 import json
+import logging
 import os
+import pickle
+import pkg_resources
+import re
+import requests
 import shlex
 import shutil
 import subprocess
@@ -51,11 +58,11 @@ from functools import partial
 from functools import lru_cache
 from typing import List, Union, Tuple, Optional, Dict, Any
 
-import apt # type: ignore
-import pkg_resources
-import requests
+
+log = logging.getLogger(__name__)
 
 PYPI_API_BASE = "https://pypi.python.org/pypi/%s/json"
+PIP_BLACKLIST = {'pip', 'wheel', 'setuptools', 'virtualenv'}
 
 # In general, system package repos use the same name as PyPI package names,
 # with a prefix (for example, python3-requests is the system package for
@@ -74,6 +81,7 @@ PYPI_TO_DEB = {
 DEB_EPOCH = {
     'python3-oslo.config': 1,
 }
+
 
 def _higher_version(version_a: Optional[str], version_b: Optional[str]) -> bool:
     """ Return true if :version_a: > :version_b:, false otherwise. """
@@ -141,7 +149,7 @@ def gen_sys_package_name(py_pkgname: str, use_py2: bool=False) -> str:
         suffix = py_pkgname
 
     sysdep_name = "%s-%s" % (prefix, suffix)
-    return sysdep_name.lower() #deb likes lowercase
+    return sysdep_name.lower()  # deb likes lowercase
 
 
 @lru_cache(maxsize=128)
@@ -180,7 +188,7 @@ def get_package(pkgname: str,
     # get package info for specified version. there can, apparently, be more
     # than one release package per version, so we use the one with the most
     # recent release time to disambiguate.
-    release = {}
+    release = {}  # type: Dict[str, str]
     newest_time = None
     for rel in r['releases'][version]:
         if rel['packagetype'] != 'sdist':
@@ -295,8 +303,8 @@ def get_setup_deps(setup_file: str) -> List[str]:
 
 
 def _parse_requires_txt(requires_path: str,
-                        depender: Optional[str]=None,
-                        version: Optional[str]=None) -> List[str]:
+                        depender: Optional[str] = None,
+                        version: Optional[str] = None) -> List[str]:
     """
     Given a path to a requires.txt file, return a listing of dependencies.
 
@@ -305,16 +313,16 @@ def _parse_requires_txt(requires_path: str,
         depender: Package (or file) that depends on this one (optional, debug)
         version: Package version that depends on this one (optional, debug)
     """
-    dependencies = [] # type: List[str]
+    dependencies = []  # type: List[str]
     try:
         with open(requires_path, "r") as f:
             lines = []
             all_lines = f.readlines()
-            for l in all_lines:
-                l = l.strip()
-                if l.startswith("["):
+            for line in all_lines:
+                line = line.strip()
+                if line.startswith("["):
                     break
-                lines.append(l)
+                lines.append(line)
             deps = pkg_resources.parse_requirements(lines)
     except FileNotFoundError:
         return dependencies
@@ -322,15 +330,6 @@ def _parse_requires_txt(requires_path: str,
     for d in deps:
         if d.specs:
             for op, ver in d.specs:
-                if "<" in op:
-                    # TODO(shasan): We just assume the common case that
-                    # everything >=, and that the dependnecy contains a single
-                    # constraint operator. We need to implement full dependency
-                    # resolution.
-                    print("Warning: ignoring < dependency: %s %s %s "
-                          "(from %s %s)" % (d.project_name, op, ver,
-                          depender, version), file=sys.stderr)
-                    continue
                 dependencies.append("%s %s %s" % (d.project_name, op, ver))
         else:
             dependencies.append(d.project_name)
@@ -398,16 +397,73 @@ def gen_fpm_dep_string_from_lockfile(lockfile_str: str) -> str:
 
     We always do >= deps to make upgrades easier.
     """
-    lockfile = json.loads(lockfile_str)
+    lockfile = Lockfile(data=lockfile_str)
     deps = []
-    for dep in lockfile['dependencies'].values():
-        syspkg = dep['sysdep']
-        if syspkg in DEB_EPOCH:
-            version = "%s:%s" % (DEB_EPOCH[syspkg], dep['version'])
-        else:
-            version = dep['version']
-        deps.append('-d "%s >= %s"' % (syspkg, version))
+    for dep in lockfile.dependencies().values():
+        if dep['root']:
+            syspkg = dep['sysdep']
+            if syspkg in DEB_EPOCH:
+                version = "%s:%s" % (DEB_EPOCH[syspkg], dep['version'])
+            else:
+                version = dep['version']
+            deps.append('-d "%s >= %s"' % (syspkg, version))
     return " ".join(deps)
+
+
+def _format_dep(syspkg: str,
+                op: Optional[str],
+                ver: Optional[str]) -> Tuple[str, Optional[str], Optional[str]]:
+    if op and '<' not in op:
+        # TODO: might have issues with '~=' ops using this method
+        op = '>='
+    if ver and '.*' in ver:
+        # remove trailing '.*'
+        ver = re.sub(r'\.\*$', '', ver)
+    epoch = None
+    if ver and syspkg in DEB_EPOCH:
+        log.debug("replacing epoch for %s" % (syspkg,))
+        epoch = DEB_EPOCH[syspkg]
+        ver = "%s:%s" % (epoch, ver)
+    return (syspkg, op, ver)
+
+
+class Lockfile(object):
+    """
+    Read-only copy of a lockfile
+    """
+    def __init__(self, data: Optional[str]=None, dependencies: Dict[str, Any]=None,
+                 root_packages: Dict[str, Any]=None):
+        def lower_keys(d: Dict[str, Any]):
+            return {k.lower(): v for k, v in d.items()}
+        if data:
+            lockfile = json.loads(data)
+            self._root_packages = lower_keys(lockfile['root_packages'])
+            self._dependencies = lower_keys(lockfile['dependencies'])
+        else:
+            self._dependencies = lower_keys(dependencies) if dependencies else {}
+            self._root_packages = lower_keys(root_packages) if root_packages else {}
+
+    def __str__(self):
+        output = {}
+        output['root_packages'] = self.root_packages()
+        output['dependencies'] = self.dependencies()
+        return json.dumps(output, sort_keys=True, indent=2)
+
+    def root_packages(self):
+        return copy.copy(self._root_packages)
+
+    def dependencies(self):
+        return copy.copy(self._dependencies)
+
+
+@contextlib.contextmanager
+def lcd(path):
+    oldcwd = os.getcwd()
+    try:
+        os.chdir(os.path.expanduser(path))
+        yield
+    finally:
+        os.chdir(oldcwd)
 
 
 PkgInfo = typing.NamedTuple('PkgInfo',
@@ -426,6 +482,7 @@ def _cleanup(pkgname: str) -> None:
 
 
 def py_to_deb(pkgname: str,
+              pip_distributions: Dict[str, pkg_resources.Distribution]=None,
               build_output: Optional[str]=None,
               version: Optional[str]=None,
               op: str="==",
@@ -440,7 +497,7 @@ def py_to_deb(pkgname: str,
 
     fpm -s python -t deb \
     -n {syspkg_name} \
-    {--python-package-name-prefix=python3 # (default) \
+    {--python-package-name-prefix=python3} # (default) \
     {--python-bin=python3} # (default) \
     {more_args} \
     {pkgname}{==version} \
@@ -455,29 +512,39 @@ def py_to_deb(pkgname: str,
     Return:
         Exit code of fpm call (0 is success)
     """
-    if not build_output:
-        build_output = os.getcwd()
-    
+    if not pip_distributions:
+        pip_distributions = {}
+    pkgname = pkgname.lower()
+    if pkgname in PIP_BLACKLIST:
+        return 0
+
+    dist = pip_distributions.get(pkgname, None)
+    if not dist:
+        # by this point any valid package to be built will have an entry
+        # in pip_distributions dict
+        msg = ('no distributions found in virtualenv '
+               '-- invalid config for {}').format(pkgname)
+        log.error(msg)
+        raise Exception(msg)
+
+    if "/.virtualenvs/pydep" not in dist.location:
+        # valid package but found in system packages -- source is apt
+        return 0
+
     syspkg_name = gen_sys_package_name(pkgname, py2)
 
-    @contextlib.contextmanager
-    def lcd(path):
-        oldcwd = os.getcwd()
-        try:
-            os.chdir(os.path.expanduser(path))
-            yield
-        finally:
-            os.chdir(oldcwd)
+    if not build_output:
+        build_output = os.getcwd()
 
     with lcd(build_output):
         candidates = glob.glob(build_output + '/' + syspkg_name + '_*.deb')
 
         if _existing_build(version, candidates):
-            print('found existing build of ' + syspkg_name + ' in ' + str(candidates))
+            log.info('found existing build of ' + syspkg_name + ' in ' + str(candidates))
             return 0
-        print('attempting to build ' + syspkg_name + ' ' + str(version))
+        log.info('attempting to build ' + syspkg_name + ' ' + str(version))
 
-        cmd = "fpm -s python -t deb "
+        cmd = "fpm -s python -t deb --no-python-dependencies "
         if not py2:
             cmd += "--python-package-name-prefix=python3 "
             cmd += "--python-bin=python3 "
@@ -486,47 +553,34 @@ def py_to_deb(pkgname: str,
         # check if the package has an epoch
         if syspkg_name in DEB_EPOCH:
             cmd += " --epoch %d" % DEB_EPOCH[syspkg_name]
-
-        # Cleanup "bad" dependencies. Some python packages depend on packages
-        # in our PYPI_TO_DEB list of packages that break naming convention. If
-        # any of those dependencies show up there, we need to manually remove
-        # them and replace with a dep that follows convention. Some of them
-        # also depend on a different Debian epoch version, so we handle that
-        # here too.
-        deps = get_pkg_deps(pkgname, version, True)
-        print("pkg deps: %s %s" % (pkgname, deps))
-        ver = None # type: Optional[str]
-        for item in deps:
-            try:
-                pkg, _, ver = item.split()
-            except ValueError:
-                pkg = item
-                ver = None
-
+        reqs = dist.requires()
+        deps = []
+        for req in reqs:
+            pkg = req.key
             dep_syspkg = gen_sys_package_name(pkg, py2)
-            epoch = None
-            if ver and dep_syspkg in DEB_EPOCH:
-                print("replacing epoch for %s (in %s)" % (dep_syspkg, pkgname))
-                epoch = DEB_EPOCH[dep_syspkg]
-                ver = "%s:%s" % (epoch, ver)
+            if req.specs:
+                for spec in req.specs:
+                    op, ver = spec
+                    dep = _format_dep(dep_syspkg, op, ver)
+                    deps.append(dep)
+            else:
+                deps.append((dep_syspkg, None, None))
 
-            if pkg in PYPI_TO_DEB or epoch:
-                # got one! replace.
-                cmd += " --python-disable-dependency %s" % pkg
-                correct = gen_sys_package_name(pkg, py2)
-                print("replacing %s with %s" % (pkg, correct))
-                if not ver:
-                    cmd += " -d '%s'" % (correct,)
-                else:
-                    cmd += " -d '%s >= %s'" % (correct, ver)
+        for dep in deps:
+            deppkg, depop, depver = dep
+            if depver:
+                cmd += ' -d "{} {} {}"'.format(deppkg, depop, depver)
+            else:
+                cmd += ' -d {}'.format(deppkg)
+
         if more_args:
             cmd += " %s " % more_args
         if version:
-            cmd += " %s%s%s" % (pkgname, op, version)
+            cmd += " %s%s%s" % (pkgname, '==', version)
         else:
             cmd += " %s" % pkgname
 
-        print(cmd)
+        log.debug(cmd)
         return subprocess.call(shlex.split(cmd))
 
 
@@ -608,70 +662,91 @@ def _pkg_version_available(pkg: str,
     return False
 
 
-def gen_dep_set(root_packages: List[str],
-                ignore_root: bool=False,
-                pypi_only: bool=True,
-                py2: bool=False) -> Dict[str, Optional[str]]:
+def venv(cmd: Union[List[str], str],
+         capture: int=None) -> subprocess.CompletedProcess:
+    capture = subprocess.PIPE if capture else None
+    setup = ['source /usr/share/virtualenvwrapper/virtualenvwrapper.sh',
+             'workon pydep']
+
+    if isinstance(cmd, list):
+        cmd = ' '.join([shlex.quote(token) for token in cmd])
+
+    script = ['/bin/bash', '-c', '; '.join(setup + [cmd])]
+    log.debug(script)
+    result = subprocess.run(script, stdout=capture, stderr=capture,
+                            check=True)
+    return result
+
+
+def gen_pip_distributions(
+        root_requirements: List[pkg_resources.Requirement],
+        existing_versions: Optional[Dict[str, str]]=None,
+        pypi_only: bool=True,
+        py2: bool=False) -> Dict[str, pkg_resources.Distribution]:
     """
     Recursively get the dependency tree for a given package.
 
     For each package, we calculate the list of deps and add it to a running
     list.
     """
-    deps = [] # type: List[Tuple[str, Optional[str]]]
-    dep_set = {} # type: Dict[str, Optional[str]]
-    if not ignore_root:
-        deps = [_ for _ in root_packages]
+    if not existing_versions:
+        existing_versions = {}
+    selected_versions = copy.copy(existing_versions)
+    new_requirements = []  # type: List[pkg_resources.Requirement]
 
-    while deps:
-        pkg, ver = deps.pop()
-        if not ver:
-            # we need to decide on a version
-            if not pypi_only:
-                ver = get_latest_apt_pkg_version(pkg, py2)
-
-            # if ver still none, pypi
-            if not ver:
-                ver = get_latest_pkg_version(pkg)
-
-        # we might have a version that's not actually available. we
-        # need to make sure that the version is either (a) the latest
-        # apt_pkg (if we're using that), or (b) in the set of pypi
-        # releases.
-        if not _pkg_version_available(pkg, str(ver),
-                                      pypi_only=pypi_only, py2=py2):
-            ver = get_latest_pkg_version(pkg)
-
-        if pkg not in dep_set or _higher_version(ver, dep_set[pkg]):
-            # this is the highest version we've seen for this package,
-            # record it.
-            dep_set[pkg] = ver
+    for req in root_requirements:
+        log.info(req)
+        pkg = req.key
+        if pkg in selected_versions:
+            existing = selected_versions[pkg]
+            if existing not in req:
+                # new version requirement not satisfied by existing version
+                # obeying specific instructions -- existing_versions may be
+                # inconsistent and need editing before this process succeeds
+                del selected_versions[pkg]
+                new_requirements.append(req)
+            else:
+                # existing version is fine
+                pass
         else:
-            # we've already seen this, continue.
-            continue
+            new_requirements.append(req)
 
-        # at this point, we need to have decided on a version
-        dependencies = get_pkg_deps(pkg, ver, True)
-        p_ver = None # type: Optional[str]
-        for dep_pkg in dependencies:
-            try:
-                p, _, p_ver = dep_pkg.split()
-            except ValueError:
-                p = dep_pkg
-                p_ver = None
-            deps.append((p, p_ver))
+    args = ([shlex.quote(str(r)) for r in sorted(new_requirements,
+                                                 key=lambda r: str(r))]
+            + [shlex.quote('{}=={}'.format(str(key), ver))
+               for key, ver in sorted(selected_versions.items(),
+                                      key=lambda item: item[0])])
+    log.debug(args)
 
-    return dep_set
+    # clean up from any previous runs
+    venv('wipeenv')
+    venv('pip install --use-feature=2020-resolver --force-reinstall pip setuptools wheel')
+
+    # install all packages to populate pkg_resources.working_set
+    venv('pip install --use-feature=2020-resolver ' + " ".join(args))
+
+    # python code to be run in subprocess inside venv
+    # fetching pickled pkg_resources.working_set
+    freeze_script = '; '.join(['import pickle',
+                               'import sys',
+                               'import pkg_resources',
+                               ('pickle.dump([d for d in pkg_resources.working_set], '
+                                'sys.stdout.buffer)')])
+
+    result = venv(['python', '-c', freeze_script], capture=True)
+    pip_distributions = {str(p.key): typing.cast(pkg_resources.Distribution, p)
+                         for p in pickle.loads(result.stdout)}
+    return pip_distributions
 
 
 def gen_dep_sources(dep_set: Dict[str, Optional[str]],
                     pypi_only: bool=True,
-                    py2: bool=False) ->  Dict[str, str]:
+                    py2: bool=False) -> Dict[str, str]:
     """
     Given a populated dep_sources, figure out where we can get
-    them from. We'll actually check if the versions are satisfyable.
+    them from. We'll actually check if the versions are satisfiable.
     """
-    dep_source = {} # type: Dict[str, str]
+    dep_source = {}  # type: Dict[str, str]
     for pkg in dep_set:
         ver = dep_set[pkg]
 
@@ -701,7 +776,7 @@ def gen_dep_sources(dep_set: Dict[str, Optional[str]],
     return dep_source
 
 
-def lockfile(root_packages: List[str],
+def lockfile(root_packages: Dict[str, Dict[str, str]],
              dep_set: Dict[str, Optional[str]],
              dep_source: Dict[str, str],
              py2: bool=False) -> str:
@@ -713,28 +788,34 @@ def lockfile(root_packages: List[str],
     could be possible to satisfy those deps from multiple sources. We
     resolve that here based on what's available in the apt repos.
     """
-    output = {} # type: Dict[str, Any]
-    output['root_packages'] = {}
-    for p in root_packages:
-        output['root_packages'][p[0]] = {"version": p[1]}
+    root_package_names = set(root_packages.keys())
+    output = {}  # type: Dict[str, Any]
+    output['root_packages'] = copy.copy(root_packages)
 
-    output['dependencies'] = {}
+    dependencies = {}
     for k in sorted(dep_set.keys()):
-        item = {"version": dep_set[k],
-                "source":  dep_source[k],
-                "root": (k in [_[0] for _ in root_packages]),
-                "sysdep": gen_sys_package_name(k, py2)
-               }
-        output['dependencies'][k] = item
-    return json.dumps(output, sort_keys=True, indent=2)
+        item = {
+            "version": dep_set[k],
+            "source":  dep_source[k],
+            "root": (k in root_package_names),
+            "sysdep": gen_sys_package_name(k, py2)
+        }
+        dependencies[k] = item
+
+    lf = Lockfile(root_packages=root_packages, dependencies=dependencies)
+    return str(lf)
 
 
-def build_all(dep_set: Dict[str, Optional[str]],
+def build_all(pip_distributions: Dict[str, pkg_resources.Distribution],
               dep_source: Dict[str, str],
               build_output: Optional[str]=None) -> None:
-    for p in dep_set:
-        if dep_source[p] == "pypi":
-            py_to_deb(p, version=dep_set[p], build_output=build_output)
+    for p in pip_distributions:
+        # contents of PIP_BLACKLIST were excluded from dep_source
+        if p not in PIP_BLACKLIST and dep_source.get(p) == "pypi":
+            py_to_deb(p, pip_distributions,
+                      version=pip_distributions[p].version,
+                      op='==',
+                      build_output=build_output)
 
 
 def save_lockfile(lockfilename: str, lockfilecontent: str) -> None:
@@ -742,27 +823,41 @@ def save_lockfile(lockfilename: str, lockfilecontent: str) -> None:
         f.write(lockfilecontent)
 
 
-def expand_deps(input_deps: List[str]) -> List[Tuple[str, Optional[str]]]:
-    dependencies = [] # type: List[Tuple[str, Optional[str]]]
-    explicit = [] # type: List[str]
-    setup_py = [] # type: List[str]
+def expand_deps(input_deps: List[str]) -> List[pkg_resources.Requirement]:
+    dependencies = []  # type: List[pkg_resources.Requirement]
+    explicit = []  # type: List[str]
+    setup_py = []  # type: List[str]
 
     for item in input_deps:
-        setup_py.append(item) if 'setup.py' in item else explicit.append(item)
+        if 'setup.py' in item:
+            setup_py.append(item)
+        else:
+            explicit.append(item)
 
     input_deps = explicit + sum([get_setup_deps(item) for item in setup_py], [])
 
     # parse dependencies from command line
     for d in input_deps:
         req = pkg_resources.Requirement.parse(d)
-        pkgname = req.key
-        versions = pkg_resources.Requirement.parse(d).specs
-        version = None
-        if versions:
-            version = versions[0][1] # take the first, lowest value
-        dependencies.append((pkgname, version))
+        dependencies.append(req)
 
-    return dependencies
+    # consolidate repeated dependencies
+    # this may reveal inconsistencies in supplied requirements
+    consolidated = {}  # type: Dict[str, pkg_resources.Requirement]
+    for dep in dependencies:
+        if dep.key in consolidated:
+            existing_dep = consolidated[dep.key]
+            all_specs = dep.specs + existing_dep.specs
+            new_req_str = '{}{}'.format(dep.key,
+                                        ','.join([''.join(spec)
+                                                  for spec in all_specs]))
+            new_dep = pkg_resources.Requirement.parse(new_req_str)
+            consolidated[dep.key] = new_dep
+        else:
+            consolidated[dep.key] = dep
+
+    dependencies = list(consolidated.values())
+    return sorted(dependencies, key=lambda d: str(d))
 
 
 def main(args):
@@ -771,61 +866,134 @@ def main(args):
     # "/home/vagrant/build/python/lib/python3.4/site-packages/" instead of
     # "/usr/local/lib/python3.4/dist-packages/"
     if "VIRTUAL_ENV" in os.environ:
-        print("Error: virtualenv detected. Please deactivate.")
+        log.error("Error: virtualenv detected. Please deactivate.")
         return -1
-    dependencies = expand_deps(args.deps)
 
-    dep_set = gen_dep_set(dependencies, ignore_root=args.ig_root,
-                          pypi_only=args.force_pypi, py2=args.use_py2)
-    dep_source = gen_dep_sources(dep_set,
-                                 pypi_only=args.force_pypi, py2=args.use_py2)
+    input_root_requirements = expand_deps(args.deps)
+    root_requirements = []
+    if args.dump_root_deps:
+        print("'" + "' '".join(sorted([str(r) for r in input_root_requirements])) + "'")
+        sys.exit(0)
 
-    save_lockfile(args.lockfile, lockfile(dependencies, dep_set,
+    existing_versions = {}  # type: Dict[str, str]
+
+    repo_installable = []  # type: List[pkg_resources.Requirement]
+    for req in input_root_requirements:
+        repo_version = get_latest_apt_pkg_version(req.key, args.use_py2)
+        if repo_version and repo_version in req:
+            repo_installable.append(req)
+        else:
+            root_requirements.append(req)
+
+    if args.lockfile:
+        try:
+            with open(args.lockfile, 'r') as r:
+                lf = Lockfile(r.read())
+                deps = lf.dependencies()
+                for key in deps:
+                    if deps[key]['source'] == 'pypi':
+                        try:
+                            ver = typing.cast(str, deps[key]['version'])
+                            existing_versions[key] = ver
+                        except KeyError as e:
+                            log.error('{} missing key: {}'.format(key, e))
+        except FileNotFoundError:
+            pass
+
+        log.debug(deps)
+
+    repo_pkgs = [gen_sys_package_name(p.key, args.use_py2) for p in repo_installable]
+    if args.install_from_repo:
+        try:
+            log.error(repo_pkgs)
+            subprocess.call(shlex.split('sudo apt install -y '
+                                        + ' '.join(repo_pkgs)))
+        except Exception:
+            log.error('error trying to install repo packages')
+            raise
+
+    pip_distributions = gen_pip_distributions(root_requirements,
+                                              existing_versions=existing_versions,
+                                              pypi_only=args.force_pypi,
+                                              py2=args.use_py2)
+
+    required_distributions = {}
+    to_traverse = [pip_distributions[k] for k in [req.key for req in input_root_requirements]]
+    while to_traverse:
+        dist = to_traverse.pop()
+        required_distributions[dist.key] = dist
+        requires = dist.requires()
+        log.debug(requires)
+        for req in requires:
+            prereq_dist = pip_distributions.get(req.key)
+            if prereq_dist:
+                to_traverse.append(prereq_dist)
+            else:
+                log.error('{} required but not detected'.format(prereq_dist))
+
+    dep_set = {p.key: p.version for p in required_distributions.values()
+               if p.key not in PIP_BLACKLIST}
+
+    log.debug(dep_set)
+
+    dep_source = gen_dep_sources(dep_set, pypi_only=args.force_pypi, py2=args.use_py2)
+
+    root_versions = {req.key: {'version': pip_distributions[req.key].version}
+                     for req in input_root_requirements}
+
+    log.debug(root_versions)
+
+    save_lockfile(args.lockfile, lockfile(root_versions, dep_set,
                                           dep_source, args.use_py2))
 
     if args.build:
-        build_all(dep_set, dep_source, build_output=args.build_output)
+        build_all(pip_distributions, dep_source, build_output=args.build_output)
 
 
 if __name__ == "__main__":
-
+    logging.basicConfig(stream=sys.stderr, level=logging.WARNING,
+                        format='{asctime} [{levelname:5}] {name}:{funcName}:{lineno} {msg}',
+                        style='{}'[0])
     parser = argparse.ArgumentParser("pydep")
     subparsers = parser.add_subparsers(help="Sub-commands")
     dep_p = subparsers.add_parser("finddep",
                                   help="Find dependencies")
-    dep_p.add_argument('-i', '--ignore-root-deps', dest='ig_root',
-                        action='store_true',
-                        help="Don't include root dependencies in the output.")
+    dep_p.add_argument("--log-level", default="info")
+    dep_p.add_argument('-d', '--dump-root-deps',
+                       action='store_true',
+                       help="Show root dependencies and exit.")
     dep_p.add_argument('-o', '--old-python', dest='use_py2',
-                        action='store_true',
-                        help="Target Python 2")
+                       action='store_true',
+                       help="Target Python 2")
     dep_p.add_argument('-p', '--preserve', dest='preserve',
-                        action='store_true', help="Preserve temporary files")
+                       action='store_true', help="Preserve temporary files")
     dep_p.add_argument('-b', '--build', dest='build',
-                        action='store_true', help="Build dependency packages")
+                       action='store_true', help="Build dependency packages")
     dep_p.add_argument('-l', '--lockfile', dest='lockfile',
-                        default="pydep.lockfile",
-                        help="Write dependencies to a lockfile (default: pydep.lockfile)")
+                       default="pydep.lockfile",
+                       help="Write dependencies to a lockfile (default: pydep.lockfile)")
+    dep_p.add_argument('--install-from-repo', action='store_true',
+                       help='Install packages from configured repo sources (requires sudo)')
     dep_p.add_argument('--pypi', dest='force_pypi', action='store_true',
-                        help="Force using PyPI, ignoring system packages.")
+                       help="Force using PyPI, ignoring system packages.")
     dep_p.add_argument('deps', nargs='+',
-                        help=("List of root dependencies or path to a "
-                              "setup.py file."))
+                       help=("List of root dependencies or path to a "
+                             "setup.py file."))
     dep_p.add_argument('--build-output')
     lock_p = subparsers.add_parser("lockfile",
                                    help="Working with pydep lockfiles.")
     lock_p.add_argument('lockfile_path', nargs='?',
                         help=("Generate fpm dependency string from a lockfile,"
-                             " then exit immediately.")),
+                              " then exit immediately.")),
     if len(sys.argv) == 1:
         parser.print_help()
         sys.exit(0)
     args = parser.parse_args()
-
     if "lockfile_path" in args and args.lockfile_path:
         # generate the string and return
         with open(args.lockfile_path, "r") as f:
             print(gen_fpm_dep_string_from_lockfile(f.read()))
             exit(0)
 
+    log.setLevel(getattr(logging, args.log_level.upper()))
     sys.exit(main(args))

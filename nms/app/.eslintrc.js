@@ -27,6 +27,7 @@ module.exports.overrides = [
   {
     files: ['*'],
     rules: {
+      'react-hooks/exhaustive-deps': 'error',
       'prettier/prettier': [
         2,
         {
@@ -90,6 +91,7 @@ module.exports.overrides = [
       'packages/magmalte/config/*.js',
       'packages/magmalte/scripts/**/*.js',
       'packages/magmalte/server/**/*.js',
+      'packages/magmalte/grafana/**/*.js',
     ],
     rules: {
       'no-console': 'off',
