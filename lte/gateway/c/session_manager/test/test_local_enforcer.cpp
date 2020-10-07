@@ -2421,6 +2421,75 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
       session_map, IMSI1, SESSION_ID_1, credit_key, false);
 }
 
+// If a credit is a final credit, we should not send any updates unless a ReAuth
+// is pending
+TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, ChargingCredit_FinalAction_RESTRICT_ACCESS,
+      "", "restrict_rule", response.mutable_credits()->Add());
+
+  auto static_rule = response.mutable_static_rules()->Add();
+  static_rule->set_rule_id("static_rule1");
+
+  insert_static_rule(1, "", "static_rule1");
+  insert_static_rule(1, "", "restrict_rule");
+  auto& ip_addr   = test_cfg_.common_context.ue_ipv4();
+  auto& ipv6_addr = test_cfg_.common_context.ue_ipv6();
+  // The activation for the static rule (static_rule1) and no dynamic
+  EXPECT_CALL(
+      *pipelined_client, activate_flows_for_rules(
+                             IMSI1, ip_addr, ipv6_addr, testing::_,
+                             CheckCount(1), CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  // Insert record just over the reporting threshold and aggregate over them
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(
+      IMSI1, ip_addr, "static_rule1", 1023, 0, record_list->Add());
+  auto update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto usage_updates =
+      local_enforcer->collect_updates(session_map, actions, update);
+  // No update should be seen
+  EXPECT_EQ(usage_updates.updates_size(), 0);
+
+  // Now exceed 100% quota
+  table.Clear();
+  record_list = table.mutable_records();
+  create_rule_record(
+      IMSI1, ip_addr, "static_rule1", 1024, 0, record_list->Add());
+  update = SessionStore::get_default_session_update(session_map);
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  // Collect actions and verify that restrict action is in the list
+  actions.clear();
+  usage_updates = local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(actions.size(), 1);
+  EXPECT_EQ(actions[0]->get_type(), RESTRICT_ACCESS);
+  EXPECT_EQ(actions[0]->get_restrict_rules()[0], "restrict_rule");
+
+  EXPECT_CALL(
+      *pipelined_client,
+      add_gy_final_action_flow(
+          IMSI1, ip_addr, ipv6_addr, CheckCount(1), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  // Execute actions and asset final action state
+  local_enforcer->execute_actions(session_map, actions, update);
+
+  const CreditKey& credit_key(1);
+  assert_session_is_in_final_state(
+      session_map, IMSI1, SESSION_ID_1, credit_key, true);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;
