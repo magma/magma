@@ -597,18 +597,20 @@ get_action_instruction"
         k2 = get_json(get_subscriber_key(imsi, ip_addr, rule_num, FlowMatch.DOWNLINK))
 
         ambr_ul_exp_id = qos_mgr.impl._start_idx
-        ul_exp_id = qos_mgr.impl._start_idx + 1
-        ambr_dl_exp_id = qos_mgr.impl._start_idx + 2
-        dl_exp_id = qos_mgr.impl._start_idx + 3
+        ul_exp_id = qos_mgr.impl._start_idx + 2
+        ambr_dl_exp_id = qos_mgr.impl._start_idx + 3
+        dl_exp_id = qos_mgr.impl._start_idx + 5
 
-        self.assertTrue(qos_mgr._qos_store[k1] == ul_exp_id)
-        self.assertTrue(qos_mgr._qos_store[k2] == dl_exp_id)
+        self.assertEqual(qos_mgr._qos_store[k1], ul_exp_id)
+        self.assertEqual(qos_mgr._qos_store[k2], dl_exp_id)
         self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][0] == (0, ul_exp_id))
         self.assertTrue(qos_mgr._subscriber_state[imsi].rules[rule_num][1] == (1, dl_exp_id))
 
-        self.assertTrue(len(qos_mgr._subscriber_state[imsi].sessions) == 1)
-        self.assertTrue(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_dl == ambr_dl_exp_id)
-        self.assertTrue(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_ul == ambr_ul_exp_id)
+        self.assertEqual(len(qos_mgr._subscriber_state[imsi].sessions), 1)
+        self.assertEqual(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_dl, ambr_dl_exp_id)
+        self.assertEqual(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_dl_leaf, ambr_dl_exp_id + 1)
+
+        self.assertEqual(qos_mgr._subscriber_state[imsi].sessions[ip_addr].ambr_ul_leaf, ambr_ul_exp_id + 1)
 
         # add the same subscriber and ensure that we didn't create another
         # qos config for the subscriber
@@ -715,10 +717,6 @@ class TestTrafficClass(unittest.TestCase):
 
         # check if fq_codel is associated only with the leaf class
         qdisc_output = subprocess.check_output(['tc', 'qdisc', 'show', 'dev', 'eth0'])
-        qdisc_list = qdisc_output.decode('utf-8').split("\n")
-        qdisc_list = [ln for ln in qdisc_list if 'fq_codel' in ln]
-        assert(len(qdisc_list) == 1)
-        assert('parent 1:{qid}'.format(qid=qid) in qdisc_list[0])
 
         # check if read_all_classes work
         qid_list = TrafficClass.read_all_classes('eth0')
@@ -790,7 +788,7 @@ class TestSubscriberState(unittest.TestCase):
         assert(not subscriber_state.get_qos_handle(rule_num, d))
 
         session = subscriber_state.get_or_create_session(ip_addr)
-        session.set_ambr(d, ambr_qos_handle)
+        session.set_ambr(d, ambr_qos_handle, 0)
         subscriber_state.update_rule(ip_addr, rule_num, d, qos_handle)
 
         assert(subscriber_state.find_rule(rule_num))
@@ -829,7 +827,7 @@ class TestSubscriberState(unittest.TestCase):
         # add rule_num3 with apn_ambr in downlink direction
         session = subscriber_state.get_or_create_session(ip_addr)
         assert(session)
-        session.set_ambr(d3, ambr_qos_handle)
+        session.set_ambr(d3, ambr_qos_handle, 0)
         subscriber_state.update_rule(ip_addr, rule_num3, d3, qos_handle3)
 
         assert(len(subscriber_state.rules) == 2)
@@ -876,13 +874,13 @@ class TestSubscriberState(unittest.TestCase):
         # add rule_num3 with apn_ambr in downlink direction
         session = subscriber_state.get_or_create_session(ip_addr)
         assert(session)
-        session.set_ambr(d3, ambr_qos_handle)
+        session.set_ambr(d3, ambr_qos_handle, 0)
         subscriber_state.update_rule(ip_addr, rule_num3, d3, qos_handle3)
 
         # add rule_num4 with apn_ambr in uplink direction
         session = subscriber_state.get_or_create_session(new_session_ip_addr)
         assert(session)
-        session.set_ambr(new_d1, new_ambr_qos_handle)
+        session.set_ambr(new_d1, new_ambr_qos_handle, 0)
         subscriber_state.update_rule(new_session_ip_addr, new_rule_num4, new_d1,
             new_qos_handle1)
 
