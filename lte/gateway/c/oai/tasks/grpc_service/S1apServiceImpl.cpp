@@ -24,16 +24,6 @@ extern "C" {
 #include "hashtable.h"
 }
 
-namespace grpc {
-class ServerContext;
-}  // namespace grpc
-
-namespace magma {
-namespace orc8r {
-class Void;
-}  // namespace orc8r
-} // namespace magma
-
 using grpc::ServerContext;
 using grpc::Status;
 using magma::EnbConnectedResult;
@@ -50,6 +40,9 @@ Status S1apServiceImpl::GetEnbConnected(
     EnbConnectedResult* response) {
   OAILOG_DEBUG(LOG_UTIL, "Received EnbConnected GRPC request\n");
 
+  // Get state from S1APStateManager
+  // TODO: Get state through ITTI message from S1AP task, as it's read only
+  // it will not affect ownership
   s1ap_state_t* s1ap_state = get_s1ap_state(false);
   if (s1ap_state != nullptr) {
     hashtable_rc_t ht_rc;

@@ -16,7 +16,6 @@ import grpc
 
 from magma.common.service_registry import ServiceRegistry
 from orc8r.protos.common_pb2 import Void
-from lte.protos.s1ap_service_pb2 import EnbConnectedResult
 from lte.protos.s1ap_service_pb2_grpc import S1apServiceStub
 from magma.enodebd.logger import EnodebdLogger as logger
 

@@ -839,7 +839,7 @@ func RegisterAGW(t *testing.T) {
 					SpecialSubframePattern: 7,
 					SubframeAssignment:     2,
 					Tac:                    1,
-					TransmitEnabled:        swag.Bool(true),
+					TransmitEnabled:        true,
 				},
 			},
 			{
@@ -885,7 +885,7 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 			SpecialSubframePattern: 7,
 			SubframeAssignment:     2,
 			Tac:                    1,
-			TransmitEnabled:        swag.Bool(true),
+			TransmitEnabled:        true,
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
 		StartState:   "check_for_upgrade",

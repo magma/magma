@@ -27,36 +27,23 @@ extern "C" {
 #include "log.h"
 }
 
-namespace grpc {
-class ServerContext;
-}  // namespace grpc
-namespace magma {
-namespace lte {
-class EnbConnectedResult;
-}  // namespace lte
-}  // namespace magma
-
-namespace magma {
-namespace orc8r {
-class Void;
-}  // namespace orc8r
-} // namespace magma
-
-using grpc::ServerContext;
-using grpc::Status;
-using magma::lte::EnbConnectedResult;
-using magma::lte::S1apService;
-
 namespace magma {
 using namespace lte;
 
-class S1apServiceImpl final : public S1apService::Service {
+class S1apServiceImpl final : public magma::S1apService::Service {
  public:
   S1apServiceImpl();
 
+  /**
+   * Returns list of S1 connected eNB ids
+   * @param context grpc ServerContext
+   * @param request proto request params
+   * @param response proto response EnbConnectedResult
+   * @return status response cod
+   */
   grpc::Status GetEnbConnected(
-      ServerContext* context, const magma::orc8r::Void* request,
-      EnbConnectedResult* response) override;
+      grpc::ServerContext* context, const magma::orc8r::Void* request,
+      magma::lte::EnbConnectedResult* response) override;
 };
 
 }  // namespace magma
