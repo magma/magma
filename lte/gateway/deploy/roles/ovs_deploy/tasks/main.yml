@@ -130,7 +130,7 @@
     dpkg_options: 'force-confold,force-confdef,force-overwrite'
   vars:
     packages:
-      - magma
+      - 'magma=1.3.0-1602100335-033bec15'
 
 - name: Start service openvswitch-switch.
   become: yes
