@@ -115,10 +115,15 @@ CreditUsage ChargingGrant::get_credit_usage(
   p_usage.set_type(update_type);
 
   // add the Requested-Service-Unit only if we are not on final grant
-  if (!is_final_grant) {
-    RequestedUnits requestedUnits = credit.get_requested_credits_units();
-    p_usage.mutable_requested_units()->CopyFrom(requestedUnits);
+  RequestedUnits requestedUnits;
+  if (is_final_grant) {
+    requestedUnits.set_total(0);
+    requestedUnits.set_tx(0);
+    requestedUnits.set_rx(0);
+  } else {
+    requestedUnits = credit.get_requested_credits_units();
   }
+  p_usage.mutable_requested_units()->CopyFrom(requestedUnits);
   return p_usage;
 }
 

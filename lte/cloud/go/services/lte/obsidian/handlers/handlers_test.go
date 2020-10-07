@@ -3002,6 +3002,17 @@ func TestAPNResource(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
+	apn2 := newAPN("apn2")
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/:network_id/apns",
+		Payload:        apn2,
+		Handler:        postAPN,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
 
 	// Post, successful
 	gw.ApnResources = lteModels.ApnResources{"apn0": {ApnName: "apn0", ID: "res0", VlanID: 4}}
@@ -3102,7 +3113,11 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Put, create new APN resource
-	gw.ApnResources = lteModels.ApnResources{"apn1": {ApnName: "apn1", ID: "res1", VlanID: 4}}
+	// TODO: make sure that this works
+	gw.ApnResources = lteModels.ApnResources{
+		"apn1": {ApnName: "apn1", ID: "res1", VlanID: 4},
+		"apn2": {ApnName: "apn2", ID: "res2", VlanID: 4},
+	}
 	tc = tests.Test{
 		Method:         "PUT",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
@@ -3183,7 +3198,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Get, APN resource is gone due to cascading delete
-	gw.ApnResources = lteModels.ApnResources{}
+	gw.ApnResources = lteModels.ApnResources{"apn2": {ApnName: "apn2", ID: "res2", VlanID: 4}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
@@ -3199,6 +3214,132 @@ func TestAPNResource(t *testing.T) {
 	exists, err = configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res1")
 	assert.NoError(t, err)
 	assert.False(t, exists)
+}
+
+// Regression test for issue #3088
+func TestAPNResource_Regression_3088(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
+
+	configuratorTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"})
+	assert.NoError(t, err)
+	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"})
+	assert.NoError(t, err)
+
+	e := echo.New()
+	urlBase := "/magma/v1/lte/:network_id/gateways"
+	urlManage := urlBase + "/:gateway_id"
+	lteHandlers := handlers.GetHandlers()
+	getAllGateways := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlBase, obsidian.GET).HandlerFunc
+	postGateway := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlBase, obsidian.POST).HandlerFunc
+	putGateway := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlManage, obsidian.PUT).HandlerFunc
+	getGateway := tests.GetHandlerByPathAndMethod(t, lteHandlers, urlManage, obsidian.GET).HandlerFunc
+
+	postAPN := tests.GetHandlerByPathAndMethod(t, lteHandlers, "/magma/v1/lte/:network_id/apns", obsidian.POST).HandlerFunc
+
+	gw0 := newMutableGateway("gw0")
+	gw1 := newMutableGateway("gw1")
+
+	// Get all, initially empty
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Handler:        getAllGateways,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]lteModels.MutableLteGateway{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post APN
+	apn0 := newAPN("apn0")
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/:network_id/apns",
+		Payload:        apn0,
+		Handler:        postAPN,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post gw0, successful
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Payload:        gw0,
+		Handler:        postGateway,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Post gw1, successful
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Payload:        gw1,
+		Handler:        postGateway,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all, posted gateway found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Handler:        getAllGateways,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.MutableLteGateway{"gw0": gw0, "gw1": gw1}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Put, add apn_resource to gw0
+	gw0.ApnResources = lteModels.ApnResources{"apn0": {ApnName: "apn0", ID: "res0", VlanID: 4}}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		Payload:        gw0,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        putGateway,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get, changes are reflected
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways/gw0",
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n0", "gw0"},
+		Handler:        getGateway,
+		ExpectedStatus: 200,
+		ExpectedResult: gw0,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get all, only gw0 has an apn_resource
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/gateways",
+		Handler:        getAllGateways,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.MutableLteGateway{"gw0": gw0, "gw1": gw1}),
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *lteModels.EnodebState) {

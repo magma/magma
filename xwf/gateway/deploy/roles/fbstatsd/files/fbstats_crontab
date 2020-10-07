@@ -1,0 +1,8 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+# restart_fbstatsd
+42 10 * * 0 root /usr/bin/systemctl restart fbstatsd.service
+
+# restart_fbmetricsd
+42 10 * * 0 root /usr/bin/systemctl restart fbmetricsd.service

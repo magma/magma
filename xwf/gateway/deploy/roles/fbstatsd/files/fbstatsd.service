@@ -1,0 +1,8 @@
+[Service]
+User=root
+PermissionsStartOnly=true
+ExecStart=/usr/bin/fbstatsd /etc/fbstatsd.conf
+Restart=always
+RestartSec=10s
+[Install]
+WantedBy=default.target

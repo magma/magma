@@ -584,6 +584,18 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
   response_callback(Status::OK, Void());
 }
 
+std::string LocalSessionManagerHandlerImpl::bytes_to_hex(const std::string& s) {
+  std::ostringstream ret;
+
+  unsigned int c;
+  for (std::string::size_type i = 0; i < s.length(); ++i) {
+    c = (unsigned int) (unsigned char) s[i];
+    ret << " " << std::hex << std::setfill('0') << std::setw(2)
+        << (std::nouppercase) << c;
+  }
+  return ret.str();
+}
+
 void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
   const auto& imsi = cfg.common_context.sid().id();
   const auto& apn  = cfg.common_context.apn();
@@ -593,7 +605,8 @@ void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
     const auto& lte = cfg.rat_specific_context.lte_context();
     create_message += ", default bearer ID:" + std::to_string(lte.bearer_id()) +
                       ", PLMN ID:" + lte.plmn_id() +
-                      ", IMSI PLMN ID:" + lte.imsi_plmn_id();
+                      ", IMSI PLMN ID:" + lte.imsi_plmn_id() +
+                      ", User location:" + bytes_to_hex(lte.user_location());
   } else if (cfg.rat_specific_context.has_wlan_context()) {
     create_message +=
         ", MAC addr:" + cfg.rat_specific_context.wlan_context().mac_addr();

@@ -50,12 +50,12 @@ const (
 	ManageNetworkFederationPath    = ManageNetworkPath + obsidian.UrlSep + "federation"
 	ListNetworkHAPairsPath         = ManageNetworkPath + obsidian.UrlSep + "ha_pairs"
 	ManageNetworkHAPairsPath       = ListNetworkHAPairsPath + obsidian.UrlSep + ":ha_pair_id"
+	ManageNetworkHAPairsStatusPath = ManageNetworkHAPairsPath + obsidian.UrlSep + "status"
 	ManageNetworkSubscriberPath    = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
 	ManageNetworkBaseNamesPath     = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
 	ManageNetworkRuleNamesPath     = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
 	ManageNetworkBaseNamePath      = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
 	ManageNetworkRuleNamePath      = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
-	ManageNetworkClusterStatusPath = ManageNetworkPath + obsidian.UrlSep + "cluster_status"
 	ManageNetworkLiUesPath         = ManageNetworkPath + obsidian.UrlSep + ":li_ues"
 
 	Gateways                      = "gateways"
@@ -84,7 +84,7 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
-		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
+		{Path: ManageNetworkHAPairsStatusPath, Methods: obsidian.GET, HandlerFunc: getHAPairStatusHandler},
 		{Path: ManageGatewayHealthStatusPath, Methods: obsidian.GET, HandlerFunc: getHealthStatusHandler},
 		{Path: SubscriberDirectoryRecordPath, Methods: obsidian.GET, HandlerFunc: getSubscriberDirectoryHandler},
 
@@ -272,8 +272,8 @@ func convertDirectoryRecordToSubscriberRecord(iRecord interface{}) (*cwfModels.C
 	return c, nil
 }
 
-func getClusterStatusHandler(c echo.Context) error {
-	nid, nerr := obsidian.GetNetworkId(c)
+func getHAPairStatusHandler(c echo.Context) error {
+	nid, haPairID, nerr := getNetworkIDAndHaPairID(c)
 	if nerr != nil {
 		return nerr
 	}
@@ -287,13 +287,13 @@ func getClusterStatusHandler(c echo.Context) error {
 	if network.Type != cwf.CwfNetworkType {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, cwf.CwfNetworkType))
 	}
-	reportedClusterStatus, err := state.GetState(nid, cwf.CwfClusterHealthType, "cluster")
+	reportedClusterStatus, err := state.GetState(nid, cwf.CwfHAPairStatusType, haPairID)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	clusterStatus, ok := reportedClusterStatus.ReportedState.(*cwfModels.CarrierWifiNetworkClusterStatus)
+	clusterStatus, ok := reportedClusterStatus.ReportedState.(*cwfModels.CarrierWifiHaPairStatus)
 	if !ok {
 		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to ClusterStatus"), http.StatusInternalServerError)
 	}

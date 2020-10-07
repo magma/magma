@@ -66,6 +66,20 @@ type EUtranVector struct {
 	KASME datatype.OctetString `avp:"KASME"`
 }
 
+type UtranVector struct {
+	RAND datatype.OctetString `avp:"RAND"`
+	XRES datatype.OctetString `avp:"XRES"`
+	AUTN datatype.OctetString `avp:"AUTN"`
+	CK   datatype.OctetString `avp:"Confidentiality-Key"`
+	IK   datatype.OctetString `avp:"Integrity-Key"`
+}
+
+type GeranVector struct {
+	RAND datatype.OctetString `avp:"RAND"`
+	SRES datatype.OctetString `avp:"SRES"`
+	Kc   datatype.OctetString `avp:"Kc"`
+}
+
 type ExperimentalResult struct {
 	VendorId               uint32 `avp:"Vendor-Id"`
 	ExperimentalResultCode uint32 `avp:"Experimental-Result-Code"`
@@ -73,6 +87,8 @@ type ExperimentalResult struct {
 
 type AuthenticationInfo struct {
 	EUtranVectors []EUtranVector `avp:"E-UTRAN-Vector"`
+	UtranVectors  []UtranVector  `avp:"UTRAN-Vector"`
+	GeranVectors  []GeranVector  `avp:"GERAN-Vector"`
 }
 
 type AIA struct {
