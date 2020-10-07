@@ -1,7 +1,7 @@
-From 7dcb1c338713a23d4330aa321bae5edea630357b Mon Sep 17 00:00:00 2001
+From 25741ac307902cee2c8851f38c5e26a79879430d Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 24 Feb 2020 04:45:17 +0000
-Subject: [PATCH 3/8] datapath: add vport-gtp for GPRS Tunneling Protocol
+Subject: [PATCH 03/10] datapath: add vport-gtp for GPRS Tunneling Protocol
 
 Add vport-gtp which uses gtp_create_flow_based_dev exported by the Linux GTP
 module to create a flow based net_device
@@ -2040,7 +2040,7 @@ index 852069f62..349839b2b 100644
  #endif
 diff --git a/datapath/vport-gtp.c b/datapath/vport-gtp.c
 new file mode 100644
-index 000000000..a10cf81ec
+index 000000000..3a97956f6
 --- /dev/null
 +++ b/datapath/vport-gtp.c
 @@ -0,0 +1,147 @@
@@ -2190,7 +2190,7 @@ index 000000000..a10cf81ec
 +
 +MODULE_DESCRIPTION("OVS: GTP switching port");
 +MODULE_LICENSE("GPL");
-+MODULE_ALIAS("vport-type-6");
++MODULE_ALIAS("vport-type-110");
 diff --git a/datapath/vport.c b/datapath/vport.c
 index f929282dc..dfb6dcca4 100644
 --- a/datapath/vport.c

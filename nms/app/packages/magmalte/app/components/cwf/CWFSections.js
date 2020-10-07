@@ -25,7 +25,7 @@ import React from 'react';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 
-export function getCWFSections(): SectionsConfigs {
+export function getCWFSections(dashboardV2Enabled: boolean): SectionsConfigs {
   const sections = [
     {
       path: 'gateways',
@@ -52,6 +52,10 @@ export function getCWFSections(): SectionsConfigs {
       component: Alarms,
     },
   ];
+
+  if (dashboardV2Enabled) {
+    // TODO add equipment, policy and subscriber section
+  }
 
   return [
     'gateways', // landing path

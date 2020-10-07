@@ -90,7 +90,7 @@ class RedirectionManager:
         self._cwf_args_set = True
         return self
 
-    def handle_redirection(self, datapath, loop, redirect_request):
+    def setup_lte_redirect(self, datapath, loop, redirect_request):
         """
         Depending on redirection server address type install redirection rules
         """

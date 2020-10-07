@@ -13,6 +13,7 @@
 #include <future>
 #include <memory>
 #include <utility>
+#include <stdio.h>
 
 #include <glog/logging.h>
 #include <gtest/gtest.h>
@@ -135,6 +136,15 @@ MATCHER_P(CheckSubset, ids, "") {
     }
   }
   return false;
+}
+
+MATCHER_P(CheckSubscriberQuotaUpdate, quota, "") {
+  auto update = static_cast<std::vector<SubscriberQuotaUpdate>>(arg);
+  if (update.size() != 1) {
+    return false;
+  }
+  std::cerr << "\n\n" << update[0].update_type() << " \n\n";
+  return update[0].update_type() == quota;
 }
 
 };  // namespace magma

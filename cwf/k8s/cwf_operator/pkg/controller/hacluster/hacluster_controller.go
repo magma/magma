@@ -39,6 +39,7 @@ import (
 
 	magmav1alpha1 "magma/cwf/k8s/cwf_operator/pkg/apis/magma/v1alpha1"
 	"magma/cwf/k8s/cwf_operator/pkg/health_client"
+	"magma/cwf/k8s/cwf_operator/pkg/status_reporter"
 	"magma/feg/cloud/go/protos"
 
 	corev1 "k8s.io/api/core/v1"
@@ -79,6 +80,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 		scheme:               mgr.GetScheme(),
 		healthClient:         hc,
 		gatewayHealthService: gatewayHealthService,
+		statusReporter:       status_reporter.NewStatusReporter(),
 		reconcilePeriod:      reconcilePeriod,
 	}
 }
@@ -106,6 +108,7 @@ type ReconcileHACluster struct {
 	scheme               *runtime.Scheme
 	healthClient         *health_client.HealthClient
 	gatewayHealthService string
+	statusReporter       *status_reporter.StatusReporter
 	reconcilePeriod      time.Duration
 }
 
@@ -133,7 +136,7 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 		return reconcile.Result{}, err
 	}
 	if len(hacluster.Status.Active) == 0 {
-		active := hacluster.Spec.GatewayResourceNames[0]
+		active := hacluster.Spec.GatewayResources[0].HelmReleaseName
 		newStatus := magmav1alpha1.HAClusterStatus{
 			Active:           active,
 			ActiveInitState:  magmav1alpha1.Uninitialized,
@@ -144,12 +147,12 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 		err = r.client.Status().Update(context.TODO(), hacluster)
 		return reconcile.Result{RequeueAfter: r.reconcilePeriod}, err
 	}
-	if len(hacluster.Spec.GatewayResourceNames) == 1 {
+	if len(hacluster.Spec.GatewayResources) == 1 {
 		reqLogger.Info("Only 1 gateway resource configured. Not monitoring health")
 		return reconcile.Result{RequeueAfter: r.reconcilePeriod}, nil
 	}
 	activeGateway := hacluster.Status.Active
-	standbyGateway := r.getStandbyGatewayName(activeGateway, hacluster.Spec.GatewayResourceNames)
+	standbyGateway := r.getStandbyGatewayName(activeGateway, hacluster.Spec.GatewayResources)
 
 	activeHealth, err := r.getGatewayHealthStatus(activeGateway, request.Namespace)
 	if err != nil {
@@ -223,6 +226,11 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 			return reconcile.Result{}, updateErr
 		}
 	}
+	if failover {
+		go r.statusReporter.UpdateHAClusterStatus(hacluster.Status, hacluster.Spec, standbyHealth, activeHealth)
+	} else {
+		go r.statusReporter.UpdateHAClusterStatus(hacluster.Status, hacluster.Spec, activeHealth, standbyHealth)
+	}
 
 	reqLogger.Info("Reconciled request")
 	return reconcile.Result{RequeueAfter: r.reconcilePeriod}, nil
@@ -230,20 +238,20 @@ func (r *ReconcileHACluster) Reconcile(request reconcile.Request) (reconcile.Res
 
 // getGatewayHealthStatus fetches the health status for the provided gateway.
 // This status is obtained from the gateway's local health service
-func (r ReconcileHACluster) getGatewayHealthStatus(gateway string, namespace string) (*protos.HealthStatus, error) {
+func (r ReconcileHACluster) getGatewayHealthStatus(helmReleaseName string, namespace string) (*protos.HealthStatus, error) {
 	// Get pod first to avoid sending an RPC that will timeout
-	_, err := r.getPodNamespacedNameForGateway(gateway, namespace)
+	_, err := r.getPodNamespacedNameForGateway(helmReleaseName, namespace)
 	if err != nil {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("could not find pod for gw: %s", gateway),
+			HealthMessage: fmt.Sprintf("could not find pod for gw release: %s", helmReleaseName),
 		}, err
 	}
-	svc, port, err := r.getHealthServiceAddressForResource(gateway, namespace)
+	svc, port, err := r.getHealthServiceAddressForResource(helmReleaseName, namespace)
 	if err != nil {
 		return &protos.HealthStatus{
 			Health:        protos.HealthStatus_UNHEALTHY,
-			HealthMessage: fmt.Sprintf("could not find svc endpoint for local health on gateway: %s", gateway),
+			HealthMessage: fmt.Sprintf("could not find svc endpoint for local health on gateway: %s", helmReleaseName),
 		}, err
 	}
 	health, err := r.healthClient.GetHealthStatus(svc, port)
@@ -361,10 +369,10 @@ func (r ReconcileHACluster) getHealthServiceAddressForResource(gateway string, n
 	return serviceName.Name, int(healthService.Spec.Ports[0].Port), nil
 }
 
-func (r ReconcileHACluster) getStandbyGatewayName(active string, gateways []string) string {
+func (r ReconcileHACluster) getStandbyGatewayName(active string, gateways []magmav1alpha1.GatewayResource) string {
 	for _, gw := range gateways {
-		if gw != active {
-			return gw
+		if gw.HelmReleaseName != active {
+			return gw.HelmReleaseName
 		}
 	}
 	return ""

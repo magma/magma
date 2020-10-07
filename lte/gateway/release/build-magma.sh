@@ -16,10 +16,11 @@
 
 set -e
 shopt -s extglob
+SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.2.0 # magma version number
+VERSION=1.3.0 # magma version number
 SCTPD_MIN_VERSION=1.0.2 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
@@ -352,3 +353,12 @@ $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
 $(glob_files "${ANSIBLE_FILES}/config_stateless_*.sh" /usr/local/bin/)"
 
 eval "$BUILDCMD"
+
+cd "${MAGMA_ROOT}"
+OVS_DIFF_LINES=$(git diff master -- third_party/gtp_ovs/ lte/gateway/release/build-ovs.sh | wc -l | tr -dc 0-9)
+
+# if env var FORCE_OVS_BUILD is non-empty or there is are changes to openvswitch-related files build openvswitch
+if [[ x"${FORCE_OVS_BUILD}" != "x" || x"${OVS_DIFF_LINES}" != x0 ]]; then
+    cd "${PWD}"
+    "${SCRIPT_DIR}"/build-ovs.sh "${OUTPUT_DIR}"
+fi
