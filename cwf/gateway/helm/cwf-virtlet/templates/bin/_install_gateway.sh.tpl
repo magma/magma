@@ -150,9 +150,6 @@ cp -TR "$INSTALL_DIR"/magma/"$MODULE_DIR"/gateway/configs /etc/magma
 # Copy config templates
 cp -R "$INSTALL_DIR"/magma/orc8r/gateway/configs/templates /etc/magma
 
-# Copy template sessiond config
-cp sessiond.yml /etc/magma/
-
 # Copy certs
 cp rootCA.pem /var/opt/magma/certs/
 
@@ -161,6 +158,9 @@ cp control_proxy.yml /var/opt/magma/configs/
 
 # Copy redis override
 cp redis.yml /var/opt/magma/configs/
+
+# Copy sessiond override
+cp sessiond.yml /var/opt/magma/configs/
 
 # Copy docker files
 cp docker-compose.yml /var/opt/magma/docker/
