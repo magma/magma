@@ -1216,6 +1216,23 @@ uint64_t SessionState::get_charging_credit(
   return it->second->credit.get_credit(bucket);
 }
 
+bool SessionState::set_credit_reporting(
+    const CreditKey& key, bool reporting,
+    SessionStateUpdateCriteria* update_criteria) {
+  auto it = credit_map_.find(key);
+  if (it == credit_map_.end()) {
+    MLOG(MWARNING) << "Dident set reporting flag for RG " << key;
+    return false;
+  }
+
+  it->second->credit.set_reporting(reporting);
+  if (update_criteria != NULL) {
+    auto credit_uc       = get_credit_uc(key, *update_criteria);
+    credit_uc->reporting = reporting;
+  }
+  return true;
+}
+
 ReAuthResult SessionState::reauth_key(
     const CreditKey& charging_key,
     SessionStateUpdateCriteria& update_criteria) {
@@ -1264,23 +1281,18 @@ void SessionState::apply_charging_credit_update(
   if (it == credit_map_.end()) {
     return;
   }
-  auto& charging_grant = it->second;
-  auto& credit         = charging_grant->credit;
+
   if (credit_uc.deleted) {
     credit_map_.erase(key);
+    MLOG(MINFO) << session_id_ << " Erasing RG " << key;
     return;
   }
 
+  auto& charging_grant = it->second;
+  auto& credit         = charging_grant->credit;
+
   // Credit merging
-  credit.set_grant_tracking_type(credit_uc.grant_tracking_type, credit_uc);
-  credit.set_received_granted_units(
-      credit_uc.received_granted_units, credit_uc);
-  credit.set_report_last_credit(credit_uc.report_last_credit, credit_uc);
-  for (int i = USED_TX; i != MAX_VALUES; i++) {
-    Bucket bucket = static_cast<Bucket>(i);
-    credit.add_credit(
-        credit_uc.bucket_deltas.find(bucket)->second, bucket, credit_uc);
-  }
+  credit.merge(credit_uc);
 
   // set charging grant
   charging_grant->is_final_grant    = credit_uc.is_final;
@@ -1337,6 +1349,7 @@ void SessionState::get_charging_updates(
     switch (action_type) {
       case CONTINUE_SERVICE: {
         CreditUsage::UpdateType update_type;
+
         if (!grant->get_update_type(&update_type)) {
           break;  // no update
         }
@@ -1491,17 +1504,11 @@ void SessionState::apply_monitor_updates(
     return;
   }
 
+  auto& charging_grant = it->second;
+  auto& credit         = charging_grant->credit;
+
   // Credit merging
-  auto& credit = it->second->credit;
-  credit.set_grant_tracking_type(credit_uc.grant_tracking_type, credit_uc);
-  credit.set_received_granted_units(
-      credit_uc.received_granted_units, credit_uc);
-  credit.set_report_last_credit(credit_uc.report_last_credit, credit_uc);
-  for (int i = USED_TX; i != MAX_VALUES; i++) {
-    Bucket bucket = static_cast<Bucket>(i);
-    it->second->credit.add_credit(
-        credit_uc.bucket_deltas.find(bucket)->second, bucket, credit_uc);
-  }
+  credit.merge(credit_uc);
 }
 
 uint64_t SessionState::get_monitor(
@@ -1511,6 +1518,24 @@ uint64_t SessionState::get_monitor(
     return 0;
   }
   return it->second->credit.get_credit(bucket);
+}
+
+bool SessionState::set_monitor_reporting(
+    const std::string& key, bool reporting,
+    SessionStateUpdateCriteria* update_criteria) {
+  auto it = monitor_map_.find(key);
+  if (it == monitor_map_.end()) {
+    MLOG(MWARNING) << "Didn't set reporting flag for monitor key " << key;
+    return false;
+  }
+
+  it->second->credit.set_reporting(reporting);
+
+  if (update_criteria != NULL) {
+    auto mon_credit_uc       = get_monitor_uc(key, *update_criteria);
+    mon_credit_uc->reporting = reporting;
+  }
+  return true;
 }
 
 bool SessionState::add_to_monitor(
