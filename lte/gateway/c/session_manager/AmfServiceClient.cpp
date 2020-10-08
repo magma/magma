@@ -23,7 +23,7 @@ AsyncAmfServiceClient::AsyncAmfServiceClient(
 AsyncAmfServiceClient::AsyncAmfServiceClient()
     : AsyncAmfServiceClient(
           ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-              "spgw_service", ServiceRegistrySingleton::LOCAL)) {}
+              "amf_service", ServiceRegistrySingleton::LOCAL)) {}
 
 bool AsyncAmfServiceClient::handle_response_to_access(
     const magma::SetSMSessionContextAccess& response) {
