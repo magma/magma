@@ -81,7 +81,7 @@ def allocate_ip_handler(client, args):
     if ip_msg.version == IPAddress.IPV4:
         ip = ipaddress.IPv4Address(ip_msg.address)
         print("IPv4 address allocated: %s" % ip)
-    elif ip_msg.ip_addr.version == IPAddress.IPV6:
+    elif ip_msg.version == IPAddress.IPV6:
         ip = ipaddress.IPv6Address(ip_msg.ip_addr.address)
         print("IPv6 address allocated: %s" % ip)
     else:
@@ -233,11 +233,8 @@ def main():
     subparser = subparsers.add_parser(
         'allocate_ip', help='Allocate an IP address')
     subparser.add_argument('sid', help='Subscriber ID, e.g. "IMSI12345"')
-<<<<<<< HEAD
     subparser.add_argument('apn', help='Access Point Name, e.g. "internet"')
-=======
     subparser.add_argument('version', help='Version, e.g. 4')
->>>>>>> Adding basic support for IPv6 allocation on mobilityd
     subparser.set_defaults(func=allocate_ip_handler)
 
     # release_ip

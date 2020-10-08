@@ -16,7 +16,7 @@ import random
 from ipaddress import ip_address, ip_network
 from typing import List, Optional
 
-from .ip_descriptor import IPDesc
+from .ip_descriptor import IPDesc, IPType
 from .ip_allocator_base import IPAllocator, OverlappedIPBlocksError, IPNotInUseError
 from .ip_descriptor import IPv6SessionAllocType
 
@@ -33,11 +33,10 @@ class IPv6AllocatorPool(IPAllocator):
         self._assigned_ip_block = None
         self._allocated_iid = set()
         self._sid_session_prefix_allocated = {}
-        self._sid_ips_map = {}
         self._ipv6_session_prefix_alloc_mode = self._config[
-            'ipv6_session_prefix_alloc_mode']
+            'ipv6_ip_allocator_type']
 
-    def add_ip_block(self, ipblock: ip_network) -> None:
+    def add_ip_block(self, ipblock: ip_network):
         """
         Adds IP block to the assigned IP block of the IPv6 allocator
         :param ipblock: IPv6 ip_network object
@@ -73,7 +72,7 @@ class IPv6AllocatorPool(IPAllocator):
             self._assigned_ip_block = None
         return removed_blocks
 
-    def alloc_ip_address(self, sid: str, _) -> ip_address:
+    def alloc_ip_address(self, sid: str, _) -> IPDesc:
         """
         Calculates full IPv6 Address from configured prefix part
         (assigned_ip_block) + unique session prefix part + interface
@@ -101,7 +100,12 @@ class IPv6AllocatorPool(IPAllocator):
                 'Could not get IPv6 IID for sid: %s', sid)
 
         ipv6_addr = ipv6_addr_part + (session_prefix_part * iid_part)
-        return ipv6_addr
+        ip_desc = IPDesc()
+        ip_desc.sid = sid
+        ip_desc.ip = ipv6_addr
+        ip_desc.ip_block = self._assigned_ip_block
+        ip_desc.type = IPType.IP_POOL
+        return ip_desc
 
     def release_ip(self, ip_desc: IPDesc):
         """

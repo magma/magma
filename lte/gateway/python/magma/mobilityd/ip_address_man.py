@@ -149,20 +149,7 @@ class IPAddressManager:
         self._recycle_timer = None  # reference to recycle timer
         self._recycling_interval_seconds = recycling_interval
 
-        if not persist_to_redis:
-            self._assigned_ip_blocks = set()  # {ip_block}
-            self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
-            self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
-            self._dhcp_store = {}  # mac => DHCP_State
-        else:
-            if not redis_port:
-                raise ValueError(
-                    'Must specify a redis_port in mobilityd config.')
-            client = get_default_client()
-            self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
-            self.sid_ips_map = store.IPDescDict(client)
-            self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
-            self._dhcp_store = store.MacToIP()  # mac => DHCP_State
+        self._init_store(persist_to_redis, redis_port)
 
         self.ip_state_map = IpDescriptorMap(persist_to_redis, redis_port)
         logging.info("Using allocator: %s static ip: %s multi_apn %s",
@@ -202,6 +189,7 @@ class IPAddressManager:
 
         # Init IPv6 allocator, for now only POOL mode is supported for IPv6
         self.ipv6_allocator = IPv6AllocatorPool(config=config)
+
 
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
@@ -264,7 +252,7 @@ class IPAddressManager:
             ipv4_blocks_deleted = self.ip_allocator.remove_ip_blocks(_ipblocks, _force=force)
             ipv6_blocks_deleted = self.ipv6_allocator.remove_ip_blocks(_ipblocks)
 
-        return list(ipv4_blocks_deleted) + ipv6_blocks_deleted
+        return ipv4_blocks_deleted + ipv6_blocks_deleted
 
     def list_added_ip_blocks(self) -> List[ip_network]:
         """ List IP blocks added to the IP allocator
@@ -463,6 +451,22 @@ class IPAddressManager:
         ip = str(ipaddress.ip_address(info.ip.address))
         with self._lock:
             self._dhcp_gw_info.update_mac(ip, info.mac, info.vlan)
+
+    def _init_store(self, persist_to_redis, redis_port):
+        if not persist_to_redis:
+            self._assigned_ip_blocks = set()  # {ip_block}
+            self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
+            self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
+            self._dhcp_store = {}  # mac => DHCP_State
+        else:
+            if not redis_port:
+                raise ValueError(
+                    'Must specify a redis_port in mobilityd config.')
+            client = get_default_client()
+            self._assigned_ip_blocks = store.AssignedIpBlocksSet(client)
+            self.sid_ips_map = store.IPDescDict(client)
+            self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
+            self._dhcp_store = store.MacToIP()  # mac => DHCP_State
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs

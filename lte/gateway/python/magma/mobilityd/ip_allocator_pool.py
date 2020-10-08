@@ -148,7 +148,7 @@ class IpAllocatorPool(IPAllocator):
 
         for block in remove_blocks:
             logging.info('Removed IP block %s from IPv4 address pool', block)
-        return remove_blocks
+        return list(remove_blocks)
 
     def list_added_ip_blocks(self) -> List[ip_network]:
         """ List IP blocks added to the IP allocator

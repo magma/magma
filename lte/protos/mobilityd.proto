@@ -32,7 +32,7 @@ message IPAddress {
 }
 
 message AllocateIPAddressResponse {
-  IPAddress ip_addr = 1;
+  repeated IPAddress ip_list = 1;
   string vlan = 2;
 }
 
@@ -89,6 +89,7 @@ message AllocateIPRequest {
   enum IPVersion {
     IPV4 = 0;
     IPV6 = 1;
+    IPV4V6 = 2;
   }
   IPVersion version = 2;
   string apn = 3;
