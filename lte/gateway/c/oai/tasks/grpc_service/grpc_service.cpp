@@ -25,6 +25,7 @@
 #include "S6aGatewayImpl.h"
 #include "S6aServiceImpl.h"
 #include "SpgwServiceImpl.h"
+#include "AmfServiceImpl.h"
 
 extern "C" {
 #include "log.h"
@@ -38,8 +39,10 @@ using magma::SMSOrc8rGatewayServiceImpl;
 using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
 using magma::SpgwServiceImpl;
+using magma::AmfServiceImpl;
 
 static SpgwServiceImpl spgw_service;
+static AmfServiceImpl amf_service;
 static S6aServiceImpl s6a_service;
 static S6aGatewayImpl s6a_proxy;
 static CSFBGatewayServiceImpl sgs_service;
@@ -58,6 +61,7 @@ void start_grpc_service(bstring server_address) {
 #if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
   builder.RegisterService(&spgw_service);
 #endif
+  builder.RegisterService(&amf_service);
   builder.RegisterService(&s6a_proxy);
   builder.RegisterService(&s6a_service);
   builder.RegisterService(&sgs_service);
