@@ -140,7 +140,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
 
  private:
   void check_usage_for_reporting(
-      SessionMap session_map, SessionUpdate& session_update);
+      SessionMap session_map, SessionUpdate& session_uc);
   bool is_pipelined_restarted();
   bool restart_pipelined(const std::uint64_t& epoch);
 

@@ -176,6 +176,28 @@ void create_credit_update_response(
   response->set_charging_key(charging_key);
 }
 
+void create_update_session_request(
+    std::string imsi, std::string session_id, uint32_t ckey, std::string mkey,
+    CreditUsage::UpdateType type, uint64_t bytes_rx, uint64_t bytes_tx,
+    UpdateSessionRequest* usr) {
+  CreditUsageUpdate* credit_update = usr->add_updates();
+  create_usage_update(imsi, ckey, bytes_rx, bytes_tx, type, credit_update);
+
+  UsageMonitoringUpdateRequest* monitor_credit_update =
+      usr->add_usage_monitors();
+  create_usage_monitoring_update_request(
+      imsi, mkey, bytes_rx, bytes_tx, monitor_credit_update);
+}
+
+void create_usage_monitoring_update_request(
+    const std::string& imsi, std::string monitoring_key, uint64_t bytes_rx,
+    uint64_t bytes_tx, UsageMonitoringUpdateRequest* update) {
+  auto usage = update->mutable_update();
+  usage->set_monitoring_key(monitoring_key);
+  usage->set_bytes_rx(bytes_rx);
+  usage->set_bytes_tx(bytes_tx);
+}
+
 void create_usage_update(
     const std::string& imsi, uint32_t charging_key, uint64_t bytes_rx,
     uint64_t bytes_tx, CreditUsage::UpdateType type,
