@@ -104,6 +104,7 @@ void SessionCredit::reset_reporting_credit(SessionCreditUpdateCriteria* uc) {
 void SessionCredit::mark_failure(
     uint32_t code, SessionCreditUpdateCriteria* uc) {
   if (DiameterCodeHandler::is_transient_failure(code)) {
+    MLOG(MDEBUG) << "mark_faliure triggered. Reseting reporting";
     buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
     buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
     if (uc != NULL) {
@@ -482,8 +483,26 @@ void SessionCredit::set_report_last_credit(
   uc.report_last_credit = report_last_credit;
 }
 
+void SessionCredit::set_reporting(bool reporting) {
+  reporting_ = reporting;
+}
+
 bool SessionCredit::is_report_last_credit() {
   return report_last_credit_;
+}
+
+void SessionCredit::merge(SessionCreditUpdateCriteria& uc) {
+  grant_tracking_type_    = uc.grant_tracking_type;
+  received_granted_units_ = uc.received_granted_units;
+  report_last_credit_     = uc.report_last_credit;
+  // DO NOT UPDATE reporting_. (done bv LocalSessionManagerHandler)
+
+  // add credit
+  for (int i = USED_TX; i != MAX_VALUES; i++) {
+    Bucket bucket = static_cast<Bucket>(i);
+    auto credit   = uc.bucket_deltas.find(bucket)->second;
+    buckets_[bucket] += credit;
+  }
 }
 
 void SessionCredit::add_credit(

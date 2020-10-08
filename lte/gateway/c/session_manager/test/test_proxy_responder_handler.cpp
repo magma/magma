@@ -43,7 +43,8 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     std::thread([&]() {
       std::cout << "Started event loop thread\n";
       folly::EventBaseManager::get()->setEventBase(evb, 0);
-    }).detach();
+    })
+        .detach();
 
     monitoring_key = "mk1";
     rule_id        = "test_rule_1";
