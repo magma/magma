@@ -561,7 +561,7 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  MLOG(MINFO) << "Received session <-> rule associations";
+  MLOG(MDEBUG) << "Received session <-> rule associations";
 
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     SessionRead req = {};
