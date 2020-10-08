@@ -18,8 +18,8 @@ from concurrent.futures import Future
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id,\
     get_ipv6_prefix
-from magma.pipelined.app.ipv6_router_solicitation import \
-    IPV6RouterSolicitationController
+from magma.pipelined.app.ipv6_solicitation import \
+    IPV6SolicitationController
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.app.start_pipelined import TestSetup, \
@@ -66,8 +66,8 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
         super(IPV6RouterSolicitationTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls.service_manager = create_service_manager([],
-            ['ipv6_router_solicitation'])
-        cls._tbl_num = cls.service_manager.get_table_num(IPV6RouterSolicitationController.APP_NAME)
+            ['ipv6_solicitation'])
+        cls._tbl_num = cls.service_manager.get_table_num(IPV6SolicitationController.APP_NAME)
 
         ipv6_controller_reference = Future()
         testing_controller_reference = Future()
@@ -96,6 +96,7 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
                 'quota_check_ip': '1.2.3.4',
                 'ipv6_router_addr': 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce',
                 'clean_restart': True,
+                'virtual_mac': 'd6:34:bc:81:5d:40',
                 'enable_nat': True,
             },
             mconfig=PipelineD(
@@ -160,6 +161,7 @@ class IPV6RouterSolicitationTableTest(unittest.TestCase):
             pkt_sender.send(pkt_rs)
             pkt_sender.send(pkt_ns)
             wait_after_send(self.testing_controller)
+
 
 if __name__ == "__main__":
     unittest.main()

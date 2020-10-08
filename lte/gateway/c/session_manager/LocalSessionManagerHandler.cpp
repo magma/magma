@@ -190,9 +190,15 @@ static CreateSessionRequest make_create_session_request(
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
   create_request.mutable_rat_specific_context()->CopyFrom(
       cfg.rat_specific_context);
+
   if (access_timezone != nullptr) {
     create_request.mutable_access_timezone()->CopyFrom(*access_timezone);
   }
+
+  const RequestedUnits requestedUnits =
+      SessionCredit::get_initial_requested_credits_units();
+  create_request.mutable_requested_units()->CopyFrom(requestedUnits);
+
   return create_request;
 }
 
@@ -452,26 +458,29 @@ void LocalSessionManagerHandlerImpl::EndSession(
 void LocalSessionManagerHandlerImpl::end_session(
     SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
-  try {
-    auto update = SessionStore::get_default_session_update(session_map);
-    enforcer_->terminate_session(session_map, sid.id(), apn, update);
-
-    bool update_success = session_store_.update_sessions(update);
-    if (update_success) {
-      response_callback(Status::OK, LocalEndSessionResponse());
-    } else {
-      auto status = Status(
-          grpc::ABORTED,
-          "EndSession no longer valid due to another update that "
-          "occurred to the session first.");
-      response_callback(status, LocalEndSessionResponse());
-    }
-  } catch (const SessionNotFound& ex) {
+  auto update = SessionStore::get_default_session_update(session_map);
+  MLOG(MINFO) << "Received a termination request from Access for " << sid.id()
+              << " apn " << apn;
+  auto found = enforcer_->handle_termination_from_access(
+      session_map, sid.id(), apn, update);
+  if (!found) {
     MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-                 << sid.id();
+                 << sid.id() << " apn " << apn;
     Status status(grpc::FAILED_PRECONDITION, "Session not found");
     response_callback(status, LocalEndSessionResponse());
+    return;
   }
+  bool update_success = session_store_.update_sessions(update);
+  if (!update_success) {
+    auto status = Status(
+        grpc::ABORTED,
+        "EndSession no longer valid due to another update that "
+        "occurred to the session first.");
+    response_callback(status, LocalEndSessionResponse());
+    return;
+  }
+  // Success
+  response_callback(Status::OK, LocalEndSessionResponse());
 }
 
 void LocalSessionManagerHandlerImpl::report_session_update_event(
@@ -575,6 +584,18 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
   response_callback(Status::OK, Void());
 }
 
+std::string LocalSessionManagerHandlerImpl::bytes_to_hex(const std::string& s) {
+  std::ostringstream ret;
+
+  unsigned int c;
+  for (std::string::size_type i = 0; i < s.length(); ++i) {
+    c = (unsigned int) (unsigned char) s[i];
+    ret << " " << std::hex << std::setfill('0') << std::setw(2)
+        << (std::nouppercase) << c;
+  }
+  return ret.str();
+}
+
 void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
   const auto& imsi = cfg.common_context.sid().id();
   const auto& apn  = cfg.common_context.apn();
@@ -584,7 +605,8 @@ void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
     const auto& lte = cfg.rat_specific_context.lte_context();
     create_message += ", default bearer ID:" + std::to_string(lte.bearer_id()) +
                       ", PLMN ID:" + lte.plmn_id() +
-                      ", IMSI PLMN ID:" + lte.imsi_plmn_id();
+                      ", IMSI PLMN ID:" + lte.imsi_plmn_id() +
+                      ", User location:" + bytes_to_hex(lte.user_location());
   } else if (cfg.rat_specific_context.has_wlan_context()) {
     create_message +=
         ", MAC addr:" + cfg.rat_specific_context.wlan_context().mac_addr();

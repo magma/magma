@@ -109,7 +109,7 @@ func (s *EapSimSrv) SetSessionAuthenticatedTimeout(tout time.Duration) {
 }
 
 // NewEapSimService creates new Sim Service 'object'
-func NewEapSimService(config *mconfig.EapProviderConfig) (*EapSimSrv, error) {
+func NewEapSimService(config *mconfig.EapSimConfig) (*EapSimSrv, error) {
 	service := &EapSimSrv{
 		sessions:   map[string]*SessionCtx{},
 		plmnFilter: plmn_filter.PlmnIdVals{},

@@ -27,7 +27,7 @@ from ryu.lib import hub
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupPolicyRequest, \
-    UpdateSubscriberQuotaStateRequest
+    UpdateSubscriberQuotaStateRequest, SetupUEMacRequest
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.tests.app.exceptions import BadConfigError, \
@@ -238,7 +238,8 @@ def setup_controller(controller, setup_req, sleep_time: float = 1,
     return res.result
 
 
-def fake_controller_setup(enf_controller, enf_stats_controller=None,
+def fake_controller_setup(enf_controller=None,
+                          enf_stats_controller=None,
                           startup_flow_controller=None,
                           check_quota_controller=None,
                           setup_flows_request=None,
@@ -254,7 +255,6 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         setup_flows_request = SetupPolicyRequest(
             requests=[], epoch=global_epoch,
         )
-    enf_controller.init_finished = False
     if startup_flow_controller:
         startup_flow_controller._flows_received = False
         startup_flow_controller._table_flows.clear()
@@ -280,6 +280,17 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         TestCase().assertEqual(setup_controller(
             check_quota_controller, check_quota_request),
             SetupFlowsResult.SUCCESS)
+
+
+def fake_cwf_setup(ue_mac_controller, setup_ue_mac_request=None):
+    if setup_ue_mac_request is None:
+        setup_ue_mac_request = SetupUEMacRequest(
+            requests=[], epoch=global_epoch,
+        )
+    ue_mac_controller.init_finished = False
+    TestCase().assertEqual(setup_controller(
+        ue_mac_controller, setup_ue_mac_request),
+        SetupFlowsResult.SUCCESS)
 
 
 def wait_for_enforcement_stats(controller, rule_list, wait_time=1,

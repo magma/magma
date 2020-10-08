@@ -1,8 +1,9 @@
-From 2eb140f2a53056642c8d0c383884efaf08805ce2 Mon Sep 17 00:00:00 2001
+From d58da2f572dff55df4d6af5c6465169297af8568 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Tue, 7 Jul 2020 01:46:36 +0000
-Subject: [PATCH 7/8] datapath: Fixes for 4.9 kernel
+Subject: [PATCH 07/10] datapath: Fixes for 4.9 kernel
 
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
  datapath/linux/compat/include/net/ip_tunnels.h | 4 ++++
  tests/system-layer3-tunnels.at                 | 7 ++++++-

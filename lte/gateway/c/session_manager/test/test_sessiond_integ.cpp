@@ -54,25 +54,17 @@ class SessiondTest : public ::testing::Test {
     spgw_client       = std::make_shared<AsyncSpgwServiceClient>(test_channel);
     events_reporter   = std::make_shared<MockEventsReporter>();
     auto rule_store   = std::make_shared<StaticRuleStore>();
-    session_store = std::make_shared<SessionStore>(rule_store);
+    session_store     = std::make_shared<SessionStore>(rule_store);
     insert_static_rule(rule_store, 1, "rule1");
     insert_static_rule(rule_store, 1, "rule2");
     insert_static_rule(rule_store, 2, "rule3");
 
     reporter = std::make_shared<SessionReporterImpl>(evb, test_channel);
     auto default_mconfig = get_default_mconfig();
-    monitor = std::make_shared<LocalEnforcer>(
-      reporter,
-      rule_store,
-      *session_store,
-      pipelined_client,
-      directoryd_client,
-      events_reporter,
-      spgw_client,
-      nullptr,
-      SESSION_TERMINATION_TIMEOUT_MS,
-      0,
-      default_mconfig);
+    monitor              = std::make_shared<LocalEnforcer>(
+        reporter, rule_store, *session_store, pipelined_client,
+        directoryd_client, events_reporter, spgw_client, nullptr,
+        SESSION_TERMINATION_TIMEOUT_MS, 0, default_mconfig);
     session_map = SessionMap{};
 
     local_service =
@@ -80,8 +72,8 @@ class SessiondTest : public ::testing::Test {
     session_manager = std::make_shared<LocalSessionManagerAsyncService>(
         local_service->GetNewCompletionQueue(),
         std::make_unique<LocalSessionManagerHandlerImpl>(
-          monitor, reporter.get(), directoryd_client,
-          events_reporter, *session_store));
+            monitor, reporter.get(), directoryd_client, events_reporter,
+            *session_store));
 
     proxy_responder = std::make_shared<SessionProxyResponderAsyncService>(
         local_service->GetNewCompletionQueue(),
@@ -277,8 +269,8 @@ TEST_F(SessiondTest, end_to_end_success) {
             testing::SetArgPointee<2>(create_response),
             testing::Return(grpc::Status::OK)));
     EXPECT_CALL(
-        *events_reporter, session_created("IMSI1", testing::_, testing::_,
-            testing::_))
+        *events_reporter,
+        session_created("IMSI1", testing::_, testing::_, testing::_))
         .Times(1);
 
     // Temporary fix for pipelined client in sessiond introduces separate calls

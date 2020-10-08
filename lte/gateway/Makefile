@@ -166,6 +166,12 @@ test_oai: build_common ## Run all OAI-specific tests
 test_%: stop build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
 
+# format and test c/session_manager
+precommit_sm: format_session_manager test_session_manager
+
+# format and test c/oai
+precommit_oai: format_oai test_oai
+
 # TODO: include coverage of dpim when it is included in make build
 COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info
 COV_OUTPUT_SM = $(C_BUILD)/session_manager/coverage.info

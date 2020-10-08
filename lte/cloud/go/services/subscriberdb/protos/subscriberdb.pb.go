@@ -283,6 +283,234 @@ func (m *DeleteMSISDNResponse) XXX_DiscardUnknown() {
 
 var xxx_messageInfo_DeleteMSISDNResponse proto.InternalMessageInfo
 
+type GetIPsRequest struct {
+	// network_id of the subscriber
+	NetworkId string `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
+	// ips whose IMSIs should be retrieved
+	// An empty list returns all tracked IPs
+	Ips                  []string `protobuf:"bytes,2,rep,name=ips,proto3" json:"ips,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *GetIPsRequest) Reset()         { *m = GetIPsRequest{} }
+func (m *GetIPsRequest) String() string { return proto.CompactTextString(m) }
+func (*GetIPsRequest) ProtoMessage()    {}
+func (*GetIPsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7926c2bb91580e5a, []int{6}
+}
+
+func (m *GetIPsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetIPsRequest.Unmarshal(m, b)
+}
+func (m *GetIPsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetIPsRequest.Marshal(b, m, deterministic)
+}
+func (m *GetIPsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetIPsRequest.Merge(m, src)
+}
+func (m *GetIPsRequest) XXX_Size() int {
+	return xxx_messageInfo_GetIPsRequest.Size(m)
+}
+func (m *GetIPsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetIPsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetIPsRequest proto.InternalMessageInfo
+
+func (m *GetIPsRequest) GetNetworkId() string {
+	if m != nil {
+		return m.NetworkId
+	}
+	return ""
+}
+
+func (m *GetIPsRequest) GetIps() []string {
+	if m != nil {
+		return m.Ips
+	}
+	return nil
+}
+
+type GetIPsResponse struct {
+	// ip_mappings found
+	IpMappings           []*IPMapping `protobuf:"bytes,1,rep,name=ip_mappings,json=ipMappings,proto3" json:"ip_mappings,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *GetIPsResponse) Reset()         { *m = GetIPsResponse{} }
+func (m *GetIPsResponse) String() string { return proto.CompactTextString(m) }
+func (*GetIPsResponse) ProtoMessage()    {}
+func (*GetIPsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7926c2bb91580e5a, []int{7}
+}
+
+func (m *GetIPsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_GetIPsResponse.Unmarshal(m, b)
+}
+func (m *GetIPsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_GetIPsResponse.Marshal(b, m, deterministic)
+}
+func (m *GetIPsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_GetIPsResponse.Merge(m, src)
+}
+func (m *GetIPsResponse) XXX_Size() int {
+	return xxx_messageInfo_GetIPsResponse.Size(m)
+}
+func (m *GetIPsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_GetIPsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_GetIPsResponse proto.InternalMessageInfo
+
+func (m *GetIPsResponse) GetIpMappings() []*IPMapping {
+	if m != nil {
+		return m.IpMappings
+	}
+	return nil
+}
+
+type SetIPsRequest struct {
+	// network_id of the subscriber
+	NetworkId string `protobuf:"bytes,1,opt,name=network_id,json=networkId,proto3" json:"network_id,omitempty"`
+	// ip_mappings to set
+	IpMappings           []*IPMapping `protobuf:"bytes,2,rep,name=ip_mappings,json=ipMappings,proto3" json:"ip_mappings,omitempty"`
+	XXX_NoUnkeyedLiteral struct{}     `json:"-"`
+	XXX_unrecognized     []byte       `json:"-"`
+	XXX_sizecache        int32        `json:"-"`
+}
+
+func (m *SetIPsRequest) Reset()         { *m = SetIPsRequest{} }
+func (m *SetIPsRequest) String() string { return proto.CompactTextString(m) }
+func (*SetIPsRequest) ProtoMessage()    {}
+func (*SetIPsRequest) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7926c2bb91580e5a, []int{8}
+}
+
+func (m *SetIPsRequest) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetIPsRequest.Unmarshal(m, b)
+}
+func (m *SetIPsRequest) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetIPsRequest.Marshal(b, m, deterministic)
+}
+func (m *SetIPsRequest) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetIPsRequest.Merge(m, src)
+}
+func (m *SetIPsRequest) XXX_Size() int {
+	return xxx_messageInfo_SetIPsRequest.Size(m)
+}
+func (m *SetIPsRequest) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetIPsRequest.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetIPsRequest proto.InternalMessageInfo
+
+func (m *SetIPsRequest) GetNetworkId() string {
+	if m != nil {
+		return m.NetworkId
+	}
+	return ""
+}
+
+func (m *SetIPsRequest) GetIpMappings() []*IPMapping {
+	if m != nil {
+		return m.IpMappings
+	}
+	return nil
+}
+
+type SetIPsResponse struct {
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *SetIPsResponse) Reset()         { *m = SetIPsResponse{} }
+func (m *SetIPsResponse) String() string { return proto.CompactTextString(m) }
+func (*SetIPsResponse) ProtoMessage()    {}
+func (*SetIPsResponse) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7926c2bb91580e5a, []int{9}
+}
+
+func (m *SetIPsResponse) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_SetIPsResponse.Unmarshal(m, b)
+}
+func (m *SetIPsResponse) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_SetIPsResponse.Marshal(b, m, deterministic)
+}
+func (m *SetIPsResponse) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_SetIPsResponse.Merge(m, src)
+}
+func (m *SetIPsResponse) XXX_Size() int {
+	return xxx_messageInfo_SetIPsResponse.Size(m)
+}
+func (m *SetIPsResponse) XXX_DiscardUnknown() {
+	xxx_messageInfo_SetIPsResponse.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_SetIPsResponse proto.InternalMessageInfo
+
+type IPMapping struct {
+	// ip to set
+	Ip string `protobuf:"bytes,1,opt,name=ip,proto3" json:"ip,omitempty"`
+	// imsi whose IP should be set
+	Imsi string `protobuf:"bytes,2,opt,name=imsi,proto3" json:"imsi,omitempty"`
+	// apn under which this IMSI is assigned the IP
+	Apn                  string   `protobuf:"bytes,3,opt,name=apn,proto3" json:"apn,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *IPMapping) Reset()         { *m = IPMapping{} }
+func (m *IPMapping) String() string { return proto.CompactTextString(m) }
+func (*IPMapping) ProtoMessage()    {}
+func (*IPMapping) Descriptor() ([]byte, []int) {
+	return fileDescriptor_7926c2bb91580e5a, []int{10}
+}
+
+func (m *IPMapping) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_IPMapping.Unmarshal(m, b)
+}
+func (m *IPMapping) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_IPMapping.Marshal(b, m, deterministic)
+}
+func (m *IPMapping) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_IPMapping.Merge(m, src)
+}
+func (m *IPMapping) XXX_Size() int {
+	return xxx_messageInfo_IPMapping.Size(m)
+}
+func (m *IPMapping) XXX_DiscardUnknown() {
+	xxx_messageInfo_IPMapping.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_IPMapping proto.InternalMessageInfo
+
+func (m *IPMapping) GetIp() string {
+	if m != nil {
+		return m.Ip
+	}
+	return ""
+}
+
+func (m *IPMapping) GetImsi() string {
+	if m != nil {
+		return m.Imsi
+	}
+	return ""
+}
+
+func (m *IPMapping) GetApn() string {
+	if m != nil {
+		return m.Apn
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterType((*GetMSISDNsRequest)(nil), "magma.lte.subscriberdb.GetMSISDNsRequest")
 	proto.RegisterType((*GetMSISDNsResponse)(nil), "magma.lte.subscriberdb.GetMSISDNsResponse")
@@ -291,35 +519,48 @@ func init() {
 	proto.RegisterType((*SetMSISDNResponse)(nil), "magma.lte.subscriberdb.SetMSISDNResponse")
 	proto.RegisterType((*DeleteMSISDNRequest)(nil), "magma.lte.subscriberdb.DeleteMSISDNRequest")
 	proto.RegisterType((*DeleteMSISDNResponse)(nil), "magma.lte.subscriberdb.DeleteMSISDNResponse")
+	proto.RegisterType((*GetIPsRequest)(nil), "magma.lte.subscriberdb.GetIPsRequest")
+	proto.RegisterType((*GetIPsResponse)(nil), "magma.lte.subscriberdb.GetIPsResponse")
+	proto.RegisterType((*SetIPsRequest)(nil), "magma.lte.subscriberdb.SetIPsRequest")
+	proto.RegisterType((*SetIPsResponse)(nil), "magma.lte.subscriberdb.SetIPsResponse")
+	proto.RegisterType((*IPMapping)(nil), "magma.lte.subscriberdb.IPMapping")
 }
 
 func init() { proto.RegisterFile("subscriberdb.proto", fileDescriptor_7926c2bb91580e5a) }
 
 var fileDescriptor_7926c2bb91580e5a = []byte{
-	// 356 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x53, 0x4f, 0x4b, 0xfb, 0x40,
-	0x10, 0xfd, 0x25, 0xf9, 0x59, 0xcd, 0xa8, 0xd8, 0x4e, 0x4b, 0x09, 0x01, 0xa1, 0xec, 0x29, 0x55,
-	0xc9, 0xa1, 0x5e, 0x44, 0x10, 0xa4, 0x54, 0xa4, 0xd0, 0x7a, 0x48, 0x6e, 0x82, 0x94, 0xc6, 0x0c,
-	0x12, 0xd2, 0x26, 0x35, 0xbb, 0x51, 0xf2, 0xe1, 0xfc, 0x02, 0x7e, 0x2a, 0xc9, 0x9f, 0xc6, 0x68,
-	0x5b, 0xc8, 0xc1, 0x53, 0x76, 0x26, 0x6f, 0xde, 0x9b, 0xf7, 0x96, 0x05, 0xe4, 0xb1, 0xc3, 0x9f,
-	0x23, 0xcf, 0xa1, 0xc8, 0x75, 0xcc, 0x55, 0x14, 0x8a, 0x10, 0xbb, 0xcb, 0xf9, 0xcb, 0x72, 0x6e,
-	0x2e, 0x04, 0x99, 0xd5, 0xbf, 0x6c, 0x02, 0xad, 0x7b, 0x12, 0x53, 0x7b, 0x6c, 0x8f, 0x1e, 0xb8,
-	0x45, 0xaf, 0x31, 0x71, 0x81, 0xa7, 0x00, 0x01, 0x89, 0xf7, 0x30, 0xf2, 0x67, 0x9e, 0xab, 0x49,
-	0x3d, 0xc9, 0x50, 0x2d, 0xb5, 0xe8, 0x8c, 0x5d, 0xd4, 0x60, 0x7f, 0xc9, 0x3d, 0xee, 0x06, 0x5c,
-	0x93, 0x7b, 0x8a, 0xa1, 0x5a, 0xeb, 0x92, 0x7d, 0x48, 0x80, 0x55, 0x3a, 0xbe, 0x0a, 0x03, 0x4e,
-	0x48, 0x70, 0xe2, 0xa5, 0x90, 0x99, 0x93, 0xcc, 0x72, 0xa8, 0x26, 0xf5, 0x14, 0xe3, 0x70, 0x70,
-	0x63, 0x6e, 0x5f, 0xcb, 0xdc, 0x24, 0x31, 0xc7, 0xe9, 0xe4, 0x30, 0x99, 0x66, 0xf3, 0x77, 0x81,
-	0x88, 0x12, 0xeb, 0xd8, 0xab, 0xf6, 0xf4, 0x5b, 0xc0, 0x4d, 0x10, 0x36, 0x41, 0xf1, 0x29, 0x29,
-	0x5c, 0xa4, 0x47, 0xec, 0xc0, 0xde, 0xdb, 0x7c, 0x11, 0x93, 0x26, 0x67, 0xbd, 0xbc, 0xb8, 0x96,
-	0xaf, 0x24, 0xf6, 0x04, 0x4d, 0x7b, 0xad, 0x5c, 0x33, 0x8c, 0x2e, 0x34, 0x0a, 0x4b, 0x39, 0x5b,
-	0x51, 0x21, 0xc2, 0xff, 0x74, 0x3b, 0x4d, 0xc9, 0xba, 0xd9, 0x99, 0xb5, 0xa1, 0x55, 0xa1, 0xcf,
-	0x7d, 0xb1, 0x09, 0xb4, 0x47, 0xb4, 0x20, 0x41, 0x7f, 0x21, 0xcb, 0xba, 0xd0, 0xf9, 0xc9, 0x96,
-	0xab, 0x0c, 0x3e, 0x65, 0x68, 0xda, 0x65, 0xc2, 0x93, 0x30, 0xf4, 0xe3, 0x15, 0x12, 0xc0, 0x77,
-	0xd0, 0xd8, 0xaf, 0x73, 0x19, 0xd9, 0x72, 0xfa, 0x59, 0xfd, 0x7b, 0x63, 0xff, 0xd0, 0x01, 0xb5,
-	0xb4, 0x8d, 0xc6, 0xae, 0xd1, 0xdf, 0xc1, 0xeb, 0xfd, 0x1a, 0xc8, 0x52, 0xc3, 0x87, 0xa3, 0xaa,
-	0x6f, 0x3c, 0xdf, 0x35, 0xbc, 0x25, 0x6b, 0xfd, 0xa2, 0x1e, 0x78, 0x2d, 0x36, 0x3c, 0x78, 0x6c,
-	0x64, 0xaf, 0x8a, 0x3b, 0xf9, 0xf7, 0xf2, 0x2b, 0x00, 0x00, 0xff, 0xff, 0x14, 0xea, 0x4f, 0xbe,
-	0x73, 0x03, 0x00, 0x00,
+	// 483 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x02, 0xff, 0xac, 0x54, 0xd1, 0x8a, 0xd3, 0x40,
+	0x14, 0xdd, 0x24, 0x6b, 0x35, 0x77, 0x6d, 0xcd, 0xde, 0x5d, 0x4a, 0x08, 0x08, 0x75, 0x40, 0xe9,
+	0xaa, 0xe4, 0x61, 0x7d, 0x11, 0x41, 0x58, 0xcb, 0xca, 0x12, 0x68, 0x65, 0xc9, 0xf8, 0xa2, 0x20,
+	0x25, 0xb1, 0xc3, 0x32, 0xb4, 0x4d, 0xc6, 0xcc, 0x54, 0xe9, 0x9b, 0x3f, 0xe6, 0xbf, 0x49, 0x92,
+	0x49, 0x9a, 0xed, 0x6e, 0xdd, 0x28, 0x3e, 0xf5, 0xce, 0xf4, 0xdc, 0x73, 0xe6, 0xde, 0x73, 0x5a,
+	0x40, 0xb9, 0x8a, 0xe5, 0xd7, 0x8c, 0xc7, 0x2c, 0x9b, 0xc5, 0xbe, 0xc8, 0x52, 0x95, 0x62, 0x7f,
+	0x19, 0x5d, 0x2d, 0x23, 0x7f, 0xa1, 0x98, 0xdf, 0xfc, 0x96, 0x8c, 0xe1, 0xf0, 0x82, 0xa9, 0x09,
+	0x0d, 0xe8, 0xf9, 0x07, 0x19, 0xb2, 0x6f, 0x2b, 0x26, 0x15, 0x3e, 0x06, 0x48, 0x98, 0xfa, 0x91,
+	0x66, 0xf3, 0x29, 0x9f, 0xb9, 0xc6, 0xc0, 0x18, 0xda, 0xa1, 0xad, 0x6f, 0x82, 0x19, 0xba, 0x70,
+	0x7f, 0x29, 0xb9, 0x9c, 0x25, 0xd2, 0x35, 0x07, 0xd6, 0xd0, 0x0e, 0xab, 0x23, 0xf9, 0x65, 0x00,
+	0x36, 0xe9, 0xa4, 0x48, 0x13, 0xc9, 0x90, 0xc1, 0x23, 0x9e, 0x43, 0xa6, 0xf1, 0x7a, 0x5a, 0x42,
+	0x5d, 0x63, 0x60, 0x0d, 0x0f, 0x4e, 0xdf, 0xfa, 0xb7, 0x3f, 0xcb, 0xbf, 0x49, 0xe2, 0x07, 0x79,
+	0xe7, 0x68, 0x3d, 0x29, 0xfa, 0xdf, 0x27, 0x2a, 0x5b, 0x87, 0x5d, 0xde, 0xbc, 0xf3, 0xce, 0x00,
+	0x6f, 0x82, 0xd0, 0x01, 0x6b, 0xce, 0xd6, 0x7a, 0x8a, 0xbc, 0xc4, 0x63, 0xb8, 0xf7, 0x3d, 0x5a,
+	0xac, 0x98, 0x6b, 0x16, 0x77, 0xe5, 0xe1, 0x8d, 0xf9, 0xda, 0x20, 0x5f, 0xc0, 0xa1, 0x95, 0x72,
+	0xcb, 0x65, 0xf4, 0xa1, 0xa3, 0x47, 0x2a, 0xd9, 0xf4, 0x09, 0x11, 0xf6, 0xf3, 0xd7, 0xb9, 0x56,
+	0x71, 0x5b, 0xd4, 0xe4, 0x08, 0x0e, 0x1b, 0xf4, 0xe5, 0x5c, 0x64, 0x0c, 0x47, 0xe7, 0x6c, 0xc1,
+	0x14, 0xfb, 0x1f, 0xb2, 0xa4, 0x0f, 0xc7, 0xd7, 0xd9, 0xb4, 0xca, 0x19, 0x74, 0x2f, 0x98, 0x0a,
+	0x2e, 0xdb, 0x7a, 0xec, 0x80, 0xc5, 0x45, 0xe5, 0x6f, 0x5e, 0x92, 0x8f, 0xd0, 0xab, 0x18, 0xb4,
+	0xad, 0x23, 0x38, 0xe0, 0x62, 0xba, 0x8c, 0x84, 0xe0, 0xc9, 0x95, 0xd4, 0x96, 0x3e, 0xd9, 0x65,
+	0x69, 0x70, 0x39, 0x29, 0x91, 0x21, 0x70, 0xa1, 0x4b, 0x49, 0x32, 0xe8, 0xd2, 0xbf, 0x79, 0xd7,
+	0x96, 0xa6, 0xf9, 0x2f, 0x9a, 0x0e, 0xf4, 0xe8, 0xb5, 0x49, 0xc8, 0x3b, 0xb0, 0x6b, 0x28, 0xf6,
+	0xc0, 0xe4, 0x42, 0x2b, 0x9b, 0x5c, 0xd4, 0x4e, 0x9a, 0x1b, 0x27, 0xf3, 0xf5, 0x44, 0x22, 0xd1,
+	0xe6, 0xe6, 0xe5, 0xe9, 0xcf, 0x7d, 0x70, 0x68, 0xad, 0x3d, 0x4e, 0xd3, 0xf9, 0x4a, 0x20, 0x03,
+	0xd8, 0x24, 0x19, 0x4f, 0xda, 0xa4, 0xbd, 0xd8, 0x82, 0xf7, 0xbc, 0xfd, 0x0f, 0x83, 0xec, 0x61,
+	0x0c, 0x76, 0x9d, 0x2b, 0x1c, 0xee, 0x6a, 0xdd, 0x4e, 0xb6, 0x77, 0xd2, 0x02, 0x59, 0x6b, 0xcc,
+	0xe1, 0x61, 0x33, 0x58, 0xf8, 0x62, 0x57, 0xf3, 0x2d, 0x61, 0xf6, 0x5e, 0xb6, 0x03, 0xd7, 0x62,
+	0x9f, 0xa0, 0x53, 0x66, 0x0d, 0x9f, 0xfe, 0x61, 0x11, 0x9b, 0xd4, 0x78, 0xcf, 0xee, 0x82, 0x35,
+	0xa9, 0xe9, 0x1d, 0xd4, 0xb4, 0x1d, 0xf5, 0x56, 0x86, 0xf6, 0x46, 0x0f, 0x3e, 0x77, 0x8a, 0x3f,
+	0x5b, 0x19, 0x97, 0x9f, 0xaf, 0x7e, 0x07, 0x00, 0x00, 0xff, 0xff, 0x86, 0x0c, 0x92, 0x79, 0x8a,
+	0x05, 0x00, 0x00,
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -340,8 +581,12 @@ type SubscriberLookupClient interface {
 	// Error if MSISDN has already been assigned.
 	SetMSISDN(ctx context.Context, in *SetMSISDNRequest, opts ...grpc.CallOption) (*SetMSISDNResponse, error)
 	// DeleteMSISDN removes the MSISDN -> IMSI mapping.
-	// Error if MSISDN has already been assigned.
 	DeleteMSISDN(ctx context.Context, in *DeleteMSISDNRequest, opts ...grpc.CallOption) (*DeleteMSISDNResponse, error)
+	// GetIPs returns IP -> IMSI mappings.
+	GetIPs(ctx context.Context, in *GetIPsRequest, opts ...grpc.CallOption) (*GetIPsResponse, error)
+	// SetIPs creates an IP -> IMSI mapping.
+	// Error if IP has already been assigned.
+	SetIPs(ctx context.Context, in *SetIPsRequest, opts ...grpc.CallOption) (*SetIPsResponse, error)
 }
 
 type subscriberLookupClient struct {
@@ -379,6 +624,24 @@ func (c *subscriberLookupClient) DeleteMSISDN(ctx context.Context, in *DeleteMSI
 	return out, nil
 }
 
+func (c *subscriberLookupClient) GetIPs(ctx context.Context, in *GetIPsRequest, opts ...grpc.CallOption) (*GetIPsResponse, error) {
+	out := new(GetIPsResponse)
+	err := c.cc.Invoke(ctx, "/magma.lte.subscriberdb.SubscriberLookup/GetIPs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *subscriberLookupClient) SetIPs(ctx context.Context, in *SetIPsRequest, opts ...grpc.CallOption) (*SetIPsResponse, error) {
+	out := new(SetIPsResponse)
+	err := c.cc.Invoke(ctx, "/magma.lte.subscriberdb.SubscriberLookup/SetIPs", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SubscriberLookupServer is the server API for SubscriberLookup service.
 type SubscriberLookupServer interface {
 	// GetMSISDNs returns MSISDN -> IMSI mappings.
@@ -387,8 +650,12 @@ type SubscriberLookupServer interface {
 	// Error if MSISDN has already been assigned.
 	SetMSISDN(context.Context, *SetMSISDNRequest) (*SetMSISDNResponse, error)
 	// DeleteMSISDN removes the MSISDN -> IMSI mapping.
-	// Error if MSISDN has already been assigned.
 	DeleteMSISDN(context.Context, *DeleteMSISDNRequest) (*DeleteMSISDNResponse, error)
+	// GetIPs returns IP -> IMSI mappings.
+	GetIPs(context.Context, *GetIPsRequest) (*GetIPsResponse, error)
+	// SetIPs creates an IP -> IMSI mapping.
+	// Error if IP has already been assigned.
+	SetIPs(context.Context, *SetIPsRequest) (*SetIPsResponse, error)
 }
 
 // UnimplementedSubscriberLookupServer can be embedded to have forward compatible implementations.
@@ -403,6 +670,12 @@ func (*UnimplementedSubscriberLookupServer) SetMSISDN(ctx context.Context, req *
 }
 func (*UnimplementedSubscriberLookupServer) DeleteMSISDN(ctx context.Context, req *DeleteMSISDNRequest) (*DeleteMSISDNResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteMSISDN not implemented")
+}
+func (*UnimplementedSubscriberLookupServer) GetIPs(ctx context.Context, req *GetIPsRequest) (*GetIPsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetIPs not implemented")
+}
+func (*UnimplementedSubscriberLookupServer) SetIPs(ctx context.Context, req *SetIPsRequest) (*SetIPsResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetIPs not implemented")
 }
 
 func RegisterSubscriberLookupServer(s *grpc.Server, srv SubscriberLookupServer) {
@@ -463,6 +736,42 @@ func _SubscriberLookup_DeleteMSISDN_Handler(srv interface{}, ctx context.Context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SubscriberLookup_GetIPs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetIPsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SubscriberLookupServer).GetIPs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.subscriberdb.SubscriberLookup/GetIPs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SubscriberLookupServer).GetIPs(ctx, req.(*GetIPsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _SubscriberLookup_SetIPs_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetIPsRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SubscriberLookupServer).SetIPs(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.subscriberdb.SubscriberLookup/SetIPs",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SubscriberLookupServer).SetIPs(ctx, req.(*SetIPsRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _SubscriberLookup_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "magma.lte.subscriberdb.SubscriberLookup",
 	HandlerType: (*SubscriberLookupServer)(nil),
@@ -478,6 +787,14 @@ var _SubscriberLookup_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteMSISDN",
 			Handler:    _SubscriberLookup_DeleteMSISDN_Handler,
+		},
+		{
+			MethodName: "GetIPs",
+			Handler:    _SubscriberLookup_GetIPs_Handler,
+		},
+		{
+			MethodName: "SetIPs",
+			Handler:    _SubscriberLookup_SetIPs_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -12,4 +12,4 @@
 # limitations under the License.
 
 sudo ovs-vsctl --may-exist add-port cwag_br0 mon1 -- set Interface mon1 type=internal
-sudo ifconfig mon1 up
+sudo ifconfig mon1 192.0.0.2/32 up

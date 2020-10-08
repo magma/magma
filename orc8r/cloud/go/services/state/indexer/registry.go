@@ -39,8 +39,10 @@ func GetIndexer(serviceName string) (Indexer, error) {
 
 // GetIndexers returns all registered indexers.
 func GetIndexers() ([]Indexer, error) {
-	services := registry.FindServices(orc8r.StateIndexerLabel)
-
+	services, err := registry.FindServices(orc8r.StateIndexerLabel)
+	if err != nil {
+		return []Indexer{}, err
+	}
 	var indexers []Indexer
 	for _, service := range services {
 		x, err := getIndexer(service)

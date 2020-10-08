@@ -32,6 +32,8 @@ class InterfaceIDToPrefixMapper:
 
     def get_prefix(self, interface):
         with self._lock:
+            if interface not in self._prefix_by_interface:
+                return None
             return self._prefix_by_interface[interface]
 
     def save_prefix(self, interface, prefix):

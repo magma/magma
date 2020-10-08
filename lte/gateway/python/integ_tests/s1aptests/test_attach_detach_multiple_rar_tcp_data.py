@@ -16,14 +16,13 @@ import s1ap_types
 import time
 
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil
+from integ_tests.s1aptests.s1ap_utils import SpgwUtil, GTPBridgeUtils
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 
 
 class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
     SPGW_TABLE = 0
-    GTP_PORT = 32768
     LOCAL_PORT = "LOCAL"
 
     def setUp(self):
@@ -49,6 +48,8 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(num_ues)
         datapath = get_datapath()
         MAX_NUM_RETRIES = 5
+        gtp_br_util = GTPBridgeUtils()
+        GTP_PORT = gtp_br_util.get_gtp_port_no()
 
         for i in range(num_ues):
             req = self._s1ap_wrapper.ue_req
@@ -240,7 +241,7 @@ class TestAttachDetachMultipleRarTcpData(unittest.TestCase):
                     datapath,
                     {
                         "table_id": self.SPGW_TABLE,
-                        "match": {"in_port": self.GTP_PORT},
+                        "match": {"in_port": GTP_PORT},
                     },
                 )
                 if len(uplink_flows) > 2:

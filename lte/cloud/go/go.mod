@@ -33,9 +33,11 @@ require (
 	github.com/pkg/errors v0.8.1
 	github.com/stretchr/testify v1.4.0
 	github.com/thoas/go-funk v0.7.0
+	github.com/warthog618/sms v0.3.0
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
 	google.golang.org/grpc v1.27.1
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0

@@ -101,7 +101,7 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
 #define MME_APP_DELTA_T3412_REACHABILITY_TIMER 4            // in minutes
 #define MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER 0  // in minutes
 
-#define MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 2  // In seconds
+#define MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 4  // In seconds
 #define MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE 2    // In seconds
 #define MME_APP_PAGING_RESPONSE_TIMER_VALUE 4            // In seconds
 #define MME_APP_ULR_RESPONSE_TIMER_VALUE 3               // In seconds
@@ -241,6 +241,7 @@ typedef struct pdn_context_s {
   bool is_active;
 
   protocol_configuration_options_t* pco;
+  bool ue_rej_act_def_ber_req;
 } pdn_context_t;
 
 typedef enum {

@@ -18,15 +18,14 @@ package integration
 import (
 	"fmt"
 	"io/ioutil"
-	"math/rand"
-	"os"
-	"testing"
-	"time"
-
 	cwfprotos "magma/cwf/cloud/go/protos"
 	"magma/feg/cloud/go/protos"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
+	"math/rand"
+	"os"
+	"testing"
+	"time"
 
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/go-openapi/swag"
@@ -125,6 +124,12 @@ func testQosEnforcementRestart(t *testing.T, cfgCh chan string, restartCfg strin
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("500k")},
 	}
+	// wait for rule to be installed
+	waitForRuleToBeInstalled := func() bool {
+		return checkIfRuleInstalled(tr, ruleKey)
+	}
+	assert.Eventually(t, waitForRuleToBeInstalled, time.Minute, 2*time.Second)
+
 	verifyEgressRate(t, tr, req, float64(uplinkBwMax))
 
 	// Assert that enforcement_stats rules are properly installed and the right

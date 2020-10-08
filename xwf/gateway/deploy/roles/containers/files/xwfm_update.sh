@@ -22,6 +22,15 @@ fi
 
 # Otherwise recreate containers with the new image
 cd /var/opt/magma/docker || exit
-/usr/local/bin/docker-compose down && /usr/local/bin/docker-compose up -d
+
+# Stop all containers
+# NOTE: add docker restart to work around GoRadius failures to stop
+/usr/local/bin/docker-compose down ||
+  systemctl restart docker.socket docker.service &&
+  docker stop $(docker ps -a -q)
+
+# Bring containers up
+/usr/local/bin/docker-compose up -d
+
 # Remove all stopped containers and dangling images
 docker system prune -af

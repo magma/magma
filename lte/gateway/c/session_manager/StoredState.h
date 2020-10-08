@@ -108,16 +108,11 @@ enum GrantTrackingType {
 
 /**
  * State transitions of a session:
- * SESSION_ACTIVE  ---------
- *       |                  \
- *       |                   \
- *       |                    \
- *       |                     \
- *       | (start_termination)  SESSION_TERMINATION_SCHEDULED
- *       |                      /
- *       |                     /
- *       |                    /
- *       V                   V
+ * SESSION_ACTIVE
+ *       |
+ *       |
+ *       |
+ *       V
  * SESSION_RELEASED
  *       |
  *       | (PipelineD enforcement flows get deleted OR forced timeout)
@@ -126,15 +121,14 @@ enum GrantTrackingType {
  * SESSION_TERMINATED
  */
 enum SessionFsmState {
-  SESSION_ACTIVE                = 0,
-  SESSION_TERMINATED            = 4,
-  SESSION_TERMINATION_SCHEDULED = 5,
-  SESSION_RELEASED              = 6,
-  CREATING	                        = 7,
-  CREATED	                        = 8,
-  ACTIVE	                        = 9,
-  INACTIVE	                        = 10,
-  RELEASE	                        = 11,
+  SESSION_ACTIVE     = 0,
+  SESSION_TERMINATED = 4,
+  SESSION_RELEASED   = 6,
+  CREATING           = 7,
+  CREATED            = 8,
+  ACTIVE             = 9,
+  INACTIVE           = 10,
+  RELEASE            = 11,
 };
 
 struct StoredSessionCredit {
@@ -210,7 +204,7 @@ struct StoredSessionState {
   std::string session_id;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
-  //5G session version handling
+  // 5G session version handling
   uint32_t current_version;
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state;
   magma::lte::TgppContext tgpp_context;

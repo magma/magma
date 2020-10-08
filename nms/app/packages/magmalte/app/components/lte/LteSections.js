@@ -27,7 +27,7 @@ import Insights from '@fbcnms/ui/insights/Insights';
 import ListIcon from '@material-ui/icons/List';
 import Logs from '@fbcnms/ui/insights/Logs/Logs';
 import LteConfigure from '../LteConfigure';
-import LteDashboard from './LteDashboard';
+import LteDashboard from '../../views/dashboard/lte/LteDashboard';
 import LteMetrics from './LteMetrics';
 import NetworkCheckIcon from '@material-ui/icons/NetworkCheck';
 import NetworkDashboard from '../../views/network/NetworkDashboard';

@@ -159,8 +159,8 @@ func (m *LteGateway) FromBackendModels(
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
 
-	for _, ent := range loadedEntsByTK.Filter(lte.APNResourceEntityType) {
-		r := (&ApnResource{}).FromEntity(ent)
+	for _, tk := range cellularGateway.Associations.Filter(lte.APNResourceEntityType) {
+		r := (&ApnResource{}).FromEntity(loadedEntsByTK[tk])
 		m.ApnResources[string(r.ApnName)] = *r
 	}
 
@@ -538,8 +538,9 @@ func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
 
 func (m *ApnResources) GetByID() map[string]*ApnResource {
 	byID := map[string]*ApnResource{}
-	for _, r := range *m {
-		byID[r.ID] = &r
+	for i, r := range *m {
+		var apnr = (*m)[i]
+		byID[r.ID] = &apnr
 	}
 	return byID
 }

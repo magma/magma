@@ -25,6 +25,7 @@ import (
 	"magma/feg/cloud/go/protos"
 	fegProtos "magma/feg/cloud/go/protos"
 	fegprotos "magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/services/session_proxy/credit_control/gy"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
@@ -73,13 +74,13 @@ func ocsTestSetup(t *testing.T) (*TestRunner, *RuleManager, *cwfprotos.UEConfig)
 func provisionRestrictRules(t *testing.T, tr *TestRunner, ruleManager *RuleManager) {
 	// Set a block all rule to be installed by the final unit action
 	err := ruleManager.AddStaticRuleToDB(
-		getStaticDenyAll("restrict-deny-all", "restrict-key", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 200),
+		getStaticDenyAll("restrict-deny-all", "mkey-ocs", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 200),
 	)
 	assert.NoError(t, err)
 
 	// set a pass rule for traffic from TrafficCltIPP
 	err = ruleManager.AddStaticRuleToDB(
-		getStaticPassTraffic("restrict-pass-user", TrafficCltIP, MATCH_ALL, "restrict-key", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 100, nil),
+		getStaticPassTraffic("restrict-pass-user", TrafficCltIP, MATCH_ALL, "mkey-ocs", 0, models.PolicyRuleConfigTrackingTypeONLYPCRF, 100, nil),
 	)
 	assert.NoError(t, err)
 
@@ -752,4 +753,72 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 
 	// Wait for service deactivation
 	time.Sleep(3 * time.Second)
+}
+
+// - Set an expectation for a CCR-I to be sent up to OCS, to which it will
+//   respond with a quota grant of 4M.
+//   Generate traffic and assert the CCR-I is received.
+// - Set an expectation for a CCR-U with >80% of data usage to be sent up to
+// 	 OCS, to which it will response with an ERROR CODE
+// - Generate traffic over 80% and under 100% to make sure sessiond triggers an update but that
+//   we don't go over 100% and cause a termination due to quota exhaustion instead of due to
+//   ERROR CODE
+// - Assert that UE flows are deleted.
+// - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
+func TestGyWithErrorCode(t *testing.T) {
+	fmt.Println("\nRunning TestGyWithErrorCode...")
+
+	tr, ruleManager, ue := ocsTestSetup(t)
+	defer func() {
+		// Clear hss, ocs, and pcrf
+		assert.NoError(t, clearOCSMockDriver())
+		assert.NoError(t, ruleManager.RemoveInstalledRules())
+		assert.NoError(t, tr.CleanUp())
+	}()
+
+	// CCR-I
+	quotaGrant := &fegprotos.QuotaGrant{
+		RatingGroup: 1,
+		GrantedServiceUnit: &fegprotos.Octets{
+			TotalOctets: 5 * MegaBytes,
+		},
+		IsFinalCredit: false,
+		ResultCode:    diam.Success,
+	}
+	initRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_INITIAL)
+	initAnswer := protos.NewGyCCAnswer(diam.Success).SetQuotaGrant(quotaGrant)
+	initExpectation := protos.NewGyCreditControlExpectation().Expect(initRequest).Return(initAnswer)
+
+	// CCR-U  with ERROR CODE 4012 (DiameterCreditLimitReached)
+	updateRequest1 := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_UPDATE)
+	updateAnswer1 := protos.NewGyCCAnswer(diameter.DiameterCreditLimitReached)
+	updateExpectation1 := protos.NewGyCreditControlExpectation().Expect(updateRequest1).Return(updateAnswer1)
+
+	// CCR-T
+	terminateRequest := protos.NewGyCCRequest(ue.GetImsi(), protos.CCRequestType_TERMINATION)
+	terminateAnswer := protos.NewGyCCAnswer(diam.Success)
+	terminateExpectation := protos.NewGyCreditControlExpectation().Expect(terminateRequest).Return(terminateAnswer)
+
+	// Load expectations into OCS
+	expectations := []*protos.GyCreditControlExpectation{initExpectation, updateExpectation1, terminateExpectation}
+	assert.NoError(t, setOCSExpectations(expectations, nil)) // We only expect one single CCR-U to be sent
+	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
+
+	// we need to generate over 80% but less than 100%  trigger a CCR update without triggering termination
+	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("4.6M")}}
+	_, err := tr.GenULTraffic(req)
+	assert.NoError(t, err)
+	tr.WaitForEnforcementStatsToSync()
+
+	// Wait for flow deletion due to quota exhaustion
+	tr.WaitForEnforcementStatsToSync()
+
+	// Check that UE mac flow is removed
+	recordsBySubID, err := tr.GetPolicyUsage()
+	assert.NoError(t, err)
+	record := recordsBySubID["IMSI"+ue.GetImsi()]["static-pass-all-ocs2"]
+	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", ue.GetImsi()))
+
+	// Assert that we saw a Terminate request
+	tr.AssertAllGyExpectationsMetNoError()
 }
