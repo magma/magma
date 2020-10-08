@@ -22,13 +22,13 @@ from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib import hub
 from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-from ryu.lib.packet import ether_types
 
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
     PROCESS_STATS
-from magma.pipelined.policy_converters import get_ue_ipv4_match_args
+from magma.pipelined.policy_converters import get_ue_ip_match_args, \
+    get_eth_type
 from magma.pipelined.openflow import messages, flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.imsi import decode_imsi, encode_imsi
@@ -386,17 +386,22 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             return current_usage
         sid = _get_sid(flow_stat)
         ipv4_addr = _get_ipv4(flow_stat)
+        ipv6_addr = _get_ipv6(flow_stat)
 
         # use a compound key to separate flows for the same rule but for
         # different subscribers
         key = sid + "|" + rule_id
         if ipv4_addr:
             key += "|" + ipv4_addr
+        elif ipv6_addr:
+            key += "|" + ipv6_addr
         record = current_usage[key]
         record.rule_id = rule_id
         record.sid = sid
         if ipv4_addr:
             record.ue_ipv4 = ipv4_addr
+        elif ipv6_addr:
+            record.ue_ipv6 = ipv6_addr
         if flow_stat.match[DIRECTION_REG] == Direction.IN:
             # HACK decrement byte count for downlink packets by the length
             # of an ethernet frame. Only IP and below should be counted towards
@@ -419,14 +424,18 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             stat_rule_id = self._get_rule_id(deletable_stat)
             stat_sid = _get_sid(deletable_stat)
             ipv4_addr_str = _get_ipv4(deletable_stat)
-            ipv4_addr = None
+            ipv6_addr_str = _get_ipv6(deletable_stat)
+            ip_addr = None
             if ipv4_addr_str:
-                ipv4_addr = IPAddress(version=IPAddress.IPV4,
-                                      address=ipv4_addr_str.encode('utf-8'))
+                ip_addr = IPAddress(version=IPAddress.IPV4,
+                                    address=ipv4_addr_str.encode('utf-8'))
+            elif ipv6_addr_str:
+                ip_addr = IPAddress(version=IPAddress.IPV6,
+                                    address=ipv6_addr_str.encode('utf-8'))
             rule_version = _get_version(deletable_stat)
 
             try:
-                self._delete_flow(deletable_stat, stat_sid, ipv4_addr,
+                self._delete_flow(deletable_stat, stat_sid, ip_addr,
                                   rule_version)
                 # Only remove the usage of the deleted flow if deletion
                 # is successful.
@@ -502,9 +511,9 @@ def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
     Return a MagmaMatch that matches on the rule num and the version.
     """
-    ip_match = get_ue_ipv4_match_args(ip_addr, direction)
+    ip_match = get_ue_ip_match_args(ip_addr, direction)
 
-    return MagmaMatch(imsi=encode_imsi(imsi), eth_type=ether_types.ETH_TYPE_IP,
+    return MagmaMatch(imsi=encode_imsi(imsi), eth_type=get_eth_type(ip_addr),
                       direction=direction, reg2=rule_num, rule_version=version,
                       **ip_match)
 
@@ -563,6 +572,18 @@ def _get_ipv4(flow):
         ip_register = 'ipv4_src'
     else:
         ip_register = 'ipv4_dst'
+    if ip_register not in flow.match:
+        return None
+    return flow.match[ip_register]
+
+
+def _get_ipv6(flow):
+    if DIRECTION_REG not in flow.match:
+        return None
+    if flow.match[DIRECTION_REG] == Direction.OUT:
+        ip_register = 'ipv6_src'
+    else:
+        ip_register = 'ipv6_dst'
     if ip_register not in flow.match:
         return None
     return flow.match[ip_register]
