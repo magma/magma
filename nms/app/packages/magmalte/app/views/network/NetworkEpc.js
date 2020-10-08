@@ -145,7 +145,6 @@ export function NetworkEpcEdit(props: EditProps) {
           <AltFormField label={'IP Allocation Mode'}>
             <Select
               variant={'outlined'}
-              fullWidth={true}
               displayEmpty={true}
               value={epcMobility.ip_allocation_mode}
               onChange={({target}) =>

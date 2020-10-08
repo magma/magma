@@ -231,6 +231,11 @@ export default createMuiTheme({
         color: colors.primary.white,
       },
     },
+    MuiAccordionSummary: {
+      content: {
+        margin: '0px',
+      },
+    },
     MuiBackdrop: {
       root: {
         backgroundColor: `rgba(50, 56, 69, 0.8)`, // colors.primary.brightGray RGB value
