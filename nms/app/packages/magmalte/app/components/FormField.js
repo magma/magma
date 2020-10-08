@@ -27,6 +27,7 @@ import Tooltip from '@material-ui/core/Tooltip';
 import Typography from '@material-ui/core/Typography';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
+import grey from '@material-ui/core/colors/grey';
 
 import {colors} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -42,6 +43,15 @@ const useStyles = makeStyles(theme => ({
     flexBasis: '33.33%',
     marginRight: '15px',
     textAlign: 'right',
+  },
+  subheading: {
+    fontWeight: '400',
+  },
+  optionalLabel: {
+    color: grey.A700,
+    fontStyle: 'italic',
+    fontWeight: '400',
+    marginLeft: '8px',
   },
   secondaryHeading: {
     flexBasis: '66.66%',
@@ -63,7 +73,11 @@ const useStyles = makeStyles(theme => ({
 type Props = {
   label: string,
   children?: any,
+  dense?: boolean,
   tooltip?: string,
+  subLabel?: string,
+  isOptional?: boolean,
+  disableGutters?: boolean,
 };
 
 export default function FormField(props: Props) {
@@ -90,17 +104,57 @@ export default function FormField(props: Props) {
 }
 
 export function AltFormField(props: Props) {
+  const classes = useStyles();
   return (
-    <ListItem>
+    <ListItem dense={props.dense} disableGutters={props.disableGutters}>
       <Grid container>
         <Grid item xs={12}>
           {props.label}
+          {props.isOptional && (
+            <Typography
+              className={classes.optionalLabel}
+              variant="caption"
+              gutterBottom>
+              {'optional'}
+            </Typography>
+          )}
         </Grid>
+        {props.subLabel && (
+          <Grid item xs={12}>
+            <Typography
+              className={classes.subheading}
+              variant="caption"
+              display="block"
+              gutterBottom>
+              {props.subLabel}
+            </Typography>
+          </Grid>
+        )}
         <Grid item xs={12}>
           {props.children}
         </Grid>
       </Grid>
     </ListItem>
+  );
+}
+
+export function AltFormFieldSubheading(props: Props) {
+  const classes = useStyles();
+  return (
+    <Grid container>
+      <Grid item xs={12}>
+        <Typography
+          className={classes.subheading}
+          variant="caption"
+          display="block"
+          gutterBottom>
+          {props.label}
+        </Typography>
+      </Grid>
+      <Grid item xs={12}>
+        {props.children}
+      </Grid>
+    </Grid>
   );
 }
 
