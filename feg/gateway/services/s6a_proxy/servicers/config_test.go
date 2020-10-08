@@ -16,9 +16,9 @@ package servicers
 import (
 	"testing"
 
-	"magma/gateway/mconfig"
-
 	"github.com/stretchr/testify/assert"
+
+	"magma/gateway/mconfig"
 )
 
 func TestS6aConfig(t *testing.T) {
