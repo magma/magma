@@ -195,6 +195,7 @@ class IPAddressManager:
         # Init IPv6 allocator, for now only POOL mode is supported for IPv6
         self.ipv6_allocator = IPv6AllocatorPool(config=config)
 
+
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
 
@@ -256,7 +257,7 @@ class IPAddressManager:
             ipv4_blocks_deleted = self.ip_allocator.remove_ip_blocks(_ipblocks, _force=force)
             ipv6_blocks_deleted = self.ipv6_allocator.remove_ip_blocks(_ipblocks)
 
-        return list(ipv4_blocks_deleted) + ipv6_blocks_deleted
+        return ipv4_blocks_deleted + ipv6_blocks_deleted
 
     def list_added_ip_blocks(self) -> List[ip_network]:
         """ List IP blocks added to the IP allocator
@@ -466,8 +467,6 @@ class IPAddressManager:
             self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
             self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
             self._dhcp_store = {}  # mac => DHCP_State
-            self._allocated_iid = set()  # {ipv6 interface identifiers}
-            self._sid_session_prefix_allocated = {}  # SID => session prefix
         else:
             if not redis_port:
                 raise ValueError(
@@ -477,8 +476,6 @@ class IPAddressManager:
             self.sid_ips_map = store.IPDescDict(client)
             self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
             self._dhcp_store = store.MacToIP()  # mac => DHCP_State
-            self._allocated_iid = store.AllocatedIID(client)
-            self._sid_session_prefix_allocated = store.AllocatedSessionPrefix()
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs

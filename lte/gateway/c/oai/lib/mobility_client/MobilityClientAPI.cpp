@@ -77,9 +77,9 @@ int pgw_handle_allocate_ipv4_address(
       subscriber_id, apn,
       [=, &s5_response](
           const Status& status, AllocateIPAddressResponse ip_msg) {
-        memcpy(
-            addr, ip_msg.mutable_ip_addr()->mutable_address()->c_str(),
-            sizeof(in_addr));
+        auto ipv4_addr_str =
+            ip_msg.mutable_ip_list(0)->mutable_address()->c_str();
+        memcpy(addr, ipv4_addr_str, sizeof(in_addr));
         int vlan      = atoi(ip_msg.mutable_vlan()->c_str());
         auto sgi_resp = handle_allocate_ipv4_address_status(
             status, *addr, vlan, subscriber_id, apn, pdn_type,

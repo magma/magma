@@ -169,36 +169,22 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             composite_sid = composite_sid + "." + request.apn
 
         if request.version == AllocateIPRequest.IPV4:
-            try:
-                ip, vlan = self._ip_address_man.alloc_ip_address(composite_sid)
-                logging.info("Allocated IPv4 %s for sid %s for apn %s"
-                             % (ip, SIDUtils.to_str(request.sid), request.apn))
-                ip_addr.version = IPAddress.IPV4
-                ip_addr.address = ip.packed
-                return AllocateIPAddressResponse(ip_addr=ip_addr,
-                                                 vlan=str(vlan))
-            except NoAvailableIPError:
-                context.set_details('No free IPv4 IP available')
-                context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
-            except DuplicatedIPAllocationError:
-                context.set_details(
-                    'IP has been allocated for this subscriber')
-                context.set_code(grpc.StatusCode.ALREADY_EXISTS)
-            except DuplicateIPAssignmentError:
-                context.set_details(
-                    'IP has been allocated for other subscriber')
-                context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+            return self._get_allocate_ipv4_response(composite_sid, context,
+                                                    ip_addr, request)
         elif request.version == AllocateIPRequest.IPV6:
-            try:
-                ip = self._ip_address_man.alloc_ipv6_address(composite_sid)
-                logging.info("Allocated IPv6 %s for sid %s for apn %s"
-                             % (ip, SIDUtils.to_str(request.sid), request.apn))
-                ip_addr.version = IPAddress.IPV6
-                ip_addr.address = ip.packed
-            except MaxCalculationError:
-                context.set_details('Could not calculate IID for IPv6 address')
-                context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
-            return AllocateIPAddressResponse(ip_addr=ip_addr, vlan="")
+            return self._get_allocate_ipv6_response(composite_sid, context,
+                                                    ip_addr, request)
+        elif request.version == AllocateIPRequest.IPV4V6:
+            ipv4_response = self._get_allocate_ipv4_response(composite_sid,
+                                                             context, ip_addr,
+                                                             request)
+            ipv6_response = self._get_allocate_ipv6_response(composite_sid,
+                                                             context, ip_addr,
+                                                             request)
+            ip_addr_list = ipv4_response.ip_list + ipv6_response.ip_list
+            # Get vlan from ipv4 allocator
+            return AllocateIPAddressResponse(ip_list=ip_addr_list,
+                                             vlan=ipv4_response.vlan)
         return AllocateIPAddressResponse()
 
     @return_void
@@ -301,6 +287,43 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
     @return_void
     def SetGatewayInfo(self, info, context):
         self._ip_address_man.set_gateway_info(info)
+
+    def _get_allocate_ipv6_response(self, composite_sid, context, ip_addr,
+                                    request):
+        try:
+            ip = self._ip_address_man.alloc_ipv6_address(composite_sid)
+            logging.info("Allocated IPv6 %s for sid %s for apn %s"
+                         % (ip, SIDUtils.to_str(request.sid), request.apn))
+            ip_addr.version = IPAddress.IPV6
+            ip_addr.address = ip.packed
+            return AllocateIPAddressResponse(ip_list=[ip_addr], vlan="")
+        except MaxCalculationError:
+            context.set_details('Could not calculate IID for IPv6 address')
+            context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
+        return AllocateIPAddressResponse()
+
+    def _get_allocate_ipv4_response(self, composite_sid, context, ip_addr,
+                                    request):
+        try:
+            ip, vlan = self._ip_address_man.alloc_ip_address(composite_sid)
+            logging.info("Allocated IPv4 %s for sid %s for apn %s"
+                         % (ip, SIDUtils.to_str(request.sid), request.apn))
+            ip_addr.version = IPAddress.IPV4
+            ip_addr.address = ip.packed
+            return AllocateIPAddressResponse(ip_list=[ip_addr],
+                                             vlan=str(vlan))
+        except NoAvailableIPError:
+            context.set_details('No free IPv4 IP available')
+            context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
+        except DuplicatedIPAllocationError:
+            context.set_details(
+                'IP has been allocated for this subscriber')
+            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+        except DuplicateIPAssignmentError:
+            context.set_details(
+                'IP has been allocated for other subscriber')
+            context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+        return AllocateIPAddressResponse()
 
     def _ipblock_msg_to_ipblock(self, ipblock_msg, context):
         """ convert IPBlock to ipaddress.ip_network """

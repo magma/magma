@@ -80,7 +80,7 @@ def allocate_ip_handler(client, args):
     if ip_msg.version == IPAddress.IPV4:
         ip = ipaddress.IPv4Address(ip_msg.address)
         print("IPv4 address allocated: %s" % ip)
-    elif ip_msg.ip_addr.version == IPAddress.IPV6:
+    elif ip_msg.version == IPAddress.IPV6:
         ip = ipaddress.IPv6Address(ip_msg.ip_addr.address)
         print("IPv6 address allocated: %s" % ip)
     else:
