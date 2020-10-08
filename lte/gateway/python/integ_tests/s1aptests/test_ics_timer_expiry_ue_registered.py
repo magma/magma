@@ -17,45 +17,29 @@ import time
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
-from s1ap_utils import MagmadUtil
 
 
-class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
+class TestIcsTimerExpiryUeRegistered(unittest.TestCase):
     def setUp(self):
-        self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
-            stateless_mode=MagmadUtil.stateless_cmds.ENABLE
-        )
+        self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_mobile_reachability_timer_with_mme_restart(self):
+    def test_ics_timer_expiry_ue_registered(self):
         """
-        The test case validates Mobile Reachability Timer resumes the
-        configured timer value on MME restart
-        NOTE: Before execution of this test case, run the test case,
-              test_modify_mme_config_for_sanity.py to modify the default
-              3412 timer value from 54 minutes to 1 minute
-        Step1 : UE attaches to network
-        Step2 : UE moves to Idle state
-        Step3 : Once MME restarts, MME shall resume
-                the Mobile reachability timer for remaining time, on expiry
-                MME starts the Implicit Detach Timer. On expiry of
-                Implicit Detach Timer, MME implicitly detaches UE.
-                MME shall delete the contexts locally
-        Step4 : Send Service Request, after Implicit Detach Timer expiry
-                expecting Service Reject, as MME has released the UE contexts
-
+        Simulating ICS timer expiry by dropping ICS req when UE moves
+        from idle to connected mode i.e UE is in registered state.
+        Network sends UE context release cmd after ICS timer expires
         """
         self._s1ap_wrapper.configUEDevice(1)
-        time.sleep(20)
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
         print(
             "************************* Running End to End attach for UE id ",
             ue_id,
         )
-        # Now actually complete the attach
+        # Attach
         self._s1ap_wrapper._s1_util.attach(
             ue_id,
             s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
@@ -87,32 +71,18 @@ class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
 
-        print("************************* Restarting MME service on gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-        for j in range(60):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
-
-        # Delay by 11 minutes to ensure Mobile reachability timer and Implicit
-        # detach timer expires
-        # Mobile Reachability Timer value = 1 minute (conf file) + delta value
-        # at mme (4 minute)
-        # Implicit Detach Timer value = 1 minute (conf file) + delta value
-        # at mme (4 minute)
-        print(
-            "************************* Waiting for Mobile Reachability Timer"
-            " (5 Minutes) and Implicit Detach Timer (5 minutes) to expire."
-            " Together timer value is set to 660 seconds"
+        print("*** Sending indication to drop Initial Context Setup Req ***")
+        drop_init_ctxt_setup_req = s1ap_types.UeDropInitCtxtSetup()
+        drop_init_ctxt_setup_req.ue_Id = ue_id
+        drop_init_ctxt_setup_req.flag = 1
+        # Timer to release UE context at s1ap tester
+        drop_init_ctxt_setup_req.tmrVal = 2000
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_SET_DROP_ICS, drop_init_ctxt_setup_req
         )
-        # 5 Minutes + 5 minutes = 10 minutes (600 seconds)
-        # 600 seconds + 60 seconds, delta(Randomly chosen)
-        timeSlept = 0
-        while timeSlept < 660:
-            time.sleep(10)
-            timeSlept += 10
-            print("*********** Slept for", timeSlept, "seconds")
 
+        print("**** Sleeping for 5 seconds *****")
+        time.sleep(5)
         print(
             "************************* Sending Service request for UE id ",
             ue_id,
@@ -126,20 +96,27 @@ class TestMobileReachabilityTimerWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_SERVICE_REQUEST, req
         )
+
+        # enbApp sends UE_ICS_DROPD_IND message to tfwApp after dropping
+        # ICS request
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_SERVICE_REJECT_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value
         )
 
-        print(
-            "************************* Received Service Reject for UE id ",
-            ue_id,
-        )
-
-        # Wait for UE Context Release command
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+        )
+
+        print(
+            "************************* Received UE_CTX_REL_IND for UE id ",
+            ue_id,
+        )
+        print("************************* Running UE detach for UE id ", ue_id)
+        # Now detach the UE
+        self._s1ap_wrapper.s1_util.detach(
+            ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value, False
         )
 
 

@@ -59,7 +59,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
-    MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows";
+    MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows,"
+                << " old epoch = " << current_epoch_ 
+                << ", new epoch = " << reported_epoch_;
     restart_pipelined(reported_epoch_);
     // Set the current epoch right away to prevent double setup call requests
     current_epoch_ = reported_epoch_;
@@ -561,7 +563,7 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  MLOG(MINFO) << "Received session <-> rule associations";
+  MLOG(MDEBUG) << "Received session <-> rule associations";
 
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     SessionRead req = {};
