@@ -5,6 +5,13 @@ set(asn1c_call ${CMAKE_CURRENT_SOURCE_DIR}/generate_asn1)
 set(S1AP_C_DIR ${asn1_generated_dir}/${ASN1RELDIR})
 include_directories("${S1AP_C_DIR}")
 
+set(ASN1RELDIRN r16_thin)
+set(asn1_generated_dir ${PROJECT_BINARY_DIR}/ngap)
+set(asn1c_call ${CMAKE_CURRENT_SOURCE_DIR}/generate_asn1)
+set(NGAP_C_DIR ${asn1_generated_dir}/${ASN1RELDIRN})
+include_directories("${NGAP_C_DIR}")
+
+
 set(ITTI_FILES
     intertask_interface.c
     signals.c

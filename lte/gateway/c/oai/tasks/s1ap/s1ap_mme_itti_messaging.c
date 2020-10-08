@@ -33,7 +33,7 @@
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "s1ap_mme_itti_messaging.h"
-#include "S1ap-CauseRadioNetwork.h"
+#include "S1ap_CauseRadioNetwork.h"
 #include "nas/as_message.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"

@@ -61,7 +61,17 @@ typedef enum eps_protocol_discriminator_value_e {
   NON_CALL_RELATED_SS_MESSAGE      = 0xB,
 } eps_protocol_discriminator_value_t;
 
+//.............................................................................
+//  11.2.3.1.1A Extended protocol discriminator (EPD)
 //..............................................................................
+typedef uint8_t Extended_protocol_discriminator_t; //8 bits only
+typedef enum Extended_protocol_discriminator_s
+{
+  M5GS_SESSION_MANAGEMENT_MESSAGE=0x2E,  /* Extended Protocol discriminator identifier for 5GS Session Management */
+  M5GS_MOBILITY_MANAGEMENT_MESSAGE=0x7E, /* Extended Protocol discriminator identifier for 5GS Mobility Management */
+
+}Extended_protocol_discriminator_val_t;
+
 // 11.2.3.1.5  EPS bearer identity
 //..............................................................................
 typedef uint8_t ebi_t;  // 4 bits only
