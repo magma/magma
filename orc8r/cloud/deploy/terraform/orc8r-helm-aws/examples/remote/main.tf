@@ -64,6 +64,7 @@ data "aws_secretsmanager_secret_version" "root_secrets" {
 }
 
 module orc8r {
+  # Change this to pull from github with a specified ref
   source = "../../../orc8r-aws"
 
   region = local.region
@@ -78,7 +79,7 @@ module orc8r {
 
   deploy_elasticsearch          = true
   elasticsearch_domain_name     = "orc8r-es"
-  elasticsearch_version         = "7.1"
+  elasticsearch_version         = "7.7"
   elasticsearch_instance_type   = "t2.medium.elasticsearch"
   elasticsearch_instance_count  = 2
   elasticsearch_az_count        = 2
@@ -88,6 +89,7 @@ module orc8r {
 }
 
 module orc8r-app {
+  # Change this to pull from github with a specified ref
   source = "../.."
 
   region = local.region
@@ -135,8 +137,8 @@ module orc8r-app {
 
   elasticsearch_endpoint = module.orc8r.es_endpoint
 
-  orc8r_chart_version = "1.4.21"
-  orc8r_tag           = "1.1.0"
+  orc8r_chart_version = "1.4.36"
+  orc8r_tag           = "1.3.0"
   deploy_nms          = true
 }
 
