@@ -165,9 +165,9 @@ describe('<CWFGateways />', () => {
     expect(rowItems[1]).toHaveTextContent(
       'a935dd3f-efaa-435a-bcb6-8168d0caf333',
     );
-    expect(
-      getByTitle('Last refreshed 12/31/1969, 7:00:00 PM'),
-    ).toBeInTheDocument();
+    const expectedGatewayDate =
+      'Last refreshed ' + new Date(0).toLocaleString();
+    expect(getByTitle(expectedGatewayDate)).toBeInTheDocument();
     const primaryCwag = getAllByTitle('Primary CWAG');
     expect(primaryCwag).toHaveLength(1);
 
@@ -175,8 +175,8 @@ describe('<CWFGateways />', () => {
     expect(rowItems[2]).toHaveTextContent(
       'bb35dd3f-efaa-435a-bcb6-8168d0caf333',
     );
-    expect(
-      getByTitle('Last refreshed 12/31/1969, 7:00:01 PM'),
-    ).toBeInTheDocument();
+    const expectedGatewayDate2 =
+      'Last refreshed ' + new Date(1).toLocaleString();
+    expect(getByTitle(expectedGatewayDate2)).toBeInTheDocument();
   });
 });
