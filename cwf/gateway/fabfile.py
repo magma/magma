@@ -179,6 +179,12 @@ def transfer_artifacts(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
         execute(_tar_coredump, gateway_vm=gateway_vm, gateway_ansible_file=gateway_ansible_file)
 
 
+def transfer_docker_images(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
+    with cd(CWAG_ROOT):
+        _switch_to_vm(None, gateway_vm, gateway_ansible_file, False)
+        execute(_transfer_docker_images)
+
+
 def _tar_coredump(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
     _switch_to_vm_no_destroy(None, gateway_vm, gateway_ansible_file)
     with cd(CWAG_ROOT):

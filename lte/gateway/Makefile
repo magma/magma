@@ -104,7 +104,7 @@ help: ## Show documented commands
 define run_cmake
 mkdir -p $(1)
 cd $(1) && $(4) cmake $(2) -DCMAKE_BUILD_TYPE=$(BUILD_TYPE) $(3) -GNinja
-ninja -C $(1)
+ninja -j4 -C $(1)
 endef
 
 # run_scanbuild BUILD_DIRECTORY, FILE_DIRECTORY, FLAGS

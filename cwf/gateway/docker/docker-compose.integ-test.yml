@@ -62,6 +62,8 @@ services:
     volumes:
       - ../integ_tests/sessiond.yml:/etc/magma/sessiond.yml
       - /var/opt/magma/cores:/var/opt/magma/cores
+    environment:
+      MAGMA_PRINT_GRPC_PAYLOAD: 1
     ulimits:
       core: -1
     security_opt:
