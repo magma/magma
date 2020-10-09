@@ -1814,6 +1814,13 @@ definitions:
         description: IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
         minLength: 5
         maxLength: 49
+      sgi_management_iface_gw:
+        type: string
+        format: cidr
+        description: IP address of gateway for management interface on the AGW
+        minLength: 5
+        maxLength: 49
+
 
   gateway_non_eps_configs:
     description: Non-EPS service configuration for a gateway

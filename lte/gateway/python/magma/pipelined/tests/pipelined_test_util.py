@@ -604,3 +604,14 @@ def get_iface_ipv4(iface: str) -> List[str]:
         ip_addr_list.append(ip_rec['addr'])
 
     return ip_addr_list
+
+
+def get_iface_gw_ipv4(iface: str) -> List[str]:
+    gateways = netifaces.gateways()
+    gateway_ip_addr_list = []
+    for gw_ip, gw_iface, _ in gateways[netifaces.AF_INET]:
+        if gw_iface != iface:
+            continue
+        gateway_ip_addr_list.append(gw_ip)
+
+    return gateway_ip_addr_list
