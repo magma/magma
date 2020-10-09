@@ -166,7 +166,7 @@ void S1apStateManager::create_s1ap_imsi_map()
     hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
 
   if(persist_state_enabled) {
-    oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
+    gateway::s1ap::S1apImsiMap imsi_proto = gateway::s1ap::S1apImsiMap();
     redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
 
     S1apStateConverter::proto_to_s1ap_imsi_map(imsi_proto, s1ap_imsi_map_);
