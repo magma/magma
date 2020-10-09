@@ -147,12 +147,7 @@ export type carrier_wifi_gateway_health_status = {
     description: string,
     status: "HEALTHY" | "UNHEALTHY",
 };
-export type carrier_wifi_ha_pair_state = {
-    gateway1_health ? : carrier_wifi_gateway_health_status,
-    gateway2_health ? : carrier_wifi_gateway_health_status,
-    ha_pair_status ? : carrier_wifi_ha_pair_status,
-};
-export type carrier_wifi_ha_pair_status = {
+export type carrier_wifi_network_cluster_status = {
     active_gateway: string,
 };
 export type cellular_gateway_pool = {
@@ -205,7 +200,6 @@ export type cwf_ha_pair = {
     gateway_id_1: string,
     gateway_id_2: string,
     ha_pair_id: string,
-    state ? : carrier_wifi_ha_pair_state,
 };
 export type cwf_ha_pair_configs = {
     transport_virtual_ip: string,
@@ -827,7 +821,6 @@ export type mutable_cwf_ha_pair = {
     config: cwf_ha_pair_configs,
     gateway_id_1: string,
     gateway_id_2: string,
-    ha_pair_id: string,
 };
 export type mutable_enodebd_e2e_test = {
     config: enodebd_test_config,
@@ -2403,7 +2396,7 @@ export default class MagmaAPIBindings {
     static async postCwfByNetworkIdHaPairs(
         parameters: {
             'networkId': string,
-            'haPair': mutable_cwf_ha_pair,
+            'haPair': cwf_ha_pair,
         }
     ): Promise < "Success" > {
         let path = '/cwf/{network_id}/ha_pairs';

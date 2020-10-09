@@ -16,7 +16,6 @@
 
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {cwf_gateway} from '@fbcnms/magma-api';
-import type {cwf_ha_pair} from '@fbcnms/magma-api';
 
 import AddGatewayDialog from '../AddGatewayDialog';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -31,7 +30,6 @@ import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
-import StarIcon from '@material-ui/icons/Star';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -88,11 +86,6 @@ const useStyles = makeStyles(theme => ({
     fontWeight: 'bolder',
     paddingRight: '10px',
   },
-  star: {
-    color: '#ffd700',
-    width: '18px',
-    verticalAlign: 'bottom',
-  },
 }));
 
 const FIVE_MINS = 5 * 60 * 1000;
@@ -113,31 +106,24 @@ function gatewayStatus(gateway: cwf_gateway): string {
   return status;
 }
 
-export function CWFGateways(props: WithAlert & {}) {
+function CWFGateways(props: WithAlert & {}) {
   const [gateways, setGateways] = useState<?(cwf_gateway[])>(null);
-  const [haPairs, setHaPairs] = useState<?(cwf_ha_pair[])>(null);
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const {match, history, relativePath, relativeUrl} = useRouter();
   const [lastFetchTime, setLastFetchTime] = useState(Date.now());
   const networkId = nullthrows(match.params.networkId);
   const classes = useStyles();
 
-  useMagmaAPI(
+  const {isLoading} = useMagmaAPI(
     MagmaV1API.getCwfByNetworkIdGateways,
     {networkId},
     useCallback(response => setGateways(map(response, g => g)), []),
     lastFetchTime,
   );
 
-  useMagmaAPI(
-    MagmaV1API.getCwfByNetworkIdHaPairs,
-    {networkId},
-    useCallback(response => setHaPairs(map(response, h => h)), []),
-    lastFetchTime,
-  );
-
   useInterval(() => setLastFetchTime(Date.now()), REFRESH_INTERVAL);
 
-  if (!gateways || !haPairs) {
+  if (!gateways || isLoading) {
     return <LoadingFiller />;
   }
 
@@ -195,12 +181,54 @@ export function CWFGateways(props: WithAlert & {}) {
   };
 
   const rows = gateways.map(gateway => (
-    <GatewayRow
-      key={gateway.id}
-      gateway={gateway}
-      haPairs={haPairs}
-      onDelete={deleteGateway}
-    />
+    <>
+      <TableRow key={gateway.id}>
+        <Tooltip title={gatewayStatus(gateway)} placement={'bottom-start'}>
+          <TableCell className={classes.gatewayCell}>
+            <IconButton
+              className={classes.expandIconButton}
+              onClick={() => {
+                const newExpanded = new Set(expanded);
+                expanded.has(gateway.id)
+                  ? newExpanded.delete(gateway.id)
+                  : newExpanded.add(gateway.id);
+                setExpanded(newExpanded);
+              }}>
+              {expanded.has(gateway.id) ? <ExpandMore /> : <ChevronRight />}
+            </IconButton>
+
+            <span className={classes.gatewayName}>{gateway.name}</span>
+            <DeviceStatusCircle
+              isGrey={!gateway.status?.checkin_time}
+              isActive={
+                Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) <
+                  FIVE_MINS && gateway.carrier_wifi.allowed_gre_peers.length > 0
+              }
+            />
+          </TableCell>
+        </Tooltip>
+
+        <TableCell>{gateway.device.hardware_id}</TableCell>
+        <TableCell>
+          <IconButton
+            color="primary"
+            onClick={() => history.push(relativeUrl(`/edit/${gateway.id}`))}>
+            <EditIcon />
+          </IconButton>
+          <IconButton color="primary" onClick={() => deleteGateway(gateway)}>
+            <DeleteIcon />
+          </IconButton>
+        </TableCell>
+      </TableRow>
+      {expanded.has(gateway.id) &&
+        gateway.carrier_wifi.allowed_gre_peers.map((gre, i) => (
+          <TableRow key={i} classeName={classes.tableRow}>
+            <TableCell className={classes.greCell}>{gre.ip}</TableCell>
+            <TableCell>{gre.key}</TableCell>
+            <TableCell />
+          </TableRow>
+        ))}
+    </>
   ));
 
   return (
@@ -251,91 +279,6 @@ export function CWFGateways(props: WithAlert & {}) {
         )}
       />
     </div>
-  );
-}
-
-function GatewayRow(props: {
-  gateway: cwf_gateway,
-  haPairs: cwf_ha_pair[],
-  onDelete: cwf_gateway => void,
-}) {
-  const {gateway, haPairs, onDelete} = props;
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const classes = useStyles();
-  const {history, relativeUrl} = useRouter();
-
-  const gatewayHaPair = haPairs.filter(haPair => {
-    return (
-      haPair.gateway_id_1 === gateway.id || haPair.gateway_id_2 === gateway.id
-    );
-  });
-
-  const isPrimary =
-    gatewayHaPair?.[0]?.state?.ha_pair_status?.active_gateway === gateway.id;
-  const isGateway1 = gatewayHaPair?.[0]?.gateway_id_1 === gateway.id;
-
-  const isNonHaGatewayHealthy =
-    Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) < FIVE_MINS &&
-    gateway.carrier_wifi.allowed_gre_peers.length > 0;
-  const gatewayHealth = isGateway1
-    ? gatewayHaPair[0]?.state?.gateway1_health?.status
-    : gatewayHaPair?.[0]
-    ? gatewayHaPair[0]?.state?.gateway2_health?.status
-    : isNonHaGatewayHealthy
-    ? 'HEALTHY'
-    : 'UNHEALTHY';
-
-  return (
-    <>
-      <TableRow key={gateway.id}>
-        <Tooltip title={gatewayStatus(gateway)} placement={'bottom-start'}>
-          <TableCell className={classes.gatewayCell}>
-            <IconButton
-              className={classes.expandIconButton}
-              onClick={() => {
-                const newExpanded = new Set(expanded);
-                expanded.has(gateway.id)
-                  ? newExpanded.delete(gateway.id)
-                  : newExpanded.add(gateway.id);
-                setExpanded(newExpanded);
-              }}>
-              {expanded.has(gateway.id) ? <ExpandMore /> : <ChevronRight />}
-            </IconButton>
-
-            <span className={classes.gatewayName}>{gateway.name}</span>
-            <DeviceStatusCircle
-              isGrey={!gateway.status?.checkin_time}
-              isActive={gatewayHealth === 'HEALTHY'}
-            />
-            {isPrimary && (
-              <Tooltip title="Primary CWAG" placement="right">
-                <StarIcon className={classes.star} />
-              </Tooltip>
-            )}
-          </TableCell>
-        </Tooltip>
-
-        <TableCell>{gateway.device.hardware_id}</TableCell>
-        <TableCell>
-          <IconButton
-            color="primary"
-            onClick={() => history.push(relativeUrl(`/edit/${gateway.id}`))}>
-            <EditIcon />
-          </IconButton>
-          <IconButton color="primary" onClick={() => onDelete(gateway)}>
-            <DeleteIcon />
-          </IconButton>
-        </TableCell>
-      </TableRow>
-      {expanded.has(gateway.id) &&
-        gateway.carrier_wifi.allowed_gre_peers.map((gre, i) => (
-          <TableRow key={i} classeName={classes.tableRow}>
-            <TableCell className={classes.greCell}>{gre.ip}</TableCell>
-            <TableCell>{gre.key}</TableCell>
-            <TableCell />
-          </TableRow>
-        ))}
-    </>
   );
 }
 
