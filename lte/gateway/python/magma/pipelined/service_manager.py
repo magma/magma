@@ -50,6 +50,8 @@ from magma.pipelined.app.conntrack import ConntrackController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.arp import ArpController
+from magma.pipelined.app.ipv6_solicitation import \
+    IPV6SolicitationController
 from magma.pipelined.app.dpi import DPIController
 from magma.pipelined.app.gy import GYController
 from magma.pipelined.app.enforcement import EnforcementController
@@ -66,6 +68,7 @@ from magma.pipelined.app.uplink_bridge import UplinkBridgeController
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
+from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from ryu.base.app_manager import AppManager
 
@@ -254,6 +257,7 @@ class ServiceManager:
     UE_MAC_ADDRESS_SERVICE_NAME = 'ue_mac'
     ARP_SERVICE_NAME = 'arpd'
     ACCESS_CONTROL_SERVICE_NAME = 'access_control'
+    ipv6_solicitation_SERVICE_NAME = 'ipv6_solicitation'
     TUNNEL_LEARN_SERVICE_NAME = 'tunnel_learn'
     VLAN_LEARN_SERVICE_NAME = 'vlan_learn'
     IPFIX_SERVICE_NAME = 'ipfix'
@@ -316,6 +320,12 @@ class ServiceManager:
                 module=AccessControlController.__module__,
                 type=AccessControlController.APP_TYPE,
                 order_priority=400),
+        ],
+        ipv6_solicitation_SERVICE_NAME: [
+            App(name=IPV6SolicitationController.APP_NAME,
+                module=IPV6SolicitationController.__module__,
+                type=IPV6SolicitationController.APP_TYPE,
+                order_priority=210),
         ],
         TUNNEL_LEARN_SERVICE_NAME: [
             App(name=TunnelLearnController.APP_NAME,
@@ -402,6 +412,7 @@ class ServiceManager:
 
         self.rule_id_mapper = RuleIDToNumMapper()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
+        self.interface_to_prefix_mapper = InterfaceIDToPrefixMapper()
 
         apps = self._get_static_apps()
         apps.extend(self._get_dynamic_apps())
@@ -474,6 +485,7 @@ class ServiceManager:
             self.rule_id_mapper._rule_nums_by_rule = {}
             self.rule_id_mapper._rules_by_rule_num = {}
             self.session_rule_version_mapper._version_by_imsi_and_rule = {}
+            self.interface_to_prefix_mapper._prefix_by_interface = {}
 
         manager = AppManager.get_instance()
         manager.load_apps([app.module for app in self._apps])
@@ -481,6 +493,7 @@ class ServiceManager:
         contexts['rule_id_mapper'] = self.rule_id_mapper
         contexts[
             'session_rule_version_mapper'] = self.session_rule_version_mapper
+        contexts['interface_to_prefix_mapper'] = self.interface_to_prefix_mapper
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
         contexts['internal_ip_allocator'] = \
             InternalIPAllocator(self._magma_service.config)

@@ -228,7 +228,7 @@ export function ApnJsonConfig() {
           if (apn.apn_name === '') {
             throw Error('Invalid Name');
           }
-          ctx.setState(apnName, apn);
+          ctx.setState(apn.apn_name, apn);
           enqueueSnackbar('APN saved successfully', {
             variant: 'success',
           });

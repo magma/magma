@@ -19,7 +19,6 @@ import asyncio
 import logging
 import threading
 
-
 import aioeventlet
 from ryu import cfg
 from ryu.base.app_manager import AppManager
@@ -33,7 +32,8 @@ from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.ifaces import monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
-from magma.pipelined.gtp_stats_collector import GTPStatsCollector
+from magma.pipelined.gtp_stats_collector import GTPStatsCollector, \
+    MIN_OVSDB_DUMP_POLLING_INTERVAL
 from lte.protos.mconfig import mconfigs_pb2
 
 
@@ -126,8 +126,10 @@ def main():
                                  on_exit_server_thread)
 
     if service.config['setup_type'] == 'LTE':
+        polling_interval = service.config.get('ovs_gtp_stats_polling_interval',
+                                              MIN_OVSDB_DUMP_POLLING_INTERVAL)
         collector = GTPStatsCollector(
-            service.config['ovs_gtp_stats_polling_interval'],
+            polling_interval,
             service.loop)
         collector.start()
 

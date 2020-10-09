@@ -14,6 +14,7 @@ limitations under the License.
 package handlers
 
 import (
+	"fmt"
 	"time"
 
 	"google.golang.org/grpc/codes"
@@ -93,6 +94,7 @@ func createChallengeRequest(
 		if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 			errCode = se.GRPCStatus().Code()
 		}
+		err = fmt.Errorf( "IMSI %s: %s", string(lockedCtx.Imsi), err)
 		return aka.EapErrorResPacket(identifier, aka.NOTIFICATION_FAILURE, errCode, err.Error())
 	}
 	if ans == nil {

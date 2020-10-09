@@ -569,10 +569,11 @@ func (m *ApnResource) ToTK() storage.TypeAndKey {
 }
 
 func (m *ApnResource) ToEntity() configurator.NetworkEntity {
+	cfg := *m // make explicit copy
 	return configurator.NetworkEntity{
 		Type:         lte.APNResourceEntityType,
 		Key:          m.ID,
-		Config:       m,
+		Config:       &cfg,
 		Associations: m.getAssocs(),
 	}
 }
