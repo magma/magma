@@ -58,7 +58,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._config = kwargs['config']
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
-            self.APP_NAME)
+            EnforcementStatsController.APP_NAME)
         self._enforcement_stats_tbl = self._service_manager.get_table_num(
             EnforcementStatsController.APP_NAME)
         self.loop = kwargs['loop']
@@ -153,11 +153,13 @@ class EnforcementController(PolicyMixin, MagmaController):
         inbound_msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, inbound_match, [],
             priority=flows.MINIMUM_PRIORITY,
+            copy_table=self._enforcement_stats_tbl,
             resubmit_table=self.next_main_table)
 
         outbound_msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, outbound_match, [],
             priority=flows.MINIMUM_PRIORITY,
+            copy_table=self._enforcement_stats_tbl,
             resubmit_table=self.next_main_table)
 
         msgs, remaining_flows = self._msg_hub \
@@ -190,8 +192,8 @@ class EnforcementController(PolicyMixin, MagmaController):
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
-                    rule.app_service_type, self._enforcement_stats_tbl,
-                    version, self._qos_mgr))
+                    rule.app_service_type, self.next_main_table,
+                    version, self._qos_mgr, self._enforcement_stats_tbl))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(
@@ -251,13 +253,26 @@ class EnforcementController(PolicyMixin, MagmaController):
             )
             return RuleModResult.FAILURE
 
-    def _get_default_flow_msg_for_subscriber(self, imsi):
-        match = MagmaMatch(imsi=encode_imsi(imsi))
-        actions = []
-        return flows.get_add_drop_flow_msg(self._datapath, self.tbl_num,
-            match, actions, priority=self.ENFORCE_DROP_PRIORITY)
+    def _get_default_flow_msg_for_subscriber(self, imsi, ip_addr):
+            ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
+            match_in = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                  imsi=encode_imsi(imsi), **ip_match_in)
+            ip_match_out = get_ue_ipv4_match_args(ip_addr, Direction.IN)
+            match_out = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                                  imsi=encode_imsi(imsi), **ip_match_out)
 
-    def _install_default_flow_for_subscriber(self, imsi):
+            actions = []
+            return [
+                flows.get_add_resubmit_current_service_flow_msg(
+                    self._datapath, self.tbl_num,  match_in, actions,
+                    priority=self.ENFORCE_DROP_PRIORITY,
+                    resubmit_table=self._enforcement_stats_tbl),
+                flows.get_add_resubmit_current_service_flow_msg(
+                    self._datapath, self.tbl_num,  match_out, actions,
+                    priority=self.ENFORCE_DROP_PRIORITY,
+                    resubmit_table=self._enforcement_stats_tbl)]
+
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Add a low priority flow to drop a subscriber's traffic in the event
         that all rules have been deactivated.
@@ -265,10 +280,23 @@ class EnforcementController(PolicyMixin, MagmaController):
         Args:
             imsi (string): subscriber id
         """
-        match = MagmaMatch(imsi=encode_imsi(imsi))
-        actions = []  # empty options == drop
-        flows.add_drop_flow(self._datapath, self.tbl_num, match, actions,
-                            priority=self.ENFORCE_DROP_PRIORITY)
+        actions = []
+        ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
+        match_in = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                              imsi=encode_imsi(imsi), **ip_match_in)
+        ip_match_out = get_ue_ipv4_match_args(ip_addr, Direction.OUT)
+        match_out = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+                               imsi=encode_imsi(imsi), **ip_match_out)
+
+        flows.add_resubmit_current_service_flow(self._datapath,
+            self.tbl_num, match_in, actions,
+            priority=self.ENFORCE_DROP_PRIORITY,
+            resubmit_table=self._enforcement_stats_tbl)
+
+        flows.add_resubmit_current_service_flow(self._datapath,
+            self.tbl_num, match_out, actions,
+            priority=self.ENFORCE_DROP_PRIORITY,
+            resubmit_table=self._enforcement_stats_tbl)
 
     def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):
         """

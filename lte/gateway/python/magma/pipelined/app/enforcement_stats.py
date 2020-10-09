@@ -117,10 +117,9 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             The list of flows that remain after inserting default flows
         """
         match = MagmaMatch()
-        msg = flows.get_add_resubmit_next_service_flow_msg(
-            datapath, self.tbl_num, match, [],
+        msg = flows.get_add_drop_flow_msg(
+            datapath, self.tbl_num, match,
             priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_table,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
         msg, remaining_flows = \
@@ -197,55 +196,66 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
         outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
         msgs = [
-            flows.get_add_resubmit_next_service_flow_msg(
+            flows.get_add_drop_flow_msg(
                 self._datapath,
                 self.tbl_num,
                 inbound_rule_match,
-                [],
                 priority=flows.DEFAULT_PRIORITY,
-                cookie=rule_num,
-                resubmit_table=self.next_table),
-            flows.get_add_resubmit_next_service_flow_msg(
+                cookie=rule_num),
+            flows.get_add_drop_flow_msg(
                 self._datapath,
                 self.tbl_num,
                 outbound_rule_match,
-                [],
                 priority=flows.DEFAULT_PRIORITY,
-                cookie=rule_num,
-                resubmit_table=self.next_table),
+                cookie=rule_num),
         ]
 
         if rule.app_name:
             inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
             outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
             msgs.extend([
-                flows.get_add_resubmit_next_service_flow_msg(
+                flows.get_add_drop_flow_msg(
                     self._datapath,
                     self.tbl_num,
                     inbound_rule_match,
-                    [],
                     priority=flows.DEFAULT_PRIORITY,
-                    cookie=rule_num,
-                    resubmit_table=self.next_table),
-                flows.get_add_resubmit_next_service_flow_msg(
+                    cookie=rule_num),
+                flows.get_add_drop_flow_msg(
                     self._datapath,
                     self.tbl_num,
                     outbound_rule_match,
-                    [],
                     priority=flows.DEFAULT_PRIORITY,
-                    cookie=rule_num,
-                    resubmit_table=self.next_table),
+                    cookie=rule_num),
             ])
         return msgs
 
-    def _get_default_flow_msg_for_subscriber(self, _):
-        return None
+    def _get_default_flow_msg_for_subscriber(self, imsi, ip_addr):
+        match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
+        match_out = _generate_rule_match(imsi, ip_addr, 0, 0,
+                                              Direction.OUT)
+        return [
+            flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_in,
+                                        priority=self.ENFORCE_DROP_PRIORITY),
+            flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
+                                        priority=self.ENFORCE_DROP_PRIORITY)]
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         pass
 
-    def _install_default_flow_for_subscriber(self, imsi):
-        pass
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
+        """
+        Add a low priority flow to drop a subscriber's traffic in the event
+        that all rules have been deactivated.
+
+        Args:
+            imsi (string): subscriber id
+        """
+        match = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
+        flows.add_drop_flow(self._datapath, self.tbl_num, match,
+                            priority=self.ENFORCE_DROP_PRIORITY)
+        match = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.OUT)
+        flows.add_drop_flow(self._datapath, self.tbl_num, match,
+                            priority=self.ENFORCE_DROP_PRIORITY)
 
     def get_policy_usage(self, fut):
         record_table = RuleRecordTable(
@@ -379,12 +389,14 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 self.logger.error('%s bytes total not reported.',
                                   flow_stat.byte_count)
                 self._unmatched_bytes = flow_stat.byte_count
-            return current_usage
+                return current_usage
         # If this is a pass through app name flow ignore stats
         if SCRATCH_REGS[1] in flow_stat.match and \
            flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
             return current_usage
         sid = _get_sid(flow_stat)
+        if not sid:
+            return current_usage
         ipv4_addr = _get_ipv4(flow_stat)
 
         # use a compound key to separate flows for the same rule but for

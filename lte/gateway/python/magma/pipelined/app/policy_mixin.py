@@ -156,9 +156,9 @@ class PolicyMixin(metaclass=ABCMeta):
                 except FlowMatchError:
                     self.logger.error("Failed to verify rule_id: %s", rule.id)
 
-            flow_add = self._get_default_flow_msg_for_subscriber(imsi)
+            flow_add = self._get_default_flow_msg_for_subscriber(imsi, ip_addr)
             if flow_add:
-                msg_list.append(flow_add)
+                msg_list.extend(flow_add)
 
         msgs_to_send, remaining_flows = \
             self._msg_hub.filter_msgs_if_not_in_flow_list(msg_list,
@@ -221,7 +221,7 @@ class PolicyMixin(metaclass=ABCMeta):
             dyn_results.append(RuleModResult(rule_id=rule.id, result=res))
 
         # Install a base flow for when no rule is matched.
-        self._install_default_flow_for_subscriber(imsi)
+        self._install_default_flow_for_subscriber(imsi, ip_addr)
         return ActivateFlowsResult(
             static_rule_results=static_results,
             dynamic_rule_results=dyn_results,
@@ -294,7 +294,8 @@ class PolicyMixin(metaclass=ABCMeta):
 
     def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id, app_name,
-                                     app_service_type, next_table, version, qos_mgr):
+                                     app_service_type, next_table, version, qos_mgr,
+                                     copy_table):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with
@@ -322,6 +323,7 @@ class PolicyMixin(metaclass=ABCMeta):
                     hard_timeout=hard_timeout,
                     priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
+                    copy_table=copy_table,
                     resubmit_table=next_table)
             )
             flow_match.app_id = get_app_id(
@@ -329,15 +331,17 @@ class PolicyMixin(metaclass=ABCMeta):
                 PolicyRule.AppServiceType.Name(app_service_type),
             )
 
+        # For DROP flow just send to stats table, it'll get dropped there
         if flow.action == flow.DENY:
-            msgs.append(flows.get_add_drop_flow_msg(
+            msgs.append(flows.get_add_resubmit_current_service_flow_msg(
                 self._datapath,
                 self.tbl_num,
                 flow_match,
                 flow_match_actions,
                 hard_timeout=hard_timeout,
                 priority=priority,
-                cookie=rule_num)
+                cookie=rule_num,
+                resubmit_table=copy_table)
             )
         else:
             msgs.append(flows.get_add_resubmit_current_service_flow_msg(
@@ -349,6 +353,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 hard_timeout=hard_timeout,
                 priority=priority,
                 cookie=rule_num,
+                copy_table=copy_table,
                 resubmit_table=next_table)
             )
         return msgs
@@ -416,7 +421,7 @@ class PolicyMixin(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Install a flow for the subscriber in the event no rule is matched.
         Subclass should implement this.

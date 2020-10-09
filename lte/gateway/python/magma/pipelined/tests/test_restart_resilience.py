@@ -294,7 +294,7 @@ class RestartResilienceTest(unittest.TestCase):
             startup_flow_controller=self.startup_flows_contoller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
-                                             'default_flows')
+                                             'default_flows2')
 
         with snapshot_verifier:
             pass

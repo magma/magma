@@ -51,6 +51,8 @@ class GYController(PolicyMixin, MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
+        self.next_service_table = self._service_manager.get_next_table_num(
+            EnforcementStatsController.APP_NAME)
         self._enforcement_stats_tbl = self._service_manager.get_table_num(
             EnforcementStatsController.APP_NAME)
         self.loop = kwargs['loop']
@@ -190,7 +192,7 @@ class GYController(PolicyMixin, MagmaController):
         chan = self._msg_hub.send(flow_adds, self._datapath)
         return self._wait_for_rule_responses(imsi, rule, chan)
 
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         pass
 
     def _delete_all_flows(self, datapath):
@@ -309,8 +311,8 @@ class GYController(PolicyMixin, MagmaController):
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
-                    rule.app_service_type, self._enforcement_stats_tbl,
-                    version, self._qos_mgr))
+                    rule.app_service_type, self.next_service_table,
+                    version, self._qos_mgr, self._enforcement_stats_tbl))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(

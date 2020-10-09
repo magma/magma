@@ -333,6 +333,47 @@ class EnforcementStatsTest(unittest.TestCase):
         with sub_context, snapshot_verifier:
             pass
 
+    def test_deny_rule_install(self):
+        """
+        Adds a policy to a subscriber. Verifies that flows are properly
+        installed in enforcement and enforcement stats.
+
+        Assert:
+            Policy classification flows installed in enforcement
+            Policy match flows installed in enforcement_stats
+        """
+        fake_controller_setup(self.enforcement_controller,
+                              self.enforcement_stats_controller)
+        imsi = 'IMSI001010000000014'
+        sub_ip = '192.16.15.7'
+
+        flow_list = [FlowDescription(
+            match=FlowMatch(
+                ip_dst=convert_ipv4_str_to_ip_proto('1.1.0.0/24'),
+                direction=FlowMatch.UPLINK),
+            action=FlowDescription.DENY)
+        ]
+        policy = PolicyRule(id='rule1', priority=3, flow_list=flow_list)
+        self.service_manager.session_rule_version_mapper.update_version(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip), 'rule1')
+
+        """ Setup subscriber, setup table_isolation to fwd pkts """
+        self._static_rule_dict[policy.id] = policy
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.enforcement_controller,
+            self._main_tbl_num, self.enforcement_stats_controller
+        ).add_static_rule(policy.id)
+
+        # =========================== Verification ===========================
+
+        # Verifies that 1 flow is installed in enforcement and 2 flows are
+        # installed in enforcement stats, one for uplink and one for downlink.
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+
+        with sub_context, snapshot_verifier:
+            pass
+
 
     def test_rule_deactivation(self):
         """
