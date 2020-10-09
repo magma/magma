@@ -65,7 +65,8 @@
         "ids": [
           "feg/deploy_intro",
           "feg/deploy_build",
-          "feg/deploy_install"
+          "feg/deploy_install",
+          "feg/federated_FWA_setup_guide"
         ]
       }
     ],
