@@ -14,12 +14,18 @@
  * @format
  */
 'use strict';
-import type {policy_id, policy_rule} from '@fbcnms/magma-api';
+import type {
+  policy_id,
+  policy_qos_profile,
+  policy_rule,
+} from '@fbcnms/magma-api';
 
 import React from 'react';
 
 export type PolicyContextType = {
   state: {[string]: policy_rule},
+  qosProfiles: {[string]: policy_qos_profile},
+  setQosProfiles: (key: string, val?: policy_qos_profile) => Promise<void>,
   setState: (
     key: policy_id,
     val?: policy_rule,

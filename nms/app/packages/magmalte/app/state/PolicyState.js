@@ -14,7 +14,12 @@
  * @format
  */
 
-import type {network_id, policy_id, policy_rule} from '@fbcnms/magma-api';
+import type {
+  network_id,
+  policy_id,
+  policy_qos_profile,
+  policy_rule,
+} from '@fbcnms/magma-api';
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
@@ -60,5 +65,57 @@ export async function SetPolicyState(props: Props) {
     const newPolicies = {...policies};
     delete newPolicies[key];
     setPolicies(newPolicies);
+  }
+}
+
+type QosProfileProps = {
+  networkId: network_id,
+  qosProfiles: {[string]: policy_qos_profile},
+  setQosProfiles: ({[string]: policy_qos_profile}) => void,
+  key: string,
+  value?: policy_qos_profile,
+};
+
+/* SetQosProfileState
+SetQosProfileState
+if key and value are passed in,
+if key is not present, a new profile is created (POST)
+if key is present, existing profile is updated (PUT)
+if value is not present, the profile is deleted (DELETE)
+*/
+export async function SetQosProfileState(props: QosProfileProps) {
+  const {networkId, qosProfiles, setQosProfiles, key, value} = props;
+  if (value != null) {
+    if (!(key in qosProfiles)) {
+      await MagmaV1API.postLteByNetworkIdPolicyQosProfiles({
+        networkId: networkId,
+        policy: value,
+      });
+    } else {
+      await MagmaV1API.putLteByNetworkIdPolicyQosProfilesByProfileId({
+        networkId: networkId,
+        profileId: key,
+        profile: value,
+      });
+    }
+    const qosProfile = await MagmaV1API.getLteByNetworkIdPolicyQosProfilesByProfileId(
+      {
+        networkId: networkId,
+        profileId: key,
+      },
+    );
+
+    if (qosProfile) {
+      const newPolicies = {...qosProfiles, [key]: qosProfile};
+      setQosProfiles(newPolicies);
+    }
+  } else {
+    await MagmaV1API.deleteLteByNetworkIdPolicyQosProfilesByProfileId({
+      networkId: networkId,
+      profileId: key,
+    });
+    const newQosProfiles = {...qosProfiles};
+    delete newQosProfiles[key];
+    setQosProfiles(newQosProfiles);
   }
 }

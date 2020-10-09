@@ -21,6 +21,7 @@ import RssFeedIcon from '@material-ui/icons/RssFeed';
 import TopBar from '../../components/TopBar';
 
 import {ApnJsonConfig} from './ApnOverview';
+import {PolicyJsonConfig} from './PolicyOverview';
 import {Redirect, Route, Switch} from 'react-router-dom';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -46,6 +47,10 @@ export default function TrafficDashboard() {
       />
 
       <Switch>
+        <Route
+          path={relativePath('/policy/:policyId/json')}
+          component={PolicyJsonConfig}
+        />
         <Route
           path={relativePath('/apn/:apnId/json')}
           component={ApnJsonConfig}

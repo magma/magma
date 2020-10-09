@@ -14,10 +14,6 @@
  * @format
  */
 
-import DialogContent from '@material-ui/core/DialogContent';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
-import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -25,22 +21,18 @@ import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../theme/design-system/Text';
 
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
+import {policyStyles} from './PolicyStyles';
 import type {policy_rule} from '@fbcnms/magma-api';
 
-const useStyles = makeStyles(() => ({
-  title: {textAlign: 'center', margin: 'auto', marginLeft: '0px'},
-  switch: {margin: 'auto 0px'},
-}));
+const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
   policyRule: policy_rule,
   onChange: policy_rule => void,
-  descriptionClass: string,
-  dialogClass: string,
   inputClass: string,
 };
 
@@ -66,89 +58,68 @@ export default function PolicyRedirectEdit(props: Props) {
   };
 
   return (
-    <>
-      <DialogContent
-        data-testid="networkRedirectEdit"
-        className={props.dialogClass}>
-        <List>
-          <Typography
-            variant="caption"
-            display="block"
-            className={props.descriptionClass}
-            gutterBottom>
-            {
-              'If redirection is enabled, matching traffic can be redirected to a captive portal server'
-            }
-          </Typography>
-          <ListItem dense disableGutters />
-          <AltFormField disableGutters label={'Server Address'}>
-            <OutlinedInput
-              className={props.inputClass}
-              required={true}
-              data-testid="serverAddress"
-              placeholder="Ex. 172.16.254.1 "
-              fullWidth={true}
-              // eslint-disable-next-line no-warning-comments
-              // $FlowFixMe redirect_info type needed
-              value={redInfo.server_address ?? ''}
-              onChange={({target}) => {
-                handleFieldChange('server_address', target.value);
-              }}
-            />
-          </AltFormField>
-          <AltFormField disableGutters label={'Address Type'}>
-            <Select
-              className={props.inputClass}
-              fullWidth={true}
-              variant={'outlined'}
-              // eslint-disable-next-line no-warning-comments
-              // $FlowFixMe redirect_info type needed
-              value={redInfo.address_type || 'IPv4'}
-              onChange={({target}) => {
-                handleFieldChange('address_type', target.value);
-              }}
-              input={<OutlinedInput id="addressType" />}>
-              <MenuItem value={'IPv4'}>
-                <ListItemText primary={'IPv4'} />
-              </MenuItem>
-              <MenuItem value={'IPv6'}>
-                <ListItemText primary={'IPv6'} />
-              </MenuItem>
-              <MenuItem value={'URL'}>
-                <ListItemText primary={'URL'} />
-              </MenuItem>
-              <MenuItem value={'SIP URI'}>
-                <ListItemText primary={'SIP URI'} />
-              </MenuItem>
-            </Select>
-          </AltFormField>
-          <Grid container justify="space-between" className={props.inputClass}>
-            <Grid item className={classes.title}>
-              <AltFormField disableGutters label={'Support'} isOptional />
-            </Grid>
-            <Grid item className={classes.switch}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    color="primary"
-                    // eslint-disable-next-line no-warning-comments
-                    // $FlowFixMe redirect_info type needed
-                    checked={redInfo.support === 'ENABLED'}
-                    onChange={({target}) => {
-                      handleFieldChange(
-                        'support',
-                        target.checked ? 'ENABLED' : 'DISABLED',
-                      );
-                    }}
-                  />
-                }
-                label={redInfo.support === 'ENABLED' ? 'Enabled' : 'Disabled'}
-                labelPlacement="start"
-              />
-            </Grid>
-          </Grid>
-        </List>
-      </DialogContent>
-    </>
+    <div data-testid="redirectEdit">
+      <Text weight="medium" variant="subtitle2" className={classes.description}>
+        {
+          'If redirection is enabled, matching traffic can be redirected to a captive portal server'
+        }
+      </Text>
+      <ListItem dense disableGutters />
+      <AltFormField disableGutters label={'Server Address'}>
+        <OutlinedInput
+          className={props.inputClass}
+          required={true}
+          data-testid="serverAddress"
+          placeholder="Ex. 172.16.254.1 "
+          fullWidth={true}
+          // eslint-disable-next-line no-warning-comments
+          // $FlowFixMe redirect_info type needed
+          value={redInfo.server_address ?? ''}
+          onChange={({target}) => {
+            handleFieldChange('server_address', target.value);
+          }}
+        />
+      </AltFormField>
+      <AltFormField disableGutters label={'Address Type'}>
+        <Select
+          fullWidth={true}
+          className={props.inputClass}
+          variant={'outlined'}
+          // eslint-disable-next-line no-warning-comments
+          // $FlowFixMe redirect_info type needed
+          value={redInfo.address_type || 'IPv4'}
+          onChange={({target}) => {
+            handleFieldChange('address_type', target.value);
+          }}
+          input={<OutlinedInput id="addressType" />}>
+          <MenuItem value={'IPv4'}>
+            <ListItemText primary={'IPv4'} />
+          </MenuItem>
+          <MenuItem value={'IPv6'}>
+            <ListItemText primary={'IPv6'} />
+          </MenuItem>
+          <MenuItem value={'URL'}>
+            <ListItemText primary={'URL'} />
+          </MenuItem>
+          <MenuItem value={'SIP URI'}>
+            <ListItemText primary={'SIP URI'} />
+          </MenuItem>
+        </Select>
+      </AltFormField>
+      <AltFormField disableGutters label={'Support'} isOptional>
+        <Switch
+          color="primary"
+          // eslint-disable-next-line no-warning-comments
+          // $FlowFixMe redirect_info type needed
+          checked={redInfo.support === 'ENABLED'}
+          onChange={({target}) => {
+            handleFieldChange(
+              'support',
+              target.checked ? 'ENABLED' : 'DISABLED',
+            );
+          }}
+        />
+      </AltFormField>
+    </div>
   );
 }
