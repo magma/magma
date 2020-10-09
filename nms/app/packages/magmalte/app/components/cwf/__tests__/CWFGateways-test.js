@@ -14,9 +14,9 @@
  * @format
  */
 
-import {CWFGateways} from '../CWFGateways';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import React from 'react';
+import {CWFGateways} from '../CWFGateways';
 import {MemoryRouter, Route, Switch} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SnackbarProvider} from 'notistack';
@@ -28,8 +28,7 @@ import MagmaAPIBindings from '@fbcnms/magma-api';
 import axiosMock from 'axios';
 import defaultTheme from '@fbcnms/ui/theme/default';
 
-import {cleanup, getByTitle, render, wait, queryByTitle}
-  from '@testing-library/react';
+import {cleanup, render, wait} from '@testing-library/react';
 
 const CWF_HA_GATEWAY_1: cwf_gateway = {
   magmad: {
@@ -61,33 +60,52 @@ const CWF_HA_GATEWAY_1: cwf_gateway = {
       mme_connected: '0',
     },
   },
+  carrier_wifi: {
+    allowed_gre_peers: [
+      {
+        ip: '192.168.128.0/32',
+        key: 1,
+      },
+    ],
+    gateway_health_configs: {
+      cpu_util_threshold_pct: 0.9,
+      gre_probe_interval_secs: 5,
+      icmp_probe_pkt_count: 3,
+      mem_util_threshold_pct: 0.9,
+    },
+    ipdr_export_dst: {
+      ip: '192.168.128.88',
+      port: 2040,
+    },
+  },
 };
 
-let CWF_HA_GATEWAY_2 = JSON.parse(JSON.stringify(CWF_HA_GATEWAY_1));
-CWF_HA_GATEWAY_2.id = "mock_cwf02";
-CWF_HA_GATEWAY_2.name = "mock_cwf2";
+const CWF_HA_GATEWAY_2 = JSON.parse(JSON.stringify(CWF_HA_GATEWAY_1));
+CWF_HA_GATEWAY_2.id = 'mock_cwf02';
+CWF_HA_GATEWAY_2.name = 'mock_cwf2';
 CWF_HA_GATEWAY_2.device.hardware_id = 'bb35dd3f-efaa-435a-bcb6-8168d0caf333';
+CWF_HA_GATEWAY_2.status.checkin_time = 1000;
 
 const CWF_HA_PAIR: cwf_ha_pair = {
   config: {
-    transport_virtual_ip: '10.10.10.12'
+    transport_virtual_ip: '10.10.10.12',
   },
   gateway_id_1: 'mock_cwf01',
   gateway_id_2: 'mock_cwf02',
   ha_pair_id: 'pair1',
   state: {
     ha_pair_status: {
-      active_gateway: 'mock_cwf01'
+      active_gateway: 'mock_cwf01',
     },
     gateway1_health: {
       status: 'HEALTHY',
-      description: 'OK'
+      description: 'OK',
     },
     gateway2_health: {
       status: 'UNHEALTHY',
-      description: 'Service restart'
+      description: 'Service restart',
     },
-  }
+  },
 };
 
 jest.mock('axios');
@@ -131,7 +149,7 @@ describe('<CWFGateways />', () => {
   });
 
   it('renders', async () => {
-    const {getAllByRole} = render(<Wrapper />);
+    const {getByTitle, getAllByTitle, getAllByRole} = render(<Wrapper />);
 
     await wait();
 
@@ -145,24 +163,20 @@ describe('<CWFGateways />', () => {
 
     expect(rowItems[1]).toHaveTextContent('mock_cwf');
     expect(rowItems[1]).toHaveTextContent(
-        'a935dd3f-efaa-435a-bcb6-8168d0caf333'
+      'a935dd3f-efaa-435a-bcb6-8168d0caf333',
     );
-    const gatewayStatusCell = getByTitle(
-        rowItems[1],
-        'Last refreshed 12/31/1969, 7:00:00 PM'
-    );
-    expect(getByTitle(gatewayStatusCell, "Primary CWAG"))
-        .toBeInTheDocument();
+    expect(
+      getByTitle('Last refreshed 12/31/1969, 7:00:00 PM'),
+    ).toBeInTheDocument();
+    const primaryCwag = getAllByTitle('Primary CWAG');
+    expect(primaryCwag).toHaveLength(1);
 
     expect(rowItems[2]).toHaveTextContent('mock_cwf2');
     expect(rowItems[2]).toHaveTextContent(
-        'bb35dd3f-efaa-435a-bcb6-8168d0caf333',
+      'bb35dd3f-efaa-435a-bcb6-8168d0caf333',
     );
-     const gatewayStatusCell2 = getByTitle(
-        rowItems[2],
-        'Last refreshed 12/31/1969, 7:00:00 PM'
-    );
-    expect(queryByTitle(gatewayStatusCell2, "Primary CWAG"))
-        .not.toBeInTheDocument();
+    expect(
+      getByTitle('Last refreshed 12/31/1969, 7:00:01 PM'),
+    ).toBeInTheDocument();
   });
 });

@@ -27,11 +27,11 @@ import DeviceStatusCircle from '@fbcnms/ui/components/icons/DeviceStatusCircle';
 import EditIcon from '@material-ui/icons/Edit';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 import IconButton from '@material-ui/core/IconButton';
-import StarIcon from '@material-ui/icons/Star';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NestedRouteLink from '@fbcnms/ui/components/NestedRouteLink';
 import Paper from '@material-ui/core/Paper';
 import React from 'react';
+import StarIcon from '@material-ui/icons/Star';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -129,10 +129,10 @@ export function CWFGateways(props: WithAlert & {}) {
   );
 
   useMagmaAPI(
-      MagmaV1API.getCwfByNetworkIdHaPairs,
-      {networkId},
-      useCallback(response => setHaPairs(map(response, h => h)), []),
-      lastFetchTime,
+    MagmaV1API.getCwfByNetworkIdHaPairs,
+    {networkId},
+    useCallback(response => setHaPairs(map(response, h => h)), []),
+    lastFetchTime,
   );
 
   useInterval(() => setLastFetchTime(Date.now()), REFRESH_INTERVAL);
@@ -199,6 +199,7 @@ export function CWFGateways(props: WithAlert & {}) {
       key={gateway.id}
       gateway={gateway}
       haPairs={haPairs}
+      onDelete={deleteGateway}
     />
   ));
 
@@ -256,29 +257,33 @@ export function CWFGateways(props: WithAlert & {}) {
 function GatewayRow(props: {
   gateway: cwf_gateway,
   haPairs: cwf_ha_pair[],
+  onDelete: cwf_gateway => void,
 }) {
-  const {gateway, haPairs} = props;
+  const {gateway, haPairs, onDelete} = props;
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const classes = useStyles();
-  const {match, history, relativePath, relativeUrl} = useRouter();
+  const {history, relativeUrl} = useRouter();
 
   const gatewayHaPair = haPairs.filter(haPair => {
-    return haPair.gateway_id_1 === gateway.id ||
-        haPair.gateway_id_2 === gateway.id
+    return (
+      haPair.gateway_id_1 === gateway.id || haPair.gateway_id_2 === gateway.id
+    );
   });
 
-  const isPrimary = gatewayHaPair?.[0]?.state?.ha_pair_status?.active_gateway
-      === gateway.id;
+  const isPrimary =
+    gatewayHaPair?.[0]?.state?.ha_pair_status?.active_gateway === gateway.id;
   const isGateway1 = gatewayHaPair?.[0]?.gateway_id_1 === gateway.id;
 
-  const isNonHaGatewayHealthy = Math.max(0, Date.now() -
-      (gateway.status?.checkin_time || 0)) < FIVE_MINS &&
-      gateway.carrier_wifi.allowed_gre_peers.length > 0;
-  const gatewayHealth = isGateway1 ?
-      gatewayHaPair[0]?.state?.gateway1_health?.status
-      : gatewayHaPair?.[0] ? gatewayHaPair[0]?.state?.gateway2_health?.status
-      : isNonHaGatewayHealthy ? "HEALTHY"
-      : "UNHEALTHY";
+  const isNonHaGatewayHealthy =
+    Math.max(0, Date.now() - (gateway.status?.checkin_time || 0)) < FIVE_MINS &&
+    gateway.carrier_wifi.allowed_gre_peers.length > 0;
+  const gatewayHealth = isGateway1
+    ? gatewayHaPair[0]?.state?.gateway1_health?.status
+    : gatewayHaPair?.[0]
+    ? gatewayHaPair[0]?.state?.gateway2_health?.status
+    : isNonHaGatewayHealthy
+    ? 'HEALTHY'
+    : 'UNHEALTHY';
 
   return (
     <>
@@ -317,7 +322,7 @@ function GatewayRow(props: {
             onClick={() => history.push(relativeUrl(`/edit/${gateway.id}`))}>
             <EditIcon />
           </IconButton>
-          <IconButton color="primary" onClick={() => deleteGateway(gateway)}>
+          <IconButton color="primary" onClick={() => onDelete(gateway)}>
             <DeleteIcon />
           </IconButton>
         </TableCell>
@@ -329,7 +334,7 @@ function GatewayRow(props: {
             <TableCell>{gre.key}</TableCell>
             <TableCell />
           </TableRow>
-      ))}
+        ))}
     </>
   );
 }
