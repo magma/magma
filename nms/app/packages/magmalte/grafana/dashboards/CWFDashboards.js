@@ -230,7 +230,8 @@ export const CWFAccessPointDBData = (
             title: 'Session Terminate (Rate)',
             targets: [
               {
-                expr: 'sum(rate(session_manager_terminate{apn=~"$apn"}[5m])) by (apn)',
+                expr:
+                  'sum(rate(session_manager_terminate{apn=~"$apn"}[5m])) by (apn)',
                 legendFormat: '{{apn}}',
               },
             ],
