@@ -473,7 +473,12 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Description = ent.Description
 	m.Serial = ent.Key
 	if ent.Config != nil {
-		m.Config = ent.Config.(*EnodebConfiguration)
+		// TODO(v1.4.0+): For backwards compatibility we maintain the 'config'
+		// field previously reserved for managed enb configs.
+		//  We can remove this after the next minor version
+		config := ent.Config.(*EnodebEnodebConfig)
+		m.Config = config.ManagedConfig
+		m.EnodebConfig = config
 	}
 	for _, tk := range ent.ParentAssociations {
 		if tk.Type == lte.CellularGatewayEntityType {
@@ -489,7 +494,7 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 		Key:            m.Serial,
 		NewName:        swag.String(m.Name),
 		NewDescription: swag.String(m.Description),
-		NewConfig:      m.Config,
+		NewConfig:      m.EnodebConfig,
 	}
 }
 

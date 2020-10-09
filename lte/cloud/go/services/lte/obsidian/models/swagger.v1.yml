@@ -40,6 +40,8 @@ magma-gen-meta:
       filename: enodeb_swaggergen.go
     - go-struct-name: EnodebConfiguration
       filename: enodeb_configuration_swaggergen.go
+    - go-struct-name: UnmanagedEnodebConfiguration
+      filename: unmanaged_enodeb_configuration_swaggergen.go
     - go-struct-name: EnodebState
       filename: enodeb_state_swaggergen.go
     - go-struct-name: AggregatedMaximumBitrate
@@ -1942,6 +1944,7 @@ definitions:
     required:
       - serial
       - name
+      - config
     properties:
       serial:
         type: string
@@ -1958,6 +1961,22 @@ definitions:
         example: "Description of this radio"
       config:
         $ref: '#/definitions/enodeb_configuration'
+      enodeb_config:
+        type: object
+        required:
+          - config_type
+        properties:
+          config_type:
+            type: string
+            x-nullable: false
+            enum:
+              - 'MANAGED'
+              - 'UNMANAGED'
+            example: 'MANAGED'
+          managed_config:
+            $ref: '#/definitions/enodeb_configuration'
+          unmanaged_config:
+            $ref: '#/definitions/unmanaged_enodeb_configuration'
       attached_gateway_id:
         type: string
         example: gw1
@@ -1969,10 +1988,9 @@ definitions:
     minLength: 1
     required:
       - cell_id
+      - device_class
+      - transmit_enabled
     properties:
-      ip_address:
-        type: string
-        format: ipv4
       earfcndl:
         type: integer
         format: uint32
@@ -2029,6 +2047,24 @@ definitions:
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
 
+  unmanaged_enodeb_configuration:
+    description: Configuration for externally managed eNodeb devices.
+    type: object
+    minLength: 1
+    required:
+      - cell_id
+      - ip_address
+    properties:
+      cell_id:
+        type: integer
+        format: uint32
+        maximum: 268435455
+        example: 138777000
+      ip_address:
+        type: string
+        format: ipv4
+        example: '192.168.1.142'
+
   enodeb_state:
     description: Single Enodeb State
     type: object
@@ -2074,9 +2110,6 @@ definitions:
         type: boolean
       fsm_state:
         type: string
-      ip_address:
-        type: string
-        format: ipv4
 
   aggregated_maximum_bitrate:
     type: object
