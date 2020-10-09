@@ -33,7 +33,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-
+from magma.pipelined.utils import Utils
 
 class EnforcementController(PolicyMixin, MagmaController):
     """
@@ -180,7 +180,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        priority = self._get_of_priority(rule.priority)
+        priority = Utils.get_of_priority(rule.priority)
 
         flow_adds = []
         for flow in rule.flow_list:
@@ -232,7 +232,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         rule_version = self._session_rule_version_mapper.get_version(imsi,
                                                                      ip_addr,
                                                                      rule.id)
-        priority = self._get_of_priority(rule.priority)
+        priority = Utils.get_of_priority(rule.priority)
         redirect_request = RedirectionManager.RedirectRequest(
             imsi=imsi,
             ip_addr=ip_addr.address.decode('utf-8'),
@@ -263,10 +263,10 @@ class EnforcementController(PolicyMixin, MagmaController):
         return [
             flows.get_add_drop_flow_msg(
                 self._datapath, self.tbl_num,  match_in, actions,
-                priority=self.ENFORCE_DROP_PRIORITY),
+                priority=Utils.DROP_PRIORITY),
             flows.get_add_drop_flow_msg(
                 self._datapath, self.tbl_num,  match_out, actions,
-                priority=self.ENFORCE_DROP_PRIORITY)]
+                priority=Utils.DROP_PRIORITY)]
 
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """

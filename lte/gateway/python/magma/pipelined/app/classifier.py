@@ -20,6 +20,7 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.app.inout import INGRESS
 from ryu.lib.packet import ether_types
 from magma.pipelined.app.base import MagmaController, ControllerType
+from magma.pipelined.utils import Utils
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 
@@ -43,7 +44,6 @@ class Classifier(MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = self._service_manager.get_table_num(INGRESS)
         self._uplink_port = OFPP_LOCAL
-        self._cookie = 1
         self._datapath = None
 
     def _get_config(self, config_dict):
@@ -111,7 +111,8 @@ class Classifier(MagmaController):
                           enodeb_ip_addr:str, sid:int = None):
 
         parser = self._datapath.ofproto_parser
-        priority = self.convert_precedence_to_priority(precedence)
+        #priority = self.convert_precedence_to_priority(precedence)
+        priority = Utils.get_of_priority(precedence)
         # Add flow for gtp port
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
@@ -194,60 +195,50 @@ class Classifier(MagmaController):
 
     def _discard_tunnel_flows(self, precedence:int, i_teid:int,
                               ue_ip_adr:str):
-        priority = self.convert_precedence_to_priority(precedence)
+        #priority = self.convert_precedence_to_priority(precedence)
+        priority = Utils.get_of_priority(precedence)
         # discard uplink Tunnel
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
-        cookie = self._cookie
 
         flows.add_flow(self._datapath, self.tbl_num, match,
-                       priority=priority + 1,cookie=cookie)
+                       priority=priority + 1)
 
         # discard downlink Tunnel for LOCAL port
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            in_port=self._uplink_port, ipv4_dst=ue_ip_adr)
-        cookie = self._cookie + 1
 
         flows.add_flow(self._datapath, self.tbl_num, match,
-                       priority=priority + 1,cookie=cookie)
+                       priority=priority + 1)
 
         # discard downlink Tunnel for mtr port
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            in_port=self.config.mtr_port,ipv4_dst=ue_ip_adr)
-        cookie = self._cookie + 1
  
         flows.add_flow(self._datapath, self.tbl_num, match,
-                       priority=priority + 1,cookie=cookie)
+                       priority=priority + 1)
 
     def _resume_tunnel_flows(self, precedence:int, i_teid:int,
                              ue_ip_adr:str):
 
-        priority = self.convert_precedence_to_priority(precedence)
+        #priority = self.convert_precedence_to_priority(precedence)
+        priority = Utils.get_of_priority(precedence)
         # Forward flow for gtp port
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
-        cookie = self._cookie
-        cookie_mask = self._cookie
 
         flows.delete_flow(self._datapath, self.tbl_num, match,
-                          priority=priority + 1,
-                          cookie=cookie, cookie_mask=cookie_mask)
+                          priority=priority + 1)
 
         # Forward flow for LOCAL port
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            in_port=self._uplink_port,ipv4_dst=ue_ip_adr)
-        cookie = self._cookie + 1
-        cookie_mask = self._cookie + 1
 
         flows.delete_flow(self._datapath, self.tbl_num, match,
-                          priority=priority +1,
-                          cookie=cookie, cookie_mask=cookie_mask)
+                          priority=priority +1)
 
         # Forward flow for mtr port
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
                            in_port=self.config.mtr_port,ipv4_dst=ue_ip_adr)
-        cookie = self._cookie + 1
-        cookie_mask = self._cookie + 1
 
         flows.delete_flow(self._datapath, self.tbl_num, match,
-                          priority=priority + 1,
-                          cookie=cookie, cookie_mask=cookie_mask)
+                          priority=priority + 1)
 

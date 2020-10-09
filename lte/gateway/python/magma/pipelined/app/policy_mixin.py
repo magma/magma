@@ -32,6 +32,7 @@ from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match, convert_ipv4_str_to_ip_proto
 
 from magma.pipelined.qos.types import QosInfo
+from magma.pipelined.utils import Utils
 
 PROCESS_STATS = 0x0
 IGNORE_STATS = 0x1
@@ -43,15 +44,6 @@ class PolicyMixin(metaclass=ABCMeta):
     Mixin class for policy enforcement apps that includes common methods
     used for rule activation/deactivation.
     """
-    ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
-    # For allowing unlcassified flows for app/service type rules.
-    UNCLASSIFIED_ALLOW_PRIORITY = ENFORCE_DROP_PRIORITY + 1
-    # Should not overlap with the drop flow as drop matches all packets.
-    MIN_ENFORCE_PROGRAMMED_FLOW = UNCLASSIFIED_ALLOW_PRIORITY + 1
-    MAX_ENFORCE_PRIORITY = flows.MAXIMUM_PRIORITY
-    # Effectively range is 3 -> 65535
-    ENFORCE_PRIORITY_RANGE = MAX_ENFORCE_PRIORITY - MIN_ENFORCE_PROGRAMMED_FLOW
-
     def __init__(self, *args, **kwargs):
         super(PolicyMixin, self).__init__(*args, **kwargs)
         self._datapath = None
@@ -273,25 +265,6 @@ class PolicyMixin(metaclass=ABCMeta):
             if not result.ok():
                 return fail(result.exception())
 
-    def _get_of_priority(self, precedence):
-        """
-        Lower the precedence higher the importance of the flow in 3GPP.
-        Higher the priority higher the importance of the flow in openflow.
-        Convert precedence to priority:
-        1 - Flows with precedence > 65534 will have min priority which is the
-        min priority for a programmed flow = (default drop + 1)
-        2 - Flows in the precedence range 0-65534 will have priority 65535 -
-        Precedence
-        :param precedence:
-        :return:
-        """
-        if precedence >= self.ENFORCE_PRIORITY_RANGE:
-            self.logger.warning(
-                "Flow precedence is higher than OF range using min priority %d",
-                self.MIN_ENFORCE_PROGRAMMED_FLOW)
-            return self.MIN_ENFORCE_PROGRAMMED_FLOW
-        return self.MAX_ENFORCE_PRIORITY - precedence
-
     def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id, app_name,
                                      app_service_type, next_table, version, qos_mgr):
@@ -320,7 +293,7 @@ class PolicyMixin(metaclass=ABCMeta):
                     flow_match,
                     passthrough_actions,
                     hard_timeout=hard_timeout,
-                    priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
+                    priority=Utils.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
                     resubmit_table=next_table)
             )
