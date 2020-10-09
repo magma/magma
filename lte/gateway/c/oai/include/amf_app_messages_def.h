@@ -27,27 +27,36 @@
  * those of the authors and should not be interpreted as representing official
  * policies, either expressed or implied, of the FreeBSD Project.
  */
+/*! \file amf_app_messages_def.h
+  \brief
+  \author Sebastien ROUX, Lionel Gauthier
+  \company Eurecom
+  \email: lionel.gauthier@eurecom.fr
+*/
+// WARNING: Do not include this header directly. Use intertask_interface.h
+// instead.
 
-#ifndef FILE_MESSAGES_TYPES_SEEN
-#define FILE_MESSAGES_TYPES_SEEN
-
-#include "intertask_messages_types.h"
-#include "timer_messages_types.h"
-#include <inttypes.h>
-#include "security_types.h"
-#include "gtpv1_u_messages_types.h"
-#include "ip_forward_messages_types.h"
-#include "s11_messages_types.h"
-#include "s1ap_messages_types.h"
-#include "ngap_messages_types.h"
-#include "s6a_messages_types.h"
-#include "sctp_messages_types.h"
-#include "gx_messages_types.h"
-#include "mme_app_messages_types.h"
-#include "amf_app_messages_types.h"
-#include "service303_messages_types.h"
-#include "sgs_messages_types.h"
-#include "async_system_messages_types.h"
-#include "udp_messages_types.h"
-
-#endif /* FILE_MESSAGES_TYPES_SEEN */
+MESSAGE_DEF(
+    AMF_APP_CONNECTION_ESTABLISHMENT_CNF,
+    itti_amf_app_connection_establishment_cnf_t,
+    amf_app_connection_establishment_cnf)
+MESSAGE_DEF(
+    AMF_APP_INITIAL_CONTEXT_SETUP_RSP, itti_amf_app_initial_context_setup_rsp_t,
+    amf_app_initial_context_setup_rsp)
+MESSAGE_DEF(
+    AMF_APP_INITIAL_CONTEXT_SETUP_FAILURE,
+    itti_amf_app_initial_context_setup_failure_t,
+    amf_app_initial_context_setup_failure)
+MESSAGE_DEF(
+    AMF_APP_DELETE_SESSION_RSP, itti_amf_app_delete_session_rsp_t,
+    amf_app_delete_session_rsp)
+MESSAGE_DEF(
+    AMF_APP_NGAP_AMF_UE_ID_NOTIFICATION,
+    itti_amf_app_ngap_amf_ue_id_notification_t,
+    amf_app_ngap_amf_ue_id_notification)
+MESSAGE_DEF(
+    AMF_APP_UPLINK_DATA_IND, itti_amf_app_ul_data_ind_t, amf_app_ul_data_ind)
+MESSAGE_DEF(
+    AMF_APP_DOWNLINK_DATA_CNF, itti_amf_app_dl_data_cnf_t, amf_app_dl_data_cnf)
+MESSAGE_DEF(
+    AMF_APP_DOWNLINK_DATA_REJ, itti_amf_app_dl_data_rej_t, amf_app_dl_data_rej)
