@@ -41,7 +41,7 @@ RUN echo "Install 3rd party dependencies" && \
     libgoogle-glog-dev libgflags-dev libiberty-dev liblz4-dev liblzma-dev \
     libsnappy-dev binutils-dev libjemalloc-dev libssl-dev pkg-config libunwind-dev && \
     echo "Install FreeDiameter requirements" && \
-    apt-get -y install libsctp1 libsctp-dev libgnutls28-dev libgcrypt-dev \
+    apt-get -y install libsctp1 libsctp-dev libgcrypt-dev \
     bison flex libidn11-dev && \
     echo "Install libgtpnl requirements" && \
     apt-get -y install libmnl-dev && \
@@ -55,6 +55,25 @@ RUN echo "Install 3rd party dependencies" && \
     ln -s /usr/bin/python2.7 /usr/local/bin/python
 
 RUN ["/bin/bash", "-c", "if [[ -v GIT_PROXY ]]; then git config --global http.proxy $GIT_PROXY; fi"]
+
+##### NETTLE
+RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
+    tar -xf nettle-2.5.tar.gz && \
+    cd nettle-2.5 && \
+    mkdir build && \
+    cd build/ && \
+    ../configure --disable-openssl --enable-shared --libdir=/usr/local/lib && \
+    make -j4 && \
+    make install && \
+    ldconfig -v && \
+    cd / && \
+    wget http://mirrors.dotsrc.org/gcrypt/gnutls/v3.1/gnutls-3.1.23.tar.xz && \
+    tar xf gnutls-3.1.23.tar.xz && \
+    cd gnutls-3.1.23 && \
+    ./configure --with-libnettle-prefix=/usr/local && \
+    make -j`nproc` && \
+    make install && \
+    ldconfig -v
 
 ##### GRPC and it's dependencies
 RUN git clone --recurse-submodules -b v1.15.0 https://github.com/grpc/grpc && \
@@ -125,16 +144,6 @@ RUN git clone https://github.com/cpp-redis/cpp_redis.git && \
     cmake .. -DCMAKE_BUILD_TYPE=Release && \
     make -j4 && \
     make install
-
-##### NETTLE
-RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
-    tar -xf nettle-2.5.tar.gz && \
-    cd nettle-2.5 && \
-    mkdir build && \
-    cd build/ && \
-    ../configure  && \
-    make -j4 && \
-    make install 
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
@@ -227,7 +236,7 @@ RUN apt-get install -y python3-pip && \
     echo '{ \n' \
     '"realm": "magma.com",	 \n'\
     '"use_stateless": "", \n'\
-    '"conf_dir": "/conv-mme/etc", \n'\
+    '"conf_dir": "/magma-mme/etc", \n'\
     '"hss_hostname": "hss", \n'\
     '"mcc": "001", \n'\
     '"mnc": "01", \n'\
@@ -251,7 +260,10 @@ RUN apt-get install -y python3-pip && \
 
 # For developer's to have the same run env as in target image to debug
 # Copy the configuration file templates and mean to modify/generate certificates
-WORKDIR /conv-mme/etc
+WORKDIR /magma-mme/bin
+RUN cp $C_BUILD/oai/oai_mme/mme oai_mme
+RUN cp $C_BUILD/sctpd/sctpd .
+WORKDIR /magma-mme/etc
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
 RUN cp $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
 
@@ -265,12 +277,12 @@ RUN cp $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml .
 RUN cp $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 RUN cp $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
-WORKDIR /conv-mme/scripts
+WORKDIR /magma-mme/scripts
 RUN cp $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
 RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
-WORKDIR /conv-mme
+WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
 
 ################################################################
@@ -283,9 +295,6 @@ ENV C_BUILD=/build/c
 
 # Install a few tools (may not be necessary later on)
 ENV DEBIAN_FRONTEND=noninteractive
-
-# redis-server installation is temporary
-# once we resolve the issue when running it on a separate container, we will remove it
 
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
@@ -332,6 +341,9 @@ COPY --from=magma-mme-builder /usr/local/lib/libgpr.so /usr/local/lib/
 COPY --from=magma-mme-builder /usr/local/lib/libgflags.so.2.2 /usr/local/lib/
 COPY --from=magma-mme-builder /usr/local/lib/libcares.so.2 /usr/local/lib/
 COPY --from=magma-mme-builder /usr/local/lib/libaddress_sorting.so /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libnettle.so.4 /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libgnutls.so.28 /usr/local/lib/
+COPY --from=magma-mme-builder /usr/local/lib/libhogweed.so.2 /usr/local/lib/
 
 COPY --from=magma-mme-builder /lib/x86_64-linux-gnu/libidn.so.11 /usr/lib/x86_64-linux-gnu/
 
@@ -343,12 +355,12 @@ COPY --from=magma-mme-builder /usr/local/lib/freeDiameter/* ./
 RUN ldconfig
 
 # Copy pre-built binaries for MME and SCTPD
-WORKDIR /conv-mme/bin
+WORKDIR /magma-mme/bin
 COPY --from=magma-mme-builder $C_BUILD/oai/oai_mme/mme oai_mme
 COPY --from=magma-mme-builder $C_BUILD/sctpd/sctpd .
 
 # Copy the configuration file templates and mean to modify/generate certificates
-WORKDIR /conv-mme/etc
+WORKDIR /magma-mme/etc
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme.conf .
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/docker/mme/configs/mme_fd.conf .
 
@@ -362,12 +374,12 @@ COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/control_proxy.yml 
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/redis.yml .
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/configs/service_registry.yml .
 
-WORKDIR /conv-mme/scripts
+WORKDIR /magma-mme/scripts
 COPY --from=magma-mme-builder $MAGMA_ROOT/lte/gateway/c/oai/test/check_mme_s6a_certificate .
 RUN sed -i -e "s@^.*THIS_SCRIPT_PATH@#@" -e "s@\$SUDO@@" check_mme_s6a_certificate
 RUN sed -i -e "s@echo_error@echo@" -e "s@echo_success@echo@" -e "s@echo_warning@echo@" check_mme_s6a_certificate
 
-WORKDIR /conv-mme
+WORKDIR /magma-mme
 RUN openssl rand -out /root/.rnd 128
 
 # CMD []
