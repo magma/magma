@@ -3159,6 +3159,11 @@ func TestAPNResource(t *testing.T) {
 	assert.NoError(t, err)
 	assert.False(t, exists)
 
+	// Configurator confirms all APN resources are now deleted
+	ents, err := configurator.LoadAllEntitiesInNetwork("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{})
+	assert.NoError(t, err)
+	assert.Empty(t, ents)
+
 	// Post, add gateway back
 	tc = tests.Test{
 		Method:         "POST",
@@ -3171,6 +3176,13 @@ func TestAPNResource(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Configurator confirms gw's APN resources exist again
+	ents, err = configurator.LoadAllEntitiesInNetwork("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	assert.NoError(t, err)
+	assert.Len(t, ents, 2)
+	assert.ElementsMatch(t, []string{"res1", "res2"}, []string{ents[0].Key, ents[1].Key})
+	assert.ElementsMatch(t, []string{"res1", "res2"}, []string{(&lteModels.ApnResource{}).FromEntity(ents[0]).ID, (&lteModels.ApnResource{}).FromEntity(ents[1]).ID})
+
 	// Delete linked APN
 	tc = tests.Test{
 		Method:         "DELETE",
@@ -3182,8 +3194,20 @@ func TestAPNResource(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	// Get, APN resource is gone due to cascading delete
-	gw.ApnResources = lteModels.ApnResources{}
+	// Configurator confirms gateway now has only 1 apn_resource assoc
+	gwEnt, err := configurator.LoadEntity("n0", lte.CellularGatewayEntityType, "gw0", configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	assert.NoError(t, err)
+	assert.Len(t, gwEnt.Associations.Filter(lte.APNResourceEntityType), 1)
+	assert.Equal(t, "res2", gwEnt.Associations.Filter(lte.APNResourceEntityType).Keys()[0])
+
+	// Configurator confirms APN resource was deleted due to cascading delete
+	ents, err = configurator.LoadAllEntitiesInNetwork("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{})
+	assert.NoError(t, err)
+	assert.Len(t, ents, 1)
+	assert.Equal(t, "res2", ents[0].Key)
+
+	// Get, APN resource is gone
+	gw.ApnResources = lteModels.ApnResources{"apn2": {ApnName: "apn2", ID: "res2", VlanID: 4}}
 	tc = tests.Test{
 		Method:         "GET",
 		URL:            "/magma/v1/lte/n0/gateways/gw0",
@@ -3194,11 +3218,6 @@ func TestAPNResource(t *testing.T) {
 		ExpectedResult: gw,
 	}
 	tests.RunUnitTest(t, e, tc)
-
-	// Configurator confirms APN resource was deleted
-	exists, err = configurator.DoesEntityExist("n0", lte.APNResourceEntityType, "res1")
-	assert.NoError(t, err)
-	assert.False(t, exists)
 }
 
 // Regression test for issue #3088
