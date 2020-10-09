@@ -17,6 +17,7 @@ import unittest
 import s1ap_types
 import s1ap_wrapper
 import time
+import ipaddress
 
 
 class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
@@ -65,6 +66,9 @@ class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
+
         print("Sleeping for 5 seconds")
         time.sleep(5)
         # Trigger Activate Default EPS Bearer Context Reject indication
@@ -101,6 +105,23 @@ class TestAttachStandaloneActvDfltBearCtxtRej(unittest.TestCase):
             "************************* Sending Activate default EPS bearer "
             "context reject for UE id %d and bearer %d"
             % (req.ue_id, act_def_bearer_req.m.pdnInfo.epsBearerId)
+        )
+
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+
+        # Verify that ovs rule is not is created for the seconday pdn
+        # as UE rejected the establishment of secondary pdn
+
+        # 1 UL flow for the default bearer
+        num_ul_flows = 1
+        # No dedicated bearers, so flow list will be empty
+        dl_flow_rules = {
+            default_ip: [],
+        }
+
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
         )
 
         print("Sleeping for 5 seconds")

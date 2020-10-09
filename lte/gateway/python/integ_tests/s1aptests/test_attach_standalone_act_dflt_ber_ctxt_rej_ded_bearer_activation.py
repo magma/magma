@@ -18,6 +18,7 @@ import s1ap_types
 import s1ap_wrapper
 import time
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
+import ipaddress
 
 
 class TestAttachStandaloneActvDfltBearCtxtRejDedBerActivation(
@@ -158,8 +159,23 @@ class TestAttachStandaloneActvDfltBearCtxtRejDedBerActivation(
             s1ap_types.ueAttachAccept_t,
         )
 
+        addr = attach.esmInfo.pAddr.addrInfo
+        default_ip = ipaddress.ip_address(bytes(addr[:4]))
+
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify if flow rules are created
+        # No dedicated bearers, so flow list will be empty
+        dl_flow_rules = {
+            default_ip: [],
+        }
+        # 1 UL flow for the default bearer
+        num_ul_flows = 1
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
 
         print("Sleeping for 5 seconds")
         time.sleep(5)
@@ -212,6 +228,16 @@ class TestAttachStandaloneActvDfltBearCtxtRejDedBerActivation(
             flow_list,
             qos,
         )
+
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        # Verify that ovs rules are not created for the seconday pdn and
+        # dedicated bearer as UE rejected the establishment of secondary pdn
+
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            num_ul_flows, dl_flow_rules
+        )
+
         print("Sleeping for 5 seconds")
         time.sleep(5)
         # Now detach the UE
