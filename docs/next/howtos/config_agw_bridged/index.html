@@ -217,12 +217,13 @@ By default SGi interface would start DHCP client on the port.
 In NATed mode this sets this IP address to SGi interface.
 This sets IP address on SGi eth port in NATed mode. In bridged mode
 this IP is set to Bridge interface.</p>
-<p>There is orc8r API to assign static IP for each AGW.</p>
+<p>There is orc8r API to assign static IP and default Gateway for each AGW.</p>
 <pre><code class="hljs">API: <span class="hljs-string">/lte/</span>{network_id}<span class="hljs-string">/gateways/</span>{gateway_id}<span class="hljs-string">/cellular</span>
 {
   <span class="hljs-string">"epc"</span>: {
     <span class="hljs-string">...</span>
-    <span class="hljs-string">"sgi_management_iface_static_ip"</span>: <span class="hljs-string">"1.1.1.1/24"</span>
+    <span class="hljs-string">"sgi_management_iface_static_ip"</span>: <span class="hljs-string">"1.1.1.2/24"</span>,
+    <span class="hljs-string">"sgi_management_iface_gw"</span>: <span class="hljs-string">"1.1.1.1"</span>
     <span class="hljs-string">...</span>
   },
 </code></pre>
