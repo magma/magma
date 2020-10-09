@@ -83,7 +83,7 @@ func RunUnitTest(t *testing.T, e *echo.Echo, test Test) {
 		}
 	} else if test.ExpectedErrorSubstring != "" {
 		if handlerErr == nil {
-			assert.Fail(t, "unexpected nil error", "error was nil but was expecting %s", test.ExpectedErrorSubstring)
+			assert.Fail(t, "error was nil but was expecting %s", test.ExpectedErrorSubstring)
 		} else {
 			assert.Contains(t, handlerErr.Error(), test.ExpectedErrorSubstring)
 		}
