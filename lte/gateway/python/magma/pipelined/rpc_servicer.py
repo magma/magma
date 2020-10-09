@@ -126,11 +126,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         fut = Future()  # type: Future[ActivateFlowsResult]
         if request.request_origin.type == RequestOriginType.GX:
-            self._loop.call_soon_threadsafe(self._activate_flows_gx,
-                                            request, fut)
-        else:
-            self._loop.call_soon_threadsafe(self._activate_flows_gy,
-                                            request, fut)
+            self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         return fut.result()
 
     def _update_ipv6_prefix_store(self, ipv6_addr):

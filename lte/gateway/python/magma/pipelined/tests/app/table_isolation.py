@@ -175,14 +175,14 @@ class RyuForwardFlowArgsBuilder():
         ip_addr = convert_ip_str_to_ip_proto(self._ip)
         if ip_addr.version == IPAddress.IPV4:
             uplink["match"].update(
-                {"ipv4_src": ip_addr.address.decode('utf-8')})
+                {"ipv4_src": self._ip})
             downlink["match"].update(
-                {"ipv4_dst": ip_addr.address.decode('utf-8')})
+                {"ipv4_dst": self._ip})
         else:
             uplink["match"].update(
-                {"ipv6_src": ip_addr.address.decode('utf-8')})
+                {"ipv6_src": self._ip})
             downlink["match"].update(
-                {"ipv6_dst": ip_addr.address.decode('utf-8')})
+                {"ipv6_dst": self._ip})
         return [uplink, downlink]
 
     def set_eth_type_arp(self):

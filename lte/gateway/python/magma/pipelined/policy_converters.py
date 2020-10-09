@@ -177,11 +177,12 @@ def get_ue_ip_match_args(ip_addr: IPAddress, direction: Direction):
 
 
 def get_eth_type(ip_addr: IPAddress):
+    if not ip_addr:
+        return ether_types.ETH_TYPE_IP
     if ip_addr.version == IPAddress.IPV4:
-        eth_type = ether_types.ETH_TYPE_IP
+        return ether_types.ETH_TYPE_IP
     else:
-        eth_type = ether_types.ETH_TYPE_IPV6
-    return eth_type
+        return ether_types.ETH_TYPE_IPV6
 
 
 def _get_ip_tuple(ip_str):
