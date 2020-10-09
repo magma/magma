@@ -67,7 +67,7 @@ function Alerts() {
         <h1>Predefined Alerts</h1>
       </div>
       <p>
-        Use this to create and/or sync predefined alerts for the selected XWFM
+        Use this to create and/or sync predefined alerts for the selected
         network.
       </p>
       <Grid container>
