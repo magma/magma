@@ -49,7 +49,7 @@ func NewStateServicer(factory blobstore.BlobStorageFactory) (protos.StateService
 }
 
 func (srv *stateServicer) GetStates(ctx context.Context, req *protos.GetStatesRequest) (*protos.GetStatesResponse, error) {
-	if err := ValidateGetStatesRequest(req); err != nil {
+	if err := validateGetStatesRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	if !funk.IsEmpty(req.Ids) {
@@ -58,53 +58,52 @@ func (srv *stateServicer) GetStates(ctx context.Context, req *protos.GetStatesRe
 	return srv.searchStates(ctx, req)
 }
 
+// ReportStates from a gateway.
+// Always reports UnreportedStates as empty.
 func (srv *stateServicer) ReportStates(ctx context.Context, req *protos.ReportStatesRequest) (*protos.ReportStatesResponse, error) {
-	res := &protos.ReportStatesResponse{}
-	validatedStates, invalidStates, err := PartitionStatesBySerializability(req)
-	if err != nil {
-		return res, status.Error(codes.InvalidArgument, err.Error())
+	if err := validateReportStatesRequest(req); err != nil {
+		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
-	res.UnreportedStates = invalidStates
 
 	// Get gateway information from context
 	gw := protos.GetClientGateway(ctx)
 	if gw == nil {
-		return res, errMissingGateway
+		return nil, errMissingGateway
 	}
 	if !gw.Registered() {
-		return res, errGatewayNotRegistered
+		return nil, errGatewayNotRegistered
 	}
 	hwID := gw.HardwareId
 	networkID := gw.NetworkId
 	certExpiry := protos.GetClientCertExpiration(ctx)
 	timeMs := uint64(clock.Now().UnixNano()) / uint64(time.Millisecond)
 
-	states, err := addWrapperAndMakeBlobs(validatedStates, hwID, timeMs, certExpiry)
+	states, err := addWrapperAndMakeBlobs(req.States, hwID, timeMs, certExpiry)
 	if err != nil {
-		return res, internalErr(err, "ReportStates convert to blobs")
+		return nil, internalErr(err, "ReportStates convert to blobs")
 	}
 
 	store, err := srv.factory.StartTransaction(nil)
 	if err != nil {
-		return res, internalErr(err, "ReportStates blobstore start transaction")
+		return nil, internalErr(err, "ReportStates blobstore start transaction")
 	}
 	err = store.CreateOrUpdate(networkID, states)
 	if err != nil {
 		_ = store.Rollback()
-		return res, internalErr(err, "ReportStates blobstore create or update")
+		return nil, internalErr(err, "ReportStates blobstore create or update")
 	}
 	err = store.Commit()
 	if err != nil {
-		return res, internalErr(err, "ReportStates blobstore commit transaction")
+		return nil, internalErr(err, "ReportStates blobstore commit transaction")
 	}
 
-	byID, err := state_types.MakeStatesByID(req.States)
+	byID, err := state_types.MakeSerializedStatesByID(req.States)
 	if err != nil {
-		return res, internalErr(err, "ReportStates make states by ID")
+		return nil, internalErr(err, "ReportStates make states by ID")
 	}
 	go index.MustIndex(networkID, byID)
 
-	return res, nil
+	return &protos.ReportStatesResponse{}, nil
 }
 
 func (srv *stateServicer) DeleteStates(ctx context.Context, req *protos.DeleteStatesRequest) (*protos.Void, error) {
@@ -119,7 +118,7 @@ func (srv *stateServicer) DeleteStates(ctx context.Context, req *protos.DeleteSt
 		}
 		req.NetworkID = gw.NetworkId
 	}
-	if err := ValidateDeleteStatesRequest(req); err != nil {
+	if err := validateDeleteStatesRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	networkID := req.GetNetworkID()
@@ -143,7 +142,7 @@ func (srv *stateServicer) DeleteStates(ctx context.Context, req *protos.DeleteSt
 }
 
 func (srv *stateServicer) SyncStates(ctx context.Context, req *protos.SyncStatesRequest) (*protos.SyncStatesResponse, error) {
-	if err := ValidateSyncStatesRequest(req); err != nil {
+	if err := validateSyncStatesRequest(req); err != nil {
 		return nil, status.Error(codes.InvalidArgument, err.Error())
 	}
 	// Get gateway information from context
@@ -256,7 +255,7 @@ func isStateSynced(deviceIdToStates map[string][]*protos.State, reqIdAndVersion 
 }
 
 func wrapStateWithAdditionalInfo(st *protos.State, hwID string, time uint64, certExpiry int64) ([]byte, error) {
-	wrap := state_types.SerializedStateWithMeta{
+	wrap := state_types.SerializedState{
 		ReporterID:              hwID,
 		TimeMs:                  time,
 		CertExpirationTime:      certExpiry,

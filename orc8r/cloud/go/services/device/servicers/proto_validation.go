@@ -42,7 +42,7 @@ func ValidateDeleteDevicesRequest(req *protos.DeleteDevicesRequest) error {
 
 func deserializableWithSerde(entities []*protos.PhysicalEntity) error {
 	for _, entity := range entities {
-		_, err := serde.Deserialize(device.SerdeDomain, entity.GetType(), entity.GetInfo())
+		_, err := serde.DeserializeLegacy(device.SerdeDomain, entity.GetType(), entity.GetInfo())
 		if err != nil {
 			return err
 		}

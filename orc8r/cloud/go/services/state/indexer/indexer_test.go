@@ -17,7 +17,6 @@ import (
 	"sort"
 	"testing"
 
-	"magma/orc8r/cloud/go/services/state/indexer"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
 	assert "github.com/stretchr/testify/require"
@@ -39,9 +38,9 @@ func TestFilter(t *testing.T) {
 	id1 := state_types.ID{Type: type1, DeviceID: did1}
 	id2 := state_types.ID{Type: type2, DeviceID: did2}
 
-	st0 := state_types.State{ReportedState: 42, Type: type0}
-	st1 := state_types.State{ReportedState: 42, Type: type1}
-	st2 := state_types.State{ReportedState: 42, Type: type2}
+	st0 := state_types.State{ReportedState: 42}
+	st1 := state_types.State{ReportedState: 42}
+	st2 := state_types.State{ReportedState: 42}
 
 	type args struct {
 		types  []string
@@ -102,16 +101,16 @@ func TestFilter(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			gotStates := indexer.FilterStates(tt.args.types, tt.args.states)
+			gotStates := tt.args.states.Filter(tt.args.types...)
 			assert.Equal(t, tt.want, gotStates)
-			gotIDs := indexer.FilterIDs(tt.args.types, statesToIDs(tt.args.states))
-			assert.Equal(t, statesToIDs(tt.want), gotIDs)
+			gotIDs := makeIDs(tt.args.states).Filter(tt.args.types...)
+			assert.Equal(t, makeIDs(tt.want), gotIDs)
 		})
 	}
 }
 
-func statesToIDs(states state_types.StatesByID) []state_types.ID {
-	var ret []state_types.ID
+func makeIDs(states state_types.StatesByID) state_types.IDs {
+	var ret state_types.IDs
 	for id := range states {
 		ret = append(ret, id)
 	}

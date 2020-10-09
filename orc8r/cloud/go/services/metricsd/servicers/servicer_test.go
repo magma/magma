@@ -76,7 +76,7 @@ func (e *testMetricExporter) Start() {}
 func TestCollect(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)
@@ -205,7 +205,7 @@ func TestCollect(t *testing.T) {
 func TestCollectMismatchedGateway(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)
@@ -278,7 +278,7 @@ func TestConsume(t *testing.T) {
 func TestPush(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)

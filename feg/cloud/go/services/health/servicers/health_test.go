@@ -103,7 +103,7 @@ func TestHealthServer_UpdateHealth_SingleGateway(t *testing.T) {
 	assert.NoError(t, err)
 
 	test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 	test_utils.RegisterGateway(t, test_utils.TestFegNetwork, test_utils.TestFegHwId1, test_utils.TestFegLogicalId1)
 
 	// Use Healthy Request metrics
@@ -357,7 +357,7 @@ func TestNewHealtherServer_UpdateHealth_AllUnhealthy(t *testing.T) {
 
 func registerTwoFegs(t *testing.T) (string, string, string) {
 	test_utils.RegisterNetwork(t, test_utils.TestFegNetwork)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 	test_utils.RegisterGateway(
 		t,
 		test_utils.TestFegNetwork,

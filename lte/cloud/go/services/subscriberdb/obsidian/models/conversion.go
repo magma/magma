@@ -24,7 +24,7 @@ import (
 	subscriberdb_state "magma/lte/cloud/go/services/subscriberdb/state"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
@@ -68,7 +68,7 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 	for stateID, stateVal := range states {
 		switch stateID.Type {
 		case orc8r.DirectoryRecordType:
-			reportedState := stateVal.ReportedState.(*directoryd.DirectoryRecord)
+			reportedState := stateVal.ReportedState.(*directoryd_types.DirectoryRecord)
 			m.State.Directory = &SubscriberDirectoryRecord{LocationHistory: reportedState.LocationHistory}
 		case lte.ICMPStateType:
 			reportedState := stateVal.ReportedState.(*IcmpStatus)
