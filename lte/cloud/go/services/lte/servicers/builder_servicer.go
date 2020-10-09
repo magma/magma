@@ -144,6 +144,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Services:                 pipelineDServices,
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
+			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,

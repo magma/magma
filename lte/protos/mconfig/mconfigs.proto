@@ -117,6 +117,7 @@ message PipelineD {
 
     string sgi_management_iface_vlan = 13;
     string sgi_management_iface_ip_addr = 14;
+    string sgi_management_iface_gw = 15;
     // DEPRECATED
     reserved 4, 11;
     // repeated string apps = 4;
