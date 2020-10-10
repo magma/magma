@@ -172,6 +172,7 @@ func (s *swxProxy) Authenticate(
 	if err == nil {
 		metrics.AuthLatency.Observe(time.Since(authStartTime).Seconds())
 	}
+	orcprotos.ForwardRequestId(ctx)
 	return res, err
 }
 

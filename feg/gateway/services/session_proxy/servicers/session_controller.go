@@ -18,6 +18,10 @@ import (
 	"sync"
 	"time"
 
+	"github.com/golang/glog"
+	"github.com/thoas/go-funk"
+	"golang.org/x/net/context"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	"magma/feg/gateway/policydb"
@@ -28,10 +32,6 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/orc8r/lib/go/errors"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"github.com/thoas/go-funk"
-	"golang.org/x/net/context"
 )
 
 // CentralSessionController acts as the gRPC server for accepting calls from
@@ -81,10 +81,13 @@ func NewCentralSessionController(
 // CreateSession begins a UE session by requesting rules from PCEF
 // and credit from OCS (if RatingGroup is present) and returning them.
 func (srv *CentralSessionController) CreateSession(
-	_ context.Context,
+	ctx context.Context,
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")
+
+	defer orcprotos.ForwardRequestId(ctx)
+
 	if err := checkCreateSessionRequest(request); err != nil {
 		return nil, err
 	}

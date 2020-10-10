@@ -23,6 +23,7 @@ import (
 
 	"magma/feg/gateway/registry"
 	"magma/lte/cloud/go/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 )
 
 type sessionManagerClient struct {
@@ -61,7 +62,9 @@ func CreateSession(in *protos.LocalCreateSessionRequest) (*protos.LocalCreateSes
 	if err != nil {
 		return nil, err
 	}
-	return cli.CreateSession(context.Background(), in)
+	return cli.CreateSession(
+		lib_protos.AddRequestId(context.Background(), in.GetRatSpecificContext().GetWlanContext().GetRadiusSessionId()),
+		in)
 }
 
 func EndSession(in *protos.LocalEndSessionRequest) (*protos.LocalEndSessionResponse, error) {

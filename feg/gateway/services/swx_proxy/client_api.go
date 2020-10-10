@@ -27,6 +27,7 @@ import (
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/registry"
+	lib_protos "magma/orc8r/lib/go/protos"
 	"magma/orc8r/lib/go/util"
 )
 
@@ -60,7 +61,7 @@ func getSwxProxyClient() (*swxProxyClient, error) {
 
 // Authenticate sends MAR (code 303) over diameter connection,
 // waits (blocks) for MAA & returns its RPC representation
-func Authenticate(req *protos.AuthenticationRequest) (*protos.AuthenticationAnswer, error) {
+func Authenticate(req *protos.AuthenticationRequest, reqId ...string) (*protos.AuthenticationAnswer, error) {
 	err := verifyAuthenticationRequest(req)
 	if err != nil {
 		errMsg := fmt.Errorf("Invalid AuthenticationRequest provided: %s", err)
@@ -70,7 +71,11 @@ func Authenticate(req *protos.AuthenticationRequest) (*protos.AuthenticationAnsw
 	if err != nil {
 		return nil, err
 	}
-	return cli.Authenticate(context.Background(), req)
+	ctx := context.Background()
+	if len(reqId) > 0 && len(reqId[0]) > 0 {
+		ctx = lib_protos.AddRequestId(ctx, reqId[0])
+	}
+	return cli.Authenticate(ctx, req)
 }
 
 // Register sends SAR (Code 301) over diameter connection with ServerAssignmentType

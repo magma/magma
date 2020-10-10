@@ -24,6 +24,7 @@ import (
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/aaa/protos"
 	lte_protos "magma/lte/cloud/go/protos"
+	lib_protos "magma/orc8r/lib/go/protos"
 )
 
 type pipelinedClient struct {
@@ -50,7 +51,7 @@ func AddUeMacFlow(sid *lte_protos.SubscriberID, aaaCtx *protos.Context) error {
 		return err
 	}
 
-	response, err := cli.AddUEMacFlow(context.Background(), flowRequest)
+	response, err := cli.AddUEMacFlow(lib_protos.AddRequestId(context.Background(), aaaCtx.GetSessionId()), flowRequest)
 	if err != nil {
 		return err
 	}
@@ -68,7 +69,8 @@ func DeleteUeMacFlow(sid *lte_protos.SubscriberID, aaaCtx *protos.Context) error
 		return err
 	}
 
-	response, err := cli.DeleteUEMacFlow(context.Background(), flowRequest)
+	response, err :=
+		cli.DeleteUEMacFlow(lib_protos.AddRequestId(context.Background(), aaaCtx.GetSessionId()), flowRequest)
 	if err != nil {
 		return err
 	}
