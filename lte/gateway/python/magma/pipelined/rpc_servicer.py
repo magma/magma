@@ -159,8 +159,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv4 = self._install_flows_gx(request, ipv4)
             else:
                 ret_ipv4 = self._install_flows_gy(request, ipv4)
-            ret.static_rule_results += ret_ipv4.static_rule_results
-            ret.dynamic_rule_results += ret_ipv4.dynamic_rule_results
+            ret.static_rule_results.extend(ret_ipv4.static_rule_results)
+            ret.dynamic_rule_results.extend(ret_ipv4.dynamic_rule_results)
         if request.ipv6_addr:
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
             self._update_ipv6_prefix_store(request.ipv6_addr)
@@ -168,12 +168,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv6 = self._install_flows_gx(request, ipv6)
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
-            ret.static_rule_results += ret_ipv6.static_rule_results
-            ret.dynamic_rule_results += ret_ipv6.dynamic_rule_results
+            ret.static_rule_results.extend(ret_ipv6.static_rule_results)
+            ret.dynamic_rule_results.extend(ret_ipv6.dynamic_rule_results)
 
         fut.set_result(ret)
 
-    def install_flows_gx(self, request: ActivateFlowsRequest,
+    def _install_flows_gx(self, request: ActivateFlowsRequest,
                          ip_address: IPAddress
                          ) -> ActivateFlowsResult:
         """
