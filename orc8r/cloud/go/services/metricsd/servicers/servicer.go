@@ -63,7 +63,7 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	}
 
 	hardwareID := in.GetGatewayId()
-    checkID, err := protos.GetGatewayIdentity(ctx)
+        checkID, err := protos.GetGatewayIdentity(ctx)
 	if err != nil {
 		return new(protos.Void), err
 	}

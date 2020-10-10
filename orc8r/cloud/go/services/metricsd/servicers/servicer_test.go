@@ -88,7 +88,7 @@ func TestCollect(t *testing.T) {
 
 	// Register a fake gateway
 	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
-    id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
+    	id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
 	ctx := id.NewContextWithIdentity(context.Background())
 	test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
@@ -217,7 +217,7 @@ func TestCollectMismatchedGateway(t *testing.T) {
 
 	// Register a fake gateway
 	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
-    id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
+    	id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
 	ctx := id.NewContextWithIdentity(context.Background())
 	test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
