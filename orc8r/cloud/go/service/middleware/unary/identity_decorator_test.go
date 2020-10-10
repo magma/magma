@@ -111,7 +111,7 @@ func TestIdentityInjector(t *testing.T) {
 			"foo": "bar",
 		},
 	}
-	serializedGWStatus, err := serde.Serialize(gwState, orc8r.GatewayStateType, serdes.StateSerdes)
+	serializedGWStatus, err := serde.Serialize(gwState, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

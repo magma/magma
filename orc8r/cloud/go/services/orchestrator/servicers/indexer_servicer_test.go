@@ -128,7 +128,7 @@ func serialize(t *testing.T, st state_types.State, typ string) state_types.Seria
 		TimeMs:             st.TimeMs,
 		CertExpirationTime: st.CertExpirationTime,
 	}
-	rep, err := serde.Serialize(st.ReportedState, typ, serdes.StateSerdes)
+	rep, err := serde.Serialize(st.ReportedState, typ, serdes.State)
 	assert.NoError(t, err)
 	s.SerializedReportedState = rep
 	return s

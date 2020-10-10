@@ -82,7 +82,8 @@ var (
 	// Mobilityd states are keyed as <IMSI>.<APN>.
 	mobilitydStateKeyRe = regexp.MustCompile(`^(?P<imsi>IMSI\d+)\..+$`)
 
-	subscriberLoadCriteria = configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true}
+	subscriberLoadCriteria       = configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true}
+	apnPolicyProfileLoadCriteria = configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true}
 )
 
 var subscriberStateTypes = []string{
@@ -312,7 +313,7 @@ func updateSubscriberProfile(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
-	currentCfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID)
+	currentCfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
 	if err != nil {
 		return makeErr(err)
 	}
@@ -323,7 +324,11 @@ func updateSubscriberProfile(c echo.Context) error {
 		return nerr
 	}
 
-	_, err = configurator.UpdateEntity(networkID, configurator.EntityUpdateCriteria{Type: lte.SubscriberEntityType, Key: subscriberID, NewConfig: desiredCfg})
+	_, err = configurator.UpdateEntity(
+		networkID,
+		configurator.EntityUpdateCriteria{Type: lte.SubscriberEntityType, Key: subscriberID, NewConfig: desiredCfg},
+		serdes.Entity,
+	)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to update profile"), http.StatusInternalServerError)
 	}
@@ -337,14 +342,14 @@ func makeSubscriberStateHandler(desiredState string) echo.HandlerFunc {
 			return nerr
 		}
 
-		cfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID)
+		cfg, err := configurator.LoadEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, serdes.Entity)
 		if err != nil {
 			return makeErr(err)
 		}
 
 		newConfig := cfg.(*subscribermodels.SubscriberConfig)
 		newConfig.Lte.State = desiredState
-		err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, newConfig)
+		err = configurator.CreateOrUpdateEntityConfig(networkID, lte.SubscriberEntityType, subscriberID, newConfig, serdes.Entity)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
@@ -372,7 +377,7 @@ func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscr
 	// Check the sub profiles available on the network if sub profile is not
 	// default (which is always available)
 	if sub.SubProfile != "default" {
-		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkConfigType)
+		netConf, err := configurator.LoadNetworkConfig(networkID, lte.CellularNetworkConfigType, serdes.Network)
 		switch {
 		case err == merrors.ErrNotFound:
 			return obsidian.HttpError(errors.New("no cellular config found for network"), http.StatusInternalServerError)
@@ -390,20 +395,38 @@ func validateSubscriberProfile(networkID string, sub *subscribermodels.LteSubscr
 }
 
 func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error) {
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, subscriberLoadCriteria)
+	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, subscriberLoadCriteria, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
-	mutableSub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent)
-	if err != nil {
-		return nil, err
-	}
-	sub := mutableSub.ToSubscriber()
 
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key, serdes.StateSerdes)
+	// Configurator doesn't currently support loading a specified subgraph,
+	// so we have to load the subscriber and its apn_policy_profile ents in
+	// separate calls.
+	var policyProfileEnts configurator.NetworkEntities
+	if ppAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType); len(ppAssocs) != 0 {
+		policyProfileEnts, _, err = configurator.LoadEntities(
+			ent.NetworkID, nil, nil, nil,
+			ppAssocs,
+			apnPolicyProfileLoadCriteria,
+			serdes.Entity,
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	mutableSub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent, policyProfileEnts)
 	if err != nil {
 		return nil, err
 	}
+
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key, serdes.State)
+	if err != nil {
+		return nil, err
+	}
+
+	sub := mutableSub.ToSubscriber()
 	err = sub.FillAugmentedFields(states)
 	if err != nil {
 		return nil, err
@@ -432,7 +455,7 @@ func loadAllSubscribers(networkID string) (map[string]*subscribermodels.Subscrib
 		return nil, err
 	}
 
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil, serdes.StateSerdes)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -471,13 +494,23 @@ func loadAllSubscribers(networkID string) (map[string]*subscribermodels.Subscrib
 }
 
 func loadAllMutableSubscribers(networkID string) (map[string]*subscribermodels.MutableSubscriber, error) {
-	ents, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.SubscriberEntityType, subscriberLoadCriteria)
+	ents, err := configurator.LoadAllEntitiesOfType(networkID, lte.SubscriberEntityType, subscriberLoadCriteria, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
+	profileEnts, err := configurator.LoadAllEntitiesOfType(
+		networkID, lte.APNPolicyProfileEntityType,
+		apnPolicyProfileLoadCriteria,
+		serdes.Entity,
+	)
+	if err != nil {
+		return nil, err
+	}
+	profileEntsBySub := profileEnts.MakeByParentTK()
+
 	subs := map[string]*subscribermodels.MutableSubscriber{}
 	for _, ent := range ents {
-		sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent)
+		sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent, profileEntsBySub[ent.GetTypeAndKey()])
 		if err != nil {
 			return nil, err
 		}
@@ -508,7 +541,7 @@ func createSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 	ents = append(ents, sub.ActivePoliciesByApn.ToEntities(subEnt.Key)...)
 	ents = append(ents, subEnt)
 
-	_, err := configurator.CreateEntities(networkID, ents)
+	_, err := configurator.CreateEntities(networkID, ents, serdes.Entity)
 	if err != nil {
 		return err
 	}
@@ -522,6 +555,7 @@ func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 	existingSub, err := configurator.LoadEntity(
 		networkID, lte.SubscriberEntityType, string(sub.ID),
 		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
 	)
 	if err != nil {
 		return err
@@ -549,7 +583,7 @@ func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 	}
 	writes = append(writes, subUpdate)
 
-	err = configurator.WriteEntities(networkID, writes...)
+	err = configurator.WriteEntities(networkID, writes, serdes.Entity)
 	if err != nil {
 		return err
 	}
@@ -558,11 +592,31 @@ func updateSubscriber(networkID string, sub *subscribermodels.MutableSubscriber)
 }
 
 func deleteSubscriber(networkID, key string) error {
-	ent, err := configurator.LoadEntity(networkID, lte.SubscriberEntityType, key, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	ent, err := configurator.LoadEntity(
+		networkID, lte.SubscriberEntityType, key,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	if err != nil {
 		return err
 	}
-	sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent)
+	// Configurator doesn't currently support loading a specified subgraph,
+	// so we have to load the subscriber and its apn_policy_profile ents in
+	// separate calls.
+	var policyProfileEnts configurator.NetworkEntities
+	if ppAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType); len(ppAssocs) != 0 {
+		policyProfileEnts, _, err = configurator.LoadEntities(
+			ent.NetworkID, nil, nil, nil,
+			ppAssocs,
+			apnPolicyProfileLoadCriteria,
+			serdes.Entity,
+		)
+		if err != nil {
+			return err
+		}
+	}
+
+	sub, err := (&subscribermodels.MutableSubscriber{}).FromEnt(ent, policyProfileEnts)
 	if err != nil {
 		return err
 	}

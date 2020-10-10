@@ -304,7 +304,7 @@ func (m *MutableLteGateway) getAPNResourceChanges(
 }
 
 func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	cellularConfig, err := configurator.LoadEntityConfig(networkID, lte.CellularGatewayEntityType, gatewayID)
+	cellularConfig, err := configurator.LoadEntityConfig(networkID, lte.CellularGatewayEntityType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -426,7 +426,11 @@ func (m *GatewayDNSRecords) ToUpdateCriteria(networkID string, gatewayID string)
 }
 
 func (m *EnodebSerials) FromBackendModels(networkID string, gatewayID string) error {
-	cellularGatewayEntity, err := configurator.LoadEntity(networkID, lte.CellularGatewayEntityType, gatewayID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	cellularGatewayEntity, err := configurator.LoadEntity(
+		networkID, lte.CellularGatewayEntityType, gatewayID,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		EntitySerdes,
+	)
 	if err != nil {
 		return err
 	}
@@ -524,6 +528,7 @@ func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
 		nil, nil, nil,
 		storage.MakeTKs(lte.APNResourceEntityType, ids),
 		configurator.EntityLoadCriteria{LoadConfig: true},
+		EntitySerdes,
 	)
 	if err != nil {
 		return ret, err

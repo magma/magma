@@ -20,6 +20,7 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	plugin2 "magma/feg/cloud/go/plugin"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/handlers"
 	models2 "magma/feg/cloud/go/services/feg/obsidian/models"
 	healthTestInit "magma/feg/cloud/go/services/health/test_init"
@@ -173,7 +174,7 @@ func TestFederationNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -209,6 +210,7 @@ func TestFederationNetworks(t *testing.T) {
 		[]configurator.NetworkEntity{
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -287,6 +289,7 @@ func TestFederationGateways(t *testing.T) {
 		[]configurator.NetworkEntity{
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -600,7 +603,7 @@ func TestFederatedLteNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -684,6 +687,7 @@ func seedFederationNetworks(t *testing.T) {
 				Configs:     map[string]interface{}{},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 }
@@ -719,6 +723,7 @@ func seedFederatedLteNetworks(t *testing.T) {
 				Configs:     map[string]interface{}{},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 }

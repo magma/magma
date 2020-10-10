@@ -16,19 +16,27 @@ package serdes
 import (
 	"magma/cwf/cloud/go/cwf"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
+	feg_models "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/state"
 )
 
 var (
-	// CWFStateSerdes contains the CWF-specific state serdes
-	CWFStateSerdes = serde.NewRegistry(
+	// Network contains the full set of configurator network config serdes
+	// used in the CWF module
+	Network = serdes.Network.
+		MustMerge(models.NetworkSerdes).
+		MustMerge(feg_models.NetworkSerdes)
+	// Entity contains the full set of configurator network entity serdes used
+	// in the CWF module
+	Entity = serdes.Entity.
+		MustMerge(models.EntitySerdes).
+		MustMerge(feg_models.EntitySerdes)
+	// State contains the full set of state serdes used in the CWF module
+	State = serdes.State.MustMerge(serde.NewRegistry(
 		state.NewStateSerde(cwf.CwfSubscriberDirectoryType, &models.CwfSubscriberDirectoryRecord{}),
 		state.NewStateSerde(cwf.CwfHAPairStatusType, &models.CarrierWifiHaPairStatus{}),
 		state.NewStateSerde(cwf.CwfGatewayHealthType, &models.CarrierWifiGatewayHealthStatus{}),
-	)
-
-	// StateSerdes contains the full set of state serdes used in the LTE module
-	StateSerdes = CWFStateSerdes.MustMerge(serdes.StateSerdes)
+	))
 )

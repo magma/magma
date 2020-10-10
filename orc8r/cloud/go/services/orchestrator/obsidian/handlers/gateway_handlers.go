@@ -25,6 +25,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -95,7 +96,11 @@ func listGatewaysHandler(c echo.Context) error {
 		return nerr
 	}
 
-	ents, _, err := configurator.LoadEntities(nid, swag.String(orc8r.MagmadGatewayType), nil, nil, nil, configurator.FullEntityLoadCriteria())
+	ents, _, err := configurator.LoadEntities(
+		nid, swag.String(orc8r.MagmadGatewayType), nil, nil, nil,
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -122,13 +127,13 @@ func listGatewaysHandler(c echo.Context) error {
 }
 
 func createGatewayHandler(c echo.Context) error {
-	if nerr := CreateGateway(c, &models.MagmadGateway{}); nerr != nil {
+	if nerr := CreateGateway(c, &models.MagmadGateway{}, serdes.Entity); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
 }
 
-func CreateGateway(c echo.Context, model MagmadEncompassingGateway) *echo.HTTPError {
+func CreateGateway(c echo.Context, model MagmadEncompassingGateway, serdes serde.Registry) *echo.HTTPError {
 	nid, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
 		return nerr
@@ -166,7 +171,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway) *echo.HTTPEr
 	case err != nil:
 		return obsidian.HttpError(errors.Wrap(err, "failed to check if physical device is already registered"), http.StatusConflict)
 	default: // err == nil
-		assignedEnt, err := configurator.LoadEntityForPhysicalID(deviceID, configurator.EntityLoadCriteria{})
+		assignedEnt, err := configurator.LoadEntityForPhysicalID(deviceID, configurator.EntityLoadCriteria{}, serdes)
 		switch {
 		case err == nil:
 			return obsidian.HttpError(errors.Errorf("device %s is already mapped to gateway %s", deviceID, assignedEnt.Key), http.StatusBadRequest)
@@ -196,7 +201,7 @@ func CreateGateway(c echo.Context, model MagmadEncompassingGateway) *echo.HTTPEr
 		writes = append(writes, subGateway.GetAdditionalWritesOnCreate()...)
 	}
 
-	if err = configurator.WriteEntities(nid, writes...); err != nil {
+	if err = configurator.WriteEntities(nid, writes, serdes); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "error creating gateway"), http.StatusInternalServerError)
 	}
 	return nil
@@ -223,6 +228,7 @@ func LoadMagmadGateway(networkID string, gatewayID string) (*models.MagmadGatewa
 			LoadAssocsToThis:   true,
 			LoadAssocsFromThis: false,
 		},
+		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
 		return nil, echo.ErrNotFound
@@ -255,13 +261,13 @@ func updateGatewayHandler(c echo.Context) error {
 		return nerr
 	}
 
-	if nerr = UpdateGateway(c, nid, gid, &models.MagmadGateway{}); nerr != nil {
+	if nerr = UpdateGateway(c, nid, gid, &models.MagmadGateway{}, serdes.Entity); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
 }
 
-func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompassingGateway) *echo.HTTPError {
+func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompassingGateway, serdes serde.Registry) *echo.HTTPError {
 	payload, nerr := GetAndValidatePayload(c, model)
 	if nerr != nil {
 		return nerr
@@ -288,6 +294,7 @@ func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompass
 		nil, nil, nil,
 		entsToLoad,
 		configurator.FullEntityLoadCriteria(),
+		serdes,
 	)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load gateway before update"), http.StatusInternalServerError)
@@ -298,7 +305,7 @@ func UpdateGateway(c echo.Context, nid string, gid string, model MagmadEncompass
 		return nerr
 	}
 
-	err = configurator.WriteEntities(nid, writes...)
+	err = configurator.WriteEntities(nid, writes, serdes)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -357,7 +364,7 @@ func deleteGatewayHandler(c echo.Context) error {
 }
 
 func DeleteMagmadGateway(networkID, gatewayID string, additionalDeletes storage.TKs) error {
-	mdGw, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{})
+	mdGw, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return err
 	}
