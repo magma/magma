@@ -15,6 +15,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -34,8 +35,6 @@ import (
 	"magma/feg/gateway/services/s6a_proxy/servicers/test"
 	"magma/orc8r/cloud/go/tools/commands"
 	orcprotos "magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
 )
 
 const (
@@ -269,7 +268,7 @@ func parseAddr(addr string) (string, int, error) {
 
 func startTestServer(protocol, address string) error {
 	fmt.Printf("Starting Test S6a server on %s: %s\n", protocol, address)
-	err := test.StartTestS6aServer(protocol, address)
+	err := test.StartTestS6aServer(protocol, address, false)
 	if err != nil {
 		log.Printf("Test S6a server stert error: %v", err)
 		return err
