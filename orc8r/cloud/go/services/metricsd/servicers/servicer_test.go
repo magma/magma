@@ -82,14 +82,14 @@ func TestCollect(t *testing.T) {
 	test_init.StartNewTestExporter(t, e)
 	srv := servicers.NewMetricsControllerServer()
 
-	ctx := context.Background()
-
 	// Create test network
 	networkID := "metricsd_servicer_test_network"
 	test_utils.RegisterNetwork(t, networkID, "Test Network Name")
 
 	// Register a fake gateway
 	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
+    id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
+	ctx := id.NewContextWithIdentity(context.Background())
 	test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
 	name := strconv.Itoa(int(MetricName))
@@ -202,8 +202,6 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, prevInfoLines+1, glog.Stats.Info.Lines())
 }
 
-/*
-
 func TestCollectMismatchedGateway(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
@@ -213,14 +211,14 @@ func TestCollectMismatchedGateway(t *testing.T) {
 	test_init.StartNewTestExporter(t, e)
 	srv := servicers.NewMetricsControllerServer()
 
-	ctx := context.Background()
-
 	// Create test network
 	networkID := "metricsd_servicer_test_network"
 	test_utils.RegisterNetwork(t, networkID, "Test Network Name")
 
 	// Register a fake gateway
 	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
+    id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
+	ctx := id.NewContextWithIdentity(context.Background())
 	test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
     // Mismatched gateway ID
@@ -230,7 +228,6 @@ func TestCollectMismatchedGateway(t *testing.T) {
 	key := strconv.Itoa(int(LabelName))
 	value := LabelValue
 	float := 1.0
-	int_val := uint64(1)
 	counter_type := dto.MetricType_COUNTER
 	counters := protos.MetricsContainer{
 		GatewayId: mismatchgatewayID,
@@ -254,8 +251,6 @@ func TestCollectMismatchedGateway(t *testing.T) {
 	e.queue = e.queue[:0]
 
 }
-
-*/
 
 func TestConsume(t *testing.T) {
 	metricsChan := make(chan *dto.MetricFamily)
