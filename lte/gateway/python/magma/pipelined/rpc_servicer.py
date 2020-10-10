@@ -57,7 +57,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def __init__(self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
                  ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
-                 tunnel_learn_app, service_manager):
+                 tunnel_learn_app, service_config, service_manager):
         self._loop = loop
         self._gy_app = gy_app
         self._enforcer_app = enforcer_app
@@ -68,6 +68,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._ipfix_app = ipfix_app
         self._vlan_learn_app = vlan_learn_app
         self._tunnel_learn_app = tunnel_learn_app
+        self._service_config = service_config
         self._service_manager = service_manager
 
     def add_to_server(self, server):
@@ -151,16 +152,18 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                         ) -> None:
         """
         Activate flows for ipv4 / ipv6 or both
+
+        CWF won't have an ip_addr passed
         """
         ret = ActivateFlowsResult()
-        if request.ip_addr:
+        if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
             ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
             if request.request_origin.type == RequestOriginType.GX:
                 ret_ipv4 = self._install_flows_gx(request, ipv4)
             else:
                 ret_ipv4 = self._install_flows_gy(request, ipv4)
-            ret.static_rule_results += ret_ipv4.static_rule_results
-            ret.dynamic_rule_results += ret_ipv4.dynamic_rule_results
+            ret.static_rule_results.extend(ret_ipv4.static_rule_results)
+            ret.dynamic_rule_results.extend(ret_ipv4.dynamic_rule_results)
         if request.ipv6_addr:
             ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
             self._update_ipv6_prefix_store(request.ipv6_addr)
@@ -168,12 +171,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv6 = self._install_flows_gx(request, ipv6)
             else:
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
-            ret.static_rule_results += ret_ipv6.static_rule_results
-            ret.dynamic_rule_results += ret_ipv6.dynamic_rule_results
+            ret.static_rule_results.extend(ret_ipv6.static_rule_results)
+            ret.dynamic_rule_results.extend(ret_ipv6.dynamic_rule_results)
 
         fut.set_result(ret)
 
-    def install_flows_gx(self, request: ActivateFlowsRequest,
+    def _install_flows_gx(self, request: ActivateFlowsRequest,
                          ip_address: IPAddress
                          ) -> ActivateFlowsResult:
         """
