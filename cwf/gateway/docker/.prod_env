@@ -26,6 +26,9 @@ CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs
 CONFIGS_DEFAULT_VOLUME=/etc/magma
 SECRETS_VOLUME=/var/opt/magma/secrets
 
+RADIUS_STORAGE_TYPE=memory
+RADIUS_REDIS_ADDR=
+
 ## cwf Interface override
 INGRESS_PORT=
 UPLINK_PORTS=

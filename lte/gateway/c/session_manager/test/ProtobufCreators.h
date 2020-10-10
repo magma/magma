@@ -121,6 +121,15 @@ void create_usage_update(
     const std::string& imsi, uint32_t charging_key, uint64_t bytes_rx,
     uint64_t bytes_tx, CreditUsage::UpdateType type, CreditUsageUpdate* update);
 
+void create_update_session_request(
+    std::string imsi, std::string session_id, uint32_t ckey, std::string mkey,
+    CreditUsage::UpdateType type, uint64_t bytes_rx, uint64_t bytes_tx,
+    UpdateSessionRequest* usr);
+
+void create_usage_monitoring_update_request(
+    const std::string& imsi, std::string monitoring_key, uint64_t bytes_rx,
+    uint64_t bytes_tx, UsageMonitoringUpdateRequest* update);
+
 void create_policy_reauth_request(
     const std::string& session_id, const std::string& imsi,
     const std::vector<std::string>& rules_to_remove,

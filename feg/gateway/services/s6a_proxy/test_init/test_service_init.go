@@ -88,7 +88,7 @@ func StartTestService(t *testing.T, diamServerNetworkProtocol, diamServerAddress
 		return err
 	}
 	config := servicers.GetS6aProxyConfigs()
-	err = test.StartTestS6aServer(config.ServerCfg.Protocol, config.ServerCfg.Addr)
+	err = test.StartTestS6aServer(config.ServerCfg.Protocol, config.ServerCfg.Addr, false)
 	if err != nil {
 		return err
 	}

@@ -213,6 +213,10 @@ class SessionState {
 
   uint64_t get_charging_credit(const CreditKey& key, Bucket bucket) const;
 
+  bool set_credit_reporting(
+      const CreditKey& key, bool reporting,
+      SessionStateUpdateCriteria* update_criteria);
+
   ReAuthResult reauth_key(
       const CreditKey& charging_key,
       SessionStateUpdateCriteria& update_criteria);
@@ -429,6 +433,10 @@ class SessionState {
       SessionStateUpdateCriteria& session_uc);
 
   uint64_t get_monitor(const std::string& key, Bucket bucket) const;
+
+  bool set_monitor_reporting(
+      const std::string& key, bool reporting,
+      SessionStateUpdateCriteria* update_criteria);
 
   bool add_to_monitor(
       const std::string& key, uint64_t used_tx, uint64_t used_rx,
