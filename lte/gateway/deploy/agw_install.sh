@@ -53,9 +53,8 @@ else
   done
 fi
 
-LINUX_HEADERS_INSTALLED=$(dpkg -l | grep linux-headers-4.9.0-9-amd64 >  /dev/null 2>&1 echo "$SUCCESS_MESSAGE")
-echo "Checking if the righ kernel version and linux headers are installed (4.9.0-9-amd64)"
-if [ "$KVERS" != "4.9.0-9-amd64" ] || [ "$LINUX_HEADERS_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
+echo "Checking if the righ kernel version is installed (4.9.0-9-amd64)"
+if [ "$KVERS" != "4.9.0-9-amd64" ]; then
   # Adding the snapshot to retrieve 4.9.0-9-amd64
   if ! grep -q "deb http://snapshot.debian.org/archive/debian/20190801T025637Z" /etc/apt/sources.list; then
     echo "deb http://snapshot.debian.org/archive/debian/20190801T025637Z stretch main non-free contrib" >> /etc/apt/sources.list

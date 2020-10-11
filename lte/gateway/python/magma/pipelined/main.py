@@ -112,6 +112,7 @@ def main():
         manager.applications.get('IPFIXController', None),
         manager.applications.get('VlanLearnController', None),
         manager.applications.get('TunnelLearnController', None),
+        service.config,
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
 
