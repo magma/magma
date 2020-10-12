@@ -190,7 +190,10 @@ class GYController(PolicyMixin, MagmaController):
         chan = self._msg_hub.send(flow_adds, self._datapath)
         return self._wait_for_rule_responses(imsi, rule, chan)
 
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _get_default_flow_msgs_for_subscriber(self, *_):
+        return None
+
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         pass
 
     def _delete_all_flows(self, datapath):
