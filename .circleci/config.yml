@@ -384,7 +384,7 @@ commands:
                       "title": "Revision",
                       "value": "${gh_text}",
                       "short": false
-                    }
+                    },
                     {
                       "title": "Branch",
                       "value": "\`${CIRCLE_BRANCH}\`",
