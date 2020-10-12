@@ -573,10 +573,13 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
-		Config: &lte_models.EnodebConfiguration{
-			CellID:          swag.Uint32(42),
-			DeviceClass:     "Baicells ID TDD/FDD",
-			TransmitEnabled: true,
+		Config: &lte_models.EnodebEnodebConfig{
+			ConfigType: "MANAGED",
+			ManagedConfig: &lte_models.EnodebConfiguration{
+				CellID:          swag.Uint32(42),
+				DeviceClass:     "Baicells ID TDD/FDD",
+				TransmitEnabled: swag.Bool(true),
+			},
 		},
 		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
 	}
@@ -754,17 +757,20 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string) *lte_mode
 	}
 }
 
-func newDefaultEnodebConfig() *lte_models.EnodebConfiguration {
-	return &lte_models.EnodebConfiguration{
-		Earfcndl:               39150,
-		SubframeAssignment:     2,
-		SpecialSubframePattern: 7,
-		Pci:                    260,
-		CellID:                 swag.Uint32(138777000),
-		Tac:                    15000,
-		BandwidthMhz:           20,
-		TransmitEnabled:        true,
-		DeviceClass:            "Baicells ID TDD/FDD",
+func newDefaultEnodebConfig() *lte_models.EnodebEnodebConfig {
+	return &lte_models.EnodebEnodebConfig{
+		ConfigType: "MANAGED",
+		ManagedConfig: &lte_models.EnodebConfiguration{
+			Earfcndl:               39150,
+			SubframeAssignment:     2,
+			SpecialSubframePattern: 7,
+			Pci:                    260,
+			CellID:                 swag.Uint32(138777000),
+			Tac:                    15000,
+			BandwidthMhz:           20,
+			TransmitEnabled:        swag.Bool(true),
+			DeviceClass:            "Baicells ID TDD/FDD",
+		},
 	}
 }
 
