@@ -1,10 +1,11 @@
 ---
-id: upgrade_intro
-title: Introduction
+id: version-1.3.0-upgrade_intro
+title: Orchestrator Upgrades: Introduction
 hide_title: true
+original_id: upgrade_intro
 ---
 
-# Introduction
+# Orchestrator Upgrades: Introduction
 
 Orchestrator upgrades generally follow a standard pattern:
 
