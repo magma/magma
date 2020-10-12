@@ -83,4 +83,13 @@ namespace magma5g {
 #define AUTH_PARAM_RAND 0x21
 #define AUTH_PARAM_AUTN 0x20
 #define AUTH_RESPONSE_PARAMETER 0x2D
+// 5G Session Management Message Types
+#define PDU_SESSION_ESTABLISHMENT_REQUEST 0xC1
+#define PDU_SESSION_ESTABLISHMENT_ACCEPT 0xC2
+#define PDU_SESSION_RELEASE_REQUEST 0xD1
+// 5G Session Management IE Types
+#define PDUSESSIONTYPE 0x09
+#define SSCMODE 0x0A
+#define M5GSMCAUSE 0x59
+#define PDUADDRESS 0x29
 }  // namespace magma5g

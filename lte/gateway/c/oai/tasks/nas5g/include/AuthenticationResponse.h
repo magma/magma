@@ -45,14 +45,11 @@ class AuthenticationResponseMsg {
    Table 8.2.2.1.1: AUTHENTICATION RESPONSE message content --- TS 24.501
    sec-8.2.2
 
-   IEI         Information Element                  Type/Reference Presence
-   Format     Length
+IEI         Information Element                    Type/Reference                     Presence     Format        Length
 
-          Extended protocol discriminator     Extended protocol
-   discriminator 9.2             M          V          1 Security header type
-   Security header type            9.3             M          V          1/2
-          Spare half octet                    Spare half 9.5             M V 1/2
-          Auth response message               Message type 9.7             M V 1
-   2D     Authentication response parameter   Authentication response
-   parameter 9.11.3.17     O          TLV        18
+       Extended protocol discriminator        Extended protocol discriminator 9.2         M           V             1
+       Security header type                   Security header type 9.3                    M           V             1/2
+       Spare half octet                       Spare half octet 9.5                        M           V             1/2
+       Auth response message                  Message type 9.7                            M           V             1
+2D     Authentication response parameter      Authentication response parameter 9.11.3.17 O           TLV           18
  */

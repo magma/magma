@@ -27,14 +27,23 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AmfMessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationAccept.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationComplete.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/RegistrationReject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationRequestUEInit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DeRegistrationAcceptUEInit.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationResponse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationResult.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationFailure.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/AuthenticationReject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SecurityModeCommand.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SecurityModeComplete.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SecurityModeReject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/IdentityRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/IdentityResponse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/SmfMessage.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ULNASTransport.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/DLNASTransport.cpp
     )
 
 set(libnas_ies_OBJS
@@ -55,6 +64,9 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/NASSecurityAlgorithms.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/UESecurityCapability.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/5GSIdentityType.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/PayloadContainer.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/PayloadContainerType.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/5GMMCause.cpp        
     )
 
 add_library(TASK_NAS5G

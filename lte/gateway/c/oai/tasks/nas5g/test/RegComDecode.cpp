@@ -10,10 +10,10 @@ limitations under the License.
 */
 
 /* using this stub code we are going to test Decoding functionality of
- * Identity Response Message */
+ * Registration Complete Message */
 
 #include <iostream>
-#include <IdentityResponse.h>
+#include <RegistrationComplete.h>
 
 using namespace std;
 using namespace magma5g;
@@ -24,13 +24,12 @@ int decode(void) {
   int ret = 0;
 
   // Message to be decoded
-  uint8_t buffer[] = {0x7E, 0x00, 0x5C, 0x00, 0x0D, 0x01, 0x13, 0x00, 0x14,
-                      0xF0, 0xff, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0xF1};
-  int len          = 18;
-  IdentityResponseMsg Res;
+  uint8_t buffer[] = {0x7E, 0x00, 0x43};
+  int len          = 3;
+  RegistrationCompleteMsg msg;
 
-  // Decoding Identity Response Message
-  ret = Res.DecodeIdentityResponseMsg(&Res, buffer, len);
+  // Decoding Registration Complete Message
+  ret = msg.DecodeRegistrationCompleteMsg(&msg, buffer, len);
   return 0;
 }
 }  // namespace magma5g

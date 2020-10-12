@@ -11,6 +11,16 @@ add_executable(RegAcptEncode RegAcptEncode.cpp)
 
 target_link_libraries(RegAcptEncode TASK_NAS5G)
 
+#Executable for Registration Complete Message Decode
+add_executable(RegComDecode RegComDecode.cpp)
+
+target_link_libraries(RegComDecode TASK_NAS5G)
+
+#Executable for Registration Reject Message encode
+add_executable(RegRejEncode RegRejEncode.cpp)
+
+target_link_libraries(RegRejEncode TASK_NAS5G)
+
 #Executable for De - Registration Request(UE) Message decode
 add_executable(DeRegReqDecode DeRegReqDecode.cpp)
 
@@ -31,6 +41,21 @@ add_executable(AuthResDecode AuthResDecode.cpp)
 
 target_link_libraries(AuthResDecode TASK_NAS5G)
 
+#Executable for Authentication Result Message encode
+add_executable(AuthResultEncode AuthResultEncode.cpp)
+
+target_link_libraries(AuthResultEncode TASK_NAS5G)
+
+#Executable for Authentication Failure Message Decode
+add_executable(AuthFailDecode AuthFailDecode.cpp)
+
+target_link_libraries(AuthFailDecode TASK_NAS5G)
+
+#Executable for Authentication Reject Message encode
+add_executable(AuthRejEncode AuthRejEncode.cpp)
+
+target_link_libraries(AuthRejEncode TASK_NAS5G)
+
 #Executable for Security mode command encode
 add_executable(SecModeCommandEncode SecModeCommandEncode.cpp)
 
@@ -41,6 +66,11 @@ add_executable(SecurityModeCompleteDecode SecurityModeCompleteDecode.cpp)
 
 target_link_libraries(SecurityModeCompleteDecode TASK_NAS5G)
 
+#Executable for Security mode Reject decode
+add_executable(SecurityModeRejectDecode SecurityModeRejectDecode.cpp)
+
+target_link_libraries(SecurityModeRejectDecode TASK_NAS5G)
+
 #Executable for Identity Request encode
 add_executable(IdentityRequestEncode IdentityRequestEncode.cpp)
 
@@ -50,3 +80,18 @@ target_link_libraries(IdentityRequestEncode TASK_NAS5G)
 add_executable(IdentityResponseDecode IdentityResponseDecode.cpp)
 
 target_link_libraries(IdentityResponseDecode TASK_NAS5G)
+
+#Executable for UL NAS Tansport decode
+add_executable(ULNASTransportDecode ULNASTransportDecode.cpp)
+
+target_link_libraries(ULNASTransportDecode TASK_NAS5G)
+
+#Executable for DL NAS Tansport encode
+add_executable(DLNASTransportEncode DLNASTransportEncode.cpp)
+
+target_link_libraries(DLNASTransportEncode TASK_NAS5G)
+
+#Executable for UL NAS Transport PDU Release Request Decode
+add_executable(ULNASTransportPDUReleaseRequestDecode ULNASTransportPDUReleaseRequestDecode.cpp)
+
+target_link_libraries(ULNASTransportPDUReleaseRequestDecode TASK_NAS5G)

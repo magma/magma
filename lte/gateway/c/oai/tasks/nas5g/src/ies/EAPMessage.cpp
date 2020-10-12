@@ -49,16 +49,14 @@ int EAPMessageMsg::EncodeEAPMessageMsg(
     CHECK_IEI_ENCODER(iei, (unsigned char) eapmessage->iei);
     *buffer = iei;
     encoded++;
-  } else {
-    return 0;
   }
 
-  lenPtr = (uint16_t*) (buffer + encoded);
-  encoded += 2;
+  MLOG(MDEBUG) << "EncodeEAPMessage : ";
+  IES_ENCODE_U16(buffer, encoded, eapmessage->len);
+  MLOG(MDEBUG) << "Length = " << hex << int(eapmessage->len) ;
   std::copy(eapmessage->eap.begin(), eapmessage->eap.end(), buffer + encoded);
   BUFFER_PRINT_LOG(buffer + encoded, eapmessage->eap.length());
   encoded = encoded + eapmessage->eap.length();
-  *lenPtr = htons(encoded - 2 - ((iei > 0) ? 1 : 0));
 
   return encoded;
 };

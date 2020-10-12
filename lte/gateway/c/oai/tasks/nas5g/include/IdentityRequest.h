@@ -42,15 +42,12 @@ class IdentityRequestMsg {
    SPEC TS-24501_v150600
    Table 8.2.21.1.1: IDENTITY REQUEST message content
 
-   IEI           Information Element                             Type/Reference
-   Presence     Format     Length
-   
-            Extended protocol discriminator               Extended Protocol
-   discriminator 9.2          M           V          1 Security header type
-   Security header type 9.3                     M           V          1/2 Spare
-   half octet                              Spare half octet 9.5 M           V
-   1/2 UL NAS TRANSPORT message identity        Message type 9.7 M V 1
-            Identity type              5GS identity type
-   9.11.3.3           M           V          1 Spare half octet
-   Spare half octet 9.5                         M           V          1/2
+IEI         Information Element                    Type/Reference                     Presence     Format        Length
+
+       Extended protocol discriminator        Extended protocol discriminator 9.2         M           V             1
+       Security header type                   Security header type 9.3                    M           V             1/2
+       Spare half octet                       Spare half octet 9.5                        M           V             1/2
+       Identity request message identity      Message type 9.7                            M           V             1
+       Identity type                          5GS identity type 9.11.3.3                  M           V             1/2
+       Spare half octet                       Spare half octet 9.5                        M           V             1/2
 */

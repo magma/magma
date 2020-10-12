@@ -19,6 +19,7 @@ class EAPMessageMsg {
  public:
 #define EAP_MIN_LENGTH 3
   uint8_t iei;
+  uint8_t len;
   std::string eap;
 
   EAPMessageMsg();
