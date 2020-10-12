@@ -225,8 +225,8 @@ commands:
         type: boolean
     steps:
       - run: |
-          if [ "${CIRCLE_BRANCH}" != "master" ]; then
-            echo "Push only happens for master branch"
+          if [ "${CIRCLE_BRANCH}" != "v1.3" ]; then
+            echo "Push only happens for release branch"
             exit 0
           fi
 
@@ -383,6 +383,11 @@ commands:
                     {
                       "title": "Revision",
                       "value": "${gh_text}",
+                      "short": false
+                    }
+                    {
+                      "title": "Branch",
+                      "value": "\`${CIRCLE_BRANCH}\`",
                       "short": false
                     }
                   ]
