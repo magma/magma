@@ -148,6 +148,7 @@ int sctp_init(const mme_config_t* mme_config_p) {
 static void sctp_exit(void) {
   destroy_task_context(&sctp_task_zmq_ctx);
   stop_sctpd_uplink_server();
+  sctpd_exit();
   OAI_FPRINTF_INFO("TASK_SCTP terminated\n");
   pthread_exit(NULL);
 }

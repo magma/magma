@@ -1953,7 +1953,15 @@ static bool does_bearer_context_hold_valid_enb_ip(
       if (enb_ip_address_S1u.address.ipv4_address.s_addr) {
         OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
       }
+      break;
     case IPv4_AND_v6:
+      if ((enb_ip_address_S1u.address.ipv4_address.s_addr) ||
+          (memcmp(
+               &ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),
+               sizeof(struct in6_addr)) != 0)) {
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
+      }
+      break;
     case IPv6:
       if (memcmp(
               &ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),

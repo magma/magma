@@ -22,7 +22,7 @@ from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
-    DIRECTION_REG, SCRATCH_REGS, RULE_VERSION_REG
+    DIRECTION_REG, SCRATCH_REGS, RULE_VERSION_REG, RULE_NUM_REG
 from magma.pipelined.openflow.messages import MsgChannel
 
 from lte.protos.policydb_pb2 import PolicyRule
@@ -398,7 +398,7 @@ class PolicyMixin(metaclass=ABCMeta):
                 instructions.append(inst)
 
         actions.extend(
-            [parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+            [parser.NXActionRegLoad2(dst=RULE_NUM_REG, value=rule_num),
              parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
              ])
         return actions, instructions

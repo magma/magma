@@ -930,6 +930,7 @@ void mme_app_handle_delete_session_rsp(
     if (ue_context_p->ue_context_rel_cause == S1AP_INVALID_CAUSE) {
       ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
     }
+#if EMBEDDED_SGW
     /* If UE has rejected activate default eps bearer request message
      * delete the pdn context
      */
@@ -956,6 +957,7 @@ void mme_app_handle_delete_session_rsp(
       }
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
+#endif
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
        Detach Ack from MSC/VLR */
@@ -1854,7 +1856,13 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
    * is active. If so,then abort the attach procedure and release the UE
    * context.
    */
-  ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD;
+  ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
+  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  // Remove enb_s1ap_id_key from the hashtable
+  hashtable_uint64_ts_remove(
+    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+    (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
     nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);

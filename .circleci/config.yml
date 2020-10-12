@@ -284,6 +284,8 @@ commands:
             cp *_version versions || true
       - store_artifacts:
           path: /tmp/logs
+      - store_test_results:
+          path: /tmp/test-results
       - run:
           name: Double-check that the node is freed
           command: |

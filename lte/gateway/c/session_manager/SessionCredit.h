@@ -112,6 +112,8 @@ class SessionCredit {
   void set_report_last_credit(
       bool report_last_credit, SessionCreditUpdateCriteria& uc);
 
+  void set_reporting(bool reporting);
+
   bool is_report_last_credit();
 
   /**
@@ -124,6 +126,12 @@ class SessionCredit {
   void add_credit(
       uint64_t credit, Bucket bucket,
       SessionCreditUpdateCriteria& update_criteria);
+
+  /**
+   * Merges SessionCredit UpdateCriteria with credit
+   * */
+  void merge(SessionCreditUpdateCriteria& uc);
+
   /**
    * is_quota_exhausted checks if any of the remaining quota (Allowed - Used)
    * on tx, rx, or tx+rx amounts are under a specific threshold, and depending

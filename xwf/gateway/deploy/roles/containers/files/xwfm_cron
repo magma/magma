@@ -1,0 +1,5 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+*/5 * * * * root /var/opt/magma/docker/xwfm_update.sh
+

@@ -52,6 +52,8 @@ secret:
 ## Key Values for docker inside VM ( CWF services )
 cwf:
   type: cwag
+  gateway_ha:
+    enabled: false
   image:
     docker_registry: docker.io/cwf_
     tag: "latest"

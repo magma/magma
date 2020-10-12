@@ -236,8 +236,17 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
                 '-f docker-compose.nginx.yml '
                 '-f docker-compose.integ-test.yml '
                 'build --parallel')
-        result = run('fab integ_test:destroy_vm=True,transfer_images=True',
+        test_xml = "tests.xml"
+        result = run('fab integ_test:'
+                     'destroy_vm=True,'
+                     'transfer_images=True,'
+                     'test_result_xml=' + test_xml,
                      timeout=110*60, warn_only=True)
+        # Move JUnit test result to /tmp/test-results directory
+        local('mkdir cwf-tests-xml')
+        get(test_xml, 'cwf-tests-xml')
+        local('sudo mkdir -p /tmp/test-results/')
+        local('sudo mv cwf-tests-xml/* /tmp/test-results/')
         # On failure, transfer logs of key services from docker containers and
         # copy to the log directory. This will get stored as an artifact in the
         # circleCI config.

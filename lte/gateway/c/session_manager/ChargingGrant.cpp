@@ -130,13 +130,14 @@ CreditUsage ChargingGrant::get_credit_usage(
 bool ChargingGrant::get_update_type(
     CreditUsage::UpdateType* update_type) const {
   if (credit.is_reporting()) {
+    MLOG(MDEBUG) << "is_reporting is True , not sending update";
     return false;  // No update
   }
   if (reauth_state == REAUTH_REQUIRED) {
     *update_type = CreditUsage::REAUTH_REQUIRED;
     return true;
   }
-  if (is_final_grant && credit.is_quota_exhausted(1)) {
+  if (is_final_grant) {
     // Don't request updates if this is the final grant
     return false;
   }
@@ -250,4 +251,7 @@ void ChargingGrant::log_final_action_info() const {
   MLOG(MINFO) << "This is a final credit, with " << final_action;
 }
 
+void ChargingGrant::set_reporting(bool reporting) {
+  credit.set_reporting(reporting);
+}
 }  // namespace magma

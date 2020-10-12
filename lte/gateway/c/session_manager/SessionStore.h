@@ -104,6 +104,19 @@ class SessionStore {
   void sync_request_numbers(const SessionUpdate& update_criteria);
 
   /**
+   * Goes over all the RG keys and monitoring keys on the UpdateSessionRequest
+   * object, and updates is_reporting flab with the value. This function it is
+   * used to mark a specific key is currently waiting to get an answer back
+   * from the core
+   * @param value
+   * @param update_session_request
+   * @param session_uc
+   */
+  void set_and_save_reporting_flag(
+      bool value, const UpdateSessionRequest& update_session_request,
+      SessionUpdate& session_uc);
+
+  /**
    * Read the last written values for the requested sessions through the
    * storage interface. This also modifies the request_numbers stored before
    * returning the SessionMap to the caller, incremented by one for each

@@ -32,6 +32,9 @@ type CwfHaPair struct {
 	// ha pair id
 	// Required: true
 	HaPairID string `json:"ha_pair_id"`
+
+	// state
+	State *CarrierWifiHaPairState `json:"state,omitempty"`
 }
 
 // Validate validates this cwf ha pair
@@ -51,6 +54,10 @@ func (m *CwfHaPair) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateHaPairID(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateState(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -100,6 +107,24 @@ func (m *CwfHaPair) validateHaPairID(formats strfmt.Registry) error {
 
 	if err := validate.RequiredString("ha_pair_id", "body", string(m.HaPairID)); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (m *CwfHaPair) validateState(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.State) { // not required
+		return nil
+	}
+
+	if m.State != nil {
+		if err := m.State.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("state")
+			}
+			return err
+		}
 	}
 
 	return nil

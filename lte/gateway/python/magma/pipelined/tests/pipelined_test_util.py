@@ -372,6 +372,7 @@ def create_service_manager(services: List[int],
     service_manager.rule_id_mapper._rule_nums_by_rule = {}
     service_manager.rule_id_mapper._rules_by_rule_num = {}
     service_manager.session_rule_version_mapper._version_by_imsi_and_rule = {}
+    service_manager.interface_to_prefix_mapper._prefix_by_interface = {}
 
     return service_manager
 
@@ -603,3 +604,14 @@ def get_iface_ipv4(iface: str) -> List[str]:
         ip_addr_list.append(ip_rec['addr'])
 
     return ip_addr_list
+
+
+def get_iface_gw_ipv4(iface: str) -> List[str]:
+    gateways = netifaces.gateways()
+    gateway_ip_addr_list = []
+    for gw_ip, gw_iface, _ in gateways[netifaces.AF_INET]:
+        if gw_iface != iface:
+            continue
+        gateway_ip_addr_list.append(gw_ip)
+
+    return gateway_ip_addr_list

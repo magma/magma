@@ -13,6 +13,8 @@ func (m *SmsMessage) FromProto(from *storage.SMS) *SmsMessage {
 	m.Pk = from.Pk
 	m.Imsi = models.SubscriberID(from.Imsi)
 	m.SourceMsisdn = from.SourceMsisdn
+	m.AttemptCount = int64(from.AttemptCount)
+	m.Message = from.Message
 
 	m.TimeCreated = tsToDT(from.CreatedTime)
 	lastAttempt := tsToDT(from.LastDeliveryAttemptTime)
