@@ -20,11 +20,11 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/registry"
-
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/registry"
 )
 
 type s6aProxyClient struct {

@@ -295,9 +295,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     def _deactivate_flows_gy(self, request):
         ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
         logging.debug('Deactivating GY flows for %s', request.sid.id)
-        # all flows are deactivated
-        self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, ipv4)
+
+        # Only deactivate requested rules here to not affect GX
+        if request.rule_ids:
+            for rule_id in request.rule_ids:
+                self._service_manager.session_rule_version_mapper \
+                    .update_version(request.sid.id, ipv4, rule_id)
         self._gy_app.deactivate_rules(request.sid.id, ipv4,
                                       request.rule_ids)
 

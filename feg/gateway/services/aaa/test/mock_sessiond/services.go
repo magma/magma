@@ -20,11 +20,10 @@ import (
 
 	"golang.org/x/net/context"
 
-	"magma/lte/cloud/go/protos"
-	orc8rProtos "magma/orc8r/lib/go/protos"
-
 	"magma/feg/gateway/registry"
+	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/test_utils"
+	orc8rProtos "magma/orc8r/lib/go/protos"
 )
 
 // MockSessionManager test sessiond  implementation

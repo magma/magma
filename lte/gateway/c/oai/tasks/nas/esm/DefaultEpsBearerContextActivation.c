@@ -346,6 +346,7 @@ int esm_proc_default_eps_bearer_context_reject(
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     }
 
+#if EMBEDDED_SGW
     ue_mm_context_t* ue_context_p =
         PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
     if (!ue_context_p) {
@@ -362,6 +363,7 @@ int esm_proc_default_eps_bearer_context_reject(
      * after receiving delete session rsp from spgw
      */
     ue_context_p->pdn_contexts[pid]->ue_rej_act_def_ber_req = true;
+#endif
   }
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
 }
