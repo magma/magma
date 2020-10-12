@@ -88,7 +88,7 @@ func TestCollect(t *testing.T) {
 
 	// Register a fake gateway
 	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
-    	id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
+	id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
 	ctx := id.NewContextWithIdentity(context.Background())
 	test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
@@ -217,11 +217,11 @@ func TestCollectMismatchedGateway(t *testing.T) {
 
 	// Register a fake gateway
 	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
-    	id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
+	id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
 	ctx := id.NewContextWithIdentity(context.Background())
 	test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
-    // Mismatched gateway ID
+	// Mismatched gateway ID
 	mismatchgatewayID := "2876171d-bf38-4254-b4da-71a713954029"
 
 	name := strconv.Itoa(int(MetricName))
@@ -236,8 +236,12 @@ func TestCollectMismatchedGateway(t *testing.T) {
 			Name: &name,
 			Metric: []*dto.Metric{
 				{
-					Label:   []*dto.LabelPair{{Name: &key, Value: &value}},
-					Counter: &dto.Counter{Value: &float}}}}}}
+					Label: []*dto.LabelPair{{
+						Name:  &key,
+						Value: &value}},
+					Counter: &dto.Counter{
+						Value: &float},
+				}}}}}
 
 	// Collect counters
 	_, err := srv.Collect(ctx, &counters)
@@ -247,8 +251,7 @@ func TestCollectMismatchedGateway(t *testing.T) {
 	// check that label protos are converted
 	assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
 	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
-	// clear queue
-	e.queue = e.queue[:0]
+	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.GatewayLabelName, gatewayID))
 
 }
 
