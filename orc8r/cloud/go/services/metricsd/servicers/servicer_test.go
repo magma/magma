@@ -231,17 +231,19 @@ func TestCollectMismatchedGateway(t *testing.T) {
 	counter_type := dto.MetricType_COUNTER
 	counters := protos.MetricsContainer{
 		GatewayId: mismatchgatewayID,
-		Family: []*dto.MetricFamily{{
-			Type: &counter_type,
-			Name: &name,
-			Metric: []*dto.Metric{
-				{
-					Label: []*dto.LabelPair{{
-						Name:  &key,
-						Value: &value}},
-					Counter: &dto.Counter{
-						Value: &float},
-				}}}}}
+		Family: []*dto.MetricFamily{
+			{
+				Type: &counter_type,
+				Name: &name,
+				Metric: []*dto.Metric{
+					{
+						Label:   []*dto.LabelPair{{Name: &key, Value: &value}},
+						Counter: &dto.Counter{Value: &float},
+					},
+				},
+			},
+		},
+	}
 
 	// Collect counters
 	_, err := srv.Collect(ctx, &counters)
