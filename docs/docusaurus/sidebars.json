@@ -42,6 +42,7 @@
           "lte/config_agw",
           "lte/enodebd",
           "lte/config_apn",
+          "lte/agw_130_upgrade",
           "lte/agw_120_upgrade",
           "lte/agw_110_upgrade"
         ]
