@@ -238,13 +238,13 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             ])
         return msgs
 
-    def _get_default_flow_msg_for_subscriber(self, _):
+    def _get_default_flow_msgs_for_subscriber(self, *_):
         return None
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         pass
 
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         pass
 
     def get_policy_usage(self, fut):

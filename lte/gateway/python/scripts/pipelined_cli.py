@@ -52,6 +52,7 @@ from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 def activate_flows(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ipv4,
         rule_ids=args.rule_ids.split(','),
         request_origin=RequestOriginType(type=RequestOriginType.GX))
     response = client.ActivateFlows(request)
@@ -62,6 +63,7 @@ def activate_flows(client, args):
 def deactivate_flows(client, args):
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ipv4,
         rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
         request_origin=RequestOriginType(type=RequestOriginType.GX))
     client.DeactivateFlows(request)
@@ -71,16 +73,17 @@ def deactivate_flows(client, args):
 def activate_dynamic_rule(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ipv4,
         dynamic_rules=[PolicyRule(
             id=args.rule_id,
             priority=args.priority,
             hard_timeout=args.hard_timeout,
             flow_list=[
                 FlowDescription(match=FlowMatch(
-                    ipv4_dst=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
+                    ip_dst=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
                     direction=FlowMatch.UPLINK)),
                 FlowDescription(match=FlowMatch(
-                    ipv4_src=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
+                    ip_src=convert_ipv4_str_to_ip_proto(args.ipv4_dst),
                     direction=FlowMatch.DOWNLINK)),
             ],
         )],
@@ -93,7 +96,7 @@ def activate_dynamic_rule(client, args):
 def activate_gy_redirect(client, args):
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
-        ip_addr=convert_ipv4_str_to_ip_proto(args.ipv4),
+        ip_addr=args.ipv4,
         dynamic_rules=[PolicyRule(
             id=args.rule_id,
             priority=999,
@@ -113,6 +116,7 @@ def activate_gy_redirect(client, args):
 def deactivate_gy_flows(client, args):
     request = DeactivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
+        ip_addr=args.ipv4,
         rule_ids=args.rule_ids.split(',') if args.rule_ids else [],
         request_origin=RequestOriginType(type=RequestOriginType.GY))
     client.DeactivateFlows(request)
@@ -148,18 +152,21 @@ def create_enforcement_parser(apps):
     # Add subcommands
     subcmd = subparsers.add_parser('activate_flows', help='Activate flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
     subcmd.add_argument('--rule_ids',
                         help='Comma separated rule ids', default='rule1,rule2')
     subcmd.set_defaults(func=activate_flows)
 
     subcmd = subparsers.add_parser('deactivate_flows', help='Deactivate flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
     subcmd.add_argument('--rule_ids', help='Comma separated rule ids')
     subcmd.set_defaults(func=deactivate_flows)
 
     subcmd = subparsers.add_parser('activate_dynamic_rule',
                                    help='Activate dynamic flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
     subcmd.add_argument('--rule_id', help='rule id to add', default='rule1')
     subcmd.add_argument('--ipv4_dst', help='ipv4 dst for rule', default='')
     subcmd.add_argument('--priority', help='priority for rule',
@@ -171,8 +178,8 @@ def create_enforcement_parser(apps):
     subcmd = subparsers.add_parser('activate_gy_redirect',
                                    help='Activate gy final action redirect')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
     subcmd.add_argument('--rule_id', help='rule id to add', default='redirect')
-    subcmd.add_argument('--ipv4', help='Subscriber IP', default='172.16.22.53')
     subcmd.add_argument('--redirect_addr', help='Webpage to redirect to',
                         default='http://about.sha.ddih.org/')
     subcmd.set_defaults(func=activate_gy_redirect)
@@ -180,6 +187,7 @@ def create_enforcement_parser(apps):
     subcmd = subparsers.add_parser('deactivate_gy_flows',
                                    help='Deactivate gy flows')
     subcmd.add_argument('--imsi', help='Subscriber ID', default='IMSI12345')
+    subcmd.add_argument('--ipv4', help='Subscriber IPv4', default='120.12.1.9')
     subcmd.add_argument('--rule_ids', help='Comma separated rule ids')
     subcmd.set_defaults(func=deactivate_gy_flows)
 

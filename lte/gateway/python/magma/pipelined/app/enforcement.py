@@ -251,13 +251,24 @@ class EnforcementController(PolicyMixin, MagmaController):
             )
             return RuleModResult.FAILURE
 
-    def _get_default_flow_msg_for_subscriber(self, imsi):
-        match = MagmaMatch(imsi=encode_imsi(imsi))
-        actions = []
-        return flows.get_add_drop_flow_msg(self._datapath, self.tbl_num,
-            match, actions, priority=self.ENFORCE_DROP_PRIORITY)
+    def _get_default_flow_msgs_for_subscriber(self, imsi, ip_addr):
+        ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
+        match_in = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                              imsi=encode_imsi(imsi), **ip_match_in)
+        ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
+        match_out = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                               imsi=encode_imsi(imsi), **ip_match_out)
 
-    def _install_default_flow_for_subscriber(self, imsi):
+        actions = []
+        return [
+            flows.get_add_drop_flow_msg(
+                self._datapath, self.tbl_num,  match_in, actions,
+                priority=self.ENFORCE_DROP_PRIORITY),
+            flows.get_add_drop_flow_msg(
+                self._datapath, self.tbl_num,  match_out, actions,
+                priority=self.ENFORCE_DROP_PRIORITY)]
+
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Add a low priority flow to drop a subscriber's traffic in the event
         that all rules have been deactivated.
@@ -265,10 +276,10 @@ class EnforcementController(PolicyMixin, MagmaController):
         Args:
             imsi (string): subscriber id
         """
-        match = MagmaMatch(imsi=encode_imsi(imsi))
-        actions = []  # empty options == drop
-        flows.add_drop_flow(self._datapath, self.tbl_num, match, actions,
-                            priority=self.ENFORCE_DROP_PRIORITY)
+        msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
+        if msgs:
+            chan = self._msg_hub.send(msgs, self._datapath)
+            self._wait_for_responses(chan, len(msgs))
 
     def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):
         """
