@@ -1947,7 +1947,7 @@ static void _generate_dl_flow(
 static bool does_bearer_context_hold_valid_enb_ip(
     ip_address_t enb_ip_address_S1u) {
   OAILOG_FUNC_IN(LOG_SPGW_APP);
-  struct in6_addr ipv6_address = {0};
+  static struct in6_addr ipv6_address = {0};
   switch (enb_ip_address_S1u.pdn_type) {
     case IPv4:
       if (enb_ip_address_S1u.address.ipv4_address.s_addr) {
