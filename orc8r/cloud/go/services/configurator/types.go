@@ -447,6 +447,11 @@ func (euc EntityUpdateCriteria) toStorageProto() (*storage.EntityUpdateCriteria,
 	}
 
 	if euc.AssociationsToSet != nil {
+		// AssociationsToSet overrides AssociationsToAdd, so this check
+		// prevents accidentally mixing the two fields
+		if len(euc.AssociationsToAdd) != 0 {
+			return nil, errors.New("cannot both add and set associations in the same EntityUpdateCriteria")
+		}
 		ret.AssociationsToSet = &storage.EntityAssociationsToSet{
 			AssociationsToSet: tksToEntIDs(euc.AssociationsToSet),
 		}
