@@ -16,13 +16,13 @@ from lte.protos.pipelined_pb2 import RuleModResult
 
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.app.policy_mixin import PolicyMixin, DROP_RULE_STATS
 
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub
-from magma.pipelined.openflow.registers import Direction
+from magma.pipelined.openflow.registers import Direction, SCRATCH_REGS
 from magma.pipelined.policy_converters import FlowMatchError, \
     get_ue_ip_match_args, get_eth_type
 from magma.pipelined.redirect import RedirectionManager, RedirectException
@@ -254,6 +254,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             return RuleModResult.FAILURE
 
     def _get_default_flow_msgs_for_subscriber(self, imsi, ip_addr):
+        parser = self._datapath.ofproto_parser
         ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
         match_in = MagmaMatch(eth_type=get_eth_type(ip_addr),
                               imsi=encode_imsi(imsi), **ip_match_in)
@@ -261,7 +262,8 @@ class EnforcementController(PolicyMixin, MagmaController):
         match_out = MagmaMatch(eth_type=get_eth_type(ip_addr),
                                imsi=encode_imsi(imsi), **ip_match_out)
 
-        actions = []
+        actions = [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
+                                           value=DROP_RULE_STATS)]
         return [
             flows.get_add_resubmit_current_service_flow_msg(
                 self._datapath, self.tbl_num,  match_in, actions,

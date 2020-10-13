@@ -26,7 +26,7 @@ from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
-    PROCESS_STATS
+    PROCESS_STATS, DROP_RULE_STATS
 from magma.pipelined.policy_converters import get_ue_ip_match_args, \
     get_eth_type
 from magma.pipelined.openflow import messages, flows
@@ -233,6 +233,9 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0,
                                               Direction.OUT)
+        match_in._match_kwargs[SCRATCH_REGS[1]] = DROP_RULE_STATS
+        match_out._match_kwargs[SCRATCH_REGS[1]] = DROP_RULE_STATS
+
         return [
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_in,
                                         priority=self.ENFORCE_DROP_PRIORITY),
@@ -382,17 +385,19 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # Rule not found, must be default flow
         if rule_id == "":
             default_flow_matched = \
-                flow_stat.cookie == self.DEFAULT_FLOW_COOKIE and \
-                flow_stat.byte_count != 0 and \
-                self._unmatched_bytes != flow_stat.byte_count
+                flow_stat.cookie == self.DEFAULT_FLOW_COOKIE
             if default_flow_matched:
-                self.logger.error('%s bytes total not reported.',
-                                  flow_stat.byte_count)
-                self._unmatched_bytes = flow_stat.byte_count
+                if flow_stat.byte_count != 0 and \
+                   self._unmatched_bytes != flow_stat.byte_count:
+                    self.logger.error('%s bytes total not reported.',
+                                      flow_stat.byte_count)
+                    self._unmatched_bytes = flow_stat.byte_count
                 return current_usage
+            else:
+                # This must be the default drop flow
+                rule_id = "default_drop_flow"
         # If this is a pass through app name flow ignore stats
-        if SCRATCH_REGS[1] in flow_stat.match and \
-           flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
+        if _get_policy_type(flow_stat.match) == IGNORE_STATS:
             return current_usage
         sid = _get_sid(flow_stat)
         if not sid:
@@ -410,6 +415,12 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         record = current_usage[key]
         record.rule_id = rule_id
         record.sid = sid
+
+        if _get_policy_type(flow_stat.match) == DROP_RULE_STATS:
+            record.type = RuleRecord.DEFAULT_DROP_POLICY
+        else:
+            record.type = RuleRecord.REGULAR_POLICY
+
         if ipv4_addr:
             record.ue_ipv4 = ipv4_addr
         elif ipv6_addr:
@@ -611,3 +622,9 @@ def _get_downlink_byte_count(flow_stat):
     total_bytes = flow_stat.byte_count
     packet_count = flow_stat.packet_count
     return total_bytes - ETH_FRAME_SIZE_BYTES * packet_count
+
+
+def _get_policy_type(match):
+    if SCRATCH_REGS[1] not in match:
+        return None
+    return match[SCRATCH_REGS[1]]

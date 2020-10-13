@@ -35,6 +35,8 @@ from magma.pipelined.qos.types import QosInfo
 
 PROCESS_STATS = 0x0
 IGNORE_STATS = 0x1
+DROP_RULE_STATS = 0x2
+
 
 class PolicyMixin(metaclass=ABCMeta):
     """
