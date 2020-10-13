@@ -83,16 +83,6 @@ class Classifier(MagmaController):
     def cleanup_on_disconnect(self, datapath):
         self._delete_all_flows()
 
-    def convert_precedence_to_priority(self, precedence:int):
-        if precedence < flows.MAXIMUM_PRIORITY:
-            priority = flows.MAXIMUM_PRIORITY - precedence
-        else:
-            priority = 0
-
-        if priority < flows.DEFAULT_PRIORITY:
-            priority = flows.DEFAULT_PRIORITY
-        return priority
-
     def _install_default_tunnel_flows(self):
         match = MagmaMatch()
         flows.add_flow(self._datapath,self.tbl_num, match,
@@ -111,7 +101,6 @@ class Classifier(MagmaController):
                           enodeb_ip_addr:str, sid:int = None):
 
         parser = self._datapath.ofproto_parser
-        #priority = self.convert_precedence_to_priority(precedence)
         priority = Utils.get_of_priority(precedence)
         # Add flow for gtp port
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
@@ -195,7 +184,6 @@ class Classifier(MagmaController):
 
     def _discard_tunnel_flows(self, precedence:int, i_teid:int,
                               ue_ip_adr:str):
-        #priority = self.convert_precedence_to_priority(precedence)
         priority = Utils.get_of_priority(precedence)
         # discard uplink Tunnel
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
@@ -220,7 +208,6 @@ class Classifier(MagmaController):
     def _resume_tunnel_flows(self, precedence:int, i_teid:int,
                              ue_ip_adr:str):
 
-        #priority = self.convert_precedence_to_priority(precedence)
         priority = Utils.get_of_priority(precedence)
         # Forward flow for gtp port
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
