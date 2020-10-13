@@ -64,9 +64,12 @@ int pgw_handle_allocate_ipv4_address(
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id, apn,
       [=, &s5_response](const Status& status, AllocateIPAddressResponse ip_msg) {
-        auto ipv4_addr_str = ip_msg.mutable_ip_list(0)->mutable_address()->c_str();
-        memcpy(addr, ipv4_addr_str, sizeof(in_addr));
-        int vlan = atoi(ip_msg.mutable_vlan()->c_str());
+        std::string ipv4_addr_str = "";
+        if(ip_msg.ip_list_size() > 0) {
+          ipv4_addr_str = ip_msg.ip_list(0).address();
+        }
+        memcpy(addr, ipv4_addr_str.c_str(), sizeof(in_addr));
+        int vlan = atoi(ip_msg.vlan().c_str());
         auto sgi_resp = handle_allocate_ipv4_address_status(
             status, *addr, vlan, subscriber_id, apn, pdn_type,
             sgi_create_endpoint_resp);

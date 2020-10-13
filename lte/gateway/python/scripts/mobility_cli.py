@@ -73,19 +73,19 @@ def allocate_ip_handler(client, args):
         return
 
     request.sid.CopyFrom(sid_msg)
-    request.version = AllocateIPRequest.IPV4
     request.apn = args.apn
 
     response = client.AllocateIPAddress(request)
-    ip_msg = response.ip_addr
-    if ip_msg.version == IPAddress.IPV4:
-        ip = ipaddress.IPv4Address(ip_msg.address)
-        print("IPv4 address allocated: %s" % ip)
-    elif ip_msg.version == IPAddress.IPV6:
-        ip = ipaddress.IPv6Address(ip_msg.ip_addr.address)
-        print("IPv6 address allocated: %s" % ip)
-    else:
-        print("Error: unknown IP version")
+    ip_list_msg = response.ip_list
+    for ip_msg in ip_list_msg:
+        if ip_msg.version == IPAddress.IPV4:
+            ip = ipaddress.IPv4Address(ip_msg.address)
+            print("IPv4 address allocated: %s" % ip)
+        elif ip_msg.version == IPAddress.IPV6:
+            ip = ipaddress.IPv6Address(ip_msg.address)
+            print("IPv6 address allocated: %s" % ip)
+        else:
+            print("Error: unknown IP version")
 
 
 @grpc_wrapper
@@ -102,6 +102,8 @@ def release_ip_handler(client, args):
         print("Error: invalid IP format: %s" % args.ip)
         return
 
+    apn = args.apn
+
     ip_msg = IPAddress()
     if ip.version == 4:
         ip_msg.version = IPAddress.IPV4
@@ -116,6 +118,7 @@ def release_ip_handler(client, args):
     request = ReleaseIPRequest()
     request.sid.CopyFrom(sid_msg)
     request.ip.CopyFrom(ip_msg)
+    request.apn = apn
 
     client.ReleaseIPAddress(request)
     print("IPv6 address released: %s" % ipaddress.ip_address(ip_msg.address))
@@ -241,6 +244,7 @@ def main():
     subparser = subparsers.add_parser(
         'release_ip', help='Release an IP address')
     subparser.add_argument('sid', help='Subscriber ID, e.g. "IMSI12345"')
+    subparser.add_argument('apn', help='Access Point Name, e.g. "internet"')
     subparser.add_argument('ip',
                            help='IP address to release, e.g. "192.168.1.1"')
     subparser.set_defaults(func=release_ip_handler)

@@ -26,6 +26,8 @@ IPSTATES_REDIS_TYPE = "mobilityd:ip_states:{}"
 IPBLOCKS_REDIS_TYPE = "mobilityd:assigned_ip_blocks"
 MAC_TO_IP_REDIS_TYPE = "mobilityd_mac_to_ip"
 DHCP_GW_INFO_REDIS_TYPE = "mobilityd_gw_info"
+ALLOCATED_IID_REDIS_TYPE = "mobilityd_allocated_iid"
+ALLOCATED_SESSION_PREFIX_TYPE = "mobilityd_allocated_session_prefix"
 
 
 class AssignedIpBlocksSet(RedisSet):
@@ -93,6 +95,35 @@ class GatewayInfoMap(RedisFlatDict):
     def __init__(self):
         client = get_default_client()
         serde = RedisSerde(DHCP_GW_INFO_REDIS_TYPE,
+                           get_json_serializer(), get_json_deserializer())
+        super().__init__(client, serde)
+
+    def __missing__(self, key):
+        """Instead of throwing a key error, return None when key not found"""
+        return None
+
+
+class AllocatedIID(RedisSet):
+    """
+    Used for tracking already allocated Interface identifiers for IPv6
+    allocation
+    """
+    def __init__(self, client):
+        super().__init__(
+            client,
+            ALLOCATED_IID_REDIS_TYPE,
+            get_json_serializer(),
+            get_json_deserializer(),
+        )
+
+
+class AllocatedSessionPrefix(RedisFlatDict):
+    """
+    Used for tracking already allocated session prefix for IPv6 allocation
+    """
+    def __init__(self):
+        client = get_default_client()
+        serde = RedisSerde(ALLOCATED_SESSION_PREFIX_TYPE,
                            get_json_serializer(), get_json_deserializer())
         super().__init__(client, serde)
 

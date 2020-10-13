@@ -140,7 +140,8 @@ class IPAddressManager:
         redis_port = config.get('redis_port', 6379)
 
         self.multi_apn = config.get('multi_apn', mconfig.multi_apn_ip_alloc)
-        self.static_ip_enabled = config.get('static_ip', mconfig.static_ip_enabled)
+        self.static_ip_enabled = config.get('static_ip',
+                                            mconfig.static_ip_enabled)
 
         self.allocator_type = mconfig.ip_allocator_type
         logging.debug('Persist to Redis: %s', persist_to_redis)
@@ -165,31 +166,34 @@ class IPAddressManager:
         elif self.allocator_type == MobilityD.DHCP:
             iface = config.get('dhcp_iface', 'dhcp0')
             retry_limit = config.get('retry_limit', 300)
-            ip_allocator = IPAllocatorDHCP(assigned_ip_blocks=self._assigned_ip_blocks,
-                                           ip_state_map=self.ip_state_map,
-                                           iface=iface,
-                                           retry_limit=retry_limit,
-                                           dhcp_store=self._dhcp_store,
-                                           gw_info=self._dhcp_gw_info)
+            ip_allocator = IPAllocatorDHCP(
+                assigned_ip_blocks=self._assigned_ip_blocks,
+                ip_state_map=self.ip_state_map,
+                iface=iface,
+                retry_limit=retry_limit,
+                dhcp_store=self._dhcp_store,
+                gw_info=self._dhcp_gw_info)
         else:
-            raise ValueError("Unknown IP allocator type: %s" % self.allocator_type)
+            raise ValueError(
+                "Unknown IP allocator type: %s" % self.allocator_type)
 
         if self.static_ip_enabled:
-            ip_allocator = IPAllocatorStaticWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                    ip_allocator=ip_allocator,
-                                                    gw_info=self._dhcp_gw_info,
-                                                    assigned_ip_blocks=self._assigned_ip_blocks,
-                                                    ip_state_map=self.ip_state_map)
+            ip_allocator = IPAllocatorStaticWrapper(
+                subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+                ip_allocator=ip_allocator,
+                gw_info=self._dhcp_gw_info,
+                assigned_ip_blocks=self._assigned_ip_blocks,
+                ip_state_map=self.ip_state_map)
 
         if self.multi_apn:
-            self.ip_allocator = IPAllocatorMultiAPNWrapper(subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-                                                           ip_allocator=ip_allocator)
+            self.ip_allocator = IPAllocatorMultiAPNWrapper(
+                subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+                ip_allocator=ip_allocator)
         else:
             self.ip_allocator = ip_allocator
 
         # Init IPv6 allocator, for now only POOL mode is supported for IPv6
         self.ipv6_allocator = IPv6AllocatorPool(config=config)
-
 
     def add_ip_block(self, ipblock: ip_network):
         """ Add a block of IP addresses to the free IP list
@@ -208,10 +212,12 @@ class IPAddressManager:
         with self._lock:
             if ipblock.version == 4:
                 self.ip_allocator.add_ip_block(ipblock)
-                logging.info("Added block %s to the IPv4 address pool", ipblock)
+                logging.info("Added block %s to the IPv4 address pool",
+                             ipblock)
             elif ipblock.version == 6:
                 self.ipv6_allocator.add_ip_block(ipblock)
-                logging.info("Added block %s to the IPv6 address pool", ipblock)
+                logging.info("Added block %s to the IPv6 address pool",
+                             ipblock)
             else:
                 logging.warning("Failing to add IPBlock as is invalid")
 
@@ -239,7 +245,7 @@ class IPAddressManager:
                 regardless of whether any addresses have been allocated from
                 them.
 
-        Returns a set of the blocks that have been successfully removed.
+        Returns a list of the blocks that have been successfully removed.
         """
 
         with self._lock:
@@ -249,8 +255,10 @@ class IPAddressManager:
                     ipv4_blocks.append(b)
                 elif b.version == 6:
                     ipv6_blocks.append(b)
-            ipv4_blocks_deleted = self.ip_allocator.remove_ip_blocks(_ipblocks, _force=force)
-            ipv6_blocks_deleted = self.ipv6_allocator.remove_ip_blocks(_ipblocks)
+            ipv4_blocks_deleted = self.ip_allocator.remove_ip_blocks(_ipblocks,
+                                                                     _force=force)
+            ipv6_blocks_deleted = self.ipv6_allocator.remove_ip_blocks(
+                _ipblocks)
 
         return ipv4_blocks_deleted + ipv6_blocks_deleted
 
@@ -314,7 +322,8 @@ class IPAddressManager:
             # ALLOCATED, RELEASED or REAPED.
             if sid in self.sid_ips_map:
                 old_ip_desc = self.sid_ips_map[sid]
-                if self.ip_state_map.test_ip_state(old_ip_desc.ip, IPState.ALLOCATED):
+                if self.ip_state_map.test_ip_state(old_ip_desc.ip,
+                                                   IPState.ALLOCATED):
                     # MME state went out of sync with mobilityd!
                     # Recover gracefully by allocating the same IP
                     logging.warning("Re-allocate IP %s for sid %s without "
@@ -326,13 +335,15 @@ class IPAddressManager:
                     # issue in MME
                     # raise DuplicatedIPAllocationError(
                     #     "An IP has been allocated for this IMSI")
-                elif self.ip_state_map.test_ip_state(old_ip_desc.ip, IPState.RELEASED):
+                elif self.ip_state_map.test_ip_state(old_ip_desc.ip,
+                                                     IPState.RELEASED):
                     ip_desc = self.ip_state_map.mark_ip_state(old_ip_desc.ip,
                                                               IPState.ALLOCATED)
                     ip_desc.sid = sid
                     logging.debug("SID %s IP %s RELEASED => ALLOCATED",
                                   sid, old_ip_desc.ip)
-                elif self.ip_state_map.test_ip_state(old_ip_desc.ip, IPState.REAPED):
+                elif self.ip_state_map.test_ip_state(old_ip_desc.ip,
+                                                     IPState.REAPED):
                     ip_desc = self.ip_state_map.mark_ip_state(old_ip_desc.ip,
                                                               IPState.ALLOCATED)
                     ip_desc.sid = sid
@@ -357,7 +368,8 @@ class IPAddressManager:
                 logging.error(error_msg)
                 raise DuplicateIPAssignmentError(error_msg)
 
-            self.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc, IPState.ALLOCATED)
+            self.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc,
+                                              IPState.ALLOCATED)
             self.sid_ips_map[sid] = ip_desc
 
             logging.debug("Allocating New IP: %s", str(ip_desc))
@@ -371,7 +383,8 @@ class IPAddressManager:
         :return: allocated IPv6 address
         """
         with self._lock:
-            return self.ipv6_allocator.alloc_ip_address(sid, 0)
+            ip_desc = self.ipv6_allocator.alloc_ip_address(sid, 0)
+            return ip_desc.ip
 
     def get_sid_ip_table(self) -> List[Tuple[str, ip_address]]:
         """ Return list of tuples (sid, ip) """
@@ -458,6 +471,8 @@ class IPAddressManager:
             self.sid_ips_map = defaultdict(IPDesc)  # {SID=>IPDesc}
             self._dhcp_gw_info = UplinkGatewayInfo(defaultdict(str))
             self._dhcp_store = {}  # mac => DHCP_State
+            self._allocated_iid = set()  # {ipv6 interface identifiers}
+            self._sid_session_prefix_allocated = {}  # SID => session prefix
         else:
             if not redis_port:
                 raise ValueError(
@@ -467,6 +482,8 @@ class IPAddressManager:
             self.sid_ips_map = store.IPDescDict(client)
             self._dhcp_gw_info = UplinkGatewayInfo(store.GatewayInfoMap())
             self._dhcp_store = store.MacToIP()  # mac => DHCP_State
+            self._allocated_iid = store.AllocatedIID(client)
+            self._sid_session_prefix_allocated = store.AllocatedSessionPrefix()
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs
@@ -517,5 +534,3 @@ class IPAddressManager:
                     self._recycle_timer.start()
                 else:
                     self._recycle_reaped_ips()
-
-
