@@ -63,6 +63,14 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	}
 
 	hardwareID := in.GetGatewayId()
+	checkID, err := protos.GetGatewayIdentity(ctx)
+	if err != nil {
+		return new(protos.Void), err
+	}
+	if len(checkID.HardwareId) > 0 && checkID.HardwareId != hardwareID {
+		glog.Errorf("Expected %s, but found %s as Hardware ID", checkID.HardwareId, hardwareID)
+		hardwareID = checkID.HardwareId
+	}
 	networkID, gatewayID, err := configurator.GetNetworkAndEntityIDForPhysicalID(hardwareID)
 	if err != nil {
 		return new(protos.Void), err
