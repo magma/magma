@@ -40,7 +40,7 @@ class TestIPV6Allocator(unittest.TestCase):
     def setUp(self):
         self._config = {
             'ipv6_prefix_block': 'fedd:5:6c::/48',
-            'ipv6_session_prefix_alloc_mode': 'RANDOM'
+            'ipv6_ip_allocator_type': 'RANDOM'
 
         }
         self._block = ipaddress.ip_network(self._config['ipv6_prefix_block'])
@@ -48,21 +48,21 @@ class TestIPV6Allocator(unittest.TestCase):
 
     def test_alloc_ipv6_address(self):
         """ test alloc_ip_address """
-        ip0 = self._allocator.alloc_ip_address('SID0', 0)
+        ip0 = self._allocator.alloc_ip_address('SID0', 0).ip
         self.assertTrue(ip0 in self._block)
 
-        ip1 = self._allocator.alloc_ip_address('SID1', 0)
+        ip1 = self._allocator.alloc_ip_address('SID1', 0).ip
         self.assertTrue(ip1 in self._block)
         self.assertNotEqual(ip1, ip0)
 
-        ip2 = self._allocator.alloc_ip_address('SID2', 0)
+        ip2 = self._allocator.alloc_ip_address('SID2', 0).ip
         self.assertTrue(ip2 in self._block)
         self.assertNotEqual(ip2, ip0)
         self.assertNotEqual(ip2, ip1)
 
     def test_release_ipv6_address(self):
         """ test release_ip_address """
-        ip0 = self._allocator.alloc_ip_address('SID0', 0)
+        ip0 = self._allocator.alloc_ip_address('SID0', 0).ip
 
         # release ip
         ip_desc = IPDesc(ip=ip0, sid='SID0')
@@ -81,9 +81,9 @@ class TestIPV6Allocator(unittest.TestCase):
         """ removing after releasing all allocated addresses """
         self._new_ip_allocator(self._block)
 
-        ip0 = self._allocator.alloc_ip_address('SID0', 0)
-        ip1 = self._allocator.alloc_ip_address('SID1', 0)
-        ip2 = self._allocator.alloc_ip_address('SID2', 0)
+        ip0 = self._allocator.alloc_ip_address('SID0', 0).ip
+        ip1 = self._allocator.alloc_ip_address('SID1', 0).ip
+        ip2 = self._allocator.alloc_ip_address('SID2', 0).ip
 
         ip_desc0 = IPDesc(ip=ip0, sid='SID0')
         ip_desc1 = IPDesc(ip=ip1, sid='SID1')

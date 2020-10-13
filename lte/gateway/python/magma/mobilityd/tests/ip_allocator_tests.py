@@ -48,7 +48,7 @@ class IPAllocatorTests(unittest.TestCase):
             'persist_to_redis': False,
             'redis_port': 6379,
             'ipv6_prefix_block': 'fedd:5:6c::/48',
-            'ipv6_session_prefix_alloc_mode': 'RANDOM'
+            'ipv6_ip_allocator_type': 'RANDOM'
         }
         mconfig = MobilityD(ip_allocator_type=MobilityD.IP_POOL,
                             static_ip_enabled=False)
@@ -257,24 +257,24 @@ class IPAllocatorTests(unittest.TestCase):
     def test_remove_unallocated_block(self):
         """ test removing the allocator for an unallocated block """
         self.assertEqual(
-            {self._block}, self._allocator.remove_ip_blocks(self._block))
+            [self._block], self._allocator.remove_ip_blocks(self._block))
 
     def test_remove_allocated_block_without_force(self):
         """ test removing the allocator for an allocated block unforcibly """
         self._allocator.alloc_ip_address('SID0')
         self.assertEqual(
-            set(), self._allocator.remove_ip_blocks(self._block, force=False))
+            [], self._allocator.remove_ip_blocks(self._block, force=False))
 
     def test_remove_unforcible_is_default_behavior(self):
         """ test that removing by default is unforcible remove """
         self._allocator.alloc_ip_address('SID0')
-        self.assertEqual(set(), self._allocator.remove_ip_blocks(self._block))
+        self.assertEqual([], self._allocator.remove_ip_blocks(self._block))
 
     def test_remove_allocated_block_with_force(self):
         """ test removing the allocator for an allocated block forcibly """
         self._allocator.alloc_ip_address('SID0')
         self.assertEqual(
-            {self._block},
+            [self._block],
             self._allocator.remove_ip_blocks(self._block, force=True))
 
     def test_remove_after_releasing_all_addresses(self):
@@ -285,13 +285,13 @@ class IPAllocatorTests(unittest.TestCase):
         ip1, _ = self._allocator.alloc_ip_address('SID1')
 
         self.assertEqual(
-            set(), self._allocator.remove_ip_blocks(self._block, force=False))
+            [], self._allocator.remove_ip_blocks(self._block, force=False))
 
         self._allocator.release_ip_address('SID0', ip0)
         self._allocator.release_ip_address('SID1', ip1)
 
         self.assertEqual(
-            {self._block},
+            [self._block],
             self._allocator.remove_ip_blocks(self._block, force=False))
 
     def test_remove_after_releasing_some_addresses(self):
@@ -302,12 +302,12 @@ class IPAllocatorTests(unittest.TestCase):
         ip1, _ = self._allocator.alloc_ip_address('SID1')
 
         self.assertEqual(
-            set(), self._allocator.remove_ip_blocks(self._block, force=False))
+            [], self._allocator.remove_ip_blocks(self._block, force=False))
 
         self._allocator.release_ip_address('SID0', ip0)
 
         self.assertEqual(
-            set(), self._allocator.remove_ip_blocks(self._block, force=False))
+            [], self._allocator.remove_ip_blocks(self._block, force=False))
 
         self.assertTrue(
             ip0 not in self._allocator.list_allocated_ips(self._block))
@@ -326,7 +326,7 @@ class IPAllocatorTests(unittest.TestCase):
         ip1, _ = self._allocator.alloc_ip_address('SID1')
         self._allocator.release_ip_address('SID0', ip0)
         self.assertEqual(
-            {self._block},
+            [self._block],
             self._allocator.remove_ip_blocks(self._block, force=True))
         self._allocator.add_ip_block(self._block)
         ip0, _ = self._allocator.alloc_ip_address('SID0')
