@@ -102,6 +102,6 @@ class SmsRelay(Job):
                 ),
             )
         except grpc.RpcError as err:
-            context.set_details('SMS delivery report to smsd failed: %s', err)
+            context.set_details('SMS delivery report to smsd failed: %s' % err)
             context.set_code(grpc.StatusCode.INTERNAL)
             return
