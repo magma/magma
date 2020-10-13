@@ -346,6 +346,7 @@ class EnforcementStatsTest(unittest.TestCase):
                               self.enforcement_stats_controller)
         imsi = 'IMSI001010000000014'
         sub_ip = '192.16.15.7'
+        num_pkt_unmatched = 4096
 
         flow_list = [FlowDescription(
             match=FlowMatch(
@@ -364,6 +365,18 @@ class EnforcementStatsTest(unittest.TestCase):
             self._main_tbl_num, self.enforcement_stats_controller
         ).add_static_rule(policy.id)
 
+        isolator = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
+                .build_requests(),
+            self.testing_controller
+        )
+
+        pkt_sender = ScapyPacketInjector(self.IFACE)
+        packet = IPPacketBuilder() \
+            .set_ip_layer('45.10.0.0/20', sub_ip) \
+            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00") \
+            .build()
+
         # =========================== Verification ===========================
 
         # Verifies that 1 flow is installed in enforcement and 2 flows are
@@ -371,8 +384,20 @@ class EnforcementStatsTest(unittest.TestCase):
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
 
-        with sub_context, snapshot_verifier:
-            pass
+        with isolator, sub_context, snapshot_verifier:
+            pkt_sender.send(packet)
+
+        enf_stat_name = imsi + '|default_drop_flow' + '|' + sub_ip
+        wait_for_enforcement_stats(self.enforcement_stats_controller,
+                                   [enf_stat_name])
+        stats = get_enforcement_stats(
+            self.enforcement_stats_controller._report_usage.call_args_list)
+
+        self.assertEqual(stats[enf_stat_name].sid, imsi)
+        self.assertEqual(stats[enf_stat_name].rule_id, "default_drop_flow")
+        self.assertEqual(stats[enf_stat_name].bytes_rx, 0)
+        self.assertEqual(stats[enf_stat_name].bytes_tx,
+                         num_pkt_unmatched * len(packet))
 
     def test_ipv6_rule_install(self):
         """

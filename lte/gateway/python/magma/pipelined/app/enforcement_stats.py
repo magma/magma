@@ -248,17 +248,16 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
-        Add a low priority flow to drop a subscriber's traffic in the event
-        that all rules have been deactivated.
+        Add a low priority flow to drop a subscriber's traffic.
 
         Args:
             imsi (string): subscriber id
+            ip_addr (string): subscriber ip_addr
         """
         msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
         if msgs:
             chan = self._msg_hub.send(msgs, self._datapath)
             self._wait_for_responses(chan, len(msgs))
-
 
     def get_policy_usage(self, fut):
         record_table = RuleRecordTable(

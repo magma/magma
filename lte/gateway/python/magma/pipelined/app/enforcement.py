@@ -281,6 +281,7 @@ class EnforcementController(PolicyMixin, MagmaController):
 
         Args:
             imsi (string): subscriber id
+            ip_addr (string): subscriber ip_addr
         """
         msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
         if msgs:
