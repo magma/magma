@@ -15,6 +15,8 @@
  *      contact@openairinterface.org
  */
 
+#include "3gpp_23.003.h"
+
 #ifndef TRACKING_AREA_IDENTITY_SEEN
 #define TRACKING_AREA_IDENTITY_SEEN
 
@@ -38,12 +40,7 @@ typedef uint16_t tac_t; /*!< \brief  Tracking Area Code (TAC) is a fixed length
                            representation. The following are reserved
                            hexadecimal values of the TAC: 0000, and FFFE.   */
 typedef struct tai_s {
-  uint8_t mcc_digit2 : 4;
-  uint8_t mcc_digit1 : 4;
-  uint8_t mnc_digit3 : 4;
-  uint8_t mcc_digit3 : 4;
-  uint8_t mnc_digit2 : 4;
-  uint8_t mnc_digit1 : 4;
+  plmn_t plmn;
   tac_t tac;
 } tai_t;
 
@@ -95,7 +92,7 @@ typedef struct paging_tai_list_s {
   ((PLMNS_ARE_EQUAL((t1), (t2))) && ((t1).tac == (t2).tac))
 #define TAC_FMT "0x%" PRIx16
 #define TAI_FMT PLMN_FMT "-" TAC_FMT
-#define TAI_ARG(tAi_PtR) PLMN_ARG((tAi_PtR)), (tAi_PtR)->tac
+#define TAI_ARG(tAi_PtR) PLMN_ARG(&((tAi_PtR)->plmn)), (tAi_PtR)->tac
 
 /* Checks TAC validity */
 #define TAC_IS_VALID(tac)                                                      \

@@ -55,24 +55,24 @@ int decode_tracking_area_identity_list(
     if (TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS ==
         trackingareaidentitylist->partial_tai_list[partial_item].typeoflist) {
       trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_one_plmn_consecutive_tacs.mcc_digit2 =
+          .u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit2 =
           (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_one_plmn_consecutive_tacs.mcc_digit1 =
+          .u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit1 =
           *(buffer + decoded) & 0xf;
       decoded++;
       trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_one_plmn_consecutive_tacs.mnc_digit3 =
+          .u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit3 =
           (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_one_plmn_consecutive_tacs.mcc_digit3 =
+          .u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit3 =
           *(buffer + decoded) & 0xf;
       decoded++;
       trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_one_plmn_consecutive_tacs.mnc_digit2 =
+          .u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit2 =
           (*(buffer + decoded) >> 4) & 0xf;
       trackingareaidentitylist->partial_tai_list[partial_item]
-          .u.tai_one_plmn_consecutive_tacs.mnc_digit1 =
+          .u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit1 =
           *(buffer + decoded) & 0xf;
       decoded++;
       IES_DECODE_U16(
@@ -122,24 +122,24 @@ int decode_tracking_area_identity_list(
                            1;
            i++) {
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i]
+            .u.tai_many_plmn[i].plmn
             .mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i]
+            .u.tai_many_plmn[i].plmn
             .mcc_digit1 = *(buffer + decoded) & 0xf;
         decoded++;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i]
+            .u.tai_many_plmn[i].plmn
             .mnc_digit3 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i]
+            .u.tai_many_plmn[i].plmn
             .mcc_digit3 = *(buffer + decoded) & 0xf;
         decoded++;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i]
+            .u.tai_many_plmn[i].plmn
             .mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i]
+            .u.tai_many_plmn[i].plmn
             .mnc_digit1 = *(buffer + decoded) & 0xf;
         decoded++;
         IES_DECODE_U16(
@@ -198,31 +198,31 @@ int encode_tracking_area_identity_list(
       *(buffer + encoded) =
           0x00 |
           ((trackingareaidentitylist->partial_tai_list[partial_item]
-                .u.tai_one_plmn_consecutive_tacs.mcc_digit2 &
+                .u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit2 &
             0xf)
            << 4) |
           (trackingareaidentitylist->partial_tai_list[partial_item]
-               .u.tai_one_plmn_consecutive_tacs.mcc_digit1 &
+               .u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit1 &
            0xf);
       encoded++;
       *(buffer + encoded) =
           0x00 |
           ((trackingareaidentitylist->partial_tai_list[partial_item]
-                .u.tai_one_plmn_consecutive_tacs.mnc_digit3 &
+                .u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit3 &
             0xf)
            << 4) |
           (trackingareaidentitylist->partial_tai_list[partial_item]
-               .u.tai_one_plmn_consecutive_tacs.mcc_digit3 &
+               .u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit3 &
            0xf);
       encoded++;
       *(buffer + encoded) =
           0x00 |
           ((trackingareaidentitylist->partial_tai_list[partial_item]
-                .u.tai_one_plmn_consecutive_tacs.mnc_digit2 &
+                .u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit2 &
             0xf)
            << 4) |
           (trackingareaidentitylist->partial_tai_list[partial_item]
-               .u.tai_one_plmn_consecutive_tacs.mnc_digit1 &
+               .u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit1 &
            0xf);
       encoded++;
       IES_ENCODE_U16(
@@ -281,36 +281,36 @@ int encode_tracking_area_identity_list(
         *(buffer + encoded) =
             0x00 |
             ((trackingareaidentitylist->partial_tai_list[partial_item]
-                  .u.tai_many_plmn[i]
+                  .u.tai_many_plmn[i].plmn
                   .mcc_digit2 &
               0xf)
              << 4) |
             (trackingareaidentitylist->partial_tai_list[partial_item]
-                 .u.tai_many_plmn[i]
+                 .u.tai_many_plmn[i].plmn
                  .mcc_digit1 &
              0xf);
         encoded++;
         *(buffer + encoded) =
             0x00 |
             ((trackingareaidentitylist->partial_tai_list[partial_item]
-                  .u.tai_many_plmn[i]
+                  .u.tai_many_plmn[i].plmn
                   .mnc_digit3 &
               0xf)
              << 4) |
             (trackingareaidentitylist->partial_tai_list[partial_item]
-                 .u.tai_many_plmn[i]
+                 .u.tai_many_plmn[i].plmn
                  .mcc_digit3 &
              0xf);
         encoded++;
         *(buffer + encoded) =
             0x00 |
             ((trackingareaidentitylist->partial_tai_list[partial_item]
-                  .u.tai_many_plmn[i]
+                  .u.tai_many_plmn[i].plmn
                   .mnc_digit2 &
               0xf)
              << 4) |
             (trackingareaidentitylist->partial_tai_list[partial_item]
-                 .u.tai_many_plmn[i]
+                 .u.tai_many_plmn[i].plmn
                  .mnc_digit1 &
              0xf);
         encoded++;

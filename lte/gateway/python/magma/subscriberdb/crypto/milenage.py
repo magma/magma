@@ -12,6 +12,7 @@ limitations under the License.
 """
 
 import hmac
+import logging
 from Crypto.Cipher import AES
 from Crypto.Random import random
 

@@ -1928,7 +1928,7 @@ int s1ap_mme_handle_path_switch_request(
     DevAssert(ie);
     OCTET_STRING_TO_TAC(&ie->value.choice.TAI.tAC, tai.tac);
     DevAssert(ie->value.choice.TAI.pLMNidentity.size == 3);
-    TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai);
+    TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
     // UE Security Capabilities mandatory IE
     BIT_STRING_TO_INT16(
@@ -2793,7 +2793,7 @@ int s1ap_handle_paging_request(
       S1ap_TAIItem_t* tai_item    = &tai_item_ies->value.choice.TAIItem;
 
       PLMN_T_TO_PLMNID(
-          paging_request->paging_tai_list[tai_idx].tai_list[idx],
+          paging_request->paging_tai_list[tai_idx].tai_list[idx].plmn,
           &tai_item->tAI.pLMNidentity);
       TAC_TO_ASN1(
           paging_request->paging_tai_list[tai_idx].tai_list[idx].tac,

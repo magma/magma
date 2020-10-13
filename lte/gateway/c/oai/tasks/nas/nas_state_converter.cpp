@@ -71,29 +71,29 @@ void NasStateConverter::proto_to_tai_list(
 void NasStateConverter::tai_to_proto(
     const tai_t* state_tai, oai::Tai* tai_proto) {
   OAILOG_DEBUG(
-      LOG_MME_APP, "State PLMN " PLMN_FMT "to proto", PLMN_ARG(state_tai));
+      LOG_MME_APP, "State PLMN " PLMN_FMT "to proto", PLMN_ARG(&state_tai->plmn));
   char plmn_array[PLMN_BYTES];
-  plmn_array[0] = (char) (state_tai->mcc_digit1 + ASCII_ZERO);
-  plmn_array[1] = (char) (state_tai->mcc_digit2 + ASCII_ZERO);
-  plmn_array[2] = (char) (state_tai->mcc_digit3 + ASCII_ZERO);
-  plmn_array[3] = (char) (state_tai->mnc_digit1 + ASCII_ZERO);
-  plmn_array[4] = (char) (state_tai->mnc_digit2 + ASCII_ZERO);
-  plmn_array[5] = (char) (state_tai->mnc_digit3 + ASCII_ZERO);
+  plmn_array[0] = (char) (state_tai->plmn.mcc_digit1 + ASCII_ZERO);
+  plmn_array[1] = (char) (state_tai->plmn.mcc_digit2 + ASCII_ZERO);
+  plmn_array[2] = (char) (state_tai->plmn.mcc_digit3 + ASCII_ZERO);
+  plmn_array[3] = (char) (state_tai->plmn.mnc_digit1 + ASCII_ZERO);
+  plmn_array[4] = (char) (state_tai->plmn.mnc_digit2 + ASCII_ZERO);
+  plmn_array[5] = (char) (state_tai->plmn.mnc_digit3 + ASCII_ZERO);
   tai_proto->set_mcc_mnc(plmn_array);
   tai_proto->set_tac(state_tai->tac);
 }
 
 void NasStateConverter::proto_to_tai(
     const oai::Tai& tai_proto, tai_t* state_tai) {
-  state_tai->mcc_digit1 = (int) (tai_proto.mcc_mnc()[0]) - ASCII_ZERO;
-  state_tai->mcc_digit2 = (int) (tai_proto.mcc_mnc()[1]) - ASCII_ZERO;
-  state_tai->mcc_digit3 = (int) (tai_proto.mcc_mnc()[2]) - ASCII_ZERO;
-  state_tai->mnc_digit1 = (int) (tai_proto.mcc_mnc()[3]) - ASCII_ZERO;
-  state_tai->mnc_digit2 = (int) (tai_proto.mcc_mnc()[4]) - ASCII_ZERO;
-  state_tai->mnc_digit3 = (int) (tai_proto.mcc_mnc()[5]) - ASCII_ZERO;
+  state_tai->plmn.mcc_digit1 = (int) (tai_proto.mcc_mnc()[0]) - ASCII_ZERO;
+  state_tai->plmn.mcc_digit2 = (int) (tai_proto.mcc_mnc()[1]) - ASCII_ZERO;
+  state_tai->plmn.mcc_digit3 = (int) (tai_proto.mcc_mnc()[2]) - ASCII_ZERO;
+  state_tai->plmn.mnc_digit1 = (int) (tai_proto.mcc_mnc()[3]) - ASCII_ZERO;
+  state_tai->plmn.mnc_digit2 = (int) (tai_proto.mcc_mnc()[4]) - ASCII_ZERO;
+  state_tai->plmn.mnc_digit3 = (int) (tai_proto.mcc_mnc()[5]) - ASCII_ZERO;
   state_tai->tac        = tai_proto.tac();
   OAILOG_DEBUG(
-      LOG_MME_APP, "State PLMN " PLMN_FMT "from proto", PLMN_ARG(state_tai));
+      LOG_MME_APP, "State PLMN " PLMN_FMT "from proto", PLMN_ARG(&state_tai->plmn));
 }
 
 /*************************************************/

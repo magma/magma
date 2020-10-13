@@ -180,7 +180,7 @@ int s1ap_mme_handle_initial_ue_message(
         true);
     OCTET_STRING_TO_TAC(&ie->value.choice.TAI.tAC, tai.tac);
     DevAssert(ie->value.choice.TAI.pLMNidentity.size == 3);
-    // TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
+    TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
     // CGI mandatory IE
     S1AP_FIND_PROTOCOLIE_BY_ID(
@@ -331,7 +331,7 @@ S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie_nas_pdu,
       true);
   OCTET_STRING_TO_TAC(&ie->value.choice.TAI.tAC, tai.tac);
   DevAssert(ie->value.choice.TAI.pLMNidentity.size == 3);
-  TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai);
+  TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
   // CGI mandatory IE
   S1AP_FIND_PROTOCOLIE_BY_ID(

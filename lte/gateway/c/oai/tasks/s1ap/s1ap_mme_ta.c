@@ -170,12 +170,12 @@ static int s1ap_paging_compare_plmns(
       tai_t p_plmn;
       p_plmn = p_tai_list->tai_list[p_plmn_idx];
 
-      if ((enb_plmn->mcc_digit1 == p_plmn.mcc_digit1) &&
-          (enb_plmn->mcc_digit2 == p_plmn.mcc_digit2) &&
-          (enb_plmn->mcc_digit3 == p_plmn.mcc_digit3) &&
-          (enb_plmn->mnc_digit1 == p_plmn.mnc_digit1) &&
-          (enb_plmn->mnc_digit2 == p_plmn.mnc_digit2) &&
-          (enb_plmn->mnc_digit3 == p_plmn.mnc_digit3)) {
+      if ((enb_plmn->mcc_digit1 == p_plmn.plmn.mcc_digit1) &&
+          (enb_plmn->mcc_digit2 == p_plmn.plmn.mcc_digit2) &&
+          (enb_plmn->mcc_digit3 == p_plmn.plmn.mcc_digit3) &&
+          (enb_plmn->mnc_digit1 == p_plmn.plmn.mnc_digit1) &&
+          (enb_plmn->mnc_digit2 == p_plmn.plmn.mnc_digit2) &&
+          (enb_plmn->mnc_digit3 == p_plmn.plmn.mnc_digit3)) {
         return true;
       }
     }

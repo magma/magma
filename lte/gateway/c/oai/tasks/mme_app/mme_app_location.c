@@ -84,17 +84,17 @@ int mme_app_send_s6a_update_location_req(
   //(plmn_t));
   plmn_t visited_plmn = {0};
   visited_plmn.mcc_digit1 =
-      ue_context_p->emm_context.originating_tai.mcc_digit1;
+      ue_context_p->emm_context.originating_tai.plmn.mcc_digit1;
   visited_plmn.mcc_digit2 =
-      ue_context_p->emm_context.originating_tai.mcc_digit2;
+      ue_context_p->emm_context.originating_tai.plmn.mcc_digit2;
   visited_plmn.mcc_digit3 =
-      ue_context_p->emm_context.originating_tai.mcc_digit3;
+      ue_context_p->emm_context.originating_tai.plmn.mcc_digit3;
   visited_plmn.mnc_digit1 =
-      ue_context_p->emm_context.originating_tai.mnc_digit1;
+      ue_context_p->emm_context.originating_tai.plmn.mnc_digit1;
   visited_plmn.mnc_digit2 =
-      ue_context_p->emm_context.originating_tai.mnc_digit2;
+      ue_context_p->emm_context.originating_tai.plmn.mnc_digit2;
   visited_plmn.mnc_digit3 =
-      ue_context_p->emm_context.originating_tai.mnc_digit3;
+      ue_context_p->emm_context.originating_tai.plmn.mnc_digit3;
 
   memcpy(&s6a_ulr_p->visited_plmn, &visited_plmn, sizeof(plmn_t));
   s6a_ulr_p->rat_type = RAT_EUTRAN;
