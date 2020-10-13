@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
@@ -39,6 +40,8 @@ const (
 	blobTypePlaceholder  = "uesim"
 	trafficMSS           = "1300"
 	trafficSrvIP         = "192.168.129.42"
+	numRetries			 = 10
+	retryDelay           = 1000 * time.Millisecond
 )
 
 // UESimServer tracks all the UEs being simulated.
@@ -229,6 +232,7 @@ func ConvertStorageErrorToGrpcStatus(err error) error {
 // executeIperfWithOptions runs iperf with the timeout and server reachability options per req
 func executeIperfWithOptions(argList []string, req *cwfprotos.GenTrafficRequest) ([]byte, error) {
 	// server reachability option (Enabled by default)
+
 	if req.DisableServerReachabilityCheck == false {
 		// Check if server is reachable by requesting the server to send UE 10b of data
 		reachable, err := checkIperfServerReachabilityWithRetries()
@@ -250,12 +254,14 @@ func checkIperfServerReachabilityWithRetries() (bool, error) {
 		res bool
 		err error
 	)
-	for i := 0; i < 3; i++ {
+
+	for i := 0; i < numRetries; i++ {
 		res, err = checkIperfServerReachability()
 		if res == true {
 			break
 		}
-		glog.V(2).Infof("Iperf server was not reachable, trying one more time...")
+		glog.V(2).Infof("Iperf server was not reachable, trying one more time (%d out of %d)", i+1, numRetries)
+		time.Sleep(retryDelay)
 	}
 	return res, err
 }

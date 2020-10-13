@@ -159,6 +159,9 @@ cp control_proxy.yml /var/opt/magma/configs/
 # Copy redis override
 cp redis.yml /var/opt/magma/configs/
 
+# Copy sessiond override
+cp sessiond.yml /var/opt/magma/configs/
+
 # Copy docker files
 cp docker-compose.yml /var/opt/magma/docker/
 cp .env /var/opt/magma/docker/

@@ -41,7 +41,8 @@ from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.vlan_learn import VlanLearnController
 from magma.pipelined.app.tunnel_learn import TunnelLearnController
-from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto, \
+    convert_ipv6_bytes_to_ip_proto
 from magma.pipelined.ipv6_prefix_store import get_ipv6_interface_id, get_ipv6_prefix
 from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
@@ -56,7 +57,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def __init__(self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
                  ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
-                 tunnel_learn_app, service_manager):
+                 tunnel_learn_app, service_config, service_manager):
         self._loop = loop
         self._gy_app = gy_app
         self._enforcer_app = enforcer_app
@@ -67,6 +68,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._ipfix_app = ipfix_app
         self._vlan_learn_app = vlan_learn_app
         self._tunnel_learn_app = tunnel_learn_app
+        self._service_config = service_config
         self._service_manager = service_manager
 
     def add_to_server(self, server):
@@ -124,12 +126,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return None
 
         fut = Future()  # type: Future[ActivateFlowsResult]
-        if request.request_origin.type == RequestOriginType.GX:
-            self._loop.call_soon_threadsafe(self._activate_flows_gx,
-                                            request, fut)
-        else:
-            self._loop.call_soon_threadsafe(self._activate_flows_gy,
-                                            request, fut)
+        self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         return fut.result()
 
     def _update_ipv6_prefix_store(self, ipv6_addr):
@@ -149,9 +146,38 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ipv4, rule.id)
 
-    def _activate_flows_gx(self, request: ActivateFlowsRequest,
-                           fut: 'Future[ActivateFlowsResult]'
-                           ) -> ActivateFlowsResult:
+    def _activate_flows(self, request: ActivateFlowsRequest,
+                        fut: 'Future[ActivateFlowsResult]'
+                        ) -> None:
+        """
+        Activate flows for ipv4 / ipv6 or both
+
+        CWF won't have an ip_addr passed
+        """
+        ret = ActivateFlowsResult()
+        if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
+            ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
+            if request.request_origin.type == RequestOriginType.GX:
+                ret_ipv4 = self._install_flows_gx(request, ipv4)
+            else:
+                ret_ipv4 = self._install_flows_gy(request, ipv4)
+            ret.static_rule_results.extend(ret_ipv4.static_rule_results)
+            ret.dynamic_rule_results.extend(ret_ipv4.dynamic_rule_results)
+        if request.ipv6_addr:
+            ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
+            self._update_ipv6_prefix_store(request.ipv6_addr)
+            if request.request_origin.type == RequestOriginType.GX:
+                ret_ipv6 = self._install_flows_gx(request, ipv6)
+            else:
+                ret_ipv6 = self._install_flows_gy(request, ipv6)
+            ret.static_rule_results.extend(ret_ipv6.static_rule_results)
+            ret.dynamic_rule_results.extend(ret_ipv6.dynamic_rule_results)
+
+        fut.set_result(ret)
+
+    def _install_flows_gx(self, request: ActivateFlowsRequest,
+                         ip_address: IPAddress
+                         ) -> ActivateFlowsResult:
         """
         Ensure that the RuleModResult is only successful if the flows are
         successfully added in both the enforcer app and enforcement_stats.
@@ -160,13 +186,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GX flows for %s', request.sid.id)
-        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
-        self._update_version(request, ipv4)
-        if request.ipv6_addr:
-            self._update_ipv6_prefix_store(request.ipv6_addr)
+        self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, ipv4, request.apn_ambr, request.rule_ids,
+            request.sid.id, ip_address, request.apn_ambr, request.rule_ids,
             request.dynamic_rules)
 
         failed_static_rule_results, failed_dynamic_rule_results = \
@@ -178,18 +201,18 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
 
         enforcement_res = self._activate_rules_in_enforcement(
-            request.sid.id, ipv4, request.apn_ambr, static_rule_ids,
+            request.sid.id, ip_address, request.apn_ambr, static_rule_ids,
             dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
         enforcement_res.static_rule_results.extend(failed_static_rule_results)
         enforcement_res.dynamic_rule_results.extend(
             failed_dynamic_rule_results)
-        fut.set_result(enforcement_res)
+        return enforcement_res
 
-    def _activate_flows_gy(self, request: ActivateFlowsRequest,
-                           fut: 'Future[ActivateFlowsResult]'
-                           ) -> ActivateFlowsResult:
+    def _install_flows_gy(self, request: ActivateFlowsRequest,
+                          ip_address: IPAddress
+                          ) -> ActivateFlowsResult:
         """
         Ensure that the RuleModResult is only successful if the flows are
         successfully added in both the enforcer app and enforcement_stats.
@@ -198,11 +221,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         enforcement_stats flows.
         """
         logging.debug('Activating GY flows for %s', request.sid.id)
-        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
-        self._update_version(request, ipv4)
+        self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, ipv4, request.apn_ambr, request.rule_ids,
+            request.sid.id, ip_address, request.apn_ambr, request.rule_ids,
             request.dynamic_rules)
 
         failed_static_rule_results, failed_dynamic_rule_results = \
@@ -213,13 +235,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         dynamic_rules = \
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
 
-        gy_res = self._activate_rules_in_gy(request.sid.id, ipv4, request.apn_ambr,
-            static_rule_ids, dynamic_rules)
+        gy_res = self._activate_rules_in_gy(request.sid.id, ip_address,
+            request.apn_ambr, static_rule_ids, dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
         gy_res.static_rule_results.extend(failed_static_rule_results)
         gy_res.dynamic_rule_results.extend(failed_dynamic_rule_results)
-        fut.set_result(gy_res)
+        return gy_res
 
     def _activate_rules_in_enforcement_stats(self, imsi: str,
                                              ip_addr: IPAddress,
@@ -269,36 +291,51 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        if request.request_origin.type == RequestOriginType.GX:
-            self._loop.call_soon_threadsafe(self._deactivate_flows_gx,
-                                            request)
-        else:
-            self._loop.call_soon_threadsafe(self._deactivate_flows_gy,
-                                            request)
+        self._loop.call_soon_threadsafe(self._deactivate_flows, request)
         return DeactivateFlowsResult()
 
-    def _deactivate_flows_gx(self, request):
-        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
+    def _deactivate_flows(self, request):
+        """
+        Deactivate flows for ipv4 / ipv6 or both
+
+        CWF won't have an ip_addr passed
+        """
+        if self._service_config['setup_type'] == 'CWF' or request.ip_addr:
+            ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
+            if request.request_origin.type == RequestOriginType.GX:
+                self._deactivate_flows_gx(request, ipv4)
+            else:
+                self._deactivate_flows_gy(request, ipv4)
+        if request.ipv6_addr:
+            ipv6 = convert_ipv6_bytes_to_ip_proto(request.ipv6_addr)
+            self._update_ipv6_prefix_store(request.ipv6_addr)
+            if request.request_origin.type == RequestOriginType.GX:
+                self._deactivate_flows_gx(request, ipv6)
+            else:
+                self._deactivate_flows_gy(request, ipv6)
+
+    def _deactivate_flows_gx(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GX flows for %s', request.sid.id)
         if request.rule_ids:
             for rule_id in request.rule_ids:
                 self._service_manager.session_rule_version_mapper \
-                    .update_version(request.sid.id, ipv4,
+                    .update_version(request.sid.id, ip_address,
                                     rule_id)
         else:
             # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, ipv4)
-        self._enforcer_app.deactivate_rules(request.sid.id, ipv4,
+                request.sid.id, ip_address)
+        self._enforcer_app.deactivate_rules(request.sid.id, ip_address,
                                             request.rule_ids)
 
-    def _deactivate_flows_gy(self, request):
-        ipv4 = convert_ipv4_str_to_ip_proto(request.ip_addr)
+    def _deactivate_flows_gy(self, request, ip_address: IPAddress):
         logging.debug('Deactivating GY flows for %s', request.sid.id)
-        # all flows are deactivated
-        self._service_manager.session_rule_version_mapper.update_version(
-                request.sid.id, ipv4)
-        self._gy_app.deactivate_rules(request.sid.id, ipv4,
+        # Only deactivate requested rules here to not affect GX
+        if request.rule_ids:
+            for rule_id in request.rule_ids:
+                self._service_manager.session_rule_version_mapper \
+                    .update_version(request.sid.id, ip_address, rule_id)
+        self._gy_app.deactivate_rules(request.sid.id, ip_address,
                                       request.rule_ids)
 
     def GetPolicyUsage(self, request, context):

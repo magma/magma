@@ -24,7 +24,7 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.openflow.registers import Direction
 from magma.pipelined.policy_converters import FlowMatchError, \
-    get_ue_ipv4_match_args
+    get_ue_ip_match_args, get_eth_type
 from magma.pipelined.redirect import RedirectionManager, RedirectException
 from magma.pipelined.qos.common import QosManager
 from magma.pipelined.qos.qos_meter_impl import MeterManager
@@ -253,24 +253,24 @@ class EnforcementController(PolicyMixin, MagmaController):
             )
             return RuleModResult.FAILURE
 
-    def _get_default_flow_msg_for_subscriber(self, imsi, ip_addr):
-            ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
-            match_in = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                  imsi=encode_imsi(imsi), **ip_match_in)
-            ip_match_out = get_ue_ipv4_match_args(ip_addr, Direction.IN)
-            match_out = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                  imsi=encode_imsi(imsi), **ip_match_out)
+    def _get_default_flow_msgs_for_subscriber(self, imsi, ip_addr):
+        ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
+        match_in = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                              imsi=encode_imsi(imsi), **ip_match_in)
+        ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
+        match_out = MagmaMatch(eth_type=get_eth_type(ip_addr),
+                               imsi=encode_imsi(imsi), **ip_match_out)
 
-            actions = []
-            return [
-                flows.get_add_resubmit_current_service_flow_msg(
-                    self._datapath, self.tbl_num,  match_in, actions,
-                    priority=self.ENFORCE_DROP_PRIORITY,
-                    resubmit_table=self._enforcement_stats_tbl),
-                flows.get_add_resubmit_current_service_flow_msg(
-                    self._datapath, self.tbl_num,  match_out, actions,
-                    priority=self.ENFORCE_DROP_PRIORITY,
-                    resubmit_table=self._enforcement_stats_tbl)]
+        actions = []
+        return [
+            flows.get_add_resubmit_current_service_flow_msg(
+                self._datapath, self.tbl_num,  match_in, actions,
+                priority=self.ENFORCE_DROP_PRIORITY,
+                resubmit_table=self._enforcement_stats_tbl),
+            flows.get_add_resubmit_current_service_flow_msg(
+                self._datapath, self.tbl_num,  match_out, actions,
+                priority=self.ENFORCE_DROP_PRIORITY,
+                resubmit_table=self._enforcement_stats_tbl)]
 
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
@@ -280,23 +280,10 @@ class EnforcementController(PolicyMixin, MagmaController):
         Args:
             imsi (string): subscriber id
         """
-        actions = []
-        ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
-        match_in = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                              imsi=encode_imsi(imsi), **ip_match_in)
-        ip_match_out = get_ue_ipv4_match_args(ip_addr, Direction.OUT)
-        match_out = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                               imsi=encode_imsi(imsi), **ip_match_out)
-
-        flows.add_resubmit_current_service_flow(self._datapath,
-            self.tbl_num, match_in, actions,
-            priority=self.ENFORCE_DROP_PRIORITY,
-            resubmit_table=self._enforcement_stats_tbl)
-
-        flows.add_resubmit_current_service_flow(self._datapath,
-            self.tbl_num, match_out, actions,
-            priority=self.ENFORCE_DROP_PRIORITY,
-            resubmit_table=self._enforcement_stats_tbl)
+        msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
+        if msgs:
+            chan = self._msg_hub.send(msgs, self._datapath)
+            self._wait_for_responses(chan, len(msgs))
 
     def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):
         """
@@ -309,13 +296,13 @@ class EnforcementController(PolicyMixin, MagmaController):
             return
         cookie, mask = (num, flows.OVS_COOKIE_MATCH_ALL)
 
-        ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+        ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
+        match = MagmaMatch(eth_type=get_eth_type(ip_addr),
                            imsi=encode_imsi(imsi), **ip_match_in)
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           cookie=cookie, cookie_mask=mask)
-        ip_match_out = get_ue_ipv4_match_args(ip_addr, Direction.OUT)
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+        ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
+        match = MagmaMatch(eth_type=get_eth_type(ip_addr),
                            imsi=encode_imsi(imsi), **ip_match_out)
         flows.delete_flow(self._datapath, self.tbl_num, match,
                           cookie=cookie, cookie_mask=mask)
@@ -325,12 +312,12 @@ class EnforcementController(PolicyMixin, MagmaController):
 
     def _deactivate_flows_for_subscriber(self, imsi, ip_addr):
         """ Deactivate all rules for specified subscriber session """
-        ip_match_in = get_ue_ipv4_match_args(ip_addr, Direction.IN)
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+        ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
+        match = MagmaMatch(eth_type=get_eth_type(ip_addr),
                            imsi=encode_imsi(imsi), **ip_match_in)
         flows.delete_flow(self._datapath, self.tbl_num, match)
-        ip_match_out = get_ue_ipv4_match_args(ip_addr, Direction.OUT)
-        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
+        ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
+        match = MagmaMatch(eth_type=get_eth_type(ip_addr),
                            imsi=encode_imsi(imsi), **ip_match_out)
         flows.delete_flow(self._datapath, self.tbl_num, match)
 

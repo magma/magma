@@ -133,6 +133,10 @@ class PolicyMixin(metaclass=ABCMeta):
             static_rule_ids = add_flow_req.rule_ids
             dynamic_rules = add_flow_req.dynamic_rules
 
+            msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
+            if msgs:
+                msg_list.extend(msgs)
+
             for rule_id in static_rule_ids:
                 rule = self._policy_dict[rule_id]
                 if rule is None:
@@ -155,10 +159,6 @@ class PolicyMixin(metaclass=ABCMeta):
                     msg_list.extend(flow_adds)
                 except FlowMatchError:
                     self.logger.error("Failed to verify rule_id: %s", rule.id)
-
-            flow_add = self._get_default_flow_msg_for_subscriber(imsi, ip_addr)
-            if flow_add:
-                msg_list.extend(flow_add)
 
         msgs_to_send, remaining_flows = \
             self._msg_hub.filter_msgs_if_not_in_flow_list(msg_list,
