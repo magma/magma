@@ -182,7 +182,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
                                                              context, ip_addr,
                                                              request)
             ip_addr_list = ipv4_response.ip_list + ipv6_response.ip_list
-            # Get vlan from ipv4 allocator
+            # Get vlan from IPv4 Allocate response
             return AllocateIPAddressResponse(ip_list=ip_addr_list,
                                              vlan=ipv4_response.vlan)
         return AllocateIPAddressResponse()
@@ -225,10 +225,16 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
               for ipblock_msg in request.ip_blocks],
             force=request.force)
 
-        removed_block_msgs = [IPBlock(version=block.version,
-                                      net_address=block.network_address.packed,
-                                      prefix_len=block.prefixlen)
-                              for block in removed_blocks]
+        removed_block_msgs = []
+        for block in removed_blocks:
+            if block.version == 4:
+                removed_block_msgs.append(IPBlock(version=IPAddress.IPV4,
+                                                  net_address=block.network_address.packed,
+                                                  prefix_len=block.prefixlen))
+            elif block.version == 6:
+                removed_block_msgs.append(IPBlock(version=IPAddress.IPV6,
+                                                  net_address=block.network_address.packed,
+                                                  prefix_len=block.prefixlen))
 
         resp = RemoveIPBlockResponse()
         resp.ip_blocks.extend(removed_block_msgs)
@@ -246,7 +252,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             context.set_code(grpc.StatusCode.NOT_FOUND)
             return IPAddress()
 
-        version = IPAddress.IPv4 if ip.version == 4 else IPAddress.IPV6
+        version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
         return IPAddress(version=version, address=ip.packed)
 
     def GetSubscriberIDFromIP(self, ip_addr, context):
@@ -288,20 +294,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
     def SetGatewayInfo(self, info, context):
         self._ip_address_man.set_gateway_info(info)
 
-    def _get_allocate_ipv6_response(self, composite_sid, context, ip_addr,
-                                    request):
-        try:
-            ip = self._ip_address_man.alloc_ipv6_address(composite_sid)
-            logging.info("Allocated IPv6 %s for sid %s for apn %s"
-                         % (ip, SIDUtils.to_str(request.sid), request.apn))
-            ip_addr.version = IPAddress.IPV6
-            ip_addr.address = ip.packed
-            return AllocateIPAddressResponse(ip_list=[ip_addr], vlan="")
-        except MaxCalculationError:
-            context.set_details('Could not calculate IID for IPv6 address')
-            context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
-        return AllocateIPAddressResponse()
-
     def _get_allocate_ipv4_response(self, composite_sid, context, ip_addr,
                                     request):
         try:
@@ -323,6 +315,20 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             context.set_details(
                 'IP has been allocated for other subscriber')
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+        return AllocateIPAddressResponse()
+
+    def _get_allocate_ipv6_response(self, composite_sid, context, ip_addr,
+                                    request):
+        try:
+            ip = self._ip_address_man.alloc_ipv6_address(composite_sid)
+            logging.info("Allocated IPv6 %s for sid %s for apn %s"
+                         % (ip, SIDUtils.to_str(request.sid), request.apn))
+            ip_addr.version = IPAddress.IPV6
+            ip_addr.address = ip.packed
+            return AllocateIPAddressResponse(ip_list=[ip_addr], vlan="")
+        except MaxCalculationError:
+            context.set_details('Could not calculate IID for IPv6 address')
+            context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
         return AllocateIPAddressResponse()
 
     def _ipblock_msg_to_ipblock(self, ipblock_msg, context):

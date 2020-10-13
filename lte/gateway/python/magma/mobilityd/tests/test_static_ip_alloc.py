@@ -38,7 +38,7 @@ class StaticIPAllocationTests(unittest.TestCase):
             'persist_to_redis': False,
             'redis_port': 6379,
             'ipv6_prefix_block': 'fedd:5:6c::/48',
-            'ipv6_session_prefix_alloc_mode': 'RANDOM'
+            'ipv6_ip_allocator_type': 'RANDOM'
         }
         mconfig = MobilityD(ip_allocator_type=MobilityD.IP_POOL,
                             static_ip_enabled=True)
