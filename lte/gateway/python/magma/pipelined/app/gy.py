@@ -33,7 +33,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-
+from magma.pipelined.utils import Utils
 
 class GYController(PolicyMixin, MagmaController):
     """
@@ -302,7 +302,7 @@ class GYController(PolicyMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        priority = self._get_of_priority(rule.priority)
+        priority = Utils.get_of_priority(rule.priority)
 
         flow_adds = []
         for flow in rule.flow_list:
