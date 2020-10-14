@@ -364,7 +364,8 @@ def create_service_manager(services: List[int],
     if static_services is None:
         static_services = []
     magma_service.config = {
-        'static_services': static_services
+        'static_services': static_services,
+        '5G_feature_set': {'enable': False}
     }
     service_manager = ServiceManager(magma_service)
 
