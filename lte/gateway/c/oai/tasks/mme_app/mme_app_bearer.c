@@ -896,11 +896,6 @@ void mme_app_handle_delete_session_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  hashtable_uint64_ts_remove(
-      mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
-      (const hash_key_t) ue_context_p->mme_teid_s11);
-  ue_context_p->mme_teid_s11 = 0;
-
   /*
    * If UE is already in idle state, skip asking eNB to release UE context and
    * just clean up locally. This can happen during implicit detach and UE
@@ -958,6 +953,11 @@ void mme_app_handle_delete_session_rsp(
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
 #endif
+    hashtable_uint64_ts_remove(
+        mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
+        (const hash_key_t) ue_context_p->mme_teid_s11);
+    ue_context_p->mme_teid_s11 = 0;
+
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
        Detach Ack from MSC/VLR */

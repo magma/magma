@@ -116,7 +116,9 @@ class PipelinedController(Enum):
     Conntrack = Controller(
         'magma.pipelined.app.conntrack', 'conntrack'
     )
-
+    Classifier = Controller(
+        'magma.pipelined.app.classifier', 'classifier'
+   )
 
 def assert_pipelined_not_running():
     """

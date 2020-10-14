@@ -112,7 +112,6 @@ Creating orc8r_alertmanager_1     ... done
 Creating orc8r_maria_1            ... done
 Creating elasticsearch            ... done
 Creating orc8r_postgres_1         ... done
-Creating orc8r_grafana_1          ... done
 Creating orc8r_config-manager_1   ... done
 Creating orc8r_test_1             ... done
 Creating orc8r_prometheus-cache_1 ... done

@@ -32,6 +32,7 @@ from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match, convert_ipv4_str_to_ip_proto
 
 from magma.pipelined.qos.types import QosInfo
+from magma.pipelined.utils import Utils
 
 PROCESS_STATS = 0x0
 IGNORE_STATS = 0x1
@@ -43,15 +44,6 @@ class PolicyMixin(metaclass=ABCMeta):
     Mixin class for policy enforcement apps that includes common methods
     used for rule activation/deactivation.
     """
-    ENFORCE_DROP_PRIORITY = flows.MINIMUM_PRIORITY + 1
-    # For allowing unlcassified flows for app/service type rules.
-    UNCLASSIFIED_ALLOW_PRIORITY = ENFORCE_DROP_PRIORITY + 1
-    # Should not overlap with the drop flow as drop matches all packets.
-    MIN_ENFORCE_PROGRAMMED_FLOW = UNCLASSIFIED_ALLOW_PRIORITY + 1
-    MAX_ENFORCE_PRIORITY = flows.MAXIMUM_PRIORITY
-    # Effectively range is 3 -> 65535
-    ENFORCE_PRIORITY_RANGE = MAX_ENFORCE_PRIORITY - MIN_ENFORCE_PROGRAMMED_FLOW
-
     def __init__(self, *args, **kwargs):
         super(PolicyMixin, self).__init__(*args, **kwargs)
         self._datapath = None
@@ -133,6 +125,10 @@ class PolicyMixin(metaclass=ABCMeta):
             static_rule_ids = add_flow_req.rule_ids
             dynamic_rules = add_flow_req.dynamic_rules
 
+            msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
+            if msgs:
+                msg_list.extend(msgs)
+
             for rule_id in static_rule_ids:
                 rule = self._policy_dict[rule_id]
                 if rule is None:
@@ -155,10 +151,6 @@ class PolicyMixin(metaclass=ABCMeta):
                     msg_list.extend(flow_adds)
                 except FlowMatchError:
                     self.logger.error("Failed to verify rule_id: %s", rule.id)
-
-            flow_add = self._get_default_flow_msg_for_subscriber(imsi)
-            if flow_add:
-                msg_list.append(flow_add)
 
         msgs_to_send, remaining_flows = \
             self._msg_hub.filter_msgs_if_not_in_flow_list(msg_list,
@@ -221,7 +213,7 @@ class PolicyMixin(metaclass=ABCMeta):
             dyn_results.append(RuleModResult(rule_id=rule.id, result=res))
 
         # Install a base flow for when no rule is matched.
-        self._install_default_flow_for_subscriber(imsi)
+        self._install_default_flow_for_subscriber(imsi, ip_addr)
         return ActivateFlowsResult(
             static_rule_results=static_results,
             dynamic_rule_results=dyn_results,
@@ -273,25 +265,6 @@ class PolicyMixin(metaclass=ABCMeta):
             if not result.ok():
                 return fail(result.exception())
 
-    def _get_of_priority(self, precedence):
-        """
-        Lower the precedence higher the importance of the flow in 3GPP.
-        Higher the priority higher the importance of the flow in openflow.
-        Convert precedence to priority:
-        1 - Flows with precedence > 65534 will have min priority which is the
-        min priority for a programmed flow = (default drop + 1)
-        2 - Flows in the precedence range 0-65534 will have priority 65535 -
-        Precedence
-        :param precedence:
-        :return:
-        """
-        if precedence >= self.ENFORCE_PRIORITY_RANGE:
-            self.logger.warning(
-                "Flow precedence is higher than OF range using min priority %d",
-                self.MIN_ENFORCE_PROGRAMMED_FLOW)
-            return self.MIN_ENFORCE_PROGRAMMED_FLOW
-        return self.MAX_ENFORCE_PRIORITY - precedence
-
     def _get_classify_rule_flow_msgs(self, imsi, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id, app_name,
                                      app_service_type, next_table, version, qos_mgr):
@@ -320,7 +293,7 @@ class PolicyMixin(metaclass=ABCMeta):
                     flow_match,
                     passthrough_actions,
                     hard_timeout=hard_timeout,
-                    priority=self.UNCLASSIFIED_ALLOW_PRIORITY,
+                    priority=Utils.UNCLASSIFIED_ALLOW_PRIORITY,
                     cookie=rule_num,
                     resubmit_table=next_table)
             )
@@ -416,7 +389,7 @@ class PolicyMixin(metaclass=ABCMeta):
         raise NotImplementedError
 
     @abstractmethod
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         """
         Install a flow for the subscriber in the event no rule is matched.
         Subclass should implement this.

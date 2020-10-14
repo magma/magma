@@ -1,10 +1,10 @@
 ---
 id: upgrade_intro
-title: Orchestrator Upgrades: Introduction
+title: Introduction
 hide_title: true
 ---
 
-# Orchestrator Upgrades: Introduction
+# Introduction
 
 Orchestrator upgrades generally follow a standard pattern:
 

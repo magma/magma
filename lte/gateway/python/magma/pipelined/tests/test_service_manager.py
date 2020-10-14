@@ -39,7 +39,8 @@ class ServiceManagerTest(unittest.TestCase):
         magma_service_mock.mconfig.services.extend(
             [PipelineD.ENFORCEMENT, PipelineD.DPI])
         magma_service_mock.config = {
-            'static_services': ['arpd', 'access_control', 'ipfix']
+            'static_services': ['arpd', 'access_control', 'ipfix'],
+            '5G_feature_set': {'enable': False}
         }
         self.service_manager = ServiceManager(magma_service_mock)
 
