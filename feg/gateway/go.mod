@@ -28,7 +28,7 @@ require (
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
-	github.com/ishidawataru/sctp v0.0.0-20190922091402-408ec287e38c
+	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
 	github.com/pkg/errors v0.8.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/client_model v0.2.0
@@ -36,7 +36,7 @@ require (
 	github.com/shirou/gopsutil v2.20.3+incompatible
 	github.com/stretchr/testify v1.4.0
 	github.com/thoas/go-funk v0.7.0
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
+	golang.org/x/net v0.0.0-20201006153459-a7d1128ccaa0
 	google.golang.org/grpc v1.27.1
 	layeh.com/radius v0.0.0-20200615152116-663b41c3bf86
 	magma/feg/cloud/go v0.0.0

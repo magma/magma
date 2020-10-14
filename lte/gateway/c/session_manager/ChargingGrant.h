@@ -101,6 +101,10 @@ struct ChargingGrant {
   void set_service_state(
       const ServiceState new_service_state, SessionCreditUpdateCriteria& uc);
 
+  // Set the flag reporting. Used to signal this credit is waiting to receive
+  // a response from the core
+  void set_reporting(bool reporting);
+
   // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
   // and assign it to expiry_time
   void set_expiry_time_as_timestamp(uint32_t rel_time_sec);

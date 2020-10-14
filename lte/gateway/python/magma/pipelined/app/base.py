@@ -117,6 +117,8 @@ class MagmaController(app_manager.RyuApp):
         """
         Check if the controller is ready to be intialized after restart
         """
+        self.logger.info("Received Setup request with epoch - %d, current "
+                         "epoch  is - %d", epoch, global_epoch)
         if epoch != global_epoch:
             self.logger.warning(
                 "Received SetupFlowsRequest has outdated epoch - %d, current "

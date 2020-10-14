@@ -23,10 +23,15 @@
 
 #include "sctp_messages_types.h"
 
+#define PID_LEN 32
+
 int init_sctpd_downlink_client(bool force_restart);
 
 // init
 int sctpd_init(sctp_init_t* init);
+
+// force sctpd to restart if not stateless
+void sctpd_exit(void);
 
 // sendDl
 int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload);

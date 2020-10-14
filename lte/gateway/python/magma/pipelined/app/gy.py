@@ -33,7 +33,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-
+from magma.pipelined.utils import Utils
 
 class GYController(PolicyMixin, MagmaController):
     """
@@ -190,7 +190,10 @@ class GYController(PolicyMixin, MagmaController):
         chan = self._msg_hub.send(flow_adds, self._datapath)
         return self._wait_for_rule_responses(imsi, rule, chan)
 
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _get_default_flow_msgs_for_subscriber(self, *_):
+        return None
+
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         pass
 
     def _delete_all_flows(self, datapath):
@@ -299,7 +302,7 @@ class GYController(PolicyMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        priority = self._get_of_priority(rule.priority)
+        priority = Utils.get_of_priority(rule.priority)
 
         flow_adds = []
         for flow in rule.flow_list:

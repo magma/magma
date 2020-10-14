@@ -5,7 +5,8 @@
     "config/",
     "scripts/",
     "server/",
-    "grafana/"
+    "grafana/",
+    "alerts/"
   ],
   "exec": "node -r '@fbcnms/babel-register'"
 }

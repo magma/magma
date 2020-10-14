@@ -34,6 +34,8 @@ secret:
 ## Key Values for docker inside VM
 cwf:
   type: cwag
+  gateway_ha:
+    enabled: false
   image:
     docker_registry: ""
     tag: "latest"

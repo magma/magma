@@ -14,7 +14,7 @@ from enum import Enum
 
 import sys
 from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
-                        sudo, shell_env)
+                        sudo, shell_env, get)
 from fabric.contrib import files
 sys.path.append('../../orc8r')
 
@@ -49,7 +49,7 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
                gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
                transfer_images=False, destroy_vm=False, no_build=False,
                tests_to_run="all", skip_unit_tests=False, test_re=None,
-               run_tests=True):
+               test_result_xml=None, run_tests=True):
     """
     Run the integration tests. This defaults to running on local vagrant
     machines, but can also be pointed to an arbitrary host (e.g. amazon) by
@@ -147,7 +147,8 @@ def integ_test(gateway_host=None, test_host=None, trf_host=None,
         _switch_to_vm_no_destroy(gateway_host, gateway_vm, gateway_ansible_file)
         execute(_run_integ_tests, gateway_host, trf_host, tests_to_run, test_re)
     else:
-        execute(_run_integ_tests, test_host, trf_host, tests_to_run, test_re)
+        execute(_run_integ_tests, test_host, trf_host,
+                tests_to_run, test_re, test_result_xml)
 
     # If we got here means everything work well!!
     if not test_host and not trf_host:
@@ -177,6 +178,11 @@ def transfer_artifacts(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
     if get_core_dump == "True":
         execute(_tar_coredump, gateway_vm=gateway_vm, gateway_ansible_file=gateway_ansible_file)
 
+    # get uesim logs
+    _switch_to_vm(None, "cwag_test", "cwag_test.yml", False)
+    uesim_log = 'uesim.log'
+    with cd(f'{CWAG_ROOT}'):
+        run('tmux capture-pane -pt "$target-pane" >>' + uesim_log)
 
 def _tar_coredump(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
     _switch_to_vm_no_destroy(None, gateway_vm, gateway_ansible_file)
@@ -375,7 +381,7 @@ def _add_docker_host_remote_network_envvar():
 
 
 def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
-                     test_re=None):
+                     test_re=None, test_result_xml=None):
     """ Run the integration tests """
     # add docker host environment as well
     shell_env_vars = {
@@ -386,8 +392,10 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
         shell_env_vars["TESTS"] = test_re
 
     # QOS take a while to run. Increasing the timeout to 20m
-    go_test_cmd = "gotestsum --format=standard-verbose --"
-    go_test_cmd += " -test.short -timeout 20m" # go test args
+    go_test_cmd = "gotestsum --format=standard-verbose "
+    if test_result_xml: # generate test result XML in cwf/gateway directory
+        go_test_cmd += "--junitfile ../" + test_result_xml + " "
+    go_test_cmd += " -- -test.short -timeout 20m" # go test args
     go_test_cmd += " -tags=" + tests_to_run.value
     if test_re:
         go_test_cmd += " -run=" + test_re

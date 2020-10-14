@@ -66,7 +66,7 @@ int decode_security_mode_command(
   /*
    * Decoding optional fields
    */
-  while (len - decoded > 0) {
+  while (len > decoded) {
     uint8_t ieiDecoded = *(buffer + decoded);
 
     /*

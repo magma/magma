@@ -94,7 +94,7 @@ variable "orc8r_proxy_replicas" {
 variable "use_nginx_proxy" {
   description = "Feature flag for Nginx proxy."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "orc8r_db_name" {
