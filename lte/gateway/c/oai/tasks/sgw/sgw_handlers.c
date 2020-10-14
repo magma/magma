@@ -492,6 +492,7 @@ static void sgw_add_gtp_tunnel(
   enb.s_addr =
       eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
+  // TODO - Add support for IPv6
   struct in_addr ue = {.s_addr = 0};
   ue.s_addr         = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
   int vlan          = eps_bearer_ctxt_p->paa.vlan;
@@ -658,6 +659,7 @@ int sgw_handle_sgi_endpoint_deleted(
   char* imsi                               = NULL;
   char* apn                                = NULL;
   struct in_addr inaddr;
+  struct in6_addr in6addr;
 
   OAILOG_FUNC_IN(LOG_SPGW_APP);
 
@@ -741,9 +743,15 @@ int sgw_handle_sgi_endpoint_deleted(
           break;
 
         case IPv6:
-          OAILOG_ERROR_UE(
-              LOG_SPGW_APP, imsi64,
-              "Failed to release IPv6 PAA for PDN type IPv6\n");
+          in6addr = resp_pP->paa.ipv6_address;
+          if (!release_ue_ipv6_address(imsi, apn, &in6addr)) {
+            OAILOG_DEBUG_UE(
+                LOG_SPGW_APP, imsi64, "Released IPv6 PAA for PDN type IPv6\n");
+          } else {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "Failed to release IPv6 PAA for PDN type IPv6\n");
+          }
           break;
 
         case IPv4_AND_v6:
@@ -756,6 +764,16 @@ int sgw_handle_sgi_endpoint_deleted(
             OAILOG_ERROR_UE(
                 LOG_SPGW_APP, imsi64,
                 "Failed to release IPv4 PAA for PDN type IPv4_AND_v6\n");
+          }
+          in6addr = resp_pP->paa.ipv6_address;
+          if (!release_ue_ipv6_address(imsi, apn, &in6addr)) {
+            OAILOG_DEBUG_UE(
+                LOG_SPGW_APP, imsi64,
+                "Released IPv6 PAA for PDN type IPv4v6\n");
+          } else {
+            OAILOG_ERROR_UE(
+                LOG_SPGW_APP, imsi64,
+                "Failed to release IPv6 PAA for PDN type IPv4v6\n");
           }
           break;
 

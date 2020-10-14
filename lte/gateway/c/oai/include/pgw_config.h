@@ -77,6 +77,8 @@
 #define PGW_WARN_ON_ERROR true
 #define PGW_CONFIG_P_CSCF_IPV4_ADDRESS "P_CSCF_IPV4_ADDRESS"
 #define PGW_CONFIG_P_CSCF_IPV6_ADDRESS "P_CSCF_IPV6_ADDRESS"
+#define PGW_CONFIG_IPV6_ADDRESS_PREFIX "IPV6_ADDRESS_PREFIX"
+#define PGW_CONFIG_DNS_SERVER_IPV6_ADDRESS "DNS_SERVER_IPV6_ADDRESS"
 
 #define PGW_CONFIG_STRING_NAT_ENABLED "ENABLE_NAT"
 
@@ -131,6 +133,12 @@ typedef struct pgw_config_s {
     struct in_addr ipv4_addr;
     struct in6_addr ipv6_addr;
   } pcscf;
+
+  struct {
+    uint8_t ipv6_address_prefix_len;
+    struct in6_addr ipv6_address_prefix;
+    struct in6_addr dns_ipv6_addr;
+  } ipv6;
 
   STAILQ_HEAD(ipv4_pool_head_s, conf_ipv4_list_elm_s) ipv4_pool_list;
 } pgw_config_t;
