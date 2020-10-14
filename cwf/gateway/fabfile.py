@@ -12,9 +12,9 @@ limitations under the License.
 """
 from enum import Enum
 
-import sys
+import sys, time, os
 from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
-                        sudo, shell_env, get)
+                        sudo, shell_env, get, hide)
 from fabric.contrib import files
 sys.path.append('../../orc8r')
 
@@ -346,14 +346,25 @@ def _stop_docker_services(services):
 
 
 def _check_docker_services(ignoreList):
-    with cd(CWAG_ROOT + "/docker"):
+    with cd(CWAG_ROOT + "/docker"), settings(warn_only=True), hide("warnings"):
+
         grepIgnore = "| grep --invert-match '" + \
                      '\|'.join(ignoreList) + "'" if ignoreList else ""
-        run(
-            " DCPS=$(docker ps --format \"{{.Names}}\t{{.Status}}\" | grep Restarting" + grepIgnore + ");"
-            " [[ -z \"$DCPS\" ]] ||"
-            " ( echo \"Container restarting detected.\" ; echo \"$DCPS\"; exit 1 )"
-        )
+        count = 0
+        while (count < 5):
+            # force wait to make sure docker logs are up
+            time.sleep(1)
+            result = run(" docker ps --format \"{{.Names}}\t{{.Status}}\" | "
+                         "grep Restarting" + grepIgnore )
+
+            if result.return_code == 1:
+                # grep returns code 1 when empty string
+                return
+            print("Container restarting detected. Tryin one more time")
+            count+=1
+    # if we got here, that means all attempts failed
+    print("ERROR: Test NOT started due to docker container restarting")
+    sys.exit(1)
 
 
 def _start_ue_simulator():
@@ -417,3 +428,6 @@ def _clean_up():
     with lcd(LTE_AGW_ROOT):
         vagrant_setup("magma_trfserver", False)
         run('pkill iperf3 > /dev/null &', pty=False, warn_only=True)
+
+class FabricException(Exception):
+    pass
