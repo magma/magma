@@ -12,7 +12,10 @@ limitations under the License.
 """
 # pylint: disable=broad-except
 
+import os
+import shutil
 import logging
+import time
 from typing import Any
 import asyncio
 
@@ -20,6 +23,7 @@ from magma.common.job import Job
 
 from magma.magmad.service_poller import ServicePoller
 from magma.magmad.service_manager import ServiceManager
+
 
 class ServiceHealthWatchdog(Job):
     """
@@ -31,6 +35,10 @@ class ServiceHealthWatchdog(Job):
     CHECK_STATUS_INTERVAL = 15
     # Default number of continuous timeouts before doing a service restart
     DEFAULT_RESTART_TIMEOUT_THRESHOLD = 15
+
+    RDB_DBFILE_FMT = 'redis_dump_%s.rdb'
+    DEFAULT_SNAPSHOTS_DIR = '/var/opt/magma/snapshots'
+    RDB_DUMP_PATH = '/var/opt/magma/redis_dump.rdb'
 
     def __init__(self, config: Any,
                  loop: asyncio.AbstractEventLoop,
@@ -49,6 +57,12 @@ class ServiceHealthWatchdog(Job):
         if 'restart_timeout_threshold' in config:
             self._restart_timeout_threshold = \
                 config['restart_timeout_threshold']
+        self._enable_state_recovery = False
+        self._snapshots_dir = self.DEFAULT_SNAPSHOTS_DIR
+        if 'enable_state_recovery' in config:
+            self._enable_state_recovery = self._config['enable_state_recovery']
+            self._snapshots_dir = self._config.get('snapshots_dir',
+                                                   self.DEFAULT_SNAPSHOTS_DIR)
         self._service_poller = service_poller
         self._service_manager = service_manager
 
@@ -73,3 +87,17 @@ class ServiceHealthWatchdog(Job):
             await asyncio.gather(
                 self._service_manager.restart_services(services_to_restart)
             )
+            if self._enable_state_recovery:
+                await self._save_rdb_snapshot()
+                logging.info('Restarting sctpd')
+
+    async def _save_rdb_snapshot(self):
+        rdb_file_name = self.RDB_DBFILE_FMT % int(time.time())
+        dest_path = '%s/%s' % (self._snapshots_dir, rdb_file_name)
+        logging.info('Saving rdb snapshot in: %s', dest_path)
+        os.makedirs(os.path.dirname(dest_path), exist_ok=True)
+        try:
+            shutil.copyfile(self.RDB_DUMP_PATH, dest_path)
+        except FileNotFoundError:
+            logging.warning('Error saving rdb file from %s',
+                            self.RDB_DUMP_PATH)
