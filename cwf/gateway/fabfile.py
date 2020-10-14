@@ -14,7 +14,7 @@ from enum import Enum
 
 import sys
 from fabric.api import (cd, env, execute, lcd, local, put, run, settings,
-                        sudo, shell_env)
+                        sudo, shell_env, get)
 from fabric.contrib import files
 sys.path.append('../../orc8r')
 
@@ -178,6 +178,11 @@ def transfer_artifacts(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
     if get_core_dump == "True":
         execute(_tar_coredump, gateway_vm=gateway_vm, gateway_ansible_file=gateway_ansible_file)
 
+    # get uesim logs
+    _switch_to_vm(None, "cwag_test", "cwag_test.yml", False)
+    uesim_log = 'uesim.log'
+    with cd(f'{CWAG_ROOT}'):
+        run('tmux capture-pane -pt "$target-pane" >>' + uesim_log)
 
 def _tar_coredump(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
     _switch_to_vm_no_destroy(None, gateway_vm, gateway_ansible_file)

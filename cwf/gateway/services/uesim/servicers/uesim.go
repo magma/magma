@@ -40,6 +40,7 @@ const (
 	blobTypePlaceholder  = "uesim"
 	trafficMSS           = "1300"
 	trafficSrvIP         = "192.168.129.42"
+	trafficSrvSSHport    = "22"
 	numRetries			 = 10
 	retryDelay           = 1000 * time.Millisecond
 )
@@ -157,6 +158,8 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 	if req == nil {
 		return &cwfprotos.GenTrafficResponse{}, fmt.Errorf("Nil GenTrafficRequest provided")
 	}
+
+	restartIperfServer(trafficSrvIP, trafficSrvSSHport)
 
 	argList := []string{"--json", "-c", trafficSrvIP, "-M", trafficMSS}
 	if req.Volume != nil {
