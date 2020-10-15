@@ -45,13 +45,14 @@ namespace magma {
 SMSOrc8rGatewayServiceImpl::SMSOrc8rGatewayServiceImpl() {}
 
 grpc::Status SMSOrc8rGatewayServiceImpl::SMODownlink(
-    ServerContext* context, const SMODownlinkUnitdata* request, Void* response) {
+    ServerContext* context, const SMODownlinkUnitdata* request,
+    Void* response) {
   itti_sgsap_downlink_unitdata_t itti_msg;
   convert_proto_msg_to_itti_sgsap_downlink_unitdata(request, &itti_msg);
   OAILOG_DEBUG(
-	LOG_MME_APP,
-	"Received SMS_ORC8R_DOWNLINK_UNITDATA message from orc8r with IMSI %s\n",
-	itti_msg.imsi);
+      LOG_MME_APP,
+      "Received SMS_ORC8R_DOWNLINK_UNITDATA message from orc8r with IMSI %s\n",
+      itti_msg.imsi);
   handle_sms_orc8r_downlink_unitdata(&itti_msg);
   return grpc::Status::OK;
 }

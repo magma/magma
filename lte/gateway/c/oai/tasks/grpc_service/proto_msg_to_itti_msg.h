@@ -52,7 +52,7 @@ using namespace lte;
 void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
     const SMODownlinkUnitdata* msg, itti_sgsap_downlink_unitdata_t* itti_msg);
 
-} // namespace magma
+}  // namespace magma
 
 namespace magma {
 using namespace feg;
