@@ -415,10 +415,8 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	_, err = tr.GenULTraffic(req)
