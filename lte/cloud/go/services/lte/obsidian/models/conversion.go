@@ -252,7 +252,7 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 		Type:              lte.CellularGatewayEntityType,
 		Key:               string(m.ID),
 		NewConfig:         m.Cellular,
-		AssociationsToAdd: newAPNResourceTKs,
+		AssociationsToSet: newAPNResourceTKs,
 	}
 	if string(m.Name) != existingGateway.Name {
 		gatewayUpdate.NewName = swag.String(string(m.Name))
@@ -569,10 +569,11 @@ func (m *ApnResource) ToTK() storage.TypeAndKey {
 }
 
 func (m *ApnResource) ToEntity() configurator.NetworkEntity {
+	cfg := *m // make explicit copy
 	return configurator.NetworkEntity{
 		Type:         lte.APNResourceEntityType,
 		Key:          m.ID,
-		Config:       m,
+		Config:       &cfg,
 		Associations: m.getAssocs(),
 	}
 }

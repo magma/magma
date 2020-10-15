@@ -103,5 +103,7 @@ int s1_setup_success_event(const char* enb_name, uint32_t enb_id) {
 
   event_value["enb_id"]      = enb_id;
 
-  return report_event(event_value, S1_SETUP_SUCCESS, MME_STREAM_NAME, enb_name);
+  return report_event(
+      event_value, S1_SETUP_SUCCESS, MME_STREAM_NAME,
+      folly::to<std::string>(enb_id));
 }

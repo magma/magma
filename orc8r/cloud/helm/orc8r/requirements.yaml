@@ -15,7 +15,7 @@ dependencies:
     repository: ""
     condition: secrets.create
   - name: metrics
-    version: 1.4.16
+    version: 1.4.17
     repository: ""
     condition: metrics.enabled
   - name: nms

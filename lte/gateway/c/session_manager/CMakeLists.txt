@@ -28,10 +28,11 @@ if (NOT BUILD_TESTS)
       "${CMAKE_LINKER_FLAGS_DEBUG} -fno-omit-frame-pointer -fsanitize=address")
   # Add LeakSanitizer (lsan) support to the release build of SessionD so that
   # we can find memory leaks in production.
-  set(CMAKE_C_FLAGS_RELWITHDEBINFO
-     "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
-  set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
-     "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
+  # Disabling LSAN on Prod until we figure out how to get gcore to work
+  #set(CMAKE_C_FLAGS_RELWITHDEBINFO
+  #   "${CMAKE_C_FLAGS_RELWITHDEBINFO} -fsanitize=leak -fno-omit-frame-pointer")
+  #set(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO
+  #   "${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO} -fsanitize=leak")
 endif ()
 
 set(OUTPUT_DIR "${CMAKE_CURRENT_BINARY_DIR}")

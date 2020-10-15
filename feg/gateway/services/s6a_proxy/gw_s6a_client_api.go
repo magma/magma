@@ -17,13 +17,13 @@ import (
 	"errors"
 	"fmt"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/cloud/go/services/feg_relay"
-	"magma/feg/gateway/registry"
-
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/cloud/go/services/feg_relay"
+	"magma/feg/gateway/registry"
 )
 
 func getCloudConn() (*grpc.ClientConn, error) {

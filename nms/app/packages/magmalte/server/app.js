@@ -106,6 +106,9 @@ app.use(configureAccess({loginUrl: '/user/login'}));
 // to superusers
 app.use('/grafana', access(SUPERUSER), require('../grafana/routes.js').default);
 
+// Trigger syncing of automatically generated alerts
+app.use('/sync_alerts', access(USER), require('../alerts/routes.js').default);
+
 app.use('/', csrfMiddleware(), access(USER), require('./main/routes').default);
 
 export default app;

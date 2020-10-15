@@ -69,6 +69,10 @@ def main():
                                   service.mconfig.sgi_management_iface_ip_addr)
     service.config['sgi_management_iface_ip_addr'] = sgi_ip
 
+    sgi_gateway_ip = service.config.get('sgi_management_iface_gw',
+                                        service.mconfig.sgi_management_iface_gw)
+    service.config['sgi_management_iface_gw'] = sgi_gateway_ip
+
     if 'virtual_mac' not in service.config:
         service.config['virtual_mac'] = get_if_hwaddr(service.config.get('bridge_name'))
 
@@ -108,6 +112,8 @@ def main():
         manager.applications.get('IPFIXController', None),
         manager.applications.get('VlanLearnController', None),
         manager.applications.get('TunnelLearnController', None),
+        manager.applications.get('Classifier', None),
+        service.config,
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
 

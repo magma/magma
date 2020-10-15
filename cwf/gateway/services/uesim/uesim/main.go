@@ -27,7 +27,7 @@ import (
 )
 
 func init() {
-
+	flag.Parse()
 }
 
 func createUeSimServer(store blobstore.BlobStorageFactory) (protos.UESimServer, error) {
