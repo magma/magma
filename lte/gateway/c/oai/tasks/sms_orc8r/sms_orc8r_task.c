@@ -52,7 +52,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
        * * * *      Mobile terminating SMS - Uplink Nas Transport message
        */
       OAILOG_DEBUG(LOG_SMS_ORC8R, "Received SGSAP_UPLINK_UNITDATA message \n");
-      send_smo_uplink_unitdata(&received_message_p->ittiMsg.sgsap_uplink_unitdata);
+      send_smo_uplink_unitdata(
+          &received_message_p->ittiMsg.sgsap_uplink_unitdata);
     } break;
 
     case TERMINATE_MESSAGE: {
@@ -77,7 +78,8 @@ static void* sms_orc8r_thread(__attribute__((unused)) void* args_p) {
 
   itti_mark_task_ready(TASK_SMS_ORC8R);
   init_task_context(
-      TASK_SMS_ORC8R, (task_id_t[]){TASK_MME_APP}, 1, handle_message, task_zmq_ctx_p);
+      TASK_SMS_ORC8R, (task_id_t[]){TASK_MME_APP}, 1, handle_message,
+      task_zmq_ctx_p);
 
   zloop_start(task_zmq_ctx_p->event_loop);
   sms_orc8r_exit();

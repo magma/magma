@@ -162,13 +162,13 @@ class UeNetworkInfo {
 class AddGTPTunnelEvent : public ExternalEvent {
  public:
   AddGTPTunnelEvent(
-      const struct in_addr ue_ip, int vlan,  const struct in_addr enb_ip,
+      const struct in_addr ue_ip, int vlan, const struct in_addr enb_ip,
       const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
       const struct ipv4flow_dl* dl_flow, const uint32_t dl_flow_precedence,
       uint32_t gtp_port_no);
 
   AddGTPTunnelEvent(
-      const struct in_addr ue_ip, int vlan,  const struct in_addr enb_ip,
+      const struct in_addr ue_ip, int vlan, const struct in_addr enb_ip,
       const uint32_t in_tei, const uint32_t out_tei, const char* imsi,
       uint32_t gtp_port_no);
 
@@ -202,10 +202,9 @@ class DeleteGTPTunnelEvent : public ExternalEvent {
  public:
   DeleteGTPTunnelEvent(
       const struct in_addr ue_ip, const uint32_t in_tei,
-      const struct ipv4flow_dl* dl_flow,
-      uint32_t gtp_port_no);
-  DeleteGTPTunnelEvent(const struct in_addr ue_ip, const uint32_t in_tei,
-      uint32_t gtp_port_no);
+      const struct ipv4flow_dl* dl_flow, uint32_t gtp_port_no);
+  DeleteGTPTunnelEvent(
+      const struct in_addr ue_ip, const uint32_t in_tei, uint32_t gtp_port_no);
 
   const struct UeNetworkInfo& get_ue_info() const;
   const struct in_addr& get_ue_ip() const;

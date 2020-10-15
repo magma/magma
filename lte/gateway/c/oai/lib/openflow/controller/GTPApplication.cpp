@@ -33,7 +33,7 @@ using namespace fluid_msg;
 namespace openflow {
 
 const std::string GTPApplication::GTP_PORT_MAC = "02:00:00:00:00:01";
-const std:: uint16_t OFPVID_PRESENT = 0x1000;
+const std::uint16_t OFPVID_PRESENT             = 0x1000;
 
 GTPApplication::GTPApplication(
     const std::string& uplink_mac, uint32_t gtp_port_num, uint32_t mtr_port_num,
