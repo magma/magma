@@ -44,7 +44,8 @@ int main(int argc, char** argv) {
             const Status& status, AllocateIPAddressResponse ip_msg) {
           struct in_addr ipv4_addr1;
           memcpy(
-              &ipv4_addr1, ip_msg.mutable_ip_addr()->mutable_address()->c_str(),
+              &ipv4_addr1,
+              ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
               sizeof(in_addr));
 
           if (!status.ok()) {
@@ -75,8 +76,14 @@ int main(int argc, char** argv) {
             const Status& status, AllocateIPAddressResponse ip_msg) {
           struct in_addr ipv4_addr2;
           memcpy(
+<<<<<<< HEAD
               &ipv4_addr2, ip_msg.mutable_ip_addr()->mutable_address()->c_str(),
               sizeof(in_addr));
+=======
+              &ipv4_addr2,
+              ip_msg.mutable_ip_list(0)->mutable_address()->c_str(),
+              sizeof(in_addr));
+>>>>>>> Updating test_mobility_client.cpp
           if (!status.ok()) {
             printf(
                 "allocate_ipv4_address error %d for sid %s for apn %s\n",
