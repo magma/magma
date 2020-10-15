@@ -914,18 +914,18 @@ void LocalEnforcer::schedule_static_rule_deactivation(
 void LocalEnforcer::schedule_dynamic_rule_deactivation(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, DynamicRuleInstall& dynamic_rule) {
-  PolicyRule* policy = dynamic_rule.release_policy_rule();
-  std::vector<PolicyRule> dynamic_rules{*policy};
+  PolicyRule policy = dynamic_rule.policy_rule();
 
   auto delta = time_difference_from_now(dynamic_rule.deactivation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " dynamic rule "
-               << dynamic_rule.policy_rule().id() << " deactivation in "
-               << (delta.count() / 1000) << " secs";
+               << policy.id() << " deactivation in " << (delta.count() / 1000)
+               << " secs";
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
+          std::vector<PolicyRule> dynamic_rules{policy};
           auto session_map   = session_store_.read_sessions(SessionRead{imsi});
-          const auto rule_id = dynamic_rule.policy_rule().id();
+          const auto rule_id = policy.id();
           auto it            = session_map.find(imsi);
           if (it == session_map.end()) {
             MLOG(MWARNING) << "Could not find session for " << imsi
