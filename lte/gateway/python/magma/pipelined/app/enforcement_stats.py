@@ -15,6 +15,7 @@ from collections import defaultdict
 
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.mobilityd_pb2 import IPAddress
+from lte.protos.policydb_pb2 import FlowDescription
 from lte.protos.session_manager_pb2 import RuleRecord, \
     RuleRecordTable
 from ryu.controller import dpset, ofp_event
@@ -26,7 +27,7 @@ from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
 from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
-    PROCESS_STATS, DROP_RULE_STATS
+    PROCESS_STATS, DROP_FLOW_STATS
 from magma.pipelined.policy_converters import get_ue_ip_match_args, \
     get_eth_type
 from magma.pipelined.openflow import messages, flows
@@ -34,7 +35,7 @@ from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.imsi import decode_imsi, encode_imsi
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MsgChannel, MessageHub
-
+from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
     IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
 
@@ -82,6 +83,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
         self._unmatched_bytes = 0  # Store bytes matched by default rule if any
         self._clean_restart = kwargs['config']['clean_restart']
+        self._default_drop_flow_name = \
+            kwargs['config']['enforcement']['default_drop_flow_name']
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
 
     def delete_all_flows(self, datapath):
@@ -193,22 +196,42 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         outbound_rule_match = _generate_rule_match(imsi, ip_addr, rule_num,
                                                    version, Direction.OUT)
 
-        inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
-        outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
-        msgs = [
-            flows.get_add_drop_flow_msg(
-                self._datapath,
-                self.tbl_num,
-                inbound_rule_match,
-                priority=flows.DEFAULT_PRIORITY,
-                cookie=rule_num),
-            flows.get_add_drop_flow_msg(
-                self._datapath,
-                self.tbl_num,
-                outbound_rule_match,
-                priority=flows.DEFAULT_PRIORITY,
-                cookie=rule_num),
-        ]
+        flow_actions = [flow.action for flow in rule.flow_list]
+        msgs = []
+        if FlowDescription.PERMIT in flow_actions:
+            inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+            outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+            msgs.extend([
+                flows.get_add_drop_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    inbound_rule_match,
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num),
+                flows.get_add_drop_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    outbound_rule_match,
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num),
+            ])
+        else:
+            inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = DROP_FLOW_STATS
+            outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = DROP_FLOW_STATS
+            msgs.extend([
+                flows.get_add_drop_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    inbound_rule_match,
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num),
+                flows.get_add_drop_flow_msg(
+                    self._datapath,
+                    self.tbl_num,
+                    outbound_rule_match,
+                    priority=flows.DEFAULT_PRIORITY,
+                    cookie=rule_num),
+            ])
 
         if rule.app_name:
             inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
@@ -233,14 +256,12 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0,
                                               Direction.OUT)
-        match_in._match_kwargs[SCRATCH_REGS[1]] = DROP_RULE_STATS
-        match_out._match_kwargs[SCRATCH_REGS[1]] = DROP_RULE_STATS
 
         return [
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_in,
-                                        priority=self.ENFORCE_DROP_PRIORITY),
+                                        priority=Utils.DROP_PRIORITY),
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
-                                        priority=self.ENFORCE_DROP_PRIORITY)]
+                                        priority=Utils.DROP_PRIORITY)]
 
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
@@ -394,7 +415,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 return current_usage
             else:
                 # This must be the default drop flow
-                rule_id = "default_drop_flow"
+                rule_id = self._default_drop_flow_name
         # If this is a pass through app name flow ignore stats
         if _get_policy_type(flow_stat.match) == IGNORE_STATS:
             return current_usage
@@ -415,23 +436,27 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         record.rule_id = rule_id
         record.sid = sid
 
-        if _get_policy_type(flow_stat.match) == DROP_RULE_STATS:
-            record.type = RuleRecord.DEFAULT_DROP_POLICY
-        else:
-            record.type = RuleRecord.REGULAR_POLICY
-
         if ipv4_addr:
             record.ue_ipv4 = ipv4_addr
         elif ipv6_addr:
             record.ue_ipv6 = ipv6_addr
+        bytes_rx = 0
+        bytes_tx = 0
         if flow_stat.match[DIRECTION_REG] == Direction.IN:
             # HACK decrement byte count for downlink packets by the length
             # of an ethernet frame. Only IP and below should be counted towards
             # a user's data. Uplink does this already because the GTP port is
             # an L3 port.
-            record.bytes_rx += _get_downlink_byte_count(flow_stat)
+            bytes_rx = _get_downlink_byte_count(flow_stat)
         else:
-            record.bytes_tx += flow_stat.byte_count
+            bytes_tx = flow_stat.byte_count
+
+        if _get_policy_type(flow_stat.match) == PROCESS_STATS:
+            record.bytes_rx += bytes_rx
+            record.bytes_tx += bytes_tx
+        else:
+            record.dropped_rx += bytes_rx
+            record.dropped_tx += bytes_tx
         current_usage[key] = record
         return current_usage
 

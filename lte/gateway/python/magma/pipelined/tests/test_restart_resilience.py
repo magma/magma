@@ -49,6 +49,7 @@ class RestartResilienceTest(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP_ADDRESS = '192.168.128.1'
+    DEFAULT_DROP_FLOW_NAME = '(┛ಠ_ಠ)┛彡┻━┻'
 
     def _wait_func(self, stat_names):
         def func():
@@ -104,7 +105,10 @@ class RestartResilienceTest(unittest.TestCase):
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP_ADDRESS,
-                'enforcement': {'poll_interval': 5},
+                'enforcement': {
+                    'poll_interval': 2,
+                    'default_drop_flow_name': cls.DEFAULT_DROP_FLOW_NAME
+                },
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
@@ -294,7 +298,7 @@ class RestartResilienceTest(unittest.TestCase):
             startup_flow_controller=self.startup_flows_contoller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
-                                             'default_flows')
+                                             'default_flows_w_packets')
 
         with snapshot_verifier:
             pass

@@ -240,7 +240,7 @@ class EnforcementTableTest(unittest.TestCase):
             wait_after_send(self.testing_controller)
             num_flows_final = len(flow_query.lookup())
 
-        self.assertEqual(num_flows_final - num_flows_start, 2)
+        self.assertEqual(num_flows_final - num_flows_start, 0)
 
     def test_subscriber_two_policies(self):
         """

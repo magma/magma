@@ -28,11 +28,8 @@ message RuleRecord {
   uint64 bytes_rx = 4;
   string ue_ipv4 = 5;
   string ue_ipv6 = 6;
-  enum PolicyType {
-    REGULAR_POLICY = 0;
-    DEFAULT_DROP_POLICY = 1;
-  }
-  PolicyType type = 7;
+  uint64 dropped_tx = 7;
+  uint64 dropped_rx = 8;
 }
 
 message RuleRecordTable {

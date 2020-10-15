@@ -36,7 +36,7 @@ from magma.pipelined.utils import Utils
 
 PROCESS_STATS = 0x0
 IGNORE_STATS = 0x1
-DROP_RULE_STATS = 0x2
+DROP_FLOW_STATS = 0x2
 
 
 class PolicyMixin(metaclass=ABCMeta):
@@ -276,6 +276,7 @@ class PolicyMixin(metaclass=ABCMeta):
         will drop the packet. Otherwise, the flow classifies the packet with
         its matched rule and injects the rule num into the packet's register.
         """
+        parser = self._datapath.ofproto_parser
         flow_match = flow_match_to_magma_match(flow.match, ip_addr)
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions, instructions = self._get_action_for_rule(
@@ -285,7 +286,6 @@ class PolicyMixin(metaclass=ABCMeta):
             # We have to allow initial traffic to pass through, before it gets
             # classified by DPI, flow match set app_id to unclassified
             flow_match.app_id = UNCLASSIFIED_PROTO_ID
-            parser = self._datapath.ofproto_parser
             passthrough_actions = flow_match_actions + \
                 [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
                                          value=IGNORE_STATS)]
@@ -308,6 +308,9 @@ class PolicyMixin(metaclass=ABCMeta):
 
         # For DROP flow just send to stats table, it'll get dropped there
         if flow.action == flow.DENY:
+            flow_match_actions = flow_match_actions + \
+                [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
+                                         value=DROP_FLOW_STATS)]
             msgs.append(flows.get_add_resubmit_current_service_flow_msg(
                 self._datapath,
                 self.tbl_num,

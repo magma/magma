@@ -42,6 +42,7 @@ class EnforcementStatsTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
+    DEFAULT_DROP_FLOW_NAME = '(ノಠ益ಠ)ノ彡┻━┻'
 
     def setUp(self):
         """
@@ -96,7 +97,10 @@ class EnforcementStatsTest(unittest.TestCase):
             config={
                 'bridge_name': self.BRIDGE,
                 'bridge_ip_address': '192.168.128.1',
-                'enforcement': {'poll_interval': 2},
+                'enforcement': {
+                    'poll_interval': 2,
+                    'default_drop_flow_name': self.DEFAULT_DROP_FLOW_NAME
+                },
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
@@ -387,16 +391,17 @@ class EnforcementStatsTest(unittest.TestCase):
         with isolator, sub_context, snapshot_verifier:
             pkt_sender.send(packet)
 
-        enf_stat_name = imsi + '|default_drop_flow' + '|' + sub_ip
+        enf_stat_name = imsi + '|' + self.DEFAULT_DROP_FLOW_NAME + '|' + sub_ip
         wait_for_enforcement_stats(self.enforcement_stats_controller,
                                    [enf_stat_name])
         stats = get_enforcement_stats(
             self.enforcement_stats_controller._report_usage.call_args_list)
 
         self.assertEqual(stats[enf_stat_name].sid, imsi)
-        self.assertEqual(stats[enf_stat_name].rule_id, "default_drop_flow")
-        self.assertEqual(stats[enf_stat_name].bytes_rx, 0)
-        self.assertEqual(stats[enf_stat_name].bytes_tx,
+        self.assertEqual(stats[enf_stat_name].rule_id,
+                         self.DEFAULT_DROP_FLOW_NAME)
+        self.assertEqual(stats[enf_stat_name].dropped_rx, 0)
+        self.assertEqual(stats[enf_stat_name].dropped_tx,
                          num_pkt_unmatched * len(packet))
 
     def test_ipv6_rule_install(self):

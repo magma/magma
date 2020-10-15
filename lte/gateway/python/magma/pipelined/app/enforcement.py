@@ -16,7 +16,7 @@ from lte.protos.pipelined_pb2 import RuleModResult
 
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
-from magma.pipelined.app.policy_mixin import PolicyMixin, DROP_RULE_STATS
+from magma.pipelined.app.policy_mixin import PolicyMixin
 
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
@@ -35,6 +35,7 @@ from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.utils import Utils
 
+
 class EnforcementController(PolicyMixin, MagmaController):
     """
     EnforcementController
@@ -52,6 +53,7 @@ class EnforcementController(PolicyMixin, MagmaController):
 
     APP_NAME = "enforcement"
     APP_TYPE = ControllerType.LOGICAL
+    DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
 
     def __init__(self, *args, **kwargs):
         super(EnforcementController, self).__init__(*args, **kwargs)
@@ -145,26 +147,17 @@ class EnforcementController(PolicyMixin, MagmaController):
         Returns:
             The list of flows that remain after inserting default flows
         """
-        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                   direction=Direction.IN)
-        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    direction=Direction.OUT)
+        match = MagmaMatch()
 
-        inbound_msg = flows.get_add_resubmit_next_service_flow_msg(
-            datapath, self.tbl_num, inbound_match, [],
+        msg = flows.get_add_resubmit_next_service_flow_msg(
+            datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             copy_table=self._enforcement_stats_tbl,
-            resubmit_table=self.next_main_table)
-
-        outbound_msg = flows.get_add_resubmit_next_service_flow_msg(
-            datapath, self.tbl_num, outbound_match, [],
-            priority=flows.MINIMUM_PRIORITY,
-            copy_table=self._enforcement_stats_tbl,
-            resubmit_table=self.next_main_table)
+            resubmit_table=self.next_main_table,
+            cookie=self.DEFAULT_FLOW_COOKIE)
 
         msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list([inbound_msg, outbound_msg],
-                                             existing_flows)
+            .filter_msgs_if_not_in_flow_list([msg], existing_flows)
         if msgs:
             chan = self._msg_hub.send(msgs, datapath)
             self._wait_for_responses(chan, len(msgs))
@@ -253,40 +246,11 @@ class EnforcementController(PolicyMixin, MagmaController):
             )
             return RuleModResult.FAILURE
 
-    def _get_default_flow_msgs_for_subscriber(self, imsi, ip_addr):
-        parser = self._datapath.ofproto_parser
-        ip_match_in = get_ue_ip_match_args(ip_addr, Direction.IN)
-        match_in = MagmaMatch(eth_type=get_eth_type(ip_addr),
-                              imsi=encode_imsi(imsi), **ip_match_in)
-        ip_match_out = get_ue_ip_match_args(ip_addr, Direction.OUT)
-        match_out = MagmaMatch(eth_type=get_eth_type(ip_addr),
-                               imsi=encode_imsi(imsi), **ip_match_out)
+    def _get_default_flow_msgs_for_subscriber(self, *_):
+        pass
 
-        actions = [parser.NXActionRegLoad2(dst=SCRATCH_REGS[1],
-                                           value=DROP_RULE_STATS)]
-        return [
-            flows.get_add_resubmit_current_service_flow_msg(
-                self._datapath, self.tbl_num,  match_in, actions,
-                priority=Utils.DROP_PRIORITY,
-                resubmit_table=self._enforcement_stats_tbl),
-            flows.get_add_resubmit_current_service_flow_msg(
-                self._datapath, self.tbl_num,  match_out, actions,
-                priority=Utils.DROP_PRIORITY,
-                resubmit_table=self._enforcement_stats_tbl)]
-
-    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
-        """
-        Add a low priority flow to drop a subscriber's traffic in the event
-        that all rules have been deactivated.
-
-        Args:
-            imsi (string): subscriber id
-            ip_addr (string): subscriber ip_addr
-        """
-        msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
-        if msgs:
-            chan = self._msg_hub.send(msgs, self._datapath)
-            self._wait_for_responses(chan, len(msgs))
+    def _install_default_flow_for_subscriber(self, *_):
+        pass
 
     def _deactivate_flow_for_rule(self, imsi, ip_addr, rule_id):
         """
