@@ -84,6 +84,8 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -158,6 +160,8 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -230,6 +234,8 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -324,6 +330,8 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -423,6 +431,8 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("500K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
