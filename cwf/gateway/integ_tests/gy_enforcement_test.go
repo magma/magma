@@ -802,7 +802,12 @@ func TestGyWithErrorCode(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 
 	// we need to generate over 80% but less than 100%  trigger a CCR update without triggering termination
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("4.6M")}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi: ue.GetImsi(),
+		Volume: &wrappers.StringValue{Value: *swag.String("4.6M")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
+	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
