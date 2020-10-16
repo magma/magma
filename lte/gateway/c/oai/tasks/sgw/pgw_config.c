@@ -145,10 +145,13 @@ int pgw_config_process(pgw_config_t* config_pP) {
       if (rv != 0) {
         if (retry++ >= MOBILITYD_API_RETRY_LIMIT) {
           OAILOG_CRITICAL(
-              LOG_SPGW_APP, "ERROR in getting assigned IP block from mobilityd\n");
+              LOG_SPGW_APP,
+              "ERROR in getting assigned IP block from mobilityd\n");
           return -1;
         } else {
-          OAILOG_DEBUG(LOG_SPGW_APP, "mobilityD IP block read: retry attempt: %d", retry);
+          OAILOG_DEBUG(
+              LOG_SPGW_APP, "mobilityD IP block read: retry attempt: %d",
+              retry);
           sleep(1);
         }
       } else {

@@ -34,9 +34,9 @@ using grpc::InsecureServerCredentials;
 using grpc::Server;
 using grpc::ServerBuilder;
 using magma::CSFBGatewayServiceImpl;
-using magma::SMSOrc8rGatewayServiceImpl;
 using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
+using magma::SMSOrc8rGatewayServiceImpl;
 using magma::SpgwServiceImpl;
 
 static SpgwServiceImpl spgw_service;

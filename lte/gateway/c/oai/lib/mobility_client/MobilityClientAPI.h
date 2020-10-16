@@ -147,8 +147,8 @@ int release_ipv6_address(
  * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
 int release_ipv4v6_address(
-    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr, const struct in6_addr* ipv6_addr);
-
+    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
+    const struct in6_addr* ipv6_addr);
 
 /*
  * Get the allocated IPv4 address for a subscriber

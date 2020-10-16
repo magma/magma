@@ -563,6 +563,10 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
 
+  void terminate_service_action(
+      std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
+      const CreditKey& key);
+
   void apply_charging_credit_update(
       const CreditKey& key, SessionCreditUpdateCriteria& credit_uc);
 

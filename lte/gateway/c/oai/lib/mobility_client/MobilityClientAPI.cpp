@@ -49,8 +49,8 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv4_address_status(
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
-    const grpc::Status& status, struct in6_addr addr,int vlan, const char* imsi, const char* apn,
-    const char* pdn_type,
+    const grpc::Status& status, struct in6_addr addr, int vlan,
+    const char* imsi, const char* apn, const char* pdn_type,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp);
 
 static itti_sgi_create_end_point_response_t
@@ -75,13 +75,12 @@ int pgw_handle_allocate_ipv4_address(
     s5_create_session_response_t s5_response) {
   MobilityServiceClient::getInstance().AllocateIPv4AddressAsync(
       subscriber_id, apn,
-      [=, &s5_response](const Status& status, AllocateIPAddressResponse ip_msg) {
-        std::string ipv4_addr_str = "";
-        if(ip_msg.ip_list_size() > 0) {
-          ipv4_addr_str = ip_msg.ip_list(0).address();
-        }
-        memcpy(addr, ipv4_addr_str.c_str(), sizeof(in_addr));
-        int vlan = atoi(ip_msg.vlan().c_str());
+      [=, &s5_response](
+          const Status& status, AllocateIPAddressResponse ip_msg) {
+        memcpy(
+            addr, ip_msg.mutable_ip_addr()->mutable_address()->c_str(),
+            sizeof(in_addr));
+        int vlan      = atoi(ip_msg.mutable_vlan()->c_str());
         auto sgi_resp = handle_allocate_ipv4_address_status(
             status, *addr, vlan, subscriber_id, apn, pdn_type,
             sgi_create_endpoint_resp);
@@ -189,19 +188,21 @@ int pgw_handle_allocate_ipv6_address(
   // Make an RPC call to Mobilityd
   MobilityServiceClient::getInstance().AllocateIPv6AddressAsync(
       subscriber_id, apn,
-      [=, &s5_response](const Status& status, AllocateIPAddressResponse ip_msg) {
+      [=, &s5_response](
+          const Status& status, AllocateIPAddressResponse ip_msg) {
         std::string ipv6_addr_str = "";
-        if(ip_msg.ip_list_size() > 0) {
+        if (ip_msg.ip_list_size() > 0) {
           ipv6_addr_str = ip_msg.ip_list(0).address();
         }
         memcpy(ip6_addr, ipv6_addr_str.c_str(), sizeof(in_addr));
         int vlan = atoi(ip_msg.vlan().c_str());
 
-      auto sgi_resp = handle_allocate_ipv6_address_status(
-          status, *ip6_addr, vlan, subscriber_id, apn, pdn_type, sgi_create_endpoint_resp);
+        auto sgi_resp = handle_allocate_ipv6_address_status(
+            status, *ip6_addr, vlan, subscriber_id, apn, pdn_type,
+            sgi_create_endpoint_resp);
 
-      // create session in PCEF and return
-      if (sgi_resp.status == SGI_STATUS_OK) {
+        // create session in PCEF and return
+        if (sgi_resp.status == SGI_STATUS_OK) {
           char ip6_str[INET6_ADDRSTRLEN];
           inet_ntop(AF_INET6, ip6_addr, ip6_str, INET6_ADDRSTRLEN);
 
@@ -217,25 +218,26 @@ int pgw_handle_allocate_ipv6_address(
           struct pcef_create_session_data session_data;
           get_session_req_data(
               spgw_state,
-              &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.saved_message,
+              &new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+                   .saved_message,
               &session_data);
           pcef_create_session(
               spgw_state, subscriber_id, NULL, ip6_str, &session_data, sgi_resp,
               session_req, new_bearer_ctxt_info_p);
           OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
-      }
-      s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
-      s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
-      handle_s5_create_session_response(
-          spgw_state, new_bearer_ctxt_info_p, s5_response);
-      OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
-  });
+        }
+        s5_response.eps_bearer_id = sgi_create_endpoint_resp.eps_bearer_id;
+        s5_response.context_teid  = sgi_create_endpoint_resp.context_teid;
+        handle_s5_create_session_response(
+            spgw_state, new_bearer_ctxt_info_p, s5_response);
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
+      });
   return 0;
 }
 
 static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
-    const Status& status, struct in6_addr addr, int vlan, const char* imsi, const char* apn,
-    const char* pdn_type,
+    const Status& status, struct in6_addr addr, int vlan, const char* imsi,
+    const char* apn, const char* pdn_type,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp) {
   if (status.ok()) {
     increment_counter(
@@ -285,22 +287,23 @@ int pgw_handle_allocate_ipv4v6_address(
   // Get IPv4v6 address
   MobilityServiceClient::getInstance().AllocateIPv4v6AddressAsync(
       subscriber_id, apn,
-      [=, &s5_response](const Status& status, AllocateIPAddressResponse ip_msg) {
+      [=, &s5_response](
+          const Status& status, AllocateIPAddressResponse ip_msg) {
         std::string ipv4_addr_str = "";
         std::string ipv6_addr_str = "";
-        if(ip_msg.ip_list_size() == 2) {
+        if (ip_msg.ip_list_size() == 2) {
           ipv4_addr_str = ip_msg.ip_list(0).address();
           ipv6_addr_str = ip_msg.ip_list(1).address();
         } else {
           OAILOG_INFO(
-            LOG_UTIL,
-            " Error in allocating ipv4v6 address for IMSI <%s> apn <%s>\n",
-            subscriber_id, apn);
+              LOG_UTIL,
+              " Error in allocating ipv4v6 address for IMSI <%s> apn <%s>\n",
+              subscriber_id, apn);
           OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
         }
         memcpy(ip4_addr, ipv4_addr_str.c_str(), sizeof(in_addr));
         memcpy(ip6_addr, ipv6_addr_str.c_str(), sizeof(in_addr));
-        int vlan = atoi(ip_msg.vlan().c_str());
+        int vlan      = atoi(ip_msg.vlan().c_str());
         auto sgi_resp = handle_allocate_ipv4v6_address_status(
             status, *ip4_addr, *ip6_addr, vlan, subscriber_id, apn, pdn_type,
             sgi_create_endpoint_resp);
@@ -395,7 +398,8 @@ int release_ipv6_address(
 }
 
 int release_ipv4v6_address(
-    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr, const struct in6_addr* ipv6_addr) {
+    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
+    const struct in6_addr* ipv6_addr) {
   int status = MobilityServiceClient::getInstance().ReleaseIPv4v6Address(
       subscriber_id, apn, *ipv4_addr, *ipv6_addr);
   return status;

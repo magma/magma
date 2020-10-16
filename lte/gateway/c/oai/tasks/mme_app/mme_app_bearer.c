@@ -1881,11 +1881,11 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
    * context.
    */
   ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t* mme_app_desc_p     = get_mme_nas_state(false);
   // Remove enb_s1ap_id_key from the hashtable
   hashtable_uint64_ts_remove(
-    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-    (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+      mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+      (const hash_key_t) ue_context_p->enb_s1ap_id_key);
 
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
@@ -2284,7 +2284,7 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
         "Reached max re-transmission of Paging Ind for "
         "ue_id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    ue_context_p->paging_retx_count = 0;
+    ue_context_p->paging_retx_count                  = 0;
     ue_context_p->time_paging_response_timer_started = 0;
     /* If there are any pending dedicated bearer requests to be sent to UE
      * send create_dedicated_bearer_reject to SPGW as UE did not respond

@@ -157,7 +157,8 @@ static uint32_t create_gtp_port(struct in_addr enb_addr, char port_name[]) {
   int rc;
   rc = snprintf(
       gtp_port_create, sizeof(gtp_port_create),
-      "sudo ovs-vsctl --may-exist add-port gtp_br0 %s -- set Interface %s type=%s "
+      "sudo ovs-vsctl --may-exist add-port gtp_br0 %s -- set Interface %s "
+      "type=%s "
       "options:remote_ip=%s options:key=flow",
       port_name, port_name, ovs_gtp_type, inet_ntoa(enb_addr));
   if (rc < 0) {
@@ -170,7 +171,8 @@ static uint32_t create_gtp_port(struct in_addr enb_addr, char port_name[]) {
     OAILOG_ERROR(
         LOG_GTPV1U, "gtp port create: [%s] failed: %d", gtp_port_create, rc);
   } else {
-    OAILOG_DEBUG(LOG_GTPV1U, "gtp port create done: for ENB: %s ", inet_ntoa(enb_addr));
+    OAILOG_DEBUG(
+        LOG_GTPV1U, "gtp port create done: for ENB: %s ", inet_ntoa(enb_addr));
   }
 
   return get_gtp_port_no(port_name);
@@ -243,9 +245,8 @@ int openflow_reset(void) {
 }
 
 int openflow_add_tunnel(
-    struct in_addr ue, struct in6_addr *ue_ipv6, int vlan,
-    struct in_addr enb, uint32_t i_tei,
-    uint32_t o_tei, Imsi_t imsi, struct ipv4flow_dl* flow_dl,
+    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
+    uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
     uint32_t flow_precedence_dl) {
   uint32_t gtp_portno = find_gtp_port_no(enb);
 
@@ -255,24 +256,24 @@ int openflow_add_tunnel(
 }
 
 int openflow_del_tunnel(
-    struct in_addr enb, struct in_addr ue, struct in6_addr *ue_ipv6,
-    uint32_t i_tei, uint32_t o_tei,
-    struct ipv4flow_dl* flow_dl) {
+    struct in_addr enb, struct in_addr ue, struct in6_addr* ue_ipv6,
+    uint32_t i_tei, uint32_t o_tei, struct ip_flow_dl* flow_dl) {
   uint32_t gtp_portno = find_gtp_port_no(enb);
 
-  return openflow_controller_del_gtp_tunnel(ue, ue_ipv6, i_tei, flow_dl, gtp_portno);
+  return openflow_controller_del_gtp_tunnel(
+      ue, ue_ipv6, i_tei, flow_dl, gtp_portno);
 }
 
 int openflow_discard_data_on_tunnel(
-    struct in_addr ue, struct in6_addr *ue_ipv6,
-    uint32_t i_tei, struct ipv4flow_dl* flow_dl) {
-  return openflow_controller_discard_data_on_tunnel(ue, ue_ipv6, i_tei, flow_dl);
+    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+    struct ip_flow_dl* flow_dl) {
+  return openflow_controller_discard_data_on_tunnel(
+      ue, ue_ipv6, i_tei, flow_dl);
 }
 
 int openflow_forward_data_on_tunnel(
-    struct in_addr ue, struct in6_addr *ue_ipv6, uint32_t i_tei,
-    struct ipv4flow_dl* flow_dl,
-    uint32_t flow_precedence_dl) {
+    struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+    struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl) {
   return openflow_controller_forward_data_on_tunnel(
       ue, ue_ipv6, i_tei, flow_dl, flow_precedence_dl);
 }

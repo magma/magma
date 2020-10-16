@@ -218,8 +218,8 @@ int MobilityServiceClient::GetSubscriberIDFromIPv4(
 void MobilityServiceClient::AllocateIPAddressRPC(
     const AllocateIPRequest& request,
     const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
-  auto localResp =
-      new AsyncLocalResponse<AllocateIPAddressResponse>(std::move(callback), RESPONSE_TIMEOUT);
+  auto localResp = new AsyncLocalResponse<AllocateIPAddressResponse>(
+      std::move(callback), RESPONSE_TIMEOUT);
   localResp->set_response_reader(std::move(stub_->AsyncAllocateIPAddress(
       localResp->get_context(), request, &queue_)));
 }

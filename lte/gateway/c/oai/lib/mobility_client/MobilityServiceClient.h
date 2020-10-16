@@ -66,7 +66,8 @@ class MobilityServiceClient : public GRPCReceiver {
    */
   int AllocateIPv4AddressAsync(
       const std::string& imsi, const std::string& apn,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>& callback);
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
+          callback);
 
   /**
    * Allocate an IPv6 address from the free IP pool (non-blocking)
@@ -78,7 +79,8 @@ class MobilityServiceClient : public GRPCReceiver {
    */
   int AllocateIPv6AddressAsync(
       const std::string& imsi, const std::string& apn,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>& callback);
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
+          callback);
 
   /**
    * Allocate an IPv4v6 address from the free IP pool (non-blocking)
@@ -90,7 +92,8 @@ class MobilityServiceClient : public GRPCReceiver {
    */
   int AllocateIPv4v6AddressAsync(
       const std::string& imsi, const std::string& apn,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>& callback);
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
+          callback);
 
   /**
    * Release an allocated IPv4 address. (non-blocking)
@@ -141,7 +144,6 @@ class MobilityServiceClient : public GRPCReceiver {
       const std::string& imsi, const std::string& apn,
       const struct in_addr& ipv4_addr, const struct in6_addr& ipv6_addr);
 
-
   /*
    * Get the allocated IPv4 address for a subscriber
    * @param imsi: IMSI string
@@ -181,7 +183,8 @@ class MobilityServiceClient : public GRPCReceiver {
    */
   void AllocateIPAddressRPC(
       const AllocateIPRequest& request,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>& callback);
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
+          callback);
 
   /**
    * Helper function to chain callback for gRPC response
@@ -191,7 +194,6 @@ class MobilityServiceClient : public GRPCReceiver {
   void ReleaseIPAddressRPC(
       const ReleaseIPRequest& request,
       const std::function<void(grpc::Status, magma::orc8r::Void)>& callback);
-
 };
 
 }  // namespace lte

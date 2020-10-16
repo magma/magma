@@ -250,13 +250,13 @@ static int get_uli_from_session_req(
            ((saved_req->uli.s.ecgi.plmn.mcc_digit3 & 0xf));
   uli[8] = ((saved_req->uli.s.ecgi.plmn.mnc_digit2 & 0xf) << 4) |
            ((saved_req->uli.s.ecgi.plmn.mnc_digit1 & 0xf));
-  uli[9] = (saved_req->uli.s.ecgi.cell_identity.enb_id >> 16) & 0xf;
+  uli[9]  = (saved_req->uli.s.ecgi.cell_identity.enb_id >> 16) & 0xf;
   uli[10] = (saved_req->uli.s.ecgi.cell_identity.enb_id >> 8) & 0xff;
   uli[11] = saved_req->uli.s.ecgi.cell_identity.enb_id & 0xff;
   uli[12] = saved_req->uli.s.ecgi.cell_identity.cell_id & 0xff;
   uli[13] = '\0';
 
-  char hex_uli[3*ULI_DATA_SIZE+1];
+  char hex_uli[3 * ULI_DATA_SIZE + 1];
   OAILOG_DEBUG(
       LOG_SPGW_APP, "Session request ULI %s",
       bytes_to_hex(uli, ULI_DATA_SIZE, hex_uli));
