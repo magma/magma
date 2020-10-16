@@ -1,18 +1,20 @@
-From 7277a58d96d7a56316a0c7d878124aeb165ccfb0 Mon Sep 17 00:00:00 2001
+From 4b30b6d91010528a43bbc571864851435b7731aa Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Mon, 29 Jun 2020 02:45:36 +0000
-Subject: [PATCH 5/8] OVS: gtp echo handling
+Subject: [PATCH 05/10] OVS: gtp echo handling
 
 This uses OVS BFD module to send ech msgs.
 
 testing done using ./tests/test-gtp 1.11.1.1 3201000a0000000000010000ff0003000a01
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
  include/openvswitch/packets.h  |  16 ++
  lib/bfd.c                      |  81 ++++++++--
  lib/bfd.h                      |   4 +-
  lib/netdev-provider.h          |   8 +
  lib/netdev-vport-private.h     |   1 +
- lib/netdev-vport.c             | 263 +++++++++++++++++++++++++++++++
+ lib/netdev-vport.c             | 267 +++++++++++++++++++++++++++++++-
  lib/netdev.c                   |  38 +++++
  lib/netdev.h                   |  11 ++
  ofproto/ofproto-dpif-monitor.c |  13 +-
@@ -24,7 +26,7 @@ testing done using ./tests/test-gtp 1.11.1.1 3201000a0000000000010000ff0003000a0
  tests/system-common-macros.at  |  19 +++
  tests/system-layer3-tunnels.at | 273 ++++++++++++++++++++++++++-------
  tests/test-gtp.c               | 111 ++++++++++++++
- 17 files changed, 815 insertions(+), 82 deletions(-)
+ 17 files changed, 818 insertions(+), 83 deletions(-)
  create mode 100644 tests/test-gtp.c
 
 diff --git a/include/openvswitch/packets.h b/include/openvswitch/packets.h
@@ -285,7 +287,7 @@ index d89a28c66..3c82d5837 100644
  
  int netdev_vport_construct(struct netdev *);
 diff --git a/lib/netdev-vport.c b/lib/netdev-vport.c
-index e7ddf1547..be5707e8c 100644
+index 7158ef428..4e9696b98 100644
 --- a/lib/netdev-vport.c
 +++ b/lib/netdev-vport.c
 @@ -29,6 +29,7 @@
@@ -312,7 +314,17 @@ index e7ddf1547..be5707e8c 100644
  
      if (name && dpif_port && (strlen(name) > strlen(dpif_port) + 1) &&
          (!strncmp(name, dpif_port, strlen(dpif_port)))) {
-@@ -1116,6 +1119,256 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
+@@ -573,7 +576,8 @@ set_tunnel_config(struct netdev *dev_, const struct smap *args, char **errp)
+     int err;
+ 
+     has_csum = strstr(type, "gre") || strstr(type, "geneve") ||
+-               strstr(type, "stt") || strstr(type, "vxlan");
++               strstr(type, "stt") || strstr(type, "vxlan") ||
++               strstr(type, "gtpu");
+     has_seq = strstr(type, "gre");
+     memset(&tnl_cfg, 0, sizeof tnl_cfg);
+ 
+@@ -1121,6 +1125,256 @@ netdev_vport_get_pt_mode(const struct netdev *netdev)
  
  
  #ifdef __linux__
@@ -569,7 +581,7 @@ index e7ddf1547..be5707e8c 100644
  static int
  netdev_vport_get_ifindex(const struct netdev *netdev_)
  {
-@@ -1241,6 +1494,10 @@ netdev_vport_tunnel_register(void)
+@@ -1246,6 +1500,11 @@ netdev_vport_tunnel_register(void)
                .build_header = netdev_gtpu_build_header,
                .push_header = netdev_gtpu_push_header,
                .pop_header = netdev_gtpu_pop_header,
@@ -577,10 +589,11 @@ index e7ddf1547..be5707e8c 100644
 +              .is_keep_alive_pkt = gtp_is_keep_alive_pkt,
 +              .process_keep_alive_pkt = gtp_process_keep_alive_pkt,
 +              .build_keep_alive_pkt = gtp_build_keep_alive_pkt,
++              .get_ifindex = NETDEV_VPORT_GET_IFINDEX,
            },
            {{NULL, NULL, 0, 0}}
          },
-@@ -1259,6 +1516,12 @@ netdev_vport_tunnel_register(void)
+@@ -1264,6 +1523,12 @@ netdev_vport_tunnel_register(void)
          unixctl_command_register("tnl/egress_port_range", "min max", 0, 2,
                                   netdev_tnl_egress_port_range, NULL);
  
@@ -640,10 +653,10 @@ index 91e91955c..1bc5abfc8 100644
 +    return EOPNOTSUPP;
 +}
 diff --git a/lib/netdev.h b/lib/netdev.h
-index c01fa026e..8704255d6 100644
+index 4877df5ff..de532a9dc 100644
 --- a/lib/netdev.h
 +++ b/lib/netdev.h
-@@ -327,6 +327,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
+@@ -329,6 +329,17 @@ bool netdev_queue_dump_next(struct netdev_queue_dump *,
                              unsigned int *queue_id, struct smap *details);
  int netdev_queue_dump_done(struct netdev_queue_dump *);
  

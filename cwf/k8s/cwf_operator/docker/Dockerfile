@@ -33,6 +33,7 @@ ENV GOPROXY https://proxy.golang.org
 # Copy just the go.mod and go.sum files to download the golang deps.
 # This step allows us to cache the downloads, and prevents reaching out to
 # the internet unless any of the go.mod or go.sum files are changed.
+COPY cwf/cloud/go/go.* $MAGMA_ROOT/cwf/cloud/go/
 COPY cwf/k8s/cwf_operator/go.*  $MAGMA_ROOT/cwf/k8s/cwf_operator/
 COPY lte/cloud/go/go.* $MAGMA_ROOT/lte/cloud/go/
 COPY feg/cloud/go/go.* $MAGMA_ROOT/feg/cloud/go/
@@ -45,9 +46,12 @@ WORKDIR $MAGMA_ROOT/cwf/k8s/cwf_operator
 RUN go mod download; exit 0
 
 # Copy and build the go code.
-COPY feg/cloud/go/protos $MAGMA_ROOT/feg/cloud/go/protos
-COPY lte/cloud/go/protos $MAGMA_ROOT/lte/cloud/go/protos
+COPY cwf/cloud/go $MAGMA_ROOT/cwf/cloud/go
+COPY feg/cloud/go $MAGMA_ROOT/feg/cloud/go
+COPY lte/cloud/go $MAGMA_ROOT/lte/cloud/go
 COPY orc8r/lib/go $MAGMA_ROOT/orc8r/lib/go
+COPY orc8r/cloud/go $MAGMA_ROOT/orc8r/cloud/go
+COPY orc8r/gateway/go $MAGMA_ROOT/orc8r/gateway/go
 COPY cwf/k8s/cwf_operator/cmd $MAGMA_ROOT/cwf/k8s/cwf_operator/cmd
 COPY cwf/k8s/cwf_operator/pkg $MAGMA_ROOT/cwf/k8s/cwf_operator/pkg
 COPY cwf/k8s/cwf_operator/version $MAGMA_ROOT/cwf/k8s/cwf_operator/version
@@ -73,7 +77,7 @@ COPY --from=builder /var/opt/magma/bin/manager ${OPERATOR}
 
 COPY cwf/k8s/cwf_operator/docker/entrypoint /usr/local/bin
 COPY cwf/k8s/cwf_operator/docker/user_setup /usr/local/bin
-COPY cwf/gateway/helm/cwf /helm-charts/cwf
+COPY cwf/gateway/helm/cwf-kubevirt /helm-charts/cwf
 RUN  /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

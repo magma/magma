@@ -25,7 +25,7 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
-    Direction, SCRATCH_REGS, REG_ZERO_VAL, RULE_VERSION_REG
+    Direction, SCRATCH_REGS, REG_ZERO_VAL, RULE_VERSION_REG, RULE_NUM_REG
 from magma.redirectd.redirect_store import RedirectDict
 
 from ryu.lib.packet import ether_types
@@ -90,7 +90,7 @@ class RedirectionManager:
         self._cwf_args_set = True
         return self
 
-    def handle_redirection(self, datapath, loop, redirect_request):
+    def setup_lte_redirect(self, datapath, loop, redirect_request):
         """
         Depending on redirection server address type install redirection rules
         """
@@ -651,6 +651,6 @@ class RedirectionManager:
 
     def _load_rule_actions(self, parser, rule_num, rule_version):
         return [
-            parser.NXActionRegLoad2(dst='reg2', value=rule_num),
+            parser.NXActionRegLoad2(dst=RULE_NUM_REG, value=rule_num),
             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=rule_version),
         ]

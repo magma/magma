@@ -28,6 +28,7 @@ import (
 
 const (
 	partOfLabel                    = "app.kubernetes.io/part-of"
+	partOfOrc8rApp                 = "orc8r-app"
 	serviceRegistryNamespaceEnvVar = "SERVICE_REGISTRY_NAMESPACE"
 	grpcPortName                   = "grpc"
 	httpPortName                   = "http"
@@ -56,7 +57,7 @@ func NewKubernetesServiceRegistryServicer(k8sClient corev1.CoreV1Interface) (*Ku
 func (s *KubernetesServiceRegistryServicer) ListAllServices(ctx context.Context, req *protos.Void) (*protos.ListAllServicesResponse, error) {
 	ret := &protos.ListAllServicesResponse{}
 	orc8rListOption := metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", partOfLabel, "orc8r"),
+		LabelSelector: fmt.Sprintf("%s=%s", partOfLabel, partOfOrc8rApp),
 	}
 	svcList, err := s.client.Services(s.namespace).List(orc8rListOption)
 	if err != nil {
@@ -72,7 +73,7 @@ func (s *KubernetesServiceRegistryServicer) ListAllServices(ctx context.Context,
 func (s *KubernetesServiceRegistryServicer) FindServices(ctx context.Context, req *protos.FindServicesRequest) (*protos.FindServicesResponse, error) {
 	ret := &protos.FindServicesResponse{}
 	orc8rListOption := metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s,%s=true", partOfLabel, "orc8r", req.GetLabel()),
+		LabelSelector: fmt.Sprintf("%s=%s,%s=true", partOfLabel, partOfOrc8rApp, req.GetLabel()),
 	}
 	svcList, err := s.client.Services(s.namespace).List(orc8rListOption)
 	if err != nil {
@@ -150,14 +151,17 @@ func (s *KubernetesServiceRegistryServicer) getServiceForServiceName(serviceName
 	// name to service is unknown to the registry, iterate through all
 	// services and check the suffix
 	orc8rListOption := metav1.ListOptions{
-		LabelSelector: fmt.Sprintf("%s=%s", partOfLabel, "orc8r"),
+		LabelSelector: fmt.Sprintf("%s=%s", partOfLabel, partOfOrc8rApp),
 	}
+
+	// Helm services don't allow for underscores, so convert to a dash
+	formattedServiceName := strings.ReplaceAll(serviceName, "_", "-")
 	svcList, err := s.client.Services(s.namespace).List(orc8rListOption)
 	if err != nil {
 		return nil, err
 	}
 	for _, svc := range svcList.Items {
-		if strings.HasSuffix(svc.Name, serviceName) {
+		if strings.HasSuffix(svc.Name, formattedServiceName) {
 			return &svc, nil
 		}
 	}

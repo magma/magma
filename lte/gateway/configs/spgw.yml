@@ -35,5 +35,8 @@ ovs_internal_sampling_port_number: 15578
 # Table to forward packets from the internal sampling port
 ovs_internal_sampling_fwd_tbl_number: 201
 
+# Create separate tunnel interface for each eNodeB
+ovs_multi_tunnel: true
+
 # Non-NAT specific config
 ovs_uplink_port_number: 2

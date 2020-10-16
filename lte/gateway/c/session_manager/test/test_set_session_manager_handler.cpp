@@ -40,8 +40,8 @@ namespace magma {
 class SessionManagerHandlerTest : public ::testing::Test {
  public:
   virtual void SetUp() {
-    rule_store    = std::make_shared<StaticRuleStore>();
-    session_store = std::make_shared<SessionStore>(rule_store);
+    rule_store            = std::make_shared<StaticRuleStore>();
+    session_store         = std::make_shared<SessionStore>(rule_store);
     auto pipelined_client = std::make_shared<magma::AsyncPipelinedClient>();
     amf_srv_client        = std::make_shared<magma::AsyncAmfServiceClient>();
 
@@ -53,9 +53,7 @@ class SessionManagerHandlerTest : public ::testing::Test {
         rule_store, *session_store, pipelined_client, amf_srv_client, mconfig);
 
     evb = new folly::EventBase();
-    std::thread([&]() {
-      folly::EventBaseManager::get()->setEventBase(evb, 0);
-    })
+    std::thread([&]() { folly::EventBaseManager::get()->setEventBase(evb, 0); })
         .detach();
 
     session_enforcer->attachEventBase(evb);
@@ -97,7 +95,6 @@ TEST_F(SessionManagerHandlerTest, test_SetAmfSessionContext) {
   reqcmn->set_sm_session_state(magma::SMSessionFSMState::CREATING_0);
 
   grpc::ServerContext server_context;
-
 
   set_session_manager->SetAmfSessionContext(
       &server_context, &request,

@@ -22,6 +22,7 @@ magma_services:
   - health
   - swx_proxy
   - eap_aka
+  - eap_sim
   - aaa_server
 
 # List of services that don't provide service303 interface
@@ -74,6 +75,7 @@ metricsd:
     - s6a_proxy
     - swx_proxy
     - eap_aka
+    - eap_sim
     - aaa_server
     - csfb
 

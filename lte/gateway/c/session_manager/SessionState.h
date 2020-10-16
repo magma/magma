@@ -77,25 +77,25 @@ struct BearerUpdate {
  */
 class SessionState {
  public:
-
   struct SessionInfo {
-    enum  upfNodeType {
-	   	IPv4 = 0,
-        IPv6 = 1,
-       FQDN = 2,
+    enum upfNodeType {
+      IPv4 = 0,
+      IPv6 = 1,
+      FQDN = 2,
     };
 
     typedef struct tNodeId {
       upfNodeType node_id_type;
       char node_id[40];
-    }NodeId;
+    } NodeId;
 
-    typedef struct  Fseid {
-	uint64_t  f_seid;
-	NodeId  Nid;
+    typedef struct Fseid {
+      uint64_t f_seid;
+      NodeId Nid;
     } FSid;
     std::string imsi;
     std::string ip_addr;
+    std::string ipv6_addr;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
@@ -184,13 +184,6 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& update_criteria);
 
-  /**
-   * mark_as_awaiting_termination transitions the session state from
-   * SESSION_ACTIVE to SESSION_TERMINATION_SCHEDULED
-   */
-  void mark_as_awaiting_termination(
-      SessionStateUpdateCriteria& update_criteria);
-
   bool is_terminating();
 
   /**
@@ -220,6 +213,10 @@ class SessionState {
 
   uint64_t get_charging_credit(const CreditKey& key, Bucket bucket) const;
 
+  bool set_credit_reporting(
+      const CreditKey& key, bool reporting,
+      SessionStateUpdateCriteria* update_criteria);
+
   ReAuthResult reauth_key(
       const CreditKey& charging_key,
       SessionStateUpdateCriteria& update_criteria);
@@ -229,6 +226,8 @@ class SessionState {
   void set_charging_credit(
       const CreditKey& key, ChargingGrant charging_grant,
       SessionStateUpdateCriteria& uc);
+
+  RulesToProcess get_all_final_unit_rules();
 
   /**
    * get_total_credit_usage returns the tx and rx of the session,
@@ -435,6 +434,10 @@ class SessionState {
 
   uint64_t get_monitor(const std::string& key, Bucket bucket) const;
 
+  bool set_monitor_reporting(
+      const std::string& key, bool reporting,
+      SessionStateUpdateCriteria* update_criteria);
+
   bool add_to_monitor(
       const std::string& key, uint64_t used_tx, uint64_t used_rx,
       SessionStateUpdateCriteria& uc);
@@ -559,6 +562,10 @@ class SessionState {
       UpdateSessionRequest& update_request_out,
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
+
+  void terminate_service_action(
+      std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
+      const CreditKey& key);
 
   void apply_charging_credit_update(
       const CreditKey& key, SessionCreditUpdateCriteria& credit_uc);

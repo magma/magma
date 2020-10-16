@@ -1,11 +1,13 @@
-From efa588d730d6e1fabd4466c7f56b792bcf4657db Mon Sep 17 00:00:00 2001
+From 02d660b3cbaeab7ba5375a1a4e7016d2ba68f328 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 21 Aug 2020 04:54:53 +0000
-Subject: [PATCH 4/8] ovs: Add support to set GTP header fields.
+Subject: [PATCH 04/10] ovs: Add support to set GTP header fields.
 
 This allows OVS to match and set GTP header fields.
 This is useful when controller wants to send GTP
 echo or end marker type msgs ovs GTP-U.
+
+Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
  datapath/flow_netlink.c                       |  54 +++++-
  datapath/linux/compat/gtp.c                   | 137 ++++++++++-----
@@ -468,7 +470,7 @@ index 7da4fb54d..78de535a8 100644
  
          /* OVS_PACKET_CMD_ACTION only. */
 diff --git a/lib/meta-flow.xml b/lib/meta-flow.xml
-index 154675874..d5372d4dd 100644
+index e72ba52ec..266cc7072 100644
 --- a/lib/meta-flow.xml
 +++ b/lib/meta-flow.xml
 @@ -1876,6 +1876,17 @@ ovs-ofctl add-flow br-int 'in_port=3,tun_src=192.168.1.1,tun_id=5001 actions=1'
@@ -490,10 +492,10 @@ index 154675874..d5372d4dd 100644
  
      <p>
 diff --git a/lib/netdev-native-tnl.c b/lib/netdev-native-tnl.c
-index b89dfdd52..9346de4cf 100644
+index 50f95e637..ea0896456 100644
 --- a/lib/netdev-native-tnl.c
 +++ b/lib/netdev-native-tnl.c
-@@ -740,14 +740,14 @@ netdev_gtpu_pop_header(struct dp_packet *packet)
+@@ -743,14 +743,14 @@ netdev_gtpu_pop_header(struct dp_packet *packet)
          goto err;
      }
  
@@ -511,7 +513,7 @@ index b89dfdd52..9346de4cf 100644
              gtpu_hlen = GTPU_HLEN + sizeof(struct gtpuhdr_opt);
          } else {
              gtpu_hlen = GTPU_HLEN;
-@@ -770,7 +770,7 @@ netdev_gtpu_pop_header(struct dp_packet *packet)
+@@ -773,7 +773,7 @@ netdev_gtpu_pop_header(struct dp_packet *packet)
           */
          packet->packet_type = htonl(PT_ETH);
          VLOG_WARN_ONCE("Receive non-GPDU msgtype: %"PRIu8,
@@ -520,7 +522,7 @@ index b89dfdd52..9346de4cf 100644
      }
  
      return packet;
-@@ -825,16 +825,16 @@ netdev_gtpu_build_header(const struct netdev *netdev,
+@@ -830,16 +830,16 @@ netdev_gtpu_build_header(const struct netdev *netdev,
      gtph = udp_build_header(tnl_cfg, data, params);
  
      /* Set to default if not set in flow. */

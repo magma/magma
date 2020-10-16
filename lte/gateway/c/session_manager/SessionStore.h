@@ -36,9 +36,10 @@ typedef std::unordered_map<
     SessionUpdate;
 
 enum SessionSearchCriteriaType {
-  IMSI_AND_APN        = 0,
-  IMSI_AND_SESSION_ID = 1,
-  IMSI_AND_UE_IPV4    = 2,
+  IMSI_AND_APN             = 0,
+  IMSI_AND_SESSION_ID      = 1,
+  IMSI_AND_UE_IPV4         = 2,
+  IMSI_AND_UE_IPV4_OR_IPV6 = 3,
 };
 
 struct SessionSearchCriteria {
@@ -101,6 +102,19 @@ class SessionStore {
    * @param update_criteria
    */
   void sync_request_numbers(const SessionUpdate& update_criteria);
+
+  /**
+   * Goes over all the RG keys and monitoring keys on the UpdateSessionRequest
+   * object, and updates is_reporting flab with the value. This function it is
+   * used to mark a specific key is currently waiting to get an answer back
+   * from the core
+   * @param value
+   * @param update_session_request
+   * @param session_uc
+   */
+  void set_and_save_reporting_flag(
+      bool value, const UpdateSessionRequest& update_session_request,
+      SessionUpdate& session_uc);
 
   /**
    * Read the last written values for the requested sessions through the

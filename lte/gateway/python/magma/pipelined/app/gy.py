@@ -33,7 +33,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-
+from magma.pipelined.utils import Utils
 
 class GYController(PolicyMixin, MagmaController):
     """
@@ -63,6 +63,7 @@ class GYController(PolicyMixin, MagmaController):
         self._bridge_ip_address = kwargs['config']['bridge_ip_address']
         self._clean_restart = kwargs['config']['clean_restart']
         self._qos_mgr = None
+        self._setup_type = self._config['setup_type']
         self._redirect_manager = \
             RedirectionManager(
                 self._bridge_ip_address,
@@ -71,7 +72,9 @@ class GYController(PolicyMixin, MagmaController):
                 self._service_manager.get_table_num(EGRESS),
                 self._redirect_scratch,
                 self._session_rule_version_mapper
-            ).set_cwf_args(
+            )
+        if self._setup_type == 'CWF':
+            self._redirect_manager.set_cwf_args(
                 internal_ip_allocator=kwargs['internal_ip_allocator'],
                 arp=kwargs['app_futures']['arpd'],
                 mac_rewrite=self._mac_rewr,
@@ -187,7 +190,10 @@ class GYController(PolicyMixin, MagmaController):
         chan = self._msg_hub.send(flow_adds, self._datapath)
         return self._wait_for_rule_responses(imsi, rule, chan)
 
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _get_default_flow_msgs_for_subscriber(self, *_):
+        return None
+
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         pass
 
     def _delete_all_flows(self, datapath):
@@ -233,8 +239,12 @@ class GYController(PolicyMixin, MagmaController):
             rule_version=rule_version,
             priority=priority)
         try:
-            self._redirect_manager.setup_cwf_redirect(
-                self._datapath, self.loop, redirect_request)
+            if self._setup_type == 'CWF':
+                self._redirect_manager.setup_cwf_redirect(
+                    self._datapath, self.loop, redirect_request)
+            else:
+                self._redirect_manager.setup_lte_redirect(
+                    self._datapath, self.loop, redirect_request)
             return RuleModResult.SUCCESS
         except RedirectException as err:
             self.logger.error(
@@ -292,7 +302,7 @@ class GYController(PolicyMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        priority = self._get_of_priority(rule.priority)
+        priority = Utils.get_of_priority(rule.priority)
 
         flow_adds = []
         for flow in rule.flow_list:

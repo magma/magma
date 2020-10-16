@@ -21,9 +21,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"golang.org/x/net/context"
 
-	"magma/lte/cloud/go/protos"
-
 	"magma/feg/gateway/registry"
+	"magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/test_utils"
 )
 

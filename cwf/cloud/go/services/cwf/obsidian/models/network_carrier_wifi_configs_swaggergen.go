@@ -33,6 +33,9 @@ type NetworkCarrierWifiConfigs struct {
 	// Required: true
 	EapAka *models2.EapAka `json:"eap_aka"`
 
+	// eap sim
+	EapSim *models2.EapSim `json:"eap_sim,omitempty"`
+
 	// li ues
 	LiUes *LiUes `json:"li_ues,omitempty"`
 
@@ -54,6 +57,10 @@ func (m *NetworkCarrierWifiConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateEapAka(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateEapSim(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -108,6 +115,24 @@ func (m *NetworkCarrierWifiConfigs) validateEapAka(formats strfmt.Registry) erro
 		if err := m.EapAka.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("eap_aka")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkCarrierWifiConfigs) validateEapSim(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.EapSim) { // not required
+		return nil
+	}
+
+	if m.EapSim != nil {
+		if err := m.EapSim.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_sim")
 			}
 			return err
 		}

@@ -79,6 +79,12 @@ class SessionCredit {
       SessionCreditUpdateCriteria& update_criteria);
 
   /**
+   * returns the units to be requested to OCS for the first request. Its default
+   * value can be modified changing
+   */
+  RequestedUnits static get_initial_requested_credits_units();
+
+  /**
    * returns the units to be requested to OCS based on the last grant. If
    * the last grant is not totally used it will return lastGrant - usage
    */
@@ -103,7 +109,10 @@ class SessionCredit {
   void set_received_granted_units(
       GrantedUnits& rgu, SessionCreditUpdateCriteria& uc);
 
-  void set_report_last_credit(bool report_last_credit, SessionCreditUpdateCriteria& uc);
+  void set_report_last_credit(
+      bool report_last_credit, SessionCreditUpdateCriteria& uc);
+
+  void set_reporting(bool reporting);
 
   bool is_report_last_credit();
 
@@ -117,6 +126,12 @@ class SessionCredit {
   void add_credit(
       uint64_t credit, Bucket bucket,
       SessionCreditUpdateCriteria& update_criteria);
+
+  /**
+   * Merges SessionCredit UpdateCriteria with credit
+   * */
+  void merge(SessionCreditUpdateCriteria& uc);
+
   /**
    * is_quota_exhausted checks if any of the remaining quota (Allowed - Used)
    * on tx, rx, or tx+rx amounts are under a specific threshold, and depending
@@ -154,6 +169,12 @@ class SessionCredit {
    * Set to false to allow users to use without any constraint.
    */
   static bool TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED;
+
+  /**
+   * Represents the quota amount that will be requested to the core on the
+   * initial request
+   */
+  static uint64_t DEFAULT_REQUESTED_UNITS;
 
  private:
   uint64_t buckets_[MAX_VALUES];

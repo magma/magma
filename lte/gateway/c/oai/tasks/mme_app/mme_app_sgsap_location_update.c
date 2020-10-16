@@ -79,8 +79,11 @@ void _mme_app_update_granted_service_for_ue(ue_mm_context_t* ue_context) {
     OAILOG_INFO(LOG_MME_APP, "Granted service is GRANTED_SERVICE_SMS_ONLY\n");
   } else if (
       (additional_update_type != MME_APP_SMS_ONLY) &&
-      !(strcmp(
-          (const char*) mme_config.non_eps_service_control->data, "SMS"))) {
+      (!(strcmp(
+           (const char*) mme_config.non_eps_service_control->data, "SMS")) ||
+       !(strcmp(
+           (const char*) mme_config.non_eps_service_control->data,
+           "SMS_ORC8R")))) {
     ue_context->granted_service = GRANTED_SERVICE_SMS_ONLY;
     OAILOG_INFO(LOG_MME_APP, "Granted service is  GRANTED_SERVICE_SMS_ONLY\n");
   } else {

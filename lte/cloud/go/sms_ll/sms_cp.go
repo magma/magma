@@ -33,7 +33,7 @@ type cpMessage struct {
 	// Only present for CP-ERROR
 	cause byte
 
-	// Only present for CP-DATA
+	// Can be present for CP-DATA, CP-ACK and CP-ERROR
 	length byte
 
 	// Only present for CP-DATA
@@ -61,10 +61,10 @@ func createCpMessage(txID byte, messageType byte, rpdu []byte) (cpMessage, error
 	copy(rpduCopy, rpdu)
 
 	return cpMessage{
-		firstOctet: fo,
+		firstOctet:  fo,
 		messageType: messageType,
-		length: byte(len(rpduCopy)),
-		rpdu: rpduCopy,
+		length:      byte(len(rpduCopy)),
+		rpdu:        rpduCopy,
 	}, nil
 }
 
@@ -84,29 +84,41 @@ func (cpm cpMessage) marshalBinary() []byte {
 }
 
 func (cpm *cpMessage) unmarshalBinary(input []byte) error {
-	// must be at least two octets long
-	if len(input) < 2 {
+	msgLen := len(input)
+	// Message length must be at least two octets long
+	if msgLen < 2 {
 		return smsCpError("Message too short")
 	}
 
 	cpm.firstOctet = input[0]
 	cpm.messageType = input[1]
 
-	switch cpm.messageType {
-	case CpData:
-		cpm.length = input[2]
-		cpm.rpdu = make([]byte, len(input[3:]))
-		copy(cpm.rpdu, input[3:])
-	case CpError:
-		if _, ok := CpCauseStr[input[2]]; ok {
-			cpm.cause = input[2]
+	if cpm.messageType != CpData && cpm.messageType != CpError && cpm.messageType != CpAck {
+		return smsCpError(fmt.Sprintf("Invalid Message type: %x", cpm.messageType))
+	}
+	// Decode IEs
+	decoded := 2
+
+	for decoded < msgLen {
+		if input[decoded] == CpIeiUserData {
+			decoded++
+			cpm.length = input[decoded]
+			decoded++
+			end := decoded + int(cpm.length)
+			cpm.rpdu = make([]byte, cpm.length)
+			copy(cpm.rpdu, input[decoded:end])
+			decoded = end
+		} else if input[decoded] == CpIeiCause {
+			decoded++
+			if _, ok := CpCauseStr[input[decoded]]; ok {
+				cpm.cause = input[decoded]
+				decoded++
+			} else {
+				return smsCpError(fmt.Sprintf("Invalid cause: %x", cpm.cause))
+			}
 		} else {
-			return smsCpError(fmt.Sprintf("Invalid cause: %x", cpm.cause))
+			return smsCpError(fmt.Sprintf("Invalid IE type: %x", input[decoded]))
 		}
-	case CpAck:
-		// Do nothing -- no more data
-	default:
-		return smsCpError(fmt.Sprintf("Invalid IE type: %x", cpm.messageType))
 	}
 
 	return nil
@@ -127,37 +139,37 @@ const (
 	// For SMS-related messages, this is always 0x9 (half-octet)
 	CpProtocolDisc = 0x9
 
-	// Message types
+	// Message types 24.011 8.1.3
 	CpData  = 0x1
-	CpAck   = 0x3
-	CpError = 0x5
+	CpAck   = 0x4
+	CpError = 0x10
 
 	// IE Types
-	CpIeiUser  = 0x1
-	CpIeiCause = 0x2
+	CpIeiUserData = 0x1
+	CpIeiCause    = 0x2
 )
 
 const (
 	// CP Cause error types (24.011 8.1.4.2, Table 8.2)
-	CpCauseNetworkFailure                = 0x11
-	CpCauseCongestion                     = 0x16
-	CpCauseInvalidTi                     = 0x51
-	CpCauseSemanticallyIncorrect         = 0x5f
+	CpCauseNetworkFailure               = 0x11
+	CpCauseCongestion                   = 0x16
+	CpCauseInvalidTi                    = 0x51
+	CpCauseSemanticallyIncorrect        = 0x5f
 	CpCauseInvalidMandantoryInformation = 0x60
 	CpCauseMessageTypeNonexistant       = 0x61
 	CpCauseMessageNotCompatible         = 0x62
 	CpCauseInfoElementNonexistant       = 0x63
-	CpCauseProtocolError                 = 0x6f
+	CpCauseProtocolError                = 0x6f
 )
 
 var CpCauseStr = map[byte]string{
-	CpCauseNetworkFailure:                "Network failure",
-	CpCauseCongestion:                     "Congestion",
-	CpCauseInvalidTi:                     "Invalid Transaction Identifier value",
-	CpCauseSemanticallyIncorrect:         "Semantically incorrect message",
-	CpCauseInvalidMandantoryInformation: "Invalid mandantory information",
+	CpCauseNetworkFailure:               "Network failure",
+	CpCauseCongestion:                   "Congestion",
+	CpCauseInvalidTi:                    "Invalid Transaction Identifier value",
+	CpCauseSemanticallyIncorrect:        "Semantically incorrect message",
+	CpCauseInvalidMandantoryInformation: "Invalid mandatory information",
 	CpCauseMessageTypeNonexistant:       "Message type non-existent or not implemented",
 	CpCauseMessageNotCompatible:         "Message not compatible with the short message protocol state",
 	CpCauseInfoElementNonexistant:       "Information element non-existent or not implemented",
-	CpCauseProtocolError:                 "Protocol error, unspecified",
+	CpCauseProtocolError:                "Protocol error, unspecified",
 }

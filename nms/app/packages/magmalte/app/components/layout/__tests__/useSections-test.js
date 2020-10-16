@@ -86,7 +86,7 @@ const testCases: {[string]: TestCase} = {
   },
   feg: {
     default: 'gateways',
-    sections: ['gateways', 'configure'],
+    sections: ['gateways', 'configure', 'alerts'],
   },
   carrier_wifi_network: {
     default: 'gateways',

@@ -316,6 +316,11 @@ int mme_api_get_esm_config(mme_api_esm_config_t* config) {
           (const char*) mme_config.non_eps_service_control->data, "CSFB_SMS") ==
       0) {
     config->features = config->features | MME_API_CSFB_SMS_SUPPORTED;
+  } else if (
+      strcmp(
+          (const char*) mme_config.non_eps_service_control->data,
+          "SMS_ORC8R") == 0) {
+    config->features = config->features | MME_API_SMS_ORC8R_SUPPORTED;
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS, RETURNok);
