@@ -89,4 +89,4 @@ class SessionStateEnforcer {
 
 };  // End of class SessionStateEnforcer
 
-} // end namespace magma
+}  // end namespace magma

@@ -2,9 +2,11 @@ package sms_ll
 
 import (
 	"encoding/hex"
+	"reflect"
 	"testing"
 	"time"
-	"reflect"
+
+	"github.com/stretchr/testify/assert"
 )
 
 // Test cases:
@@ -38,7 +40,7 @@ func TestEncodingMultipleSMS(t *testing.T) {
 	msg := "Here's a test of a veeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrryyyyyyyyyyyyyyyyyy long message that's super super long."
 	ts := time.Date(2020, 9, 14, 16, 30, 50, 12345, time.UTC)
 	num := "18658675309"
-	ref := []byte{1,2}
+	ref := []byte{1, 2}
 	expected := []string{"1901a6010102b911009f640b918156685703f9000002904161030500a0050003010201906579f934078541f4f29c0e7a9b416190bd5c2e97cbe572b95c2e97cbe572b95c2e97cbe572b95c2e97cbe572b95c2e97cbe572b95c2e97cbe572b95c96cbe572b95c2e97cbe572b95c2e97cbe572b95c2e97cbe572b95c2e97cbe572b95c2e97cbe572b95c2ecfe7f3f97c3e9fcfe7f3f97c3e9fcfe741ecb7fb0c6a97e7f3f0b90ca2a3c3", "290133010202b911002c640b918156685703f90000029041610305001c050003010202e8a739685e8797e5a0791d5e9683d86ff7d905"}
 
 	b, e := GenerateSmsDelivers(msg, num, ts, ref)
@@ -57,49 +59,79 @@ func TestEncodingMultipleSMS(t *testing.T) {
 
 func TestDecode(t *testing.T) {
 	type decodeResult struct {
-		ref uint8
-		res bool
+		ref   uint8
+		res   bool
 		cause string
-		err bool // true if we get an error
+		err   bool // true if we get an error
 	}
 
 	tests := []struct {
-		name string
+		name  string
 		input string
-		want decodeResult
+		want  decodeResult
 	}{
-		{name: "deliver-success", input: "d90106020141020000", want: decodeResult{1, true, "", false}},
-		{name: "deliver-fail", input: "d9010404040160", want: decodeResult{4, false, "Invalid mandantory information", false}},
+		{name: "deliver-success", input: "d9010106020141020000", want: decodeResult{1, true, "", false}},
+		{name: "deliver-fail", input: "d901010404040160", want: decodeResult{4, false, "Invalid mandatory information", false}},
 		{name: "giberish", input: "209491c192c912ca1010", want: decodeResult{0, false, "", true}},
-		{name: "data", input: "790127010702b9110020240b918156685703f90000029041610305000ec8b2bc7c9a83c2207a794e7701", want: decodeResult{0, false, "", true}},
+		{name: "data", input: "79010127010702b9110020240b918156685703f90000029041610305000ec8b2bc7c9a83c2207a794e7701", want: decodeResult{0, false, "", true}},
 	}
 
 	for _, tc := range tests {
 		msg, _ := hex.DecodeString(tc.input)
-		ref, res, cause, err := Decode(msg)
-		result := decodeResult{ref, res, cause, err != nil}
-		if !reflect.DeepEqual(tc.want, result) {
-			t.Errorf("Decode failed (want: %v, got %v)", tc.want, result)
-		}
+		actual, err := Decode(msg)
+		result := decodeResult{actual.Reference, actual.IsSuccessful, actual.ErrorMessage, err != nil}
+		assert.Equal(t, tc.want, result)
 	}
 }
 
 func TestPiecewiseDecodeDeliveryFailure(t *testing.T) {
-	input := "d9010404010160"
+	input := "d9100211010404010160"
 	cp_hex, _ := hex.DecodeString(input)
 	cpm := new(cpMessage)
 	err := cpm.unmarshalBinary(cp_hex)
 	if err != nil {
-		t.Errorf("Failed to decode valid CP-DATA")
+		t.Errorf("Failed to decode valid CP-ERROR")
 	}
-	if cpm.messageType != CpData {
-		t.Errorf("Failed to decode valid CP-DATA")
+	if cpm.messageType != CpError {
+		t.Errorf("Failed to decode valid CP-ERROR")
 	}
 	if int(cpm.length) != 4 || len(cpm.rpdu) != 4 {
 		t.Errorf("CP-DATA length incorrect")
 	}
-	if cpm.cause != 0x0 {
-		t.Errorf("CP-DATA has cause set to non-zero")
+	if cpm.cause != 0x11 {
+		t.Errorf("CP-ERROR has cause NOT set to Network Failure")
+	}
+
+	rpm := new(rpMessage)
+	err = rpm.unmarshalBinary(cpm.rpdu)
+	if err != nil {
+		t.Errorf("Failed to decode valid RP-ERROR")
+	}
+	msg_type, err := rpm.msgType()
+	if err != nil {
+		t.Errorf("Failed to decode valid RP-ERROR")
+	}
+	if msg_type != RpError || rpm.cause.cause != RpCauseInvalidMandantoryInfo {
+		t.Errorf("Failed to decode valid RP-ERROR")
+	}
+}
+
+func TestPiecewiseDecodeDeliveryFailureChangeIEOrder(t *testing.T) {
+	input := "d9100104040101600211"
+	cp_hex, _ := hex.DecodeString(input)
+	cpm := new(cpMessage)
+	err := cpm.unmarshalBinary(cp_hex)
+	if err != nil {
+		t.Errorf("Failed to decode valid CP-ERROR")
+	}
+	if cpm.messageType != CpError {
+		t.Errorf("Failed to decode valid CP-ERROR")
+	}
+	if int(cpm.length) != 4 || len(cpm.rpdu) != 4 {
+		t.Errorf("CP-DATA length incorrect")
+	}
+	if cpm.cause != 0x11 {
+		t.Errorf("CP-ERROR has cause NOT set to Network Failure")
 	}
 
 	rpm := new(rpMessage)
@@ -117,14 +149,14 @@ func TestPiecewiseDecodeDeliveryFailure(t *testing.T) {
 }
 
 func TestPiecewiseDecodeDeliveryReport(t *testing.T) {
-	input := "d90106020141020000"
+	input := "d9040106020141020000"
 	cp_hex, _ := hex.DecodeString(input)
 	cpm := new(cpMessage)
 	err := cpm.unmarshalBinary(cp_hex)
 	if err != nil {
-		t.Errorf("Failed to decode valid CP-DATA")
+		t.Errorf("Failed to decode valid CP-ACK")
 	}
-	if cpm.messageType != CpData {
+	if cpm.messageType != CpAck {
 		t.Errorf("Failed to decode valid CP-DATA")
 	}
 	if int(cpm.length) != 6 && len(cpm.rpdu) != 6 {

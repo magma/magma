@@ -22,6 +22,7 @@ namespace magma {
 
 float SessionCredit::USAGE_REPORTING_THRESHOLD             = 0.8;
 bool SessionCredit::TERMINATE_SERVICE_WHEN_QUOTA_EXHAUSTED = true;
+uint64_t SessionCredit::DEFAULT_REQUESTED_UNITS            = 200000;
 
 // by default, enable service & finite credit
 SessionCredit::SessionCredit() : SessionCredit(SERVICE_ENABLED, FINITE) {}
@@ -103,6 +104,7 @@ void SessionCredit::reset_reporting_credit(SessionCreditUpdateCriteria* uc) {
 void SessionCredit::mark_failure(
     uint32_t code, SessionCreditUpdateCriteria* uc) {
   if (DiameterCodeHandler::is_transient_failure(code)) {
+    MLOG(MDEBUG) << "mark_faliure triggered. Reseting reporting";
     buckets_[REPORTED_RX] += buckets_[REPORTING_RX];
     buckets_[REPORTED_TX] += buckets_[REPORTING_TX];
     if (uc != NULL) {
@@ -310,6 +312,14 @@ SessionCredit::Usage SessionCredit::get_usage_for_reporting(
   return usage;
 }
 
+RequestedUnits SessionCredit::get_initial_requested_credits_units() {
+  RequestedUnits requestedUnits;
+  requestedUnits.set_total(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  requestedUnits.set_rx(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  requestedUnits.set_tx(SessionCredit::DEFAULT_REQUESTED_UNITS);
+  return requestedUnits;
+}
+
 RequestedUnits SessionCredit::get_requested_credits_units() {
   RequestedUnits requestedUnits;
   uint64_t buckets_used_total = buckets_[USED_TX] + buckets_[USED_RX];
@@ -469,12 +479,30 @@ void SessionCredit::set_received_granted_units(
 
 void SessionCredit::set_report_last_credit(
     bool report_last_credit, SessionCreditUpdateCriteria& uc) {
-  report_last_credit_ = report_last_credit;
+  report_last_credit_   = report_last_credit;
   uc.report_last_credit = report_last_credit;
+}
+
+void SessionCredit::set_reporting(bool reporting) {
+  reporting_ = reporting;
 }
 
 bool SessionCredit::is_report_last_credit() {
   return report_last_credit_;
+}
+
+void SessionCredit::merge(SessionCreditUpdateCriteria& uc) {
+  grant_tracking_type_    = uc.grant_tracking_type;
+  received_granted_units_ = uc.received_granted_units;
+  report_last_credit_     = uc.report_last_credit;
+  // DO NOT UPDATE reporting_. (done bv LocalSessionManagerHandler)
+
+  // add credit
+  for (int i = USED_TX; i != MAX_VALUES; i++) {
+    Bucket bucket = static_cast<Bucket>(i);
+    auto credit   = uc.bucket_deltas.find(bucket)->second;
+    buckets_[bucket] += credit;
+  }
 }
 
 void SessionCredit::add_credit(

@@ -132,6 +132,10 @@ data:
             action: labeldrop
         static_configs:
           - targets: ['{{ .Values.prometheus.prometheusCacheHostname }}:9091']
+      - job_name: "magma_pushgateway_stats"
+        metrics_path: '/internal'
+        static_configs:
+          - targets: ['{{ .Values.prometheus.prometheusCacheHostname }}:9091']
 
     rule_files:
       - '/etc/prometheus/alert_rules/*_rules.yml'

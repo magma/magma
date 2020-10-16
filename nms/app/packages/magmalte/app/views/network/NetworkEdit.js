@@ -119,21 +119,18 @@ export function NetworkEditDialog(props: DialogProps) {
   const classes = useStyles();
   const ctx = useContext(LteNetworkContext);
 
-  const [lteNetwork, setLteNetwork] = useState<lte_network>(
-    editProps ? ctx.state : {},
-  );
-  const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>(
-    editProps ? ctx.state.cellular?.epc ?? {} : {},
-  );
+  const [lteNetwork, setLteNetwork] = useState<lte_network>({});
+  const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>({});
   const lteRanConfigs = editProps ? ctx.state.cellular?.ran : undefined;
 
   const [tabPos, setTabPos] = React.useState(
     editProps ? EditTableType[editProps.editTable] : 0,
   );
+
   useEffect(() => {
     setLteNetwork(editProps ? ctx.state : {});
     setEpcConfigs(editProps ? ctx.state.cellular?.epc ?? {} : {});
-  }, [open]);
+  }, [open, editProps, ctx.state]);
 
   const onClose = () => {
     setTabPos(0);

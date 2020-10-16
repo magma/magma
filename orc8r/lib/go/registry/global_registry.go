@@ -80,13 +80,13 @@ func RemoveServicesWithLabel(label string) {
 }
 
 // ListAllServices lists all services' names from global registry
-func ListAllServices() []string {
+func ListAllServices() ([]string, error) {
 	return globalRegistry.ListAllServices()
 }
 
 // FindServices returns the names of all registered services that have
 // the passed label.
-func FindServices(label string) []string {
+func FindServices(label string) ([]string, error) {
 	return globalRegistry.FindServices(label)
 }
 
@@ -94,6 +94,12 @@ func FindServices(label string) []string {
 // The service needs to be added to the registry before this.
 func GetServiceAddress(service string) (string, error) {
 	return globalRegistry.GetServiceAddress(service)
+}
+
+// GetHttpServerAddress returns the HTTP address of the service from global registry
+// The service needs to be added to the registry before this.
+func GetHttpServerAddress(service string) (string, error) {
+	return globalRegistry.GetHttpServerAddress(service)
 }
 
 // GetServiceProxyAliases returns the proxy_aliases, if any, of the service from global registry

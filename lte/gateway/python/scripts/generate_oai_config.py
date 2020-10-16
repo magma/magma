@@ -94,6 +94,8 @@ def _get_non_eps_service_control():
             return "CSFB_SMS"
         elif non_eps_service_control == 2:
             return "SMS"
+        elif non_eps_service_control == 3:
+            return "SMS_ORC8R"
     return "OFF"
 
 

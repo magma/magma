@@ -179,7 +179,7 @@ static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
    */
   esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
 
-  if (esm_ebr_timer_data) {
+  if (esm_ebr_timer_data && esm_ebr_timer_data->ctx) {
     /*
      * Increment the retransmission counter
      */

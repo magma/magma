@@ -1,11 +1,46 @@
+/*
+ *  Copyright 2020 The Magma Authors.
+ *
+ *  This source code is licensed under the BSD-style license found in the
+ *  LICENSE file in the root directory of this source tree.
+ *
+ *  Unless required by applicable law or agreed to in writing, software
+ *  distributed under the License is distributed on an "AS IS" BASIS,
+ *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ *  See the License for the specific language governing permissions and
+ *  limitations under the License.
+ */
+
 package sms_ll
 
 import (
+	"errors"
+	"fmt"
+	"time"
+
 	"github.com/warthog618/sms"
 	"github.com/warthog618/sms/encoding/tpdu"
-	"time"
-	"fmt"
 )
+
+// SMSSerde (SER-ializer/DE-serializer) is an interface that wraps the encode/
+// decode functions in this package to facilitate unit testing of components
+// that depend on this package's functionality.
+type SMSSerde interface {
+	EncodeMessage(message string, fromNum string, timestamp time.Time, references []uint8) ([][]byte, error)
+	DecodeDelivery(input []byte) (SMSDeliveryReport, error)
+}
+
+// DefaultSMSSerde is the SMSSerde impl that's backed by the exported functions
+// in this package.
+type DefaultSMSSerde struct{}
+
+func (d *DefaultSMSSerde) EncodeMessage(message string, fromNum string, timestamp time.Time, references []uint8) ([][]byte, error) {
+	return GenerateSmsDelivers(message, fromNum, timestamp, references)
+}
+
+func (d *DefaultSMSSerde) DecodeDelivery(input []byte) (SMSDeliveryReport, error) {
+	return Decode(input)
+}
 
 // Generate fully encoded SMS PDUs for delivery to a UE (MS). Will handle
 // encoding and chunking of messages as appropriate. We first generate TPDUs,
@@ -19,10 +54,10 @@ import (
 // Outputs:
 //	- Array of byte array representing the set of fully-encoded CP-DATA(RP-DATA(TPDU)) messages generated
 //	- Error	(if any)
-func GenerateSmsDelivers(message string, from_num string, timestamp time.Time, references []uint8) ([][]byte, error) {
-	tpdus := createTpdus(message, from_num, timestamp)
+func GenerateSmsDelivers(message string, fromNum string, timestamp time.Time, references []uint8) ([][]byte, error) {
+	tpdus := createTpdus(message, fromNum, timestamp)
 	if len(references) != len(tpdus) {
-		return nil, fmt.Errorf("Insufficient references for generated TPDU (have %d, need %d)", len(references), len(tpdus))
+		return nil, fmt.Errorf("insufficient references for generated TPDU (have %d, need %d)", len(references), len(tpdus))
 	}
 
 	output := make([][]byte, 0)
@@ -65,6 +100,16 @@ func GetMessageCount(message string) int {
 	return len(createTpdus(message, "123456", time.Now()))
 }
 
+// SMSDeliveryReport is a struct that wraps the decoded result of a
+// SMS-DELIVERY-REPORT message.
+// ErrorMessage field will be non-empty if IsSuccessful is false and the input
+// was successfully decoded.
+type SMSDeliveryReport struct {
+	Reference    uint8
+	IsSuccessful bool
+	ErrorMessage string
+}
+
 // Decodes an SMS-DELIVERY-REPORT message.
 // Inputs:
 //	input: A byte array representing a fully encoded SMS delivered from a UE
@@ -73,34 +118,38 @@ func GetMessageCount(message string) int {
 //	- bool: true if the message was successfully delivered
 //	- string: descriptive delivery status (only present for failures)
 //	- error: if the message received is not an SMS-DELIVERY-REPORT.
-func Decode(input []byte) (uint8, bool, string, error) {
+func Decode(input []byte) (SMSDeliveryReport, error) {
+	ret := SMSDeliveryReport{}
 	// A message is a delivery report iff we receive a CP-DATA(RP-ACK(TPDU)). We can ignore everything else.
 	cpm := new(cpMessage)
 	err := cpm.unmarshalBinary(input)
 	if err != nil {
-		return 0, false, "", err
-	}
-
-	// Valid CPM, check type
-	if cpm.messageType != CpData {
-		return 0, false, "", fmt.Errorf("Not a CP-DATA message: %x", cpm.messageType)
+		return ret, err
 	}
 
 	rpm := new(rpMessage)
 	err = rpm.unmarshalBinary(cpm.rpdu)
 	if err != nil {
-		return 0, false, "", err
+		return ret, err
 	}
 
 	// Valid RPM, must be of type RP-ERROR or RP-ACK
-	msg_type, _ := rpm.msgType()
-	switch msg_type {
+	msgType, _ := rpm.msgType()
+	switch msgType {
 	case RpAck: // success! get reference
-		return uint8(rpm.reference), true, "", nil
+		return SMSDeliveryReport{
+			Reference:    rpm.reference,
+			IsSuccessful: true,
+			ErrorMessage: "",
+		}, nil
 	case RpError: // failure, get cause
-		return uint8(rpm.reference), false, rpm.cause.cause_str, nil
+		return SMSDeliveryReport{
+			Reference:    rpm.reference,
+			IsSuccessful: false,
+			ErrorMessage: rpm.cause.causeStr,
+		}, nil
 	default:
-		return 0, false, "", fmt.Errorf("RP-DATA message, ignoring")
+		return ret, errors.New("RP-DATA message, ignoring")
 	}
 }
 
@@ -130,9 +179,9 @@ func createRpDataMessage(mti byte, reference byte, data []byte) (rpMessage, erro
 	}
 
 	rpm := rpMessage{
-		mti: mti,
+		mti:       mti,
 		reference: reference,
-		userData: ud,
+		userData:  ud,
 	}
 
 	if rpm.direction() == RpMt { // MT-SMS should have empty dest address

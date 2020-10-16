@@ -44,6 +44,7 @@ jest
   .mockReturnValue(enqueueSnackbarMock);
 
 const mockGw0: lte_gateway = {
+  apn_resources: {},
   id: ' testGatewayId0',
   name: ' testGateway0',
   description: ' testGateway0',
@@ -213,6 +214,7 @@ describe('<AddEditGatewayButton />', () => {
     await wait();
     expect(MagmaAPIBindings.postLteByNetworkIdGateways).toHaveBeenCalledWith({
       gateway: {
+        apn_resources: {},
         id: 'testGatewayID1',
         name: 'testGatewayName',
         cellular: {

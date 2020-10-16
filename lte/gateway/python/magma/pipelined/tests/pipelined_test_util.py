@@ -27,7 +27,7 @@ from ryu.lib import hub
 
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.pipelined_pb2 import SetupFlowsResult, SetupPolicyRequest, \
-    UpdateSubscriberQuotaStateRequest
+    UpdateSubscriberQuotaStateRequest, SetupUEMacRequest
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.tests.app.exceptions import BadConfigError, \
@@ -238,7 +238,8 @@ def setup_controller(controller, setup_req, sleep_time: float = 1,
     return res.result
 
 
-def fake_controller_setup(enf_controller, enf_stats_controller=None,
+def fake_controller_setup(enf_controller=None,
+                          enf_stats_controller=None,
                           startup_flow_controller=None,
                           check_quota_controller=None,
                           setup_flows_request=None,
@@ -254,7 +255,6 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         setup_flows_request = SetupPolicyRequest(
             requests=[], epoch=global_epoch,
         )
-    enf_controller.init_finished = False
     if startup_flow_controller:
         startup_flow_controller._flows_received = False
         startup_flow_controller._table_flows.clear()
@@ -280,6 +280,17 @@ def fake_controller_setup(enf_controller, enf_stats_controller=None,
         TestCase().assertEqual(setup_controller(
             check_quota_controller, check_quota_request),
             SetupFlowsResult.SUCCESS)
+
+
+def fake_cwf_setup(ue_mac_controller, setup_ue_mac_request=None):
+    if setup_ue_mac_request is None:
+        setup_ue_mac_request = SetupUEMacRequest(
+            requests=[], epoch=global_epoch,
+        )
+    ue_mac_controller.init_finished = False
+    TestCase().assertEqual(setup_controller(
+        ue_mac_controller, setup_ue_mac_request),
+        SetupFlowsResult.SUCCESS)
 
 
 def wait_for_enforcement_stats(controller, rule_list, wait_time=1,
@@ -353,7 +364,8 @@ def create_service_manager(services: List[int],
     if static_services is None:
         static_services = []
     magma_service.config = {
-        'static_services': static_services
+        'static_services': static_services,
+        '5G_feature_set': {'enable': False}
     }
     service_manager = ServiceManager(magma_service)
 
@@ -361,6 +373,7 @@ def create_service_manager(services: List[int],
     service_manager.rule_id_mapper._rule_nums_by_rule = {}
     service_manager.rule_id_mapper._rules_by_rule_num = {}
     service_manager.session_rule_version_mapper._version_by_imsi_and_rule = {}
+    service_manager.interface_to_prefix_mapper._prefix_by_interface = {}
 
     return service_manager
 
@@ -592,3 +605,14 @@ def get_iface_ipv4(iface: str) -> List[str]:
         ip_addr_list.append(ip_rec['addr'])
 
     return ip_addr_list
+
+
+def get_iface_gw_ipv4(iface: str) -> List[str]:
+    gateways = netifaces.gateways()
+    gateway_ip_addr_list = []
+    for gw_ip, gw_iface, _ in gateways[netifaces.AF_INET]:
+        if gw_iface != iface:
+            continue
+        gateway_ip_addr_list.append(gw_ip)
+
+    return gateway_ip_addr_list

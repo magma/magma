@@ -18,6 +18,7 @@
     - role: xwfmvars
       tags: 
          - run_pipelined
+         - fbstatsd
     - role: pkgrepo
       tags:
          - install
@@ -37,6 +38,14 @@
     - role: containers
       tags:
          - no_ci
+    - role: exporter
+      tags:
+         - no_ci
     - role: provision
       tags:
          - no_ci
+    - role: fbstatsd
+      tags:
+         - no_ci
+         - fbstatsd
+

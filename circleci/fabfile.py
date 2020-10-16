@@ -43,6 +43,9 @@ CWF_IMAGES = [
 
 DEFAULT_DOCKER_REG = 'facebookconnectivity-magma-docker.jfrog.io'
 
+class FabricException(Exception):
+    pass
+
 
 class NodeLease:
     def __init__(self, node_id: str, lease_id: str, vpn_ip: str):
@@ -236,24 +239,42 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
                 '-f docker-compose.nginx.yml '
                 '-f docker-compose.integ-test.yml '
                 'build --parallel')
-        result = run('fab integ_test:destroy_vm=True,transfer_images=True',
-                     timeout=110*60, warn_only=True)
+        test_xml = "tests.xml"
+        with settings(abort_exception=FabricException):
+            try:
+                result = run('fab integ_test:'
+                             'destroy_vm=True,'
+                             'transfer_images=True,'
+                             'test_result_xml=' + test_xml,
+                             timeout=110*60, warn_only=True)
+            except Exception as e:
+                _transfer_all_artifacts()
+                print(f'Exception while running cwf integ_test\n {e}')
+                sys.exit(1)
+        # Move JUnit test result to /tmp/test-results directory
+        local('mkdir cwf-tests-xml')
+        get(test_xml, 'cwf-tests-xml')
+        local('sudo mkdir -p /tmp/test-results/')
+        local('sudo mv cwf-tests-xml/* /tmp/test-results/')
         # On failure, transfer logs of key services from docker containers and
         # copy to the log directory. This will get stored as an artifact in the
         # circleCI config.
         if result.return_code:
-            services = "sessiond session_proxy pcrf ocs pipelined ingress"
-            run(f'fab transfer_artifacts:services="{services}",'
-                'get_core_dump=True')
-
-            # Copy the log files out from the node
-            local('mkdir cwf-artifacts')
-            get('*.log', 'cwf-artifacts')
-            if exists("coredump.tar.gz"):
-                get('coredump.tar.gz', 'cwf-artifacts')
-            local('sudo mkdir -p /tmp/logs/')
-            local('sudo mv cwf-artifacts/* /tmp/logs/')
+            _transfer_all_artifacts()
         sys.exit(result.return_code)
+
+
+def _transfer_all_artifacts():
+    services = "sessiond session_proxy pcrf ocs pipelined ingress"
+    run(f'fab transfer_artifacts:services="{services}",'
+        'get_core_dump=True')
+    # Copy log files out from the node
+    local('mkdir cwf-artifacts')
+    get('*.log', 'cwf-artifacts')
+    if exists("coredump.tar.gz"):
+        get('coredump.tar.gz', 'cwf-artifacts')
+    local('sudo mkdir -p /tmp/logs/')
+    local('sudo mv cwf-artifacts/* /tmp/logs/')
 
 
 def _run_remote_lte_package(repo: str, magma_root: str,

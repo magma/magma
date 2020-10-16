@@ -27,6 +27,8 @@ MEDIUM_PRIORITY = 100
 MAXIMUM_PRIORITY = 65535
 OVS_COOKIE_MATCH_ALL = 0xffffffff
 
+CLASSIFIER_NEXT_TABLE_NUM = 1
+CLASSIFIER_INTERNAL_SAMPLING_FWD_TABLE_NUM = 201
 
 def add_drop_flow(datapath, table, match, actions=None, instructions=None,
                   priority=MINIMUM_PRIORITY, retries=3, cookie=0x0,
@@ -107,7 +109,7 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
 
 def add_flow(datapath, table, match, actions=None, instructions=None,
              priority=MINIMUM_PRIORITY, retries=3, cookie=0x0, idle_timeout=0,
-             hard_timeout=0):
+             hard_timeout=0, goto_table=None):
     """
     Add a flow based on provided args.
 
@@ -139,13 +141,22 @@ def add_flow(datapath, table, match, actions=None, instructions=None,
 
     if actions is None:
         actions = []
-    reset_scratch_reg_actions = [
-        parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
-        for reg in SCRATCH_REGS]
-    actions = actions + reset_scratch_reg_actions
+    # As 4G GTP tunnel, Register value is not used.
+    # if use for default flow, 4G traffic is dropping.
+    if ((goto_table != CLASSIFIER_NEXT_TABLE_NUM) and
+                     (goto_table != CLASSIFIER_INTERNAL_SAMPLING_FWD_TABLE_NUM)):
+        reset_scratch_reg_actions = [
+             parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
+             for reg in SCRATCH_REGS]
+        actions = actions + reset_scratch_reg_actions
 
     inst = __get_instructions_for_actions(ofproto, parser,
                                           actions, instructions)
+
+    # For 5G GTP tunnel, goto_table is used for downlink and uplink
+    if goto_table:
+        inst.append(parser.OFPInstructionGotoTable(goto_table))
+
     ryu_match = parser.OFPMatch(**match.ryu_match)
 
     mod = parser.OFPFlowMod(datapath=datapath, priority=priority,

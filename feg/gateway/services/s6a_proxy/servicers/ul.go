@@ -20,15 +20,15 @@ import (
 	"strconv"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/s6a_proxy/metrics"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"google.golang.org/grpc/codes"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/s6a_proxy/metrics"
 )
 
 // sendULR - sends ULR with given Session ID (sid)

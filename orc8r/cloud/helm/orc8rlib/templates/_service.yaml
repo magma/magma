@@ -16,10 +16,11 @@ kind: Service
 metadata:
   name: {{ .Release.Name }}-svc
   labels:
-{{ include "labels" . | indent 4 }}
+    app.kubernetes.io/component: controller
+{{ include "default-labels" . | indent 4 }}
 spec:
   selector:
-{{ include "selector-labels" . | indent 4 }}
+{{ include "default-selector-labels" . | indent 4 }}
   type: ClusterIP
   # Standardize on service ports for gRPC and HTTP servers
   ports:

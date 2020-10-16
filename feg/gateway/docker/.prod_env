@@ -18,6 +18,8 @@ BUILD_CONTEXT=https://github.com/facebookincubator/magma.git#master
 
 ROOTCA_PATH=/var/opt/magma/certs/rootCA.pem
 CONTROL_PROXY_PATH=/etc/magma/control_proxy.yml
+CONFIGS_DEFAULT_VOLUME=/etc/magma
+CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 SNOWFLAKE_PATH=/etc/snowflake
 
 CERTS_VOLUME=/var/opt/magma/certs

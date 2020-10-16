@@ -59,7 +59,7 @@ spec:
       containers:
         - name: "user-grafana"
           image: {{ required "userGrafana.image.respository must be provided" .Values.userGrafana.image.repository }}:{{ .Values.userGrafana.image.tag }}
-          imagePullPolicy: {{ .Values.grafana.image.pullPolicy }}
+          imagePullPolicy: {{ .Values.userGrafana.image.pullPolicy }}
           ports:
             - containerPort: 3000
 

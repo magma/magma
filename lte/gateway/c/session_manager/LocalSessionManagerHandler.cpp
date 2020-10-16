@@ -59,7 +59,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
-    MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows";
+    MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows,"
+                << " old epoch = " << current_epoch_
+                << ", new epoch = " << reported_epoch_;
     restart_pipelined(reported_epoch_);
     // Set the current epoch right away to prevent double setup call requests
     current_epoch_ = reported_epoch_;
@@ -68,13 +70,12 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 }
 
 void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
-    SessionMap session_map, SessionUpdate& session_update) {
+    SessionMap session_map, SessionUpdate& session_uc) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request =
-      enforcer_->collect_updates(session_map, actions, session_update);
-  enforcer_->execute_actions(session_map, actions, session_update);
+  auto request = enforcer_->collect_updates(session_map, actions, session_uc);
+  enforcer_->execute_actions(session_map, actions, session_uc);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
-    auto update_success = session_store_.update_sessions(session_update);
+    auto update_success = session_store_.update_sessions(session_uc);
     if (update_success) {
       MLOG(MDEBUG) << "Succeeded in updating session after no reporting";
     } else {
@@ -82,13 +83,18 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
     }
     return;  // nothing to report
   }
+
   MLOG(MINFO) << "Sending " << request.updates_size()
               << " charging updates and " << request.usage_monitors_size()
               << " monitor updates to OCS and PCRF";
 
+  // set reporting flag for those sessions reporting
+  session_store_.set_and_save_reporting_flag(true, request, session_uc);
+
   // Before reporting and returning control to the event loop, increment the
   // request numbers stored for the sessions in SessionStore
-  session_store_.sync_request_numbers(session_update);
+  session_store_.sync_request_numbers(session_uc);
+
   // report to cloud
   // NOTE: It is not possible to construct a std::function from a move-only type
   //       So because of this, we can't directly move session_map into the
@@ -98,21 +104,25 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
   //       https://stackoverflow.com/questions/25421346/how-to-create-an-stdfunction-from-a-move-capturing-lambda-expression
   reporter_->report_updates(
       request,
-      [this, request, session_update,
+      [this, request, session_uc,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, UpdateSessionResponse response) mutable {
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
+
+        // clear all the reporting flags
+        session_store_.set_and_save_reporting_flag(false, request, session_uc);
+
         if (!status.ok()) {
           MLOG(MERROR) << "Update of size " << request.updates_size()
                        << " to OCS failed entirely: " << status.error_message();
           report_session_update_event_failure(
-              *session_map_ptr, session_update, status.error_message());
+              *session_map_ptr, session_uc, status.error_message());
         } else {
           enforcer_->update_session_credits_and_rules(
-              *session_map_ptr, response, session_update);
-          session_store_.update_sessions(session_update);
-          report_session_update_event(*session_map_ptr, session_update);
+              *session_map_ptr, response, session_uc);
+          session_store_.update_sessions(session_uc);
+          report_session_update_event(*session_map_ptr, session_uc);
         }
       });
 }
@@ -190,9 +200,15 @@ static CreateSessionRequest make_create_session_request(
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
   create_request.mutable_rat_specific_context()->CopyFrom(
       cfg.rat_specific_context);
+
   if (access_timezone != nullptr) {
     create_request.mutable_access_timezone()->CopyFrom(*access_timezone);
   }
+
+  const RequestedUnits requestedUnits =
+      SessionCredit::get_initial_requested_credits_units();
+  create_request.mutable_requested_units()->CopyFrom(requestedUnits);
+
   return create_request;
 }
 
@@ -555,7 +571,7 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  MLOG(MINFO) << "Received session <-> rule associations";
+  MLOG(MDEBUG) << "Received session <-> rule associations";
 
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     SessionRead req = {};
@@ -578,6 +594,18 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
   response_callback(Status::OK, Void());
 }
 
+std::string LocalSessionManagerHandlerImpl::bytes_to_hex(const std::string& s) {
+  std::ostringstream ret;
+
+  unsigned int c;
+  for (std::string::size_type i = 0; i < s.length(); ++i) {
+    c = (unsigned int) (unsigned char) s[i];
+    ret << " " << std::hex << std::setfill('0') << std::setw(2)
+        << (std::nouppercase) << c;
+  }
+  return ret.str();
+}
+
 void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
   const auto& imsi = cfg.common_context.sid().id();
   const auto& apn  = cfg.common_context.apn();
@@ -587,7 +615,8 @@ void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
     const auto& lte = cfg.rat_specific_context.lte_context();
     create_message += ", default bearer ID:" + std::to_string(lte.bearer_id()) +
                       ", PLMN ID:" + lte.plmn_id() +
-                      ", IMSI PLMN ID:" + lte.imsi_plmn_id();
+                      ", IMSI PLMN ID:" + lte.imsi_plmn_id() +
+                      ", User location:" + bytes_to_hex(lte.user_location());
   } else if (cfg.rat_specific_context.has_wlan_context()) {
     create_message +=
         ", MAC addr:" + cfg.rat_specific_context.wlan_context().mac_addr();

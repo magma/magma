@@ -166,8 +166,8 @@ void SpgwStateConverter::proto_to_spgw_bearer_context(
       sgw_eps_bearer_context_proto.mme_teid_s11();
   bstring ip_addr_bstr =
       bfromcstr(sgw_eps_bearer_context_proto.mme_ip_address_s11().c_str());
-  bstring_to_ip_address(ip_addr_bstr,
-      &sgw_eps_bearer_context_state->mme_ip_address_S11);
+  bstring_to_ip_address(
+      ip_addr_bstr, &sgw_eps_bearer_context_state->mme_ip_address_S11);
   bdestroy_wrapper(&ip_addr_bstr);
   sgw_eps_bearer_context_state->imsi64 = sgw_eps_bearer_context_proto.imsi64();
 
@@ -175,8 +175,8 @@ void SpgwStateConverter::proto_to_spgw_bearer_context(
       sgw_eps_bearer_context_proto.sgw_teid_s11_s4();
   ip_addr_bstr =
       bfromcstr(sgw_eps_bearer_context_proto.sgw_ip_address_s11_s4().c_str());
-  bstring_to_ip_address(ip_addr_bstr,
-      &sgw_eps_bearer_context_state->s_gw_ip_address_S11_S4);
+  bstring_to_ip_address(
+      ip_addr_bstr, &sgw_eps_bearer_context_state->s_gw_ip_address_S11_S4);
   bdestroy_wrapper(&ip_addr_bstr);
 
   proto_to_sgw_pdn_connection(
@@ -288,9 +288,9 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
   }
 
   if (session_request->uli.present) {
-    char uli[sizeof(Uli_t)];
-    memcpy(&uli, &session_request->uli, sizeof(Uli_t));
-    proto->set_uli(uli);
+    char uli[sizeof(Uli_t)] = "";
+    memcpy(uli, &session_request->uli, sizeof(Uli_t));
+    proto->set_uli(uli, sizeof(Uli_t));
   }
 
   proto->mutable_serving_network()->set_mcc(
@@ -383,7 +383,6 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
   }
 
   if (proto.uli().length() > 0) {
-    session_request->uli.present = true;
     memcpy(&session_request->uli, proto.uli().c_str(), sizeof(Uli_t));
   }
   memcpy(
@@ -508,8 +507,7 @@ void SpgwStateConverter::proto_to_sgw_eps_bearer(
   bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer->p_gw_teid_S5_S8_up = eps_bearer_proto.pgw_teid_s5_s8_up();
 
-  ip_addr_bstr =
-      bfromcstr(eps_bearer_proto.sgw_ip_address_s5_s8_up().c_str());
+  ip_addr_bstr = bfromcstr(eps_bearer_proto.sgw_ip_address_s5_s8_up().c_str());
   bstring_to_ip_address(ip_addr_bstr, &eps_bearer->s_gw_ip_address_S5_S8_up);
   bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer->s_gw_teid_S5_S8_up = eps_bearer_proto.sgw_teid_s5_s8_up();

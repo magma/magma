@@ -15,7 +15,7 @@ dependencies:
     repository: ""
     condition: secrets.create
   - name: metrics
-    version: 1.4.15
+    version: 1.4.17
     repository: ""
     condition: metrics.enabled
   - name: nms
@@ -26,3 +26,6 @@ dependencies:
     version: 0.1.10
     repository: ""
     condition: logging.enabled
+  - name: orc8rlib
+    version: 0.1.1
+    repository: file://../orc8rlib

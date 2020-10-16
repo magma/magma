@@ -34,7 +34,10 @@ func GetStreamProvider(streamName string) (StreamProvider, error) {
 		return nil, errors.New("stream name cannot be empty string")
 	}
 
-	services := getServicesForStream(streamName)
+	services, err := getServicesForStream(streamName)
+	if err != nil {
+		return nil, err
+	}
 
 	n := len(services)
 	if n == 0 {
@@ -47,9 +50,11 @@ func GetStreamProvider(streamName string) (StreamProvider, error) {
 	return NewRemoteProvider(services[0], streamName), nil
 }
 
-func getServicesForStream(streamName string) []string {
-	services := registry.FindServices(orc8r.StreamProviderLabel)
-
+func getServicesForStream(streamName string) ([]string, error) {
+	services, err := registry.FindServices(orc8r.StreamProviderLabel)
+	if err != nil {
+		return []string{}, err
+	}
 	var ret []string
 	for _, s := range services {
 		streams, err := registry.GetAnnotationList(s, orc8r.StreamProviderStreamsAnnotation)
@@ -65,5 +70,5 @@ func getServicesForStream(streamName string) []string {
 		}
 	}
 
-	return ret
+	return ret, nil
 }

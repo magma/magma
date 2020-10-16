@@ -45,11 +45,11 @@ func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 				Match: &models.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
-					IPDst:     &models.IPAddress{
+					IPDst: &models.IPAddress{
 						Version: models.IPAddressVersionIPV4,
 						Address: "0.0.0.0/0",
 					},
-					IPSrc:     &models.IPAddress{
+					IPSrc: &models.IPAddress{
 						Version: models.IPAddressVersionIPV4,
 						Address: "0.0.0.0/0",
 					},
@@ -60,11 +60,11 @@ func getStaticDenyAll(ruleID string, monitoringKey string, ratingGroup uint32, t
 				Match: &models.FlowMatch{
 					Direction: swag.String("DOWNLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
-					IPDst:     &models.IPAddress{
+					IPDst: &models.IPAddress{
 						Version: models.IPAddressVersionIPV4,
 						Address: "0.0.0.0/0",
 					},
-					IPSrc:     &models.IPAddress{
+					IPSrc: &models.IPAddress{
 						Version: models.IPAddressVersionIPV4,
 						Address: "0.0.0.0/0",
 					},
@@ -90,16 +90,16 @@ func getStaticPassTraffic(
 				Match: &models.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
-					IPDst:     &models.IPAddress{
+					IPDst: &models.IPAddress{
 						Version: models.IPAddressVersionIPV4,
 						Address: dstIP,
 					},
-					IPSrc:     &models.IPAddress{
+					IPSrc: &models.IPAddress{
 						Version: models.IPAddressVersionIPV4,
 						Address: srcIP,
 					},
-					IPV4Dst:   dstIP,
-					IPV4Src:   srcIP,
+					IPV4Dst: dstIP,
+					IPV4Src: srcIP,
 				},
 			},
 			{
@@ -107,11 +107,11 @@ func getStaticPassTraffic(
 				Match: &models.FlowMatch{
 					Direction: swag.String("DOWNLINK"),
 					IPProto:   swag.String("IPPROTO_IP"),
-					IPDst:     &models.IPAddress{
+					IPDst: &models.IPAddress{
 						Version: models.IPAddressVersionIPV4,
 						Address: srcIP,
 					},
-					IPSrc:     &models.IPAddress{
+					IPSrc: &models.IPAddress{
 						Version: models.IPAddressVersionIPV4,
 						Address: dstIP,
 					},

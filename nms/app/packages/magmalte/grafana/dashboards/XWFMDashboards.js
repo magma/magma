@@ -93,7 +93,7 @@ export const XWFMDBData = (networks: Array<string>): GrafanaDBData => {
               },
               {
                 expr:
-                  'sum(rate(node_network_transmit_bytes_total{networkID=~"$networkID",gatewayID=~"$gatewayID"}[5m]) by (networkID,gatewayID)',
+                  'sum(rate(node_network_transmit_bytes_total{networkID=~"$networkID",gatewayID=~"$gatewayID"}[5m])) by (networkID,gatewayID)',
                 legendFormat: '{{networkID}}-{{gatewayID}} - RECEIVED',
               },
             ],

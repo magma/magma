@@ -34,7 +34,7 @@
 #define POLICYDB_SERVICE "policydb"
 #define SESSIOND_VERSION "1.0"
 #define MIN_USAGE_REPORTING_THRESHOLD 0.4
-#define MAX_USAGE_REPORTING_THRESHOLD 1.1
+#define MAX_USAGE_REPORTING_THRESHOLD 1.0
 #define DEFAULT_USAGE_REPORTING_THRESHOLD 0.8
 #define DEFAULT_QUOTA_EXHAUSTION_TERMINATION_MS 30000  // 30sec
 
@@ -123,6 +123,10 @@ void set_consts(const YAML::Node& config) {
   if (config["send_access_timezone"].IsDefined()) {
     magma::LocalEnforcer::SEND_ACCESS_TIMEZONE =
         config["send_access_timezone"].as<bool>();
+  }
+  if (config["default_requested_units"].IsDefined()) {
+    magma::SessionCredit::DEFAULT_REQUESTED_UNITS =
+        config["default_requested_units"].as<uint64_t>();
   }
 }
 

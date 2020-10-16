@@ -92,20 +92,18 @@ func makeCCRInit(
 	} else {
 		glog.Warning("No RatSpecificContext is specified")
 	}
-	request.Credits = makeUsedCreditsForCCRInit(keys)
+	request.Credits = makeUsedCreditsForCCRInit(pReq.RequestedUnits, keys)
 	return request
 }
 
-func makeUsedCreditsForCCRInit(keys []policydb.ChargingKey) []*gy.UsedCredits {
+func makeUsedCreditsForCCRInit(
+	requestedUnits *protos.RequestedUnits,
+	keys []policydb.ChargingKey) []*gy.UsedCredits {
 	usedCredits := make([]*gy.UsedCredits, 0, len(keys))
 	for _, key := range keys {
-		// TODO: move this into configuration on sessiond
-		// Default Requested-Service-Unit value for CCR-I
-		defaultRSU := &protos.RequestedUnits{Total: 10000, Tx: 10000, Rx: 10000}
-
 		uc := &gy.UsedCredits{
 			RatingGroup:    key.RatingGroup,
-			RequestedUnits: defaultRSU,
+			RequestedUnits: getRequestedUnitsOrDefault(requestedUnits),
 		}
 		if key.ServiceIdTracking {
 			sid := key.ServiceIdentifier
@@ -114,6 +112,14 @@ func makeUsedCreditsForCCRInit(keys []policydb.ChargingKey) []*gy.UsedCredits {
 		usedCredits = append(usedCredits, uc)
 	}
 	return usedCredits
+}
+
+// TODO: function for backwards compatibility. Delete once older AGW are updated
+func getRequestedUnitsOrDefault(requestedUnits *protos.RequestedUnits) *protos.RequestedUnits {
+	if requestedUnits == nil {
+		return &protos.RequestedUnits{Total: 100000, Tx: 100000, Rx: 100000}
+	}
+	return requestedUnits
 }
 
 // makeCCRInitWithoutChargingKeys creates a CreditControlRequest for an INIT
@@ -254,10 +260,13 @@ func getSingleCreditResponseFromCCA(
 ) *protos.CreditUpdateResponse {
 	success := answer.ResultCode == diameter.SuccessCode
 	imsi := credit_control.AddIMSIPrefix(request.IMSI)
+
 	if len(answer.Credits) == 0 {
 		return &protos.CreditUpdateResponse{
-			Success: false,
-			Sid:     imsi,
+			Success:    false,
+			Sid:        imsi,
+			SessionId:  request.SessionID,
+			ResultCode: answer.ResultCode,
 		}
 	}
 	receivedCredit := answer.Credits[0]

@@ -70,7 +70,7 @@ export default function PolicyFlowFields(props: Props) {
       action,
     });
 
-  const handleFieldChange = (field: string, value: number | string) =>
+  const handleFieldChange = (field: string, value: number | string | {}) =>
     props.onChange(props.index, {
       ...props.flow,
       match: {
@@ -134,19 +134,25 @@ export default function PolicyFlowFields(props: Props) {
                 className={classes.input}
                 label="IPv4 Source"
                 margin="normal"
-                value={flow.match.ipv4_src}
-                onChange={({target}) =>
-                  handleFieldChange('ipv4_src', target.value)
-                }
+                value={flow.match.ip_src?.address ?? ''}
+                onChange={({target}) => {
+                  handleFieldChange('ip_src', {
+                    address: target.value,
+                    version: 'IPv4',
+                  });
+                }}
               />
               <TextField
                 className={classes.input}
                 label="IPv4 Destination"
                 margin="normal"
-                value={flow.match.ipv4_dst}
-                onChange={({target}) =>
-                  handleFieldChange('ipv4_dst', target.value)
-                }
+                value={flow.match.ip_dst?.address ?? ''}
+                onChange={({target}) => {
+                  handleFieldChange('ip_dst', {
+                    address: target.value,
+                    version: 'IPv4',
+                  });
+                }}
               />
             </div>
           )}

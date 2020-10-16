@@ -1,0 +1,39 @@
+---
+################################################################################
+# Copyright (c) Facebook, Inc. and its affiliates.
+# All rights reserved.
+#
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+################################################################################
+
+- name: Create the .virtualenvs directory
+  file:
+    path: /home/{{ ansible_user }}/.virtualenvs
+    state: directory
+    owner: "{{ ansible_user }}"
+    group: "{{ ansible_user }}"
+
+- name: Install virtualenvwrapper
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - virtualenvwrapper
+
+- name: Configure login shell for virtualenv location
+  lineinfile:
+    path: /home/{{ ansible_user }}/.bashrc
+    line: export WORKON_HOME=$HOME/.virtualenvs
+    state: present
+
+- name: Configure login shell for virtualenv
+  lineinfile:
+    path: /home/{{ ansible_user }}/.bashrc
+    line: source /usr/share/virtualenvwrapper/virtualenvwrapper.sh
+    state: present
+
+- name: Create virtualenv
+  shell: su - {{ ansible_user }} -c 'bash -l -c "source /usr/share/virtualenvwrapper/virtualenvwrapper.sh; mkvirtualenv -p /usr/bin/python3 --system-site-packages pydep"'
+  ignore_errors: yes
+

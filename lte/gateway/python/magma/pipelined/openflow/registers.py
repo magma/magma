@@ -16,7 +16,7 @@ from enum import IntEnum
 # Global registers:
 IMSI_REG = 'metadata'
 DIRECTION_REG = 'reg1'
-# TODO reg2 is used for enf stats rule tracking, move its declaration here
+RULE_NUM_REG = 'reg2'
 DPI_REG = 'reg10'
 TEST_PACKET_REG = 'reg5'
 PASSTHROUGH_REG = 'reg6'

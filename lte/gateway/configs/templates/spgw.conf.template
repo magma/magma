@@ -45,6 +45,7 @@ S-GW :
       INTERNAL_SAMPLING_FWD_TBL_NUM        = {{ ovs_internal_sampling_fwd_tbl_number }};
       UPLINK_PORT_NUM                      = {{ ovs_uplink_port_number }};
       UPLINK_MAC                           = "{{ ovs_uplink_mac }}";
+      MULTI_TUNNEL                         = "{{ ovs_multi_tunnel }}";
     };
 };
 

@@ -53,8 +53,8 @@ TEST(test_track_credit, test_session_credit) {
   SessionCreditUpdateCriteria uc{};
   GrantedUnits gsu;
   uint64_t total_grant = 300;
-  uint64_t tx_grant = 100;
-  uint64_t rx_grant = 200;
+  uint64_t tx_grant    = 100;
+  uint64_t rx_grant    = 200;
   create_granted_units(&total_grant, &tx_grant, &rx_grant, &gsu);
 
   credit.receive_credit(gsu, &uc);
@@ -98,7 +98,6 @@ TEST(test_add_received_credit, test_session_credit) {
   EXPECT_EQ(uc.bucket_deltas[USED_RX], 60);
   RequestedUnits ru = credit.get_requested_credits_units();
   EXPECT_EQ(ru.total(), 100);
-
 }
 
 TEST(test_collect_updates, test_session_credit) {
@@ -257,7 +256,9 @@ TEST(test_counting_algorithm, test_session_credit) {
   EXPECT_EQ(0, credit.get_credit(ALLOWED_FLOOR_TX));
   EXPECT_EQ(0, credit.get_credit(ALLOWED_FLOOR_RX));
   EXPECT_EQ(1000, credit.get_credit(ALLOWED_TOTAL));
-  EXPECT_EQ(100, credit.get_credit(ALLOWED_TX)); // 250 because we overused so 150 + 100
+  EXPECT_EQ(
+      100,
+      credit.get_credit(ALLOWED_TX));  // 250 because we overused so 150 + 100
   EXPECT_EQ(200, credit.get_credit(ALLOWED_RX));
 
   // use tx and rx = 99 + 150 = 249
@@ -276,7 +277,9 @@ TEST(test_counting_algorithm, test_session_credit) {
   EXPECT_EQ(200, credit.get_credit(ALLOWED_TX));
   EXPECT_EQ(400, credit.get_credit(ALLOWED_RX));
   EXPECT_EQ(1000, credit.get_credit(ALLOWED_FLOOR_TOTAL));
-  EXPECT_EQ(100, credit.get_credit(ALLOWED_FLOOR_TX)); // 150 because we overused so 150
+  EXPECT_EQ(
+      100,
+      credit.get_credit(ALLOWED_FLOOR_TX));  // 150 because we overused so 150
   EXPECT_EQ(200, credit.get_credit(ALLOWED_FLOOR_RX));
   EXPECT_EQ(99, credit.get_credit(USED_TX));
   EXPECT_EQ(150, credit.get_credit(USED_RX));

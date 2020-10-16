@@ -60,26 +60,34 @@ def flow_match_to_magma_match(match, ip_addr=None):
         if attrib in {'ip_dst', 'ip_src'}:
             if not value.address:
                 continue
-            value = _get_ip_tuple(value.address.decode('utf-8'))
+            decoded_ip = _get_ip_tuple(value.address.decode('utf-8'))
             if value is None:
                 return
-            # TODO add ipv6
-            if attrib == 'ip_src':
-                match_kwargs['ipv4_src'] = value
-            elif attrib == 'ip_dst':
-                match_kwargs['ipv4_dst'] = value
-            continue
 
-        if attrib == 'app_name':
+            if value.version == IPAddress.IPV4:
+                if attrib == 'ip_src':
+                    match_kwargs['ipv4_src'] = decoded_ip
+                elif attrib == 'ip_dst':
+                    match_kwargs['ipv4_dst'] = decoded_ip
+            else:
+                match_kwargs['eth_type'] = ether_types.ETH_TYPE_IPV6
+                if attrib == 'ip_src':
+                    match_kwargs['ipv6_src'] = decoded_ip
+                elif attrib == 'ip_dst':
+                    match_kwargs['ipv6_dst'] = decoded_ip
+            continue
+        elif attrib == 'app_name':
             attrib = DPI_REG
 
         match_kwargs[attrib] = value
 
+    # Specific UE IP match
     if ip_addr:
-        if ip_addr.version == ip_addr.IPV4:
+        if ip_addr.version == IPAddress.IPV4:
             ip_src_reg = 'ipv4_src'
             ip_dst_reg = 'ipv4_dst'
         else:
+            match_kwargs['eth_type'] = ether_types.ETH_TYPE_IPV6
             ip_src_reg = 'ipv6_src'
             ip_dst_reg = 'ipv6_dst'
 
@@ -147,7 +155,7 @@ def flip_flow_match(match):
     )
 
 
-def get_ue_ipv4_match_args(ip_addr, direction):
+def get_ue_ip_match_args(ip_addr: IPAddress, direction: Direction):
     ip_match = {}
 
     if ip_addr:
@@ -166,6 +174,15 @@ def get_ue_ipv4_match_args(ip_addr, direction):
         else:
             ip_match = {ip_dst_reg: ip_addr.address.decode('utf-8')}
     return ip_match
+
+
+def get_eth_type(ip_addr: IPAddress):
+    if not ip_addr:
+        return ether_types.ETH_TYPE_IP
+    if ip_addr.version == IPAddress.IPV4:
+        return ether_types.ETH_TYPE_IP
+    else:
+        return ether_types.ETH_TYPE_IPV6
 
 
 def _get_ip_tuple(ip_str):
@@ -193,3 +210,17 @@ def _get_direction_for_match(flow_match):
 def convert_ipv4_str_to_ip_proto(ipv4_str):
     return IPAddress(version=IPAddress.IPV4,
                      address=ipv4_str.encode('utf-8'))
+
+
+def convert_ipv6_bytes_to_ip_proto(ipv6_bytes):
+    return IPAddress(version=IPAddress.IPV6,
+                     address=ipv6_bytes)
+
+
+def convert_ip_str_to_ip_proto(ip_str: str):
+    if ip_str.count(":") >= 2:
+        ip_addr = \
+            convert_ipv6_bytes_to_ip_proto(ip_str.encode('utf-8'))
+    else:
+        ip_addr = convert_ipv4_str_to_ip_proto(ip_str)
+    return ip_addr

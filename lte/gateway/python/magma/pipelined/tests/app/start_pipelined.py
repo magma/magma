@@ -64,6 +64,10 @@ class PipelinedController(Enum):
     Arp = Controller(
         'magma.pipelined.app.arp', 'arpd'
     )
+    IPV6RouterSolicitation = Controller(
+        'magma.pipelined.app.ipv6_solicitation',
+        'ipv6_solicitation'
+    )
     GY = Controller(
         'magma.pipelined.app.gy', 'gy'
     )
@@ -112,7 +116,9 @@ class PipelinedController(Enum):
     Conntrack = Controller(
         'magma.pipelined.app.conntrack', 'conntrack'
     )
-
+    Classifier = Controller(
+        'magma.pipelined.app.classifier', 'classifier'
+   )
 
 def assert_pipelined_not_running():
     """
@@ -194,6 +200,8 @@ class StartThread(object):
             InternalIPAllocator(self._test_setup.config)
         contexts['session_rule_version_mapper'] = \
             self._test_setup.service_manager.session_rule_version_mapper
+        contexts['interface_to_prefix_mapper'] = \
+            self._test_setup.service_manager.interface_to_prefix_mapper
         contexts['app_futures'] = app_futures
         contexts['config'] = self._test_setup.config
         contexts['mconfig'] = self._test_setup.mconfig

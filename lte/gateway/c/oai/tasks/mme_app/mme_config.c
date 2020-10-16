@@ -175,8 +175,8 @@ void sctp_config_init(sctp_config_t* sctp_conf) {
 }
 
 void apn_map_config_init(apn_map_config_t* apn_map_config) {
-  apn_map_config->nb     = 0;
-  apn_map_config->apn_map[0].imsi_prefix = NULL;
+  apn_map_config->nb                      = 0;
+  apn_map_config->apn_map[0].imsi_prefix  = NULL;
   apn_map_config->apn_map[0].apn_override = NULL;
 }
 
@@ -1066,16 +1066,18 @@ int mme_config_parse_file(mme_config_t* config_pP) {
 
       // Parsing APN CORRECTION MAP
       if (config_pP->nas_config.enable_apn_correction) {
-
-        subsetting = config_setting_get_member(setting,
-            MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_LIST);
+        subsetting = config_setting_get_member(
+            setting, MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_LIST);
         config_pP->nas_config.apn_map_config.nb = 0;
         if (subsetting != NULL) {
           num = config_setting_length(subsetting);
-          OAILOG_INFO(LOG_MME_APP, "Number of apn correction map configured =%d\n", num);
+          OAILOG_INFO(
+              LOG_MME_APP, "Number of apn correction map configured =%d\n",
+              num);
           AssertFatal(
               num <= MAX_APN_CORRECTION_MAP_LIST,
-              "Number of apn correction map configured:%d exceeds the maximum number supported"
+              "Number of apn correction map configured:%d exceeds the maximum "
+              "number supported"
               ":%d \n",
               num, MAX_APN_CORRECTION_MAP_LIST);
 
@@ -1083,21 +1085,33 @@ int mme_config_parse_file(mme_config_t* config_pP) {
             sub2setting = config_setting_get_elem(subsetting, i);
             if (sub2setting != NULL) {
               if ((config_setting_lookup_string(
-                      sub2setting, MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_IMSI_PREFIX,
+                      sub2setting,
+                      MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_IMSI_PREFIX,
                       (const char**) &imsi_prefix))) {
-                if (config_pP->nas_config.apn_map_config.apn_map[i].imsi_prefix) {
-                  bassigncstr(config_pP->nas_config.apn_map_config.apn_map[i].imsi_prefix, imsi_prefix);
+                if (config_pP->nas_config.apn_map_config.apn_map[i]
+                        .imsi_prefix) {
+                  bassigncstr(
+                      config_pP->nas_config.apn_map_config.apn_map[i]
+                          .imsi_prefix,
+                      imsi_prefix);
                 } else {
-                  config_pP->nas_config.apn_map_config.apn_map[i].imsi_prefix = bfromcstr(imsi_prefix);
+                  config_pP->nas_config.apn_map_config.apn_map[i].imsi_prefix =
+                      bfromcstr(imsi_prefix);
                 }
               }
               if ((config_setting_lookup_string(
-                      sub2setting, MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_APN_OVERRIDE,
+                      sub2setting,
+                      MME_CONFIG_STRING_NAS_APN_CORRECTION_MAP_APN_OVERRIDE,
                       (const char**) &apn_override))) {
-                if (config_pP->nas_config.apn_map_config.apn_map[i].apn_override) {
-                  bassigncstr(config_pP->nas_config.apn_map_config.apn_map[i].apn_override, apn_override);
+                if (config_pP->nas_config.apn_map_config.apn_map[i]
+                        .apn_override) {
+                  bassigncstr(
+                      config_pP->nas_config.apn_map_config.apn_map[i]
+                          .apn_override,
+                      apn_override);
                 } else {
-                  config_pP->nas_config.apn_map_config.apn_map[i].apn_override = bfromcstr(apn_override);
+                  config_pP->nas_config.apn_map_config.apn_map[i].apn_override =
+                      bfromcstr(apn_override);
                 }
               }
               config_pP->nas_config.apn_map_config.nb += 1;
@@ -1406,7 +1420,9 @@ void mme_config_display(mme_config_t* config_pP) {
       LOG_CONFIG, "      Enable APN Correction .......: %s\n",
       (config_pP->nas_config.enable_apn_correction) ? "true" : "false");
 
-  OAILOG_INFO(LOG_CONFIG, "      APN CORRECTION MAP LIST (IMSI_PREFIX | APN_OVERRIDE):\n");
+  OAILOG_INFO(
+      LOG_CONFIG,
+      "      APN CORRECTION MAP LIST (IMSI_PREFIX | APN_OVERRIDE):\n");
   for (j = 0; j < config_pP->nas_config.apn_map_config.nb; j++) {
     OAILOG_INFO(
         LOG_CONFIG, "                                %s | %s \n",

@@ -19,8 +19,9 @@ type CwfHaPairConfigs struct {
 
 	// transport virtual ip
 	// Required: true
-	// Format: ipv4
-	TransportVirtualIP strfmt.IPv4 `json:"transport_virtual_ip"`
+	// Max Length: 49
+	// Min Length: 5
+	TransportVirtualIP string `json:"transport_virtual_ip"`
 }
 
 // Validate validates this cwf ha pair configs
@@ -39,11 +40,15 @@ func (m *CwfHaPairConfigs) Validate(formats strfmt.Registry) error {
 
 func (m *CwfHaPairConfigs) validateTransportVirtualIP(formats strfmt.Registry) error {
 
-	if err := validate.Required("transport_virtual_ip", "body", strfmt.IPv4(m.TransportVirtualIP)); err != nil {
+	if err := validate.RequiredString("transport_virtual_ip", "body", string(m.TransportVirtualIP)); err != nil {
 		return err
 	}
 
-	if err := validate.FormatOf("transport_virtual_ip", "body", "ipv4", m.TransportVirtualIP.String(), formats); err != nil {
+	if err := validate.MinLength("transport_virtual_ip", "body", string(m.TransportVirtualIP), 5); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("transport_virtual_ip", "body", string(m.TransportVirtualIP), 49); err != nil {
 		return err
 	}
 

@@ -16,6 +16,7 @@ import unittest
 import gpp_types
 import s1ap_types
 import s1ap_wrapper
+import time
 
 
 class TestDataFlowAfterServiceRequest(unittest.TestCase):
@@ -64,6 +65,9 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
         with test:
             test.verify()
 
+        # Added sleep to avoid chances of incoming paging indication
+        time.sleep(0.5)
+
         for req in reqs:
             ue_id = req.ue_id
             print(
@@ -84,9 +88,6 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
             self.assertEqual(
                 response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
             )
-
-        with test:
-            test.verify()
 
         for req in reqs:
             ue_id = req.ue_id
@@ -109,7 +110,7 @@ class TestDataFlowAfterServiceRequest(unittest.TestCase):
             )
 
         with test:
-            test.wait()
+            test.verify()
 
         for req in reqs:
             print(

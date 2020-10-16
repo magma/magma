@@ -35,7 +35,7 @@ class AmfServiceClient {
   virtual bool handle_response_to_access(
       const magma::SetSMSessionContextAccess& response) = 0;
 
-};// end of abstract class
+};  // end of abstract class
 
 class AsyncAmfServiceClient : public GRPCReceiver, public AmfServiceClient {
  public:
