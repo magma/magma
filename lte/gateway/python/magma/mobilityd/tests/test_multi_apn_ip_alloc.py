@@ -144,7 +144,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
 
     def test_get_ip_vlan_for_subscriber(self):
         """ test get_ip_for_sid without any assignment """
-        sid = 'IMSI11:ipv4'
+        sid = 'IMSI11,ipv4'
         ip0, _ = self._allocator.alloc_ip_address(sid)
 
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -157,7 +157,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 132
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip,
@@ -177,7 +177,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with different APN assigned ip"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 188
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="xyz", ip=assigned_ip,
@@ -197,7 +197,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test wildcard apn"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 166
 
@@ -218,7 +218,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignement from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         wild_assigned_ip = '44.2.3.11'
 
@@ -244,7 +244,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test invalid data from DB """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.hh'
         vlan = 111
 
@@ -265,7 +265,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignment from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 31
         vlan_wild = 552
@@ -289,7 +289,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignment from subscriber without non_3gpp config"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         MockedSubscriberDBStub.add_incomplete_sub(sid=imsi)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
@@ -303,7 +303,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
     def test_get_ip_vlan_for_subscriber_with_wildcard_no_apn(self):
         """ test wildcard apn"""
         imsi = 'IMSI110'
-        sid = imsi + ":ipv4"
+        sid = imsi + ",ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 122
 
@@ -324,7 +324,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma.ipv4'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 165
 
@@ -345,7 +345,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignement from multiple  APNs"""
         apn = 'dsddf'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         wild_assigned_ip = '44.2.3.11'
 
@@ -372,7 +372,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignement from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ":ipv4"
+        sid = imsi + '.' + apn + ",ipv4"
         wild_assigned_ip = '44.2.3.11'
 
         vlan = 44

@@ -104,12 +104,10 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             type and is named as ipblock.
         """
         ipblock = self._ipblock_msg_to_ipblock(ipblock_msg, context)
-        logging.info(ipblock)
         if ipblock is None:
             return
 
         try:
-            logging.info('Adding ip block')
             self.add_ip_block(ipblock)
         except OverlappedIPBlocksError:
             context.set_details('Overlapped ip block: %s' % ipblock)
@@ -168,19 +166,19 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             composite_sid = composite_sid + "." + request.apn
 
         if request.version == AllocateIPRequest.IPV4:
-            return self._get_allocate_ip_response(composite_sid + ":ipv4",
+            return self._get_allocate_ip_response(composite_sid + ",ipv4",
                                                   IPAddress.IPV4, context,
                                                   ip_addr, request)
         elif request.version == AllocateIPRequest.IPV6:
-            return self._get_allocate_ip_response(composite_sid + ":ipv6",
+            return self._get_allocate_ip_response(composite_sid + ",ipv6",
                                                   IPAddress.IPV6, context,
                                                   ip_addr, request)
         elif request.version == AllocateIPRequest.IPV4V6:
             ipv4_response = self._get_allocate_ip_response(
-                composite_sid + ":ipv4", IPAddress.IPV4,
+                composite_sid + ",ipv4", IPAddress.IPV4,
                 context, ip_addr, request)
             ipv6_response = self._get_allocate_ip_response(
-                composite_sid + ":ipv6", IPAddress.IPV6,
+                composite_sid + ",ipv6", IPAddress.IPV6,
                 context, ip_addr, request)
             ip_addr_list = ipv4_response.ip_list + ipv6_response.ip_list
             # Get vlan from IPv4 Allocate response
@@ -198,9 +196,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             composite_sid = composite_sid + "." + request.apn
 
         if request.ip.version == IPAddress.IPV4:
-            composite_sid = composite_sid + ":ipv4"
+            composite_sid = composite_sid + ",ipv4"
         elif request.ip.version == IPAddress.IPV6:
-            composite_sid = composite_sid + ":ipv6"
+            composite_sid = composite_sid + ",ipv6"
 
         try:
             self._ip_address_man.release_ip_address(composite_sid, ip,
@@ -243,9 +241,9 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             composite_sid = composite_sid + "." + request.apn
 
         if request.version == IPAddress.IPV4:
-            composite_sid += ":ipv4"
+            composite_sid += ",ipv4"
         elif request.version == IPAddress.IPV6:
-            composite_sid += ":ipv6"
+            composite_sid += ",ipv6"
 
         ip = self._ip_address_man.get_ip_for_sid(composite_sid)
         if ip is None:
@@ -279,7 +277,7 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         for composite_sid, ip in csid_ip_pairs:
             # handle composite sid to sid and apn mapping
             sid, _, apn_part = composite_sid.partition('.')
-            apn, _ = apn_part.split(':')
+            apn, _ = apn_part.split(',')
             sid_pb = SIDUtils.to_pb(sid)
             version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
             ip_msg = IPAddress(version=version, address=ip.packed)
@@ -320,6 +318,10 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             context.set_details(
                 'IP has been allocated for other subscriber')
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+        except MaxCalculationError:
+            context.set_details(
+                'Reached maximum IPv6 calculation tries')
+            context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
         return AllocateIPAddressResponse()
 
     def _ipblock_msg_to_ipblock(self, ipblock_msg, context):
