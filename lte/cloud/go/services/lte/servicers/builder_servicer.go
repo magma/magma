@@ -288,7 +288,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			glog.Errorf("enb with serial %s is missing config", serial)
 		}
 
-		enodebConfig := ienbConfig.(*lte_models.EnodebEnodebConfig)
+		enodebConfig := ienbConfig.(*lte_models.EnodebConfig)
 		enbMconfig := &lte_mconfig.EnodebD_EnodebConfig{}
 
 		if enodebConfig.ConfigType == "MANAGED" {

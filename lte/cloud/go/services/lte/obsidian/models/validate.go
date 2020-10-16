@@ -344,7 +344,7 @@ func (m *UnmanagedEnodebConfiguration) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
 
-func (m *EnodebEnodebConfig) validateEnodebConfig() error {
+func (m *EnodebConfig) validateEnodebConfig() error {
 	managedConfigSet := m.ManagedConfig != nil
 	unmanagedConfigSet := m.UnmanagedConfig != nil
 

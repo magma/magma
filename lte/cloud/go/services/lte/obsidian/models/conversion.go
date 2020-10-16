@@ -476,7 +476,7 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 		// TODO(v1.4.0+): For backwards compatibility we maintain the 'config'
 		// field previously reserved for managed enb configs.
 		//  We can remove this after the next minor version
-		config := ent.Config.(*EnodebEnodebConfig)
+		config := ent.Config.(*EnodebConfig)
 		m.Config = config.ManagedConfig
 		m.EnodebConfig = config
 	}

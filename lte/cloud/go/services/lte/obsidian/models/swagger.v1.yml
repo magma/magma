@@ -38,6 +38,8 @@ magma-gen-meta:
       filename: mutable_lte_gateway_swaggergen.go
     - go-struct-name: Enodeb
       filename: enodeb_swaggergen.go
+    - go-struct-name: EnodebConfig
+      filename: enodeb_config_swaggergen.go
     - go-struct-name: EnodebConfiguration
       filename: enodeb_configuration_swaggergen.go
     - go-struct-name: UnmanagedEnodebConfiguration
@@ -1962,25 +1964,29 @@ definitions:
       config:
         $ref: '#/definitions/enodeb_configuration'
       enodeb_config:
-        type: object
-        required:
-          - config_type
-        properties:
-          config_type:
-            type: string
-            x-nullable: false
-            enum:
-              - 'MANAGED'
-              - 'UNMANAGED'
-            example: 'MANAGED'
-          managed_config:
-            $ref: '#/definitions/enodeb_configuration'
-          unmanaged_config:
-            $ref: '#/definitions/unmanaged_enodeb_configuration'
+        $ref: '#/definitions/enodeb_config'
       attached_gateway_id:
         type: string
         example: gw1
         readOnly: true
+
+  enodeb_config:
+    description: Configuration for managed / unmanaged eNodeb
+    type: object
+    required:
+      - config_type
+    properties:
+      config_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'MANAGED'
+          - 'UNMANAGED'
+        example: 'MANAGED'
+      managed_config:
+        $ref: '#/definitions/enodeb_configuration'
+      unmanaged_config:
+        $ref: '#/definitions/unmanaged_enodeb_configuration'
 
   enodeb_configuration:
     description: Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.

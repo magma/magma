@@ -6,8 +6,6 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
-	"encoding/json"
-
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -31,7 +29,7 @@ type Enodeb struct {
 	Description string `json:"description,omitempty"`
 
 	// enodeb config
-	EnodebConfig *EnodebEnodebConfig `json:"enodeb_config,omitempty"`
+	EnodebConfig *EnodebConfig `json:"enodeb_config,omitempty"`
 
 	// name
 	// Required: true
@@ -143,141 +141,6 @@ func (m *Enodeb) MarshalBinary() ([]byte, error) {
 // UnmarshalBinary interface implementation
 func (m *Enodeb) UnmarshalBinary(b []byte) error {
 	var res Enodeb
-	if err := swag.ReadJSON(b, &res); err != nil {
-		return err
-	}
-	*m = res
-	return nil
-}
-
-// EnodebEnodebConfig enodeb enodeb config
-// swagger:model EnodebEnodebConfig
-type EnodebEnodebConfig struct {
-
-	// config type
-	// Required: true
-	// Enum: [MANAGED UNMANAGED]
-	ConfigType string `json:"config_type"`
-
-	// managed config
-	ManagedConfig *EnodebConfiguration `json:"managed_config,omitempty"`
-
-	// unmanaged config
-	UnmanagedConfig *UnmanagedEnodebConfiguration `json:"unmanaged_config,omitempty"`
-}
-
-// Validate validates this enodeb enodeb config
-func (m *EnodebEnodebConfig) Validate(formats strfmt.Registry) error {
-	var res []error
-
-	if err := m.validateConfigType(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateManagedConfig(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if err := m.validateUnmanagedConfig(formats); err != nil {
-		res = append(res, err)
-	}
-
-	if len(res) > 0 {
-		return errors.CompositeValidationError(res...)
-	}
-	return nil
-}
-
-var enodebEnodebConfigTypeConfigTypePropEnum []interface{}
-
-func init() {
-	var res []string
-	if err := json.Unmarshal([]byte(`["MANAGED","UNMANAGED"]`), &res); err != nil {
-		panic(err)
-	}
-	for _, v := range res {
-		enodebEnodebConfigTypeConfigTypePropEnum = append(enodebEnodebConfigTypeConfigTypePropEnum, v)
-	}
-}
-
-const (
-
-	// EnodebEnodebConfigConfigTypeMANAGED captures enum value "MANAGED"
-	EnodebEnodebConfigConfigTypeMANAGED string = "MANAGED"
-
-	// EnodebEnodebConfigConfigTypeUNMANAGED captures enum value "UNMANAGED"
-	EnodebEnodebConfigConfigTypeUNMANAGED string = "UNMANAGED"
-)
-
-// prop value enum
-func (m *EnodebEnodebConfig) validateConfigTypeEnum(path, location string, value string) error {
-	if err := validate.Enum(path, location, value, enodebEnodebConfigTypeConfigTypePropEnum); err != nil {
-		return err
-	}
-	return nil
-}
-
-func (m *EnodebEnodebConfig) validateConfigType(formats strfmt.Registry) error {
-
-	if err := validate.RequiredString("enodeb_config"+"."+"config_type", "body", string(m.ConfigType)); err != nil {
-		return err
-	}
-
-	// value enum
-	if err := m.validateConfigTypeEnum("enodeb_config"+"."+"config_type", "body", m.ConfigType); err != nil {
-		return err
-	}
-
-	return nil
-}
-
-func (m *EnodebEnodebConfig) validateManagedConfig(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.ManagedConfig) { // not required
-		return nil
-	}
-
-	if m.ManagedConfig != nil {
-		if err := m.ManagedConfig.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("enodeb_config" + "." + "managed_config")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-func (m *EnodebEnodebConfig) validateUnmanagedConfig(formats strfmt.Registry) error {
-
-	if swag.IsZero(m.UnmanagedConfig) { // not required
-		return nil
-	}
-
-	if m.UnmanagedConfig != nil {
-		if err := m.UnmanagedConfig.Validate(formats); err != nil {
-			if ve, ok := err.(*errors.Validation); ok {
-				return ve.ValidateName("enodeb_config" + "." + "unmanaged_config")
-			}
-			return err
-		}
-	}
-
-	return nil
-}
-
-// MarshalBinary interface implementation
-func (m *EnodebEnodebConfig) MarshalBinary() ([]byte, error) {
-	if m == nil {
-		return nil, nil
-	}
-	return swag.WriteJSON(m)
-}
-
-// UnmarshalBinary interface implementation
-func (m *EnodebEnodebConfig) UnmarshalBinary(b []byte) error {
-	var res EnodebEnodebConfig
 	if err := swag.ReadJSON(b, &res); err != nil {
 		return err
 	}

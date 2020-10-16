@@ -2090,7 +2090,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Name:        "abc enodeb",
 			Description: "abc enodeb description",
 			PhysicalID:  "abcdefg",
-			Config: &lteModels.EnodebEnodebConfig{
+			Config: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2111,7 +2111,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Name:        "xyz enodeb",
 			Description: "xyz enodeb description",
 			PhysicalID:  "vwxyz",
-			Config: &lteModels.EnodebEnodebConfig{
+			Config: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2147,7 +2147,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
-			EnodebConfig: &lteModels.EnodebEnodebConfig{
+			EnodebConfig: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2177,7 +2177,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
-			EnodebConfig: &lteModels.EnodebEnodebConfig{
+			EnodebConfig: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2272,7 +2272,7 @@ func TestCreateEnodeb(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
-			EnodebConfig: &lteModels.EnodebEnodebConfig{
+			EnodebConfig: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2305,7 +2305,7 @@ func TestCreateEnodeb(t *testing.T) {
 		Description: "foobar description",
 		PhysicalID:  "abcdef",
 		GraphID:     "2",
-		Config: &lteModels.EnodebEnodebConfig{
+		Config: &lteModels.EnodebConfig{
 			ConfigType: "MANAGED",
 			ManagedConfig: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
@@ -2338,7 +2338,7 @@ func TestCreateEnodeb(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
-			EnodebConfig: &lteModels.EnodebEnodebConfig{
+			EnodebConfig: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2362,6 +2362,42 @@ func TestCreateEnodeb(t *testing.T) {
 		ExpectedError:  "attached_gateway_id is a read-only property",
 	}
 	tests.RunUnitTest(t, e, tc)
+
+	ip := strfmt.IPv4("192.168.0.124")
+	tc = tests.Test{
+		Method:  "POST",
+		URL:     testURLRoot,
+		Handler: createEnodeb,
+		Payload: &lteModels.Enodeb{
+			Config: &lteModels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "UNMANAGED",
+				UnmanagedConfig: &lteModels.UnmanagedEnodebConfiguration{
+					CellID:    swag.Uint32(1234),
+					IPAddress: &ip,
+				},
+			},
+			Name:        "foobar",
+			Description: "foobar description",
+			Serial:      "unmanaged",
+		},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+	actual, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
 }
 
 func TestUpdateEnodeb(t *testing.T) {
@@ -2386,7 +2422,7 @@ func TestUpdateEnodeb(t *testing.T) {
 			Name:        "abc enodeb",
 			Description: "abc enodeb description",
 			PhysicalID:  "abcdefg",
-			Config: &lteModels.EnodebEnodebConfig{
+			Config: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2420,7 +2456,7 @@ func TestUpdateEnodeb(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
-			EnodebConfig: &lteModels.EnodebEnodebConfig{
+			EnodebConfig: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2453,7 +2489,7 @@ func TestUpdateEnodeb(t *testing.T) {
 		Description: "new description",
 		PhysicalID:  "abcdefg",
 		GraphID:     "2",
-		Config: &lteModels.EnodebEnodebConfig{
+		Config: &lteModels.EnodebConfig{
 			ConfigType: "MANAGED",
 			ManagedConfig: &lteModels.EnodebConfiguration{
 				BandwidthMhz:           20,
@@ -2487,7 +2523,7 @@ func TestUpdateEnodeb(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
-			EnodebConfig: &lteModels.EnodebEnodebConfig{
+			EnodebConfig: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,
@@ -2502,14 +2538,49 @@ func TestUpdateEnodeb(t *testing.T) {
 				},
 			},
 			Name:              "foobar",
-			Serial:            "abcdef",
+			Serial:            "abcdefg",
 			AttachedGatewayID: "gw1",
 		},
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "abcdefg"},
 		ExpectedStatus: 400,
 		ExpectedError:  "attached_gateway_id is a read-only property",
 	}
+	tests.RunUnitTest(t, e, tc)
+
+	ip := strfmt.IPv4("192.168.0.124")
+	tc = tests.Test{
+		Method:  "PUT",
+		URL:     testURLRoot,
+		Handler: updateEnodeb,
+		Payload: &lteModels.Enodeb{
+			Config: &lteModels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "UNMANAGED",
+				UnmanagedConfig: &lteModels.UnmanagedEnodebConfiguration{
+					CellID:    swag.Uint32(1234),
+					IPAddress: &ip,
+				},
+			},
+			Name:        "foobar",
+			Description: "new description",
+			Serial:      "abcdefg",
+		},
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "abcdefg"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestDeleteEnodeb(t *testing.T) {
@@ -2533,7 +2604,7 @@ func TestDeleteEnodeb(t *testing.T) {
 			Key:        "abcdefg",
 			Name:       "abc enodeb",
 			PhysicalID: "abcdefg",
-			Config: &lteModels.EnodebEnodebConfig{
+			Config: &lteModels.EnodebConfig{
 				ConfigType: "MANAGED",
 				ManagedConfig: &lteModels.EnodebConfiguration{
 					BandwidthMhz:           20,

@@ -78,6 +78,7 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		return nil, errors.Wrap(err, "error loading enodeb configs")
 	}
 
+	defer sqorc.CloseRowsLogOnError(rows, "m014_enodeb_config")
 	newConfsByPk := map[string][]byte{}
 	for rows.Next() {
 		var pk string
@@ -101,7 +102,6 @@ func doMigration(tx *sql.Tx) (interface{}, error) {
 		}
 		newConfsByPk[pk] = newConfBytes
 	}
-	defer sqorc.CloseRowsLogOnError(rows, "m014_enodeb_config")
 
 	for pk, newConf := range newConfsByPk {
 		bu := builder.Update(tableName).
@@ -126,6 +126,6 @@ func shouldMigrateConf(oldConf []byte) (bool, error) {
 		return false, errors.Wrap(err, "could not unmarshal legacy config")
 	}
 
-	_, alreadyMigrated := parsedMessage["enodeb_config"]
+	_, alreadyMigrated := parsedMessage["config_type"]
 	return !alreadyMigrated, nil
 }
