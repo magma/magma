@@ -29,7 +29,6 @@ using magma::lte::IPAddress;
 using magma::lte::MobilityServiceClient;
 
 int main(int argc, char** argv) {
-#if 0
   int status;
   struct in_addr tmp;
   struct in_addr ipv4_addr3;
@@ -112,6 +111,5 @@ int main(int argc, char** argv) {
     inet_ntop(AF_INET, &tmp, str, INET_ADDRSTRLEN);
     printf("Retrieved ip address for user 0002: %s\n", str);
   }
-#endif
   printf("All tests passed...\n");
 }
