@@ -16,6 +16,7 @@ import unittest
 
 import s1ap_types
 import s1ap_wrapper
+from s1ap_utils import GTPBridgeUtils
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 from magma.pipelined.imsi import decode_imsi
 
@@ -23,7 +24,6 @@ from magma.pipelined.imsi import decode_imsi
 class TestAttachDetachWithOVS(unittest.TestCase):
 
     SPGW_TABLE = 0
-    GTP_PORT = 32768
     LOCAL_PORT = "LOCAL"
 
     def setUp(self):
@@ -70,14 +70,16 @@ class TestAttachDetachWithOVS(unittest.TestCase):
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
         # UPLINK
-        print("Checking for uplink flow")
+        gtp_br_util = GTPBridgeUtils()
+        gtp_port_no = gtp_br_util.get_gtp_port_no()
+        print("Checking for uplink flow in-port %d", gtp_port_no)
         # try at least 5 times before failing as gateway
         # might take some time to install the flows in ovs
         for i in range(MAX_NUM_RETRIES):
             print("Get uplink flows: attempt ", i)
             uplink_flows = get_flows(datapath,
                                      {"table_id": self.SPGW_TABLE,
-                                      "match": {"in_port": self.GTP_PORT}})
+                                      "match": {"in_port": gtp_port_no}})
             if len(uplink_flows) > 0:
                 break
             time.sleep(5)  # sleep for 5 seconds before retrying

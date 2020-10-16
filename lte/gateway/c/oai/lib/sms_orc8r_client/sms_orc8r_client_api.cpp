@@ -23,13 +23,16 @@
 #include "SMSOrc8rClient.h"
 #include "orc8r/protos/common.pb.h"
 
-void empty_callback(grpc::Status status, magma::orc8r::Void void_response) {
+extern "C" {
+#include "log.h"
+}
+
+void void_callback(grpc::Status status, magma::orc8r::Void void_response) {
   return;
 }
 
-void send_uplink_unitdata(const itti_sgsap_uplink_unitdata_t* msg) {
-  std::cout << "[DEBUG] Sending UPLINK_UNITDATA with IMSI: "
-            << std::string(msg->imsi) << std::endl;
-  magma::SMSOrc8rClient::send_uplink_unitdata(msg, empty_callback);
+void send_smo_uplink_unitdata(const itti_sgsap_uplink_unitdata_t* msg) {
+  OAILOG_DEBUG(LOG_SMS_ORC8R, "Sending UPLINK_UNITDATA\n");
+  magma::SMSOrc8rClient::send_uplink_unitdata(msg, void_callback);
   return;
 }

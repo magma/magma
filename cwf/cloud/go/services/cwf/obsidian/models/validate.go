@@ -15,6 +15,7 @@ package models
 
 import (
 	"fmt"
+	"net"
 
 	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
@@ -58,7 +59,7 @@ func (m *CwfSubscriberDirectoryRecord) ValidateModel() error {
 	return nil
 }
 
-func (m *CarrierWifiNetworkClusterStatus) ValidateModel() error {
+func (m *CarrierWifiHaPairStatus) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
 	}
@@ -79,7 +80,7 @@ func (m *CwfHaPair) ValidateModel() error {
 	if m.GatewayID1 == m.GatewayID2 {
 		return fmt.Errorf("GatewayID1 and GatewayID2 cannot be the same")
 	}
-	return nil
+	return m.Config.ValidateModel()
 }
 
 func (m *MutableCwfHaPair) ValidateModel() error {
@@ -89,12 +90,16 @@ func (m *MutableCwfHaPair) ValidateModel() error {
 	if m.GatewayID1 == m.GatewayID2 {
 		return fmt.Errorf("GatewayID1 and GatewayID2 cannot be the same")
 	}
-	return nil
+	return m.Config.ValidateModel()
 }
 
 func (m *CwfHaPairConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
+	}
+	_, _, err := net.ParseCIDR(m.TransportVirtualIP)
+	if err != nil {
+		return fmt.Errorf("Transport virtual IP must be specified in CIDR format (e.g. '10.10.10.11/24')")
 	}
 	return nil
 }

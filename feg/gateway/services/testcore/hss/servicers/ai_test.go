@@ -17,6 +17,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/fiorix/go-diameter/v4/diam"
+	"github.com/fiorix/go-diameter/v4/diam/avp"
+	"github.com/fiorix/go-diameter/v4/diam/datatype"
+	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/stretchr/testify/assert"
+
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/diameter"
 	definitions "magma/feg/gateway/services/s6a_proxy/servicers"
@@ -25,12 +31,6 @@ import (
 	"magma/feg/gateway/services/testcore/hss/storage"
 	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
-
-	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/fiorix/go-diameter/v4/diam/avp"
-	"github.com/fiorix/go-diameter/v4/diam/datatype"
-	"github.com/fiorix/go-diameter/v4/diam/dict"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestNewAIA_MissingSessionID(t *testing.T) {
@@ -79,9 +79,8 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 	assert.Equal(t, diam.Success, int(aia.ResultCode))
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginRealm)
-	assert.Equal(t, 1, len(aia.AIs))
 
-	ai := aia.AIs[0]
+	ai := &aia.AI
 	assert.Equal(t, 1, len(ai.EUtranVectors))
 
 	vec := ai.EUtranVectors[0]
@@ -104,18 +103,17 @@ func TestNewAIA_MultipleVectors(t *testing.T) {
 	var aia definitions.AIA
 	err = response.Unmarshal(&aia)
 	assert.NoError(t, err)
-	assert.Equal(t, 3, len(aia.AIs))
+	assert.Equal(t, 3, len(aia.AI.EUtranVectors))
 
-	for i := 0; i < len(aia.AIs); i++ {
-		assert.Equal(t, 1, len(aia.AIs[i].EUtranVectors))
-		vector := aia.AIs[i].EUtranVectors[0]
-		assert.Equal(t, crypto.RandChallengeBytes, len(vector.RAND))
-		assert.Equal(t, crypto.XresBytes, len(vector.XRES))
-		assert.Equal(t, crypto.AutnBytes, len(vector.AUTN))
-		assert.Equal(t, crypto.KasmeBytes, len(vector.KASME))
+	vector := aia.AI.EUtranVectors[0]
+	assert.Equal(t, crypto.RandChallengeBytes, len(vector.RAND))
+	assert.Equal(t, crypto.XresBytes, len(vector.XRES))
+	assert.Equal(t, crypto.AutnBytes, len(vector.AUTN))
+	assert.Equal(t, crypto.KasmeBytes, len(vector.KASME))
 
-		for j := i + 1; j < len(aia.AIs); j++ {
-			assert.NotEqual(t, aia.AIs[i], aia.AIs[j])
+	for i := 0; i < len(aia.AI.EUtranVectors); i++ {
+		for j := i + 1; j < len(aia.AI.EUtranVectors); j++ {
+			assert.NotEqual(t, aia.AI.EUtranVectors[i], aia.AI.EUtranVectors[j])
 		}
 	}
 }
@@ -132,7 +130,7 @@ func TestNewAIA_MissingAuthKey(t *testing.T) {
 	err = response.Unmarshal(&aia)
 	assert.NoError(t, err)
 	assert.Equal(t, uint32(protos.ErrorCode_AUTHORIZATION_REJECTED), aia.ExperimentalResult.ExperimentalResultCode)
-	assert.Equal(t, 0, len(aia.AIs))
+	assert.Equal(t, 0, len(aia.AI.EUtranVectors))
 	assert.Equal(t, "magma;123_1234", aia.SessionID)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity("magma.com"), aia.OriginRealm)
@@ -273,9 +271,8 @@ func TestNewSuccessfulAIA(t *testing.T) {
 	assert.Equal(t, air.SessionID, datatype.UTF8String(aia.SessionID))
 	assert.Equal(t, datatype.DiameterIdentity(serverCfg.DestHost), aia.OriginHost)
 	assert.Equal(t, datatype.DiameterIdentity(serverCfg.DestRealm), aia.OriginRealm)
-	assert.Equal(t, 1, len(aia.AIs))
 
-	ai := aia.AIs[0]
+	ai := &aia.AI
 	assert.Equal(t, 1, len(ai.EUtranVectors))
 
 	vec := ai.EUtranVectors[0]

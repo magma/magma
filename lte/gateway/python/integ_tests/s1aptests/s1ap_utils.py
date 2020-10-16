@@ -20,6 +20,8 @@ import threading
 import time
 from enum import Enum
 from queue import Queue
+from typing import Optional
+
 import grpc
 import subprocess
 
@@ -78,7 +80,6 @@ class S1ApUtil(object):
     MAX_NUM_RETRIES = 5
     datapath = get_datapath()
     SPGW_TABLE = 0
-    GTP_PORT = 32768
     LOCAL_PORT = "LOCAL"
 
     class Msg(object):
@@ -121,6 +122,7 @@ class S1ApUtil(object):
 
         # Maintain a map of UE IDs to IPs
         self._ue_ip_map = {}
+        self.gtpBridgeUtil = GTPBridgeUtils()
 
     def cleanup(self):
         """
@@ -337,7 +339,7 @@ class S1ApUtil(object):
             total_num_dl_flows_to_be_verified = 1
             for item in value:
                 for flow in item:
-                    if flow["direction"] == "DL":
+                    if flow["direction"] == FlowMatch.DOWNLINK:
                         total_num_dl_flows_to_be_verified += 1
             total_dl_ovs_flows_created = get_flows(
                 self.datapath,
@@ -358,14 +360,10 @@ class S1ApUtil(object):
             # Now verify the rules for every flow
             for item in value:
                 for flow in item:
-                    if flow["direction"] == "DL":
+                    if flow["direction"] == FlowMatch.DOWNLINK:
                         ipv4_src_addr = flow["ipv4_src"]
                         tcp_src_port = flow["tcp_src_port"]
-                        ip_proto = (
-                            FlowMatch.IPPROTO_TCP
-                            if (flow["ip_proto"] == "TCP")
-                            else FlowMatch.IPPROTO_UDP
-                        )
+                        ip_proto = flow["ip_proto"]
                         for i in range(self.MAX_NUM_RETRIES):
                             print("Get downlink flows: attempt ", i)
                             downlink_flows = get_flows(
@@ -405,6 +403,7 @@ class S1ApUtil(object):
                         assert bool(has_tunnel_action)
 
     def verify_flow_rules(self, num_ul_flows, dl_flow_rules=None):
+        GTP_PORT = self.gtpBridgeUtil.get_gtp_port_no()
         # Check if UL and DL OVS flows are created
         print("************ Verifying flow rules")
         # UPLINK
@@ -417,7 +416,7 @@ class S1ApUtil(object):
                 self.datapath,
                 {
                     "table_id": self.SPGW_TABLE,
-                    "match": {"in_port": self.GTP_PORT},
+                    "match": {"in_port": GTP_PORT},
                 },
             )
             if len(uplink_flows) == num_ul_flows:
@@ -592,6 +591,23 @@ class MagmadUtil(object):
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
+
+    def exec_command_output(self, command):
+        """
+        Run a command remotly on magma_dev VM.
+
+        Args:
+            command: command (str) to be executed on remote host
+            e.g. 'sed -i \'s/config1/config2/g\' /etc/magma/mme.yml'
+
+        """
+        data = self._data
+        data["command"] = '"' + command + '"'
+        param_list = shlex.split(self._command.format(**data))
+        return subprocess.check_output(
+            param_list,
+            shell=False,
+        ).decode("utf-8")
 
     def config_stateless(self, cmd):
         """
@@ -947,7 +963,7 @@ class SessionManagerUtil(object):
             get_rpc_channel("sessiond")
         )
         self._abort_session_stub = AbortSessionResponderStub(
-            get_rpc_channel("sessiond")
+            get_rpc_channel("abort_session_service")
         )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
@@ -958,14 +974,9 @@ class SessionManagerUtil(object):
         Populates flow match list
         """
         for flow in flow_list:
-            flow_direction = (
-                FlowMatch.UPLINK
-                if flow["direction"] == "UL"
-                else FlowMatch.DOWNLINK
-            )
+            flow_direction = flow["direction"]
             ip_protocol = flow["ip_proto"]
-            if ip_protocol == "TCP":
-                ip_protocol = FlowMatch.IPPROTO_TCP
+            if ip_protocol == FlowMatch.IPPROTO_TCP:
                 udp_src_port = 0
                 udp_dst_port = 0
                 tcp_src_port = (
@@ -974,8 +985,7 @@ class SessionManagerUtil(object):
                 tcp_dst_port = (
                     int(flow["tcp_dst_port"]) if "tcp_dst_port" in flow else 0
                 )
-            elif ip_protocol == "UDP":
-                ip_protocol = FlowMatch.IPPROTO_UDP
+            elif ip_protocol == FlowMatch.IPPROTO_UDP:
                 tcp_src_port = 0
                 tcp_dst_port = 0
                 udp_src_port = (
@@ -1101,3 +1111,20 @@ class SessionManagerUtil(object):
                 user_name=imsi,
             )
         )
+
+
+class GTPBridgeUtils:
+    def __init__(self):
+        self.magma_utils = MagmadUtil(None)
+        ret = self.magma_utils.exec_command_output("sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
+        if "false" in ret:
+            self.gtp_port_name = "gtp0"
+        else:
+            self.gtp_port_name = "g_8d3ca8c0"
+
+    def get_gtp_port_no(self) -> Optional[int]:
+        output = self.magma_utils.exec_command_output("sudo ovsdb-client dump Interface name ofport")
+        for line in output.split('\n'):
+            if self.gtp_port_name in line:
+                port_info = line.split()
+                return port_info[1]

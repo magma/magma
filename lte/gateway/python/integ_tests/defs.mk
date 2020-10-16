@@ -134,7 +134,9 @@ s1aptests/test_paging_request.py \
 s1aptests/test_multi_enb_paging_request.py \
 s1aptests/test_attach_asr.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
-s1aptests/test_attach_detach_with_mobilityd_restart.py \
+s1aptests/test_attach_detach_attach_ul_tcp_data.py \
+s1aptests/test_restore_mme_config_after_sanity.py
+#s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
 s1aptests/test_mobile_reachability_timer_with_mme_restart.py \
 s1aptests/test_implicit_detach_timer_with_mme_restart.py \
@@ -143,7 +145,6 @@ s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
-s1aptests/test_restore_mme_config_after_sanity.py
 
 # TODO flaky tests we should look at
 # s1aptests/test_enb_complete_reset.py \

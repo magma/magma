@@ -310,3 +310,21 @@ func (m *MutableCwfHaPair) ToEntityUpdateCriteria(haPairID string) configurator.
 	}
 	return ret
 }
+
+func (m *MutableCwfHaPair) ToEntity() configurator.NetworkEntity {
+	return configurator.NetworkEntity{
+		Type:   cwf.CwfHAPairType,
+		Key:    m.HaPairID,
+		Config: m.Config,
+		Associations: []storage.TypeAndKey{
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID1,
+			},
+			{
+				Type: cwf.CwfGatewayType,
+				Key:  m.GatewayID2,
+			},
+		},
+	}
+}

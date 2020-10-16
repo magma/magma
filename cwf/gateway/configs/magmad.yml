@@ -97,6 +97,7 @@ metricsd:
     - radiusd
     - directoryd
     - state
+    - health
 
 # Services for which magmad grpc status check restart recovery is enabled
 services_to_restart:

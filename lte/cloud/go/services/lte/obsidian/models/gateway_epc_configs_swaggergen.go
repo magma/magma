@@ -37,6 +37,11 @@ type GatewayEpcConfigs struct {
 	// Required: true
 	NatEnabled *bool `json:"nat_enabled"`
 
+	// IP address of gateway for management interface on the AGW
+	// Max Length: 49
+	// Min Length: 5
+	SgiManagementIfaceGw string `json:"sgi_management_iface_gw,omitempty"`
+
 	// IP address for management interface on the AGW, If not specified AGW uses DHCP to configure it.
 	// Max Length: 49
 	// Min Length: 5
@@ -65,6 +70,10 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateNatEnabled(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateSgiManagementIfaceGw(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -136,6 +145,23 @@ func (m *GatewayEpcConfigs) validateIPBlock(formats strfmt.Registry) error {
 func (m *GatewayEpcConfigs) validateNatEnabled(formats strfmt.Registry) error {
 
 	if err := validate.Required("nat_enabled", "body", m.NatEnabled); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateSgiManagementIfaceGw(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.SgiManagementIfaceGw) { // not required
+		return nil
+	}
+
+	if err := validate.MinLength("sgi_management_iface_gw", "body", string(m.SgiManagementIfaceGw), 5); err != nil {
+		return err
+	}
+
+	if err := validate.MaxLength("sgi_management_iface_gw", "body", string(m.SgiManagementIfaceGw), 49); err != nil {
 		return err
 	}
 

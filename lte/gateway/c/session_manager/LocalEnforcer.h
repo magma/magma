@@ -305,7 +305,7 @@ class LocalEnforcer {
    */
   void update_charging_credits(
       SessionMap& session_map, const UpdateSessionResponse& response,
-      std::unordered_set<std::string>& subscribers_to_terminate,
+      std::unordered_set<ImsiAndSessionID>& subscribers_to_terminate,
       SessionUpdate& session_update);
 
   /**
@@ -317,7 +317,7 @@ class LocalEnforcer {
    */
   void update_monitoring_credits_and_rules(
       SessionMap& session_map, const UpdateSessionResponse& response,
-      std::unordered_set<std::string>& subscribers_to_terminate,
+      std::unordered_set<ImsiAndSessionID>& subscribers_to_terminate,
       SessionUpdate& session_update);
 
   /**
@@ -330,16 +330,6 @@ class LocalEnforcer {
       const google::protobuf::RepeatedPtrField<std::basic_string<char>>
           rules_to_remove,
       RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc);
-
-  /**
-   * Populate existing rules from a specific session;
-   * used to delete flow rules for a PDN session,
-   * distinct APNs are assumed to have mutually exclusive
-   * rules.
-   */
-  void populate_rules_from_session_to_remove(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      RulesToProcess& rules_to_deactivate);
 
   /**
    * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
@@ -528,11 +518,11 @@ class LocalEnforcer {
       SubscriberQuotaUpdate_Type new_state);
 
   /**
-   * Deactivate rules for multiple IMSIs.
-   * Notify AAA service if the session is a CWF session.
+   * Start the termination process for multiple sessions
    */
-  void terminate_multiple_services(
-      SessionMap& session_map, const std::unordered_set<std::string>& imsis,
+  void terminate_multiple_sessions(
+      SessionMap& session_map,
+      const std::unordered_set<ImsiAndSessionID>& sessions,
       SessionUpdate& session_update);
 
   void handle_activate_service_action(
@@ -554,7 +544,7 @@ class LocalEnforcer {
   /**
    * Remove final action flows through pipelined
    */
-  void cancelling_final_unit_action(
+  void cancel_final_unit_action(
       const std::unique_ptr<SessionState>& session,
       const std::vector<std::string>& restrict_rules,
       SessionStateUpdateCriteria& uc);
@@ -595,7 +585,7 @@ class LocalEnforcer {
 
   bool terminate_on_wallet_exhaust();
 
-  void schedule_termination(std::unordered_set<std::string>& imsis);
+  void schedule_termination(std::unordered_set<ImsiAndSessionID>& sessions);
 
   void propagate_bearer_updates_to_mme(const BearerUpdate& updates);
 

@@ -233,8 +233,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
         mme_app_statistics_display();
       } else if (received_message_p->ittiMsg.timer_has_expired.arg != NULL) {
         mme_app_nas_timer_handle_signal_expiry(
-          TIMER_HAS_EXPIRED(received_message_p).timer_id,
-          TIMER_HAS_EXPIRED(received_message_p).arg, &imsi64);
+            TIMER_HAS_EXPIRED(received_message_p).timer_id,
+            TIMER_HAS_EXPIRED(received_message_p).arg, &imsi64);
       }
       timer_handle_expired(
           received_message_p->ittiMsg.timer_has_expired.timer_id);
@@ -437,9 +437,9 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   itti_mark_task_ready(TASK_MME_APP);
   init_task_context(
       TASK_MME_APP,
-      (task_id_t[]){TASK_SPGW_APP, TASK_SGS, TASK_S11, TASK_S6A, TASK_S1AP,
-                    TASK_SERVICE303},
-      6, handle_message, &mme_app_task_zmq_ctx);
+      (task_id_t[]){TASK_SPGW_APP, TASK_SGS, TASK_SMS_ORC8R, TASK_S11, TASK_S6A,
+                    TASK_S1AP, TASK_SERVICE303},
+      7, handle_message, &mme_app_task_zmq_ctx);
 
   // Service started, but not healthy yet
   send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, false);

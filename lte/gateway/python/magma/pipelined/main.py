@@ -19,7 +19,6 @@ import asyncio
 import logging
 import threading
 
-
 import aioeventlet
 from ryu import cfg
 from ryu.base.app_manager import AppManager
@@ -33,6 +32,8 @@ from magma.pipelined.check_quota_server import run_flask
 from magma.pipelined.service_manager import ServiceManager
 from magma.pipelined.ifaces import monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
+from magma.pipelined.gtp_stats_collector import GTPStatsCollector, \
+    MIN_OVSDB_DUMP_POLLING_INTERVAL
 from lte.protos.mconfig import mconfigs_pb2
 
 
@@ -67,6 +68,10 @@ def main():
     sgi_ip = service.config.get('sgi_management_iface_ip_addr',
                                   service.mconfig.sgi_management_iface_ip_addr)
     service.config['sgi_management_iface_ip_addr'] = sgi_ip
+
+    sgi_gateway_ip = service.config.get('sgi_management_iface_gw',
+                                        service.mconfig.sgi_management_iface_gw)
+    service.config['sgi_management_iface_gw'] = sgi_gateway_ip
 
     if 'virtual_mac' not in service.config:
         service.config['virtual_mac'] = get_if_hwaddr(service.config.get('bridge_name'))
@@ -107,6 +112,8 @@ def main():
         manager.applications.get('IPFIXController', None),
         manager.applications.get('VlanLearnController', None),
         manager.applications.get('TunnelLearnController', None),
+        manager.applications.get('Classifier', None),
+        service.config,
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
 
@@ -123,6 +130,14 @@ def main():
                                  on_exit_server_thread)
         start_check_quota_server(run_flask, bridge_ip, no_quota_port, False,
                                  on_exit_server_thread)
+
+    if service.config['setup_type'] == 'LTE':
+        polling_interval = service.config.get('ovs_gtp_stats_polling_interval',
+                                              MIN_OVSDB_DUMP_POLLING_INTERVAL)
+        collector = GTPStatsCollector(
+            polling_interval,
+            service.loop)
+        collector.start()
 
     # Run the service loop
     service.run()

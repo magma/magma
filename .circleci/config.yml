@@ -284,6 +284,8 @@ commands:
             cp *_version versions || true
       - store_artifacts:
           path: /tmp/logs
+      - store_test_results:
+          path: /tmp/test-results
       - run:
           name: Double-check that the node is freed
           command: |
@@ -296,6 +298,10 @@ commands:
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
+    parameters:
+      channel:
+        type: string
+        default: "#magma_ci"
     steps:
       - run:
           command: |
@@ -319,6 +325,7 @@ commands:
             email=$(git show -s --format='%ae')
             rel_time=$(git show -s --format='%cr')
             abs_time=$(git show -s --format='%cd')
+            slack_channel=<< parameters.channel >>
             gh_text="<https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}|${CIRCLE_SHA1:0:8}> by ${author} <${email}> ${rel_time} (${abs_time})"
 
             pretext="Job \`${CIRCLE_JOB}\` #${CIRCLE_BUILD_NUM} on branch \`${CIRCLE_BRANCH}\` of ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} failed. Check the <${CIRCLE_BUILD_URL}|build logs> for details."
@@ -326,6 +333,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
+              "channel": "${slack_channel}",
               "text": "*CircleCI Job Failure*",
               "attachments": [
                 {
@@ -899,6 +907,15 @@ jobs:
   ### XWF
 
   xwfm-test:
+    parameters:
+      notify_magma_ci:
+        description: "should run magma_slack_notify for #magma_ci channel"
+        type: boolean
+        default: true
+      notify_xwfm_ci:
+        description: "should run magma_slack_notify for #xwfm_ci channel"
+        type: boolean
+        default: true
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -919,7 +936,16 @@ jobs:
             env
             docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
             cd ${MAGMA_ROOT}/xwf/docker/
+            docker-compose pull || true
             docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
+      - when:
+          condition: <<parameters.notify_magma_ci>>
+          steps: magma_slack_notify
+      - when:
+          condition: <<parameters.notify_xwfm_ci>>
+          steps:
+            - magma_slack_notify:
+                channel: "#xwfm_ci"
 
   xwfm-deploy:
     parameters:
@@ -1023,7 +1049,8 @@ workflows:
           cron: "0 * * * *"
           <<: *only_master
     jobs:
-      - xwfm-test
+      - xwfm-test:
+          notify_magma_ci: false
       - xwfm-deploy:
           requires:
             - xwfm-test

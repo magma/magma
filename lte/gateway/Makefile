@@ -130,7 +130,7 @@ build_python: stop ## Build Python environment
 build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
-build_oai: build_common ## Build OAI
+build_oai: format_oai build_common ## Build OAI
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
 build_sctpd: build_common ## Build SCTPD
