@@ -103,7 +103,7 @@ export const CWFSubscriberDBData: GrafanaDBData = {
       ]
     },
     {
-      title: Aggregated Sessions
+      title: "Aggregated Sessions",
       panels: [
         {
           title: 'User Growth',
