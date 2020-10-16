@@ -84,6 +84,8 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -109,13 +111,14 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 		&fegprotos.PolicyReAuthTarget{Imsi: imsi, RulesToRemove: rulesRemoval},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
 
-	// Check ReAuth success
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
+
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Check that UE flows were deleted for rule 2 and 3
+	tr.WaitForEnforcementStatsToSync()
+
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
 
@@ -158,6 +161,8 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -181,14 +186,12 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 		&fegprotos.PolicyReAuthTarget{Imsi: imsi, RulesToRemove: rulesRemoval},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
-
-	// Check ReAuth success
-	assert.NotNil(t, raa)
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Check that all UE mac flows are deleted
+	tr.WaitForEnforcementStatsToSync()
+
 	recordsBySubID, err = tr.GetPolicyUsage()
 	assert.NoError(t, err)
 
@@ -230,6 +233,8 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -270,10 +275,8 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Generate more traffic
@@ -324,6 +327,8 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -371,10 +376,8 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Generate more traffic
@@ -423,6 +426,8 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: *swag.String("500K")},
+		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -445,10 +450,8 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	// Generate more traffic

@@ -107,7 +107,7 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
 #define MME_APP_ULR_RESPONSE_TIMER_VALUE 3               // In seconds
 /* Timer structure */
 struct mme_app_timer_t {
-  long id;  /* The timer identifier                 */
+  long id;      /* The timer identifier                 */
   uint32_t sec; /* The timer interval value in seconds  */
 };
 

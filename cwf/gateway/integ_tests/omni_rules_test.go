@@ -137,11 +137,9 @@ func TestOmnipresentRules(t *testing.T) {
 	}
 	fmt.Printf("Sending a ReAuthRequest with target %v\n", target)
 	raa, err := sendPolicyReAuthRequest(target)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	fmt.Printf("RAA result code=%v, should be=%v\n", int(raa.ResultCode), diam.Success)
 	//assert.Equal(t, diam.Success, int(raa.ResultCode))
 
