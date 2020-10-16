@@ -75,8 +75,8 @@ class IPAllocatorDHCP(IPAllocator):
         logging.warning("No need to allocate block for DHCP allocator: %s", ipblock)
 
     def remove_ip_blocks(self, *ipblocks: List[ip_network],
-                         _force: bool = False) -> List[ip_network]:
-        logging.warning("trying to delete ipblock from DHCP allocator: %s", ipblocks)
+                         force: bool = False) -> List[ip_network]:
+        logging.warning("Trying to delete ipblock from DHCP allocator: %s", ipblocks)
         return []
 
     def list_added_ip_blocks(self) -> List[ip_network]:

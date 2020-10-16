@@ -39,6 +39,12 @@ message AllocateIPAddressResponse {
 message IPLookupRequest {
   SubscriberID sid = 1;
   string apn = 2;
+
+  enum IPVersion {
+    IPV4 = 0;
+    IPV6 = 1;
+  }
+  IPVersion version = 3;
 }
 
 // --------------------------------------------------------------------------

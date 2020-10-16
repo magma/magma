@@ -19,9 +19,14 @@ from __future__ import unicode_literals
 import ipaddress
 import unittest
 
+from magma.common.redis.client import get_default_client
+from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.mobilityd.ip_descriptor import IPDesc
 from magma.mobilityd.ipv6_allocator_pool import IPv6AllocatorPool
 from magma.mobilityd.ip_address_man import IPNotInUseError
+
+from magma.mobilityd.mobility_store import MobilityStore
+from unittest import mock
 
 
 class TestIPV6Allocator(unittest.TestCase):
@@ -29,21 +34,20 @@ class TestIPV6Allocator(unittest.TestCase):
     Test class for the Mobilityd IPv6 Allocator
     """
 
+    @mock.patch("redis.Redis", MockRedis)
     def _new_ip_allocator(self, block):
         """
         Creates and sets up an IPAllocator with the given IPv6 block.
         """
-        allocator = IPv6AllocatorPool(config=self._config)
+        store = MobilityStore(get_default_client(), False, 3980)
+        allocator = IPv6AllocatorPool('RANDOM', store.ip_state_map,
+                                      store.sid_ips_map, store.allocated_iid,
+                                      store.sid_session_prefix_allocated)
         allocator.add_ip_block(block)
         return allocator
 
     def setUp(self):
-        self._config = {
-            'ipv6_prefix_block': 'fedd:5:6c::/48',
-            'ipv6_ip_allocator_type': 'RANDOM'
-
-        }
-        self._block = ipaddress.ip_network(self._config['ipv6_prefix_block'])
+        self._block = ipaddress.ip_network('fedd:5:6c::/48')
         self._allocator = self._new_ip_allocator(self._block)
 
     def test_alloc_ipv6_address(self):
@@ -74,8 +78,7 @@ class TestIPV6Allocator(unittest.TestCase):
 
     def test_remove_unallocated_ipv6_block(self):
         """ test removing the allocator for an unallocated block """
-        self.assertEqual(
-            [self._block], self._allocator.remove_ip_blocks(self._block))
+        self.assertEqual([], self._allocator.remove_ip_blocks(self._block))
 
     def test_remove_after_releasing_some_addresses(self):
         """ removing after releasing all allocated addresses """
@@ -93,7 +96,4 @@ class TestIPV6Allocator(unittest.TestCase):
         self._allocator.release_ip(ip_desc2)
 
         self.assertEqual({}, self._allocator._sid_session_prefix_allocated)
-
-        self.assertEqual(
-            [self._block], self._allocator.remove_ip_blocks(self._block))
 

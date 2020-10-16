@@ -27,10 +27,12 @@ from lte.protos.subscriberdb_pb2 import (
 )
 
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+from magma.common.redis.client import get_default_client
 from magma.mobilityd.ip_descriptor import IPDesc, IPType
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
 from magma.subscriberdb.sid import SIDUtils
+from magma.mobilityd.mobility_store import MobilityStore
 
 
 class MockedSubscriberDBStub:
@@ -53,7 +55,8 @@ class MockedSubscriberDBStub:
         state = SubscriberState()
         state.lte_auth_next_seq = 1
         non_3gpp = Non3GPPUserProfile()
-        subs_data = SubscriberData(sid=sub_db_sid, lte=lte, state=state, non_3gpp=non_3gpp)
+        subs_data = SubscriberData(sid=sub_db_sid, lte=lte, state=state,
+                                   non_3gpp=non_3gpp)
 
         cls.subs[str(sub_db_sid)] = subs_data
         cls.add_sub_ip(sid, apn, ip, vlan, gw_ip, gw_mac)
@@ -102,21 +105,17 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """
         Creates and sets up an IPAllocator with the given recycling interval.
         """
-        config = {
-            'recycling_interval': recycling_interval,
-            'persist_to_redis': False,
-            'redis_port': 6379,
-            'multi_apn': True,
-            'ipv6_prefix_block': 'fedd:5:6c::/48',
-            'ipv6_ip_allocator_type': 'RANDOM'
-        }
-        mconfig = MobilityD(ip_allocator_type=MobilityD.IP_POOL,
-                            static_ip_enabled=True)
-
-        self._allocator = IPAddressManager(recycling_interval=recycling_interval,
+        store = MobilityStore(get_default_client(), False, 3980)
+        self._allocator = IPAddressManager(MobilityD.IP_POOL,
+                                           store,
+                                           static_ip_enabled=True,
+                                           multi_apn=True,
+                                           dhcp_iface='iface',
+                                           dhcp_retry_limit=50,
+                                           ipv6_allocation_type='RANDOM',
                                            subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-                                           config=config,
-                                           mconfig=mconfig)
+                                           recycling_interval=recycling_interval)
+
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
@@ -132,18 +131,20 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
 
     def check_vlan(self, sid: str, vlan: str):
         ip_desc = self._allocator.sid_ips_map[sid]
-        logging.info("type ip_desc.vlan_id %s vlan %s", type(ip_desc.vlan_id), type(vlan))
+        logging.info("type ip_desc.vlan_id %s vlan %s", type(ip_desc.vlan_id),
+                     type(vlan))
         self.assertEqual(ip_desc.vlan_id, vlan)
 
-    def check_gw_info(self, vlan: Optional[int], gw_ip: str, gw_mac: Optional[str]):
-        gw_info_ip = self._allocator._dhcp_gw_info.get_gw_ip(vlan)
+    def check_gw_info(self, vlan: Optional[int], gw_ip: str,
+                      gw_mac: Optional[str]):
+        gw_info_ip = self._allocator.dhcp_gw_info.get_gw_ip(vlan)
         self.assertEqual(gw_info_ip, gw_ip)
-        gw_info_mac = self._allocator._dhcp_gw_info.get_gw_mac(vlan)
+        gw_info_mac = self._allocator.dhcp_gw_info.get_gw_mac(vlan)
         self.assertEqual(gw_info_mac, gw_mac)
 
     def test_get_ip_vlan_for_subscriber(self):
         """ test get_ip_for_sid without any assignment """
-        sid = 'IMSI11,ipv4'
+        sid = 'IMSI11:ipv4'
         ip0, _ = self._allocator.alloc_ip_address(sid)
 
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -156,10 +157,11 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 132
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip,
+                                       vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -175,10 +177,11 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with different APN assigned ip"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 188
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn="xyz", ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="xyz", ip=assigned_ip,
+                                       vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -194,11 +197,12 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test wildcard apn"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 166
 
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip,
+                                       vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -214,15 +218,17 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignement from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         assigned_ip = '1.2.3.4'
         wild_assigned_ip = '44.2.3.11'
 
         vlan = 44
         vlan_wild = 66
 
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip, vlan=vlan_wild)
-        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip,
+                                       vlan=vlan_wild)
+        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=assigned_ip,
+                                          vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -238,11 +244,12 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test invalid data from DB """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         assigned_ip = '1.2.3.hh'
         vlan = 111
 
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip,
+                                       vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -258,13 +265,15 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignment from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 31
         vlan_wild = 552
 
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn="abc", ip=assigned_ip, vlan=vlan_wild)
-        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="abc", ip=assigned_ip,
+                                       vlan=vlan_wild)
+        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip,
+                                          vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -280,7 +289,7 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignment from subscriber without non_3gpp config"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         MockedSubscriberDBStub.add_incomplete_sub(sid=imsi)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
@@ -294,11 +303,12 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
     def test_get_ip_vlan_for_subscriber_with_wildcard_no_apn(self):
         """ test wildcard apn"""
         imsi = 'IMSI110'
-        sid = imsi + ",ipv4"
+        sid = imsi + ":ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 122
 
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip,
+                                       vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -314,11 +324,12 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma.ipv4'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         assigned_ip = '1.2.3.4'
         vlan = 165
 
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip,
+                                       vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -334,15 +345,17 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         """ test IP assignement from multiple  APNs"""
         apn = 'dsddf'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         assigned_ip = '1.2.3.4'
         wild_assigned_ip = '44.2.3.11'
 
         vlan = 0
         vlan_wild = 66
 
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip, vlan=vlan_wild)
-        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip,
+                                       vlan=vlan_wild)
+        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip,
+                                          vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -354,18 +367,21 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.check_vlan(sid, vlan_wild)
         self.check_gw_info(vlan, None, None)
 
-    def test_get_ip_vlan_for_subscriber_with_wildcard_and_exact_apn_no_ip(self):
+    def test_get_ip_vlan_for_subscriber_with_wildcard_and_exact_apn_no_ip(
+            self):
         """ test IP assignement from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn + ",ipv4"
+        sid = imsi + '.' + apn + ":ipv4"
         wild_assigned_ip = '44.2.3.11'
 
         vlan = 44
         vlan_wild = 66
 
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip, vlan=vlan_wild)
-        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=None, vlan=vlan)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=wild_assigned_ip,
+                                       vlan=vlan_wild)
+        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=None,
+                                          vlan=vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
         ip0_returned = self._allocator.get_ip_for_sid(sid)
@@ -376,4 +392,3 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         self.check_type(sid, IPType.IP_POOL)
         self.check_vlan(sid, 0)
         self.check_gw_info(vlan, None, None)
-
