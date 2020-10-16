@@ -160,6 +160,7 @@ $ kubectl -n magma create -f deploy/crds/magma.cwf.k8s_haclusters_crd.yaml
 $ kubectl -n magma create -f deploy/service_account.yaml
 $ kubectl -n magma create -f deploy/role.yaml
 $ kubectl -n magma create -f deploy/role_binding.yaml
+$ kubectl -n magma create -f deploy/crds/charts.helm.k8s.io_cwfs_crd.yaml
 ```
 
 Before creating the operator pod, the `operator.yaml` file will need to be
@@ -192,7 +193,7 @@ define:
  * `gatewayID` - the gateway ID created in the NMS
  * `helmReleaseName` - the release name of the gateway helm deployment
 
-If you are unsure what the helm release name should be, run `helm ls -n magma`
+If you are unsure what the helm release name should be, run `helm ls --namespace magma`
 to check the list of releases.
 
 After making this change, the yaml file should something like:

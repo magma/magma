@@ -36,3 +36,4 @@ spec:
     - gatewayID: "mpk_cwf02"
       helmReleaseName: "cwf02"
   haPairID: "pair1"
+  maxConsecutiveActiveErrors: 3
