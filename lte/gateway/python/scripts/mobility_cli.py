@@ -35,7 +35,7 @@ def add_ip_block_handler(client, args):
     ipblock_msg = IPBlock()
     if ipblock.version == 4:
         ipblock_msg.version = IPBlock.IPV4
-    if ipblock.version == 6:
+    elif ipblock.version == 6:
         ipblock_msg.version = IPBlock.IPV6
     else:
         print("Error: IP version %d is not supported yet" % ipblock.version)

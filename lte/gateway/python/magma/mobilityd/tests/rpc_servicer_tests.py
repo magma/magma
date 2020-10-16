@@ -25,10 +25,16 @@ from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
     IPLookupRequest, GWInfo
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
+from magma.common.redis.client import get_default_client
+from magma.mobilityd.ip_address_man import IPAddressManager
 from magma.mobilityd.rpc_servicer import IPVersionNotSupportedError, \
     MobilityServiceRpcServicer
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
+
+from magma.mobilityd.mobility_store import MobilityStore
+from magma.mobilityd.tests.test_multi_apn_ip_alloc import \
+    MockedSubscriberDBStub
 
 
 class RpcTests(unittest.TestCase):
@@ -42,19 +48,20 @@ class RpcTests(unittest.TestCase):
         self._rpc_server = grpc.server(thread_pool)
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
 
-        # Create a mock "mconfig" for the servicer to use
-        mconfig = unittest.mock.Mock()
-        mconfig.ip_block = None
-        mconfig.ip_allocator_type = MobilityD.IP_POOL
+        store = MobilityStore(get_default_client(), False, 3980)
+        self._allocator = IPAddressManager(MobilityD.IP_POOL,
+                                           store,
+                                           static_ip_enabled=False,
+                                           multi_apn=False,
+                                           dhcp_iface='iface',
+                                           dhcp_retry_limit=300,
+                                           ipv6_allocation_type='RANDOM',
+                                           subscriberdb_rpc_stub=MockedSubscriberDBStub())
 
         # Add the servicer
-        config = {'persist_to_redis': False,
-                  'redis_port': None,
-                  'allocator_type': "ip_pool",
-                  'ipv6_prefix_block': 'fedd:5:6c::/48',
-                  'ipv6_ip_allocator_type': 'RANDOM',
-                  }
-        self._servicer = MobilityServiceRpcServicer(mconfig, config)
+        self._servicer = MobilityServiceRpcServicer(self._allocator,
+                                                    '',
+                                                    'fdee:5:6c::/48')
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
 
@@ -71,7 +78,7 @@ class RpcTests(unittest.TestCase):
                                   prefix_len=self._prefix_len)
         self._block = ipaddress.ip_network(
             "%s/%s" % (self._netaddr, self._prefix_len))
-        self._ipv6_block = ipaddress.ip_network(config['ipv6_prefix_block'])
+        self._ipv6_block = ipaddress.ip_network('fdee:5:6c::/48')
         self._sid0 = SIDUtils.to_pb('IMSI0')
         self._sid1 = SIDUtils.to_pb('IMSI1')
         self._sid2 = SIDUtils.to_pb('IMSI2')
@@ -315,7 +322,8 @@ class RpcTests(unittest.TestCase):
 
         lookup_request0 = IPLookupRequest(
             sid=self._sid0,
-            apn=self._apn0)
+            apn=self._apn0,
+            version=IPAddress.IPV4)
         ip_msg0_returned = self._stub.GetIPForSubscriber(lookup_request0)
         ip0_returned = ipaddress.ip_address(ip_msg0_returned.address)
         self.assertEqual(ip0, ip0_returned)
@@ -325,7 +333,8 @@ class RpcTests(unittest.TestCase):
         status code """
         lookup_request0 = IPLookupRequest(
             sid=self._sid0,
-            apn=self._apn0)
+            apn=self._apn0,
+            version=IPAddress.IPV4)
         with self.assertRaises(grpc.RpcError) as err:
             self._stub.GetIPForSubscriber(lookup_request0)
         self.assertEqual(err.exception.code(),

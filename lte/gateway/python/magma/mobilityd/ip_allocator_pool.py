@@ -77,7 +77,7 @@ class IpAllocatorPool(IPAllocator):
                 num_reserved_addresses -= 1
 
     def remove_ip_blocks(self, ipblocks: List[ip_network],
-                         _force: bool = False) -> List[ip_network]:
+                         force: bool = False) -> List[ip_network]:
         """ Makes the indicated block(s) unavailable for allocation
 
         If force is False, blocks that have any addresses currently allocated
@@ -94,7 +94,7 @@ class IpAllocatorPool(IPAllocator):
                 to be removed. The blocks should have been explicitly added and
                 not yet removed. Any blocks that are not active in the IP
                 allocator will be ignored with a warning.
-            _force (bool): whether to forcibly remove the blocks indicated. If
+            force (bool): whether to forcibly remove the blocks indicated. If
                 False, will only remove a block if no addresses from within the
                 block have been allocated. If True, will remove all blocks
                 regardless of whether any addresses have been allocated from
@@ -115,7 +115,7 @@ class IpAllocatorPool(IPAllocator):
         del extraneous_blocks
 
         # "soft" removal does not remove blocks have IPs allocated
-        if not _force:
+        if not force:
             allocated_ip_block_set = self._ip_state_map.get_allocated_ip_block_set()
             remove_blocks -= allocated_ip_block_set
             del allocated_ip_block_set
@@ -126,7 +126,7 @@ class IpAllocatorPool(IPAllocator):
         for ip in remove_ips:
             for state in (IPState.FREE, IPState.RELEASED, IPState.REAPED):
                 self._ip_state_map.remove_ip_from_state(ip, state)
-            if _force:
+            if force:
                 self._ip_state_map.remove_ip_from_state(ip, IPState.ALLOCATED)
             else:
                 assert not self._ip_state_map.test_ip_state(ip, IPState.ALLOCATED), \

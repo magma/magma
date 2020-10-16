@@ -48,10 +48,10 @@ class IPAllocatorMultiAPNWrapper(IPAllocator):
         self._ip_allocator.add_ip_block(ipblock)
 
     def remove_ip_blocks(self, ipblocks: List[ip_network],
-                         _force: bool = False) -> List[ip_network]:
+                         force: bool = False) -> List[ip_network]:
         """ Remove allocated IP blocks.
         """
-        return self._ip_allocator.remove_ip_blocks(ipblocks, _force)
+        return self._ip_allocator.remove_ip_blocks(ipblocks, force)
 
     def list_added_ip_blocks(self) -> List[ip_network]:
         """ List IP blocks added to the IP allocator

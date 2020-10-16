@@ -21,14 +21,20 @@ import unittest
 import time
 
 from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+from magma.common.redis.client import get_default_client
 
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
 from magma.mobilityd.ip_allocator_pool import IPBlockNotFoundError, \
     NoAvailableIPError
+from magma.mobilityd.tests.test_multi_apn_ip_alloc import \
+    MockedSubscriberDBStub
+from magma.mobilityd.mobility_store import MobilityStore
 
 # If the preallocated IP addresses in ip_address_man.py code
 # changes, then the test cases must be updated
+
+
 class IPAllocatorTests(unittest.TestCase):
     """
     Test class for the Mobilityd IP Allocator
@@ -40,22 +46,16 @@ class IPAllocatorTests(unittest.TestCase):
         """
         Creates and sets up an IPAllocator with the given recycling interval.
         """
-        # NOTE: change below to True to run IP allocator tests locally. We
-        # don't persist to Redis during normal unit tests since they are run
-        # in Sandcastle.
-        config = {
-            'recycling_interval': recycling_interval,
-            'persist_to_redis': False,
-            'redis_port': 6379,
-            'ipv6_prefix_block': 'fedd:5:6c::/48',
-            'ipv6_ip_allocator_type': 'RANDOM'
-        }
-        mconfig = MobilityD(ip_allocator_type=MobilityD.IP_POOL,
-                            static_ip_enabled=False)
-        self._allocator = IPAddressManager(
-                recycling_interval=recycling_interval,
-                config=config,
-                mconfig=mconfig)
+        store = MobilityStore(get_default_client(), False, 3980)
+        self._allocator = IPAddressManager(MobilityD.IP_POOL,
+                                           store,
+                                           static_ip_enabled=False,
+                                           multi_apn=False,
+                                           dhcp_iface='iface',
+                                           dhcp_retry_limit=300,
+                                           ipv6_allocation_type='RANDOM',
+                                           subscriberdb_rpc_stub=MockedSubscriberDBStub(),
+                                           recycling_interval=recycling_interval)
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):

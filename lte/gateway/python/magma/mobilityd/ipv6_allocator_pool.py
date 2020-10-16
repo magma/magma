@@ -14,10 +14,12 @@ import logging
 import random
 
 from ipaddress import ip_address, ip_network
-from typing import List, Optional
+from typing import Dict, List, Optional
 
-from .ip_descriptor import IPDesc, IPType
-from .ip_allocator_base import IPAllocator, OverlappedIPBlocksError, IPNotInUseError
+from .ip_descriptor_map import IpDescriptorMap
+from .ip_descriptor import IPDesc, IPState, IPType
+from .ip_allocator_base import IPAllocator, \
+    NoAvailableIPError, OverlappedIPBlocksError, IPNotInUseError
 from .ip_descriptor import IPv6SessionAllocType
 
 IPV6_PREFIX_PART_LEN = 64
@@ -27,19 +29,25 @@ MAX_CALC_TRIES = 5
 
 
 class IPv6AllocatorPool(IPAllocator):
-    def __init__(self, config):
+    def __init__(self, session_prefix_alloc_mode: str, sid_ips_map: Dict,
+                 ip_states_map: IpDescriptorMap, allocated_iid: Dict,
+                 sid_session_prefix_map: Dict):
         super().__init__()
-        self._config = config
         self._assigned_ip_block = None
-        self._allocated_iid = set()
-        self._sid_session_prefix_allocated = {}
-        self._ipv6_session_prefix_alloc_mode = self._config[
-            'ipv6_ip_allocator_type']
+        self._ip_states_map = ip_states_map
+        self._sid_ips_map = sid_ips_map
+        self._allocated_iid = allocated_iid
+        self._sid_session_prefix_allocated = sid_session_prefix_map
+        self._ipv6_session_prefix_alloc_mode = session_prefix_alloc_mode
 
     def add_ip_block(self, ipblock: ip_network):
         """
         Adds IP block to the assigned IP block of the IPv6 allocator
-        :param ipblock: IPv6 ip_network object
+
+        Args:
+            ipblock: ipv6 ip_network object
+
+        Returns:
         """
         if self._assigned_ip_block and ipblock.overlaps(
                 self._assigned_ip_block):
@@ -54,22 +62,49 @@ class IPv6AllocatorPool(IPAllocator):
         # For now only one IPv6 network is supported
         self._assigned_ip_block = ipblock
 
-    def remove_ip_blocks(self, *ipblocks: List[ip_network],
+    def remove_ip_blocks(self, ipblocks: List[ip_network],
                          force: bool = False) -> List[ip_network]:
         """
         Removes assigned IP block (as it only supports one for now)
-        :param ipblocks: List of ip_network objects to remove
-        :param force:
-        :return: Removed list of IP blocks
-        """
-        removed_blocks = []
-        if self._assigned_ip_block in ipblocks:
-            # Clear allocated session prefix and IID store
-            self._allocated_iid.clear()
-            self._sid_session_prefix_allocated.clear()
 
-            removed_blocks.append(self._assigned_ip_block)
-            self._assigned_ip_block = None
+        If force is False, blocks that have any addresses currently allocated
+        will not be removed. Otherwise, if force is True, the indicated blocks
+        will be removed regardless of whether any addresses have been allocated
+        and any allocated addresses will no longer be served.
+
+        Args:
+            ipblocks: List of ip_network objects to remove
+            force:
+
+        Returns: Removed list of IP blocks
+        """
+        if self._assigned_ip_block not in ipblocks:
+            return []
+
+        if not force:
+            allocated_ip_block_set = self._ip_states_map.get_allocated_ip_block_set()
+            if allocated_ip_block_set:
+                return []
+
+        removed_blocks = []
+        # Clear allocated session prefix and IID store
+        self._allocated_iid.clear()
+        self._sid_session_prefix_allocated.clear()
+
+        for sid in list(self._sid_ips_map):
+            ip_desc = self._sid_ips_map[sid]
+            if ip_desc.ip.version == 6:
+                self._ip_states_map.remove_ip_from_state(ip_desc.ip,
+                                                         IPState.FREE)
+                if force:
+                    self._ip_states_map.remove_ip_from_state(ip_desc.ip,
+                                                             IPState.ALLOCATED)
+                self._sid_ips_map.pop(sid)
+
+        removed_blocks.append(self._assigned_ip_block)
+        logging.info('Removed IP block %s from IPv6 address pool',
+                     self._assigned_ip_block)
+        self._assigned_ip_block = None
         return removed_blocks
 
     def alloc_ip_address(self, sid: str, _) -> IPDesc:
@@ -78,10 +113,14 @@ class IPv6AllocatorPool(IPAllocator):
         (assigned_ip_block) + unique session prefix part + interface
         identifier
 
-        :param sid: composite SID (IMSI + apn)
-        :param _:
-        :return: Full IPv6 address
+        Args:
+            sid: composite SID (IMSI + apn)
+            _:
+
+        Returns: full ipv6 address
         """
+        if not self._assigned_ip_block:
+            raise NoAvailableIPError('No IP block assigned to the allocator')
         # Take available ipv6 host from network
         ipv6_addr_part = next(self._assigned_ip_block.hosts())
 
@@ -93,25 +132,26 @@ class IPv6AllocatorPool(IPAllocator):
                 'Could not get IPv6 session prefix for sid: %s', sid)
 
         # Get interface identifier from 64 bits fixed length
-        iid_part = self._get_ipv6_iid_part(IID_PART_LEN)
+        iid_part = self._get_ipv6_iid_part(sid, IID_PART_LEN)
         if not iid_part:
             logging.error('Could not get IPv6 IID for sid: %s', sid)
             raise MaxCalculationError(
                 'Could not get IPv6 IID for sid: %s', sid)
 
         ipv6_addr = ipv6_addr_part + (session_prefix_part * iid_part)
-        ip_desc = IPDesc()
-        ip_desc.sid = sid
-        ip_desc.ip = ipv6_addr
-        ip_desc.ip_block = self._assigned_ip_block
-        ip_desc.type = IPType.IP_POOL
+        ip_desc = IPDesc(ip=ipv6_addr, state=IPState.ALLOCATED, sid=sid,
+                         ip_block=self._assigned_ip_block,
+                         ip_type=IPType.IP_POOL)
         return ip_desc
 
     def release_ip(self, ip_desc: IPDesc):
         """
         Deallocates session prefix part from identifier and allocated IID
-        :param ip_desc: IP Desc to remove
 
+        Args:
+            ip_desc: IPDesc to remove
+
+        Returns:
         """
         sid = ip_desc.sid
         ip_addr = ip_desc.ip
@@ -126,23 +166,27 @@ class IPv6AllocatorPool(IPAllocator):
             iid_part = float(
                 (int(ip_addr) - ipv6_addr_part) / int(session_prefix))
 
-            if iid_part in self._allocated_iid:
+            if iid_part in self._allocated_iid.values():
                 del self._sid_session_prefix_allocated[sid]
-                self._allocated_iid.remove(iid_part)
+                del self._allocated_iid[sid]
             else:
                 raise IPNotInUseError('IP %s not allocated', ip_addr)
 
-    def _get_ipv6_iid_part(self, length: int = 64) -> Optional[int]:
+    def _get_ipv6_iid_part(self, sid: str, length: int = 64) -> Optional[int]:
         """
         Calculates IPv6 Interface identifier using random calculation,
         if it exceeds MAX_RAND calculation tries, it returns None
-        :param length: length for ipv6 IID
-        :return: Randomized IID N bits
+
+        Args:
+            sid: composite SID
+            length: length for ipv6 IID
+
+        Returns: IID N bits
         """
         for i in range(MAX_CALC_TRIES):
             rand_iid_bits = random.getrandbits(length)
             if rand_iid_bits not in self._allocated_iid:
-                self._allocated_iid.add(float(rand_iid_bits))
+                self._allocated_iid[sid] = float(rand_iid_bits)
                 return rand_iid_bits
         return None
 
@@ -151,8 +195,10 @@ class IPv6AllocatorPool(IPAllocator):
         Returns unique session prefix using configurable allocation mode,
         it return None if it exceeds MAX calculation tries
 
-        :param sid:
-        :return: Session prefix N bits
+        Args:
+            sid:
+
+        Returns: session prefix N bits
         """
         session_prefix_len = IPV6_PREFIX_PART_LEN - self._assigned_ip_block.prefixlen
         session_prefix_allocated = self._sid_session_prefix_allocated.get(sid)
@@ -161,14 +207,14 @@ class IPv6AllocatorPool(IPAllocator):
             for i in range(MAX_CALC_TRIES):
                 session_prefix_part = random.getrandbits(session_prefix_len)
                 if session_prefix_part != session_prefix_allocated:
-                    self._sid_session_prefix_allocated[sid] = session_prefix_part
+                    self._sid_session_prefix_allocated[
+                        sid] = session_prefix_part
                     return session_prefix_part
         return None
 
     def list_added_ip_blocks(self) -> List[ip_network]:
         """
-        Returns assigned IP blocks on the allocator
-        :return: list of allocated ip_networks
+        Returns: assigned IP blocks on the allocator
         """
         return [self._assigned_ip_block]
 
