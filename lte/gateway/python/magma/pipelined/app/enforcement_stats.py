@@ -414,6 +414,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                     self._unmatched_bytes = flow_stat.byte_count
                 return current_usage
             else:
+                # TODO wait for sessiond changes and remove this return
+                return current_usage
                 # This must be the default drop flow
                 rule_id = self._default_drop_flow_name
         # If this is a pass through app name flow ignore stats
