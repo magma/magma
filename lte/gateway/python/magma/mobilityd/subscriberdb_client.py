@@ -106,9 +106,11 @@ class SubscriberDbClient:
     # use same API to retrieve IP address and related config.
     def _find_ip_and_apn_config(self, sid: str) -> (Optional[APNConfiguration]):
         if '.' in sid:
-            imsi, apn_name = sid.split('.', maxsplit=1)
+            imsi, apn_name_part = sid.split('.', maxsplit=1)
+            apn_name, _ = apn_name_part.split(',', maxsplit=1)
         else:
-            imsi, apn_name = sid, ''
+            imsi, _ = sid.split(',', maxsplit=1)
+            apn_name = ''
 
         logging.debug("Find APN config for: %s", sid)
         data = self.subscriber_client.GetSubscriberData(SIDUtils.to_pb(imsi))

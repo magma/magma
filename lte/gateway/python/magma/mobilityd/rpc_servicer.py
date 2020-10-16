@@ -169,18 +169,20 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             composite_sid = composite_sid + "." + request.apn
 
         if request.version == AllocateIPRequest.IPV4:
-            return self._get_allocate_ipv4_response(composite_sid, context,
-                                                    ip_addr, request)
+            return self._get_allocate_ip_response(composite_sid + ",ipv4",
+                                                  IPAddress.IPV4, context,
+                                                  ip_addr, request)
         elif request.version == AllocateIPRequest.IPV6:
-            return self._get_allocate_ipv6_response(composite_sid, context,
-                                                    ip_addr, request)
+            return self._get_allocate_ip_response(composite_sid + ",ipv6",
+                                                  IPAddress.IPV6, context,
+                                                  ip_addr, request)
         elif request.version == AllocateIPRequest.IPV4V6:
-            ipv4_response = self._get_allocate_ipv4_response(composite_sid,
-                                                             context, ip_addr,
-                                                             request)
-            ipv6_response = self._get_allocate_ipv6_response(composite_sid,
-                                                             context, ip_addr,
-                                                             request)
+            ipv4_response = self._get_allocate_ip_response(
+                composite_sid + ",ipv4", IPAddress.IPV4,
+                context, ip_addr, request)
+            ipv6_response = self._get_allocate_ip_response(
+                composite_sid + ",ipv6", IPAddress.IPV6,
+                context, ip_addr, request)
             ip_addr_list = ipv4_response.ip_list + ipv6_response.ip_list
             # Get vlan from IPv4 Allocate response
             return AllocateIPAddressResponse(ip_list=ip_addr_list,
@@ -197,26 +199,22 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             composite_sid = composite_sid + "." + request.apn
 
         if request.ip.version == IPAddress.IPV4:
-            try:
-                self._ip_address_man.release_ip_address(
-                    composite_sid, ip)
-                logging.info("Released IPv4 %s for sid %s"
-                             % (ip, SIDUtils.to_str(request.sid)))
-            except IPNotInUseError:
-                context.set_details('IP %s not in use' % ip)
-                context.set_code(grpc.StatusCode.NOT_FOUND)
-            except MappingNotFoundError:
-                context.set_details('(SID, IP) map not found: (%s, %s)'
-                                    % (SIDUtils.to_str(request.sid), ip))
-                context.set_code(grpc.StatusCode.NOT_FOUND)
+            composite_sid = composite_sid + ",ipv4"
         elif request.ip.version == IPAddress.IPV6:
-            try:
-                self._ip_address_man.release_ipv6_address(composite_sid, ip)
-                logging.info("Released IPv6 %s for sid %s"
-                             % (ip, SIDUtils.to_str(request.sid)))
-            except IPNotInUseError:
-                context.set_details('IP %s not in use' % ip)
-                context.set_code(grpc.StatusCode.NOT_FOUND)
+            composite_sid = composite_sid + ",ipv6"
+
+        try:
+            self._ip_address_man.release_ip_address(composite_sid, ip,
+                                                    request.ip.version)
+            logging.info("Released IP %s for sid %s"
+                         % (ip, SIDUtils.to_str(request.sid)))
+        except IPNotInUseError:
+            context.set_details('IP %s not in use' % ip)
+            context.set_code(grpc.StatusCode.NOT_FOUND)
+        except MappingNotFoundError:
+            context.set_details('(SID, IP) map not found: (%s, %s)'
+                                % (SIDUtils.to_str(request.sid), ip))
+            context.set_code(grpc.StatusCode.NOT_FOUND)
 
     def RemoveIPBlock(self, request, context):
         """ Attempt to remove IP blocks and return the removed blocks """
@@ -244,6 +242,11 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         composite_sid = SIDUtils.to_str(request.sid)
         if request.apn:
             composite_sid = composite_sid + "." + request.apn
+
+        if request.version == IPAddress.IPV4:
+            composite_sid += ",ipv4"
+        elif request.version == IPAddress.IPV6:
+            composite_sid += ",ipv6"
 
         ip = self._ip_address_man.get_ip_for_sid(composite_sid)
         if ip is None:
@@ -276,7 +279,8 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         csid_ip_pairs = self._ip_address_man.get_sid_ip_table()
         for composite_sid, ip in csid_ip_pairs:
             # handle composite sid to sid and apn mapping
-            sid, _, apn = composite_sid.partition('.')
+            sid, _, apn_part = composite_sid.partition('.')
+            apn, _ = apn_part.split(',')
             sid_pb = SIDUtils.to_pb(sid)
             version = IPAddress.IPV4 if ip.version == 4 else IPAddress.IPV6
             ip_msg = IPAddress(version=version, address=ip.packed)
