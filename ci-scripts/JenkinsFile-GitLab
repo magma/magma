@@ -731,9 +731,5 @@ def mySh2Cmd(cmd, flag, user, host) {
 // Abstraction function to send social media messages:
 // like on Slack or Mattermost
 def sendSocialMediaMessage(pipeChannel, pipeColor, pipeMessage) {
-  if (params.pipelineUsesSlack != null) {
-    if (params.pipelineUsesSlack) {
-      slackSend channel: pipeChannel, color: pipeColor, message: pipeMessage
-    }
-  }
+  slackSend channel: pipeChannel, color: pipeColor, message: pipeMessage
 }
