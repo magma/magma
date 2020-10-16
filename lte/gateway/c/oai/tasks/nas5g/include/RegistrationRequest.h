@@ -18,72 +18,28 @@
 #include "5GSRegistrationType.h"
 #include "NASKeySetIdentifier.h"
 #include "5GSMobileIdentity.h"
-#ifdef HANDLE_POST_MVC
-#include "5GMMCapability.h"
-#include "UESecurityCapability.h"
-#include "NSSAI.h"
-#include "5GSTrackingAreaIdentity.h"
-#include "S1UENetworkCapability.h"
-#include "UplinkDataStatus.h"
-#include "PDUSessionStatus.h"
-#include "MICOIndication.h"
-#include "UEStatus.h"
-#include "AllowedPDUSessionStatus.h"
-#include "UESUsageSetting.h"
-#include "5GSDRXParameters.h"
-#include "EPSNASMessageContainer.h"
-#include "LADNIndication.h"
-#include "PayloadContainer.h"
-#include "Payload_Container_type.h"
-#include "NetworkSlicingIndication.h"
-#include "5GSUpdateType.h"
-#include "NASMessageContainer.h"
-#include "EPSbearercontextstatus.h"
-#endif
 
 using namespace std;
 namespace magma5g {
 // RegistrationRequest Message Class
 class RegistrationRequestMsg {
  public:
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SpareHalfOctetMsg sparehalfoctet;
-  SecurityHeaderTypeMsg securityheadertype;
-  MessageTypeMsg messagetype;
-  M5GSRegistrationTypeMsg m5gsregistrationtype;
-  NASKeySetIdentifierMsg naskeysetidentifier;
-  M5GSMobileIdentityMsg m5gsmobileidentity;
-#ifdef HANDLE_POST_MVC
-  M5GMMCapabilityMsg m5gmmcapability;
-  UESecurityCapabilityMsg uesecuritycapability;
-  NSSAIMsg nssai;
-  M5GSTrackingAreaIdentityMsg m5gstrackingareaidentity;
-  S1UENetworkCapabilityMsg s1uenetworkcapability;
-  UplinkDataStatusMsg uplinkdatastatus;
-  PDUSessionStatusMsg pdusessionstatus;
-  MICOIndicationMsg micoindication;
-  UEStatusMsg uestatus;
-  AllowedPDUSessionStatusMsg allowedpdusessionstatus;
-  UESUsageSettingMsg uesusagesetting;
-  M5GSDRXParametersMsg m5gsdrxparameters;
-  EPSNASMessageContainerMsg epsnasmessagecontainer;
-  LADNIndicationMsg ladnindication;
-  PayloadContainerMsg payloadcontainer;
-  PayloadContainerTypeMsg payloadcontainertype;
-  NetworkSlicingIndicationMsg networkslicingindication;
-  M5GSUpdateTypeMsg m5gsupdatetype;
-  NASMessageContainerMsg nasmessagecontainer;
-  EPSBearerContextStatusMsg epsbearercontextstatus;
-#endif
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SpareHalfOctetMsg spare_half_octet;
+  SecurityHeaderTypeMsg sec_header_type;
+  MessageTypeMsg message_type;
+  M5GSRegistrationTypeMsg m5gs_reg_type;
+  NASKeySetIdentifierMsg nas_key_set_identifier;
+  M5GSMobileIdentityMsg m5gs_mobile_identity;
 #define REGISTRATION_REQUEST_MINIMUM_LENGTH 5
 
   RegistrationRequestMsg();
   ~RegistrationRequestMsg();
   int DecodeRegistrationRequestMsg(
-      RegistrationRequestMsg* registrationrequest, uint8_t* buffer,
+      RegistrationRequestMsg* reg_request, uint8_t* buffer,
       uint32_t len);
   int EncodeRegistrationRequestMsg(
-      RegistrationRequestMsg* registrationrequest, uint8_t* buffer,
+      RegistrationRequestMsg* reg_request, uint8_t* buffer,
       uint32_t len);
 };
 }  // namespace magma5g
@@ -92,7 +48,7 @@ class RegistrationRequestMsg {
    SPEC TS-24501_v150600
    Table 8.2.6.1.1: REGISTRATION REQUEST message content
 
-IEI           Information Element                            Type/Reference                      Presence     Format     Length
+   IEI          Information Element                            Type/Reference                      Presence     Format     Length
 
             Extended protocol discriminator               Extended Protocol discriminator 9.2          M           V          1 
             Security header type                          Security header type 9.3                     M           V          1/2 

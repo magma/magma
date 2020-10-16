@@ -38,34 +38,34 @@ int Decode(void) {
   MLOG(MDEBUG) << " ---Decoded Message---\n";
   MLOG(MDEBUG)
       << " Extended Protocol Discriminator :" << dec
-      << int(AuthRes.extendedprotocoldiscriminator.extendedprotodiscriminator);
+      << int(AuthRes.extended_protocol_discriminator.extended_proto_discriminator);
   MLOG(MDEBUG) << " Spare Half Octet : " << dec
-               << int(AuthRes.sparehalfoctet.spare);
+               << int(AuthRes.spare_half_octet.spare);
   MLOG(MDEBUG) << " Security Header Type : " << dec
-               << int(AuthRes.securityheadertype.securityhdr);
+               << int(AuthRes.sec_header_type.sec_hdr);
   MLOG(MDEBUG) << " Message Type : 0x" << hex
-               << int(AuthRes.messagetype.msgtype);
+               << int(AuthRes.message_type.msg_type);
   MLOG(MDEBUG) << " Response Parameter : "
-               << "ElementID = " << hex << int(AuthRes.responseparameter.iei)
-               << " Length = " << dec << int(AuthRes.responseparameter.length);
+               << "ElementID = " << hex << int(AuthRes.response_parameter.iei)
+               << " Length = " << dec << int(AuthRes.response_parameter.length);
   MLOG(MDEBUG)
       << " RES : 0x" << setfill('0') << hex
-      << int(AuthRes.responseparameter.ResponseParameter[0]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[1]) << hex
-      << int(AuthRes.responseparameter.ResponseParameter[2]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[3]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[4]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[5]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[6]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[7]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[8]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[9]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[10]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[11]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[12]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[13]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[14]) << hex << setw(2)
-      << int(AuthRes.responseparameter.ResponseParameter[15]) << endl;
+      << int(AuthRes.response_parameter.response_parameter[0]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[1]) << hex
+      << int(AuthRes.response_parameter.response_parameter[2]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[3]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[4]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[5]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[6]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[7]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[8]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[9]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[10]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[11]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[12]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[13]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[14]) << hex << setw(2)
+      << int(AuthRes.response_parameter.response_parameter[15]) << endl;
 
   return 0;
 }

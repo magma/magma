@@ -1,13 +1,14 @@
 /*
-  Copyright 2020 The Magma Authors.
-  This source code is licensed under the BSD-style license found in the
-  LICENSE file in the root directory of this source tree.
-  Unless required by applicable law or agreed to in writing, software
-  distributed under the License is distributed on an "AS IS" BASIS,
-  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  See the License for the specific language governing permissions and
-  limitations under the License.
-*/
+   Copyright 2020 The Magma Authors.
+   This source code is licensed under the BSD-style license found in the
+   LICENSE file in the root directory of this source tree.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
 
 /* using this stub code we are going to test Decoding functionality of
  * DL NAS Treansport with PDU Session Est Request Message */
@@ -28,85 +29,85 @@ int encode(void) {
   DLNASTransportMsg msg;
 
   // Message to be Encoded
-  msg.extendedprotocoldiscriminator.extendedprotodiscriminator     = 126;
-  msg.securityheadertype.securityhdr                               = 0;
-  msg.sparehalfoctet.spare                                         = 0;
-  msg.messagetype.msgtype                                          = 0x68;
-  msg.payloadcontainertype.typeval                                 = 1;
-  msg.payloadcontainer.len                                         = 32;
-  msg.payloadcontainer.smfmsg.header.extendedprotocoldiscriminator = 46;
-  msg.payloadcontainer.smfmsg.header.pdusessionid                  = 1;
-  msg.payloadcontainer.smfmsg.header.proceduretractionid           = 1;
-  msg.payloadcontainer.smfmsg.header.messagetype                   = 0xc2;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.pdusessiontype
-      .typeval                                                              = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.sscmode.modeval = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.length =
+  msg.extended_protocol_discriminator.extended_proto_discriminator     = 126;
+  msg.sec_header_type.sec_hdr                               = 0;
+  msg.spare_half_octet.spare                                         = 0;
+  msg.message_type.msg_type                                          = 0x68;
+  msg.payload_container_type.type_val                                 = 1;
+  msg.payload_container.len                                         = 32;
+  msg.payload_container.smf_msg.header.extended_protocol_discriminator = 46;
+  msg.payload_container.smf_msg.header.pdu_session_id                  = 1;
+  msg.payload_container.smf_msg.header.procedure_transaction_id           = 1;
+  msg.payload_container.smf_msg.header.message_type                   = 0xc2;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.pdu_session_type
+      .type_val                                                              = 1;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.ssc_mode.mode_val = 1;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.length =
       18;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
-      .qosruleid = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
+      .qos_rule_id = 1;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
       .len = 3;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
-      .ruleopercode = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
-      .dqrbit = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
-      .noofpktfilters = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
-      .qosruleprecedence = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
+      .rule_oper_code = 1;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
+      .dqr_bit = 1;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
+      .no_of_pkt_filters = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
+      .qos_rule_precedence = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
       .spare = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
       .segregation = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[0]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[0]
       .qfi = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
-      .qosruleid = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
+      .qos_rule_id = 1;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
       .len = 3;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
-      .ruleopercode = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
-      .dqrbit = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
-      .noofpktfilters = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
-      .qosruleprecedence = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
+      .rule_oper_code = 1;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
+      .dqr_bit = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
+      .no_of_pkt_filters = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
+      .qos_rule_precedence = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
       .spare = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
       .segregation = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[1]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[1]
       .qfi = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
-      .qosruleid = 2;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
+      .qos_rule_id = 2;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
       .len = 3;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
-      .ruleopercode = 1;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
-      .dqrbit = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
-      .noofpktfilters = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
-      .qosruleprecedence = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
+      .rule_oper_code = 1;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
+      .dqr_bit = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
+      .no_of_pkt_filters = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
+      .qos_rule_precedence = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
       .spare = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
       .segregation = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.qosrules.qosrule[2]
+  msg.payload_container.smf_msg.pdu_session_estab_accept.qos_rules.qos_rule[2]
       .qfi = 2;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.sessionambr.length =
+  msg.payload_container.smf_msg.pdu_session_estab_accept.session_ambr.length =
       6;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.sessionambr.dlunit =
+  msg.payload_container.smf_msg.pdu_session_estab_accept.session_ambr.dl_unit =
       0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.sessionambr
-      .dlsessionambr = 0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.sessionambr.ulunit =
+  msg.payload_container.smf_msg.pdu_session_estab_accept.session_ambr
+      .dl_session_ambr = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.session_ambr.ul_unit =
       0;
-  msg.payloadcontainer.smfmsg.pdusessionestablishmentaccept.sessionambr
-      .ulsessionambr = 0;
+  msg.payload_container.smf_msg.pdu_session_estab_accept.session_ambr
+      .ul_session_ambr = 0;
 
   MLOG(MDEBUG) << "\n\n---Encoding Message---\n\n";
   ret = msg.EncodeDLNASTransportMsg(&msg, buffer, len);

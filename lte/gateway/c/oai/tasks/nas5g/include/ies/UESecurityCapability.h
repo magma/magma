@@ -57,10 +57,10 @@ class UESecurityCapabilityMsg {
   UESecurityCapabilityMsg();
   ~UESecurityCapabilityMsg();
   int EncodeUESecurityCapabilityMsg(
-      UESecurityCapabilityMsg* uesecuritycapability, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      UESecurityCapabilityMsg* ue_sec_capability, uint8_t iei, uint8_t* buffer,
+      uint32_t len);
   int DecodeUESecurityCapabilityMsg(
-      UESecurityCapabilityMsg* uesecuritycapability, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      UESecurityCapabilityMsg* ue_sec_capability, uint8_t iei, uint8_t* buffer,
+      uint32_t len);
 };
 }  // namespace magma5g

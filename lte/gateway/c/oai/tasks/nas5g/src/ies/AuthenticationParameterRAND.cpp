@@ -8,6 +8,7 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #include <sstream>
 #include <cstring>
 #include <cstdint>
@@ -15,10 +16,8 @@
 #include "CommonDefs.h"
 
 using namespace std;
-
 namespace magma5g {
 AuthenticationParameterRANDMsg::AuthenticationParameterRANDMsg(){};
-
 AuthenticationParameterRANDMsg::~AuthenticationParameterRANDMsg(){};
 
 // Decode AuthenticationParameterRAND IE
@@ -45,13 +44,11 @@ int AuthenticationParameterRANDMsg::EncodeAuthenticationParameterRANDMsg(
     MLOG(MDEBUG) << "In EncodeAuthenticationParameterRANDMsg: iei" << hex
                  << int(*buffer) << endl;
     encoded++;
-  } else {
-    return 0;
   }
 
-  std::copy(rand->randval.begin(), rand->randval.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(buffer + encoded, rand->randval.length());
-  encoded = encoded + rand->randval.length();
+  std::copy(rand->rand_val.begin(), rand->rand_val.end(), buffer + encoded);
+  BUFFER_PRINT_LOG(buffer + encoded, rand->rand_val.length());
+  encoded = encoded + rand->rand_val.length();
 
   return (encoded);
 };

@@ -95,3 +95,39 @@ target_link_libraries(DLNASTransportEncode TASK_NAS5G)
 add_executable(ULNASTransportPDUReleaseRequestDecode ULNASTransportPDUReleaseRequestDecode.cpp)
 
 target_link_libraries(ULNASTransportPDUReleaseRequestDecode TASK_NAS5G)
+
+#Executable for PDU Session Est. Request Decode
+add_executable(PDUSessionEstReqDecode PDUSessionEstReqDecode.cpp)
+
+target_link_libraries(PDUSessionEstReqDecode TASK_NAS5G)
+
+#Executable for PDU Session Est. Accept encode
+add_executable(PDUSessionEstAcptEncode PDUSessionEstAcptEncode.cpp)
+
+target_link_libraries(PDUSessionEstAcptEncode TASK_NAS5G)
+
+#Executable for PDU Release Request Decode
+add_executable(PDUSessionReleaseReqDecode PDUSessionReleaseReqDecode.cpp)
+
+target_link_libraries(PDUSessionReleaseReqDecode TASK_NAS5G)
+
+#Executable for PDU Session Est Reject Encode
+add_executable(PDUSessionEstRejEncode PDUSessionEstRejEncode.cpp)
+
+target_link_libraries(PDUSessionEstRejEncode TASK_NAS5G)
+ 
+#Executable for PDU Session Modification Request Decode
+add_executable(PDUSessionModReqDecode PDUSessionModReqDecode.cpp)
+
+target_link_libraries(PDUSessionModReqDecode TASK_NAS5G)
+
+#Executable for PDU Session Modification Reject Encode
+add_executable(PDUSessionModRejectEncode PDUSessionModRejectEncode.cpp)
+
+target_link_libraries(PDUSessionModRejectEncode TASK_NAS5G)
+
+#Executable for PDU Session Release Reject Encode
+add_executable(PDUSessionReleaseRejEncode PDUSessionReleaseRejEncode.cpp)
+
+target_link_libraries(PDUSessionReleaseRejEncode TASK_NAS5G)
+

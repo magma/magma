@@ -28,22 +28,22 @@ int Encode(void) {
   int len            = 50;
 
   AuthenticationRequestMsg AuthReq;
-  AuthReq.extendedprotocoldiscriminator.extendedprotodiscriminator = 126;
-  AuthReq.securityheadertype.securityhdr                           = 0;
-  AuthReq.sparehalfoctet.spare                                     = 0;
-  AuthReq.messagetype.msgtype                                      = 0x56;
-  AuthReq.naskeysetidentifier.tsc                                  = 0;
-  AuthReq.naskeysetidentifier.naskeysetidentifier                  = 0;
+  AuthReq.extended_protocol_discriminator.extended_proto_discriminator = 126;
+  AuthReq.sec_header_type.sec_hdr                           = 0;
+  AuthReq.spare_half_octet.spare                                     = 0;
+  AuthReq.message_type.msg_type                                      = 0x56;
+  AuthReq.nas_key_set_identifier.tsc                                  = 0;
+  AuthReq.nas_key_set_identifier.nas_key_set_identifier                  = 0;
   uint8_t abba_buff[] = {0x71, 0x00, 0x0d, 0x01};
   AuthReq.abba.contents.assign((const char*) abba_buff, 4);
-  AuthReq.authrand.iei = 0x21;
+  AuthReq.auth_rand.iei = 0x21;
   uint8_t rand_buff[]  = {0x4f, 0x42, 0x84, 0xea, 0x63, 0xd6, 0x5a, 0xff,
                          0xa7, 0xbf, 0xe0, 0xae, 0xc6, 0xb2, 0xc8, 0x6b};
-  AuthReq.authrand.randval.assign((const char*) rand_buff, 16);
-  AuthReq.authautn.iei = 0x20;
+  AuthReq.auth_rand.rand_val.assign((const char*) rand_buff, 16);
+  AuthReq.auth_autn.iei = 0x20;
   uint8_t autn_buff[]  = {0x6e, 0x3d, 0xa7, 0x99, 0x46, 0x2b, 0x80, 0x00,
                          0xc0, 0x66, 0x08, 0x12, 0xcd, 0xf1, 0x41, 0x3b};
-  AuthReq.authautn.AUTN.assign((const char*) autn_buff, 16);
+  AuthReq.auth_autn.AUTN.assign((const char*) autn_buff, 16);
 
   // Encoding the Authentication Message
   MLOG(MDEBUG) << "\n\n---Encoding Authentication request Message---\n\n";

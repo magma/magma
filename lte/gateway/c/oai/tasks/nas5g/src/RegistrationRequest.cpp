@@ -19,375 +19,67 @@ RegistrationRequestMsg::~RegistrationRequestMsg(){};
 
 // Decode RegistrationRequest Message and its IEs
 int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
-    RegistrationRequestMsg* registrationrequest, uint8_t* buffer,
-    uint32_t len) {
+    RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len) {
   uint32_t decoded  = 0;
-  int decodedresult = 0;
+  int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, REGISTRATION_REQUEST_MINIMUM_LENGTH, len);
 
   MLOG(MDEBUG) << "DecodeRegistrationRequestMsg : \n";
-  if ((decodedresult =
-           registrationrequest->extendedprotocoldiscriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &registrationrequest->extendedprotocoldiscriminator, 0,
-                   buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->sparehalfoctet.DecodeSpareHalfOctetMsg(
-               &registrationrequest->sparehalfoctet, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->securityheadertype.DecodeSecurityHeaderTypeMsg(
-               &registrationrequest->securityheadertype, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->messagetype.DecodeMessageTypeMsg(
-           &registrationrequest->messagetype, 0, buffer + decoded,
-           len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->m5gsregistrationtype
-                           .DecodeM5GSRegistrationTypeMsg(
-                               &registrationrequest->m5gsregistrationtype, 0,
+  if ((decoded_result = reg_request->extended_protocol_discriminator
+                           .DecodeExtendedProtocolDiscriminatorMsg(
+                               &reg_request->extended_protocol_discriminator, 0,
                                buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
+    return decoded_result;
   else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->naskeysetidentifier
-                           .DecodeNASKeySetIdentifierMsg(
-                               &registrationrequest->naskeysetidentifier, 0,
-                               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
+    decoded += decoded_result;
+  if ((decoded_result = reg_request->spare_half_octet.DecodeSpareHalfOctetMsg(
+           &reg_request->spare_half_octet, 0, buffer + decoded,
+           len - decoded)) < 0)
+    return decoded_result;
   else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->m5gsmobileidentity.DecodeM5GSMobileIdentityMsg(
-               &registrationrequest->m5gsmobileidentity, 0, buffer + decoded,
+    decoded += decoded_result;
+  if ((decoded_result = reg_request->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           &reg_request->sec_header_type, 0, buffer + decoded, len - decoded)) <
+      0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = reg_request->message_type.DecodeMessageTypeMsg(
+           &reg_request->message_type, 0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = reg_request->m5gs_reg_type.DecodeM5GSRegistrationTypeMsg(
+           &reg_request->m5gs_reg_type, 0, buffer + decoded, len - decoded)) <
+      0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result =
+           reg_request->nas_key_set_identifier.DecodeNASKeySetIdentifierMsg(
+               &reg_request->nas_key_set_identifier, 0, buffer + decoded,
                len - decoded)) < 0)
-    return decodedresult;
+    return decoded_result;
   else
-    decoded += decodedresult;
-#ifdef HANDLE_POST_MVC
-  if ((decodedresult =
-           registrationrequest->m5gmmcapability.DecodeM5GMMCapabilityMsg(
-               &registrationrequest->m5gmmcapability, M5GMMCAPABILITY,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
+    decoded += decoded_result;
+  if ((decoded_result =
+           reg_request->m5gs_mobile_identity.DecodeM5GSMobileIdentityMsg(
+               &reg_request->m5gs_mobile_identity, 0, buffer + decoded,
+               len - decoded)) < 0)
+    return decoded_result;
   else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->uesecuritycapability
-               .DecodeUESecurityCapabilityMsg(
-                   &registrationrequest->uesecuritycapability,
-                   UESECURITYCAPABILITY, buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  MLOG(DEBUG) << "__func__: After DecodeUESecurityCapabilityMsg buffer " << hex
-              << int(*buffer) << "decoded " << decodedresult << endl;
-  if ((decodedresult =
-           registrationrequest->pdusessionstatus.DecodePDUSessionStatusMsg(
-               &registrationrequest->pdusessionstatus, PDUSESSIONSTATUS,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->nasmessagecontainer
-               .DecodeNASMessageContainerMsg(
-                   &registrationrequest->nasmessagecontainer,
-                   NASMESSAGECONTAINER, buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->nssai.DecodeNSSAIMsg(
-           &registrationrequest->nssai, REQUESTEDNSSAI, buffer + decoded,
-           len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->m5gstrackingareaidentity
-                           .DecodeM5GSTrackingAreaIdentityMsg(
-                               &registrationrequest->m5gstrackingareaidentity,
-                               TAI, buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->s1uenetworkcapability
-                           .DecodeS1UENetworkCapabilityMsg(
-                               &registrationrequest->s1uenetworkcapability,
-                               0x17, buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->uplinkdatastatus.DecodeUplinkDataStatusMsg(
-               &registrationrequest->uplinkdatastatus, UPLINKDATASTATUS,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->pdusessionstatus.DecodePDUSessionStatusMsg(
-               &registrationrequest->pdusessionstatus, PDUSESSIONSTATUS,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->micoindication.DecodeMICOIndicationMsg(
-               &registrationrequest->micoindication, MICOINDICATION,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->uestatus.DecodeUEStatusMsg(
-           &registrationrequest->uestatus, UESTATUS, buffer + decoded,
-           len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->allowedpdusessionstatus
-                           .DecodeAllowedPDUSessionStatusMsg(
-                               &registrationrequest->allowedpdusessionstatus,
-                               ALLOWEDPDUSESSIONSTATUS, buffer + decoded,
-                               len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->uesusagesetting.DecodeUESUsageSettingMsg(
-               &registrationrequest->uesusagesetting, UEUSSAGESETTING,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->m5gsdrxparameters.DecodeM5GSDRXParametersMsg(
-               &registrationrequest->m5gsdrxparameters, M5GSDRXPARAMETERS,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->epsnasmessagecontainer
-                           .DecodeEPSNASMessageContainerMsg(
-                               &registrationrequest->epsnasmessagecontainer,
-                               EPSNASMESSAGECONTAINER, buffer + decoded,
-                               len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->ladnindication.DecodeLADNIndicationMsg(
-               &registrationrequest->ladnindication, LADNINFORMATION,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->payloadcontainer.DecodePayloadContainerMsg(
-               &registrationrequest->payloadcontainer, PAYLOADCONTAINER,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult = registrationrequest->networkslicingindication
-                           .DecodeNetworkSlicingIndicationMsg(
-                               &registrationrequest->networkslicingindication,
-                               NETWORKSLICINGINDICATION, buffer + decoded,
-                               len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->m5gsupdatetype.DecodeM5GSUpdateTypeMsg(
-               &registrationrequest->m5gsupdatetype, M5GSUPDATETYPE,
-               buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           registrationrequest->nasmessagecontainer
-               .DecodeNASMessageContainerMsg(
-                   &registrationrequest->nasmessagecontainer,
-                   NASMESSAGECONTAINER, buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-#endif
+    decoded += decoded_result;
+
   return decoded;
 }
 
 // Will be supported POST MVC
 // Encode Registration Request Message and its IEs
 int RegistrationRequestMsg::EncodeRegistrationRequestMsg(
-    RegistrationRequestMsg* registrationrequest, uint8_t* buffer,
-    uint32_t len) {
+    RegistrationRequestMsg* reg_request, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
-
-#ifdef HANDLE_POST_MVC
-  MLOG(MDEBUG) << "EncodeRegistrationRequestMsg:";
-  int encodedresult = 0;
-
-  // Check if we got a NULL pointer and if buffer length is >= minimum length
-  // expected for the message.
-  CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
-      buffer, REGISTRATION_REQUEST_MINIMUM_LENGTH, len);
-
-  if ((encodedresult =
-           registrationrequest->EncodeExtendedProtocolDiscriminatorMsg(
-               registrationrequest->extendedprotocoldiscriminator, 0,
-               buffer + encoded, len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = registrationrequest->EncodeSecurityHeaderTypeMsg(
-           registrationrequest->securityheadertype, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = registrationrequest->EncodeMessageTypeMsg(
-           registrationrequest->messagetype, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = registrationrequest->Encode5GSRegistrationTypeMsg(
-           registrationrequest->_5gsregistrationtype, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = registrationrequest->EncodeNasKeySetIdentifierMsg(
-           registrationrequest->naskeysetidentifier, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = registrationrequest->Encode5GSMobileIdentityMsg(
-           registrationrequest->_5gsmobileidentity, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = registrationrequest->Encode5GMMCapabilityMsg(
-           registrationrequest->_5gmmcapability, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodeue_security_capability(
-           registrationrequest->uesecuritycapability, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodenssai(
-           registrationrequest->nssai, 0, buffer + encoded, len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encode_5gs_tracking_area_identity(
-           registrationrequest->_5gstrackingareaidentity, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodes1_ue_network_capability(
-           registrationrequest->s1uenetworkcapability, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodeuplink_data_status(
-           registrationrequest->uplinkdatastatus, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodepdu_session_status(
-           registrationrequest->pdusessionstatus, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodemico_indication(
-           registrationrequest->micoindication, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodeue_status(
-           registrationrequest->uestatus, 0, buffer + encoded, len - encoded)) <
-      0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodeallowed_pdu_session_status(
-           registrationrequest->allowedpdusessionstatus, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodeues_usage_setting(
-           registrationrequest->uesusagesetting, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encode_5gsdrx_parameters(
-           registrationrequest->_5gsdrxparameters, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodeepsnas_message_container(
-           registrationrequest->epsnasmessagecontainer, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodeladn_indication(
-           registrationrequest->ladnindication, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodepayload_container(
-           registrationrequest->payloadcontainer, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodenetwork_slicing_indication(
-           registrationrequest->networkslicingindication, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encode_5gs_update_type(
-           registrationrequest->_5gsupdatetype, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = Encodenas_message_container(
-           registrationrequest->nasmessagecontainer, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-#endif
+  // Will be supported POST MVC
   return encoded;
 }
 }  // namespace magma5g

@@ -22,15 +22,15 @@ class PayloadContainerMsg {
   uint8_t iei;
   uint32_t len;
   uint8_t contents[PAYLOAD_CONTAINER_CONTENTS_MAX_LEN];
-  SmfMsg smfmsg;
+  SmfMsg smf_msg;
 
   PayloadContainerMsg();
   ~PayloadContainerMsg();
   int EncodePayloadContainerMsg(
-      PayloadContainerMsg* payloadcontainer, uint8_t iei, uint8_t* buffer,
+      PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
       uint32_t len);
   int DecodePayloadContainerMsg(
-      PayloadContainerMsg* payloadcontainer, uint8_t iei, uint8_t* buffer,
+      PayloadContainerMsg* payload_container, uint8_t iei, uint8_t* buffer,
       uint32_t len);
 };
 }  // namespace magma5g

@@ -16,15 +16,15 @@ namespace magma5g {
 // SecurityHeaderType IE Class
 class SecurityHeaderTypeMsg {
  public:
-  uint8_t securityhdr : 4;
+  uint8_t sec_hdr : 4;
 
   SecurityHeaderTypeMsg();
   ~SecurityHeaderTypeMsg();
   int EncodeSecurityHeaderTypeMsg(
-      SecurityHeaderTypeMsg* securityheadertype, uint8_t iei, uint8_t* buffer,
+      SecurityHeaderTypeMsg* sec_header_type, uint8_t iei, uint8_t* buffer,
       uint32_t len);
   int DecodeSecurityHeaderTypeMsg(
-      SecurityHeaderTypeMsg* securityheadertype, uint8_t iei, uint8_t* buffer,
+      SecurityHeaderTypeMsg* sec_header_type, uint8_t iei, uint8_t* buffer,
       uint32_t len);
 };
 }  // namespace magma5g

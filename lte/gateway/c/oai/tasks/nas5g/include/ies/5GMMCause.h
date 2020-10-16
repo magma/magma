@@ -17,15 +17,13 @@ namespace magma5g {
 class M5GMMCauseMsg {
  public:
   uint8_t iei;
-  uint8_t m5gmmcause;
+  uint8_t m5gmm_cause;
 
   M5GMMCauseMsg();
   ~M5GMMCauseMsg();
   int EncodeM5GMMCauseMsg(
-      M5GMMCauseMsg* m5gmmcause,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
+      M5GMMCauseMsg* m5gmm_cause, uint8_t iei, uint8_t* buffer, uint32_t len);
   int DecodeM5GMMCauseMsg(
-      M5GMMCauseMsg* m5gmmcause,
-      uint8_t iei, uint8_t* buffer, uint32_t len);
+      M5GMMCauseMsg* m5gmm_cause, uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

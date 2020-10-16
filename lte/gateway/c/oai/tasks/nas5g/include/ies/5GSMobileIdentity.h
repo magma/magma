@@ -21,18 +21,18 @@ class GutiM5GSMobileIdentity {
  public:
   uint8_t iei;
   uint8_t spare : 4;
-  uint8_t oddeven : 1;
-  uint8_t typeofidentity : 3;
+  uint8_t odd_even : 1;
+  uint8_t type_of_identity : 3;
   uint8_t mcc_digit2 : 4;
   uint8_t mcc_digit1 : 4;
   uint8_t mnc_digit3 : 4;
   uint8_t mcc_digit3 : 4;
   uint8_t mnc_digit2 : 4;
   uint8_t mnc_digit1 : 4;
-  uint8_t amfregionid;
-  uint8_t amfsetid;
-  uint8_t amfsetid1;
-  uint8_t amfpointer : 6;
+  uint8_t amf_regionid;
+  uint8_t amf_setid;
+  uint8_t amf_setid1;
+  uint8_t amf_pointer : 6;
   uint8_t tmsi1;
   uint8_t tmsi2;
   uint8_t tmsi3;
@@ -52,8 +52,8 @@ class ImeiM5GSMobileIdentity {
   ~ImeiM5GSMobileIdentity();
 
   uint8_t identity_digit1 : 4;
-  uint8_t oddeven : 1;
-  uint8_t typeofidentity : 3;
+  uint8_t odd_even : 1;
+  uint8_t type_of_identity : 3;
   uint8_t identity_digit3 : 4;
   uint8_t identity_digit2 : 4;
 };
@@ -66,19 +66,19 @@ class ImsiM5GSMobileIdentity {
   ~ImsiM5GSMobileIdentity();
 
   uint8_t spare2 : 1;
-  uint8_t supiformat : 3;
+  uint8_t supi_format : 3;
   uint8_t spare1 : 1;
-  uint8_t typeofidentity : 3;
+  uint8_t type_of_identity : 3;
   uint8_t mcc_digit2 : 4;
   uint8_t mcc_digit1 : 4;
   uint8_t mnc_digit3 : 4;
   uint8_t mcc_digit3 : 4;
   uint8_t mnc_digit2 : 4;
   uint8_t mnc_digit1 : 4;
-  uint8_t routingindicatordigit2 : 4;
-  uint8_t routingindicatordigit1 : 4;
-  uint8_t routingindicatordigit4 : 4;
-  uint8_t routingindicatordigit3 : 4;
+  uint8_t rout_ind_digit_2 : 4;
+  uint8_t rout_ind_digit_1 : 4;
+  uint8_t rout_ind_digit_4 : 4;
+  uint8_t rout_ind_digit_3 : 4;
   uint8_t spare6 : 1;
   uint8_t spare5 : 1;
   uint8_t spare4 : 1;
@@ -97,10 +97,10 @@ class SuciM5GSMobileIdentity {
   ~SuciM5GSMobileIdentity();
 
   uint8_t spare2 : 1;
-  uint8_t supiformat : 3;
+  uint8_t supi_format : 3;
   uint8_t spare1 : 1;
-  uint8_t typeofidentity : 3;
-  std::string sucinai;  // till end of msg
+  uint8_t type_of_identity : 3;
+  std::string suci_nai;  // till end of msg
 };
 
 // 5GS mobile identity information element for type of identity or "TMSI" SPEC :
@@ -111,15 +111,15 @@ class TmsiM5GSMobileIdentity {
   ~TmsiM5GSMobileIdentity();
 
   uint8_t spare : 4;
-  uint8_t oddeven : 1;
-  uint8_t typeofidentity : 3;
-  uint8_t amfsetid;
-  uint8_t amfsetid1 : 2;
-  uint8_t amfpointer : 6;
-  uint8_t m5gtmsi1;
-  uint8_t m5gtmsi2;
-  uint8_t m5gtmsi3;
-  uint8_t m5gtmsi4;
+  uint8_t odd_even : 1;
+  uint8_t type_of_identity : 3;
+  uint8_t amf_setid;
+  uint8_t amf_setid1 : 2;
+  uint8_t amf_pointer : 6;
+  uint8_t m5g_tmsi_1;
+  uint8_t m5g_tmsi_2;
+  uint8_t m5g_tmsi_3;
+  uint8_t m5g_tmsi_4;
 };
 
 // M5GSMobileIdentityIe Type, SPEC : TS-24501, SEC : 9.11.3.4
@@ -145,15 +145,15 @@ class M5GSMobileIdentityMsg {
 #define M5GSMobileIdentityMsg_IMSI 0x01
 #define MOBILE_IDENTITY_MIN_LENGTH 3
 #define MOBILE_IDENTITY_MAX_LENGTH 13
-  M5GSMobileIdentityIe mobileidentity;
+  M5GSMobileIdentityIe mobile_identity;
 
   M5GSMobileIdentityMsg();
   ~M5GSMobileIdentityMsg();
   int EncodeM5GSMobileIdentityMsg(
-      M5GSMobileIdentityMsg* m5gsmobileidentity, uint8_t iei, uint8_t* buffer,
+      M5GSMobileIdentityMsg* m5gs_mobile_identity, uint8_t iei, uint8_t* buffer,
       uint32_t len);
   int DecodeM5GSMobileIdentityMsg(
-      M5GSMobileIdentityMsg* m5gsmobileidentity, uint8_t iei, uint8_t* buffer,
+      M5GSMobileIdentityMsg* m5gs_mobile_identity, uint8_t iei, uint8_t* buffer,
       uint32_t len);
   int DecodeGutiMobileIdentityMsg(
       GutiM5GSMobileIdentity* guti, uint8_t* buffer, uint8_t ielen);

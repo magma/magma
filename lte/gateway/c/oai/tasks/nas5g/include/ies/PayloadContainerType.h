@@ -18,15 +18,15 @@ namespace magma5g {
 class PayloadContainerTypeMsg {
  public:
   uint8_t iei : 4;
-  uint8_t typeval : 4;
+  uint8_t type_val : 4;
 
   PayloadContainerTypeMsg();
   ~PayloadContainerTypeMsg();
   int EncodePayloadContainerTypeMsg(
-      PayloadContainerTypeMsg* payloadcontainertype, uint8_t iei,
+      PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
       uint8_t* buffer, uint32_t len);
   int DecodePayloadContainerTypeMsg(
-      PayloadContainerTypeMsg* payloadcontainertype, uint8_t iei,
+      PayloadContainerTypeMsg* payload_container_type, uint8_t iei,
       uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

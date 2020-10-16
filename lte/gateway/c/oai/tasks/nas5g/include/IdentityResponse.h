@@ -22,19 +22,19 @@ namespace magma5g {
 // 5GSIdentityResponse Message Class
 class IdentityResponseMsg {
  public:
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SpareHalfOctetMsg sparehalfoctet;
-  SecurityHeaderTypeMsg securityheadertype;
-  MessageTypeMsg messagetype;
-  M5GSMobileIdentityMsg m5gsmobileidentity;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SpareHalfOctetMsg spare_half_octet;
+  SecurityHeaderTypeMsg sec_header_type;
+  MessageTypeMsg message_type;
+  M5GSMobileIdentityMsg m5gs_mobile_identity;
 #define IDENTITY_RESPONSE_MINIMUM_LENGTH 6
 
   IdentityResponseMsg();
   ~IdentityResponseMsg();
   int DecodeIdentityResponseMsg(
-      IdentityResponseMsg* identityresponse, uint8_t* buffer, uint32_t len);
+      IdentityResponseMsg* identity_response, uint8_t* buffer, uint32_t len);
   int EncodeIdentityResponseMsg(
-      IdentityResponseMsg* identityresponse, uint8_t* buffer, uint32_t len);
+      IdentityResponseMsg* identity_response, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 
@@ -47,6 +47,6 @@ IEI         Information Element                    Type/Reference               
        Extended protocol discriminator        Extended protocol discriminator 9.2         M           V             1
        Security header type                   Security header type 9.3                    M           V             1/2
        Spare half octet                       Spare half octet 9.5                        M           V             1/2
-       Identity response message identity     Message type 9.7                            M           V             1
-       Mobile Identity                        5GS Mobile identity 9.11.3.4                M           LV-E          3-n
+       Identity response message identity_     Message type 9.7                            M           V             1
+       Mobile Identity                        5GS Mobile identity_ 9.11.3.4                M           LV-E          3-n
 */

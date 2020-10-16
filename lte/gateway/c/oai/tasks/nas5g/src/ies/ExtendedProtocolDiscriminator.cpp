@@ -20,29 +20,29 @@ ExtendedProtocolDiscriminatorMsg::~ExtendedProtocolDiscriminatorMsg(){};
 
 // Decode ExtendedProtocolDiscriminator IE
 int ExtendedProtocolDiscriminatorMsg::DecodeExtendedProtocolDiscriminatorMsg(
-    ExtendedProtocolDiscriminatorMsg* extendedprotocoldiscriminator,
+    ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
     uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint8_t decoded = 0;
 
   MLOG(MDEBUG) << "   DecodeExtendedProtocolDiscriminatorMsg : ";
-  extendedprotocoldiscriminator->extendedprotodiscriminator =
+  extended_protocol_discriminator->extended_proto_discriminator =
       *(buffer + decoded);
   decoded++;
   MLOG(MDEBUG)
       << " epd = " << hex
-      << int(extendedprotocoldiscriminator->extendedprotodiscriminator);
+      << int(extended_protocol_discriminator->extended_proto_discriminator);
   return (decoded);
 };
 
 // Encode ExtendedProtocolDiscriminator IE
 int ExtendedProtocolDiscriminatorMsg::EncodeExtendedProtocolDiscriminatorMsg(
-    ExtendedProtocolDiscriminatorMsg* extendedprotocoldiscriminator,
+    ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
     uint8_t iei, uint8_t* buffer, uint32_t len) {
   int encoded = 0;
 
   MLOG(MDEBUG) << " EncodeExtendedProtocolDiscriminatorMsg : ";
   *(buffer + encoded) =
-      extendedprotocoldiscriminator->extendedprotodiscriminator;
+      extended_protocol_discriminator->extended_proto_discriminator;
   MLOG(MDEBUG) << "epd = 0x" << hex << int(*(buffer + encoded));
   encoded++;
   return (encoded);

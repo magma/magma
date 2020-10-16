@@ -22,19 +22,19 @@ namespace magma5g {
 // 5GSIdentityRequest Message Class
 class IdentityRequestMsg {
  public:
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SpareHalfOctetMsg sparehalfoctet;
-  SecurityHeaderTypeMsg securityheadertype;
-  MessageTypeMsg messagetype;
-  M5GSIdentityTypeMsg m5gsidentitytype;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SpareHalfOctetMsg spare_half_octet;
+  SecurityHeaderTypeMsg sec_header_type;
+  MessageTypeMsg message_type;
+  M5GSIdentityTypeMsg m5gs_identity_type;
 #define IDENTITY_REQUEST_MINIMUM_LENGTH 4
 
   IdentityRequestMsg();
   ~IdentityRequestMsg();
   int DecodeIdentityRequestMsg(
-      IdentityRequestMsg* identityrequest, uint8_t* buffer, uint32_t len);
+      IdentityRequestMsg* identity_request, uint8_t* buffer, uint32_t len);
   int EncodeIdentityRequestMsg(
-      IdentityRequestMsg* identityrequest, uint8_t* buffer, uint32_t len);
+      IdentityRequestMsg* identity_request, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

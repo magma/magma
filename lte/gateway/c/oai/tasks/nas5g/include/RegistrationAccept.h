@@ -1,13 +1,14 @@
 /*
-Copyright 2020 The Magma Authors.
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
+   Copyright 2020 The Magma Authors.
+   This source code is licensed under the BSD-style license found in the
+   LICENSE file in the root directory of this source tree.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
 */
+
 #pragma once
 #include <sstream>
 #include "ExtendedProtocolDiscriminator.h"
@@ -15,81 +16,24 @@ limitations under the License.
 #include "MessageType.h"
 #include "SpareHalfOctet.h"
 #include "5GSRegistrationResult.h"
-#ifdef HANDLE_POST_MVC
-#include "5GSMobileIdentity.h"
-#include "PLMNList.h"
-#include "NRGSTrackingAreaIdentityList.h"
-#include "NSSAI.h"
-#include "RejectedNSSAI.h"
-#include "5GSNetworkFeatureSupport.h"
-#include "PDUSessionStatus.h"
-#include "PDUSessionReactivationResult.h"
-#include "PDUSessionReactivationResultErrorCause.h"
-#include "LADNInformation.h"
-#include "MICOIndication.h"
-#include "NetworkSlicingIndication.h"
-#include "ServiceAreaList.h"
-#include "GPRSTimer3.h"
-#include "GPRSTimer2.h"
-#include "EmergencyNumberList.h"
-#include "ExtendedEmergencyNumberList.h"
-#include "SORTransparentContainer.h"
-#include "EAPMessage.h"
-#include "NSSAIInclusionMode.h"
-#include "OperatorDefinedAccessCategoryDefinitions.h"
-#include "5GSDRXParameters.h"
-#include "Non3GPPNWprovidedpolicies.h"
-#include "EPSbearercontextstatus.h"
-#include "5GSTrackingAreaIdentity.h"
-#include "5GSTrackingAreaIdentitylist.h"
-#endif
 
 using namespace std;
-
 namespace magma5g {
 class RegistrationAcceptMsg {
  public:
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SecurityHeaderTypeMsg sec_header_type;
+  SpareHalfOctetMsg spare_half_octet;
+  MessageTypeMsg message_type;
+  M5GSRegistrationResultMsg m5gs_reg_result;
+#define REGISTRATION_ACCEPT_MINIMUM_LENGTH 5
+
   RegistrationAcceptMsg();
   ~RegistrationAcceptMsg();
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SecurityHeaderTypeMsg securityheadertype;
-  SpareHalfOctetMsg sparehalfoctet;
-  MessageTypeMsg messagetype;
-  M5GSRegistrationResultMsg m5gsregistrationresult;
-#ifdef HANDLE_POST_MVC
-  M5GSMobileIdentityMsg m5gsmobileidentity;
-  PLMNListMsg plmnlist;
-  M5GSTrackingAreaIdentityListMsg m5gstrackingareaidentitylist;
-  NSSAIMsg nssai;
-  RejectedNSSAIMsg rejectednssai;
-  M5GSNetworkFeatureSupportMsg m5gsnetworkfeaturesupport;
-  PDUSessionStatusMsg pdusessionstatus;
-  PDUSessionReactivationResultMsg pdusessionreactivationresult;
-  PDUSessionReactivationResultErrorCauseMsg
-      pdusessionreactivationresulterrorcause;
-  LADNInformationMsg ladninformation;
-  MICOIndicationMsg micoindication;
-  NetworkSlicingIndicationMsg networkslicingindication;
-  ServiceAreaListMsg servicearealist;
-  GPRSTimer3Msg gprstimer3;  // T3512 value
-  GPRSTimer2Msg
-      gprstimer2;  // Non-3GPP de-registration timer value or T3502 value
-  EmergencyNumberListMsg emergencynumberlist;
-  ExtendedEmergencyNumberListMsg extendedemergencynumberlist;
-  SORTransparentContainerMsg sortransparentcontainer;
-  EAPMessageMsg eapmessage;
-  NSSAIInclusionModeMsg nssaiinclusionmode;
-  OperatorDefinedAccessCategoryDefinitionsMsg
-      operatordefinedaccesscategorydefinitions;
-  M5GSDRXParametersMsg m5gsdrxparameters;
-  Non3GPPNWProvidedPoliciesMsg non3gppnwprovidedpolicies;
-  EPSBearerContextStatusMsg epsbearercontextstatus;
-#endif
-#define REGISTRATION_ACCEPT_MINIMUM_LENGTH 5
   int DecodeRegistrationAcceptMsg(
-      RegistrationAcceptMsg* registrationaccept, uint8_t* buffer, uint32_t len);
+      RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len);
   int EncodeRegistrationAcceptMsg(
-      RegistrationAcceptMsg* registrationaccept, uint8_t* buffer, uint32_t len);
+      RegistrationAcceptMsg* reg_accept, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 /*

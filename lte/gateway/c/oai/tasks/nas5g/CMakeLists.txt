@@ -41,6 +41,13 @@ set(libnas_src_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SecurityModeReject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/IdentityRequest.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/IdentityResponse.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PDUSessionEstablishmentRequest.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PDUSessionEstablishmentAccept.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PDUSessionEstablishmentReject.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PDUSessionModificationRequest.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PDUSessionModificationReject.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PDUSessionReleaseRequest.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/PDUSessionReleaseReject.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/SmfMessage.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ULNASTransport.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/DLNASTransport.cpp
@@ -66,6 +73,15 @@ set(libnas_ies_OBJS
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/5GSIdentityType.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/PayloadContainer.cpp
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/PayloadContainerType.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/PTI.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/SSCMode.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/IntegrityProtMaxDataRate.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/PDUSessionType.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/PDUSessionIdentity.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/PDUAddress.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/QOSRules.cpp
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/SessionAMBR.cpp        
+	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/5GSMCause.cpp        
 	${CMAKE_CURRENT_SOURCE_DIR}/src/ies/5GMMCause.cpp        
     )
 

@@ -18,16 +18,16 @@ class M5GSRegistrationResultMsg {
   uint8_t iei;
   const int REGISTRATION_RESULT_MIN_LENGTH = 2;
   uint8_t spare : 4;
-  uint8_t smsallowed : 1;
-  uint8_t registrationresultval : 3;
+  uint8_t sms_allowed : 1;
+  uint8_t reg_result_val : 3;
 
   M5GSRegistrationResultMsg();
   ~M5GSRegistrationResultMsg();
   int EncodeM5GSRegistrationResultMsg(
-      M5GSRegistrationResultMsg* m5gsregistrationresult, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      M5GSRegistrationResultMsg* m5gs_reg_result, uint8_t iei, uint8_t* buffer,
+      uint32_t len);
   int DecodeM5GSRegistrationResultMsg(
-      M5GSRegistrationResultMsg* m5gsregistrationresult, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      M5GSRegistrationResultMsg* m5gs_reg_result, uint8_t iei, uint8_t* buffer,
+      uint32_t len);
 };
 }  // namespace magma5g

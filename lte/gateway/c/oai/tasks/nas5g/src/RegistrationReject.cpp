@@ -1,13 +1,14 @@
 /*
-Copyright 2020 The Magma Authors.
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+   Copyright 2020 The Magma Authors.
+   This source code is licensed under the BSD-style license found in the
+   LICENSE file in the root directory of this source tree.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
 #include <sstream>
 #include "RegistrationReject.h"
 #include "CommonDefs.h"
@@ -18,44 +19,38 @@ RegistrationRejectMsg::~RegistrationRejectMsg(){};
 
 // Decoding Registration Reject Message and its IEs
 int RegistrationRejectMsg::DecodeRegistrationRejectMsg(
-    RegistrationRejectMsg* registrationreject, uint8_t* buffer, uint32_t len) {
+    RegistrationRejectMsg* reg_reject, uint8_t* buffer, uint32_t len) {
   uint32_t decoded   = 0;
   int decoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, REGISTRATION_REJECT_MINIMUM_LENGTH, len);
 
-  if ((decoded_result =
-           registrationreject->extendedprotocoldiscriminator
-               .DecodeExtendedProtocolDiscriminatorMsg(
-                   &registrationreject->extendedprotocoldiscriminator, 0,
-                   buffer + decoded, len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           registrationreject->sparehalfoctet.DecodeSpareHalfOctetMsg(
-               &registrationreject->sparehalfoctet, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result =
-           registrationreject->securityheadertype.DecodeSecurityHeaderTypeMsg(
-               &registrationreject->securityheadertype, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result = registrationreject->messagetype.DecodeMessageTypeMsg(
-           &registrationreject->messagetype, 0, buffer + decoded,
-           len - decoded)) < 0)
-    return decoded_result;
-  else
-    decoded += decoded_result;
-  if ((decoded_result = registrationreject->m5gmmcause
-                            .DecodeM5GMMCauseMsg(
-                                &registrationreject->m5gmmcause, 0,
+  if ((decoded_result = reg_reject->extended_protocol_discriminator
+                            .DecodeExtendedProtocolDiscriminatorMsg(
+                                &reg_reject->extended_protocol_discriminator, 0,
                                 buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = reg_reject->spare_half_octet.DecodeSpareHalfOctetMsg(
+           &reg_reject->spare_half_octet, 0, buffer + decoded, len - decoded)) <
+      0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = reg_reject->sec_header_type.DecodeSecurityHeaderTypeMsg(
+           &reg_reject->sec_header_type, 0, buffer + decoded, len - decoded)) <
+      0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = reg_reject->message_type.DecodeMessageTypeMsg(
+           &reg_reject->message_type, 0, buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = reg_reject->m5gmm_cause.DecodeM5GMMCauseMsg(
+           &reg_reject->m5gmm_cause, 0, buffer + decoded, len - decoded)) < 0)
     return decoded_result;
   else
     decoded += decoded_result;
@@ -65,47 +60,41 @@ int RegistrationRejectMsg::DecodeRegistrationRejectMsg(
 
 // Encoding Registration Reject Message and its IEs
 int RegistrationRejectMsg::EncodeRegistrationRejectMsg(
-    RegistrationRejectMsg* registrationreject, uint8_t* buffer, uint32_t len) {
+    RegistrationRejectMsg* reg_reject, uint8_t* buffer, uint32_t len) {
   uint32_t encoded  = 0;
-  int encodedresult = 0;
+  int encoded_result = 0;
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, REGISTRATION_REJECT_MINIMUM_LENGTH, len);
 
-  if ((encodedresult =
-           registrationreject->extendedprotocoldiscriminator
-               .EncodeExtendedProtocolDiscriminatorMsg(
-                   &registrationreject->extendedprotocoldiscriminator, 0,
-                   buffer + encoded, len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult =
-           registrationreject->sparehalfoctet.EncodeSpareHalfOctetMsg(
-               &registrationreject->sparehalfoctet, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult =
-           registrationreject->securityheadertype.EncodeSecurityHeaderTypeMsg(
-               &registrationreject->securityheadertype, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = registrationreject->messagetype.EncodeMessageTypeMsg(
-           &registrationreject->messagetype, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult = registrationreject->m5gmmcause
-                           .EncodeM5GMMCauseMsg(
-                               &registrationreject->m5gmmcause, 0,
+  if ((encoded_result = reg_reject->extended_protocol_discriminator
+                           .EncodeExtendedProtocolDiscriminatorMsg(
+                               &reg_reject->extended_protocol_discriminator, 0,
                                buffer + encoded, len - encoded)) < 0)
-    return encodedresult;
+    return encoded_result;
   else
-    encoded += encodedresult;
+    encoded += encoded_result;
+  if ((encoded_result = reg_reject->spare_half_octet.EncodeSpareHalfOctetMsg(
+           &reg_reject->spare_half_octet, 0, buffer + encoded, len - encoded)) <
+      0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = reg_reject->sec_header_type.EncodeSecurityHeaderTypeMsg(
+           &reg_reject->sec_header_type, 0, buffer + encoded, len - encoded)) <
+      0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = reg_reject->message_type.EncodeMessageTypeMsg(
+           &reg_reject->message_type, 0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = reg_reject->m5gmm_cause.EncodeM5GMMCauseMsg(
+           &reg_reject->m5gmm_cause, 0, buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
   return encoded;
 }
 }  // namespace magma5g

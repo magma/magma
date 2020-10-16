@@ -20,19 +20,19 @@ using namespace std;
 namespace magma5g {
 class AuthenticationFailureMsg {
  public:
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SecurityHeaderTypeMsg securityheadertype;
-  SpareHalfOctetMsg sparehalfoctet;
-  MessageTypeMsg messagetype;
-  M5GMMCauseMsg m5gmmcause;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SecurityHeaderTypeMsg sec_header_type;
+  SpareHalfOctetMsg spare_half_octet;
+  MessageTypeMsg message_type;
+  M5GMMCauseMsg m5gmm_cause;
 #define AUTHENTICATION_FAILURE_MINIMUM_LENGTH 4
 
   AuthenticationFailureMsg();
   ~AuthenticationFailureMsg();
   int DecodeAuthenticationFailureMsg(
-      AuthenticationFailureMsg* authenticationfailure, uint8_t* buffer, uint32_t len);
+      AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len);
   int EncodeAuthenticationFailureMsg(
-      AuthenticationFailureMsg* authenticationfailure, uint8_t* buffer, uint32_t len);
+      AuthenticationFailureMsg* auth_failure, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 /*

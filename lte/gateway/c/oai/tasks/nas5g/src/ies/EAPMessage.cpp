@@ -23,7 +23,7 @@ EAPMessageMsg::~EAPMessageMsg(){};
 
 // Decode EAP Message
 int EAPMessageMsg::DecodeEAPMessageMsg(
-    EAPMessageMsg* eapmessage, uint8_t iei, uint8_t* buffer, uint32_t len) {
+    EAPMessageMsg* eap_message, uint8_t iei, uint8_t* buffer, uint32_t len) {
   int decoded   = 0;
   uint8_t ielen = 0;
 
@@ -38,7 +38,7 @@ int EAPMessageMsg::DecodeEAPMessageMsg(
 
 // Encode EAP Message
 int EAPMessageMsg::EncodeEAPMessageMsg(
-    EAPMessageMsg* eapmessage, uint8_t iei, uint8_t* buffer, uint32_t len) {
+    EAPMessageMsg* eap_message, uint8_t iei, uint8_t* buffer, uint32_t len) {
   uint16_t* lenPtr;
   uint32_t encoded = 0;
 
@@ -46,17 +46,17 @@ int EAPMessageMsg::EncodeEAPMessageMsg(
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, EAP_MIN_LENGTH, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER(iei, (unsigned char) eapmessage->iei);
+    CHECK_IEI_ENCODER(iei, (unsigned char) eap_message->iei);
     *buffer = iei;
     encoded++;
   }
 
   MLOG(MDEBUG) << "EncodeEAPMessage : ";
-  IES_ENCODE_U16(buffer, encoded, eapmessage->len);
-  MLOG(MDEBUG) << "Length = " << hex << int(eapmessage->len) ;
-  std::copy(eapmessage->eap.begin(), eapmessage->eap.end(), buffer + encoded);
-  BUFFER_PRINT_LOG(buffer + encoded, eapmessage->eap.length());
-  encoded = encoded + eapmessage->eap.length();
+  IES_ENCODE_U16(buffer, encoded, eap_message->len);
+  MLOG(MDEBUG) << "Length = " << hex << int(eap_message->len);
+  std::copy(eap_message->eap.begin(), eap_message->eap.end(), buffer + encoded);
+  BUFFER_PRINT_LOG(buffer + encoded, eap_message->eap.length());
+  encoded = encoded + eap_message->eap.length();
 
   return encoded;
 };

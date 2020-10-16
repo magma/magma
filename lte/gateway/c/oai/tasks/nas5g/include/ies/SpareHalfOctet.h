@@ -21,10 +21,10 @@ class SpareHalfOctetMsg {
   SpareHalfOctetMsg();
   ~SpareHalfOctetMsg();
   int EncodeSpareHalfOctetMsg(
-      SpareHalfOctetMsg* sparehalfoctet, uint8_t iei, uint8_t* buffer,
+      SpareHalfOctetMsg* spare_half_octet, uint8_t iei, uint8_t* buffer,
       uint32_t len);
   int DecodeSpareHalfOctetMsg(
-      SpareHalfOctetMsg* sparehalfoctet, uint8_t iei, uint8_t* buffer,
+      SpareHalfOctetMsg* spare_half_octet, uint8_t iei, uint8_t* buffer,
       uint32_t len);
 };
 }  // namespace magma5g

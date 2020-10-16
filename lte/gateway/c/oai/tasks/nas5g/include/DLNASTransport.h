@@ -23,20 +23,20 @@ namespace magma5g {
 // DLNASTransport Message Class
 class DLNASTransportMsg {
  public:
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SpareHalfOctetMsg sparehalfoctet;
-  SecurityHeaderTypeMsg securityheadertype;
-  MessageTypeMsg messagetype;
-  PayloadContainerTypeMsg payloadcontainertype;
-  PayloadContainerMsg payloadcontainer;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SpareHalfOctetMsg spare_half_octet;
+  SecurityHeaderTypeMsg sec_header_type;
+  MessageTypeMsg message_type;
+  PayloadContainerTypeMsg payload_container_type;
+  PayloadContainerMsg payload_container;
 #define DL_NAS_TRANSPORT_MINIMUM_LENGTH 7
 
   DLNASTransportMsg();
   ~DLNASTransportMsg();
   int DecodeDLNASTransportMsg(
-      DLNASTransportMsg* dlnastransport, uint8_t* buffer, uint32_t len);
+      DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len);
   int EncodeDLNASTransportMsg(
-      DLNASTransportMsg* dlnastransport, uint8_t* buffer, uint32_t len);
+      DLNASTransportMsg* dl_nas_transport, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 

@@ -12,26 +12,26 @@ SecurityHeaderTypeMsg::~SecurityHeaderTypeMsg(){};
 
 // Decode SecurityHeaderType IE
 int SecurityHeaderTypeMsg::DecodeSecurityHeaderTypeMsg(
-    SecurityHeaderTypeMsg* securityheadertype, uint8_t iei, uint8_t* buffer,
+    SecurityHeaderTypeMsg* sec_header_type, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   int decoded = 0;
 
   MLOG(MDEBUG) << "   DecodeSecurityHeaderTypeMsg : ";
-  securityheadertype->securityhdr = *(buffer) &0xf;
+  sec_header_type->sec_hdr = *(buffer) &0xf;
   decoded++;
   MLOG(MDEBUG) << " Security header type = " << dec
-               << int(securityheadertype->securityhdr);
+               << int(sec_header_type->sec_hdr);
   return (decoded);
 };
 
 // Encode SecurityHeaderType IE
 int SecurityHeaderTypeMsg::EncodeSecurityHeaderTypeMsg(
-    SecurityHeaderTypeMsg* securityheadertype, uint8_t iei, uint8_t* buffer,
+    SecurityHeaderTypeMsg* sec_header_type, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   int encoded = 0;
 
   MLOG(MDEBUG) << " EncodeSecurityHeaderTypeMsg : ";
-  *(buffer) = securityheadertype->securityhdr & 0xf;
+  *(buffer) = sec_header_type->sec_hdr & 0xf;
   encoded++;
   MLOG(MDEBUG) << "Security header type = 0x" << hex << int(*(buffer));
   return (encoded);

@@ -21,8 +21,8 @@ NASSecurityAlgorithmsMsg::~NASSecurityAlgorithmsMsg(){};
 
 // Decode NASSecurityAlgorithms IE
 int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
-    NASSecurityAlgorithmsMsg* nassecurityalgorithms, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
   uint8_t decoded = 0;
 
   if (iei > 0) {
@@ -31,20 +31,20 @@ int NASSecurityAlgorithmsMsg::DecodeNASSecurityAlgorithmsMsg(
   }
 
   MLOG(MDEBUG) << " DecodeNASSecurityAlgorithmsMsg : ";
-  nassecurityalgorithms->tca = (*(buffer + decoded) >> 4) & 0x7;
-  nassecurityalgorithms->tia = *(buffer + decoded) & 0x7;
+  nas_sec_algorithms->tca = (*(buffer + decoded) >> 4) & 0x7;
+  nas_sec_algorithms->tia = *(buffer + decoded) & 0x7;
   decoded++;
   MLOG(MDEBUG) << " Type of ciphering algorithm  = " << hex
-               << int(nassecurityalgorithms->tca);
+               << int(nas_sec_algorithms->tca);
   MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << hex
-               << int(nassecurityalgorithms->tia);
+               << int(nas_sec_algorithms->tia);
   return (decoded);
 };
 
 // Encode NASSecurityAlgorithms IE
 int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
-    NASSecurityAlgorithmsMsg* nassecurityalgorithms, uint8_t iei,
-    uint8_t* buffer, uint32_t len) {
+    NASSecurityAlgorithmsMsg* nas_sec_algorithms, uint8_t iei, uint8_t* buffer,
+    uint32_t len) {
   int encoded = 0;
 
   // Checking IEI and pointer
@@ -57,13 +57,13 @@ int NASSecurityAlgorithmsMsg::EncodeNASSecurityAlgorithmsMsg(
   }
 
   MLOG(MDEBUG) << " EncodeNASSecurityAlgorithmsMsg : ";
-  *(buffer + encoded) = 0x00 | ((nassecurityalgorithms->tca & 0x7) << 4) |
-                        (nassecurityalgorithms->tia & 0x7);
+  *(buffer + encoded) = 0x00 | ((nas_sec_algorithms->tca & 0x7) << 4) |
+                        (nas_sec_algorithms->tia & 0x7);
 
   MLOG(MDEBUG) << " Type of ciphering algorithm  = " << hex
-               << int(nassecurityalgorithms->tca);
+               << int(nas_sec_algorithms->tca);
   MLOG(MDEBUG) << " Type of integrity protection algorithm  = " << hex
-               << int(nassecurityalgorithms->tia);
+               << int(nas_sec_algorithms->tia);
   encoded++;
   return (encoded);
 };

@@ -16,15 +16,15 @@ namespace magma5g {
 // ExtendedProtocolDiscriminator IE Class
 class ExtendedProtocolDiscriminatorMsg {
  public:
-  uint8_t extendedprotodiscriminator;
+  uint8_t extended_proto_discriminator;
 
   ExtendedProtocolDiscriminatorMsg();
   ~ExtendedProtocolDiscriminatorMsg();
   int EncodeExtendedProtocolDiscriminatorMsg(
-      ExtendedProtocolDiscriminatorMsg* extendedprotocoldiscriminator,
+      ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
       uint8_t iei, uint8_t* buffer, uint32_t len);
   int DecodeExtendedProtocolDiscriminatorMsg(
-      ExtendedProtocolDiscriminatorMsg* extendedprotocoldiscriminator,
+      ExtendedProtocolDiscriminatorMsg* extended_protocol_discriminator,
       uint8_t iei, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

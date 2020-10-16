@@ -28,23 +28,23 @@ namespace magma5g {
 class AuthenticationRequestMsg {
  public:
 #define AUTHENTICATION_REQUEST_MINIMUM_LENGTH 3
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SecurityHeaderTypeMsg securityheadertype;
-  SpareHalfOctetMsg sparehalfoctet;
-  MessageTypeMsg messagetype;
-  NASKeySetIdentifierMsg naskeysetidentifier;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SecurityHeaderTypeMsg sec_header_type;
+  SpareHalfOctetMsg spare_half_octet;
+  MessageTypeMsg message_type;
+  NASKeySetIdentifierMsg nas_key_set_identifier;
   ABBAMsg abba;
-  AuthenticationParameterRANDMsg authrand;
-  AuthenticationParameterAUTNMsg authautn;
+  AuthenticationParameterRANDMsg auth_rand;
+  AuthenticationParameterAUTNMsg auth_autn;
   EAPMessageMsg eap;
 
   AuthenticationRequestMsg();
   ~AuthenticationRequestMsg();
   int DecodeAuthenticationRequestMsg(
-      AuthenticationRequestMsg* authenticationrequest, uint8_t* buffer,
+      AuthenticationRequestMsg* auth_request, uint8_t* buffer,
       uint32_t len);
   int EncodeAuthenticationRequestMsg(
-      AuthenticationRequestMsg* authenticationrequest, uint8_t* buffer,
+      AuthenticationRequestMsg* auth_request, uint8_t* buffer,
       uint32_t len);
 };
 }  // namespace magma5g

@@ -19,118 +19,123 @@ ULNASTransportMsg::~ULNASTransportMsg(){};
 
 // Decode ULNASTransport Message and its IEs
 int ULNASTransportMsg::DecodeULNASTransportMsg(
-    ULNASTransportMsg* ulnastransport, uint8_t* buffer, uint32_t len) {
+    ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len) {
   uint32_t decoded  = 0;
-  int decodedresult = 0;
+  int decoded_result = 0;
 
   // Checking Pointer
   CHECK_PDU_POINTER_AND_LENGTH_DECODER(
       buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH, len);
 
   MLOG(MDEBUG) << "DecodeULNASTransportMsg : \n";
-  if ((decodedresult = ulnastransport->extendedprotocoldiscriminator
-                           .DecodeExtendedProtocolDiscriminatorMsg(
-                               &ulnastransport->extendedprotocoldiscriminator,
-                               0, buffer + decoded, len - decoded)) < 0)
-    return decodedresult;
+  if ((decoded_result =
+           ul_nas_transport->extended_protocol_discriminator
+               .DecodeExtendedProtocolDiscriminatorMsg(
+                   &ul_nas_transport->extended_protocol_discriminator, 0,
+                   buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
   else
-    decoded += decodedresult;
-  if ((decodedresult = ulnastransport->sparehalfoctet.DecodeSpareHalfOctetMsg(
-           &ulnastransport->sparehalfoctet, 0, buffer + decoded,
+    decoded += decoded_result;
+  if ((decoded_result =
+           ul_nas_transport->spare_half_octet.DecodeSpareHalfOctetMsg(
+               &ul_nas_transport->spare_half_octet, 0, buffer + decoded,
+               len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result =
+           ul_nas_transport->sec_header_type.DecodeSecurityHeaderTypeMsg(
+               &ul_nas_transport->sec_header_type, 0, buffer + decoded,
+               len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result = ul_nas_transport->message_type.DecodeMessageTypeMsg(
+           &ul_nas_transport->message_type, 0, buffer + decoded,
            len - decoded)) < 0)
-    return decodedresult;
+    return decoded_result;
   else
-    decoded += decodedresult;
-  if ((decodedresult =
-           ulnastransport->securityheadertype.DecodeSecurityHeaderTypeMsg(
-               &ulnastransport->securityheadertype, 0, buffer + decoded,
+    decoded += decoded_result;
+  if ((decoded_result = ul_nas_transport->payload_container_type
+                           .DecodePayloadContainerTypeMsg(
+                               &ul_nas_transport->payload_container_type, 0,
+                               buffer + decoded, len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
+  if ((decoded_result =
+           ul_nas_transport->payload_container.DecodePayloadContainerMsg(
+               &ul_nas_transport->payload_container, 0, buffer + decoded,
                len - decoded)) < 0)
-    return decodedresult;
+    return decoded_result;
   else
-    decoded += decodedresult;
-  if ((decodedresult = ulnastransport->messagetype.DecodeMessageTypeMsg(
-           &ulnastransport->messagetype, 0, buffer + decoded, len - decoded)) <
-      0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           ulnastransport->payloadcontainertype.DecodePayloadContainerTypeMsg(
-               &ulnastransport->payloadcontainertype, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
-  if ((decodedresult =
-           ulnastransport->payloadcontainer.DecodePayloadContainerMsg(
-               &ulnastransport->payloadcontainer, 0, buffer + decoded,
-               len - decoded)) < 0)
-    return decodedresult;
-  else
-    decoded += decodedresult;
+    decoded += decoded_result;
 
   return decoded;
 }
 
 // Encode DL NAS Transport Message and its IEs
 int ULNASTransportMsg::EncodeULNASTransportMsg(
-    ULNASTransportMsg* ulnastransport, uint8_t* buffer, uint32_t len) {
+    ULNASTransportMsg* ul_nas_transport, uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   MLOG(MDEBUG) << "EncodeULNASTransportMsg:";
-  int encodedresult = 0;
+  int encoded_result = 0;
 
   // Check if we got a NDLL pointer and if buffer length is >= minimum length
   // expected for the message.
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(
       buffer, DL_NAS_TRANSPORT_MINIMUM_LENGTH, len);
 
-  if ((encodedresult = ulnastransport->extendedprotocoldiscriminator
-                           .EncodeExtendedProtocolDiscriminatorMsg(
-                               &ulnastransport->extendedprotocoldiscriminator,
-                               0, buffer + encoded, len - encoded)) < 0)
-    return encodedresult;
+  if ((encoded_result =
+           ul_nas_transport->extended_protocol_discriminator
+               .EncodeExtendedProtocolDiscriminatorMsg(
+                   &ul_nas_transport->extended_protocol_discriminator, 0,
+                   buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
   else
-    encoded += encodedresult;
-  if ((encodedresult = ulnastransport->sparehalfoctet.EncodeSpareHalfOctetMsg(
-           &ulnastransport->sparehalfoctet, 0, buffer + encoded,
+    encoded += encoded_result;
+  if ((encoded_result =
+           ul_nas_transport->spare_half_octet.EncodeSpareHalfOctetMsg(
+               &ul_nas_transport->spare_half_octet, 0, buffer + encoded,
+               len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result =
+           ul_nas_transport->sec_header_type.EncodeSecurityHeaderTypeMsg(
+               &ul_nas_transport->sec_header_type, 0, buffer + encoded,
+               len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
+  if ((encoded_result = ul_nas_transport->message_type.EncodeMessageTypeMsg(
+           &ul_nas_transport->message_type, 0, buffer + encoded,
            len - encoded)) < 0)
-    return encodedresult;
+    return encoded_result;
   else
-    encoded += encodedresult;
-  if ((encodedresult =
-           ulnastransport->securityheadertype.EncodeSecurityHeaderTypeMsg(
-               &ulnastransport->securityheadertype, 0, buffer + encoded,
+    encoded += encoded_result;
+  if ((encoded_result =
+           ul_nas_transport->spare_half_octet.EncodeSpareHalfOctetMsg(
+               &ul_nas_transport->spare_half_octet, 0, buffer + encoded,
                len - encoded)) < 0)
-    return encodedresult;
+    return encoded_result;
   else
-    encoded += encodedresult;
-  if ((encodedresult = ulnastransport->messagetype.EncodeMessageTypeMsg(
-           &ulnastransport->messagetype, 0, buffer + encoded, len - encoded)) <
-      0)
-    return encodedresult;
+    encoded += encoded_result;
+  if ((encoded_result = ul_nas_transport->payload_container_type
+                           .EncodePayloadContainerTypeMsg(
+                               &ul_nas_transport->payload_container_type, 0,
+                               buffer + encoded, len - encoded)) < 0)
+    return encoded_result;
   else
-    encoded += encodedresult;
-  if ((encodedresult = ulnastransport->sparehalfoctet.EncodeSpareHalfOctetMsg(
-           &ulnastransport->sparehalfoctet, 0, buffer + encoded,
-           len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
-  if ((encodedresult =
-           ulnastransport->payloadcontainertype.EncodePayloadContainerTypeMsg(
-               &ulnastransport->payloadcontainertype, 0, buffer + encoded,
+    encoded += encoded_result;
+  if ((encoded_result =
+           ul_nas_transport->payload_container.EncodePayloadContainerMsg(
+               &ul_nas_transport->payload_container, 0, buffer + encoded,
                len - encoded)) < 0)
-    return encodedresult;
+    return encoded_result;
   else
-    encoded += encodedresult;
-  if ((encodedresult =
-           ulnastransport->payloadcontainer.EncodePayloadContainerMsg(
-               &ulnastransport->payloadcontainer, 0, buffer + encoded,
-               len - encoded)) < 0)
-    return encodedresult;
-  else
-    encoded += encodedresult;
+    encoded += encoded_result;
 
   return encoded;
 }

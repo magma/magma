@@ -15,10 +15,8 @@
 #include "CommonDefs.h"
 
 using namespace std;
-
 namespace magma5g {
 AuthenticationParameterAUTNMsg::AuthenticationParameterAUTNMsg(){};
-
 AuthenticationParameterAUTNMsg::~AuthenticationParameterAUTNMsg(){};
 
 // Decode AuthenticationParameterAUTN IE
@@ -44,10 +42,8 @@ int AuthenticationParameterAUTNMsg::EncodeAuthenticationParameterAUTNMsg(
     CHECK_IEI_ENCODER((unsigned char) iei, autn->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeAuthenticationParameterAUTNMsg: iei" << hex
-                 << int(*buffer) << endl;
+                 << int(*buffer);
     encoded++;
-  } else {
-    return 0;
   }
 
   lenPtr = (uint16_t*) (buffer + encoded);

@@ -8,22 +8,22 @@
    See the License for the specific language governing permissions and
    limitations under the License.
  */
+
 #include <iostream>
 #include <sstream>
 #include <cstdint>
 #include "NASKeySetIdentifier.h"
 #include "CommonDefs.h"
-using namespace std;
 
+using namespace std;
 namespace magma5g {
 NASKeySetIdentifierMsg::NASKeySetIdentifierMsg(){};
-
 NASKeySetIdentifierMsg::~NASKeySetIdentifierMsg(){};
 
 // Decode NASKeySetIdentifier IE
 int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
-    NASKeySetIdentifierMsg* naskeysetidentifier, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+    NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
   int decoded = 0;
 
   MLOG(MDEBUG) << "DecoseNASKeySetIdentifierMsg : ";
@@ -35,19 +35,20 @@ int NASKeySetIdentifierMsg::DecodeNASKeySetIdentifierMsg(
     CHECK_IEI_DECODER((unsigned char) (*buffer & 0xf0), iei);
   }
 
-  naskeysetidentifier->tsc                 = (*(buffer + decoded) >> 7) & 0x1;
-  naskeysetidentifier->naskeysetidentifier = (*(buffer + decoded) >> 4) & 0x7;
+  nas_key_set_identifier->tsc = (*(buffer + decoded) >> 7) & 0x1;
+  nas_key_set_identifier->nas_key_set_identifier =
+      (*(buffer + decoded) >> 4) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << "   tsc = " << dec << int(naskeysetidentifier->tsc);
+  MLOG(MDEBUG) << "   tsc = " << dec << int(nas_key_set_identifier->tsc);
   MLOG(MDEBUG) << "   NASkeysetidentifier = " << dec
-               << int(naskeysetidentifier->naskeysetidentifier);
+               << int(nas_key_set_identifier->nas_key_set_identifier);
   return decoded;
 };
 
 // Encode NASKeySetIdentifier IE
 int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
-    NASKeySetIdentifierMsg* naskeysetidentifier, uint8_t iei, uint8_t* buffer,
-    uint32_t len) {
+    NASKeySetIdentifierMsg* nas_key_set_identifier, uint8_t iei,
+    uint8_t* buffer, uint32_t len) {
   uint32_t encoded = 0;
 
   // Checking IEI and pointer
@@ -55,7 +56,7 @@ int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
       buffer, NAS_KEY_SET_IDENTIFIER_MIN_LENGTH, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, naskeysetidentifier->iei);
+    CHECK_IEI_ENCODER((unsigned char) iei, nas_key_set_identifier->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeNASKeySetIdentifierMsg: iei" << hex
                  << int(*buffer) << endl;
@@ -63,10 +64,10 @@ int NASKeySetIdentifierMsg::EncodeNASKeySetIdentifierMsg(
   }
 
   MLOG(MDEBUG) << " EncodeNASKeySetIdentifierMsg : " << endl;
-  *(buffer + encoded) = 0x00 | (naskeysetidentifier->tsc & 0x1) << 3 |
-                        (naskeysetidentifier->naskeysetidentifier & 0x7);
+  *(buffer + encoded) = 0x00 | (nas_key_set_identifier->tsc & 0x1) << 3 |
+                        (nas_key_set_identifier->nas_key_set_identifier & 0x7);
   MLOG(MDEBUG) << "   Type of Security Context  = 0x" << hex
-               << int(naskeysetidentifier->tsc) << "\n";
+               << int(nas_key_set_identifier->tsc) << "\n";
   MLOG(MDEBUG) << "   NAS key set identifier = 0x" << hex
                << int(*(buffer + encoded)) << "\n";
   encoded++;

@@ -24,22 +24,22 @@ namespace magma5g {
 // SecurityModeCommand Message Class
 class SecurityModeCommandMsg {
  public:
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SpareHalfOctetMsg sparehalfoctet;
-  SecurityHeaderTypeMsg securityheadertype;
-  MessageTypeMsg messagetype;
-  NASSecurityAlgorithmsMsg nassecurityalgorithms;
-  NASKeySetIdentifierMsg naskeysetidentifier;
-  UESecurityCapabilityMsg uesecuritycapability;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SpareHalfOctetMsg spare_half_octet;
+  SecurityHeaderTypeMsg sec_header_type;
+  MessageTypeMsg message_type;
+  NASSecurityAlgorithmsMsg nas_sec_algorithms;
+  NASKeySetIdentifierMsg nas_key_set_identifier;
+  UESecurityCapabilityMsg ue_sec_capability;
 #define SECURITY_MODE_COMMAND_MINIMUM_LENGTH 8
 
   SecurityModeCommandMsg();
   ~SecurityModeCommandMsg();
   int DecodeSecurityModeCommandMsg(
-      SecurityModeCommandMsg* securitymodecommand, uint8_t* buffer,
+      SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer,
       uint32_t len);
   int EncodeSecurityModeCommandMsg(
-      SecurityModeCommandMsg* securitymodecommand, uint8_t* buffer,
+      SecurityModeCommandMsg* sec_mode_command, uint8_t* buffer,
       uint32_t len);
 };
 }  // namespace magma5g

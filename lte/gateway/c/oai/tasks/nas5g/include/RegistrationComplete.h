@@ -19,18 +19,18 @@ using namespace std;
 namespace magma5g {
 class RegistrationCompleteMsg {
  public:
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SecurityHeaderTypeMsg securityheadertype;
-  SpareHalfOctetMsg sparehalfoctet;
-  MessageTypeMsg messagetype;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SecurityHeaderTypeMsg sec_header_type;
+  SpareHalfOctetMsg spare_half_octet;
+  MessageTypeMsg message_type;
 #define REGISTRATION_COMPLETE_MINIMUM_LENGTH 3
 
   RegistrationCompleteMsg();
   ~RegistrationCompleteMsg();
   int DecodeRegistrationCompleteMsg(
-      RegistrationCompleteMsg* registrationcomplete, uint8_t* buffer, uint32_t len);
+      RegistrationCompleteMsg* reg_complete, uint8_t* buffer, uint32_t len);
   int EncodeRegistrationCompleteMsg(
-      RegistrationCompleteMsg* registrationcomplete, uint8_t* buffer, uint32_t len);
+      RegistrationCompleteMsg* reg_complete, uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g
 /*

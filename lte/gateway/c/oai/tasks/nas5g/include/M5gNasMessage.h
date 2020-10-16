@@ -1,13 +1,14 @@
 /*
-Copyright 2020 The Magma Authors.
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+   Copyright 2020 The Magma Authors.
+   This source code is licensed under the BSD-style license found in the
+   LICENSE file in the root directory of this source tree.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
+
 #pragma once
 namespace magma5g {
 #define M5G_SESSION_MANAGEMENT_MESSAGES 0x2e
@@ -86,7 +87,11 @@ namespace magma5g {
 // 5G Session Management Message Types
 #define PDU_SESSION_ESTABLISHMENT_REQUEST 0xC1
 #define PDU_SESSION_ESTABLISHMENT_ACCEPT 0xC2
+#define PDU_SESSION_ESTABLISHMENT_REJECT 0xC3
 #define PDU_SESSION_RELEASE_REQUEST 0xD1
+#define PDU_SESSION_RELEASE_REJECT 0xD2
+#define PDU_SESSION_MODIFICATION_REQUEST 0xC9
+#define PDU_SESSION_MODIFICATION_REJECT 0xCA
 // 5G Session Management IE Types
 #define PDUSESSIONTYPE 0x09
 #define SSCMODE 0x0A

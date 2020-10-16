@@ -17,16 +17,14 @@
 #include "CommonDefs.h"
 
 using namespace std;
-
 namespace magma5g {
 AuthenticationResponseParameterMsg::AuthenticationResponseParameterMsg(){};
-
 AuthenticationResponseParameterMsg::~AuthenticationResponseParameterMsg(){};
 
 // Decode AuthenticationResponseParameter IE
 int AuthenticationResponseParameterMsg::
     DecodeAuthenticationResponseParameterMsg(
-        AuthenticationResponseParameterMsg* responseparameter, uint8_t iei,
+        AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
         uint8_t* buffer, uint32_t len) {
   uint32_t decoded = 0;
   uint8_t ielen    = 0;
@@ -35,20 +33,20 @@ int AuthenticationResponseParameterMsg::
 
   if (iei > 0) {
     CHECK_IEI_DECODER(iei, *buffer);
-    responseparameter->iei = *(buffer + decoded);
-    MLOG(MDEBUG) << " ElementID : " << hex << int(responseparameter->iei);
+    response_parameter->iei = *(buffer + decoded);
+    MLOG(MDEBUG) << " ElementID : " << hex << int(response_parameter->iei);
     decoded++;
   }
-  responseparameter->length = *(buffer + decoded);
-  MLOG(MDEBUG) << " Length : " << dec << int(responseparameter->length);
+  response_parameter->length = *(buffer + decoded);
+  MLOG(MDEBUG) << " Length : " << dec << int(response_parameter->length);
   decoded++;
   for (int i = 0; i < 16; i++) {
-    responseparameter->ResponseParameter[i] = *(buffer + decoded);
+    response_parameter->response_parameter[i] = *(buffer + decoded);
     decoded++;
   }
   for (int i = 0; i < 16; i++) {
     MLOG(MDEBUG) << " RES : " << hex
-                 << int(responseparameter->ResponseParameter[i]);
+                 << int(response_parameter->response_parameter[i]);
   }
   return (decoded);
 };
@@ -56,7 +54,7 @@ int AuthenticationResponseParameterMsg::
 // Encode AuthenticationResponseParameter IE
 int AuthenticationResponseParameterMsg::
     EncodeAuthenticationResponseParameterMsg(
-        AuthenticationResponseParameterMsg* responseparameter, uint8_t iei,
+        AuthenticationResponseParameterMsg* response_parameter, uint8_t iei,
         uint8_t* buffer, uint32_t len) {
   uint16_t* lenPtr;
   uint32_t encoded = 0;
@@ -66,7 +64,7 @@ int AuthenticationResponseParameterMsg::
       buffer, AUTHENTICATION_RESPONSE_PARAMETER_MIN_LEN, len);
 
   if (iei > 0) {
-    CHECK_IEI_ENCODER((unsigned char) iei, responseparameter->iei);
+    CHECK_IEI_ENCODER((unsigned char) iei, response_parameter->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "In EncodeAuthenticationResponseParameterMsg: iei" << hex
                  << int(*buffer) << endl;
@@ -78,11 +76,11 @@ int AuthenticationResponseParameterMsg::
   lenPtr = (uint16_t*) (buffer + encoded);
   encoded++;
   std::copy(
-      responseparameter->ResponseParameter.begin(),
-      responseparameter->ResponseParameter.end(), buffer + encoded);
+      response_parameter->response_parameter.begin(),
+      response_parameter->response_parameter.end(), buffer + encoded);
   BUFFER_PRINT_LOG(
-      buffer + encoded, responseparameter->ResponseParameter.length());
-  encoded = encoded + responseparameter->ResponseParameter.length();
+      buffer + encoded, response_parameter->response_parameter.length());
+  encoded = encoded + response_parameter->response_parameter.length();
   *lenPtr = encoded - 1 - ((iei > 0) ? 1 : 0);
 #endif
   return (encoded);

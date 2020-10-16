@@ -22,15 +22,15 @@ class AuthenticationParameterRANDMsg {
 #define RAND_MIN_LEN 16
 #define RAND_MAX_LEN 16
   uint8_t iei;
-  std::string randval;
+  std::string rand_val;
 
   AuthenticationParameterRANDMsg();
   ~AuthenticationParameterRANDMsg();
   int EncodeAuthenticationParameterRANDMsg(
-      AuthenticationParameterRANDMsg* authenticationparameterrand, uint8_t iei,
+      AuthenticationParameterRANDMsg* auth_parameter_rand, uint8_t iei,
       uint8_t* buffer, uint32_t len);
   int DecodeAuthenticationParameterRANDMsg(
-      AuthenticationParameterRANDMsg* authenticationparameterrand, uint8_t iei,
+      AuthenticationParameterRANDMsg* auth_parameter_rand, uint8_t iei,
       uint8_t* buffer, uint32_t len);
 };
 }  // namespace magma5g

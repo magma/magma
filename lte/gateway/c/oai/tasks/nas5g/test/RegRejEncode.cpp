@@ -1,13 +1,13 @@
 /*
-Copyright 2020 The Magma Authors.
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+   Copyright 2020 The Magma Authors.
+   This source code is licensed under the BSD-style license found in the
+   LICENSE file in the root directory of this source tree.
+   Unless required by applicable law or agreed to in writing, software
+   distributed under the License is distributed on an "AS IS" BASIS,
+   WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+   See the License for the specific language governing permissions and
+   limitations under the License.
+ */
 
 /* using this stub code we are going to test Encoding functionality of
  * Registration Reject Message */
@@ -20,7 +20,6 @@ limitations under the License.
 
 using namespace std;
 using namespace magma5g;
-
 namespace magma5g {
 int encode(void) {
   int enc_r         = 0;
@@ -29,11 +28,11 @@ int encode(void) {
   RegistrationRejectMsg msg;
 
   // Message to be Encoded
-  msg.extendedprotocoldiscriminator.extendedprotodiscriminator = 126;
-  msg.securityheadertype.securityhdr                           = 0;
-  msg.sparehalfoctet.spare                                     = 0;
-  msg.messagetype.msgtype                                      = 0x44;
-  msg.m5gmmcause.m5gmmcause                                    = 12;
+  msg.extended_protocol_discriminator.extended_proto_discriminator = 126;
+  msg.sec_header_type.sec_hdr                           = 0;
+  msg.spare_half_octet.spare                                     = 0;
+  msg.message_type.msg_type                                      = 0x44;
+  msg.m5gmm_cause.m5gmm_cause                                    = 12;
 
   MLOG(MDEBUG) << "---Encoding Registration Reject Message---";
   // Encoding Message
@@ -50,16 +49,16 @@ int encode(void) {
   MLOG(BEBUG) << "\n\n ---DECODED MESSAGE ---\n\n";
   MLOG(MDEBUG)
       << " Extended Protocol Discriminator :" << dec
-      << int(msg.extendedprotocoldiscriminator.extendedprotodiscriminator)
+      << int(msg.extended_protocol_discriminator.extended_proto_discriminator)
       << endl;
-  MLOG(MDEBUG) << " Spare half octet : " << dec << int(msg.sparehalfoctet.spare)
+  MLOG(MDEBUG) << " Spare half octet : " << dec << int(msg.spare_half_octet.spare)
                << endl;
   MLOG(MDEBUG) << " Security Header Type : " << dec
-               << int(msg.securityheadertype.securityhdr) << endl;
-  MLOG(MDEBUG) << " Message Type : 0x" << hex << int(msg.messagetype.msgtype)
+               << int(msg.sec_header_type.sec_hdr) << endl;
+  MLOG(MDEBUG) << " Message Type : 0x" << hex << int(msg.message_type.msg_type)
                << endl;
   MLOG(MDEBUG) << " 5GMM Cause :" << dec
-               << int(msg.m5gmmcause.m5gmmcause) << endl;
+               << int(msg.m5gmm_cause.m5gmm_cause) << endl;
 
   return 0;
 }

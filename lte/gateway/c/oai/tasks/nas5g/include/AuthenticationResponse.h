@@ -24,19 +24,19 @@ namespace magma5g {
 class AuthenticationResponseMsg {
  public:
 #define AUTHENTICATION_RESPONSE_MINIMUM_LENGTH 3
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SecurityHeaderTypeMsg securityheadertype;
-  SpareHalfOctetMsg sparehalfoctet;
-  MessageTypeMsg messagetype;
-  AuthenticationResponseParameterMsg responseparameter;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SecurityHeaderTypeMsg sec_header_type;
+  SpareHalfOctetMsg spare_half_octet;
+  MessageTypeMsg message_type;
+  AuthenticationResponseParameterMsg response_parameter;
 
   AuthenticationResponseMsg();
   ~AuthenticationResponseMsg();
   int DecodeAuthenticationResponseMsg(
-      AuthenticationResponseMsg* authenticationresponse, uint8_t* buffer,
+      AuthenticationResponseMsg* auth_response, uint8_t* buffer,
       uint32_t len);
   int EncodeAuthenticationResponseMsg(
-      AuthenticationResponseMsg* authenticationresponse, uint8_t* buffer,
+      AuthenticationResponseMsg* auth_response, uint8_t* buffer,
       uint32_t len);
 };
 }  // namespace magma5g

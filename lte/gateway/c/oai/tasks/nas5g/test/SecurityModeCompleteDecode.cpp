@@ -36,12 +36,12 @@ int decode(void) {
   MLOG(MDEBUG) << " ---Decoded Message---\n";
   MLOG(MDEBUG)
       << " Extended Protocol Discriminator :" << dec
-      << int(msg.extendedprotocoldiscriminator.extendedprotodiscriminator);
+      << int(msg.extended_protocol_discriminator.extended_proto_discriminator);
   MLOG(MDEBUG) << " Spare Half Octet : " << dec
-               << int(msg.sparehalfoctet.spare);
+               << int(msg.spare_half_octet.spare);
   MLOG(MDEBUG) << " Security Header Type : " << dec
-               << int(msg.securityheadertype.securityhdr);
-  MLOG(MDEBUG) << " Message Type : 0x" << hex << int(msg.messagetype.msgtype);
+               << int(msg.sec_header_type.sec_hdr);
+  MLOG(MDEBUG) << " Message Type : 0x" << hex << int(msg.message_type.msg_type);
 
   return 0;
 }

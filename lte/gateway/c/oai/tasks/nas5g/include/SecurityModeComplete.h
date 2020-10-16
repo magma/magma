@@ -15,24 +15,25 @@
 #include "SpareHalfOctet.h"
 #include "SecurityHeaderType.h"
 #include "MessageType.h"
+
 using namespace std;
 namespace magma5g {
 // SecurityModeComplete Message Class
 class SecurityModeCompleteMsg {
  public:
-  ExtendedProtocolDiscriminatorMsg extendedprotocoldiscriminator;
-  SpareHalfOctetMsg sparehalfoctet;
-  SecurityHeaderTypeMsg securityheadertype;
-  MessageTypeMsg messagetype;
+  ExtendedProtocolDiscriminatorMsg extended_protocol_discriminator;
+  SpareHalfOctetMsg spare_half_octet;
+  SecurityHeaderTypeMsg sec_header_type;
+  MessageTypeMsg message_type;
 #define SECURITY_MODE_COMPLETE_MINIMUM_LENGTH 3
 
   SecurityModeCompleteMsg();
   ~SecurityModeCompleteMsg();
   int DecodeSecurityModeCompleteMsg(
-      SecurityModeCompleteMsg* securitymodecomplete, uint8_t* buffer,
+      SecurityModeCompleteMsg* sec_mode_complete, uint8_t* buffer,
       uint32_t len);
   int EncodeSecurityModeCompleteMsg(
-      SecurityModeCompleteMsg* securitymodecomplete, uint8_t* buffer,
+      SecurityModeCompleteMsg* sec_mode_complete, uint8_t* buffer,
       uint32_t len);
 };
 }  // namespace magma5g

@@ -16,16 +16,16 @@ namespace magma5g {
 class M5GSDeRegistrationTypeMsg {
  public:
   uint8_t switchoff : 1;
-  uint8_t reregistrationrequired : 1;
-  uint8_t accesstype : 2;
+  uint8_t re_reg_required : 1;
+  uint8_t access_type : 2;
 
   M5GSDeRegistrationTypeMsg();
   ~M5GSDeRegistrationTypeMsg();
   int DecodeM5GSDeRegistrationTypeMsg(
-      M5GSDeRegistrationTypeMsg* m5gsderegistrationtype, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      M5GSDeRegistrationTypeMsg* m5gs_de_reg_type, uint8_t iei, uint8_t* buffer,
+      uint32_t len);
   int EncodeM5GSDeRegistrationTypeMsg(
-      M5GSDeRegistrationTypeMsg* m5gsderegistrationtype, uint8_t iei,
-      uint8_t* buffer, uint32_t len);
+      M5GSDeRegistrationTypeMsg* m5gs_de_reg_type, uint8_t iei, uint8_t* buffer,
+      uint32_t len);
 };
 }  // namespace magma5g

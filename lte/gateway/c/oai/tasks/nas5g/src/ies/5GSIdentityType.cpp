@@ -22,25 +22,25 @@ M5GSIdentityTypeMsg::~M5GSIdentityTypeMsg(){};
 
 // Decode M5GSIdentityType IE
 int M5GSIdentityTypeMsg::DecodeM5GSIdentityTypeMsg(
-    M5GSIdentityTypeMsg* m5gsidentitytype, uint8_t iei, uint8_t* buffer,
+    M5GSIdentityTypeMsg* m5gs_identity_type, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   uint8_t decoded = 0;
 
   MLOG(MDEBUG) << "   DecodeM5GSIdentityTypeMsg : ";
-  m5gsidentitytype->toi = *(buffer + decoded) & 0x7;
+  m5gs_identity_type->toi = *(buffer + decoded) & 0x7;
   decoded++;
-  MLOG(MDEBUG) << " Type of Identity = " << dec << int(m5gsidentitytype->toi);
+  MLOG(MDEBUG) << " Type of Identity = " << dec << int(m5gs_identity_type->toi);
   return (decoded);
 };
 
 // Encode M5GSIdentityType IE
 int M5GSIdentityTypeMsg::EncodeM5GSIdentityTypeMsg(
-    M5GSIdentityTypeMsg* m5gsidentitytype, uint8_t iei, uint8_t* buffer,
+    M5GSIdentityTypeMsg* m5gs_identity_type, uint8_t iei, uint8_t* buffer,
     uint32_t len) {
   int encoded = 0;
 
   MLOG(MDEBUG) << " EncodeM5GSIdentityTypeMsg : ";
-  *(buffer + encoded) = (m5gsidentitytype->toi) & 0x7;
+  *(buffer + encoded) = (m5gs_identity_type->toi) & 0x7;
   MLOG(MDEBUG) << " Type of identity = 0x" << hex << int(*(buffer + encoded));
   encoded++;
   return (encoded);
