@@ -25,7 +25,6 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
@@ -82,9 +81,9 @@ func TestGxReAuthWithMidSessionPolicyRemoval(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
-		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "450K"},
+		Bitrate: &wrappers.StringValue{Value: "20M"},
 		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
@@ -159,9 +158,9 @@ func TestGxReAuthWithMidSessionPoliciesRemoval(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
-		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "450K"},
+		Bitrate: &wrappers.StringValue{Value: "20M"},
 		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
@@ -231,9 +230,9 @@ func TestGxReAuthWithMidSessionPolicyInstall(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
-		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "450K"},
+		Bitrate: &wrappers.StringValue{Value: "20M"},
 		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
@@ -325,9 +324,9 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("450K")},
-		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "450K"},
+		Bitrate: &wrappers.StringValue{Value: "20M"},
 		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
@@ -424,9 +423,9 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: *swag.String("500K")},
-		Bitrate: &wrappers.StringValue{Value: *swag.String("20M")},
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "500K"},
+		Bitrate: &wrappers.StringValue{Value: "20M"},
 		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
