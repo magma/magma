@@ -762,7 +762,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 //   ERROR CODE
 // - Assert that UE flows are deleted.
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
-func TestGyWithErrorCode(t *testing.T) {
+func testGyWithErrorCode(t *testing.T) {
 	fmt.Println("\nRunning TestGyWithErrorCode...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
