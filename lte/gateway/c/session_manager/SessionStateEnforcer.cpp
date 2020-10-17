@@ -121,7 +121,7 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
                      .redirect_server_address();
 
   /* session_state elments are filled with rules. State needs to be
-   * moved to CREATED, increament version and send message to UPF.
+   * moved to CREATED, increment version and send message to UPF.
    * Note: charging and credit related info not taken care in drop-1
    *
    * TODO - will be taken care later
@@ -156,44 +156,32 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
 
 /* Function to initiate release of the session in enforcer requested by AMF
  * Go over session map and find the respective session of imsi
- * Go over SessionState vector and dfnd the respective dnn (apn) 
+ * Go over SessionState vector and find the respective dnn (apn) 
  * start terminating session process
  */
 bool SessionStateEnforcer::m5g_release_session(
       SessionMap& session_map, const std::string& imsi,
       const std::string& dnn, SessionUpdate& session_update)
 {
-   bool exist = false;
-   auto map_element = session_map.find(imsi);
-   if((map_element == session_map.end())) {
-      MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
-                   << " during releasing the session";
-      return false;
-   }
-
-   for (auto& session : map_element->second) {
-     auto config     = session->get_config();
-     auto session_id = session->get_session_id();
-     if (config.common_context.apn() == dnn){
-	/*Irrespective of any State of Session, release and terminate*/
-        SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
-        MLOG(MINFO) 
-		<< "Start terminating the release request for IMSI "
-                << imsi << " having session id " << session_id
-		<< " current state of session is "
-                << session_fsm_state_to_str(session->get_state());
-	exist = true;
-        m5g_start_session_termination(imsi, session, dnn, uc);
-     } 
-   }
-   if(!exist) {
-     /* dnn  is not matching, nothing to proceed
-      * further to terminate session and return from here
-      */
-     MLOG(MERROR) << "Entry not found in the session context"
-                  << " IMSI " << imsi << " DNN " << dnn
-		  << " nothing to release. Return ";
+  /* Search with session search criteria of IMSI and apn/dnn and 
+   * find  respective sesion to release operation
+   */
+  SessionSearchCriteria criteria(imsi, IMSI_AND_APN, dnn);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if(!session_it) {
+     MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
+                  << " with DNN " << dnn << " to release"; 
      return false;
+  } else {
+     //Found the respective session to be updated
+     auto& session   = **session_it;
+     auto session_id = session->get_session_id();
+     /*Irrespective of any State of Session, release and terminate*/
+     SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+     MLOG(MINFO)<< "Trying to release session with id " << session_id
+		<< " from state " 
+		<< session_fsm_state_to_str(session->get_state());
+     m5g_start_session_termination(imsi, session, dnn, session_uc);
   }
   return true;
 }
@@ -201,16 +189,16 @@ bool SessionStateEnforcer::m5g_release_session(
 /*Start processing to terminate respective session requested from AMF*/
 void SessionStateEnforcer::m5g_start_session_termination(
       const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      const std::string& dnn, SessionStateUpdateCriteria& uc)
+      const std::string& dnn, SessionStateUpdateCriteria& session_uc)
 {
    auto session_id = session->get_session_id();
 
   /* update respective session's state and return from here before timeout
    * to update session store with state and version
    */
-  session->set_fsm_state(RELEASE, uc);
+  session->set_fsm_state(RELEASE, session_uc);
   uint32_t cur_version = session->get_current_version();
-  session->set_current_version(cur_version++, uc);
+  session->set_current_version(cur_version++, session_uc);
   MLOG(MINFO) << "During release state of session changed to "
                << session_fsm_state_to_str(session->get_state())
 	       << " Current version is " << session->get_current_version();
@@ -222,7 +210,7 @@ void SessionStateEnforcer::m5g_start_session_termination(
    * dnn can directly be used.
    */
   m5g_remove_rules_from_session_for_termination(imsi,
-		   session, dnn, uc);
+		   session, dnn, session_uc);
 
   /* Forcefully terminate session context on time out
    * time out = 5000ms from sessiond.yml config file
@@ -292,13 +280,13 @@ void SessionStateEnforcer::m5g_complete_termination(
       return;
    }
 
-   SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
+   SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
 
    for (auto session_element = map_element->second.begin(); 
         session_element != map_element->second.end();
         ++session_element) {
       if ((*session_element)->get_session_id() == session_id) {
-         uc.is_session_ended = true;
+         session_uc.is_session_ended = true;
 	 /*Removing session from map*/
          map_element->second.erase(session_element--);
          MLOG(MINFO) << "Successfully terminated session " << session_id;
@@ -313,8 +301,8 @@ void SessionStateEnforcer::m5g_complete_termination(
       }
    }//end of for loop
    //reached end of map and no session found.
-   MLOG(MINFO) << "Could not find session " << session_id
-               << "to complete termination of IMSI " << imsi;
+   MLOG(MINFO) << "No session found to complete termination"
+	       << " session id " << session_id;
    return;
 }
 
@@ -353,30 +341,34 @@ void SessionStateEnforcer::m5g_update_session_state_message_from_upf(
 		SessionFsmState new_state)
 {
   auto session_map    = session_store_.read_sessions({imsi});
+  /* Search with session search criteria of IMSI and session_id and 
+   * find  respective sesion to operate
+   */
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if(!session_it) {
+     MLOG(MWARNING) << "Session id (" << session_id << ") not found to update"
+	          << " SessionStore based on UPF message";
+     return;
+  }
+  //Found the respective session to be updated
+  auto& session = **session_it;
   auto session_update = 
 	     SessionStore::get_default_session_update(session_map);
-  auto map_element = session_map.find(imsi);
-  if(!(map_element == session_map.end())) {
-    for (auto& session : map_element->second) {
-      if(session_id == (session->get_session_id())) {
-        //Found the respective session to be updated
-        SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
-        session->set_fsm_state(new_state, uc);
-        uint32_t cur_version = session->get_current_version();
-        session->set_current_version(cur_version++, uc);
-        MLOG(MINFO) << "Based on UPF message state of session changed to "
-               << session_fsm_state_to_str(new_state)
-	       << " current version is " << cur_version;
-        bool update_success = session_store_.update_sessions(session_update);
-        if(update_success) {
-          MLOG(MINFO) << "Updated SessionStore SessionState based on UPF message " 
-	              << "of IMSI " << imsi << " session_id" << session_id;
-        } else {
-          MLOG(MERROR) << "Failed to update SessionStore based on UPF message"
-	               << "of IMSI " << imsi << " session_id" << session_id;
-        }
-      }
-    }
+  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
+  session->set_fsm_state(new_state, session_uc);
+  uint32_t cur_version = session->get_current_version();
+  session->set_current_version(cur_version++, session_uc);
+  MLOG(MINFO) << "Based on UPF message, state of session changed to "
+              << session_fsm_state_to_str(new_state)
+              << " current version is " << cur_version;
+  bool update_success = session_store_.update_sessions(session_update);
+  if(update_success) {
+     MLOG(MINFO) << "Updated SessionStore SessionState based on UPF message " 
+                 << " with session_id" << session_id;
+  } else {
+     MLOG(MERROR) << "Failed to update SessionStore based on UPF message"
+                  << " with session_id" << session_id;
   }
 }
 

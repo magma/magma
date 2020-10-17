@@ -194,10 +194,10 @@ uint32_t SessionState::get_current_version() {
 }
 
 void SessionState::set_current_version(int new_session_version,
-	           SessionStateUpdateCriteria& uc) {
+	           SessionStateUpdateCriteria& session_uc) {
   current_version_ = new_session_version;
-  uc.is_current_version_updated = true;
-  uc.updated_current_version = new_session_version;
+  session_uc.is_current_version_updated = true;
+  session_uc.updated_current_version = new_session_version;
 }
 /* Add PDR rule to this rules session list */
 void SessionState::insert_pdr(SetGroupPDR* rule) {
