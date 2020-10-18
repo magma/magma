@@ -70,6 +70,7 @@ server.get('/magma/v1/lte/test', (req, res) => {
     res.status(200).jsonp(db['networksFull']['test']);
   }
 });
+
 const networks = ['test', 'test_feg_lte_network'];
 networks.forEach(network => {
   server.get(`/magma/v1/networks/${network}/gateways`, (req, res) => {
@@ -122,10 +123,47 @@ networks.forEach(network => {
       });
     }
   });
+
+  // return empty qos profiles
+  server.get(`/magma/v1/lte/${network}/policy_qos_profiles`, (req, res) => {
+    if (req.method === 'GET') {
+      res.status(200).jsonp({});
+    }
+  });
+
   server.get(`/magma/v1/networks/${network}/policies/rules`, (req, res) => {
     if (req.method === 'GET') {
       res.status(200).jsonp(db['policies']);
     }
+  });
+
+  server.post(`/magma/v1/networks/${network}/policies/rules`, (req, res) => {
+    if (req.method === 'POST') {
+      res.status(200).jsonp('Success');
+    }
+  });
+
+  // current set of policies
+  const policies = ['test1', 'test2', 'test_policy0'];
+  policies.forEach(policyName => {
+    // TODO CLEANUP - e2e test specific mocks
+    server.put(
+      `/magma/v1/networks/${network}/policies/rules/${policyName}`,
+      (req, res) => {
+        if (req.method === 'PUT') {
+          res.status(200).jsonp('Success');
+        }
+      },
+    );
+
+    server.get(
+      `/magma/v1/networks/${network}/policies/rules/${policyName}`,
+      (req, res) => {
+        if (req.method === 'GET') {
+          res.status(200).jsonp('Success');
+        }
+      },
+    );
   });
 
   server.get(`/magma/v1/networks/${network}/apns`, (req, res) => {

@@ -281,6 +281,8 @@ describe('<NetworkDashboard />', () => {
     };
     const policyCtx = {
       state: policies,
+      qosProfiles: {},
+      setQosProfiles: async () => {},
       setState: async () => {},
     };
     const enodebCtx = {

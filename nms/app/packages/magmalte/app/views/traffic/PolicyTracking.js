@@ -13,127 +13,109 @@
  * @flow strict-local
  * @format
  */
+import type {policy_rule} from '@fbcnms/magma-api';
 
-import DialogContent from '@material-ui/core/DialogContent';
-import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
-import ListItemText from '@material-ui/core/ListItemText';
-import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
-import Select from '@material-ui/core/Select';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../theme/design-system/Text';
+import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 
 import {AltFormField} from '../../components/FormField';
 import {base64ToHex, decodeBase64} from '@fbcnms/util/strings';
-import type {policy_rule} from '@fbcnms/magma-api';
+import {makeStyles} from '@material-ui/styles';
+import {policyStyles} from './PolicyStyles';
+
+const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
   policyRule: policy_rule,
   onChange: policy_rule => void,
-  descriptionClass: string,
-  dialogClass: string,
   inputClass: string,
 };
 
 export default function PolicyTrackingEdit(props: Props) {
+  const classes = useStyles();
+
   return (
-    <>
-      <DialogContent
-        data-testid="networkTrackingEdit"
-        className={props.dialogClass}>
-        <List>
-          <Typography
-            variant="caption"
-            display="block"
-            className={props.descriptionClass}
-            gutterBottom>
-            {'Tracking configuration for the policy'}
-          </Typography>
-          <ListItem dense disableGutters />
-          <AltFormField disableGutters label={'Monitoring Key (base64)'}>
-            <OutlinedInput
-              required={true}
-              className={props.inputClass}
-              data-testid="monitoringKey"
-              placeholder="Enter Monitoring Key"
-              fullWidth={true}
-              value={props.policyRule.monitoring_key ?? ''}
-              onChange={({target}) => {
-                props.onChange({
-                  ...props.policyRule,
-                  monitoring_key: target.value,
-                });
-              }}
-            />
-          </AltFormField>
-          <AltFormField disableGutters label={'Monitoring Key (hex)'}>
-            <OutlinedInput
-              className={props.inputClass}
-              data-testid="monitoringKey"
-              placeholder="Enter Monitoring Key"
-              fullWidth={true}
-              disabled={true}
-              value={base64ToHex(props.policyRule.monitoring_key ?? '')}
-            />
-          </AltFormField>
-          <AltFormField disableGutters label={'Monitoring Key (ascii)'}>
-            <OutlinedInput
-              className={props.inputClass}
-              data-testid="monitoringKey"
-              placeholder="Enter Monitoring Key"
-              fullWidth={true}
-              disabled={true}
-              value={decodeBase64(props.policyRule.monitoring_key ?? '')}
-            />
-          </AltFormField>
-          <AltFormField disableGutters label={'Rating Group'}>
-            <OutlinedInput
-              required={true}
-              className={props.inputClass}
-              data-testid="ratingGroup"
-              placeholder="0"
-              fullWidth={true}
-              value={props.policyRule.rating_group}
-              type={'number'}
-              onChange={({target}) =>
-                props.onChange({
-                  ...props.policyRule,
-                  rating_group: parseInt(target.value),
-                })
-              }
-            />
-          </AltFormField>
-          <AltFormField disableGutters label={'Tracking Type'}>
-            <Select
-              fullWidth={true}
-              className={props.inputClass}
-              variant={'outlined'}
-              value={props.policyRule.tracking_type || 'NO_TRACKING'}
-              onChange={({target}) =>
-                props.onChange({
-                  ...props.policyRule,
-                  // $FlowIgnore: value guaranteed to match the string literals
-                  tracking_type: target.value,
-                })
-              }
-              input={<OutlinedInput id="trackingType" />}>
-              <MenuItem value={'ONLY_OCS'}>
-                <ListItemText primary={'Only OCS'} />
-              </MenuItem>
-              <MenuItem value={'ONLY_PCRF'}>
-                <ListItemText primary={'Only PCRF'} />
-              </MenuItem>
-              <MenuItem value={'OCS_AND_PCRF'}>
-                <ListItemText primary={'OCS and PCRF'} />
-              </MenuItem>
-              <MenuItem value={'NO_TRACKING'}>
-                <ListItemText primary={'No Tracking'} />
-              </MenuItem>
-            </Select>
-          </AltFormField>
-        </List>
-      </DialogContent>
-    </>
+    <div data-testid="trackingEdit">
+      <Text weight="medium" variant="subtitle2" className={classes.description}>
+        {'Tracking configuration for the policy'}
+      </Text>
+      <ListItem dense disableGutters />
+      <AltFormField disableGutters label={'Monitoring Key (base64)'}>
+        <OutlinedInput
+          className={props.inputClass}
+          required={true}
+          data-testid="monitoringKey"
+          placeholder="Enter Monitoring Key"
+          fullWidth={true}
+          value={props.policyRule.monitoring_key ?? ''}
+          onChange={({target}) => {
+            props.onChange({
+              ...props.policyRule,
+              monitoring_key: target.value,
+            });
+          }}
+        />
+      </AltFormField>
+      <AltFormField disableGutters label={'Monitoring Key (hex)'}>
+        <OutlinedInput
+          className={props.inputClass}
+          data-testid="monitoringKey"
+          placeholder="Enter Monitoring Key"
+          fullWidth={true}
+          disabled={true}
+          value={base64ToHex(props.policyRule.monitoring_key ?? '')}
+        />
+      </AltFormField>
+      <AltFormField disableGutters label={'Monitoring Key (ascii)'}>
+        <OutlinedInput
+          className={props.inputClass}
+          data-testid="monitoringKey"
+          placeholder="Enter Monitoring Key"
+          fullWidth={true}
+          disabled={true}
+          value={decodeBase64(props.policyRule.monitoring_key ?? '')}
+        />
+      </AltFormField>
+      <AltFormField disableGutters label={'Rating Group'}>
+        <OutlinedInput
+          required={true}
+          className={props.inputClass}
+          data-testid="ratingGroup"
+          placeholder="0"
+          fullWidth={true}
+          value={props.policyRule.rating_group}
+          type={'number'}
+          onChange={({target}) =>
+            props.onChange({
+              ...props.policyRule,
+              rating_group: parseInt(target.value),
+            })
+          }
+        />
+      </AltFormField>
+      <AltFormField disableGutters label={'Tracking Type'}>
+        <TypedSelect
+          className={props.inputClass}
+          input={<OutlinedInput />}
+          value={props.policyRule?.tracking_type ?? 'Only OCS'}
+          items={{
+            ONLY_OCS: 'Only OCS',
+            ONLY_PCRF: 'Only PCRF',
+            OCS_AND_PCRF: 'OCS and PCRF',
+            NO_TRACKING: 'No Tracking',
+          }}
+          onChange={value => {
+            props.onChange({
+              ...props.policyRule,
+              // $FlowIgnore: value guaranteed to match the string literals
+              tracking_type: value,
+            });
+          }}
+        />
+      </AltFormField>
+    </div>
   );
 }

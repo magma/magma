@@ -14,26 +14,25 @@
  * @format
  */
 
-import type {flow_description} from '@fbcnms/magma-api';
+import type {flow_description, policy_rule} from '@fbcnms/magma-api';
 
 import Accordion from '@material-ui/core/Accordion';
 import AccordionDetails from '@material-ui/core/AccordionDetails';
 import AccordionSummary from '@material-ui/core/AccordionSummary';
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import DialogContent from '@material-ui/core/DialogContent';
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
-import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import ListItemText from '@material-ui/core/ListItemText';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../theme/design-system/Text';
+import ToggleButton from '@material-ui/lab/ToggleButton';
+import ToggleButtonGroup from '@material-ui/lab/ToggleButtonGroup';
 
 import {
   ACTION,
@@ -42,31 +41,10 @@ import {
 } from '../../components/network/PolicyTypes';
 import {AltFormField, AltFormFieldSubheading} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
-import type {policy_rule} from '@fbcnms/magma-api';
+import {policyStyles} from './PolicyStyles';
+import {useState} from 'react';
 
-const useStyles = makeStyles(() => ({
-  input: {
-    display: 'inline-flex',
-    margin: '5px 0',
-    width: '100%',
-  },
-  root: {
-    '&$expanded': {
-      minHeight: 'auto',
-    },
-    marginTop: '0px',
-    marginBottom: '0px',
-  },
-  expanded: {marginTop: '-8px', marginBottom: '-8px'},
-  block: {
-    display: 'block',
-  },
-  flex: {display: 'flex'},
-  panel: {flexGrow: 1},
-  removeIcon: {alignSelf: 'baseline'},
-  dialog: {height: '640px'},
-  title: {textAlign: 'center', margin: 'auto', marginLeft: '0px'},
-}));
+const useStyles = makeStyles(() => policyStyles);
 
 type FieldProps = {
   index: number,
@@ -78,7 +56,7 @@ type FieldProps = {
 function PolicyFlowFields2(props: FieldProps) {
   const classes = useStyles();
   const {flow} = props;
-
+  const [ipAddrType, setIPAddrType] = useState<'IPv4' | 'IPv6'>('IPv4');
   const handleActionChange = action =>
     props.onChange(props.index, {
       ...props.flow,
@@ -86,7 +64,7 @@ function PolicyFlowFields2(props: FieldProps) {
       action,
     });
 
-  const handleFieldChange = (field: string, value: number | string) =>
+  const handleFieldChange = (field: string, value: number | string | {}) =>
     props.onChange(props.index, {
       ...props.flow,
       match: {
@@ -97,7 +75,7 @@ function PolicyFlowFields2(props: FieldProps) {
 
   return (
     <div className={classes.flex}>
-      <Accordion className={classes.panel}>
+      <Accordion defaultExpanded className={classes.panel}>
         <AccordionSummary
           classes={{
             root: classes.root,
@@ -106,7 +84,9 @@ function PolicyFlowFields2(props: FieldProps) {
           expandIcon={<ExpandMoreIcon />}>
           <Grid container justify="space-between">
             <Grid item className={classes.title}>
-              <Text variant="body2">Flow {props.index + 1}</Text>
+              <Text weight="medium" variant="body2">
+                Flow {props.index + 1}
+              </Text>
             </Grid>
             <Grid item>
               <IconButton
@@ -139,36 +119,56 @@ function PolicyFlowFields2(props: FieldProps) {
                   </Select>
                 </AltFormField>
                 {flow.match.ip_proto !== PROTOCOL.IPPROTO_ICMP && (
-                  <AltFormField disableGutters label={'IPv4'}>
-                    <Grid container spacing={0}>
-                      <Grid item xs={12} sm={6}>
-                        <AltFormFieldSubheading label={'Source'}>
-                          <OutlinedInput
-                            data-testid="ipv4Source"
-                            placeholder="192.168.0.1/24"
-                            fullWidth={true}
-                            value={flow.match.ipv4_src}
-                            onChange={({target}) =>
-                              handleFieldChange('ipv4_src', target.value)
-                            }
-                          />
-                        </AltFormFieldSubheading>
+                  <>
+                    <AltFormField disableGutters label={'IP'}>
+                      <Grid container spacing={0}>
+                        <Grid item xs={12}>
+                          <AltFormFieldSubheading label={'Source IP'}>
+                            <OutlinedInput
+                              data-testid="ipSrc"
+                              placeholder="192.168.0.1/24"
+                              fullWidth={true}
+                              value={flow.match.ip_src?.address ?? ''}
+                              onChange={({target}) =>
+                                handleFieldChange('ip_src', {
+                                  address: target.value,
+                                  version: ipAddrType,
+                                })
+                              }
+                            />
+                          </AltFormFieldSubheading>
+                        </Grid>
+                        <Grid item xs={12}>
+                          <AltFormFieldSubheading label={'Destination IP'}>
+                            <OutlinedInput
+                              data-testid="ipDest"
+                              placeholder="192.168.0.1/24"
+                              fullWidth={true}
+                              value={flow.match.ip_dst?.address ?? ''}
+                              onChange={({target}) =>
+                                handleFieldChange('ip_dst', {
+                                  address: target.value,
+                                  version: ipAddrType,
+                                })
+                              }
+                            />
+                          </AltFormFieldSubheading>
+                        </Grid>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
-                        <AltFormFieldSubheading label={'Destination'}>
-                          <OutlinedInput
-                            data-testid="ipv4Destination"
-                            placeholder="192.168.0.1/24"
-                            fullWidth={true}
-                            value={flow.match.ipv4_dst}
-                            onChange={({target}) =>
-                              handleFieldChange('ipv4_dst', target.value)
-                            }
-                          />
-                        </AltFormFieldSubheading>
-                      </Grid>
-                    </Grid>
-                  </AltFormField>
+                    </AltFormField>
+                    <ListItem disableGutters={true}>
+                      <ToggleButtonGroup
+                        size="small"
+                        value={ipAddrType}
+                        exclusive
+                        onChange={(_, nextAddrType) =>
+                          setIPAddrType(nextAddrType)
+                        }>
+                        <ToggleButton value="IPv4">{'IPv4'}</ToggleButton>
+                        <ToggleButton value="IPv6">{'IPv6'}</ToggleButton>
+                      </ToggleButtonGroup>
+                    </ListItem>
+                  </>
                 )}
               </Grid>
               <Grid item xs={4}>
@@ -192,7 +192,7 @@ function PolicyFlowFields2(props: FieldProps) {
                 {flow.match.ip_proto === PROTOCOL.IPPROTO_TCP && (
                   <AltFormField disableGutters label={'TCP'}>
                     <Grid container spacing={0}>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12}>
                         <AltFormFieldSubheading label={'Source Port'}>
                           <OutlinedInput
                             data-testid="tcpSource"
@@ -208,7 +208,7 @@ function PolicyFlowFields2(props: FieldProps) {
                           />
                         </AltFormFieldSubheading>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12}>
                         <AltFormFieldSubheading label={'Destination Port'}>
                           <OutlinedInput
                             data-testid="tcpDestination"
@@ -255,10 +255,10 @@ function PolicyFlowFields2(props: FieldProps) {
                 {flow.match.ip_proto === PROTOCOL.IPPROTO_UDP && (
                   <AltFormField disableGutters label={'UDP'}>
                     <Grid container spacing={0}>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12}>
                         <AltFormFieldSubheading label={'Source Port'}>
                           <OutlinedInput
-                            data-testid="tcpSource"
+                            data-testid="udpSource"
                             placeholder="0"
                             fullWidth={true}
                             value={flow.match.udp_src}
@@ -271,7 +271,7 @@ function PolicyFlowFields2(props: FieldProps) {
                           />
                         </AltFormFieldSubheading>
                       </Grid>
-                      <Grid item xs={12} sm={6}>
+                      <Grid item xs={12}>
                         <AltFormFieldSubheading label={'Destination Port'}>
                           <OutlinedInput
                             data-testid="udpDestination"
@@ -302,12 +302,11 @@ function PolicyFlowFields2(props: FieldProps) {
 type Props = {
   policyRule: policy_rule,
   onChange: policy_rule => void,
-  descriptionClass: string,
-  dialogClass: string,
   inputClass: string,
 };
 
 export default function PolicyFlowsEdit(props: Props) {
+  const classes = useStyles();
   const handleAddFlow = () => {
     const flowList = [
       ...(props.policyRule.flow_list || []),
@@ -335,41 +334,34 @@ export default function PolicyFlowsEdit(props: Props) {
     props.onChange({...props.policyRule, flow_list: flowList});
   };
 
+  const flowList = props.policyRule.flow_list || [];
   return (
-    <>
-      <DialogContent
-        data-testid="networkInfoEdit"
-        className={props.dialogClass}>
-        <List>
-          <Typography
-            variant="caption"
-            display="block"
-            className={props.descriptionClass}
-            gutterBottom>
-            {"A policy's flows determines how it routes traffic"}
-          </Typography>
-          <ListItem dense disableGutters />
-          {props.policyRule.flow_list.length > 0 && (
-            <ListItem disableGutters>
-              <Typography variant="h6">Flows</Typography>
-            </ListItem>
-          )}
-          {(props.policyRule.flow_list || []).slice(0, 30).map((flow, i) => (
-            <ListItem key={i} disableGutters>
-              <PolicyFlowFields2
-                index={i}
-                flow={flow}
-                handleDelete={handleDeleteFlow}
-                onChange={onFlowChange}
-              />
-            </ListItem>
-          ))}
-          Add New Flow
-          <IconButton onClick={handleAddFlow}>
-            <AddCircleOutline />
-          </IconButton>
-        </List>
-      </DialogContent>
-    </>
+    <div data-testid="flowEdit">
+      <Text weight="medium" variant="subtitle2" className={classes.description}>
+        {"A policy's flows determines how it routes traffic"}
+      </Text>
+      <ListItem dense disableGutters />
+      {props.policyRule.flow_list && props.policyRule.flow_list.length > 0 && (
+        <ListItem disableGutters>
+          <Text weight="medium" variant="subtitle1">
+            Flows
+          </Text>
+        </ListItem>
+      )}
+      {flowList.slice(0, 30).map((flow, i) => (
+        <ListItem key={i} disableGutters>
+          <PolicyFlowFields2
+            index={i}
+            flow={flow}
+            handleDelete={handleDeleteFlow}
+            onChange={onFlowChange}
+          />
+        </ListItem>
+      ))}
+      Add New Flow
+      <IconButton data-testid="addFlowButton" onClick={handleAddFlow}>
+        <AddCircleOutline />
+      </IconButton>
+    </div>
   );
 }
