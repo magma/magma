@@ -112,24 +112,24 @@ export const CWFSubscriberDBData: GrafanaDBData = {
               expr: 'count(sum(session_start{msisdn=~".*"}) by (msisdn))',
             },
           ],
-          description:
-            'Number of unique subscribers over time',
+          description: 'Number of unique subscribers over time',
         },
         {
           title: 'Locally Terminated Sessions',
           targets: [
             {
-              expr: 'count(sum(session_manager_terminate{msisdn=~".*"}) by (msisdn))',
+              expr:
+                'count(sum(session_manager_terminate{msisdn=~".*"}) by (msisdn))',
             },
           ],
-          description:
-            'Number of subscriber sessions terminated locally',
+          description: 'Number of subscriber sessions terminated locally',
         },
         {
           title: 'Active Users',
           targets: [
             {
-              expr: 'count(sum(ue_reported_usage{msisdn=~".*", direction="down"} > 0 ))',
+              expr:
+                'count(sum(ue_reported_usage{msisdn=~".*", direction="down"} > 0 ))',
             },
           ],
           description:
