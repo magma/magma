@@ -17,16 +17,16 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import type {policy_rule} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
-import Button from '@material-ui/core/Button';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
-import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
 import Link from '@material-ui/core/Link';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
 import PolicyContext from '../../components/context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 import React from 'react';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
@@ -37,8 +37,7 @@ import {makeStyles} from '@material-ui/styles';
 import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-
-const POLICY_TITLE = 'Policies';
+import {withStyles} from '@material-ui/core/styles';
 
 const useStyles = makeStyles(theme => ({
   dashboardRoot: {
@@ -58,8 +57,12 @@ const useStyles = makeStyles(theme => ({
     color: colors.primary.white,
   },
   tab: {
-    fontSize: '18px',
-    textTransform: 'none',
+    backgroundColor: colors.primary.white,
+    borderRadius: '4px 4px 0 0',
+    boxShadow: `inset 0 -2px 0 0 ${colors.primary.concrete}`,
+    '& + &': {
+      marginLeft: '4px',
+    },
   },
   tabLabel: {
     padding: '16px 0 16px 0',
@@ -113,8 +116,51 @@ type PolicyRowType = {
   networkWide: string,
 };
 
-export function PolicyOverview(props: WithAlert) {
+const MagmaTabs = withStyles({
+  indicator: {
+    backgroundColor: colors.secondary.dodgerBlue,
+  },
+})(Tabs);
+
+const MagmaTab = withStyles({
+  root: {
+    fontFamily: typography.body1.fontFamily,
+    fontWeight: typography.body1.fontWeight,
+    fontSize: typography.body1.fontSize,
+    lineHeight: typography.body1.lineHeight,
+    letterSpacing: typography.body1.letterSpacing,
+    color: colors.primary.brightGray,
+    textTransform: 'none',
+  },
+})(Tab);
+
+export default function PolicyOverview() {
   const classes = useStyles();
+  const [currTabIndex, setCurrTabIndex] = useState<number>(0);
+  const policyTabList: Array<string> = [
+    'Policies',
+    'Profiles',
+    'Rating Groups',
+  ];
+
+  return (
+    <div className={classes.dashboardRoot}>
+      <MagmaTabs
+        value={currTabIndex}
+        onChange={(_, newIndex: number) => setCurrTabIndex(newIndex)}
+        variant="fullWidth">
+        {policyTabList.map((k: string, idx: number) => {
+          return <MagmaTab key={idx} label={k} className={classes.tab} />;
+        })}
+      </MagmaTabs>
+      {currTabIndex === 0 && <PolicyTable />}
+      {currTabIndex === 1 && <Text>Policy Qos Profiles </Text>}
+      {currTabIndex === 2 && <Text> Rating Groups </Text>}
+    </div>
+  );
+}
+
+export function PolicyTableRaw(props: WithAlert) {
   const enqueueSnackbar = useEnqueueSnackbar();
   const [open, setOpen] = React.useState(false);
   const [currRow, setCurrRow] = useState<PolicyRowType>({});
@@ -143,149 +189,101 @@ export function PolicyOverview(props: WithAlert) {
     : [];
 
   return (
-    <div className={classes.dashboardRoot}>
-      <Grid container spacing={3}>
-        <Grid container>
-          <Grid item xs={6}>
-            <Text
-              weight="medium"
-              key="title"
-              data-testid={`title_${POLICY_TITLE}`}>
-              <LibraryBooksIcon /> {POLICY_TITLE}
-            </Text>
-          </Grid>
-          <Grid
-            container
-            item
-            xs={6}
-            justify="flex-end"
-            alignItems="center"
-            spacing={2}>
-            <Grid item>
-              <Button className={classes.appBarBtnSecondary}>
-                Download Template
-              </Button>
-            </Grid>
-
-            <Grid item>
-              <Button className={classes.appBarBtnSecondary}>Upload CSV</Button>
-            </Grid>
-
-            <Grid item>
-              <Button
-                className={classes.appBarBtn}
+    <>
+      <PolicyRuleEditDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        rule={
+          Object.keys(currRow).length ? policies[currRow.policyID] : undefined
+        }
+      />
+      <ActionTable
+        data={policyRows}
+        columns={[
+          {
+            title: 'Policy ID',
+            field: 'policyID',
+            render: currRow => (
+              <Link
+                variant="body2"
+                component="button"
                 onClick={() => {
-                  setCurrRow({});
+                  setCurrRow(currRow);
                   setOpen(true);
                 }}>
-                {'Create New Policy'}
-              </Button>
-            </Grid>
-          </Grid>
-        </Grid>
-        <Grid item xs={12}>
-          <PolicyRuleEditDialog
-            open={open}
-            onClose={() => setOpen(false)}
-            rule={
-              Object.keys(currRow).length
-                ? policies[currRow.policyID]
-                : undefined
-            }
-          />
-        </Grid>
-        <Grid item xs={12}>
-          <ActionTable
-            data={policyRows}
-            columns={[
-              {
-                title: 'Policy ID',
-                field: 'policyID',
-                render: currRow => (
-                  <Link
-                    variant="body2"
-                    component="button"
-                    onClick={() => {
-                      setCurrRow(currRow);
-                      setOpen(true);
-                    }}>
-                    {currRow.policyID}
-                  </Link>
-                ),
-              },
-              {title: 'Flows', field: 'numFlows', type: 'numeric'},
-              {title: 'Priority', field: 'priority', type: 'numeric'},
-              {title: 'Subscribers', field: 'numSubscribers', type: 'numeric'},
-              {
-                title: 'Monitoring Key',
-                field: 'monitoringKey',
-                render: rowData => {
-                  return (
-                    <TextField
-                      type="password"
-                      value={rowData.monitoringKey}
-                      InputProps={{
-                        disableUnderline: true,
-                        readOnly: true,
-                      }}
-                    />
-                  );
-                },
-              },
-              {title: 'Rating', field: 'rating'},
-              {title: 'Tracking Type', field: 'trackingType'},
-              {title: 'Network Wide', field: 'networkWide'},
-            ]}
-            handleCurrRow={(row: PolicyRowType) => setCurrRow(row)}
-            menuItems={[
-              {
-                name: 'Edit',
-                handleFunc: () => {
-                  setOpen(true);
-                },
-              },
-              {
-                name: 'Edit JSON',
-                handleFunc: () => {
-                  history.push(relativeUrl('/' + currRow.policyID + '/json'));
-                },
-              },
-              {name: 'Deactivate'},
-              {
-                name: 'Remove',
-                handleFunc: () => {
-                  props
-                    .confirm(
-                      `Are you sure you want to delete ${currRow.policyID}?`,
-                    )
-                    .then(async confirmed => {
-                      if (!confirmed) {
-                        return;
-                      }
+                {currRow.policyID}
+              </Link>
+            ),
+          },
+          {title: 'Flows', field: 'numFlows', type: 'numeric'},
+          {title: 'Priority', field: 'priority', type: 'numeric'},
+          {title: 'Subscribers', field: 'numSubscribers', type: 'numeric'},
+          {
+            title: 'Monitoring Key',
+            field: 'monitoringKey',
+            render: rowData => {
+              return (
+                <TextField
+                  type="password"
+                  value={rowData.monitoringKey}
+                  InputProps={{
+                    disableUnderline: true,
+                    readOnly: true,
+                  }}
+                />
+              );
+            },
+          },
+          {title: 'Rating', field: 'rating'},
+          {title: 'Tracking Type', field: 'trackingType'},
+          {title: 'Network Wide', field: 'networkWide'},
+        ]}
+        handleCurrRow={(row: PolicyRowType) => setCurrRow(row)}
+        menuItems={[
+          {
+            name: 'Edit',
+            handleFunc: () => {
+              setOpen(true);
+            },
+          },
+          {
+            name: 'Edit JSON',
+            handleFunc: () => {
+              history.push(relativeUrl('/' + currRow.policyID + '/json'));
+            },
+          },
+          {name: 'Deactivate'},
+          {
+            name: 'Remove',
+            handleFunc: () => {
+              props
+                .confirm(`Are you sure you want to delete ${currRow.policyID}?`)
+                .then(async confirmed => {
+                  if (!confirmed) {
+                    return;
+                  }
 
-                      try {
-                        // trigger deletion
-                        ctx.setState(currRow.policyID);
-                      } catch (e) {
-                        enqueueSnackbar(
-                          'failed deleting policy ' + currRow.policyID,
-                          {
-                            variant: 'error',
-                          },
-                        );
-                      }
-                    });
-                },
-              },
-            ]}
-            options={{
-              actionsColumnIndex: -1,
-              pageSizeOptions: [5, 10],
-            }}
-          />
-        </Grid>
-      </Grid>
-    </div>
+                  try {
+                    // trigger deletion
+                    ctx.setState(currRow.policyID);
+                  } catch (e) {
+                    enqueueSnackbar(
+                      'failed deleting policy ' + currRow.policyID,
+                      {
+                        variant: 'error',
+                      },
+                    );
+                  }
+                });
+            },
+          },
+        ]}
+        options={{
+          actionsColumnIndex: -1,
+          pageSizeOptions: [5, 10],
+        }}
+      />
+    </>
   );
 }
 
@@ -355,4 +353,4 @@ export function PolicyJsonConfig() {
   );
 }
 
-export default withAlert(PolicyOverview);
+const PolicyTable = withAlert(PolicyTableRaw);
