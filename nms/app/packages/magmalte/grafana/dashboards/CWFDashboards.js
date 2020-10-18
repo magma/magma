@@ -100,46 +100,40 @@ export const CWFSubscriberDBData: GrafanaDBData = {
           description:
             "Should just be 0 for subscribers without an active session and 1 for those with. Not sure what's up with this now.",
         },
-      ]
+      ],
     },
     {
-      title: "Aggregated Sessions",
+      title: 'Aggregated Sessions',
       panels: [
         {
           title: 'User Growth',
           targets: [
             {
-              expr: 'count(sum(session_start{msisdn=~"$msisdn"}) by (msisdn))',
-              legendFormat:
-                '',
+              expr: 'count(sum(session_start{msisdn=~".*"}) by (msisdn))',
             },
           ],
           description:
-            "Number of unique subscribers over time",
+            'Number of unique subscribers over time',
         },
         {
           title: 'Locally Terminated Sessions',
           targets: [
             {
-              expr: 'count(sum(session_manager_terminate{msisdn=~"$msisdn"}) by (msisdn))',
-              legendFormat:
-                '',
+              expr: 'count(sum(session_manager_terminate{msisdn=~".*"}) by (msisdn))',
             },
           ],
           description:
-            "Number of subscriber sessions terminated locally",
+            'Number of subscriber sessions terminated locally',
         },
         {
           title: 'Active Users',
           targets: [
             {
-              expr: 'count(sum(ue_reported_usage{msisdn=~"$msisdn", direction="down"} > 0 ) by (msisdn))',
-              legendFormat:
-                '',
+              expr: 'count(sum(ue_reported_usage{msisdn=~".*", direction="down"} > 0 ))',
             },
           ],
           description:
-            "Subscribers who used data over the time range specified.",
+            'Subscribers who used data over the time range specified.',
         },
       ],
     },
