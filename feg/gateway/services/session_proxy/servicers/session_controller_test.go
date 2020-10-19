@@ -133,9 +133,9 @@ func (client *MockPolicyDBClient) GetPolicyRuleByID(id string) (*protos.PolicyRu
 	return nil, nil
 }
 
-func (client *MockPolicyDBClient) GetOmnipresentRules() ([]string, []string) {
+func (client *MockPolicyDBClient) GetOmnipresentRules() []*protos.PolicyRule {
 	args := client.Called()
-	return args.Get(0).([]string), args.Get(1).([]string)
+	return args.Get(0).([]*protos.PolicyRule)
 }
 
 //  ---- MockMultiplexor ----
@@ -241,7 +241,7 @@ func TestStartSessionGyFail(t *testing.T) {
 	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
 	// no omnipresent rules
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{}).Once()
 	mockPolicyDb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Send back DIAMETER_RATING_FAILED (5031) from gy
@@ -372,7 +372,7 @@ func standardUsageTest(
 			policydb.ChargingKey{RatingGroup: 20, ServiceIdTracking: true, ServiceIdentifier: 201},
 			policydb.ChargingKey{RatingGroup: 21}}, nil).Once()
 	// no omnipresent rules
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{}).Once()
 
 	multiReqType := credit_control.CRTInit // type of CCR sent to get credits
 	if initMethod == gy.PerSessionInit {
@@ -538,11 +538,11 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 		}
 	}).Once()
 	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
-	//mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
 	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
+	omniPolicy1 := &protos.PolicyRule{Id: "omnipresent_rule_1"}
+	omniPolicy2 := &protos.PolicyRule{Id: "omnipresent_rule_2"}
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{omniPolicy1, omniPolicy2})
 	mocksGy.On(
 		"SendCreditControlRequest",
 		mock.Anything,
@@ -566,11 +566,15 @@ func TestSessionCreateWithOmnipresentRules(t *testing.T) {
 	mocksGx.AssertExpectations(t)
 	mocksGy.AssertExpectations(t)
 	mockPolicyDb.AssertExpectations(t)
-
-	assert.Equal(t, 6, len(response.StaticRules))
-	expectedRuleIDs := []string{"static_rule_1", "static_rule_2", "base_rule_1", "base_rule_2", "omnipresent_rule_1", "omnipresent_rule_2"}
+	t.Log(response)
+	assert.Equal(t, 4, len(response.StaticRules))
+	expectedRuleIDs := []string{"static_rule_1", "static_rule_2", "base_rule_1", "base_rule_2"}
 	actualRuleIDs := funk.Map(response.StaticRules, func(ruleInstall *protos.StaticRuleInstall) string { return ruleInstall.RuleId }).([]string)
 	assert.ElementsMatch(t, expectedRuleIDs, actualRuleIDs)
+	assert.Equal(t, 2, len(response.DynamicRules))
+	expectedPolicies := []*protos.PolicyRule{omniPolicy1, omniPolicy2}
+	actualPolicies := funk.Map(response.DynamicRules, func(ruleInstall *protos.DynamicRuleInstall) *protos.PolicyRule { return ruleInstall.PolicyRule }).([]*protos.PolicyRule)
+	assert.ElementsMatch(t, expectedPolicies, actualPolicies)
 }
 
 func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
@@ -585,11 +589,11 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 	assert.NoError(t, err)
 	mocksGy := mockControlParams[idx].CreditClient.(*MockCreditClient)
 
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
-	//mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
 	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 1}}, nil).Once()
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
+	omniPolicy1 := &protos.PolicyRule{Id: "omnipresent_rule_1"}
+	omniPolicy2 := &protos.PolicyRule{Id: "omnipresent_rule_2"}
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{omniPolicy2, omniPolicy1})
 	mocksGy.On(
 		"SendCreditControlRequest",
 		mock.Anything,
@@ -614,10 +618,11 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 	mocksGy.AssertExpectations(t)
 	mockPolicyDb.AssertExpectations(t)
 
-	assert.Equal(t, 2, len(response.StaticRules))
-	expectedRuleIDs := []string{"omnipresent_rule_1", "omnipresent_rule_2"}
-	actualRuleIDs := funk.Map(response.StaticRules, func(ruleInstall *protos.StaticRuleInstall) string { return ruleInstall.RuleId }).([]string)
-	assert.ElementsMatch(t, expectedRuleIDs, actualRuleIDs)
+	assert.Equal(t, 0, len(response.StaticRules))
+	assert.Equal(t, 2, len(response.DynamicRules))
+	expectedPolicies := []*protos.PolicyRule{omniPolicy1, omniPolicy2}
+	actualPolicies := funk.Map(response.DynamicRules, func(ruleInstall *protos.DynamicRuleInstall) *protos.PolicyRule { return ruleInstall.PolicyRule }).([]*protos.PolicyRule)
+	assert.ElementsMatch(t, expectedPolicies, actualPolicies)
 }
 
 func TestSessionControllerTimeouts(t *testing.T) {
@@ -1555,7 +1560,8 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 
 	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{{RatingGroup: 3}}, nil).Once()
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{"omnipresent_1"}, []string{}).Once()
+	omniPolicy1 := &protos.PolicyRule{Id: "omnipresent_rule_1"}
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{omniPolicy1}).Once()
 	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{}).Return([]string{}).Once()
 
 	mocksGy.On(
@@ -1584,7 +1590,11 @@ func TestSessionControllerUseGyForAuthOnlySuccess(t *testing.T) {
 		ActivationTime:   gx.ConvertToProtoTimestamp(&activationTime),
 		DeactivationTime: gx.ConvertToProtoTimestamp(&deactivationTime),
 	}
-	assert.ElementsMatch(t, []*protos.StaticRuleInstall{{RuleId: "omnipresent_1"}, expectedStaticRule1}, res.StaticRules)
+	assert.ElementsMatch(t, []*protos.StaticRuleInstall{expectedStaticRule1}, res.StaticRules)
+	expectedDynamicRule1 := &protos.DynamicRuleInstall{
+		PolicyRule: omniPolicy1,
+	}
+	assert.ElementsMatch(t, []*protos.DynamicRuleInstall{expectedDynamicRule1}, res.DynamicRules)
 }
 
 func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
@@ -1625,7 +1635,7 @@ func TestSessionControllerUseGyForAuthOnlyNoRatingGroup(t *testing.T) {
 	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
 	// no omnipresent rule
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{}).Once()
 	mockPolicyDb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
@@ -1699,7 +1709,7 @@ func TestSessionControllerUseGyForAuthOnlyCreditLimitReached(t *testing.T) {
 	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
 	// no omnipresent rule
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{}).Once()
 	mockPolicyDb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
@@ -1778,7 +1788,7 @@ func TestSessionControllerUseGyForAuthOnlySubscriberBarred(t *testing.T) {
 	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return(
 		[]policydb.ChargingKey{}, nil).Once()
 	// no omnipresent rule
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{}, []string{}).Once()
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{}).Once()
 	mockPolicyDb.On("GetRuleIDsForBaseNames", mock.Anything).Return([]string{}).Once()
 
 	// Even if there are no rating groups, gy CCR-I will be called.
@@ -1875,9 +1885,9 @@ func revalidationTimerTest(
 		mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTInit)),
 	).Return(nil).Run(returnGxSuccessRevalidationTimer).Once()
-
-	mockPolicyDb.On("GetOmnipresentRules").Return([]string{"omnipresent_rule_1"}, []string{"omnipresent_base_1"})
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"omnipresent_base_1"}).Return([]string{"omnipresent_rule_2"})
+	omniPolicy1 := &protos.PolicyRule{Id: "omnipresent_rule_1"}
+	omniPolicy2 := &protos.PolicyRule{Id: "omnipresent_rule_2"}
+	mockPolicyDb.On("GetOmnipresentRules").Return([]*protos.PolicyRule{omniPolicy1, omniPolicy2}).Once()
 	mockPolicyDb.On("GetChargingKeysForRules", mock.Anything, mock.Anything).Return([]policydb.ChargingKey{}, nil).Once()
 
 	if useGyForAuthOnly {
