@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 /*
+=======
+/**
+>>>>>>> Implementation of SmfPduSessionSmContext gRPC call invoked by SMF, processeing the reply message and forwarding it onto AMF using ZMQ
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -13,7 +17,6 @@
 
 #include <string>
 
-#include "AmfServiceImpl.h"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 
@@ -21,6 +24,10 @@ extern "C" {
 #include "amf_service_handler.h"
 #include "log.h"
 }
+<<<<<<< HEAD
+=======
+#include "AmfServiceImpl.h"
+>>>>>>> Implementation of SmfPduSessionSmContext gRPC call invoked by SMF, processeing the reply message and forwarding it onto AMF using ZMQ
 
 namespace grpc {
 class ServerContext;

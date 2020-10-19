@@ -20,11 +20,16 @@ set(AMFSRV_M5G_GRPC_PROTOS session_manager)
 generate_cpp_protos("${AMFSRV_M5G_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${AMFSRV_M5G_GRPC_PROTOS}" "${PROTO_SRCS}"
+set(AMFSRV_LTE_CPP_PROTOS subscriberdb session_manager)
+set(AMFSRV_LTE_GRPC_PROTOS session_manager)
+generate_cpp_protos("${AMFSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${AMFSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 # SPGW
-set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd session_manager)
-set(SPGWSRV_LTE_GRPC_PROTOS spgw_service session_manager)
+set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd)
+set(SPGWSRV_LTE_GRPC_PROTOS spgw_service)
 generate_cpp_protos("${SPGWSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${SPGWSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"

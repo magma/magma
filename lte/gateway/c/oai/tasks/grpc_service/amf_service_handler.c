@@ -11,7 +11,9 @@
  * limitations under the License.
  */
 
-
+#include <string.h>
+#include <sys/types.h>
+#include <conversions.h>
 #include "common_types.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
