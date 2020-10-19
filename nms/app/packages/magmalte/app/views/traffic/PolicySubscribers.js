@@ -26,7 +26,7 @@ import TableCell from '@material-ui/core/TableCell';
 import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../theme/design-system/Text';
 
 import type {policy_rule, subscriber} from '@fbcnms/magma-api';
 
@@ -34,9 +34,6 @@ type Props = {
   policyRule: policy_rule,
   onChange: policy_rule => void,
   subscribers: {[string]: subscriber},
-  descriptionClass: string,
-  dialogClass: string,
-  inputClass: string,
 };
 
 export default function PolicySubscribersEdit(props: Props) {
@@ -65,17 +62,15 @@ export default function PolicySubscribersEdit(props: Props) {
 
   return (
     <>
-      <DialogContent
-        data-testid="policySubscribersEdit"
-        className={props.dialogClass}>
+      <DialogContent data-testid="policySubscribersEdit">
         <List>
-          <Typography
-            variant="caption"
+          <Text
+            weight="medium"
+            variant="subtitle1"
             display="block"
-            className={props.descriptionClass}
             gutterBottom>
             {'Assigned subscribers'}
-          </Typography>
+          </Text>
           <ListItem dense disableGutters />
           <TableContainer component={Paper}>
             <Table size="small" aria-label="a dense table">

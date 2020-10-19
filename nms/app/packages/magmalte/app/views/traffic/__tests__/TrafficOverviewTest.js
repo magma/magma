@@ -107,6 +107,8 @@ describe('<TrafficDashboard />', () => {
   const networkId = 'test';
   const policyCtx = {
     state: policies,
+    qosProfiles: {},
+    setQosProfiles: async () => {},
     setState: (key, value?) => {
       return SetPolicyState({
         policies,
@@ -267,27 +269,5 @@ describe('<TrafficDashboard />', () => {
       apnName: 'apn_0',
     });
     axiosMock.delete.mockClear();
-  });
-  it('Verify Policy Add', async () => {
-    MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules.mockResolvedValueOnce(
-      {},
-    );
-    const {getByText} = render(<Wrapper />);
-    await wait();
-    fireEvent.click(getByText('Create New Policy'));
-    await wait();
-    fireEvent.click(getByText('Save'));
-    await wait();
-    expect(
-      MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      policyRule: {
-        flow_list: [],
-        id: '',
-        monitoring_key: '',
-        priority: 1,
-      },
-    });
   });
 });

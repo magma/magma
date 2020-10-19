@@ -14,71 +14,61 @@
  * @format
  */
 
-import type {NetworkType} from '@fbcnms/types/network';
-import type {
-  policy_qos_profile,
-  policy_rule,
-  subscriber,
-} from '@fbcnms/magma-api';
+import type {policy_rule} from '@fbcnms/magma-api';
 
-import Button from '@fbcnms/ui/components/design-system/Button';
+import Button from '@material-ui/core/Button';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogTitle from '../../theme/design-system/DialogTitle';
+import FormLabel from '@material-ui/core/FormLabel';
+import List from '@material-ui/core/List';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import PolicyAppEdit from './PolicyApp';
+import PolicyContext from '../../components/context/PolicyContext';
 import PolicyFlowsEdit from './PolicyFlows';
 import PolicyInfoEdit from './PolicyInfo';
-import PolicyQosEdit from './PolicyQos';
 import PolicyRedirectEdit from './PolicyRedirect';
-import PolicySubscribersEdit from './PolicySubscribers';
 import PolicyTrackingEdit from './PolicyTracking';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
-import grey from '@material-ui/core/colors/grey';
 
-import {CWF, FEG, LTE} from '@fbcnms/types/network';
-import {coalesceNetworkType} from '@fbcnms/types/network';
+import {AltFormField} from '../../components/FormField';
 import {colors} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useEffect, useState} from 'react';
-import {useRouter} from '@fbcnms/ui/hooks';
+import {useContext, useEffect, useState} from 'react';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 const useStyles = makeStyles(() => ({
-  input: {width: '100%'},
   tabBar: {
     backgroundColor: colors.primary.brightGray,
     color: colors.primary.white,
   },
-  dialog: {
-    height: '540px',
-  },
-  inputField: {
-    width: '360px',
-  },
-  description: {
-    color: grey.A700,
-    fontWeight: '400',
+  input: {
+    display: 'inline-flex',
+    margin: '5px 0',
+    width: '50%',
+    fullWidth: true,
   },
 }));
 
 type Props = {
-  onCancel: () => void,
-  onSave: (policy_rule, boolean) => Promise<void>,
-  subscribers: {[string]: subscriber},
-  qosProfiles: {[string]: policy_qos_profile},
+  open: boolean,
+  onClose: () => void,
   rule?: policy_rule,
 };
 
 export default function PolicyRuleEditDialog(props: Props) {
   const classes = useStyles();
-  const {match} = useRouter();
-  const {networkId} = match.params;
-  const {qosProfiles} = props;
-  const [networkType, setNetworkType] = useState<?NetworkType>(null);
-  const [networkWideRuleIDs, setNetworkWideRuldIDs] = useState(null);
+  const [tabPos, setTabPos] = React.useState(0);
+  const lteNetworkCtx = useContext(LteNetworkContext);
+  const lteNetwork = lteNetworkCtx.state;
+  const ctx = useContext(PolicyContext);
+  const qosProfiles = ctx.qosProfiles;
   const [isNetworkWide, setIsNetworkWide] = useState<boolean>(false);
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [error, setError] = useState('');
 
   const [rule, setRule] = useState(
     props.rule || {
@@ -95,51 +85,91 @@ export default function PolicyRuleEditDialog(props: Props) {
     },
   );
 
-  const [tabPos, setTabPos] = React.useState(0);
-
-  // Grab the network type for the network, and the mirrorNetwork if it exists.
   useEffect(() => {
-    getNetworkType(networkId, setNetworkType);
-  }, [networkId]);
+    setRule(
+      props.rule || {
+        qos_profile: undefined,
+        id: '',
+        priority: 1,
+        flow_list: [],
+        rating_group: 0,
+        redirect_information: {},
+        monitoring_key: '',
+        app_name: undefined,
+        app_service_type: undefined,
+        assigned_subscribers: undefined,
+      },
+    );
+    setError('');
+    setTabPos(0);
+    setIsNetworkWide(false);
+  }, [props.open, props.rule]);
 
-  // Grab the network wide rule IDs from the network's subscriber config
-  // Case on the network type to determine which endpoint to call.
-  useEffect(() => {
-    switch (networkType) {
-      case LTE:
-        MagmaV1API.getLteByNetworkIdSubscriberConfigRuleNames({
-          networkId: networkId,
-        }).then(ruleIDs => setNetworkWideRuldIDs(ruleIDs));
-        break;
-      case CWF:
-        MagmaV1API.getCwfByNetworkIdSubscriberConfigRuleNames({
-          networkId: networkId,
-        }).then(ruleIDs => {
-          setNetworkWideRuldIDs(ruleIDs);
-        });
-        break;
-      case FEG:
-        MagmaV1API.getFegByNetworkIdSubscriberConfigRuleNames({
-          networkId: networkId,
-        }).then(ruleIDs => setNetworkWideRuldIDs(ruleIDs));
-        break;
-    }
-  }, [networkId, networkType]);
-
-  // The rule is network-wide if the rule's ID exists in network-wide rule IDs
-  useEffect(() => {
-    networkWideRuleIDs
-      ? setIsNetworkWide(networkWideRuleIDs.includes(props.rule?.id))
-      : false;
-  }, [networkWideRuleIDs, props.rule]);
-
+  const tabList = ['Policy', 'Flows', 'Tracking', 'Redirect'];
+  if (lteNetwork?.cellular?.epc?.network_services?.includes('dpi')) {
+    tabList.push('App');
+  }
+  const isAdd = props.rule ? false : true;
   const onSave = async () => {
-    await props.onSave(rule, isNetworkWide);
+    try {
+      if (isAdd) {
+        // if we are trying to save first tab(containing ID information)
+        // check if the policy exists so that we don't end up modifying
+        // existing policies
+        if (rule.id === '') {
+          setError('empty rule id');
+          return;
+        }
+        if (tabPos === 0 && rule.id in ctx.state) {
+          setError(`Policy ${rule.id} already exists`);
+          return;
+        }
+      }
+      await ctx.setState(rule.id, rule, isNetworkWide);
+      enqueueSnackbar('Policy saved successfully', {
+        variant: 'success',
+      });
+      if (props.rule) {
+        props.onClose();
+      } else {
+        if (tabPos < tabList.length - 1) {
+          setTabPos(tabPos + 1);
+        } else {
+          props.onClose();
+        }
+      }
+    } catch (e) {
+      setError(e.response?.data?.message ?? e.message);
+    }
+  };
+
+  const onClose = () => {
+    setTabPos(0);
+    props.onClose();
+  };
+
+  const editProps = {
+    policyRule: rule,
+    onChange: (policyRule: policy_rule) => {
+      setRule(policyRule);
+    },
+    isNetworkWide,
+    setIsNetworkWide,
+    qosProfiles: qosProfiles,
+    inputClass: classes.input,
   };
 
   return (
-    <Dialog open={true} onClose={props.onCancel} scroll="body" maxWidth={'md'}>
-      <DialogTitle>{props.rule ? 'Edit' : 'Add New'} Policy</DialogTitle>
+    <Dialog
+      data-testid="editDialog"
+      open={props.open}
+      scroll="body"
+      fullWidth={true}
+      maxWidth={'md'}>
+      <DialogTitle
+        onClose={onClose}
+        label={props.rule ? 'Edit Policy' : 'Add New Policy'}
+      />
       <Tabs
         value={tabPos}
         onChange={(_, v) => setTabPos(v)}
@@ -147,102 +177,35 @@ export default function PolicyRuleEditDialog(props: Props) {
         variant="scrollable"
         scrollButtons="auto"
         className={classes.tabBar}>
-        <Tab key="policy" data-testid="epcTab" label={'Policy'} />
-        <Tab key="flows" data-testid="ranTab" label={'Flows'} />
-        <Tab key="tracking" data-testid="trackingTab" label={'Tracking'} />
-        <Tab key="redirect" data-testid="redirectTab" label={'Redirect'} />
-        <Tab key="app" data-testid="appTab" label={'App'} />
-        <Tab key="qos" data-testid="qosTab" label={'QoS'} />
-        <Tab
-          key="subscribers"
-          data-testid="subsribersTab"
-          label={'Subscribers'}
-        />
+        {tabList.map(tabKey => (
+          <Tab key={tabKey} data-testid={tabKey + 'Tab'} label={tabKey} />
+        ))}
       </Tabs>
-      {tabPos === 0 && (
-        <PolicyInfoEdit
-          policyRule={rule}
-          onChange={(policyRule: policy_rule) => setRule(policyRule)}
-          isNetworkWide={isNetworkWide}
-          setIsNetworkWide={setIsNetworkWide}
-          descriptionClass={classes.description}
-          dialogClass={classes.dialog}
-          inputClass={classes.inputField}
-        />
-      )}
-      {tabPos === 1 && (
-        <PolicyFlowsEdit
-          policyRule={rule}
-          onChange={(policyRule: policy_rule) => setRule(policyRule)}
-          descriptionClass={classes.description}
-          dialogClass={classes.dialog}
-          inputClass={classes.inputField}
-        />
-      )}
-      {tabPos === 2 && (
-        <PolicyTrackingEdit
-          policyRule={rule}
-          onChange={(policyRule: policy_rule) => setRule(policyRule)}
-          descriptionClass={classes.description}
-          dialogClass={classes.dialog}
-          inputClass={classes.inputField}
-        />
-      )}
-      {tabPos === 3 && (
-        <PolicyRedirectEdit
-          policyRule={rule}
-          onChange={(policyRule: policy_rule) => setRule(policyRule)}
-          descriptionClass={classes.description}
-          dialogClass={classes.dialog}
-          inputClass={classes.inputField}
-        />
-      )}
-      {tabPos === 4 && (
-        <PolicyAppEdit
-          policyRule={rule}
-          onChange={(policyRule: policy_rule) => setRule(policyRule)}
-          descriptionClass={classes.description}
-          dialogClass={classes.dialog}
-          inputClass={classes.inputField}
-        />
-      )}
-      {tabPos === 5 && (
-        <PolicyQosEdit
-          policyRule={rule}
-          onChange={(policyRule: policy_rule) => setRule(policyRule)}
-          qosProfiles={qosProfiles}
-          descriptionClass={classes.description}
-          dialogClass={classes.dialog}
-          inputClass={classes.inputField}
-        />
-      )}
-      {tabPos === 6 && (
-        <PolicySubscribersEdit
-          policyRule={rule}
-          onChange={(policyRule: policy_rule) => setRule(policyRule)}
-          subscribers={props.subscribers}
-          descriptionClass={classes.description}
-          dialogClass={classes.dialog}
-          inputClass={classes.inputField}
-        />
-      )}
+      <DialogContent>
+        <List>
+          {error !== '' && (
+            <AltFormField disableGutters label={''}>
+              <FormLabel data-testid="configEditError" error>
+                {error}
+              </FormLabel>
+            </AltFormField>
+          )}
+
+          {tabPos === 0 && <PolicyInfoEdit {...editProps} />}
+          {tabPos === 1 && <PolicyFlowsEdit {...editProps} />}
+          {tabPos === 2 && <PolicyTrackingEdit {...editProps} />}
+          {tabPos === 3 && <PolicyRedirectEdit {...editProps} />}
+          {tabPos === 4 && <PolicyAppEdit {...editProps} />}
+        </List>
+      </DialogContent>
       <DialogActions>
-        <Button onClick={props.onCancel} skin="regular">
-          Cancel
+        <Button onClick={props.onClose} skin="regular">
+          {'Close'}
         </Button>
-        <Button onClick={onSave}>Save</Button>
+        <Button variant="contained" color="primary" onClick={onSave}>
+          {props.rule ? 'Save' : 'Save And Continue'}
+        </Button>
       </DialogActions>
     </Dialog>
   );
-}
-
-function getNetworkType(
-  networkId: ?string,
-  setNetworkType: (?NetworkType) => void,
-) {
-  if (networkId != null) {
-    MagmaV1API.getNetworksByNetworkIdType({networkId}).then(networkType =>
-      setNetworkType(coalesceNetworkType(networkId, networkType)),
-    );
-  }
 }

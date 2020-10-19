@@ -14,26 +14,27 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
+import type {policy_rule} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
+import JsonEditor from '../../components/JsonEditor';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
+import Link from '@material-ui/core/Link';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import PolicyContext from '../../components/context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 import React from 'react';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import TextField from '@material-ui/core/TextField';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
-import {Route, Switch} from 'react-router-dom';
+import {Checkbox} from '@material-ui/core';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -113,45 +114,24 @@ type PolicyRowType = {
 };
 
 export function PolicyOverview(props: WithAlert) {
-  const [lastRefreshTime, setLastRefreshTime] = useState(new Date().getTime());
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
+  const [open, setOpen] = React.useState(false);
   const [currRow, setCurrRow] = useState<PolicyRowType>({});
-  const {history, relativeUrl, relativePath} = useRouter();
+  const {history, relativeUrl} = useRouter();
   const ctx = useContext(PolicyContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
   const lteNetwork = lteNetworkCtx.state;
   const ruleNames = new Set(
     lteNetwork?.subscriber_config?.network_wide_rule_names ?? [],
   );
-  const {match} = useRouter();
-  const {networkId} = match.params;
-  const {isLoading: isPolicyLoading, response: qosProfiles} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdPolicyQosProfiles,
-    {
-      networkId: networkId,
-    },
-    undefined,
-    lastRefreshTime,
-  );
-  const {isLoading: isSubsLoading, response: subscribers} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdSubscribers,
-    {networkId: networkId},
-    undefined,
-    lastRefreshTime,
-  );
-
-  if (isPolicyLoading || isSubsLoading) {
-    return <LoadingFiller />;
-  }
-
   const policies = ctx.state;
   const policyRows: Array<PolicyRowType> = policies
     ? Object.keys(policies).map((policyID: string) => {
         const policyRule = policies[policyID];
         return {
           policyID: policyRule.id,
-          numFlows: policyRule.flow_list.length,
+          numFlows: policyRule.flow_list?.length ?? 0,
           priority: policyRule.priority,
           numSubscribers: policyRule.assigned_subscribers?.length ?? 0,
           monitoringKey: policyRule.monitoring_key ?? '',
@@ -161,16 +141,16 @@ export function PolicyOverview(props: WithAlert) {
         };
       })
     : [];
-  const closeDialog = () => {
-    setLastRefreshTime(new Date().getTime());
-    history.push(relativeUrl(''));
-  };
+
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={3}>
         <Grid container>
           <Grid item xs={6}>
-            <Text key="title" data-testid={`title_${POLICY_TITLE}`}>
+            <Text
+              weight="medium"
+              key="title"
+              data-testid={`title_${POLICY_TITLE}`}>
               <LibraryBooksIcon /> {POLICY_TITLE}
             </Text>
           </Grid>
@@ -194,18 +174,45 @@ export function PolicyOverview(props: WithAlert) {
             <Grid item>
               <Button
                 className={classes.appBarBtn}
-                onClick={() => history.push(relativeUrl('/json'))}>
-                Create New Policy
+                onClick={() => {
+                  setCurrRow({});
+                  setOpen(true);
+                }}>
+                {'Create New Policy'}
               </Button>
             </Grid>
           </Grid>
         </Grid>
-
+        <Grid item xs={12}>
+          <PolicyRuleEditDialog
+            open={open}
+            onClose={() => setOpen(false)}
+            rule={
+              Object.keys(currRow).length
+                ? policies[currRow.policyID]
+                : undefined
+            }
+          />
+        </Grid>
         <Grid item xs={12}>
           <ActionTable
             data={policyRows}
             columns={[
-              {title: 'Policy ID', field: 'policyID'},
+              {
+                title: 'Policy ID',
+                field: 'policyID',
+                render: currRow => (
+                  <Link
+                    variant="body2"
+                    component="button"
+                    onClick={() => {
+                      setCurrRow(currRow);
+                      setOpen(true);
+                    }}>
+                    {currRow.policyID}
+                  </Link>
+                ),
+              },
               {title: 'Flows', field: 'numFlows', type: 'numeric'},
               {title: 'Priority', field: 'priority', type: 'numeric'},
               {title: 'Subscribers', field: 'numSubscribers', type: 'numeric'},
@@ -233,6 +240,12 @@ export function PolicyOverview(props: WithAlert) {
             menuItems={[
               {
                 name: 'Edit',
+                handleFunc: () => {
+                  setOpen(true);
+                },
+              },
+              {
+                name: 'Edit JSON',
                 handleFunc: () => {
                   history.push(relativeUrl('/' + currRow.policyID + '/json'));
                 },
@@ -272,56 +285,73 @@ export function PolicyOverview(props: WithAlert) {
           />
         </Grid>
       </Grid>
-      <Switch>
-        <Route
-          path={relativePath('/json')}
-          render={() => (
-            <PolicyRuleEditDialog
-              subscribers={subscribers ?? {}}
-              qosProfiles={qosProfiles ?? {}}
-              onCancel={closeDialog}
-              onSave={async (policy, isNetworkWide) => {
-                try {
-                  await ctx.setState(policy.id, policy, isNetworkWide);
-                  enqueueSnackbar('Policy saved successfully', {
-                    variant: 'success',
-                  });
-                  history.goBack();
-                } catch (e) {
-                  enqueueSnackbar('Policy failed to save: ' + e.message, {
-                    variant: 'error',
-                  });
-                }
-              }}
-            />
-          )}
-        />
-        <Route
-          path={relativePath('/:policyId/json')}
-          render={() => (
-            <PolicyRuleEditDialog
-              rule={ctx.state[currRow.policyID]}
-              subscribers={subscribers ?? {}}
-              qosProfiles={qosProfiles ?? {}}
-              onCancel={closeDialog}
-              onSave={async (policy, isNetworkWide) => {
-                try {
-                  await ctx.setState(policy.id, policy, isNetworkWide);
-                  enqueueSnackbar('Policy saved successfully', {
-                    variant: 'success',
-                  });
-                  history.goBack();
-                } catch (e) {
-                  enqueueSnackbar('Policy failed to save: ' + e.message, {
-                    variant: 'error',
-                  });
-                }
-              }}
-            />
-          )}
-        />
-      </Switch>
     </div>
+  );
+}
+
+const DEFAULT_POLICY_CONFIG = {
+  flow_list: [],
+  id: '',
+  monitoring_key: '',
+  priority: 1,
+};
+
+export function PolicyJsonConfig() {
+  const {match, history} = useRouter();
+  const [error, setError] = useState('');
+  const policyID: string = match.params.policyId;
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const ctx = useContext(PolicyContext);
+  const lteNetworkCtx = useContext(LteNetworkContext);
+  const policies = ctx.state;
+  const policy: policy_rule = policies[policyID] || DEFAULT_POLICY_CONFIG;
+  const lteNetwork = lteNetworkCtx.state;
+  const [isNetworkWide, setIsNetworkWide] = useState(false);
+
+  useEffect(() => {
+    if (policyID) {
+      setIsNetworkWide(
+        lteNetwork?.subscriber_config?.network_wide_rule_names?.includes(
+          policyID,
+        ),
+      );
+    }
+  }, [policyID, lteNetwork]);
+  return (
+    <JsonEditor
+      content={policy}
+      error={error}
+      customFilter={
+        <Grid item>
+          <FormControlLabel
+            control={
+              <Checkbox
+                checked={isNetworkWide}
+                onChange={() => setIsNetworkWide(!isNetworkWide)}
+                color="primary"
+              />
+            }
+            label={
+              <Text weight="medium" variant="body2">
+                Network Wide
+              </Text>
+            }
+          />
+        </Grid>
+      }
+      onSave={async policy => {
+        try {
+          await ctx.setState(policy.id, policy, isNetworkWide);
+          enqueueSnackbar('Policy saved successfully', {
+            variant: 'success',
+          });
+          setError('');
+          history.goBack();
+        } catch (e) {
+          setError(e.response?.data?.message ?? e.message);
+        }
+      }}
+    />
   );
 }
 

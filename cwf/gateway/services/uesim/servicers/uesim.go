@@ -41,7 +41,7 @@ const (
 	trafficMSS           = "1300"
 	trafficSrvIP         = "192.168.129.42"
 	trafficSrvSSHport    = "22"
-	numRetries			 = 10
+	numRetries           = 10
 	retryDelay           = 1000 * time.Millisecond
 )
 
@@ -297,11 +297,30 @@ func executeIperfWithTimeout(argList []string, timeout uint32) ([]byte, error) {
 	timeoutString := fmt.Sprintf("%ds", timeout)
 	argsList2 := []string{timeoutString, "iperf3"}
 	argsList2 = append(argsList2, argList...)
-	return executeCommand("timeout", argsList2)
+	return executeCommandWithRetries("timeout", argsList2)
 }
 
 func executeIperf(argList []string) ([]byte, error) {
-	return executeCommand("iperf3", argList)
+	return executeCommandWithRetries("iperf3", argList)
+}
+
+// executeCommandWithRetries will retry a command if the error of that command contains
+// a specific content (so far it will only retry in case of error `unable to receive control`
+func executeCommandWithRetries(command string, argList []string) ([]byte, error) {
+	var err error
+	var res []byte
+
+	for i := 0; i < numRetries; i++ {
+		res, err = executeCommand(command, argList)
+		if !isIperfErrorDueToControlMessage(err) {
+			break
+		}
+		err_msg := "Retried IPERF command due to unable to receive control message"
+		glog.Warning(err_msg)
+		err = errors.Wrap(err, err_msg)
+		time.Sleep(300 * time.Millisecond)
+	}
+	return res, err
 }
 
 func executeCommand(command string, argList []string) ([]byte, error) {
@@ -311,7 +330,7 @@ func executeCommand(command string, argList []string) ([]byte, error) {
 	output, err := cmd.Output()
 	if err != nil {
 		newError := errors.Wrap(err, fmt.Sprintf(
-			"error while executing \"%s %s\"\n %v",
+			"error while executing \"%s %s\"\n output:\n%v",
 			command, strings.Join(argList, " "), string(output)))
 		glog.Error(newError)
 		return output, newError
@@ -320,13 +339,11 @@ func executeCommand(command string, argList []string) ([]byte, error) {
 	return output, nil
 }
 
-func unmarshallIper3Response(output []byte) (map[string]interface{}, error) {
-	var jsonResponse map[string]interface{}
-	err := json.Unmarshal(output, &jsonResponse)
-	if err != nil {
-		return nil, err
+func isIperfErrorDueToControlMessage(iperf_err error) bool {
+	if iperf_err == nil {
+		return false
 	}
-	return jsonResponse, nil
+	return strings.Contains(iperf_err.Error(), "unable to receive control message")
 }
 
 // TODO: create a new file and structs to to parse and dump iperf message
@@ -349,6 +366,27 @@ func ExtractBytesReceived(output []byte) (float64, error) {
 		return 0, fmt.Errorf("Couldn't parse iperf result 'bytes'(float64)\n%s", PrettyPrintIperfResponse(output))
 	}
 	return bytes_param, nil
+}
+
+func ExtractIperfError(output []byte) (string, error) {
+	outputU, err := unmarshallIper3Response(output)
+	if err != nil {
+		return "", err
+	}
+	iperfErrorMessage, found := outputU["error"].(string)
+	if !found {
+		return "", fmt.Errorf("Couldn't parse iperf result 'end' section\n%s", PrettyPrintIperfResponse(output))
+	}
+	return iperfErrorMessage, nil
+}
+
+func unmarshallIper3Response(output []byte) (map[string]interface{}, error) {
+	var jsonResponse map[string]interface{}
+	err := json.Unmarshal(output, &jsonResponse)
+	if err != nil {
+		return nil, err
+	}
+	return jsonResponse, nil
 }
 
 func PrettyPrintIperfResponse(input []byte) string {
