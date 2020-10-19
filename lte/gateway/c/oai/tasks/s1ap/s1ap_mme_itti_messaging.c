@@ -180,9 +180,10 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
 
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
 
-  S1AP_INITIAL_UE_MESSAGE(message_p).tai                     = *tai;
+  S1AP_INITIAL_UE_MESSAGE(message_p).tai = *tai;
 
-//OAILOG_DEBUG(LOG_NAS_EMM, " TAI Value in S1AP/" TAI_FMT"\n", TAI_ARG(message_p->tai));
+  // OAILOG_DEBUG(LOG_NAS_EMM, " TAI Value in S1AP/" TAI_FMT"\n",
+  // TAI_ARG(message_p->tai));
 
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi                    = *ecgi;
   S1AP_INITIAL_UE_MESSAGE(message_p).rrc_establishment_cause = rrc_cause + 1;

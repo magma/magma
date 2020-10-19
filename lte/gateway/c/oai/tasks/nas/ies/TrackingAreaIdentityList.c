@@ -122,25 +122,25 @@ int decode_tracking_area_identity_list(
                            1;
            i++) {
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i].plmn
-            .mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
+            .u.tai_many_plmn[i]
+            .plmn.mcc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i].plmn
-            .mcc_digit1 = *(buffer + decoded) & 0xf;
+            .u.tai_many_plmn[i]
+            .plmn.mcc_digit1 = *(buffer + decoded) & 0xf;
         decoded++;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i].plmn
-            .mnc_digit3 = (*(buffer + decoded) >> 4) & 0xf;
+            .u.tai_many_plmn[i]
+            .plmn.mnc_digit3 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i].plmn
-            .mcc_digit3 = *(buffer + decoded) & 0xf;
+            .u.tai_many_plmn[i]
+            .plmn.mcc_digit3 = *(buffer + decoded) & 0xf;
         decoded++;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i].plmn
-            .mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
+            .u.tai_many_plmn[i]
+            .plmn.mnc_digit2 = (*(buffer + decoded) >> 4) & 0xf;
         trackingareaidentitylist->partial_tai_list[partial_item]
-            .u.tai_many_plmn[i].plmn
-            .mnc_digit1 = *(buffer + decoded) & 0xf;
+            .u.tai_many_plmn[i]
+            .plmn.mnc_digit1 = *(buffer + decoded) & 0xf;
         decoded++;
         IES_DECODE_U16(
             buffer, decoded,
@@ -281,37 +281,37 @@ int encode_tracking_area_identity_list(
         *(buffer + encoded) =
             0x00 |
             ((trackingareaidentitylist->partial_tai_list[partial_item]
-                  .u.tai_many_plmn[i].plmn
-                  .mcc_digit2 &
+                  .u.tai_many_plmn[i]
+                  .plmn.mcc_digit2 &
               0xf)
              << 4) |
             (trackingareaidentitylist->partial_tai_list[partial_item]
-                 .u.tai_many_plmn[i].plmn
-                 .mcc_digit1 &
+                 .u.tai_many_plmn[i]
+                 .plmn.mcc_digit1 &
              0xf);
         encoded++;
         *(buffer + encoded) =
             0x00 |
             ((trackingareaidentitylist->partial_tai_list[partial_item]
-                  .u.tai_many_plmn[i].plmn
-                  .mnc_digit3 &
+                  .u.tai_many_plmn[i]
+                  .plmn.mnc_digit3 &
               0xf)
              << 4) |
             (trackingareaidentitylist->partial_tai_list[partial_item]
-                 .u.tai_many_plmn[i].plmn
-                 .mcc_digit3 &
+                 .u.tai_many_plmn[i]
+                 .plmn.mcc_digit3 &
              0xf);
         encoded++;
         *(buffer + encoded) =
             0x00 |
             ((trackingareaidentitylist->partial_tai_list[partial_item]
-                  .u.tai_many_plmn[i].plmn
-                  .mnc_digit2 &
+                  .u.tai_many_plmn[i]
+                  .plmn.mnc_digit2 &
               0xf)
              << 4) |
             (trackingareaidentitylist->partial_tai_list[partial_item]
-                 .u.tai_many_plmn[i].plmn
-                 .mnc_digit1 &
+                 .u.tai_many_plmn[i]
+                 .plmn.mnc_digit1 &
              0xf);
         encoded++;
         IES_ENCODE_U16(

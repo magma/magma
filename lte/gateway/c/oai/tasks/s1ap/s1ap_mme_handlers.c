@@ -759,11 +759,11 @@ int s1ap_mme_handle_initial_context_setup_response(
   S1ap_InitialContextSetupResponse_t* container;
   S1ap_InitialContextSetupResponseIEs_t* ie                   = NULL;
   S1ap_E_RABSetupItemCtxtSUResIEs_t* eRABSetupItemCtxtSURes_p = NULL;
-  ue_description_t* ue_ref_p      = NULL;
-  MessageDef* message_p           = NULL;
-  int rc                          = RETURNok;
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
+  ue_description_t* ue_ref_p                                  = NULL;
+  MessageDef* message_p                                       = NULL;
+  int rc                                                      = RETURNok;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id                             = 0;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id                             = 0;
   imsi64_t imsi64;
 
   OAILOG_FUNC_IN(LOG_S1AP);

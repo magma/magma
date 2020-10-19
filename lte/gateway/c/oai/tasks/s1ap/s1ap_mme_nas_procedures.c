@@ -323,8 +323,9 @@ int s1ap_mme_handle_uplink_nas_transport(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
 
-S1AP_FIND_PROTOCOLIE_BY_ID(S1ap_UplinkNASTransport_IEs_t, ie_nas_pdu,
-                             container, S1ap_ProtocolIE_ID_id_NAS_PDU, true);
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_UplinkNASTransport_IEs_t, ie_nas_pdu, container,
+      S1ap_ProtocolIE_ID_id_NAS_PDU, true);
   // TAI mandatory IE
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_UplinkNASTransport_IEs_t, ie, container, S1ap_ProtocolIE_ID_id_TAI,
@@ -534,7 +535,7 @@ int s1ap_generate_downlink_nas_transport(
      */
     OCTET_STRING_fromBuf(
         &ie->value.choice.NAS_PDU, (char*) bdata(*payload), blength(*payload));
-        ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
     if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -1033,11 +1034,10 @@ void s1ap_handle_conn_est_cnf(
     free_wrapper((void**) &(conn_est_cnf_pP->ue_radio_capability));
   }
 
-
   if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
     // TODO: handle something
-    OAILOG_ERROR(LOG_S1AP,
-                 "Failed to encode initial context setup request message\n");
+    OAILOG_ERROR(
+        LOG_S1AP, "Failed to encode initial context setup request message\n");
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
 

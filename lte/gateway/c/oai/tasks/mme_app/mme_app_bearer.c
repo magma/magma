@@ -555,7 +555,9 @@ imsi64_t mme_app_handle_initial_ue_message(
         initial_pP->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
   }
- OAILOG_DEBUG(LOG_MME_APP, "TAI  in MME_APP bearer " TAI_FMT "from proto", TAI_ARG(&initial_pP->tai));
+  OAILOG_DEBUG(
+      LOG_MME_APP, "TAI  in MME_APP bearer " TAI_FMT "from proto",
+      TAI_ARG(&initial_pP->tai));
   // Check if there is any existing UE context using S-TMSI/GUTI
   if (initial_pP->is_s_tmsi_valid) {
     OAILOG_DEBUG(
