@@ -73,7 +73,7 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packe
 						identifier,
 						aka.NOTIFICATION_FAILURE,
 						codes.PermissionDenied,
-						"PLMN ID of IMSI: %s is not allowlisted", imsi)
+						"PLMN ID of IMSI: %s is not permitted", imsi)
 				}
 				ctx.Imsi = string(imsi)                  // set IMSI
 				uc := s.InitSession(ctx.SessionId, imsi) // we have Locked User Ctx after this call
@@ -82,6 +82,11 @@ func identityResponse(s *servicers.EapAkaSrv, ctx *protos.Context, req eap.Packe
 					glog.Errorf(
 						"EAP AKA IdentityResponse: Unexpected user state: %d,%s for IMSI: %s, CTX Identity: %s",
 						state, t, imsi, uc.Identity)
+					if state == aka.StateRedirected {
+						aka.EapErrorResPacket(
+							identifier, aka.NOTIFICATION_FAILURE, codes.FailedPrecondition,
+							"IMSI: %s is redirected to another method", imsi)
+					}
 				}
 				uc.Identity = identity
 				uc.SetState(aka.StateIdentity)
