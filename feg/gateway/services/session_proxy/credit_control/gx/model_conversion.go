@@ -133,7 +133,7 @@ func (rar *PolicyReAuthRequest) ToProto(imsi, sid string, policyDBClient policyd
 	baseNameRuleIDsToRemove := policyDBClient.GetRuleIDsForBaseNames(baseNamesToRemove)
 	rulesToRemove = append(rulesToRemove, baseNameRuleIDsToRemove...)
 
-	staticRulesToInstall, dynamicRulesToInstall := ParseRuleInstallAVPs(
+	dynamicRulesToInstall := ParseRuleInstallAVPs(
 		policyDBClient,
 		rar.RulesToInstall,
 	)
@@ -146,7 +146,6 @@ func (rar *PolicyReAuthRequest) ToProto(imsi, sid string, policyDBClient policyd
 		SessionId:              sid,
 		Imsi:                   imsi,
 		RulesToRemove:          rulesToRemove,
-		RulesToInstall:         staticRulesToInstall,
 		DynamicRulesToInstall:  dynamicRulesToInstall,
 		EventTriggers:          eventTriggers,
 		RevalidationTime:       revalidationTime,
@@ -183,50 +182,47 @@ func ConvertToProtoTimestamp(unixTime *time.Time) *timestamp.Timestamp {
 func ParseRuleInstallAVPs(
 	policyDBClient policydb.PolicyDBClient,
 	ruleInstalls []*RuleInstallAVP,
-) ([]*protos.StaticRuleInstall, []*protos.DynamicRuleInstall) {
-	staticRulesToInstall := make([]*protos.StaticRuleInstall, 0, len(ruleInstalls))
-	dynamicRulesToInstall := make([]*protos.DynamicRuleInstall, 0, len(ruleInstalls))
+) []*protos.DynamicRuleInstall {
+	dynamicRulesToInstall := []*protos.DynamicRuleInstall{}
 	for _, ruleInstall := range ruleInstalls {
 		activationTime := ConvertToProtoTimestamp(ruleInstall.RuleActivationTime)
 		deactivationTime := ConvertToProtoTimestamp(ruleInstall.RuleDeactivationTime)
 
-		for _, staticRuleName := range ruleInstall.RuleNames {
-			staticRulesToInstall = append(
-				staticRulesToInstall,
-				&protos.StaticRuleInstall{
-					RuleId:           staticRuleName,
+		staticRuleIDs := ruleInstall.RuleNames
+		// first get all static rule static rule IDs
+		if len(ruleInstall.RuleBaseNames) != 0 {
+			baseNameRuleIdsToInstall := policyDBClient.GetRuleIDsForBaseNames(ruleInstall.RuleBaseNames)
+			staticRuleIDs = append(staticRuleIDs, baseNameRuleIdsToInstall...)
+		}
+
+		for _, staticRuleID := range staticRuleIDs {
+			ruleDef, err := policyDBClient.GetPolicyRuleByID(staticRuleID)
+			if err != nil {
+				glog.Errorf("Failed to fetch policy definition for ruleID %v: %v", staticRuleID, err)
+				continue
+			}
+			dynamicRulesToInstall = append(
+				dynamicRulesToInstall,
+				&protos.DynamicRuleInstall{
+					PolicyRule:       ruleDef,
 					ActivationTime:   activationTime,
 					DeactivationTime: deactivationTime,
 				},
 			)
 		}
 
-		if len(ruleInstall.RuleBaseNames) != 0 {
-			baseNameRuleIdsToInstall := policyDBClient.GetRuleIDsForBaseNames(ruleInstall.RuleBaseNames)
-			for _, baseNameRuleId := range baseNameRuleIdsToInstall {
-				staticRulesToInstall = append(
-					staticRulesToInstall,
-					&protos.StaticRuleInstall{
-						RuleId:           baseNameRuleId,
-						ActivationTime:   activationTime,
-						DeactivationTime: deactivationTime,
-					},
-				)
-			}
-		}
-
-		for _, def := range ruleInstall.RuleDefinitions {
+		for _, ruleDef := range ruleInstall.RuleDefinitions {
 			dynamicRulesToInstall = append(
 				dynamicRulesToInstall,
 				&protos.DynamicRuleInstall{
-					PolicyRule:       def.ToProto(),
+					PolicyRule:       ruleDef.ToProto(),
 					ActivationTime:   activationTime,
 					DeactivationTime: deactivationTime,
 				},
 			)
 		}
 	}
-	return staticRulesToInstall, dynamicRulesToInstall
+	return dynamicRulesToInstall
 }
 
 func ParseRuleRemoveAVPs(policyDBClient policydb.PolicyDBClient, rulesToRemoveAVP []*RuleRemoveAVP) []string {

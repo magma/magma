@@ -298,7 +298,7 @@ func addMissingGxResponses(
 func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
 	answer *gx.CreditControlAnswer, request *gx.CreditControlRequest) *protos.UsageMonitoringUpdateResponse {
 
-	staticRules, dynamicRules := gx.ParseRuleInstallAVPs(
+	dynamicRules := gx.ParseRuleInstallAVPs(
 		srv.dbClient,
 		answer.RuleInstallAVP,
 	)
@@ -319,7 +319,7 @@ func (srv *CentralSessionController) getSingleUsageMonitorResponseFromCCA(
 		Sid:                   credit_control.AddIMSIPrefix(request.IMSI),
 		ResultCode:            answer.ResultCode,
 		RulesToRemove:         rulesToRemove,
-		StaticRulesToInstall:  staticRules,
+		StaticRulesToInstall:  []*protos.StaticRuleInstall{},
 		DynamicRulesToInstall: dynamicRules,
 		TgppCtx:               tgppCtx,
 	}

@@ -29,6 +29,15 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+var (
+	policy1 = &protos.PolicyRule{Id: "policy1"}
+	policy2 = &protos.PolicyRule{Id: "policy2"}
+	policy3 = &protos.PolicyRule{Id: "policy3"}
+	policy4 = &protos.PolicyRule{Id: "policy4"}
+	policy5 = &protos.PolicyRule{Id: "policy5"}
+	policy6 = &protos.PolicyRule{Id: "policy6"}
+)
+
 func TestReAuthRequest_ToProto(t *testing.T) {
 	// Check nil, 1-element, multiple elements, and empty arrays
 	monitoringKey := []byte("monitor")
@@ -53,7 +62,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			{RuleNames: []string{}, RuleBaseNames: []string{"baseRemove2", "baseRemove3"}},
 		},
 		RulesToInstall: []*gx.RuleInstallAVP{
-			{RuleNames: []string{"install1", "install2"}, RuleBaseNames: []string{"baseInstall1"}, RuleDefinitions: nil},
+			{RuleNames: []string{"policy1", "policy2"}, RuleBaseNames: []string{"baseInstall1"}, RuleDefinitions: nil},
 			{
 				RuleNames:     nil,
 				RuleBaseNames: nil,
@@ -64,7 +73,7 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 						RatingGroup:   &ratingGroup},
 				},
 			},
-			{RuleNames: []string{"install3"}, RuleBaseNames: []string{}},
+			{RuleNames: []string{"policy3"}, RuleBaseNames: []string{}},
 			{RuleNames: []string{}, RuleBaseNames: []string{"baseInstall2", "baseInstall3"}},
 		},
 		EventTriggers:    []gx.EventTrigger{gx.UsageReportTrigger, gx.RevalidationTimeout},
@@ -100,47 +109,50 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 		},
 	}
 	policyClient := &mocks.PolicyDBClient{}
+	policyClient.On("GetPolicyRuleByID", "policy1").Return(policy1, nil)
+	policyClient.On("GetPolicyRuleByID", "policy2").Return(policy2, nil)
+	policyClient.On("GetPolicyRuleByID", "policy3").Return(policy3, nil)
+	policyClient.On("GetPolicyRuleByID", "policy4").Return(policy4, nil)
+	policyClient.On("GetPolicyRuleByID", "policy5").Return(policy5, nil)
 	policyClient.On("GetRuleIDsForBaseNames", []string{"baseRemove1", "baseRemove2", "baseRemove3"}).
 		Return([]string{"remove42", "remove43", "remove44"})
 	policyClient.On("GetRuleIDsForBaseNames", []string{"baseInstall1"}).
 		Return([]string{})
 	policyClient.On("GetRuleIDsForBaseNames", []string{"baseInstall2", "baseInstall3"}).
-		Return([]string{"install42", "install43"})
+		Return([]string{"policy4", "policy5"})
 
 	actual := in.ToProto("IMSI001010000000001", "magma;1234;1234;IMSI001010000000001", policyClient)
+	expectedDynamicInstalls := []*protos.DynamicRuleInstall{
+		&protos.DynamicRuleInstall{
+			PolicyRule: &protos.PolicyRule{
+				Id:            "dynamic1",
+				RatingGroup:   42,
+				MonitoringKey: []byte(monitoringKey),
+				Priority:      100,
+				TrackingType:  protos.PolicyRule_OCS_AND_PCRF,
+				Redirect:      &protos.RedirectInformation{},
+			},
+		},
+		&protos.DynamicRuleInstall{
+			PolicyRule: policy1,
+		}, &protos.DynamicRuleInstall{
+			PolicyRule: policy2,
+		}, &protos.DynamicRuleInstall{
+			PolicyRule: policy3,
+		}, &protos.DynamicRuleInstall{
+			PolicyRule: policy4,
+		}, &protos.DynamicRuleInstall{
+			PolicyRule: policy5,
+		},
+	}
+	sort.Slice(expectedDynamicInstalls, func(i, j int) bool {
+		return expectedDynamicInstalls[i].PolicyRule.Id < expectedDynamicInstalls[j].PolicyRule.Id
+	})
 	expected := &protos.PolicyReAuthRequest{
-		SessionId:     "magma;1234;1234;IMSI001010000000001",
-		Imsi:          "IMSI001010000000001",
-		RulesToRemove: []string{"remove1", "remove2", "remove3", "remove42", "remove43", "remove44"},
-		RulesToInstall: []*protos.StaticRuleInstall{
-			&protos.StaticRuleInstall{
-				RuleId: "install1",
-			},
-			&protos.StaticRuleInstall{
-				RuleId: "install2",
-			},
-			&protos.StaticRuleInstall{
-				RuleId: "install3",
-			},
-			&protos.StaticRuleInstall{
-				RuleId: "install42",
-			},
-			&protos.StaticRuleInstall{
-				RuleId: "install43",
-			},
-		},
-		DynamicRulesToInstall: []*protos.DynamicRuleInstall{
-			&protos.DynamicRuleInstall{
-				PolicyRule: &protos.PolicyRule{
-					Id:            "dynamic1",
-					RatingGroup:   42,
-					MonitoringKey: []byte(monitoringKey),
-					Priority:      100,
-					TrackingType:  protos.PolicyRule_OCS_AND_PCRF,
-					Redirect:      &protos.RedirectInformation{},
-				},
-			},
-		},
+		SessionId:             "magma;1234;1234;IMSI001010000000001",
+		Imsi:                  "IMSI001010000000001",
+		RulesToRemove:         []string{"remove1", "remove2", "remove3", "remove42", "remove43", "remove44"},
+		DynamicRulesToInstall: expectedDynamicInstalls,
 		EventTriggers: []protos.EventTrigger{
 			protos.EventTrigger_UNSUPPORTED,
 			protos.EventTrigger_REVALIDATION_TIMEOUT,
@@ -183,6 +195,9 @@ func TestReAuthRequest_ToProto(t *testing.T) {
 			Qci:      protos.QCI_QCI_1,
 		},
 	}
+	sort.Slice(actual.DynamicRulesToInstall, func(i, j int) bool {
+		return actual.DynamicRulesToInstall[i].PolicyRule.Id < actual.DynamicRulesToInstall[j].PolicyRule.Id
+	})
 	assert.Equal(t, expected, actual)
 	policyClient.AssertExpectations(t)
 }

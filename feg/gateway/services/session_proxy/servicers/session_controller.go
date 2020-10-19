@@ -99,9 +99,9 @@ func (srv *CentralSessionController) CreateSession(
 		return nil, err
 	}
 	omniRuleInstalls := srv.getOmnipresentRuleInstalls()
-	staticRuleInstalls, dynamicRuleInstalls := gx.ParseRuleInstallAVPs(srv.dbClient, gxCCAInit.RuleInstallAVP)
+	dynamicRuleInstalls := gx.ParseRuleInstallAVPs(srv.dbClient, gxCCAInit.RuleInstallAVP)
 	dynamicRuleInstalls = append(dynamicRuleInstalls, omniRuleInstalls...) // inject omnipresent rules
-	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
+	chargingKeys := srv.getChargingKeysFromRuleInstalls([]*protos.StaticRuleInstall{}, dynamicRuleInstalls)
 	eventTriggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
 	gxOriginHost, gyOriginHost := gxCCAInit.OriginHost, ""
 
@@ -110,7 +110,7 @@ func (srv *CentralSessionController) CreateSession(
 	if srv.cfg.DisableGy == false {
 		if srv.cfg.UseGyForAuthOnly {
 			return srv.handleUseGyForAuthOnly(
-				imsi, request, staticRuleInstalls, dynamicRuleInstalls, gxCCAInit)
+				imsi, request, []*protos.StaticRuleInstall{}, dynamicRuleInstalls, gxCCAInit)
 		}
 		if len(chargingKeys) > 0 {
 			gyCCRInit := makeCCRInit(imsi, request, chargingKeys)
@@ -128,7 +128,7 @@ func (srv *CentralSessionController) CreateSession(
 
 	return &protos.CreateSessionResponse{
 		Credits:          credits,
-		StaticRules:      staticRuleInstalls,
+		StaticRules:      []*protos.StaticRuleInstall{},
 		DynamicRules:     dynamicRuleInstalls,
 		UsageMonitors:    usageMonitors,
 		TgppCtx:          &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyOriginHost},
@@ -160,7 +160,6 @@ func (srv *CentralSessionController) handleUseGyForAuthOnly(
 	}
 	gxOriginHost, gyOriginHost := gxCCAInit.OriginHost, gyCCAInit.OriginHost
 	return &protos.CreateSessionResponse{
-		StaticRules:   staticRuleInstalls,
 		DynamicRules:  dynamicRuleInstalls,
 		UsageMonitors: getUsageMonitorsFromCCA_I(imsi, gyOriginHost, gyCCAInit.SessionID, gxCCAInit),
 		TgppCtx:       &protos.TgppContext{GxDestHost: gxOriginHost, GyDestHost: gyCCAInit.OriginHost},
