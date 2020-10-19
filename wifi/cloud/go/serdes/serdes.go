@@ -25,4 +25,6 @@ var (
 	// Entity contains the full set of configurator network entity serdes used
 	// in the wifi module
 	Entity = serdes.Entity.MustMerge(models.EntitySerdes)
+	// Device contains the full set of device serdes used in the wifi module
+	Device = serdes.Device
 )

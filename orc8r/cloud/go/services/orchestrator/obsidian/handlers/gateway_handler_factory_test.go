@@ -170,7 +170,7 @@ func Test_GetGatewayDeviceHandler(t *testing.T) {
 	test_utils.RegisterNetwork(t, networkID, "Name")
 
 	gatewayRoot := fmt.Sprintf("%s/:network_id/gateways/:gateway_id", testURLRoot)
-	getDevice := handlers.GetReadGatewayDeviceHandler(fmt.Sprintf("%s/device", gatewayRoot))
+	getDevice := handlers.GetReadGatewayDeviceHandler(fmt.Sprintf("%s/device", gatewayRoot), serdes.Device)
 
 	// 404
 	tc := tests.Test{

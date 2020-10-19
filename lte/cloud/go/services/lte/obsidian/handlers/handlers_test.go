@@ -1037,6 +1037,7 @@ func TestCreateGateway(t *testing.T) {
 			HardwareID: "hw2",
 			Key:        &models.ChallengeKey{KeyType: "ECHO"},
 		},
+		serdes.Device,
 	)
 
 	e := echo.New()
@@ -1084,7 +1085,7 @@ func TestCreateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
 
 	expectedEnts := configurator.NetworkEntities{
@@ -1153,7 +1154,7 @@ func TestCreateGateway(t *testing.T) {
 	)
 	assert.NoError(t, err)
 	// the device should get created regardless
-	actualDevice, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw2")
+	actualDevice, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw2", serdes.Device)
 	assert.NoError(t, err)
 	assert.Equal(t, 0, len(actualEnts))
 	assert.Equal(t, payload.Device, actualDevice)
@@ -1285,7 +1286,11 @@ func TestListAndGetGateways(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
+	err = device.RegisterDevice(
+		"n1", orc8r.AccessGatewayRecordType, "hw1",
+		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
+		serdes.Device,
+	)
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, models.NewDefaultGatewayStatus("hw1"))
@@ -1464,7 +1469,11 @@ func TestUpdateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
+	err = device.RegisterDevice(
+		"n1", orc8r.AccessGatewayRecordType, "hw1",
+		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
+		serdes.Device,
+	)
 	assert.NoError(t, err)
 
 	// update everything
@@ -1520,7 +1529,7 @@ func TestUpdateGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
 
 	expectedEnts := configurator.NetworkEntities{
@@ -1610,7 +1619,11 @@ func TestDeleteGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
+	err = device.RegisterDevice(
+		"n1", orc8r.AccessGatewayRecordType, "hw1",
+		&models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}},
+		serdes.Device,
+	)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -1634,7 +1647,7 @@ func TestDeleteGateway(t *testing.T) {
 		serdes.Entity,
 	)
 	assert.NoError(t, err)
-	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.Nil(t, actualDevice)
 	assert.EqualError(t, err, "Not found")
 

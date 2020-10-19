@@ -18,13 +18,11 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
-	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/orchestrator"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/definitions"
@@ -48,10 +46,7 @@ func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 }
 
 func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{
-		// Device service serdes
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
-	}
+	return []serde.Serde{}
 }
 
 func (*BaseOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {

@@ -39,4 +39,6 @@ var (
 		state.NewStateSerde(cwf.CwfHAPairStatusType, &models.CarrierWifiHaPairStatus{}),
 		state.NewStateSerde(cwf.CwfGatewayHealthType, &models.CarrierWifiGatewayHealthStatus{}),
 	))
+	// Device contains the full set of device serdes used in the CWF module
+	Device = serdes.Device
 )

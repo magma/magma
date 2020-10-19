@@ -26,7 +26,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	configuratorTestUtils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -77,7 +76,6 @@ func (srv *testStateServer) SyncStates(ctx context.Context, req *protos.SyncStat
 func TestIdentityInjector(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	networkID := "identity_decorator_test_network"
 	configuratorTestUtils.RegisterNetwork(t, networkID, "Identity Decorator Test")

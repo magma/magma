@@ -78,7 +78,7 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(ListGatewaysPath, &cwfModels.MutableCwfGateway{}, makeCwfGateways, serdes.Entity),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, &cwfModels.MutableCwfGateway{}, makeCwfGateways, serdes.Entity, serdes.Device),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -118,14 +118,14 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription), serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rModels.MagmadGatewayConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rModels.TierID), serdes.Entity)...)
-	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
+	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath, serdes.Device)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCarrierWifiPath, &cwfModels.GatewayCwfConfigs{}, serdes.Entity)...)
 
 	return ret
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateGateway(c, &cwfModels.MutableCwfGateway{}, serdes.Entity); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &cwfModels.MutableCwfGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -172,7 +172,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateGateway(c, nid, gid, &cwfModels.MutableCwfGateway{}, serdes.Entity); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &cwfModels.MutableCwfGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
