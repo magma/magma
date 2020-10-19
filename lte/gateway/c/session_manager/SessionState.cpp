@@ -1385,6 +1385,12 @@ void SessionState::get_charging_updates(
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
+        // activate service
+        action->set_ambr(config_.get_apn_ambr());
+        // terminate service
+        terminate_service_action(action, action_type, key);
+        actions_out->push_back(std::move(action));
+        break;
       case RESTRICT_ACCESS: {
         if (grant->service_state == SERVICE_RESTRICTED) {
           MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
@@ -1395,29 +1401,45 @@ void SessionState::get_charging_updates(
         for (auto& rule : grant->final_action_info.restrict_rules) {
           restrict_rules->push_back(rule);
         }
+        // activate service
+        action->set_ambr(config_.get_apn_ambr());
+        // terminate service
+        terminate_service_action(action, action_type, key);
+        actions_out->push_back(std::move(action));
+        break;
       }
       case ACTIVATE_SERVICE:
         action->set_ambr(config_.get_apn_ambr());
+        terminate_service_action(action, action_type, key);
+        actions_out->push_back(std::move(action));
+        break;
       case TERMINATE_SERVICE:
-        MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
-                     << " action type " << action_type;
-        action->set_credit_key(key);
-        action->set_imsi(imsi_);
-        action->set_ip_addr(config_.common_context.ue_ipv4());
-        action->set_ipv6_addr(config_.common_context.ue_ipv6());
-        action->set_session_id(session_id_);
-        static_rules_.get_rule_ids_for_charging_key(
-            key, *action->get_mutable_rule_ids());
-        dynamic_rules_.get_rule_definitions_for_charging_key(
-            key, *action->get_mutable_rule_definitions());
+        terminate_service_action(action, action_type, key);
         actions_out->push_back(std::move(action));
         break;
       default:
-        MLOG(MWARNING) << "Unexpected action type " << action_type << " for "
+        MLOG(MWARNING) << "Unexpected action type "
+                       << service_action_type_to_str(action_type) << " for "
                        << session_id_;
         break;
     }
   }
+}
+
+void SessionState::terminate_service_action(
+    std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
+    const CreditKey& key) {
+  MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
+               << " action type " << service_action_type_to_str(action_type);
+  action->set_credit_key(key);
+  action->set_imsi(imsi_);
+  action->set_ip_addr(config_.common_context.ue_ipv4());
+  action->set_ipv6_addr(config_.common_context.ue_ipv6());
+  action->set_session_id(session_id_);
+  static_rules_.get_rule_ids_for_charging_key(
+      key, *action->get_mutable_rule_ids());
+  dynamic_rules_.get_rule_definitions_for_charging_key(
+      key, *action->get_mutable_rule_definitions());
 }
 
 // Monitors

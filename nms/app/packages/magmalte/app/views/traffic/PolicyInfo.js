@@ -13,103 +13,96 @@
  * @flow strict-local
  * @format
  */
+import type {policy_qos_profile, policy_rule} from '@fbcnms/magma-api';
 
-import DialogContent from '@material-ui/core/DialogContent';
-import FormControlLabel from '@material-ui/core/FormControlLabel';
-import Grid from '@material-ui/core/Grid';
-import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
+import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
-import Typography from '@material-ui/core/Typography';
+import Text from '../../theme/design-system/Text';
 
 import {AltFormField} from '../../components/FormField';
 import {makeStyles} from '@material-ui/styles';
-import type {policy_rule} from '@fbcnms/magma-api';
+import {policyStyles} from './PolicyStyles';
 
-const useStyles = makeStyles(() => ({
-  title: {textAlign: 'center', margin: 'auto', marginLeft: '0px'},
-  switch: {margin: 'auto 0px'},
-}));
+const useStyles = makeStyles(() => policyStyles);
 
 type Props = {
   policyRule: policy_rule,
+  qosProfiles: {[string]: policy_qos_profile},
   onChange: policy_rule => void,
   isNetworkWide: boolean,
   setIsNetworkWide: boolean => void,
-  descriptionClass: string,
-  dialogClass: string,
   inputClass: string,
 };
 
 export default function PolicyInfoEdit(props: Props) {
   const classes = useStyles();
+  const {qosProfiles, policyRule} = props;
   return (
-    <>
-      <DialogContent
-        data-testid="networkInfoEdit"
-        className={props.dialogClass}>
-        <List>
-          <Typography
-            variant="caption"
-            display="block"
-            className={props.descriptionClass}
-            gutterBottom>
-            {'Basic policy rule fields'}
-          </Typography>
-          <ListItem dense disableGutters />
-          <AltFormField
-            label={'Policy ID'}
-            subLabel={'A unique identifier for the policy rule'}
-            disableGutters>
-            <OutlinedInput
-              className={props.inputClass}
-              data-testid="policyID"
-              placeholder="Eg. policy_id"
-              value={props.policyRule.id}
-              onChange={({target}) => {
-                props.onChange({...props.policyRule, id: target.value});
-              }}
-            />
-          </AltFormField>
-          <AltFormField
-            label={'Priority Level'}
-            subLabel={'Higher priority policies override lower priority ones'}
-            disableGutters>
-            <OutlinedInput
-              className={props.inputClass}
-              data-testid="policyPriority"
-              placeholder="Value between 1 and 15"
-              fullWidth={true}
-              value={props.policyRule.priority}
-              onChange={({target}) =>
-                props.onChange({...props.policyRule, priority: target.value})
-              }
-            />
-          </AltFormField>
-          <Grid container justify="space-between" className={props.inputClass}>
-            <Grid item className={classes.title}>
-              <AltFormField disableGutters label={'Network Wide'} />
-            </Grid>
-            <Grid item className={classes.switch}>
-              <FormControlLabel
-                control={
-                  <Switch
-                    color="primary"
-                    checked={props.isNetworkWide}
-                    onChange={({target}) =>
-                      props.setIsNetworkWide(target.checked)
-                    }
-                  />
-                }
-                label={props.isNetworkWide ? 'Enabled' : 'Disabled'}
-                labelPlacement="start"
-              />
-            </Grid>
-          </Grid>
-        </List>
-      </DialogContent>
-    </>
+    <div data-testid="infoEdit">
+      <Text weight="medium" variant="subtitle2" className={classes.description}>
+        {'Basic policy rule fields'}
+      </Text>
+      <ListItem dense disableGutters />
+      <AltFormField
+        label={'Policy ID'}
+        subLabel={'A unique identifier for the policy rule'}
+        disableGutters>
+        <OutlinedInput
+          className={props.inputClass}
+          fullWidth={true}
+          data-testid="policyID"
+          placeholder="Eg. policy_id"
+          value={policyRule.id}
+          onChange={({target}) => {
+            props.onChange({...policyRule, id: target.value});
+          }}
+        />
+      </AltFormField>
+      <AltFormField
+        label={'Priority Level'}
+        subLabel={'Higher priority policies override lower priority ones'}
+        disableGutters>
+        <OutlinedInput
+          type="number"
+          className={props.inputClass}
+          fullWidth={true}
+          data-testid="policyPriority"
+          placeholder="Value between 1 and 15"
+          value={policyRule.priority}
+          onChange={({target}) =>
+            props.onChange({...policyRule, priority: parseInt(target.value)})
+          }
+        />
+      </AltFormField>
+      <AltFormField label={'Network Wide'} disableGutters>
+        <Switch
+          data-testid="networkWide"
+          onChange={({target}) => props.setIsNetworkWide(target.checked)}
+          checked={props.isNetworkWide}
+        />
+      </AltFormField>
+      <AltFormField disableGutters label={'QoS Profile'}>
+        <Select
+          className={props.inputClass}
+          fullWidth={true}
+          variant={'outlined'}
+          value={policyRule?.qos_profile ?? ''}
+          onChange={({target}) => {
+            props.onChange({...policyRule, qos_profile: target.value});
+          }}
+          input={<OutlinedInput id="qosProfile" />}>
+          {Object.keys(qosProfiles).map(profileID => (
+            <MenuItem key={profileID} value={profileID}>
+              <ListItemText primary={profileID} />
+            </MenuItem>
+          ))}
+        </Select>
+      </AltFormField>
+    </div>
   );
 }

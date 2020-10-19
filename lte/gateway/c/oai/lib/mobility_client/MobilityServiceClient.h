@@ -66,7 +66,8 @@ class MobilityServiceClient : public GRPCReceiver {
    */
   int AllocateIPv4AddressAsync(
       const std::string& imsi, const std::string& apn,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>& callback);
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
+          callback);
 
   /**
    * Release an allocated IPv4 address. (non-blocking)
@@ -123,7 +124,8 @@ class MobilityServiceClient : public GRPCReceiver {
    */
   void AllocateIPv4AddressRPC(
       const AllocateIPRequest& request,
-      const std::function<void(grpc::Status, AllocateIPAddressResponse)>& callback);
+      const std::function<void(grpc::Status, AllocateIPAddressResponse)>&
+          callback);
 
   /**
    * Helper function to chain callback for gRPC response

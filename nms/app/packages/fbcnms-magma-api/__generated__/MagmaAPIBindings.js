@@ -449,6 +449,7 @@ export type gateway_epc_configs = {
     dns_secondary ? : string,
     ip_block: string,
     nat_enabled: boolean,
+    sgi_management_iface_gw ? : string,
     sgi_management_iface_static_ip ? : string,
     sgi_management_iface_vlan ? : string,
 };

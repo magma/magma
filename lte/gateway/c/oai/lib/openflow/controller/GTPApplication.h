@@ -138,7 +138,7 @@ class GTPApplication : public Application {
    * @param i_tei tunnel id.
    */
   void add_uplink_match(
-    of13::FlowMod& uplink_fm, uint32_t gtp_port, uint32_t i_tei);
+      of13::FlowMod& uplink_fm, uint32_t gtp_port, uint32_t i_tei);
 
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;
@@ -159,6 +159,34 @@ class GTPApplication : public Application {
   const uint64_t cookie = 1;
 
   const uint32_t uplink_port_num_;
+
+  void add_downlink_arp_flow_action(
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      of13::FlowMod downlink_fm);
+
+  void add_downlink_tunnel_flow_action(
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      of13::FlowMod downlink_fm);
+
+  void add_downlink_tunnel_flow_ipv4(
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
+  void add_downlink_tunnel_flow_ipv6(
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
+  void add_downlink_tunnel_flow_ded_brr(
+      const AddGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
+
+  void delete_downlink_tunnel_flow_ipv4(
+      const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
+  void delete_downlink_tunnel_flow_ipv6(
+      const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
+  void delete_downlink_tunnel_flow_ded_brr(
+      const DeleteGTPTunnelEvent& ev, const OpenflowMessenger& messenger,
+      uint32_t port_number);
 };
 
 }  // namespace openflow

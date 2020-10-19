@@ -38,8 +38,12 @@ magma-gen-meta:
       filename: mutable_lte_gateway_swaggergen.go
     - go-struct-name: Enodeb
       filename: enodeb_swaggergen.go
+    - go-struct-name: EnodebConfig
+      filename: enodeb_config_swaggergen.go
     - go-struct-name: EnodebConfiguration
       filename: enodeb_configuration_swaggergen.go
+    - go-struct-name: UnmanagedEnodebConfiguration
+      filename: unmanaged_enodeb_configuration_swaggergen.go
     - go-struct-name: EnodebState
       filename: enodeb_state_swaggergen.go
     - go-struct-name: AggregatedMaximumBitrate
@@ -1959,10 +1963,30 @@ definitions:
         example: "Description of this radio"
       config:
         $ref: '#/definitions/enodeb_configuration'
+      enodeb_config:
+        $ref: '#/definitions/enodeb_config'
       attached_gateway_id:
         type: string
         example: gw1
         readOnly: true
+
+  enodeb_config:
+    description: Configuration for managed / unmanaged eNodeb
+    type: object
+    required:
+      - config_type
+    properties:
+      config_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'MANAGED'
+          - 'UNMANAGED'
+        example: 'MANAGED'
+      managed_config:
+        $ref: '#/definitions/enodeb_configuration'
+      unmanaged_config:
+        $ref: '#/definitions/unmanaged_enodeb_configuration'
 
   enodeb_configuration:
     description: Configuration for an enodeB. Unfilled fields will be inherited from LTE network and gateway configuration.
@@ -2028,6 +2052,24 @@ definitions:
           - 'Baicells ID TDD/FDD'
           - 'NuRAN Cavium OC-LTE'
         x-nullable: false
+
+  unmanaged_enodeb_configuration:
+    description: Configuration for externally managed eNodeb devices.
+    type: object
+    minLength: 1
+    required:
+      - cell_id
+      - ip_address
+    properties:
+      cell_id:
+        type: integer
+        format: uint32
+        maximum: 268435455
+        example: 138777000
+      ip_address:
+        type: string
+        format: ipv4
+        example: '192.168.1.142'
 
   enodeb_state:
     description: Single Enodeb State

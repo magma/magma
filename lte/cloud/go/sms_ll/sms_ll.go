@@ -127,11 +127,6 @@ func Decode(input []byte) (SMSDeliveryReport, error) {
 		return ret, err
 	}
 
-	// Valid CPM, check type
-	if cpm.messageType != CpData {
-		return ret, fmt.Errorf("not a CP-DATA message: %x", cpm.messageType)
-	}
-
 	rpm := new(rpMessage)
 	err = rpm.unmarshalBinary(cpm.rpdu)
 	if err != nil {

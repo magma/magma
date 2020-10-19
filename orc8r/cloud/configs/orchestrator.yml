@@ -10,5 +10,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-prometheusPushAddresses:
-  - "http://prometheus-cache:9091/metrics"
+prometheusGRPCPushAddress: "prometheus-cache:9092"
