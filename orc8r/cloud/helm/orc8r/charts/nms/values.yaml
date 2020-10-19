@@ -29,10 +29,11 @@ magmalte:
     host: 0.0.0.0
     port: 8081
     mapbox_access_token: ""
-    mysql_host: mariadb.magma.svc.cluster.local
+    mysql_host: mysql
     mysql_db: magma
     mysql_user: magma
     mysql_pass: password
+    mysql_port: 3306
     mysql_dialect: mysql
     grafana_address: orc8r-user-grafana:3000
 
@@ -101,6 +102,56 @@ nginx:
     spec:
       ssl_cert_name: nms_nginx.pem
       ssl_cert_key_name: nms_nginx.key.pem
+
+  replicas: 1
+
+  # Resource limits & requests
+  resources: {}
+  # limits:
+  #   cpu: 100m
+  #   memory: 128Mi
+  # requests:
+  #   cpu: 100m
+  #   memory: 128Mi
+
+  # Define which Nodes the Pods are scheduled on.
+  # ref: https://kubernetes.io/docs/user-guide/node-selection/
+  nodeSelector: {}
+
+  # Tolerations for use with node taints
+  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+  tolerations: []
+
+  # Assign proxy to run on specific nodes
+  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+  affinity: {}
+
+mysql:
+  create: false
+
+  volumes:
+    mysqlData:
+      volumeSpec: {}
+
+  env:
+    MYSQL_ROOT_PASSWORD: password
+    MYSQL_DATABASE: magma
+    MYSQL_USER: magma
+    MYSQL_PASSWORD: password
+
+  labels: {}
+
+  image:
+    repository: docker.io/mysql
+    tag: 5.7
+    pullPolicy: IfNotPresent
+
+  service:
+    type: ClusterIP
+    http:
+      port: 3306
+      targetport: 3306
+      nodePort: ""
 
   replicas: 1
 

@@ -80,6 +80,8 @@ spec:
               value: {{ .Values.magmalte.env.mysql_db | quote }}
             - name: MYSQL_HOST
               value: {{ .Values.magmalte.env.mysql_host | quote }}
+            - name: MYSQL_PORT
+              value: {{ .Values.magmalte.env.mysql_port | quote }}
             - name: MYSQL_DIALECT
               value: {{ .Values.magmalte.env.mysql_dialect | quote }}
             - name: MYSQL_PASS
