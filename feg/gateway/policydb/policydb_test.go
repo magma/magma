@@ -15,6 +15,7 @@ package policydb_test
 
 import (
 	"fmt"
+	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -338,23 +339,22 @@ func TestOmnipresentRulesWithMockUpdates(t *testing.T) {
 		OmnipresentRules: &mockObjectStore{},
 		StreamerClient:   fegstreamer.NewStreamerClient(mockCloudRegistry{}),
 	}
+	policyListener := policydb.NewPolicyDBStreamListener(dbClient.PolicyMap)
 	baseNameListener := policydb.NewBaseNameStreamListener(dbClient.BaseNameMap)
 	omnipresentRulesListener := policydb.NewOmnipresentRulesListener(dbClient.OmnipresentRules)
 
+	go dbClient.StreamerClient.Stream(policyListener)
 	go dbClient.StreamerClient.Stream(baseNameListener)
 	go dbClient.StreamerClient.Stream(omnipresentRulesListener)
 
 	// base case
-	ruleIDs, baseNames := dbClient.GetOmnipresentRules()
-	assert.ElementsMatch(t, []string{}, ruleIDs)
-	assert.ElementsMatch(t, []string{}, baseNames)
+	ruleDefs := dbClient.GetOmnipresentRules()
+	assert.ElementsMatch(t, []string{}, ruleDefs)
 
 	// with update
-	ruleSet1, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule11", "rule12"}})
-	ruleSet2, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule21", "rule22"}})
+	ruleSet1, _ := proto.Marshal(&protos.ChargingRuleNameSet{RuleNames: []string{"rule2"}})
 	updates := []*orcprotos.DataUpdate{
 		{Key: "base_1", Value: ruleSet1},
-		{Key: "base_2", Value: ruleSet2},
 	}
 	baseNameListener.Update(&orcprotos.DataUpdateBatch{Updates: updates, Resync: true})
 
@@ -364,7 +364,41 @@ func TestOmnipresentRulesWithMockUpdates(t *testing.T) {
 	}
 	omnipresentRulesListener.Update(&orcprotos.DataUpdateBatch{Updates: updates, Resync: true})
 
-	ruleIDs, baseNames = dbClient.GetOmnipresentRules()
-	assert.ElementsMatch(t, []string{"rule1"}, ruleIDs)
-	assert.ElementsMatch(t, []string{"base_1"}, baseNames)
+	// PolicyRules for the test
+	prObject1 := &protos.PolicyRule{
+		Id: "rule1",
+		FlowList: []*protos.FlowDescription{
+			{
+				Match: &protos.FlowMatch{TcpSrc: 0},
+			},
+		},
+		Priority: 10,
+	}
+
+	prObject2 := &protos.PolicyRule{
+		Id: "rule2",
+		FlowList: []*protos.FlowDescription{
+			{
+				Match: &protos.FlowMatch{TcpSrc: 0},
+			},
+		},
+		Priority: 10,
+	}
+	pr1, _ := proto.Marshal(prObject1)
+	pr2, _ := proto.Marshal(prObject2)
+	updates = []*orcprotos.DataUpdate{
+		{Key: "rule1", Value: pr1},
+		{Key: "rule2", Value: pr2},
+	}
+	policyListener.Update(&orcprotos.DataUpdateBatch{Updates: updates, Resync: true})
+
+	ruleDefs = dbClient.GetOmnipresentRules()
+	sort.Slice(ruleDefs, func(i, j int) bool {
+		return ruleDefs[i].Id < ruleDefs[j].Id
+	})
+	actualSerialized1, _ := proto.Marshal(ruleDefs[0])
+	actualSerialized2, _ := proto.Marshal(ruleDefs[1])
+
+	assert.EqualValues(t, pr1, actualSerialized1)
+	assert.EqualValues(t, pr2, actualSerialized2)
 }

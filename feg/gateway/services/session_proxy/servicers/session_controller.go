@@ -98,18 +98,14 @@ func (srv *CentralSessionController) CreateSession(
 		glog.Errorf("Failed to send initial Gx request: %s", err)
 		return nil, err
 	}
-	err = injectOmnipresentRules(srv, gxCCAInit)
-	if err != nil {
-		glog.Errorf("Could not inject omnipresent Rules, skipping. Error: %+v", err)
-	}
-
 	staticRuleInstalls, dynamicRuleInstalls := gx.ParseRuleInstallAVPs(srv.dbClient, gxCCAInit.RuleInstallAVP)
+	dynamicRuleInstalls = append(dynamicRuleInstalls, srv.getOmnipresentRuleInstalls()...) // inject omnipresent rules
 	chargingKeys := srv.getChargingKeysFromRuleInstalls(staticRuleInstalls, dynamicRuleInstalls)
 	eventTriggers, revalidationTime := gx.GetEventTriggersRelatedInfo(gxCCAInit.EventTriggers, gxCCAInit.RevalidationTime)
 	gxOriginHost, gyOriginHost := gxCCAInit.OriginHost, ""
 
-	credits := []*protos.CreditUpdateResponse{}
 	// Gy
+	credits := []*protos.CreditUpdateResponse{}
 	if srv.cfg.DisableGy == false {
 		if srv.cfg.UseGyForAuthOnly {
 			return srv.handleUseGyForAuthOnly(
@@ -452,22 +448,18 @@ func checkCreateSessionRequest(req *protos.CreateSessionRequest) error {
 	return nil
 }
 
-// injectOmnipresentRules adds Omnipresent rules and basenames to the gxCCAInit in form of RuleInstallAVP
-func injectOmnipresentRules(srv *CentralSessionController, gxCCAInit *gx.CreditControlAnswer) error {
-	if gxCCAInit == nil {
-		return fmt.Errorf("gxCCAInit is nul")
+func (srv *CentralSessionController) getOmnipresentRuleInstalls() []*protos.DynamicRuleInstall {
+	dynamicRuleInstalls := []*protos.DynamicRuleInstall{}
+	omnipresentRules := srv.dbClient.GetOmnipresentRules()
+	for _, rule := range omnipresentRules {
+		dynamicRuleInstalls = append(
+			dynamicRuleInstalls,
+			&protos.DynamicRuleInstall{
+				PolicyRule:       rule,
+				ActivationTime:   nil,
+				DeactivationTime: nil,
+			},
+		)
 	}
-	omnipresentRuleIDs, omnipresentBaseNames := srv.dbClient.GetOmnipresentRules()
-	if len(omnipresentRuleIDs) > 0 || len(omnipresentBaseNames) > 0 {
-		glog.V(2).Infof("Adding omnipresent rules %v and omnipresent rule base %v", omnipresentRuleIDs, omnipresentBaseNames)
-		omniRuleInstallAVPRuleInstallAVP := &gx.RuleInstallAVP{
-			RuleNames:            omnipresentRuleIDs,
-			RuleBaseNames:        omnipresentBaseNames,
-			RuleDefinitions:      []*gx.RuleDefinition{},
-			RuleActivationTime:   nil,
-			RuleDeactivationTime: nil,
-		}
-		gxCCAInit.RuleInstallAVP = append(gxCCAInit.RuleInstallAVP, omniRuleInstallAVPRuleInstallAVP)
-	}
-	return nil
+	return dynamicRuleInstalls
 }

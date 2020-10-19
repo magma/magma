@@ -43,7 +43,7 @@ type PolicyDBClient interface {
 	GetPolicyRuleByID(id string) (*protos.PolicyRule, error)
 	GetRuleIDsForBaseNames(baseNames []string) []string
 	// This gets a list of rules that should be active for all subscribers in the network
-	GetOmnipresentRules() ([]string, []string)
+	GetOmnipresentRules() []*protos.PolicyRule
 }
 
 // RedisPolicyDBClient is a policy client that loads policies from Redis
@@ -131,22 +131,35 @@ func (client *RedisPolicyDBClient) GetChargingKeysForRules(staticRuleIDs []strin
 	return keys
 }
 
-func (client *RedisPolicyDBClient) GetOmnipresentRules() ([]string, []string) {
+func (client *RedisPolicyDBClient) GetOmnipresentRules() []*protos.PolicyRule {
 	assignmentMap, err := client.OmnipresentRules.GetAll()
 	if err != nil {
 		glog.Errorf("Failed to lookup OmnipresentRules: %v", err)
-		return []string{}, []string{}
+		return []*protos.PolicyRule{}
 	}
 	// there should at most be one entry
-	for _, setRaw := range assignmentMap {
-		assignedRules, ok := setRaw.(*protos.AssignedPolicies)
+	if len(assignmentMap) != 1 {
+		return []*protos.PolicyRule{}
+	}
+	ruleDefinitions := []*protos.PolicyRule{}
+	for _, rawAssignedRules := range assignmentMap {
+		assignedRules, ok := rawAssignedRules.(*protos.AssignedPolicies)
 		if !ok {
 			glog.Errorf("Could not cast object to *protos.AssignedPolicies")
-			return []string{}, []string{}
+			return []*protos.PolicyRule{}
 		}
-		return assignedRules.AssignedPolicies, assignedRules.AssignedBaseNames
+		ruleIDs := assignedRules.AssignedPolicies
+		ruleIDs = append(ruleIDs, client.GetRuleIDsForBaseNames(assignedRules.AssignedBaseNames)...)
+		for _, ruleID := range ruleIDs {
+			rule, err := client.GetPolicyRuleByID(ruleID)
+			if err != nil {
+				glog.Errorf("Failed to get rule definition for ruleID %s: %v", ruleID, err)
+				continue
+			}
+			ruleDefinitions = append(ruleDefinitions, rule)
+		}
 	}
-	return []string{}, []string{}
+	return ruleDefinitions
 }
 
 // GetRuleIDsForBaseNames gets the policy rule ids for given charging rule base names.
