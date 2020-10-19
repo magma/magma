@@ -28,6 +28,7 @@
 #include "intertask_interface.h"
 #include "sctp_itti_messaging.h"
 #include "itti_types.h"
+#include "log.h"
 #include "sctp_messages_types.h"
 
 //------------------------------------------------------------------------------
@@ -41,6 +42,7 @@ int sctp_itti_send_lower_layer_conf(
   SCTP_DATA_CNF(msg).stream         = stream;
 
   if (ppid == S1AP){
+          OAILOG_INFO(LOG_SCTP, "ppid S1AP in sctp_itti_send_new_message_ind ");
 	  SCTP_DATA_CNF(msg).mme_ue_s1ap_id = ap_id;
   }else if(ppid == NGAP){
 	  OAILOG_INFO(LOG_SCTP, " ppid NGAP in sctp_itti_send_lower_layer_conf ");
@@ -65,6 +67,7 @@ int sctp_itti_send_new_association(
 	  SCTP_NEW_ASSOCIATION(msg).assoc_id = assoc_id;
 	  SCTP_NEW_ASSOCIATION(msg).instreams = instreams;
 	  SCTP_NEW_ASSOCIATION(msg).outstreams = outstreams;
+	  OAILOG_INFO(LOG_SCTP, "ppid S1AP in sctp_itti_send_new_message_ind ");
 	  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
   }else if(ppid==NGAP)  {
 	  SCTP_NEW_ASSOCIATION(msg).assoc_id = assoc_id;
@@ -73,8 +76,8 @@ int sctp_itti_send_new_association(
 	  OAILOG_INFO(LOG_SCTP, " ppid NGAP in sctp_itti_send_new_association ");
 	  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
   }else {
-	  OAILOG_ERROR(LOG_SCTP, "ppid not matching in sctp_itti_send_new_association ");
-	  return 0;
+	 OAILOG_ERROR(LOG_SCTP, "ppid not matching in sctp_itti_send_new_association ");
+	 return 0;
   }
 }
 
@@ -82,21 +85,22 @@ int sctp_itti_send_new_association(
 int sctp_itti_send_new_message_ind(
     STOLEN_REF bstring* payload,sctp_ppid_t ppid,sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream) {
-  MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_IND);
+    MessageDef* msg = itti_alloc_new_message(TASK_SCTP, SCTP_DATA_IND);
 
-  SCTP_DATA_IND(msg).payload  = *payload;
-  SCTP_DATA_IND(msg).stream   = stream;
-  SCTP_DATA_IND(msg).assoc_id = assoc_id;
+    SCTP_DATA_IND(msg).payload   = *payload;
+    SCTP_DATA_IND(msg).stream    = stream;
+    SCTP_DATA_IND(msg).assoc_id  = assoc_id;
 
   STOLEN_REF* payload = NULL;
   if (ppid == S1AP){
+	  OAILOG_INFO(LOG_SCTP, "ppid S1AP in sctp_itti_send_new_message_ind ");
 	  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
-  }else if(ppid=NGAP)  {
+  }else if(ppid == NGAP)  {
 	  OAILOG_INFO(LOG_SCTP, "ppid NGAP in sctp_itti_send_new_message_ind ");
 	  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg); 
   }else {
-	  OAILOG_ERROR(LOG_SCTP, "ppid not matching in sctp_itti_send_new_message_ind ");
-	  return 0;
+	 OAILOG_ERROR(LOG_SCTP, "ppid not matching in sctp_itti_send_new_message_ind ");
+	 return 0;
   }	
 }
 
@@ -108,15 +112,14 @@ int sctp_itti_send_com_down_ind(sctp_ppid_t ppid,sctp_assoc_id_t assoc_id, bool 
   SCTP_CLOSE_ASSOCIATION(msg).reset    = reset;
 
   if (ppid == S1AP){
-	  SCTP_CLOSE_ASSOCIATION(msg).ppid=ppid;
-	  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
-  }else if(ppid=NGAP)  {
-	  SCTP_CLOSE_ASSOCIATION(msg).ppid=ppid;
-	  OAILOG_INFO(LOG_SCTP, "ppid NGAP in sctp_itti_send_com_down_ind ");
-	  return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
+         OAILOG_INFO(LOG_SCTP, "ppid S1AP in sctp_itti_send_new_message_ind ");
+	 return send_msg_to_task(&sctp_task_zmq_ctx, TASK_S1AP, msg);
+  }else if(ppid == NGAP)  {
+	 OAILOG_INFO(LOG_SCTP, "ppid NGAP in sctp_itti_send_com_down_ind ");
+	 return send_msg_to_task(&sctp_task_zmq_ctx, TASK_NGAP, msg);
   }else {
-	   OAILOG_ERROR(LOG_SCTP, " ppid not matching in sctp_itti_send_com_down_ind ");
-	   return 0;
+	 OAILOG_ERROR(LOG_SCTP, " ppid not matching in sctp_itti_send_com_down_ind ");
+	 return 0;
   }
  
 }

@@ -33,6 +33,9 @@
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 
+#define S1AP 18
+#define NGAP 60
+
 extern task_zmq_ctx_t sctp_task_zmq_ctx;
 
 int sctp_itti_send_lower_layer_conf(

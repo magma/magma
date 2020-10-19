@@ -39,6 +39,9 @@ SctpConnection::SctpConnection(const InitReq &req, SctpEventHandler &handler):
   _sctp_desc(0),
   _thread(nullptr)
 {
+    MLOG(MDEBUG) << " SctpConnection:req->port = " << std::to_string(req.port());
+    MLOG(MFATAL) << " SctpConnection:req->ngap_port = " << std::to_string(req.ngap_port());
+
   int sock = create_sctp_sock(req);
   if (sock < 0) throw std::exception();
 

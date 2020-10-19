@@ -1491,6 +1491,12 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
 
   local_enforcer->init_session_credit(
       session_map, imsi, session_id, test_cfg_, response);
+  // Write + Read in/from SessionStore
+  bool write_success =
+      session_store->create_sessions(imsi, std::move(session_map[imsi]));
+  EXPECT_TRUE(write_success);
+  session_map = session_store->read_sessions({imsi});
+  auto update = SessionStore::get_default_session_update(session_map);
 
   // Test successful creation of dedicated bearer for rule1 + rule2
   auto bearer_bind_req_success1 =
@@ -1504,7 +1510,6 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
       deactivate_flows_for_rules(
           imsi, CheckSubset(rule_ids), CheckCount(0), testing::_))
       .Times(0);
-  auto update = SessionStore::get_default_session_update(session_map);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_success1, update);
   local_enforcer->bind_policy_to_bearer(
@@ -1520,9 +1525,17 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
       .Times(1);
   local_enforcer->bind_policy_to_bearer(
       session_map, bearer_bind_req_fail, update);
+  // Check update criteria has changes
+  EXPECT_TRUE(update[imsi][session_id].is_bearer_mapping_updated);
+  EXPECT_EQ(update[imsi][session_id].bearer_id_by_policy.size(), 2);
+  // Write + Read in/from SessionStore
+  write_success = session_store->update_sessions(update);
+  EXPECT_TRUE(write_success);
+  session_map = session_store->read_sessions({imsi});
+  update      = SessionStore::get_default_session_update(session_map);
 
   // At this point we have rule1 -> bearer1, rule2 -> bearer2 rule3 -> deleted,
-  // and rule4 -> no bearer. When we remove this rule, we expect to see a delete
+  // and rule4 -> no bearer. When we remove rule1, we expect to see a delete
   // dedicated bearer request. Use the set rule interface to remove rule1.
   SessionRules session_rules;
   auto rule_set_per_sub = session_rules.mutable_rules_per_subscriber()->Add();
@@ -1560,6 +1573,9 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
       .Times(1);
   local_enforcer->update_session_credits_and_rules(
       session_map, update_response, update);
+  // Check update criteria has changes + no bearer left!
+  EXPECT_TRUE(update[imsi][session_id].is_bearer_mapping_updated);
+  EXPECT_EQ(update[imsi][session_id].bearer_id_by_policy.size(), 0);
 }
 
 // Test the handle_set_session_rules function to apply rules to sessions

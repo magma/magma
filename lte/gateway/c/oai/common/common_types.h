@@ -51,6 +51,7 @@
 #include "3gpp_24.008.h"
 
 //------------------------------------------------------------------------------
+typedef uint32_t sctp_ppid_t;
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
 typedef uint64_t enb_s1ap_id_key_t;

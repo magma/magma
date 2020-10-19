@@ -91,6 +91,7 @@ Status SctpdUplinkImpl::SendUl(
 
 Status SctpdUplinkImpl::NewAssoc(
     ServerContext* context, const NewAssocReq* req, NewAssocRes* res) {
+    
   uint32_t ppid;
   uint32_t assoc_id;
   uint16_t instreams;
@@ -101,7 +102,8 @@ Status SctpdUplinkImpl::NewAssoc(
   instreams  = req->instreams();
   outstreams = req->outstreams();
 
-  if (sctp_itti_send_new_association(assoc_id, instreams, outstreams) < 0) {
+ 
+ if (sctp_itti_send_new_association(ppid, assoc_id, instreams, outstreams) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to send new_association for NewAssoc\n");
     return Status::OK;
   }
@@ -119,7 +121,7 @@ Status SctpdUplinkImpl::CloseAssoc(
   assoc_id = req->assoc_id();
   reset    = req->is_reset();
 
-  if (sctp_itti_send_com_down_ind(assoc_id, reset) < 0) {
+  if (sctp_itti_send_com_down_ind(ppid, assoc_id, reset) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to send com_down_ind for CloseAssoc\n");
     return Status::OK;
   }

@@ -16,12 +16,12 @@ import unittest
 from collections import namedtuple
 from unittest.mock import MagicMock, call, patch
 
-from lte.protos.policydb_pb2 import FlowMatch
-from magma.pipelined.qos.common import QosImplType, QosManager
+from magma.pipelined.qos.common import QosImplType, QosManager, SubscriberState
 from magma.pipelined.qos.qos_meter_impl import MeterManager
 from magma.pipelined.qos.qos_tc_impl import TrafficClass, argSplit, run_cmd
 from magma.pipelined.qos.types import QosInfo, get_json, get_key, get_subscriber_key
 from magma.pipelined.qos.utils import IdManager
+from lte.protos.policydb_pb2 import FlowMatch
 
 class TestQosCommon(unittest.TestCase):
     def testIdManager(self):
@@ -278,6 +278,7 @@ get_action_instruction"
 
         if self.config["qos"]["impl"] == QosImplType.LINUX_TC:
             mock_traffic_cls.read_all_classes.side_effect = lambda intf: []
+            mock_traffic_cls.delete_class.side_effect = lambda *args: 0
 
         qos_mgr = QosManager(MagicMock, asyncio.new_event_loop(), self.config)
         qos_mgr._qos_store = {}
@@ -752,3 +753,158 @@ class TestTrafficClass(unittest.TestCase):
 
         # destroy all qos on eth0
         run_cmd(['tc qdisc del dev {intf} root'.format(intf=intf)])
+
+
+class TestSubscriberState(unittest.TestCase):
+    def testSingleRuleWithNoApnAmbr(self, ):
+        rule_num, d = 10, FlowMatch.UPLINK
+        ip_addr = '1.1.1.1'
+        qos_handle = 10
+
+        # add rule
+        subscriber_state = SubscriberState('IMSI101', {})
+        assert(subscriber_state.check_empty())
+        assert(not subscriber_state.get_qos_handle(rule_num, d))
+        subscriber_state.update_rule(ip_addr, rule_num, d, qos_handle)
+
+        assert(subscriber_state.find_rule(rule_num))
+        session_with_rule = subscriber_state.find_session_with_rule(rule_num)
+        assert(session_with_rule)
+
+        # remove rule
+        subscriber_state.remove_rule(rule_num)
+        empty_sessions = subscriber_state.get_all_empty_sessions()
+        assert(len(empty_sessions) == 1)
+        assert(session_with_rule == empty_sessions[0])
+
+        subscriber_state.remove_session(ip_addr)
+        assert(subscriber_state.check_empty())
+
+    def testSingleRuleWithApnAmbr(self,):
+        rule_num, d = 10, FlowMatch.UPLINK
+        ip_addr = '1.1.1.1'
+        ambr_qos_handle = 5
+        qos_handle = 10
+        subscriber_state = SubscriberState('IMSI101', {})
+        assert(subscriber_state.check_empty())
+        assert(not subscriber_state.get_qos_handle(rule_num, d))
+
+        session = subscriber_state.get_or_create_session(ip_addr)
+        session.set_ambr(d, ambr_qos_handle)
+        subscriber_state.update_rule(ip_addr, rule_num, d, qos_handle)
+
+        assert(subscriber_state.find_rule(rule_num))
+        session_with_rule = subscriber_state.find_session_with_rule(rule_num)
+        assert(session_with_rule)
+
+        # remove rule
+        subscriber_state.remove_rule(rule_num)
+        empty_sessions = subscriber_state.get_all_empty_sessions()
+        assert(len(empty_sessions) == 1)
+        assert(session_with_rule == empty_sessions[0])
+
+        subscriber_state.remove_session(ip_addr)
+        assert(subscriber_state.check_empty())
+
+    def testMultipleRuleWithApnAmbr(self,):
+        rule_num1, d1 = 10, FlowMatch.UPLINK
+        rule_num2, d2 = 20, FlowMatch.UPLINK
+        rule_num3, d3 = 20, FlowMatch.DOWNLINK
+        ip_addr = '1.1.1.1'
+        ambr_qos_handle = 5
+        qos_handle1 = 10
+        qos_handle2 = 20
+        qos_handle3 = 30
+
+        subscriber_state = SubscriberState('IMSI101', {})
+        assert(subscriber_state.check_empty())
+        assert(not subscriber_state.get_qos_handle(rule_num1, d1))
+
+        subscriber_state.get_or_create_session(ip_addr)
+        subscriber_state.update_rule(ip_addr, rule_num1, d1, qos_handle1)
+
+        # add rule_num2
+        subscriber_state.update_rule(ip_addr, rule_num2, d2, qos_handle2)
+
+        # add rule_num3 with apn_ambr in downlink direction
+        session = subscriber_state.get_or_create_session(ip_addr)
+        assert(session)
+        session.set_ambr(d3, ambr_qos_handle)
+        subscriber_state.update_rule(ip_addr, rule_num3, d3, qos_handle3)
+
+        assert(len(subscriber_state.rules) == 2)
+        assert(rule_num1 in subscriber_state.rules)
+        assert(rule_num2 in subscriber_state.rules)
+        assert(len(subscriber_state.sessions) == 1)
+
+        subscriber_state.remove_rule(rule_num1)
+        assert(not subscriber_state.get_all_empty_sessions())
+
+        subscriber_state.remove_rule(rule_num2)
+        session = subscriber_state.get_all_empty_sessions()
+        assert(len(session) == 1)
+        subscriber_state.remove_session(session[0].ip_addr)
+        assert(subscriber_state.check_empty())
+
+    def testMultipleSessionsWithMultipleRulesAmbr(self, ):
+        # session1 information
+        rule_num1, d1 = 10, FlowMatch.UPLINK
+        rule_num2, d2 = 20, FlowMatch.UPLINK
+        rule_num3, d3 = 20, FlowMatch.DOWNLINK
+        ip_addr = '1.1.1.1'
+        ambr_qos_handle = 5
+        qos_handle1 = 10
+        qos_handle2 = 20
+        qos_handle3 = 30
+
+        # session2 information
+        new_session_ip_addr = '2.2.2.2'
+        new_rule_num4, new_d1 = 110, FlowMatch.UPLINK
+        new_ambr_qos_handle = 105
+        new_qos_handle1 = 110
+
+        subscriber_state = SubscriberState('IMSI101', {})
+        assert(subscriber_state.check_empty())
+        assert(not subscriber_state.get_qos_handle(rule_num1, d1))
+
+        subscriber_state.get_or_create_session(ip_addr)
+        subscriber_state.update_rule(ip_addr, rule_num1, d1, qos_handle1)
+
+        # add rule_num2
+        subscriber_state.update_rule(ip_addr, rule_num2, d2, qos_handle2)
+
+        # add rule_num3 with apn_ambr in downlink direction
+        session = subscriber_state.get_or_create_session(ip_addr)
+        assert(session)
+        session.set_ambr(d3, ambr_qos_handle)
+        subscriber_state.update_rule(ip_addr, rule_num3, d3, qos_handle3)
+
+        # add rule_num4 with apn_ambr in uplink direction
+        session = subscriber_state.get_or_create_session(new_session_ip_addr)
+        assert(session)
+        session.set_ambr(new_d1, new_ambr_qos_handle)
+        subscriber_state.update_rule(new_session_ip_addr, new_rule_num4, new_d1,
+            new_qos_handle1)
+
+        assert(len(subscriber_state.rules) == 3)
+        assert(rule_num1 in subscriber_state.rules)
+        assert(rule_num2 in subscriber_state.rules)
+        assert(new_rule_num4 in subscriber_state.rules)
+        assert(len(subscriber_state.sessions) == 2)
+
+        # remove the rules
+        subscriber_state.remove_rule(rule_num1)
+        assert(not subscriber_state.get_all_empty_sessions())
+
+        subscriber_state.remove_rule(rule_num2)
+        session = subscriber_state.get_all_empty_sessions()
+        assert(len(session) == 1)
+        subscriber_state.remove_session(session[0].ip_addr)
+        assert(not subscriber_state.check_empty())
+
+        # remove the new session
+        subscriber_state.remove_rule(new_rule_num4)
+        session = subscriber_state.get_all_empty_sessions()
+        assert(len(session) == 1)
+        subscriber_state.remove_session(session[0].ip_addr)
+        assert(subscriber_state.check_empty())

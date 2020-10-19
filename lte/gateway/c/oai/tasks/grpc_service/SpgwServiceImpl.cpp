@@ -193,15 +193,22 @@ Status SpgwServiceImpl::DeleteBearer(
     DeleteBearerResult* response) {
   OAILOG_INFO(LOG_UTIL, "Received DeleteBearer GRPC request\n");
   itti_gx_nw_init_deactv_bearer_request_t itti_msg;
-  itti_msg.imsi_length = request->sid().id().size();
-  strcpy(itti_msg.imsi, request->sid().id().c_str());
+  std::string imsi = request->sid().id();
+  // If north bound is sessiond itself, IMSI prefix is used;
+  // in S1AP tests, IMSI prefix is not used
+  // Strip off any IMSI prefix
+  if (imsi.compare(0, 4, "IMSI") == 0) {
+    imsi = imsi.substr(4, std::string::npos);
+  }
+  itti_msg.imsi_length = imsi.size();
+  strcpy(itti_msg.imsi, imsi.c_str());
   itti_msg.lbi           = request->link_bearer_id();
-  itti_msg.no_of_bearers = request->eps_bearer_ids_size();
+  itti_msg.no_of_bearers = 1;
   for (int i = 0; i < request->eps_bearer_ids_size() && i < BEARERS_PER_UE;
        i++) {
-    itti_msg.ebi[i] = request->eps_bearer_ids(i);
+    itti_msg.ebi[0] = request->eps_bearer_ids(i);
+    send_deactivate_bearer_request_itti(&itti_msg);
   }
-  send_deactivate_bearer_request_itti(&itti_msg);
   return Status::OK;
 }
 

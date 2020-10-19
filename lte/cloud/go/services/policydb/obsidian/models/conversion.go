@@ -123,12 +123,10 @@ func (m RuleNames) ToTKs() storage.TKs {
 
 func (m *PolicyRule) ToEntity() configurator.NetworkEntity {
 	ent := configurator.NetworkEntity{
-		Type:   lte.PolicyRuleEntityType,
-		Key:    string(m.ID),
-		Config: m.getConfig(),
-	}
-	if m.QosProfile != "" {
-		ent.Associations = append(ent.Associations, storage.TypeAndKey{Type: lte.PolicyQoSProfileEntityType, Key: m.QosProfile})
+		Type:         lte.PolicyRuleEntityType,
+		Key:          string(m.ID),
+		Config:       m.getConfig(),
+		Associations: m.GetAssocs(),
 	}
 	return ent
 }
@@ -425,9 +423,11 @@ func (m *PolicyQosProfile) ToProto() *protos.FlowQos {
 	proto := &protos.FlowQos{
 		MaxReqBwUl: swag.Uint32Value(m.MaxReqBwUl),
 		MaxReqBwDl: swag.Uint32Value(m.MaxReqBwDl),
-		GbrUl:      swag.Uint32Value(m.Gbr.Uplink),
-		GbrDl:      swag.Uint32Value(m.Gbr.Downlink),
 		Qci:        protos.FlowQos_Qci(m.ClassID),
+	}
+	if m.Gbr != nil {
+		proto.GbrUl = swag.Uint32Value(m.Gbr.Uplink)
+		proto.GbrDl = swag.Uint32Value(m.Gbr.Downlink)
 	}
 	if m.Arp != nil {
 		arp := &protos.QosArp{PriorityLevel: swag.Uint32Value(m.Arp.PriorityLevel)}

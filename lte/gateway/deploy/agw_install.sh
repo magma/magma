@@ -36,7 +36,8 @@ if [[ ! $INTERFACES == *'eth0'*  ]] || [[ ! $INTERFACES == *'eth1'* ]] || ! grep
   sed -i 's/GRUB_CMDLINE_LINUX=""/GRUB_CMDLINE_LINUX="net.ifnames=0 biosdevname=0"/g' /etc/default/grub
   # changing interface name
   grub-mkconfig -o /boot/grub/grub.cfg
-  sed -i 's/enp1s0/eth0/g' /etc/network/interfaces
+  echo "auto eth0
+  iface eth0 inet dhcp" > /etc/network/interfaces.d/eth0
   # configuring eth1
   echo "auto eth1
   iface eth1 inet static
@@ -118,17 +119,16 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   echo "Triggering ovs_build playbook"
   su - $MAGMA_USER -c "ansible-playbook -e \"MAGMA_ROOT='/home/$MAGMA_USER/magma' OUTPUT_DIR='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_build.yml"
   echo "Triggering ovs_deploy playbook"
-  su - $MAGMA_USER -c "ansible-playbook -e \"PACKAGE_LOCATION='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml"
+  su - $MAGMA_USER -c "ansible-playbook -e \"PACKAGE_LOCATION='/tmp'\" -i $DEPLOY_PATH/agw_hosts $DEPLOY_PATH/ovs_deploy.yml --skip-tags \"skipfirstinstall\""
   echo "Deleting boot script if it exists"
   if [ -f "$AGW_INSTALL_CONFIG" ]; then
     rm -rf $AGW_INSTALL_CONFIG
-    systemctl daemon-reload
   fi
   echo "Removing Ansible from the machine."
   pip3 uninstall --yes ansible
   rm -rf /home/$MAGMA_USER/build
-  service magma@* status
-  echo "AGW installation is done, make sure all services above are running correctly"
+  echo "AGW installation is done, make sure all services above are running correctly.. rebooting"
+  reboot
 else
   echo "Magma already installed, skipping.."
 fi

@@ -38,7 +38,6 @@ class IPAllocatorMultiAPNWrapper(IPAllocator):
             IP address by underlying IP allocator. For DHCP it means using
             vlan tag for DHCP request, for IP pool allocator it does not change
             behaviour.
-            TODO: Add support of per APN IP-POOL
         """
         self._subscriber_client = SubscriberDbClient(subscriberdb_rpc_stub)
         self._ip_allocator = ip_allocator
@@ -71,19 +70,11 @@ class IPAllocatorMultiAPNWrapper(IPAllocator):
         once we have APN specific info use IP allocator to assign an IP.
         """
         vlan_id = self._subscriber_client.get_subscriber_apn_vlan(sid)
-        logging.info("got vlan: [%s]", vlan_id)
-        ip_desc = self._ip_allocator.alloc_ip_address(sid, vlan_id)
-
-        if ip_desc:
-            ip_desc.vlan_id = vlan_id
-        logging.info("sid %s vlan %s", sid, vlan_id)
-
-        return ip_desc
+        return self._ip_allocator.alloc_ip_address(sid, vlan_id)
 
     def release_ip(self, ip_desc: IPDesc):
         """
         Multi APN allocated IPs do not need to do any update on
         ip release, let actual IP allocator release the IP.
         """
-        if ip_desc.type != IPType.STATIC:
-            self._ip_allocator.release_ip(ip_desc)
+        self._ip_allocator.release_ip(ip_desc)

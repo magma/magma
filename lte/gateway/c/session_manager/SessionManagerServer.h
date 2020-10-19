@@ -305,6 +305,38 @@ class BindPolicy2BearerCallData :
 };
 
 /**
+ * Class to handle SetSessionRules requests
+ */
+class SetSessionRulesCallData :
+  public AsyncGRPCRequest<
+    LocalSessionManager::AsyncService,
+    SessionRules,
+    Void> {
+ public:
+  SetSessionRulesCallData(
+    ServerCompletionQueue *cq,
+    LocalSessionManager::AsyncService &service,
+    LocalSessionManagerHandler &handler):
+    AsyncGRPCRequest(cq, service),
+    handler_(handler)
+  {
+    service_.RequestSetSessionRules(
+      &ctx_, &request_, &responder_, cq_, cq_, (void *) this);
+  }
+
+ protected:
+  void clone() override { new SetSessionRulesCallData(cq_, service_, handler_); }
+
+  void process() override
+  {
+    handler_.SetSessionRules(&ctx_, &request_, get_finish_callback());
+  }
+
+ private:
+  LocalSessionManagerHandler &handler_;
+};
+
+/**
  * Class to handle ChargingReauth requests
  */
 class ChargingReAuthCallData :
