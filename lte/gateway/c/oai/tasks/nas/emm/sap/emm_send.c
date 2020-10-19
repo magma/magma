@@ -1366,7 +1366,7 @@ int emm_send_authentication_request(
     OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
   }
 
-  OAILOG_INFO(LOG_NAS_EMM, "RAND Parameter to check MAC Failure %p\n", emm_msg->authenticationparameterrand);
+  //OAILOG_INFO(LOG_NAS_EMM, "RAND Parameter to check MAC Failure %p\n", emm_msg->authenticationparameterrand);
   /*
    * Mandatory - Authentication parameter AUTN
    */

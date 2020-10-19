@@ -303,6 +303,7 @@ int itti_create_task(
   result = pthread_create(
       &itti_desc.threads[thread_id].task_thread, NULL, start_routine, args_p);
 
+
   AssertFatal(
       result >= 0, "Thread creation for task %d, thread %d failed (%d)!\n",
       task_id, thread_id, result);

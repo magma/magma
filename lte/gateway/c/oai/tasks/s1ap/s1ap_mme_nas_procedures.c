@@ -1033,6 +1033,14 @@ void s1ap_handle_conn_est_cnf(
     free_wrapper((void**) &(conn_est_cnf_pP->ue_radio_capability));
   }
 
+
+  if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+    // TODO: handle something
+    OAILOG_ERROR(LOG_S1AP,
+                 "Failed to encode initial context setup request message\n");
+    OAILOG_FUNC_OUT(LOG_S1AP);
+  }
+
   OAILOG_NOTICE_UE(
       LOG_S1AP, imsi64,
       "Send S1AP_INITIAL_CONTEXT_SETUP_REQUEST message MME_UE_S1AP_ID "
