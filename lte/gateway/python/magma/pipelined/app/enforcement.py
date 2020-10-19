@@ -152,8 +152,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         msg = flows.get_add_resubmit_next_service_flow_msg(
             datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
-            copy_table=self._enforcement_stats_tbl,
-            resubmit_table=self.next_main_table,
+            resubmit_table=self._enforcement_stats_tbl,
             cookie=self.DEFAULT_FLOW_COOKIE)
 
         msgs, remaining_flows = self._msg_hub \

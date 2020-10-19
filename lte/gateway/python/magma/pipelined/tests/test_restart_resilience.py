@@ -398,7 +398,6 @@ class RestartResilienceTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name[0]].bytes_rx, 0)
         self.assertEqual(stats[enf_stat_name[0]].bytes_tx,
                          num_pkts_tx_match * len(packet1))
-
         self.assertEqual(stats[enf_stat_name[1]].sid, imsi)
         self.assertEqual(stats[enf_stat_name[1]].rule_id, "rx_match")
         self.assertEqual(stats[enf_stat_name[1]].bytes_tx, 0)
@@ -410,7 +409,7 @@ class RestartResilienceTest(unittest.TestCase):
 
         # NOTE this value is 8 because the EnforcementStatsController rule
         # reporting doesn't reset on clearing flows(lingers from old tests)
-        self.assertEqual(len(stats), 8)
+        self.assertEqual(len(stats), 5)
 
         setup_flows_request = SetupFlowsRequest(
             requests=[
