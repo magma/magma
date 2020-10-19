@@ -36,8 +36,7 @@ using namespace orc8r;
 S1apServiceImpl::S1apServiceImpl() {}
 
 Status S1apServiceImpl::GetEnbConnected(
-    ServerContext* context, const Void* request,
-    EnbConnectedResult* response) {
+    ServerContext* context, const Void* request, EnbConnectedResult* response) {
   OAILOG_DEBUG(LOG_UTIL, "Received EnbConnected GRPC request\n");
 
   // Get state from S1APStateManager
@@ -65,4 +64,3 @@ Status S1apServiceImpl::GetEnbConnected(
 }
 
 }  // namespace magma
-

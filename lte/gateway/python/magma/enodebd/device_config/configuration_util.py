@@ -46,8 +46,8 @@ def is_enb_registered(mconfig: EnodebD, enb_serial: str) -> bool:
     return True
 
 
-def find_enb_by_cell_id(mconfig: EnodebD, cell_id: int) -> Optional[
-    EnodebConfig]:
+def find_enb_by_cell_id(mconfig: EnodebD, cell_id: int) \
+        -> Optional[EnodebConfig]:
     """
     Returns eNB config if:
         - the eNodeB is registered by serial to the Access Gateway

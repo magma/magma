@@ -35,7 +35,6 @@ using grpc::InsecureServerCredentials;
 using grpc::Server;
 using grpc::ServerBuilder;
 using magma::CSFBGatewayServiceImpl;
-using magma::SMSOrc8rGatewayServiceImpl;
 using magma::S1apServiceImpl;
 using magma::S6aGatewayImpl;
 using magma::S6aServiceImpl;
