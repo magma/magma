@@ -1,21 +1,28 @@
-/*
-Copyright 2020 The Magma Authors.
-This source code is licensed under the BSD-style license found in the
-LICENSE file in the root directory of this source tree.
-Unless required by applicable law or agreed to in writing, software
-distributed under the License is distributed on an "AS IS" BASIS,
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-See the License for the specific language governing permissions and
-limitations under the License.
-*/
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 
 #include <string>
 
-#include "AmfServiceImpl.h"
 #include "lte/protos/session_manager.pb.h"
+#include "lte/protos/subscriberdb.pb.h"
+
+extern "C" {
+#include "amf_service_handler.h"
+#include "log.h"
+}
+#include "AmfServiceImpl.h"
 
 namespace grpc {
-
 class ServerContext;
 }  // namespace grpc
 
@@ -45,6 +52,34 @@ Status AmfServiceImpl::SetSmfSessionContext(
     SmContextVoid* response) {
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request\n");
   // ToDo processing ITTI,ZMQ
+
+  itti_smf_response_t itti_msg;
+  auto& req_common = request->common_context();
+  auto& req_m5g    = request->rat_specific_context().m5g_session_context_rsp();
+  
+  // CommonSessionContext
+  strcpy(itti_msg.imsi, req_common.sid().id().c_str());
+  itti_msg.sm_session_fsm_state =
+      (SMSessionFSMState_response) req_common.sm_session_state();
+  itti_msg.sm_session_version = req_common.sm_session_version();
+
+  // RatSpecificContextAccess
+  strcpy(itti_msg.pdu_session_id, req_m5g.pdu_session_id().c_str());
+  itti_msg.pdu_session_type =
+      (PduSessionType_response) req_m5g.pdu_session_type();
+  itti_msg.selected_ssc_mode = (SscMode_response) req_m5g.pdu_session_type();
+  itti_msg.always_on_pdu_session_indication =
+      req_m5g.always_on_pdu_session_indication();
+  itti_msg.allowed_ssc_mode = (SscMode_response) req_m5g.allowed_ssc_mode();
+  itti_msg.M5gsm_congetion_re_attempt_indicator =
+      req_m5g.m5gsm_congetion_re_attempt_indicator();
+  itti_msg.pdu_address.redirect_address_type =
+      (RedirectAddressType_response) req_m5g.pdu_address()
+          .redirect_address_type();
+  strcpy(
+      itti_msg.pdu_address.redirect_server_address,
+      req_m5g.pdu_address().redirect_server_address().c_str());
+  send_smf_response_itti(&itti_msg);
   return Status::OK;
 }
 
