@@ -14,9 +14,17 @@ set(ORC8R_CPP_PROTOS common)
 generate_cpp_protos("${ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
 
+# AMF
+set(AMFSRV_LTE_CPP_PROTOS subscriberdb session_manager)
+set(AMFSRV_LTE_GRPC_PROTOS session_manager)
+generate_cpp_protos("${AMFSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${AMFSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
 # SPGW
-set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd session_manager)
-set(SPGWSRV_LTE_GRPC_PROTOS spgw_service session_manager)
+set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd)
+set(SPGWSRV_LTE_GRPC_PROTOS spgw_service)
 generate_cpp_protos("${SPGWSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${SPGWSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
@@ -71,7 +79,11 @@ generate_grpc_protos("${HASRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(TASK_GRPC_SERVICE
+<<<<<<< HEAD
     AmfServiceImpl.cpp 
+=======
+    AmfServiceImpl.cpp
+>>>>>>> Implementation of SmfPduSessionSmContext gRPC call invoked by SMF, processeing the reply message and forwarding it onto AMF using ZMQ
     SpgwServiceImpl.cpp
     S6aGatewayImpl.cpp
     S6aServiceImpl.cpp
@@ -80,6 +92,7 @@ add_library(TASK_GRPC_SERVICE
     S1apServiceImpl.cpp
     HaServiceImpl.cpp
     spgw_service_handler.c
+    amf_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
     ${PROTO_SRCS}

@@ -69,6 +69,7 @@ void start_grpc_service(bstring server_address) {
   builder.RegisterService(&spgw_service);
 #endif
   builder.RegisterService(&amf_service);
+  builder.RegisterService(&s6a_proxy);
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF
   char* non_eps_service_control = bdata(mme_config.non_eps_service_control);
