@@ -17,6 +17,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/emakeev/milenage"
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -29,7 +30,6 @@ import (
 	hss "magma/feg/gateway/services/testcore/hss/servicers"
 	"magma/feg/gateway/services/testcore/hss/servicers/test_utils"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 )
 
@@ -63,7 +63,7 @@ func TestNewAIA_SuccessfulResponse(t *testing.T) {
 	server := test_utils.NewTestHomeSubscriberServer(t)
 	amf := []byte("\x80\x00")
 	rand := []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f")
-	milenage, err := crypto.NewMockMilenageCipher(amf, rand)
+	milenage, err := milenage.NewMockCipher(amf, rand)
 	assert.NoError(t, err)
 	server.Milenage = milenage
 
@@ -106,10 +106,10 @@ func TestNewAIA_MultipleVectors(t *testing.T) {
 	assert.Equal(t, 3, len(aia.AI.EUtranVectors))
 
 	vector := aia.AI.EUtranVectors[0]
-	assert.Equal(t, crypto.RandChallengeBytes, len(vector.RAND))
-	assert.Equal(t, crypto.XresBytes, len(vector.XRES))
-	assert.Equal(t, crypto.AutnBytes, len(vector.AUTN))
-	assert.Equal(t, crypto.KasmeBytes, len(vector.KASME))
+	assert.Equal(t, milenage.RandChallengeBytes, len(vector.RAND))
+	assert.Equal(t, milenage.XresBytes, len(vector.XRES))
+	assert.Equal(t, milenage.AutnBytes, len(vector.AUTN))
+	assert.Equal(t, milenage.KasmeBytes, len(vector.KASME))
 
 	for i := 0; i < len(aia.AI.EUtranVectors); i++ {
 		for j := i + 1; j < len(aia.AI.EUtranVectors); j++ {
@@ -274,14 +274,14 @@ func TestNewSuccessfulAIA(t *testing.T) {
 	err := msg.Unmarshal(&air)
 	assert.NoError(t, err)
 
-	vector := &crypto.EutranVector{}
+	vector := &milenage.EutranVector{}
 	copy(vector.Rand[:], []byte("\x00\x01\x02\x03\x04\x05\x06\x07\x08\t\n\x0b\x0c\r\x0e\x0f"))
 	copy(vector.Xres[:], []byte("\x2d\xaf\x87\x3d\x73\xf3\x10\xc6"))
 	copy(vector.Autn[:], []byte("o\xbf\xa3\x80\x1fW\x80\x00{\xdeY\x88n\x96\xe4\xfe"))
 	copy(vector.Kasme[:],
 		[]byte("\x87H\xc1\xc0\xa2\x82o\xa4\x05\xb1\xe2~\xa1\x04CJ\xe5V\xc7e\xe8\xf0a\xeb\xdb\x8a\xe2\x86\xc4F\x16\xc2"))
 
-	utranVector := &crypto.UtranVector{}
+	utranVector := &milenage.UtranVector{}
 	copy(utranVector.Rand[:], []byte("\xb0\x02\x7e\x16\x95\x59\xc4\x8a\x2d\xc8\x3d\xb6\xb7\x6b\x77\xb5"))
 	copy(utranVector.Xres[:], []byte("\xc8\x8e\x71\xfa\x5a\x1b\x41\x50"))
 	copy(utranVector.Autn[:], []byte("\x56\x63\xa4\x78\x7f\x61\x80\x00\x8d\x45\x64\x77\x96\x06\x39\x22"))
@@ -289,7 +289,7 @@ func TestNewSuccessfulAIA(t *testing.T) {
 	copy(utranVector.IntegrityKey[:], []byte("\xf2\xc1\x9c\x15\xf5\x5a\xf1\xe8\xbb\xdb\x76\x19\x30\xeb\xef\x7c"))
 
 	response := server.NewSuccessfulAIA(
-		msg, air.SessionID, []*crypto.EutranVector{vector}, []*crypto.UtranVector{utranVector})
+		msg, air.SessionID, []*milenage.EutranVector{vector}, []*milenage.UtranVector{utranVector})
 	var aia definitions.AIA
 	err = response.Unmarshal(&aia)
 	assert.NoError(t, err)
