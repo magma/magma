@@ -36,7 +36,7 @@ func main() {
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers())
 
-	// Use GRPC exporter if configured, otherwise fallback on regular exporter
+	// Use gRPC exporter if configured, otherwise fall back to default exporter
 	grpcAddress, err := srv.Config.GetString(orchestrator.PrometheusGRPCPushAddress)
 	var exporterServicer exporter_protos.MetricsExporterServer
 	if err == nil {
