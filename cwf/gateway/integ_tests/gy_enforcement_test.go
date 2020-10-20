@@ -742,13 +742,10 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data was passed
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", 0, 5*MegaBytes)
-
 	// Wait for service deactivation
 	time.Sleep(3 * time.Second)
 
-	// we need to generate more traffic to hit restrict rule
+	// we need to generate more traffic and validate it goes through restrict rule
 	req = &cwfprotos.GenTrafficRequest{
 		Imsi:    ue.GetImsi(),
 		Volume:  &wrappers.StringValue{Value: "2M"},
