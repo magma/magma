@@ -22,7 +22,7 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub
-from magma.pipelined.openflow.registers import Direction, SCRATCH_REGS
+from magma.pipelined.openflow.registers import Direction
 from magma.pipelined.policy_converters import FlowMatchError, \
     get_ue_ip_match_args, get_eth_type
 from magma.pipelined.redirect import RedirectionManager, RedirectException
@@ -31,7 +31,6 @@ from magma.pipelined.qos.qos_meter_impl import MeterManager
 
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.utils import Utils
 
