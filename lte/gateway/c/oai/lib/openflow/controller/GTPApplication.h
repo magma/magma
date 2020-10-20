@@ -138,7 +138,7 @@ class GTPApplication : public Application {
    * @param i_tei tunnel id.
    */
   void add_uplink_match(
-    of13::FlowMod& uplink_fm, uint32_t gtp_port, uint32_t i_tei);
+      of13::FlowMod& uplink_fm, uint32_t gtp_port, uint32_t i_tei);
 
  private:
   static const uint32_t DEFAULT_PRIORITY = 10;

@@ -154,7 +154,7 @@ TEST_F(GTPApplicationTest, TestAddTunnel) {
   uint32_t in_tei  = 1;
   uint32_t out_tei = 2;
   char imsi[]      = "001010000000013";
-  int vlan = 0;
+  int vlan         = 0;
   AddGTPTunnelEvent add_tunnel(ue_ip, vlan, enb_ip, in_tei, out_tei, imsi, 0);
   // Uplink
   EXPECT_CALL(
@@ -273,7 +273,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow) {
   char imsi[]      = "001010000000013";
   struct ipv4flow_dl dl_flow;
   uint32_t dl_flow_precedence = 0;
-  int vlan = 0;
+  int vlan                    = 0;
 
   dl_flow.dst_ip.s_addr = inet_addr("0.0.0.3");
   dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
@@ -284,7 +284,8 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlow) {
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, vlan, enb_ip, in_tei, out_tei, imsi, &dl_flow, dl_flow_precedence, 0);
+      ue_ip, vlan, enb_ip, in_tei, out_tei, imsi, &dl_flow, dl_flow_precedence,
+      0);
   // Uplink
   EXPECT_CALL(
       *messenger,
@@ -425,7 +426,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowGtpPort) {
   char imsi[]      = "001010000000013";
   struct ipv4flow_dl dl_flow;
   uint32_t dl_flow_precedence = 0;
-  int vlan = 0;
+  int vlan                    = 0;
 
   dl_flow.dst_ip.s_addr = inet_addr("0.0.0.3");
   dl_flow.src_ip.s_addr = inet_addr("0.0.0.4");
@@ -436,14 +437,15 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowGtpPort) {
       SRC_IPV4 | DST_IPV4 | TCP_SRC_PORT | TCP_DST_PORT | IP_PROTO;
 
   AddGTPTunnelEvent add_tunnel(
-      ue_ip, vlan, enb_ip, in_tei, out_tei, imsi, &dl_flow, dl_flow_precedence, 10);
+      ue_ip, vlan, enb_ip, in_tei, out_tei, imsi, &dl_flow, dl_flow_precedence,
+      10);
   // Uplink
   EXPECT_CALL(
       *messenger,
       send_of_msg(
           AllOf(
-              CheckTableId(0), CheckInPort(10),
-              CheckTunnelId(in_tei), CheckCommandType(of13::OFPFC_ADD)),
+              CheckTableId(0), CheckInPort(10), CheckTunnelId(in_tei),
+              CheckCommandType(of13::OFPFC_ADD)),
           _))
       .Times(1);
   // downlink
@@ -512,8 +514,8 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlowGtpPort) {
       *messenger,
       send_of_msg(
           AllOf(
-              CheckTableId(0), CheckInPort(30),
-              CheckTunnelId(in_tei), CheckCommandType(of13::OFPFC_DELETE)),
+              CheckTableId(0), CheckInPort(30), CheckTunnelId(in_tei),
+              CheckCommandType(of13::OFPFC_DELETE)),
           _))
       .Times(1);
   // downlink

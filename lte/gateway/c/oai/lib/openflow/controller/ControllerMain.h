@@ -30,9 +30,9 @@ int start_of_controller(bool persist_state);
 int stop_of_controller(void);
 
 int openflow_controller_add_gtp_tunnel(
-    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
-    const char* imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl,
-    uint32_t gtp_portno);
+    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei,
+    uint32_t o_tei, const char* imsi, struct ipv4flow_dl* flow_dl,
+    uint32_t flow_precedence_dl, uint32_t gtp_portno);
 
 int openflow_controller_del_gtp_tunnel(
     struct in_addr ue, uint32_t i_tei, struct ipv4flow_dl* flow_dl,

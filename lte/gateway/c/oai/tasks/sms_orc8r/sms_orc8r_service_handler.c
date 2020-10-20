@@ -43,8 +43,7 @@ int handle_sms_orc8r_downlink_unitdata(
       sizeof(itti_sgsap_downlink_unitdata_t));
   // send it to NAS module for further processing
   OAILOG_DEBUG(
-      LOG_SMS_ORC8R,
-      "Received SMO Downlink UnitData message %s from Orc8r\n",
+      LOG_SMS_ORC8R, "Received SMO Downlink UnitData message %s from Orc8r\n",
       sgs_dl_unit_data_p->nas_msg_container->data);
   rc = send_msg_to_task(&sms_orc8r_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, rc);

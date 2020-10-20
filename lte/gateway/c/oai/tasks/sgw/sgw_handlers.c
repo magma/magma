@@ -706,8 +706,8 @@ int sgw_handle_sgi_endpoint_deleted(
       enb.s_addr =
           eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-      rv = gtp_tunnel_ops->del_tunnel(enb,
-          ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+      rv = gtp_tunnel_ops->del_tunnel(
+          enb, ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
@@ -919,8 +919,8 @@ int sgw_handle_modify_bearer_request(
           // This is best effort, ignore return code.
           gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
           // delete GTPv1-U tunnel
-          rv = gtp_tunnel_ops->del_tunnel(enb,
-              ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          rv = gtp_tunnel_ops->del_tunnel(
+              enb, ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
         }
         populate_sgi_end_point_update(
@@ -1029,11 +1029,11 @@ int sgw_handle_delete_session_request(
         if (eps_bearer_ctxt_p) {
           if (ebi != delete_session_req_pP->lbi) {
             struct in_addr enb = {.s_addr = 0};
-            enb.s_addr = eps_bearer_ctxt_p->enb_ip_address_S1u.address
-                           .ipv4_address.s_addr;
+            enb.s_addr         = eps_bearer_ctxt_p->enb_ip_address_S1u.address
+                             .ipv4_address.s_addr;
 
-            rv = gtp_tunnel_ops->del_tunnel(enb,
-                eps_bearer_ctxt_p->paa.ipv4_address,
+            rv = gtp_tunnel_ops->del_tunnel(
+                enb, eps_bearer_ctxt_p->paa.ipv4_address,
                 eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_p->enb_teid_S1u, NULL);
             if (rv < 0) {
@@ -1194,11 +1194,11 @@ int sgw_handle_release_access_bearers_request(
               .sgw_eps_bearers_array[ebx];
       if (eps_bearer_ctxt) {
         struct in_addr enb = {.s_addr = 0};
-        enb.s_addr = eps_bearer_ctxt->enb_ip_address_S1u.address
-                           .ipv4_address.s_addr;
+        enb.s_addr =
+            eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-        rv = gtp_tunnel_ops->del_tunnel(enb,
-            eps_bearer_ctxt->paa.ipv4_address,
+        rv = gtp_tunnel_ops->del_tunnel(
+            enb, eps_bearer_ctxt->paa.ipv4_address,
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt->enb_teid_S1u, NULL);
         if (rv < 0) {
@@ -1688,14 +1688,13 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
           &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
       if (eps_bearer_ctxt_p) {
-
         if (ebi != *s11_pcrf_ded_bearer_deactv_rsp->lbi) {
           struct in_addr enb = {.s_addr = 0};
-          enb.s_addr = eps_bearer_ctxt_p->enb_ip_address_S1u.address
-                           .ipv4_address.s_addr;
+          enb.s_addr =
+              eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-          rc = gtp_tunnel_ops->del_tunnel(enb,
-              eps_bearer_ctxt_p->paa.ipv4_address,
+          rc = gtp_tunnel_ops->del_tunnel(
+              enb, eps_bearer_ctxt_p->paa.ipv4_address,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
           if (rc < 0) {
@@ -1765,11 +1764,11 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
                     .packetfiltercontents),
               eps_bearer_ctxt_p->paa.ipv4_address.s_addr, &dlflow);
           struct in_addr enb = {.s_addr = 0};
-          enb.s_addr = eps_bearer_ctxt_p->enb_ip_address_S1u.address
-                           .ipv4_address.s_addr;
+          enb.s_addr =
+              eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-          rc = gtp_tunnel_ops->del_tunnel(enb,
-              eps_bearer_ctxt_p->paa.ipv4_address,
+          rc = gtp_tunnel_ops->del_tunnel(
+              enb, eps_bearer_ctxt_p->paa.ipv4_address,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, &dlflow);
           if (rc < 0) {

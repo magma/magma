@@ -333,7 +333,7 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
             &internal_sampling_fwd_tbl_num) &&
         config_setting_lookup_string(
             ovs_settings, SGW_CONFIG_STRING_OVS_MULTI_TUNNEL,
-            (const char **) &multi_tunnel)) {
+            (const char**) &multi_tunnel)) {
       config_pP->ovs_config.bridge_name  = bfromcstr(ovs_bridge_name);
       config_pP->ovs_config.gtp_port_num = gtp_port_num;
       config_pP->ovs_config.mtr_port_num = mtr_port_num;
@@ -348,9 +348,7 @@ int sgw_config_parse_file(sgw_config_t* config_pP)
       } else {
         config_pP->ovs_config.multi_tunnel = true;
       }
-      OAILOG_INFO(
-          LOG_SPGW_APP, "Multi tunnel enable: %s\n",
-          multi_tunnel);
+      OAILOG_INFO(LOG_SPGW_APP, "Multi tunnel enable: %s\n", multi_tunnel);
     } else {
       AssertFatal(false, "Couldn't find all ovs settings in spgw config\n");
     }
