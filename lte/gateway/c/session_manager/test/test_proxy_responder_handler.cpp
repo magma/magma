@@ -17,6 +17,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include "Consts.h"
 #include "LocalEnforcer.h"
 #include "MagmaService.h"
 #include "Matchers.h"
@@ -45,18 +46,8 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     })
         .detach();
 
-    imsi              = "IMSI1";
-    imsi2             = "IMSI2";
-    sid               = id_gen_.gen_session_id(imsi);
-    sid2              = id_gen_.gen_session_id(imsi2);
-    sid3              = id_gen_.gen_session_id(imsi2);
-    monitoring_key    = "mk1";
-    monitoring_key2   = "mk2";
-    rule_id_1         = "test_rule_1";
-    rule_id_2         = "test_rule_2";
-    rule_id_3         = "test_rule_3";
-    dynamic_rule_id_1 = "dynamic_rule_1";
-    dynamic_rule_id_2 = "dynamic_rule_2";
+    monitoring_key = "mk1";
+    rule_id        = "test_rule_1";
 
     reporter               = std::make_shared<MockSessionReporter>();
     auto rule_store        = std::make_shared<StaticRuleStore>();
@@ -80,22 +71,16 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   }
 
   std::unique_ptr<SessionState> get_session(
-      std::string session_id, std::shared_ptr<StaticRuleStore> rule_store) {
-    std::string hardware_addr_bytes = {0x0f, 0x10, 0x2e, 0x12, 0x3a, 0x55};
-    std::string msisdn              = "5100001234";
-    std::string radius_session_id =
-        "AA-AA-AA-AA-AA-AA:TESTAP__"
-        "0F-10-2E-12-3A-55";
-    std::string mac_addr        = "0f:10:2e:12:3a:55";
+      std::shared_ptr<StaticRuleStore> rule_store) {
     SessionConfig cfg;
     cfg.common_context =
-        build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_WLAN);
-    const auto& wlan = build_wlan_context(mac_addr, radius_session_id);
+        build_common_context(IMSI1, IP1, "", APN1, MSISDN, TGPP_WLAN);
+    const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
     cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
-    auto tgpp_context = TgppContext{};
+    auto tgpp_context   = TgppContext{};
     auto pdp_start_time = 12345;
     return std::make_unique<SessionState>(
-        imsi, session_id, cfg, *rule_store, tgpp_context, pdp_start_time);
+        IMSI1, SESSION_ID_1, cfg, *rule_store, tgpp_context, pdp_start_time);
   }
 
   UsageMonitoringUpdateResponse* get_monitoring_update() {
@@ -126,21 +111,21 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
     // Don't set event triggers
     // Don't set result code since the response is already successful
     // Don't set any rule installation/uninstallation
-    // Don't set the TgppContext, assume relay disabled
+    // Don't set the TgppContext, assume gx_gy_relay disabled
     return credit_update;
   }
 
   PolicyReAuthRequest* get_policy_reauth_request() {
     auto request = new PolicyReAuthRequest();
     request->set_session_id("");
-    request->set_imsi("IMSI1");
+    request->set_imsi(IMSI1);
 
     auto static_rule = new StaticRuleInstall();
     static_rule->set_rule_id("static_1");
 
     // This should be a duplicate rule
     auto static_rule_2 = new StaticRuleInstall();
-    static_rule_2->set_rule_id(rule_id_3);
+    static_rule_2->set_rule_id(rule_id);
 
     request->mutable_rules_to_install()->AddAllocated(static_rule);
     request->mutable_rules_to_install()->AddAllocated(static_rule_2);
@@ -148,18 +133,8 @@ class SessionProxyResponderHandlerTest : public ::testing::Test {
   }
 
  protected:
-  std::string imsi;
-  std::string imsi2;
-  std::string sid;
-  std::string sid2;
-  std::string sid3;
   std::string monitoring_key;
-  std::string monitoring_key2;
-  std::string rule_id_1;
-  std::string rule_id_2;
-  std::string rule_id_3;
-  std::string dynamic_rule_id_1;
-  std::string dynamic_rule_id_2;
+  std::string rule_id;
 
   std::shared_ptr<MockPipelinedClient> pipelined_client;
   std::shared_ptr<SessionProxyResponderHandlerImpl> proxy_responder;
@@ -178,15 +153,15 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
 
   // 2) Create bare-bones session for IMSI1
   auto uc      = get_default_update_criteria();
-  auto session = get_session(sid, rule_store);
+  auto session = get_session(rule_store);
   RuleLifetime lifetime{
       .activation_time   = std::time_t(0),
       .deactivation_time = std::time_t(0),
   };
-  session->activate_static_rule(rule_id_3, lifetime, uc);
-  EXPECT_EQ(session->get_session_id(), sid);
+  session->activate_static_rule(rule_id, lifetime, uc);
+  EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
-  EXPECT_EQ(session->is_static_rule_installed(rule_id_3), true);
+  EXPECT_EQ(session->is_static_rule_installed(rule_id), true);
 
   auto credit_update                               = get_monitoring_update();
   UsageMonitoringUpdateResponse& credit_update_ref = *credit_update;
@@ -198,34 +173,33 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
   // 3) Commit session for IMSI1 into SessionStore
-  auto sessions = std::vector<std::unique_ptr<SessionState>>{};
+  auto sessions = SessionVector{};
   EXPECT_EQ(sessions.size(), 0);
   sessions.push_back(std::move(session));
   EXPECT_EQ(sessions.size(), 1);
-  session_store->create_sessions(imsi, std::move(sessions));
+  session_store->create_sessions(IMSI1, std::move(sessions));
 
   // Just verify some things about the session before doing PolicyReAuth
   SessionRead read_req = {};
-  read_req.insert(imsi);
+  read_req.insert(IMSI1);
   auto session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
   EXPECT_EQ(
-      session_map[imsi].front()->is_static_rule_installed("static_1"), false);
+      session_map[IMSI1].front()->is_static_rule_installed("static_1"), false);
 
   // 4) Now call PolicyReAuth
-  //    This is done with a duplicate install of rule_id_3. This checks that
+  //    This is done with a duplicate install of rule_id. This checks that
   //    duplicate rule installs are ignored, as they are occasionally
   //    requested by the session proxy. If the duplicate rule install causes
   //    a failure, then the entire PolicyReAuth will not save to the
   //    SessionStore properly
-  std::cout << "Andrei: Calling PolicyReAuth" << std::endl;
   auto request = get_policy_reauth_request();
   grpc::ServerContext create_context;
   EXPECT_CALL(
       *pipelined_client,
-      activate_flows_for_rules(imsi, _, _, CheckCount(1), _, _))
+      activate_flows_for_rules(IMSI1, _, _, _, CheckCount(1), _, _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, request,
@@ -241,10 +215,70 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   //    installed.
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[imsi].size(), 1);
-  EXPECT_EQ(session_map[imsi].front()->get_request_number(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
   EXPECT_EQ(
-      session_map[imsi].front()->is_static_rule_installed("static_1"), true);
+      session_map[IMSI1].front()->is_static_rule_installed("static_1"), true);
+}
+
+TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
+  // 1) Create SessionStore
+  auto rule_store = std::make_shared<StaticRuleStore>();
+
+  // 2) Create bare-bones session for IMSI1
+  auto uc      = get_default_update_criteria();
+  auto session = get_session(rule_store);
+  RuleLifetime lifetime{
+      .activation_time   = std::time_t(0),
+      .deactivation_time = std::time_t(0),
+  };
+  session->activate_static_rule(rule_id, lifetime, uc);
+  EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
+  EXPECT_EQ(session->get_request_number(), 1);
+  EXPECT_EQ(session->is_static_rule_installed(rule_id), true);
+
+  // 3) Commit session for IMSI1 into SessionStore
+  auto sessions = SessionVector{};
+  EXPECT_EQ(sessions.size(), 0);
+  sessions.push_back(std::move(session));
+  EXPECT_EQ(sessions.size(), 1);
+  session_store->create_sessions(IMSI1, std::move(sessions));
+
+  // Just verify some things about the session before doing AbortSession
+  SessionRead read_req = {};
+  read_req.insert(IMSI1);
+  auto session_map = session_store->read_sessions(read_req);
+  EXPECT_EQ(session_map.size(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
+  EXPECT_EQ(
+      session_map[IMSI1].front()->is_static_rule_installed("static_1"), false);
+
+  // 4) Now call AbortSession
+  //    We should see a session deletion which would trigger deactivate_flows
+  AbortSessionRequest request;
+  request.set_user_name(IMSI1);
+  request.set_session_id(SESSION_ID_1);
+  grpc::ServerContext create_context;
+  EXPECT_CALL(
+      *pipelined_client,
+      deactivate_flows_for_rules(
+          IMSI1, _, _, CheckCount(1), CheckCount(0), RequestOriginType::GX))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  proxy_responder->AbortSession(
+      &create_context, &request,
+      [this](grpc::Status status, AbortSessionResult response_out) {});
+
+  // The actual work of AbortSession gets pushed off to an event loop so run it
+  // once
+  evb->loopOnce();
+
+  // 5) Read the session back from SessionStore and verify that the update
+  //    was done correctly to what's stored.
+  //    If the AbortSession failed, then the session should still exist
+  session_map = session_store->read_sessions(read_req);
+  EXPECT_EQ(session_map[IMSI1].size(), 0);
 }
 
 int main(int argc, char** argv) {

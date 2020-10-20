@@ -1,5 +1,7 @@
 [ignore]
 
+<PROJECT_ROOT>/node_modules/.*/node_modules/.*
+
 ; Ignore components that we dont care if they match our flow
 .*/node_modules/bcryptjs/.*
 .*/node_modules/config-chain/test/.*
@@ -39,9 +41,9 @@
 .*/_batfish_site/.*
 
 [untyped]
-.*/node_modules/mapbox-gl/src/.*
 // TODO - fix flow error in core packages
 .*/node_modules/@fbcnms/ui/insights/Alarms/AlarmApi.js
+.*/node_modules/@fbcnms/platform-server/network/routes.js
 .*/node_modules/@fbcnms/babel-register
 
 [options]
@@ -53,7 +55,13 @@ node_modules/mapbox-gl/dist/mapbox-gl.js.flow
 
 [declarations]
 <PROJECT_ROOT>/node_modules/relay-runtime/.*
+.*/flow-typed/npm/@material-ui/.*
+.*/flow-typed/npm/@testing-library/.*
 .*/node_modules/react-beautiful-dnd/.*
+.*/node_modules/mapbox-gl/src/.*
+.*/node_modules/@fbcnms/express-middleware/.*
+.*/node_modules/@fbcnms/ui/.*
+.*/node_modules/@fbcnms/util/.*
 
 [lints]
 all=warn
@@ -78,4 +86,4 @@ untyped-import
 untyped-type-import
 
 [version]
-^0.131.0
+^0.132.0

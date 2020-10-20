@@ -1279,8 +1279,6 @@ int s1ap_handle_ue_context_release_command(
 
     if (ue_context_release_command_pP->cause == S1AP_IMPLICIT_CONTEXT_RELEASE ||
         ue_context_release_command_pP->cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
-        ue_context_release_command_pP->cause ==
-            S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD ||
         ue_context_release_command_pP->cause == S1AP_INVALID_ENB_ID) {
       s1ap_remove_ue(state, ue_ref_p);
     } else {
@@ -2546,7 +2544,6 @@ int s1ap_mme_handle_enb_reset(
             if (s1_sig_conn_id_p->eNB_UE_S1AP_ID != NULL) {
               enb_ue_s1ap_id =
                   (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
-              free_wrapper((void**) &s1_sig_conn_id_p->eNB_UE_S1AP_ID);
               if (ue_ref_p->enb_ue_s1ap_id ==
                   (enb_ue_s1ap_id & ENB_UE_S1AP_ID_MASK)) {
                 reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
@@ -2557,8 +2554,9 @@ int s1ap_mme_handle_enb_reset(
                 // mismatch in enb_ue_s1ap_id sent by eNB and stored in S1AP ue
                 // context in EPC. Abnormal case.
                 reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
-                    INVALID_MME_UE_S1AP_ID;
-                reset_req->ue_to_reset_list[i].enb_ue_s1ap_id = -1;
+                    ue_ref_p->mme_ue_s1ap_id;
+                reset_req->ue_to_reset_list[i].enb_ue_s1ap_id =
+                    (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
                 OAILOG_ERROR_UE(
                     LOG_S1AP, imsi64,
                     "Partial Reset Request:enb_ue_s1ap_id mismatch between id "
@@ -2570,7 +2568,8 @@ int s1ap_mme_handle_enb_reset(
             } else {
               reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
                   ue_ref_p->mme_ue_s1ap_id;
-              reset_req->ue_to_reset_list[i].enb_ue_s1ap_id = -1;
+              reset_req->ue_to_reset_list[i].enb_ue_s1ap_id =
+                  INVALID_ENB_UE_S1AP_ID;
             }
           } else {
             OAILOG_ERROR_UE(
@@ -2580,9 +2579,19 @@ int s1ap_mme_handle_enb_reset(
                 "%d "
                 "\n",
                 mme_ue_s1ap_id);
-            // TBD - Here MME should send Error Indication as it is abnormal
-            // scenario.
-            OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+            reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
+                (mme_ue_s1ap_id_t) * (s1_sig_conn_id_p->mME_UE_S1AP_ID);
+            if (s1_sig_conn_id_p->eNB_UE_S1AP_ID != NULL) {
+              reset_req->ue_to_reset_list[i].enb_ue_s1ap_id =
+                  (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
+            } else {
+              reset_req->ue_to_reset_list[i].enb_ue_s1ap_id =
+                  INVALID_ENB_UE_S1AP_ID;
+            }
+          }
+          free_wrapper((void**) &s1_sig_conn_id_p->mME_UE_S1AP_ID);
+          if (s1_sig_conn_id_p->eNB_UE_S1AP_ID != NULL) {
+            free_wrapper((void**) &s1_sig_conn_id_p->eNB_UE_S1AP_ID);
           }
         } else {
           if (s1_sig_conn_id_p->eNB_UE_S1AP_ID != NULL) {
@@ -2592,25 +2601,28 @@ int s1ap_mme_handle_enb_reset(
                      enb_association->sctp_assoc_id, enb_ue_s1ap_id)) != NULL) {
               enb_ue_s1ap_id &= ENB_UE_S1AP_ID_MASK;
               reset_req->ue_to_reset_list[i].enb_ue_s1ap_id = enb_ue_s1ap_id;
-              reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
-                  ue_ref_p->mme_ue_s1ap_id;
             } else {
               OAILOG_ERROR_UE(
                   LOG_S1AP, imsi64,
                   "Partial Reset Request without any valid S1 signaling "
-                  "connection.Ignoring it \n");
-              // TBD - Here MME should send Error Indication as it is abnormal
-              // scenario.
-              OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+                  "connection.Sending Reset Ack with received signalling "
+                  "connection IDs \n");
+              reset_req->ue_to_reset_list[i].enb_ue_s1ap_id =
+                  (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
             }
+            reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
+                INVALID_MME_UE_S1AP_ID;
+            free_wrapper((void**) &s1_sig_conn_id_p->eNB_UE_S1AP_ID);
           } else {
             OAILOG_ERROR_UE(
                 LOG_S1AP, imsi64,
                 "Partial Reset Request without any valid S1 signaling "
-                "connection.Ignoring it \n");
-            // TBD - Here MME should send Error Indication as it is abnormal
-            // scenario.
-            OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+                "connection.Sending Reset Ack with received signalling "
+                "connection IDs \n");
+            reset_req->ue_to_reset_list[i].mme_ue_s1ap_id =
+                INVALID_MME_UE_S1AP_ID;
+            reset_req->ue_to_reset_list[i].enb_ue_s1ap_id =
+                INVALID_ENB_UE_S1AP_ID;
           }
         }
       }

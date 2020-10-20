@@ -9,20 +9,20 @@
       "logLevel": "INFO",
       "checkinInterval": 60,
       "checkinTimeout": 10,
-      "autoupgradeEnabled": false,
+      "autoupgradeEnabled": true,
       "autoupgradePollInterval": 300,
-      "package_version": "0.0.0-0",
-      "dynamic_services": []
+      "package_version": "0.0.0-0"
     },
     "pipelined": {
-      "@type": "type.googleapis.com/magma.mconfig.PipelineD",
-      "logLevel": "INFO",
-      "ueIpBlock": "192.168.128.0/24",
-      "natEnabled": false,
-      "apps": [],
-      "services": [],
-      "allowedGrePeers": [],
-      "liUes": {}
+        "@type": "type.googleapis.com/magma.mconfig.PipelineD",
+        "allowedGrePeers": [
+            {
+                "ip": "192.168.128.2",
+                "key": 1000
+            }
+        ],
+        "logLevel": "INFO",
+        "ueIpBlock": "192.168.128.0/24"
     },
     "radiusd": {
       "@type": "type.googleapis.com/magma.mconfig.RadiusdConfig",
@@ -31,6 +31,12 @@
       "radiusMetricsPort": 9100,
       "radiusMetricsPath": "metrics",
       "updateIntervalSecs": 60
+    },
+    "td-agent-bit": {
+        "@type": "type.googleapis.com/magma.mconfig.FluentBit",
+        "throttleInterval": "1m",
+        "throttleRate": 1000,
+        "throttleWindow": 5
     }
   }
 }

@@ -104,6 +104,7 @@ controller.key
 fluentd.key
 fluentd.pem
 rootCA.pem
+rootCA.key
 ```
 
 ## Install Orchestrator
@@ -134,9 +135,13 @@ If you don't know what values to put for the `docker_*` and `helm_*` variables,
 go through the [building Orchestrator](./deploy_build.md) section first.
 
 Make sure that the `source` variables for the module definitions point to
-`github.com/magma/magma//orc8r/cloud/deploy/terraform/<module>`.
+`github.com/magma/magma//orc8r/cloud/deploy/terraform/<module>?ref=v1.3`.
 Adjust any other parameters as you see fit - check the READMEs for the
 relevant Terraform modules to see additional variables that can be set.
+
+The `?ref=v1.3` argument is *very* important to include in the Terraform
+`source` parameters for your modules - we will be making large sweeping changes
+to these modules on the master branch of Magma in the near future.
 
 Finally, initialize Terraform
 
@@ -156,7 +161,7 @@ Terraform has been successfully initialized!
 
 The two Terraform modules are organized so that `orc8r-aws` contains all the
 resource definitions for the cloud infrastructure that you'll need to run
-Orchestrator and `orc8r-helm-aws` contains all of the application components
+Orchestrator and `orc8r-helm-aws` contains all the application components
 behind Orchestrator. On the very first installation, you'll have to
 `terraform apply` the infrastructure before the application. On later changes
 to your Terraform root module, you can make all changes at once with a single
@@ -271,7 +276,7 @@ these subdomains.
 The example Terraform root module has an output `nameservers` which will list
 the Route53 nameservers for the hosted zone for Orchestrator. Access these
 via `terraform output` (you have probably already noticed identical output
-from every `terraform apply`). Output should be of the form
+from every `terraform apply`). Output should be of the form:
 
 ```
 Outputs:

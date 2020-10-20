@@ -13,6 +13,16 @@ aliases:
         only:
           - master
           - develop
+  - &lte_build_verify
+    paths: "orc8r lte"
+  - &federated_build_verify
+    paths: "orc8r lte feg"
+  - &all_gateways_build_verify
+    paths: "orc8r lte feg cwf"
+  - &nms_build_verify
+    paths: "nms"
+  - &orc8r_build_verify
+    paths: "orc8r"
 
 executors:
   node:
@@ -49,7 +59,12 @@ orbs:
           - run:
               name: Checking for changes
               command: |
-                paths=".circleci <<parameters.paths>>"
+                if [ "${CIRCLE_BRANCH}" = "master" ]; then
+                  echo "Determinator does not run on master"
+                  exit 0
+                fi
+
+                paths=".circleci circleci <<parameters.paths>>"
                 echo "Checking paths [$paths]"
                 for path in $paths; do
                   if [[ $(git diff master^ --name-only $path) ]]; then
@@ -106,12 +121,43 @@ commands:
       - run:
           name: Install Dependencies
           <<: *appdir
-          command: yarn install --frozen-lockfile
+          command: |
+            if [ $(node -v) == 'v6.1.0' ]; then
+              source $NVM_DIR/nvm.sh
+              nvm install stable
+            fi
+            yarn install --frozen-lockfile
       - save_cache:
           name: Save Yarn Package Cache
           key: yarn-packages-{{ checksum "nms/app/yarn.lock" }}
           paths:
             - ~/.cache/yarn
+
+  apt-install-yarn:
+    steps:
+      - run:
+          <<: *appdir
+          command: |
+            sudo apt-get install -y apt-transport-https
+            curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+            echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+            sudo apt-get update -y
+            sudo apt-get install -y yarn
+
+  apt-install-chrome:
+    steps:
+      - run:
+          <<: *appdir
+          command: |
+            # Install latest chrome dev package
+            # Note: this installs the necessary libs to make the bundled version of Chromium that Puppeteer
+            # installs, work.
+            curl -sS https://dl-ssl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+            echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google.list
+            sudo apt-get update -y
+            sudo apt-get install -y google-chrome-stable libxss1 --no-install-recommends
+            sudo rm -rf /var/lib/apt/lists/*
+
 
   tag-push-docker:
     description: Tag docker image and push it
@@ -190,6 +236,8 @@ commands:
         type: string
     steps:
       - checkout
+      - build/determinator:
+          <<: *lte_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
           name: Install tools
@@ -236,6 +284,8 @@ commands:
             cp *_version versions || true
       - store_artifacts:
           path: /tmp/logs
+      - store_test_results:
+          path: /tmp/test-results
       - run:
           name: Double-check that the node is freed
           command: |
@@ -248,6 +298,10 @@ commands:
 
   magma_slack_notify:
     description: Notify Slack on magma job failure
+    parameters:
+      channel:
+        type: string
+        default: "#magma_ci"
     steps:
       - run:
           command: |
@@ -271,6 +325,7 @@ commands:
             email=$(git show -s --format='%ae')
             rel_time=$(git show -s --format='%cr')
             abs_time=$(git show -s --format='%cd')
+            slack_channel=<< parameters.channel >>
             gh_text="<https://github.com/${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME}/commit/${CIRCLE_SHA1}|${CIRCLE_SHA1:0:8}> by ${author} <${email}> ${rel_time} (${abs_time})"
 
             pretext="Job \`${CIRCLE_JOB}\` #${CIRCLE_BUILD_NUM} on branch \`${CIRCLE_BRANCH}\` of ${CIRCLE_PROJECT_USERNAME}/${CIRCLE_PROJECT_REPONAME} failed. Check the <${CIRCLE_BUILD_URL}|build logs> for details."
@@ -278,6 +333,7 @@ commands:
 
             slack_data=$(cat \<<EOF
             {
+              "channel": "${slack_channel}",
               "text": "*CircleCI Job Failure*",
               "attachments": [
                 {
@@ -383,6 +439,8 @@ jobs:
       - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - docker/install-dc
       - run:
           name: "Set Python Version"
@@ -397,12 +455,14 @@ jobs:
   insync-checkin:
     machine:
       image: ubuntu-1604:201903-01
-      docker_layer_caching: true
+      #docker_layer_caching: true
     environment:
       - MAGMA_ROOT=/home/circleci/project
       - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - docker/install-dc
       - run: sudo apt-get update
       - run:
@@ -429,6 +489,8 @@ jobs:
       - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - docker/install-dc
       - run: sudo apt-get update
       - run:
@@ -459,6 +521,8 @@ jobs:
       - GOPROXY=https://proxy.golang.org
     steps:
       - checkout
+      - build/determinator:
+          <<: *orc8r_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run-with-retry:
           command: go mod download
@@ -473,10 +537,13 @@ jobs:
   feg-precommit:
     docker:
       - image: circleci/golang:1.13-stretch-node-browsers-legacy
+    resource_class: medium+
     environment:
       - GO111MODULE=on
     steps:
       - checkout
+      - build/determinator:
+          <<: *federated_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
@@ -493,10 +560,13 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
+    resource_class: large
     environment:
       - MAGMA_ROOT=/home/circleci/project
     steps:
       - checkout
+      - build/determinator:
+          <<: *federated_build_verify
       - run:
           command: |
             cd ${MAGMA_ROOT}/feg/gateway/docker
@@ -520,6 +590,8 @@ jobs:
       - GOPROXY=https://proxy.golang.org
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
@@ -537,6 +609,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - magma_integ_test:
           stack: cwf
           test: 'True'
@@ -561,6 +635,8 @@ jobs:
       - DOCKER_REGISTRY=cwf_
     steps:
       - checkout
+      - build/determinator:
+          <<: *all_gateways_build_verify
       - docker/install-dc
       - run:
           name: Build CWAG containers
@@ -592,6 +668,8 @@ jobs:
       - SWAGGER_CODEGEN_JAR=/home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
+      - build/determinator:
+          <<: *lte_build_verify
       - run: sudo apt-get update -y
       - run: sudo apt-get install -y libsystemd-dev pkg-config curl zip unzip
       - run: sudo apt-get install -y virtualenv python-babel python-dev build-essential python3-setuptools python-setuptools autogen autoconf libtool python3-apt python3-aioeventlet python3-requests python3-pip python-protobuf
@@ -613,6 +691,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - build/determinator:
+          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'True'
@@ -623,6 +703,8 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     steps:
+      - build/determinator:
+          <<: *lte_build_verify
       - magma_integ_test:
           stack: lte
           test: 'False'
@@ -642,6 +724,8 @@ jobs:
       - GOPROXY=https://proxy.golang.org
     steps:
       - checkout
+      - build/determinator:
+          paths: "cwf/k8s"
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run: ./circleci/golang_before_install.sh
       - run-with-retry:
@@ -662,6 +746,8 @@ jobs:
       - MAGMA_ROOT=/home/circleci/project
     steps:
       - checkout
+      - build/determinator:
+          paths: "cwf/k8s"
       - docker/install-dc
       - run:
           command: |
@@ -684,6 +770,8 @@ jobs:
     executor: node
     steps:
       - checkout
+      - build/determinator:
+          <<: *nms_build_verify
       - run:
           name: install flow
           <<: *appdir
@@ -700,6 +788,8 @@ jobs:
     executor: node
     steps:
       - checkout
+      - build/determinator:
+          <<: *nms_build_verify
       - yarn-install
       - run:
           name: eslint
@@ -711,11 +801,40 @@ jobs:
     executor: node
     steps:
       - checkout
+      - build/determinator:
+          <<: *nms_build_verify
       - yarn-install
       - run:
           name: yarn test
           <<: *appdir
           command: yarn test:ci
+      - magma_slack_notify
+
+  nms-e2e-test:
+    machine:
+      image: ubuntu-1604:201903-01
+    environment:
+      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
+      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
+      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+    steps:
+      - checkout
+      - build/determinator:
+          <<: *nms_build_verify
+      - docker/install-dc
+      - apt-install-yarn
+      - apt-install-chrome
+      - yarn-install
+      - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
+      - run:
+          command: |
+            source $NVM_DIR/nvm.sh
+            nvm install stable
+            cd ${MAGMA_ROOT}/nms/app/packages/magmalte
+            ./e2e_test_setup.sh
+      - store_artifacts:
+          path: /tmp/nms_artifacts
+
       - magma_slack_notify
 
   nms-build:
@@ -725,6 +844,8 @@ jobs:
       - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
     steps:
       - checkout
+      - build/determinator:
+          <<: *nms_build_verify
       - docker/install-dc
       - run: echo 'export MAGMA_ROOT=$(pwd)' >> $BASH_ENV
       - run:
@@ -786,6 +907,15 @@ jobs:
   ### XWF
 
   xwfm-test:
+    parameters:
+      notify_magma_ci:
+        description: "should run magma_slack_notify for #magma_ci channel"
+        type: boolean
+        default: true
+      notify_xwfm_ci:
+        description: "should run magma_slack_notify for #xwfm_ci channel"
+        type: boolean
+        default: true
     machine:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
@@ -806,7 +936,16 @@ jobs:
             env
             docker login -u ${XWF_ARTIFACTORY_USER} -p ${XWF_ARTIFACTORY_API_KEY} ${XWF_ARTIFACTORY_LINK}
             cd ${MAGMA_ROOT}/xwf/docker/
+            docker-compose pull || true
             docker-compose build --parallel && docker-compose up -d && docker exec tests pytest --log-cli-level=info code/tests.py --type=analytic
+      - when:
+          condition: <<parameters.notify_magma_ci>>
+          steps: magma_slack_notify
+      - when:
+          condition: <<parameters.notify_xwfm_ci>>
+          steps:
+            - magma_slack_notify:
+                channel: "#xwfm_ci"
 
   xwfm-deploy:
     parameters:
@@ -910,7 +1049,8 @@ workflows:
           cron: "0 * * * *"
           <<: *only_master
     jobs:
-      - xwfm-test
+      - xwfm-test:
+          notify_magma_ci: false
       - xwfm-deploy:
           requires:
             - xwfm-test
@@ -928,11 +1068,17 @@ workflows:
       - nms-yarn-test:
           requires:
             - nms-flow-test
+      - nms-e2e-test:
+          requires:
+            - nms-flow-test
+            - eslint
+            - nms-yarn-test
       - nms-build:
           requires:
             - nms-flow-test
             - eslint
             - nms-yarn-test
+            - nms-e2e-test
 
   docusaurus:
    jobs:

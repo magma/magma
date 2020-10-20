@@ -14,9 +14,11 @@
  * @format
  */
 import type {
+  apn_resources,
   challenge_key,
   enodeb_serials,
   gateway_device,
+  gateway_dns_configs,
   gateway_epc_configs,
   gateway_logging_configs,
   gateway_ran_configs,
@@ -25,17 +27,29 @@ import type {
   package_type,
 } from '@fbcnms/magma-api';
 
+import Accordion from '@material-ui/core/Accordion';
+import AccordionDetails from '@material-ui/core/AccordionDetails';
+import AccordionSummary from '@material-ui/core/AccordionSummary';
+import AddIcon from '@material-ui/icons/Add';
+import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
+import DeleteIcon from '@material-ui/icons/Delete';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
 import DialogTitle from '../../theme/design-system/DialogTitle';
 import EnodebContext from '../../components/context/EnodebContext';
+import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
 import GatewayContext from '../../components/context/GatewayContext';
+import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
@@ -43,6 +57,7 @@ import Select from '@material-ui/core/Select';
 import Switch from '@material-ui/core/Switch';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
+import Text from '@fbcnms/ui/components/design-system/Text';
 import nullthrows from '@fbcnms/util/nullthrows';
 
 import {AltFormField} from '../../components/FormField';
@@ -56,7 +71,9 @@ const GATEWAY_TITLE = 'Gateway';
 const RAN_TITLE = 'Ran';
 const AGGREGATION_TITLE = 'Aggregation';
 const EPC_TITLE = 'Epc';
+const APN_RESOURCES_TITLE = 'APN Resources';
 const DEFAULT_GATEWAY_CONFIG = {
+  apn_resources: {},
   cellular: {
     epc: {
       ip_block: '192.168.128.0/24',
@@ -120,8 +137,17 @@ const useStyles = makeStyles(_ => ({
   selectMenu: {
     maxHeight: '200px',
   },
-  selectPlaceholder: {
+  placeholder: {
     opacity: 0.5,
+  },
+  input: {
+    display: 'inline-flex',
+    margin: '5px 0',
+    width: '50%',
+    fullWidth: true,
+  },
+  accordionList: {
+    width: '100%',
   },
 }));
 
@@ -130,6 +156,7 @@ const EditTableType = {
   aggregation: 1,
   epc: 2,
   ran: 3,
+  apnResources: 4,
 };
 
 type EditProps = {
@@ -204,7 +231,7 @@ function GatewayEditDialog(props: DialogProps) {
   };
 
   return (
-    <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="sm">
+    <Dialog data-testid="editDialog" open={open} fullWidth={true} maxWidth="md">
       <DialogTitle
         label={editProps ? 'Edit Gateway' : 'Add New Gateway'}
         onClose={onClose}
@@ -232,6 +259,12 @@ function GatewayEditDialog(props: DialogProps) {
           data-testid="ranTab"
           disabled={editProps ? false : true}
           label={RAN_TITLE}
+        />
+        <Tab
+          key="apnResources"
+          data-testid="apnResourcesTab"
+          disabled={editProps ? false : true}
+          label={APN_RESOURCES_TITLE}
         />
         ;
       </Tabs>
@@ -288,6 +321,23 @@ function GatewayEditDialog(props: DialogProps) {
       )}
       {tabPos === 3 && (
         <RanEdit
+          isAdd={!editProps}
+          gateway={
+            Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
+          }
+          onClose={onClose}
+          onSave={(gateway: lte_gateway) => {
+            setGateway(gateway);
+            if (editProps) {
+              onClose();
+            } else {
+              setTabPos(tabPos + 1);
+            }
+          }}
+        />
+      )}
+      {tabPos === 4 && (
+        <ApnResourcesEdit
           isAdd={!editProps}
           gateway={
             Object.keys(gateway).length != 0 ? gateway : ctx.state[gatewayId]
@@ -671,23 +721,35 @@ export function EPCEdit(props: Props) {
   );
 }
 
+const DEFAULT_DNS_CONFIG = {
+  enable_caching: false,
+  local_ttl: 0,
+  records: [],
+};
+
 export function RanEdit(props: Props) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
   const ctx = useContext(GatewayContext);
   const enbsCtx = useContext(EnodebContext);
-  const handleRanChange = (key: string, val) => {
-    setRanConfig({...ranConfig, [key]: val});
-  };
   const [ranConfig, setRanConfig] = useState<gateway_ran_configs>(
     props.gateway?.cellular.ran || DEFAULT_GATEWAY_CONFIG.cellular.ran,
   );
-
+  const [dnsConfig, setDnsConfig] = useState<gateway_dns_configs>(
+    props.gateway?.cellular.dns ?? {},
+  );
   const [connectedEnodebs, setConnectedEnodebs] = useState<enodeb_serials>(
     props.gateway?.connected_enodeb_serials ||
       DEFAULT_GATEWAY_CONFIG.connected_enodeb_serials,
   );
+  const handleRanChange = (key: string, val) => {
+    setRanConfig({...ranConfig, [key]: val});
+  };
+  const handleDnsChange = (key: string, val) => {
+    setDnsConfig({...dnsConfig, [key]: val});
+  };
+
   const onSave = async () => {
     try {
       const gateway = {
@@ -702,6 +764,9 @@ export function RanEdit(props: Props) {
         gatewayId: gateway.id,
         enbs: connectedEnodebs,
         ranConfigs: ranConfig,
+        dnsConfig: Object.keys(dnsConfig).length
+          ? {...DEFAULT_DNS_CONFIG, ...dnsConfig}
+          : undefined,
       });
       enqueueSnackbar('Gateway saved successfully', {
         variant: 'success',
@@ -723,6 +788,7 @@ export function RanEdit(props: Props) {
           )}
           <AltFormField label={'PCI'}>
             <OutlinedInput
+              disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
               data-testid="pci"
               placeholder="Enter PCI"
               type="number"
@@ -753,30 +819,207 @@ export function RanEdit(props: Props) {
               }}
               input={
                 <OutlinedInput
-                  className={
-                    connectedEnodebs.length ? '' : classes.selectPlaceholder
-                  }
+                  disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
+                  className={connectedEnodebs.length ? '' : classes.placeholder}
                 />
               }>
-              {Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
-                <MenuItem key={enbSerial} value={enbSerial}>
-                  <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
-                  <ListItemText
-                    primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
-                    secondary={enbSerial}
-                  />
-                </MenuItem>
-              ))}
+              {enbsCtx?.state &&
+                Object.keys(enbsCtx.state.enbInfo).map(enbSerial => (
+                  <MenuItem key={enbSerial} value={enbSerial}>
+                    <Checkbox checked={connectedEnodebs.includes(enbSerial)} />
+                    <ListItemText
+                      primary={enbsCtx.state.enbInfo[enbSerial].enb.name}
+                      secondary={enbSerial}
+                    />
+                  </MenuItem>
+                ))}
             </Select>
           </AltFormField>
           <AltFormField label={'Transmit Enabled'}>
             <Switch
+              disabled={!(dnsConfig?.dhcp_server_enabled ?? true)}
               onChange={() =>
                 handleRanChange('transmit_enabled', !ranConfig.transmit_enabled)
               }
               checked={ranConfig.transmit_enabled}
             />
           </AltFormField>
+          <AltFormField label={'eNodeB DHCP Service'}>
+            <Switch
+              data-testid="enbDhcpService"
+              onChange={() =>
+                handleDnsChange(
+                  'dhcp_server_enabled',
+                  !(dnsConfig?.dhcp_server_enabled ?? true),
+                )
+              }
+              checked={dnsConfig?.dhcp_server_enabled ?? true}
+            />
+          </AltFormField>
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose} skin="regular">
+          Cancel
+        </Button>
+        <Button onClick={onSave} variant="contained" color="primary">
+          {props.isAdd ? 'Save And Close' : 'Save'}
+        </Button>
+      </DialogActions>
+    </>
+  );
+}
+
+export function ApnResourcesEdit(props: Props) {
+  const classes = useStyles();
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [error, setError] = useState('');
+  const ctx = useContext(GatewayContext);
+  const apnCtx = useContext(ApnContext);
+  const lteCtx = useContext(LteNetworkContext);
+  const apnResources: apn_resources =
+    props.gateway?.apn_resources || DEFAULT_GATEWAY_CONFIG.apn_resources;
+  const [apnResourcesRows, setApnResourcesRows] = useState(
+    Object.keys(apnResources).map(apn => apnResources[apn]),
+  );
+
+  const handleApnResourcesChange = (key: string, val, index: number) => {
+    const rows = apnResourcesRows;
+    rows[index][key] = val;
+    setApnResourcesRows([...rows]);
+  };
+  const deleteApn = deletedApn =>
+    setApnResourcesRows([
+      ...apnResourcesRows.filter(apn => apn !== deletedApn),
+    ]);
+
+  const addApnResource = () => {
+    setApnResourcesRows([
+      ...apnResourcesRows,
+      {apn_name: '', id: '', vlan_id: null},
+    ]);
+  };
+
+  const onSave = async () => {
+    try {
+      const gatewayApnResources = {};
+      apnResourcesRows.forEach(
+        apn => (gatewayApnResources[apn.apn_name] = apn),
+      );
+      const gateway = {
+        ...(props.gateway || DEFAULT_GATEWAY_CONFIG),
+        apn_resources: gatewayApnResources,
+      };
+      await ctx.setState(gateway.id, gateway);
+      enqueueSnackbar('Gateway saved successfully', {
+        variant: 'success',
+      });
+      props.onSave(gateway);
+    } catch (e) {
+      setError(e.response?.data?.message ?? e.message);
+    }
+  };
+
+  return (
+    <>
+      <DialogContent data-testid="ranEdit">
+        <List>
+          {error !== '' && (
+            <AltFormField label={''}>
+              <FormLabel error>{error}</FormLabel>
+            </AltFormField>
+          )}
+          <Button
+            onClick={addApnResource}
+            disabled={
+              !lteCtx.state.cellular.epc.mobility
+                ?.enable_multi_apn_ip_allocation ?? false
+            }>
+            Add New APN Resource
+            <AddIcon />
+          </Button>
+          {apnResourcesRows.map((apn, index) => (
+            <Accordion>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <List className={classes.accordionList}>
+                  <ListItem>
+                    <ListItemText
+                      primary={
+                        apn.apn_name || (
+                          <Text
+                            className={
+                              apn.apn_name.length ? '' : classes.placeholder
+                            }>
+                            {'APN'}
+                          </Text>
+                        )
+                      }
+                    />
+                    <ListItemSecondaryAction>
+                      <IconButton
+                        edge="end"
+                        aria-label="delete"
+                        onClick={event => {
+                          event.stopPropagation();
+                          deleteApn(apn);
+                        }}>
+                        <DeleteIcon />
+                      </IconButton>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                </List>
+              </AccordionSummary>
+              <AccordionDetails>
+                <AltFormField label={'APN name'}>
+                  <FormControl className={classes.input}>
+                    <Select
+                      value={apn.apn_name}
+                      onChange={({target}) => {
+                        const apns = apnResourcesRows;
+                        apns[index].apn_name = target.value;
+                        setApnResourcesRows([...apns]);
+                      }}
+                      input={<OutlinedInput />}>
+                      {(Object.keys(apnCtx.state) || []).map(apn => (
+                        <MenuItem value={apn}>
+                          <ListItemText primary={apn} />
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </AltFormField>
+                <AltFormField label={'APN Resource ID'}>
+                  <OutlinedInput
+                    className={classes.input}
+                    placeholder="Enter ID"
+                    fullWidth={true}
+                    value={apn.id}
+                    onChange={({target}) => {
+                      const apns = apnResourcesRows;
+                      apns[index].id = target.value;
+                      setApnResourcesRows([...apns]);
+                    }}
+                  />
+                </AltFormField>
+                <AltFormField label={'VLAN ID'}>
+                  <OutlinedInput
+                    className={classes.input}
+                    type="number"
+                    placeholder="Enter number"
+                    fullWidth={true}
+                    value={apn.vlan_id}
+                    onChange={({target}) => {
+                      handleApnResourcesChange(
+                        'vlan_id',
+                        parseInt(target.value),
+                        index,
+                      );
+                    }}
+                  />
+                </AltFormField>
+              </AccordionDetails>
+            </Accordion>
+          ))}
         </List>
       </DialogContent>
       <DialogActions>

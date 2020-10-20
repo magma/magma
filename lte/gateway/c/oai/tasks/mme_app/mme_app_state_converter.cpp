@@ -474,6 +474,8 @@ void MmeNasStateConverter::proto_to_pdn_context(
   proto_to_esm_pdn(pdn_context_proto.esm_data(), &state_pdn_context->esm_data);
   state_pdn_context->is_active = pdn_context_proto.is_active();
   if (pdn_context_proto.has_pco()) {
+    state_pdn_context->pco = (protocol_configuration_options_t*) calloc(
+        1, sizeof(protocol_configuration_options_t));
     NasStateConverter::proto_to_protocol_configuration_options(
         pdn_context_proto.pco(), state_pdn_context->pco);
   }
@@ -605,6 +607,9 @@ void MmeNasStateConverter::ue_context_to_proto(
       ->set_seconds(state_ue_context->time_mobile_reachability_timer_started);
   ue_context_proto->mutable_time_implicit_detach_timer_started()->set_seconds(
       state_ue_context->time_implicit_detach_timer_started);
+  ue_context_proto->mutable_time_paging_response_timer_started()->set_seconds(
+      state_ue_context->time_paging_response_timer_started);
+  ue_context_proto->set_paging_retx_count(state_ue_context->paging_retx_count);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -641,8 +646,11 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       (network_access_mode_t) ue_context_proto.network_access_mode();
   state_ue_mm_context->access_restriction_data =
       ue_context_proto.access_restriction_data();
-  state_ue_mm_context->apn_oi_replacement =
-      bfromcstr(ue_context_proto.apn_oi_replacement().c_str());
+  if (ue_context_proto.apn_oi_replacement().length() > 0) {
+    state_ue_mm_context->apn_oi_replacement = bfromcstr_with_str_len(
+        ue_context_proto.apn_oi_replacement().c_str(),
+        ue_context_proto.apn_oi_replacement().length());
+  }
   state_ue_mm_context->mme_teid_s11 = ue_context_proto.mme_teid_s11();
   StateConverter::proto_to_ambr(
       ue_context_proto.subscribed_ue_ambr(),
@@ -657,8 +665,9 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   proto_to_bearer_context_list(ue_context_proto, state_ue_mm_context);
   state_ue_mm_context->ue_radio_capability = nullptr;
   if (ue_context_proto.ue_radio_capability().length() > 0) {
-    state_ue_mm_context->ue_radio_capability =
-        bfromcstr(ue_context_proto.ue_radio_capability().c_str());
+    state_ue_mm_context->ue_radio_capability = bfromcstr_with_str_len(
+        ue_context_proto.ue_radio_capability().c_str(),
+        ue_context_proto.ue_radio_capability().length());
   }
   state_ue_mm_context->send_ue_purge_request =
       ue_context_proto.send_ue_purge_request();
@@ -697,6 +706,9 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
       ue_context_proto.time_mobile_reachability_timer_started().seconds();
   state_ue_mm_context->time_implicit_detach_timer_started =
       ue_context_proto.time_implicit_detach_timer_started().seconds();
+  state_ue_mm_context->time_paging_response_timer_started =
+      ue_context_proto.time_paging_response_timer_started().seconds();
+  state_ue_mm_context->paging_retx_count = ue_context_proto.paging_retx_count();
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

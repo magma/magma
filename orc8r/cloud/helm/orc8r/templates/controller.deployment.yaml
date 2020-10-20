@@ -18,22 +18,22 @@ metadata:
   labels:
     app.kubernetes.io/component: controller
 {{ include "labels" . | indent 4 }}
+{{ include "orc8r-app-labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.controller.replicas }}
   selector:
     matchLabels:
       app.kubernetes.io/component: controller
-{{ include "selector-labels" . | indent 6 }}
   template:
     metadata:
       labels:
         app.kubernetes.io/component: controller
-{{ include "selector-labels" . | indent 8 }}
       annotations:
         {{- with .Values.controller.podAnnotations }}
 {{ toYaml . | indent 8 }}
         {{- end }}
     spec:
+      serviceAccountName: {{ .Release.Name }}-service-reader
       {{- with .Values.controller.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
@@ -95,6 +95,8 @@ spec:
             - containerPort: {{ $port }}
             {{- end }}
             {{- end }}
+            - name: grpc
+              containerPort: 9180
           env:
             - name: DATABASE_SOURCE
               valueFrom:
@@ -115,15 +117,23 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            - name: SERVICE_REGISTRY_MODE
+              value: {{ .Values.controller.spec.service_registry.mode }}
+            - name: HELM_RELEASE_NAME
+              value: {{ .Release.Name }}
+            - name: SERVICE_REGISTRY_NAMESPACE
+              value: {{ .Release.Name }}
           livenessProbe:
             tcpSocket:
               port: 9081
             initialDelaySeconds: 10
             periodSeconds: 30
-          readinessProbe:
-            tcpSocket:
-              port: 9081
-            initialDelaySeconds: 5
-            periodSeconds: 10
+          # Readiness probe prevents service registry mode 'k8s' from working
+          # properly
+          #readinessProbe:
+          #  tcpSocket:
+          #    port: 9081
+          #  initialDelaySeconds: 5
+          #  periodSeconds: 10
           resources:
 {{ toYaml .Values.controller.resources | indent 12 }}

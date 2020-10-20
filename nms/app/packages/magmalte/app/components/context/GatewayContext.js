@@ -13,7 +13,7 @@
  * @flow strict-local
  * @format
  */
-import type {UpdateGatewayProps} from '../../state/EquipmentState';
+import type {UpdateGatewayProps} from '../../state/lte/EquipmentState';
 import type {
   gateway_id,
   lte_gateway,

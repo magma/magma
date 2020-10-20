@@ -479,3 +479,15 @@ int mme_app_send_s6a_cancel_location_ans(
   rc = send_msg_to_task(&mme_app_task_zmq_ctx, TASK_S6A, message_p);
   OAILOG_FUNC_RETURN(LOG_MME_APP, rc);
 }
+
+void mme_app_get_user_location_information(
+    Uli_t* uli_t_p, const ue_mm_context_t* ue_context_p) {
+  uli_t_p->present = uli_t_p->present | ULI_TAI;
+  COPY_TAI(uli_t_p->s.tai, ue_context_p->emm_context.originating_tai);
+  uli_t_p->present = uli_t_p->present | ULI_ECGI;
+  COPY_PLMN(uli_t_p->s.ecgi.plmn, ue_context_p->e_utran_cgi.plmn);
+  uli_t_p->s.ecgi.cell_identity.enb_id =
+      ue_context_p->e_utran_cgi.cell_identity.enb_id;
+  uli_t_p->s.ecgi.cell_identity.cell_id =
+      ue_context_p->e_utran_cgi.cell_identity.cell_id;
+}

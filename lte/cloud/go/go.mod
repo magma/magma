@@ -28,14 +28,16 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1
-	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
+	github.com/labstack/echo v3.3.10+incompatible
 	github.com/lib/pq v1.2.0
 	github.com/pkg/errors v0.8.1
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	github.com/thoas/go-funk v0.7.0
+	github.com/warthog618/sms v0.3.0
 	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
 	google.golang.org/genproto v0.0.0-20190819201941-24fa4b261c55
-	google.golang.org/grpc v1.27.1
+	google.golang.org/grpc v1.31.0
+	gopkg.in/DATA-DOG/go-sqlmock.v1 v1.3.0
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0

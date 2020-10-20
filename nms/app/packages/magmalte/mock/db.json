@@ -1,5 +1,5 @@
 {
-  "networks": [ "test"],
+  "networks": [ "test", "test_feg_network", "test_feg_lte_network"],
   "lte":{
     "test": {
       "gateways":{
@@ -1404,6 +1404,77 @@
       }
     }
   },
+  "policies" : {
+    "test1": {
+      "flow_list": [],
+      "id": "test1",
+      "priority": 1,
+      "ratingGroup": 1,
+      "redirect": {
+        "address_type": "IPv4",
+        "server_address": "http://localhost:8080",
+        "support": "ENABLED"
+      }
+    },
+    "test2": {
+      "flow_list": [],
+      "id": "test2",
+      "priority": 2,
+      "ratingGroup": 2,
+      "redirect": {
+        "address_type": "IPv4",
+        "server_address": "http://localhost:8080",
+        "support": "ENABLED"
+      }
+    }
+  },
+  "apns" : {
+    "internet": {
+      "apn_configuration": {
+        "ambr": {
+          "max_bandwidth_dl": 200000000,
+          "max_bandwidth_ul": 100000000
+        },
+        "qos_profile": {
+          "class_id": 9,
+          "preemption_capability": true,
+          "preemption_vulnerability": false,
+          "priority_level": 15
+        }
+      },
+      "apn_name": "internet"
+    },
+    "magma.ipv4": {
+      "apn_configuration": {
+        "ambr": {
+          "max_bandwidth_dl": 200000000,
+          "max_bandwidth_ul": 100000000
+        },
+        "qos_profile": {
+          "class_id": 9,
+          "preemption_capability": false,
+          "preemption_vulnerability": false,
+          "priority_level": 15
+        }
+      },
+      "apn_name": "magma.ipv4"
+    },
+    "oai.ipv4": {
+      "apn_configuration": {
+        "ambr": {
+          "max_bandwidth_dl": 200000000,
+          "max_bandwidth_ul": 100000000
+        },
+        "qos_profile": {
+          "class_id": 9,
+          "preemption_capability": true,
+          "preemption_vulnerability": false,
+          "priority_level": 15
+        }
+      },
+      "apn_name": "oai.ipv4"
+    }
+  },
   "networksFull": {
     "test" : {
       "type": "lte",
@@ -1567,7 +1638,101 @@
           "tier": "default"
         }
       }
-    }
+    },
+    "test_feg_lte_network": {
+      "type": "feg_lte",
+        "cellular": {
+          "epc": {
+            "default_rule_id": "default_rule_1",
+            "gx_gy_relay_enabled": true,
+            "hss_relay_enabled": true,
+            "lte_auth_amf": "gAA=",
+            "lte_auth_op": "EREREREREREREREREREREQ==",
+            "mcc": "001",
+            "mnc": "01",
+            "mobility": {
+              "ip_allocation_mode": "NAT",
+              "nat": {
+                "ip_blocks": [
+                  "192.168.0.0/16"
+                ]
+              },
+              "reserved_addresses": [
+                "192.168.0.1"
+              ],
+              "static": {
+                "ip_blocks_by_tac": {
+                  "1": [
+                    "192.168.0.0/16"
+                  ],
+                  "2": [
+                    "172.10.0.0/16",
+                    "172.20.0.0/16"
+                  ]
+                }
+              }
+            },
+            "network_services": [
+              "dpi",
+              "policy_enforcement"
+            ],
+            "sub_profiles": {
+              "additionalProp1": {
+                "max_dl_bit_rate": 20000000,
+                "max_ul_bit_rate": 100000000
+              },
+              "additionalProp2": {
+                "max_dl_bit_rate": 20000000,
+                "max_ul_bit_rate": 100000000
+              },
+              "additionalProp3": {
+                "max_dl_bit_rate": 20000000,
+                "max_ul_bit_rate": 100000000
+              }
+            },
+            "tac": 1
+          },
+          "feg_network_id": "test_feg_network",
+          "ran": {
+            "bandwidth_mhz": 20,
+            "tdd_config": {
+              "earfcndl": 44590,
+              "special_subframe_pattern": 7,
+              "subframe_assignment": 2
+            }
+          }
+        },
+        "description": "Foobar network",
+        "dns": {
+          "enable_caching": false,
+          "local_ttl": 0,
+          "records": [
+            {
+              "a_record": [
+                "192.88.99.142"
+              ],
+              "aaaa_record": [
+                "2001:0db8:85a3:0000:0000:8a2e:0370:7334"
+              ],
+              "cname_record": [
+                "cname.example.com"
+              ],
+              "domain": "example.com"
+            }
+          ]
+        },
+        "features": {
+          "features": {
+            "featureName1": "featureProp1",
+            "featureName2": "featureProp2"
+          }
+        },
+        "federation": {
+          "feg_network_id": "test_feg_network"
+        },
+        "id": "test_feg_lte_network",
+        "name": "Test Feg LTE Network Description"
+      }
   },
   "subscribers": {
     "IMSI001010002220018": {

@@ -18,6 +18,7 @@ magma_services:
   - pipelined
   - sessiond
   - eap_aka
+  - eap_sim
   - aaa_server
   - redis
   - radius
@@ -79,7 +80,7 @@ metricsd:
   sync_interval: 60 # How frequently to sync to cloud in seconds
   grpc_timeout: 30 # Timeout in seconds
   queue_length: 1000 # Number of failed samples to enqueue for resend
-  max_grpc_msg_size_mb: 4 # Max message size for gRPC channel in MBs
+  max_grpc_msg_size_mb: 40 # Max message size for gRPC channel in MBs
 
   # An optional function  to mutate metrics before they are sent to the cloud
   # A string in the form path.to.module.fn_name
@@ -91,10 +92,12 @@ metricsd:
     - pipelined
     - sessiond
     - eap_aka
+    - eap_sim
     - aaa_server
     - radiusd
     - directoryd
     - state
+    - health
 
 # Services for which magmad grpc status check restart recovery is enabled
 services_to_restart:

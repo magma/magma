@@ -53,8 +53,7 @@
 /* Map task id to printable name. */
 const task_info_t tasks_info[] = {
     {0, "TASK_UNKNOWN", "ipc://TASK_UNKNOWN"},
-#define TASK_DEF(tHREADiD, tHREADpORT)                                         \
-  {tHREADiD##_THREAD, #tHREADiD, "tcp://127.0.0.1:" #tHREADpORT},
+#define TASK_DEF(tHREADiD) {tHREADiD##_THREAD, #tHREADiD, "ipc://" #tHREADiD},
 #include <tasks_def.h>
 #undef TASK_DEF
 };

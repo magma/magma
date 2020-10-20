@@ -311,6 +311,10 @@ ue_mm_context_t* mme_app_get_ue_context_for_timer(
 void mme_app_handle_modify_bearer_rsp(
     itti_s11_modify_bearer_response_t* const s11_modify_bearer_response,
     ue_mm_context_t* ue_context_p);
+
+void mme_app_get_user_location_information(
+    Uli_t* uli_t_p, const ue_mm_context_t* ue_context_p);
+
 #define ATTACH_REQ (1 << 0)
 #define TAU_REQUEST (1 << 1)
 #define INTIAL_CONTEXT_SETUP_PROCEDURE_FAILED 0x00

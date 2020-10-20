@@ -113,12 +113,16 @@ int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP) {
   if (emm_ctxt_p != NULL) {
     ue_mm_context_t* ue_mm_context_p =
         PARENT_STRUCT(emm_ctxt_p, struct ue_mm_context_s, emm_context);
-    /* check if the non EPS service control is enable and combined attach*/
+    /* check if the non EPS service control is enable and combined attach. If
+     * in SMS_ORC8R, we still want to send the uplink message, but we should
+     * disable vlr checks since SGs is not present.*/
     if (((_esm_data.conf.features & MME_API_SMS_SUPPORTED) ||
-         (_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED)) &&
+         (_esm_data.conf.features & MME_API_CSFB_SMS_SUPPORTED) ||
+         (_esm_data.conf.features & MME_API_SMS_ORC8R_SUPPORTED)) &&
         (emm_ctxt_p->attach_type == EMM_ATTACH_TYPE_COMBINED_EPS_IMSI)) {
-      // check if vlr reliable flag is true for sgs association
-      if (mme_ue_context_get_ue_sgs_vlr_reliable(ue_id) == true) {
+      // check if vlr reliable flag is true for sgs association.
+      if (mme_ue_context_get_ue_sgs_vlr_reliable(ue_id) ||
+          (_esm_data.conf.features & MME_API_SMS_ORC8R_SUPPORTED)) {
         if (IS_EMM_CTXT_PRESENT_IMEISV(emm_ctxt_p)) {
           p_imeisv = &emm_ctxt_p->_imeisv;
         }
@@ -132,7 +136,8 @@ int emm_proc_uplink_nas_transport(mme_ue_s1ap_id_t ue_id, bstring nas_msg_pP) {
 
         nas_itti_sgsap_uplink_unitdata(
             imsi_str, strlen(imsi_str), nas_msg_pP, p_imeisv, p_mob_st_clsMark2,
-            &emm_ctxt_p->originating_tai, &ue_mm_context_p->e_utran_cgi);
+            &emm_ctxt_p->originating_tai, &ue_mm_context_p->e_utran_cgi,
+            _esm_data.conf.features & MME_API_SMS_ORC8R_SUPPORTED);
       } else {
         if (emm_ctxt_p->is_imsi_only_detach == true) {
           OAILOG_DEBUG(

@@ -25,6 +25,7 @@ ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {
   final_action_info.final_action = marshaled.final_action_info.final_action;
   final_action_info.redirect_server =
       marshaled.final_action_info.redirect_server;
+  final_action_info.restrict_rules = marshaled.final_action_info.restrict_rules;
 
   reauth_state   = marshaled.reauth_state;
   service_state  = marshaled.service_state;
@@ -38,10 +39,11 @@ StoredChargingGrant ChargingGrant::marshal() {
   marshaled.final_action_info.final_action = final_action_info.final_action;
   marshaled.final_action_info.redirect_server =
       final_action_info.redirect_server;
-  marshaled.reauth_state  = reauth_state;
-  marshaled.service_state = service_state;
-  marshaled.expiry_time   = expiry_time;
-  marshaled.credit        = credit.marshal();
+  marshaled.final_action_info.restrict_rules = final_action_info.restrict_rules;
+  marshaled.reauth_state                     = reauth_state;
+  marshaled.service_state                    = service_state;
+  marshaled.expiry_time                      = expiry_time;
+  marshaled.credit                           = credit.marshal();
   return marshaled;
 }
 
@@ -54,8 +56,19 @@ void ChargingGrant::receive_charging_grant(
   is_final_grant = p_credit.is_final();
   if (is_final_grant) {
     final_action_info.final_action = p_credit.final_action();
-    if (p_credit.final_action() == ChargingCredit_FinalAction_REDIRECT) {
-      final_action_info.redirect_server = p_credit.redirect_server();
+    switch (final_action_info.final_action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        final_action_info.redirect_server = p_credit.redirect_server();
+        break;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        // Clear the previous restrict rules
+        final_action_info.restrict_rules.clear();
+        for (auto rule : p_credit.restrict_rules()) {
+          final_action_info.restrict_rules.push_back(rule);
+        }
+        break;
+      default:  // do nothing
+        break;
     }
     log_final_action_info();
   }
@@ -100,19 +113,31 @@ CreditUsage ChargingGrant::get_credit_usage(
   p_usage.set_bytes_tx(credit_usage.bytes_tx);
   p_usage.set_bytes_rx(credit_usage.bytes_rx);
   p_usage.set_type(update_type);
+
+  // add the Requested-Service-Unit only if we are not on final grant
+  RequestedUnits requestedUnits;
+  if (is_final_grant) {
+    requestedUnits.set_total(0);
+    requestedUnits.set_tx(0);
+    requestedUnits.set_rx(0);
+  } else {
+    requestedUnits = credit.get_requested_credits_units();
+  }
+  p_usage.mutable_requested_units()->CopyFrom(requestedUnits);
   return p_usage;
 }
 
 bool ChargingGrant::get_update_type(
     CreditUsage::UpdateType* update_type) const {
   if (credit.is_reporting()) {
+    MLOG(MDEBUG) << "is_reporting is True , not sending update";
     return false;  // No update
   }
   if (reauth_state == REAUTH_REQUIRED) {
     *update_type = CreditUsage::REAUTH_REQUIRED;
     return true;
   }
-  if (is_final_grant && credit.is_quota_exhausted(1)) {
+  if (is_final_grant) {
     // Don't request updates if this is the final grant
     return false;
   }
@@ -206,13 +231,27 @@ void ChargingGrant::log_final_action_info() const {
   if (is_final_grant) {
     final_action += "final action: ";
     final_action += final_action_to_str(final_action_info.final_action);
-    if (final_action_info.final_action == ChargingCredit_FinalAction_REDIRECT) {
-      final_action += ", redirect_server: ";
-      final_action +=
-          final_action_info.redirect_server.redirect_server_address();
+    switch (final_action_info.final_action) {
+      case ChargingCredit_FinalAction_REDIRECT:
+        final_action += ", redirect_server: ";
+        final_action +=
+            final_action_info.redirect_server.redirect_server_address();
+        break;
+      case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+        final_action += ", restrict_rules: { ";
+        for (auto rule : final_action_info.restrict_rules) {
+          final_action += rule + " ";
+        }
+        final_action += "}";
+        break;
+      default:  // do nothing;
+        break;
     }
   }
   MLOG(MINFO) << "This is a final credit, with " << final_action;
 }
 
+void ChargingGrant::set_reporting(bool reporting) {
+  credit.set_reporting(reporting);
+}
 }  // namespace magma

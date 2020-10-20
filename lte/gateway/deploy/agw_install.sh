@@ -8,7 +8,7 @@ SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
 KVERS=$(uname -r)
-MAGMA_VERSION="v1.1"
+MAGMA_VERSION="v1.3"
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then

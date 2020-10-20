@@ -80,7 +80,14 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return ret, nil
 	}
 
-	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs))
+	var haPairConfigs *models.CwfHaPairConfigs
+	haPairEnt, err := graph.GetFirstAncestorOfType(gwConfig, cwf.CwfHAPairType)
+	if err != nil {
+		haPairConfigs = nil
+	} else {
+		haPairConfigs = haPairEnt.Config.(*models.CwfHaPairConfigs)
+	}
+	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs), haPairConfigs)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -92,7 +99,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	return ret, nil
 }
 
-func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *models.GatewayCwfConfigs) (map[string]proto.Message, error) {
+func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *models.GatewayCwfConfigs, haPairConfigs *models.CwfHaPairConfigs) (map[string]proto.Message, error) {
 	ret := map[string]proto.Message{}
 	if nwConfig == nil {
 		return ret, nil
@@ -113,13 +120,18 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return nil, err
 	}
-
 	eapAka := nwConfig.EapAka
+	eapSim := nwConfig.EapSim
 	aaa := nwConfig.AaaServer
 	if eapAka != nil {
 		mc := &feg_mconfig.EapAkaConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(eapAka, mc)
 		ret["eap_aka"] = mc
+	}
+	if eapSim != nil {
+		mc := &feg_mconfig.EapSimConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(eapSim, mc)
+		ret["eap_sim"] = mc
 	}
 	if aaa != nil {
 		mc := &feg_mconfig.AAAConfig{LogLevel: protos.LogLevel_INFO}
@@ -137,8 +149,8 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &lte_mconfig.SessionD{
-		LogLevel:     protos.LogLevel_INFO,
-		RelayEnabled: true,
+		LogLevel:         protos.LogLevel_INFO,
+		GxGyRelayEnabled: true,
 		WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 			TerminateOnExhaust: true,
 			Method:             lte_mconfig.WalletExhaustDetection_GxTrackedRules,
@@ -151,22 +163,16 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		LogLevel: protos.LogLevel_INFO,
 	}
 	healthCfg := gwConfig.GatewayHealthConfigs
-	if healthCfg != nil {
-		mc := &cwf_mconfig.CwfGatewayHealthConfig{
-			CpuUtilThresholdPct: healthCfg.CPUUtilThresholdPct,
-			MemUtilThresholdPct: healthCfg.MemUtilThresholdPct,
-			GreProbeInterval:    healthCfg.GreProbeIntervalSecs,
-			IcmpProbePktCount:   healthCfg.IcmpProbePktCount,
-		}
-		protos.FillIn(healthCfg, mc)
-		mc.GrePeers = getHealthServiceGrePeers(allowedGrePeers)
-		ret["health"] = mc
-	} else {
-		mc := &cwf_mconfig.CwfGatewayHealthConfig{
-			GrePeers: getHealthServiceGrePeers(allowedGrePeers),
-		}
-		ret["health"] = mc
+	mc := &cwf_mconfig.CwfGatewayHealthConfig{
+		GrePeers: getHealthServiceGrePeers(allowedGrePeers),
 	}
+	if haPairConfigs != nil {
+		mc.ClusterVirtualIp = haPairConfigs.TransportVirtualIP
+	}
+	if healthCfg != nil {
+		protos.FillIn(healthCfg, mc)
+	}
+	ret["health"] = mc
 
 	return ret, nil
 }

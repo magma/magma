@@ -54,7 +54,11 @@ class TestWrapper(object):
     TEST_IP_BLOCK = "192.168.128.0/24"
     MSX_S1_RETRY = 2
 
-    def __init__(self, stateless_mode=MagmadUtil.stateless_cmds.DISABLE):
+    def __init__(
+        self,
+        stateless_mode=MagmadUtil.stateless_cmds.DISABLE,
+        apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
+    ):
         """
         Initialize the various classes required by the tests and setup.
         """
@@ -77,6 +81,7 @@ class TestWrapper(object):
         self._mobility_util.cleanup()
         self._magmad_util = MagmadUtil(magmad_client)
         self._magmad_util.config_stateless(stateless_mode)
+        self._magmad_util.config_apn_correction(apn_correction)
         # gateway tests don't require restart, just wait for healthy now
         self._gateway_services = GatewayServicesUtil()
         if not self.wait_gateway_healthy:
@@ -124,7 +129,10 @@ class TestWrapper(object):
     def _issue_s1setup_req(self):
         """ Issue the actual setup request and get the response"""
         req = None
-        assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.ENB_S1_SETUP_REQ, req) == 0
+        assert (
+            self._s1_util.issue_cmd(s1ap_types.tfwCmd.ENB_S1_SETUP_REQ, req)
+            == 0
+        )
         response = self._s1_util.get_response()
         assert response.msg_type == s1ap_types.tfwCmd.ENB_S1_SETUP_RESP.value
         return response.cast(s1ap_types.FwNbS1setupRsp_t)
@@ -159,9 +167,14 @@ class TestWrapper(object):
         req = s1ap_types.ueAppConfig_t()
         req.nasProcGuardTimer_pr.pres = True
         req.nasProcGuardTimer_pr.nas_proc_guard_timer = 5
-        assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_APPL_CONFIG, req) == 0
+        assert (
+            self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_APPL_CONFIG, req) == 0
+        )
         response = self._s1_util.get_response()
-        assert s1ap_types.tfwCmd.UE_APP_CONFIG_COMPLETE_IND.value == response.msg_type
+        assert (
+            s1ap_types.tfwCmd.UE_APP_CONFIG_COMPLETE_IND.value
+            == response.msg_type
+        )
 
     def _getAddresses(self, *ues):
         """ Retrieve IP addresses for the given UEs
@@ -236,11 +249,18 @@ class TestWrapper(object):
         reqs = self._sub_util.add_sub(num_ues=num_ues)
         for i in range(num_ues):
             print(
-                "************************* UE device config for ue_id ", reqs[i].ue_id
+                "************************* UE device config for ue_id ",
+                reqs[i].ue_id,
             )
-            assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0
+            assert (
+                self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i])
+                == 0
+            )
             response = self._s1_util.get_response()
-            assert s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value == response.msg_type
+            assert (
+                s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value
+                == response.msg_type
+            )
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
             self.configAPN(
@@ -250,11 +270,18 @@ class TestWrapper(object):
         for i in range(num_ues):
             reqs[i].ue_id = 2
             print(
-                "************************* UE device config for ue_id ", reqs[i].ue_id
+                "************************* UE device config for ue_id ",
+                reqs[i].ue_id,
             )
-            assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0
+            assert (
+                self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i])
+                == 0
+            )
             response = self._s1_util.get_response()
-            assert s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value == response.msg_type
+            assert (
+                s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value
+                == response.msg_type
+            )
             self._configuredUes.append(reqs[i])
 
         self.check_gw_health_after_ue_load()
@@ -264,11 +291,18 @@ class TestWrapper(object):
         reqs = self._sub_util.add_sub(num_ues=num_ues)
         for i in range(num_ues):
             print(
-                "************************* UE device config for ue_id ", reqs[i].ue_id
+                "************************* UE device config for ue_id ",
+                reqs[i].ue_id,
             )
-            assert self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i]) == 0
+            assert (
+                self._s1_util.issue_cmd(s1ap_types.tfwCmd.UE_CONFIG, reqs[i])
+                == 0
+            )
             response = self._s1_util.get_response()
-            assert s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value == response.msg_type
+            assert (
+                s1ap_types.tfwCmd.UE_CONFIG_COMPLETE_IND.value
+                == response.msg_type
+            )
             # APN configuration below can be overwritten in the test case
             # after configuring UE device.
             self.configAPN(
@@ -313,6 +347,9 @@ class TestWrapper(object):
         Returns: a TrafficTest object, the traffic test generated based on the
             given UEs
         """
+        # Configure downlink route in TRF server
+        assert self._trf_util.update_dl_route(self.TEST_IP_BLOCK)
+
         ips = self._getAddresses(*ues)
         for ip, ue in zip(ips, ues):
             if not ip:
@@ -320,7 +357,9 @@ class TestWrapper(object):
                     "Encountered invalid IP for UE ID %s."
                     " Are you sure the UE is attached?" % ue
                 )
-        return self._trf_util.generate_traffic_test(ips, is_uplink=False, **kwargs)
+        return self._trf_util.generate_traffic_test(
+            ips, is_uplink=False, **kwargs
+        )
 
     def configUplinkTest(self, *ues, **kwargs):
         """ Set up an uplink test, returning a TrafficTest object
@@ -339,7 +378,9 @@ class TestWrapper(object):
                     "Encountered invalid IP for UE ID %s."
                     " Are you sure the UE is attached?" % ue
                 )
-        return self._trf_util.generate_traffic_test(ips, is_uplink=True, **kwargs)
+        return self._trf_util.generate_traffic_test(
+            ips, is_uplink=True, **kwargs
+        )
 
     def get_gateway_services_util(self):
         """ Not a property, so return object is callable """
@@ -397,15 +438,22 @@ class TestWrapper(object):
         for idx1 in range(num_of_enbs):
             req.multiEnbCfgParam[idx1].cell_id = enb_list[idx1][CELLID_COL_IDX]
             req.multiEnbCfgParam[idx1].tac = enb_list[idx1][TAC_COL_IDX]
-            req.multiEnbCfgParam[idx1].enbType = enb_list[idx1][ENBTYPE_COL_IDX]
-            req.multiEnbCfgParam[idx1].plmn_length = enb_list[idx1][PLMN_LENGTH_IDX]
+            req.multiEnbCfgParam[idx1].enbType = enb_list[idx1][
+                ENBTYPE_COL_IDX
+            ]
+            req.multiEnbCfgParam[idx1].plmn_length = enb_list[idx1][
+                PLMN_LENGTH_IDX
+            ]
             for idx2 in range(req.multiEnbCfgParam[idx1].plmn_length):
                 val = enb_list[idx1][PLMNID_COL_IDX][idx2]
                 req.multiEnbCfgParam[idx1].plmn_id[idx2] = int(val)
 
         print("***************** Sending Multiple Enb Config Request\n")
         assert (
-            self._s1_util.issue_cmd(s1ap_types.tfwCmd.MULTIPLE_ENB_CONFIG_REQ, req) == 0
+            self._s1_util.issue_cmd(
+                s1ap_types.tfwCmd.MULTIPLE_ENB_CONFIG_REQ, req
+            )
+            == 0
         )
 
     def sendActDedicatedBearerAccept(self, ue_id, bearerId):

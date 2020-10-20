@@ -504,6 +504,25 @@ func (m *TierImage) ToDeleteImageUpdateCriteria(networkID, tierID, imageName str
 	return configurator.EntityUpdateCriteria{}, merrors.ErrNotFound
 }
 
+func (m *GatewayVpnConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	gatewayConfig := &MagmadGatewayConfigs{}
+	err := gatewayConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	gatewayConfig.Vpn = m
+	return gatewayConfig.ToUpdateCriteria(networkID, gatewayID)
+}
+
+func (m *GatewayVpnConfigs) FromBackendModels(networkID string, gatewayID string) error {
+	config, err := configurator.LoadEntityConfig(networkID, orc8r.MagmadGatewayType, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = *config.(*MagmadGatewayConfigs).Vpn
+	return nil
+}
+
 func getGatewayTKs(gateways []models.GatewayID) []storage.TypeAndKey {
 	return funk.Map(
 		gateways,

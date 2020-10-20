@@ -41,6 +41,8 @@
 #define UDP_SRC_PORT 0x10
 #define UDP_DST_PORT 0x20
 #define IP_PROTO 0x40
+#define SRC_IPV6 0x80
+#define DST_IPV6 0x100
 
 // This is the default precedence value for flow rules.
 // A flow rule with precedence value 0 takes precedence over
@@ -54,15 +56,23 @@
 // precedence over latter rules.
 #define MAX_PRIORITY 65535
 
-struct ipv4flow_dl {
-  struct in_addr dst_ip;
-  struct in_addr src_ip;
+struct ip_flow_dl {
   uint32_t set_params;
   uint16_t tcp_dst_port;
   uint16_t tcp_src_port;
   uint16_t udp_dst_port;
   uint16_t udp_src_port;
   uint8_t ip_proto;
+  union {
+    struct {
+      struct in_addr dst_ip;
+      struct in_addr src_ip;
+    };
+    struct {
+      struct in6_addr dst_ip6;
+      struct in6_addr src_ip6;
+    };
+  };
 };
 
 /*
@@ -127,16 +137,18 @@ struct gtp_tunnel_ops {
   int (*uninit)(void);
   int (*reset)(void);
   int (*add_tunnel)(
-      struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
-      Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl);
-  int (*del_tunnel)(
-      struct in_addr ue, uint32_t i_tei, uint32_t o_tei,
-      struct ipv4flow_dl* flow_dl);
-  int (*discard_data_on_tunnel)(
-      struct in_addr ue, uint32_t i_tei, struct ipv4flow_dl* flow_dl);
-  int (*forward_data_on_tunnel)(
-      struct in_addr ue, uint32_t i_tei, struct ipv4flow_dl* flow_dl,
+      struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
+      uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
       uint32_t flow_precedence_dl);
+  int (*del_tunnel)(
+      struct in_addr enb, struct in_addr ue, struct in6_addr* ue_ipv6,
+      uint32_t i_tei, uint32_t o_tei, struct ip_flow_dl* flow_dl);
+  int (*discard_data_on_tunnel)(
+      struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+      struct ip_flow_dl* flow_dl);
+  int (*forward_data_on_tunnel)(
+      struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
+      struct ip_flow_dl* flow_dl, uint32_t flow_precedence_dl);
   int (*add_paging_rule)(struct in_addr ue);
   int (*delete_paging_rule)(struct in_addr ue);
   int (*send_end_marker)(struct in_addr enbode, uint32_t i_tei);
@@ -150,6 +162,7 @@ const struct gtp_tunnel_ops* gtp_tunnel_ops_init_libgtpnl(void);
 #endif
 
 int gtpv1u_add_tunnel(
-    struct in_addr ue, int vlan, struct in_addr enb, uint32_t i_tei, uint32_t o_tei,
-    Imsi_t imsi, struct ipv4flow_dl* flow_dl, uint32_t flow_precedence_dl);
+    struct in_addr ue, struct in6_addr* ue_ipv6, int vlan, struct in_addr enb,
+    uint32_t i_tei, uint32_t o_tei, Imsi_t imsi, struct ip_flow_dl* flow_dl,
+    uint32_t flow_precedence_dl);
 #endif /* FILE_GTPV1_U_SEEN */

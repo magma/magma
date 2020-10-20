@@ -49,7 +49,7 @@ First define some necessary variables
 ```bash
 export PUBLISH=MAGMA_ROOT/orc8r/tools/docker/publish.sh  # or add to path
 export REGISTRY=registry.hub.docker.com/REGISTRY  # or desired registry
-export MAGMA_TAG=1.1.0-master  # or desired tag
+export MAGMA_TAG=1.3.0-master  # or desired tag
 ```
 
 Build and publish Orchestrator images
@@ -77,14 +77,20 @@ To start, create a private GitHub repo to use as your Helm chart repo. We'll
 refer to this as `GITHUB_REPO`.
 
 Next, package the Magma Helm charts and publish them to the GitHub
-repo
+repo. You'll have to check out a temporary commit to build the `1.4.36` version
+of the orc8r chart for 1.3.x because `1.4.37` on the head of the release
+branch has some changes that you shouldn't try to deploy yet.
 
 ```bash
+cd MAGMA_ROOT
+git checkout a7580153
+
 mkdir ~/magma-charts && cd ~/magma-charts
 git init
 helm package MAGMA_ROOT/orc8r/cloud/helm/orc8r/ && helm repo index .
 git add . && git commit -m 'Initial chart commit'
 git remote add origin GITHUB_REPO_URL && git push -u origin master
+
 ```
 
 To confirm, reference the published charts locally

@@ -126,5 +126,4 @@ class S6aProxyRpcServicer(s6a_proxy_pb2_grpc.S6aProxyServicer):
             sec_apn.pdn = (
                 s6a_proxy_pb2.UpdateLocationAnswer.APNConfiguration.IPV4
             )
-
         return ula

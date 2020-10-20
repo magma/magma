@@ -44,7 +44,7 @@
   template:
     src: env.j2
     dest: /var/opt/magma/docker/.env
-    mode: 0755
+    mode: 0400
 
 - name: Clone the git repo
   git:
@@ -99,11 +99,13 @@
   copy: 
    src: xwfm_update.sh
    dest: /var/opt/magma/docker/
+   mode: '0755'
 
 - name: place the cron file
   copy:
-   content: "*/5 * * * * root /var/opt/magma/docker/xwfm_update.sh"
+   src: xwfm_cron
    dest: /etc/cron.d/xwfm_cron
+   mode: '0755'
 
 - name: bring up the containers.
   script: xwfm_update.sh

@@ -14,7 +14,7 @@ from typing import Optional
 
 from magma.pipelined.openflow.registers import IMSI_REG, DIRECTION_REG, \
     is_valid_direction, Direction, RULE_VERSION_REG, PASSTHROUGH_REG, \
-    VLAN_TAG_REG, DPI_REG
+    VLAN_TAG_REG, DPI_REG, RULE_NUM_REG
 
 
 class MagmaMatch(object):
@@ -25,10 +25,12 @@ class MagmaMatch(object):
     """
 
     def __init__(self, imsi: int = None, direction: Optional[Direction] = None,
-                 rule_version: int = None, passthrough: int = None,
-                 vlan_tag: int = None, app_id: int = None, **kwargs):
+                 rule_num: int = None, rule_version: int = None,
+                 passthrough: int = None, vlan_tag: int = None,
+                 app_id: int = None, **kwargs):
         self.imsi = imsi
         self.direction = direction
+        self.rule_num = rule_num
         self.rule_version = rule_version
         self.passthrough = passthrough
         self.vlan_tag = vlan_tag
@@ -50,6 +52,8 @@ class MagmaMatch(object):
             ryu_match[DIRECTION_REG] = self.direction.value
         if self.imsi is not None:
             ryu_match[IMSI_REG] = self.imsi
+        if self.rule_num is not None:
+            ryu_match[RULE_NUM_REG] = self.rule_num
         if self.rule_version is not None:
             ryu_match[RULE_VERSION_REG] = self.rule_version
         if self.passthrough is not None:

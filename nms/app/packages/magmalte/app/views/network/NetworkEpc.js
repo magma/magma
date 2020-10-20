@@ -25,17 +25,18 @@ import IconButton from '@material-ui/core/IconButton';
 import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItemText from '@material-ui/core/ListItemText';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import LteNetworkContext from '../../components/context/LteNetworkContext';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
 import React from 'react';
 import Select from '@material-ui/core/Select';
+import Switch from '@material-ui/core/Switch';
 import Visibility from '@material-ui/icons/Visibility';
 import VisibilityOff from '@material-ui/icons/VisibilityOff';
 
 import {AltFormField} from '../../components/FormField';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
-import {useState} from 'react';
 
 type Props = {
   epcConfigs: network_epc_configs,
@@ -46,32 +47,32 @@ export default function NetworkEpc(props: Props) {
     [
       {
         category: 'Policy Enforcement Enabled',
-        value: props.epcConfigs.relay_enabled ? 'Enabled' : 'Disabled',
+        value: props.epcConfigs?.hss_relay_enabled ? 'Enabled' : 'Disabled',
       },
     ],
     [
       {
         category: 'LTE Auth AMF',
-        value: props.epcConfigs.lte_auth_amf,
+        value: props.epcConfigs?.lte_auth_amf,
         obscure: true,
       },
     ],
     [
       {
         category: 'MCC',
-        value: props.epcConfigs.mcc,
+        value: props.epcConfigs?.mcc,
       },
     ],
     [
       {
         category: 'MNC',
-        value: props.epcConfigs.mnc,
+        value: props.epcConfigs?.mnc,
       },
     ],
     [
       {
         category: 'TAC',
-        value: props.epcConfigs.tac,
+        value: props.epcConfigs?.tac,
       },
     ],
   ];
@@ -91,31 +92,44 @@ export function NetworkEpcEdit(props: EditProps) {
   const [showPassword, setShowPassword] = React.useState(false);
   const enqueueSnackbar = useEnqueueSnackbar();
   const [error, setError] = useState('');
+  const ctx = useContext(LteNetworkContext);
+  const IPallocationMode = ['NAT', 'DHCP_BROADCAST'];
   const [epcConfigs, setEpcConfigs] = useState<network_epc_configs>(
-    props.epcConfigs || {
-      cloud_subscriberdb_enabled: false,
-      default_rule_id: 'default_rule_1',
-      lte_auth_amf: 'gAA=',
-      lte_auth_op: 'EREREREREREREREREREREQ==',
-      mcc: '001',
-      mnc: '01',
-      network_services: ['policy_enforcement'],
-      relay_enabled: false,
-      sub_profiles: {},
-      tac: 1,
+    props.epcConfigs == null || Object.keys(props.epcConfigs).length === 0
+      ? {
+          cloud_subscriberdb_enabled: false,
+          default_rule_id: 'default_rule_1',
+          lte_auth_amf: 'gAA=',
+          lte_auth_op: 'EREREREREREREREREREREQ==',
+          mcc: '001',
+          mnc: '01',
+          network_services: ['policy_enforcement'],
+          hss_relay_enabled: false,
+          gx_gy_relay_enabled: false,
+          sub_profiles: {},
+          tac: 1,
+        }
+      : props.epcConfigs,
+  );
+  const [epcMobility, setEpcMobility] = useState(
+    props.epcConfigs?.mobility || {
+      ip_allocation_mode: 'NAT',
+      enable_static_ip_assignments: false,
+      enable_multi_apn_ip_allocation: false,
     },
   );
-
+  const handleMobilityChange = (key: string, val) =>
+    setEpcMobility({...epcMobility, [key]: val});
   const onSave = async () => {
     try {
-      MagmaV1API.putLteByNetworkIdCellularEpc({
+      await ctx.updateNetworks({
         networkId: props.networkId,
-        config: epcConfigs,
+        epcConfigs: {...epcConfigs, mobility: epcMobility},
       });
+      props.onSave({...epcConfigs, mobility: epcMobility});
       enqueueSnackbar('EPC configs saved successfully', {variant: 'success'});
-      props.onSave(epcConfigs);
     } catch (e) {
-      setError(e.data?.message ?? e.message);
+      setError(e.response?.data?.message ?? e?.message);
     }
   };
 
@@ -128,10 +142,50 @@ export function NetworkEpcEdit(props: EditProps) {
           </AltFormField>
         )}
         <List>
+          <AltFormField label={'IP Allocation Mode'}>
+            <Select
+              variant={'outlined'}
+              displayEmpty={true}
+              value={epcMobility.ip_allocation_mode}
+              onChange={({target}) =>
+                handleMobilityChange('ip_allocation_mode', target.value)
+              }
+              data-testid="IpAllocationMode"
+              input={<OutlinedInput />}>
+              {IPallocationMode.map(mode => (
+                <MenuItem key={mode} value={mode}>
+                  <ListItemText primary={mode} />
+                </MenuItem>
+              ))}
+            </Select>
+          </AltFormField>
+          <AltFormField label={'Static IP Assignments'}>
+            <Switch
+              onChange={() => {
+                handleMobilityChange(
+                  'enable_static_ip_assignments',
+                  !epcMobility.enable_static_ip_assignments,
+                );
+              }}
+              checked={epcMobility.enable_static_ip_assignments}
+            />
+          </AltFormField>
+          <AltFormField label={'Multi APN IP Allocation'}>
+            <Switch
+              onChange={() => {
+                handleMobilityChange(
+                  'enable_multi_apn_ip_allocation',
+                  !epcMobility.enable_multi_apn_ip_allocation,
+                );
+              }}
+              checked={epcMobility.enable_multi_apn_ip_allocation}
+              disabled={!(epcMobility.ip_allocation_mode === 'DHCP_BROADCAST')}
+            />
+          </AltFormField>
           <AltFormField label={'Policy Enforcement Enabled'}>
             <Select
               variant={'outlined'}
-              value={epcConfigs.relay_enabled ? 1 : 0}
+              value={epcConfigs.hss_relay_enabled ? 1 : 0}
               onChange={({target}) => {
                 setEpcConfigs({
                   ...epcConfigs,

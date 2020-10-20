@@ -21,8 +21,6 @@ replace (
 	fbc/lib/go/oc => ../../feg/radius/lib/go/oc
 	fbc/lib/go/radius => ../../feg/radius/lib/go/radius
 
-	github.com/fiorix/go-diameter/v4 => github.com/emakeev/go-diameter/v4 v4.0.6
-
 	magma/cwf/cloud/go => ../../cwf/cloud/go
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
@@ -37,25 +35,24 @@ replace (
 require (
 	fbc/cwf/radius v0.0.0
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
-	github.com/Microsoft/go-winio v0.4.14 // indirect
 	github.com/coreos/go-iptables v0.4.5
-	github.com/docker/distribution v2.7.1+incompatible // indirect
 	github.com/docker/docker v1.13.1
-	github.com/docker/go-connections v0.4.0 // indirect
-	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9
+	github.com/fiorix/go-diameter/v4 v4.0.2
 	github.com/go-openapi/swag v0.19.5
 	github.com/go-redis/redis v6.15.5+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.4.2
 	github.com/onsi/ginkgo v1.14.0 // indirect
-	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pkg/errors v0.9.1
+	github.com/prometheus/client_golang v1.5.1
 	github.com/shirou/gopsutil v2.20.3+incompatible
 	github.com/sparrc/go-ping v0.0.0-20190613174326-4e5b6552494c
 	github.com/stretchr/testify v1.5.1
+	github.com/vishvananda/netlink v1.1.0
 	golang.org/x/net v0.0.0-20200625001655-4c5254603344
+	golang.org/x/sys v0.0.0-20200722175500-76b94024e4b6 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
-	google.golang.org/grpc v1.27.1
+	google.golang.org/grpc v1.31.0
 	magma/cwf/cloud/go v0.0.0-00010101000000-000000000000
 	magma/feg/cloud/go/protos v0.0.0
 	magma/feg/gateway v0.0.0-00010101000000-000000000000

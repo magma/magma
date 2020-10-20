@@ -225,12 +225,12 @@ bstring bfromcstr(const char* str) {
   return b;
 }
 
-/*  bstring bfromcstr_for_nas_msg_container (const char * str)
+/*  bstring bfromcstr_with_str_len (const char * str, int len)
  *
  *  Create a bstring which contains the contents of the '\0' terminated char *
  *  buffer str.
  */
-bstring bfromcstr_for_nas_msg_container(const char* str, int len) {
+bstring bfromcstr_with_str_len(const char* str, int len) {
   bstring b;
   int i;
   int j;
@@ -247,7 +247,7 @@ bstring bfromcstr_for_nas_msg_container(const char* str, int len) {
     bstr__free(b);
     return NULL;
   }
-  bstr__memcpy(b->data, str, j - 1);
+  bstr__memcpy(b->data, str, j);
   b->data[j] = '\0';
   return b;
 }

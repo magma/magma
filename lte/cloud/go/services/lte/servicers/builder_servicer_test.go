@@ -121,9 +121,9 @@ func TestBuilder_Build(t *testing.T) {
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
 			Lac:                      1,
-			RelayEnabled:             false,
+			HssRelayEnabled:          false,
 			CloudSubscriberdbEnabled: false,
-			EnableDnsCaching:         true,
+			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{15000},
 			NatEnabled:               true,
 		},
@@ -138,21 +138,25 @@ func TestBuilder_Build(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:     protos.LogLevel_INFO,
-			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  nil,
-			RelayEnabled: false,
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &lte_mconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
-			RelayEnabled: false,
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
 		},
 	}
 
@@ -203,7 +207,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	}
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("", ""),
+		Config:             newGatewayConfigNonNat("", "", ""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph := configurator.EntityGraph{
@@ -248,7 +252,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
 			Lac:                      1,
-			RelayEnabled:             false,
+			HssRelayEnabled:          false,
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               false,
@@ -264,21 +268,25 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:     protos.LogLevel_INFO,
-			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  nil,
-			RelayEnabled: false,
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &lte_mconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
-			RelayEnabled: false,
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
 		},
 	}
 	actual, err := build(&nw, &graph, "gw1")
@@ -345,7 +353,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("30", ""),
+		Config:             newGatewayConfigNonNat("30", "", ""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
@@ -373,7 +381,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 	// validate SGi vlan tag mconfig
 	lteGW = configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newGatewayConfigNonNat("44", "1.2.3.4"),
+		Config:             newGatewayConfigNonNat("44", "1.2.3.4", ""),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
 	graph = configurator.EntityGraph{
@@ -392,6 +400,36 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		},
 		SgiManagementIfaceVlan:   "44",
 		SgiManagementIfaceIpAddr: "1.2.3.4",
+	}
+
+	actual, err = build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+
+	// validate SGi ip address and gateway
+	// validate SGi vlan tag mconfig
+	lteGW = configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config:             newGatewayConfigNonNat("55", "1.2.3.4/24", "1.2.3.1"),
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	graph = configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+		},
+	}
+	expected["pipelined"] = &lte_mconfig.PipelineD{
+		LogLevel:      protos.LogLevel_INFO,
+		UeIpBlock:     "192.168.128.0/24",
+		NatEnabled:    false,
+		DefaultRuleId: "",
+		Services: []lte_mconfig.PipelineD_NetworkServices{
+			lte_mconfig.PipelineD_ENFORCEMENT,
+		},
+		SgiManagementIfaceVlan:   "55",
+		SgiManagementIfaceIpAddr: "1.2.3.4/24",
+		SgiManagementIfaceGw:     "1.2.3.1",
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -462,7 +500,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
 			Lac:                      1,
-			RelayEnabled:             false,
+			HssRelayEnabled:          false,
 			CloudSubscriberdbEnabled: false,
 			AttachedEnodebTacs:       nil,
 			NatEnabled:               true,
@@ -477,21 +515,25 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:     protos.LogLevel_INFO,
-			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  nil,
-			RelayEnabled: false,
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &lte_mconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
-			RelayEnabled: false,
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
 		},
 	}
 
@@ -590,9 +632,9 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			CsfbMcc:                  "001",
 			CsfbMnc:                  "01",
 			Lac:                      1,
-			RelayEnabled:             false,
+			HssRelayEnabled:          false,
 			CloudSubscriberdbEnabled: false,
-			EnableDnsCaching:         true,
+			EnableDnsCaching:         false,
 			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
 		},
@@ -607,21 +649,25 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 			SgiManagementIfaceVlan: "",
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:     protos.LogLevel_INFO,
-			LteAuthOp:    []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
-			LteAuthAmf:   []byte("\x80\x00"),
-			SubProfiles:  nil,
-			RelayEnabled: false,
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &lte_mconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
-			RelayEnabled: false,
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
 		},
 	}
 
@@ -671,10 +717,15 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 			Arfcn2g:              nil,
 			NonEpsServiceControl: swag.Uint32(0),
 		},
+		DNS: &lte_models.GatewayDNSConfigs{
+			DhcpServerEnabled: swag.Bool(true),
+			EnableCaching:     swag.Bool(false),
+			LocalTTL:          swag.Int32(0),
+		},
 	}
 }
 
-func newGatewayConfigNonNat(vlan string, sgi_ip string) *lte_models.GatewayCellularConfigs {
+func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string) *lte_models.GatewayCellularConfigs {
 	return &lte_models.GatewayCellularConfigs{
 		Ran: &lte_models.GatewayRanConfigs{
 			Pci:             260,
@@ -685,6 +736,7 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string) *lte_models.GatewayCellu
 			IPBlock:                    "192.168.128.0/24",
 			SgiManagementIfaceVlan:     vlan,
 			SgiManagementIfaceStaticIP: sgi_ip,
+			SgiManagementIfaceGw:       sgi_gw,
 		},
 		NonEpsService: &lte_models.GatewayNonEpsConfigs{
 			CsfbMcc:              "001",
@@ -693,6 +745,11 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string) *lte_models.GatewayCellu
 			CsfbRat:              swag.Uint32(0),
 			Arfcn2g:              nil,
 			NonEpsServiceControl: swag.Uint32(0),
+		},
+		DNS: &lte_models.GatewayDNSConfigs{
+			DhcpServerEnabled: swag.Bool(true),
+			EnableCaching:     swag.Bool(false),
+			LocalTTL:          swag.Int32(0),
 		},
 	}
 }

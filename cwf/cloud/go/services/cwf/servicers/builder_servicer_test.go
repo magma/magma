@@ -79,10 +79,20 @@ func TestBuilder_Build(t *testing.T) {
 			Config:             defaultgwConfig,
 			ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 		}
+		haPair := configurator.NetworkEntity{
+			Config: &models.CwfHaPairConfigs{TransportVirtualIP: "10.10.10.11"},
+			Type:   cwf.CwfHAPairType,
+			Key:    "pair1",
+			Associations: []storage.TypeAndKey{
+				{Type: cwf.CwfGatewayType, Key: "gw1"},
+				{Type: cwf.CwfGatewayType, Key: "gw2"},
+			},
+		}
 		graph := configurator.EntityGraph{
-			Entities: []configurator.NetworkEntity{cwfGW, gw},
+			Entities: []configurator.NetworkEntity{cwfGW, gw, haPair},
 			Edges: []configurator.GraphEdge{
 				{From: gw.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
+				{From: haPair.GetTypeAndKey(), To: cwfGW.GetTypeAndKey()},
 			},
 		}
 
@@ -126,8 +136,8 @@ func TestBuilder_Build(t *testing.T) {
 				},
 			},
 			"sessiond": &lte_mconfig.SessionD{
-				LogLevel:     protos.LogLevel_INFO,
-				RelayEnabled: true,
+				LogLevel:         protos.LogLevel_INFO,
+				GxGyRelayEnabled: true,
 				WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 					TerminateOnExhaust: true,
 					Method:             lte_mconfig.WalletExhaustDetection_GxTrackedRules,
@@ -148,6 +158,7 @@ func TestBuilder_Build(t *testing.T) {
 					{Ip: "1.2.3.4/24"},
 					{Ip: "1.1.1.1/24"},
 				},
+				ClusterVirtualIp: "10.10.10.11",
 			},
 		}
 

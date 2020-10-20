@@ -27,7 +27,20 @@ import (
 )
 
 func init() {
+	flag.Parse()
+}
 
+func createUeSimServer(store blobstore.BlobStorageFactory) (protos.UESimServer, error) {
+	config, err := servicers.GetUESimConfig()
+	if err != nil {
+		glog.Fatalf("Error getting UESim Config : %s ", err)
+		return nil, err
+	}
+	if servicers.GetBypassHssFlag(config) == true {
+		return servicers.NewUESimServerHssLess(store)
+	} else {
+		return servicers.NewUESimServer(store)
+	}
 }
 
 func main() {
@@ -40,12 +53,12 @@ func main() {
 	}
 
 	store := blobstore.NewMemoryBlobStorageFactory()
-	servicer, err := servicers.NewUESimServer(store)
+	servicer, err := createUeSimServer(store)
+
+	protos.RegisterUESimServer(srv.GrpcServer, servicer)
 	if err != nil {
 		glog.Fatalf("Error creating UE server: %s", err)
 	}
-	protos.RegisterUESimServer(srv.GrpcServer, servicer)
-
 	// Run the service
 	err = srv.Run()
 	if err != nil {

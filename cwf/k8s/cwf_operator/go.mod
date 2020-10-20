@@ -29,27 +29,27 @@ module magma/cwf/k8s/cwf_operator
 go 1.13
 
 require (
-	github.com/OneOfOne/xxhash v1.2.5 // indirect
+	github.com/docker/go-metrics v0.0.1 // indirect
+	github.com/garyburd/redigo v1.6.2 // indirect
 	github.com/go-logr/glogr v0.1.0
+	github.com/go-redis/redis v6.15.8+incompatible
+	github.com/gofrs/uuid v3.3.0+incompatible // indirect
 	github.com/gorilla/mux v1.7.4 // indirect
-	github.com/hashicorp/go-msgpack v0.5.4 // indirect
-	github.com/hashicorp/go-uuid v1.0.1 // indirect
-	github.com/miekg/dns v1.1.10 // indirect
-	github.com/mitchellh/reflectwalk v1.0.1 // indirect
 	github.com/operator-framework/operator-sdk v0.16.0
 	github.com/spf13/pflag v1.0.5
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	golang.org/x/crypto v0.0.0-20200220183623-bac4c82f6975 // indirect
-	google.golang.org/grpc v1.27.1
+	google.golang.org/grpc v1.31.0
 	helm.sh/helm/v3 v3.1.2 // indirect
 	k8s.io/api v0.17.2
 	k8s.io/apimachinery v0.17.2
 	k8s.io/client-go v12.0.0+incompatible
-
+	magma/cwf/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0
-	magma/lte/cloud/go v0.0.0 // indirect
+	magma/gateway v0.0.0
 	magma/orc8r/lib/go v0.0.0
 	magma/orc8r/lib/go/protos v0.0.0
+	rsc.io/letsencrypt v0.0.3 // indirect
 	sigs.k8s.io/controller-runtime v0.5.1
 )
 
@@ -78,7 +78,9 @@ replace (
 	k8s.io/legacy-cloud-providers => k8s.io/legacy-cloud-providers v0.0.0-20191016115753-cf0698c3a16b
 	k8s.io/metrics => k8s.io/metrics v0.0.0-20191016113814-3b1a734dba6e
 	k8s.io/sample-apiserver => k8s.io/sample-apiserver v0.0.0-20191016112829-06bb3c9d77c9
+	magma/cwf/cloud/go => ../../../cwf/cloud/go
 	magma/cwf/k8s/go => ../../../cwf/k8s/go
+	magma/feg/cloud/go => ../../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../../feg/cloud/go/protos
 	magma/gateway => ../../../orc8r/gateway/go
 	magma/lte/cloud/go => ../../../lte/cloud/go

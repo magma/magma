@@ -17,6 +17,7 @@ func NewDefaultNetworkFederationConfigs() *NetworkFederationConfigs {
 	return &NetworkFederationConfigs{
 		AaaServer:        newDefaultAaaServer(),
 		EapAka:           newDefaultEapAka(),
+		EapSim:           newDefaultEapSim(),
 		Gx:               newDefaultGx(),
 		Gy:               newDefaultGy(),
 		Health:           newDefaultHealth(),
@@ -42,6 +43,7 @@ func NewDefaultGatewayFederationConfig() *GatewayFederationConfigs {
 	return &GatewayFederationConfigs{
 		AaaServer:        newDefaultAaaServer(),
 		EapAka:           newDefaultEapAka(),
+		EapSim:           newDefaultEapSim(),
 		Gx:               newDefaultGx(),
 		Gy:               newDefaultGy(),
 		Health:           newDefaultHealth(),
@@ -70,8 +72,20 @@ func newDefaultAaaServer() *AaaServer {
 
 func newDefaultEapAka() *EapAka {
 	return &EapAka{
-		PlmnIds: []string{"123456"},
+		PlmnIds: []string{},
 		Timeout: &EapAkaTimeouts{
+			ChallengeMs:            20000,
+			ErrorNotificationMs:    10000,
+			SessionAuthenticatedMs: 5000,
+			SessionMs:              43200000,
+		},
+	}
+}
+
+func newDefaultEapSim() *EapSim {
+	return &EapSim{
+		PlmnIds: []string{},
+		Timeout: &EapSimTimeouts{
 			ChallengeMs:            20000,
 			ErrorNotificationMs:    10000,
 			SessionAuthenticatedMs: 5000,
@@ -162,7 +176,8 @@ func newDefaultHss() *Hss {
 
 func newDefaultS6a() *S6a {
 	return &S6a{
-		Server: newDefaultDiameterClientConfigs(),
+		Server:  newDefaultDiameterClientConfigs(),
+		PlmnIds: []string{"123456"},
 	}
 }
 

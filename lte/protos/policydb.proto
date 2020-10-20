@@ -14,6 +14,7 @@ limitations under the License.
 syntax = "proto3";
 
 import "orc8r/protos/common.proto";
+import "lte/protos/mobilityd.proto";
 
 package magma.lte;
 option go_package = "magma/lte/cloud/go/protos";
@@ -118,8 +119,6 @@ message FlowMatch {
     IPPROTO_VRRP = 112;
     IPPROTO_SCTP = 132;
   }
-  string ipv4_src = 1;
-  string ipv4_dst = 2;
   uint32 tcp_src = 3;
   uint32 tcp_dst = 4;
   uint32 udp_src = 5;
@@ -131,6 +130,13 @@ message FlowMatch {
   }
   Direction direction = 8;
   string app_name = 9;
+  IPAddress ip_src = 10;
+  IPAddress ip_dst = 11;
+
+  // TODO deprecate these after safe move to ip_sr/ip_dst vars
+  //reserved 1, 2;
+  string ipv4_src = 1;
+  string ipv4_dst = 2;
 }
 
 message QosArp {

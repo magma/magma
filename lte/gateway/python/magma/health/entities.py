@@ -74,10 +74,10 @@ class CoreDumps:
 
 
 class AGWHealthSummary:
-    def __init__(self, relay_enabled, nb_enbs_connected,
+    def __init__(self, hss_relay_enabled, nb_enbs_connected,
                  allocated_ips, subscriber_table, core_dumps,
                  registration_success_rate):
-        self.relay_enabled = relay_enabled
+        self.hss_relay_enabled = hss_relay_enabled
         self.nb_enbs_connected = nb_enbs_connected
         self.allocated_ips = allocated_ips
         self.subscriber_table = subscriber_table
@@ -94,7 +94,7 @@ class AGWHealthSummary:
         Earliest core-dump: {}, Latest core-dump: {}
         Registration success rate: {}
         """).format(
-            'Using Feg' if self.relay_enabled else 'Using subscriberdb',
+            'Using Feg' if self.hss_relay_enabled else 'Using subscriberdb',
             self.nb_enbs_connected,
             len(self.allocated_ips),
             len(self.subscriber_table),

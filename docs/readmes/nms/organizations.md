@@ -41,7 +41,7 @@ organization.
 
 We use [ExternalDNS](https://github.com/kubernetes-sigs/external-dns) to
 automatically set up an AWS Route53 DNS record that points
-`*.nms.youdomain.com` to the NMS application. If you're managing your
+`*.nms.yourdomain.com` to the NMS application. If you're managing your
 domain name outside of Route53, you'll have to add an NS record `<org>.nms.`
 for every new organization you add to the NMS. The list of nameservers to set
 can be found in the AWS console for the Route53 zone or as the `nameservers`
@@ -53,7 +53,7 @@ output of the `orc8r-aws` Terraform module.
 
 Create one organization and give it access to all networks. This is essentially
 the same as v1.0 when there was no tenancy support. The only difference is that
-the NMS is accessible from the URL `magma-test.youdomain.com`
+the NMS is accessible from the URL `magma-test.nms.yourdomain.com`
 
 ![Org with access to all networks](assets/nms/org_all_networks.png)
 
@@ -68,6 +68,6 @@ to the network `mpk_test`. Create a user in this organization to use it
 
 ![Add user to org](assets/nms/org_add_user.png)
 
-When you log in to `magma-test.youdomain.com` you will only be able to see the
-network `mpk_test`. If you log into `fb-test.yourdomain.com`, you will
+When you log in to `magma-test.nms.yourdomain.com` you will only be able to see the
+network `mpk_test`. If you log into `fb-test.nms.yourdomain.com`, you will
 have access to all networks.

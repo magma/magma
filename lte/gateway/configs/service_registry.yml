@@ -35,6 +35,9 @@ services:
   sessiond:
     ip_address: 127.0.0.1
     port: 50065
+  abort_session_service:
+    ip_address: 127.0.0.1
+    port: 50065
   test_service:
     ip_address: 127.0.0.1
     port: 50066
@@ -51,6 +54,9 @@ services:
     ip_address: 127.0.0.1
     port: 50071
   sgs_service:
+    ip_address: 127.0.0.1
+    port: 50073
+  sms_mme_service:
     ip_address: 127.0.0.1
     port: 50073
   s6a_service:
@@ -71,3 +77,6 @@ services:
   dpid:
     ip_address: 127.0.0.1
     port: 50077
+  smsd:
+    ip_address: 127.0.0.1
+    port: 50078

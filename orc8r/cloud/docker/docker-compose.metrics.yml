@@ -2,11 +2,13 @@ version: "3.7"
 
 services:
   prometheus-cache:
-    image: facebookincubator/prometheus-edge-hub:latest
+    image: facebookincubator/prometheus-edge-hub:1.1.0
     ports:
       - 9091:9091/tcp
+      - 9092:9092/tcp
     command:
       - '-limit=500000'
+      - '-grpc-port=9092'
     restart: always
 
   prometheus:

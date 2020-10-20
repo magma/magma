@@ -10,11 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-
 from typing import List
 from collections import defaultdict
 
 from lte.protos.pipelined_pb2 import RuleModResult
+from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.session_manager_pb2 import RuleRecord, \
     RuleRecordTable
 from ryu.controller import dpset, ofp_event
@@ -25,7 +25,10 @@ from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from magma.pipelined.app.base import MagmaController, ControllerType, \
     global_epoch
-from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.app.policy_mixin import PolicyMixin, IGNORE_STATS, \
+    PROCESS_STATS
+from magma.pipelined.policy_converters import get_ue_ip_match_args, \
+    get_eth_type
 from magma.pipelined.openflow import messages, flows
 from magma.pipelined.openflow.exceptions import MagmaOFError
 from magma.pipelined.imsi import decode_imsi, encode_imsi
@@ -37,8 +40,6 @@ from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
 
 
 ETH_FRAME_SIZE_BYTES = 14
-PROCESS_STATS = 0x0
-IGNORE_STATS = 0x1
 
 
 class EnforcementStatsController(PolicyMixin, MagmaController):
@@ -183,14 +184,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         Returns flow add messages used for rule matching.
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        version = self._session_rule_version_mapper.get_version(imsi, rule.id)
+        version = self._session_rule_version_mapper.get_version(imsi, ip_addr,
+                                                                rule.id)
         self.logger.debug(
             'Installing flow for %s with rule num %s (version %s)', imsi,
             rule_num, version)
-        inbound_rule_match = _generate_rule_match(imsi, rule_num, version,
-                                                  Direction.IN)
-        outbound_rule_match = _generate_rule_match(imsi, rule_num, version,
-                                                   Direction.OUT)
+        inbound_rule_match = _generate_rule_match(imsi, ip_addr, rule_num,
+                                                  version, Direction.IN)
+        outbound_rule_match = _generate_rule_match(imsi, ip_addr, rule_num,
+                                                   version, Direction.OUT)
 
         inbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
         outbound_rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
@@ -236,13 +238,13 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             ])
         return msgs
 
-    def _get_default_flow_msg_for_subscriber(self, _):
+    def _get_default_flow_msgs_for_subscriber(self, *_):
         return None
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         pass
 
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _install_default_flow_for_subscriber(self, imsi, ip_addr):
         pass
 
     def get_policy_usage(self, fut):
@@ -289,6 +291,10 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         if not self.init_finished:
             self.logger.debug('Setup not finished, skipping stats reply')
+            return
+
+        if self._datapath_id != ev.msg.datapath.id:
+            self.logger.debug('Ignoring stats from different bridge')
             return
 
         self.unhandled_stats_msgs.append(ev.msg.body)
@@ -375,16 +381,27 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 self._unmatched_bytes = flow_stat.byte_count
             return current_usage
         # If this is a pass through app name flow ignore stats
-        if flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
+        if SCRATCH_REGS[1] in flow_stat.match and \
+           flow_stat.match[SCRATCH_REGS[1]] == IGNORE_STATS:
             return current_usage
         sid = _get_sid(flow_stat)
+        ipv4_addr = _get_ipv4(flow_stat)
+        ipv6_addr = _get_ipv6(flow_stat)
 
         # use a compound key to separate flows for the same rule but for
         # different subscribers
         key = sid + "|" + rule_id
+        if ipv4_addr:
+            key += "|" + ipv4_addr
+        elif ipv6_addr:
+            key += "|" + ipv6_addr
         record = current_usage[key]
         record.rule_id = rule_id
         record.sid = sid
+        if ipv4_addr:
+            record.ue_ipv4 = ipv4_addr
+        elif ipv6_addr:
+            record.ue_ipv6 = ipv6_addr
         if flow_stat.match[DIRECTION_REG] == Direction.IN:
             # HACK decrement byte count for downlink packets by the length
             # of an ethernet frame. Only IP and below should be counted towards
@@ -406,10 +423,20 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         for deletable_stat in self._old_flow_stats(stats_msgs):
             stat_rule_id = self._get_rule_id(deletable_stat)
             stat_sid = _get_sid(deletable_stat)
+            ipv4_addr_str = _get_ipv4(deletable_stat)
+            ipv6_addr_str = _get_ipv6(deletable_stat)
+            ip_addr = None
+            if ipv4_addr_str:
+                ip_addr = IPAddress(version=IPAddress.IPV4,
+                                    address=ipv4_addr_str.encode('utf-8'))
+            elif ipv6_addr_str:
+                ip_addr = IPAddress(version=IPAddress.IPV6,
+                                    address=ipv6_addr_str.encode('utf-8'))
             rule_version = _get_version(deletable_stat)
 
             try:
-                self._delete_flow(deletable_stat, stat_sid, rule_version)
+                self._delete_flow(deletable_stat, stat_sid, ip_addr,
+                                  rule_version)
                 # Only remove the usage of the deleted flow if deletion
                 # is successful.
                 self._update_usage_from_flow_stat(deleted_flow_usage,
@@ -436,20 +463,27 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
                 rule_id = self._get_rule_id(stat)
                 sid = _get_sid(stat)
+                ipv4_addr_str = _get_ipv4(stat)
+                ipv4_addr = None
+                if ipv4_addr_str:
+                    ipv4_addr = IPAddress(version=IPAddress.IPV4,
+                                          address=ipv4_addr_str.encode('utf-8'))
                 rule_version = _get_version(stat)
                 if rule_id == "":
                     continue
 
                 current_ver = \
-                    self._session_rule_version_mapper.get_version(sid, rule_id)
+                    self._session_rule_version_mapper.get_version(sid,
+                                                                  ipv4_addr,
+                                                                  rule_id)
                 if current_ver != rule_version:
                     yield stat
 
-    def _delete_flow(self, flow_stat, sid, version):
+    def _delete_flow(self, flow_stat, sid, ip_addr, version):
         cookie, mask = (
             flow_stat.cookie, flows.OVS_COOKIE_MATCH_ALL)
         match = _generate_rule_match(
-            sid, flow_stat.cookie, version,
+            sid, ip_addr, flow_stat.cookie, version,
             Direction(flow_stat.match[DIRECTION_REG]))
         flows.delete_flow(self._datapath,
                           self.tbl_num,
@@ -473,12 +507,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             return ""
 
 
-def _generate_rule_match(imsi, rule_num, version, direction):
+def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
     Return a MagmaMatch that matches on the rule num and the version.
     """
-    return MagmaMatch(imsi=encode_imsi(imsi), direction=direction,
-                      reg2=rule_num, rule_version=version)
+    ip_match = get_ue_ip_match_args(ip_addr, direction)
+
+    return MagmaMatch(imsi=encode_imsi(imsi), eth_type=get_eth_type(ip_addr),
+                      direction=direction, rule_num=rule_num,
+                      rule_version=version, **ip_match)
 
 
 def _delta_usage_maps(current_usage, last_usage):
@@ -526,6 +563,30 @@ def _get_sid(flow):
     if IMSI_REG not in flow.match:
         return None
     return decode_imsi(flow.match[IMSI_REG])
+
+
+def _get_ipv4(flow):
+    if DIRECTION_REG not in flow.match:
+        return None
+    if flow.match[DIRECTION_REG] == Direction.OUT:
+        ip_register = 'ipv4_src'
+    else:
+        ip_register = 'ipv4_dst'
+    if ip_register not in flow.match:
+        return None
+    return flow.match[ip_register]
+
+
+def _get_ipv6(flow):
+    if DIRECTION_REG not in flow.match:
+        return None
+    if flow.match[DIRECTION_REG] == Direction.OUT:
+        ip_register = 'ipv6_src'
+    else:
+        ip_register = 'ipv6_dst'
+    if ip_register not in flow.match:
+        return None
+    return flow.match[ip_register]
 
 
 def _get_version(flow):

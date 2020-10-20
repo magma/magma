@@ -20,8 +20,7 @@ import (
 type LteGateway struct {
 
 	// apn resources
-	// Required: true
-	ApnResources ApnResources `json:"apn_resources"`
+	ApnResources ApnResources `json:"apn_resources,omitempty"`
 
 	// cellular
 	// Required: true
@@ -110,6 +109,10 @@ func (m *LteGateway) Validate(formats strfmt.Registry) error {
 }
 
 func (m *LteGateway) validateApnResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ApnResources) { // not required
+		return nil
+	}
 
 	if err := m.ApnResources.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {

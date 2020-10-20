@@ -359,12 +359,18 @@ func GetTenantPromValuesHandler(api v1.API) func(c echo.Context) error {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
 
-		seriesMatchers := []string{fmt.Sprintf("{%s=~\".*\"}", labelName)}
+		restrictedQuery, err := queryRestrictor.RestrictQuery(fmt.Sprintf("{%s=~\".+\"}", labelName))
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+
+		seriesMatchers := []string{restrictedQuery}
 		for _, matcher := range queryRestrictor.Matchers() {
 			seriesMatchers = append(seriesMatchers, fmt.Sprintf("{%s}", matcher.String()))
 		}
 
-		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &minTime)
+		defaultStartTime := time.Now().Add(-3 * time.Hour)
+		startTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeStart), &defaultStartTime)
 		endTime, err := utils.ParseTime(c.QueryParam(utils.ParamRangeEnd), &maxTime)
 
 		// TODO: catch the warnings replacing _

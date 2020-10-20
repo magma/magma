@@ -16,4 +16,13 @@ yarn install
 yarn build
 ```
 
-Then you can use `yarn` commands to create a new versioned release.
+Then you can use `yarn` commands to create a new versioned release:
+
+```
+yarn run version 1.X.0
+```
+
+Commit all the new generated files **except for the `docusaurus/node_modules` 
+directory** and tweak the sidebars if you need to. Revert the changes to the 
+docusaurus Dockerfile and run `create_docusaurus_website.sh` to preview your
+changes.

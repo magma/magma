@@ -15,8 +15,7 @@
  */
 
 import type {NetworkType} from '@fbcnms/types/network';
-import type {QosState} from './PolicyQosFields';
-import type {policy_rule} from '@fbcnms/magma-api';
+import type {policy_qos_profile, policy_rule} from '@fbcnms/magma-api';
 
 import AddCircleOutline from '@material-ui/icons/AddCircleOutline';
 import Button from '@fbcnms/ui/components/design-system/Button';
@@ -28,9 +27,10 @@ import FormControl from '@material-ui/core/FormControl';
 import IconButton from '@material-ui/core/IconButton';
 import InputLabel from '@material-ui/core/InputLabel';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import MenuItem from '@material-ui/core/MenuItem';
 import PolicyFlowFields from './PolicyFlowFields';
-import PolicyQosFields from './PolicyQosFields';
 import React from 'react';
+import Select from '@material-ui/core/Select';
 import TextField from '@material-ui/core/TextField';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import Typography from '@material-ui/core/Typography';
@@ -51,6 +51,7 @@ const useStyles = makeStyles(() => ({
 type Props = {
   onCancel: () => void,
   onSave: string => void,
+  qosProfiles: {[string]: policy_qos_profile},
   rule?: policy_rule,
   mirrorNetwork?: string,
 };
@@ -58,14 +59,28 @@ type Props = {
 export default function PolicyRuleEditDialog(props: Props) {
   const classes = useStyles();
   const {match} = useRouter();
+  const {networkId} = match.params;
+  const {qosProfiles, mirrorNetwork} = props;
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const [mirrorNetworkType, setMirrorNetworkType] = useState<?NetworkType>(
     null,
   );
   const [networkWideRuleIDs, setNetworkWideRuldIDs] = useState(null);
   const [isNetworkWide, setIsNetworkWide] = useState<boolean>(false);
-  const {networkId} = match.params;
-  const {mirrorNetwork} = props;
+
+  const [rule, setRule] = useState(
+    props.rule || {
+      qos_profile: undefined,
+      id: '',
+      priority: 1,
+      flow_list: [],
+      rating_group: 0,
+      monitoring_key: '',
+      app_name: undefined,
+      app_service_type: undefined,
+      assigned_subscribers: undefined,
+    },
+  );
 
   // Grab the network type for the network, and the mirrorNetwork if it exists.
   useEffect(() => {
@@ -103,28 +118,6 @@ export default function PolicyRuleEditDialog(props: Props) {
       ? setIsNetworkWide(networkWideRuleIDs.includes(props.rule?.id))
       : false;
   }, [networkWideRuleIDs, props.rule]);
-
-  const [rule, setRule] = useState(
-    props.rule || {
-      id: '',
-      priority: 1,
-      flow_list: [],
-      rating_group: 0,
-      monitoring_key: '',
-    },
-  );
-
-  const handleQos = (qos_st: QosState) => {
-    if (qos_st.enabled) {
-      setRule({...rule, qos: qos_st.qos});
-    } else {
-      const currRule = {...rule};
-      if (currRule.qos) {
-        delete currRule.qos;
-      }
-      setRule(currRule);
-    }
-  };
 
   const handleAddFlow = () => {
     const flowList = [
@@ -199,8 +192,6 @@ export default function PolicyRuleEditDialog(props: Props) {
         await deleteNetworkWideRuleID(networkWideRuleData, mirrorNetworkType);
       }
     }
-
-    props.onSave(rule.id);
   };
 
   return (
@@ -283,6 +274,55 @@ export default function PolicyRuleEditDialog(props: Props) {
           />
         </FormControl>
         <FormControl className={classes.input}>
+          <InputLabel htmlFor="appName">App Name</InputLabel>
+          <TypedSelect
+            items={{
+              NO_APP_NAME: 'No App Name',
+              FACEBOOK: 'Facebook',
+              FACEBOOK_MESSENGER: 'Facebook Messenger',
+              INSTAGRAM: 'Instagram',
+              YOUTUBE: 'Youtube',
+              GOOGLE: 'Google',
+              GMAIL: 'Gmail',
+              GOOGLE_DOCS: 'Google Docs',
+              NETFLIX: 'Netflix',
+              APPLE: 'Apple',
+              MICROSOFT: 'Microsoft',
+              REDDIT: 'Reddit',
+              WHATSAPP: 'WhatsApp',
+              GOOGLE_PLAY: 'Google Play',
+              APPSTORE: 'App Store',
+              AMAZON: 'Amazon',
+              WECHAT: 'Wechat',
+              TIKTOK: 'TikTok',
+              TWITTER: 'Twitter',
+              WIKIPEDIA: 'Wikipedia',
+              GOOGLE_MAPS: 'Google Maps',
+              YAHOO: 'Yahoo',
+              IMO: 'IMO',
+            }}
+            inputProps={{id: 'appName'}}
+            value={rule.app_name || 'NO_APP_NAME'}
+            onChange={appName => setRule({...rule, app_name: appName})}
+          />
+        </FormControl>
+        <FormControl className={classes.input}>
+          <InputLabel htmlFor="appServiceType">App Service Type</InputLabel>
+          <TypedSelect
+            items={{
+              NO_SERVICE_TYPE: 'No Service Type',
+              CHAT: 'Chat',
+              AUDIO: 'Audio',
+              VIDEO: 'Video',
+            }}
+            inputProps={{id: 'appServiceType'}}
+            value={rule.app_service_type || 'NO_SERVICE_TYPE'}
+            onChange={appServiceType =>
+              setRule({...rule, app_service_type: appServiceType})
+            }
+          />
+        </FormControl>
+        <FormControl className={classes.input}>
           <InputLabel htmlFor="target">Network Wide</InputLabel>
           <TypedSelect
             items={{
@@ -296,8 +336,21 @@ export default function PolicyRuleEditDialog(props: Props) {
             }}
           />
         </FormControl>
-        <Typography variant="h6">Qos</Typography>
-        <PolicyQosFields onChange={handleQos} qos={props.rule?.qos} />
+        <FormControl className={classes.input}>
+          <InputLabel htmlFor="target">Qos Profile</InputLabel>
+          <Select
+            className={classes.input}
+            value={rule?.qos_profile ?? ''}
+            onChange={({target}) =>
+              setRule({...rule, qos_profile: target.value})
+            }>
+            {Object.keys(qosProfiles).map(profileID => (
+              <MenuItem key={profileID} value={profileID}>
+                {profileID}
+              </MenuItem>
+            ))}
+          </Select>
+        </FormControl>
         <Typography variant="h6">
           Flows
           <IconButton onClick={handleAddFlow}>

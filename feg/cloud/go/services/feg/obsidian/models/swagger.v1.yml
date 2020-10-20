@@ -21,6 +21,10 @@ magma-gen-meta:
       filename: eap_aka_timeouts_swaggergen.go
     - go-struct-name: EapAka
       filename: eap_aka_swaggergen.go
+    - go-struct-name: EapSimTimeouts
+      filename: eap_sim_timeouts_swaggergen.go
+    - go-struct-name: EapSim
+      filename: eap_sim_swaggergen.go
     - go-struct-name: NetworkFederationConfigs
       filename: network_federation_configs_swaggergen.go
     - go-struct-name: SubscriptionProfile
@@ -826,6 +830,14 @@ definitions:
     properties:
       server:
         $ref: '#/definitions/diameter_client_configs'
+      plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '123456'
     x-go-custom-tag: 'magma_alt_name:"S6A"'
 
   hss:
@@ -955,6 +967,55 @@ definitions:
           pattern: '^(\d{5,6})$'
           example: '123456'
 
+  eap_sim:
+    type: object
+    description: eap_sim configuration
+    properties:
+      timeout:
+        $ref: '#/definitions/eap_sim_timeouts'
+      plmn_ids:
+        type: array
+        items:
+          type: string
+          minLength: 5
+          maxLength: 6
+          pattern: '^(\d{5,6})$'
+          example: '123456'
+
+  radius_config:
+    type: object
+    description: built-in radius server configuration
+    properties:
+      secret:
+        type: string
+        format: byte
+        default: MTIzNDU2
+        example: MTIzNDU2
+        x-nullable: false
+      network:
+        type: string
+        default: 'udp'
+        example: 'udp'
+        x-nullable: false
+      auth_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':1812'
+        example: '127.0.0.1:1812'
+        x-nullable: false
+      acct_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':1813'
+        example: '127.0.0.1:1813'
+        x-nullable: false
+      DAE_addr:
+        type: string
+        pattern: '[0-9a-f\:\.]*(:[0-9]{1,5})?'
+        default: ':3799'
+        example: '127.0.0.1:3799'
+        x-nullable: false
+
   aaa_server:
     type: object
     description: aaa server configuration
@@ -980,6 +1041,8 @@ definitions:
         type: boolean
         x-nullable: false
         default: false
+      radius_config:
+        $ref: '#/definitions/radius_config'
 
   served_network_ids:
     type: array
@@ -1073,6 +1136,8 @@ definitions:
         $ref: '#/definitions/gy'
       swx:
         $ref: '#/definitions/swx'
+      eap_sim:
+        $ref: '#/definitions/eap_sim'
       eap_aka:
         $ref: '#/definitions/eap_aka'
       aaa_server:
@@ -1085,6 +1150,34 @@ definitions:
         $ref: '#/definitions/csfb'
 
   eap_aka_timeouts:
+    type: object
+    properties:
+      challenge_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 20000
+        example: 20000
+      error_notification_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 10000
+        example: 10000
+      session_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 43200000
+        example: 43200000
+      session_authenticated_ms:
+        type: integer
+        format: uint32
+        x-nullable: false
+        default: 5000
+        example: 5000
+
+  eap_sim_timeouts:
     type: object
     properties:
       challenge_ms:
@@ -1353,6 +1446,8 @@ definitions:
         $ref: '#/definitions/swx'
       eap_aka:
         $ref: '#/definitions/eap_aka'
+      eap_sim:
+        $ref: '#/definitions/eap_sim'
       aaa_server:
         $ref: '#/definitions/aaa_server'
       served_network_ids:

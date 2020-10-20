@@ -1,0 +1,24 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+node_exporter_version: 1.0.1
+node_exporter_name: "node_exporter-{{ node_exporter_version }}.linux-amd64"
+node_exporter_url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/{{ node_exporter_name }}.tar.gz"
+
+node_exporter_user: root
+node_exporter_group: root
+
+node_exporter_root_dir: /usr/bin
+node_exporter_dest_dir: /opt/prometheus
+node_config_config_dir: /etc/prometheus
+node_exporter_listen_address: "0.0.0.0:8081"

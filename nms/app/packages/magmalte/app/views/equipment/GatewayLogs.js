@@ -16,6 +16,7 @@
 import type {ActionQuery} from '../../components/ActionTable';
 
 import ActionTable from '../../components/ActionTable';
+import AutorefreshCheckbox from '../../components/AutorefreshCheckbox';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import Grid from '@material-ui/core/Grid';
@@ -25,9 +26,7 @@ import LogChart from './GatewayLogChart';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import React from 'react';
 import Text from '../../theme/design-system/Text';
-import moment from 'moment';
 import nullthrows from '@fbcnms/util/nullthrows';
-
 import {CsvBuilder} from 'filefy';
 import {DateTimePicker} from '@material-ui/pickers';
 import {colors} from '../../theme/default';
@@ -35,6 +34,7 @@ import {getStep} from '../../components/CustomMetrics';
 import {makeStyles} from '@material-ui/styles';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useMemo, useRef, useState} from 'react';
+import {useRefreshingDateRange} from '../../components/AutorefreshCheckbox';
 import {useRouter} from '@fbcnms/ui/hooks';
 
 // elastic search pagination through 'from' mechanism has a 10000 row limit
@@ -181,12 +181,18 @@ export default function GatewayLogs() {
   const {match} = useRouter();
   const networkId: string = nullthrows(match.params.networkId);
   const gatewayId: string = nullthrows(match.params.gatewayId);
-  const [startDate, setStartDate] = useState(moment().subtract(3, 'hours'));
   const [logCount, setLogCount] = useState(0);
-  const [endDate, setEndDate] = useState(moment());
   const [actionQuery, setActionQuery] = useState<ActionQuery>({});
   const enqueueSnackbar = useEnqueueSnackbar();
   const tableRef = useRef(null);
+  const [isAutoRefreshing, setIsAutoRefreshing] = useState(true);
+  const {startDate, endDate, setStartDate, setEndDate} = useRefreshingDateRange(
+    isAutoRefreshing,
+    10000,
+    () => {
+      tableRef.current && tableRef.current.onQueryChange();
+    },
+  );
 
   const startEnd = useMemo(() => {
     const [delta, unit, format] = getStep(startDate, endDate);
@@ -201,65 +207,75 @@ export default function GatewayLogs() {
 
   function LogsFilter() {
     return (
-      <Grid container justify="flex-end" alignItems="center" spacing={1}>
-        <Grid item>
-          <Text variant="body3" className={classes.dateTimeText}>
-            Filter By Date
-          </Text>
+      <>
+        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid item>
+            <Text variant="body3" className={classes.dateTimeText}>
+              Filter By Date
+            </Text>
+          </Grid>
+          <Grid item>
+            <DateTimePicker
+              autoOk
+              variant="inline"
+              inputVariant="outlined"
+              maxDate={endDate}
+              disableFuture
+              value={startDate}
+              onChange={val => {
+                setStartDate(val);
+                setIsAutoRefreshing(false);
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <Text variant="body3" className={classes.dateTimeText}>
+              To
+            </Text>
+          </Grid>
+          <Grid item>
+            <DateTimePicker
+              autoOk
+              variant="inline"
+              inputVariant="outlined"
+              disableFuture
+              value={endDate}
+              onChange={val => {
+                setEndDate(val);
+                setIsAutoRefreshing(false);
+              }}
+            />
+          </Grid>
+          <Grid item>
+            <Button
+              variant="contained"
+              color="primary"
+              startIcon={<LaunchIcon />}
+              onClick={() =>
+                exportLogs(
+                  networkId,
+                  gatewayId,
+                  0,
+                  MAX_PAGE_ROW_COUNT,
+                  startDate,
+                  endDate,
+                  actionQuery,
+                  enqueueSnackbar,
+                )
+              }>
+              Export
+            </Button>
+          </Grid>
         </Grid>
-        <Grid item>
-          <DateTimePicker
-            autoOk
-            variant="inline"
-            inputVariant="outlined"
-            maxDate={endDate}
-            disableFuture
-            value={startDate}
-            onChange={val => {
-              setStartDate(val);
-              tableRef.current && tableRef.current.onQueryChange();
-            }}
-          />
+        <Grid container justify="flex-end" alignItems="center" spacing={1}>
+          <Grid item>
+            <AutorefreshCheckbox
+              autorefreshEnabled={isAutoRefreshing}
+              onToggle={() => setIsAutoRefreshing(current => !current)}
+            />
+          </Grid>
         </Grid>
-        <Grid item>
-          <Text variant="body3" className={classes.dateTimeText}>
-            To
-          </Text>
-        </Grid>
-        <Grid item>
-          <DateTimePicker
-            autoOk
-            variant="inline"
-            inputVariant="outlined"
-            disableFuture
-            value={endDate}
-            onChange={val => {
-              setEndDate(val);
-              tableRef.current && tableRef.current.onQueryChange();
-            }}
-          />
-        </Grid>
-        <Grid item>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<LaunchIcon />}
-            onClick={() =>
-              exportLogs(
-                networkId,
-                gatewayId,
-                0,
-                MAX_PAGE_ROW_COUNT,
-                startDate,
-                endDate,
-                actionQuery,
-                enqueueSnackbar,
-              )
-            }>
-            Export
-          </Button>
-        </Grid>
-      </Grid>
+      </>
     );
   }
 

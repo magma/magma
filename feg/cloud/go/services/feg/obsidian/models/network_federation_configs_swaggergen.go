@@ -28,6 +28,9 @@ type NetworkFederationConfigs struct {
 	// Required: true
 	EapAka *EapAka `json:"eap_aka"`
 
+	// eap sim
+	EapSim *EapSim `json:"eap_sim,omitempty"`
+
 	// gx
 	// Required: true
 	Gx *Gx `json:"gx"`
@@ -70,6 +73,10 @@ func (m *NetworkFederationConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateEapAka(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateEapSim(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -153,6 +160,24 @@ func (m *NetworkFederationConfigs) validateEapAka(formats strfmt.Registry) error
 		if err := m.EapAka.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("eap_aka")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *NetworkFederationConfigs) validateEapSim(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.EapSim) { // not required
+		return nil
+	}
+
+	if m.EapSim != nil {
+		if err := m.EapSim.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("eap_sim")
 			}
 			return err
 		}

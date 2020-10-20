@@ -15,11 +15,14 @@
  */
 import 'jest-dom/extend-expect';
 
+import ApnContext from '../../../components/context/ApnContext';
 import EnodebContext from '../../../components/context/EnodebContext';
 import GatewayContext from '../../../components/context/GatewayContext';
+import LteNetworkContext from '../../../components/context/LteNetworkContext';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
 import NetworkDashboard from '../NetworkDashboard';
+import PolicyContext from '../../../components/context/PolicyContext';
 import React from 'react';
 import SubscriberContext from '../../../components/context/SubscriberContext';
 import axiosMock from 'axios';
@@ -27,6 +30,7 @@ import defaultTheme from '../../../theme/default.js';
 
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
+import {UpdateNetworkState} from '../../../state/lte/NetworkState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
@@ -43,6 +47,11 @@ describe('<NetworkDashboard />', () => {
     description: 'Test Network Description',
     id: 'test_network',
     name: 'Test Network',
+    dns: {
+      enable_caching: false,
+      local_ttl: 0,
+      records: [],
+    },
   };
 
   const epc = {
@@ -52,7 +61,8 @@ describe('<NetworkDashboard />', () => {
     mcc: '001',
     mnc: '01',
     network_services: ['dpi', 'policy_enforcement'],
-    relay_enabled: false,
+    hss_relay_enabled: false,
+    gx_gy_relay_enabled: false,
     sub_profiles: {
       additionalProp1: {
         max_dl_bit_rate: 20000000,
@@ -66,6 +76,11 @@ describe('<NetworkDashboard />', () => {
         max_dl_bit_rate: 20000000,
         max_ul_bit_rate: 100000000,
       },
+    },
+    mobility: {
+      ip_allocation_mode: 'NAT',
+      enable_static_ip_assignments: false,
+      enable_multi_apn_ip_allocation: false,
     },
     tac: 1,
   };
@@ -152,7 +167,28 @@ describe('<NetworkDashboard />', () => {
     },
   };
 
-  const rules = ['test1', 'test2'];
+  const policies = {
+    test1: {
+      flow_list: [],
+      id: 'test',
+      priority: 10,
+      redirect: {
+        address_type: 'IPv4',
+        server_address: 'http://localhost:8080',
+        support: 'ENABLED',
+      },
+    },
+    test2: {
+      flow_list: [],
+      id: 'test',
+      priority: 10,
+      redirect: {
+        address_type: 'IPv4',
+        server_address: 'http://localhost:8080',
+        support: 'ENABLED',
+      },
+    },
+  };
 
   const subscribers = {
     IMSI00000000001002: {
@@ -211,15 +247,6 @@ describe('<NetworkDashboard />', () => {
   };
 
   beforeEach(() => {
-    MagmaAPIBindings.getLteByNetworkId.mockResolvedValue(testNetwork);
-    MagmaAPIBindings.getLteByNetworkIdCellularEpc.mockResolvedValue(epc);
-    MagmaAPIBindings.getLteByNetworkIdCellularRan.mockResolvedValue(ran);
-    // eslint-disable-next-line max-len
-    MagmaAPIBindings.getNetworksByNetworkIdPoliciesRules.mockResolvedValue(
-      rules,
-    );
-    MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
-
     axiosMock.post.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
@@ -232,19 +259,32 @@ describe('<NetworkDashboard />', () => {
     MagmaAPIBindings.putLteByNetworkIdCellularRan.mockImplementation(() =>
       Promise.resolve({data: {success: true}}),
     );
+    MagmaAPIBindings.putLteByNetworkIdDns.mockImplementation(() =>
+      Promise.resolve({data: {success: true}}),
+    );
   });
 
   afterEach(() => {
     axiosMock.get.mockClear();
+    MagmaAPIBindings.getLteByNetworkId.mockClear();
     MagmaAPIBindings.getNetworksByNetworkId.mockClear();
     MagmaAPIBindings.putLteByNetworkId.mockClear();
-    MagmaAPIBindings.getLteByNetworkIdCellularEpc.mockClear();
     MagmaAPIBindings.putLteByNetworkIdCellularEpc.mockClear();
-    MagmaAPIBindings.getLteByNetworkIdCellularRan.mockClear();
     MagmaAPIBindings.putLteByNetworkIdCellularRan.mockClear();
+    MagmaAPIBindings.putLteByNetworkIdDns.mockClear();
   });
 
   const Wrapper = () => {
+    const apnCtx = {
+      state: apns,
+      setState: async () => {},
+    };
+    const policyCtx = {
+      state: policies,
+      qosProfiles: {},
+      setQosProfiles: async () => {},
+      setState: async () => {},
+    };
     const enodebCtx = {
       state: {enbInfo},
       setState: async () => {},
@@ -261,20 +301,43 @@ describe('<NetworkDashboard />', () => {
       gwSubscriberMap: {},
     };
 
+    const networkCtx = {
+      state: {
+        ...testNetwork,
+        cellular: {
+          epc: epc,
+          ran: ran,
+        },
+      },
+      updateNetworks: async props => {
+        return UpdateNetworkState({
+          setLteNetwork: () => {},
+          refreshState: testNetwork.id === props.networkId,
+          ...props,
+        });
+      },
+    };
+
     return (
       <MemoryRouter initialEntries={['/nms/test/network']} initialIndex={0}>
         <MuiThemeProvider theme={defaultTheme}>
           <MuiStylesThemeProvider theme={defaultTheme}>
-            <GatewayContext.Provider value={gatewayCtx}>
-              <EnodebContext.Provider value={enodebCtx}>
-                <SubscriberContext.Provider value={subscriberCtx}>
-                  <Route
-                    path="/nms/:networkId/network"
-                    component={NetworkDashboard}
-                  />
-                </SubscriberContext.Provider>
-              </EnodebContext.Provider>
-            </GatewayContext.Provider>
+            <LteNetworkContext.Provider value={networkCtx}>
+              <PolicyContext.Provider value={policyCtx}>
+                <ApnContext.Provider value={apnCtx}>
+                  <GatewayContext.Provider value={gatewayCtx}>
+                    <EnodebContext.Provider value={enodebCtx}>
+                      <SubscriberContext.Provider value={subscriberCtx}>
+                        <Route
+                          path="/nms/:networkId/network"
+                          component={NetworkDashboard}
+                        />
+                      </SubscriberContext.Provider>
+                    </EnodebContext.Provider>
+                  </GatewayContext.Provider>
+                </ApnContext.Provider>
+              </PolicyContext.Provider>
+            </LteNetworkContext.Provider>
           </MuiStylesThemeProvider>
         </MuiThemeProvider>
       </MemoryRouter>
@@ -284,21 +347,6 @@ describe('<NetworkDashboard />', () => {
   it('Verify Network Dashboard', async () => {
     const {getByTestId, getByLabelText} = render(<Wrapper />);
     await wait();
-
-    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
-    // eslint-disable-next-line max-len
-    expect(MagmaAPIBindings.getLteByNetworkIdCellularEpc).toHaveBeenCalledTimes(
-      1,
-    );
-    // eslint-disable-next-line max-len
-    expect(MagmaAPIBindings.getLteByNetworkIdCellularRan).toHaveBeenCalledTimes(
-      1,
-    );
-    // eslint-disable-next-line max-len
-    expect(
-      MagmaAPIBindings.getNetworksByNetworkIdPoliciesRules,
-    ).toHaveBeenCalledTimes(1);
-    expect(MagmaAPIBindings.getLteByNetworkIdApns).toHaveBeenCalledTimes(1);
 
     const info = getByTestId('info');
     expect(info).toHaveTextContent('Test Network');
@@ -465,8 +513,14 @@ describe('<NetworkDashboard />', () => {
         mcc: '003',
         mnc: '02',
         network_services: ['policy_enforcement'],
-        relay_enabled: false,
+        hss_relay_enabled: false,
+        gx_gy_relay_enabled: false,
         sub_profiles: {},
+        mobility: {
+          ip_allocation_mode: 'NAT',
+          enable_static_ip_assignments: false,
+          enable_multi_apn_ip_allocation: false,
+        },
         tac: 1,
       },
       networkId: 'testNetworkID',
@@ -506,6 +560,7 @@ describe('<NetworkDashboard />', () => {
       },
       networkId: 'testNetworkID',
     });
+    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(0);
   });
 
   it('Verify Network Edit Info', async () => {
@@ -551,13 +606,13 @@ describe('<NetworkDashboard />', () => {
       lteNetwork: {
         ...testNetwork,
         description: 'Edit LTE test network description',
+        cellular: {
+          epc: epc,
+          ran: ran,
+        },
       },
     });
-
-    // verify that info component is updated with edited info
-    expect(getByTestId('info')).toHaveTextContent(
-      'Edit LTE test network description',
-    );
+    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
   });
 
   it('Verify Network Edit EPC', async () => {
@@ -585,9 +640,7 @@ describe('<NetworkDashboard />', () => {
       config: {...epc, mnc: '03'},
       networkId: 'test_network',
     });
-
-    // verify epc component is updated with edited epc
-    expect(getByTestId('epc')).toHaveTextContent('03');
+    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
   });
 
   it('Verify Network Edit Ran', async () => {
@@ -621,8 +674,6 @@ describe('<NetworkDashboard />', () => {
       },
       networkId: 'test_network',
     });
-
-    // verify ran component is updated with edited ran info
-    expect(getByTestId('ran')).toHaveTextContent('40000');
+    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledTimes(1);
   });
 });

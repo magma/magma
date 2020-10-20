@@ -119,14 +119,23 @@ func TestPolicyStreamers(t *testing.T) {
 	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
 	assert.NoError(t, err)
 
-	// create the rules first otherwise base names can't associate to them
 	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
+		// Attached qos profile (shared)
 		{
 			Type: lte.PolicyQoSProfileEntityType,
 			Key:  "p1",
 			Config: &models.PolicyQosProfile{
 				ClassID: 42,
 				ID:      "p1",
+			},
+		},
+		// Dangling qos profile
+		{
+			Type: lte.PolicyQoSProfileEntityType,
+			Key:  "p2",
+			Config: &models.PolicyQosProfile{
+				ClassID: 420,
+				ID:      "p2",
 			},
 		},
 		{
@@ -139,8 +148,25 @@ func TestPolicyStreamers(t *testing.T) {
 						Match: &models.FlowMatch{
 							Direction: swag.String("UPLINK"),
 							IPProto:   swag.String("IPPROTO_IP "),
-							IPV4Dst:   "192.168.160.0/24",
-							IPV4Src:   "192.168.128.0/24",
+							IPDst: &models.IPAddress{
+								Version: models.IPAddressVersionIPV4,
+								Address: "192.168.160.0/24",
+							},
+							IPSrc: &models.IPAddress{
+								Version: models.IPAddressVersionIPV4,
+								Address: "192.168.128.0/24",
+							},
+						},
+					},
+					{
+						Action: swag.String("DENY"),
+						Match: &models.FlowMatch{
+							Direction: swag.String("UPLINK"),
+							IPProto:   swag.String("IPPROTO_IP "),
+							IPSrc: &models.IPAddress{
+								Version: models.IPAddressVersionIPV4,
+								Address: "192.168.128.0/24",
+							},
 						},
 					},
 				},
@@ -160,6 +186,9 @@ func TestPolicyStreamers(t *testing.T) {
 					ServerAddress: swag.String("https://www.google.com"),
 					Support:       swag.String("ENABLED"),
 				},
+			},
+			Associations: []storage.TypeAndKey{
+				{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
 			},
 		},
 		{
@@ -201,10 +230,29 @@ func TestPolicyStreamers(t *testing.T) {
 					Match: &lte_protos.FlowMatch{
 						Direction: lte_protos.FlowMatch_UPLINK,
 						IpProto:   lte_protos.FlowMatch_IPPROTO_IP,
-						Ipv4Dst:   "192.168.160.0/24",
-						Ipv4Src:   "192.168.128.0/24",
+						IpSrc: &lte_protos.IPAddress{
+							Version: lte_protos.IPAddress_IPV4,
+							Address: []byte("192.168.128.0/24"),
+						},
+						IpDst: &lte_protos.IPAddress{
+							Version: lte_protos.IPAddress_IPV4,
+							Address: []byte("192.168.160.0/24"),
+						},
+						Ipv4Dst: "192.168.160.0/24",
+						Ipv4Src: "192.168.128.0/24",
 					},
 					Action: lte_protos.FlowDescription_PERMIT,
+				},
+				{
+					Match: &lte_protos.FlowMatch{
+						Direction: lte_protos.FlowMatch_UPLINK,
+						IpSrc: &lte_protos.IPAddress{
+							Version: lte_protos.IPAddress_IPV4,
+							Address: []byte("192.168.128.0/24"),
+						},
+						Ipv4Src: "192.168.128.0/24",
+					},
+					Action: lte_protos.FlowDescription_DENY,
 				},
 			},
 			Qos: &lte_protos.FlowQos{Qci: 42},
@@ -217,6 +265,7 @@ func TestPolicyStreamers(t *testing.T) {
 				AddressType:   lte_protos.RedirectInformation_IPv4,
 				ServerAddress: "https://www.google.com",
 			},
+			Qos: &lte_protos.FlowQos{Qci: 42},
 		},
 		{Id: "r3", MonitoringKey: []byte("bar")},
 	}

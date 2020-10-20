@@ -38,8 +38,16 @@ support_carrier_wifi: true
 # quota.
 cwf_quota_exhaustion_termination_on_init_ms: 30000
 
+# If this flag is set, we will send the GW's timezone information to the policy
+# component as part of CreateSessionRequest.
+send_access_timezone: false
+
 # Set to true to store session state in Redis for persistence.
 support_stateless: false
 
 # Redis table name for session state.
 sessions_table: sessiond:sessions
+
+# Sets the amount of octets that will be requested on the CCR-I for credit if
+# credit is given. If unset, defaults to 200000
+default_requested_units: 200000

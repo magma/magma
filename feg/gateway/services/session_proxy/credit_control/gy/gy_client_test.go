@@ -37,19 +37,27 @@ const (
 	testIMSI2      = "4321"
 	returnedOctets = 1024
 	validityTime   = 3600
+	restrictRule   = "restrict-rule-1"
 )
 
-var defaultLocalServerConfig = diameter.DiameterServerConfig{DiameterServerConnConfig: diameter.DiameterServerConnConfig{
-	Addr:     "127.0.0.1:0",
-	Protocol: "tcp"},
-}
+var (
+	defaultLocalServerConfig = diameter.DiameterServerConfig{
+		DiameterServerConnConfig: diameter.DiameterServerConnConfig{
+			Addr:     "127.0.0.1:0",
+			Protocol: "tcp",
+		},
+	}
+	defaultRSU = &protos.RequestedUnits{Total: 10000, Tx: 10000, Rx: 10000}
+)
+
+var defaultfinalUnitConfig = mock_ocs.FinalUnitIndication{FinalUnitAction: fegprotos.FinalUnitAction(gy.Terminate)}
 
 // TestGyClient tests CCR init, update, and terminate messages using a fake
 // server
 func TestGyClient(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -64,10 +72,19 @@ func TestGyClient(t *testing.T) {
 		Type:          credit_control.CRTInit,
 		IMSI:          testIMSI1,
 		RequestNumber: 0,
-		Credits:       nil,
 		UeIPV4:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
 		Apn:           "gy.Apn.magma.com",
+		Credits: []*gy.UsedCredits{
+			&gy.UsedCredits{
+				RatingGroup:    1,
+				RequestedUnits: defaultRSU,
+			},
+			&gy.UsedCredits{
+				RatingGroup:    2,
+				RequestedUnits: defaultRSU,
+			},
+		},
 	}
 	done := make(chan interface{}, 1000)
 
@@ -75,9 +92,11 @@ func TestGyClient(t *testing.T) {
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer := gy.GetAnswer(done)
 	log.Printf("Received CCA-Init")
+
 	assert.Equal(t, ccrInit.SessionID, answer.SessionID)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
-	assert.Equal(t, len(answer.Credits), 0)
+	assert.Equal(t, 2, len(answer.Credits))
+	assert.Equal(t, uint32(diam.Success), answer.ResultCode)
 	assertReceivedAPNonOCS(t, ocs, ccrInit.Apn)
 
 	// send multiple updates
@@ -88,10 +107,11 @@ func TestGyClient(t *testing.T) {
 			IMSI:          testIMSI1,
 			RequestNumber: 1,
 			Credits: []*gy.UsedCredits{{
-				RatingGroup:  1,
-				InputOctets:  1024,
-				OutputOctets: 2048,
-				TotalOctets:  3072,
+				RatingGroup:    1,
+				InputOctets:    1024,
+				OutputOctets:   2048,
+				TotalOctets:    3072,
+				RequestedUnits: defaultRSU,
 			},
 			}},
 		{
@@ -100,10 +120,11 @@ func TestGyClient(t *testing.T) {
 			IMSI:          testIMSI2,
 			RequestNumber: 1,
 			Credits: []*gy.UsedCredits{{
-				RatingGroup:  1,
-				InputOctets:  1024,
-				OutputOctets: 2048,
-				TotalOctets:  3072,
+				RatingGroup:    1,
+				InputOctets:    1024,
+				OutputOctets:   2048,
+				TotalOctets:    3072,
+				RequestedUnits: defaultRSU,
 			},
 			}},
 	}
@@ -135,7 +156,8 @@ func TestGyClient(t *testing.T) {
 	}
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrTerminate))
 	terminate := gy.GetAnswer(done)
-	assert.Equal(t, len(terminate.Credits), 0)
+	assert.Equal(t, uint32(diam.Success), terminate.ResultCode)
+	assert.Equal(t, 0, len(terminate.Credits))
 	assert.Equal(t, ccrTerminate.SessionID, terminate.SessionID)
 	assert.Equal(t, ccrTerminate.RequestNumber, terminate.RequestNumber)
 
@@ -153,7 +175,7 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	matchApn := ".*\\.magma.*"
 	overwriteApn := "gy.Apn.magma.com"
@@ -170,10 +192,15 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 		Type:          credit_control.CRTInit,
 		IMSI:          testIMSI1,
 		RequestNumber: 0,
-		Credits:       nil,
 		UeIPV4:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
 		Apn:           "gy.Apn.magma.com",
+		Credits: []*gy.UsedCredits{
+			&gy.UsedCredits{
+				RatingGroup:    1,
+				RequestedUnits: defaultRSU,
+			},
+		},
 	}
 	done := make(chan interface{}, 1000)
 
@@ -181,15 +208,16 @@ func TestGyClientWithGyGlobalConf(t *testing.T) {
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 	answer := gy.GetAnswer(done)
 	log.Printf("Received CCA-Init")
+	assert.Equal(t, uint32(diam.Success), answer.ResultCode)
 	assertReceivedAPNonOCS(t, ocs, overwriteApn)
 	assert.Equal(t, ccrInit.RequestNumber, answer.RequestNumber)
-	assert.Equal(t, len(answer.Credits), 0)
+	assert.Equal(t, 1, len(answer.Credits))
 }
 
 func TestGyClientOutOfCredit(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -204,13 +232,19 @@ func TestGyClientOutOfCredit(t *testing.T) {
 		Type:          credit_control.CRTInit,
 		IMSI:          testIMSI1,
 		RequestNumber: 0,
-		Credits:       nil,
 		UeIPV4:        "192.168.1.1",
 		SpgwIPV4:      "10.10.10.10",
+		Credits: []*gy.UsedCredits{
+			&gy.UsedCredits{
+				RatingGroup:    1,
+				RequestedUnits: defaultRSU,
+			},
+		},
 	}
 	done := make(chan interface{}, 1000)
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
-	gy.GetAnswer(done)
+	answer := gy.GetAnswer(done)
+	assert.Equal(t, uint32(diam.Success), answer.ResultCode)
 
 	// send request with (total credits - used credits) < max usage (final units)
 	ccrUpdate := &gy.CreditControlRequest{
@@ -219,24 +253,25 @@ func TestGyClientOutOfCredit(t *testing.T) {
 		IMSI:          testIMSI1,
 		RequestNumber: 1,
 		Credits: []*gy.UsedCredits{{
-			RatingGroup:  1,
-			InputOctets:  999990,
-			OutputOctets: 0,
-			TotalOctets:  999990,
+			RatingGroup:    1,
+			InputOctets:    999990,
+			OutputOctets:   0,
+			TotalOctets:    999990,
+			RequestedUnits: defaultRSU,
 		}},
 	}
 
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrUpdate))
 	update := gy.GetAnswer(done)
+	assert.Equal(t, uint32(diam.Success), update.ResultCode)
 	assert.Equal(t, uint64(10), *update.Credits[0].GrantedUnits.TotalOctets)
-	assert.True(t, update.Credits[0].IsFinal)
-	assert.Equal(t, gy.Terminate, update.Credits[0].FinalAction)
+	assert.Equal(t, gy.Terminate, update.Credits[0].FinalUnitIndication.FinalAction)
 }
 
 func TestGyClientPerKeyInit(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -255,7 +290,8 @@ func TestGyClientPerKeyInit(t *testing.T) {
 			UeIPV4:        "192.168.1.1",
 			SpgwIPV4:      "10.10.10.10",
 			Credits: []*gy.UsedCredits{{
-				RatingGroup: 1,
+				RatingGroup:    1,
+				RequestedUnits: defaultRSU,
 			},
 			}},
 		{
@@ -266,7 +302,8 @@ func TestGyClientPerKeyInit(t *testing.T) {
 			UeIPV4:        "192.168.1.1",
 			SpgwIPV4:      "10.10.10.10",
 			Credits: []*gy.UsedCredits{{
-				RatingGroup: 2,
+				RatingGroup:    2,
+				RequestedUnits: defaultRSU,
 			}},
 		},
 	}
@@ -289,7 +326,7 @@ func TestGyClientPerKeyInit(t *testing.T) {
 func TestGyClientMultipleCredits(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -308,13 +345,16 @@ func TestGyClientMultipleCredits(t *testing.T) {
 		SpgwIPV4:      "10.10.10.10",
 		Credits: []*gy.UsedCredits{
 			{
-				RatingGroup: 1,
+				RatingGroup:    1,
+				RequestedUnits: defaultRSU,
 			},
 			{
-				RatingGroup: 2,
+				RatingGroup:    2,
+				RequestedUnits: defaultRSU,
 			},
 			{
-				RatingGroup: 3,
+				RatingGroup:    3,
+				RequestedUnits: defaultRSU,
 			},
 		},
 	}
@@ -324,9 +364,10 @@ func TestGyClientMultipleCredits(t *testing.T) {
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
 
 	ans := gy.GetAnswer(done)
+	assert.Equal(t, uint32(diam.Success), ans.ResultCode)
 	assert.Equal(t, ans.SessionID, ccrInit.SessionID)
 	assert.Equal(t, ans.RequestNumber, ccrInit.RequestNumber)
-	assert.Equal(t, len(ans.Credits), 3)
+	assert.Equal(t, 3, len(ans.Credits))
 	for _, credit := range ans.Credits {
 		assert.Contains(t, []uint32{1, 2, 3}, credit.RatingGroup)
 		assert.Equal(t, uint64(returnedOctets), *credit.GrantedUnits.TotalOctets)
@@ -337,7 +378,7 @@ func TestGyClientMultipleCredits(t *testing.T) {
 func TestGyReAuth(t *testing.T) {
 	serverConfig := defaultLocalServerConfig
 	clientConfig := getClientConfig()
-	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit)
+	ocs := startServer(clientConfig, &serverConfig, gy.PerKeyInit, defaultfinalUnitConfig)
 	seedAccountConfigurations(ocs)
 	gyGlobalConfig := getGyGlobalConfig("", "")
 	gyClient := gy.NewGyClient(
@@ -357,7 +398,8 @@ func TestGyReAuth(t *testing.T) {
 		SpgwIPV4:      "10.10.10.10",
 		Credits: []*gy.UsedCredits{
 			{
-				RatingGroup: 1,
+				RatingGroup:    1,
+				RequestedUnits: defaultRSU,
 			},
 		},
 	}
@@ -365,7 +407,8 @@ func TestGyReAuth(t *testing.T) {
 
 	log.Printf("Sending CCR-Init")
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
-	gy.GetAnswer(done)
+	answer := gy.GetAnswer(done)
+	assert.Equal(t, uint32(diam.Success), answer.ResultCode)
 
 	// success reauth
 	var rg uint32 = 1
@@ -376,6 +419,64 @@ func TestGyReAuth(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, sessionID, raa.SessionId)
 	assert.Equal(t, uint32(diam.Success), raa.ResultCode)
+}
+
+func TestGyClientOutOfCreditRestrict(t *testing.T) {
+	serverConfig := defaultLocalServerConfig
+	clientConfig := getClientConfig()
+	finalUnitConfig := mock_ocs.FinalUnitIndication{
+		RestrictRules:   []string{restrictRule},
+		FinalUnitAction: fegprotos.FinalUnitAction(gy.RestrictAccess),
+	}
+	ocs := startServer(clientConfig, &serverConfig, gy.PerSessionInit, finalUnitConfig)
+	seedAccountConfigurations(ocs)
+	gyGlobalConfig := getGyGlobalConfig("", "")
+	gyClient := gy.NewGyClient(
+		clientConfig,
+		&serverConfig,
+		getReAuthHandler(), nil, gyGlobalConfig,
+	)
+
+	// send init
+	ccrInit := &gy.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTInit,
+		IMSI:          testIMSI1,
+		RequestNumber: 0,
+		UeIPV4:        "192.168.1.1",
+		SpgwIPV4:      "10.10.10.10",
+		Credits: []*gy.UsedCredits{
+			&gy.UsedCredits{
+				RatingGroup:    1,
+				RequestedUnits: defaultRSU,
+			},
+		},
+	}
+	done := make(chan interface{}, 1000)
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrInit))
+	answer := gy.GetAnswer(done)
+	assert.Equal(t, uint32(diam.Success), answer.ResultCode)
+
+	// send request with (total credits - used credits) < max usage (final units)
+	ccrUpdate := &gy.CreditControlRequest{
+		SessionID:     "1",
+		Type:          credit_control.CRTUpdate,
+		IMSI:          testIMSI1,
+		RequestNumber: 1,
+		Credits: []*gy.UsedCredits{{
+			RatingGroup:    1,
+			InputOctets:    999990,
+			OutputOctets:   0,
+			TotalOctets:    999990,
+			RequestedUnits: defaultRSU,
+		}},
+	}
+
+	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrUpdate))
+	update := gy.GetAnswer(done)
+	assert.Equal(t, uint64(10), *update.Credits[0].GrantedUnits.TotalOctets)
+	assert.Equal(t, gy.RestrictAccess, update.Credits[0].FinalUnitIndication.FinalAction)
+	assert.Equal(t, restrictRule, update.Credits[0].FinalUnitIndication.RestrictRules[0])
 }
 
 func getClientConfig() *diameter.DiameterClientConfig {
@@ -398,7 +499,7 @@ func getGyGlobalConfig(apnFilter, apnOverwrite string) *gy.GyGlobalConfig {
 	}
 }
 
-func startServer(client *diameter.DiameterClientConfig, server *diameter.DiameterServerConfig, initMethod gy.InitMethod) *mock_ocs.OCSDiamServer {
+func startServer(client *diameter.DiameterClientConfig, server *diameter.DiameterServerConfig, initMethod gy.InitMethod, finalUnitIndication mock_ocs.FinalUnitIndication) *mock_ocs.OCSDiamServer {
 	serverStarted := make(chan struct{})
 	var ocs *mock_ocs.OCSDiamServer
 	go func() {
@@ -406,11 +507,12 @@ func startServer(client *diameter.DiameterClientConfig, server *diameter.Diamete
 		ocs = mock_ocs.NewOCSDiamServer(
 			client,
 			&mock_ocs.OCSConfig{
-				MaxUsageOctets: &fegprotos.Octets{TotalOctets: returnedOctets},
-				MaxUsageTime:   1000,
-				ValidityTime:   validityTime,
-				ServerConfig:   server,
-				GyInitMethod:   initMethod,
+				MaxUsageOctets:      &fegprotos.Octets{TotalOctets: returnedOctets},
+				MaxUsageTime:        1000,
+				ValidityTime:        validityTime,
+				ServerConfig:        server,
+				GyInitMethod:        initMethod,
+				FinalUnitIndication: finalUnitIndication,
 			},
 		)
 		lis, err := ocs.StartListener()

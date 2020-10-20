@@ -107,7 +107,7 @@ endif
 install_egg: install_virtualenv setup.py
 	$(eval NAME ?= $(shell $(BIN)/python setup.py --name))
 	@echo "Installing egg link for $(NAME)"
-	$(VIRT_ENV_PIP_INSTALL) -e .[dev]
+	$(VIRT_ENV_PIP_INSTALL) --no-build-isolation -e .[dev]
 
 remove_egg:
 	rm -rf *.egg-info

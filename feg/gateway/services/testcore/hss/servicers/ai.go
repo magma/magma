@@ -86,23 +86,23 @@ func (srv *HomeSubscriberServer) setLteAuthNextSeq(subscriber *lteprotos.Subscri
 // NewSuccessfulAIA outputs a successful authentication information answer (AIA) to reply to an
 // authentication information request (AIR) message. It populates AIA with all of the mandatory fields
 // and adds the authentication vectors.
-func (srv *HomeSubscriberServer) NewSuccessfulAIA(msg *diam.Message, sessionID datatype.UTF8String, vectors []*crypto.EutranVector) *diam.Message {
+func (srv *HomeSubscriberServer) NewSuccessfulAIA(
+	msg *diam.Message, sessionID datatype.UTF8String, vectors []*crypto.EutranVector) *diam.Message {
+
 	answer := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server, diam.TGPP_S6A_APP_ID)
+	evs := []*diam.AVP{}
 	for itemNumber, vector := range vectors {
-		answer.NewAVP(avp.AuthenticationInfo, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
+		evs = append(evs, diam.NewAVP(avp.EUTRANVector, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
 			AVP: []*diam.AVP{
-				diam.NewAVP(avp.EUTRANVector, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{
-					AVP: []*diam.AVP{
-						diam.NewAVP(avp.ItemNumber, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(itemNumber)),
-						diam.NewAVP(avp.RAND, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Rand[:])),
-						diam.NewAVP(avp.XRES, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Xres[:])),
-						diam.NewAVP(avp.AUTN, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Autn[:])),
-						diam.NewAVP(avp.KASME, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Kasme[:])),
-					},
-				}),
+				diam.NewAVP(avp.ItemNumber, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.Unsigned32(itemNumber)),
+				diam.NewAVP(avp.RAND, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Rand[:])),
+				diam.NewAVP(avp.XRES, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Xres[:])),
+				diam.NewAVP(avp.AUTN, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Autn[:])),
+				diam.NewAVP(avp.KASME, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(vector.Kasme[:])),
 			},
-		})
+		}))
 	}
+	answer.NewAVP(avp.AuthenticationInfo, avp.Mbit|avp.Vbit, diameter.Vendor3GPP, &diam.GroupedAVP{AVP: evs})
 	return answer
 }
 
