@@ -324,7 +324,7 @@ func createEnodeb(c echo.Context) error {
 		Name:        payload.Name,
 		Description: payload.Description,
 		PhysicalID:  payload.Serial,
-		Config:      payload.Config,
+		Config:      payload.EnodebConfig,
 	})
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)

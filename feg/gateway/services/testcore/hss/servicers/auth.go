@@ -52,18 +52,29 @@ const (
 //   subscriber: The subscriber data for the subscriber we want to generate auth vectors for
 //   plmn: 24 bit network identifier
 //   authSqnInd: the IND of the current vector being generated
-// Returns: The E-UTRAN vectors and the next value to set the subscriber's LteAuthNextSeq to (or an error).
-func GenerateLteAuthVectors(numVectors uint32, milenage *crypto.MilenageCipher, subscriber *protos.SubscriberData, plmn, lteAuthOp []byte, authSqnInd uint64) ([]*crypto.EutranVector, uint64, error) {
-	var vectors = make([]*crypto.EutranVector, 0, numVectors)
+// Returns: The E-UTRAN vectors, UTRAN vectors, the next value to set the subscriber's LteAuthNextSeq to (or an error)
+func GenerateLteAuthVectors(
+	numEutranVectors uint32,
+	numUtranVectors uint32,
+	milenage *crypto.MilenageCipher,
+	subscriber *protos.SubscriberData,
+	plmn,
+	lteAuthOp []byte,
+	authSqnInd uint64) ([]*crypto.EutranVector, []*crypto.UtranVector, uint64, error) {
+
+	if numEutranVectors > 5 {
+		numEutranVectors = 5
+	}
+	var vectors = make([]*crypto.EutranVector, 0, numEutranVectors)
 	lteAuthNextSeq := subscriber.GetState().GetLteAuthNextSeq()
-	for i := uint32(0); i < numVectors; i++ {
+	for i := uint32(0); i < numEutranVectors; i++ {
 		vector, nextSeq, err := GenerateLteAuthVector(milenage, subscriber, plmn, lteAuthOp, authSqnInd)
 		if err != nil {
 			// If we have already generated an auth vector successfully, then we can
 			// return it. Otherwise, we must signal an error.
 			// See 3GPP TS 29.272 section 5.2.3.1.3.
 			if i == 0 {
-				return nil, 0, err
+				return nil, nil, 0, err
 			}
 			glog.Errorf("failed to generate lte auth vector: %v", err)
 			break
@@ -72,7 +83,28 @@ func GenerateLteAuthVectors(numVectors uint32, milenage *crypto.MilenageCipher, 
 		lteAuthNextSeq = nextSeq
 		subscriber.State.LteAuthNextSeq = lteAuthNextSeq
 	}
-	return vectors, lteAuthNextSeq, nil
+	if numUtranVectors > 5 {
+		numUtranVectors = 5
+	}
+	var utranVectors = make([]*crypto.UtranVector, 0, numUtranVectors)
+	for i := uint32(0); i < numUtranVectors; i++ {
+		vector, nextSeq, err := GenerateUtranAuthVector(milenage, subscriber, lteAuthOp, authSqnInd)
+		if err != nil {
+			// If we have already generated an auth vector successfully, then we can
+			// return it. Otherwise, we must signal an error.
+			// See 3GPP TS 29.272 section 5.2.3.1.3.
+			if len(vectors) == 0 && i == 0 {
+				return nil, nil, 0, err
+			}
+			glog.Errorf("failed to generate UTRAN auth vector: %v", err)
+			break
+		}
+		lteAuthNextSeq = nextSeq
+		subscriber.State.LteAuthNextSeq = lteAuthNextSeq
+		utranVectors = append(utranVectors, vector)
+	}
+
+	return vectors, utranVectors, lteAuthNextSeq, nil
 }
 
 // GenerateLteAuthVector returns the lte auth vector for the subscriber.
@@ -82,7 +114,12 @@ func GenerateLteAuthVectors(numVectors uint32, milenage *crypto.MilenageCipher, 
 //   plmn: 24 bit network identifier
 //   authSqnInd: the IND of the current vector being generated
 // Returns: A E-UTRAN vector and the next value to set the subscriber's LteAuthNextSeq to (or an error).
-func GenerateLteAuthVector(milenage *crypto.MilenageCipher, subscriber *protos.SubscriberData, plmn, lteAuthOp []byte, authSqnInd uint64) (*crypto.EutranVector, uint64, error) {
+func GenerateLteAuthVector(
+	milenage *crypto.MilenageCipher,
+	subscriber *protos.SubscriberData,
+	plmn, lteAuthOp []byte,
+	authSqnInd uint64) (*crypto.EutranVector, uint64, error) {
+
 	lte := subscriber.Lte
 	if err := ValidateLteSubscription(lte); err != nil {
 		return nil, 0, NewAuthRejectedError(err.Error())
@@ -98,6 +135,40 @@ func GenerateLteAuthVector(milenage *crypto.MilenageCipher, subscriber *protos.S
 
 	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, authSqnInd)
 	vector, err := milenage.GenerateEutranVector(lte.AuthKey, opc, sqn, plmn)
+	if err != nil {
+		return vector, 0, NewAuthRejectedError(err.Error())
+	}
+	return vector, subscriber.State.LteAuthNextSeq + 1, err
+}
+
+// GenerateUtranAuthVector returns the lte auth vector for the subscriber.
+// Inputs:
+//   milenage: The cipher to use to generate the vector
+//   subscriber: The subscriber data for the subscriber we want to generate auth vectors for
+//   plmn: 24 bit network identifier
+//   authSqnInd: the IND of the current vector being generated
+// Returns: A UTRAN vector and the next value to set the subscriber's LteAuthNextSeq to (or an error).
+func GenerateUtranAuthVector(
+	milenage *crypto.MilenageCipher,
+	subscriber *protos.SubscriberData,
+	lteAuthOp []byte,
+	authSqnInd uint64) (*crypto.UtranVector, uint64, error) {
+
+	lte := subscriber.Lte
+	if err := ValidateLteSubscription(lte); err != nil {
+		return nil, 0, NewAuthRejectedError(err.Error())
+	}
+	if subscriber.State == nil {
+		return nil, 0, NewAuthRejectedError("Subscriber data missing subscriber state")
+	}
+
+	opc, err := GetOrGenerateOpc(lte, lteAuthOp)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, authSqnInd)
+	vector, err := milenage.GenerateUtranVector(lte.AuthKey, opc, sqn)
 	if err != nil {
 		return vector, 0, NewAuthRejectedError(err.Error())
 	}

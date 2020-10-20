@@ -121,6 +121,8 @@ spec:
               value: {{ .Values.controller.spec.service_registry.mode }}
             - name: HELM_RELEASE_NAME
               value: {{ .Release.Name }}
+            - name: SERVICE_REGISTRY_NAMESPACE
+              value: {{ .Release.Name }}
           livenessProbe:
             tcpSocket:
               port: 9081

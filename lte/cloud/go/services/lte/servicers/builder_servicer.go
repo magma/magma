@@ -288,41 +288,48 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			glog.Errorf("enb with serial %s is missing config", serial)
 		}
 
-		cellularEnbConfig := ienbConfig.(*lte_models.EnodebConfiguration)
-		enbMconfig := &lte_mconfig.EnodebD_EnodebConfig{
-			Earfcndl:               int32(cellularEnbConfig.Earfcndl),
-			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
-			SpecialSubframePattern: int32(cellularEnbConfig.SpecialSubframePattern),
-			Pci:                    int32(cellularEnbConfig.Pci),
-			TransmitEnabled:        swag.BoolValue(cellularEnbConfig.TransmitEnabled),
-			DeviceClass:            cellularEnbConfig.DeviceClass,
-			BandwidthMhz:           int32(cellularEnbConfig.BandwidthMhz),
-			Tac:                    int32(cellularEnbConfig.Tac),
-			CellId:                 int32(swag.Uint32Value(cellularEnbConfig.CellID)),
-		}
+		enodebConfig := ienbConfig.(*lte_models.EnodebConfig)
+		enbMconfig := &lte_mconfig.EnodebD_EnodebConfig{}
 
-		// override zero values with network/gateway configs
-		if enbMconfig.Earfcndl == 0 {
-			enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
-		}
-		if enbMconfig.SubframeAssignment == 0 {
-			if nwConfig.Ran.TddConfig != nil {
-				enbMconfig.SubframeAssignment = int32(nwConfig.Ran.TddConfig.SubframeAssignment)
+		if enodebConfig.ConfigType == "MANAGED" {
+			cellularEnbConfig := enodebConfig.ManagedConfig
+			enbMconfig.Earfcndl = int32(cellularEnbConfig.Earfcndl)
+			enbMconfig.SubframeAssignment = int32(cellularEnbConfig.SubframeAssignment)
+			enbMconfig.SpecialSubframePattern = int32(cellularEnbConfig.SpecialSubframePattern)
+			enbMconfig.Pci = int32(cellularEnbConfig.Pci)
+			enbMconfig.TransmitEnabled = swag.BoolValue(cellularEnbConfig.TransmitEnabled)
+			enbMconfig.DeviceClass = cellularEnbConfig.DeviceClass
+			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
+			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
+			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+
+			// override zero values with network/gateway configs
+			if enbMconfig.Earfcndl == 0 {
+				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
 			}
-		}
-		if enbMconfig.SpecialSubframePattern == 0 {
-			if nwConfig.Ran.TddConfig != nil {
-				enbMconfig.SpecialSubframePattern = int32(nwConfig.Ran.TddConfig.SpecialSubframePattern)
+			if enbMconfig.SubframeAssignment == 0 {
+				if nwConfig.Ran.TddConfig != nil {
+					enbMconfig.SubframeAssignment = int32(nwConfig.Ran.TddConfig.SubframeAssignment)
+				}
 			}
-		}
-		if enbMconfig.Pci == 0 {
-			enbMconfig.Pci = int32(gwConfig.Ran.Pci)
-		}
-		if enbMconfig.BandwidthMhz == 0 {
-			enbMconfig.BandwidthMhz = int32(nwConfig.Ran.BandwidthMhz)
-		}
-		if enbMconfig.Tac == 0 {
-			enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			if enbMconfig.SpecialSubframePattern == 0 {
+				if nwConfig.Ran.TddConfig != nil {
+					enbMconfig.SpecialSubframePattern = int32(nwConfig.Ran.TddConfig.SpecialSubframePattern)
+				}
+			}
+			if enbMconfig.Pci == 0 {
+				enbMconfig.Pci = int32(gwConfig.Ran.Pci)
+			}
+			if enbMconfig.BandwidthMhz == 0 {
+				enbMconfig.BandwidthMhz = int32(nwConfig.Ran.BandwidthMhz)
+			}
+			if enbMconfig.Tac == 0 {
+				enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			}
+
+		} else if enodebConfig.ConfigType == "UNMANAGED" {
+			cellularEnbConfig := enodebConfig.UnmanagedConfig
+			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
 		}
 
 		ret[serial] = enbMconfig

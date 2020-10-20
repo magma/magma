@@ -64,7 +64,9 @@ const mockGw0: lte_gateway = {
   cellular: {
     epc: {
       ip_block: '192.168.0.1/24',
-      nat_enabled: true,
+      nat_enabled: false,
+      sgi_management_iface_static_ip: '1.1.1.1/24',
+      sgi_management_iface_vlan: '100',
     },
     ran: {
       pci: 620,
@@ -223,6 +225,9 @@ describe('<AddEditGatewayButton />', () => {
             dns_secondary: '',
             ip_block: '192.168.128.0/24',
             nat_enabled: true,
+            sgi_management_iface_gw: '',
+            sgi_management_iface_static_ip: '',
+            sgi_management_iface_vlan: '',
           },
           ran: {
             pci: 260,
