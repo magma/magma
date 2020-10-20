@@ -65,6 +65,7 @@ from magma.pipelined.app.xwf_passthru import XWFPassthruController
 from magma.pipelined.app.startup_flows import StartupFlows
 from magma.pipelined.app.check_quota import CheckQuotaController
 from magma.pipelined.app.uplink_bridge import UplinkBridgeController
+from magma.pipelined.app.ng_services import NGServiceController
 
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
@@ -277,6 +278,7 @@ class ServiceManager:
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
     CLASSIFIER_NAME = 'classifier'
     HE_CONTROLLER_NAME = 'proxy'
+    NG_SERVICE_CONTROLLER_NAME = 'ng_services'
 
     INTERNAL_APP_SET_TABLE_NUM = 201
     INTERNAL_IMSI_SET_TABLE_NUM = 202
@@ -407,6 +409,14 @@ class ServiceManager:
                 module=Classifier.__module__,
                 type=Classifier.APP_TYPE,
                 order_priority=0),
+
+        ],
+        # 5G Related services
+        NG_SERVICE_CONTROLLER_NAME: [
+            App(name=NGServiceController.APP_NAME,
+                module=NGServiceController.__module__,
+                type=None,
+                order_priority=0),
         ],
     }
 
@@ -416,6 +426,7 @@ class ServiceManager:
         RYU_REST_APP_NAME,
         StartupFlows.APP_NAME,
         UplinkBridgeController.APP_NAME,
+        NGServiceController.APP_NAME,
     ]
 
     def __init__(self, magma_service: MagmaService):
@@ -472,6 +483,11 @@ class ServiceManager:
             logging.info("added uplink bridge controller")
         if self._5G_flag_enable:
             static_services.append(self.__class__.CLASSIFIER_NAME)
+
+            static_services.append(self.__class__.NG_SERVICE_CONTROLLER_NAME)
+
+            logging.info("added classifier and ng service controller")
+
         static_apps = \
             [app for service in static_services for app in
              self.STATIC_SERVICE_TO_APPS[service]]
