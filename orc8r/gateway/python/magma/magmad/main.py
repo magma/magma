@@ -181,7 +181,7 @@ def main():
 
     # Initialize ServiceHealthWatchdog
     service_health_watchdog = ServiceHealthWatchdog(
-        config=service.config['service_health'],
+        config=service.config,
         loop=service.loop,
         service_poller=service_poller,
         service_manager=service_manager

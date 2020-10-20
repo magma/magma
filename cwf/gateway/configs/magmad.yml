@@ -99,11 +99,9 @@ metricsd:
     - state
     - health
 
-service_health:
-  # Services for which magmad grpc status check restart recovery is enabled
-  services_to_restart:
-    - pipelined
+# Services for which magmad grpc status check restart recovery is enabled
+services_to_restart:
+  - pipelined
 
-  # How many times can grpc status check fail before restarting the services above
-  restart_timeout_threshold: 15
-  enable_state_snapshots: False
+# How many times can grpc status check fail before restarting the services above
+restart_timeout_threshold: 15

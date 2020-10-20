@@ -31,11 +31,11 @@ magma_services:
   - eventd
   - smsd
   - ctraced
+  - health
 
 # List of services that don't provide service303 interface
 non_service303_services:
   - control_proxy
-  - sctpd
   - dnsd
   - redis
   - td-agent-bit
@@ -154,18 +154,3 @@ generic_command_config:
     - name: get_subscriber_table
       command: "mobility_cli.py get_subscriber_table"
       allow_params: False
-
-service_health:
-  # Services for which magmad grpc status check restart recovery is enabled
-  services_to_restart:
-    - mme
-    - mobilityd
-    - pipelined
-    - sessiond
-
-  # How many times can grpc status check fail before restarting the services above
-  restart_timeout_threshold: 3
-
-  # Enable saving of redis db snapshots
-  enable_state_recovery: True
-  snapshots_dir: /var/opt/magma/snapshots
