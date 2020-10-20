@@ -19,6 +19,7 @@ import (
 	"net/http"
 
 	"magma/cwf/cloud/go/cwf"
+	"magma/cwf/cloud/go/serdes"
 	cwfModels "magma/cwf/cloud/go/services/cwf/obsidian/models"
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -27,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -241,7 +242,7 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 	if subscriberID == "" {
 		return obsidian.HttpError(fmt.Errorf("SubscriberID cannot be empty"), http.StatusBadRequest)
 	}
-	directoryState, err := state.GetState(networkID, orc8r.DirectoryRecordType, subscriberID)
+	directoryState, err := state.GetState(networkID, orc8r.DirectoryRecordType, subscriberID, serdes.StateSerdes)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
@@ -255,7 +256,7 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 }
 
 func convertDirectoryRecordToSubscriberRecord(iRecord interface{}) (*cwfModels.CwfSubscriberDirectoryRecord, error) {
-	record, ok := iRecord.(*directoryd.DirectoryRecord)
+	record, ok := iRecord.(*directorydTypes.DirectoryRecord)
 	if !ok {
 		return nil, fmt.Errorf("Could not convert retrieved state to DirectoryRecord")
 	}
@@ -441,7 +442,7 @@ func getHaPairState(networkID string, haPair *cwfModels.CwfHaPair) *cwfModels.Ca
 }
 
 func getCwfGatewayHealth(networkID string, gatewayID string) (*cwfModels.CarrierWifiGatewayHealthStatus, error) {
-	reportedGatewayState, err := state.GetState(networkID, cwf.CwfGatewayHealthType, gatewayID)
+	reportedGatewayState, err := state.GetState(networkID, cwf.CwfGatewayHealthType, gatewayID, serdes.StateSerdes)
 	if err == merrors.ErrNotFound {
 		return nil, obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
@@ -458,7 +459,7 @@ func getCwfGatewayHealth(networkID string, gatewayID string) (*cwfModels.Carrier
 }
 
 func getCwfHaPairStatus(networkID string, haPairID string) (*cwfModels.CarrierWifiHaPairStatus, error) {
-	reportedHaPairStatus, err := state.GetState(networkID, cwf.CwfHAPairStatusType, haPairID)
+	reportedHaPairStatus, err := state.GetState(networkID, cwf.CwfHAPairStatusType, haPairID, serdes.StateSerdes)
 	if err == merrors.ErrNotFound {
 		return nil, obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {

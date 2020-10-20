@@ -19,6 +19,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/serdes"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	policydbHandlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
@@ -35,7 +36,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
@@ -367,13 +368,13 @@ func TestListSubscribers(t *testing.T) {
 
 	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.StateSerdes)
 	mmeState := state.ArbitraryJSON{"mme": "foo"}
-	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState, serdes.StateSerdes)
 	spgwState := state.ArbitraryJSON{"spgw": "foo"}
-	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState, serdes.StateSerdes)
 	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
-	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState, serdes.StateSerdes)
 	// Report 2 allocated IP addresses for the subscriber
 	mobilitydState1 := state.ArbitraryJSON{
 		"ip": map[string]interface{}{
@@ -385,10 +386,10 @@ func TestListSubscribers(t *testing.T) {
 			"address": "wKiAhg==",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
-	directoryState := directoryd.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
-	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1, serdes.StateSerdes)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2, serdes.StateSerdes)
+	directoryState := directorydTypes.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
+	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState, serdes.StateSerdes)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -569,13 +570,13 @@ func TestGetSubscriber(t *testing.T) {
 	defer clock.UnfreezeClock(t)
 	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.StateSerdes)
 	mmeState := state.ArbitraryJSON{"mme": "foo"}
-	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState, serdes.StateSerdes)
 	spgwState := state.ArbitraryJSON{"spgw": "foo"}
-	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState, serdes.StateSerdes)
 	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
-	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState, serdes.StateSerdes)
 	// Report 2 allocated IP addresses for the subscriber
 	mobilitydState1 := state.ArbitraryJSON{
 		"ip": map[string]interface{}{
@@ -587,10 +588,10 @@ func TestGetSubscriber(t *testing.T) {
 			"address": "wKiAhg==",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
-	directoryState := directoryd.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
-	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1, serdes.StateSerdes)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2, serdes.StateSerdes)
+	directoryState := directorydTypes.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
+	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState, serdes.StateSerdes)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -874,7 +875,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw0")
 	mobilitydState := &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAQ=="}} // 127.0.0.1
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", mobilitydState)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", mobilitydState, serdes.StateSerdes)
 	// Wait for state to be indexed
 	time.Sleep(time.Second)
 
@@ -902,7 +903,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 
 	// Report IP state: Jane has new IP
 	mobilitydState = &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAg=="}} // 127.0.0.2
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", mobilitydState)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", mobilitydState, serdes.StateSerdes)
 	// Wait for state to be indexed
 	time.Sleep(time.Second)
 
@@ -920,7 +921,7 @@ func TestGetSubscriberByIP(t *testing.T) {
 
 	// Report IP state: John has Jane's new IP
 	mobilitydState = &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAg=="}} // 127.0.0.2
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI0000000001.oai.ipv4", mobilitydState)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI0000000001.oai.ipv4", mobilitydState, serdes.StateSerdes)
 	// Wait for state to be indexed
 	time.Sleep(time.Second)
 

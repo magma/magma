@@ -22,6 +22,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
@@ -3760,7 +3761,7 @@ func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, r
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedEnodebState, err := serde.Serialize(state.SerdeDomain, lte.EnodebStateType, req)
+	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.StateSerdes)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

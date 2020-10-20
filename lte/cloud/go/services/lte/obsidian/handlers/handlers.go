@@ -18,6 +18,7 @@ import (
 	"net/http"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
@@ -399,7 +400,7 @@ func getEnodebState(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	st, err := state.GetState(nid, lte.EnodebStateType, eid)
+	st, err := state.GetState(nid, lte.EnodebStateType, eid, serdes.StateSerdes)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
