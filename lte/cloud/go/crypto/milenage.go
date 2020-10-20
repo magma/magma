@@ -103,6 +103,24 @@ type EutranVector struct {
 	Kasme [KasmeBytes]byte
 }
 
+// UtranVector represents a UTRAN key vector
+type UtranVector struct {
+	// Rand is a random challenge
+	Rand [RandChallengeBytes]byte
+
+	// Xres is the expected response
+	Xres [XresBytes]byte
+
+	// Autn is an authentication token
+	Autn [AutnBytes]byte
+
+	// Confidentialitykey is used to ensure the confidentiality of messages
+	ConfidentialityKey [ConfidentialityKeyBytes]byte
+
+	// IntegrityKey is used to ensure the integrity of messages
+	IntegrityKey [IntegrityKeyBytes]byte
+}
+
 // SIPAuthVector represents the data encoded in a SIP auth data item.
 type SIPAuthVector struct {
 	// Rand is a random challenge
@@ -135,24 +153,80 @@ type SIPAuthVector struct {
 //         2      MNC digit 3 | MCC digit 3
 //         3      MNC digit 2 | MNC digit 1
 // Outputs: An EutranVector or an error. The EutranVector is not nil if and only if err == nil.
-func (milenage *MilenageCipher) GenerateEutranVector(key []byte, opc []byte, sqn uint64, plmn []byte) (*EutranVector, error) {
+func (milenage *MilenageCipher) GenerateEutranVector(key, opc []byte, sqn uint64, plmn []byte) (*EutranVector, error) {
+	var randChallenge = make([]byte, RandChallengeBytes)
+	_, err := milenage.rng.Read(randChallenge)
+	if err != nil {
+		return nil, err
+	}
+	return milenage.GenerateEutranVectorWithRand(key, opc, randChallenge, sqn, plmn)
+}
+
+// GenerateEutranVectorWithRand creates an E-UTRAN key vector.
+// Inputs:
+//   key:  128 bit subscriber key
+//   opc:  128 bit operator variant algorithm configuration field
+//   rand: 128 bit random challenge
+//   sqn:  48 bit sequence number
+//   plmn: 24 bit network identifier
+//      Octet           Description
+//         1      MCC digit 2 | MCC digit 1
+//         2      MNC digit 3 | MCC digit 3
+//         3      MNC digit 2 | MNC digit 1
+// Outputs: An EutranVector or an error. The EutranVector is not nil if and only if err == nil.
+func (milenage *MilenageCipher) GenerateEutranVectorWithRand(
+	key, opc, rand []byte, sqn uint64, plmn []byte) (*EutranVector, error) {
+
 	err := validateGenerateEutranVectorInputs(key, opc, sqn, plmn)
 	if err != nil {
 		return nil, err
 	}
-
-	vector, err := milenage.GenerateSIPAuthVector(key, opc, sqn)
+	vector, err := milenage.GenerateSIPAuthVectorWithRand(rand, key, opc, sqn)
 	if err != nil {
 		return nil, err
 	}
-
 	sqnBytes := getSqnBytes(sqn)
 	kasme, err := generateKasme(vector.ConfidentialityKey[:], vector.IntegrityKey[:], plmn, sqnBytes, vector.AnonymityKey[:])
 	if err != nil {
 		return nil, err
 	}
-
 	return newEutranVector(vector.Rand[:], vector.Xres[:], vector.Autn[:], kasme), nil
+}
+
+// GenerateUtranVector creates UTRAN auth vector
+// Inputs:
+//   key:  128 bit subscriber key
+//   opc:  128 bit operator variant algorithm configuration field
+//   sqn:  48 bit sequence number
+// Outputs: A E-UTRAN & UTRAN auth vector or an error
+func (milenage *MilenageCipher) GenerateUtranVector(key, opc []byte, sqn uint64) (*UtranVector, error) {
+	var randChallenge = make([]byte, RandChallengeBytes)
+	_, err := milenage.rng.Read(randChallenge)
+	if err != nil {
+		return nil, err
+	}
+	return milenage.GenerateUtranVectorWithRand(key, opc, randChallenge, sqn)
+}
+
+// GenerateUtranVectorWithRand creates UTRAN auth vector
+// Inputs:
+//   key:  128 bit subscriber key
+//   opc:  128 bit operator variant algorithm configuration field
+//   rand: 128 bit random challenge
+//   sqn:  48 bit sequence number
+// Outputs: A E-UTRAN & UTRAN auth vector or an error
+func (milenage *MilenageCipher) GenerateUtranVectorWithRand(key, opc, rand []byte, sqn uint64) (*UtranVector, error) {
+	vector, err := milenage.GenerateSIPAuthVectorWithRand(rand, key, opc, sqn)
+	if err != nil {
+		return nil, err
+	}
+	return &UtranVector{
+		Rand:               vector.Rand,
+		Xres:               vector.Xres,
+		Autn:               vector.Autn,
+		ConfidentialityKey: vector.ConfidentialityKey,
+		IntegrityKey:       vector.IntegrityKey,
+	}, nil
 }
 
 // GenerateSIPAuthVector creates a SIP auth vector.

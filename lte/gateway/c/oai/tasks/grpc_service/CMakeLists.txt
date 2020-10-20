@@ -53,6 +53,13 @@ generate_cpp_protos("${SMOSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
 generate_grpc_protos("${SMOSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
+# S1ap Service
+set(S1APSRV_LTE_CPP_PROTOS s1ap_service)
+set(S1APSRV_LTE_GRPC_PROTOS s1ap_service)
+generate_cpp_protos("${S1APSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+        "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${S1APSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
+        "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
@@ -62,6 +69,7 @@ add_library(TASK_GRPC_SERVICE
     S6aServiceImpl.cpp
     CSFBGatewayServiceImpl.cpp
     SMSOrc8rGatewayServiceImpl.cpp
+    S1apServiceImpl.cpp
     spgw_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp
