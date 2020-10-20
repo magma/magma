@@ -13,8 +13,10 @@ limitations under the License.
 
 from threading import Thread
 from unittest import mock
+
 from magma.enodebd.enodeb_status import get_service_status_old, \
     get_operational_states
+from magma.common.debug_server import run_debug_server
 from magma.enodebd.state_machines.enb_acs_manager import StateMachineManager
 from magma.enodebd.logger import EnodebdLogger as logger
 from .rpc_servicer import EnodebdRpcServicer
@@ -54,6 +56,9 @@ def main():
                            daemon=True)
     server_thread.start()
 
+    # start debug server
+    start_debug_server(run_debug_server, locals())
+
     # Add all servicers to the server
     enodebd_servicer = EnodebdRpcServicer(state_machine_manager)
     enodebd_servicer.add_to_server(service.rpc_server)
@@ -77,6 +82,12 @@ def main():
     # Cleanup the service
     service.close()
 
+def start_debug_server(target, namespace):
+    """ Starts service server threads """
+    debug_sockpath = '/tmp/enodebd.sock'
+    thread = Thread(target=target, args=(debug_sockpath, namespace))
+    thread.daemon = True
+    thread.start()
 
 def call_repeatedly(loop, interval, function, *args, **kwargs):
     """

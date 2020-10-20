@@ -26,6 +26,7 @@ from scapy.arch import get_if_hwaddr
 
 from magma.common.misc_utils import call_process
 from magma.common.service import MagmaService
+from magma.common.debug_server import run_debug_server
 from magma.configuration import environment
 from magma.pipelined.app import of_rest_server
 from magma.pipelined.check_quota_server import run_flask
@@ -35,7 +36,6 @@ from magma.pipelined.rpc_servicer import PipelinedRpcServicer
 from magma.pipelined.gtp_stats_collector import GTPStatsCollector, \
     MIN_OVSDB_DUMP_POLLING_INTERVAL
 from lte.protos.mconfig import mconfigs_pb2
-
 
 def main():
     """
@@ -131,6 +131,10 @@ def main():
         start_check_quota_server(run_flask, bridge_ip, no_quota_port, False,
                                  on_exit_server_thread)
 
+
+    # start debug server
+    start_debug_server(run_debug_server, manager)
+
     if service.config['setup_type'] == 'LTE':
         polling_interval = service.config.get('ovs_gtp_stats_polling_interval',
                                               MIN_OVSDB_DUMP_POLLING_INTERVAL)
@@ -154,6 +158,13 @@ def start_check_quota_server(target, ip, port, response, exit_callback):
     thread.daemon = True
     thread.start()
 
+
+def start_debug_server(target, namespace):
+    """ Starts service server threads """
+    debug_sockpath = '/tmp/pipelined.sock'
+    thread = threading.Thread(target=target, args=(debug_sockpath, namespace,))
+    thread.daemon = True
+    thread.start()
 
 if __name__ == "__main__":
     main()

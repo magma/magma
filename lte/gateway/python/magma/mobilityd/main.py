@@ -11,8 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+import threading
 
 from magma.common.redis.client import get_default_client
+from magma.common.debug_server import run_debug_server
 from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.mobilityd.ip_address_man import IPAddressManager
@@ -26,6 +28,12 @@ from magma.mobilityd.mobility_store import MobilityStore
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
+def start_debug_server(target, namespace):
+    """ Starts service server threads """
+    debug_sockpath = '/tmp/mobility.sock'
+    thread = threading.Thread(target=target, args=(debug_sockpath, namespace))
+    thread.daemon = True
+    thread.start()
 
 def _get_ipv4_allocator(store: MobilityStore, allocator_type: int,
                         static_ip_enabled: bool, multi_apn: bool,
@@ -101,6 +109,9 @@ def main():
                                                            config.get(
                                                                'ipv6_prefix_block'))
     mobility_service_servicer.add_to_server(service.rpc_server)
+
+    # start debug server
+    start_debug_server(run_debug_server, locals())
 
     # Run the service loop
     service.run()

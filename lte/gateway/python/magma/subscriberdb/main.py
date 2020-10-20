@@ -12,9 +12,11 @@ limitations under the License.
 """
 import asyncio
 import logging
+import threading
 
 from magma.common.service import MagmaService
 from magma.common.streamer import StreamerClient
+from magma.common.debug_server import run_debug_server
 from .processor import Processor
 from .protocols.diameter.application import base, s6a
 from .protocols.diameter.server import S6aServer
@@ -83,6 +85,9 @@ def main():
             asyncio.ensure_future(s6a_server, loop=service.loop)
     asyncio.ensure_future(serve(), loop=service.loop)
 
+    # start debug server
+    start_debug_server(run_debug_server, locals())
+
     # Run the service loop
     service.run()
 
@@ -99,6 +104,12 @@ def _get_s6a_manager(service, processor):
         service.loop
     )
 
+def start_debug_server(target, namespace):
+    """ Starts service server threads """
+    debug_sockpath = '/tmp/subscriberdb.sock'
+    thread = threading.Thread(target=target, args=(debug_sockpath, namespace))
+    thread.daemon = True
+    thread.start()
 
 if __name__ == "__main__":
     main()
