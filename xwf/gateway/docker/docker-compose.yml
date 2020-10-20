@@ -98,7 +98,7 @@ services:
       - SCUBA_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
       - AAA_ENDPOINT=https://graph.expresswifi.com/radius/authorization
       - AAA_ACCESS_TOKEN=${AAA_ACCESS_TOKEN}
-      - RADIUS_SECRET=123456
+      - RADIUS_SECRET=${RADIUS_SECRET:-123456}
       - TEMPLATE_ENV=radius.ofpanalytics.config.json.template
       - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
     command: >
