@@ -10,7 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 import logging
+import queue
 from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
@@ -49,6 +51,8 @@ from magma.pipelined.metrics import (
     ENFORCEMENT_RULE_INSTALL_FAIL,
 )
 
+grpc_msg_queue = queue.Queue()
+
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     """
@@ -72,8 +76,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._classifier_app = classifier_app
         self._service_manager = service_manager
 
-        self._print_grpc_payload = service_config.get('print_grpc_payload',
-                                                      False)
+        self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
+        if self._print_grpc_payload is None:
+            self._print_grpc_payload = \
+                service_config.get('magma_print_grpc_payload', False)
 
     def add_to_server(self, server):
         """
@@ -601,11 +607,22 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     # --------------------------
 
     def _log_grpc_payload(self, grpc_request):
+        if not grpc_request:
+            return
+        indent = '  '
+        dbl_indent = indent + indent
+        indented_text = dbl_indent + \
+            str(grpc_request).replace('\n', '\n' + dbl_indent)
+        log_msg = 'Got RPC payload:\n{0}{1} {{\n{2}\n{0}}}'.format(indent,
+            grpc_request.DESCRIPTOR.name, indented_text.rstrip())
+
+        grpc_msg_queue.put(log_msg)
+        if grpc_msg_queue.qsize() > 100:
+            grpc_msg_queue.get()
+
         if not self._print_grpc_payload:
             return
-        indented_text = '\t' + str(grpc_request).replace('\n', '\n\t')
-        logging.info('GRPC payload of %s{\n%s\n}', grpc_request.DESCRIPTOR.name,
-                     indented_text.rstrip())
+        logging.info(log_msg)
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],

@@ -125,7 +125,7 @@ clean_restart: true
 redis_enabled: false
 
 # Logs grpc payload content
-print_grpc_payload: false
+magma_print_grpc_payload: false
 
 ###############
 ## IMPORTANT ##
