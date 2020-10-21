@@ -15,7 +15,6 @@ import ipaddress
 import unittest
 from typing import Optional
 
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from magma.common.redis.client import get_default_client
 from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.mobilityd.ip_descriptor import IPDesc, IPType
@@ -24,7 +23,14 @@ from magma.mobilityd.ip_address_man import IPAddressManager, \
 from magma.mobilityd.tests.test_multi_apn_ip_alloc import MockedSubscriberDBStub
 from magma.mobilityd.uplink_gw import InvalidVlanId
 
+from magma.mobilityd.ip_allocator_static import \
+    IPAllocatorStaticWrapper
+from magma.mobilityd.ip_allocator_pool import \
+    IpAllocatorPool
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
 from magma.mobilityd.mobility_store import MobilityStore
+
 from unittest import mock
 
 
@@ -41,15 +47,25 @@ class StaticIPAllocationTests(unittest.TestCase):
         """
 
         store = MobilityStore(get_default_client(), False, 3980)
-        self._allocator = IPAddressManager(MobilityD.IP_POOL,
+        ip_allocator = IpAllocatorPool(store.assigned_ip_blocks,
+                                       store.ip_state_map,
+                                       store.sid_ips_map)
+        ipv4_allocator = IPAllocatorStaticWrapper(
+            subscriberdb_rpc_stub=MockedSubscriberDBStub(),
+            ip_allocator=ip_allocator,
+            gw_info=store.dhcp_gw_info,
+            assigned_ip_blocks=store.assigned_ip_blocks,
+            ip_state_map=store.ip_state_map)
+        ipv6_allocator = IPv6AllocatorPool(
+            session_prefix_alloc_mode='RANDOM',
+            sid_ips_map=store.sid_ips_map,
+            ip_states_map=store.ip_state_map,
+            allocated_iid=store.allocated_iid,
+            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        self._allocator = IPAddressManager(ipv4_allocator,
+                                           ipv6_allocator,
                                            store,
-                                           static_ip_enabled=True,
-                                           multi_apn=False,
-                                           dhcp_iface='iface',
-                                           dhcp_retry_limit=300,
-                                           ipv6_allocation_type='RANDOM',
-                                           subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-                                           recycling_interval=recycling_interval)
+                                           recycling_interval)
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
@@ -60,7 +76,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.clear_subs()
 
     def check_type(self, sid: str, type: IPType):
-        ip_desc = self._allocator.sid_ips_map[sid]
+        ip_desc = self._allocator._sid_ips_map[sid]
         self.assertEqual(ip_desc.type, type)
         if type == IPType.IP_POOL:
             ip_block = self._block
@@ -69,9 +85,9 @@ class StaticIPAllocationTests(unittest.TestCase):
         self.assertEqual(ip_desc.ip_block, ip_block)
 
     def check_gw_info(self, vlan: Optional[int], gw_ip: str, gw_mac: Optional[str]):
-        gw_info_ip = self._allocator.dhcp_gw_info.get_gw_ip(vlan)
+        gw_info_ip = self._allocator._dhcp_gw_info.get_gw_ip(vlan)
         self.assertEqual(gw_info_ip, gw_ip)
-        gw_info_mac = self._allocator.dhcp_gw_info.get_gw_mac(vlan)
+        gw_info_mac = self._allocator._dhcp_gw_info.get_gw_mac(vlan)
         self.assertEqual(gw_info_mac, gw_mac)
 
     def test_get_ip_for_subscriber(self):

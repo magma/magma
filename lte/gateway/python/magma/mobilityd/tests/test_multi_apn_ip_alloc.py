@@ -20,19 +20,24 @@ from lte.protos.subscriberdb_pb2 import (
     LTESubscription,
     SubscriberData,
     SubscriberState,
-    SubscriberID,
-    SubscriberUpdate,
     Non3GPPUserProfile,
     APNConfiguration,
 )
 
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from magma.common.redis.client import get_default_client
 from magma.mobilityd.ip_descriptor import IPDesc, IPType
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
 from magma.subscriberdb.sid import SIDUtils
 from magma.mobilityd.mobility_store import MobilityStore
+from magma.mobilityd.ip_allocator_pool import \
+    IpAllocatorPool
+from magma.mobilityd.ip_allocator_multi_apn import \
+    IPAllocatorMultiAPNWrapper
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
+from magma.mobilityd.ip_allocator_static import \
+    IPAllocatorStaticWrapper
 
 
 class MockedSubscriberDBStub:
@@ -106,15 +111,29 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         Creates and sets up an IPAllocator with the given recycling interval.
         """
         store = MobilityStore(get_default_client(), False, 3980)
-        self._allocator = IPAddressManager(MobilityD.IP_POOL,
+        ip_allocator = IpAllocatorPool(store.assigned_ip_blocks,
+                                       store.ip_state_map,
+                                       store.sid_ips_map)
+        ip_allocator_static = IPAllocatorStaticWrapper(
+            subscriberdb_rpc_stub=MockedSubscriberDBStub(),
+            ip_allocator=ip_allocator,
+            gw_info=store.dhcp_gw_info,
+            assigned_ip_blocks=store.assigned_ip_blocks,
+            ip_state_map=store.ip_state_map)
+        ipv4_allocator = IPAllocatorMultiAPNWrapper(
+            subscriberdb_rpc_stub=MockedSubscriberDBStub(),
+            ip_allocator=ip_allocator_static)
+        ipv6_allocator = IPv6AllocatorPool(
+            session_prefix_alloc_mode='RANDOM',
+            sid_ips_map=store.sid_ips_map,
+            ip_states_map=store.ip_state_map,
+            allocated_iid=store.allocated_iid,
+            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        self._allocator = IPAddressManager(ipv4_allocator,
+                                           ipv6_allocator,
                                            store,
-                                           static_ip_enabled=True,
-                                           multi_apn=True,
-                                           dhcp_iface='iface',
-                                           dhcp_retry_limit=50,
-                                           ipv6_allocation_type='RANDOM',
-                                           subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-                                           recycling_interval=recycling_interval)
+                                           recycling_interval)
+
 
         self._allocator.add_ip_block(self._block)
 
@@ -126,20 +145,20 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.clear_subs()
 
     def check_type(self, sid: str, type1: IPType):
-        ip_desc = self._allocator.sid_ips_map[sid]
+        ip_desc = self._allocator._sid_ips_map[sid]
         self.assertEqual(ip_desc.type, type1)
 
     def check_vlan(self, sid: str, vlan: str):
-        ip_desc = self._allocator.sid_ips_map[sid]
+        ip_desc = self._allocator._sid_ips_map[sid]
         logging.info("type ip_desc.vlan_id %s vlan %s", type(ip_desc.vlan_id),
                      type(vlan))
         self.assertEqual(ip_desc.vlan_id, vlan)
 
     def check_gw_info(self, vlan: Optional[int], gw_ip: str,
                       gw_mac: Optional[str]):
-        gw_info_ip = self._allocator.dhcp_gw_info.get_gw_ip(vlan)
+        gw_info_ip = self._allocator._dhcp_gw_info.get_gw_ip(vlan)
         self.assertEqual(gw_info_ip, gw_ip)
-        gw_info_mac = self._allocator.dhcp_gw_info.get_gw_mac(vlan)
+        gw_info_mac = self._allocator._dhcp_gw_info.get_gw_mac(vlan)
         self.assertEqual(gw_info_mac, gw_mac)
 
     def test_get_ip_vlan_for_subscriber(self):

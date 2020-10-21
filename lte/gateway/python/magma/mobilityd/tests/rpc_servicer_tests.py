@@ -36,6 +36,11 @@ from magma.mobilityd.mobility_store import MobilityStore
 from magma.mobilityd.tests.test_multi_apn_ip_alloc import \
     MockedSubscriberDBStub
 
+from magma.mobilityd.ip_allocator_pool import \
+    IpAllocatorPool
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
+
 
 class RpcTests(unittest.TestCase):
     """
@@ -49,14 +54,19 @@ class RpcTests(unittest.TestCase):
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
 
         store = MobilityStore(get_default_client(), False, 3980)
-        self._allocator = IPAddressManager(MobilityD.IP_POOL,
-                                           store,
-                                           static_ip_enabled=False,
-                                           multi_apn=False,
-                                           dhcp_iface='iface',
-                                           dhcp_retry_limit=300,
-                                           ipv6_allocation_type='RANDOM',
-                                           subscriberdb_rpc_stub=MockedSubscriberDBStub())
+        store.dhcp_gw_info.read_default_gw()
+        ip_allocator = IpAllocatorPool(store.assigned_ip_blocks,
+                                       store.ip_state_map,
+                                       store.sid_ips_map)
+        ipv6_allocator = IPv6AllocatorPool(
+            session_prefix_alloc_mode='RANDOM',
+            sid_ips_map=store.sid_ips_map,
+            ip_states_map=store.ip_state_map,
+            allocated_iid=store.allocated_iid,
+            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        self._allocator = IPAddressManager(ip_allocator,
+                                           ipv6_allocator,
+                                           store)
 
         # Add the servicer
         self._servicer = MobilityServiceRpcServicer(self._allocator,

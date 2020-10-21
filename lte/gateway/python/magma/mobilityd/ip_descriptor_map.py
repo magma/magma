@@ -46,7 +46,7 @@ DEFAULT_IP_RECYCLE_INTERVAL = 15
 
 class IpDescriptorMap:
 
-    def __init__(self, ip_states: Dict):
+    def __init__(self, ip_states: Dict[str, IPDesc]):
         """
 
         Args:
