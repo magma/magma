@@ -60,6 +60,38 @@ int MobilityServiceClient::AllocateIPv4AddressAsync(
   return 0;
 }
 
+int MobilityServiceClient::AllocateIPv6AddressAsync(
+    const std::string& imsi, const std::string& apn,
+    const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
+  AllocateIPRequest request = AllocateIPRequest();
+  request.set_version(AllocateIPRequest::IPV6);
+
+  SubscriberID* sid = request.mutable_sid();
+  sid->set_id(imsi);
+  sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
+
+  AllocateIPAddressRPC(request, callback);
+  return 0;
+}
+
+int MobilityServiceClient::AllocateIPv4v6AddressAsync(
+    const std::string& imsi, const std::string& apn,
+    const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
+  AllocateIPRequest request = AllocateIPRequest();
+  request.set_version(AllocateIPRequest::IPV4V6);
+
+  SubscriberID* sid = request.mutable_sid();
+  sid->set_id(imsi);
+  sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
+
+  AllocateIPAddressRPC(request, callback);
+  return 0;
+}
+
 int MobilityServiceClient::ReleaseIPv4Address(
     const std::string& imsi, const std::string& apn,
     const struct in_addr& addr) {
@@ -243,38 +275,6 @@ MobilityServiceClient::MobilityServiceClient() {
 MobilityServiceClient& MobilityServiceClient::getInstance() {
   static MobilityServiceClient instance;
   return instance;
-}
-
-int MobilityServiceClient::AllocateIPv6AddressAsync(
-    const std::string& imsi, const std::string& apn,
-    const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
-  AllocateIPRequest request = AllocateIPRequest();
-  request.set_version(AllocateIPRequest::IPV6);
-
-  SubscriberID* sid = request.mutable_sid();
-  sid->set_id(imsi);
-  sid->set_type(SubscriberID::IMSI);
-
-  request.set_apn(apn);
-
-  AllocateIPAddressRPC(request, callback);
-  return 0;
-}
-
-int MobilityServiceClient::AllocateIPv4v6AddressAsync(
-    const std::string& imsi, const std::string& apn,
-    const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
-  AllocateIPRequest request = AllocateIPRequest();
-  request.set_version(AllocateIPRequest::IPV4V6);
-
-  SubscriberID* sid = request.mutable_sid();
-  sid->set_id(imsi);
-  sid->set_type(SubscriberID::IMSI);
-
-  request.set_apn(apn);
-
-  AllocateIPAddressRPC(request, callback);
-  return 0;
 }
 
 }  // namespace lte

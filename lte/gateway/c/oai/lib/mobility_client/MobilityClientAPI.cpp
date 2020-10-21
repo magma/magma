@@ -196,7 +196,8 @@ int pgw_handle_allocate_ipv6_address(
         if (ip_msg.ip_list_size() > 0) {
           ipv6_addr_str = ip_msg.ip_list(0).address();
         }
-        memcpy(ip6_addr, ipv6_addr_str.c_str(), sizeof(in_addr));
+
+        memcpy(ip6_addr, ipv6_addr_str.c_str(), sizeof(ipv6_addr_str.c_str()));
         int vlan = atoi(ip_msg.vlan().c_str());
 
         auto sgi_resp = handle_allocate_ipv6_address_status(
@@ -296,8 +297,13 @@ int pgw_handle_allocate_ipv4v6_address(
         if (ip_msg.ip_list_size() == 2) {
           ipv4_addr_str = ip_msg.ip_list(0).address();
           ipv6_addr_str = ip_msg.ip_list(1).address();
-        } else {
           OAILOG_INFO(
+              LOG_UTIL,
+              "Allocated IPv4 Address <%s>, IPv6 Address <%s>, PDN Type <%s>,"
+              " for IMSI <%s> and APN <%s>\n",
+              ipv4_addr_str, ipv6_addr_str, pdn_type, subscriber_id, apn);
+        } else {
+          OAILOG_ERROR(
               LOG_UTIL,
               " Error in allocating ipv4v6 address for IMSI <%s> apn <%s>\n",
               subscriber_id, apn);
