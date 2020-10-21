@@ -43,7 +43,7 @@ func RegisterDevice(networkID, deviceType, deviceKey string, info interface{}) e
 		return err
 	}
 
-	serializedInfo, err := serde.Serialize(SerdeDomain, deviceType, info)
+	serializedInfo, err := serde.SerializeLegacy(SerdeDomain, deviceType, info)
 	if err != nil {
 		return err
 	}
@@ -66,7 +66,7 @@ func UpdateDevice(networkID, deviceType, deviceKey string, info interface{}) err
 		return err
 	}
 
-	serializedInfo, err := serde.Serialize(SerdeDomain, deviceType, info)
+	serializedInfo, err := serde.SerializeLegacy(SerdeDomain, deviceType, info)
 	if err != nil {
 		return err
 	}
@@ -120,7 +120,7 @@ func GetDevice(networkID, deviceType, deviceKey string) (interface{}, error) {
 	if !ok {
 		return nil, merrors.ErrNotFound
 	}
-	return serde.Deserialize(SerdeDomain, deviceType, device.Info)
+	return serde.DeserializeLegacy(SerdeDomain, deviceType, device.Info)
 }
 
 func GetDevices(networkID string, deviceType string, deviceIDs []string) (map[string]interface{}, error) {
@@ -144,7 +144,7 @@ func GetDevices(networkID string, deviceType string, deviceIDs []string) (map[st
 
 	ret := make(map[string]interface{}, len(res.DeviceMap))
 	for k, val := range res.DeviceMap {
-		iVal, err := serde.Deserialize(SerdeDomain, deviceType, val.Info)
+		iVal, err := serde.DeserializeLegacy(SerdeDomain, deviceType, val.Info)
 		if err != nil {
 			return map[string]interface{}{}, errors.Wrapf(err, "failed to deserialize device %s", k)
 		}

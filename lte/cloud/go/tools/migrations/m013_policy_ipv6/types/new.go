@@ -20,7 +20,6 @@ import (
 // PolicyRuleConfig policy rule config
 // swagger:model policy_rule_config
 type PolicyRuleConfig struct {
-
 	AppName json.RawMessage `json:"app_name,omitempty"`
 
 	AppServiceType json.RawMessage `json:"app_service_type,omitempty"`
@@ -43,7 +42,6 @@ type PolicyRuleConfig struct {
 // FlowDescription flow description
 // swagger:model flow_description
 type FlowDescription struct {
-
 	Action json.RawMessage `json:"action"`
 
 	// match

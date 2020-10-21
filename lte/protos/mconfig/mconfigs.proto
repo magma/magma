@@ -50,6 +50,7 @@ message EnodebD {
         int32 bandwidth_mhz = 7;
         int32 tac = 8;
         int32 cell_id = 9;
+        string ip_address = 10;
     }
 
     orc8r.LogLevel log_level = 1;

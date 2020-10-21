@@ -63,7 +63,7 @@ import nullthrows from '@fbcnms/util/nullthrows';
 import {AltFormField} from '../../components/FormField';
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -80,6 +80,9 @@ const DEFAULT_GATEWAY_CONFIG = {
       nat_enabled: true,
       dns_primary: '',
       dns_secondary: '',
+      sgi_management_iface_gw: '',
+      sgi_management_iface_static_ip: '',
+      sgi_management_iface_vlan: '',
     },
     ran: {
       pci: 260,
@@ -636,6 +639,13 @@ export function EPCEdit(props: Props) {
     props.gateway?.cellular.epc || DEFAULT_GATEWAY_CONFIG.cellular.epc,
   );
 
+  useEffect(() => {
+    setEPCConfig(
+      props.gateway?.cellular.epc || DEFAULT_GATEWAY_CONFIG.cellular.epc,
+    );
+    setError('');
+  }, [props.gateway?.cellular.epc]);
+
   const onSave = async () => {
     try {
       const gateway = {
@@ -655,7 +665,6 @@ export function EPCEdit(props: Props) {
       setError(e.response?.data?.message ?? e.message);
     }
   };
-
   return (
     <>
       <DialogContent data-testid="epcEdit">
@@ -676,7 +685,7 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'IP Block'}>
             <OutlinedInput
               data-testid="ipBlock"
-              placeholder="Enter IP Block"
+              placeholder="192.168.128.0/24"
               type="string"
               fullWidth={true}
               value={EPCConfig.ip_block}
@@ -686,10 +695,10 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'DNS Primary'}>
             <OutlinedInput
               data-testid="dnsPrimary"
-              placeholder="Enter Primary DNS"
+              placeholder="8.8.8.8"
               type="string"
               fullWidth={true}
-              value={EPCConfig.dns_primary}
+              value={EPCConfig.dns_primary ?? ''}
               onChange={({target}) =>
                 handleEPCChange('dns_primary', target.value)
               }
@@ -698,15 +707,56 @@ export function EPCEdit(props: Props) {
           <AltFormField label={'DNS Secondary'}>
             <OutlinedInput
               data-testid="dnsSecondary"
-              placeholder="Enter Secondary DNS"
+              placeholder="8.8.4.4"
               type="string"
               fullWidth={true}
-              value={EPCConfig.dns_secondary}
+              value={EPCConfig.dns_secondary ?? ''}
               onChange={({target}) =>
                 handleEPCChange('dns_secondary', target.value)
               }
             />
           </AltFormField>
+          <AltFormField label={'SGi network Gateway IP address'}>
+            <OutlinedInput
+              data-testid="gwSgiIP"
+              placeholder="1.1.1.1"
+              required={
+                EPCConfig.sgi_management_iface_static_ip ?? false ? true : false
+              }
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.sgi_management_iface_gw ?? ''}
+              onChange={({target}) =>
+                handleEPCChange('sgi_management_iface_gw', target.value)
+              }
+            />
+          </AltFormField>
+          <AltFormField label={'SGi management interface IP address'}>
+            <OutlinedInput
+              data-testid="sgiStaticIP"
+              placeholder="1.1.1.1/24"
+              type="string"
+              fullWidth={true}
+              value={EPCConfig.sgi_management_iface_static_ip ?? ''}
+              onChange={({target}) =>
+                handleEPCChange('sgi_management_iface_static_ip', target.value)
+              }
+            />
+          </AltFormField>
+          {!EPCConfig.nat_enabled && (
+            <AltFormField label={'SGi management network VLAN id'}>
+              <OutlinedInput
+                data-testid="sgiVlanID"
+                placeholder="100"
+                type="string"
+                fullWidth={true}
+                value={EPCConfig.sgi_management_iface_vlan ?? ''}
+                onChange={({target}) =>
+                  handleEPCChange('sgi_management_iface_vlan', target.value)
+                }
+              />
+            </AltFormField>
+          )}
         </List>
       </DialogContent>
       <DialogActions>

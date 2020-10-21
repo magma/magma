@@ -1,0 +1,3 @@
+ cookie=0x0, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x10 actions=resubmit(,egress(main_table)),resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0x0, table=enforcement(main_table), n_packets=0, n_bytes=0, priority=0,ip,reg1=0x1 actions=resubmit(,egress(main_table)),resubmit(,enforcement_stats(main_table)),set_field:0->reg0,set_field:0->reg3
+ cookie=0xfffffffffffffffe, table=enforcement_stats(main_table), n_packets=0, n_bytes=0, priority=0 actions=drop

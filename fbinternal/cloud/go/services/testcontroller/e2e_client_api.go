@@ -57,7 +57,7 @@ func ExecuteNextTestCase(testMachines map[string]statemachines.TestMachine, stor
 	if !ok {
 		return errors.Errorf("no test state machine found matching %s", tc.TestCaseType)
 	}
-	unmarshalledConfig, err := serde.Deserialize(SerdeDomain, tc.TestCaseType, tc.TestConfig)
+	unmarshalledConfig, err := serde.DeserializeLegacy(SerdeDomain, tc.TestCaseType, tc.TestConfig)
 	if err != nil {
 		return errors.Wrapf(err, "could not deserialize test %s config", tc.TestCaseType)
 	}
@@ -94,7 +94,7 @@ func GetTestCases(pks []int64) (map[int64]*UnmarshalledTestCase, error) {
 
 	ret := map[int64]*UnmarshalledTestCase{}
 	for pk, tc := range res.Tests {
-		unmarshalledConfig, err := serde.Deserialize(SerdeDomain, tc.TestCaseType, tc.TestConfig)
+		unmarshalledConfig, err := serde.DeserializeLegacy(SerdeDomain, tc.TestCaseType, tc.TestConfig)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to deserialize test case of type %s", tc.TestCaseType)
 		}
@@ -107,7 +107,7 @@ func GetTestCases(pks []int64) (map[int64]*UnmarshalledTestCase, error) {
 }
 
 func CreateOrUpdateTestCase(pk int64, testCaseType string, testCaseConfig interface{}) error {
-	marshaledConfig, err := serde.Serialize(SerdeDomain, testCaseType, testCaseConfig)
+	marshaledConfig, err := serde.SerializeLegacy(SerdeDomain, testCaseType, testCaseConfig)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize config")
 	}

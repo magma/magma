@@ -18,7 +18,6 @@ import s1ap_wrapper
 
 
 class TestAttachDlUlTcpDataMultiUe(unittest.TestCase):
-
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
@@ -33,14 +32,21 @@ class TestAttachDlUlTcpDataMultiUe(unittest.TestCase):
 
         for _ in range(num_ues):
             req = self._s1ap_wrapper.ue_req
-            print("************************* Running End to End attach for ",
-                  "UE id ", req.ue_id)
+            print(
+                "************************* Running End to End attach for ",
+                "UE id ",
+                req.ue_id,
+            )
             # Now actually complete the attach
             self._s1ap_wrapper._s1_util.attach(
-                req.ue_id, s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+                req.ue_id,
+                s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
                 s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t)
+                s1ap_types.ueAttachAccept_t,
+            )
 
+            # Wait for EMM Information from MME
+            self._s1ap_wrapper._s1_util.receive_emm_info()
             reqs.append(req)
 
         dl_reqs = reqs[::2]
@@ -57,12 +63,16 @@ class TestAttachDlUlTcpDataMultiUe(unittest.TestCase):
             test.verify()
 
         for req in reqs:
-            print("************************* Running UE detach for UE id",
-                  req.ue_id)
+            print(
+                "************************* Running UE detach for UE id",
+                req.ue_id,
+            )
             # Now detach the UE
             self._s1ap_wrapper.s1_util.detach(
-                req.ue_id, s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
-                True)
+                req.ue_id,
+                s1ap_types.ueDetachType_t.UE_SWITCHOFF_DETACH.value,
+                True,
+            )
 
 
 if __name__ == "__main__":

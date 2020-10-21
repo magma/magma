@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/serdes"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
@@ -399,7 +400,7 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 	}
 	sub := mutableSub.ToSubscriber()
 
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key, serdes.StateSerdes)
 	if err != nil {
 		return nil, err
 	}
@@ -431,7 +432,7 @@ func loadAllSubscribers(networkID string) (map[string]*subscribermodels.Subscrib
 		return nil, err
 	}
 
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil, serdes.StateSerdes)
 	if err != nil {
 		return nil, err
 	}

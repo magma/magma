@@ -623,6 +623,11 @@ func TestSessionCreateWithOmnipresentRulesGxDisabled(t *testing.T) {
 func TestSessionControllerTimeouts(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
+
+	// set small timeouts for this test to force timeout quicker
+	mockConfig[0].RequestTimeout = time.Millisecond
+	mockConfig[1].RequestTimeout = time.Millisecond
+
 	mockControlParams := getMockControllerParams(mockConfig)
 	mockPolicyDb := &MockPolicyDBClient{}
 	mockMux := getMockMultiplexor(NUMBER_SERVERS)
@@ -807,7 +812,7 @@ func TestEventTriggerInUpdate(t *testing.T) {
 	mockPolicyDb.AssertExpectations(t)
 }
 
-func testGxUsageMonitoring(t *testing.T) {
+func TestGxUsageMonitoring(t *testing.T) {
 	// Set up mocks
 	mockConfig := getTestConfig()
 	mockControlParams := getMockControllerParams(mockConfig)
@@ -847,7 +852,7 @@ func testGxUsageMonitoring(t *testing.T) {
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(returnDefaultGxUpdateResponse).Times(2)
 
-	updateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
+	updateSessionRequest := &protos.UpdateSessionRequest{
 		Updates: []*protos.CreditUsageUpdate{
 			createUsageUpdate(IMSI1, 1, 1, protos.CreditUsage_QUOTA_EXHAUSTED),
 			createUsageUpdate(IMSI1, 2, 2, protos.CreditUsage_TERMINATED),
@@ -860,7 +865,8 @@ func testGxUsageMonitoring(t *testing.T) {
 			createUsageMonitoringRequest(IMSI2, "mkey3", 1, protos.MonitoringLevel_SESSION_LEVEL),
 			createUsageMonitoringRequest(IMSI2, "mkey4", 2, protos.MonitoringLevel_PCC_RULE_LEVEL),
 		},
-	})
+	}
+	updateResponse, _ := srv.UpdateSession(ctx, updateSessionRequest)
 
 	mocksGy_1.AssertExpectations(t)
 	mocksGx_1.AssertExpectations(t)
@@ -915,7 +921,6 @@ func testGxUsageMonitoring(t *testing.T) {
 		assert.True(t, update.Success)
 		assert.True(t, IMSI1 == update.Sid || IMSI2 == update.Sid)
 		assert.Equal(t, protos.UsageMonitoringCredit_DISABLE, update.Credit.Action)
-		assert.Nil(t, update.Credit.GrantedUnits)
 		assert.Equal(t, protos.MonitoringLevel_SESSION_LEVEL, update.Credit.Level)
 	}
 
@@ -941,7 +946,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, 2, len(ruleInstallUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleInstallUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		if IMSI1 == update.Sid {
 			assert.Equal(t, "static1", update.StaticRulesToInstall[0].RuleId)
 			assert.Equal(t, "static2", update.StaticRulesToInstall[1].RuleId)
@@ -952,7 +957,7 @@ func testGxUsageMonitoring(t *testing.T) {
 			assert.True(t, false)
 		}
 	}
-	// Test that static rule install avp in CCA-Update by rule base names gets propagated properly
+	// Test that static rule install avp in CCA-Update by rule BASE names gets propagated properly
 	mocksGx_1.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
@@ -963,7 +968,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	).Return(nil).Run(getRuleInstallGxUpdateResponse([]string{}, []string{"base_30"})).Times(1)
 
 	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_10"}).Return([]string{"base_rule_1", "base_rule_2"})
-	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_30"}).Return([]string{"base_rule_2", "base_rule_3"})
+	mockPolicyDb.On("GetRuleIDsForBaseNames", []string{"base_30"}).Return([]string{"base_rule_3", "base_rule_4"})
 
 	ruleInstallUpdateResponse, _ = srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
 		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
@@ -976,7 +981,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, 2, len(ruleInstallUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleInstallUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		if IMSI1 == update.Sid {
 			assert.Equal(t, "base_rule_1", update.StaticRulesToInstall[0].RuleId)
 			assert.Equal(t, "base_rule_2", update.StaticRulesToInstall[1].RuleId)
@@ -1010,7 +1015,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, 2, len(ruleInstallUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleInstallUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		assert.True(t, (IMSI1 == update.Sid || "dyn_rule_10" == update.DynamicRulesToInstall[0].PolicyRule.Id) ||
 			(IMSI2 == update.Sid || "dyn_rule_30" == update.DynamicRulesToInstall[0].PolicyRule.Id),
 		)
@@ -1022,23 +1027,25 @@ func testGxUsageMonitoring(t *testing.T) {
 		mock.MatchedBy(getGxCCRMatcher(IMSI1_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{"rule1", "rule2"}, []string{})).Times(1)
 
-	mocksGx_1.On("SendCreditControlRequest",
+	mocksGx_2.On("SendCreditControlRequest",
 		mock.Anything, mock.Anything,
 		mock.MatchedBy(getGxCCRMatcher(IMSI2_NOPREFIX, credit_control.CRTUpdate)),
 	).Return(nil).Run(getRuleDisableGxUpdateResponse([]string{"rule3", "rule4"}, []string{})).Times(1)
 
-	ruleDisableUpdateResponse, _ := srv.UpdateSession(ctx, &protos.UpdateSessionRequest{
-		UsageMonitors: []*protos.UsageMonitoringUpdateRequest{
-			createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
-			createUsageMonitoringRequest(IMSI2, "mkey3", 1, protos.MonitoringLevel_SESSION_LEVEL),
-		},
-	})
+	usageMonitoringUpdateRequest := []*protos.UsageMonitoringUpdateRequest{
+		createUsageMonitoringRequest(IMSI1, "mkey", 1, protos.MonitoringLevel_SESSION_LEVEL),
+		createUsageMonitoringRequest(IMSI2, "mkey3", 1, protos.MonitoringLevel_SESSION_LEVEL),
+	}
+
+	ruleDisableUpdateResponse, _ := srv.UpdateSession(ctx,
+		&protos.UpdateSessionRequest{UsageMonitors: usageMonitoringUpdateRequest},
+	)
 	mocksGx_1.AssertExpectations(t)
 	mocksGx_2.AssertExpectations(t)
 	assert.Equal(t, 2, len(ruleDisableUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleDisableUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		if IMSI1 == update.Sid {
 			assert.Equal(t, []string{"rule1", "rule2"}, update.RulesToRemove)
 		} else if IMSI2 == update.Sid {
@@ -1072,8 +1079,7 @@ func testGxUsageMonitoring(t *testing.T) {
 	assert.Equal(t, 2, len(ruleDisableUpdateResponse.UsageMonitorResponses))
 	for _, update := range ruleDisableUpdateResponse.UsageMonitorResponses {
 		assert.True(t, update.Success)
-		assert.Nil(t, update.Credit.GrantedUnits)
-		assert.Equal(t, []string{"base_rule_1", "base_rule_2"}, update.RulesToRemove)
+		assert.NotNil(t, update.Credit.GrantedUnits)
 		if IMSI1 == update.Sid {
 			assert.Equal(t, []string{"base_rule_1", "base_rule_2"}, update.RulesToRemove)
 		} else if IMSI2 == update.Sid {
@@ -1242,7 +1248,7 @@ func getTestConfig() []*servicers.SessionControllerConfig {
 				Addr:     fmt.Sprintf("127.0.0.1:%s", pcrf_port),
 				Protocol: "tcp"},
 			},
-			RequestTimeout: time.Millisecond,
+			RequestTimeout: 3 * time.Second,
 		}
 		serverCfg[i] = srv
 	}
@@ -1279,6 +1285,7 @@ func createUsageMonitoringRequest(
 		SessionId:     genSessionID(sid),
 		RequestNumber: requestNumber,
 		Sid:           sid,
+		EventTrigger:  protos.EventTrigger_USAGE_REPORT,
 	}
 }
 
@@ -1391,9 +1398,11 @@ func returnEmptyGxUpdateResponse(args mock.Arguments) {
 	request := args.Get(2).(*gx.CreditControlRequest)
 	monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
 	for _, report := range request.UsageReports {
+		m_support_0 := gx.MonitoringSupport(0)
 		monitors = append(monitors, &gx.UsageMonitoringInfo{
 			MonitoringKey:      report.MonitoringKey,
 			GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
+			Support:            &m_support_0,
 			Level:              report.Level,
 		})
 	}
@@ -1408,13 +1417,18 @@ func returnEmptyGxUpdateResponse(args mock.Arguments) {
 func getRuleInstallGxUpdateResponse(ruleNames, baseNames []string) func(mock.Arguments) {
 	return func(args mock.Arguments) {
 		done := args.Get(1).(chan interface{})
+		octet_val_1000 := uint64(1000)
 		request := args.Get(2).(*gx.CreditControlRequest)
 		monitors := make([]*gx.UsageMonitoringInfo, 0, len(request.UsageReports))
 		for _, report := range request.UsageReports {
 			monitors = append(monitors, &gx.UsageMonitoringInfo{
-				MonitoringKey:      report.MonitoringKey,
-				GrantedServiceUnit: &credit_control.GrantedServiceUnit{},
-				Level:              report.Level,
+				MonitoringKey: report.MonitoringKey,
+				GrantedServiceUnit: &credit_control.GrantedServiceUnit{
+					TotalOctets:  &octet_val_1000,
+					InputOctets:  &octet_val_1000,
+					OutputOctets: &octet_val_1000,
+				},
+				Level: report.Level,
 			})
 		}
 		done <- &gx.CreditControlAnswer{

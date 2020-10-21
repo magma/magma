@@ -22,7 +22,7 @@ import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Text from '../../theme/design-system/Text';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';

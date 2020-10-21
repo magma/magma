@@ -22,6 +22,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
@@ -2090,16 +2091,19 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Name:        "abc enodeb",
 			Description: "abc enodeb description",
 			PhysicalID:  "abcdefg",
-			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           20,
-				CellID:                 swag.Uint32(1234),
-				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-				Earfcndl:               39450,
-				Pci:                    260,
-				SpecialSubframePattern: 7,
-				SubframeAssignment:     2,
-				Tac:                    1,
-				TransmitEnabled:        swag.Bool(true),
+			Config: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 		},
 		{
@@ -2108,16 +2112,19 @@ func TestListAndGetEnodebs(t *testing.T) {
 			Name:        "xyz enodeb",
 			Description: "xyz enodeb description",
 			PhysicalID:  "vwxyz",
-			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           15,
-				CellID:                 swag.Uint32(4321),
-				DeviceClass:            "Baicells Nova-243 OD TDD",
-				Earfcndl:               39550,
-				Pci:                    261,
-				SpecialSubframePattern: 8,
-				SubframeAssignment:     3,
-				Tac:                    2,
-				TransmitEnabled:        swag.Bool(false),
+			Config: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 		},
 		{
@@ -2141,21 +2148,49 @@ func TestListAndGetEnodebs(t *testing.T) {
 				Tac:                    1,
 				TransmitEnabled:        swag.Bool(true),
 			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
+			},
 			Name:        "abc enodeb",
 			Description: "abc enodeb description",
 			Serial:      "abcdefg",
 		},
 		"vwxyz": {
 			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           15,
-				CellID:                 swag.Uint32(4321),
-				DeviceClass:            "Baicells Nova-243 OD TDD",
-				Earfcndl:               39550,
-				Pci:                    261,
-				SpecialSubframePattern: 8,
-				SubframeAssignment:     3,
-				Tac:                    2,
-				TransmitEnabled:        swag.Bool(false),
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 			Name:        "xyz enodeb",
 			Description: "xyz enodeb description",
@@ -2228,15 +2263,29 @@ func TestCreateEnodeb(t *testing.T) {
 		Handler: createEnodeb,
 		Payload: &lteModels.Enodeb{
 			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           15,
-				CellID:                 swag.Uint32(4321),
-				DeviceClass:            "Baicells Nova-243 OD TDD",
-				Earfcndl:               39550,
-				Pci:                    261,
-				SpecialSubframePattern: 8,
-				SubframeAssignment:     3,
-				Tac:                    2,
-				TransmitEnabled:        swag.Bool(false),
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 			Name:        "foobar",
 			Description: "foobar description",
@@ -2257,16 +2306,19 @@ func TestCreateEnodeb(t *testing.T) {
 		Description: "foobar description",
 		PhysicalID:  "abcdef",
 		GraphID:     "2",
-		Config: &lteModels.EnodebConfiguration{
-			BandwidthMhz:           15,
-			CellID:                 swag.Uint32(4321),
-			DeviceClass:            "Baicells Nova-243 OD TDD",
-			Earfcndl:               39550,
-			Pci:                    261,
-			SpecialSubframePattern: 8,
-			SubframeAssignment:     3,
-			Tac:                    2,
-			TransmitEnabled:        swag.Bool(false),
+		Config: &lteModels.EnodebConfig{
+			ConfigType: "MANAGED",
+			ManagedConfig: &lteModels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
 		},
 	}
 	assert.Equal(t, expected, actual)
@@ -2277,15 +2329,29 @@ func TestCreateEnodeb(t *testing.T) {
 		Handler: createEnodeb,
 		Payload: &lteModels.Enodeb{
 			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           15,
-				CellID:                 swag.Uint32(4321),
-				DeviceClass:            "Baicells Nova-243 OD TDD",
-				Earfcndl:               39550,
-				Pci:                    261,
-				SpecialSubframePattern: 8,
-				SubframeAssignment:     3,
-				Tac:                    2,
-				TransmitEnabled:        swag.Bool(false),
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 			Name:              "foobar",
 			Serial:            "abcdef",
@@ -2297,6 +2363,42 @@ func TestCreateEnodeb(t *testing.T) {
 		ExpectedError:  "attached_gateway_id is a read-only property",
 	}
 	tests.RunUnitTest(t, e, tc)
+
+	ip := strfmt.IPv4("192.168.0.124")
+	tc = tests.Test{
+		Method:  "POST",
+		URL:     testURLRoot,
+		Handler: createEnodeb,
+		Payload: &lteModels.Enodeb{
+			Config: &lteModels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "UNMANAGED",
+				UnmanagedConfig: &lteModels.UnmanagedEnodebConfiguration{
+					CellID:    swag.Uint32(1234),
+					IPAddress: &ip,
+				},
+			},
+			Name:        "foobar",
+			Description: "foobar description",
+			Serial:      "unmanaged",
+		},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+	actual, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria())
+	assert.NoError(t, err)
 }
 
 func TestUpdateEnodeb(t *testing.T) {
@@ -2321,16 +2423,19 @@ func TestUpdateEnodeb(t *testing.T) {
 			Name:        "abc enodeb",
 			Description: "abc enodeb description",
 			PhysicalID:  "abcdefg",
-			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           20,
-				CellID:                 swag.Uint32(1234),
-				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-				Earfcndl:               39450,
-				Pci:                    260,
-				SpecialSubframePattern: 7,
-				SubframeAssignment:     2,
-				Tac:                    1,
-				TransmitEnabled:        swag.Bool(true),
+			Config: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 		},
 	})
@@ -2342,15 +2447,29 @@ func TestUpdateEnodeb(t *testing.T) {
 		Handler: updateEnodeb,
 		Payload: &lteModels.Enodeb{
 			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           15,
-				CellID:                 swag.Uint32(4321),
-				DeviceClass:            "Baicells Nova-243 OD TDD",
-				Earfcndl:               39550,
-				Pci:                    261,
-				SpecialSubframePattern: 8,
-				SubframeAssignment:     3,
-				Tac:                    2,
-				TransmitEnabled:        swag.Bool(false),
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 			Name:        "foobar",
 			Description: "new description",
@@ -2371,16 +2490,19 @@ func TestUpdateEnodeb(t *testing.T) {
 		Description: "new description",
 		PhysicalID:  "abcdefg",
 		GraphID:     "2",
-		Config: &lteModels.EnodebConfiguration{
-			BandwidthMhz:           15,
-			CellID:                 swag.Uint32(4321),
-			DeviceClass:            "Baicells Nova-243 OD TDD",
-			Earfcndl:               39550,
-			Pci:                    261,
-			SpecialSubframePattern: 8,
-			SubframeAssignment:     3,
-			Tac:                    2,
-			TransmitEnabled:        swag.Bool(false),
+		Config: &lteModels.EnodebConfig{
+			ConfigType: "MANAGED",
+			ManagedConfig: &lteModels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
 		},
 		Version: 1,
 	}
@@ -2392,25 +2514,74 @@ func TestUpdateEnodeb(t *testing.T) {
 		Handler: updateEnodeb,
 		Payload: &lteModels.Enodeb{
 			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           15,
-				CellID:                 swag.Uint32(4321),
-				DeviceClass:            "Baicells Nova-243 OD TDD",
-				Earfcndl:               39550,
-				Pci:                    261,
-				SpecialSubframePattern: 8,
-				SubframeAssignment:     3,
-				Tac:                    2,
-				TransmitEnabled:        swag.Bool(false),
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 			Name:              "foobar",
-			Serial:            "abcdef",
+			Serial:            "abcdefg",
 			AttachedGatewayID: "gw1",
 		},
-		ParamNames:     []string{"network_id"},
-		ParamValues:    []string{"n1"},
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "abcdefg"},
 		ExpectedStatus: 400,
 		ExpectedError:  "attached_gateway_id is a read-only property",
 	}
+	tests.RunUnitTest(t, e, tc)
+
+	ip := strfmt.IPv4("192.168.0.124")
+	tc = tests.Test{
+		Method:  "PUT",
+		URL:     testURLRoot,
+		Handler: updateEnodeb,
+		Payload: &lteModels.Enodeb{
+			Config: &lteModels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(1234),
+				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+				Earfcndl:               39450,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
+			EnodebConfig: &lteModels.EnodebConfig{
+				ConfigType: "UNMANAGED",
+				UnmanagedConfig: &lteModels.UnmanagedEnodebConfiguration{
+					CellID:    swag.Uint32(1234),
+					IPAddress: &ip,
+				},
+			},
+			Name:        "foobar",
+			Description: "new description",
+			Serial:      "abcdefg",
+		},
+		ParamNames:     []string{"network_id", "enodeb_serial"},
+		ParamValues:    []string{"n1", "abcdefg"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
 }
 
 func TestDeleteEnodeb(t *testing.T) {
@@ -2434,16 +2605,19 @@ func TestDeleteEnodeb(t *testing.T) {
 			Key:        "abcdefg",
 			Name:       "abc enodeb",
 			PhysicalID: "abcdefg",
-			Config: &lteModels.EnodebConfiguration{
-				BandwidthMhz:           20,
-				CellID:                 swag.Uint32(1234),
-				DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-				Earfcndl:               39450,
-				Pci:                    260,
-				SpecialSubframePattern: 7,
-				SubframeAssignment:     2,
-				Tac:                    1,
-				TransmitEnabled:        swag.Bool(true),
+			Config: &lteModels.EnodebConfig{
+				ConfigType: "MANAGED",
+				ManagedConfig: &lteModels.EnodebConfiguration{
+					BandwidthMhz:           20,
+					CellID:                 swag.Uint32(1234),
+					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+					Earfcndl:               39450,
+					Pci:                    260,
+					SpecialSubframePattern: 7,
+					SubframeAssignment:     2,
+					Tac:                    1,
+					TransmitEnabled:        swag.Bool(true),
+				},
 			},
 		},
 	})
@@ -3587,7 +3761,7 @@ func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, r
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedEnodebState, err := serde.Serialize(state.SerdeDomain, lte.EnodebStateType, req)
+	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.StateSerdes)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
