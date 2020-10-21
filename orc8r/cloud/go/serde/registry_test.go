@@ -24,50 +24,66 @@ import (
 )
 
 func TestSerialize(t *testing.T) {
-	serde.UnregisterAllSerdes(t)
-	defer func() {
-		serde.UnregisterAllSerdes(t)
-	}()
+	s := getSerde("type0", "hello world")
+	registry := serde.NewRegistry(s)
 
-	mockSerde := &mocks.Serde{}
-	mockSerde.On("GetDomain").Return("foo")
-	mockSerde.On("GetType").Return("bar")
-	mockSerde.On("Serialize", mock.Anything).Return([]byte("hello world"), nil)
-
-	err := serde.RegisterSerdes(mockSerde)
-	assert.NoError(t, err)
-	actual, err := serde.Serialize("foo", "bar", "baz")
+	actual, err := serde.Serialize("some_val", "type0", registry)
 	assert.NoError(t, err)
 	assert.Equal(t, []byte("hello world"), actual)
 
-	_, err = serde.Serialize("bar", "foo", "baz")
-	assert.EqualError(t, err, "No serdes registered for domain bar")
-
-	_, err = serde.Serialize("foo", "baz", "bar")
-	assert.EqualError(t, err, "No Serde found for type baz")
+	_, err = serde.Serialize("some_val", "typeXXX", registry)
+	assert.EqualError(t, err, "no serde in registry for type typeXXX")
 }
 
 func TestDeserialize(t *testing.T) {
-	serde.UnregisterAllSerdes(t)
-	defer func() {
-		serde.UnregisterAllSerdes(t)
-	}()
+	s := getSerde("type0", "hello world")
+	registry := serde.NewRegistry(s)
 
-	mockSerde := &mocks.Serde{}
-	mockSerde.On("GetDomain").Return("foo")
-	mockSerde.On("GetType").Return("bar")
-	mockSerde.On("Deserialize", mock.Anything).Return("hello world", nil)
-
-	err := serde.RegisterSerdes(mockSerde)
-	assert.NoError(t, err)
-	actual, err := serde.Deserialize("foo", "bar", []byte("baz"))
+	actual, err := serde.Deserialize([]byte("some_val"), "type0", registry)
 	assert.NoError(t, err)
 	assert.Equal(t, "hello world", actual)
 
-	_, err = serde.Serialize("bar", "foo", "baz")
-	assert.EqualError(t, err, "No serdes registered for domain bar")
+	_, err = serde.Serialize("some_val", "typeXXX", registry)
+	assert.EqualError(t, err, "no serde in registry for type typeXXX")
+}
 
-	_, err = serde.Serialize("foo", "baz", "bar")
-	assert.EqualError(t, err, "No Serde found for type baz")
+func TestRegistryIface(t *testing.T) {
+	s0 := getSerde("type0", "val0")
+	s1 := getSerde("type1", "val1")
+	s2 := getSerde("type2", "val2")
+	s3 := getSerde("type3", "val3")
+	sX := getSerde("type3", "valXXX")
 
+	reg0 := serde.NewRegistry(s0, s1)
+
+	actualDes, err := serde.Deserialize([]byte("some_val"), "type0", reg0)
+	assert.NoError(t, err)
+	assert.Equal(t, "val0", actualDes)
+	actualSer, err := serde.Serialize("some_val", "type1", reg0)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("val1"), actualSer)
+
+	r := serde.NewRegistry(s2, s3)
+	reg1 := r.MustMerge(reg0)
+
+	actualDes, err = serde.Deserialize([]byte("some_val"), "type0", reg1)
+	assert.NoError(t, err)
+	assert.Equal(t, "val0", actualDes)
+	actualSer, err = serde.Serialize("some_val", "type3", reg1)
+	assert.NoError(t, err)
+	assert.Equal(t, []byte("val3"), actualSer)
+	_, err = serde.Serialize("some_val", "typeXXX", reg1)
+	assert.EqualError(t, err, "no serde in registry for type typeXXX")
+
+	r = serde.NewRegistry(sX)
+	assert.Panics(t, func() { r.MustMerge(reg1) })
+}
+
+func getSerde(typ, ret string) serde.Serde {
+	s := &mocks.Serde{}
+	s.On("GetDomain").Return("domain0")
+	s.On("GetType").Return(typ)
+	s.On("Serialize", mock.Anything).Return([]byte(ret), nil)
+	s.On("Deserialize", mock.Anything).Return(ret, nil)
+	return s
 }

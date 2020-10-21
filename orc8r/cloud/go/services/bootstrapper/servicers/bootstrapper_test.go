@@ -387,7 +387,7 @@ func testNegative(
 func TestBootstrapperServer(t *testing.T) {
 	configurator_test_init.StartTestService(t)
 	device_test_init.StartTestService(t)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
+	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	testNetworkID := "bootstrapper_test_network"
 	err := configurator.CreateNetwork(configurator.Network{

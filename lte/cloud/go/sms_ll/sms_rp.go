@@ -169,13 +169,13 @@ type rpMessage struct {
 	mti       byte
 	reference byte
 
-	// Mandatory. If UE->Network, must be length 0
+	// Mandantory. If UE->Network, must be length 0
 	originatorAddress rpAddressElement
 
-	// Mandatory. If Network->UE, must be length 0
+	// Mandantory. If Network->UE, must be length 0
 	destinationAddress rpAddressElement
 
-	// Mandatory for RP-DATA, includes tpdu. If RP-ACK or RP-ERROR, must
+	// Mandantory for RP-DATA, includes tpdu. If RP-ACK or RP-ERROR, must
 	// include IEI.
 	userData rpUserElement
 
@@ -351,7 +351,7 @@ var RpCauseStr = map[byte]string{
 	RpCauseRequestedFacNotImpl:    "Requested facility not implemented",
 	RpCauseInvalidSmTransRef:      "Invalid short message transfer reference value",
 	RpCauseSemIncorrectMessage:    "Semantically incorrect message",
-	RpCauseInvalidMandantoryInfo:  "Invalid mandatory information",
+	RpCauseInvalidMandantoryInfo:  "Invalid mandantory information",
 	RpCauseMsgTypeNotImpl:         "Message type not non-existent or not implemented",
 	RpCauseMsgTypeNotCompatible:   "Message not compatible with short message protocol state",
 	RpCauseInfoElementNonexistant: "Information element non-existent or not implemented",

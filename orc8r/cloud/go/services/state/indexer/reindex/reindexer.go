@@ -216,7 +216,7 @@ func (r *reindexerImpl) reportStatusMetrics() {
 
 type reindexBatch struct {
 	networkID string
-	stateIDs  []state_types.ID
+	stateIDs  state_types.IDs
 }
 
 // Get network-segregated reindex batches with capped number of state IDs per batch.
@@ -237,7 +237,7 @@ func (r *reindexerImpl) getReindexBatches(ctx context.Context) []reindexBatch {
 		break
 	}
 
-	var current, rest []state_types.ID
+	var current, rest state_types.IDs
 	var batches []reindexBatch
 	for networkID, ids := range idsByNetwork {
 		rest = ids
@@ -264,13 +264,13 @@ func executeJob(ctx context.Context, job *Job, batches []reindexBatch) error {
 		if isCanceled(ctx) {
 			return wrap(err, ErrDefault, "context canceled")
 		}
-		ids := indexer.FilterIDs(stateTypes, b.stateIDs)
+		ids := b.stateIDs.Filter(stateTypes...)
 		if len(ids) == 0 {
 			continue
 		}
 
 		// Convert IDs to states -- silently ignore not-found (stale) state IDs
-		statesByID, err := state.GetStates(b.networkID, ids)
+		statesByID, err := state.GetSerializedStates(b.networkID, ids)
 		if err != nil {
 			err = errors.Wrap(err, "get states")
 			return wrap(err, ErrDefault, id)
