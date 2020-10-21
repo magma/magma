@@ -89,6 +89,8 @@ typedef struct sctp_init_s {
   struct in6_addr ipv6_address[10];
   uint16_t port;
   uint32_t ppid;
+  uint32_t ngap_port;
+  uint32_t ngap_ppid;
 } sctp_init_t;
 
 typedef struct sctp_close_association_s {

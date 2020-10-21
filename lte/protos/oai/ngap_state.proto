@@ -1,0 +1,49 @@
+syntax = "proto3";
+
+package magma.lte.oai;
+option go_package = "magma/lte/cloud/go/protos/oai";
+
+message NgapTimer {
+  int32 id = 1;  // long
+  int32 sec = 2; // long
+}
+
+message GnbDescription {
+  uint32 gnb_id = 1;
+
+  int32 ng_state = 2;            // enum amf_ng_gnb_state_s
+  bytes gnb_name = 3;            // char[]
+  uint32 default_paging_drx = 4; // uint8_t
+  uint32 nb_ue_associated = 5;
+
+  uint32 sctp_assoc_id = 6;    // sctp_assoc_id_t
+  uint32 next_sctp_stream = 7; // sctp_stream_id_t
+  uint32 instreams = 8;        // sctp_stream_id_t
+  uint32 outstreams = 9;      // sctp_stream_id_t
+
+  map<uint64, uint64> ue_ids = 10; // gnb_ue_ngap_id -> comp_ngap_id
+}
+
+message Ngap_UeDescription {
+  int32 ng_ue_state = 2;     // enum ng_ue_state_s
+  uint32 gnb_ue_ngap_id = 3; // gnb_ue_ngap_id_t
+  uint32 amf_ue_ngap_id = 4; // amf_ue_ngap_id_t
+
+  uint32 sctp_stream_recv = 5; // sctp_stream_id_t
+  uint32 sctp_stream_send = 6; // sctp_stream_id_t
+
+  NgapTimer ngap_ue_context_rel_timer = 7; // struct ngap_timer_t
+
+  uint32 sctp_assoc_id = 8; // sctp_assoc_id_t
+}
+
+message NgapState {
+  map<uint32, GnbDescription> gnbs = 1;  // gnbid -> GnbDescription
+  map<uint32, uint32> amfid2associd = 2; // amfueid -> ue associd
+  uint32 num_gnbs = 3;
+}
+
+message NgapImsiMap {
+  map<uint64, uint64> amf_ue_id_imsi_map = 1; // amf_ngap_ue_id => IMSI64
+}
+
