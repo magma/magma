@@ -626,7 +626,7 @@ class MagmadUtil(object):
         config_stateless_script = "/usr/local/bin/config_stateless_agw.py"
 
         ret_code = self.exec_command(
-            magtivate_cmd + " && " + venvsudo_cmd + " " +
+            magtivate_cmd + " && " + venvsudo_cmd + " python3 " +
             config_stateless_script + " " + cmd.name.lower()
             )
 

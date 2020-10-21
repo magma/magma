@@ -34,7 +34,7 @@ from magma.configuration.service_configs import (
 return_codes = Enum(
     "return_codes", "STATELESS STATEFUL CORRUPT INVALID", start=0
 )
-service_config_names = [
+SERVICE_CONFIG_NAMES = [
     ("mme", "use_stateless"),
     ("mobilityd", "persist_to_redis"),
     ("pipelined", "clean_restart"),
@@ -57,7 +57,7 @@ def _check_stateless_service_config(service, config_name):
 
 def _check_stateless_services():
     num_stateful = 0
-    for service, config in service_config_names:
+    for service, config in SERVICE_CONFIG_NAMES:
         if (
             _check_stateless_service_config(service, config)
             == return_codes.STATEFUL
@@ -67,7 +67,7 @@ def _check_stateless_services():
     if num_stateful == 0:
         print("Check returning", return_codes.STATELESS)
         return return_codes.STATELESS
-    elif num_stateful == len(service_config_names):
+    elif num_stateful == len(SERVICE_CONFIG_NAMES):
         print("Check returning", return_codes.STATEFUL)
         return return_codes.STATEFUL
 
@@ -108,10 +108,8 @@ def enable_stateless_agw():
     if _check_stateless_services() == return_codes.STATELESS:
         print("Nothing to enable, AGW is stateless")
         sys.exit(return_codes.STATELESS.value)
-    for service, config in service_config_names:
-        cfg = load_override_config(service)
-        if cfg is None:
-            cfg = {}
+    for service, config in SERVICE_CONFIG_NAMES:
+        cfg = load_override_config(service) or {}
         if service == "pipelined":
             cfg[config] = False
         else:
@@ -128,7 +126,7 @@ def disable_stateless_agw():
     if _check_stateless_services() == return_codes.STATEFUL:
         print("Nothing to disable, AGW is stateful")
         sys.exit(return_codes.STATEFUL.value)
-    for service, config in service_config_names:
+    for service, config in SERVICE_CONFIG_NAMES:
         cfg = load_override_config(service)
         if cfg is None:
             cfg = {}
@@ -164,7 +162,7 @@ def clear_redis_and_restart():
     sys.exit(0)
 
 
-function_map = {
+STATELESS_FUNC_DICT = {
     "check": check_stateless_agw,
     "enable": enable_stateless_agw,
     "disable": disable_stateless_agw,
@@ -176,11 +174,11 @@ function_map = {
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("command", choices=function_map.keys())
+    parser.add_argument("command", choices=STATELESS_FUNC_DICT.keys())
 
     args = parser.parse_args()
 
-    func = function_map[args.command]
+    func = STATELESS_FUNC_DICT[args.command]
     func()
 
 
