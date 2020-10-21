@@ -130,9 +130,10 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._loop.call_soon_threadsafe(self._activate_flows, request, fut)
         return fut.result()
 
-    def _update_ipv6_prefix_store(self, ipv6_addr):
-        interface = get_ipv6_interface_id(ipv6_addr)
-        prefix = get_ipv6_prefix(ipv6_addr)
+    def _update_ipv6_prefix_store(self, ipv6_addr: bytes):
+        ipv6_str = ipv6_addr.decode('utf-8')
+        interface = get_ipv6_interface_id(ipv6_str)
+        prefix = get_ipv6_prefix(ipv6_str)
         self._service_manager.interface_to_prefix_mapper.save_prefix(
             interface, prefix)
 
