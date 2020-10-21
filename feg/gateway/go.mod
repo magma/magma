@@ -22,6 +22,7 @@ replace (
 )
 
 require (
+	github.com/emakeev/milenage v1.0.0
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
 	github.com/fiorix/go-diameter/v4 v4.0.2
 	github.com/fsnotify/fsnotify v1.4.9 // indirect

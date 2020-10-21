@@ -17,6 +17,7 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/emakeev/milenage"
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -25,7 +26,6 @@ import (
 	"magma/feg/gateway/diameter"
 	s6a "magma/feg/gateway/services/s6a_proxy/servicers"
 	"magma/feg/gateway/services/testcore/hss/storage"
-	"magma/lte/cloud/go/crypto"
 	lteprotos "magma/lte/cloud/go/protos"
 )
 
@@ -91,8 +91,8 @@ func (srv *HomeSubscriberServer) setLteAuthNextSeq(subscriber *lteprotos.Subscri
 func (srv *HomeSubscriberServer) NewSuccessfulAIA(
 	msg *diam.Message,
 	sessionID datatype.UTF8String,
-	vectors []*crypto.EutranVector,
-	utranVectors []*crypto.UtranVector) *diam.Message {
+	vectors []*milenage.EutranVector,
+	utranVectors []*milenage.UtranVector) *diam.Message {
 
 	answer := ConstructSuccessAnswer(msg, sessionID, srv.Config.Server, diam.TGPP_S6A_APP_ID)
 	evs := []*diam.AVP{}
