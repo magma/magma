@@ -185,7 +185,7 @@ class IPv6AllocatorPool(IPAllocator):
         """
         for i in range(MAX_CALC_TRIES):
             rand_iid_bits = random.getrandbits(length)
-            if rand_iid_bits not in self._allocated_iid:
+            if rand_iid_bits not in self._allocated_iid.values():
                 self._allocated_iid[sid] = float(rand_iid_bits)
                 return rand_iid_bits
         return None

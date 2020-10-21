@@ -20,19 +20,19 @@ import unittest
 import unittest.mock
 
 from ipaddress import ip_network
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from magma.common.redis.client import get_default_client
 
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     MappingNotFoundError
+from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP
 from magma.pipelined.bridge_util import BridgeTools
 from magma.mobilityd.ip_descriptor import IPDesc, IPType, IPState
 
 from magma.mobilityd.mac import create_mac_from_sid
 from magma.mobilityd.dhcp_desc import DHCPState
 
-from magma.mobilityd.tests.test_multi_apn_ip_alloc import \
-    MockedSubscriberDBStub
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
 
 from magma.mobilityd.mobility_store import MobilityStore
 
@@ -68,14 +68,22 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         subprocess.check_call(setup_uplink_br)
 
         store = MobilityStore(get_default_client(), False, 3980)
-        self._dhcp_allocator = IPAddressManager(MobilityD.DHCP,
+        ipv4_allocator = IPAllocatorDHCP(
+            assigned_ip_blocks=store.assigned_ip_blocks,
+            ip_state_map=store.ip_state_map,
+            iface='t0uplink_p0',
+            retry_limit=50,
+            dhcp_store=store.dhcp_store,
+            gw_info=store.dhcp_gw_info)
+        ipv6_allocator = IPv6AllocatorPool(
+            session_prefix_alloc_mode='RANDOM',
+            sid_ips_map=store.sid_ips_map,
+            ip_states_map=store.ip_state_map,
+            allocated_iid=store.allocated_iid,
+            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        self._dhcp_allocator = IPAddressManager(ipv4_allocator,
+                                                ipv6_allocator,
                                                 store,
-                                                static_ip_enabled=False,
-                                                multi_apn=False,
-                                                dhcp_iface='t0uplink_p0',
-                                                dhcp_retry_limit=50,
-                                                ipv6_allocation_type='RANDOM',
-                                                subscriberdb_rpc_stub=MockedSubscriberDBStub(),
                                                 recycling_interval=2)
 
     def tearDown(self):
@@ -87,8 +95,8 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         sid1 = "IMSI02917"
         ip1, _ = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
-        dhcp_gw_info = self._dhcp_allocator.dhcp_gw_info
-        dhcp_store = self._dhcp_allocator.dhcp_store
+        dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
+        dhcp_store = self._dhcp_allocator._dhcp_store
 
         self.assertEqual(str(dhcp_gw_info.get_gw_ip()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)

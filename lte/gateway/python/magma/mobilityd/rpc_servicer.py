@@ -180,10 +180,10 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             ipv6_response = self._get_allocate_ip_response(
                 composite_sid + ",ipv6", IPAddress.IPV6,
                 context, ip_addr, request)
-            ip_addr_list = ipv4_response.ip_list + ipv6_response.ip_list
             # Get vlan from IPv4 Allocate response
-            return AllocateIPAddressResponse(ip_list=ip_addr_list,
-                                             vlan=ipv4_response.vlan)
+            return AllocateIPAddressResponse(
+                ip_list=ipv4_response.ip_list.extend(ipv6_response.ip_list),
+                vlan=ipv4_response.vlan)
         return AllocateIPAddressResponse()
 
     @return_void

@@ -20,15 +20,16 @@ import ipaddress
 import unittest
 import time
 
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from magma.common.redis.client import get_default_client
 
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
 from magma.mobilityd.ip_allocator_pool import IPBlockNotFoundError, \
     NoAvailableIPError
-from magma.mobilityd.tests.test_multi_apn_ip_alloc import \
-    MockedSubscriberDBStub
+from magma.mobilityd.ip_allocator_pool import \
+    IpAllocatorPool
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
 from magma.mobilityd.mobility_store import MobilityStore
 
 # If the preallocated IP addresses in ip_address_man.py code
@@ -47,15 +48,20 @@ class IPAllocatorTests(unittest.TestCase):
         Creates and sets up an IPAllocator with the given recycling interval.
         """
         store = MobilityStore(get_default_client(), False, 3980)
-        self._allocator = IPAddressManager(MobilityD.IP_POOL,
+        store.dhcp_gw_info.read_default_gw()
+        ip_allocator = IpAllocatorPool(store.assigned_ip_blocks,
+                                       store.ip_state_map,
+                                       store.sid_ips_map)
+        ipv6_allocator = IPv6AllocatorPool(
+            session_prefix_alloc_mode='RANDOM',
+            sid_ips_map=store.sid_ips_map,
+            ip_states_map=store.ip_state_map,
+            allocated_iid=store.allocated_iid,
+            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        self._allocator = IPAddressManager(ip_allocator,
+                                           ipv6_allocator,
                                            store,
-                                           static_ip_enabled=False,
-                                           multi_apn=False,
-                                           dhcp_iface='iface',
-                                           dhcp_retry_limit=300,
-                                           ipv6_allocation_type='RANDOM',
-                                           subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-                                           recycling_interval=recycling_interval)
+                                           recycling_interval)
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
