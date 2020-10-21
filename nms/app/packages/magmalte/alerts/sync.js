@@ -15,9 +15,11 @@
  */
 
 import MagmaV1API from '@fbcnms/platform-server/magma/index';
+import getCwfAlerts from './cwfAlerts';
+import getFegAlerts from './fegAlerts';
+import getLteAlerts from './lteAlerts';
 
-import {CWF} from '@fbcnms/types/network';
-import {xwfmAlerts} from './xwfmAlerts';
+import {CWF, FEG, FEG_LTE, LTE} from '@fbcnms/types/network';
 import type {ExpressResponse} from 'express';
 import type {FBCNMSRequest} from '@fbcnms/auth/access';
 import type {network_type, prom_alert_config} from '@fbcnms/magma-api';
@@ -79,9 +81,17 @@ async function syncAlerts(req: FBCNMSRequest, res: ExpressResponse) {
       return;
     }
     switch (type) {
-      // TODO: When XWFM networks are actually a thing in the NMS, change this
       case CWF:
-        await syncAlertsForNetwork(networkID, xwfmAlerts);
+        await syncAlertsForNetwork(networkID, getCwfAlerts(networkID));
+        break;
+      case LTE:
+        await syncAlertsForNetwork(networkID, getLteAlerts(networkID));
+        break;
+      case FEG_LTE:
+        await syncAlertsForNetwork(networkID, getLteAlerts(networkID));
+        break;
+      case FEG:
+        await syncAlertsForNetwork(networkID, getFegAlerts(networkID));
         break;
       default:
         res

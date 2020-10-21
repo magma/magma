@@ -380,10 +380,10 @@ func enodebdNoTrafficTestConfig() *models.EnodebdTestConfig {
 }
 
 func marshalTestConfig(t *testing.T, tc *models.EnodebdTestConfig) []byte {
-	ret, err := serde.Serialize(testcontroller.SerdeDomain, testcontroller.EnodedTestCaseType, tc)
+	ret, err := serde.SerializeLegacy(testcontroller.SerdeDomain, testcontroller.EnodedTestCaseType, tc)
 	assert.NoError(t, err)
 
-	ret, err = serde.Serialize(testcontroller.SerdeDomain, testcontroller.EnodedTestExcludeTraffic, tc)
+	ret, err = serde.SerializeLegacy(testcontroller.SerdeDomain, testcontroller.EnodedTestExcludeTraffic, tc)
 	assert.NoError(t, err)
 	return ret
 }

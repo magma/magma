@@ -24,7 +24,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
@@ -48,17 +47,6 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
 	return []serde.Serde{
-		state.NewStateSerde(lte.EnodebStateType, &lte_models.EnodebState{}),
-		state.NewStateSerde(lte.ICMPStateType, &subscriberdb_models.IcmpStatus{}),
-
-		// AGW state messages which use arbitrary untyped JSON serdes because
-		// they're defined/used as protos in the AGW codebase
-		state.NewStateSerde(lte.MMEStateType, &state.ArbitraryJSON{}),
-		state.NewStateSerde(lte.SPGWStateType, &state.ArbitraryJSON{}),
-		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
-		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitraryJSON{}),
-
-		// Configurator serdes
 		configurator.NewNetworkConfigSerde(lte.CellularNetworkConfigType, &lte_models.NetworkCellularConfigs{}),
 		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &policydb_models.NetworkSubscriberConfig{}),
 

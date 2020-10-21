@@ -188,8 +188,8 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 
 	// We need to generate over 100% of the quota to trigger a session termination
 	req = &cwfprotos.GenTrafficRequest{
-		Imsi:    ue.GetImsi(),
-		Volume:  &wrappers.StringValue{Value: "10M"},
+		Imsi:   ue.GetImsi(),
+		Volume: &wrappers.StringValue{Value: "10M"},
 	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -252,7 +252,7 @@ func TestGyCreditValidityTime(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:    ue.GetImsi(),
 		Volume:  &wrappers.StringValue{Value: "500K"},
-		Bitrate: &wrappers.StringValue{Value:"10M"},
+		Bitrate: &wrappers.StringValue{Value: "10M"},
 		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
@@ -318,6 +318,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:    ue.GetImsi(),
 		Volume:  &wrappers.StringValue{Value: "5M"},
+		Timeout: 60,
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -734,23 +735,21 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:    ue.GetImsi(),
 		Volume:  &wrappers.StringValue{Value: "5M"},
-
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 60,
 	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data was passed
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", 0, 5*MegaBytes)
-
 	// Wait for service deactivation
 	time.Sleep(3 * time.Second)
 
-	// we need to generate more traffic to hit restrict rule
+	// we need to generate more traffic and validate it goes through restrict rule
 	req = &cwfprotos.GenTrafficRequest{
 		Imsi:    ue.GetImsi(),
 		Volume:  &wrappers.StringValue{Value: "2M"},
-		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
 		Timeout: 60,
 	}
 	_, err = tr.GenULTraffic(req)
@@ -778,7 +777,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	req = &cwfprotos.GenTrafficRequest{
 		Imsi:    ue.GetImsi(),
 		Volume:  &wrappers.StringValue{Value: "2M"},
-		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
 		Timeout: 60,
 	}
 	_, err = tr.GenULTraffic(req)
@@ -843,7 +842,7 @@ func TestGyWithErrorCode(t *testing.T) {
 
 	// we need to generate over 80% but less than 100%  trigger a CCR update without triggering termination
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi: ue.GetImsi(),
+		Imsi:   ue.GetImsi(),
 		Volume: &wrappers.StringValue{Value: "4.6M"},
 	}
 	_, err := tr.GenULTraffic(req)
