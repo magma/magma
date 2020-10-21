@@ -1,7 +1,8 @@
 ---
-id: deploy_intro
+id: version-1.3.0-deploy_intro
 title: Introduction
 hide_title: true
+original_id: deploy_intro
 ---
 # Introduction
 
