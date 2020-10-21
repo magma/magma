@@ -136,7 +136,7 @@
       - libssl-dev
       - libsctp-dev
       - libtspi-dev
-      - oai-asn1c
+      - oai-asn1c-rel15
       - oai-nettle
       - oai-gnutls
       - oai-freediameter
