@@ -86,16 +86,16 @@ func provisionRestrictRules(t *testing.T, tr *TestRunner, ruleManager *RuleManag
 	tr.WaitForPoliciesToSync()
 }
 
-func verifyPolicyUsage(t *testing.T, tr *TestRunner, imsi, rule string, minBytes, maxBytes int) {
+func verifyPolicyUsage(t *testing.T, tr *TestRunner, imsi, rule string, minBytes, maxBytes uint64) {
 	// Check that UE mac flow was not removed and no extra data hit gx rules
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
 	record := recordsBySubID["IMSI"+imsi][rule]
 	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
 	if record != nil {
-		// We should not be seeing > 6M data here
-		assert.True(t, record.BytesTx > uint64(minBytes+Buffer), fmt.Sprintf("%s did pass data while restricted", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(maxBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+		assert.True(t, record.BytesTx > minBytes+Buffer, fmt.Sprintf("%s did pass data while restricted", record.RuleId))
+		assert.True(t, record.BytesTx <= maxBytes+Buffer,
+			fmt.Sprintf("policy usage was bigger than expected: %d > %d with record\n%v", record.BytesTx, maxBytes+Buffer, record))
 	}
 }
 
@@ -757,7 +757,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that UE mac flow was not removed and flow data hit restrict rule
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "restrict-pass-user", 0, 2*MegaBytes)
+	verifyPolicyUsage(t, tr, ue.GetImsi(), "restrict-pass-user", uint64(math.Round(1.8*MegaBytes)), 3*MegaBytes)
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
@@ -785,7 +785,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that UE mac flow was not removed and data passed
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", 0, 2*MegaBytes)
+	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", uint64(math.Round(1.8*MegaBytes)), 3*MegaBytes)
 
 	// Wait for service deactivation
 	time.Sleep(3 * time.Second)
