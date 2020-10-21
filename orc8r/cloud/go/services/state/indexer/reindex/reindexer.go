@@ -205,6 +205,7 @@ func (r *reindexerImpl) reportStatusMetrics() {
 		idx, err := indexer.GetIndexer(id)
 		if err != nil {
 			glog.Errorf("Report reindex metrics failed to get indexer %s from registry with error: %v", id, err)
+			continue
 		}
 		if idx == nil {
 			glog.Errorf("Report reindex metrics failed to get indexer %s from registry", id)

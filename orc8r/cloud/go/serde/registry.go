@@ -168,7 +168,7 @@ func Serialize(data interface{}, typ string, registry Registry) ([]byte, error) 
 
 // Deserialize a byte array by delegating to the passed serde registry.
 func Deserialize(data []byte, typ string, registry Registry) (interface{}, error) {
-	if data == nil || len(data) == 0 {
+	if len(data) == 0 {
 		return nil, nil
 	}
 	serde, err := registry.GetSerde(typ)
