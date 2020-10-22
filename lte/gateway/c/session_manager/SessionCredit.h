@@ -29,6 +29,12 @@ class SessionCredit {
     uint64_t bytes_rx;
   };
 
+  struct Summary {
+    SessionCredit::Usage usage;
+    uint64_t time_of_first_usage;
+    uint64_t time_of_last_usage;
+  };
+
   SessionCredit();
 
   SessionCredit(ServiceState start_state);
@@ -51,7 +57,7 @@ class SessionCredit {
    */
   void add_used_credit(
       uint64_t used_tx, uint64_t used_rx,
-      SessionCreditUpdateCriteria& update_criteria);
+      SessionCreditUpdateCriteria& credit_uc);
 
   /**
    * reset_reporting_credit resets the REPORTING_* to 0
@@ -92,6 +98,11 @@ class SessionCredit {
 
   SessionCredit::Usage get_all_unreported_usage_for_reporting(
       SessionCreditUpdateCriteria& update_criteria);
+
+  /**
+   * Returns the credit's cumulative rx/tx usage and first/last usage timestamps
+   */
+  SessionCredit::Summary get_credit_summary();
 
   /**
    * Returns true if either of REPORTING_* buckets are more than 0
@@ -184,6 +195,12 @@ class SessionCredit {
   // stores the granted credits we received the last
   GrantedUnits received_granted_units_;
   bool report_last_credit_;
+  // Timestamp for the first IP packet to be transmitted and mapped to this
+  // service data container (TS 132 298 - V8.4.0 : 5.1.2.2.22A)
+  uint64_t time_of_first_usage_;
+  // Timestamp for the most recent IP packet to be transmitted and mapped to
+  // this service data container (TS 132 298 - V8.4.0 : 5.1.2.2.22A)
+  uint64_t time_of_last_usage_;
 
  private:
   void log_quota_and_usage() const;
@@ -216,6 +233,8 @@ class SessionCredit {
 
   uint64_t calculate_delta_allowed(
       uint64_t gsu_volume, Bucket allowed, uint64_t volume_used);
+
+  void update_usage_timestamps(SessionCreditUpdateCriteria& credit_uc);
 };
 
 }  // namespace magma

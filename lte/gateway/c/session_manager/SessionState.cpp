@@ -797,7 +797,7 @@ uint64_t SessionState::get_pdp_end_time() {
 
 void SessionState::set_pdp_end_time(
     uint64_t epoch, SessionStateUpdateCriteria& session_uc) {
-  pdp_end_time_ = epoch;
+  pdp_end_time_                   = epoch;
   session_uc.updated_pdp_end_time = epoch;
 }
 
