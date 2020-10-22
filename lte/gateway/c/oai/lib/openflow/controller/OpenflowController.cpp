@@ -61,15 +61,14 @@ void OpenflowController::message_callback(
     OAILOG_DEBUG(LOG_GTPV1U, "Openflow controller got packet-in message\n");
     dispatch_event(PacketInEvent(ofconn, *this, data, len));
   } else if (type == OFPT_FEATURES_REPLY_TYPE) {
-    // Rashmi: Remove later added thread-id for debugging
     OAILOG_INFO(
-        LOG_GTPV1U, "Openflow controller connected to switch thread-id:%x \n",
-        pthread_self());
-#if 0
-  pthread_mutex_lock(&count_mutex);
-  pthread_cond_signal(&count_threshold_cv);
-  pthread_mutex_unlock(&count_mutex);
-#endif
+        LOG_GTPV1U,
+        "Checking for condition wheather Openflow controller is connected to "
+        "switch\n");
+    pthread_mutex_lock(&pthread_mutex);
+    pthread_cond_broadcast(&condition_variable);
+    pthread_mutex_unlock(&pthread_mutex);
+    OAILOG_INFO(LOG_GTPV1U, "Openflow controller connected to switch \n");
     // Save OF connection for external events
     latest_ofconn_ = ofconn;
     dispatch_event(SwitchUpEvent(ofconn, *this, data, len));
@@ -86,17 +85,8 @@ void OpenflowController::connection_callback(
     OAILOG_ERROR(LOG_GTPV1U, "Openflow controller lost connection to switch\n");
     dispatch_event(SwitchDownEvent(ofconn));
   }
-  if (type == OFConnection::EVENT_ESTABLISHED)
-    // Rashmi: Remove later added thread-id for debugging
-    OAILOG_ERROR(
-        LOG_GTPV1U, "Openflow controller connected to switch thread-id:%x \n",
-        pthread_self());
-#if 0
-  pthread_mutex_lock(&count_mutex);
-  pthread_cond_signal(&count_threshold_cv);
-  pthread_mutex_unlock(&count_mutex);
-#endif
 }
+
 void OpenflowController::dispatch_event(const ControllerEvent& ev) {
   if (not running_) {
     throw std::runtime_error(
@@ -109,29 +99,17 @@ void OpenflowController::dispatch_event(const ControllerEvent& ev) {
   }
 }
 
-void* PrintHello(void* thread_id) {
-  OAILOG_ERROR(LOG_GTPV1U, "----Print hello \n");
-}
 void OpenflowController::inject_external_event(
     std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) ) {
-  pthread_t threads[3];
-  pthread_create(&threads[0], NULL, PrintHello, (void*) 1);
-  pthread_mutex_lock(&count_mutex);
-#if 0
-  pthread_mutex_lock(&count_mutex);
-  pthread_cond_wait(&count_threshold_cv, &count_mutex);
-  pthread_mutex_unlock(&count_mutex);
-#endif
   if (latest_ofconn_ == NULL) {
-    OAILOG_ERROR(
-        LOG_GTPV1U, "Null connection on event type %d", ev->get_type());
-    throw std::runtime_error("Controller not connected to switch:\n");
+    OAILOG_INFO(
+        LOG_GTPV1U, "Waiting for connection on event type %d", ev->get_type());
+    pthread_mutex_lock(&pthread_mutex);
+    pthread_cond_wait(&condition_variable, &pthread_mutex);
+    pthread_mutex_unlock(&pthread_mutex);
   }
   ev->set_of_connection(latest_ofconn_);
   latest_ofconn_->add_immediate_event(cb, ev);
-  // Rashmi: Remove later added thread-id for debugging
-  OAILOG_ERROR(
-      LOG_GTPV1U, "inject_external_event thread-id: %x  \n", pthread_self());
 }
 
 }  // namespace openflow

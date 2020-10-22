@@ -29,8 +29,8 @@ extern "C" {
 static const int OFP_LOCAL   = 65534;
 static const int OF13P_LOCAL = 0xfffffffe;
 
-pthread_cond_t count_threshold_cv;
-pthread_mutex_t count_mutex;
+pthread_cond_t condition_variable;
+pthread_mutex_t pthread_mutex;
 namespace {
 openflow::OpenflowController ctrl(
     CONTROLLER_ADDR, CONTROLLER_PORT, NUM_WORKERS, false);
@@ -69,14 +69,25 @@ int start_of_controller(bool persist_state) {
   ctrl.register_for_event(&gtp_app, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL);
   ctrl.register_for_event(&gtp_app, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
   ctrl.start();
-  // Rashmi: shall remove later, added thread-id for debugging
-  OAILOG_INFO(
-      LOG_GTPV1U, "Started openflow controller thread-id:%x \n",
-      pthread_self());
-  pthread_mutex_lock(&count_mutex);
-  pthread_cond_init(&count_threshold_cv, NULL);
-  pthread_mutex_unlock(&count_mutex);
+  OAILOG_INFO(LOG_GTPV1U, "Started openflow controller\n");
 
+  struct timespec time;
+  clock_gettime(CLOCK_REALTIME, &time);
+  /* pthread conditional variable is added along with wait for 5 minutes in
+   * order to make sure connection is established between Controller and switch
+   * before inserting OVS rules
+   */
+#define CONNECTION_WAIT_TIME 300
+  time.tv_sec += CONNECTION_WAIT_TIME;
+  pthread_cond_init(&condition_variable, NULL);
+  pthread_mutex_lock(&pthread_mutex);
+  int ret = pthread_cond_timedwait(&condition_variable, &pthread_mutex, &time);
+  if (ret == ETIMEDOUT) {
+    OAILOG_INFO(
+        LOG_GTPV1U, "Failed to connect openflow controller to switch \n");
+    return -1;
+  }
+  pthread_mutex_unlock(&pthread_mutex);
   return 0;
 }
 
@@ -116,9 +127,6 @@ int openflow_controller_add_gtp_tunnel(
 int openflow_controller_del_gtp_tunnel(
     struct in_addr ue, struct in6_addr* ue_ipv6, uint32_t i_tei,
     struct ip_flow_dl* flow_dl, uint32_t gtp_portno) {
-  OAILOG_INFO(
-      LOG_SPGW_APP, "openflow_controller_del_gtp_tunnel thread-id :%lx \n",
-      pthread_self());
   if (flow_dl) {
     auto del_tunnel = std::make_shared<openflow::DeleteGTPTunnelEvent>(
         ue, ue_ipv6, i_tei, flow_dl, gtp_portno);

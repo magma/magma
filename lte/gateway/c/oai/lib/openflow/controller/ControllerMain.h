@@ -25,8 +25,8 @@ extern "C" {
 #define CONTROLLER_PORT 6654
 #define NUM_WORKERS 2
 
-extern pthread_cond_t count_threshold_cv;
-extern pthread_mutex_t count_mutex;
+extern pthread_cond_t condition_variable;
+extern pthread_mutex_t pthread_mutex;
 int start_of_controller(bool persist_state);
 
 int stop_of_controller(void);
