@@ -68,10 +68,11 @@ describe('NMS Policy Add', () => {
       // check if the description is right
       await page.waitForXPath(`//span[text()='Policies']`);
 
-      const buttonSelector = await page.$x(
-        `//span[text()='Create New Policy']`,
-      );
+      const buttonSelector = await page.$x(`//span[text()='Create New']`);
       buttonSelector[0].click();
+
+      const policybuttonSelector = await page.$x(`//span[text()='Policy']`);
+      policybuttonSelector[0].click();
 
       await page.waitForXPath(`//span[text()='Add New Policy']`);
 

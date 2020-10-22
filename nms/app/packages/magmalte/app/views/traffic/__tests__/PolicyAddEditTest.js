@@ -26,6 +26,7 @@ import {
   LteNetworkContextProvider,
   PolicyProvider,
 } from '../../../components/lte/LteContext';
+
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
@@ -238,8 +239,14 @@ describe('<TrafficDashboard />', () => {
     ).toHaveBeenCalledWith({networkId: fegNetworkId});
 
     expect(queryByTestId('editDialog')).toBeNull();
-    fireEvent.click(getByText('Create New Policy'));
+
+    fireEvent.click(getByText('Create New'));
     await wait();
+
+    const newPolicyMenu = getByTestId('newPolicyMenuItem');
+    fireEvent.click(newPolicyMenu);
+    await wait();
+
     expect(queryByTestId('editDialog')).not.toBeNull();
 
     expect(queryByTestId('infoEdit')).not.toBeNull();
@@ -358,8 +365,13 @@ describe('<TrafficDashboard />', () => {
     ).toHaveBeenCalledWith({networkId});
 
     expect(queryByTestId('editDialog')).toBeNull();
-    fireEvent.click(getByText('Create New Policy'));
+
+    fireEvent.click(getByText('Create New'));
     await wait();
+
+    fireEvent.click(getByTestId('newPolicyMenuItem'));
+    await wait();
+
     expect(queryByTestId('editDialog')).not.toBeNull();
 
     expect(queryByTestId('infoEdit')).not.toBeNull();
@@ -452,7 +464,11 @@ describe('<TrafficDashboard />', () => {
     ).toHaveBeenCalledWith({networkId});
 
     expect(queryByTestId('editDialog')).toBeNull();
-    fireEvent.click(getByText('Create New Policy'));
+
+    fireEvent.click(getByText('Create New'));
+    await wait();
+
+    fireEvent.click(getByTestId('newPolicyMenuItem'));
     await wait();
     expect(queryByTestId('editDialog')).not.toBeNull();
 

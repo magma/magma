@@ -154,8 +154,6 @@ describe('<TrafficDashboard />', () => {
       <Wrapper />,
     );
     await wait();
-    // Policy tab
-    expect(getByTestId('title_Policies')).toHaveTextContent('Policies');
     // Policy tables rows
     const rowItemsPolicy = await getAllByRole('row');
     // first row is the header
