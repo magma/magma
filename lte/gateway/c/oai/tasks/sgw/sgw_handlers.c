@@ -75,7 +75,10 @@ static void _handle_failed_create_bearer_response(
     teid_t teid);
 static void _generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t s_addr,
-    struct ipv4flow_dl* dlflow);
+    struct ip_flow_dl* dlflow);
+
+static bool does_bearer_context_hold_valid_enb_ip(
+    ip_address_t enb_ip_address_S1u);
 
 #if EMBEDDED_SGW
 #define TASK_MME TASK_MME_APP
@@ -504,7 +507,7 @@ static void sgw_add_gtp_tunnel(
   if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.pdn_connection
           .ue_suspended_for_ps_handover) {
     rv = gtp_tunnel_ops->forward_data_on_tunnel(
-        ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
+        ue, NULL, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
         DEFAULT_PRECEDENCE);
     if (rv < 0) {
       OAILOG_ERROR_UE(
@@ -520,7 +523,7 @@ static void sgw_add_gtp_tunnel(
             .pdn_connection.default_bearer) {
       // Set default precedence and tft for default bearer
       rv = gtpv1u_add_tunnel(
-          ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          ue, NULL, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, imsi, NULL, DEFAULT_PRECEDENCE);
       if (rv < 0) {
         OAILOG_ERROR_UE(
@@ -530,14 +533,14 @@ static void sgw_add_gtp_tunnel(
       for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
            ++itrn) {
         // Prepare DL flow rule
-        struct ipv4flow_dl dlflow;
+        struct ip_flow_dl dlflow;
         _generate_dl_flow(
             &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                   .packetfiltercontents),
             ue.s_addr, &dlflow);
 
         rv = gtpv1u_add_tunnel(
-            ue, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            ue, NULL, vlan, enb, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt_p->enb_teid_S1u, imsi, &dlflow,
             eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                 .eval_precedence);
@@ -693,7 +696,7 @@ int sgw_handle_sgi_endpoint_deleted(
       if (new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
               .pdn_connection.ue_suspended_for_ps_handover) {
         rv = gtp_tunnel_ops->forward_data_on_tunnel(
-            ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
+            ue, NULL, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up, NULL,
             DEFAULT_PRECEDENCE);
         if (rv < 0) {
           OAILOG_ERROR_UE(
@@ -706,8 +709,8 @@ int sgw_handle_sgi_endpoint_deleted(
       enb.s_addr =
           eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-      rv = gtp_tunnel_ops->del_tunnel(enb,
-          ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+      rv = gtp_tunnel_ops->del_tunnel(
+          enb, ue, NULL, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
           eps_bearer_ctxt_p->enb_teid_S1u, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(LOG_SPGW_APP, imsi64, "ERROR in deleting TUNNEL\n");
@@ -903,7 +906,9 @@ int sgw_handle_modify_bearer_request(
 
         // Send end marker to eNB and then delete the tunnel if enb_ip is
         // different
-        if (is_enb_ip_address_same(
+        if (does_bearer_context_hold_valid_enb_ip(
+                eps_bearer_ctxt_p->enb_ip_address_S1u) &&
+            is_enb_ip_address_same(
                 &modify_bearer_pP->bearer_contexts_to_be_modified
                      .bearer_contexts[idx]
                      .s1_eNB_fteid,
@@ -919,8 +924,8 @@ int sgw_handle_modify_bearer_request(
           // This is best effort, ignore return code.
           gtp_tunnel_ops->send_end_marker(enb, modify_bearer_pP->teid);
           // delete GTPv1-U tunnel
-          rv = gtp_tunnel_ops->del_tunnel(enb,
-              ue, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+          rv = gtp_tunnel_ops->del_tunnel(
+              enb, ue, NULL, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
         }
         populate_sgi_end_point_update(
@@ -1029,11 +1034,11 @@ int sgw_handle_delete_session_request(
         if (eps_bearer_ctxt_p) {
           if (ebi != delete_session_req_pP->lbi) {
             struct in_addr enb = {.s_addr = 0};
-            enb.s_addr = eps_bearer_ctxt_p->enb_ip_address_S1u.address
-                           .ipv4_address.s_addr;
+            enb.s_addr         = eps_bearer_ctxt_p->enb_ip_address_S1u.address
+                             .ipv4_address.s_addr;
 
-            rv = gtp_tunnel_ops->del_tunnel(enb,
-                eps_bearer_ctxt_p->paa.ipv4_address,
+            rv = gtp_tunnel_ops->del_tunnel(
+                enb, eps_bearer_ctxt_p->paa.ipv4_address, NULL,
                 eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_p->enb_teid_S1u, NULL);
             if (rv < 0) {
@@ -1194,11 +1199,11 @@ int sgw_handle_release_access_bearers_request(
               .sgw_eps_bearers_array[ebx];
       if (eps_bearer_ctxt) {
         struct in_addr enb = {.s_addr = 0};
-        enb.s_addr = eps_bearer_ctxt->enb_ip_address_S1u.address
-                           .ipv4_address.s_addr;
+        enb.s_addr =
+            eps_bearer_ctxt->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-        rv = gtp_tunnel_ops->del_tunnel(enb,
-            eps_bearer_ctxt->paa.ipv4_address,
+        rv = gtp_tunnel_ops->del_tunnel(
+            enb, eps_bearer_ctxt->paa.ipv4_address, NULL,
             eps_bearer_ctxt->s_gw_teid_S1u_S12_S4_up,
             eps_bearer_ctxt->enb_teid_S1u, NULL);
         if (rv < 0) {
@@ -1430,7 +1435,7 @@ int sgw_handle_suspend_notification(
       // delete GTPv1-U tunnel
       struct in_addr ue = eps_bearer_entry_p->paa.ipv4_address;
       rv                = gtp_tunnel_ops->discard_data_on_tunnel(
-          ue, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up, NULL);
+          ue, NULL, eps_bearer_entry_p->s_gw_teid_S1u_S12_S4_up, NULL);
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64, "ERROR in Disabling DL data on TUNNEL\n");
@@ -1587,14 +1592,15 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           for (int i = 0;
                i < eps_bearer_ctxt_entry_p->tft.numberofpacketfilters; ++i) {
             // Prepare DL flow rule
-            struct ipv4flow_dl dlflow;
+            struct ip_flow_dl dlflow;
             _generate_dl_flow(
                 &(eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
                       .packetfiltercontents),
                 ue.s_addr, &dlflow);
 
             rc = gtpv1u_add_tunnel(
-                ue, vlan, enb, eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
+                ue, NULL, vlan, enb,
+                eps_bearer_ctxt_entry_p->s_gw_teid_S1u_S12_S4_up,
                 eps_bearer_ctxt_entry_p->enb_teid_S1u, imsi, &dlflow,
                 eps_bearer_ctxt_entry_p->tft.packetfilterlist.createnewtft[i]
                     .eval_precedence);
@@ -1688,14 +1694,13 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
           &spgw_ctxt->sgw_eps_bearer_context_information.pdn_connection, ebi);
 
       if (eps_bearer_ctxt_p) {
-
         if (ebi != *s11_pcrf_ded_bearer_deactv_rsp->lbi) {
           struct in_addr enb = {.s_addr = 0};
-          enb.s_addr = eps_bearer_ctxt_p->enb_ip_address_S1u.address
-                           .ipv4_address.s_addr;
+          enb.s_addr =
+              eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-          rc = gtp_tunnel_ops->del_tunnel(enb,
-              eps_bearer_ctxt_p->paa.ipv4_address,
+          rc = gtp_tunnel_ops->del_tunnel(
+              enb, eps_bearer_ctxt_p->paa.ipv4_address, NULL,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, NULL);
           if (rc < 0) {
@@ -1759,17 +1764,17 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
         for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
              ++itrn) {
           // Prepare DL flow rule from stored packet filters
-          struct ipv4flow_dl dlflow;
+          struct ip_flow_dl dlflow;
           _generate_dl_flow(
               &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                     .packetfiltercontents),
               eps_bearer_ctxt_p->paa.ipv4_address.s_addr, &dlflow);
           struct in_addr enb = {.s_addr = 0};
-          enb.s_addr = eps_bearer_ctxt_p->enb_ip_address_S1u.address
-                           .ipv4_address.s_addr;
+          enb.s_addr =
+              eps_bearer_ctxt_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
 
-          rc = gtp_tunnel_ops->del_tunnel(enb,
-              eps_bearer_ctxt_p->paa.ipv4_address,
+          rc = gtp_tunnel_ops->del_tunnel(
+              enb, eps_bearer_ctxt_p->paa.ipv4_address, NULL,
               eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
               eps_bearer_ctxt_p->enb_teid_S1u, &dlflow);
           if (rc < 0) {
@@ -1794,7 +1799,6 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
       s11_pcrf_ded_bearer_deactv_rsp->cause, ebi);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rc);
 }
-
 bool is_enb_ip_address_same(const fteid_t* fte_p, ip_address_t* ip_p) {
   bool rc = true;
 
@@ -1879,7 +1883,7 @@ static void _handle_failed_create_bearer_response(
 // Fills up downlink (DL) flow match rule from packet filters of eps bearer
 static void _generate_dl_flow(
     packet_filter_contents_t* packet_filter, in_addr_t s_addr,
-    struct ipv4flow_dl* dlflow) {
+    struct ip_flow_dl* dlflow) {
   // Prepare DL flow rule
   // The TFTs are DL TFTs: UE is the destination/local,
   // PDN end point is the source/remote.
@@ -1938,4 +1942,36 @@ static void _generate_dl_flow(
       dlflow->udp_dst_port = packet_filter->singlelocalport;
     }
   }
+}
+
+static bool does_bearer_context_hold_valid_enb_ip(
+    ip_address_t enb_ip_address_S1u) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  static struct in6_addr ipv6_address = {0};
+  switch (enb_ip_address_S1u.pdn_type) {
+    case IPv4:
+      if (enb_ip_address_S1u.address.ipv4_address.s_addr) {
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
+      }
+      break;
+    case IPv4_AND_v6:
+      if ((enb_ip_address_S1u.address.ipv4_address.s_addr) ||
+          (memcmp(
+               &ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),
+               sizeof(struct in6_addr)) != 0)) {
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
+      }
+      break;
+    case IPv6:
+      if (memcmp(
+              &ipv6_address, &(enb_ip_address_S1u.address.ipv6_address),
+              sizeof(struct in6_addr)) != 0) {
+        OAILOG_FUNC_RETURN(LOG_SPGW_APP, true);
+      }
+      break;
+    default:
+      OAILOG_ERROR(LOG_SPGW_APP, "Invalid pdn-type \n");
+      break;
+  }
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, false);
 }

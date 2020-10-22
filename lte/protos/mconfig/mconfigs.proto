@@ -50,6 +50,7 @@ message EnodebD {
         int32 bandwidth_mhz = 7;
         int32 tac = 8;
         int32 cell_id = 9;
+        string ip_address = 10;
     }
 
     orc8r.LogLevel log_level = 1;
@@ -117,6 +118,7 @@ message PipelineD {
 
     string sgi_management_iface_vlan = 13;
     string sgi_management_iface_ip_addr = 14;
+    string sgi_management_iface_gw = 15;
     // DEPRECATED
     reserved 4, 11;
     // repeated string apps = 4;

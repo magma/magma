@@ -1216,6 +1216,23 @@ uint64_t SessionState::get_charging_credit(
   return it->second->credit.get_credit(bucket);
 }
 
+bool SessionState::set_credit_reporting(
+    const CreditKey& key, bool reporting,
+    SessionStateUpdateCriteria* update_criteria) {
+  auto it = credit_map_.find(key);
+  if (it == credit_map_.end()) {
+    MLOG(MWARNING) << "Dident set reporting flag for RG " << key;
+    return false;
+  }
+
+  it->second->credit.set_reporting(reporting);
+  if (update_criteria != NULL) {
+    auto credit_uc       = get_credit_uc(key, *update_criteria);
+    credit_uc->reporting = reporting;
+  }
+  return true;
+}
+
 ReAuthResult SessionState::reauth_key(
     const CreditKey& charging_key,
     SessionStateUpdateCriteria& update_criteria) {
@@ -1264,23 +1281,18 @@ void SessionState::apply_charging_credit_update(
   if (it == credit_map_.end()) {
     return;
   }
-  auto& charging_grant = it->second;
-  auto& credit         = charging_grant->credit;
+
   if (credit_uc.deleted) {
     credit_map_.erase(key);
+    MLOG(MINFO) << session_id_ << " Erasing RG " << key;
     return;
   }
 
+  auto& charging_grant = it->second;
+  auto& credit         = charging_grant->credit;
+
   // Credit merging
-  credit.set_grant_tracking_type(credit_uc.grant_tracking_type, credit_uc);
-  credit.set_received_granted_units(
-      credit_uc.received_granted_units, credit_uc);
-  credit.set_report_last_credit(credit_uc.report_last_credit, credit_uc);
-  for (int i = USED_TX; i != MAX_VALUES; i++) {
-    Bucket bucket = static_cast<Bucket>(i);
-    credit.add_credit(
-        credit_uc.bucket_deltas.find(bucket)->second, bucket, credit_uc);
-  }
+  credit.merge(credit_uc);
 
   // set charging grant
   charging_grant->is_final_grant    = credit_uc.is_final;
@@ -1337,6 +1349,7 @@ void SessionState::get_charging_updates(
     switch (action_type) {
       case CONTINUE_SERVICE: {
         CreditUsage::UpdateType update_type;
+
         if (!grant->get_update_type(&update_type)) {
           break;  // no update
         }
@@ -1372,6 +1385,12 @@ void SessionState::get_charging_updates(
         }
         grant->set_service_state(SERVICE_REDIRECTED, *credit_uc);
         action->set_redirect_server(grant->final_action_info.redirect_server);
+        // activate service
+        action->set_ambr(config_.get_apn_ambr());
+        // terminate service
+        terminate_service_action(action, action_type, key);
+        actions_out->push_back(std::move(action));
+        break;
       case RESTRICT_ACCESS: {
         if (grant->service_state == SERVICE_RESTRICTED) {
           MLOG(MDEBUG) << "Restriction already activated for " << session_id_;
@@ -1382,29 +1401,45 @@ void SessionState::get_charging_updates(
         for (auto& rule : grant->final_action_info.restrict_rules) {
           restrict_rules->push_back(rule);
         }
+        // activate service
+        action->set_ambr(config_.get_apn_ambr());
+        // terminate service
+        terminate_service_action(action, action_type, key);
+        actions_out->push_back(std::move(action));
+        break;
       }
       case ACTIVATE_SERVICE:
         action->set_ambr(config_.get_apn_ambr());
+        terminate_service_action(action, action_type, key);
+        actions_out->push_back(std::move(action));
+        break;
       case TERMINATE_SERVICE:
-        MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
-                     << " action type " << action_type;
-        action->set_credit_key(key);
-        action->set_imsi(imsi_);
-        action->set_ip_addr(config_.common_context.ue_ipv4());
-        action->set_ipv6_addr(config_.common_context.ue_ipv6());
-        action->set_session_id(session_id_);
-        static_rules_.get_rule_ids_for_charging_key(
-            key, *action->get_mutable_rule_ids());
-        dynamic_rules_.get_rule_definitions_for_charging_key(
-            key, *action->get_mutable_rule_definitions());
+        terminate_service_action(action, action_type, key);
         actions_out->push_back(std::move(action));
         break;
       default:
-        MLOG(MWARNING) << "Unexpected action type " << action_type << " for "
+        MLOG(MWARNING) << "Unexpected action type "
+                       << service_action_type_to_str(action_type) << " for "
                        << session_id_;
         break;
     }
   }
+}
+
+void SessionState::terminate_service_action(
+    std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
+    const CreditKey& key) {
+  MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
+               << " action type " << service_action_type_to_str(action_type);
+  action->set_credit_key(key);
+  action->set_imsi(imsi_);
+  action->set_ip_addr(config_.common_context.ue_ipv4());
+  action->set_ipv6_addr(config_.common_context.ue_ipv6());
+  action->set_session_id(session_id_);
+  static_rules_.get_rule_ids_for_charging_key(
+      key, *action->get_mutable_rule_ids());
+  dynamic_rules_.get_rule_definitions_for_charging_key(
+      key, *action->get_mutable_rule_definitions());
 }
 
 // Monitors
@@ -1491,17 +1526,11 @@ void SessionState::apply_monitor_updates(
     return;
   }
 
+  auto& charging_grant = it->second;
+  auto& credit         = charging_grant->credit;
+
   // Credit merging
-  auto& credit = it->second->credit;
-  credit.set_grant_tracking_type(credit_uc.grant_tracking_type, credit_uc);
-  credit.set_received_granted_units(
-      credit_uc.received_granted_units, credit_uc);
-  credit.set_report_last_credit(credit_uc.report_last_credit, credit_uc);
-  for (int i = USED_TX; i != MAX_VALUES; i++) {
-    Bucket bucket = static_cast<Bucket>(i);
-    it->second->credit.add_credit(
-        credit_uc.bucket_deltas.find(bucket)->second, bucket, credit_uc);
-  }
+  credit.merge(credit_uc);
 }
 
 uint64_t SessionState::get_monitor(
@@ -1511,6 +1540,24 @@ uint64_t SessionState::get_monitor(
     return 0;
   }
   return it->second->credit.get_credit(bucket);
+}
+
+bool SessionState::set_monitor_reporting(
+    const std::string& key, bool reporting,
+    SessionStateUpdateCriteria* update_criteria) {
+  auto it = monitor_map_.find(key);
+  if (it == monitor_map_.end()) {
+    MLOG(MWARNING) << "Didn't set reporting flag for monitor key " << key;
+    return false;
+  }
+
+  it->second->credit.set_reporting(reporting);
+
+  if (update_criteria != NULL) {
+    auto mon_credit_uc       = get_monitor_uc(key, *update_criteria);
+    mon_credit_uc->reporting = reporting;
+  }
+  return true;
 }
 
 bool SessionState::add_to_monitor(

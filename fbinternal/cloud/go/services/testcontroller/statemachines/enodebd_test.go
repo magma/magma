@@ -35,6 +35,7 @@ import (
 	tcTestInit "magma/fbinternal/cloud/go/services/testcontroller/test_init"
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/serdes"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
@@ -926,7 +927,7 @@ func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, r
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedEnodebState, err := serde.Serialize(state.SerdeDomain, lte.EnodebStateType, req)
+	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.StateSerdes)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

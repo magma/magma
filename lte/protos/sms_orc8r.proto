@@ -47,7 +47,7 @@ message SMOUplinkUnitdata {
 
 // smsd-cloud service definition
 service SmsD {
-	rpc ReportDelivery(ReportDeliveryRequest) returns (ReportDeliveryResponse) {}
+    rpc ReportDelivery(ReportDeliveryRequest) returns (ReportDeliveryResponse) {}
 
     rpc GetMessages(GetMessagesRequest) returns (GetMessagesResponse) {}
 }

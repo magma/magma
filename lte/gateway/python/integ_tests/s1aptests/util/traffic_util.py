@@ -19,14 +19,22 @@ import os
 import pyroute2
 import socket
 import threading
+import shlex
+import subprocess
 
 import s1ap_types
-from util.traffic_messages import TrafficTestInstance, TrafficRequest, \
-    TrafficRequestType, TrafficResponseType, TrafficMessage
+from util.traffic_messages import (
+    TrafficTestInstance,
+    TrafficRequest,
+    TrafficRequestType,
+    TrafficResponseType,
+    TrafficMessage,
+)
 
-TRAFFIC_TEST_TIMEOUT_SEC = 180  # Tests shouldn't take longer than a few minutes
+# Tests shouldn't take longer than a few minutes
+TRAFFIC_TEST_TIMEOUT_SEC = 180
 
-'''
+"""
 Using TrafficUtil
 =================
 
@@ -42,21 +50,21 @@ gives the tester the option to wait on the test completing before continuing.
 Essentially, TrafficUtil is just a bridge for packaging together the parameters
 of a given test. Once packaged, the actual testing is done via the TrafficTest
 API.
-'''
+"""
 
 
 class TrafficUtil(object):
-    ''' Utility wrapper for tests requiring traffic generation '''
+    """ Utility wrapper for tests requiring traffic generation """
 
     # Trfgen library setup
-    _trfgen_lib_name = 'libtrfgen.so'
+    _trfgen_lib_name = "libtrfgen.so"
     _trfgen_tests = ()
 
     # Traffic setup
-    _remote_ip = ipaddress.IPv4Address('192.168.129.42')
+    _remote_ip = ipaddress.IPv4Address("192.168.129.42")
 
     def __init__(self):
-        ''' Initialize the trfgen library and its callbacks '''
+        """ Initialize the trfgen library and its callbacks """
         # _test_lib is the private variable containing the ctypes reference to
         # the trfgen library.
         self._test_lib = None
@@ -81,30 +89,74 @@ class TrafficUtil(object):
         # memory used, which can result in unspecified behavior.
         self._data = ()
 
+        # Configuration for triggering shell commands in TRF server VM
+        self._cmd_data = {
+            "user": "vagrant",
+            "host": "192.168.60.144",
+            "password": "vagrant",
+            "command": "test",
+        }
+
+        self._command = (
+            "sshpass -p {password} ssh "
+            "-o UserKnownHostsFile=/dev/null "
+            "-o StrictHostKeyChecking=no "
+            "{user}@{host} {command}"
+        )
+
+    def exec_command(self, command):
+        """
+        Run a command remotely on magma_trfserver VM.
+
+        Args:
+            command: command (str) to be executed on remote host
+            e.g. 'sed -i \'s/str1/str2/g\' /usr/local/bin/traffic_server.py'
+
+        """
+        data = self._cmd_data
+        data["command"] = '"' + command + '"'
+        param_list = shlex.split(self._command.format(**data))
+        return subprocess.call(
+            param_list,
+            shell=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    def update_dl_route(self, ue_ip_block):
+        """ Update downlink route in TRF server """
+        ret_code = self.exec_command(
+            "sudo ip route flush via 192.168.129.1 && sudo ip route "
+            "add " + ue_ip_block + " via 192.168.129.1 dev eth2"
+        )
+        if ret_code != 0:
+            return False
+        return True
+
     def _init_lib(self):
-        ''' Initialize the trfgen library by loading in binary compiled from C
-        '''
-        lib_path = os.environ['S1AP_TESTER_ROOT']
-        lib = os.path.join(lib_path, 'bin', TrafficUtil._trfgen_lib_name)
+        """ Initialize the trfgen library by loading in binary compiled from C
+        """
+        lib_path = os.environ["S1AP_TESTER_ROOT"]
+        lib = os.path.join(lib_path, "bin", TrafficUtil._trfgen_lib_name)
         os.chdir(lib_path)
         self._test_lib = ctypes.cdll.LoadLibrary(lib)
         self._test_lib.trfgen_init()
 
     def _setup_configure_test(self):
-        ''' Set up the call to trfgen_configure_test
+        """ Set up the call to trfgen_configure_test
 
         The function prototype is:
             void trfgen_configure_test(int test_id, struct_test test_parms)
 
         This function call caches the test configurations specified in the
         struct to be called upon and run from the S1AP tester binary.
-        '''
+        """
         self._config_test = self._test_lib.trfgen_configure_test
         self._config_test.restype = None
         self._config_test.argtypes = (ctypes.c_int32, s1ap_types.struct_test)
 
     def _setup_start_test(self):
-        ''' Set up the call to trfgen_start_test
+        """ Set up the call to trfgen_start_test
 
         The function prototype is:
             void trfgen_start_test(
@@ -113,21 +165,25 @@ class TrafficUtil(object):
         This function provides a configuration ID and bind address to the S1AP
         tester for it to start a trfgen test. This function returns practically
         immediately, as the iperf3 process is called on a separate fork.
-        '''
+        """
         self._start_test = self._test_lib.trfgen_start_test
         self._start_test.restype = None
         self._start_test.argtypes = (
-            ctypes.c_int, ctypes.c_char_p, ctypes.c_char_p, ctypes.c_char_p)
+            ctypes.c_int,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+            ctypes.c_char_p,
+        )
 
     def cleanup(self):
-        ''' Cleanup the dll loaded explicitly so the next run doesn't reuse the
-        same globals as ctypes LoadLibrary uses dlopen under the covers '''
+        """ Cleanup the dll loaded explicitly so the next run doesn't reuse the
+        same globals as ctypes LoadLibrary uses dlopen under the covers """
         # self._test_lib.dlclose(self._test_lib._handle)
         self._test_lib = None
         self._data = None
 
     def configure_test(self, is_uplink, duration, is_udp):
-        ''' Returns the test configuration index for the configurations
+        """ Returns the test configuration index for the configurations
         provided. This is the index that is in the trfgen internal state. If a
         configuration is new, will attempt to create a new one in trfgen
 
@@ -141,22 +197,30 @@ class TrafficUtil(object):
 
         Raises MemoryError if return test index would exceed
             s1ap_types.MAX_TEST_CFG
-        '''
+        """
         test = s1ap_types.struct_test()
-        test.trfgen_type = s1ap_types.trfgen_type.CLIENT.value if is_uplink \
-                           else s1ap_types.trfgen_type.SERVER.value
-        test.traffic_type = s1ap_types.trf_type.UDP.value if is_udp else \
-                            s1ap_types.trf_type.TCP.value
+        test.trfgen_type = (
+            s1ap_types.trfgen_type.CLIENT.value
+            if is_uplink
+            else s1ap_types.trfgen_type.SERVER.value
+        )
+        test.traffic_type = (
+            s1ap_types.trf_type.UDP.value
+            if is_udp
+            else s1ap_types.trf_type.TCP.value
+        )
         test.duration = duration
         test.server_timeout = duration
 
         # First we see if this test has already been configured. If so, just
         # reuse that configuration
         for t in self._trfgen_tests:
-            if t.trfgen_type == test.trfgen_type and \
-                    t.traffic_type == test.traffic_type and \
-                    t.duration == test.duration and \
-                    t.server_timeout == test.server_timeout:
+            if (
+                t.trfgen_type == test.trfgen_type
+                and t.traffic_type == test.traffic_type
+                and t.duration == test.duration
+                and t.server_timeout == test.server_timeout
+            ):
                 return t.test_id
 
         # Otherwise, we just create the new test
@@ -170,12 +234,14 @@ class TrafficUtil(object):
         # that we can configure, so send an error. Eventually, come up with an
         # eviction scheme
         raise MemoryError(
-            'Reached limit on number of configurable tests: %d' %
-            s1ap_types.MAX_TEST_CFG)
+            "Reached limit on number of configurable tests: %d"
+            % s1ap_types.MAX_TEST_CFG
+        )
 
     def generate_traffic_test(
-            self, ips, is_uplink=False, duration=120, is_udp=False):
-        ''' Creates a TrafficTest object for the given UE IPs and test type
+        self, ips, is_uplink=False, duration=120, is_udp=False
+    ):
+        """ Creates a TrafficTest object for the given UE IPs and test type
 
         Args:
             ips (list(ipaddress.ip_address)): the IP addresses of the UEs to
@@ -187,10 +253,12 @@ class TrafficUtil(object):
 
         Returns: a TrafficTest object, which is used to interact with the
             trfgen test
-        '''
+        """
         test_id = self.configure_test(is_uplink, duration, is_udp)
-        instances = tuple(TrafficTestInstance(
-            is_uplink, is_udp, duration, ip, 0) for ip in ips)
+        instances = tuple(
+            TrafficTestInstance(is_uplink, is_udp, duration, ip, 0)
+            for ip in ips
+        )
         return TrafficTest(self._start_test, instances, (test_id,) * len(ips))
 
 

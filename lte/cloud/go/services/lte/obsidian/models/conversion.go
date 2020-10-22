@@ -159,8 +159,8 @@ func (m *LteGateway) FromBackendModels(
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
 
-	for _, ent := range loadedEntsByTK.Filter(lte.APNResourceEntityType) {
-		r := (&ApnResource{}).FromEntity(ent)
+	for _, tk := range cellularGateway.Associations.Filter(lte.APNResourceEntityType) {
+		r := (&ApnResource{}).FromEntity(loadedEntsByTK[tk])
 		m.ApnResources[string(r.ApnName)] = *r
 	}
 
@@ -252,7 +252,7 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 		Type:              lte.CellularGatewayEntityType,
 		Key:               string(m.ID),
 		NewConfig:         m.Cellular,
-		AssociationsToAdd: newAPNResourceTKs,
+		AssociationsToSet: newAPNResourceTKs,
 	}
 	if string(m.Name) != existingGateway.Name {
 		gatewayUpdate.NewName = swag.String(string(m.Name))
@@ -473,7 +473,12 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Description = ent.Description
 	m.Serial = ent.Key
 	if ent.Config != nil {
-		m.Config = ent.Config.(*EnodebConfiguration)
+		// TODO(v1.4.0+): For backwards compatibility we maintain the 'config'
+		// field previously reserved for managed enb configs.
+		//  We can remove this after the next minor version
+		config := ent.Config.(*EnodebConfig)
+		m.Config = config.ManagedConfig
+		m.EnodebConfig = config
 	}
 	for _, tk := range ent.ParentAssociations {
 		if tk.Type == lte.CellularGatewayEntityType {
@@ -489,7 +494,7 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 		Key:            m.Serial,
 		NewName:        swag.String(m.Name),
 		NewDescription: swag.String(m.Description),
-		NewConfig:      m.Config,
+		NewConfig:      m.EnodebConfig,
 	}
 }
 
@@ -538,8 +543,9 @@ func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
 
 func (m *ApnResources) GetByID() map[string]*ApnResource {
 	byID := map[string]*ApnResource{}
-	for _, r := range *m {
-		byID[r.ID] = &r
+	for i, r := range *m {
+		var apnr = (*m)[i]
+		byID[r.ID] = &apnr
 	}
 	return byID
 }
@@ -568,10 +574,11 @@ func (m *ApnResource) ToTK() storage.TypeAndKey {
 }
 
 func (m *ApnResource) ToEntity() configurator.NetworkEntity {
+	cfg := *m // make explicit copy
 	return configurator.NetworkEntity{
 		Type:         lte.APNResourceEntityType,
 		Key:          m.ID,
-		Config:       m,
+		Config:       &cfg,
 		Associations: m.getAssocs(),
 	}
 }

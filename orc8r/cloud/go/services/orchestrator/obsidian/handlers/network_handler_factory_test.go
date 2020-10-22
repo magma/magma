@@ -45,7 +45,7 @@ type (
 func Test_GetPartialReadNetworkHandler(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	configuratorTestInit.StartTestService(t)
-	serde.RegisterSerdes(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
+	serde.RegisterSerdesLegacy(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
 
@@ -127,7 +127,7 @@ func Test_GetPartialReadNetworkHandler(t *testing.T) {
 
 func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	serde.RegisterSerdes(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
+	serde.RegisterSerdesLegacy(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"
@@ -212,7 +212,7 @@ func TestGetUpdateNetworkConfigHandler(t *testing.T) {
 
 func TestGetDeleteNetworkConfigHandler(t *testing.T) {
 	plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
-	serde.RegisterSerdes(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
+	serde.RegisterSerdesLegacy(configurator.NewNetworkConfigSerde("test", &TestFeature1{}))
 	configuratorTestInit.StartTestService(t)
 	e := echo.New()
 	testURLRoot := "/magma/v1/networks"

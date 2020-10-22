@@ -39,8 +39,14 @@ using namespace lte;
 // SMS Orc8r Downlink
 void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
     const SMODownlinkUnitdata* msg, itti_sgsap_downlink_unitdata_t* itti_msg) {
-  auto imsi             = msg->imsi();
-  itti_msg->imsi_length = imsi.length();
+  std::string imsi = msg->imsi();
+  // If north bound is Orc8r itself, IMSI prefix is used;
+  // in AGW local tests, IMSI prefix is not used
+  // Strip off any IMSI prefix
+  if (imsi.compare(0, 4, "IMSI") == 0) {
+    imsi = imsi.substr(4, std::string::npos);
+  }
+  itti_msg->imsi_length = imsi.size();
   strcpy(itti_msg->imsi, imsi.c_str());
 
   auto nas_msg = msg->nas_message_container();
@@ -52,8 +58,7 @@ void convert_proto_msg_to_itti_sgsap_downlink_unitdata(
   return;
 }
 
-} // namespace magma
-
+}  // namespace magma
 
 namespace magma {
 using namespace feg;

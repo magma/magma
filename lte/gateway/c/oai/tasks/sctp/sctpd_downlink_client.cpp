@@ -19,6 +19,7 @@ extern "C" {
 #include "sctpd_downlink_client.h"
 
 #include <arpa/inet.h>
+#include <signal.h>
 
 #include "assertions.h"
 #include "log.h"
@@ -151,6 +152,25 @@ int sctpd_init(sctp_init_t* init) {
   auto init_ok = res.result() == InitRes::INIT_OK;
 
   return (rc == 0) && init_ok ? 0 : -1;
+}
+
+// close
+void sctpd_exit() {
+  // send terminate message to sctpd if force_restart is true
+  if (!_client->should_force_restart) {
+    // do nothing
+    return;
+  }
+
+  // send a SIGTERM to sctpd
+  char line[PID_LEN];
+  FILE* cmd = popen("pidof sctpd", "r");
+  fgets(line, PID_LEN, cmd);
+  pid_t pid = strtoul(line, NULL, 10);
+  pclose(cmd);
+  OAILOG_DEBUG(LOG_SCTP, "Sending SIGTERM to pid %d", pid);
+  kill(pid, SIGTERM);
+  return;
 }
 
 // sendDl

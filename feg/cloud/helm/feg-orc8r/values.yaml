@@ -12,6 +12,7 @@
 feg:
   service:
     labels:
+      orc8r.io/mconfig_builder: "true"
       orc8r.io/obsidian_handlers: "true"
     annotations:
       orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/feg,/magma/v1/feg_lte"

@@ -52,10 +52,6 @@ export default function TrafficDashboard() {
           component={PolicyJsonConfig}
         />
         <Route
-          path={relativePath('/policy/json')}
-          component={PolicyJsonConfig}
-        />
-        <Route
           path={relativePath('/apn/:apnId/json')}
           component={ApnJsonConfig}
         />

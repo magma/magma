@@ -32,13 +32,13 @@ const (
 
 func TestConfiguratorService(t *testing.T) {
 	test_init.StartTestService(t)
-	err := serde.RegisterSerdes(&mockSerde{domain: configurator.NetworkConfigSerdeDomain, serdeType: "foo"})
+	err := serde.RegisterSerdesLegacy(&mockSerde{domain: configurator.NetworkConfigSerdeDomain, serdeType: "foo"})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(&mockSerde{domain: configurator.NetworkEntitySerdeDomain, serdeType: "foo"})
+	err = serde.RegisterSerdesLegacy(&mockSerde{domain: configurator.NetworkEntitySerdeDomain, serdeType: "foo"})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(&mockSerde{domain: configurator.NetworkConfigSerdeDomain, serdeType: "bar"})
+	err = serde.RegisterSerdesLegacy(&mockSerde{domain: configurator.NetworkConfigSerdeDomain, serdeType: "bar"})
 	assert.NoError(t, err)
-	err = serde.RegisterSerdes(&mockSerde{domain: configurator.NetworkEntitySerdeDomain, serdeType: "bar"})
+	err = serde.RegisterSerdesLegacy(&mockSerde{domain: configurator.NetworkEntitySerdeDomain, serdeType: "bar"})
 	assert.NoError(t, err)
 
 	// Test Basic Network Interface

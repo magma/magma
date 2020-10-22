@@ -40,7 +40,8 @@ class UplinkBridgeController(MagmaController):
         ['uplink_bridge', 'uplink_eth_port_name', 'uplink_patch',
          'enable_nat', 'virtual_mac', 'dhcp_port',
          'sgi_management_iface_vlan', 'sgi_management_iface_ip_addr',
-         'dev_vlan_in', 'dev_vlan_out', 'ovs_vlan_workaround'],
+         'dev_vlan_in', 'dev_vlan_out', 'ovs_vlan_workaround',
+         'sgi_management_iface_gw'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -68,6 +69,7 @@ class UplinkBridgeController(MagmaController):
         dev_vlan_in = config_dict.get('dev_vlan_in', self.DEFAULT_DEV_VLAN_IN)
         dev_vlan_out = config_dict.get('dev_vlan_out', self.DEFAULT_DEV_VLAN_OUT)
         ovs_vlan_workaround = config_dict.get('ovs_vlan_workaround', True)
+        sgi_management_iface_gw = config_dict.get('sgi_management_iface_gw', "")
         return self.UplinkConfig(
             enable_nat=enable_nat,
             uplink_bridge=bridge_name,
@@ -79,7 +81,8 @@ class UplinkBridgeController(MagmaController):
             sgi_management_iface_ip_addr=sgi_management_iface_ip_addr,
             dev_vlan_in=dev_vlan_in,
             dev_vlan_out=dev_vlan_out,
-            ovs_vlan_workaround=ovs_vlan_workaround
+            ovs_vlan_workaround=ovs_vlan_workaround,
+            sgi_management_iface_gw=sgi_management_iface_gw
         )
 
     def initialize_on_connect(self, datapath):
@@ -157,6 +160,7 @@ class UplinkBridgeController(MagmaController):
         # everything else:
         self._install_flow(flows.MINIMUM_PRIORITY, "", "NORMAL")
         self._set_sgi_ip_addr(self.config.uplink_bridge)
+        self._set_sgi_gw(self.config.uplink_bridge)
 
     def cleanup_on_disconnect(self, datapath):
         self._del_eth_port()
@@ -216,6 +220,27 @@ class UplinkBridgeController(MagmaController):
             self.logger.debug("ignore port del error: %s ", ex)
 
         self._set_sgi_ip_addr(self.config.uplink_eth_port_name)
+        self._set_sgi_gw(self.config.uplink_eth_port_name)
+
+    def _set_sgi_gw(self, if_name: str):
+        self.logger.debug('self.config.sgi_management_iface_gw %s',
+                          self.config.sgi_management_iface_gw)
+
+        if self.config.sgi_management_iface_gw is None or \
+                self.config.sgi_management_iface_gw == "":
+            return
+
+        try:
+            set_gw_command = ["ip",
+                              "route", "add", "default", "via",
+                              self.config.sgi_management_iface_gw,
+                              "metric", "100", "dev",
+                              if_name]
+            subprocess.check_call(set_gw_command)
+            self.logger.debug("SGi GW config: [%s]", set_gw_command)
+        except subprocess.SubprocessError as e:
+            self.logger.warning("Error while setting SGi GW: %s", e)
+
 
     def _set_sgi_ip_addr(self, if_name: str):
         self.logger.debug("self.config.sgi_management_iface_ip_addr %s",

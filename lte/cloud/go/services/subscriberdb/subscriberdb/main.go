@@ -19,9 +19,11 @@ import (
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	"magma/lte/cloud/go/services/subscriberdb/protos"
 	"magma/lte/cloud/go/services/subscriberdb/servicers"
+	subscriberdb_storage "magma/lte/cloud/go/services/subscriberdb/storage"
 	"magma/orc8r/cloud/go/blobstore"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
+	state_protos "magma/orc8r/cloud/go/services/state/protos"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
 
@@ -41,14 +43,18 @@ func main() {
 		glog.Fatalf("Error opening db connection: %v", err)
 	}
 	fact := blobstore.NewEntStorage(subscriberdb.LookupTableBlobstore, db, sqorc.GetSqlBuilder())
-	err = fact.InitializeFactory()
-	if err != nil {
-		glog.Fatalf("Error initializing directory storage: %v", err)
+	if err := fact.InitializeFactory(); err != nil {
+		glog.Fatalf("Error initializing MSISDN lookup storage: %v", err)
+	}
+	ipStore := subscriberdb_storage.NewIPLookup(db, sqorc.GetSqlBuilder())
+	if err := ipStore.Initialize(); err != nil {
+		glog.Fatalf("Error initializing IP lookup storage: %v", err)
 	}
 
 	// Attach handlers
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetHandlers())
-	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact))
+	protos.RegisterSubscriberLookupServer(srv.GrpcServer, servicers.NewLookupServicer(fact, ipStore))
+	state_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 
 	// Run service
 	err = srv.Run()

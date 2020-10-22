@@ -705,6 +705,7 @@ UpdateSessionRequest LocalEnforcer::collect_updates(
 
 void LocalEnforcer::reset_updates(
     SessionMap& session_map, const UpdateSessionRequest& failed_request) {
+  MLOG(MDEBUG) << "Reseting_updates";
   for (const auto& update : failed_request.updates()) {
     auto it = session_map.find(update.sid());
     if (it == session_map.end()) {
@@ -913,18 +914,18 @@ void LocalEnforcer::schedule_static_rule_deactivation(
 void LocalEnforcer::schedule_dynamic_rule_deactivation(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, DynamicRuleInstall& dynamic_rule) {
-  PolicyRule* policy = dynamic_rule.release_policy_rule();
-  std::vector<PolicyRule> dynamic_rules{*policy};
+  PolicyRule policy = dynamic_rule.policy_rule();
 
   auto delta = time_difference_from_now(dynamic_rule.deactivation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " dynamic rule "
-               << dynamic_rule.policy_rule().id() << " deactivation in "
-               << (delta.count() / 1000) << " secs";
+               << policy.id() << " deactivation in " << (delta.count() / 1000)
+               << " secs";
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
+          std::vector<PolicyRule> dynamic_rules{policy};
           auto session_map   = session_store_.read_sessions(SessionRead{imsi});
-          const auto rule_id = dynamic_rule.policy_rule().id();
+          const auto rule_id = policy.id();
           auto it            = session_map.find(imsi);
           if (it == session_map.end()) {
             MLOG(MWARNING) << "Could not find session for " << imsi
@@ -1280,15 +1281,16 @@ void LocalEnforcer::update_charging_credits(
   for (const auto& credit_update_resp : response.responses()) {
     const std::string& imsi       = credit_update_resp.sid();
     const std::string& session_id = credit_update_resp.session_id();
+    const auto ckey               = credit_update_resp.charging_key();
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
       MLOG(MERROR) << "Could not find session " << session_id
-                   << " during charging update for RG "
-                   << credit_update_resp.charging_key();
+                   << " during charging update for RG " << ckey;
       continue;
     }
     auto& session = **session_it;
+    auto& uc      = session_update[imsi][session_id];
 
     if (!credit_update_resp.success()) {
       handle_command_level_result_code(
@@ -1297,7 +1299,6 @@ void LocalEnforcer::update_charging_credits(
       continue;
     }
 
-    auto& uc = session_update[imsi][session_id];
     const auto& credit_key(credit_update_resp);
     // We need to retrieve restrict_rules and is_final_action_state
     // prior to receiving charging credit as they will be updated.
@@ -1329,15 +1330,17 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
   for (const auto& usage_monitor_resp : response.usage_monitor_responses()) {
     const std::string& imsi       = usage_monitor_resp.sid();
     const std::string& session_id = usage_monitor_resp.session_id();
+    const std::string& mkey = usage_monitor_resp.credit().monitoring_key();
+
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
       MLOG(MERROR) << "Could not find session for " << session_id
-                   << " during monitoring update for mkey "
-                   << usage_monitor_resp.credit().monitoring_key();
+                   << " during monitoring update for mkey " << mkey;
       continue;
     }
     auto& session = **session_it;
+    auto& uc      = session_update[imsi][session_id];
 
     if (!usage_monitor_resp.success()) {
       handle_command_level_result_code(
@@ -1346,7 +1349,6 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
       continue;
     }
 
-    auto& uc           = session_update[imsi][session_id];
     const auto& config = session->get_config();
     session->receive_monitor(usage_monitor_resp, uc);
     session->set_tgpp_context(usage_monitor_resp.tgpp_ctx(), uc);

@@ -28,6 +28,7 @@ import (
 	"magma/fbinternal/cloud/go/services/testcontroller/storage"
 	"magma/fbinternal/cloud/go/services/testcontroller/utils"
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/serdes"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
@@ -149,7 +150,7 @@ func (m *MagmadClient) RebootEnodeb(networkId string, gatewayId string, enodebSe
 }
 
 func getEnodebStatus(networkID string, enodebSN string) (*ltemodels.EnodebState, error) {
-	st, err := state.GetState(networkID, lte.EnodebStateType, enodebSN)
+	st, err := state.GetState(networkID, lte.EnodebStateType, enodebSN, serdes.StateSerdes)
 	if err != nil {
 		return nil, err
 	}

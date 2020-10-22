@@ -339,7 +339,7 @@ class S1ApUtil(object):
             total_num_dl_flows_to_be_verified = 1
             for item in value:
                 for flow in item:
-                    if flow["direction"] == "DL":
+                    if flow["direction"] == FlowMatch.DOWNLINK:
                         total_num_dl_flows_to_be_verified += 1
             total_dl_ovs_flows_created = get_flows(
                 self.datapath,
@@ -360,14 +360,10 @@ class S1ApUtil(object):
             # Now verify the rules for every flow
             for item in value:
                 for flow in item:
-                    if flow["direction"] == "DL":
+                    if flow["direction"] == FlowMatch.DOWNLINK:
                         ipv4_src_addr = flow["ipv4_src"]
                         tcp_src_port = flow["tcp_src_port"]
-                        ip_proto = (
-                            FlowMatch.IPPROTO_TCP
-                            if (flow["ip_proto"] == "TCP")
-                            else FlowMatch.IPPROTO_UDP
-                        )
+                        ip_proto = flow["ip_proto"]
                         for i in range(self.MAX_NUM_RETRIES):
                             print("Get downlink flows: attempt ", i)
                             downlink_flows = get_flows(
@@ -967,7 +963,7 @@ class SessionManagerUtil(object):
             get_rpc_channel("sessiond")
         )
         self._abort_session_stub = AbortSessionResponderStub(
-            get_rpc_channel("sessiond")
+            get_rpc_channel("abort_session_service")
         )
         self._directorydstub = GatewayDirectoryServiceStub(
             get_rpc_channel("directoryd")
@@ -978,14 +974,9 @@ class SessionManagerUtil(object):
         Populates flow match list
         """
         for flow in flow_list:
-            flow_direction = (
-                FlowMatch.UPLINK
-                if flow["direction"] == "UL"
-                else FlowMatch.DOWNLINK
-            )
+            flow_direction = flow["direction"]
             ip_protocol = flow["ip_proto"]
-            if ip_protocol == "TCP":
-                ip_protocol = FlowMatch.IPPROTO_TCP
+            if ip_protocol == FlowMatch.IPPROTO_TCP:
                 udp_src_port = 0
                 udp_dst_port = 0
                 tcp_src_port = (
@@ -994,8 +985,7 @@ class SessionManagerUtil(object):
                 tcp_dst_port = (
                     int(flow["tcp_dst_port"]) if "tcp_dst_port" in flow else 0
                 )
-            elif ip_protocol == "UDP":
-                ip_protocol = FlowMatch.IPPROTO_UDP
+            elif ip_protocol == FlowMatch.IPPROTO_UDP:
                 tcp_src_port = 0
                 tcp_dst_port = 0
                 udp_src_port = (

@@ -39,7 +39,7 @@ type idAndInfo struct {
 
 func TestDeviceService(t *testing.T) {
 	testSerde := &Serde{}
-	err := serde.RegisterSerdes(testSerde)
+	err := serde.RegisterSerdesLegacy(testSerde)
 	assert.NoError(t, err)
 	test_init.StartTestService(t)
 

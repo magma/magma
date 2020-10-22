@@ -72,6 +72,42 @@ func TestS6aProxyClient(t *testing.T) {
 		t.Errorf("Unexpected Number of EutranVectors: %d, Expected: 3", len(r.EutranVectors))
 	}
 
+	// AIR with UTRAN Vectors
+	req.NumRequestedUtranGeranVectors = 3
+	r, err = s6a_proxy.AuthenticationInformation(req)
+	if err != nil {
+		t.Fatalf("GRPC AIR with UTRAN Error: %v", err)
+		return
+	}
+	t.Logf("GRPC AIA with UTRAN: %#+v", *r)
+	if r.ErrorCode != protos.ErrorCode_UNDEFINED {
+		t.Errorf("Unexpected AIA Error Code: %d", r.ErrorCode)
+	}
+	if len(r.EutranVectors) != 3 {
+		t.Errorf("Unexpected Number of EutranVectors: %d, Expected: 3", len(r.EutranVectors))
+	}
+	if len(r.UtranVectors) != 3 {
+		t.Errorf("Unexpected Number of UtranVectors: %d, Expected: 3", len(r.UtranVectors))
+	}
+
+	// AIR with UTRAN Only Vectors
+	req.NumRequestedEutranVectors = 0
+	r, err = s6a_proxy.AuthenticationInformation(req)
+	if err != nil {
+		t.Fatalf("GRPC AIR with UTRAN Error: %v", err)
+		return
+	}
+	t.Logf("GRPC AIA with UTRAN: %#+v", *r)
+	if r.ErrorCode != protos.ErrorCode_UNDEFINED {
+		t.Errorf("Unexpected AIA Error Code: %d", r.ErrorCode)
+	}
+	if len(r.EutranVectors) != 0 {
+		t.Errorf("Unexpected Number of EutranVectors: %d, Expected: 0", len(r.EutranVectors))
+	}
+	if len(r.UtranVectors) != 3 {
+		t.Errorf("Unexpected Number of UtranVectors: %d, Expected: 3", len(r.UtranVectors))
+	}
+
 	ulReq := &protos.UpdateLocationRequest{
 		UserName:           test.TEST_IMSI,
 		VisitedPlmn:        []byte(test.TEST_PLMN_ID),

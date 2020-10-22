@@ -14,8 +14,8 @@ limitations under the License.
 import abc
 import logging
 logging.getLogger("scapy.runtime").setLevel(logging.ERROR)
-from scapy.all import Ether, IP, ARP, TCP, UDP, ICMP, DHCP, BOOTP, wrpcap, \
-    rdpcap
+from scapy.all import Ether, IP, IPv6, ARP, TCP, UDP, ICMP, DHCP, BOOTP, \
+    wrpcap, rdpcap
 
 
 '''
@@ -119,6 +119,7 @@ class ScapyPacket:
     def __init__(self):
         self.Ether = Ether()
         self.IP = IP()
+        self.IPv6 = IPv6()
         self.ARP = ARP()
         self.TCP = TCP()
         self.UDP = UDP()
@@ -227,6 +228,10 @@ class ScapyPacketBuilder(PacketBuilder):
         for key, value in kwargs.items():
             setattr(self.packet.IP, key, value)
 
+    def _set_ipv6(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self.packet.IPv6, key, value)
+
     def _set_icmp(self, **kwargs):
         for key, value in kwargs.items():
             setattr(self.packet.ICMP, key, value)
@@ -306,6 +311,19 @@ class IPPacketBuilder(EtherPacketBuilder):
 
     def build(self):
         return self.packet.Ether / self.packet.IP
+
+
+class IPv6PacketBuilder(EtherPacketBuilder):
+    def set_ip_layer(self, dst, src):
+        self._set_ipv6(dst=dst, src=src)
+        return self
+
+    def set_ip_flags(self, flags):
+        self._set_ipv6(flags=flags)
+        return self
+
+    def build(self):
+        return self.packet.Ether / self.packet.IPv6
 
 
 class ICMPPacketBuilder(IPPacketBuilder):

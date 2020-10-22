@@ -175,7 +175,7 @@ func (ent NetworkEntity) toStorageProto() (*storage.NetworkEntity, error) {
 	}
 
 	if ent.Config != nil {
-		bConfigs, err := serde.Serialize(NetworkEntitySerdeDomain, ent.Type, ent.Config)
+		bConfigs, err := serde.SerializeLegacy(NetworkEntitySerdeDomain, ent.Type, ent.Config)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to serialize entity %s", ent.GetTypeAndKey())
 		}
@@ -198,7 +198,7 @@ func (ent NetworkEntity) fromStorageProto(protoEnt *storage.NetworkEntity) (Netw
 	ent.Version = protoEnt.Version
 
 	if !funk.IsEmpty(protoEnt.Config) {
-		iConfig, err := serde.Deserialize(NetworkEntitySerdeDomain, ent.Type, protoEnt.Config)
+		iConfig, err := serde.DeserializeLegacy(NetworkEntitySerdeDomain, ent.Type, protoEnt.Config)
 		if err != nil {
 			return ent, errors.Wrapf(err, "failed to deserialize entity %s", ent.GetTypeAndKey())
 		}
@@ -447,13 +447,18 @@ func (euc EntityUpdateCriteria) toStorageProto() (*storage.EntityUpdateCriteria,
 	}
 
 	if euc.AssociationsToSet != nil {
+		// AssociationsToSet overrides AssociationsToAdd, so this check
+		// prevents accidentally mixing the two fields
+		if len(euc.AssociationsToAdd) != 0 {
+			return nil, errors.New("cannot both add and set associations in the same EntityUpdateCriteria")
+		}
 		ret.AssociationsToSet = &storage.EntityAssociationsToSet{
 			AssociationsToSet: tksToEntIDs(euc.AssociationsToSet),
 		}
 	}
 
 	if euc.NewConfig != nil {
-		bConfig, err := serde.Serialize(NetworkEntitySerdeDomain, euc.Type, euc.NewConfig)
+		bConfig, err := serde.SerializeLegacy(NetworkEntitySerdeDomain, euc.Type, euc.NewConfig)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to serialize update %s", euc.GetTypeAndKey())
 		}
@@ -479,7 +484,7 @@ func marshalConfigs(configs map[string]interface{}, domain string) (map[string][
 			continue
 		}
 
-		sConfig, err := serde.Serialize(domain, configType, iConfig)
+		sConfig, err := serde.SerializeLegacy(domain, configType, iConfig)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to serialize config %s", configType)
 		}
@@ -491,7 +496,7 @@ func marshalConfigs(configs map[string]interface{}, domain string) (map[string][
 func unmarshalConfigs(configs map[string][]byte, domain string) (map[string]interface{}, error) {
 	ret := map[string]interface{}{}
 	for configType, sConfig := range configs {
-		iConfig, err := serde.Deserialize(domain, configType, sConfig)
+		iConfig, err := serde.DeserializeLegacy(domain, configType, sConfig)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to deserialize config %s", configType)
 		}

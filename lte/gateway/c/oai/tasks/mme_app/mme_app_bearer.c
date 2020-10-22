@@ -897,11 +897,6 @@ void mme_app_handle_delete_session_rsp(
     OAILOG_FUNC_OUT(LOG_MME_APP);
   }
 
-  hashtable_uint64_ts_remove(
-      mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
-      (const hash_key_t) ue_context_p->mme_teid_s11);
-  ue_context_p->mme_teid_s11 = 0;
-
   /*
    * If UE is already in idle state, skip asking eNB to release UE context and
    * just clean up locally. This can happen during implicit detach and UE
@@ -931,6 +926,7 @@ void mme_app_handle_delete_session_rsp(
     if (ue_context_p->ue_context_rel_cause == S1AP_INVALID_CAUSE) {
       ue_context_p->ue_context_rel_cause = S1AP_NAS_DETACH;
     }
+#if EMBEDDED_SGW
     /* If UE has rejected activate default eps bearer request message
      * delete the pdn context
      */
@@ -957,6 +953,12 @@ void mme_app_handle_delete_session_rsp(
       }
       OAILOG_FUNC_OUT(LOG_MME_APP);
     }
+#endif
+    hashtable_uint64_ts_remove(
+        mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
+        (const hash_key_t) ue_context_p->mme_teid_s11);
+    ue_context_p->mme_teid_s11 = 0;
+
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
        Detach Ack from MSC/VLR */
@@ -1857,6 +1859,12 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
    * context.
    */
   ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
+  mme_app_desc_t* mme_app_desc_p     = get_mme_nas_state(false);
+  // Remove enb_s1ap_id_key from the hashtable
+  hashtable_uint64_ts_remove(
+      mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+      (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
     nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
@@ -2255,7 +2263,7 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
         "Reached max re-transmission of Paging Ind for "
         "ue_id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    ue_context_p->paging_retx_count = 0;
+    ue_context_p->paging_retx_count                  = 0;
     ue_context_p->time_paging_response_timer_started = 0;
     /* If there are any pending dedicated bearer requests to be sent to UE
      * send create_dedicated_bearer_reject to SPGW as UE did not respond

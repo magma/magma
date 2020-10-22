@@ -19,6 +19,7 @@ import (
 	"net/http"
 
 	"magma/cwf/cloud/go/cwf"
+	"magma/cwf/cloud/go/serdes"
 	cwfModels "magma/cwf/cloud/go/services/cwf/obsidian/models"
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -27,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -241,7 +242,7 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 	if subscriberID == "" {
 		return obsidian.HttpError(fmt.Errorf("SubscriberID cannot be empty"), http.StatusBadRequest)
 	}
-	directoryState, err := state.GetState(networkID, orc8r.DirectoryRecordType, subscriberID)
+	directoryState, err := state.GetState(networkID, orc8r.DirectoryRecordType, subscriberID, serdes.StateSerdes)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
@@ -255,7 +256,7 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 }
 
 func convertDirectoryRecordToSubscriberRecord(iRecord interface{}) (*cwfModels.CwfSubscriberDirectoryRecord, error) {
-	record, ok := iRecord.(*directoryd.DirectoryRecord)
+	record, ok := iRecord.(*directorydTypes.DirectoryRecord)
 	if !ok {
 		return nil, fmt.Errorf("Could not convert retrieved state to DirectoryRecord")
 	}
@@ -287,17 +288,11 @@ func getHAPairStatusHandler(c echo.Context) error {
 	if network.Type != cwf.CwfNetworkType {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, cwf.CwfNetworkType))
 	}
-	reportedClusterStatus, err := state.GetState(nid, cwf.CwfHAPairStatusType, haPairID)
-	if err == merrors.ErrNotFound {
-		return obsidian.HttpError(err, http.StatusNotFound)
-	} else if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	haPairStatus, err := getCwfHaPairStatus(nid, haPairID)
+	if err != nil {
+		return err
 	}
-	clusterStatus, ok := reportedClusterStatus.ReportedState.(*cwfModels.CarrierWifiHaPairStatus)
-	if !ok {
-		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to ClusterStatus"), http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusOK, clusterStatus)
+	return c.JSON(http.StatusOK, haPairStatus)
 }
 
 func getHealthStatusHandler(c echo.Context) error {
@@ -312,15 +307,9 @@ func getHealthStatusHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	reportedGatewayState, err := state.GetState(nid, cwf.CwfGatewayHealthType, gid)
-	if err == merrors.ErrNotFound {
-		return obsidian.HttpError(err, http.StatusNotFound)
-	} else if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	healthState, ok := reportedGatewayState.ReportedState.(*cwfModels.CarrierWifiGatewayHealthStatus)
-	if !ok {
-		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to HealthStatus"), http.StatusInternalServerError)
+	healthState, err := getCwfGatewayHealth(nid, gid)
+	if err != nil {
+		return err
 	}
 	return c.JSON(http.StatusOK, healthState)
 }
@@ -341,6 +330,7 @@ func listHAPairsHandler(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
+		cwfHaPair.State = getHaPairState(nid, cwfHaPair)
 		ret[haPairEnt.Key] = cwfHaPair
 	}
 	return c.JSON(http.StatusOK, ret)
@@ -351,7 +341,7 @@ func createHAPairHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	haPair := new(cwfModels.CwfHaPair)
+	haPair := new(cwfModels.MutableCwfHaPair)
 	if err := c.Bind(haPair); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
@@ -387,6 +377,7 @@ func getHAPairHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+	cwfHaPair.State = getHaPairState(networkID, cwfHaPair)
 	return c.JSON(http.StatusOK, cwfHaPair)
 }
 
@@ -400,6 +391,10 @@ func updateHAPairHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	if err := mutableHaPair.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if string(mutableHaPair.HaPairID) != haPairID {
+		err := fmt.Errorf("ha pair ID from parameters (%s) and payload (%s) must match", haPairID, mutableHaPair.HaPairID)
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 	// 404 if pair doesn't exist
@@ -427,6 +422,57 @@ func deleteHAPairHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func getHaPairState(networkID string, haPair *cwfModels.CwfHaPair) *cwfModels.CarrierWifiHaPairState {
+	ret := &cwfModels.CarrierWifiHaPairState{}
+	gateway1Health, err := getCwfGatewayHealth(networkID, haPair.GatewayID1)
+	if err == nil {
+		ret.Gateway1Health = gateway1Health
+	}
+	gateway2Health, err := getCwfGatewayHealth(networkID, haPair.GatewayID2)
+	if err == nil {
+		ret.Gateway2Health = gateway2Health
+	}
+	status, err := getCwfHaPairStatus(networkID, haPair.HaPairID)
+	if err == nil {
+		ret.HaPairStatus = status
+	}
+	return ret
+}
+
+func getCwfGatewayHealth(networkID string, gatewayID string) (*cwfModels.CarrierWifiGatewayHealthStatus, error) {
+	reportedGatewayState, err := state.GetState(networkID, cwf.CwfGatewayHealthType, gatewayID, serdes.StateSerdes)
+	if err == merrors.ErrNotFound {
+		return nil, obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	healthState, ok := reportedGatewayState.ReportedState.(*cwfModels.CarrierWifiGatewayHealthStatus)
+	if !ok {
+		return nil, obsidian.HttpError(
+			fmt.Errorf("could not convert retrieved type %T to CarrierWifiGatewayHealthStatus", reportedGatewayState.ReportedState),
+			http.StatusInternalServerError,
+		)
+	}
+	return healthState, nil
+}
+
+func getCwfHaPairStatus(networkID string, haPairID string) (*cwfModels.CarrierWifiHaPairStatus, error) {
+	reportedHaPairStatus, err := state.GetState(networkID, cwf.CwfHAPairStatusType, haPairID, serdes.StateSerdes)
+	if err == merrors.ErrNotFound {
+		return nil, obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	haPairStatus, ok := reportedHaPairStatus.ReportedState.(*cwfModels.CarrierWifiHaPairStatus)
+	if !ok {
+		return nil, obsidian.HttpError(
+			fmt.Errorf("could not convert retrieved type %T to CarrierWifiHaPairStatus", reportedHaPairStatus.ReportedState),
+			http.StatusInternalServerError,
+		)
+	}
+	return haPairStatus, nil
 }
 
 func getNetworkIDAndHaPairID(c echo.Context) (string, string, *echo.HTTPError) {

@@ -102,7 +102,8 @@ func (srv *eapAuth) Handle(ctx context.Context, in *protos.Eap) (*protos.Eap, er
 	metrics.Auth.WithLabelValues(
 		protos.EapCode(eap.Packet(resp.GetPayload()).Code()).String(),
 		protos.EapType(method).String(),
-		in.GetCtx().GetApn()).Inc()
+		in.GetCtx().GetApn(),
+		resp.Ctx.GetImsi()).Inc()
 
 	if err != nil && len(resp.GetPayload()) > 0 {
 		// log error, but do not return it to Radius. EAP will carry its own error

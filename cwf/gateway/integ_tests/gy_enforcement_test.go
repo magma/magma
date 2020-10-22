@@ -31,7 +31,6 @@ import (
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 
 	"github.com/fiorix/go-diameter/v4/diam"
-	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/ptypes/wrappers"
 	"github.com/stretchr/testify/assert"
 )
@@ -87,16 +86,16 @@ func provisionRestrictRules(t *testing.T, tr *TestRunner, ruleManager *RuleManag
 	tr.WaitForPoliciesToSync()
 }
 
-func verifyPolicyUsage(t *testing.T, tr *TestRunner, imsi, rule string, minBytes, maxBytes int) {
+func verifyPolicyUsage(t *testing.T, tr *TestRunner, imsi, rule string, minBytes, maxBytes uint64) {
 	// Check that UE mac flow was not removed and no extra data hit gx rules
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
 	record := recordsBySubID["IMSI"+imsi][rule]
 	assert.NotNil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was removed", imsi))
 	if record != nil {
-		// We should not be seeing > 6M data here
-		assert.True(t, record.BytesTx > uint64(minBytes+Buffer), fmt.Sprintf("%s did pass data while restricted", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(maxBytes+Buffer), fmt.Sprintf("policy usage: %v", record))
+		assert.True(t, record.BytesTx > minBytes+Buffer, fmt.Sprintf("%s did pass data while restricted", record.RuleId))
+		assert.True(t, record.BytesTx <= maxBytes+Buffer,
+			fmt.Sprintf("policy usage was bigger than expected: %d > %d with record\n%v", record.BytesTx, maxBytes+Buffer, record))
 	}
 }
 
@@ -155,7 +154,12 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 
 	// we need to generate over 80% of the quota to trigger a CCR update
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("4.5M")}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    ue.GetImsi(),
+		Volume:  &wrappers.StringValue{Value: "4.5M"},
+		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Timeout: 60,
+	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -183,7 +187,10 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// We need to generate over 100% of the quota to trigger a session termination
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("10M")}}
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:   ue.GetImsi(),
+		Volume: &wrappers.StringValue{Value: "10M"},
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -242,7 +249,12 @@ func TestGyCreditValidityTime(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 	// Generate some traffic but not enough to trigger a quota update request
 	// We want the update type to be VALIDITY TIMER EXPIRED
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("500K")}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    ue.GetImsi(),
+		Volume:  &wrappers.StringValue{Value: "500K"},
+		Bitrate: &wrappers.StringValue{Value: "10M"},
+		Timeout: 60,
+	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -303,7 +315,11 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 	assert.NoError(t, setOCSExpectations(expectations, nil))
 
 	// we need to generate over 100% of the quota to trigger a session termination
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    ue.GetImsi(),
+		Volume:  &wrappers.StringValue{Value: "5M"},
+		Timeout: 60,
+	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	time.Sleep(5 * time.Second)
@@ -420,7 +436,10 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.NoError(t, err)
 
 	// we need to generate over 100% of the quota to trigger a session redirection
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:   ue.GetImsi(),
+		Volume: &wrappers.StringValue{Value: "5M"},
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -441,18 +460,22 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, ue.GetImsi()), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
 
 	// we need to generate more traffic
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "2M"}}
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:    ue.GetImsi(),
+		Volume:  &wrappers.StringValue{Value: "2M"},
+		Bitrate: &wrappers.StringValue{Value: "30M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -526,11 +549,10 @@ func TestGyCreditUpdateCommandLevelFail(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 	// Trigger a ReAuth to force an update request
 	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, ue.GetImsi()), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Wait for a termination to propagate
@@ -600,8 +622,11 @@ func TestGyAbortSessionRequest(t *testing.T) {
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
-		Imsi:   imsi,
-		Volume: &wrappers.StringValue{Value: "4.5M"}}
+		Imsi:    imsi,
+		Volume:  &wrappers.StringValue{Value: "4.5M"},
+		Bitrate: &wrappers.StringValue{Value: "40M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
@@ -707,33 +732,39 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	assert.NoError(t, err)
 
 	// we need to generate over 100% of the quota to trigger a session redirection
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "5M"}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:    ue.GetImsi(),
+		Volume:  &wrappers.StringValue{Value: "5M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data was passed
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", 0, 5*MegaBytes)
-
 	// Wait for service deactivation
 	time.Sleep(3 * time.Second)
 
-	// we need to generate more traffic to hit restrict rule
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "2M"}}
+	// we need to generate more traffic and validate it goes through restrict rule
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:    ue.GetImsi(),
+		Volume:  &wrappers.StringValue{Value: "2M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that UE mac flow was not removed and flow data hit restrict rule
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "restrict-pass-user", 0, 2*MegaBytes)
+	verifyPolicyUsage(t, tr, ue.GetImsi(), "restrict-pass-user", uint64(math.Round(1.8*MegaBytes)), 3*MegaBytes)
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequest(ue.GetImsi(), 1)
-	tr.WaitForReAuthToProcess()
+	assert.NoError(t, err)
+	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, ue.GetImsi()), time.Minute, 2*time.Second)
 
 	// Check ReAuth success
-	assert.NoError(t, err)
-	assert.Contains(t, raa.SessionId, "IMSI"+ue.GetImsi())
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
 	// Assert that a CCR-I and CCR-U were sent to the OCS
@@ -743,13 +774,18 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	time.Sleep(3 * time.Second)
 
 	// we need to generate more traffic to hit restrict rule
-	req = &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: "2M"}}
+	req = &cwfprotos.GenTrafficRequest{
+		Imsi:    ue.GetImsi(),
+		Volume:  &wrappers.StringValue{Value: "2M"},
+		Bitrate: &wrappers.StringValue{Value: "60M"},
+		Timeout: 60,
+	}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that UE mac flow was not removed and data passed
-	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", 0, 2*MegaBytes)
+	verifyPolicyUsage(t, tr, ue.GetImsi(), "static-pass-all-ocs2", uint64(math.Round(1.8*MegaBytes)), 3*MegaBytes)
 
 	// Wait for service deactivation
 	time.Sleep(3 * time.Second)
@@ -805,7 +841,10 @@ func TestGyWithErrorCode(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(ue.GetImsi())
 
 	// we need to generate over 80% but less than 100%  trigger a CCR update without triggering termination
-	req := &cwfprotos.GenTrafficRequest{Imsi: ue.GetImsi(), Volume: &wrappers.StringValue{Value: *swag.String("4.6M")}}
+	req := &cwfprotos.GenTrafficRequest{
+		Imsi:   ue.GetImsi(),
+		Volume: &wrappers.StringValue{Value: "4.6M"},
+	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()

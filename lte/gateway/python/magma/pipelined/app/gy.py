@@ -33,7 +33,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
-
+from magma.pipelined.utils import Utils
 
 class GYController(PolicyMixin, MagmaController):
     """
@@ -51,6 +51,8 @@ class GYController(PolicyMixin, MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_main_table = self._service_manager.get_next_table_num(
             self.APP_NAME)
+        self.next_service_table = self._service_manager.get_next_table_num(
+            EnforcementStatsController.APP_NAME)
         self._enforcement_stats_tbl = self._service_manager.get_table_num(
             EnforcementStatsController.APP_NAME)
         self.loop = kwargs['loop']
@@ -190,7 +192,10 @@ class GYController(PolicyMixin, MagmaController):
         chan = self._msg_hub.send(flow_adds, self._datapath)
         return self._wait_for_rule_responses(imsi, rule, chan)
 
-    def _install_default_flow_for_subscriber(self, imsi):
+    def _get_default_flow_msgs_for_subscriber(self, *_):
+        return None
+
+    def _install_default_flow_for_subscriber(self, *_):
         pass
 
     def _delete_all_flows(self, datapath):
@@ -299,7 +304,7 @@ class GYController(PolicyMixin, MagmaController):
             rule (PolicyRule): policy rule proto
         """
         rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
-        priority = self._get_of_priority(rule.priority)
+        priority = Utils.get_of_priority(rule.priority)
 
         flow_adds = []
         for flow in rule.flow_list:
@@ -309,8 +314,8 @@ class GYController(PolicyMixin, MagmaController):
                 flow_adds.extend(self._get_classify_rule_flow_msgs(
                     imsi, ip_addr, apn_ambr, flow, rule_num, priority,
                     rule.qos, rule.hard_timeout, rule.id, rule.app_name,
-                    rule.app_service_type, self._enforcement_stats_tbl,
-                    version, self._qos_mgr))
+                    rule.app_service_type, self.next_service_table,
+                    version, self._qos_mgr, self._enforcement_stats_tbl))
 
             except FlowMatchError as err:  # invalid match
                 self.logger.error(

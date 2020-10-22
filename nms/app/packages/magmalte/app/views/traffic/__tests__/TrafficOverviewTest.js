@@ -107,6 +107,8 @@ describe('<TrafficDashboard />', () => {
   const networkId = 'test';
   const policyCtx = {
     state: policies,
+    qosProfiles: {},
+    setQosProfiles: async () => {},
     setState: (key, value?) => {
       return SetPolicyState({
         policies,
@@ -117,7 +119,6 @@ describe('<TrafficDashboard />', () => {
       });
     },
   };
-
   const apnCtx = {
     state: apns,
     setState: (key, value?) => {
@@ -130,7 +131,6 @@ describe('<TrafficDashboard />', () => {
       });
     },
   };
-
   const Wrapper = () => (
     <MemoryRouter
       initialEntries={['/nms/test/traffic/policy']}
@@ -149,19 +149,15 @@ describe('<TrafficDashboard />', () => {
       </MuiThemeProvider>
     </MemoryRouter>
   );
-
   it('renders', async () => {
     const {getByTestId, getAllByRole, getAllByTitle, getByText} = render(
       <Wrapper />,
     );
     await wait();
-
     // Policy tab
     expect(getByTestId('title_Policies')).toHaveTextContent('Policies');
-
     // Policy tables rows
     const rowItemsPolicy = await getAllByRole('row');
-
     // first row is the header
     expect(rowItemsPolicy[0]).toHaveTextContent('Policy ID');
     expect(rowItemsPolicy[0]).toHaveTextContent('Flows');
@@ -170,57 +166,47 @@ describe('<TrafficDashboard />', () => {
     expect(rowItemsPolicy[0]).toHaveTextContent('Monitoring Key');
     expect(rowItemsPolicy[0]).toHaveTextContent('Rating');
     expect(rowItemsPolicy[0]).toHaveTextContent('Tracking Type');
-
     expect(rowItemsPolicy[1]).toHaveTextContent('policy_0');
     expect(rowItemsPolicy[1]).toHaveTextContent('0');
     expect(rowItemsPolicy[1]).toHaveTextContent('1');
     expect(rowItemsPolicy[1]).toHaveTextContent('0');
     expect(rowItemsPolicy[1]).toHaveTextContent('Not Found');
     expect(rowItemsPolicy[1]).toHaveTextContent('NO_TRACKING');
-
     expect(rowItemsPolicy[2]).toHaveTextContent('policy_1');
     expect(rowItemsPolicy[2]).toHaveTextContent('2');
     expect(rowItemsPolicy[2]).toHaveTextContent('1');
     expect(rowItemsPolicy[2]).toHaveTextContent('0');
     expect(rowItemsPolicy[2]).toHaveTextContent('Not Found');
     expect(rowItemsPolicy[2]).toHaveTextContent('NO_TRACKING');
-
     expect(rowItemsPolicy[3]).toHaveTextContent('policy_2');
     expect(rowItemsPolicy[3]).toHaveTextContent('0');
     expect(rowItemsPolicy[3]).toHaveTextContent('10');
     expect(rowItemsPolicy[3]).toHaveTextContent('0');
     expect(rowItemsPolicy[3]).toHaveTextContent('Not Found');
     expect(rowItemsPolicy[3]).toHaveTextContent('NO_TRACKING');
-
     // click the actions button for policy 0
     const policyActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(policyActionList[0]);
     await wait();
     expect(getByTestId('actions-menu')).toBeVisible();
-
     // Apns tab
     fireEvent.click(getByText('APNs'));
     await wait();
     expect(getByTestId('title_APNs')).toHaveTextContent('APNs');
-
     // Apn tables rows
     const rowItemsApns = await getAllByRole('row');
-
     // first row is the header
     expect(rowItemsApns[0]).toHaveTextContent('Apn ID');
     expect(rowItemsApns[0]).toHaveTextContent('Description');
     expect(rowItemsApns[0]).toHaveTextContent('Qos Profile');
     expect(rowItemsApns[0]).toHaveTextContent('Added');
-
     expect(rowItemsApns[1]).toHaveTextContent('apn_0');
     expect(rowItemsApns[1]).toHaveTextContent('Test APN description');
     expect(rowItemsApns[1]).toHaveTextContent('1');
-
     expect(rowItemsApns[2]).toHaveTextContent('apn_1');
     expect(rowItemsApns[2]).toHaveTextContent('Test APN description');
     expect(rowItemsApns[2]).toHaveTextContent('1');
-
     // click the actions button for apn 0
     const apnActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
@@ -228,14 +214,12 @@ describe('<TrafficDashboard />', () => {
     await wait();
     expect(getByTestId('actions-menu')).toBeVisible();
   });
-
   it('shows prompt when remove policy is clicked', async () => {
     MagmaAPIBindings.deleteNetworksByNetworkIdPoliciesRulesByRuleId.mockResolvedValueOnce(
       {},
     );
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
-
     // click remove action for policy 0
     const policyActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
@@ -246,7 +230,6 @@ describe('<TrafficDashboard />', () => {
     expect(
       getByText('Are you sure you want to delete policy_0?'),
     ).toBeInTheDocument();
-
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
     await wait();
@@ -256,10 +239,8 @@ describe('<TrafficDashboard />', () => {
       networkId: 'test',
       ruleId: 'policy_0',
     });
-
     axiosMock.delete.mockClear();
   });
-
   it('shows prompt when remove apn is clicked', async () => {
     MagmaAPIBindings.deleteLteByNetworkIdApnsByApnName.mockResolvedValueOnce(
       {},
@@ -268,7 +249,6 @@ describe('<TrafficDashboard />', () => {
     await wait();
     fireEvent.click(getByText('APNs'));
     await wait();
-
     // click remove action for policy 0
     const apnActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
@@ -279,7 +259,6 @@ describe('<TrafficDashboard />', () => {
     expect(
       getByText('Are you sure you want to delete apn_0?'),
     ).toBeInTheDocument();
-
     // Confirm deletion
     fireEvent.click(getByText('Confirm'));
     await wait();
@@ -289,30 +268,6 @@ describe('<TrafficDashboard />', () => {
       networkId: 'test',
       apnName: 'apn_0',
     });
-
     axiosMock.delete.mockClear();
-  });
-
-  it('Verify Policy Add', async () => {
-    MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules.mockResolvedValueOnce(
-      {},
-    );
-    const {getByText} = render(<Wrapper />);
-    await wait();
-    fireEvent.click(getByText('Create New Policy'));
-    await wait();
-    fireEvent.click(getByText('Save'));
-    await wait();
-    expect(
-      MagmaAPIBindings.postNetworksByNetworkIdPoliciesRules,
-    ).toHaveBeenCalledWith({
-      networkId: 'test',
-      policyRule: {
-        flow_list: [],
-        id: '',
-        monitoring_key: '',
-        priority: 1,
-      },
-    });
   });
 });

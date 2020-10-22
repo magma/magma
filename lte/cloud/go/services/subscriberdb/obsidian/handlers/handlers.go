@@ -19,6 +19,7 @@ import (
 	"regexp"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/serdes"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
@@ -49,6 +50,7 @@ const (
 	manageMSISDNsPath = listMSISDNsPath + obsidian.UrlSep + ":msisdn"
 
 	ParamMSISDN = "msisdn"
+	ParamIP     = "ip"
 )
 
 func GetHandlers() []obsidian.Handler {
@@ -92,6 +94,23 @@ var subscriberStateTypes = []string{
 	orc8r.DirectoryRecordType,
 }
 
+type subscriberFilter func(sub *subscribermodels.Subscriber) bool
+
+func acceptAll(sub *subscribermodels.Subscriber) bool { return true }
+
+// listSubscribersHandler handles the base subscriber endpoint.
+// The returned subscribers can be filtered using the following query
+// parameters
+//	- msisdn
+//	- ip
+//
+// The MSISDN parameter is config-based, and is enforced to be a unique
+// identifier.
+//
+// The IP parameter is state-based, and not guaranteed to be unique. The
+// IP->IMSI mapping is cached as the output of a mobilityd state indexer, then
+// each reported subscriber is checked to ensure it actually is assigned the
+// requested IP.
 func listSubscribersHandler(c echo.Context) error {
 	networkID, nerr := obsidian.GetNetworkId(c)
 	if nerr != nil {
@@ -100,15 +119,27 @@ func listSubscribersHandler(c echo.Context) error {
 
 	// First check for query params to filter by
 	if msisdn := c.QueryParam(ParamMSISDN); msisdn != "" {
-		imsi, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
+		queryIMSI, err := subscriberdb.GetIMSIForMSISDN(networkID, msisdn)
 		if err != nil {
 			return makeErr(err)
 		}
-		sub, err := loadSubscribers(networkID, imsi)
+		subs, err := loadSubscribers(networkID, acceptAll, queryIMSI)
 		if err != nil {
 			return makeErr(err)
 		}
-		return c.JSON(http.StatusOK, sub)
+		return c.JSON(http.StatusOK, subs)
+	}
+	if ip := c.QueryParam(ParamIP); ip != "" {
+		queryIMSIs, err := subscriberdb.GetIMSIsForIP(networkID, ip)
+		if err != nil {
+			return makeErr(err)
+		}
+		filter := func(sub *subscribermodels.Subscriber) bool { return sub.IsAssignedIP(ip) }
+		subs, err := loadSubscribers(networkID, filter, queryIMSIs...)
+		if err != nil {
+			return makeErr(err)
+		}
+		return c.JSON(http.StatusOK, subs)
 	}
 
 	// Default to listing all subscribers
@@ -369,7 +400,7 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 	}
 	sub := mutableSub.ToSubscriber()
 
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &key, serdes.StateSerdes)
 	if err != nil {
 		return nil, err
 	}
@@ -381,14 +412,16 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 	return sub, nil
 }
 
-func loadSubscribers(networkID string, keys ...string) (map[string]*subscribermodels.Subscriber, error) {
+func loadSubscribers(networkID string, includeSub subscriberFilter, keys ...string) (map[string]*subscribermodels.Subscriber, error) {
 	subs := map[string]*subscribermodels.Subscriber{}
 	for _, key := range keys {
 		sub, err := loadSubscriber(networkID, key)
 		if err != nil {
 			return nil, errors.Wrapf(err, "error loading subscriber %s", key)
 		}
-		subs[string(sub.ID)] = sub
+		if includeSub(sub) {
+			subs[string(sub.ID)] = sub
+		}
 	}
 	return subs, nil
 }
@@ -399,7 +432,7 @@ func loadAllSubscribers(networkID string) (map[string]*subscribermodels.Subscrib
 		return nil, err
 	}
 
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil)
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil, serdes.StateSerdes)
 	if err != nil {
 		return nil, err
 	}

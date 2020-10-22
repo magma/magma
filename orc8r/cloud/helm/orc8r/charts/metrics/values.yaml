@@ -181,6 +181,9 @@ prometheusCache:
       - name: prometheus-cache
         port: 9091
         targetPort: 9091
+      - name: prometheus-cache-grpc
+        port: 9092
+        targetPort: 9092
 
   image:
     repository: docker.io/facebookincubator/prometheus-edge-hub
@@ -211,58 +214,6 @@ prometheusCache:
   tolerations: []
 
   # Assign prometheusCache to run on specific nodes
-  # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
-  affinity: {}
-
-grafana:
-  # Enable/Disable chart
-  create: true
-  # Service configuration.
-  service:
-    annotations: {}
-    labels: {}
-    type: ClusterIP
-    ports:
-      - name: grafana
-        port: 3000
-        targetPort: 3000
-
-  environment:
-    prometheusHost: "orc8r-prometheus"
-    prometheusPort: "9090"
-
-  volumes:
-    # Default volume configurations for grafana data.
-    grafanaData:
-      volumeSpec:
-        emptyDir: {}
-
-  image:
-    repository: grafana/grafana
-    tag: 6.6.2
-    pullPolicy: IfNotPresent
-
-  # Number of metrics replicas desired
-  replicas: 1
-
-  # Resource limits & requests
-  resources: {}
-  # limits:
-  #   cpu: 100m
-  #   memory: 128Mi
-  # requests:
-  #   cpu: 100m
-  #   memory: 128Mi
-
-  # Define which Nodes the Pods are scheduled on.
-  # ref: https://kubernetes.io/docs/user-guide/node-selection/
-  nodeSelector: {}
-
-  # Tolerations for use with node taints
-  # ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
-  tolerations: []
-
-  # Assign grafana to run on specific nodes
   # ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
   affinity: {}
 

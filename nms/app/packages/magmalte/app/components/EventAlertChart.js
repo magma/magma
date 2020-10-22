@@ -195,7 +195,7 @@ export default function EventAlertChart(props: Props) {
     };
 
     fetchAllData();
-  }, [start, end, enqueueSnackbar, networkId]);
+  }, [start, end, delta, unit, enqueueSnackbar, networkId]);
 
   if (isLoading) {
     return <LoadingFiller />;

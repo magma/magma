@@ -1407,8 +1407,9 @@
   "policies" : {
     "test1": {
       "flow_list": [],
-      "id": "test",
-      "priority": 10,
+      "id": "test1",
+      "priority": 1,
+      "ratingGroup": 1,
       "redirect": {
         "address_type": "IPv4",
         "server_address": "http://localhost:8080",
@@ -1417,8 +1418,9 @@
     },
     "test2": {
       "flow_list": [],
-      "id": "test",
-      "priority": 10,
+      "id": "test2",
+      "priority": 2,
+      "ratingGroup": 2,
       "redirect": {
         "address_type": "IPv4",
         "server_address": "http://localhost:8080",
