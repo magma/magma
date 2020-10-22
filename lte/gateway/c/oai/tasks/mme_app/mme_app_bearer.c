@@ -525,6 +525,7 @@ void mme_app_handle_conn_est_cnf(
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
   } else {
+    ue_context_p->time_ics_rsp_timer_started = time(NULL);
     OAILOG_INFO_UE(
         LOG_MME_APP, emm_context._imsi64,
         "MME APP : Sent Initial context Setup Request and Started guard timer "
@@ -1532,6 +1533,7 @@ void mme_app_handle_initial_context_setup_rsp(
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
+    ue_context_p->time_ics_rsp_timer_started = 0;
   }
 
   if (mme_app_send_modify_bearer_request_for_active_pdns(
@@ -1586,8 +1588,7 @@ void mme_app_handle_release_access_bearers_resp(
   mme_app_itti_ue_context_release(
       ue_context_p, ue_context_p->ue_context_rel_cause);
   if (ue_context_p->ue_context_rel_cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
-      ue_context_p->ue_context_rel_cause ==
-          S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD) {
+      ue_context_p->ue_context_rel_cause == S1AP_INITIAL_CONTEXT_SETUP_FAILED) {
     // Just cleanup the MME APP state associated with s1.
     mme_ue_context_update_ue_sig_connection_state(
         &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
@@ -1848,6 +1849,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
   }
   *imsi64 = ue_context_p->emm_context._imsi64;
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->time_ics_rsp_timer_started         = 0;
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is
    * active. If so then release the S1AP context and move the UE back to idle
@@ -1922,6 +1924,7 @@ void mme_app_handle_initial_context_setup_failure(
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
+    ue_context_p->time_implicit_detach_timer_started = 0;
   }
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is

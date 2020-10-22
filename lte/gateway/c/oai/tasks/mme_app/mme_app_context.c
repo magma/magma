@@ -279,6 +279,7 @@ void mme_app_ue_context_free_content(ue_mm_context_t* const ue_context_p) {
     if (timer_argP) {
       free_wrapper((void**) &timer_argP);
     }
+    ue_context_p->time_ics_rsp_timer_started = 0;
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
   }
@@ -2318,6 +2319,16 @@ static bool mme_app_recover_timers_for_ue(
         ue_mm_context_pP->paging_response_timer,
         mme_app_handle_paging_timer_expiry, "Paging Response");
   }
+  if (ue_mm_context_pP &&
+      ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED &&
+      ue_mm_context_pP->time_ics_rsp_timer_started) {
+    mme_app_resume_timers(
+        ue_mm_context_pP, ue_mm_context_pP->time_ics_rsp_timer_started,
+        ue_mm_context_pP->initial_context_setup_rsp_timer,
+        mme_app_handle_initial_context_setup_rsp_timer_expiry,
+        "Initial Context Setup Response");
+  }
+
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }
 
