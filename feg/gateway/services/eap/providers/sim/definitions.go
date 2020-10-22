@@ -86,6 +86,7 @@ const (
 	StateIdentity               // Valid permanent identity received
 	StateChallenge              // Auth Challenge was returned to UE
 	StateAuthenticated          // UE is successfully authenticated
+	StateRedirected             // UE is redirected to another Auth method, cache this state to prevent redirection loop
 )
 
 const (

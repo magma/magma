@@ -16,6 +16,7 @@ package handlers
 import (
 	"time"
 
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
@@ -49,6 +50,7 @@ checkAIError:
 		if se, ok := err.(interface{ GRPCStatus() *status.Status }); ok {
 			errCode = se.GRPCStatus().Code()
 			if errCode == DIAMETER_ERROR_UNKNOWN_EPS_SUBSCRIPTION && air.NumRequestedUtranGeranVectors > 0 {
+				glog.Warningf("No UTRAN/GERAN profile for IMSI: %s, error: %v", imsi, err)
 				// No UTRAN/GERAN profile, try E-UTRAN
 				air.NumRequestedEutranVectors = 1
 				air.ResyncInfo = resyncInfo

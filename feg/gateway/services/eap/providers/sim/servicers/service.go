@@ -15,6 +15,8 @@ limitations under the License.
 package servicers
 
 import (
+	"os"
+	"strconv"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -65,8 +67,9 @@ type EapSimSrv struct {
 
 	// PLMN IDs map, if not empty -> serve only IMSIs with specified PLMN IDs - Read Only
 	plmnFilter plmn_filter.PlmnIdVals
-
-	timeouts touts
+	timeouts   touts
+	useS6a     bool
+	mncLen     int32
 }
 
 var defaultTimeouts = touts{
@@ -114,6 +117,7 @@ func NewEapSimService(config *mconfig.EapSimConfig) (*EapSimSrv, error) {
 		sessions:   map[string]*SessionCtx{},
 		plmnFilter: plmn_filter.PlmnIdVals{},
 		timeouts:   defaultTimeouts,
+		mncLen:     3,
 	}
 	if config != nil {
 		if config.Timeout != nil {
@@ -132,6 +136,18 @@ func NewEapSimService(config *mconfig.EapSimConfig) (*EapSimSrv, error) {
 			}
 		}
 		service.plmnFilter = plmn_filter.GetPlmnVals(config.PlmnIds, "EAP-SIM")
+		service.useS6a = config.GetUseS6A()
+		if mncLn := config.GetMncLen(); mncLn >= 2 && mncLn <= 3 {
+			service.mncLen = mncLn
+		}
+	}
+	if useS6aStr, isset := os.LookupEnv("USE_S6A_BASED_AUTH"); isset {
+		service.useS6a, _ = strconv.ParseBool(useS6aStr)
+	}
+	if service.useS6a {
+		glog.Info("EAP-SIM: Using S6a Auth Vectors")
+	} else {
+		glog.Info("EAP-SIM: Using SWx Auth Vectors")
 	}
 	return service, nil
 }
@@ -140,6 +156,19 @@ func NewEapSimService(config *mconfig.EapSimConfig) (*EapSimSrv, error) {
 // one the configured PLMN IDs matches given IMSI
 func (s *EapSimSrv) CheckPlmnId(imsi sim.IMSI) bool {
 	return s == nil || s.plmnFilter.Check(string(imsi))
+}
+
+func (s *EapSimSrv) UseS6a() bool {
+	if s != nil {
+		return s.useS6a
+	}
+	return false
+}
+func (s *EapSimSrv) MncLen() int {
+	if s != nil {
+		return int(s.mncLen)
+	}
+	return 3
 }
 
 // Unlock - unlocks the CTX
@@ -183,6 +212,7 @@ func (lockedCtx *UserCtx) Lifetime() float64 {
 func (s *EapSimSrv) InitSession(sessionId string, imsi sim.IMSI) (lockedUserContext *UserCtx) {
 	var (
 		oldSessionTimer *time.Timer
+		oldSessionState sim.SimState
 	)
 	// create new session with long session wide timeout
 	t := time.Now()
@@ -198,13 +228,17 @@ func (s *EapSimSrv) InitSession(sessionId string, imsi sim.IMSI) (lockedUserCont
 
 	s.rwl.Lock()
 	if oldSession, ok := s.sessions[sessionId]; ok && oldSession != nil {
-		oldSessionTimer, oldSession.CleanupTimer = oldSession.CleanupTimer, nil
+		oldSessionTimer, oldSessionState, oldSession.CleanupTimer = oldSession.CleanupTimer, oldSession.state, nil
 	}
 	s.sessions[sessionId] = newSession
 	s.rwl.Unlock()
 
 	if oldSessionTimer != nil {
 		oldSessionTimer.Stop()
+		// Copy Redirected state to a new session to avoid auth thrashing between EAP methods
+		if oldSessionState == sim.StateRedirected {
+			newSession.state = sim.StateRedirected
+		}
 	}
 	return uc
 }
