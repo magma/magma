@@ -263,7 +263,7 @@ class SessionState {
 
   uint64_t get_pdp_start_time();
 
-  void set_pdp_end_time(uint64_t epoch);
+  void set_pdp_end_time(uint64_t epoch, SessionStateUpdateCriteria& session_uc);
 
   uint64_t get_pdp_end_time();
 
