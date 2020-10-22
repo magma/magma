@@ -19,6 +19,7 @@ from integ_tests.s1aptests import s1ap_wrapper
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 from lte.protos.policydb_pb2 import FlowMatch
+from s1ap_utils import GTPBridgeUtils
 
 class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
     SPGW_TABLE = 0
@@ -199,6 +200,8 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             )
 
             # Check if UL and DL OVS flows are created
+            gtp_br_util = GTPBridgeUtils()
+            gtp_port_no = gtp_br_util.get_gtp_port_no()
             # UPLINK
             print("Checking for uplink flow")
             # try at least 5 times before failing as gateway
@@ -209,7 +212,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
                     datapath,
                     {
                         "table_id": self.SPGW_TABLE,
-                        "match": {"in_port": self.GTP_PORT},
+                        "match": {"in_port": gtp_port_no},
                     },
                 )
                 if len(uplink_flows) > 1:
