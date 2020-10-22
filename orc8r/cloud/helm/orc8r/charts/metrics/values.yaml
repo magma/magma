@@ -181,6 +181,9 @@ prometheusCache:
       - name: prometheus-cache
         port: 9091
         targetPort: 9091
+      - name: prometheus-cache-grpc
+        port: 9092
+        targetPort: 9092
 
   image:
     repository: docker.io/facebookincubator/prometheus-edge-hub

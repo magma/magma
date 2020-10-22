@@ -65,7 +65,7 @@ def main():
 
     # Register a callback function for GetOperationalStates service303 function
     def get_enodeb_operational_states() -> List[State]:
-        return get_operational_states(state_machine_manager)
+        return get_operational_states(state_machine_manager, service.mconfig)
     service.register_operational_states_callback(get_enodeb_operational_states)
 
     # Set eNodeBD iptables rules due to exposing public IP to eNodeB

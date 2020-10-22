@@ -82,6 +82,16 @@ func New() *ServiceRegistry {
 	}
 }
 
+func NewWithMode(mode string) *ServiceRegistry {
+	return &ServiceRegistry{
+		ServiceConnections:  map[string]*grpc.ClientConn{},
+		ServiceLocations:    map[string]ServiceLocation{},
+		cloudConnections:    map[string]cloudConnection{},
+		serviceRegistryMode: mode,
+		releaseName:         os.Getenv(HelmReleaseNameEnvVar),
+	}
+}
+
 // AddService add a new service.
 // If the service already exists, overwrites the service config.
 func (r *ServiceRegistry) AddService(location ServiceLocation) {
@@ -200,7 +210,7 @@ func (r *ServiceRegistry) GetServiceAddress(service string) (string, error) {
 			return "", fmt.Errorf("service %s not registered", service)
 		}
 		if location.Port == 0 {
-			return "", fmt.Errorf("service %s is not available", service)
+			return location.Host, nil
 		}
 		return fmt.Sprintf("%s:%d", location.Host, location.Port), nil
 	}
@@ -352,6 +362,15 @@ func (r *ServiceRegistry) GetConnection(service string) (*grpc.ClientConn, error
 	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
 	defer cancel()
 	return r.GetConnectionImpl(ctx, service, r.getGRPCDialOptions()...)
+}
+
+// GetConnectionWithOptions is same as GetConnection, but allows caller to
+// provide their own gRPC dial options.
+func (r *ServiceRegistry) GetConnectionWithOptions(service string, options ...grpc.DialOption) (*grpc.ClientConn, error) {
+	service = strings.ToLower(service)
+	ctx, cancel := context.WithTimeout(context.Background(), GrpcMaxTimeoutSec*time.Second)
+	defer cancel()
+	return r.GetConnectionImpl(ctx, service, options...)
 }
 
 func (r *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string, opts ...grpc.DialOption) (*grpc.ClientConn, error) {
