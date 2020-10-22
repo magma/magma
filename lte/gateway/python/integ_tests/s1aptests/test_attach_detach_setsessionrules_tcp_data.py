@@ -16,10 +16,9 @@ import s1ap_types
 import time
 
 from integ_tests.s1aptests import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil
 from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
-
+from lte.protos.policydb_pb2 import FlowMatch
 
 class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
     SPGW_TABLE = 0
@@ -29,7 +28,6 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
         self._sessionManager_util = SessionManagerUtil()
-        self._spgw_util = SpgwUtil()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
@@ -84,27 +82,27 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
 
             # UL Flow description #1
             ulFlow1 = {
-                "ip_proto": "TCP",  # Protocol Type
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
                 "tcp_dst_port": 5001, # TCP UE Port
-                "direction": "UL",  # Direction
+                "direction": FlowMatch.DOWNLINK,  # Direction
             }
 
             # DL Flow description #1
             dlFlow1 = {
-                "ip_proto": "TCP",  # Protocol Type
+                "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
                 "tcp_dst_port": 7001, # TCP UE Port
-                "direction": "DL",  # Direction
+                "direction": FlowMatch.DOWNLINK,  # Direction
             }
 
             ulFlow2 = {
-                "ip_proto": "UDP",  # Protocol Type
-                "direction": "UL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_UDP,  # Protocol Type
+                "direction": FlowMatch.UPLINK,  # Direction
             }
 
             # DL Flow description #1
             dlFlow2 = {
-                "ip_proto": "UDP",  # Protocol Type
-                "direction": "DL",  # Direction
+                "ip_proto": FlowMatch.IPPROTO_UDP,  # Protocol Type
+                "direction": FlowMatch.DOWNLINK,  # Direction
             }
 
             # Flow list to be configured

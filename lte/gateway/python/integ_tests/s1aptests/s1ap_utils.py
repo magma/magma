@@ -1263,7 +1263,6 @@ class SessionManagerUtil(object):
                     int(flow["udp_dst_port"]) if "udp_dst_port" in flow else 0
                 )
             else:
-                ip_protocol = FlowMatch.IPPROTO_IP
                 udp_src_port = 0
                 udp_dst_port = 0
                 tcp_src_port = 0
@@ -1424,10 +1423,12 @@ class SessionManagerUtil(object):
         policy_rule = self.get_policy_rule(policy_id, qos, flow_match_list)
 
         ulFlow1 = {
-            "direction": "UL",  # Direction
+            "ip_proto": FlowMatch.IPPROTO_IP,
+            "direction": FlowMatch.UPLINK,  # Direction
         }
         dlFlow1 = {
-            "direction": "DL",  # Direction
+            "ip_proto": FlowMatch.IPPROTO_IP,
+            "direction": FlowMatch.DOWNLINK,  # Direction
         }
         default_flow_rules = [ulFlow1, dlFlow1]
         default_flow_match_list = []
