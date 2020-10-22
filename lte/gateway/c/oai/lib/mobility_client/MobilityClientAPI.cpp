@@ -196,8 +196,7 @@ int pgw_handle_allocate_ipv6_address(
         if (ip_msg.ip_list_size() > 0) {
           ipv6_addr_str = ip_msg.ip_list(0).address();
         }
-
-        memcpy(ip6_addr, ipv6_addr_str.c_str(), sizeof(ipv6_addr_str.c_str()));
+        memcpy(ip6_addr->s6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
         int vlan = atoi(ip_msg.vlan().c_str());
 
         auto sgi_resp = handle_allocate_ipv6_address_status(
@@ -310,7 +309,7 @@ int pgw_handle_allocate_ipv4v6_address(
           OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
         }
         memcpy(ip4_addr, ipv4_addr_str.c_str(), sizeof(in_addr));
-        memcpy(ip6_addr, ipv6_addr_str.c_str(), sizeof(in_addr));
+        memcpy(ip6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
         int vlan      = atoi(ip_msg.vlan().c_str());
         auto sgi_resp = handle_allocate_ipv4v6_address_status(
             status, *ip4_addr, *ip6_addr, vlan, subscriber_id, apn, pdn_type,
