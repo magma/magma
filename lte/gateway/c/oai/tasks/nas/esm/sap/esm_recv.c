@@ -600,7 +600,7 @@ esm_cause_t esm_recv_information_response(
  ** Description: Handles Erab setup rsp timer expiry                       **
  **                                                                        **
  ** Inputs:                                                                **
- **      imsi64:     IMSI                                                 **
+ **      imsi64:     IMSI                                                  **
  **      args:       timer data                                            **
  **                                                                        **
  ** Outputs:     None                                                      **
@@ -613,15 +613,11 @@ static void _erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
 
-  /*
-   * Get retransmission timer parameters data
-   */
+  // Get retransmission timer parameters data
   esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
 
   if (esm_ebr_timer_data) {
-    /*
-     * Increment the retransmission counter
-     */
+    // Increment the retransmission counter
     esm_ebr_timer_data->count += 1;
     OAILOG_WARNING(
         LOG_NAS_ESM,
