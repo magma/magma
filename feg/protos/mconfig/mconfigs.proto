@@ -124,6 +124,8 @@ message EapAkaConfig {
     }
     Timeouts timeout = 2;
     repeated string PlmnIds = 3;
+    bool UseS6a = 4;
+    int32 MncLen = 5;
 }
 
 // EapProviderTimeouts is a generic EAP provider timeout config for all new providers
@@ -140,6 +142,8 @@ message EapSimConfig {
     orc8r.LogLevel log_level = 1;
     EapProviderTimeouts timeout = 2;
     repeated string PlmnIds = 3;
+    bool UseS6a = 4;
+    int32 MncLen = 5;
 }
 
 message AAAConfig {
