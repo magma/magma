@@ -592,6 +592,22 @@ esm_cause_t esm_recv_information_response(
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
 }
 
+/****************************************************************************
+ **                                                                        **
+ ** Name:    _erab_setup_rsp_tmr_exp_handler()                             **
+ **                                                                        **
+ ** Description: Handles Erab setup rsp timer expiry                       **
+ **                                                                        **
+ ** Inputs:                                                                **
+ **      imsi64:     IMSI                                                 **
+ **      args:       timer data                                            **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:  None                                                     **
+ **      Others:  None                                                     **
+ **                                                                        **
+ ***************************************************************************/
+
 static void _erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
@@ -643,6 +659,20 @@ static void _erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
               "\n",
               esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
         }
+      } else {
+        OAILOG_WARNING(
+            LOG_NAS_ESM,
+            "ESM-PROC  - ERAB_SETUP_RSP_COUNTER_MAX reached for ERAB_SETUP_RSP "
+            "ue_id= " MME_UE_S1AP_ID_FMT
+            " ebi (%u)"
+            "\n",
+            esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+        if (bearer_ctx->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
+          bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
+        }
+        if (esm_ebr_timer_data) {
+          free_wrapper((void**) &esm_ebr_timer_data);
+        }
       }
     } else {
       rc = send_modify_bearer_req(
@@ -653,7 +683,6 @@ static void _erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
             "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
             "\n",
             esm_ebr_timer_data->ebi);
-        OAILOG_FUNC_OUT(LOG_NAS_ESM);
       }
       if (bearer_ctx->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
         bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
