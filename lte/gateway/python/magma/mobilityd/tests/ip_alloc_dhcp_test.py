@@ -68,19 +68,10 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         subprocess.check_call(setup_uplink_br)
 
         store = MobilityStore(get_default_client(), False, 3980)
-        ipv4_allocator = IPAllocatorDHCP(
-            assigned_ip_blocks=store.assigned_ip_blocks,
-            ip_state_map=store.ip_state_map,
-            iface='t0uplink_p0',
-            retry_limit=50,
-            dhcp_store=store.dhcp_store,
-            gw_info=store.dhcp_gw_info)
-        ipv6_allocator = IPv6AllocatorPool(
-            session_prefix_alloc_mode='RANDOM',
-            sid_ips_map=store.sid_ips_map,
-            ip_states_map=store.ip_state_map,
-            allocated_iid=store.allocated_iid,
-            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        ipv4_allocator = IPAllocatorDHCP(store, iface='t0uplink_p0',
+                                         retry_limit=50)
+        ipv6_allocator = IPv6AllocatorPool(store,
+                                           session_prefix_alloc_mode='RANDOM')
         self._dhcp_allocator = IPAddressManager(ipv4_allocator,
                                                 ipv6_allocator,
                                                 store,
@@ -95,8 +86,8 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         sid1 = "IMSI02917"
         ip1, _ = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
-        dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
-        dhcp_store = self._dhcp_allocator._dhcp_store
+        dhcp_gw_info = self._dhcp_allocator._store.dhcp_gw_info
+        dhcp_store = self._dhcp_allocator._store.dhcp_store
 
         self.assertEqual(str(dhcp_gw_info.get_gw_ip()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)

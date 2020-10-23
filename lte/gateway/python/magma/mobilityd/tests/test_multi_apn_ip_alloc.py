@@ -111,30 +111,18 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         Creates and sets up an IPAllocator with the given recycling interval.
         """
         store = MobilityStore(get_default_client(), False, 3980)
-        ip_allocator = IpAllocatorPool(store.assigned_ip_blocks,
-                                       store.ip_state_map,
-                                       store.sid_ips_map)
+        ip_allocator = IpAllocatorPool(store)
         ip_allocator_static = IPAllocatorStaticWrapper(
-            subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-            ip_allocator=ip_allocator,
-            gw_info=store.dhcp_gw_info,
-            assigned_ip_blocks=store.assigned_ip_blocks,
-            ip_state_map=store.ip_state_map)
+            store, MockedSubscriberDBStub(), ip_allocator)
         ipv4_allocator = IPAllocatorMultiAPNWrapper(
             subscriberdb_rpc_stub=MockedSubscriberDBStub(),
             ip_allocator=ip_allocator_static)
-        ipv6_allocator = IPv6AllocatorPool(
-            session_prefix_alloc_mode='RANDOM',
-            sid_ips_map=store.sid_ips_map,
-            ip_states_map=store.ip_state_map,
-            allocated_iid=store.allocated_iid,
-            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        ipv6_allocator = IPv6AllocatorPool(store,
+                                           session_prefix_alloc_mode='RANDOM')
         self._allocator = IPAddressManager(ipv4_allocator,
                                            ipv6_allocator,
                                            store,
                                            recycling_interval)
-
-
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
@@ -145,20 +133,20 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.clear_subs()
 
     def check_type(self, sid: str, type1: IPType):
-        ip_desc = self._allocator._sid_ips_map[sid]
+        ip_desc = self._allocator._store.sid_ips_map[sid]
         self.assertEqual(ip_desc.type, type1)
 
     def check_vlan(self, sid: str, vlan: str):
-        ip_desc = self._allocator._sid_ips_map[sid]
+        ip_desc = self._allocator._store.sid_ips_map[sid]
         logging.info("type ip_desc.vlan_id %s vlan %s", type(ip_desc.vlan_id),
                      type(vlan))
         self.assertEqual(ip_desc.vlan_id, vlan)
 
     def check_gw_info(self, vlan: Optional[int], gw_ip: str,
                       gw_mac: Optional[str]):
-        gw_info_ip = self._allocator._dhcp_gw_info.get_gw_ip(vlan)
+        gw_info_ip = self._allocator._store.dhcp_gw_info.get_gw_ip(vlan)
         self.assertEqual(gw_info_ip, gw_ip)
-        gw_info_mac = self._allocator._dhcp_gw_info.get_gw_mac(vlan)
+        gw_info_mac = self._allocator._store.dhcp_gw_info.get_gw_mac(vlan)
         self.assertEqual(gw_info_mac, gw_mac)
 
     def test_get_ip_vlan_for_subscriber(self):

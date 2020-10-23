@@ -14,13 +14,13 @@ import logging
 import random
 
 from ipaddress import ip_address, ip_network
-from typing import Dict, List, Optional
+from typing import List, Optional
 
-from .ip_descriptor_map import IpDescriptorMap
 from .ip_descriptor import IPDesc, IPState, IPType
 from .ip_allocator_base import IPAllocator, \
     NoAvailableIPError, OverlappedIPBlocksError, IPNotInUseError
 from .ip_descriptor import IPv6SessionAllocType
+from .mobility_store import MobilityStore
 
 IPV6_PREFIX_PART_LEN = 64
 IID_PART_LEN = 64
@@ -29,15 +29,10 @@ MAX_CALC_TRIES = 5
 
 
 class IPv6AllocatorPool(IPAllocator):
-    def __init__(self, session_prefix_alloc_mode: str, sid_ips_map: Dict,
-                 ip_states_map: IpDescriptorMap, allocated_iid: Dict,
-                 sid_session_prefix_map: Dict):
+    def __init__(self, store: MobilityStore, session_prefix_alloc_mode: str):
         super().__init__()
+        self._store = store
         self._assigned_ip_block = None
-        self._ip_states_map = ip_states_map
-        self._sid_ips_map = sid_ips_map
-        self._allocated_iid = allocated_iid
-        self._sid_session_prefix_allocated = sid_session_prefix_map
         self._ipv6_session_prefix_alloc_mode = session_prefix_alloc_mode
 
     def add_ip_block(self, ipblock: ip_network):
@@ -82,24 +77,24 @@ class IPv6AllocatorPool(IPAllocator):
             return []
 
         if not force:
-            allocated_ip_block_set = self._ip_states_map.get_allocated_ip_block_set()
+            allocated_ip_block_set = self._store.ip_state_map.get_allocated_ip_block_set()
             if allocated_ip_block_set:
                 return []
 
         removed_blocks = []
         # Clear allocated session prefix and IID store
-        self._allocated_iid.clear()
-        self._sid_session_prefix_allocated.clear()
+        self._store.allocated_iid.clear()
+        self._store.sid_session_prefix_allocated.clear()
 
-        for sid in list(self._sid_ips_map):
-            ip_desc = self._sid_ips_map[sid]
+        for sid in list(self._store.sid_ips_map):
+            ip_desc = self._store.sid_ips_map[sid]
             if ip_desc.ip.version == 6:
-                self._ip_states_map.remove_ip_from_state(ip_desc.ip,
+                self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
                                                          IPState.FREE)
                 if force:
-                    self._ip_states_map.remove_ip_from_state(ip_desc.ip,
+                    self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
                                                              IPState.ALLOCATED)
-                self._sid_ips_map.pop(sid)
+                self._store.sid_ips_map.pop(sid)
 
         removed_blocks.append(self._assigned_ip_block)
         logging.info('Removed IP block %s from IPv6 address pool',
@@ -157,7 +152,7 @@ class IPv6AllocatorPool(IPAllocator):
         ip_addr = ip_desc.ip
         ipv6_addr_part = int(next(self._assigned_ip_block.hosts()))
 
-        session_prefix = self._sid_session_prefix_allocated.get(sid)
+        session_prefix = self._store.sid_session_prefix_allocated.get(sid)
         if not session_prefix:
             raise IPNotInUseError('IP %s not allocated', ip_addr)
 
@@ -166,9 +161,9 @@ class IPv6AllocatorPool(IPAllocator):
             iid_part = float(
                 (int(ip_addr) - ipv6_addr_part) / int(session_prefix))
 
-            if iid_part in self._allocated_iid.values():
-                del self._sid_session_prefix_allocated[sid]
-                del self._allocated_iid[sid]
+            if iid_part in self._store.allocated_iid.values():
+                del self._store.sid_session_prefix_allocated[sid]
+                del self._store.allocated_iid[sid]
             else:
                 raise IPNotInUseError('IP %s not allocated', ip_addr)
 
@@ -185,8 +180,8 @@ class IPv6AllocatorPool(IPAllocator):
         """
         for i in range(MAX_CALC_TRIES):
             rand_iid_bits = random.getrandbits(length)
-            if rand_iid_bits not in self._allocated_iid.values():
-                self._allocated_iid[sid] = float(rand_iid_bits)
+            if rand_iid_bits not in self._store.allocated_iid.values():
+                self._store.allocated_iid[sid] = float(rand_iid_bits)
                 return rand_iid_bits
         return None
 
@@ -201,13 +196,13 @@ class IPv6AllocatorPool(IPAllocator):
         Returns: session prefix N bits
         """
         session_prefix_len = IPV6_PREFIX_PART_LEN - self._assigned_ip_block.prefixlen
-        session_prefix_allocated = self._sid_session_prefix_allocated.get(sid)
+        session_prefix_allocated = self._store.sid_session_prefix_allocated.get(sid)
         # TODO: Support multiple alloc modes
         if self._ipv6_session_prefix_alloc_mode == IPv6SessionAllocType.RANDOM:
             for i in range(MAX_CALC_TRIES):
                 session_prefix_part = random.getrandbits(session_prefix_len)
                 if session_prefix_part != session_prefix_allocated:
-                    self._sid_session_prefix_allocated[
+                    self._store.sid_session_prefix_allocated[
                         sid] = session_prefix_part
                     return session_prefix_part
         return None

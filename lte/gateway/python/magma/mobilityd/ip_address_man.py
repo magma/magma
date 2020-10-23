@@ -130,10 +130,7 @@ class IPAddressManager:
         self._recycling_interval_seconds = recycling_interval
 
         # Load store dependencies
-        self._ip_state_map = store.ip_state_map
-        self._sid_ips_map = store.sid_ips_map
-        self._dhcp_gw_info = store.dhcp_gw_info
-        self._dhcp_store = store.dhcp_store
+        self._store = store
 
         self.ip_allocator = ipv4_allocator
         self.ipv6_allocator = ipv6_allocator
@@ -205,8 +202,9 @@ class IPAddressManager:
                 ipv4_blocks_deleted.extend(self.ip_allocator.remove_ip_blocks(
                     ipv4_blocks, force=force))
             if ipv6_blocks:
-                ipv6_blocks_deleted.extend(self.ipv6_allocator.remove_ip_blocks(
-                    ipv6_blocks, force=force))
+                ipv6_blocks_deleted.extend(
+                    self.ipv6_allocator.remove_ip_blocks(
+                        ipv6_blocks, force=force))
 
         return ipv4_blocks_deleted + ipv6_blocks_deleted
 
@@ -270,8 +268,8 @@ class IPAddressManager:
         with self._lock:
             # if an IP is reserved for the UE, this IP could be in the state of
             # ALLOCATED, RELEASED or REAPED.
-            if sid in self._sid_ips_map:
-                old_ip_desc = self._sid_ips_map[sid]
+            if sid in self._store.sid_ips_map:
+                old_ip_desc = self._store.sid_ips_map[sid]
                 if self.is_ip_in_state(old_ip_desc.ip, IPState.ALLOCATED):
                     # MME state went out of sync with mobilityd!
                     # Recover gracefully by allocating the same IP
@@ -285,14 +283,16 @@ class IPAddressManager:
                     # raise DuplicatedIPAllocationError(
                     #     "An IP has been allocated for this IMSI")
                 elif self.is_ip_in_state(old_ip_desc.ip, IPState.RELEASED):
-                    ip_desc = self._ip_state_map.mark_ip_state(old_ip_desc.ip,
-                                                               IPState.ALLOCATED)
+                    ip_desc = self._store.ip_state_map.mark_ip_state(
+                        old_ip_desc.ip,
+                        IPState.ALLOCATED)
                     ip_desc.sid = sid
                     logging.debug("SID %s IP %s RELEASED => ALLOCATED",
                                   sid, old_ip_desc.ip)
                 elif self.is_ip_in_state(old_ip_desc.ip, IPState.REAPED):
-                    ip_desc = self._ip_state_map.mark_ip_state(old_ip_desc.ip,
-                                                               IPState.ALLOCATED)
+                    ip_desc = self._store.ip_state_map.mark_ip_state(
+                        old_ip_desc.ip,
+                        IPState.ALLOCATED)
                     ip_desc.sid = sid
                     logging.debug("SID %s IP %s REAPED => ALLOCATED",
                                   sid, old_ip_desc.ip)
@@ -305,7 +305,8 @@ class IPAddressManager:
                 return old_ip_desc.ip, old_ip_desc.vlan_id
 
             # Now try to allocate it from underlying allocator.
-            allocator = self.ip_allocator if version == IPAddress.IPV4 else self.ipv6_allocator
+            allocator = self.ip_allocator if version == IPAddress.IPV4 \
+                else self.ipv6_allocator
             ip_desc = allocator.alloc_ip_address(sid, 0)
             existing_sid = self.get_sid_for_ip(ip_desc.ip)
             if existing_sid:
@@ -316,9 +317,9 @@ class IPAddressManager:
                 logging.error(error_msg)
                 raise DuplicateIPAssignmentError(error_msg)
 
-            self._ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc,
-                                               IPState.ALLOCATED)
-            self._sid_ips_map[sid] = ip_desc
+            self._store.ip_state_map.add_ip_to_state(ip_desc.ip, ip_desc,
+                                                     IPState.ALLOCATED)
+            self._store.sid_ips_map[sid] = ip_desc
 
             logging.debug("Allocating New IP: %s", str(ip_desc))
             IP_ALLOCATED_TOTAL.inc()
@@ -328,23 +329,23 @@ class IPAddressManager:
         """ Return list of tuples (sid, ip) """
         with self._lock:
             res = [(sid, ip_desc.ip) for sid, ip_desc in
-                   self._sid_ips_map.items()]
+                   self._store.sid_ips_map.items()]
             return res
 
     def get_ip_for_sid(self, sid: str) -> Optional[ip_address]:
         """ if ip is mapped to sid, return it, else return None """
         with self._lock:
-            if sid in self._sid_ips_map:
-                if not self._sid_ips_map[sid]:
+            if sid in self._store.sid_ips_map:
+                if not self._store.sid_ips_map[sid]:
                     raise AssertionError("Unexpected internal state")
                 else:
-                    return self._sid_ips_map[sid].ip
+                    return self._store.sid_ips_map[sid].ip
             return None
 
     def get_sid_for_ip(self, requested_ip: ip_address) -> Optional[str]:
         """ If ip is associated with an sid, return the sid, else None """
         with self._lock:
-            for sid, ip_desc in self._sid_ips_map.items():
+            for sid, ip_desc in self._store.sid_ips_map.items():
                 if requested_ip == ip_desc.ip:
                     return sid
             return None
@@ -353,7 +354,7 @@ class IPAddressManager:
         """
             Check if IP address is on a given state
         """
-        return self._ip_state_map.test_ip_state(ip_addr, state)
+        return self._store.ip_state_map.test_ip_state(ip_addr, state)
 
     def release_ip_address(self, sid: str, ip: ip_address,
                            version: int = IPAddress.IPV4):
@@ -373,12 +374,12 @@ class IPAddressManager:
             IPNotInUseError: if the given IP is not found in the used list
         """
         with self._lock:
-            if not (sid in self._sid_ips_map and ip ==
-                    self._sid_ips_map[sid].ip):
+            if not (sid in self._store.sid_ips_map and ip ==
+                    self._store.sid_ips_map[sid].ip):
                 logging.error(
                     "Releasing unknown <SID, IP> pair: <%s, %s> "
                     "sid_ips_map[%s]: %s",
-                    sid, ip, sid, self._sid_ips_map.get(sid, ""))
+                    sid, ip, sid, self._store.sid_ips_map.get(sid, ""))
                 raise MappingNotFoundError(
                     "(%s, %s) pair is not found", sid, str(ip))
             if not self.is_ip_in_state(ip, IPState.ALLOCATED):
@@ -386,25 +387,26 @@ class IPAddressManager:
                               "already released: <%s, %s>", sid, ip)
                 raise IPNotInUseError("IP not found in used list: %s", str(ip))
 
-            self._ip_state_map.mark_ip_state(ip, IPState.RELEASED)
+            self._store.ip_state_map.mark_ip_state(ip, IPState.RELEASED)
             IP_RELEASED_TOTAL.inc()
 
             if version == IPAddress.IPV4:
                 self._try_set_recycle_timer()  # start the timer to recycle
             elif version == IPAddress.IPV6:
                 # For IPv6, no recycling logic
-                ip_desc = self._ip_state_map.mark_ip_state(ip, IPState.FREE)
+                ip_desc = self._store.ip_state_map.mark_ip_state(ip,
+                                                                 IPState.FREE)
                 self.ipv6_allocator.release_ip(ip_desc)
-                del self._sid_ips_map[ip_desc.sid]
+                del self._store.sid_ips_map[ip_desc.sid]
 
     def list_gateway_info(self) -> List[GWInfo]:
         with self._lock:
-            return self._dhcp_gw_info.get_all_router_ips()
+            return self._store.dhcp_gw_info.get_all_router_ips()
 
     def set_gateway_info(self, info: GWInfo):
         ip = str(ipaddress.ip_address(info.ip.address))
         with self._lock:
-            self._dhcp_gw_info.update_mac(ip, info.mac, info.vlan)
+            self._store.dhcp_gw_info.update_mac(ip, info.mac, info.vlan)
 
     def _recycle_reaped_ips(self):
         """ Periodically called to recycle the given IPs
@@ -417,17 +419,18 @@ class IPAddressManager:
 
         """
         with self._lock:
-            for ip in self._ip_state_map.list_ips(IPState.REAPED):
-                ip_desc = self._ip_state_map.mark_ip_state(ip, IPState.FREE)
+            for ip in self._store.ip_state_map.list_ips(IPState.REAPED):
+                ip_desc = self._store.ip_state_map.mark_ip_state(ip,
+                                                                 IPState.FREE)
                 logging.debug("Release Reaped IP: %s", ip_desc)
 
                 self.ip_allocator.release_ip(ip_desc)
                 # update SID-IP map
-                del self._sid_ips_map[ip_desc.sid]
+                del self._store.sid_ips_map[ip_desc.sid]
 
             # Set timer for the next round of recycling
             self._recycle_timer = None
-            if self._ip_state_map.get_ip_count(IPState.RELEASED):
+            if self._store.ip_state_map.get_ip_count(IPState.RELEASED):
                 self._try_set_recycle_timer()
 
     def _try_set_recycle_timer(self):
@@ -446,8 +449,8 @@ class IPAddressManager:
             # check if auto recycling is enabled and no timer has been set
             if self._recycling_interval_seconds is not None \
                     and not self._recycle_timer:
-                for ip in self._ip_state_map.list_ips(IPState.RELEASED):
-                    self._ip_state_map.mark_ip_state(ip, IPState.REAPED)
+                for ip in self._store.ip_state_map.list_ips(IPState.RELEASED):
+                    self._store.ip_state_map.mark_ip_state(ip, IPState.REAPED)
                 if self._recycling_interval_seconds:
                     self._recycle_timer = threading.Timer(
                         self._recycling_interval_seconds,

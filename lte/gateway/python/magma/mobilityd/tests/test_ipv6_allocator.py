@@ -40,9 +40,7 @@ class TestIPV6Allocator(unittest.TestCase):
         Creates and sets up an IPAllocator with the given IPv6 block.
         """
         store = MobilityStore(get_default_client(), False, 3980)
-        allocator = IPv6AllocatorPool('RANDOM', store.ip_state_map,
-                                      store.sid_ips_map, store.allocated_iid,
-                                      store.sid_session_prefix_allocated)
+        allocator = IPv6AllocatorPool(store, 'RANDOM')
         allocator.add_ip_block(block)
         return allocator
 
@@ -95,5 +93,5 @@ class TestIPV6Allocator(unittest.TestCase):
         self._allocator.release_ip(ip_desc1)
         self._allocator.release_ip(ip_desc2)
 
-        self.assertEqual({}, self._allocator._sid_session_prefix_allocated)
-
+        self.assertEqual({},
+                         self._allocator._store.sid_session_prefix_allocated)
