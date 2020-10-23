@@ -577,9 +577,6 @@ void mme_ue_context_update_coll_keys(
         ue_context_p, ue_context_p->enb_ue_s1ap_id,
         ue_context_p->mme_ue_s1ap_id, imsi, hashtable_rc_code2string(h_rc));
   }
-  _directoryd_report_location(
-      ue_context_p->emm_context._imsi64,
-      ue_context_p->emm_context._imsi.length);
 
   h_rc = hashtable_uint64_ts_remove(
       mme_ue_context_p->tun11_ue_context_htbl,
@@ -763,10 +760,6 @@ int mme_insert_ue_context(
             ue_context_p->emm_context._imsi64);
         OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
       }
-
-      _directoryd_report_location(
-          ue_context_p->emm_context._imsi64,
-          ue_context_p->emm_context._imsi.length);
     }
 
     // filled S11 tun id
@@ -2011,6 +2004,11 @@ void mme_ue_context_update_ue_emm_state(
   if ((ue_context_p->mm_state == UE_UNREGISTERED) &&
       (new_mm_state == UE_REGISTERED)) {
     ue_context_p->mm_state = new_mm_state;
+
+    // Report directoryd UE record
+    _directoryd_report_location(
+        ue_context_p->emm_context._imsi64,
+        ue_context_p->emm_context._imsi.length);
 
     // Update Stats
     update_mme_app_stats_attached_ue_add();
