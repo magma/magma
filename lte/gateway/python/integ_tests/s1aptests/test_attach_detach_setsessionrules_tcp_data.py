@@ -85,7 +85,7 @@ class TestAttachDetachSetSessionRulesTcpData(unittest.TestCase):
             ulFlow1 = {
                 "ip_proto": FlowMatch.IPPROTO_TCP,  # Protocol Type
                 "tcp_dst_port": 5001, # TCP UE Port
-                "direction": FlowMatch.DOWNLINK,  # Direction
+                "direction": FlowMatch.UPLINK,  # Direction
             }
 
             # DL Flow description #1
