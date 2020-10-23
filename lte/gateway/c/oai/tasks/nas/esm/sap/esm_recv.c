@@ -43,6 +43,7 @@
 #include "mme_app_state.h"
 
 #define ERAB_SETUP_RSP_COUNTER_MAX 5
+// TODO - Make it configurable
 #define ERAB_SETUP_RSP_TMR 5  // In secs
 
 /****************************************************************************/
