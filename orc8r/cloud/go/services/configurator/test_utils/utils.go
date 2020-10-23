@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
@@ -25,11 +26,7 @@ import (
 )
 
 func RegisterNetwork(t *testing.T, networkID string, networkName string) {
-	err := configurator.CreateNetwork(
-		configurator.Network{
-			ID:   networkID,
-			Name: networkName,
-		})
+	err := configurator.CreateNetwork(configurator.Network{ID: networkID, Name: networkName}, nil)
 	assert.NoError(t, err)
 }
 
@@ -60,7 +57,7 @@ func RegisterGatewayWithName(t *testing.T, networkID string, gatewayID string, n
 			Name: name,
 		}
 	}
-	_, err := configurator.CreateEntity(networkID, gwEntity)
+	_, err := configurator.CreateEntity(networkID, gwEntity, serdes.Entity)
 	assert.NoError(t, err)
 
 }

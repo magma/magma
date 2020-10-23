@@ -54,10 +54,10 @@ type PartialGatewayModel interface {
 // - path : the url at which the handler will be registered.
 // - model: the input and output of the handler and it also provides FromBackendModels
 //   and ToUpdateCriteria to go between the configurator model.
-func GetPartialGatewayHandlers(path string, model PartialGatewayModel) []obsidian.Handler {
+func GetPartialGatewayHandlers(path string, model PartialGatewayModel, serdes serde.Registry) []obsidian.Handler {
 	return []obsidian.Handler{
-		GetPartialReadGatewayHandler(path, model),
-		GetPartialUpdateGatewayHandler(path, model),
+		GetPartialReadGatewayHandler(path, model, serdes),
+		GetPartialUpdateGatewayHandler(path, model, serdes),
 	}
 }
 
@@ -70,7 +70,7 @@ func GetPartialGatewayHandlers(path string, model PartialGatewayModel) []obsidia
 // 		getMagmadConfigsHandler := handlers.GetPartialReadGatewayHandler(URL, &models.MagmadGatewayConfigs{})
 //
 //      would return a GET handler that can read the magmad gateway config of a gw with the specified ID.
-func GetPartialReadGatewayHandler(path string, model PartialGatewayModel) obsidian.Handler {
+func GetPartialReadGatewayHandler(path string, model PartialGatewayModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
 		Methods: obsidian.GET,
@@ -106,7 +106,7 @@ func GetPartialReadGatewayHandler(path string, model PartialGatewayModel) obsidi
 // 		updateMagmadConfigsHandler := handlers.GetPartialUpdateGatewayHandler(URL, &models.MagmadGatewayConfigs{})
 //
 //      would return a PUT handler that updates the magmad gateway config of a gw with the specified ID.
-func GetPartialUpdateGatewayHandler(path string, model PartialGatewayModel) obsidian.Handler {
+func GetPartialUpdateGatewayHandler(path string, model PartialGatewayModel, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
 		Methods: obsidian.PUT,
@@ -125,7 +125,7 @@ func GetPartialUpdateGatewayHandler(path string, model PartialGatewayModel) obsi
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusBadRequest)
 			}
-			_, err = configurator.UpdateEntities(networkID, updates)
+			_, err = configurator.UpdateEntities(networkID, updates, serdes)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -204,7 +204,7 @@ func GetUpdateGatewayDeviceHandler(path string) obsidian.Handler {
 	}
 }
 
-func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, makeTypedGateways MakeTypedGateways) obsidian.Handler {
+func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, makeTypedGateways MakeTypedGateways, serdes serde.Registry) obsidian.Handler {
 	return obsidian.Handler{
 		Path:    path,
 		Methods: obsidian.GET,
@@ -229,7 +229,11 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 			loads = append(loads, storage.MakeTKs(gateway.GetGatewayType(), ids)...)
 
 			// Load gateway ents first to access assocs
-			ents, _, err := configurator.LoadEntities(nid, nil, nil, nil, loads, configurator.FullEntityLoadCriteria())
+			ents, _, err := configurator.LoadEntities(
+				nid, nil, nil, nil, loads,
+				configurator.FullEntityLoadCriteria(),
+				serdes,
+			)
 			if err != nil {
 				return obsidian.HttpError(err, http.StatusInternalServerError)
 			}
@@ -245,7 +249,11 @@ func GetListGatewaysHandler(path string, gateway MagmadEncompassingGateway, make
 				additionalLoads = append(additionalLoads, magmadGateway.GetAdditionalLoadsOnLoad(magmadEnt)...)
 			}
 			if len(additionalLoads) != 0 {
-				additionalEnts, _, err := configurator.LoadEntities(nid, nil, nil, nil, additionalLoads, configurator.FullEntityLoadCriteria())
+				additionalEnts, _, err := configurator.LoadEntities(
+					nid, nil, nil, nil, additionalLoads,
+					configurator.FullEntityLoadCriteria(),
+					serdes,
+				)
 				if err != nil {
 					return obsidian.HttpError(err, http.StatusInternalServerError)
 				}

@@ -190,7 +190,7 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -856,6 +856,7 @@ func seedCwfNetworks(t *testing.T) {
 				},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 	_, err = configurator.CreateNetworks(
@@ -889,6 +890,7 @@ func seedCwfNetworks(t *testing.T) {
 				Configs:     map[string]interface{}{},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 }
@@ -897,7 +899,7 @@ func reportSubscriberDirectoryRecord(t *testing.T, ctx context.Context, id strin
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(req, orc8r.DirectoryRecordType, serdes.StateSerdes)
+	serializedRecord, err := serde.Serialize(req, orc8r.DirectoryRecordType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -918,7 +920,7 @@ func reportHaPairStatus(t *testing.T, ctx context.Context, pairID string, req *m
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(req, cwf.CwfHAPairStatusType, serdes.StateSerdes)
+	serializedRecord, err := serde.Serialize(req, cwf.CwfHAPairStatusType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -939,7 +941,7 @@ func reportGatewayHealthStatus(t *testing.T, ctx context.Context, gatewayID stri
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(req, cwf.CwfGatewayHealthType, serdes.StateSerdes)
+	serializedRecord, err := serde.Serialize(req, cwf.CwfGatewayHealthType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -1007,6 +1009,7 @@ func seedCwfTier(t *testing.T, networkID string) {
 		[]configurator.NetworkEntity{
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 }

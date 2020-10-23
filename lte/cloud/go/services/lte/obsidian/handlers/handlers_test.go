@@ -139,7 +139,7 @@ func TestCreateNetwork(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadNetwork("n1", true, true)
+	actual, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -319,7 +319,7 @@ func TestUpdateNetwork(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -500,7 +500,9 @@ func TestCellularPartialGet(t *testing.T) {
 				lte.CellularNetworkConfigType: cellularConfig,
 			},
 		},
-	})
+	},
+		serdes.Network,
+	)
 	assert.NoError(t, err)
 
 	// happy case FegNetworkID from cellular config
@@ -548,7 +550,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN2, err := configurator.LoadNetwork("n2", true, true)
+	actualN2, err := configurator.LoadNetwork("n2", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n2",
@@ -608,7 +610,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN2, err = configurator.LoadNetwork("n2", true, true)
+	actualN2, err = configurator.LoadNetwork("n2", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected.Configs[lte.CellularNetworkConfigType].(*lteModels.NetworkCellularConfigs).Epc = epcConfig
 	expected.Version = 2
@@ -654,7 +656,7 @@ func TestCellularPartialUpdate(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actualN2, err = configurator.LoadNetwork("n2", true, true)
+	actualN2, err = configurator.LoadNetwork("n2", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected.Configs[lte.CellularNetworkConfigType].(*lteModels.NetworkCellularConfigs).Ran = ranConfig
 	expected.Version = 3
@@ -710,7 +712,7 @@ func TestCellularDelete(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err := configurator.LoadNetworkConfig("n1", lte.CellularNetworkConfigType)
+	_, err := configurator.LoadNetworkConfig("n1", lte.CellularNetworkConfigType, serdes.Network)
 	assert.EqualError(t, err, "Not found")
 }
 
@@ -745,7 +747,7 @@ func Test_GetNetworkSubscriberConfigHandlers(t *testing.T) {
 		NetworkWideBaseNames: []policyModels.BaseName{"base1"},
 		NetworkWideRuleNames: []string{"rule1"},
 	}
-	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, subscriberConfig))
+	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, subscriberConfig, serdes.Network))
 
 	// happy case
 	tc = tests.Test{
@@ -857,7 +859,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	iSubscriberConfig, err := configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	iSubscriberConfig, err := configurator.LoadNetworkConfig("n1", lte.NetworkSubscriberConfigType, serdes.Network)
 	assert.NoError(t, err)
 	assert.Equal(t, subscriberConfig, iSubscriberConfig.(*policyModels.NetworkSubscriberConfig))
 
@@ -889,7 +891,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	iSubscriberConfig, err = configurator.LoadNetworkConfig("n1", lte.NetworkSubscriberConfigType, serdes.Network)
 	assert.NoError(t, err)
 	actualSubscriberConfig := iSubscriberConfig.(*policyModels.NetworkSubscriberConfig)
 
@@ -913,7 +915,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	iSubscriberConfig, err = configurator.LoadNetworkConfig("n1", lte.NetworkSubscriberConfigType, serdes.Network)
 	assert.NoError(t, err)
 	actualSubscriberConfig = iSubscriberConfig.(*policyModels.NetworkSubscriberConfig)
 
@@ -971,7 +973,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 		NetworkWideBaseNames: []policyModels.BaseName{"base3", "base4"},
 		NetworkWideRuleNames: []string{"rule3", "rule4"},
 	}
-	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	iSubscriberConfig, err = configurator.LoadNetworkConfig("n1", lte.NetworkSubscriberConfigType, serdes.Network)
 	assert.NoError(t, err)
 	actualSubscriberConfig = iSubscriberConfig.(*policyModels.NetworkSubscriberConfig)
 	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
@@ -1004,7 +1006,7 @@ func Test_ModifyNetworkSubscriberConfigHandlers(t *testing.T) {
 		NetworkWideBaseNames: []policyModels.BaseName{"base3"},
 		NetworkWideRuleNames: []string{"rule3"},
 	}
-	iSubscriberConfig, err = configurator.GetNetworkConfigsByType("n1", lte.NetworkSubscriberConfigType)
+	iSubscriberConfig, err = configurator.LoadNetworkConfig("n1", lte.NetworkSubscriberConfigType, serdes.Network)
 	assert.NoError(t, err)
 	actualSubscriberConfig = iSubscriberConfig.(*policyModels.NetworkSubscriberConfig)
 	assert.Equal(t, newSubscriberConfig, actualSubscriberConfig)
@@ -1018,7 +1020,7 @@ func TestCreateGateway(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 
 	// setup fixtures in backend
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(
 		"n1",
@@ -1026,6 +1028,7 @@ func TestCreateGateway(t *testing.T) {
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice(
@@ -1078,6 +1081,7 @@ func TestCreateGateway(t *testing.T) {
 			{Type: lte.CellularGatewayEntityType, Key: "g1"},
 		},
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
@@ -1145,6 +1149,7 @@ func TestCreateGateway(t *testing.T) {
 			{Type: lte.CellularGatewayEntityType, Key: "g3"},
 		},
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	// the device should get created regardless
@@ -1210,7 +1215,7 @@ func TestListAndGetGateways(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1277,6 +1282,7 @@ func TestListAndGetGateways(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
@@ -1411,7 +1417,7 @@ func TestUpdateGateway(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1455,6 +1461,7 @@ func TestUpdateGateway(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
@@ -1510,6 +1517,7 @@ func TestUpdateGateway(t *testing.T) {
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
@@ -1556,7 +1564,7 @@ func TestDeleteGateway(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1599,6 +1607,7 @@ func TestDeleteGateway(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
@@ -1622,6 +1631,7 @@ func TestDeleteGateway(t *testing.T) {
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
@@ -1640,7 +1650,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1672,6 +1682,7 @@ func TestGetCellularGatewayConfig(t *testing.T) {
 				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -1750,7 +1761,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -1775,6 +1786,7 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 				Associations: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: "g1"}},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -1806,7 +1818,11 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 		},
 	}
 
-	entities, _, err := configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	entities, _, err := configurator.LoadEntities(
+		"n1", nil, swag.String("g1"), nil, nil,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1839,7 +1855,11 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 2,
 		},
 	}
-	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	entities, _, err = configurator.LoadEntities(
+		"n1", nil, swag.String("g1"), nil, nil,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1871,7 +1891,11 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 3,
 		},
 	}
-	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	entities, _, err = configurator.LoadEntities(
+		"n1", nil, swag.String("g1"), nil, nil,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1919,7 +1943,11 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 4,
 		},
 	}
-	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	entities, _, err = configurator.LoadEntities(
+		"n1", nil, swag.String("g1"), nil, nil,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -1955,11 +1983,15 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	entities, _, err = configurator.LoadEntities(
+		"n1", nil, swag.String("g1"), nil, nil,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularEnodebEntityType, Key: "enb3"})
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularEnodebEntityType, Key: "enb3"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// happy case
@@ -1995,7 +2027,11 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	entities, _, err = configurator.LoadEntities(
+		"n1", nil, swag.String("g1"), nil, nil,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -2031,7 +2067,11 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			},
 		},
 	}
-	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	entities, _, err = configurator.LoadEntities(
+		"n1", nil, swag.String("g1"), nil, nil,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 
@@ -2063,7 +2103,11 @@ func TestUpdateCellularGatewayConfig(t *testing.T) {
 			Version: 8,
 		},
 	}
-	entities, _, err = configurator.LoadEntities("n1", nil, swag.String("g1"), nil, nil, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	entities, _, err = configurator.LoadEntities(
+		"n1", nil, swag.String("g1"), nil, nil,
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, entities.MakeByTK())
 }
@@ -2074,7 +2118,7 @@ func TestListAndGetEnodebs(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2084,54 +2128,58 @@ func TestListAndGetEnodebs(t *testing.T) {
 	listEnodebs := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 	getEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, fmt.Sprintf("%s/:enodeb_serial", testURLRoot), obsidian.GET).HandlerFunc
 
-	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{
-			Type:        lte.CellularEnodebEntityType,
-			Key:         "abcdefg",
-			Name:        "abc enodeb",
-			Description: "abc enodeb description",
-			PhysicalID:  "abcdefg",
-			Config: &lteModels.EnodebConfig{
-				ConfigType: "MANAGED",
-				ManagedConfig: &lteModels.EnodebConfiguration{
-					BandwidthMhz:           20,
-					CellID:                 swag.Uint32(1234),
-					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-					Earfcndl:               39450,
-					Pci:                    260,
-					SpecialSubframePattern: 7,
-					SubframeAssignment:     2,
-					Tac:                    1,
-					TransmitEnabled:        swag.Bool(true),
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type:        lte.CellularEnodebEntityType,
+				Key:         "abcdefg",
+				Name:        "abc enodeb",
+				Description: "abc enodeb description",
+				PhysicalID:  "abcdefg",
+				Config: &lteModels.EnodebConfig{
+					ConfigType: "MANAGED",
+					ManagedConfig: &lteModels.EnodebConfiguration{
+						BandwidthMhz:           20,
+						CellID:                 swag.Uint32(1234),
+						DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+						Earfcndl:               39450,
+						Pci:                    260,
+						SpecialSubframePattern: 7,
+						SubframeAssignment:     2,
+						Tac:                    1,
+						TransmitEnabled:        swag.Bool(true),
+					},
 				},
 			},
-		},
-		{
-			Type:        lte.CellularEnodebEntityType,
-			Key:         "vwxyz",
-			Name:        "xyz enodeb",
-			Description: "xyz enodeb description",
-			PhysicalID:  "vwxyz",
-			Config: &lteModels.EnodebConfig{
-				ConfigType: "MANAGED",
-				ManagedConfig: &lteModels.EnodebConfiguration{
-					BandwidthMhz:           20,
-					CellID:                 swag.Uint32(1234),
-					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-					Earfcndl:               39450,
-					Pci:                    260,
-					SpecialSubframePattern: 7,
-					SubframeAssignment:     2,
-					Tac:                    1,
-					TransmitEnabled:        swag.Bool(true),
+			{
+				Type:        lte.CellularEnodebEntityType,
+				Key:         "vwxyz",
+				Name:        "xyz enodeb",
+				Description: "xyz enodeb description",
+				PhysicalID:  "vwxyz",
+				Config: &lteModels.EnodebConfig{
+					ConfigType: "MANAGED",
+					ManagedConfig: &lteModels.EnodebConfiguration{
+						BandwidthMhz:           20,
+						CellID:                 swag.Uint32(1234),
+						DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+						Earfcndl:               39450,
+						Pci:                    260,
+						SpecialSubframePattern: 7,
+						SubframeAssignment:     2,
+						Tac:                    1,
+						TransmitEnabled:        swag.Bool(true),
+					},
 				},
 			},
+			{
+				Type: lte.CellularGatewayEntityType, Key: "gw1",
+				Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "abcdefg"}},
+			},
 		},
-		{
-			Type: lte.CellularGatewayEntityType, Key: "gw1",
-			Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "abcdefg"}},
-		},
-	})
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	expected := map[string]*lteModels.Enodeb{
@@ -2248,7 +2296,7 @@ func TestCreateEnodeb(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2297,7 +2345,7 @@ func TestCreateEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdef", configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdef", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2397,7 +2445,7 @@ func TestCreateEnodeb(t *testing.T) {
 		ExpectedStatus: 201,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria())
+	actual, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "unmanaged", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 }
 
@@ -2407,7 +2455,7 @@ func TestUpdateEnodeb(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2416,29 +2464,33 @@ func TestUpdateEnodeb(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	updateEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.PUT).HandlerFunc
 
-	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{
-			Type:        lte.CellularEnodebEntityType,
-			Key:         "abcdefg",
-			Name:        "abc enodeb",
-			Description: "abc enodeb description",
-			PhysicalID:  "abcdefg",
-			Config: &lteModels.EnodebConfig{
-				ConfigType: "MANAGED",
-				ManagedConfig: &lteModels.EnodebConfiguration{
-					BandwidthMhz:           20,
-					CellID:                 swag.Uint32(1234),
-					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-					Earfcndl:               39450,
-					Pci:                    260,
-					SpecialSubframePattern: 7,
-					SubframeAssignment:     2,
-					Tac:                    1,
-					TransmitEnabled:        swag.Bool(true),
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type:        lte.CellularEnodebEntityType,
+				Key:         "abcdefg",
+				Name:        "abc enodeb",
+				Description: "abc enodeb description",
+				PhysicalID:  "abcdefg",
+				Config: &lteModels.EnodebConfig{
+					ConfigType: "MANAGED",
+					ManagedConfig: &lteModels.EnodebConfiguration{
+						BandwidthMhz:           20,
+						CellID:                 swag.Uint32(1234),
+						DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+						Earfcndl:               39450,
+						Pci:                    260,
+						SpecialSubframePattern: 7,
+						SubframeAssignment:     2,
+						Tac:                    1,
+						TransmitEnabled:        swag.Bool(true),
+					},
 				},
 			},
 		},
-	})
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -2481,7 +2533,7 @@ func TestUpdateEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2590,7 +2642,7 @@ func TestDeleteEnodeb(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2599,28 +2651,32 @@ func TestDeleteEnodeb(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	deleteEnodeb := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.DELETE).HandlerFunc
 
-	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{
-			Type:       lte.CellularEnodebEntityType,
-			Key:        "abcdefg",
-			Name:       "abc enodeb",
-			PhysicalID: "abcdefg",
-			Config: &lteModels.EnodebConfig{
-				ConfigType: "MANAGED",
-				ManagedConfig: &lteModels.EnodebConfiguration{
-					BandwidthMhz:           20,
-					CellID:                 swag.Uint32(1234),
-					DeviceClass:            "Baicells Nova-233 G2 OD FDD",
-					Earfcndl:               39450,
-					Pci:                    260,
-					SpecialSubframePattern: 7,
-					SubframeAssignment:     2,
-					Tac:                    1,
-					TransmitEnabled:        swag.Bool(true),
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type:       lte.CellularEnodebEntityType,
+				Key:        "abcdefg",
+				Name:       "abc enodeb",
+				PhysicalID: "abcdefg",
+				Config: &lteModels.EnodebConfig{
+					ConfigType: "MANAGED",
+					ManagedConfig: &lteModels.EnodebConfiguration{
+						BandwidthMhz:           20,
+						CellID:                 swag.Uint32(1234),
+						DeviceClass:            "Baicells Nova-233 G2 OD FDD",
+						Earfcndl:               39450,
+						Pci:                    260,
+						SpecialSubframePattern: 7,
+						SubframeAssignment:     2,
+						Tac:                    1,
+						TransmitEnabled:        swag.Bool(true),
+					},
 				},
 			},
 		},
-	})
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -2633,7 +2689,7 @@ func TestDeleteEnodeb(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria())
+	_, err = configurator.LoadEntity("n1", lte.CellularEnodebEntityType, "abcdefg", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.EqualError(t, err, "Not found")
 }
 
@@ -2644,7 +2700,7 @@ func TestGetEnodebState(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2653,7 +2709,8 @@ func TestGetEnodebState(t *testing.T) {
 	handlers := handlers.GetHandlers()
 	getEnodebState := tests.GetHandlerByPathAndMethod(t, handlers, testURLRoot, obsidian.GET).HandlerFunc
 
-	_, err = configurator.CreateEntities("n1",
+	_, err = configurator.CreateEntities(
+		"n1",
 		[]configurator.NetworkEntity{
 			{
 				Type: lte.CellularEnodebEntityType, Key: "serial1",
@@ -2664,7 +2721,9 @@ func TestGetEnodebState(t *testing.T) {
 				PhysicalID:   "hwid1",
 				Associations: []storage.TypeAndKey{{Type: lte.CellularEnodebEntityType, Key: "serial1"}},
 			},
-		})
+		},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	// 404
@@ -2707,7 +2766,7 @@ func TestCreateApn(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2728,7 +2787,7 @@ func TestCreateApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.APNEntityType, "foo", configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity("n1", lte.APNEntityType, "foo", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -2745,7 +2804,7 @@ func TestListApns(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2798,6 +2857,7 @@ func TestListApns(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -2849,7 +2909,7 @@ func TestGetApn(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2885,6 +2945,7 @@ func TestGetApn(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -2919,7 +2980,7 @@ func TestUpdateApn(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -2974,6 +3035,7 @@ func TestUpdateApn(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -2988,7 +3050,7 @@ func TestUpdateApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.APNEntityType, "oai.ipv4", configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity("n1", lte.APNEntityType, "oai.ipv4", configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -3006,7 +3068,7 @@ func TestDeleteApn(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	configuratorTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -3048,6 +3110,7 @@ func TestDeleteApn(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -3061,7 +3124,7 @@ func TestDeleteApn(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadAllEntitiesInNetwork("n1", lte.APNEntityType, configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadAllEntitiesOfType("n1", lte.APNEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, 1, len(actual))
 	expected := configurator.NetworkEntity{
@@ -3093,9 +3156,9 @@ func TestAPNResource(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"})
+	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -3349,7 +3412,7 @@ func TestAPNResource(t *testing.T) {
 	assert.False(t, exists)
 
 	// Configurator confirms all APN resources are now deleted
-	ents, err := configurator.LoadAllEntitiesInNetwork("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{})
+	ents, err := configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Empty(t, ents)
 
@@ -3366,7 +3429,7 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms gw's APN resources exist again
-	ents, err = configurator.LoadAllEntitiesInNetwork("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	ents, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{LoadConfig: true}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, ents, 2)
 	assert.ElementsMatch(t, []string{"res1", "res2"}, []string{ents[0].Key, ents[1].Key})
@@ -3384,13 +3447,17 @@ func TestAPNResource(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Configurator confirms gateway now has only 1 apn_resource assoc
-	gwEnt, err := configurator.LoadEntity("n0", lte.CellularGatewayEntityType, "gw0", configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true})
+	gwEnt, err := configurator.LoadEntity(
+		"n0", lte.CellularGatewayEntityType, "gw0",
+		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Len(t, gwEnt.Associations.Filter(lte.APNResourceEntityType), 1)
 	assert.Equal(t, "res2", gwEnt.Associations.Filter(lte.APNResourceEntityType).Keys()[0])
 
 	// Configurator confirms APN resource was deleted due to cascading delete
-	ents, err = configurator.LoadAllEntitiesInNetwork("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{})
+	ents, err = configurator.LoadAllEntitiesOfType("n0", lte.APNResourceEntityType, configurator.EntityLoadCriteria{}, serdes.Entity)
 	assert.NoError(t, err)
 	assert.Len(t, ents, 1)
 	assert.Equal(t, "res2", ents[0].Key)
@@ -3417,9 +3484,9 @@ func TestAPNResource_Regression_3088(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"})
+	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -3543,9 +3610,9 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"})
+	_, err = configurator.CreateEntity("n0", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t0"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -3561,7 +3628,7 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 	postAPN := tests.GetHandlerByPathAndMethod(t, lteHandlers, "/magma/v1/lte/:network_id/apns", obsidian.POST).HandlerFunc
 
 	// Create enb0
-	_, err = configurator.CreateEntities("n0", []configurator.NetworkEntity{{Type: lte.CellularEnodebEntityType, Key: "enb0"}})
+	_, err = configurator.CreateEntities("n0", []configurator.NetworkEntity{{Type: lte.CellularEnodebEntityType, Key: "enb0"}}, serdes.Entity)
 	assert.NoError(t, err)
 
 	gw0 := newMutableGateway("gw0")
@@ -3761,7 +3828,7 @@ func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, r
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.StateSerdes)
+	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -3807,6 +3874,7 @@ func seedNetworks(t *testing.T) {
 				Configs:     map[string]interface{}{},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 }

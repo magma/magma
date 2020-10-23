@@ -285,7 +285,7 @@ func reportDirectoryRecord(t *testing.T, ctx context.Context, deviceIDs []string
 
 	var states []*protos.State
 	for i, st := range records {
-		serialized, err := serde.Serialize(st, orc8r.DirectoryRecordType, serdes.StateSerdes)
+		serialized, err := serde.Serialize(st, orc8r.DirectoryRecordType, serdes.State)
 		assert.NoError(t, err)
 		pState := &protos.State{Type: orc8r.DirectoryRecordType, DeviceID: deviceIDs[i], Value: serialized}
 		states = append(states, pState)
@@ -298,7 +298,7 @@ func reportGatewayStatus(t *testing.T, ctx context.Context, gwStatus *models.Gat
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serialized, err := serde.Serialize(gwStatus, orc8r.GatewayStateType, serdes.StateSerdes)
+	serialized, err := serde.Serialize(gwStatus, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

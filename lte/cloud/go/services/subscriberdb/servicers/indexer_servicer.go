@@ -72,7 +72,7 @@ func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetInd
 }
 
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
-	states, err := state_types.MakeStatesByID(req.States, serdes.StateSerdes)
+	states, err := state_types.MakeStatesByID(req.States, serdes.State)
 	if err != nil {
 		return nil, err
 	}
