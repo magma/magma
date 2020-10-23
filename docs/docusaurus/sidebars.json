@@ -77,7 +77,9 @@
     "Proposals": [
       "proposals/p001_vpn_config_from_api",
       "proposals/p002_scaled_prometheus_pipeline",
-      "proposals/p003_qos_enforcement"
+      "proposals/p003_qos_enforcement",
+      "proposals/p004_fua-restrict-feature",
+      "proposals/p005_call_tracing"
     ]
   }
 }
