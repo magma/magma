@@ -1129,9 +1129,7 @@ void LocalEnforcer::init_session_credit(
                  << session_id;
     session_map[imsi] = SessionVector();
   }
-  if (session_state->is_radius_cwf_session() == false) {
-    events_reporter_->session_created(imsi, session_id, cfg, session_state);
-  }
+  events_reporter_->session_created(imsi, session_id, cfg, session_state);
   session_map[imsi].push_back(std::move(session_state));
 }
 
@@ -1233,9 +1231,7 @@ void LocalEnforcer::complete_termination(
   auto termination_req = session->make_termination_request(session_uc);
   auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
   reporter_->report_terminate_session(termination_req, logging_cb);
-  if (session->is_radius_cwf_session() == false) {
-    events_reporter_->session_terminated(imsi, session);
-  }
+  events_reporter_->session_terminated(imsi, session);
 
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;
@@ -1457,9 +1453,8 @@ bool LocalEnforcer::handle_abort_session(
   start_session_termination(imsi, session, true, session_uc);
   // ASRs do not require a CCR-T, this means we can immediately terminate
   // without waiting for final usage reports.
-  if (session->is_radius_cwf_session() == false) {
-    events_reporter_->session_terminated(imsi, session);
-  }
+  events_reporter_->session_terminated(imsi, session);
+
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;
   session_map[imsi].erase(*session_it);
