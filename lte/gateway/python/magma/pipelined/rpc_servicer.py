@@ -135,7 +135,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         interface = get_ipv6_interface_id(ipv6_str)
         prefix = get_ipv6_prefix(ipv6_str)
         self._service_manager.interface_to_prefix_mapper.save_prefix(
-            interface, prefix)"""
+            interface, prefix)
 
     def _update_version(self, request: ActivateFlowsRequest, ipv4: IPAddress):
         """

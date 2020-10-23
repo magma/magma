@@ -529,6 +529,17 @@ static void sgw_add_gtp_tunnel(
         new_bearer_ctxt_info_p->sgw_eps_bearer_context_information
             .pdn_connection.default_bearer) {
       // Set default precedence and tft for default bearer
+      if (ue_ipv6) {
+        char ip6_str[INET6_ADDRSTRLEN];
+        inet_ntop(AF_INET6, ue_ipv6, ip6_str, INET6_ADDRSTRLEN);
+        OAILOG_INFO_UE(
+            LOG_SPGW_APP, imsi64,
+            "Adding tunnel for ipv6 ue addr %s, enb %x, "
+            "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x\n",
+            ip6_str, enb.s_addr, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            eps_bearer_ctxt_p->enb_teid_S1u);
+      }
+
       rv = gtpv1u_add_tunnel(
           ue_ipv4, ue_ipv6, vlan, enb,
           eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
