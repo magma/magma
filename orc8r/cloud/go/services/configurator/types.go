@@ -229,7 +229,7 @@ func (ent NetworkEntity) fromProtoSerialized(p *storage.NetworkEntity) NetworkEn
 // fromProtoSerialized when it encounters an error.
 func (ent NetworkEntity) fromProtoWithDefault(p *storage.NetworkEntity, serdes serde.Registry) (NetworkEntity, error) {
 	// Default to returning serialized when no serde found
-	if _, err := serdes.GetSerde(p.Type); err != nil {
+	if !serde.HasSerde(serdes, p.Type) {
 		return ent.fromProtoSerialized(p), nil
 	}
 
@@ -565,12 +565,17 @@ func marshalConfigs(configs map[string]interface{}, serdes serde.Registry) (map[
 
 func unmarshalConfigs(configs map[string][]byte, serdes serde.Registry) (map[string]interface{}, error) {
 	ret := map[string]interface{}{}
-	for configType, sConfig := range configs {
-		iConfig, err := serde.Deserialize(sConfig, configType, serdes)
-		if err != nil {
-			return nil, errors.Wrapf(err, "failed to deserialize config %s", configType)
+	for typ, config := range configs {
+		// Skip unrecognized network config types, since one network can hold
+		// configs from multiple network types
+		if !serde.HasSerde(serdes, typ) {
+			continue
 		}
-		ret[configType] = iConfig
+		iConfig, err := serde.Deserialize(config, typ, serdes)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to deserialize network config %s", typ)
+		}
+		ret[typ] = iConfig
 	}
 	return ret, nil
 }
