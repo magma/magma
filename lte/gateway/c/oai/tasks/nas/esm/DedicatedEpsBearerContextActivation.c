@@ -46,6 +46,9 @@
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
+#define ERAB_SETUP_RSP_COUNTER_MAX 5
+// TODO - Make it configurable
+#define ERAB_SETUP_RSP_TMR 1  // In secs
 
 /*
    --------------------------------------------------------------------------
@@ -65,6 +68,9 @@ static void _dedicated_eps_bearer_activate_t3485_handler(
 
 static int _dedicated_eps_bearer_activate(
     emm_context_t* emm_context, ebi_t ebi, STOLEN_REF bstring* msg);
+
+static void _erab_setup_rsp_tmr_exp_ded_bearer_handler(
+    void* args, imsi64_t* imsi64);
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
@@ -273,7 +279,27 @@ int esm_proc_dedicated_eps_bearer_context_accept(
           LOG_NAS_ESM, "ESM-PROC  - EBI %u was already ACTIVE\n", ebi);
       *esm_cause = ESM_CAUSE_PROTOCOL_ERROR;
     }
-    mme_app_handle_create_dedicated_bearer_rsp(ue_context_p, ebi);
+    bearer_context_t* bearer_ctx =
+        mme_app_get_bearer_context(ue_context_p, ebi);
+    /* Send MBR only after receiving ERAB_SETUP_RSP.
+     * bearer_ctx->enb_fteid_s1u.teid gets updated after receiving
+     * ERAB_SETUP_RSP.*/
+    if (bearer_ctx->enb_fteid_s1u.teid) {
+      mme_app_handle_create_dedicated_bearer_rsp(ue_context_p, ebi);
+    } else {
+      rc = esm_ebr_start_timer(
+          emm_context, ebi, NULL, ERAB_SETUP_RSP_TMR,
+          _erab_setup_rsp_tmr_exp_ded_bearer_handler);
+      if (rc != RETURNerror) {
+        OAILOG_DEBUG(
+            LOG_NAS_ESM,
+            "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
+            "ue_id=" MME_UE_S1AP_ID_FMT
+            "ebi (%u)"
+            "\n",
+            ue_context_p->mme_ue_s1ap_id, ebi);
+      }
+    }
   }
 
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
@@ -513,4 +539,97 @@ static int _dedicated_eps_bearer_activate(
   }
   bdestroy_wrapper(&msg_dup);
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, rc);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    _erab_setup_rsp_tmr_exp_ded_bearer_handler() **
+ **                                                                        **
+ ** Description: Handles Erab setup rsp timer expiry                       **
+ **                                                                        **
+ ** Inputs:                                                                **
+ **      imsi64:     IMSI                                                  **
+ **      args:       timer data                                            **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:  None                                                     **
+ **      Others:  None                                                     **
+ **                                                                        **
+ ***************************************************************************/
+
+static void _erab_setup_rsp_tmr_exp_ded_bearer_handler(
+    void* args, imsi64_t* imsi64) {
+  OAILOG_FUNC_IN(LOG_NAS_ESM);
+  int rc;
+
+  // Get retransmission timer parameters data
+  esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
+
+  if (esm_ebr_timer_data) {
+    // Increment the retransmission counter
+    esm_ebr_timer_data->count += 1;
+    OAILOG_WARNING(
+        LOG_NAS_ESM,
+        "ESM-PROC  - erab_setup_rsp timer expired (ue_id=" MME_UE_S1AP_ID_FMT
+        ", ebi=%d), "
+        "retransmission counter = %d\n",
+        esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
+        esm_ebr_timer_data->count);
+
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
+    ue_mm_context_t* ue_mm_context =
+        mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
+
+    bearer_context_t* bearer_ctx =
+        mme_app_get_bearer_context(ue_mm_context, esm_ebr_timer_data->ebi);
+    if (!bearer_ctx) {
+      OAILOG_ERROR(
+          LOG_NAS_ESM,
+          "Bearer context is NULL for (ebi=%u)"
+          "\n",
+          esm_ebr_timer_data->ebi);
+      OAILOG_FUNC_OUT(LOG_NAS_ESM);
+    }
+    if (!bearer_ctx->enb_fteid_s1u.teid) {
+      if (esm_ebr_timer_data->count < ERAB_SETUP_RSP_COUNTER_MAX) {
+        // Restart the timer
+        rc = esm_ebr_start_timer(
+            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
+            ERAB_SETUP_RSP_TMR, _erab_setup_rsp_tmr_exp_ded_bearer_handler);
+        if (rc != RETURNerror) {
+          OAILOG_INFO(
+              LOG_NAS_ESM,
+              "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
+              "ue_id=" MME_UE_S1AP_ID_FMT
+              "ebi (%u)"
+              "\n",
+              esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+        }
+      } else {
+        OAILOG_WARNING(
+            LOG_NAS_ESM,
+            "ESM-PROC  - ERAB_SETUP_RSP_COUNTER_MAX reached for ERAB_SETUP_RSP "
+            "ue_id= " MME_UE_S1AP_ID_FMT
+            " ebi (%u)"
+            "\n",
+            esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+        if (bearer_ctx->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
+          bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
+        }
+        if (esm_ebr_timer_data) {
+          free_wrapper((void**) &esm_ebr_timer_data);
+        }
+      }
+    } else {
+      mme_app_handle_create_dedicated_bearer_rsp(
+          ue_mm_context, esm_ebr_timer_data->ebi);
+      if (bearer_ctx->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
+        bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
+      }
+      if (esm_ebr_timer_data) {
+        free_wrapper((void**) &esm_ebr_timer_data);
+      }
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }

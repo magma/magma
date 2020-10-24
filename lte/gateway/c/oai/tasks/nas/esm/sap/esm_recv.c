@@ -42,10 +42,6 @@
 #include "mme_app_itti_messaging.h"
 #include "mme_app_state.h"
 
-#define ERAB_SETUP_RSP_COUNTER_MAX 5
-// TODO - Make it configurable
-#define ERAB_SETUP_RSP_TMR 5  // In secs
-
 /****************************************************************************/
 /****************  E X T E R N A L    D E F I N I T I O N S  ****************/
 /****************************************************************************/
@@ -54,6 +50,10 @@ extern int send_modify_bearer_req(mme_ue_s1ap_id_t ue_id, ebi_t ebi);
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
+
+#define ERAB_SETUP_RSP_COUNTER_MAX 5
+// TODO - Make it configurable
+#define ERAB_SETUP_RSP_TMR 5  // In secs
 
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
