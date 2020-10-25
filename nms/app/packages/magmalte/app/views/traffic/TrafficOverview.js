@@ -13,6 +13,7 @@
  * @flow strict-local
  * @format
  */
+import ApnEditDialog from './ApnEdit';
 import ApnOverview from './ApnOverview';
 import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
 import Button from '@material-ui/core/Button';
@@ -112,6 +113,20 @@ function PolicyMenu() {
   );
 }
 
+function ApnMenu() {
+  const classes = useStyles();
+  const [open, setOpen] = React.useState(false);
+
+  return (
+    <div>
+      <ApnEditDialog open={open} onClose={() => setOpen(false)} />
+      <Button onClick={() => setOpen(true)} className={classes.appBarBtn}>
+        Create New APN
+      </Button>
+    </div>
+  );
+}
+
 export default function TrafficDashboard() {
   const {relativePath, relativeUrl} = useRouter();
 
@@ -130,6 +145,7 @@ export default function TrafficDashboard() {
             label: 'APNs',
             to: '/apn',
             icon: RssFeedIcon,
+            filters: <ApnMenu />,
           },
         ]}
       />
