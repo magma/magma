@@ -10,103 +10,102 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import asyncio
 import logging
+import os
+from typing import List, NamedTuple, Optional
 
+import shutil
+from magma.magmad.check import subprocess_workflow
+from redis.exceptions import ConnectionError
+
+from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from magma.common.job import Job
-from magma.common.rpc_utils import grpc_async_wrapper
-from magma.common.service_registry import ServiceRegistry
-from orc8r.protos.common_pb2 import Void
+from orc8r.protos.service_status_pb2 import ServiceExitStatus
+
+SystemdServiceParams = NamedTuple('SystemdServiceParams', [('service', str)])
 
 
 class StateRecoveryJob(Job):
     """
-    Class that handles main loop to poll service status to check
+    Class that handles main loop to poll service status to check and restarts
+    sctpd as recovery method for services crashing
     """
 
-    def __init__(self, polling_interval: int, service_loop,
-                 mtr_interface: str):
-        super().__init__(interval=CHECKIN_INTERVAL, loop=service_loop)
-        self._MTR_PORT = mtr_interface
-        # Matching response time output to get latency
-        self._polling_interval = max(polling_interval,
-                                     DEFAULT_POLLING_INTERVAL)
-        # TODO: Save to redis
-        self._subscriber_state = defaultdict(ICMPMonitoringResponse)
+    def __init__(self, service_state: ServiceStateWrapper,
+                 polling_interval: int, services_check: List[str],
+                 restart_threshold: int, redis_dump_src: str,
+                 snapshots_dir: str, service_loop):
+        super().__init__(interval=polling_interval, loop=service_loop)
+        self._state_wrapper = service_state
+        self._services_check = services_check
+        self._threshold = restart_threshold
+        self._snapshots_dir = snapshots_dir
+        self._redis_dump_src = redis_dump_src
         self._loop = service_loop
+        self._polling_interval = polling_interval
 
-    async def _get_subscribers(self) -> List[IPAddress]:
+    def _get_service_status(self, service_name: str) \
+            -> Optional[ServiceExitStatus]:
         """
-        Sends gRPC call to mobilityd to get all subscribers table.
+        Args:
+            service_name: name of magma service to check status
 
-        Returns: List of [Subscriber ID => IP address, APN] entries
+        Returns: ServiceExitStatus obj for given service
+
         """
         try:
-            mobilityd_chan = ServiceRegistry.get_rpc_channel('mobilityd',
-                                                             ServiceRegistry.LOCAL)
-            mobilityd_stub = MobilityServiceStub(mobilityd_chan)
-            response = await grpc_async_wrapper(
-                mobilityd_stub.GetSubscriberIPTable.future(Void(),
-                                                           TIMEOUT_SECS),
-                self._loop)
-            return response.entries
-        except grpc.RpcError as err:
-            logging.error(
-                "GetSubscribers Error for %s! %s", err.code(), err.details())
-            return []
+            service_status = self._state_wrapper.get_service_status(
+                service_name)
+            return service_status
+        except (KeyError, ConnectionError) as err:
+            logging.debug('Could not obtain service status: [%s]' % err)
+            return None
 
-    async def _ping_subscribers(self, hosts: List[str],
-                                subscribers: SubscriberIPTable):
+    async def restart_service_async(self, service: str):
         """
-        Sends a count of ICMP pings to target IP address, returns response.
-        Args:
-            hosts: List of ip addresses to ping
-            subscribers: List of valid subscribers to ping to
-
-        Returns: (stdout, stderr)
+        Execute service restart commands asynchronously.
         """
-        ping_params = [
-            ping.PingInterfaceCommandParams(host, NUM_PACKETS, self._MTR_PORT,
-                                            TIMEOUT_SECS) for host in hosts]
-        ping_results = await ping.ping_interface_async(ping_params, self._loop)
-        ping_results_list = list(ping_results)
-        for host, sub, result in zip(hosts, subscribers, ping_results_list):
-            sid = "IMSI%s" % sub.sid.id
-            self._save_ping_response(sid, host, result)
+        await subprocess_workflow.exec_and_parse_subprocesses_async(
+            [SystemdServiceParams(service)],
+            _get_service_restart_args,
+            None,
+            self._loop,
+        )
 
-    def _save_ping_response(self, sid: str, ip_addr: str,
-                            ping_resp: PingCommandResult) -> None:
-        """
-        Saves ping response to in-memory subscriber dict.
-        Args:
-            sid: subscriber ID
-            ping_resp: response of ICMP ping command
-        """
-        if ping_resp.error:
-            logging.debug('Failed to ping %s with error: %s',
-                          sid, ping_resp.error)
-        reported_time = datetime.now().timestamp()
-        self._subscriber_state[sid] = ICMPMonitoringResponse(
-            last_reported_time=int(reported_time),
-            latency_ms=ping_resp.stats.rtt_avg)
-        SUBSCRIBER_ICMP_LATENCY_MS.labels(sid).observe(ping_resp.stats.rtt_avg)
-        logging.info(
-            '{}:{} => {}ms'.format(sid, ip_addr,
-                                   self._subscriber_state[sid].latency_ms))
+    async def _run(self):
+        for service in self._services_check:
+            result = self._get_service_status(service)
+            if result:
+                if result.num_fail_exits > self._threshold:
+                    logging.info(
+                        'Service %s has failed %s times over last %s seconds, '
+                        'restarting sctpd to clean state...', service,
+                        result.num_fail_exits,
+                        self._polling_interval)
 
-    def get_subscriber_state(self) -> Dict[str, ICMPMonitoringResponse]:
-        return self._subscriber_state
+                    # Save RDB snapshot
+                    os.makedirs(os.path.dirname(self._snapshots_dir),
+                                exist_ok=True)
+                    shutil.copy("%s/redis_dump.rdb" % self._redis_dump_src,
+                                self._snapshots_dir)
 
-    async def _run(self) -> None:
-        logging.info("Running on interface %s..." % self._MTR_PORT)
-        while True:
-            try:
-                subscribers = await self._get_subscribers()
-                addresses = [_get_addr_from_subscriber(sub) for sub in
-                             subscribers]
-                await self._ping_subscribers(addresses, subscribers)
-                await asyncio.sleep(self._polling_interval, self._loop)
-            except AttributeError:
-                logging.warning('No subscribers found, retrying...')
-                await asyncio.sleep(self._polling_interval, self._loop)
-                continue
+                    # Restart sctpd
+                    await self.restart_service_async('sctpd')
+
+                    # Reset num of service failures
+                    result.num_fail_exits = 0
+                    self._state_wrapper.set_service_status(service, result)
+                logging.debug('Restarts in total for service %s: %s', service,
+                              result.num_fail_exits)
+
+
+def _get_service_restart_args(param: SystemdServiceParams) -> List[str]:
+    """
+
+    Args:
+        param: SystemdServiceParams tuple
+
+    Returns: List of (str) parameters for systemctl service restart
+
+    """
+    return ['sudo', 'service', param.service, 'restart']

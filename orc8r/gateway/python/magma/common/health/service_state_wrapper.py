@@ -63,6 +63,13 @@ class ServiceStateWrapper:
         """
         return self._flat_dict[service_name]
 
+    def set_service_status(self, service_name: str,
+                           service_status: ServiceExitStatus):
+        """
+        Set the service status protobuf for a given service
+        """
+        self._flat_dict[service_name] = service_status
+
     def get_all_services_status(self) -> [str, ServiceExitStatus]:
         """
         Get a dict of service name to service status

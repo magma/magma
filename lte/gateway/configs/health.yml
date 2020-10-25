@@ -10,6 +10,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+log_level: INFO
+
 state_recovery:
   services_check:
     - mme
@@ -18,5 +20,5 @@ state_recovery:
     - pipelined
 
   restart_threshold: 5
-  interval_check_mins: 15
-  snapshots_dir: /var/opt/magma/snapshots
+  interval_check_mins: 1
+  snapshots_dir: /tmp/snapshots

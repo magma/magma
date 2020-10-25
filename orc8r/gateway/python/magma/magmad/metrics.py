@@ -58,9 +58,9 @@ UNATTENDED_UPGRADE_STATUS = Gauge('unattended_upgrade_status',
                                   '1 for active, 0 for inactive')
 
 
-SERVICE_RESTART_STATUS = Gauge('service_restart_status',
-                               'Count of service restarts',
-                               ['service_name', 'status'])
+SERVICE_RESTART_STATUS = Counter('service_restart_status',
+                                 'Count of service restarts',
+                                 ['service_name', 'status'])
 
 def _get_ping_params(config):
     ping_params = []
@@ -104,10 +104,10 @@ def _collect_service_restart_stats():
         return
     for service_name, status in service_dict.items():
         SERVICE_RESTART_STATUS.labels(service_name=service_name,
-                                      status="Failure").set(
+                                      status="Failure").inc(
             status.num_fail_exits)
         SERVICE_RESTART_STATUS.labels(service_name=service_name,
-                                      status="Success").set(
+                                      status="Success").inc(
             status.num_clean_exits)
 
 
