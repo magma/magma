@@ -46,9 +46,6 @@
 /****************************************************************************/
 /*******************  L O C A L    D E F I N I T I O N S  *******************/
 /****************************************************************************/
-#define ERAB_SETUP_RSP_COUNTER_MAX 5
-// TODO - Make it configurable
-#define ERAB_SETUP_RSP_TMR 1  // In secs
 
 /*
    --------------------------------------------------------------------------
@@ -83,25 +80,25 @@ static void _erab_setup_rsp_tmr_exp_ded_bearer_handler(
 */
 /****************************************************************************
  **                                                                        **
- ** Name:    esm_proc_dedicated_eps_bearer_context()                   **
+ ** Name:    esm_proc_dedicated_eps_bearer_context()                       **
  **                                                                        **
  ** Description: Allocates resources required for activation of a dedica-  **
- **      ted EPS bearer context.                                   **
+ **      ted EPS bearer context.                                           **
  **                                                                        **
- ** Inputs:  ue_id:      UE local identifier                        **
- **          pid:       PDN connection identifier                  **
- **      esm_qos:   EPS bearer level QoS parameters            **
- **      tft:       Traffic flow template parameters           **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE local identifier                               **
+ **          pid:       PDN connection identifier                          **
+ **      esm_qos:   EPS bearer level QoS parameters                        **
+ **      tft:       Traffic flow template parameters                       **
+ **      Others:    None                                                   **
  **                                                                        **
- ** Outputs:     ebi:       EPS bearer identity assigned to the new    **
- **             dedicated bearer context                   **
- **      default_ebi:   EPS bearer identity of the associated de-  **
- **             fault EPS bearer context                   **
- **      esm_cause: Cause code returned upon ESM procedure     **
- **             failure                                    **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
+ ** Outputs:     ebi:       EPS bearer identity assigned to the new        **
+ **             dedicated bearer context                                   **
+ **      default_ebi:   EPS bearer identity of the associated de-          **
+ **             fault EPS bearer context                                   **
+ **      esm_cause: Cause code returned upon ESM procedure                 **
+ **             failure                                                    **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 int esm_proc_dedicated_eps_bearer_context(
@@ -158,28 +155,28 @@ int esm_proc_dedicated_eps_bearer_context(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    esm_proc_dedicated_eps_bearer_context_request()           **
+ ** Name:    esm_proc_dedicated_eps_bearer_context_request()               **
  **                                                                        **
  ** Description: Initiates the dedicated EPS bearer context activation pro-**
- **      cedure                                                    **
+ **      cedure                                                            **
  **                                                                        **
- **      3GPP TS 24.301, section 6.4.2.2                           **
- **      The MME initiates the dedicated EPS bearer context activa-**
- **      tion procedure by sending an ACTIVATE DEDICATED EPS BEA-  **
- **      RER CONTEXT REQUEST message, starting timer T3485 and en- **
- **      tering state BEARER CONTEXT ACTIVE PENDING.               **
+ **      3GPP TS 24.301, section 6.4.2.2                                   **
+ **      The MME initiates the dedicated EPS bearer context activa-        **
+ **      tion procedure by sending an ACTIVATE DEDICATED EPS BEA-          **
+ **      RER CONTEXT REQUEST message, starting timer T3485 and en-         **
+ **      tering state BEARER CONTEXT ACTIVE PENDING.                       **
  **                                                                        **
- ** Inputs:  is_standalone: Not used (always true)                     **
- **      ue_id:      UE lower layer identifier                  **
- **      ebi:       EPS bearer identity                        **
- **      msg:       Encoded ESM message to be sent             **
- **      ue_triggered:  true if the EPS bearer context procedure   **
- **             was triggered by the UE                    **
- **      Others:    None                                       **
+ ** Inputs:  is_standalone: Not used (always true)                         **
+ **      ue_id:     UE lower layer identifier                              **
+ **      ebi:       EPS bearer identity                                    **
+ **      msg:       Encoded ESM message to be sent                         **
+ **      ue_triggered:  true if the EPS bearer context procedure           **
+ **             was triggered by the UE                                    **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 int esm_proc_dedicated_eps_bearer_context_request(
@@ -223,24 +220,24 @@ int esm_proc_dedicated_eps_bearer_context_request(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    esm_proc_dedicated_eps_bearer_context_accept()            **
+ ** Name:    esm_proc_dedicated_eps_bearer_context_accept()                **
  **                                                                        **
  ** Description: Performs dedicated EPS bearer context activation procedu- **
- **      re accepted by the UE.                                    **
+ **      re accepted by the UE.                                            **
  **                                                                        **
- **      3GPP TS 24.301, section 6.4.2.3                           **
- **      Upon receipt of the ACTIVATE DEDICATED EPS BEARER CONTEXT **
- **      ACCEPT message, the MME shall stop the timer T3485 and    **
- **      enter the state BEARER CONTEXT ACTIVE.                    **
+ **      3GPP TS 24.301, section 6.4.2.3                                   **
+ **      Upon receipt of the ACTIVATE DEDICATED EPS BEARER CONTEXT         **
+ **      ACCEPT message, the MME shall stop the timer T3485 and            **
+ **      enter the state BEARER CONTEXT ACTIVE.                            **
  **                                                                        **
- ** Inputs:  ue_id:      UE local identifier                        **
- **      ebi:       EPS bearer identity                        **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE local identifier                               **
+ **      ebi:       EPS bearer identity                                    **
+ **      Others:    None                                                   **
  **                                                                        **
- ** Outputs:     esm_cause: Cause code returned upon ESM procedure     **
- **             failure                                    **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
+ ** Outputs:     esm_cause: Cause code returned upon ESM procedure         **
+ **             failure                                                    **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 int esm_proc_dedicated_eps_bearer_context_accept(
@@ -295,8 +292,7 @@ int esm_proc_dedicated_eps_bearer_context_accept(
             LOG_NAS_ESM,
             "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
             "ue_id=" MME_UE_S1AP_ID_FMT
-            "ebi (%u)"
-            "\n",
+            "ebi (%u)",
             ue_context_p->mme_ue_s1ap_id, ebi);
       }
     }
@@ -307,28 +303,28 @@ int esm_proc_dedicated_eps_bearer_context_accept(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    esm_proc_dedicated_eps_bearer_context_reject()            **
+ ** Name:    esm_proc_dedicated_eps_bearer_context_reject()                **
  **                                                                        **
  ** Description: Performs dedicated EPS bearer context activation procedu- **
- **      re not accepted by the UE.                                **
+ **      re not accepted by the UE.                                        **
  **                                                                        **
- **      3GPP TS 24.301, section 6.4.2.4                           **
- **      Upon receipt of the ACTIVATE DEDICATED EPS BEARER CONTEXT **
- **      REJECT message, the MME shall stop the timer T3485, enter **
- **      the state BEARER CONTEXT INACTIVE and abort the dedicated **
- **      EPS bearer context activation procedure.                  **
- **      The MME also requests the lower layer to release the ra-  **
- **      dio resources that were established during the dedicated  **
- **      EPS bearer context activation.                            **
+ **      3GPP TS 24.301, section 6.4.2.4                                   **
+ **      Upon receipt of the ACTIVATE DEDICATED EPS BEARER CONTEXT         **
+ **      REJECT message, the MME shall stop the timer T3485, enter         **
+ **      the state BEARER CONTEXT INACTIVE and abort the dedicated         **
+ **      EPS bearer context activation procedure.                          **
+ **      The MME also requests the lower layer to release the ra-          **
+ **      dio resources that were established during the dedicated          **
+ **      EPS bearer context activation.                                    **
  **                                                                        **
- ** Inputs:  ue_id:      UE local identifier                        **
- **      ebi:       EPS bearer identity                        **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE local identifier                               **
+ **      ebi:       EPS bearer identity                                    **
+ **      Others:    None                                                   **
  **                                                                        **
- ** Outputs:     esm_cause: Cause code returned upon ESM procedure     **
- **             failure                                    **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    None                                       **
+ ** Outputs:     esm_cause: Cause code returned upon ESM procedure         **
+ **             failure                                                    **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 int esm_proc_dedicated_eps_bearer_context_reject(
@@ -386,25 +382,25 @@ int esm_proc_dedicated_eps_bearer_context_reject(
 */
 /****************************************************************************
  **                                                                        **
- ** Name:    _dedicated_eps_bearer_activate_t3485_handler()            **
+ ** Name:    _dedicated_eps_bearer_activate_t3485_handler()                **
  **                                                                        **
  ** Description: T3485 timeout handler                                     **
  **                                                                        **
  **              3GPP TS 24.301, section 6.4.2.6, case a                   **
- **      On the first expiry of the timer T3485, the MME shall re- **
- **      send the ACTIVATE DEDICATED EPS BEARER CONTEXT REQUEST    **
- **      and shall reset and restart timer T3485. This retransmis- **
- **      sion is repeated four times, i.e. on the fifth expiry of  **
- **      timer T3485, the MME shall abort the procedure, release   **
- **      any resources allocated for this activation and enter the **
- **      state BEARER CONTEXT INACTIVE.                            **
+ **      On the first expiry of the timer T3485, the MME shall re-         **
+ **      send the ACTIVATE DEDICATED EPS BEARER CONTEXT REQUEST            **
+ **      and shall reset and restart timer T3485. This retransmis-         **
+ **      sion is repeated four times, i.e. on the fifth expiry of          **
+ **      timer T3485, the MME shall abort the procedure, release           **
+ **      any resources allocated for this activation and enter the         **
+ **      state BEARER CONTEXT INACTIVE.                                    **
  **                                                                        **
- ** Inputs:  args:      handler parameters                         **
- **      Others:    None                                       **
+ ** Inputs:  args:      handler parameters                                 **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    None                                       **
- **      Others:    None                                       **
+ **      Return:    None                                                   **
+ **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
 static void _dedicated_eps_bearer_activate_t3485_handler(
@@ -481,19 +477,19 @@ static void _dedicated_eps_bearer_activate_t3485_handler(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _dedicated_eps_bearer_activate()                          **
+ ** Name:    _dedicated_eps_bearer_activate()                              **
  **                                                                        **
  ** Description: Sends ACTIVATE DEDICATED EPS BEREAR CONTEXT REQUEST mes-  **
- **      sage and starts timer T3485                               **
+ **      sage and starts timer T3485                                       **
  **                                                                        **
- ** Inputs:  ue_id:      UE local identifier                        **
- **      ebi:       EPS bearer identity                        **
- **      msg:       Encoded ESM message to be sent             **
- **      Others:    None                                       **
+ ** Inputs:  ue_id:      UE local identifier                               **
+ **      ebi:       EPS bearer identity                                    **
+ **      msg:       Encoded ESM message to be sent                         **
+ **      Others:    None                                                   **
  **                                                                        **
  ** Outputs:     None                                                      **
- **      Return:    RETURNok, RETURNerror                      **
- **      Others:    T3485                                      **
+ **      Return:    RETURNok, RETURNerror                                  **
+ **      Others:    T3485                                                  **
  **                                                                        **
  ***************************************************************************/
 static int _dedicated_eps_bearer_activate(
@@ -543,7 +539,7 @@ static int _dedicated_eps_bearer_activate(
 
 /****************************************************************************
  **                                                                        **
- ** Name:    _erab_setup_rsp_tmr_exp_ded_bearer_handler() **
+ ** Name:    _erab_setup_rsp_tmr_exp_ded_bearer_handler()                  **
  **                                                                        **
  ** Description: Handles Erab setup rsp timer expiry                       **
  **                                                                        **
@@ -606,6 +602,10 @@ static void _erab_setup_rsp_tmr_exp_ded_bearer_handler(
               esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
         }
       } else {
+        // Dedicated bearers on S1 will not be set up.
+        // UE will need to release the session or perform attach/detach
+        // to recover. Or network side should release the bearers by disabling
+        // policy rules for the subscriber.
         OAILOG_WARNING(
             LOG_NAS_ESM,
             "ESM-PROC  - ERAB_SETUP_RSP_COUNTER_MAX reached for ERAB_SETUP_RSP "
