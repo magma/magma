@@ -225,6 +225,7 @@ services:
       - PARTNERNAME=${XWF_PARTNER_SHORT_NAME}
       - CPURL=${XWF_CPURL}
       - VPCEndPointID=${XWF_VPCEndPointID}
+      - BACKEND=${BACKEND:-WWW}
     logging: *logging_anchor
     depends_on:
       - xwf_client
