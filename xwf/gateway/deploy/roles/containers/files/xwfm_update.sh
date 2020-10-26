@@ -10,7 +10,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License
-
 RUNNING_TAG=$(docker ps --filter name=magmad --format "{{.Image}}" | cut -d ":" -f 2)
 
 source /var/opt/magma/docker/.env
@@ -26,8 +25,10 @@ cd /var/opt/magma/docker || exit
 # Stop all containers
 # NOTE: add docker restart to work around GoRadius failures to stop
 /usr/local/bin/docker-compose down ||
-  systemctl restart docker.socket docker.service &&
-  docker stop $(docker ps -a -q)
+  systemctl restart docker.socket docker.service
+
+CONTAINERS=$(docker ps -a -q)
+[[ -z "$CONTAINERS" ]] || docker stop $CONTAINERS
 
 # Bring containers up
 /usr/local/bin/docker-compose up -d
