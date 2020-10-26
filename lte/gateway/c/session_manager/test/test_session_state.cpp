@@ -1030,6 +1030,36 @@ TEST_F(SessionStateTest, test_monitor_cycle) {
   EXPECT_EQ(session_state->get_monitor("m1", USED_RX), 0);
 }
 
+TEST_F(SessionStateTest, test_get_charging_credit_summaries) {
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
+  insert_rule(2, "m2", "dyn_rule1", DYNAMIC, 0, 0);
+
+  receive_credit_from_ocs(1, 3000);
+  receive_credit_from_ocs(2, 6000);
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 2);
+  EXPECT_EQ(
+      update_criteria.charging_credit_to_install[CreditKey(1)]
+          .credit.buckets[ALLOWED_TOTAL],
+      3000);
+
+  session_state->add_rule_usage("rule1", 2000, 1000, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_TX), 2000);
+  EXPECT_EQ(session_state->get_charging_credit(1, USED_RX), 1000);
+
+  session_state->add_rule_usage("dyn_rule1", 4000, 2000, update_criteria);
+  EXPECT_EQ(session_state->get_charging_credit(2, USED_TX), 4000);
+  EXPECT_EQ(session_state->get_charging_credit(2, USED_RX), 2000);
+
+  auto summaries = session_state->get_charging_credit_summaries();
+  EXPECT_EQ(2, summaries.size());
+  const auto& summary_rg1 = summaries[CreditKey(1)];
+  const auto& summary_rg2 = summaries[CreditKey(2)];
+  EXPECT_EQ(1000, summary_rg1.usage.bytes_rx);
+  EXPECT_EQ(2000, summary_rg1.usage.bytes_tx);
+  EXPECT_EQ(2000, summary_rg2.usage.bytes_rx);
+  EXPECT_EQ(4000, summary_rg2.usage.bytes_tx);
+}
+
 int main(int argc, char** argv) {
   ::testing::InitGoogleTest(&argc, argv);
   FLAGS_logtostderr = 1;

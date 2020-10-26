@@ -33,6 +33,9 @@ typedef std::unordered_map<
     CreditKey, std::unique_ptr<ChargingGrant>, decltype(&ccHash),
     decltype(&ccEqual)>
     CreditMap;
+typedef std::unordered_map<
+    CreditKey, SessionCredit::Summary, decltype(&ccHash), decltype(&ccEqual)>
+    ChargingCreditSummaries;
 typedef std::unordered_map<std::string, std::unique_ptr<Monitor>> MonitorMap;
 static SessionStateUpdateCriteria UNUSED_UPDATE_CRITERIA;
 
@@ -236,6 +239,8 @@ class SessionState {
    * Should be called after can_complete_termination.
    */
   TotalCreditUsage get_total_credit_usage();
+
+  ChargingCreditSummaries get_charging_credit_summaries();
 
   std::string get_session_id() const;
 
