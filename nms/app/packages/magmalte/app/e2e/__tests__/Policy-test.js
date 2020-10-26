@@ -19,7 +19,7 @@ import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
 let browser;
 beforeEach(async () => {
-  jest.setTimeout(30000);
+  jest.setTimeout(60000);
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors'],
     headless: true,
@@ -56,7 +56,7 @@ describe('NMS', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'policy_dashboard.png',
     });
-  }, 30000);
+  }, 60000);
 });
 
 describe('NMS Policy Add', () => {
@@ -71,8 +71,9 @@ describe('NMS Policy Add', () => {
       const buttonSelector = await page.$x(`//span[text()='Create New']`);
       buttonSelector[0].click();
 
-      const policybuttonSelector = await page.$x(`//span[text()='Policy']`);
-      policybuttonSelector[0].click();
+      const policyButtonSelector = '[data-testid="newPolicyMenuItem"]';
+      await page.waitForSelector(policyButtonSelector);
+      page.click(policyButtonSelector);
 
       await page.waitForXPath(`//span[text()='Add New Policy']`);
 
@@ -126,7 +127,7 @@ describe('NMS Policy Add', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'policy_add.png',
     });
-  }, 30000);
+  }, 60000);
 });
 
 describe('NMS Policy Edit', () => {
@@ -168,5 +169,5 @@ describe('NMS Policy Edit', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'policy_edit.png',
     });
-  }, 30000);
+  }, 60000);
 });
