@@ -96,7 +96,7 @@ class SmsRelay(Job):
             self._smsd.ReportDelivery(
                 sms_orc8r_pb2.ReportDeliveryRequest(
                     report=sms_orc8r_pb2.SMOUplinkUnitdata(
-                        imsi=request.imsi,
+                        imsi="IMSI"+request.imsi,
                         nas_message_container=request.nas_message_container,
                     ),
                 ),
