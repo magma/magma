@@ -14,6 +14,6 @@
 
 - name: place the cron file
   copy:
-   src: xwfm_cron
+   src: xwfm_system_update_cron
    dest: /etc/cron.d/xwfm_system_update_cron
    mode: '0755'
