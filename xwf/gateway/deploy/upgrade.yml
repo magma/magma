@@ -26,3 +26,4 @@
     - role: fbstatsd
       tags:
          - fbstatsd
+    - role: system_updates
