@@ -11,7 +11,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
+from collections import defaultdict
+
 import os
+from time import time
 from typing import List, NamedTuple, Optional
 
 import shutil
@@ -43,6 +46,7 @@ class StateRecoveryJob(Job):
         self._redis_dump_src = redis_dump_src
         self._loop = service_loop
         self._polling_interval = polling_interval
+        self._services_restarts_map = defaultdict(int)
 
     def _get_service_status(self, service_name: str) \
             -> Optional[ServiceExitStatus]:
@@ -76,26 +80,29 @@ class StateRecoveryJob(Job):
         for service in self._services_check:
             result = self._get_service_status(service)
             if result:
-                if result.num_fail_exits > self._threshold:
+                last_num_restarts = self._services_restarts_map[service]
+                current_restarts = result.num_fail_exits - last_num_restarts
+                if current_restarts > self._threshold:
                     logging.info(
                         'Service %s has failed %s times over last %s seconds, '
                         'restarting sctpd to clean state...', service,
-                        result.num_fail_exits,
+                        current_restarts,
                         self._polling_interval)
 
                     # Save RDB snapshot
                     os.makedirs(os.path.dirname(self._snapshots_dir),
                                 exist_ok=True)
                     shutil.copy("%s/redis_dump.rdb" % self._redis_dump_src,
-                                self._snapshots_dir)
+                                "%s/redis_dump_%s.rdb" % (
+                                    self._snapshots_dir, time()))
 
                     # Restart sctpd
                     await self.restart_service_async('sctpd')
 
-                    # Reset num of service failures
-                    result.num_fail_exits = 0
-                    self._state_wrapper.set_service_status(service, result)
-                logging.debug('Restarts in total for service %s: %s', service,
+                # Update latest number of restarts for service
+                self._services_restarts_map[service] = current_restarts
+                logging.debug('Unexpected restarts for service %s: %s',
+                              service,
                               result.num_fail_exits)
 
 

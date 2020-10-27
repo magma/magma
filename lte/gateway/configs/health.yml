@@ -13,12 +13,15 @@
 log_level: INFO
 
 state_recovery:
+  # Services to check status from
   services_check:
     - mme
     - mobilityd
     - sessiond
     - pipelined
 
+  # Number of restarts of services_check that triggers recovery process
   restart_threshold: 5
   interval_check_mins: 1
-  snapshots_dir: /tmp/snapshots
+  # Destination path to save redis RDB temp snapshots
+  snapshots_dir: /tmp/redis_snapshots
