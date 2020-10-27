@@ -133,7 +133,8 @@ type AIA struct {
 //						Pre-emption-Capability {Code:1047,Flags:0x80,Length:16,VendorId:10415,Value:Enumerated{1}},
 //						Pre-emption-Vulnerability {Code:1048,Flags:0x80,Length:16,VendorId:10415,Value:Enumerated{0}},
 //					}}
-//				}}
+//				}},
+//              TGPP-Charging-Characteristics {Code: 13,Flags:0x80,VendorId:10415,Value:UTF8String{12}},
 //				AMBR {Code:1435,Flags:0xc0,Length:44,VendorId:10415,Value:Grouped{
 //					Max-Requested-Bandwidth-UL {Code:516,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{50000000}},
 //					Max-Requested-Bandwidth-DL {Code:515,Flags:0xc0,Length:16,VendorId:10415,Value:Unsigned32{100000000}},
@@ -164,11 +165,12 @@ type EPSSubscribedQoSProfile struct {
 }
 
 type APNConfiguration struct {
-	ContextIdentifier       uint32                  `avp:"Context-Identifier"`
-	PDNType                 uint32                  `avp:"PDN-Type"`
-	ServiceSelection        string                  `avp:"Service-Selection"`
-	EPSSubscribedQoSProfile EPSSubscribedQoSProfile `avp:"EPS-Subscribed-QoS-Profile"`
-	AMBR                    AMBR                    `avp:"AMBR"`
+	ContextIdentifier           uint32                  `avp:"Context-Identifier"`
+	PDNType                     uint32                  `avp:"PDN-Type"`
+	ServiceSelection            string                  `avp:"Service-Selection"`
+	EPSSubscribedQoSProfile     EPSSubscribedQoSProfile `avp:"EPS-Subscribed-QoS-Profile"`
+	AMBR                        AMBR                    `avp:"AMBR"`
+	TgppChargingCharacteristics string                  `avp:"TGPP-Charging-Characteristics"`
 }
 
 type APNConfigurationProfile struct {
@@ -185,6 +187,7 @@ type SubscriptionData struct {
 	AMBR                          AMBR                    `avp:"AMBR"`
 	APNConfigurationProfile       APNConfigurationProfile `avp:"APN-Configuration-Profile"`
 	SubscribedPeriodicRauTauTimer uint32                  `avp:"Subscribed-Periodic-RAU-TAU-Timer"`
+	TgppChargingCharacteristics   string                  `avp:"TGPP-Charging-Characteristics"`
 }
 
 type ULA struct {
