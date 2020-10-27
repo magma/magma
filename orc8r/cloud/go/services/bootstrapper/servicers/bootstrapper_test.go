@@ -31,6 +31,7 @@ import (
 	bootstrap_client "magma/gateway/services/bootstrapper/service"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/bootstrapper"
 	"magma/orc8r/cloud/go/services/bootstrapper/servicers"
 	certifier_test_init "magma/orc8r/cloud/go/services/certifier/test_init"
@@ -390,10 +391,7 @@ func TestBootstrapperServer(t *testing.T) {
 	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	testNetworkID := "bootstrapper_test_network"
-	err := configurator.CreateNetwork(configurator.Network{
-		ID:   testNetworkID,
-		Name: "Test Network Name",
-	})
+	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkID, Name: "Test Network Name"}, serdes.Network)
 	assert.NoError(t, err)
 	exists, err := configurator.DoesNetworkExist(testNetworkID)
 	assert.True(t, exists)

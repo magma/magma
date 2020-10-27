@@ -254,7 +254,19 @@ func MakeState(p *protos.State, serdes serde.Registry) (State, *protos.IDAndErro
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil
 	}
-	if err := st.ReportedState.(serde.ValidateableBinaryConvertible).ValidateModel(); err != nil {
+
+	if st.ReportedState == nil {
+		err = errors.Errorf("state {type: %s, key: %s} should not have nil SerializedReportedState value", p.Type, p.DeviceID)
+		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
+		return State{}, sErr, nil
+	}
+	model, ok := st.ReportedState.(serde.ValidateableBinaryConvertible)
+	if !ok {
+		err = errors.Errorf("could not convert state {type: %s, key: %s} to validateable model", p.Type, p.DeviceID)
+		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
+		return State{}, sErr, nil
+	}
+	if err := model.ValidateModel(); err != nil {
 		sErr := &protos.IDAndError{Type: p.Type, DeviceID: p.DeviceID, Error: err.Error()}
 		return State{}, sErr, nil
 	}

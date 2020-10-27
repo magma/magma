@@ -58,6 +58,11 @@ bool MemoryStoreClient::write_sessions(SessionMap session_map) {
       auto stored_session = session->marshal();
       sessions.push_back(stored_session);
     }
+    if (sessions.empty()) {
+      // if session is empty that means subs should be deleted from the map
+      session_map_.erase(it.first);
+      continue;
+    }
     session_map_[it.first] = std::move(sessions);
   }
   return true;

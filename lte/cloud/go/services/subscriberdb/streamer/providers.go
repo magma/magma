@@ -18,6 +18,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -36,15 +37,23 @@ func (p *SubscribersProvider) GetStreamName() string {
 }
 
 func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	magmadGateway, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	magmadGateway, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{LoadAssocsFromThis: true}, serdes.Entity)
 	if err != nil {
 		return nil, errors.Wrapf(err, "load magmad gateway for physical ID %s", gatewayId)
 	}
-	gateway, err := configurator.LoadEntity(magmadGateway.NetworkID, lte.CellularGatewayEntityType, magmadGateway.Key, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	gateway, err := configurator.LoadEntity(
+		magmadGateway.NetworkID, lte.CellularGatewayEntityType, magmadGateway.Key,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	if err != nil {
 		return nil, errors.Wrapf(err, "load cellular gateway from magmad gateway %s", magmadGateway.Key)
 	}
-	subEnts, err := configurator.LoadAllEntitiesInNetwork(gateway.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true, LoadAssocsFromThis: true})
+	subEnts, err := configurator.LoadAllEntitiesOfType(
+		gateway.NetworkID, lte.SubscriberEntityType, configurator.EntityLoadCriteria{LoadConfig: true,
+			LoadAssocsToThis: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
 	if err != nil {
 		return nil, errors.Wrapf(err, "load all subscribers in network of gateway %s", gateway.Key)
 	}
@@ -68,7 +77,11 @@ func (p *SubscribersProvider) GetUpdates(gatewayId string, extraArgs *any.Any) (
 }
 
 func loadAPNs(gateway configurator.NetworkEntity) (map[string]*lte_models.ApnConfiguration, lte_models.ApnResources, error) {
-	apns, err := configurator.LoadAllEntitiesInNetwork(gateway.NetworkID, lte.APNEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	apns, err := configurator.LoadAllEntitiesOfType(
+		gateway.NetworkID, lte.APNEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
 	if err != nil {
 		return nil, nil, err
 	}

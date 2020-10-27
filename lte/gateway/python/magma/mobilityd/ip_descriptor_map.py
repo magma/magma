@@ -35,39 +35,24 @@ during it's life cycle in the IP allocator:
 from __future__ import absolute_import, division, print_function, \
     unicode_literals
 
-from collections import defaultdict
 from ipaddress import ip_address, ip_network
-from typing import List, Set
-
-import redis
-from magma.mobilityd import mobility_store as store
-from magma.mobilityd.ip_descriptor import IPDesc, IPState
+from typing import Dict, List, Set
 from random import choice
+
+from magma.mobilityd.ip_descriptor import IPDesc, IPState
 
 DEFAULT_IP_RECYCLE_INTERVAL = 15
 
 
 class IpDescriptorMap:
 
-    def __init__(self,
-                 persist_to_redis: bool = True,
-                 redis_port: int = 6379):
+    def __init__(self, ip_states: Dict[str, IPDesc]):
         """
 
         Args:
-            persist_to_redis (bool): store all state in local process if falsy,
-                else write state to Redis service
-            redis_port (int): redis server port number.
+            ip_states: Dictionary containing IPDesc keyed by current state
         """
-        if not persist_to_redis:
-            self.ip_states = defaultdict(dict)  # {state=>{ip=>ip_desc}}
-        else:
-            if not redis_port:
-                raise ValueError(
-                    'Must specify a redis_port in mobilityd config.')
-            client = redis.Redis(host='localhost', port=redis_port)
-            self.ip_states = store.defaultdict_key(
-                lambda key: store.ip_states(client, key))
+        self.ip_states = ip_states
 
     def add_ip_to_state(self, ip: ip_address, ip_desc: IPDesc,
                         state: IPState):

@@ -91,7 +91,7 @@ func TestIndexerIP(t *testing.T) {
 }
 
 func serialize(t *testing.T, mobilitydState *state.ArbitraryJSON) []byte {
-	bytes, err := serde.Serialize(mobilitydState, lte.MobilitydStateType, serdes.StateSerdes)
+	bytes, err := serde.Serialize(mobilitydState, lte.MobilitydStateType, serdes.State)
 	assert.NoError(t, err)
 	return bytes
 }

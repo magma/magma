@@ -16,7 +16,7 @@
   become: yes
   roles:
     - role: xwfmvars
-      tags: 
+      tags:
          - run_pipelined
          - fbstatsd
     - role: pkgrepo
@@ -48,4 +48,6 @@
       tags:
          - no_ci
          - fbstatsd
-
+    - role: system_updates
+      tags:
+         - no_ci

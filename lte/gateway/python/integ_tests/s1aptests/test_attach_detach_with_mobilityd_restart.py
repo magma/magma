@@ -52,7 +52,7 @@ class TestAttachDetachMobilitydRestart(unittest.TestCase):
             print('************************* Restarting mobilityd')
             self._s1ap_wrapper.magmad_util.restart_services(['mobilityd'])
             # Timeout for mobilityd restart
-            for j in range(60):
+            for j in range(30):
                 print("Waiting for", j, "seconds")
                 sleep(1)
 

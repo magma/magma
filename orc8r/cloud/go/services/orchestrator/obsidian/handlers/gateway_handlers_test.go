@@ -24,6 +24,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/device"
@@ -46,7 +47,7 @@ func TestListGateways(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -74,6 +75,7 @@ func TestListGateways(t *testing.T) {
 			{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
 			{Type: orc8r.MagmadGatewayType, Key: "g2", Config: &models.MagmadGatewayConfigs{CheckinInterval: 15}},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	expectedResult := map[string]models.MagmadGateway{
@@ -108,13 +110,13 @@ func TestCreateGateway(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	// create 2 tiers
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t1"})
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t1"}, serdes.Entity)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t2"})
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t2"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -162,6 +164,7 @@ func TestCreateGateway(t *testing.T) {
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "foo-bar-baz-123-42")
@@ -231,6 +234,7 @@ func TestCreateGateway(t *testing.T) {
 			{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
 		},
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	actualDevice, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hello-world-42")
@@ -324,7 +328,7 @@ func TestGetGateway(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -360,6 +364,7 @@ func TestGetGateway(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
@@ -445,7 +450,7 @@ func TestUpdateGateway(t *testing.T) {
 	stateTestInit.StartTestService(t)
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -468,6 +473,7 @@ func TestUpdateGateway(t *testing.T) {
 			},
 			{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
@@ -524,6 +530,7 @@ func TestUpdateGateway(t *testing.T) {
 			{Type: orc8r.UpgradeTierEntityType, Key: "t2"},
 		},
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	actualDevice, err := device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
@@ -583,7 +590,7 @@ func TestDeleteGateway(t *testing.T) {
 
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -605,6 +612,7 @@ func TestDeleteGateway(t *testing.T) {
 				Associations: []storage.TypeAndKey{{Type: orc8r.MagmadGatewayType, Key: "g1"}},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
@@ -634,6 +642,7 @@ func TestDeleteGateway(t *testing.T) {
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
 		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	_, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
@@ -655,7 +664,7 @@ func TestGetPartialReadHandlers(t *testing.T) {
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	gwConfig := &models.MagmadGatewayConfigs{
@@ -679,6 +688,7 @@ func TestGetPartialReadHandlers(t *testing.T) {
 				PhysicalID: "hw2",
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
@@ -809,7 +819,7 @@ func TestGetGatewayTierHandler(t *testing.T) {
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	getGatewayTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/tier", obsidian.GET).HandlerFunc
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -821,6 +831,7 @@ func TestGetGatewayTierHandler(t *testing.T) {
 				PhysicalID: "hw1",
 			},
 		},
+		serdes.Entity,
 	)
 	// 404 tier
 	tc := tests.Test{
@@ -847,6 +858,7 @@ func TestGetGatewayTierHandler(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -875,7 +887,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 	obsidianHandlers := handlers.GetObsidianHandlers()
 	updateGatewayTier := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/gateways/:gateway_id/tier", obsidian.PUT).HandlerFunc
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -887,6 +899,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 				PhysicalID: "hw1",
 			},
 		},
+		serdes.Entity,
 	)
 	// 404 tier
 	tc := tests.Test{
@@ -914,6 +927,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 				Key:  "t2",
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -936,6 +950,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 		nil,
 		nil,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	expectedTiers := configurator.NetworkEntities{
@@ -980,6 +995,7 @@ func TestUpdateGatewayTierHandler(t *testing.T) {
 		nil,
 		nil,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		serdes.Entity,
 	)
 	expectedTiers = configurator.NetworkEntities{
 		{
@@ -1012,7 +1028,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	test_init.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	gwConfig := &models.MagmadGatewayConfigs{
@@ -1036,6 +1052,7 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 				PhysicalID: "hw2",
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}})
@@ -1075,7 +1092,11 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entity, err := configurator.LoadEntity("n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadMetadata: true})
+	entity, err := configurator.LoadEntity(
+		"n1", orc8r.MagmadGatewayType, "g1",
+		configurator.EntityLoadCriteria{LoadMetadata: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, "newname", entity.Name)
 
@@ -1091,7 +1112,11 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entity, err = configurator.LoadEntity("n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadMetadata: true})
+	entity, err = configurator.LoadEntity(
+		"n1", orc8r.MagmadGatewayType, "g1",
+		configurator.EntityLoadCriteria{LoadMetadata: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, "newdesc", entity.Description)
 
@@ -1124,7 +1149,11 @@ func TestGetPartialUpdateHandlers(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	entity, err = configurator.LoadEntity("n1", orc8r.MagmadGatewayType, "g1", configurator.EntityLoadCriteria{LoadConfig: true})
+	entity, err = configurator.LoadEntity(
+		"n1", orc8r.MagmadGatewayType, "g1",
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, gwConfig, entity.Config)
 

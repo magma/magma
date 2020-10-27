@@ -130,7 +130,7 @@ func (m *MutableSubscriber) ToTK() storage.TypeAndKey {
 	return storage.TypeAndKey{Type: lte.SubscriberEntityType, Key: string(m.ID)}
 }
 
-func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity) (*MutableSubscriber, error) {
+func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity, policyProfileEnts configurator.NetworkEntities) (*MutableSubscriber, error) {
 	model := &MutableSubscriber{
 		ActivePoliciesByApn: policymodels.PolicyIdsByApn{},
 		ID:                  policymodels.SubscriberID(ent.Key),
@@ -152,23 +152,6 @@ func (m *MutableSubscriber) FromEnt(ent configurator.NetworkEntity) (*MutableSub
 		model.ActiveApns = append(model.ActiveApns, tk.Key)
 	}
 
-	policyProfileAssocs := ent.Associations.Filter(lte.APNPolicyProfileEntityType)
-	if len(policyProfileAssocs) == 0 {
-		return model, nil
-	}
-
-	// Need to load the policy profile ents to determine their edges.
-	// Configurator doesn't currently support loading a specified subgraph,
-	// so we have to load the subscriber and its policy profiles in
-	// separate calls.
-	policyProfileEnts, _, err := configurator.LoadEntities(
-		ent.NetworkID, nil, nil, nil,
-		policyProfileAssocs,
-		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
-	)
-	if err != nil {
-		return nil, err
-	}
 	// Each policy profile has 1 apn and n policy_rule
 	// Convert these assocs to a map of apn->policy_rules
 	for _, p := range policyProfileEnts {

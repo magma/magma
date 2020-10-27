@@ -26,7 +26,7 @@ import (
 
 // GetGatewayStatus returns the status for an indicated gateway.
 func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus, error) {
-	st, err := state.GetState(networkID, orc8r.GatewayStateType, deviceID, serdes.StateSerdes)
+	st, err := state.GetState(networkID, orc8r.GatewayStateType, deviceID, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -40,7 +40,7 @@ func GetGatewayStatus(networkID string, deviceID string) (*models.GatewayStatus,
 // device ID.
 func GetGatewayStatuses(networkID string, deviceIDs []string) (map[string]*models.GatewayStatus, error) {
 	stateIDs := types.MakeIDs(orc8r.GatewayStateType, deviceIDs...)
-	res, err := state.GetStates(networkID, stateIDs, serdes.StateSerdes)
+	res, err := state.GetStates(networkID, stateIDs, serdes.State)
 	if err != nil {
 		return map[string]*models.GatewayStatus{}, err
 	}

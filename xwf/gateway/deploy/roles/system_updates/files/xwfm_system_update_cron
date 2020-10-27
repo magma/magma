@@ -1,0 +1,4 @@
+SHELL=/bin/bash
+PATH=/sbin:/bin:/usr/sbin:/usr/bin
+
+0 5 * * * root ansible-pull -U https://github.com/magma/magma.git xwf/gateway/deploy/upgrade.yml -d /tmp/system-update --purge > /var/log/ansible_system_updates.log 2>&1

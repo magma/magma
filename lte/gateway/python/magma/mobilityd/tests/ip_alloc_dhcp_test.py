@@ -11,7 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-
 import logging
 import os
 import subprocess
@@ -21,14 +20,21 @@ import unittest
 import unittest.mock
 
 from ipaddress import ip_network
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+from magma.common.redis.client import get_default_client
 
-from magma.mobilityd.ip_address_man import IPAddressManager, MappingNotFoundError
+from magma.mobilityd.ip_address_man import IPAddressManager, \
+    MappingNotFoundError
+from magma.mobilityd.ip_allocator_dhcp import IPAllocatorDHCP
 from magma.pipelined.bridge_util import BridgeTools
 from magma.mobilityd.ip_descriptor import IPDesc, IPType, IPState
 
 from magma.mobilityd.mac import create_mac_from_sid
 from magma.mobilityd.dhcp_desc import DHCPState
+
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
+
+from magma.mobilityd.mobility_store import MobilityStore
 
 LOG = logging.getLogger('mobilityd.dhcp.test')
 LOG.isEnabledFor(logging.DEBUG)
@@ -61,17 +67,15 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
                            "t0_dhcp1"]
         subprocess.check_call(setup_uplink_br)
 
-        config = {
-            'dhcp_iface': 't0uplink_p0',
-            'retry_limit': 50,
-            'persist_to_redis': False,
-        }
-        mconfig = MobilityD(ip_allocator_type=MobilityD.DHCP,
-                            static_ip_enabled=False)
-
-        self._dhcp_allocator = IPAddressManager(recycling_interval=2,
-                                                config=config,
-                                                mconfig=mconfig)
+        store = MobilityStore(get_default_client(), False, 3980)
+        ipv4_allocator = IPAllocatorDHCP(store, iface='t0uplink_p0',
+                                         retry_limit=50)
+        ipv6_allocator = IPv6AllocatorPool(store,
+                                           session_prefix_alloc_mode='RANDOM')
+        self._dhcp_allocator = IPAddressManager(ipv4_allocator,
+                                                ipv6_allocator,
+                                                store,
+                                                recycling_interval=2)
 
     def tearDown(self):
         self._dhcp_allocator.ip_allocator.stop_dhcp_sniffer()
@@ -82,8 +86,8 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         sid1 = "IMSI02917"
         ip1, _ = self._dhcp_allocator.alloc_ip_address(sid1)
         threading.Event().wait(2)
-        dhcp_gw_info = self._dhcp_allocator._dhcp_gw_info
-        dhcp_store = self._dhcp_allocator._dhcp_store
+        dhcp_gw_info = self._dhcp_allocator._store.dhcp_gw_info
+        dhcp_store = self._dhcp_allocator._store.dhcp_store
 
         self.assertEqual(str(dhcp_gw_info.get_gw_ip()), "192.168.128.211")
         self._dhcp_allocator.release_ip_address(sid1, ip1)
@@ -116,8 +120,9 @@ class DhcpIPAllocEndToEndTest(unittest.TestCase):
         self.assertNotEqual(ip2, ip3)
         # release unallocated IP of SID
         ip_unallocated = IPDesc(ip=ip3, state=IPState.ALLOCATED,
-               sid="IMSI033", ip_block=ip_network("1.1.1.0/24"),
-               ip_type=IPType.DHCP)
+                                sid="IMSI033",
+                                ip_block=ip_network("1.1.1.0/24"),
+                                ip_type=IPType.DHCP)
         self._dhcp_allocator.ip_allocator.release_ip(ip_unallocated)
         self.assertEqual(self._dhcp_allocator.list_added_ip_blocks(),
                          [ip_network('192.168.128.0/24')])

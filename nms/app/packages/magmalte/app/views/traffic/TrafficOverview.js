@@ -14,16 +14,103 @@
  * @format
  */
 import ApnOverview from './ApnOverview';
+import ArrowDropDownIcon from '@material-ui/icons/ArrowDropDown';
+import Button from '@material-ui/core/Button';
 import LibraryBooksIcon from '@material-ui/icons/LibraryBooks';
+import Menu from '@material-ui/core/Menu';
+import MenuItem from '@material-ui/core/MenuItem';
 import PolicyOverview from './PolicyOverview';
+import PolicyRuleEditDialog from './PolicyEdit';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
+import Text from '../../theme/design-system/Text';
 import TopBar from '../../components/TopBar';
 
 import {ApnJsonConfig} from './ApnOverview';
 import {PolicyJsonConfig} from './PolicyOverview';
 import {Redirect, Route, Switch} from 'react-router-dom';
+import {colors, typography} from '../../theme/default';
+import {makeStyles} from '@material-ui/styles';
 import {useRouter} from '@fbcnms/ui/hooks';
+import {withStyles} from '@material-ui/core/styles';
+
+const useStyles = makeStyles(_ => ({
+  appBarBtn: {
+    color: colors.primary.white,
+    background: colors.primary.comet,
+    fontFamily: typography.button.fontFamily,
+    fontWeight: typography.button.fontWeight,
+    fontSize: typography.button.fontSize,
+    lineHeight: typography.button.lineHeight,
+    letterSpacing: typography.button.letterSpacing,
+
+    '&:hover': {
+      background: colors.primary.mirage,
+    },
+  },
+}));
+
+const StyledMenu = withStyles({
+  paper: {
+    border: '1px solid #d3d4d5',
+  },
+})(props => (
+  <Menu
+    data-testid="policy_menu"
+    elevation={0}
+    getContentAnchorEl={null}
+    anchorOrigin={{
+      vertical: 'bottom',
+      horizontal: 'center',
+    }}
+    transformOrigin={{
+      vertical: 'top',
+      horizontal: 'center',
+    }}
+    {...props}
+  />
+));
+
+function PolicyMenu() {
+  const classes = useStyles();
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [open, setOpen] = React.useState(false);
+
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget);
+  };
+
+  const handleClose = () => {
+    setAnchorEl(null);
+  };
+
+  return (
+    <div>
+      <PolicyRuleEditDialog open={open} onClose={() => setOpen(false)} />
+      <Button
+        onClick={handleClick}
+        className={classes.appBarBtn}
+        endIcon={<ArrowDropDownIcon />}>
+        Create New{' '}
+      </Button>
+      <StyledMenu
+        anchorEl={anchorEl}
+        keepMounted
+        open={Boolean(anchorEl)}
+        onClose={handleClose}>
+        <MenuItem data-testid="newPolicyMenuItem" onClick={() => setOpen(true)}>
+          <Text variant="subtitle2">Policy</Text>
+        </MenuItem>
+        <MenuItem>
+          <Text variant="subtitle2">Profiles</Text>
+        </MenuItem>
+        <MenuItem>
+          <Text variant="subtitle2">Rating Groups</Text>
+        </MenuItem>
+      </StyledMenu>
+    </div>
+  );
+}
 
 export default function TrafficDashboard() {
   const {relativePath, relativeUrl} = useRouter();
@@ -37,6 +124,7 @@ export default function TrafficDashboard() {
             label: 'Policies',
             to: '/policy',
             icon: LibraryBooksIcon,
+            filters: <PolicyMenu />,
           },
           {
             label: 'APNs',
