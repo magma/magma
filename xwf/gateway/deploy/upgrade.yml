@@ -19,35 +19,11 @@
       tags:
          - run_pipelined
          - fbstatsd
-    - role: pkgrepo
-      tags:
-         - install
-      vars:
-        distribution: "centos"
-        repo: "cwf-prod-redhat"
-    - role: ovs
-      tags:
-         - install
-    - role: xwfm
     - role: dhcpd
       when: uplink_if is none
-    - role: docker
-      tags:
-         - install_docker
-         - no_ci
     - role: containers
-      tags:
-         - no_ci
     - role: exporter
-      tags:
-         - no_ci
-    - role: provision
-      tags:
-         - no_ci
     - role: fbstatsd
       tags:
-         - no_ci
          - fbstatsd
     - role: system_updates
-      tags:
-         - no_ci
