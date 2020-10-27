@@ -100,7 +100,7 @@ static void add_portno_rec(char* port_name, uint32_t portno) {
     }
     free(gtp_portno_rec.arr);
     gtp_portno_rec.arr  = new_arr;
-    gtp_portno_rec.size = gtp_portno_rec.size * 2;
+    gtp_portno_rec.size = new_size;
   }
   // Now we shld have space to add new port.
   int i;
