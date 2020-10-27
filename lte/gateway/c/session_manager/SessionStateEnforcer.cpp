@@ -264,8 +264,8 @@ void SessionStateEnforcer::m5g_handle_termination_on_timeout(
 /*Function will clean up all resources related to requested session
  * if it is last session entry, then delete the imsi
  * This function can be invoked from 2 different sources
- * 1. Time out and forcefully terminates session
- * 2. Once UPF sends report to SessionD
+ * 1. Time out and forcefully terminates session.
+ * 2. Once UPF sends report to SessionD.
  * The 2nd one we are not taking care now.
  */
 void SessionStateEnforcer::m5g_complete_termination(
