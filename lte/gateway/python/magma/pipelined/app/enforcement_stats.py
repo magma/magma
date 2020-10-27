@@ -374,6 +374,13 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
         self._delete_old_flows(stats_msgs)
 
+    def deactivate_default_flow(self, imsi, ip_addr):
+        match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
+        match_out = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.OUT)
+
+        flows.delete_flow(self._datapath, self.tbl_num, match_in)
+        flows.delete_flow(self._datapath, self.tbl_num, match_out)
+
     def _report_usage(self, delta_usage):
         """
         Report usage to sessiond using rpc

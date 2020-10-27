@@ -524,6 +524,14 @@ class EnforcementStatsTest(unittest.TestCase):
 
         self.assertEqual(len(stats), 1)
 
+        self.enforcement_stats_controller.deactivate_default_flow(
+            imsi, convert_ipv4_str_to_ip_proto(sub_ip))
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager,
+                                             'nuke_ue')
+        with snapshot_verifier:
+            pass
+
     def test_rule_reactivation(self):
         """
         Adds a policy to a subscriber, deletes it by incrementing the
