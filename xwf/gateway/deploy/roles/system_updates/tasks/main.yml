@@ -16,4 +16,4 @@
   copy:
    src: xwfm_system_update_cron
    dest: /etc/cron.d/xwfm_system_update_cron
-   mode: '0755'
+   mode: '0644'
