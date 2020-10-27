@@ -148,8 +148,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
 
-  std::string convert_mac_addr_to_str(const std::string& mac_addr);
-
   void add_session_to_directory_record(
       const std::string& imsi, const std::string& session_id,
       const std::string& msisdn);
@@ -224,8 +222,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
           response_callback);
 
   void log_create_session(SessionConfig& cfg);
-
-  std::string bytes_to_hex(const std::string& s);
 };
 
 }  // namespace magma
