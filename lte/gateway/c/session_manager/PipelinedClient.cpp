@@ -64,11 +64,13 @@ magma::DeactivateFlowsRequest create_deactivate_req(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
     const std::vector<magma::PolicyRule>& dynamic_rules,
-    const magma::RequestOriginType_OriginType origin_type) {
+    const magma::RequestOriginType_OriginType origin_type,
+    const bool remove_default_drop_rules) {
   magma::DeactivateFlowsRequest req;
   req.mutable_sid()->set_id(imsi);
   req.set_ip_addr(ip_addr);
   req.set_ipv6_addr(ipv6_addr);
+  req.set_remove_default_drop_flows(remove_default_drop_rules);
   req.mutable_request_origin()->set_type(origin_type);
   auto ids = req.mutable_rule_ids();
   for (const auto& id : rule_ids) {
@@ -260,22 +262,45 @@ bool AsyncPipelinedClient::deactivate_all_flows(const std::string& imsi) {
   return true;
 }
 
+bool AsyncPipelinedClient::deactivate_flows_for_rules_for_termination(
+    const std::string& imsi, const std::string& ip_addr,
+    const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
+    const std::vector<PolicyRule>& dynamic_rules,
+    const RequestOriginType_OriginType origin_type) {
+  MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
+               << dynamic_rules.size()
+               << " dynamic rules and default drop flows "
+                  "for subscriber "
+               << imsi << " IP " << ip_addr << " " << ipv6_addr;
+
+  auto req = create_deactivate_req(
+      imsi, ip_addr, ipv6_addr, rule_ids, dynamic_rules, origin_type, true);
+  return deactivate_flows(req);
+}
+
 bool AsyncPipelinedClient::deactivate_flows_for_rules(
     const std::string& imsi, const std::string& ip_addr,
     const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
     const std::vector<PolicyRule>& dynamic_rules,
     const RequestOriginType_OriginType origin_type) {
-  auto req = create_deactivate_req(
-      imsi, ip_addr, ipv6_addr, rule_ids, dynamic_rules, origin_type);
   MLOG(MDEBUG) << "Deactivating " << rule_ids.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for subscriber "
                << imsi << " IP " << ip_addr << " " << ipv6_addr;
-  deactivate_flows_rpc(req, [imsi](Status status, DeactivateFlowsResult resp) {
-    if (!status.ok()) {
-      MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
-                   << ": " << status.error_message();
-    }
-  });
+
+  auto req = create_deactivate_req(
+      imsi, ip_addr, ipv6_addr, rule_ids, dynamic_rules, origin_type, false);
+  return deactivate_flows(req);
+}
+
+bool AsyncPipelinedClient::deactivate_flows(DeactivateFlowsRequest& request) {
+  auto imsi = request.sid().id();
+  deactivate_flows_rpc(
+      request, [imsi](Status status, DeactivateFlowsResult resp) {
+        if (!status.ok()) {
+          MLOG(MERROR) << "Could not deactivate flows for subscriber " << imsi
+                       << ": " << status.error_message();
+        }
+      });
   return true;
 }
 
