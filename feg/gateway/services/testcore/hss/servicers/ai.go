@@ -52,10 +52,22 @@ func NewAIA(srv *HomeSubscriberServer, msg *diam.Message) (*diam.Message, error)
 	subscriber.Lock()
 	defer subscriber.Unlock()
 
-	lteAuthNextSeq, err := ResyncLteAuthSeq(subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
-	if err == nil {
-		err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
+	lteAuthNextSeq, err := ResyncLteAuthSeq(
+		subscriber, air.RequestedEUTRANAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
+	if err != nil {
+		return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
 	}
+	if len(air.RequestedUtranGeranAuthInfo.ResyncInfo) > 0 {
+		lteAuthNextUtranSeq, err := ResyncLteAuthSeq(
+			subscriber, air.RequestedUtranGeranAuthInfo.ResyncInfo.Serialize(), srv.Config.LteAuthOp)
+		if err != nil {
+			return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
+		}
+		if len(air.RequestedEUTRANAuthInfo.ResyncInfo) == 0 || lteAuthNextUtranSeq > lteAuthNextSeq {
+			lteAuthNextSeq = lteAuthNextUtranSeq
+		}
+	}
+	err = srv.setLteAuthNextSeq(subscriber, lteAuthNextSeq)
 	if err != nil {
 		return ConvertAuthErrorToFailureMessage(err, msg, air.SessionID, srv.Config.Server), err
 	}

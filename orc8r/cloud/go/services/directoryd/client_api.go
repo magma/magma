@@ -132,7 +132,7 @@ func MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) e
 // GetHWIDForIMSI returns the HWID mapped to by the IMSI.
 // Primary state, stored in state service.
 func GetHWIDForIMSI(networkID, imsi string) (string, error) {
-	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi, serdes.StateSerdes)
+	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi, serdes.State)
 	if err != nil {
 		return "", err
 	}
@@ -146,7 +146,7 @@ func GetHWIDForIMSI(networkID, imsi string) (string, error) {
 // GetSessionIDForIMSI returns the session ID mapped to by the IMSI.
 // Primary state, stored in state service.
 func GetSessionIDForIMSI(networkID, imsi string) (string, error) {
-	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi, serdes.StateSerdes)
+	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi, serdes.State)
 	if err != nil {
 		return "", err
 	}

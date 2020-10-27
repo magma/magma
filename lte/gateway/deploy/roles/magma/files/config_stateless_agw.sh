@@ -84,7 +84,7 @@ elif [[ $1 == "sctpd_post" ]]; then
   fi
   sudo service magma@magmad start
   # Sleep for a bit so OVS and Magma services come up before proceeding
-  sleep 60
+  sleep 15
   exit 0
 else
   echo "Invalid argument. Use one of the following"
@@ -105,7 +105,7 @@ check_stateless_agw; ret_check=$?
 if [[ $ret_check -eq 1 ]]; then
   sudo service magma@magmad start
   # Sleep for a bit so OVS and Magma services come up before proceeding
-  sleep 60
+  sleep 15
 fi
 
 exit $ret_check

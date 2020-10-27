@@ -19,6 +19,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_protos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/models"
@@ -44,62 +45,66 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.SubscriberStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"}, serdes.Entity)
 	assert.NoError(t, err)
-	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"})
+	gw, err := configurator.CreateEntity("n1", configurator.NetworkEntity{Type: lte.CellularGatewayEntityType, Key: "g1"}, serdes.Entity)
 	assert.NoError(t, err)
 
 	// 1 sub without a profile on the backend (should fill as "default"), the
 	// other inactive with a sub profile
 	// 2 APNs active for the active sub, 1 with an assigned static IP and the
 	// other without
-	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{
-			Type: lte.APNEntityType, Key: "apn1",
-			Config: &lte_models.ApnConfiguration{
-				Ambr: &lte_models.AggregatedMaximumBitrate{
-					MaxBandwidthDl: swag.Uint32(42),
-					MaxBandwidthUl: swag.Uint32(100),
-				},
-				QosProfile: &lte_models.QosProfile{
-					ClassID:                 swag.Int32(1),
-					PreemptionCapability:    swag.Bool(true),
-					PreemptionVulnerability: swag.Bool(true),
-					PriorityLevel:           swag.Uint32(1),
-				},
-			},
-		},
-		{
-			Type: lte.APNEntityType, Key: "apn2",
-			Config: &lte_models.ApnConfiguration{
-				Ambr: &lte_models.AggregatedMaximumBitrate{
-					MaxBandwidthDl: swag.Uint32(42),
-					MaxBandwidthUl: swag.Uint32(100),
-				},
-				QosProfile: &lte_models.QosProfile{
-					ClassID:                 swag.Int32(2),
-					PreemptionCapability:    swag.Bool(false),
-					PreemptionVulnerability: swag.Bool(false),
-					PriorityLevel:           swag.Uint32(2),
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.APNEntityType, Key: "apn1",
+				Config: &lte_models.ApnConfiguration{
+					Ambr: &lte_models.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(42),
+						MaxBandwidthUl: swag.Uint32(100),
+					},
+					QosProfile: &lte_models.QosProfile{
+						ClassID:                 swag.Int32(1),
+						PreemptionCapability:    swag.Bool(true),
+						PreemptionVulnerability: swag.Bool(true),
+						PriorityLevel:           swag.Uint32(1),
+					},
 				},
 			},
-		},
-		{
-			Type: lte.SubscriberEntityType, Key: "IMSI12345",
-			Config: &models.SubscriberConfig{
-				Lte: &models.LteSubscription{
-					State:   "ACTIVE",
-					AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
-					AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+			{
+				Type: lte.APNEntityType, Key: "apn2",
+				Config: &lte_models.ApnConfiguration{
+					Ambr: &lte_models.AggregatedMaximumBitrate{
+						MaxBandwidthDl: swag.Uint32(42),
+						MaxBandwidthUl: swag.Uint32(100),
+					},
+					QosProfile: &lte_models.QosProfile{
+						ClassID:                 swag.Int32(2),
+						PreemptionCapability:    swag.Bool(false),
+						PreemptionVulnerability: swag.Bool(false),
+						PriorityLevel:           swag.Uint32(2),
+					},
 				},
-				StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
 			},
-			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI12345",
+				Config: &models.SubscriberConfig{
+					Lte: &models.LteSubscription{
+						State:   "ACTIVE",
+						AuthKey: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+						AuthOpc: []byte("\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22\x22"),
+					},
+					StaticIps: models.SubscriberStaticIps{"apn1": "192.168.100.1"},
+				},
+				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: "apn1"}, {Type: lte.APNEntityType, Key: "apn2"}},
+			},
+			{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
 		},
-		{Type: lte.SubscriberEntityType, Key: "IMSI67890", Config: &models.SubscriberConfig{Lte: &models.LteSubscription{State: "INACTIVE", SubProfile: "foo"}}},
-	})
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	expectedProtos := []*lte_protos.SubscriberData{
@@ -165,20 +170,24 @@ func TestSubscriberdbStreamer(t *testing.T) {
 	assert.Equal(t, expected, actual)
 
 	// Create policies and base name associated to sub
-	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{
-			Type: lte.BaseNameEntityType, Key: "bn1",
-			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.BaseNameEntityType, Key: "bn1",
+				Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
+			},
+			{
+				Type: lte.PolicyRuleEntityType, Key: "r1",
+				Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
+			},
+			{
+				Type: lte.PolicyRuleEntityType, Key: "r2",
+				Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
+			},
 		},
-		{
-			Type: lte.PolicyRuleEntityType, Key: "r1",
-			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
-		},
-		{
-			Type: lte.PolicyRuleEntityType, Key: "r2",
-			Associations: []storage.TypeAndKey{{Type: lte.SubscriberEntityType, Key: "IMSI12345"}},
-		},
-	})
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	expectedProtos[0].Lte.AssignedPolicies = []string{"r1", "r2"}
@@ -215,7 +224,7 @@ func TestSubscriberdbStreamer(t *testing.T) {
 		Key:               gw.Key,
 		AssociationsToAdd: storage.TKs{{Type: lte.APNResourceEntityType, Key: "resource1"}},
 	})
-	err = configurator.WriteEntities("n1", writes...)
+	err = configurator.WriteEntities("n1", writes, serdes.Entity)
 	assert.NoError(t, err)
 
 	expectedProtos[0].Non_3Gpp.ApnConfig[0].Resource = &lte_protos.APNConfiguration_APNResource{

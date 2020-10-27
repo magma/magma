@@ -24,7 +24,7 @@ const NAV_SELECTOR = `//body/div[1]/div/div/div[last()]`;
 
 let browser;
 beforeEach(async () => {
-  jest.setTimeout(30000);
+  jest.setTimeout(60000);
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors'],
     headless: true,
@@ -80,7 +80,7 @@ describe('Admin component', () => {
       path: ARTIFACTS_DIR + 'organization_network_list.png',
     });
     await page.close();
-  }, 30000);
+  }, 60000);
 });
 
 describe('NMS', () => {
@@ -130,5 +130,5 @@ describe('NMS', () => {
     await page.screenshot({
       path: ARTIFACTS_DIR + 'feg_lte_network_dashboard.png',
     });
-  }, 30000);
+  }, 60000);
 });

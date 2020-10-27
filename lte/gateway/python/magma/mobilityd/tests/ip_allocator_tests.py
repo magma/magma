@@ -49,15 +49,9 @@ class IPAllocatorTests(unittest.TestCase):
         """
         store = MobilityStore(get_default_client(), False, 3980)
         store.dhcp_gw_info.read_default_gw()
-        ip_allocator = IpAllocatorPool(store.assigned_ip_blocks,
-                                       store.ip_state_map,
-                                       store.sid_ips_map)
-        ipv6_allocator = IPv6AllocatorPool(
-            session_prefix_alloc_mode='RANDOM',
-            sid_ips_map=store.sid_ips_map,
-            ip_states_map=store.ip_state_map,
-            allocated_iid=store.allocated_iid,
-            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        ip_allocator = IpAllocatorPool(store)
+        ipv6_allocator = IPv6AllocatorPool(store,
+                                           session_prefix_alloc_mode='RANDOM')
         self._allocator = IPAddressManager(ip_allocator,
                                            ipv6_allocator,
                                            store,

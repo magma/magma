@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/certifier"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/device"
@@ -261,7 +262,7 @@ func verifySoftwareECDSASHA256(resp *protos.Response, key []byte) error {
 
 func getChallengeKey(hwID string) (protos.ChallengeKey_KeyType, []byte, error) {
 	var empty protos.ChallengeKey_KeyType
-	entity, err := configurator.LoadEntityForPhysicalID(hwID, configurator.EntityLoadCriteria{})
+	entity, err := configurator.LoadEntityForPhysicalID(hwID, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Gateway with hwid %s is not registered: %s", hwID, err))
 	}

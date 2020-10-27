@@ -14,7 +14,6 @@ limitations under the License.
 import ipaddress
 import shlex
 import subprocess
-import unittest
 import unittest.mock
 from concurrent import futures
 
@@ -23,18 +22,14 @@ from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
     ListAddedIPBlocksResponse, ListAllocatedIPsResponse, ReleaseIPRequest, \
     RemoveIPBlockRequest, RemoveIPBlockResponse, SubscriberIPTableEntry, \
     IPLookupRequest, GWInfo
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
 from magma.common.redis.client import get_default_client
 from magma.mobilityd.ip_address_man import IPAddressManager
-from magma.mobilityd.rpc_servicer import IPVersionNotSupportedError, \
-    MobilityServiceRpcServicer
+from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
 
 from magma.mobilityd.mobility_store import MobilityStore
-from magma.mobilityd.tests.test_multi_apn_ip_alloc import \
-    MockedSubscriberDBStub
 
 from magma.mobilityd.ip_allocator_pool import \
     IpAllocatorPool
@@ -55,15 +50,9 @@ class RpcTests(unittest.TestCase):
 
         store = MobilityStore(get_default_client(), False, 3980)
         store.dhcp_gw_info.read_default_gw()
-        ip_allocator = IpAllocatorPool(store.assigned_ip_blocks,
-                                       store.ip_state_map,
-                                       store.sid_ips_map)
-        ipv6_allocator = IPv6AllocatorPool(
-            session_prefix_alloc_mode='RANDOM',
-            sid_ips_map=store.sid_ips_map,
-            ip_states_map=store.ip_state_map,
-            allocated_iid=store.allocated_iid,
-            sid_session_prefix_map=store.sid_session_prefix_allocated)
+        ip_allocator = IpAllocatorPool(store)
+        ipv6_allocator = IPv6AllocatorPool(store,
+                                           session_prefix_alloc_mode='RANDOM')
         self._allocator = IPAddressManager(ip_allocator,
                                            ipv6_allocator,
                                            store)

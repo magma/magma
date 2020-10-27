@@ -36,6 +36,14 @@ type Registry interface {
 	MustMerge(rr Registry) Registry
 }
 
+func HasSerde(r Registry, typ string) bool {
+	_, err := r.GetSerde(typ)
+	if err == nil {
+		return true
+	}
+	return false
+}
+
 type registry map[string]Serde
 
 func NewRegistry(serdes ...Serde) Registry {

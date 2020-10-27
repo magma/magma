@@ -33,28 +33,19 @@ def _get_ipv4_allocator(store: MobilityStore, allocator_type: int,
                         subscriberdb_rpc_stub: SubscriberDBStub = None):
     if allocator_type == mconfigs_pb2.MobilityD.IP_POOL:
         store.dhcp_gw_info.read_default_gw()
-        ip_allocator = IpAllocatorPool(store.assigned_ip_blocks,
-                                       store.ip_state_map,
-                                       store.sid_ips_map)
+        ip_allocator = IpAllocatorPool(store)
     elif allocator_type == mconfigs_pb2.MobilityD.DHCP:
-        ip_allocator = IPAllocatorDHCP(
-            assigned_ip_blocks=store.assigned_ip_blocks,
-            ip_state_map=store.ip_state_map,
-            iface=dhcp_iface,
-            retry_limit=dhcp_retry_limit,
-            dhcp_store=store.dhcp_store,
-            gw_info=store.dhcp_gw_info)
+        ip_allocator = IPAllocatorDHCP(store=store,
+                                       iface=dhcp_iface,
+                                       retry_limit=dhcp_retry_limit)
     else:
         raise ValueError(
             "Unknown IP allocator type: %s" % allocator_type)
 
     if static_ip_enabled:
         ip_allocator = IPAllocatorStaticWrapper(
-            subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-            ip_allocator=ip_allocator,
-            gw_info=store.dhcp_gw_info,
-            assigned_ip_blocks=store.assigned_ip_blocks,
-            ip_state_map=store.ip_state_map)
+            store=store, subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+            ip_allocator=ip_allocator)
 
     if multi_apn:
         ip_allocator = IPAllocatorMultiAPNWrapper(
@@ -99,11 +90,7 @@ def main():
     # Init IPv6 allocator, for now only IP_POOL mode is supported for IPv6
     ipv6_allocation_type = config['ipv6_ip_allocator_type']
     ipv6_allocator = IPv6AllocatorPool(
-        session_prefix_alloc_mode=ipv6_allocation_type,
-        sid_ips_map=store.sid_ips_map,
-        ip_states_map=store.ip_state_map,
-        allocated_iid=store.allocated_iid,
-        sid_session_prefix_map=store.sid_session_prefix_allocated)
+        store=store, session_prefix_alloc_mode=ipv6_allocation_type)
 
     # Load IPAddressManager
     ip_address_man = IPAddressManager(ipv4_allocator, ipv6_allocator, store)

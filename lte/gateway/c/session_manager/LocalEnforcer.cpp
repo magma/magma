@@ -364,7 +364,7 @@ void LocalEnforcer::handle_activate_service_action(
 // Terminates sessions that correspond to the given IMSI and session.
 void LocalEnforcer::start_session_termination(
     const std::string& imsi, const std::unique_ptr<SessionState>& session,
-    bool notify_access, SessionStateUpdateCriteria& uc) {
+    bool notify_access, SessionStateUpdateCriteria& session_uc) {
   auto session_id = session->get_session_id();
   if (session->is_terminating()) {
     // If the session is terminating already, do nothing.
@@ -373,10 +373,10 @@ void LocalEnforcer::start_session_termination(
     return;
   }
   MLOG(MINFO) << "Initiating session termination for " << session_id;
-  session->set_pdp_end_time(get_time_in_sec_since_epoch());
+  session->set_pdp_end_time(get_time_in_sec_since_epoch(), session_uc);
 
-  remove_all_rules_for_termination(imsi, session, uc);
-  session->set_fsm_state(SESSION_RELEASED, uc);
+  remove_all_rules_for_termination(imsi, session, session_uc);
+  session->set_fsm_state(SESSION_RELEASED, session_uc);
   const auto& config         = session->get_config();
   const auto& common_context = config.common_context;
   if (notify_access) {
@@ -390,7 +390,7 @@ void LocalEnforcer::start_session_termination(
   }
   if (terminate_on_wallet_exhaust()) {
     handle_subscriber_quota_state_change(
-        imsi, *session, SubscriberQuotaUpdate_Type_TERMINATE, uc);
+        imsi, *session, SubscriberQuotaUpdate_Type_TERMINATE, session_uc);
   }
   // The termination should be completed when aggregated usage record no
   // longer
@@ -1129,9 +1129,7 @@ void LocalEnforcer::init_session_credit(
                  << session_id;
     session_map[imsi] = SessionVector();
   }
-  if (session_state->is_radius_cwf_session() == false) {
-    events_reporter_->session_created(imsi, session_id, cfg, session_state);
-  }
+  events_reporter_->session_created(imsi, session_id, cfg, session_state);
   session_map[imsi].push_back(std::move(session_state));
 }
 
@@ -1233,9 +1231,7 @@ void LocalEnforcer::complete_termination(
   auto termination_req = session->make_termination_request(session_uc);
   auto logging_cb = SessionReporter::get_terminate_logging_cb(termination_req);
   reporter_->report_terminate_session(termination_req, logging_cb);
-  if (session->is_radius_cwf_session() == false) {
-    events_reporter_->session_terminated(imsi, session);
-  }
+  events_reporter_->session_terminated(imsi, session);
 
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;
@@ -1457,9 +1453,8 @@ bool LocalEnforcer::handle_abort_session(
   start_session_termination(imsi, session, true, session_uc);
   // ASRs do not require a CCR-T, this means we can immediately terminate
   // without waiting for final usage reports.
-  if (session->is_radius_cwf_session() == false) {
-    events_reporter_->session_terminated(imsi, session);
-  }
+  events_reporter_->session_terminated(imsi, session);
+
   // Delete the session from SessionMap
   session_uc.is_session_ended = true;
   session_map[imsi].erase(*session_it);

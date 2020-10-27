@@ -392,7 +392,7 @@ func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network)
 }
 
 func (m *PolicyQosProfile) FromBackendModels(networkID string, key string) error {
-	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key)
+	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key, EntitySerdes)
 	if err != nil {
 		return err
 	}

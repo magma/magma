@@ -56,7 +56,7 @@ class TestAttachDetachWithMmeRestart(unittest.TestCase):
                   "gateway")
             self._s1ap_wrapper.magmad_util.restart_services(["mme"])
 
-            for j in range(60):
+            for j in range(30):
                 print("Waiting for", j, "seconds")
                 time.sleep(1)
 

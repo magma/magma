@@ -180,14 +180,12 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             ipv6_response = self._get_allocate_ip_response(
                 composite_sid + ",ipv6", IPAddress.IPV6,
                 context, ip_addr, request)
-            rsp = AllocateIPAddressResponse()
-            ipv4_v6_list = rsp.ip_list.add()
-            ipv4_v6_list.address = ipv4_response.ip_list[0].address
-            ipv4_v6_list = rsp.ip_list.add()
-            ipv4_v6_list.address = ipv6_response.ip_list[0].address
+            ipv4_addr = ipv4_response.ip_list[0]
+            ipv6_addr = ipv6_response.ip_list[0]
             # Get vlan from IPv4 Allocate response
-            rsp.vlan = ipv4_response.vlan
-            return rsp
+            return AllocateIPAddressResponse(
+                ip_list=[ipv4_addr, ipv6_addr],
+                vlan=ipv4_response.vlan)
         return AllocateIPAddressResponse()
 
     @return_void
@@ -322,6 +320,10 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
             context.set_details(
                 'IP has been allocated for other subscriber')
             context.set_code(grpc.StatusCode.ALREADY_EXISTS)
+        except MaxCalculationError:
+            context.set_details(
+                'Reached maximum IPv6 calculation tries')
+            context.set_code(grpc.StatusCode.RESOURCE_EXHAUSTED)
         return AllocateIPAddressResponse()
 
     def _ipblock_msg_to_ipblock(self, ipblock_msg, context):

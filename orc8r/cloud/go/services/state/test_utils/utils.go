@@ -34,7 +34,7 @@ func ReportGatewayStatus(t *testing.T, ctx context.Context, req *models.GatewayS
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedGWStatus, err := serde.Serialize(req, orc8r.GatewayStateType, serdes.StateSerdes)
+	serializedGWStatus, err := serde.Serialize(req, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

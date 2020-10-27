@@ -19,10 +19,8 @@ package plugin
 import (
 	"magma/feg/cloud/go/feg"
 	feg_service "magma/feg/cloud/go/services/feg"
-	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -48,12 +46,7 @@ func (*FegOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 }
 
 func (*FegOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{
-		// configurator serdes
-		configurator.NewNetworkConfigSerde(feg.FegNetworkType, &models.NetworkFederationConfigs{}),
-		configurator.NewNetworkConfigSerde(feg.FederatedNetworkType, &models.FederatedNetworkConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(feg.FegGatewayType, &models.GatewayFederationConfigs{}),
-	}
+	return []serde.Serde{}
 }
 
 func (*FegOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {

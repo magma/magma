@@ -695,6 +695,16 @@ SessionTerminateRequest SessionState::make_termination_request(
   return req;
 }
 
+ChargingCreditSummaries SessionState::get_charging_credit_summaries() {
+  ChargingCreditSummaries charging_credit_summaries(
+      credit_map_.size(), &ccHash, &ccEqual);
+  for (auto& credit_pair : credit_map_) {
+    auto summary = credit_pair.second->credit.get_credit_summary();
+    charging_credit_summaries[credit_pair.first] = summary;
+  }
+  return charging_credit_summaries;
+}
+
 SessionState::TotalCreditUsage SessionState::get_total_credit_usage() {
   // Collate unique charging/monitoring keys used by rules
   std::unordered_set<CreditKey, decltype(&ccHash), decltype(&ccEqual)>
@@ -795,8 +805,10 @@ uint64_t SessionState::get_pdp_end_time() {
   return pdp_end_time_;
 }
 
-void SessionState::set_pdp_end_time(uint64_t epoch) {
-  pdp_end_time_ = epoch;
+void SessionState::set_pdp_end_time(
+    uint64_t epoch, SessionStateUpdateCriteria& session_uc) {
+  pdp_end_time_                   = epoch;
+  session_uc.updated_pdp_end_time = epoch;
 }
 
 void SessionState::increment_request_number(uint32_t incr) {

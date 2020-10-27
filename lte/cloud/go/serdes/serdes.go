@@ -16,6 +16,7 @@ package serdes
 import (
 	"magma/lte/cloud/go/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
 	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/serdes"
@@ -23,8 +24,19 @@ import (
 )
 
 var (
-	// LTEStateSerdes contains the LTE-specific state serdes
-	LTEStateSerdes = serde.NewRegistry(
+	// Network contains the full set of configurator network config serdes
+	// used in the LTE module
+	Network = serdes.Network.
+		MustMerge(lte_models.NetworkSerdes).
+		MustMerge(policydb_models.NetworkSerdes)
+	// Entity contains the full set of configurator network entity serdes used
+	// in the LTE module
+	Entity = serdes.Entity.
+		MustMerge(lte_models.EntitySerdes).
+		MustMerge(subscriberdb_models.EntitySerdes).
+		MustMerge(policydb_models.EntitySerdes)
+	// State contains the full set of state serdes used in the LTE module
+	State = serdes.State.MustMerge(serde.NewRegistry(
 		state.NewStateSerde(lte.EnodebStateType, &lte_models.EnodebState{}),
 		state.NewStateSerde(lte.ICMPStateType, &subscriberdb_models.IcmpStatus{}),
 
@@ -34,8 +46,5 @@ var (
 		state.NewStateSerde(lte.SPGWStateType, &state.ArbitraryJSON{}),
 		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
 		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitraryJSON{}),
-	)
-
-	// StateSerdes contains the full set of state serdes used in the LTE module
-	StateSerdes = LTEStateSerdes.MustMerge(serdes.StateSerdes)
+	))
 )

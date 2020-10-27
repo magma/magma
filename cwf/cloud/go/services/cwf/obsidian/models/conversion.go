@@ -185,7 +185,7 @@ func (m *MutableCwfGateway) GetAdditionalWritesOnUpdate(
 }
 
 func (m *GatewayCwfConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	carrierWifi, err := configurator.LoadEntityConfig(networkID, cwf.CwfGatewayType, gatewayID)
+	carrierWifi, err := configurator.LoadEntityConfig(networkID, cwf.CwfGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}

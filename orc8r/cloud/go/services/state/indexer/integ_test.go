@@ -143,7 +143,7 @@ func reportGatewayStatusForID(t *testing.T, id state_types.ID) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serialized, err := serde.Serialize(status, orc8r.GatewayStateType, serdes.StateSerdes)
+	serialized, err := serde.Serialize(status, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	pState := &protos.State{
 		Type:     orc8r.GatewayStateType,
@@ -189,7 +189,7 @@ func assertEqualStatus(t *testing.T, recv interface{}, sid state_types.ID) {
 	recvStates := recv.(state_types.SerializedStatesByID)
 	assert.Len(t, recvStates, 1)
 	assert.Equal(t, hwid, recvStates[sid].ReporterID)
-	actualReported, err := serde.Deserialize(recvStates[sid].SerializedReportedState, orc8r.GatewayStateType, serdes.StateSerdes)
+	actualReported, err := serde.Deserialize(recvStates[sid].SerializedReportedState, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	assert.Equal(t, reported, actualReported)
 }

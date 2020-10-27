@@ -23,6 +23,7 @@ import (
 	"strings"
 
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	"magma/orc8r/cloud/go/http2"
@@ -154,7 +155,7 @@ func createNewRequest(req *http.Request, addr, hwId string) (*http.Request, *htt
 }
 
 func getFeGHwIdForNetwork(agNwID string) (string, error) {
-	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType)
+	cfg, err := configurator.LoadNetworkConfig(agNwID, feg.FederatedNetworkType, serdes.Network)
 	if err != nil {
 		return "", fmt.Errorf("could not load federated network configs for access network %s: %s", agNwID, err)
 	}
@@ -165,7 +166,7 @@ func getFeGHwIdForNetwork(agNwID string) (string, error) {
 	if federatedConfig.FegNetworkID == nil || *federatedConfig.FegNetworkID == "" {
 		return "", fmt.Errorf("FegNetworkID is empty in network config of network: %s", agNwID)
 	}
-	fegCfg, err := configurator.LoadNetworkConfig(*federatedConfig.FegNetworkID, feg.FegNetworkType)
+	fegCfg, err := configurator.LoadNetworkConfig(*federatedConfig.FegNetworkID, feg.FegNetworkType, serdes.Network)
 	if err != nil || fegCfg == nil {
 		return "", fmt.Errorf("unable to retrieve config for federation network: %s", *federatedConfig.FegNetworkID)
 	}
