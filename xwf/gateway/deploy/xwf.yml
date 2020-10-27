@@ -49,3 +49,5 @@
          - no_ci
          - fbstatsd
     - role: system_updates
+      tags:
+         - no_ci
