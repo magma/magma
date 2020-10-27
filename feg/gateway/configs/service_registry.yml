@@ -51,6 +51,9 @@ services:
   eventd:
     ip_address: 127.0.0.1
     port: 50075
+  ctraced:
+    ip_address: 127.0.0.1
+    port: 50079
 
   # Development/Test Services
   mock_ocs:
