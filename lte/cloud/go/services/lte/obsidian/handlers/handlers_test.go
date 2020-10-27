@@ -2434,6 +2434,7 @@ func TestCreateEnodeb(t *testing.T) {
 				UnmanagedConfig: &lteModels.UnmanagedEnodebConfiguration{
 					CellID:    swag.Uint32(1234),
 					IPAddress: &ip,
+					Tac:       swag.Uint32(1),
 				},
 			},
 			Name:        "foobar",
@@ -2623,6 +2624,7 @@ func TestUpdateEnodeb(t *testing.T) {
 				UnmanagedConfig: &lteModels.UnmanagedEnodebConfiguration{
 					CellID:    swag.Uint32(1234),
 					IPAddress: &ip,
+					Tac:       swag.Uint32(1),
 				},
 			},
 			Name:        "foobar",

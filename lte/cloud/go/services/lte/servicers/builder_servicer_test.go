@@ -740,6 +740,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					CellId: 138777000,
+					Tac:    1,
 				},
 			},
 		},
@@ -761,7 +762,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			HssRelayEnabled:          false,
 			CloudSubscriberdbEnabled: false,
 			EnableDnsCaching:         false,
-			AttachedEnodebTacs:       []int32{0},
+			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
@@ -903,6 +904,7 @@ func newDefaultUnmanagedEnodebConfig() *lte_models.EnodebConfig {
 		ConfigType: "UNMANAGED",
 		UnmanagedConfig: &lte_models.UnmanagedEnodebConfiguration{
 			CellID:    swag.Uint32(138777000),
+			Tac:       swag.Uint32(1),
 			IPAddress: &ip,
 		},
 	}
