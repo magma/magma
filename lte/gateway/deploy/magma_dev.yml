@@ -43,6 +43,7 @@
       vars:
         c_build: /home/{{ ansible_user }}/build/c/
         oai_build: "{{ c_build }}/oai"
+        go_build: /home/{{ ansible_user }}/go/bin/
         magma_repo: /home/{{ ansible_user }}/magma-packages
         magma_deps: /home/{{ ansible_user }}/magma-deps
     - role: fluent_bit

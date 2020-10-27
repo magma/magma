@@ -26,6 +26,7 @@
     -  MAGMA_ROOT={{ magma_root }}
     -  OAI_BUILD={{ oai_build }}
     -  C_BUILD={{ c_build }}
+    -  GO_BUILD={{ go_build }}
     -  CCACHE_DIR="{{magma_root}}/.cache/gateway/ccache"
     -  MAGMA_DEV_MODE=1
     -  XDG_CACHE_HOME="{{magma_root}}/.cache"

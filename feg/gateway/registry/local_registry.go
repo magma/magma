@@ -34,6 +34,7 @@ const (
 	CSFB          = "CSFB"
 	FEG_HELLO     = "FEG_HELLO"
 	AAA_SERVER    = "AAA_SERVER"
+	ENVOYD        = "ENVOYD"
 	EAP           = "EAP"
 	EAP_SIM       = "EAP_SIM"
 	EAP_AKA       = "EAP_AKA"
@@ -94,6 +95,7 @@ func init() {
 	addLocalService(RADIUSD, 9115)
 	addLocalService(HLR_PROXY, 9116)
 	addLocalService(PIPELINED, 9117)
+	addLocalService(ENVOYD, 9118)
 
 	addLocalService(MOCK_OCS, 9201)
 	addLocalService(MOCK_PCRF, 9202)

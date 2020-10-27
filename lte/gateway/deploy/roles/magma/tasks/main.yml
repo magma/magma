@@ -27,6 +27,7 @@
     - redis
     - pipelined
     - redirectd
+    - envoyd
     # Manhattan services
     - lighttpd
     - sessiond
@@ -89,6 +90,10 @@
 
 - name: Create symlink for session_manager binary
   file: src='{{ c_build }}/session_manager/sessiond' path=/usr/local/bin/sessiond state=link force=yes follow=no
+  when: full_provision
+
+- name: Create symlink for envoy controller binary
+  file: src='{{ go_build }}/envoy_controller' path=/usr/local/bin/envoy_controller state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for dpid binary
