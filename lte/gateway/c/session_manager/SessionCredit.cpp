@@ -17,15 +17,7 @@
 #include "EnumToString.h"
 #include "SessionCredit.h"
 #include "magma_logging.h"
-
-namespace {
-uint64_t get_time_in_sec_since_epoch() {
-  auto now = std::chrono::system_clock::now();
-  return std::chrono::duration_cast<std::chrono::seconds>(
-             now.time_since_epoch())
-      .count();
-}
-}  // namespace
+#include "Utilities.h"
 
 namespace magma {
 
@@ -115,7 +107,7 @@ void SessionCredit::add_used_credit(
 
 void SessionCredit::update_usage_timestamps(
     SessionCreditUpdateCriteria& credit_uc) {
-  auto now = get_time_in_sec_since_epoch();
+  auto now = magma::get_time_in_sec_since_epoch();
   if (time_of_first_usage_ == 0) {
     time_of_first_usage_          = now;
     credit_uc.time_of_first_usage = now;
