@@ -67,7 +67,7 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(ListGatewaysPath, &fegModels.MutableFederationGateway{}, makeFederationGateways, serdes.Entity),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, &fegModels.MutableFederationGateway{}, makeFederationGateways, serdes.Entity, serdes.Device),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -104,7 +104,7 @@ func GetHandlers() []obsidian.Handler {
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateGateway(c, &fegModels.MutableFederationGateway{}, serdes.Entity); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &fegModels.MutableFederationGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -148,7 +148,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateGateway(c, nid, gid, &fegModels.MutableFederationGateway{}, serdes.Entity); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &fegModels.MutableFederationGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)

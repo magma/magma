@@ -47,4 +47,6 @@ var (
 		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
 		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitraryJSON{}),
 	))
+	// Device contains the full set of device serdes used in the LTE module
+	Device = serdes.Device
 )

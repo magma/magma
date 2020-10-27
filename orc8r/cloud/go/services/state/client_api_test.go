@@ -19,11 +19,9 @@ import (
 	"fmt"
 	"testing"
 
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -54,8 +52,6 @@ func TestStateService(t *testing.T) {
 	device_test_init.StartTestService(t)
 	// Set up test networkID, hwID, and encode into context
 	state_test_init.StartTestService(t)
-	err := serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
-	assert.NoError(t, err)
 
 	networkID := "state_service_test_network"
 	configurator_test.RegisterNetwork(t, networkID, "State Service Test")

@@ -64,7 +64,7 @@ const (
 // GetHandlers returns all obsidian handlers for Wifi
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(BaseGatewaysPath, &wifimodels.MutableWifiGateway{}, makeWifiGateways, serdes.Entity),
+		handlers.GetListGatewaysHandler(BaseGatewaysPath, &wifimodels.MutableWifiGateway{}, makeWifiGateways, serdes.Entity, serdes.Device),
 		{Path: BaseGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -87,7 +87,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription), serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rmodels.MagmadGatewayConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rmodels.TierID), serdes.Entity)...)
-	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
+	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath, serdes.Device)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayWifiPath, &wifimodels.GatewayWifiConfigs{}, serdes.Entity)...)
 
 	ret = append(ret, handlers.GetPartialEntityHandlers(ManageMeshNamePath, MeshID, new(wifimodels.MeshName), serdes.Entity)...)
@@ -133,7 +133,7 @@ func makeWifiGateways(
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateGateway(c, &wifimodels.MutableWifiGateway{}, serdes.Entity); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &wifimodels.MutableWifiGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -180,7 +180,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateGateway(c, nid, gid, &wifimodels.MutableWifiGateway{}, serdes.Entity); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &wifimodels.MutableWifiGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)

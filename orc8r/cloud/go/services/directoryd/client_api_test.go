@@ -17,10 +17,8 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/directoryd"
 	directoryd_test_init "magma/orc8r/cloud/go/services/directoryd/test_init"
@@ -126,9 +124,6 @@ func TestDirectorydStateMethods(t *testing.T) {
 	stateClient, err := getStateServiceClient(t)
 	assert.NoError(t, err)
 
-	err = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
-	assert.NoError(t, err)
-
 	configurator_test_utils.RegisterNetwork(t, nid0, "DirectoryD Service Test")
 	configurator_test_utils.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 	ctx := test_utils.GetContextWithCertificate(t, hwid0)
@@ -197,7 +192,6 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	ddUpdaterClient, err := getDirectorydUpdaterClient(t)
 	assert.NoError(t, err)
 
-	err = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 	configurator_test_utils.RegisterNetwork(t, nid0, "DirectoryD Service Test")
 	configurator_test_utils.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 	ctx := test_utils.GetContextWithCertificate(t, hwid0)
