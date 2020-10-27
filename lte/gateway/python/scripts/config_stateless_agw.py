@@ -11,9 +11,7 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-"""
 
-"""
 Script to config AGW in stateful and stateless mode
 """
 
@@ -34,19 +32,15 @@ from magma.configuration.service_configs import (
 return_codes = Enum(
     "return_codes", "STATELESS STATEFUL CORRUPT INVALID", start=0
 )
-SERVICE_CONFIG_NAMES = [
-    ("mme", "use_stateless"),
-    ("mobilityd", "persist_to_redis"),
-    ("pipelined", "clean_restart"),
-    ("sessiond", "support_stateless"),
+STATELESS_SERVICE_CONFIGS = [
+    ("mme", "use_stateless", True),
+    ("mobilityd", "persist_to_redis", True),
+    ("pipelined", "clean_restart", False),
+    ("sessiond", "support_stateless", True),
 ]
 
 
-def _check_stateless_service_config(service, config_name):
-    config_value = True
-    if service == "pipelined":
-        config_value = False  # pipelined uses inverse logic
-
+def _check_stateless_service_config(service, config_name, config_value):
     service_config = load_service_config(service)
     if service_config.get(config_name) == config_value:
         return return_codes.STATELESS
@@ -57,9 +51,9 @@ def _check_stateless_service_config(service, config_name):
 
 def _check_stateless_services():
     num_stateful = 0
-    for service, config in SERVICE_CONFIG_NAMES:
+    for service, config, value in STATELESS_SERVICE_CONFIGS:
         if (
-            _check_stateless_service_config(service, config)
+            _check_stateless_service_config(service, config, value)
             == return_codes.STATEFUL
         ):
             num_stateful += 1
@@ -67,7 +61,7 @@ def _check_stateless_services():
     if num_stateful == 0:
         print("Check returning", return_codes.STATELESS)
         return return_codes.STATELESS
-    elif num_stateful == len(SERVICE_CONFIG_NAMES):
+    elif num_stateful == len(STATELESS_SERVICE_CONFIGS):
         print("Check returning", return_codes.STATEFUL)
         return return_codes.STATEFUL
 
@@ -85,7 +79,26 @@ def _clear_redis_state():
         sys.exit(return_codes.INVALID)
     subprocess.call("service magma@* stop".split())
     subprocess.call("service magma@redis start".split())
-    subprocess.call("redis-cli -p 6380 FLUSHALL".split())
+    # delete all keys from Redis which capture service state
+    for key_regex in [
+        "*_state",
+        "IMSI*",
+        "mobilityd:ip_states:IPState.RESERVED",
+        "NO_VLAN:mobilityd_gw_info",
+        "QosManager",
+        "s1ap_imsi_map",
+    ]:
+        redis_cmd = (
+            "redis-cli -p 6380 KEYS '"
+            + key_regex
+            + "' | xargs redis-cli -p 6380 DEL"
+        )
+        subprocess.call(
+            redis_cmd,
+            shell=True,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
     subprocess.call("service magma@redis stop".split())
 
 
@@ -102,13 +115,15 @@ def _restart_sctpd():
         sys.exit(return_codes.INVALID)
     print("Restarting sctpd")
     subprocess.call("service sctpd restart".split())
+    # delay return after restarting so that Magma and OVS services come up
+    time.sleep(30)
 
 
 def enable_stateless_agw():
     if _check_stateless_services() == return_codes.STATELESS:
         print("Nothing to enable, AGW is stateless")
         sys.exit(return_codes.STATELESS.value)
-    for service, config in SERVICE_CONFIG_NAMES:
+    for service, config, value in STATELESS_SERVICE_CONFIGS:
         cfg = load_override_config(service) or {}
         if service == "pipelined":
             cfg[config] = False
@@ -126,10 +141,8 @@ def disable_stateless_agw():
     if _check_stateless_services() == return_codes.STATEFUL:
         print("Nothing to disable, AGW is stateful")
         sys.exit(return_codes.STATEFUL.value)
-    for service, config in SERVICE_CONFIG_NAMES:
-        cfg = load_override_config(service)
-        if cfg is None:
-            cfg = {}
+    for service, config, value in STATELESS_SERVICE_CONFIGS:
+        cfg = load_override_config(service) or {}
 
         # remove the stateless override
         cfg.pop(config, None)
@@ -152,7 +165,6 @@ def sctpd_pre_start():
 
 def sctpd_post_start():
     _start_magmad()
-    time.sleep(15)  # sleep for a bit to ensure OVS and Magma services are up
     sys.exit(0)
 
 
