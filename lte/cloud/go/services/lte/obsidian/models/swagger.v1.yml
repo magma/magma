@@ -2060,6 +2060,7 @@ definitions:
     required:
       - cell_id
       - ip_address
+      - tac
     properties:
       cell_id:
         type: integer
@@ -2070,6 +2071,12 @@ definitions:
         type: string
         format: ipv4
         example: '192.168.1.142'
+      tac:
+        type: integer
+        format: uint32
+        minimum: 1
+        maximum: 65535
+        example: 1
 
   enodeb_state:
     description: Single Enodeb State

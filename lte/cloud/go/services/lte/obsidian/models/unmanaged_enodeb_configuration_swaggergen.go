@@ -26,6 +26,12 @@ type UnmanagedEnodebConfiguration struct {
 	// Required: true
 	// Format: ipv4
 	IPAddress *strfmt.IPv4 `json:"ip_address"`
+
+	// tac
+	// Required: true
+	// Maximum: 65535
+	// Minimum: 1
+	Tac *uint32 `json:"tac"`
 }
 
 // Validate validates this unmanaged enodeb configuration
@@ -37,6 +43,10 @@ func (m *UnmanagedEnodebConfiguration) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateIPAddress(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateTac(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -66,6 +76,23 @@ func (m *UnmanagedEnodebConfiguration) validateIPAddress(formats strfmt.Registry
 	}
 
 	if err := validate.FormatOf("ip_address", "body", "ipv4", m.IPAddress.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *UnmanagedEnodebConfiguration) validateTac(formats strfmt.Registry) error {
+
+	if err := validate.Required("tac", "body", m.Tac); err != nil {
+		return err
+	}
+
+	if err := validate.MinimumInt("tac", "body", int64(*m.Tac), 1, false); err != nil {
+		return err
+	}
+
+	if err := validate.MaximumInt("tac", "body", int64(*m.Tac), 65535, false); err != nil {
 		return err
 	}
 
