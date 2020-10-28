@@ -22,10 +22,11 @@ using grpc::Status;
 namespace {  // anonymous
 using std::experimental::optional;
 
-void call_back_void_upf(grpc::Status, magma::UpfRes response) {
-  MLOG(MDEBUG) << "Handle UPF response reached";  // ToDo
+void call_back_void_upf(grpc::Status, magma::UPFSessionContextState response)
+{
+  MLOG(MDEBUG)<<"Handle UPF response reached"; //ToDo
 }
-std::function<void(grpc::Status, magma::UpfRes)> callback = call_back_void_upf;
+std::function<void(grpc::Status, magma::UPFSessionContextState)>callback  = call_back_void_upf;
 
 // Preparation of Set Session request to UPF
 magma::SessionSet create_session_set_req(
@@ -241,9 +242,9 @@ bool AsyncPipelinedClient::setup_lte(
 // Method to Setup UPF Session
 bool AsyncPipelinedClient::set_upf_session(
     const SessionState::SessionInfo info,
-    std::function<void(Status status, UpfRes)> callback) {
+    std::function<void(Status status,UPFSessionContextState)> callback) {
   SessionSet setup_session_req = create_session_set_req(info);
-  set_upf_session_rpc(setup_session_req, callback);
+  set_upf_session_rpc(setup_session_req,callback);
   return true;
 }
 
@@ -379,22 +380,24 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
   return true;
 }
 
-// RPC definition to Send Set Session request to UPF
-void AsyncPipelinedClient::set_upf_session_rpc(
-    const SessionSet& request, std::function<void(Status, UpfRes)> callback) {
-  auto local_resp =
-      new AsyncLocalResponse<UpfRes>(std::move(callback), RESPONSE_TIMEOUT);
-  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  for (int i = 0; i < request.set_gr_pdr_size(); i++) {
-    const magma::SetGroupPDR pdr_ = request.set_gr_pdr(i);
-  }
-  for (int i = 0; i < request.set_gr_far_size(); i++) {
-    const magma::SetGroupPDR pdr_ = request.set_gr_pdr(i);
-  }
-  for (int i = 0; i < request.set_gr_far_size(); i++) {
-    const magma::SetGroupFAR far_ = request.set_gr_far(i);
-  }
-  local_resp->set_response_reader(std::move(
+//RPC definition to Send Set Session request to UPF
+ void AsyncPipelinedClient::set_upf_session_rpc(
+     const SessionSet& request,
+     std::function<void(Status, UPFSessionContextState)> callback) {
+   auto local_resp = new AsyncLocalResponse<UPFSessionContextState>(
+       std::move(callback), RESPONSE_TIMEOUT);
+   PrintGrpcMessage(
+       static_cast<const google::protobuf::Message&>(request));
+   for (int i=0; i<request.set_gr_pdr_size(); i++) {
+         const magma::SetGroupPDR pdr_=request.set_gr_pdr(i);
+   }
+   for (int i=0; i<request.set_gr_far_size(); i++) {
+         const magma::SetGroupPDR pdr_=request.set_gr_pdr(i);
+   }
+   for (int i=0; i<request.set_gr_far_size(); i++) {
+         const magma::SetGroupFAR far_=request.set_gr_far(i);
+   }
+   local_resp->set_response_reader(std::move(
       stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_)));
 }
 
