@@ -21,6 +21,7 @@ from magma.pipelined.app.inout import INGRESS
 from ryu.lib.packet import ether_types
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.utils import Utils
+from magma.pipelined.openflow.registers import TUN_PORT_REG
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 
@@ -116,7 +117,8 @@ class Classifier(MagmaController):
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,in_port=self._uplink_port,
                            ipv4_dst=ue_ip_adr)
         actions = [parser.OFPActionSetField(tunnel_id=o_teid),
-                   parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr)]
+                   parser.OFPActionSetField(tun_ipv4_dst=enodeb_ip_addr),
+                   parser.NXActionRegLoad2(dst=TUN_PORT_REG, value=self.config.gtp_port)]
         if sid:
             actions.append(parser.OFPActionSetField(metadata=sid))
 
@@ -134,6 +136,7 @@ class Classifier(MagmaController):
         # Add ARP flow for LOCAL port
         match = MagmaMatch(eth_type=ether_types.ETH_TYPE_ARP,
                            in_port=self._uplink_port, arp_tpa=ue_ip_adr)
+        actions = []
         if sid:
             actions = [parser.OFPActionSetField(metadata=sid)]
 
