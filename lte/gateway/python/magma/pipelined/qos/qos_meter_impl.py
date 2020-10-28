@@ -57,11 +57,11 @@ class MeterManager(object):
         ofproto = self._datapath.ofproto
         return None, parser.OFPInstructionMeter(meter_id, ofproto.OFPIT_METER)
 
-    def add_qos(self, _, qos_info: QosInfo, parent_qid=None) -> int:
+    def add_qos(self, _, qos_info: QosInfo, parent=None) -> int:
         if self._qos_impl_broken:
             raise RuntimeError(BROKEN_KERN_ERROR_MSG)
 
-        if parent_qid:
+        if parent:
             #TODO add ovs meter logic to handle APN AMBR
             pass
 
@@ -96,7 +96,7 @@ class MeterManager(object):
         for stat in ev_body:
             meter_id_map[stat.meter_id] = {
                 'direction': 0,
-                'ambr': 0,
+                'ambr_qid': 0,
             }
         self._id_manager.restore_state(meter_id_map)
         self._fut.set_result(meter_id_map)
@@ -117,3 +117,9 @@ class MeterManager(object):
             print(output.decode())
         except subprocess.CalledProcessError:
             print("Exception dumping meter state for %s", meter_id)
+
+    # pylint: disable=unused-argument
+    def same_qos_config(self, d,
+                        qid1: int, qid2: int) -> bool:
+        # Once APN AMBR support is added, implement this methode
+        return False
