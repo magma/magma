@@ -10,28 +10,29 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import logging
-from collections import defaultdict
-
 import os
-from time import time
-from typing import List, NamedTuple, Optional
-
 import shutil
-from magma.magmad.check import subprocess_workflow
-from redis.exceptions import ConnectionError
+import logging
+
+from time import time
+from typing import Dict, List, NamedTuple, Optional
 
 from magma.common.health.service_state_wrapper import ServiceStateWrapper
 from magma.common.job import Job
+from magma.magmad.check import subprocess_workflow
 from orc8r.protos.service_status_pb2 import ServiceExitStatus
+
+from redis.exceptions import ConnectionError
 
 SystemdServiceParams = NamedTuple('SystemdServiceParams', [('service', str)])
 
 
 class StateRecoveryJob(Job):
     """
-    Class that handles main loop to poll service status to check and restarts
-    sctpd as recovery method for services crashing
+    Class that handles main loop to poll service status to identify whether
+    services are in a crash loop
+    If crash loop is detected, restart sctpd to clean Redis state and
+    restart all services
     """
 
     def __init__(self, service_state: ServiceStateWrapper,
@@ -46,7 +47,7 @@ class StateRecoveryJob(Job):
         self._redis_dump_src = redis_dump_src
         self._loop = service_loop
         self._polling_interval = polling_interval
-        self._services_restarts_map = defaultdict(int)
+        self._services_restarts_map = self._get_last_service_restarts()
 
     def _get_service_status(self, service_name: str) \
             -> Optional[ServiceExitStatus]:
@@ -64,6 +65,21 @@ class StateRecoveryJob(Job):
         except (KeyError, ConnectionError) as err:
             logging.debug('Could not obtain service status: [%s]' % err)
             return None
+
+    def _get_last_service_restarts(self) -> Dict[str, int]:
+        """
+        Gets last unexpected restarts for each service from systemd_status
+        redis db
+
+        Returns: Dictionary containing each service and the num of unexpected
+        service restarts
+        """
+        last_services_restarts = {}
+        for service in self._services_check:
+            last_result = self._get_service_status(service)
+            if last_result:
+                last_services_restarts[service] = last_result.num_fail_exits
+        return last_services_restarts
 
     async def restart_service_async(self, service: str):
         """
@@ -99,11 +115,11 @@ class StateRecoveryJob(Job):
                     # Restart sctpd
                     await self.restart_service_async('sctpd')
 
-                # Update latest number of restarts for service
-                self._services_restarts_map[service] = current_restarts
+                    # Update latest number of restarts for service
+                    self._services_restarts_map[
+                        service] = result.num_fail_exits
                 logging.debug('Unexpected restarts for service %s: %s',
-                              service,
-                              result.num_fail_exits)
+                              service, current_restarts)
 
 
 def _get_service_restart_args(param: SystemdServiceParams) -> List[str]:
