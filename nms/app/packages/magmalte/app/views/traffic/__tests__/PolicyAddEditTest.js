@@ -193,8 +193,10 @@ describe('<TrafficDashboard />', () => {
               networkId: 'test',
               networkType: networkType,
             }}>
-            <LteNetworkContextProvider networkId={'test'}>
-              <PolicyProvider networkId={'test'}>
+            <LteNetworkContextProvider
+              networkId={'test'}
+              networkType={networkType}>
+              <PolicyProvider networkId={'test'} networkType={networkType}>
                 <Route
                   path="/nms/:networkId/traffic/policy"
                   component={TrafficDashboard}
