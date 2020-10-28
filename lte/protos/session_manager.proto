@@ -705,7 +705,6 @@ message M5GSMSessionContext {
   RedirectServer pdu_address = 3; //IP address. Imported from session_manager.proto file
   priorityaccess priority_access = 4;
   AccessType access_type = 5;     //Define enum TS-29.571 - section 5.4.3
-  SubscriberID sid = 25;
   string imei = 8; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
   string gpsi = 9; //Lenght is 10 bytes + 2 bytes country code generic public subscription id.
   string user_location_info = 10; //up to 6 byte. TS-23.003 - 28.15.3
@@ -783,6 +782,21 @@ message M5GSMSessionContextAccess{
 message SetSMSessionContextAccess {
   CommonSessionContext common_context = 1;  //Common message for 4g, 5g and WiFi.
   RatSpecificContextAccess   rat_specific_context = 2;
+}
+
+message UPFSessionState {
+  string seid = 1;            // Session ID
+  int32 sess_ver_no = 2;      // Successful Version number snapshot from UPF. If its not the expected parse Failure report.
+}
+
+// Perodic Session snapshot information from UPF to SMF
+message UPFSessionConfigState {
+     repeated UPFSessionState upf_session_state = 1;
+}
+
+//Set Interface from Pipelined
+service SetInterfaceForUserPlane {
+    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
 }
 
 // RPC service and method
