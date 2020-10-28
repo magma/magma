@@ -79,6 +79,8 @@ class StateRecoveryJob(Job):
             last_result = self._get_service_status(service)
             if last_result:
                 last_services_restarts[service] = last_result.num_fail_exits
+            else:
+                last_services_restarts[service] = 0
         return last_services_restarts
 
     async def restart_service_async(self, service: str):
@@ -106,8 +108,7 @@ class StateRecoveryJob(Job):
                         self._polling_interval)
 
                     # Save RDB snapshot
-                    os.makedirs(os.path.dirname(self._snapshots_dir),
-                                exist_ok=True)
+                    os.makedirs(self._snapshots_dir, exist_ok=True)
                     shutil.copy("%s/redis_dump.rdb" % self._redis_dump_src,
                                 "%s/redis_dump_%s.rdb" % (
                                     self._snapshots_dir, time()))
