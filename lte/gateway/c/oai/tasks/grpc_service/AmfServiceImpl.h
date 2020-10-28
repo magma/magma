@@ -39,7 +39,7 @@ using magma::lte::SmContextVoid;
 using magma::lte::SmfPduSessionSmContext;
 
 namespace magma {
-using namespace lte;
+namespace lte {
 
 //SessionD to AMF server
 class AmfServiceImpl final : public SmfPduSessionSmContext::Service {
