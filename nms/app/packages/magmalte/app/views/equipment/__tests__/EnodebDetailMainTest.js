@@ -43,6 +43,7 @@ const mockThroughput: promql_return_object = {
     ],
   },
 };
+
 describe('<Enodeb />', () => {
   beforeEach(() => {
     // eslint-disable-next-line max-len
@@ -53,6 +54,7 @@ describe('<Enodeb />', () => {
   afterEach(() => {
     axiosMock.get.mockClear();
   });
+
   const enbInfo = {
     testEnodebSerial0: {
       enb: {
@@ -179,6 +181,7 @@ describe('<Enodeb />', () => {
     expect(getByTestId('Gateway ID')).toHaveTextContent('testGw1');
     expect(getByTestId('Mme Connected')).toHaveTextContent('Disconnected');
   });
+
   it('unManaged eNodeB', async () => {
     const Wrapper = () => (
       <MemoryRouter
@@ -206,6 +209,7 @@ describe('<Enodeb />', () => {
     );
     const {getByTestId} = render(<Wrapper />);
     await wait();
+
     // TODO - commenting this out till we have per enodeb metric support
     // expect(
     //   MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
