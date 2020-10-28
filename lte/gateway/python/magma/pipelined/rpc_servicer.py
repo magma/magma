@@ -339,6 +339,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             # If no rule ids are given, all flows are deactivated
             self._service_manager.session_rule_version_mapper.update_version(
                 request.sid.id, ip_address)
+        if request.remove_default_drop_flows:
             self._enforcement_stats.deactivate_default_flow(request.sid.id,
                                                             ip_address)
         self._enforcer_app.deactivate_rules(request.sid.id, ip_address,
