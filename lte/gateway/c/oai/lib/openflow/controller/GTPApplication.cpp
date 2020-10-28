@@ -217,7 +217,8 @@ static void add_downlink_match_ipv6(
   // Set match on uplink port and IP eth type
   of13::InPort uplink_port_match(port);
   downlink_fm.add_oxm_field(uplink_port_match);
-  of13::EthType ip6_type(0x08DD);
+  // of13::EthType ip6_type(0x08DD);
+  of13::EthType ip6_type(0x86DD);
   downlink_fm.add_oxm_field(ip6_type);
 
   // Match UE IP destination
