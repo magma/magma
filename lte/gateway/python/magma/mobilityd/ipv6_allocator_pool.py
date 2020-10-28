@@ -89,11 +89,11 @@ class IPv6AllocatorPool(IPAllocator):
         for sid in list(self._store.sid_ips_map):
             ip_desc = self._store.sid_ips_map[sid]
             if ip_desc.ip.version == 6:
-                self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
-                                                         IPState.FREE)
+                self._store.ipv6_state_map.remove_ip_from_state(ip_desc.ip,
+                                                                IPState.FREE)
                 if force:
-                    self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
-                                                             IPState.ALLOCATED)
+                    self._store.ipv6_state_map.remove_ip_from_state(
+                        ip_desc.ip, IPState.ALLOCATED)
                 self._store.sid_ips_map.pop(sid)
 
         removed_blocks.append(self._assigned_ip_block)

@@ -160,7 +160,6 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
 
     def AllocateIPAddress(self, request, context):
         """ Allocate an IP address from the free IP pool """
-        ip_addr = IPAddress()
         composite_sid = SIDUtils.to_str(request.sid)
         if request.apn:
             composite_sid = composite_sid + "." + request.apn
@@ -168,18 +167,18 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         if request.version == AllocateIPRequest.IPV4:
             return self._get_allocate_ip_response(composite_sid + ",ipv4",
                                                   IPAddress.IPV4, context,
-                                                  ip_addr, request)
+                                                  request)
         elif request.version == AllocateIPRequest.IPV6:
             return self._get_allocate_ip_response(composite_sid + ",ipv6",
                                                   IPAddress.IPV6, context,
-                                                  ip_addr, request)
+                                                  request)
         elif request.version == AllocateIPRequest.IPV4V6:
             ipv4_response = self._get_allocate_ip_response(
                 composite_sid + ",ipv4", IPAddress.IPV4,
-                context, ip_addr, request)
+                context, request)
             ipv6_response = self._get_allocate_ip_response(
                 composite_sid + ",ipv6", IPAddress.IPV6,
-                context, ip_addr, request)
+                context, request)
             ipv4_addr = ipv4_response.ip_list[0]
             ipv6_addr = ipv6_response.ip_list[0]
             # Get vlan from IPv4 Allocate response
@@ -298,15 +297,13 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
         self._ip_address_man.set_gateway_info(info)
 
     def _get_allocate_ip_response(self, composite_sid, version, context,
-                                  ip_addr,
                                   request):
         try:
             ip, vlan = self._ip_address_man.alloc_ip_address(composite_sid,
                                                              version)
             logging.info("Allocated IP %s for sid %s for apn %s"
                          % (ip, SIDUtils.to_str(request.sid), request.apn))
-            ip_addr.version = version
-            ip_addr.address = ip.packed
+            ip_addr = IPAddress(address=ip.packed, version=version)
             return AllocateIPAddressResponse(ip_list=[ip_addr],
                                              vlan=str(vlan))
         except NoAvailableIPError:

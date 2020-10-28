@@ -93,7 +93,7 @@ class SubscriberDbClient:
                 return apn_config.resource.vlan_id
 
         except ValueError:
-            logging.warning("Invalid data for sid %s: ", sid)
+            logging.warning("Invalid data for sid: %s", sid)
             return 0
 
         except grpc.RpcError as err:
