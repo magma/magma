@@ -621,12 +621,14 @@ class MagmadUtil(object):
             disable: Disable stateless mode, do nothing if already stateful
 
         """
-
-        config_stateless_script = "/usr/local/bin/config_stateless_agw.sh"
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        venvsudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH env"
+        config_stateless_script = "/usr/local/bin/config_stateless_agw.py"
 
         ret_code = self.exec_command(
-            "sudo " + config_stateless_script + " " + cmd.name.lower()
-        )
+            magtivate_cmd + " && " + venvsudo_cmd + " python3 " +
+            config_stateless_script + " " + cmd.name.lower()
+            )
 
         if ret_code == 0:
             print("AGW is stateless")
