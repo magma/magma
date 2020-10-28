@@ -396,6 +396,17 @@ int s1ap_mme_handle_nas_non_delivery(
       S1ap_NASNonDeliveryIndication_IEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_Cause, true);
 
+  /*
+   * UE associated signalling on stream == 0 is not valid.
+   */
+  if (stream == 0) {
+    OAILOG_NOTICE(
+        LOG_S1AP,
+        "Received S1AP NAS_NON_DELIVERY_INDICATION message on "
+        "invalid sctp stream 0\n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   OAILOG_NOTICE(
       LOG_S1AP,
       "Received S1AP NAS_NON_DELIVERY_INDICATION message "
@@ -425,8 +436,8 @@ int s1ap_mme_handle_nas_non_delivery(
 
   // TODO: forward NAS PDU to NAS
   s1ap_mme_itti_nas_non_delivery_ind(
-      ie->value.choice.MME_UE_S1AP_ID, ie->value.choice.NAS_PDU.buf,
-      ie->value.choice.NAS_PDU.size, &ie->value.choice.Cause, imsi64);
+      ie->value.choice.MME_UE_S1AP_ID, ie_nas_pdu->value.choice.NAS_PDU.buf,
+      ie_nas_pdu->value.choice.NAS_PDU.size, &ie->value.choice.Cause, imsi64);
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
 

@@ -133,8 +133,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       S1ap_S1AP_PDU_t pdu = {0};
 
       // Invoke S1AP message decoder
-      if (s1ap_mme_decode_pdu(
-              &pdu, SCTP_DATA_IND(received_message_p).payload)) {
+      if (s1ap_mme_decode_pdu(&pdu, SCTP_DATA_IND(received_message_p).payload) <
+          0) {
         // TODO: Notify eNB of failure with right cause
         OAILOG_ERROR(LOG_S1AP, "Failed to decode new buffer\n");
       } else {

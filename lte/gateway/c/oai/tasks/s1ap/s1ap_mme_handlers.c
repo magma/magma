@@ -1960,8 +1960,7 @@ bool s1ap_send_enb_deregistered_ind(
     __attribute__((unused)) const hash_key_t keyP, uint64_t const dataP,
     void* argP, void** resultP) {
   arg_s1ap_send_enb_dereg_ind_t* arg = (arg_s1ap_send_enb_dereg_ind_t*) argP;
-  ue_description_t* ue_ref_p         = (ue_description_t*) dataP;
-  imsi64_t imsi64                    = INVALID_IMSI64;
+  ue_description_t* ue_ref_p         = NULL;
 
   // Ask for the release of each UE context associated to the eNB
   hash_table_ts_t* s1ap_ue_state = get_s1ap_ue_state();
@@ -1970,6 +1969,7 @@ bool s1ap_send_enb_deregistered_ind(
     if (arg->current_ue_index == 0) {
       arg->message_p =
           itti_alloc_new_message(TASK_S1AP, S1AP_ENB_DEREGISTERED_IND);
+      OAILOG_DEBUG(LOG_S1AP, "eNB Deregisteration");
     }
     if (ue_ref_p->mme_ue_s1ap_id == INVALID_MME_UE_S1AP_ID) {
       /*
@@ -1978,10 +1978,6 @@ bool s1ap_send_enb_deregistered_ind(
        */
       OAILOG_WARNING(LOG_S1AP, "UE with invalid MME s1ap id found");
     }
-    s1ap_imsi_map_t* imsi_map = get_s1ap_imsi_map();
-    hashtable_uint64_ts_get(
-        imsi_map->mme_ue_id_imsi_htbl,
-        (const hash_key_t) ue_ref_p->mme_ue_s1ap_id, &imsi64);
 
     AssertFatal(
         arg->current_ue_index < S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE,
@@ -2057,7 +2053,6 @@ bool construct_s1ap_mme_full_reset_req(
 int s1ap_handle_sctp_disconnection(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id, bool reset) {
   arg_s1ap_send_enb_dereg_ind_t arg  = {0};
-  int i                              = 0;
   MessageDef* message_p              = NULL;
   enb_description_t* enb_association = NULL;
 
@@ -2107,20 +2102,22 @@ int s1ap_handle_sctp_disconnection(
    * Send S1ap deregister indication to MME app in batches of UEs where
    * UE count in each batch <= S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE
    */
+
   arg.associated_enb_id   = enb_association->enb_id;
   arg.deregister_ue_count = enb_association->ue_id_coll.num_elements;
+  // enb_association->s1_state = S1AP_SHUTDOWN;
   hashtable_uint64_ts_apply_callback_on_elements(
       &enb_association->ue_id_coll, s1ap_send_enb_deregistered_ind,
       (void*) &arg, (void**) &message_p);
 
-  for (i = arg.current_ue_index; i < S1AP_ITTI_UE_PER_DEREGISTER_MESSAGE; i++) {
-    S1AP_ENB_DEREGISTERED_IND(message_p).mme_ue_s1ap_id[arg.current_ue_index] =
-        0;
-    S1AP_ENB_DEREGISTERED_IND(message_p).enb_ue_s1ap_id[arg.current_ue_index] =
-        0;
-  }
-  S1AP_ENB_DEREGISTERED_IND(message_p).enb_id = enb_association->enb_id;
-  message_p                                   = NULL;
+  /*
+   * Mark the eNB's s1 state as appropriate, the eNB will be deleted or
+   * moved to init state when the last UE's s1 state is cleaned up
+   */
+  enb_association->s1_state = reset ? S1AP_RESETING : S1AP_SHUTDOWN;
+  OAILOG_INFO(
+      LOG_S1AP, "Marked enb s1 status to %s, attached to assoc_id: %d\n",
+      reset ? "Reset" : "Shutdown", assoc_id);
 
   OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
 }
@@ -2455,6 +2452,7 @@ int s1ap_mme_handle_enb_reset(
 
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_ResetIEs_t, ie, container, S1ap_ProtocolIE_ID_id_ResetType, true);
+
   S1ap_ResetType_t* resetType = &ie->value.choice.ResetType;
 
   switch (resetType->present) {
@@ -2471,6 +2469,7 @@ int s1ap_mme_handle_enb_reset(
       // TBD - Here MME should send Error Indication as it is abnormal scenario.
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
+
   if (s1ap_reset_type == RESET_PARTIAL) {
     int reset_count = resetType->choice.partOfS1_Interface.list.count;
     if (reset_count == 0) {
@@ -2533,6 +2532,20 @@ int s1ap_mme_handle_enb_reset(
                 resetType->choice.partOfS1_Interface.list.array[i];
         DevAssert(s1_sig_conn_id_p != NULL);
 
+        S1ap_UE_associatedLogicalS1_ConnectionItemResAck_t* s1_sig_conn_p =
+            (S1ap_UE_associatedLogicalS1_ConnectionItemResAck_t*) ie->value
+                .choice.ResetType.choice.partOfS1_Interface.list.array[i];
+        if (!s1_sig_conn_p) {
+          OAILOG_ERROR(
+              LOG_S1AP,
+              "No logical S1 connection item could be found for the "
+              "partial connection. "
+              "Ignoring the received partial reset request. \n");
+          OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+        }
+        S1ap_UE_associatedLogicalS1_ConnectionItem_t* s1_sig_conn_id_p =
+            &s1_sig_conn_p->value.choice.UE_associatedLogicalS1_ConnectionItem;
+
         if (s1_sig_conn_id_p->mME_UE_S1AP_ID != NULL) {
           mme_ue_s1ap_id =
               (mme_ue_s1ap_id_t) * (s1_sig_conn_id_p->mME_UE_S1AP_ID);
@@ -2542,7 +2555,7 @@ int s1ap_mme_handle_enb_reset(
               &imsi64);
           if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) != NULL) {
             if (s1_sig_conn_id_p->eNB_UE_S1AP_ID != NULL) {
-              enb_ue_s1ap_id =
+              enb_ue_s1ap_id_t enb_ue_s1ap_id =
                   (enb_ue_s1ap_id_t) * (s1_sig_conn_id_p->eNB_UE_S1AP_ID);
               if (ue_ref_p->enb_ue_s1ap_id ==
                   (enb_ue_s1ap_id & ENB_UE_S1AP_ID_MASK)) {
