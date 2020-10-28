@@ -60,6 +60,7 @@ describe('<Enodeb />', () => {
   afterEach(() => {
     axiosMock.get.mockClear();
   });
+
   const enbInfo = {
     testEnodebSerial0: {
       enb: {

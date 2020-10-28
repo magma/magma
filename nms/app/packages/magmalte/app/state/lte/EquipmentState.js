@@ -228,6 +228,19 @@ export async function SetEnodebState(props: EnodebStateProps) {
       const prevEnbSt = enbInfo[key].enb_state;
       setEnbInfo({...enbInfo, [key]: {enb_state: prevEnbSt, enb: value.enb}});
     }
+    const newEnb = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerial({
+      networkId: networkId,
+      enodebSerial: key,
+    });
+    if (newEnb) {
+      const newEnbSt = await MagmaV1API.getLteByNetworkIdEnodebsByEnodebSerialState(
+        {
+          networkId: networkId,
+          enodebSerial: key,
+        },
+      );
+      setEnbInfo({...enbInfo, [key]: {enb_state: newEnbSt, enb: newEnb}});
+    }
   } else {
     await MagmaV1API.deleteLteByNetworkIdEnodebsByEnodebSerial({
       networkId: networkId,
