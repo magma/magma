@@ -18,10 +18,7 @@ from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.openflow import flows
 from ryu.controller.controller import Datapath
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction
 from magma.pipelined.imsi import encode_imsi
-from ryu.lib.packet import ether_types
-
 
 class IPFIXController(MagmaController):
     """
@@ -169,16 +166,9 @@ class IPFIXController(MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                   direction=Direction.IN)
-        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    direction=Direction.OUT)
+        match = MagmaMatch()
         flows.add_resubmit_next_service_flow(
-            datapath, self.tbl_num, inbound_match, [],
-            priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_main_table)
-        flows.add_resubmit_next_service_flow(
-            datapath, self.tbl_num, outbound_match, [],
+            datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
 
