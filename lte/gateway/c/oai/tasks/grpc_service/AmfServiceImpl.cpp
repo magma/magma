@@ -39,7 +39,7 @@ AmfServiceImpl::AmfServiceImpl() {}
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
-  OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request\n"); 
+  OAILOG_INFO(LOG_UTIL, "Received GRPC SetSMSessionContextAccess request\n"); 
     
 //ToDo processing ITTI,ZMQ
 
