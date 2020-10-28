@@ -85,3 +85,6 @@ services:
   dpid:
     ip_address: 127.0.0.1
     port: 50077
+  ctraced:
+    ip_address: 127.0.0.1
+    port: 50079
