@@ -10,7 +10,9 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 import logging
+import queue
 from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
@@ -49,6 +51,8 @@ from magma.pipelined.metrics import (
     ENFORCEMENT_RULE_INSTALL_FAIL,
 )
 
+grpc_msg_queue = queue.Queue()
+
 
 class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
     """
@@ -72,6 +76,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._classifier_app = classifier_app
         self._service_manager = service_manager
 
+        self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
+        if self._print_grpc_payload is None:
+            self._print_grpc_payload = \
+                service_config.get('magma_print_grpc_payload', False)
+
     def add_to_server(self, server):
         """
         Add the servicer to a gRPC server
@@ -86,6 +95,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Setup flows for all subscribers, used on pipelined restarts
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -120,6 +130,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Activate flows for a subscriber based on the pre-defined rules
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -287,6 +298,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Deactivate flows for a subscriber
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -346,6 +358,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Get policy usage stats
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 EnforcementStatsController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -365,6 +378,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Update IPFIX sampling record
         """
+        self._log_grpc_payload(request)
         if self._service_manager.is_app_enabled(IPFIXController.APP_NAME):
             # Install trace flow
             self._loop.call_soon_threadsafe(
@@ -383,6 +397,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Add dpi flow
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 DPIController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -398,6 +413,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Add dpi flow
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 DPIController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -412,6 +428,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Update stats for a flow
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 DPIController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -428,6 +445,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Activate a list of attached UEs
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 UEMacAddressController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -461,6 +479,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Associate UE MAC address to subscriber
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 UEMacAddressController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -487,6 +506,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Delete UE MAC address to subscriber association
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 UEMacAddressController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -531,6 +551,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Activate a list of quota rules
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 CheckQuotaController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -556,6 +577,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         """
         Updates the subcsciber quota state
         """
+        self._log_grpc_payload(request)
         if not self._service_manager.is_app_enabled(
                 CheckQuotaController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)
@@ -576,12 +598,34 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         Get the flow table assignment for all apps ordered by main table number
         and name
         """
+        self._log_grpc_payload(request)
         table_assignments = self._service_manager.get_all_table_assignments()
         return AllTableAssignments(table_assignments=[
             TableAssignment(app_name=app_name, main_table=tables.main_table,
                             scratch_tables=tables.scratch_tables) for
             app_name, tables in table_assignments.items()])
 
+    # --------------------------
+    # Internal
+    # --------------------------
+
+    def _log_grpc_payload(self, grpc_request):
+        if not grpc_request:
+            return
+        indent = '  '
+        dbl_indent = indent + indent
+        indented_text = dbl_indent + \
+            str(grpc_request).replace('\n', '\n' + dbl_indent)
+        log_msg = 'Got RPC payload:\n{0}{1} {{\n{2}\n{0}}}'.format(indent,
+            grpc_request.DESCRIPTOR.name, indented_text.rstrip())
+
+        grpc_msg_queue.put(log_msg)
+        if grpc_msg_queue.qsize() > 100:
+            grpc_msg_queue.get()
+
+        if not self._print_grpc_payload:
+            return
+        logging.info(log_msg)
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],
