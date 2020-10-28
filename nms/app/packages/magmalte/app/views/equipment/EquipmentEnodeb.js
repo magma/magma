@@ -85,7 +85,7 @@ export default function Enodeb() {
             unit={'Throughput(mb/s)'}
             title={CHART_TITLE}
             queries={[
-              `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
+              `sum(gtp_port_user_plane_dl_bytes{service="enodebd"} + gtp_port_user_plane_ul_bytes{service="enodebd"})/1000`,
             ]}
             legendLabels={['mbps']}
           />
