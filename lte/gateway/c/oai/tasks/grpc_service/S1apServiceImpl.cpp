@@ -19,9 +19,10 @@
 #include <string>
 
 extern "C" {
-#include "s1ap_state.h"
-#include "log.h"
+#include "assertions.h"
 #include "hashtable.h"
+#include "log.h"
+#include "s1ap_state.h"
 }
 
 using grpc::ServerContext;
@@ -58,6 +59,7 @@ Status S1apServiceImpl::GetEnbConnected(
         response->add_enb_ids(enb_ref->enb_id);
       }
     }
+    FREE_HASHTABLE_KEY_ARRAY(ht_keys);
   }
 
   return Status::OK;
