@@ -18,24 +18,16 @@
      enabled: false
   ignore_errors: true
 
-- name: install python modules
-  shell: pip3 install jsonpickle
-
-- name: retrieve hwid
-  shell: cat /etc/snowflake
-  register: gateway_hwid
-
-- name: copy the admin certificate key
-  copy: content={{ rest_admin_key }} dest=/var/opt/magma/certs/rest_admin.key mode='400'
-
-- name: copy the admin certificate
-  copy: content={{ rest_admin_crt }} dest=/var/opt/magma/certs/rest_admin.crt mode='400'
-
 - name: set the hostname for the machine
   become: true
-  script: xwfm_hostname.py --partner {{ partner }} --hwid {{ gateway_hwid.stdout }} --url {{ portal_url }} --env {{ env }}
-  register: output
+  copy:
+   content: "{{ 'xwfm.' + partner + '.' + env + '.' + server_id | default('1') }}"
+   dest: /etc/hostname
   ignore_errors: true
+
+- name: set the hostname now
+  become: true
+  shell: hostname {{ 'xwfm.' + partner + '.' + env + '.' + server_id | default('1') }} 
 
 - name: delete ovs bridges incase they exist
   become: true
