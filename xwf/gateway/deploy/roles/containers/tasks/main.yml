@@ -111,12 +111,12 @@
   script: xwfm_update.sh
 
 - name: copy the radclient script
-  copy: src=xwfm_radclient.sh dest=/usr/sbin mode='0755'
+  template: src=xwfm_radclient.sh.j2 dest=/usr/sbin/xwfm_radclient.sh mode='0755'
 
-- name: copy the radclient script
+- name: copy the list interface  script
   copy: src=xwfm_list_interface.sh dest=/usr/sbin mode='0755'
 
-- name: copy the radclient script
+- name: copy the  rules list script
   copy: src=xwfm_list_rules.sh dest=/usr/sbin mode='0755'
 
 - name: copy the cp test  script
