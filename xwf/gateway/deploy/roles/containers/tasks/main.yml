@@ -111,7 +111,7 @@
   script: xwfm_update.sh
 
 - name: copy the radclient script
-  copy: src=xwfm_radclient.sh dest=/usr/sbin mode='0755'
+  template: src=xwfm_radclient.sh.j2 dest=/usr/sbin/xwfm_radclient.sh mode='0755'
 
 - name: copy the radclient script
   copy: src=xwfm_list_interface.sh dest=/usr/sbin mode='0755'
