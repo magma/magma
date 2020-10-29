@@ -213,9 +213,12 @@ MATCHER_P(CheckTerminate, imsi, "") {
   return request->sid() == imsi;
 }
 
-MATCHER_P2(CheckActivateFlows, imsi, rule_count, "") {
+MATCHER_P4(CheckActivateFlows, imsi, rule_count, ipv4, ipv6, "") {
   auto request = static_cast<const ActivateFlowsRequest*>(arg);
-  return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
+  auto res     = request->sid().id() == imsi &&
+             request->rule_ids_size() == rule_count &&
+             request->ip_addr() == ipv4 && request->ipv6_addr() == ipv6;
+  return res;
 }
 
 MATCHER_P(CheckDeactivateFlows, imsi, "") {
@@ -248,6 +251,8 @@ ACTION_P2(SetEndPromise, promise_p, status) {
  */
 TEST_F(SessiondTest, end_to_end_success) {
   std::promise<void> end_promise;
+  std::string ipv4_addrs = "192.168.0.1";
+  std::string ipv6_addrs = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
   {
     CreateSessionResponse create_response;
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
@@ -277,12 +282,16 @@ TEST_F(SessiondTest, end_to_end_success) {
     // for static and dynamic rules. So here is the call for static rules.
     EXPECT_CALL(
         *pipelined_mock,
-        ActivateFlows(testing::_, CheckActivateFlows("IMSI1", 3), testing::_))
+        ActivateFlows(
+            testing::_, CheckActivateFlows("IMSI1", 3, ipv4_addrs, ipv6_addrs),
+            testing::_))
         .Times(1);
     // Here is the call for dynamic rules, which in this case should be empty.
     EXPECT_CALL(
         *pipelined_mock,
-        ActivateFlows(testing::_, CheckActivateFlows("IMSI1", 0), testing::_))
+        ActivateFlows(
+            testing::_, CheckActivateFlows("IMSI1", 0, ipv4_addrs, ipv6_addrs),
+            testing::_))
         .Times(1);
 
     EXPECT_CALL(
@@ -333,6 +342,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   LocalCreateSessionRequest request;
   request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
+  request.mutable_common_context()->set_ue_ipv4(ipv4_addrs);
+  request.mutable_common_context()->set_ue_ipv6(ipv6_addrs);
   stub->CreateSession(&create_context, request, &create_resp);
 
   // The thread needs to be halted before proceeding to call ReportRuleStats()
@@ -343,9 +354,10 @@ TEST_F(SessiondTest, end_to_end_success) {
 
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record("IMSI1", "rule1", 512, 512, record_list->Add());
-  create_rule_record("IMSI1", "rule2", 512, 0, record_list->Add());
-  create_rule_record("IMSI1", "rule3", 32, 32, record_list->Add());
+  create_rule_record(
+      "IMSI1", ipv4_addrs, "rule1", 512, 512, record_list->Add());
+  create_rule_record("IMSI1", ipv6_addrs, "rule2", 512, 0, record_list->Add());
+  create_rule_record("IMSI1", ipv4_addrs, "rule3", 32, 32, record_list->Add());
   grpc::ClientContext update_context;
   Void void_resp;
   stub->ReportRuleStats(&update_context, table, &void_resp);
