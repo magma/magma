@@ -19,12 +19,16 @@
 
 #include <unordered_map>
 #include <list>
+#include <mutex>
+#include <condition_variable>
 
 #include <fluid/OFServer.hh>
 
 #include "ControllerEvents.h"
 #include "OpenflowMessenger.h"
 
+extern std::condition_variable cv;
+extern std::mutex cv_mutex;
 namespace openflow {
 
 #define IP_ETH_TYPE 0x0800

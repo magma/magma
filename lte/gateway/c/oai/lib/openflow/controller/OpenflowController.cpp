@@ -61,16 +61,15 @@ void OpenflowController::message_callback(
     OAILOG_DEBUG(LOG_GTPV1U, "Openflow controller got packet-in message\n");
     dispatch_event(PacketInEvent(ofconn, *this, data, len));
   } else if (type == OFPT_FEATURES_REPLY_TYPE) {
-    OAILOG_INFO(
-        LOG_GTPV1U,
-        "Checking for condition wheather Openflow controller is connected to "
-        "switch\n");
-    pthread_mutex_lock(&pthread_mutex);
-    pthread_cond_broadcast(&condition_variable);
-    pthread_mutex_unlock(&pthread_mutex);
     OAILOG_INFO(LOG_GTPV1U, "Openflow controller connected to switch \n");
     // Save OF connection for external events
     latest_ofconn_ = ofconn;
+    std::lock_guard<std::mutex> lck(cv_mutex);
+    cv.notify_all();
+    OAILOG_INFO(
+        LOG_GTPV1U,
+        "Send signal that Controller is connected to switch to all waiting "
+        "threads \n");
     dispatch_event(SwitchUpEvent(ofconn, *this, data, len));
   } else if (type == OFPT_ERROR) {
     dispatch_event(
@@ -102,11 +101,19 @@ void OpenflowController::dispatch_event(const ControllerEvent& ev) {
 void OpenflowController::inject_external_event(
     std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) ) {
   if (latest_ofconn_ == NULL) {
-    OAILOG_INFO(
-        LOG_GTPV1U, "Waiting for connection on event type %d", ev->get_type());
-    pthread_mutex_lock(&pthread_mutex);
-    pthread_cond_wait(&condition_variable, &pthread_mutex);
-    pthread_mutex_unlock(&pthread_mutex);
+#define CONNECTION_WAIT_TIME 5
+    std::unique_lock<std::mutex> lck(cv_mutex);
+    if (cv.wait_for(lck, std::chrono::seconds(CONNECTION_WAIT_TIME)) ==
+        std::cv_status::timeout) {
+      OAILOG_CRITICAL(
+          LOG_GTPV1U,
+          "Openflow controller is not connected to switch, waited for 5 "
+          "seconds \n");
+    } else {
+      OAILOG_ERROR(
+          LOG_GTPV1U,
+          "Fininshed waiting, Controller is now connected to switch \n");
+    }
   }
   ev->set_of_connection(latest_ofconn_);
   latest_ofconn_->add_immediate_event(cb, ev);

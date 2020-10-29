@@ -15,7 +15,10 @@
  *      contact@openairinterface.org
  */
 
-#include <pthread.h>
+#include <thread>
+#include <chrono>
+#include <mutex>
+#include <condition_variable>
 #include "OpenflowController.h"
 #include "PagingApplication.h"
 #include "BaseApplication.h"
@@ -29,8 +32,8 @@ extern "C" {
 static const int OFP_LOCAL   = 65534;
 static const int OF13P_LOCAL = 0xfffffffe;
 
-pthread_cond_t condition_variable;
-pthread_mutex_t pthread_mutex;
+std::condition_variable cv;
+std::mutex cv_mutex;
 namespace {
 openflow::OpenflowController ctrl(
     CONTROLLER_ADDR, CONTROLLER_PORT, NUM_WORKERS, false);
@@ -71,23 +74,20 @@ int start_of_controller(bool persist_state) {
   ctrl.start();
   OAILOG_INFO(LOG_GTPV1U, "Started openflow controller\n");
 
-  struct timespec time;
-  clock_gettime(CLOCK_REALTIME, &time);
   /* pthread conditional variable is added along with wait for 5 minutes in
    * order to make sure connection is established between Controller and switch
    * before inserting OVS rules
    */
 #define CONNECTION_WAIT_TIME 300
-  time.tv_sec += CONNECTION_WAIT_TIME;
-  pthread_cond_init(&condition_variable, NULL);
-  pthread_mutex_lock(&pthread_mutex);
-  int ret = pthread_cond_timedwait(&condition_variable, &pthread_mutex, &time);
-  if (ret == ETIMEDOUT) {
-    OAILOG_INFO(
-        LOG_GTPV1U, "Failed to connect openflow controller to switch \n");
+  std::unique_lock<std::mutex> lck(cv_mutex);
+  if (cv.wait_for(lck, std::chrono::seconds(CONNECTION_WAIT_TIME)) ==
+      std::cv_status::timeout) {
+    OAILOG_CRITICAL(
+        LOG_GTPV1U,
+        "Failed to connect openflow controller to switch, waited for 300 "
+        "seconds \n");
     return -1;
   }
-  pthread_mutex_unlock(&pthread_mutex);
   return 0;
 }
 
