@@ -79,6 +79,7 @@ const mockEnbSt: enodeb_state = {
   ptp_connected: true,
   rf_tx_desired: true,
   rf_tx_on: true,
+  ip_address: '192.168.1.254',
 };
 
 jest.mock('axios');
