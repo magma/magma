@@ -12,8 +12,6 @@ limitations under the License.
 #include <string>
 
 #include "lte/protos/session_manager.pb.h"
-#include "lte/protos/spgw_service.pb.h"
-#include <folly/IPAddress.h>
 
 extern "C" {
 #include "spgw_service_handler.h"
@@ -39,7 +37,7 @@ AmfServiceImpl::AmfServiceImpl() {}
 Status AmfServiceImpl::SetSmfSessionContext(
     ServerContext* context, const SetSMSessionContextAccess* request,
     SmContextVoid* response) {
-  OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request\n"); 
+  OAILOG_INFO(LOG_UTIL, "Received GRPC SetSMSessionContextAccess request\n"); 
     
 //ToDo processing ITTI,ZMQ
 
