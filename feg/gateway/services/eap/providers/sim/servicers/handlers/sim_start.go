@@ -148,10 +148,15 @@ func startResponse(s *servicers.EapSimSrv, ctx *protos.Context, req eap.Packet) 
 		glog.Errorf(
 			"EAP SIM StartResponse: Unexpected user state: %d,%s for IMSI: %s, CTX Identity: %s",
 			state, t, imsi, uc.Identity)
+		if state == sim.StateRedirected {
+			sim.EapErrorResPacket(
+				identifier, sim.NOTIFICATION_FAILURE, codes.FailedPrecondition,
+				"IMSI: %s is redirected to another method", imsi)
+		}
 	}
 	uc.Identity = identity
 	uc.SetState(sim.StateIdentity)
-	p, err := createChallengeRequest(uc, identifier, nonce, []byte{0, sim.Version}, version)
+	p, err := createChallengeRequest(s, uc, identifier, nonce, []byte{0, sim.Version}, version)
 	if err == nil {
 		// Update state
 		uc.SetState(sim.StateChallenge)
