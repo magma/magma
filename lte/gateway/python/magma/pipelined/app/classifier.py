@@ -25,6 +25,16 @@ from magma.pipelined.policy_converters import get_eth_type, get_ue_ip_match_args
 from magma.pipelined.utils import Utils
 from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
+from magma.pipelined.openflow.registers import TUN_PORT_REG
+from lte.protos.mobilityd_pb2 import IPAddress
+from magma.pipelined.policy_converters import get_ue_ip_match_args, get_eth_type
+from magma.pipelined.openflow.registers import Direction
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
+from ryu.controller import ofp_event
+from ryu.lib.packet import packet
+from ryu.lib.packet import ipv4
+from lte.protos.session_manager_pb2 import UPFPagingInfo
+from magma.pipelined.set_interface_client import send_paging_intiated_notification
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
@@ -55,6 +65,8 @@ class Classifier(MagmaController):
         self._clean_restart = kwargs['config']['clean_restart']
         if self.config.multi_tunnel_flag:
             self._ovs_multi_tunnel_init()
+        #Get SessionD Channel
+        self._sessiond_setinterface = kwargs['rpc_stubs']['sessiond_setinterface']
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -83,6 +95,7 @@ class Classifier(MagmaController):
                                config_dict['ovs_internal_conntrack_port_number'],
             internal_conntrack_fwd_tbl=
                                config_dict['ovs_internal_conntrack_fwd_tbl_number'],
+            paging_timeout = config_dict['paging_timeout'],
 
         )
 
@@ -176,12 +189,25 @@ class Classifier(MagmaController):
                                              reset_default_register=False,
                                              resubmit_table=self.config.internal_conntrack_fwd_tbl)
 
+    def _send_messsage_interface(self, ue_ip_add:str):
+        """
+        Build the message
+        """
+        paging_message=UPFPagingInfo(ue_ip_addr=ue_ip_add)
+
+        send_paging_intiated_notification(paging_message,
+                                          self._sessiond_setinterface)
+
+
     def add_tunnel_flows(self, precedence:int, i_teid:int,
                          o_teid:int, ue_ip_adr:IPAddress,
                          enodeb_ip_addr:str, sid:int = None) -> bool:
 
         parser = self._datapath.ofproto_parser
         priority = Utils.get_of_priority(precedence)
+        # Set minimun priority of GTP flow as 10
+        if priority < flows.DEFAULT_PRIORITY:
+            priority = flows.DEFAULT_PRIORITY
         # Add flow for gtp port
         if enodeb_ip_addr:
             gtp_portno = self._add_gtp_port(enodeb_ip_addr)
@@ -315,6 +341,9 @@ class Classifier(MagmaController):
     def _resume_tunnel_flows(self, precedence:int, i_teid:int,
                               ue_ip_adr:IPAddress=None):
         priority = Utils.get_of_priority(precedence)
+        # Set minimun priority of GTP flow as 10
+        if priority < flows.DEFAULT_PRIORITY:
+            priority = flows.DEFAULT_PRIORITY
         # discard uplink Tunnel
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
@@ -350,6 +379,9 @@ class Classifier(MagmaController):
                              ue_ip_adr:IPAddress=None):
 
         priority = Utils.get_of_priority(precedence)
+        # Set minimun priority of GTP flow as 10
+        if priority < flows.DEFAULT_PRIORITY:
+            priority = flows.DEFAULT_PRIORITY
         # Forward flow for gtp port
         match = MagmaMatch(tunnel_id=i_teid, in_port=self.config.gtp_port)
 
@@ -374,3 +406,35 @@ class Classifier(MagmaController):
             flows.delete_flow(self._datapath, self.tbl_num, match,
                               priority=priority + 1)
 
+    @set_ev_cls(ofp_event.EventOFPPacketIn, MAIN_DISPATCHER)
+    def _packet_in_handler(self, ev):
+        msg = ev.msg
+
+        pkt = packet.Packet(msg.data)
+        pkt_ipv4 = pkt.get_protocol(ipv4.ipv4)
+
+        dst = pkt_ipv4.dst
+
+        # For sending notification to SMF using GRPC
+        self._send_messsage_interface(dst)
+        # Add flow for paging with hard time.
+        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=dst)
+
+        flows.add_drop_flow(self._datapath, self.tbl_num, match, [],
+                       priority=flows.PAGING_PRIORITY + 1,
+                       hard_timeout= self.config.paging_timeout)
+
+    def _install_paging_flow(self, ue_ip_addr:str):
+        ofproto = self._datapath.ofproto
+        # Add flow for paging.
+        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=ue_ip_addr)
+
+        flows.add_output_flow(self._datapath, self.tbl_num,
+                              match=match, actions=[],
+                              priority=flows.PAGING_PRIORITY,
+                              output_port=ofproto.OFPP_CONTROLLER,
+                              max_len=ofproto.OFPCML_NO_BUFFER)
+
+    def _remove_paging_flow(self, ue_ip_addr:str):
+        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_dst=ue_ip_addr)
+        flows.delete_flow(self._datapath, self.tbl_num, match)

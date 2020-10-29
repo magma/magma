@@ -25,6 +25,7 @@ PASSTHROUGH_PRIORITY = 15
 MINIMUM_PRIORITY = 0
 MEDIUM_PRIORITY = 100
 MAXIMUM_PRIORITY = 65535
+PAGING_PRIORITY = 5
 OVS_COOKIE_MATCH_ALL = 0xffffffff
 
 def add_drop_flow(datapath, table, match, actions=None, instructions=None,
