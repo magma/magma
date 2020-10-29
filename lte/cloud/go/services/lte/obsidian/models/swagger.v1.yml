@@ -2093,6 +2093,7 @@ definitions:
       - ptp_connected
       - mme_connected
       - fsm_state
+      - ip_address
     properties:
       time_reported:
         type: integer
@@ -2122,6 +2123,8 @@ definitions:
       mme_connected:
         type: boolean
       fsm_state:
+        type: string
+      ip_address:
         type: string
 
   aggregated_maximum_bitrate:

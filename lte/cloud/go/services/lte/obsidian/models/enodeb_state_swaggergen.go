@@ -41,6 +41,10 @@ type EnodebState struct {
 	// Required: true
 	GpsLongitude *string `json:"gps_longitude"`
 
+	// ip address
+	// Required: true
+	IPAddress *string `json:"ip_address"`
+
 	// mme connected
 	// Required: true
 	MmeConnected *bool `json:"mme_connected"`
@@ -93,6 +97,10 @@ func (m *EnodebState) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateGpsLongitude(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPAddress(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -170,6 +178,15 @@ func (m *EnodebState) validateGpsLatitude(formats strfmt.Registry) error {
 func (m *EnodebState) validateGpsLongitude(formats strfmt.Registry) error {
 
 	if err := validate.Required("gps_longitude", "body", m.GpsLongitude); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *EnodebState) validateIPAddress(formats strfmt.Registry) error {
+
+	if err := validate.Required("ip_address", "body", m.IPAddress); err != nil {
 		return err
 	}
 
