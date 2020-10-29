@@ -293,6 +293,11 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
     proto->set_uli(uli, sizeof(Uli_t));
   }
 
+  const auto cc = session_request->charging_characteristics;
+  if (cc.length > 0) {
+    proto->set_charging_characteristics(cc.value, cc.length);
+  }
+
   proto->mutable_serving_network()->set_mcc(
       (char*) session_request->serving_network.mcc, 3);
   proto->mutable_serving_network()->set_mnc(
@@ -385,6 +390,18 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
   if (proto.uli().length() > 0) {
     memcpy(&session_request->uli, proto.uli().c_str(), sizeof(Uli_t));
   }
+
+  const auto length = proto.charging_characteristics().length();
+  session_request->charging_characteristics.length = length;
+  if (length > CHARGING_CHARACTERISTICS_LENGTH) {
+    session_request->charging_characteristics.length =
+        CHARGING_CHARACTERISTICS_LENGTH;
+  }
+  memcpy(
+      &session_request->charging_characteristics.value,
+      proto.charging_characteristics().c_str(), length);
+  session_request->charging_characteristics.value[length] = '\0';
+
   memcpy(
       &session_request->serving_network.mcc,
       proto.serving_network().mcc().c_str(), 3);

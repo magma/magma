@@ -87,6 +87,8 @@ message CreateSessionMessage {
     uint32 peer_ip = 21;
 
     TimeZone ue_time_zone = 22;
+
+    string charging_characteristics = 23; // Taken from S6A UpdateLocationAnswer
 }
 
 // bearer_context_to_be_created_t

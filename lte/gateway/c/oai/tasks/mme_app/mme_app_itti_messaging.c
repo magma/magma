@@ -205,6 +205,7 @@ int mme_app_send_s11_create_session_req(
    * - PGW address for CP
    * - paa
    * - ambr
+   * - charging characteristics
    * and by MME Application layer:
    * - selection_mode
    * Set these parameters with random values for now.
@@ -333,6 +334,22 @@ int mme_app_send_s11_create_session_req(
             sizeof(session_request_p->paa.ipv6_address));
       }
     }
+  }
+
+  // Add Charging Characteristics
+  // If per-APN characteristics is specified, pass it. Otherwise, pass the
+  // default value. The length values should be set to 0 if there is no value
+  // specified.
+  if (selected_apn_config_p->charging_characteristics.length > 0) {
+    memcpy(
+        &session_request_p->charging_characteristics,
+        &selected_apn_config_p->charging_characteristics,
+        sizeof(charging_characteristics_t));
+  } else {
+    memcpy(
+        &session_request_p->charging_characteristics,
+        &ue_mm_context->default_charging_characteristics,
+        sizeof(charging_characteristics_t));
   }
 
   if (ue_mm_context->pdn_contexts[pdn_cid]->pco) {

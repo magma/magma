@@ -78,6 +78,11 @@ static void pcef_fill_create_session_req(
   lte_context->set_plmn_id(session_data->mcc_mnc, session_data->mcc_mnc_len);
   lte_context->set_imsi_plmn_id(
       session_data->imsi_mcc_mnc, session_data->imsi_mcc_mnc_len);
+  auto cc = session_data->charging_characteristics;
+  if (cc.length > 0) {
+    OAILOG_DEBUG(LOG_SPGW_APP, "Sending Charging Characteristics to PCEF");
+    lte_context->set_charging_characteristics(cc.value, cc.length);
+  }
   if (session_data->imeisv_exists) {
     lte_context->set_imei(session_data->imeisv, IMEISV_DIGITS_MAX);
   }
@@ -85,6 +90,7 @@ static void pcef_fill_create_session_req(
     OAILOG_DEBUG(LOG_SPGW_APP, "Sending ULI to PCEF");
     lte_context->set_user_location(session_data->uli, ULI_DATA_SIZE);
   }
+
   // QoS Info
   magma::QosInformationRequest qos_info;
   qos_info.set_apn_ambr_dl(session_data->ambr_dl);
@@ -299,6 +305,9 @@ void get_session_req_data(
   data->uli_exists    = get_uli_from_session_req(saved_req, data->uli);
   get_plmn_from_session_req(saved_req, data);
   get_imsi_plmn_from_session_req(saved_req, data);
+  memcpy(
+      &data->charging_characteristics, &saved_req->charging_characteristics,
+      sizeof(charging_characteristics_t));
 
   memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
 
