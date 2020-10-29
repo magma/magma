@@ -188,7 +188,7 @@ void SpgwStateConverter::proto_to_spgw_bearer_context(
       &sgw_eps_bearer_context_state->saved_message);
   proto_to_sgw_pending_procedures(
       sgw_eps_bearer_context_proto,
-      sgw_eps_bearer_context_state->pending_procedures);
+      &sgw_eps_bearer_context_state->pending_procedures);
 
   auto* pgw_eps_bearer_context_state =
       &spgw_bearer_state->pgw_eps_bearer_context_information;
@@ -904,15 +904,15 @@ void SpgwStateConverter::sgw_pending_procedures_to_proto(
 
 void SpgwStateConverter::proto_to_sgw_pending_procedures(
     const oai::SgwEpsBearerContextInfo& proto,
-    sgw_eps_bearer_context_information_t::pending_procedures_s* procedures) {
-  procedures =
+    sgw_eps_bearer_context_information_t::pending_procedures_s** procedures_p) {
+  *procedures_p =
       (sgw_eps_bearer_context_information_t::pending_procedures_s*) calloc(
-          1, sizeof(*procedures));
-  LIST_INIT(procedures);
+          1, sizeof(*procedures_p));
+  LIST_INIT(*procedures_p);
   for (auto& procedure_proto : proto.pending_procedures()) {
     if (procedure_proto.type() ==
         PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
-      insert_proc_into_sgw_pending_procedures(procedure_proto, procedures);
+      insert_proc_into_sgw_pending_procedures(procedure_proto, *procedures_p);
     }
   }
 }

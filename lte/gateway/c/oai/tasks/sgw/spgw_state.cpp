@@ -24,6 +24,7 @@ extern "C" {
 #include "assertions.h"
 #include "bstrlib.h"
 #include "dynamic_memory_check.h"
+#include "pgw_procedures.h"
 #include "sgw_context_manager.h"
 }
 
@@ -81,6 +82,7 @@ void sgw_free_s11_bearer_context_information(
     sgw_free_pdn_connection(
         &(*context_p)->sgw_eps_bearer_context_information.pdn_connection);
 
+    pgw_delete_procedures(*context_p);
     if ((*context_p)->pgw_eps_bearer_context_information.apns) {
       obj_hashtable_ts_destroy(
           (*context_p)->pgw_eps_bearer_context_information.apns);

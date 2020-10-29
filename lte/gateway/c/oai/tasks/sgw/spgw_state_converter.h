@@ -164,7 +164,7 @@ class SpgwStateConverter : StateConverter {
    */
   static void proto_to_sgw_pending_procedures(
       const oai::SgwEpsBearerContextInfo& proto,
-      sgw_eps_bearer_context_information_t::pending_procedures_s* procedures);
+      sgw_eps_bearer_context_information_t::pending_procedures_s** procedures);
 
   /**
    * Inserts new procedure struct to eps bearer pending procedures list
