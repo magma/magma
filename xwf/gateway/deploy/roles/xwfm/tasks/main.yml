@@ -21,6 +21,9 @@
 - name: install python modules
   shell: pip3 install jsonpickle
 
+- name: touch snowflake
+  shell: touch /etc/snowflake
+
 - name: retrieve hwid
   shell: cat /etc/snowflake
   register: gateway_hwid

@@ -37,9 +37,6 @@
     - "/etc/magma/templates/"
     - "/var/opt/magma/docker"
 
-- name: touch snowflake
-  shell: touch /etc/snowflake
-
 - name: create the env file
   template:
     src: env.j2
