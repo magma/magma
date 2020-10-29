@@ -41,5 +41,4 @@ Status AmfServiceImpl::SetSmfSessionContext(
 
    return Status::OK;
  }
-
 }  // namespace magma
