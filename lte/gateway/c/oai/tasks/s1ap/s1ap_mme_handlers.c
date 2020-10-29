@@ -123,10 +123,10 @@ s1ap_message_handler_t message_handlers[][3] = {
     {s1ap_mme_handle_path_switch_request, 0, 0}, /* PathSwitchRequest */
     {0, 0, 0},                                   /* HandoverCancel */
     {0, s1ap_mme_handle_erab_setup_response,
-     s1ap_mme_handle_erab_setup_failure},          /* E_RABSetup */
-    {0, 0, 0},                                     /* E_RABModify */
-    {0, s1ap_mme_handle_erab_release_response, 0}, /* E_RABRelease */
-    {0, 0, 0},                                     /* E_RABReleaseIndication */
+     s1ap_mme_handle_erab_setup_failure},      /* E_RABSetup */
+    {0, 0, 0},                                 /* E_RABModify */
+    {0, s1ap_mme_handle_erab_rel_response, 0}, /* E_RABRelease */
+    {0, 0, 0},                                 /* E_RABReleaseIndication */
     {0, s1ap_mme_handle_initial_context_setup_response,
      s1ap_mme_handle_initial_context_setup_failure}, /* InitialContextSetup */
     {0, 0, 0},                                       /* Paging */
@@ -3210,7 +3210,7 @@ const char* s1ap_direction2str(uint8_t dir) {
 }
 
 //------------------------------------------------------------------------------
-int s1ap_mme_handle_erab_release_response(
+int s1ap_mme_handle_erab_rel_response(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   OAILOG_FUNC_IN(LOG_S1AP);
@@ -3269,10 +3269,6 @@ int s1ap_mme_handle_erab_release_response(
   S1AP_E_RAB_REL_RSP(message_p).enb_ue_s1ap_id = ue_ref_p->enb_ue_s1ap_id;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items           = 1;
   S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items = 0;
-
-  S1AP_FIND_PROTOCOLIE_BY_ID(
-      S1ap_E_RABReleaseResponseIEs_t, ie, container,
-      S1ap_ProtocolIE_ID_id_E_RABReleasedList, true);
 
   const S1ap_E_RABList_t* const e_rab_list = &ie->value.choice.E_RABList;
   int num_erab                             = e_rab_list->list.count;

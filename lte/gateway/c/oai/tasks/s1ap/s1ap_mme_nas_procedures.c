@@ -1182,30 +1182,57 @@ int s1ap_generate_s1ap_e_rab_rel_cmd(
     ie->value.present = S1ap_E_RABReleaseCommandIEs__value_PR_ENB_UE_S1AP_ID;
     ie->value.choice.ENB_UE_S1AP_ID = ue_ref->enb_ue_s1ap_id;
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
-
     ue_ref->s1_ue_state = S1AP_UE_CONNECTED;
+
+    ie = (S1ap_E_RABReleaseCommandIEs_t*) calloc(
+        1, sizeof(S1ap_E_RABReleaseCommandIEs_t));
+    ie->id            = S1ap_ProtocolIE_ID_id_E_RABToBeReleasedList;
+    ie->criticality   = S1ap_Criticality_ignore;
+    ie->value.present = S1ap_E_RABReleaseCommandIEs__value_PR_E_RABList;
+    ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    S1ap_E_RABList_t* const e_rab_list = &ie->value.choice.E_RABList;
+
+    for (int i = 0; i < e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items; i++) {
+      S1ap_E_RABItemIEs_t* s1ap_e_rab_item_ies =
+          calloc(1, sizeof(S1ap_E_RABItemIEs_t));
+      s1ap_e_rab_item_ies->id          = S1ap_ProtocolIE_ID_id_E_RABItem;
+      s1ap_e_rab_item_ies->criticality = S1ap_Criticality_ignore;
+      s1ap_e_rab_item_ies->value.present =
+          S1ap_E_RABItemIEs__value_PR_E_RABItem;
+
+      S1ap_E_RABItem_t* s1ap_e_rab_item =
+          &s1ap_e_rab_item_ies->value.choice.E_RABItem;
+
+      s1ap_e_rab_item->e_RAB_ID =
+          e_rab_rel_cmd->e_rab_to_be_rel_list.item[i].e_rab_id;
+      s1ap_mme_set_cause(
+          &s1ap_e_rab_item->cause, S1ap_Cause_PR_radioNetwork,
+          S1ap_CauseRadioNetwork_unspecified);
+
+      ASN_SEQUENCE_ADD(&e_rab_list->list, s1ap_e_rab_item_ies);
+    }
 
     /*
      * Fill in the NAS pdu
      */
-    S1AP_FIND_PROTOCOLIE_BY_ID(
-        S1ap_E_RABReleaseCommandIEs_t, ie, out,
-        S1ap_ProtocolIE_ID_id_E_RABReleasedList, true);
-    OCTET_STRING_fromBuf(
-        &ie->value.choice.NAS_PDU, (char*) bdata(e_rab_rel_cmd->nas_pdu),
-        blength(e_rab_rel_cmd->nas_pdu));
+    if (e_rab_rel_cmd->nas_pdu) {
+      ie = (S1ap_E_RABReleaseCommandIEs_t*) calloc(
+          1, sizeof(S1ap_E_RABReleaseCommandIEs_t));
+      ie->id            = S1ap_ProtocolIE_ID_id_NAS_PDU;
+      ie->criticality   = S1ap_Criticality_ignore;
+      ie->value.present = S1ap_E_RABReleaseCommandIEs__value_PR_NAS_PDU;
 
-    S1ap_E_RABItem_t*
-        s1ap_E_RABItemIEs[e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items];
-    for (int i = 0; i < e_rab_rel_cmd->e_rab_to_be_rel_list.no_of_items; i++) {
-      s1ap_E_RABItemIEs[i] = calloc(1, sizeof *s1ap_E_RABItemIEs[i]);
-      s1ap_E_RABItemIEs[i]->e_RAB_ID =
-          e_rab_rel_cmd->e_rab_to_be_rel_list.item[i].e_rab_id;
-      s1ap_mme_set_cause(
-          &s1ap_E_RABItemIEs[i]->cause, S1ap_Cause_PR_radioNetwork,
-          S1ap_CauseRadioNetwork_unspecified);
-
-      ASN_SEQUENCE_ADD(&ie->value.choice.E_RABList, s1ap_E_RABItemIEs[i]);
+      S1ap_NAS_PDU_t* nas_pdu = &ie->value.choice.NAS_PDU;
+      OCTET_STRING_fromBuf(
+          nas_pdu, (char*) bdata(e_rab_rel_cmd->nas_pdu),
+          blength(e_rab_rel_cmd->nas_pdu));
+      ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
+    } else {
+      OAILOG_INFO(
+          LOG_S1AP,
+          "No NAS message received for S1AP E-RAB release command for "
+          "ueId " MME_UE_S1AP_ID_FMT " .\n",
+          e_rab_rel_cmd->mme_ue_s1ap_id);
     }
 
     if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
