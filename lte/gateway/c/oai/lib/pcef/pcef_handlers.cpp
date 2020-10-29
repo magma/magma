@@ -73,10 +73,8 @@ static void pcef_fill_create_session_req(
   common_context->mutable_sid()->set_id("IMSI" + imsi);
   if (!ip4.empty()) {
     common_context->set_ue_ipv4(ip4);
-  } else if (!ip6.empty()) {
-    common_context->set_ue_ipv6(ip6);
-  } else if ((!ip4.empty()) && (!ip6.empty())) {
-    common_context->set_ue_ipv4(ip4);
+  }
+  if (!ip6.empty()) {
     common_context->set_ue_ipv6(ip6);
   }
   common_context->set_apn(session_data->apn);
