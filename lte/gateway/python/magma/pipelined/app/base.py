@@ -113,9 +113,11 @@ class MagmaController(app_manager.RyuApp):
             self.logger.error(
                 'Error %s %s flow rules: %s', act, self.APP_NAME, e)
 
-    def is_ready_for_restart_recovery(self, epoch):
+    def check_setup_request_epoch(self, epoch):
         """
-        Check if the controller is ready to be intialized after restart
+        Check if the controller is ready to be initialized after restart,
+        returns:    status code if epoch is invalid/controller is initialized
+                    None if controller can be initialized
         """
         self.logger.info("Received Setup request with epoch - %d, current "
                          "epoch  is - %d", epoch, global_epoch)
@@ -133,7 +135,7 @@ class MagmaController(app_manager.RyuApp):
             self.logger.warning('Controller already initialized, ignoring')
             return SetupFlowsResult.SUCCESS
 
-        return SetupFlowsResult.SUCCESS
+        return None
 
     def initialize_on_connect(self, datapath):
         """

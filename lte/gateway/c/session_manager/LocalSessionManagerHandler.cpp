@@ -36,7 +36,7 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
       events_reporter_(events_reporter),
       current_epoch_(0),
       reported_epoch_(0),
-      retry_timeout_(1) {}
+      retry_timeout_(5000) {}
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
@@ -158,7 +158,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     return;
   } else if (resp.result() == resp.FAILURE) {
     MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
-                      "for epoch "
+                      "after delay, for epoch "
                    << epoch;
   }
 
