@@ -1069,7 +1069,7 @@ func TestDeleteGateway(t *testing.T) {
 	)
 	assert.NoError(t, err)
 
-	_, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1")
+	_, err = device.GetDevice("n1", orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.EqualError(t, err, "Not found")
 
 	expectedEnts := configurator.NetworkEntities{
@@ -1412,7 +1412,7 @@ func TestPartialUpdateAndGetGateway(t *testing.T) {
 
 	// But the HardwareID of the physical device with id "hw1" should have updated
 	expectedDevice := &models.GatewayDevice{HardwareID: "hw2", Key: &models.ChallengeKey{KeyType: "ECHO"}}
-	actualDevice, err := device.GetDevice(nID, orc8r.AccessGatewayRecordType, "hw1")
+	actualDevice, err := device.GetDevice(nID, orc8r.AccessGatewayRecordType, "hw1", serdes.Device)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedDevice, actualDevice)
 
@@ -2264,7 +2264,7 @@ func TestPartialUpdateAndGetMesh(t *testing.T) {
 // n1 is a wifi network, n2 is not
 func seedNetworks(t *testing.T) {
 	gatewayRecord := &models.GatewayDevice{HardwareID: "hw1", Key: &models.ChallengeKey{KeyType: "ECHO"}}
-	err := device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord)
+	err := device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateNetworks(

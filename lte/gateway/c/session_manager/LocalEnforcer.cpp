@@ -26,26 +26,7 @@
 #include "LocalEnforcer.h"
 #include "ServiceRegistrySingleton.h"
 #include "magma_logging.h"
-
-namespace {
-
-std::chrono::milliseconds time_difference_from_now(
-    const google::protobuf::Timestamp& timestamp) {
-  const auto rule_time_sec =
-      google::protobuf::util::TimeUtil::TimestampToSeconds(timestamp);
-  const auto now   = time(NULL);
-  const auto delta = std::max(rule_time_sec - now, 0L);
-  std::chrono::seconds sec(delta);
-  return std::chrono::duration_cast<std::chrono::milliseconds>(sec);
-}
-
-uint64_t get_time_in_sec_since_epoch() {
-  auto now = std::chrono::system_clock::now();
-  return std::chrono::duration_cast<std::chrono::seconds>(
-             now.time_since_epoch())
-      .count();
-}
-}  // namespace
+#include "Utilities.h"
 
 namespace magma {
 uint32_t LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT = 2000;
@@ -373,7 +354,7 @@ void LocalEnforcer::start_session_termination(
     return;
   }
   MLOG(MINFO) << "Initiating session termination for " << session_id;
-  session->set_pdp_end_time(get_time_in_sec_since_epoch(), session_uc);
+  session->set_pdp_end_time(magma::get_time_in_sec_since_epoch(), session_uc);
 
   remove_all_rules_for_termination(imsi, session, session_uc);
   session->set_fsm_state(SESSION_RELEASED, session_uc);
@@ -787,7 +768,7 @@ void LocalEnforcer::schedule_static_rule_activation(
   std::vector<std::string> static_rules{static_rule.rule_id()};
   std::vector<PolicyRule> empty_dynamic_rules;
 
-  auto delta = time_difference_from_now(static_rule.activation_time());
+  auto delta = magma::time_difference_from_now(static_rule.activation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " static rule "
                << static_rule.rule_id() << " activation in "
                << (delta.count() / 1000) << " secs";
@@ -831,7 +812,7 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
   std::vector<std::string> empty_static_rules;
   std::vector<PolicyRule> dynamic_rules{dynamic_rule.policy_rule()};
 
-  auto delta = time_difference_from_now(dynamic_rule.activation_time());
+  auto delta = magma::time_difference_from_now(dynamic_rule.activation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " dynamic rule "
                << dynamic_rule.policy_rule().id() << " activation in "
                << (delta.count() / 1000) << " secs";
@@ -874,7 +855,7 @@ void LocalEnforcer::schedule_static_rule_deactivation(
     const std::string& ipv6_addr, const StaticRuleInstall& static_rule) {
   std::vector<std::string> static_rules{static_rule.rule_id()};
 
-  auto delta = time_difference_from_now(static_rule.deactivation_time());
+  auto delta = magma::time_difference_from_now(static_rule.deactivation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " static rule "
                << static_rule.rule_id() << " deactivation in "
                << (delta.count() / 1000) << " secs";
@@ -916,7 +897,8 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
     const std::string& ipv6_addr, DynamicRuleInstall& dynamic_rule) {
   PolicyRule policy = dynamic_rule.policy_rule();
 
-  auto delta = time_difference_from_now(dynamic_rule.deactivation_time());
+  auto delta =
+      magma::time_difference_from_now(dynamic_rule.deactivation_time());
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " dynamic rule "
                << policy.id() << " deactivation in " << (delta.count() / 1000)
                << " secs";
@@ -1082,7 +1064,7 @@ void LocalEnforcer::init_session_credit(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, const SessionConfig& cfg,
     const CreateSessionResponse& response) {
-  const auto time_since_epoch = get_time_in_sec_since_epoch();
+  const auto time_since_epoch = magma::get_time_in_sec_since_epoch();
   auto session_state          = std::make_unique<SessionState>(
       imsi, session_id, cfg, *rule_store_, response.tgpp_ctx(),
       time_since_epoch);
@@ -1785,7 +1767,7 @@ void LocalEnforcer::schedule_revalidation(
   session.set_revalidation_time(revalidation_time, uc);
   auto session_id = session.get_session_id();
   SessionRead req = {imsi};
-  auto delta      = time_difference_from_now(revalidation_time);
+  auto delta      = magma::time_difference_from_now(revalidation_time);
   MLOG(MINFO) << "Scheduling revalidation in " << delta.count() << "ms for "
               << session_id;
   evb_->runInEventBaseThread([=] {

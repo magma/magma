@@ -120,6 +120,10 @@
     "dpid": {
       "@type": "type.googleapis.com/magma.mconfig.DPID",
       "logLevel": "INFO"
+    },
+    "ctraced": {
+      "@type": "type.googleapis.com/magma.mconfig.CtraceD",
+      "logLevel": "INFO"
     }
   }
 }

@@ -302,8 +302,14 @@ export type enodeb = {
     attached_gateway_id ? : string,
     config: enodeb_configuration,
     description ? : string,
+    enodeb_config ? : enodeb_config,
     name: string,
     serial: string,
+};
+export type enodeb_config = {
+    config_type: "MANAGED" | "UNMANAGED",
+    managed_config ? : enodeb_configuration,
+    unmanaged_config ? : unmanaged_enodeb_configuration,
 };
 export type enodeb_configuration = {
     bandwidth_mhz ? : 3 | 5 | 10 | 15 | 20,
@@ -1292,6 +1298,11 @@ export type tier_images = Array < tier_image >
 ;
 export type tier_name = string;
 export type tier_version = string;
+export type unmanaged_enodeb_configuration = {
+    cell_id: number,
+    ip_address: string,
+    tac: number,
+};
 export type untyped_mme_state = {};
 export type virtual_apn_rule = {
     apn_filter ? : string,

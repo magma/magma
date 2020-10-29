@@ -20,6 +20,7 @@
     - mobilityd
     - dnsd
     - eventd
+    - ctraced
     # Magma OAI services
     - mme
     # Magma third-party services
@@ -62,6 +63,7 @@
     force: yes
     remote_src: yes
   with_items:
+    - config_stateless_agw.py
     - create_oai_certs.py
     - generate_oai_config.py
     - generate_dnsd_config.py
