@@ -57,6 +57,7 @@ func main() {
 	protos.RegisterAccountingServer(srv.GrpcServer, acct)
 	lteprotos.RegisterAbortSessionResponderServer(srv.GrpcServer, acct)
 	fegprotos.RegisterSwxGatewayServiceServer(srv.GrpcServer, acct)
+	fegprotos.RegisterS6AGatewayServiceServer(srv.GrpcServer, acct)
 
 	auth, _ := servicers.NewEapAuthenticator(sessions, aaaConfigs, acct)
 	protos.RegisterAuthenticatorServer(srv.GrpcServer, auth)
