@@ -21,6 +21,7 @@ import (
 
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/certifier"
 	certprotos "magma/orc8r/cloud/go/services/certifier/protos"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -209,7 +210,7 @@ func findGatewayIdentity(serialNumber string, md metadata.MD) (*protos.Identity,
 	// At this point we should have a valid GW Identity with HardwareId, so
 	// the Gateway is authenticated. Now we'll try to find GW Network & Logical
 	// ID & add them to the GW Identity
-	entity, err := configurator.LoadEntityForPhysicalID(gwIdentity.HardwareId, configurator.EntityLoadCriteria{})
+	entity, err := configurator.LoadEntityForPhysicalID(gwIdentity.HardwareId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		log.Printf(
 			"Unregistered Gateway Id: %s for Cert SN: %s; err: %s; metadata: %+v",

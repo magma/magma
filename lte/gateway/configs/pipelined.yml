@@ -126,6 +126,9 @@ clean_restart: true
 
 redis_enabled: false
 
+# Logs grpc payload content
+magma_print_grpc_payload: false
+
 # MTR iface IP
 mtr_ip: 10.0.2.10
 mtr_interface: mtr0

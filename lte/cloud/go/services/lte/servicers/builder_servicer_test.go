@@ -19,6 +19,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
+	"magma/lte/cloud/go/serdes"
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
@@ -739,6 +740,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					CellId: 138777000,
+					Tac:    1,
 				},
 			},
 		},
@@ -760,7 +762,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			HssRelayEnabled:          false,
 			CloudSubscriberdbEnabled: false,
 			EnableDnsCaching:         false,
-			AttachedEnodebTacs:       []int32{0},
+			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
@@ -802,11 +804,11 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 }
 
 func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
+	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graphProto, err := graph.ToStorageProto()
+	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -902,6 +904,7 @@ func newDefaultUnmanagedEnodebConfig() *lte_models.EnodebConfig {
 		ConfigType: "UNMANAGED",
 		UnmanagedConfig: &lte_models.UnmanagedEnodebConfiguration{
 			CellID:    swag.Uint32(138777000),
+			Tac:       swag.Uint32(1),
 			IPAddress: &ip,
 		},
 	}

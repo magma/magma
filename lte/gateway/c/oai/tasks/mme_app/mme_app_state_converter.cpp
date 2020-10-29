@@ -610,6 +610,8 @@ void MmeNasStateConverter::ue_context_to_proto(
   ue_context_proto->mutable_time_paging_response_timer_started()->set_seconds(
       state_ue_context->time_paging_response_timer_started);
   ue_context_proto->set_paging_retx_count(state_ue_context->paging_retx_count);
+  ue_context_proto->mutable_time_ics_rsp_timer_started()->set_seconds(
+      state_ue_context->time_ics_rsp_timer_started);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -709,6 +711,8 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   state_ue_mm_context->time_paging_response_timer_started =
       ue_context_proto.time_paging_response_timer_started().seconds();
   state_ue_mm_context->paging_retx_count = ue_context_proto.paging_retx_count();
+  state_ue_mm_context->time_ics_rsp_timer_started =
+      ue_context_proto.time_ics_rsp_timer_started().seconds();
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

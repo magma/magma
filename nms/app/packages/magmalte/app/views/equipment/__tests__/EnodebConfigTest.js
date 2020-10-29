@@ -62,6 +62,20 @@ describe('<AddEditEnodeButton />', () => {
         tac: 1,
         transmit_enabled: true,
       },
+      enodeb_config: {
+        config_type: 'MANAGED',
+        managed_config: {
+          bandwidth_mhz: 20,
+          cell_id: 1,
+          device_class: 'Baicells ID TDD/FDD',
+          earfcndl: 44290,
+          pci: 36,
+          special_subframe_pattern: 7,
+          subframe_assignment: 2,
+          tac: 1,
+          transmit_enabled: true,
+        },
+      },
       name: 'testEnodeb0',
       serial: 'testEnodebSerial0',
       description: 'test enodeb description',
@@ -170,6 +184,79 @@ describe('<AddEditEnodeButton />', () => {
     expect(ran).toHaveTextContent('44290');
     expect(ran).toHaveTextContent('7');
     expect(ran).toHaveTextContent('2');
+  });
+
+  it('Verify Enode unManaged eNodeBs', async () => {
+    const unmanagedEnbInfo = {
+      enb: {
+        attached_gateway_id: '',
+        config: {
+          cell_id: 0,
+          device_class: 'Baicells Nova-233 G2 OD FDD',
+          transmit_enabled: false,
+        },
+        enodeb_config: {
+          config_type: 'UNMANAGED',
+          unmanaged_config: {
+            cell_id: 111,
+            ip_address: '1.1.1.2',
+            tac: 1,
+          },
+        },
+        name: 'testEnodeb1',
+        serial: 'testEnodebSerial1',
+        description: 'test enodeb description',
+      },
+      enb_state: {
+        enodeb_configured: true,
+        enodeb_connected: true,
+        fsm_state: 'Completed provisioning eNB. Awaiting new Inform.',
+        gps_connected: true,
+        gps_latitude: '',
+        gps_longitude: '',
+        mme_connected: false,
+        opstate_enabled: false,
+        ptp_connected: false,
+        reporting_gateway_id: '',
+        rf_tx_desired: true,
+        rf_tx_on: false,
+      },
+    };
+    const UnmanagedEnodeWrapper = () => {
+      const enbInf = {
+        testEnodebSerial1: unmanagedEnbInfo,
+      };
+      return (
+        <MemoryRouter
+          initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial1/overview']}
+          initialIndex={0}>
+          <MuiThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <EnodebContext.Provider
+                value={{
+                  state: {enbInfo: enbInf},
+                  setState: async () => {},
+                }}>
+                <Route
+                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                  render={props => <EnodebConfig {...props} />}
+                />
+              </EnodebContext.Provider>
+            </MuiStylesThemeProvider>
+          </MuiThemeProvider>
+        </MemoryRouter>
+      );
+    };
+    const {getByTestId} = render(<UnmanagedEnodeWrapper />);
+    await wait();
+    const config = getByTestId('config');
+    expect(config).toHaveTextContent('testEnodeb1');
+    expect(config).toHaveTextContent('testEnodebSerial1');
+    expect(config).toHaveTextContent('test enodeb description');
+
+    const ran = getByTestId('ran');
+    expect(ran).toHaveTextContent('1');
+    expect(ran).toHaveTextContent('1.1.1.2');
   });
 
   it('Verify Enode Add', async () => {
@@ -321,6 +408,17 @@ describe('<AddEditEnodeButton />', () => {
           device_class: 'Baicells Nova-233 G2 OD FDD',
           transmit_enabled: false,
         },
+        enodeb_config: {
+          config_type: 'MANAGED',
+          managed_config: {
+            bandwidth_mhz: 20,
+            cell_id: 2,
+            earfcndl: 44000,
+            pci: 8,
+            device_class: 'Baicells Nova-233 G2 OD FDD',
+            transmit_enabled: false,
+          },
+        },
         description: 'Enode1 New Description',
         name: 'Test Enodeb 1',
         serial: 'TestEnodebSerial1',
@@ -378,7 +476,21 @@ describe('<AddEditEnodeButton />', () => {
           tac: 1,
           transmit_enabled: true,
         },
-        attached_gateway_id: '',
+        enodeb_config: {
+          config_type: 'MANAGED',
+          managed_config: {
+            bandwidth_mhz: 20,
+            cell_id: 1,
+            device_class: 'Baicells ID TDD/FDD',
+            earfcndl: 44290,
+            pci: 36,
+            special_subframe_pattern: 7,
+            subframe_assignment: 2,
+            tac: 1,
+            transmit_enabled: true,
+          },
+          unmanaged_config: undefined,
+        },
         description: 'test enodeb new description',
         name: 'testEnodeb0',
         serial: 'testEnodebSerial0',
@@ -424,7 +536,6 @@ describe('<AddEditEnodeButton />', () => {
       MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial,
     ).toHaveBeenCalledWith({
       enodeb: {
-        attached_gateway_id: '',
         config: {
           bandwidth_mhz: 20,
           cell_id: 1,
@@ -435,6 +546,87 @@ describe('<AddEditEnodeButton />', () => {
           subframe_assignment: 2,
           tac: 1,
           transmit_enabled: true,
+        },
+        enodeb_config: {
+          config_type: 'MANAGED',
+          unmanaged_config: undefined,
+          managed_config: {
+            bandwidth_mhz: 20,
+            cell_id: 1,
+            device_class: 'Baicells ID TDD/FDD',
+            earfcndl: 40000,
+            pci: 36,
+            special_subframe_pattern: 7,
+            subframe_assignment: 2,
+            tac: 1,
+            transmit_enabled: true,
+          },
+        },
+        description: 'test enodeb description',
+        name: 'testEnodeb0',
+        serial: 'testEnodebSerial0',
+      },
+      enodebSerial: 'testEnodebSerial0',
+      networkId: 'mynetwork',
+    });
+  });
+
+  it('Verify Enode Edit unmanaged eNodeB', async () => {
+    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
+    await wait();
+    expect(queryByTestId('editDialog')).toBeNull();
+
+    fireEvent.click(getByTestId('ranEditButton'));
+    await wait();
+
+    expect(queryByTestId('configEdit')).toBeNull();
+    expect(queryByTestId('ranEdit')).not.toBeNull();
+
+    const enbConfigType = getByTestId('enodeb_config').firstChild;
+    if (
+      enbConfigType instanceof HTMLElement &&
+      enbConfigType.firstChild instanceof HTMLElement
+    ) {
+      fireEvent.click(enbConfigType.firstChild);
+    } else {
+      throw 'invalid type';
+    }
+    await wait();
+
+    const ipAddress = getByTestId('ipAddress').firstChild;
+    const cellId = getByTestId('cellId').firstChild;
+    const tac = getByTestId('tac').firstChild;
+    if (
+      ipAddress instanceof HTMLInputElement &&
+      cellId instanceof HTMLInputElement &&
+      tac instanceof HTMLInputElement
+    ) {
+      fireEvent.change(ipAddress, {target: {value: '1.1.1.1'}});
+      fireEvent.change(cellId, {target: {value: '1'}});
+      fireEvent.change(tac, {target: {value: '1'}});
+    } else {
+      throw 'invalid type';
+    }
+
+    fireEvent.click(getByText('Save'));
+    await wait();
+    expect(
+      MagmaAPIBindings.putLteByNetworkIdEnodebsByEnodebSerial,
+    ).toHaveBeenCalledWith({
+      enodeb: {
+        config: {
+          cell_id: 0,
+          device_class: 'Baicells Nova-233 G2 OD FDD',
+          transmit_enabled: false,
+        },
+        enodeb_config: {
+          config_type: 'UNMANAGED',
+          managed_config: undefined,
+          unmanaged_config: {
+            cell_id: 1,
+            ip_address: '1.1.1.1',
+            tac: 1,
+          },
         },
         description: 'test enodeb description',
         name: 'testEnodeb0',

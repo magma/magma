@@ -17,14 +17,12 @@
 
 #include "LocalSessionManagerHandler.h"
 #include "magma_logging.h"
+#include "Utilities.h"
 #include "GrpcMagmaUtils.h"
 
 using grpc::Status;
 
 namespace magma {
-
-const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
-    "0123456789abcdef";
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
@@ -421,25 +419,6 @@ void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
       });
 }
 
-std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
-    const std::string& mac_addr) {
-  std::string res;
-  auto l = mac_addr.length();
-  if (l == 0) {
-    return res;
-  }
-  res.reserve(l * 3 - 1);
-  for (size_t i = 0; i < l; i++) {
-    if (i > 0) {
-      res.push_back(':');
-    }
-    unsigned char c = mac_addr[i];
-    res.push_back(hex_digit_[c >> 4]);
-    res.push_back(hex_digit_[c & 0x0F]);
-  }
-  return res;
-}
-
 /**
  * EndSession completes the entire termination procedure with the OCS & PCRF.
  * The process for session termination is as follows:
@@ -594,18 +573,6 @@ void LocalSessionManagerHandlerImpl::SetSessionRules(
   response_callback(Status::OK, Void());
 }
 
-std::string LocalSessionManagerHandlerImpl::bytes_to_hex(const std::string& s) {
-  std::ostringstream ret;
-
-  unsigned int c;
-  for (std::string::size_type i = 0; i < s.length(); ++i) {
-    c = (unsigned int) (unsigned char) s[i];
-    ret << " " << std::hex << std::setfill('0') << std::setw(2)
-        << (std::nouppercase) << c;
-  }
-  return ret.str();
-}
-
 void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
   const auto& imsi = cfg.common_context.sid().id();
   const auto& apn  = cfg.common_context.apn();
@@ -613,10 +580,10 @@ void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
       "Received a LocalCreateSessionRequest for " + imsi + " with APN:" + apn;
   if (cfg.rat_specific_context.has_lte_context()) {
     const auto& lte = cfg.rat_specific_context.lte_context();
-    create_message += ", default bearer ID:" + std::to_string(lte.bearer_id()) +
-                      ", PLMN ID:" + lte.plmn_id() +
-                      ", IMSI PLMN ID:" + lte.imsi_plmn_id() +
-                      ", User location:" + bytes_to_hex(lte.user_location());
+    create_message +=
+        ", default bearer ID:" + std::to_string(lte.bearer_id()) +
+        ", PLMN ID:" + lte.plmn_id() + ", IMSI PLMN ID:" + lte.imsi_plmn_id() +
+        ", User location:" + magma::bytes_to_hex(lte.user_location());
   } else if (cfg.rat_specific_context.has_wlan_context()) {
     create_message +=
         ", MAC addr:" + cfg.rat_specific_context.wlan_context().mac_addr();

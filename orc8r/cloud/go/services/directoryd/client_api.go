@@ -18,6 +18,8 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
+	"magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
@@ -130,11 +132,11 @@ func MapSessionIDsToIMSIs(networkID string, sessionIDToIMSI map[string]string) e
 // GetHWIDForIMSI returns the HWID mapped to by the IMSI.
 // Primary state, stored in state service.
 func GetHWIDForIMSI(networkID, imsi string) (string, error) {
-	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi)
+	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi, serdes.State)
 	if err != nil {
 		return "", err
 	}
-	record, ok := st.ReportedState.(*DirectoryRecord)
+	record, ok := st.ReportedState.(*types.DirectoryRecord)
 	if !ok || len(record.LocationHistory) == 0 {
 		return "", fmt.Errorf("failed to convert reported state to DirectoryRecord for device id: %s", st.ReporterID)
 	}
@@ -144,12 +146,12 @@ func GetHWIDForIMSI(networkID, imsi string) (string, error) {
 // GetSessionIDForIMSI returns the session ID mapped to by the IMSI.
 // Primary state, stored in state service.
 func GetSessionIDForIMSI(networkID, imsi string) (string, error) {
-	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi)
+	st, err := state.GetState(networkID, orc8r.DirectoryRecordType, imsi, serdes.State)
 	if err != nil {
 		return "", err
 	}
 
-	record, ok := st.ReportedState.(*DirectoryRecord)
+	record, ok := st.ReportedState.(*types.DirectoryRecord)
 	if !ok {
 		return "", fmt.Errorf("failed to convert reported state to DirectoryRecord for device id: %s", st.ReporterID)
 	}

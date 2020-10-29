@@ -231,7 +231,7 @@ API: /lte/{network_id}/gateways/{gateway_id}/cellular
 {
   "epc": {
     ...
-    "sgi_management_iface_vlan": 100
+    "sgi_management_iface_vlan": "100"
     ...
   },
 ```

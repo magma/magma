@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"magma/fbinternal/cloud/go/fbinternal"
+	"magma/fbinternal/cloud/go/serdes"
 	"magma/fbinternal/cloud/go/services/testcontroller"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/handlers"
 	"magma/fbinternal/cloud/go/services/testcontroller/protos"
@@ -71,7 +72,7 @@ func main() {
 		}
 
 		for {
-			err := testcontroller.ExecuteNextTestCase(machines, e2eStore)
+			err := testcontroller.ExecuteNextTestCase(machines, e2eStore, serdes.TestController)
 			if err != nil {
 				glog.Error(err)
 			}

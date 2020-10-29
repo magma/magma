@@ -82,6 +82,7 @@ class EventsReporterImpl : public EventsReporter {
   std::string get_mac_addr(const SessionConfig& config);
   std::string get_imei(const SessionConfig& config);
   std::string get_spgw_ipv4(const SessionConfig& config);
+  std::string get_user_location(const SessionConfig& config);
 
  private:
   AsyncEventdClient& eventd_client_;

@@ -19,6 +19,7 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	plugin2 "magma/cwf/cloud/go/plugin"
+	"magma/cwf/cloud/go/serdes"
 	"magma/cwf/cloud/go/services/cwf/obsidian/handlers"
 	models2 "magma/cwf/cloud/go/services/cwf/obsidian/models"
 	"magma/feg/cloud/go/feg"
@@ -36,7 +37,7 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
@@ -189,7 +190,7 @@ func TestCwfNetworks(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actualN1, err := configurator.LoadNetwork("n1", true, true)
+	actualN1, err := configurator.LoadNetwork("n1", true, true, serdes.Network)
 	assert.NoError(t, err)
 	expected := configurator.Network{
 		ID:          "n1",
@@ -241,7 +242,7 @@ func TestCwfNetworks(t *testing.T) {
 	seedCwfTier(t, "n1")
 	seedCwfGateway(t, "g1", "hw1")
 
-	reqRecord := &directoryd.DirectoryRecord{
+	reqRecord := &directorydTypes.DirectoryRecord{
 		LocationHistory: []string{"hw1"},
 		Identifiers: map[string]interface{}{
 			"mac_addr":  "aa:aa:aa:aa:aa:aa",
@@ -855,6 +856,7 @@ func seedCwfNetworks(t *testing.T) {
 				},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 	_, err = configurator.CreateNetworks(
@@ -888,15 +890,16 @@ func seedCwfNetworks(t *testing.T) {
 				Configs:     map[string]interface{}{},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 }
 
-func reportSubscriberDirectoryRecord(t *testing.T, ctx context.Context, id string, req *directoryd.DirectoryRecord) {
+func reportSubscriberDirectoryRecord(t *testing.T, ctx context.Context, id string, req *directorydTypes.DirectoryRecord) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(state.SerdeDomain, orc8r.DirectoryRecordType, req)
+	serializedRecord, err := serde.Serialize(req, orc8r.DirectoryRecordType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -917,7 +920,7 @@ func reportHaPairStatus(t *testing.T, ctx context.Context, pairID string, req *m
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(state.SerdeDomain, cwf.CwfHAPairStatusType, req)
+	serializedRecord, err := serde.Serialize(req, cwf.CwfHAPairStatusType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -938,7 +941,7 @@ func reportGatewayHealthStatus(t *testing.T, ctx context.Context, gatewayID stri
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedRecord, err := serde.Serialize(state.SerdeDomain, cwf.CwfGatewayHealthType, req)
+	serializedRecord, err := serde.Serialize(req, cwf.CwfGatewayHealthType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
@@ -1006,6 +1009,7 @@ func seedCwfTier(t *testing.T, networkID string) {
 		[]configurator.NetworkEntity{
 			{Type: orc8r.UpgradeTierEntityType, Key: "t1"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 }

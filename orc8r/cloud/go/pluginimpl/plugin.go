@@ -17,16 +17,12 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
-	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/orchestrator"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/definitions"
@@ -50,25 +46,7 @@ func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 }
 
 func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{
-		// State service serdes
-		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
-		// For checkin_cli.py to test cloud < - > gateway connection
-		state.NewStateSerde(state.StringMapSerdeType, &state.StringToStringMap{}),
-		// For DirectoryD records
-		state.NewStateSerde(orc8r.DirectoryRecordType, &directoryd.DirectoryRecord{}),
-
-		// Device service serdes
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
-
-		// Config manager serdes
-		configurator.NewNetworkConfigSerde(orc8r.DnsdNetworkType, &models.NetworkDNSConfig{}),
-		configurator.NewNetworkConfigSerde(orc8r.NetworkFeaturesConfig, &models.NetworkFeatures{}),
-
-		configurator.NewNetworkEntityConfigSerde(orc8r.MagmadGatewayType, &models.MagmadGatewayConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeReleaseChannelEntityType, &models.ReleaseChannel{}),
-		configurator.NewNetworkEntityConfigSerde(orc8r.UpgradeTierEntityType, &models.Tier{}),
-	}
+	return []serde.Serde{}
 }
 
 func (*BaseOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {

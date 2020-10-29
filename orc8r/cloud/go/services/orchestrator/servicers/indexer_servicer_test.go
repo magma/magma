@@ -19,15 +19,18 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/directoryd"
 	directoryd_test_init "magma/orc8r/cloud/go/services/directoryd/test_init"
+	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	orchestrator_test_init "magma/orc8r/cloud/go/services/orchestrator/test_init"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestIndexerSessionID(t *testing.T) {
@@ -49,10 +52,11 @@ func TestIndexerSessionID(t *testing.T) {
 	orchestrator_test_init.StartTestService(t)
 	idx := indexer.NewRemoteIndexer(orchestrator.ServiceName, version, types...)
 
-	record := &directoryd.DirectoryRecord{
+	record := &directoryd_types.DirectoryRecord{
 		Identifiers: map[string]interface{}{
-			directoryd.RecordKeySessionID: sid0, // imsi0->sid0
+			directoryd_types.RecordKeySessionID: sid0, // imsi0->sid0
 		},
+		LocationHistory: []string{"apple"},
 	}
 
 	id := state_types.ID{
@@ -60,7 +64,6 @@ func TestIndexerSessionID(t *testing.T) {
 		DeviceID: imsi0,
 	}
 	st := state_types.State{
-		Type:               orc8r.DirectoryRecordType,
 		ReportedState:      record,
 		Version:            44,
 		TimeMs:             42,
@@ -72,7 +75,7 @@ func TestIndexerSessionID(t *testing.T) {
 	assert.True(t, idx.GetTypes()[0] == orc8r.DirectoryRecordType)
 
 	// Index the imsi0->sid0 state, result is sid0->imsi0 reverse mapping
-	errs, err := idx.Index(nid0, state_types.StatesByID{id: st})
+	errs, err := idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err := directoryd.GetIMSIForSessionID(nid0, sid0)
@@ -81,8 +84,8 @@ func TestIndexerSessionID(t *testing.T) {
 
 	// Update sid -- index imsi0->sid1, result is sid1->imsi0 reverse mapping
 	// Note that we specifically don't test for the presence of {sid0 -> ?}, as we allow stale derived state to persist.
-	st.ReportedState.(*directoryd.DirectoryRecord).Identifiers[directoryd.RecordKeySessionID] = sid1
-	errs, err = idx.Index(nid0, state_types.StatesByID{id: st})
+	st.ReportedState.(*directoryd_types.DirectoryRecord).Identifiers[directoryd_types.RecordKeySessionID] = sid1
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
@@ -92,19 +95,41 @@ func TestIndexerSessionID(t *testing.T) {
 	// Update imsi -- index imsi1->sid1, result is sid1->imsi1 reverse mapping
 	// Note that we specifically don't test for the presence of {sid0 -> ?}, as we allow stale derived state to persist.
 	id.DeviceID = imsi1
-	errs, err = idx.Index(nid0, state_types.StatesByID{id: st})
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.DirectoryRecordType)})
 	assert.NoError(t, err)
 	assert.Empty(t, errs)
 	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, imsi)
 
-	// Errs contains an err when e.g. reported state is wrong type -- and sid1->imsi1 still intact
+	// No errs when when can't deserialize state -- just logs
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: state_types.SerializedState{SerializedReportedState: []byte("0xdeadbeef")}})
+	assert.NoError(t, err)
+	assert.Empty(t, errs)
+	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
+	assert.NoError(t, err)
+	assert.Equal(t, imsi1, imsi)
+
+	// Err when can deserialize but is wrong type
+	id.Type = orc8r.GatewayStateType
 	st.ReportedState = &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
-	errs, err = idx.Index(nid0, state_types.StatesByID{id: st})
+	errs, err = idx.Index(nid0, state_types.SerializedStatesByID{id: serialize(t, st, orc8r.GatewayStateType)})
 	assert.NoError(t, err)
 	assert.Error(t, errs[id])
 	imsi, err = directoryd.GetIMSIForSessionID(nid0, sid1)
 	assert.NoError(t, err)
 	assert.Equal(t, imsi1, imsi)
+}
+
+func serialize(t *testing.T, st state_types.State, typ string) state_types.SerializedState {
+	s := state_types.SerializedState{
+		Version:            st.Version,
+		ReporterID:         st.ReporterID,
+		TimeMs:             st.TimeMs,
+		CertExpirationTime: st.CertExpirationTime,
+	}
+	rep, err := serde.Serialize(st.ReportedState, typ, serdes.State)
+	assert.NoError(t, err)
+	s.SerializedReportedState = rep
+	return s
 }

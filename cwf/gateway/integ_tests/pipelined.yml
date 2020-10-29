@@ -140,6 +140,9 @@ li_mirror_all: false
 
 redis_enabled: false
 
+# Logs grpc payload content
+magma_print_grpc_payload: true
+
 # Configuration for IPFIX sampling
 ipfix:
   enabled: true

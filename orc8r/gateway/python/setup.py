@@ -38,6 +38,7 @@ setup(
         'magma.magmad.upgrade',
         'magma.state',
         'magma.eventd',
+        'magma.ctraced',
     ],
     scripts=[
         'scripts/checkin_cli.py',
@@ -75,7 +76,7 @@ setup(
         'pytz>=2014.4',
         'prometheus_client==0.3.1',
         'snowflake>=0.0.3',
-        'psutil==5.2.2',
+        'psutil==5.6.6',
         'cryptography>=1.9',
         'systemd-python>=234',
         'itsdangerous>=0.24',

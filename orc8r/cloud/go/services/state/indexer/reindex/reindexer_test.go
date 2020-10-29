@@ -30,10 +30,11 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -258,12 +259,12 @@ func initReindexTest(t *testing.T, dbName string) (reindex.Reindexer, reindex.Jo
 
 	// Report enough directory records to cause 3 batches per network (with the +1 gateway status per network)
 	for _, nid := range []string{nid0, nid1, nid2} {
-		var records []*directoryd.DirectoryRecord
+		var records []*directoryd_types.DirectoryRecord
 		var deviceIDs []string
 		for i := 0; i < directoryRecordsPerNetwork; i++ {
 			hwid := fmt.Sprintf("hwid%d", i)
 			imsi := fmt.Sprintf("imsi%d", i)
-			records = append(records, &directoryd.DirectoryRecord{LocationHistory: []string{hwid}})
+			records = append(records, &directoryd_types.DirectoryRecord{LocationHistory: []string{hwid}})
 			deviceIDs = append(deviceIDs, imsi)
 		}
 		reportDirectoryRecord(t, ctxByNetwork[nid], deviceIDs, records)
@@ -278,13 +279,13 @@ func initReindexTest(t *testing.T, dbName string) (reindex.Reindexer, reindex.Jo
 	return reindexer, q
 }
 
-func reportDirectoryRecord(t *testing.T, ctx context.Context, deviceIDs []string, records []*directoryd.DirectoryRecord) {
+func reportDirectoryRecord(t *testing.T, ctx context.Context, deviceIDs []string, records []*directoryd_types.DirectoryRecord) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
 	var states []*protos.State
 	for i, st := range records {
-		serialized, err := serde.Serialize(state.SerdeDomain, orc8r.DirectoryRecordType, st)
+		serialized, err := serde.Serialize(st, orc8r.DirectoryRecordType, serdes.State)
 		assert.NoError(t, err)
 		pState := &protos.State{Type: orc8r.DirectoryRecordType, DeviceID: deviceIDs[i], Value: serialized}
 		states = append(states, pState)
@@ -297,7 +298,7 @@ func reportGatewayStatus(t *testing.T, ctx context.Context, gwStatus *models.Gat
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serialized, err := serde.Serialize(state.SerdeDomain, orc8r.GatewayStateType, gwStatus)
+	serialized, err := serde.Serialize(gwStatus, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{

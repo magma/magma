@@ -168,7 +168,10 @@ func (m *GatewayName) ToUpdateCriteria(networkID string, gatewayID string) ([]co
 }
 
 func (m *GatewayName) FromBackendModels(networkID string, gatewayID string) error {
-	entity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadMetadata: true})
+	entity, err := configurator.LoadSerializedEntity(
+		networkID, orc8r.MagmadGatewayType, gatewayID,
+		configurator.EntityLoadCriteria{LoadMetadata: true},
+	)
 	if err != nil {
 		return err
 	}
@@ -187,7 +190,10 @@ func (m *GatewayDescription) ToUpdateCriteria(networkID string, gatewayID string
 }
 
 func (m *GatewayDescription) FromBackendModels(networkID string, gatewayID string) error {
-	entity, err := configurator.LoadEntity(networkID, orc8r.MagmadGatewayType, gatewayID, configurator.EntityLoadCriteria{LoadMetadata: true})
+	entity, err := configurator.LoadSerializedEntity(
+		networkID, orc8r.MagmadGatewayType, gatewayID,
+		configurator.EntityLoadCriteria{LoadMetadata: true},
+	)
 	if err != nil {
 		return err
 	}

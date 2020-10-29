@@ -17,13 +17,12 @@ import (
 	"testing"
 
 	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test_utils "magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/directoryd"
 	directoryd_test_init "magma/orc8r/cloud/go/services/directoryd/test_init"
+	"magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
@@ -48,10 +47,10 @@ const (
 )
 
 func TestGetSessionID(t *testing.T) {
-	record := &directoryd.DirectoryRecord{
+	record := &types.DirectoryRecord{
 		LocationHistory: []string{hwid0}, // imsi0->hwid0
 		Identifiers: map[string]interface{}{
-			directoryd.RecordKeySessionID: sid0, // imsi0->sid0
+			types.RecordKeySessionID: sid0, // imsi0->sid0
 		},
 	}
 
@@ -61,18 +60,18 @@ func TestGetSessionID(t *testing.T) {
 	assert.Equal(t, sid0, sid)
 
 	// IMSI-prefixed session ID should remove prefix
-	record.Identifiers[directoryd.RecordKeySessionID] = sidWithIMSIPrefix
+	record.Identifiers[types.RecordKeySessionID] = sidWithIMSIPrefix
 	sid, err = record.GetSessionID()
 	assert.NoError(t, err)
 	assert.Equal(t, sidWithoutPrefix, sid)
 
 	// Err on non-string sid
-	record.Identifiers[directoryd.RecordKeySessionID] = 42
+	record.Identifiers[types.RecordKeySessionID] = 42
 	_, err = record.GetSessionID()
 	assert.Error(t, err)
 
 	// Empty string on no sid
-	delete(record.Identifiers, directoryd.RecordKeySessionID)
+	delete(record.Identifiers, types.RecordKeySessionID)
 	sid, err = record.GetSessionID()
 	assert.NoError(t, err)
 	assert.Equal(t, "", sid)
@@ -125,20 +124,14 @@ func TestDirectorydStateMethods(t *testing.T) {
 	stateClient, err := getStateServiceClient(t)
 	assert.NoError(t, err)
 
-	err = serde.RegisterSerdes(
-		state.NewStateSerde(orc8r.DirectoryRecordType, &directoryd.DirectoryRecord{}),
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
-	)
-	assert.NoError(t, err)
-
 	configurator_test_utils.RegisterNetwork(t, nid0, "DirectoryD Service Test")
 	configurator_test_utils.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 	ctx := test_utils.GetContextWithCertificate(t, hwid0)
 
-	record := &directoryd.DirectoryRecord{
+	record := &types.DirectoryRecord{
 		LocationHistory: []string{hwid0}, // imsi0->hwid0
 		Identifiers: map[string]interface{}{
-			directoryd.RecordKeySessionID: sid0, // imsi0->sid0
+			types.RecordKeySessionID: sid0, // imsi0->sid0
 		},
 	}
 	serializedRecord, err := record.MarshalBinary()
@@ -177,7 +170,7 @@ func TestDirectorydStateMethods(t *testing.T) {
 	assert.Equal(t, sid0, sid)
 
 	// Delete state
-	err = state.DeleteStates(nid0, []state_types.ID{stateID})
+	err = state.DeleteStates(nid0, state_types.IDs{stateID})
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0, should be gone
@@ -199,10 +192,6 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	ddUpdaterClient, err := getDirectorydUpdaterClient(t)
 	assert.NoError(t, err)
 
-	err = serde.RegisterSerdes(
-		state.NewStateSerde(orc8r.DirectoryRecordType, &directoryd.DirectoryRecord{}),
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
-	)
 	configurator_test_utils.RegisterNetwork(t, nid0, "DirectoryD Service Test")
 	configurator_test_utils.RegisterGateway(t, nid0, hwid0, &models.GatewayDevice{HardwareID: hwid0})
 	ctx := test_utils.GetContextWithCertificate(t, hwid0)
@@ -217,7 +206,7 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	_, err = ddUpdaterClient.UpdateRecord(ctx, &protos.UpdateRecordRequest{
 		Id:       imsi0,
 		Location: hwid0,
-		Fields:   map[string]string{directoryd.RecordKeySessionID: sid0},
+		Fields:   map[string]string{types.RecordKeySessionID: sid0},
 	})
 	assert.NoError(t, err)
 
@@ -233,9 +222,9 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 
 	// Get Field
 	field, err := ddUpdaterClient.GetDirectoryField(
-		ctx, &protos.GetDirectoryFieldRequest{Id: imsi0, FieldKey: directoryd.RecordKeySessionID})
+		ctx, &protos.GetDirectoryFieldRequest{Id: imsi0, FieldKey: types.RecordKeySessionID})
 	assert.NoError(t, err)
-	assert.Equal(t, directoryd.RecordKeySessionID, field.GetKey())
+	assert.Equal(t, types.RecordKeySessionID, field.GetKey())
 	assert.Equal(t, sid0, field.GetValue())
 
 	records, err := ddUpdaterClient.GetAllDirectoryRecords(ctx, &protos.Void{})

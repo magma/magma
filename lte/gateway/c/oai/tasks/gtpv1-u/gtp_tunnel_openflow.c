@@ -100,7 +100,7 @@ static void add_portno_rec(char* port_name, uint32_t portno) {
     }
     free(gtp_portno_rec.arr);
     gtp_portno_rec.arr  = new_arr;
-    gtp_portno_rec.size = gtp_portno_rec.size * 2;
+    gtp_portno_rec.size = new_size;
   }
   // Now we shld have space to add new port.
   int i;
@@ -186,7 +186,10 @@ static uint32_t find_gtp_port_no(struct in_addr enb_addr) {
   if (!spgw_config.sgw_config.ovs_config.multi_tunnel) {
     return 0;
   }
-
+  if ((uint32_t) enb_addr.s_addr == 0) {
+    OAILOG_WARNING(LOG_GTPV1U, "zero enb IP address not supported");
+    return 0;
+  }
   char port_name[MAX_GTP_PORT_NAME_LENGTH];
   ip_addr_to_gtp_port_name(enb_addr, port_name);
 
@@ -300,8 +303,8 @@ int openflow_send_end_marker(struct in_addr enb, uint32_t tei) {
     return -ENODEV;
   }
 
-  if (tei == 0) {
-    // No need to send end marker for tunnel with tei zero.
+  if (tei == 0 || (uint32_t) enb.s_addr == 0) {
+    // No need to send end marker for tunnel with zero tunnel metadata.
     return 0;
   }
   // use a ethernet packet just to make packet out happy.

@@ -16,6 +16,7 @@ package main
 
 import (
 	"context"
+	"flag"
 	"log"
 
 	"magma/feg/cloud/go/protos"
@@ -27,6 +28,7 @@ import (
 )
 
 func main() {
+	flag.Parse()
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.MOCK_HSS)
 	if err != nil {
 		log.Fatalf("Error creating hss service: %s", err)

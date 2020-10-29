@@ -138,6 +138,8 @@ struct StoredSessionCredit {
   GrantTrackingType grant_tracking_type;
   GrantedUnits received_granted_units;
   bool report_last_credit;
+  uint64_t time_of_first_usage;
+  uint64_t time_of_last_usage;
 };
 
 struct StoredMonitor {
@@ -239,6 +241,9 @@ struct SessionCreditUpdateCriteria {
 
   bool deleted;
   bool report_last_credit;
+
+  uint64_t time_of_first_usage;
+  uint64_t time_of_last_usage;
 };
 
 struct SessionStateUpdateCriteria {

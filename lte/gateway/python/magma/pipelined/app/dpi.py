@@ -19,12 +19,10 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.ipfix import IPFIXController
 from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, DPI_REG
+from magma.pipelined.openflow.registers import DPI_REG
 from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match, flip_flow_match
 from lte.protos.pipelined_pb2 import FlowRequest
-
-from ryu.lib.packet import ether_types
 
 # TODO might move to config file
 # Current classification will finalize if found in APP_PROTOS, if found in
@@ -160,11 +158,7 @@ class DPIController(MagmaController):
         parser = self._datapath.ofproto_parser
 
         # Setup flows to classify & mirror to sampling port
-        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                   direction=Direction.IN)
-        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    direction=Direction.OUT)
-
+        match = MagmaMatch()
         actions = [
             parser.NXActionResubmitTable(table_id=self._classify_app_tbl_num)]
 
@@ -172,11 +166,7 @@ class DPIController(MagmaController):
             actions.append(parser.OFPActionOutput(self._mon_port_number))
 
         flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
-                                             inbound_match, actions,
-                                             priority=flows.MINIMUM_PRIORITY,
-                                             resubmit_table=self.next_table)
-        flows.add_resubmit_next_service_flow(datapath, self.tbl_num,
-                                             outbound_match, actions,
+                                             match, actions,
                                              priority=flows.MINIMUM_PRIORITY,
                                              resubmit_table=self.next_table)
 

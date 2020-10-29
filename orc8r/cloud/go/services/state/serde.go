@@ -19,8 +19,6 @@ import (
 	"magma/orc8r/cloud/go/serde"
 )
 
-const StringMapSerdeType = "string_map"
-
 func NewStateSerde(stateType string, modelPtr serde.ValidateableBinaryConvertible) serde.Serde {
 	return serde.NewBinarySerde(SerdeDomain, stateType, modelPtr)
 }

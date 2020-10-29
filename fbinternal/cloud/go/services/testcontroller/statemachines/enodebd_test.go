@@ -35,6 +35,7 @@ import (
 	tcTestInit "magma/fbinternal/cloud/go/services/testcontroller/test_init"
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/serdes"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/clock"
@@ -94,7 +95,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	// ---
 	// Check for upgrade find version ahead of what tier is configured to
 	// ---
-	err = configurator.CreateOrUpdateEntityConfig("n1", orc8r.UpgradeTierEntityType, "t1", &models2.Tier{Version: "0.0.0-0-abcdefg"})
+	err = configurator.CreateOrUpdateEntityConfig("n1", orc8r.UpgradeTierEntityType, "t1", &models2.Tier{Version: "0.0.0-0-abcdefg"}, serdes.Entity)
 	assert.NoError(t, err)
 	mockResp = &http.Response{Status: "200", Body: ioutil.NopCloser(bytes.NewBuffer(testdata))}
 	cli.On("Get", mock.AnythingOfType("string")).Return(mockResp, nil).Times(1)
@@ -105,7 +106,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	assert.Equal(t, 10*time.Minute, actualDuration)
 
 	// Tier should get updated
-	actualTierCfg, err := configurator.LoadEntityConfig("n1", orc8r.UpgradeTierEntityType, "t1")
+	actualTierCfg, err := configurator.LoadEntityConfig("n1", orc8r.UpgradeTierEntityType, "t1", serdes.Entity)
 	assert.NoError(t, err)
 	assert.Equal(t, &models2.Tier{Version: "0.3.74-1560824953-b50f1bab"}, actualTierCfg)
 
@@ -113,7 +114,7 @@ func Test_EnodebdE2ETestStateMachine_HappyPath(t *testing.T) {
 	// Check upgrade status, gateway hasn't upgraded yet
 	// ---
 	gatewayRecord := &models2.GatewayDevice{HardwareID: "hw1", Key: &models2.ChallengeKey{KeyType: "ECHO"}}
-	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord)
+	err = device.RegisterDevice("n1", orc8r.AccessGatewayRecordType, "hw1", gatewayRecord, serdes.Device)
 	assert.NoError(t, err)
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
 	test_utils.ReportGatewayStatus(t, ctx, &models2.GatewayStatus{
@@ -809,11 +810,12 @@ func SetupTests(t *testing.T, dbName string) {
 
 func RegisterAGW(t *testing.T) {
 	// Register an AGW
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{Type: orc8r.UpgradeTierEntityType, Key: "t1", Config: &models2.Tier{Name: "t1", Version: "0.3.74-1560824953-b50f1bab"}},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntities(
@@ -858,6 +860,7 @@ func RegisterAGW(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 }
@@ -926,7 +929,7 @@ func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, r
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serializedEnodebState, err := serde.Serialize(state.SerdeDomain, lte.EnodebStateType, req)
+	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.State)
 	assert.NoError(t, err)
 	states := []*protos.State{
 		{
