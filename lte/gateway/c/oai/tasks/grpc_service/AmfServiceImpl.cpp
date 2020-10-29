@@ -10,11 +10,9 @@ limitations under the License.
 */
 
 #include <string>
-
 #include "lte/protos/session_manager.pb.h"
 
 extern "C" {
-#include "spgw_service_handler.h"
 #include "log.h"
 }
 #include "AmfServiceImpl.h"
