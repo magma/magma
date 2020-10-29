@@ -1,0 +1,35 @@
+{
+    "general": {
+        "ng40_test_files": [
+            "<ntl filename (only filename not path) from `~/magma/automation` folder on NG40>",
+            "<ntl filename_N (only filename not path) from `~/magma/automation` folder on NG40>"
+        ],
+        "magma_username": "<user to access Magma gateways>",
+        "ng40_username" : "<user to access NG40 VM>",
+        "key_filename" : "<local path for your private key to access ssh password-less>",
+        "feg_docker_compose_git" : "https://<url where to find docker compose>",
+        "agw_apt_etagecom_source": "http://<url apt repository`>",
+        "agw_apt_etagecom_branch": "http://<branch, normally `stretch-test main`>",
+        "agw_apt_etagecom_pubkey": "http://<url of gpg key for apt repo>",
+        "agw_apt_source_file": "<local path were to store apt sources, normally `/etc/apt/sources.list.d/magma.list`>"
+    },
+    "setups" :{
+        "setup_1": {
+            "_description": "<description one>",
+            "controller":"192.0.0.1",
+            "proxy": "192.0.0.1",
+            "feg": "192.0.0.1",
+            "gateway": "192.0.0.1",
+            "ng40": "192.0.0.1"
+        },
+        "setup_2": {
+            "_description": "<description two>",
+            "controller": "192.0.0.1",
+            "proxy": "192.0.0.1",
+            "feg": "192.0.0.1,",
+            "gateway": "192.0.0.1",
+            "ng40": "192.0.0.1"
+        }
+    }
+}
+
