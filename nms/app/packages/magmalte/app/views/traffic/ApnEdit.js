@@ -59,7 +59,7 @@ const DEFAULT_APN_CONFIG = {
 type DialogProps = {
   open: boolean,
   onClose: () => void,
-  apn: ?apn,
+  apn?: apn,
 };
 
 export default function ApnEditDialog(props: DialogProps) {
