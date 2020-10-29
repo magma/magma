@@ -51,3 +51,5 @@
     - role: system_updates
       tags:
          - no_ci
+    - role: deprovision
+      when: xwfm_deprovision | default(False)
