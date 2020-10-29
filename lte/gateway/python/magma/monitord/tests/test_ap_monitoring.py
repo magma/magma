@@ -1,0 +1,56 @@
+"""
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+"""
+
+
+import asyncio
+import unittest
+
+from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
+from magma.monitord.icmp_monitoring import ICMPMonitoring
+from magma.monitord.cwf_ap_monitoring import ApMonitoring
+from magma.subscriberdb.sid import SIDUtils
+
+LOCALHOST = '127.0.0.1'
+
+class CwfApMonitoringTests(unittest.TestCase):
+    """
+    Test class for the ICMPMonitor class
+    """
+
+    def _add_test_ap(self, ap):
+        ip = IPAddress(version=IPAddress.IPV4, address=b'127.0.0.1')
+        self.subscribers[ap] = ip
+
+    async def _ping_local(self):
+        test = self.obj.get_ping_targets()
+        print(test)
+        return await self._monitor._ping_subscribers([LOCALHOST],
+                                                     self.subscribers)
+
+    def setUp(self):
+        """
+        Creates and sets up ICMP monitor
+        """
+        self.loop = asyncio.get_event_loop()
+        self.subscribers = {}
+        self.obj = CwfApMonitoring()
+        self._monitor = ICMPMonitoring(self.obj, polling_interval=5,
+                                       service_loop=self.loop,
+                                       mtr_interface=LOCALHOST)
+
+    def test_ping_ap_saves_response(self):
+        ap = 'AP1'
+        self._add_test_ap(ap)
+        self.loop.run_until_complete(self._ping_local())
+        sub_states = self.obj.get_subscriber_state()
+        self.assertTrue(ap in sub_states)
