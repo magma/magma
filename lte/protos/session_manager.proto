@@ -798,7 +798,7 @@ message SetSMSessionContextAccess {
 
 
 message UPFSessionState {
-  string seid = 1;            // Session ID
+  string imsi = 1;            
   int32 sess_ver_no = 2;      // Successful Version number snapshot from UPF. If its not the expected parse Failure report.
 }
 

@@ -253,8 +253,8 @@ enum Action {
 
 message RedirectInfo {                //8.2.20
   enum RedirectAddrType {
-    IPV4_0 = 0;
-    IPV6_0 = 1;
+    IPV4 = 0;
+    IPV6 = 1;
     URL = 2;
     SIPURI = 3;
     IPV4V6 = 4;
@@ -284,8 +284,8 @@ message DupParam {
 
 //pdr_state variable for SessionSet message per PDR.
 enum PdrState {
-  ADD =   0;
-  RELEASE = 1;
+  ADD = 0;
+  REMOVE = 1;
 }
 
 //PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request
@@ -327,7 +327,7 @@ message SetGroupFAR {
 
 //SET message - SMF to Upf Session Requests
 message SessionSet {
-  string seid = 1;
+  string imsi = 1;          //IMSI along with teid will be sent
   int32 session_version = 2; 
   NodeID node_id = 3;
   Fsm_state state = 16;
