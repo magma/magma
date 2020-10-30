@@ -600,10 +600,10 @@ class EnforcementStatsTest(unittest.TestCase):
             self.enforcement_controller.deactivate_rules(
                 imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
             self.enforcement_controller.activate_rules(
-                imsi, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
+                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
                 [])
             self.enforcement_stats_controller.activate_rules(
-                imsi, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
+                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
                 [])
             pkt_sender.send(packet)
 
