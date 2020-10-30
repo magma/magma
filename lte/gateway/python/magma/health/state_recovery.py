@@ -97,30 +97,31 @@ class StateRecoveryJob(Job):
     async def _run(self):
         for service in self._services_check:
             result = self._get_service_status(service)
-            if result:
-                last_num_restarts = self._services_restarts_map[service]
-                current_restarts = result.num_fail_exits - last_num_restarts
-                if current_restarts > self._threshold:
-                    logging.info(
-                        'Service %s has failed %s times over last %s seconds, '
-                        'restarting sctpd to clean state...', service,
-                        current_restarts,
-                        self._polling_interval)
+            if not result:
+                continue
+            last_num_restarts = self._services_restarts_map[service]
+            current_restarts = result.num_fail_exits - last_num_restarts
+            if current_restarts > self._threshold:
+                logging.info(
+                    'Service %s has failed %s times over last %s seconds, '
+                    'restarting sctpd to clean state...', service,
+                    current_restarts,
+                    self._polling_interval)
 
-                    # Save RDB snapshot
-                    os.makedirs(self._snapshots_dir, exist_ok=True)
-                    shutil.copy("%s/redis_dump.rdb" % self._redis_dump_src,
-                                "%s/redis_dump_%s.rdb" % (
-                                    self._snapshots_dir, time()))
+                # Save RDB snapshot
+                os.makedirs(self._snapshots_dir, exist_ok=True)
+                shutil.copy("%s/redis_dump.rdb" % self._redis_dump_src,
+                            "%s/redis_dump_%s.rdb" % (
+                                self._snapshots_dir, time()))
 
-                    # Restart sctpd
-                    await self.restart_service_async('sctpd')
+                # Restart sctpd
+                await self.restart_service_async('sctpd')
 
-                    # Update latest number of restarts for service
-                    self._services_restarts_map[
-                        service] = result.num_fail_exits
-                logging.debug('Unexpected restarts for service %s: %s',
-                              service, current_restarts)
+                # Update latest number of restarts for service
+                self._services_restarts_map[
+                    service] = result.num_fail_exits
+            logging.debug('Unexpected restarts for service %s: %s',
+                          service, current_restarts)
 
 
 def _get_service_restart_args(param: SystemdServiceParams) -> List[str]:
