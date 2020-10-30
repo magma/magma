@@ -22,7 +22,6 @@ from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MessageHub
-from magma.pipelined.openflow.registers import Direction
 from magma.pipelined.policy_converters import FlowMatchError
 from magma.pipelined.redirect import RedirectionManager, RedirectException
 from magma.pipelined.app.inout import EGRESS
@@ -31,7 +30,6 @@ from magma.pipelined.qos.qos_meter_impl import MeterManager
 
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
-from ryu.lib.packet import ether_types
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.utils import Utils
 
@@ -212,16 +210,9 @@ class GYController(PolicyMixin, MagmaController):
         Args:
             datapath: ryu datapath struct
         """
-        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                   direction=Direction.IN)
-        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    direction=Direction.OUT)
+        match = MagmaMatch()
         flows.add_resubmit_next_service_flow(
-            datapath, self.tbl_num, inbound_match, [],
-            priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_main_table)
-        flows.add_resubmit_next_service_flow(
-            datapath, self.tbl_num, outbound_match, [],
+            datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
 
@@ -268,24 +259,15 @@ class GYController(PolicyMixin, MagmaController):
         Returns:
             The list of flows that remain after inserting default flows
         """
-        inbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                   direction=Direction.IN)
-        outbound_match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP,
-                                    direction=Direction.OUT)
+        match = MagmaMatch()
 
-        inbound_msg = flows.get_add_resubmit_next_service_flow_msg(
-            datapath, self.tbl_num, inbound_match, [],
-            priority=flows.MINIMUM_PRIORITY,
-            resubmit_table=self.next_main_table)
-
-        outbound_msg = flows.get_add_resubmit_next_service_flow_msg(
-            datapath, self.tbl_num, outbound_match, [],
+        msg = flows.get_add_resubmit_next_service_flow_msg(
+            datapath, self.tbl_num, match, [],
             priority=flows.MINIMUM_PRIORITY,
             resubmit_table=self.next_main_table)
 
         msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list([inbound_msg, outbound_msg],
-                                             existing_flows)
+            .filter_msgs_if_not_in_flow_list([msg], existing_flows)
         if msgs:
             chan = self._msg_hub.send(msgs, datapath)
             self._wait_for_responses(chan, len(msgs))

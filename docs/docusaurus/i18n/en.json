@@ -219,6 +219,9 @@
       "proposals/p004_fua_restrict_feature": {
         "title": "Service Restriction Feature"
       },
+      "proposals/p005_call_tracing": {
+        "title": "Call Tracing Feature"
+      },
       "version-1.0.0/basics/version-1.0.0-introduction": {
         "title": "Introduction"
       },

@@ -19,6 +19,7 @@ import (
 	"magma/cwf/cloud/go/cwf"
 	cwf_plugin "magma/cwf/cloud/go/plugin"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/cloud/go/serdes"
 	cwf_service "magma/cwf/cloud/go/services/cwf"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	cwf_test_init "magma/cwf/cloud/go/services/cwf/test_init"
@@ -169,11 +170,11 @@ func TestBuilder_Build(t *testing.T) {
 }
 
 func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
+	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graphProto, err := graph.ToStorageProto()
+	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
 	}

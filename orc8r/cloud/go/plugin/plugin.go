@@ -172,15 +172,9 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 }
 
 func registerPlugin(p OrchestratorPlugin) error {
-	// NOTE: plugin registration is necessary for correctness until the
-	// mconfig_builder iface sends JSON-serialized protos instead of any.Any
-	// protos.
-	// Until that point, the mconfig stream_provider needs proto type
-	// information, which it receives implicitly during plugin registration.
 
-	if err := serde.RegisterSerdes(p.GetSerdes()...); err != nil {
-		return err
-	}
+	// Registering a plugin currently has no effect
+	// Plugin code will soon be removed
 
 	return nil
 }

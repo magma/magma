@@ -19,7 +19,7 @@ import {ARTIFACTS_DIR, SimulateNMSLogin} from '../LoginUtils';
 
 let browser;
 beforeEach(async () => {
-  jest.setTimeout(30000);
+  jest.setTimeout(60000);
   browser = await puppeteer.launch({
     args: ['--ignore-certificate-errors'],
     headless: true,
@@ -44,5 +44,5 @@ describe('NMS dashboard', () => {
 
     await page.screenshot({path: ARTIFACTS_DIR + 'dashboard.png'});
     browser.close();
-  }, 30000);
+  }, 60000);
 });

@@ -18,7 +18,9 @@ import (
 	"fmt"
 
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/directoryd"
+	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
@@ -66,7 +68,7 @@ func (i *indexerServicer) GetIndexerInfo(ctx context.Context, req *protos.GetInd
 }
 
 func (i *indexerServicer) Index(ctx context.Context, req *protos.IndexRequest) (*protos.IndexResponse, error) {
-	states, err := state_types.MakeStatesByID(req.States)
+	states, err := state_types.MakeStatesByID(req.States, serdes.State)
 	if err != nil {
 		return nil, err
 	}
@@ -125,7 +127,7 @@ func setSessionID(networkID string, states state_types.StatesByID) (state_types.
 func getSessionIDAndIMSI(id state_types.ID, st state_types.State) (string, string, error) {
 	imsi := id.DeviceID
 
-	record, ok := st.ReportedState.(*directoryd.DirectoryRecord)
+	record, ok := st.ReportedState.(*directoryd_types.DirectoryRecord)
 	if !ok {
 		return "", "", fmt.Errorf(
 			"convert reported state (id: <%+v>, state: <%+v>) to type %s",

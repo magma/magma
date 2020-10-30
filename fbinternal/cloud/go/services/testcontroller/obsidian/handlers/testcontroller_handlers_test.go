@@ -17,6 +17,7 @@ import (
 	"testing"
 
 	fbinternalplugin "magma/fbinternal/cloud/go/plugin"
+	"magma/fbinternal/cloud/go/serdes"
 	"magma/fbinternal/cloud/go/services/testcontroller"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/handlers"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
@@ -54,11 +55,11 @@ func Test_ListTestCases(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
-	err = testcontroller.CreateOrUpdateTestCase(2, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err = testcontroller.CreateOrUpdateTestCase(2, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
-	err = testcontroller.CreateOrUpdateTestCase(3, testcontroller.EnodedTestExcludeTraffic, enodebdNoTrafficTestConfig())
+	err = testcontroller.CreateOrUpdateTestCase(3, testcontroller.EnodedTestExcludeTraffic, enodebdNoTrafficTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 
 	tc.ExpectedResult = tests.JSONMarshaler([]*models.E2eTestCase{
@@ -120,9 +121,9 @@ func Test_ListEnodebdTestCases(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
-	err = testcontroller.CreateOrUpdateTestCase(2, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err = testcontroller.CreateOrUpdateTestCase(2, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 	tc.ExpectedResult = tests.JSONMarshaler([]*models.EnodebdE2eTest{
 		{
@@ -171,7 +172,7 @@ func Test_CreateEnodebdTestCase(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := testcontroller.GetTestCases(nil)
+	actual, err := testcontroller.GetTestCases(nil, serdes.TestController)
 	assert.NoError(t, err)
 	expected := map[int64]*testcontroller.UnmarshalledTestCase{
 		1: {
@@ -225,7 +226,7 @@ func Test_GetEnodebdTestCase(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 
 	// Happy path
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 	tc = tests.Test{
 		Method:         "GET",
@@ -258,7 +259,7 @@ func Test_UpdateEnodebdTestCase(t *testing.T) {
 	oHands := handlers.GetObsidianHandlers()
 	updateTest := tests.GetHandlerByPathAndMethod(t, oHands, testURLRoot+"/:test_pk", obsidian.PUT).HandlerFunc
 
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 
 	newCfg := defaultEnodebdTestConfig()
@@ -275,7 +276,7 @@ func Test_UpdateEnodebdTestCase(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := testcontroller.GetTestCases(nil)
+	actual, err := testcontroller.GetTestCases(nil, serdes.TestController)
 	assert.NoError(t, err)
 	expected := map[int64]*testcontroller.UnmarshalledTestCase{
 		1: {
@@ -304,7 +305,7 @@ func Test_DeleteEnodebdTestCase(t *testing.T) {
 	oHands := handlers.GetObsidianHandlers()
 	deleteTest := tests.GetHandlerByPathAndMethod(t, oHands, testURLRoot+"/:test_pk", obsidian.DELETE).HandlerFunc
 
-	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig())
+	err := testcontroller.CreateOrUpdateTestCase(1, testcontroller.EnodedTestCaseType, defaultEnodebdTestConfig(), serdes.TestController)
 	assert.NoError(t, err)
 
 	tc := tests.Test{
@@ -316,7 +317,7 @@ func Test_DeleteEnodebdTestCase(t *testing.T) {
 		ExpectedStatus: 204,
 	}
 	tests.RunUnitTest(t, e, tc)
-	actual, err := testcontroller.GetTestCases(nil)
+	actual, err := testcontroller.GetTestCases(nil, serdes.TestController)
 	assert.NoError(t, err)
 	assert.Empty(t, actual)
 }
@@ -380,10 +381,10 @@ func enodebdNoTrafficTestConfig() *models.EnodebdTestConfig {
 }
 
 func marshalTestConfig(t *testing.T, tc *models.EnodebdTestConfig) []byte {
-	ret, err := serde.Serialize(testcontroller.SerdeDomain, testcontroller.EnodedTestCaseType, tc)
+	ret, err := serde.Serialize(tc, testcontroller.EnodedTestCaseType, serdes.TestController)
 	assert.NoError(t, err)
 
-	ret, err = serde.Serialize(testcontroller.SerdeDomain, testcontroller.EnodedTestExcludeTraffic, tc)
+	ret, err = serde.Serialize(tc, testcontroller.EnodedTestExcludeTraffic, serdes.TestController)
 	assert.NoError(t, err)
 	return ret
 }

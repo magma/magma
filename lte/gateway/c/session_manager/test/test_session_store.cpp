@@ -302,7 +302,8 @@ TEST_F(SessionStoreTest, test_read_and_write) {
 
   // 2) Create bare-bones session for IMSI1
   auto session = get_session(IMSI1, SESSION_ID_1, rule_store);
-  auto uc      = get_default_update_criteria();
+
+  auto uc = get_default_update_criteria();
   RuleLifetime lifetime{
       .activation_time   = std::time_t(0),
       .deactivation_time = std::time_t(0),
@@ -321,11 +322,15 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_TX), 111);
   EXPECT_EQ(session->get_monitor(monitoring_key, USED_RX), 333);
 
+  // 2.1) create an extra session for the same IMSI
+  auto session2 = get_session(IMSI1, SESSION_ID_2, rule_store);
+
   // 3) Commit session for IMSI1 into SessionStore
   auto sessions = SessionVector{};
   EXPECT_EQ(sessions.size(), 0);
   sessions.push_back(std::move(session));
-  EXPECT_EQ(sessions.size(), 1);
+  sessions.push_back(std::move(session2));
+  EXPECT_EQ(sessions.size(), 2);
   session_store->create_sessions(IMSI1, std::move(sessions));
 
   // 4) Read session for IMSI1 from SessionStore
@@ -335,7 +340,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
 
   // 5) Verify that state was written for IMSI1 and has been retrieved.
   EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 2);
   EXPECT_EQ(session_map[IMSI1].front()->get_request_number(), 1);
 
   // 6) Make updates to session via SessionUpdateCriteria
@@ -353,7 +358,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   // 8) Read in session for IMSI1 again to check that the update was successful
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1].size(), 2);
   EXPECT_EQ(session_map[IMSI1].front()->get_session_id(), SESSION_ID_1);
   // Check installed rules
   EXPECT_EQ(
@@ -404,17 +409,29 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   // Check pdp end time update
   EXPECT_EQ(session_map[IMSI1].front()->get_pdp_end_time(), 156789);
 
-  // 11) Delete sessions for IMSI1
+  // 11) Delete session 1 for IMSI1
   update_req                       = SessionUpdate{};
   update_criteria                  = SessionStateUpdateCriteria{};
   update_criteria.is_session_ended = true;
   update_req[IMSI1][SESSION_ID_1]  = update_criteria;
   session_store->update_sessions(update_req);
 
-  // 12) Verify that IMSI1 no longer has a session
+  // 12) Verify that session 1 on IMSI 1 is gone. Only session 2 is there
   session_map = session_store->read_sessions(read_req);
   EXPECT_EQ(session_map.size(), 1);
-  EXPECT_EQ(session_map[IMSI1].size(), 0);
+  EXPECT_EQ(session_map[IMSI1].size(), 1);
+  EXPECT_EQ(session_map[IMSI1][0]->get_session_id(), SESSION_ID_2);
+
+  // 13) Delete session 2 for IMSI1
+  update_req                       = SessionUpdate{};
+  update_criteria                  = SessionStateUpdateCriteria{};
+  update_criteria.is_session_ended = true;
+  update_req[IMSI1][SESSION_ID_2]  = update_criteria;
+  session_store->update_sessions(update_req);
+
+  // 12) Verify that the IMSI is gone since has no sessions left
+  session_map = session_store->read_all_sessions();
+  EXPECT_EQ(session_map.size(), 0);
 }
 
 TEST_F(SessionStoreTest, test_sync_request_numbers) {

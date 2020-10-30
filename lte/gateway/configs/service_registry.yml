@@ -83,3 +83,6 @@ services:
   smsd:
     ip_address: 127.0.0.1
     port: 50078
+  ctraced:
+    ip_address: 127.0.0.1
+    port: 50079

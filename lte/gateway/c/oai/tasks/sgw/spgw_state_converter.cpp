@@ -188,7 +188,7 @@ void SpgwStateConverter::proto_to_spgw_bearer_context(
       &sgw_eps_bearer_context_state->saved_message);
   proto_to_sgw_pending_procedures(
       sgw_eps_bearer_context_proto,
-      sgw_eps_bearer_context_state->pending_procedures);
+      &sgw_eps_bearer_context_state->pending_procedures);
 
   auto* pgw_eps_bearer_context_state =
       &spgw_bearer_state->pgw_eps_bearer_context_information;
@@ -293,6 +293,11 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
     proto->set_uli(uli, sizeof(Uli_t));
   }
 
+  const auto cc = session_request->charging_characteristics;
+  if (cc.length > 0) {
+    proto->set_charging_characteristics(cc.value, cc.length);
+  }
+
   proto->mutable_serving_network()->set_mcc(
       (char*) session_request->serving_network.mcc, 3);
   proto->mutable_serving_network()->set_mnc(
@@ -385,6 +390,18 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
   if (proto.uli().length() > 0) {
     memcpy(&session_request->uli, proto.uli().c_str(), sizeof(Uli_t));
   }
+
+  const auto length = proto.charging_characteristics().length();
+  session_request->charging_characteristics.length = length;
+  if (length > CHARGING_CHARACTERISTICS_LENGTH) {
+    session_request->charging_characteristics.length =
+        CHARGING_CHARACTERISTICS_LENGTH;
+  }
+  memcpy(
+      &session_request->charging_characteristics.value,
+      proto.charging_characteristics().c_str(), length);
+  session_request->charging_characteristics.value[length] = '\0';
+
   memcpy(
       &session_request->serving_network.mcc,
       proto.serving_network().mcc().c_str(), 3);
@@ -887,15 +904,15 @@ void SpgwStateConverter::sgw_pending_procedures_to_proto(
 
 void SpgwStateConverter::proto_to_sgw_pending_procedures(
     const oai::SgwEpsBearerContextInfo& proto,
-    sgw_eps_bearer_context_information_t::pending_procedures_s* procedures) {
-  procedures =
+    sgw_eps_bearer_context_information_t::pending_procedures_s** procedures_p) {
+  *procedures_p =
       (sgw_eps_bearer_context_information_t::pending_procedures_s*) calloc(
-          1, sizeof(*procedures));
-  LIST_INIT(procedures);
+          1, sizeof(*procedures_p));
+  LIST_INIT(*procedures_p);
   for (auto& procedure_proto : proto.pending_procedures()) {
     if (procedure_proto.type() ==
         PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
-      insert_proc_into_sgw_pending_procedures(procedure_proto, procedures);
+      insert_proc_into_sgw_pending_procedures(procedure_proto, *procedures_p);
     }
   }
 }

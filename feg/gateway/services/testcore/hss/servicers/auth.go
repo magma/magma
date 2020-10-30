@@ -17,10 +17,10 @@ import (
 	"bytes"
 	"fmt"
 
-	"magma/lte/cloud/go/crypto"
-	"magma/lte/cloud/go/protos"
-
+	"github.com/emakeev/milenage"
 	"github.com/golang/glog"
+
+	"magma/lte/cloud/go/protos"
 )
 
 const (
@@ -36,13 +36,15 @@ const (
 
 	// lteResyncInfoBytes is the expected size of the lte resync info in bytes.
 	// The first 16 bytes store RAND and the next 14 bytes store AUTS.
-	lteResyncInfoBytes = crypto.RandChallengeBytes + crypto.ExpectedAutsBytes
+	lteResyncInfoBytes = milenage.RandChallengeBytes + milenage.ExpectedAutsBytes
 
 	// maxSeqDelta is the maximum allowed increase to SQN.
 	// eg. if x was the last accepted SQN, then the next SQN must
 	// be greater than x and less than (x + maxSeqDelta) to be accepted.
 	// See 3GPP TS 33.102 Appendix C.2.1.
 	maxSeqDelta = 1 << 28
+
+	maxReturnedVectors = 5
 )
 
 // GenerateLteAuthVectors generates at most `numVectors` lte auth vectors.
@@ -56,19 +58,19 @@ const (
 func GenerateLteAuthVectors(
 	numEutranVectors uint32,
 	numUtranVectors uint32,
-	milenage *crypto.MilenageCipher,
+	mcipher *milenage.Cipher,
 	subscriber *protos.SubscriberData,
 	plmn,
 	lteAuthOp []byte,
-	authSqnInd uint64) ([]*crypto.EutranVector, []*crypto.UtranVector, uint64, error) {
+	authSqnInd uint64) ([]*milenage.EutranVector, []*milenage.UtranVector, uint64, error) {
 
-	if numEutranVectors > 5 {
-		numEutranVectors = 5
+	if numEutranVectors > maxReturnedVectors {
+		numEutranVectors = maxReturnedVectors
 	}
-	var vectors = make([]*crypto.EutranVector, 0, numEutranVectors)
+	var vectors = make([]*milenage.EutranVector, 0, numEutranVectors)
 	lteAuthNextSeq := subscriber.GetState().GetLteAuthNextSeq()
 	for i := uint32(0); i < numEutranVectors; i++ {
-		vector, nextSeq, err := GenerateLteAuthVector(milenage, subscriber, plmn, lteAuthOp, authSqnInd)
+		vector, nextSeq, err := GenerateLteAuthVector(mcipher, subscriber, plmn, lteAuthOp, authSqnInd)
 		if err != nil {
 			// If we have already generated an auth vector successfully, then we can
 			// return it. Otherwise, we must signal an error.
@@ -83,12 +85,12 @@ func GenerateLteAuthVectors(
 		lteAuthNextSeq = nextSeq
 		subscriber.State.LteAuthNextSeq = lteAuthNextSeq
 	}
-	if numUtranVectors > 5 {
-		numUtranVectors = 5
+	if numUtranVectors > maxReturnedVectors {
+		numUtranVectors = maxReturnedVectors
 	}
-	var utranVectors = make([]*crypto.UtranVector, 0, numUtranVectors)
+	var utranVectors = make([]*milenage.UtranVector, 0, numUtranVectors)
 	for i := uint32(0); i < numUtranVectors; i++ {
-		vector, nextSeq, err := GenerateUtranAuthVector(milenage, subscriber, lteAuthOp, authSqnInd)
+		vector, nextSeq, err := GenerateUtranAuthVector(mcipher, subscriber, lteAuthOp, authSqnInd)
 		if err != nil {
 			// If we have already generated an auth vector successfully, then we can
 			// return it. Otherwise, we must signal an error.
@@ -115,10 +117,10 @@ func GenerateLteAuthVectors(
 //   authSqnInd: the IND of the current vector being generated
 // Returns: A E-UTRAN vector and the next value to set the subscriber's LteAuthNextSeq to (or an error).
 func GenerateLteAuthVector(
-	milenage *crypto.MilenageCipher,
+	mcipher *milenage.Cipher,
 	subscriber *protos.SubscriberData,
 	plmn, lteAuthOp []byte,
-	authSqnInd uint64) (*crypto.EutranVector, uint64, error) {
+	authSqnInd uint64) (*milenage.EutranVector, uint64, error) {
 
 	lte := subscriber.Lte
 	if err := ValidateLteSubscription(lte); err != nil {
@@ -134,7 +136,7 @@ func GenerateLteAuthVector(
 	}
 
 	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, authSqnInd)
-	vector, err := milenage.GenerateEutranVector(lte.AuthKey, opc, sqn, plmn)
+	vector, err := mcipher.GenerateEutranVector(lte.AuthKey, opc, sqn, plmn)
 	if err != nil {
 		return vector, 0, NewAuthRejectedError(err.Error())
 	}
@@ -149,10 +151,10 @@ func GenerateLteAuthVector(
 //   authSqnInd: the IND of the current vector being generated
 // Returns: A UTRAN vector and the next value to set the subscriber's LteAuthNextSeq to (or an error).
 func GenerateUtranAuthVector(
-	milenage *crypto.MilenageCipher,
+	mcipher *milenage.Cipher,
 	subscriber *protos.SubscriberData,
 	lteAuthOp []byte,
-	authSqnInd uint64) (*crypto.UtranVector, uint64, error) {
+	authSqnInd uint64) (*milenage.UtranVector, uint64, error) {
 
 	lte := subscriber.Lte
 	if err := ValidateLteSubscription(lte); err != nil {
@@ -168,7 +170,7 @@ func GenerateUtranAuthVector(
 	}
 
 	sqn := SeqToSqn(subscriber.State.LteAuthNextSeq, authSqnInd)
-	vector, err := milenage.GenerateUtranVector(lte.AuthKey, opc, sqn)
+	vector, err := mcipher.GenerateUtranVector(lte.AuthKey, opc, sqn)
 	if err != nil {
 		return vector, 0, NewAuthRejectedError(err.Error())
 	}
@@ -196,21 +198,21 @@ func ResyncLteAuthSeq(subscriber *protos.SubscriberData, resyncInfo, lteAuthOp [
 	}
 
 	// Use dummy AMF for re-synchronization. See 3GPP TS 33.102 section 6.3.3.
-	milenage, err := crypto.NewMilenageCipher(make([]byte, crypto.ExpectedAmfBytes))
+	mcipher, err := milenage.NewCipher(make([]byte, milenage.ExpectedAmfBytes))
 	if err != nil {
 		return 0, NewAuthDataUnavailableError(err.Error())
 	}
-	rand := resyncInfo[:crypto.RandChallengeBytes]
-	auts := resyncInfo[crypto.RandChallengeBytes:]
+	rand := resyncInfo[:milenage.RandChallengeBytes]
+	auts := resyncInfo[milenage.RandChallengeBytes:]
 	opc, err := GetOrGenerateOpc(lte, lteAuthOp)
 	if err != nil {
 		return 0, err
 	}
-	sqnMs, macS, err := milenage.GenerateResync(auts, subscriber.Lte.AuthKey, opc, rand)
+	sqnMs, macS, err := mcipher.GenerateResync(auts, subscriber.Lte.AuthKey, opc, rand)
 	if err != nil {
 		return 0, NewAuthDataUnavailableError(err.Error())
 	}
-	if !bytes.Equal(macS[:], auts[crypto.ExpectedAutsBytes-len(macS):]) {
+	if !bytes.Equal(macS[:], auts[milenage.ExpectedAutsBytes-len(macS):]) {
 		return 0, NewAuthRejectedError("Invalid resync authentication code")
 	}
 
@@ -249,7 +251,7 @@ func ValidateLteSubscription(lte *protos.LTESubscription) error {
 		return fmt.Errorf("LTE Service not active")
 	}
 	if lte.AuthAlgo != protos.LTESubscription_MILENAGE {
-		return fmt.Errorf("Unsupported crypto algorithm: %v", lte.AuthAlgo)
+		return fmt.Errorf("Unsupported milenage algorithm: %v", lte.AuthAlgo)
 	}
 	return nil
 }
@@ -257,7 +259,7 @@ func ValidateLteSubscription(lte *protos.LTESubscription) error {
 // GetOrGenerateOpc returns lte.AuthOpc and generates if it isn't stored in the proto
 func GetOrGenerateOpc(lte *protos.LTESubscription, lteAuthOp []byte) ([]byte, error) {
 	if lte == nil || len(lte.AuthOpc) == 0 {
-		opc, err := crypto.GenerateOpc(lte.AuthKey, lteAuthOp)
+		opc, err := milenage.GenerateOpc(lte.AuthKey, lteAuthOp)
 		if err != nil {
 			err = NewAuthDataUnavailableError(err.Error())
 		}

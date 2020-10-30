@@ -20,6 +20,8 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
@@ -29,7 +31,7 @@ import (
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
 	"github.com/pkg/errors"
-	assert "github.com/stretchr/testify/require"
+	"github.com/stretchr/testify/assert"
 )
 
 func init() {
@@ -57,23 +59,23 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 	defer clock.ResumeSleeps(t)
 
 	id0 := state_types.ID{Type: orc8r.GatewayStateType}
-	id1 := state_types.ID{Type: state.StringMapSerdeType}
+	id1 := state_types.ID{Type: orc8r.StringMapSerdeType}
 	reported0 := &models.GatewayStatus{Meta: map[string]string{"foo": "bar"}}
 	reported1 := &state.StringToStringMap{"apple": "banana"}
-	st0 := state_types.State{ReportedState: reported0, Type: orc8r.GatewayStateType}
-	st1 := state_types.State{ReportedState: reported1, Type: state.StringMapSerdeType}
+	st0 := state_types.State{ReportedState: reported0}
+	st1 := state_types.State{ReportedState: reported1}
 
 	indexTwo := state_types.StatesByID{id0: st0, id1: st1}
 	indexOne := state_types.StatesByID{id1: st1}
 	in := state_types.StatesByID{id0: st0, id1: st1}
 
-	idx0 := getIndexer(iid0, []string{orc8r.GatewayStateType, state.StringMapSerdeType})
-	idx1 := getIndexer(iid1, []string{state.StringMapSerdeType})
+	idx0 := getIndexer(iid0, []string{orc8r.GatewayStateType, orc8r.StringMapSerdeType})
+	idx1 := getIndexer(iid1, []string{orc8r.StringMapSerdeType})
 	idx2 := getIndexer(iid2, []string{"type_with_no_reported_states"})
 	idx3 := getIndexer(iid3, []string{})
 
-	idx0.On("Index", nid0, indexTwo).Return(state_types.StateErrors{id0: someErr}, nil).Once()
-	idx1.On("Index", nid0, indexOne).Return(nil, someErr).Times(maxRetry)
+	idx0.On("Index", nid0, serialize(t, indexTwo)).Return(state_types.StateErrors{id0: someErr}, nil).Once()
+	idx1.On("Index", nid0, serialize(t, indexOne)).Return(nil, someErr).Times(maxRetry)
 	idx0.On("GetVersion").Return(indexer.Version(42))
 	idx1.On("GetVersion").Return(indexer.Version(42))
 	idx2.On("GetVersion").Return(indexer.Version(42))
@@ -86,7 +88,7 @@ func TestIndexImpl_HappyPath(t *testing.T) {
 	state_test_init.StartNewTestIndexer(t, idx3)
 
 	// All indexing occurs as expected
-	actual, err := index.Index(nid0, in)
+	actual, err := index.Index(nid0, serialize(t, in))
 	assert.NoError(t, err)
 	assert.Len(t, actual, 1) // from idx1's overarching err return
 	e := actual[0].Error()
@@ -104,4 +106,21 @@ func getIndexer(id string, types []string) *mocks.Indexer {
 	idx.On("GetID").Return(id)
 	idx.On("GetTypes").Return(types)
 	return idx
+}
+
+func serialize(t *testing.T, states state_types.StatesByID) state_types.SerializedStatesByID {
+	serialized := state_types.SerializedStatesByID{}
+	for id, st := range states {
+		s := state_types.SerializedState{
+			Version:            st.Version,
+			ReporterID:         st.ReporterID,
+			TimeMs:             st.TimeMs,
+			CertExpirationTime: st.CertExpirationTime,
+		}
+		rep, err := serde.Serialize(st.ReportedState, id.Type, serdes.State)
+		assert.NoError(t, err)
+		s.SerializedReportedState = rep
+		serialized[id] = s
+	}
+	return serialized
 }

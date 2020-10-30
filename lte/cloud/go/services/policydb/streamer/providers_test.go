@@ -19,6 +19,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_protos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
@@ -45,38 +46,46 @@ func TestRatingGroupStreamers(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.RatingGroupStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	// create the rating groups
-	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{
-			Type: lte.RatingGroupEntityType,
-			Key:  "111",
-			Config: &models.RatingGroup{
-				ID:        111,
-				LimitType: swag.String("FINITE"),
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.RatingGroupEntityType,
+				Key:  "111",
+				Config: &models.RatingGroup{
+					ID:        111,
+					LimitType: swag.String("FINITE"),
+				},
+			},
+			{
+				Type: lte.RatingGroupEntityType,
+				Key:  "222",
+				Config: &models.RatingGroup{
+					ID:        222,
+					LimitType: swag.String("INFINITE_METERED"),
+				},
+			},
+			{
+				Type: lte.RatingGroupEntityType,
+				Key:  "333",
+				Config: &models.RatingGroup{
+					ID:        333,
+					LimitType: swag.String("INFINITE_UNMETERED"),
+				},
 			},
 		},
-		{
-			Type: lte.RatingGroupEntityType,
-			Key:  "222",
-			Config: &models.RatingGroup{
-				ID:        222,
-				LimitType: swag.String("INFINITE_METERED"),
-			},
-		},
-		{
-			Type: lte.RatingGroupEntityType,
-			Key:  "333",
-			Config: &models.RatingGroup{
-				ID:        333,
-				LimitType: swag.String("INFINITE_UNMETERED"),
-			},
-		},
-	})
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	expectedProtos := []*lte_protos.RatingGroup{
@@ -114,111 +123,123 @@ func TestPolicyStreamers(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.PolicyStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
-	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		// Attached qos profile (shared)
-		{
-			Type: lte.PolicyQoSProfileEntityType,
-			Key:  "p1",
-			Config: &models.PolicyQosProfile{
-				ClassID: 42,
-				ID:      "p1",
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			// Attached qos profile (shared)
+			{
+				Type: lte.PolicyQoSProfileEntityType,
+				Key:  "p1",
+				Config: &models.PolicyQosProfile{
+					ClassID: 42,
+					ID:      "p1",
+				},
 			},
-		},
-		// Dangling qos profile
-		{
-			Type: lte.PolicyQoSProfileEntityType,
-			Key:  "p2",
-			Config: &models.PolicyQosProfile{
-				ClassID: 420,
-				ID:      "p2",
+			// Dangling qos profile
+			{
+				Type: lte.PolicyQoSProfileEntityType,
+				Key:  "p2",
+				Config: &models.PolicyQosProfile{
+					ClassID: 420,
+					ID:      "p2",
+				},
 			},
-		},
-		{
-			Type: lte.PolicyRuleEntityType,
-			Key:  "r1",
-			Config: &models.PolicyRuleConfig{
-				FlowList: []*models.FlowDescription{
-					{
-						Action: swag.String("PERMIT"),
-						Match: &models.FlowMatch{
-							Direction: swag.String("UPLINK"),
-							IPProto:   swag.String("IPPROTO_IP "),
-							IPDst: &models.IPAddress{
-								Version: models.IPAddressVersionIPV4,
-								Address: "192.168.160.0/24",
+			{
+				Type: lte.PolicyRuleEntityType,
+				Key:  "r1",
+				Config: &models.PolicyRuleConfig{
+					FlowList: []*models.FlowDescription{
+						{
+							Action: swag.String("PERMIT"),
+							Match: &models.FlowMatch{
+								Direction: swag.String("UPLINK"),
+								IPProto:   swag.String("IPPROTO_IP "),
+								IPDst: &models.IPAddress{
+									Version: models.IPAddressVersionIPV4,
+									Address: "192.168.160.0/24",
+								},
+								IPSrc: &models.IPAddress{
+									Version: models.IPAddressVersionIPV4,
+									Address: "192.168.128.0/24",
+								},
 							},
-							IPSrc: &models.IPAddress{
-								Version: models.IPAddressVersionIPV4,
-								Address: "192.168.128.0/24",
+						},
+						{
+							Action: swag.String("DENY"),
+							Match: &models.FlowMatch{
+								Direction: swag.String("UPLINK"),
+								IPProto:   swag.String("IPPROTO_IP "),
+								IPSrc: &models.IPAddress{
+									Version: models.IPAddressVersionIPV4,
+									Address: "192.168.128.0/24",
+								},
 							},
 						},
 					},
-					{
-						Action: swag.String("DENY"),
-						Match: &models.FlowMatch{
-							Direction: swag.String("UPLINK"),
-							IPProto:   swag.String("IPPROTO_IP "),
-							IPSrc: &models.IPAddress{
-								Version: models.IPAddressVersionIPV4,
-								Address: "192.168.128.0/24",
-							},
-						},
+					MonitoringKey: "foo",
+				},
+				Associations: []storage.TypeAndKey{
+					{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
+				},
+			},
+			{
+				Type: lte.PolicyRuleEntityType,
+				Key:  "r2",
+				Config: &models.PolicyRuleConfig{
+					Priority: swag.Uint32(42),
+					Redirect: &models.RedirectInformation{
+						AddressType:   swag.String("IPv4"),
+						ServerAddress: swag.String("https://www.google.com"),
+						Support:       swag.String("ENABLED"),
 					},
 				},
-				MonitoringKey: "foo",
-			},
-			Associations: []storage.TypeAndKey{
-				{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
-			},
-		},
-		{
-			Type: lte.PolicyRuleEntityType,
-			Key:  "r2",
-			Config: &models.PolicyRuleConfig{
-				Priority: swag.Uint32(42),
-				Redirect: &models.RedirectInformation{
-					AddressType:   swag.String("IPv4"),
-					ServerAddress: swag.String("https://www.google.com"),
-					Support:       swag.String("ENABLED"),
+				Associations: []storage.TypeAndKey{
+					{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
 				},
 			},
-			Associations: []storage.TypeAndKey{
-				{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
+			{
+				Type: lte.PolicyRuleEntityType,
+				Key:  "r3",
+				Config: &models.PolicyRuleConfig{
+					MonitoringKey: "bar",
+				},
 			},
 		},
-		{
-			Type: lte.PolicyRuleEntityType,
-			Key:  "r3",
-			Config: &models.PolicyRuleConfig{
-				MonitoringKey: "bar",
-			},
-		},
-	})
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities("n1", []configurator.NetworkEntity{
-		{
-			Type:   lte.BaseNameEntityType,
-			Key:    "b1",
-			Config: &models.BaseNameRecord{Name: "b1"},
-			Associations: []storage.TypeAndKey{
-				{Type: lte.PolicyRuleEntityType, Key: "r1"},
-				{Type: lte.PolicyRuleEntityType, Key: "r2"},
+	_, err = configurator.CreateEntities(
+		"n1",
+		[]configurator.NetworkEntity{
+			{
+				Type:   lte.BaseNameEntityType,
+				Key:    "b1",
+				Config: &models.BaseNameRecord{Name: "b1"},
+				Associations: []storage.TypeAndKey{
+					{Type: lte.PolicyRuleEntityType, Key: "r1"},
+					{Type: lte.PolicyRuleEntityType, Key: "r2"},
+				},
+			},
+			{
+				Type:   lte.BaseNameEntityType,
+				Key:    "b2",
+				Config: &models.BaseNameRecord{Name: "b2"},
+				Associations: []storage.TypeAndKey{
+					{Type: lte.PolicyRuleEntityType, Key: "r3"},
+				},
 			},
 		},
-		{
-			Type:   lte.BaseNameEntityType,
-			Key:    "b2",
-			Config: &models.BaseNameRecord{Name: "b2"},
-			Associations: []storage.TypeAndKey{
-				{Type: lte.PolicyRuleEntityType, Key: "r3"},
-			},
-		},
-	})
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	expectedProtos := []*lte_protos.PolicyRule{
@@ -309,9 +330,13 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.ApnRuleMappingsStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -355,6 +380,7 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -375,6 +401,7 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 				},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -398,6 +425,7 @@ func TestApnRuleMappingsProvider(t *testing.T) {
 			},
 			{Type: lte.SubscriberEntityType, Key: "s3"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -450,9 +478,13 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 	provider, err := providers.GetStreamProvider(lte.NetworkWideRulesStreamName)
 	assert.NoError(t, err)
 
-	err = configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err = configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntity("n1", configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"})
+	_, err = configurator.CreateEntity(
+		"n1",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", PhysicalID: "hw1"},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	_, err = configurator.CreateEntities(
@@ -466,13 +498,14 @@ func TestNetworkWideRulesProvider(t *testing.T) {
 			{Type: lte.BaseNameEntityType, Key: "b2"},
 			{Type: lte.BaseNameEntityType, Key: "b3"},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	config := &models.NetworkSubscriberConfig{
 		NetworkWideBaseNames: []models.BaseName{"b1", "b2"},
 		NetworkWideRuleNames: []string{"r1", "r2"},
 	}
-	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, config))
+	assert.NoError(t, configurator.UpdateNetworkConfig("n1", lte.NetworkSubscriberConfigType, config, serdes.Network))
 
 	expectedProtos := []*lte_protos.AssignedPolicies{
 		{

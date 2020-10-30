@@ -117,6 +117,7 @@ void MmeNasStateConverter::guti_table_to_proto(
   hashtable_rc_t ht_rc =
       obj_hashtable_uint64_ts_get_keys(guti_htbl, key_array_p, &size);
   if ((!*key_array_p) || (ht_rc != HASH_TABLE_OK)) {
+    FREE_OBJ_HASHTABLE_KEY_ARRAY(key_array_p);
     return;
   }
   for (auto i = 0; i < size; i++) {
@@ -189,6 +190,7 @@ void MmeNasStateConverter::proto_to_guti_table(
           "Failed to insert mme_ue_s1ap_id %u in GUTI table, error: %s\n",
           mme_ue_id, hashtable_rc_code2string(ht_rc));
     }
+    free_wrapper((void**) &guti_p);
   }
 }
 
@@ -610,6 +612,8 @@ void MmeNasStateConverter::ue_context_to_proto(
   ue_context_proto->mutable_time_paging_response_timer_started()->set_seconds(
       state_ue_context->time_paging_response_timer_started);
   ue_context_proto->set_paging_retx_count(state_ue_context->paging_retx_count);
+  ue_context_proto->mutable_time_ics_rsp_timer_started()->set_seconds(
+      state_ue_context->time_ics_rsp_timer_started);
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 
@@ -709,6 +713,8 @@ void MmeNasStateConverter::proto_to_ue_mm_context(
   state_ue_mm_context->time_paging_response_timer_started =
       ue_context_proto.time_paging_response_timer_started().seconds();
   state_ue_mm_context->paging_retx_count = ue_context_proto.paging_retx_count();
+  state_ue_mm_context->time_ics_rsp_timer_started =
+      ue_context_proto.time_ics_rsp_timer_started().seconds();
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
 

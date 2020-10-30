@@ -31,4 +31,5 @@ services:
       POSTGRES_USER: magma_test
       POSTGRES_PASSWORD: magma_test
       POSTGRES_DB: magma_test
+    command: ["postgres", "-c", "log_statement=all"]
     restart: always

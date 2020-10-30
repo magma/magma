@@ -363,9 +363,11 @@ func TestGxAbortSessionRequest(t *testing.T) {
 	tr.WaitForPoliciesToSync()
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	tr.WaitForEnforcementStatsToSync()
+
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(t, err)
-	assert.Empty(t, recordsBySubID[prependIMSIPrefix(imsi)][ruleKey])
+	assert.NotEmpty(t, recordsBySubID[prependIMSIPrefix(imsi)][ruleKey])
 
 	asa, err := sendPolicyAbortSession(
 		&fegProtos.AbortSessionRequest{

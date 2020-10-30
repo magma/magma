@@ -33,7 +33,7 @@ type cpMessage struct {
 	// Only present for CP-ERROR
 	cause byte
 
-	// Can be present for CP-DATA, CP-ACK and CP-ERROR
+	// Only present for CP-DATA
 	length byte
 
 	// Only present for CP-DATA
@@ -84,41 +84,29 @@ func (cpm cpMessage) marshalBinary() []byte {
 }
 
 func (cpm *cpMessage) unmarshalBinary(input []byte) error {
-	msgLen := len(input)
-	// Message length must be at least two octets long
-	if msgLen < 2 {
+	// must be at least two octets long
+	if len(input) < 2 {
 		return smsCpError("Message too short")
 	}
 
 	cpm.firstOctet = input[0]
 	cpm.messageType = input[1]
 
-	if cpm.messageType != CpData && cpm.messageType != CpError && cpm.messageType != CpAck {
-		return smsCpError(fmt.Sprintf("Invalid Message type: %x", cpm.messageType))
-	}
-	// Decode IEs
-	decoded := 2
-
-	for decoded < msgLen {
-		if input[decoded] == CpIeiUserData {
-			decoded++
-			cpm.length = input[decoded]
-			decoded++
-			end := decoded + int(cpm.length)
-			cpm.rpdu = make([]byte, cpm.length)
-			copy(cpm.rpdu, input[decoded:end])
-			decoded = end
-		} else if input[decoded] == CpIeiCause {
-			decoded++
-			if _, ok := CpCauseStr[input[decoded]]; ok {
-				cpm.cause = input[decoded]
-				decoded++
-			} else {
-				return smsCpError(fmt.Sprintf("Invalid cause: %x", cpm.cause))
-			}
+	switch cpm.messageType {
+	case CpData:
+		cpm.length = input[2]
+		cpm.rpdu = make([]byte, len(input[3:]))
+		copy(cpm.rpdu, input[3:])
+	case CpError:
+		if _, ok := CpCauseStr[input[2]]; ok {
+			cpm.cause = input[2]
 		} else {
-			return smsCpError(fmt.Sprintf("Invalid IE type: %x", input[decoded]))
+			return smsCpError(fmt.Sprintf("Invalid cause: %x", cpm.cause))
 		}
+	case CpAck:
+		// Do nothing -- no more data
+	default:
+		return smsCpError(fmt.Sprintf("Invalid IE type: %x", cpm.messageType))
 	}
 
 	return nil
@@ -145,8 +133,8 @@ const (
 	CpError = 0x10
 
 	// IE Types
-	CpIeiUserData = 0x1
-	CpIeiCause    = 0x2
+	CpIeiUser  = 0x1
+	CpIeiCause = 0x2
 )
 
 const (
@@ -167,7 +155,7 @@ var CpCauseStr = map[byte]string{
 	CpCauseCongestion:                   "Congestion",
 	CpCauseInvalidTi:                    "Invalid Transaction Identifier value",
 	CpCauseSemanticallyIncorrect:        "Semantically incorrect message",
-	CpCauseInvalidMandantoryInformation: "Invalid mandatory information",
+	CpCauseInvalidMandantoryInformation: "Invalid mandantory information",
 	CpCauseMessageTypeNonexistant:       "Message type non-existent or not implemented",
 	CpCauseMessageNotCompatible:         "Message not compatible with the short message protocol state",
 	CpCauseInfoElementNonexistant:       "Information element non-existent or not implemented",

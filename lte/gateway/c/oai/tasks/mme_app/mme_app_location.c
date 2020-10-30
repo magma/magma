@@ -318,6 +318,10 @@ int mme_app_handle_s6a_update_location_ans(
       &ue_mm_context->apn_config_profile,
       &ula_pP->subscription_data.apn_config_profile,
       sizeof(apn_config_profile_t));
+  memcpy(
+      &ue_mm_context->default_charging_characteristics,
+      &ula_pP->subscription_data.default_charging_characteristics,
+      sizeof(charging_characteristics_t));
 
   /*
    * Set the value of  Mobile Reachability timer based on value of T3412

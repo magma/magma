@@ -357,6 +357,9 @@ typedef struct ue_mm_context_s {
   /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
   apn_config_profile_t apn_config_profile;
 
+  /* charging_characteristics: set by S6A UPDATE LOCATION ANSWER */
+  charging_characteristics_t default_charging_characteristics;
+
   /* access_restriction_data: The access restriction subscription information.
    *           set by S6A UPDATE LOCATION ANSWER
    */
@@ -419,6 +422,7 @@ typedef struct ue_mm_context_s {
   time_t time_implicit_detach_timer_started;
   /* Initial Context Setup Procedure Guard timer */
   struct mme_app_timer_t initial_context_setup_rsp_timer;
+  time_t time_ics_rsp_timer_started;
   /* UE Context Modification Procedure Guard timer */
   struct mme_app_timer_t ue_context_modification_timer;
   /* Timer for retrying paging messages */

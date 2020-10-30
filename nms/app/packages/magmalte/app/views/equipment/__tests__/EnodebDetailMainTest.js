@@ -48,8 +48,6 @@ const mockThroughput: promql_return_object = {
   },
 };
 
-const currTime = Date.now();
-
 describe('<Enodeb />', () => {
   beforeEach(() => {
     // eslint-disable-next-line max-len
@@ -62,77 +60,116 @@ describe('<Enodeb />', () => {
     axiosMock.get.mockClear();
   });
 
-  const enbInfo0 = {
-    enb: {
-      attached_gateway_id: 'us_baltic_gw1',
-      config: {
-        bandwidth_mhz: 20,
-        cell_id: 1,
-        device_class: 'Baicells ID TDD/FDD',
-        earfcndl: 44290,
-        pci: 36,
-        special_subframe_pattern: 7,
-        subframe_assignment: 2,
-        tac: 1,
-        transmit_enabled: true,
-      },
-      name: 'testEnodeb0',
-      serial: 'testEnodebSerial0',
-    },
-    enb_state: {
-      enodeb_configured: true,
-      enodeb_connected: true,
-      fsm_state: 'Completed provisioning eNB. Awaiting new Inform.',
-      gps_connected: true,
-      gps_latitude: '41.799182',
-      gps_longitude: '-88.097308',
-      mme_connected: false,
-      opstate_enabled: false,
-      ptp_connected: false,
-      reporting_gateway_id: 'us_baltic_gw1',
-      rf_tx_desired: true,
-      rf_tx_on: false,
-      time_reported: 0,
-    },
-  };
-
-  const enbInfo1 = Object.assign({}, enbInfo0);
-  enbInfo1.enb = {...enbInfo1.enb, name: 'testEnodeb1'};
-  enbInfo1.enb_state = {
-    ...enbInfo1.enb_state,
-    fsm_state: 'initializing',
-    time_reported: currTime,
-    rf_tx_on: true,
-  };
   const enbInfo = {
-    testEnodebSerial0: enbInfo0,
-    testEnodebSerial1: enbInfo1,
+    testEnodebSerial0: {
+      enb: {
+        attached_gateway_id: 'testGw1',
+        config: {
+          bandwidth_mhz: 20,
+          cell_id: 1,
+          device_class: 'Baicells ID TDD/FDD',
+          earfcndl: 44290,
+          pci: 36,
+          special_subframe_pattern: 7,
+          subframe_assignment: 2,
+          tac: 1,
+          transmit_enabled: true,
+        },
+        enodeb_config: {
+          config_type: 'MANAGED',
+          managed_config: {
+            bandwidth_mhz: 20,
+            cell_id: 1,
+            device_class: 'Baicells ID TDD/FDD',
+            earfcndl: 44290,
+            pci: 36,
+            special_subframe_pattern: 7,
+            subframe_assignment: 2,
+            tac: 1,
+            transmit_enabled: true,
+          },
+        },
+        name: 'testEnodeb0',
+        serial: 'testEnodebSerial0',
+      },
+      enb_state: {
+        enodeb_configured: true,
+        enodeb_connected: true,
+        fsm_state: 'Completed provisioning eNB. Awaiting new Inform.',
+        gps_connected: true,
+        gps_latitude: '41.799182',
+        gps_longitude: '-88.097308',
+        mme_connected: false,
+        opstate_enabled: false,
+        ptp_connected: false,
+        reporting_gateway_id: 'testGw1',
+        rf_tx_desired: true,
+        rf_tx_on: false,
+        time_reported: 0,
+      },
+    },
+    testEnodebSerial1: {
+      enb: {
+        attached_gateway_id: 'testGw2',
+        config: {
+          cell_id: 0,
+          device_class: 'Baicells Nova-233 G2 OD FDD',
+          transmit_enabled: false,
+        },
+        enodeb_config: {
+          config_type: 'UNMANAGED',
+          unmanaged_config: {
+            cell_id: 1,
+            ip_address: '1.1.1.1',
+            tac: 1,
+          },
+        },
+        name: 'testEnodeb0',
+        serial: 'testEnodebSerial0',
+      },
+      enb_state: {
+        enodeb_configured: true,
+        enodeb_connected: true,
+        fsm_state: 'Completed provisioning eNB. Awaiting new Inform.',
+        gps_connected: true,
+        gps_latitude: '41.799182',
+        gps_longitude: '-88.097308',
+        mme_connected: false,
+        opstate_enabled: false,
+        ptp_connected: false,
+        reporting_gateway_id: 'testGw2',
+        rf_tx_desired: true,
+        rf_tx_on: false,
+        time_reported: 0,
+      },
+    },
   };
 
-  const Wrapper = () => (
-    <MemoryRouter
-      initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
-      initialIndex={0}>
-      <MuiPickersUtilsProvider utils={MomentUtils}>
-        <MuiThemeProvider theme={defaultTheme}>
-          <MuiStylesThemeProvider theme={defaultTheme}>
-            <EnodebContext.Provider
-              value={{
-                state: {enbInfo: enbInfo},
-                setState: async _ => {},
-              }}>
-              <Route
-                path="/nms/:networkId/enodeb/:enodebSerial/overview"
-                render={props => <EnodebDetail {...props} enbInfo={enbInfo} />}
-              />
-            </EnodebContext.Provider>
-          </MuiStylesThemeProvider>
-        </MuiThemeProvider>
-      </MuiPickersUtilsProvider>
-    </MemoryRouter>
-  );
-
-  it('renders', async () => {
+  it('managed eNodeB', async () => {
+    const Wrapper = () => (
+      <MemoryRouter
+        initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial0/overview']}
+        initialIndex={0}>
+        <MuiPickersUtilsProvider utils={MomentUtils}>
+          <MuiThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <EnodebContext.Provider
+                value={{
+                  state: {enbInfo: enbInfo},
+                  setState: async _ => {},
+                }}>
+                <Route
+                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                  render={props => (
+                    <EnodebDetail {...props} enbInfo={enbInfo} />
+                  )}
+                />
+              </EnodebContext.Provider>
+            </MuiStylesThemeProvider>
+          </MuiThemeProvider>
+        </MuiPickersUtilsProvider>
+      </MemoryRouter>
+    );
     const {getByTestId} = render(<Wrapper />);
     await wait();
 
@@ -143,9 +180,52 @@ describe('<Enodeb />', () => {
     expect(getByTestId('eNodeB Serial Number')).toHaveTextContent(
       'testEnodebSerial0',
     );
+    expect(getByTestId('eNodeB Externally Managed')).toHaveTextContent('False');
     expect(getByTestId('Health')).toHaveTextContent('Bad');
     expect(getByTestId('Transmit Enabled')).toHaveTextContent('Enabled');
-    expect(getByTestId('Gateway ID')).toHaveTextContent('us_baltic_gw1');
+    expect(getByTestId('Gateway ID')).toHaveTextContent('testGw1');
+    expect(getByTestId('Mme Connected')).toHaveTextContent('Disconnected');
+  });
+
+  it('unManaged eNodeB', async () => {
+    const Wrapper = () => (
+      <MemoryRouter
+        initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial1/overview']}
+        initialIndex={0}>
+        <MuiPickersUtilsProvider utils={MomentUtils}>
+          <MuiThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <EnodebContext.Provider
+                value={{
+                  state: {enbInfo: enbInfo},
+                  setState: async _ => {},
+                }}>
+                <Route
+                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                  render={props => (
+                    <EnodebDetail {...props} enbInfo={enbInfo} />
+                  )}
+                />
+              </EnodebContext.Provider>
+            </MuiStylesThemeProvider>
+          </MuiThemeProvider>
+        </MuiPickersUtilsProvider>
+      </MemoryRouter>
+    );
+    const {getByTestId} = render(<Wrapper />);
+    await wait();
+
+    // TODO - commenting this out till we have per enodeb metric support
+    // expect(
+    //   MagmaAPIBindings.getNetworksByNetworkIdPrometheusQueryRange,
+    // ).toHaveBeenCalledTimes(2);
+    expect(getByTestId('eNodeB Serial Number')).toHaveTextContent(
+      'testEnodebSerial1',
+    );
+    expect(getByTestId('eNodeB Externally Managed')).toHaveTextContent('True');
+    expect(getByTestId('Health')).toHaveTextContent('Bad');
+    expect(getByTestId('Transmit Enabled')).toHaveTextContent('Disabled');
+    expect(getByTestId('Gateway ID')).toHaveTextContent('testGw2');
     expect(getByTestId('Mme Connected')).toHaveTextContent('Disconnected');
   });
 });

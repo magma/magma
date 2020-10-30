@@ -1,13 +1,23 @@
+/*
+ Copyright 2020 The Magma Authors.
+
+ This source code is licensed under the BSD-style license found in the
+ LICENSE file in the root directory of this source tree.
+
+ Unless required by applicable law or agreed to in writing, software
+ distributed under the License is distributed on an "AS IS" BASIS,
+ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ See the License for the specific language governing permissions and
+ limitations under the License.
+*/
+
 package plugin
 
 import (
 	"magma/fbinternal/cloud/go/fbinternal"
 	fbinternal_service "magma/fbinternal/cloud/go/services/fbinternal"
-	"magma/fbinternal/cloud/go/services/testcontroller"
-	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/collection"
@@ -33,11 +43,7 @@ func (*FbinternalOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 }
 
 func (*FbinternalOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{
-		configurator.NewNetworkConfigSerde(fbinternal.TestControllerNetworkType, &models.TestConfig{}),
-		serde.NewBinarySerde(testcontroller.SerdeDomain, testcontroller.EnodedTestCaseType, &models.EnodebdTestConfig{}),
-		serde.NewBinarySerde(testcontroller.SerdeDomain, testcontroller.EnodedTestExcludeTraffic, &models.EnodebdTestConfig{}),
-	}
+	return []serde.Serde{}
 }
 
 func (*FbinternalOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {

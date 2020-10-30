@@ -14,7 +14,6 @@ limitations under the License.
 import ipaddress
 import shlex
 import subprocess
-import unittest
 import unittest.mock
 from concurrent import futures
 
@@ -23,12 +22,19 @@ from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
     ListAddedIPBlocksResponse, ListAllocatedIPsResponse, ReleaseIPRequest, \
     RemoveIPBlockRequest, RemoveIPBlockResponse, SubscriberIPTableEntry, \
     IPLookupRequest, GWInfo
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from magma.mobilityd.rpc_servicer import IPVersionNotSupportedError, \
-    MobilityServiceRpcServicer
+from magma.common.redis.client import get_default_client
+from magma.mobilityd.ip_address_man import IPAddressManager
+from magma.mobilityd.rpc_servicer import MobilityServiceRpcServicer
 from magma.subscriberdb.sid import SIDUtils
 from orc8r.protos.common_pb2 import Void
+
+from magma.mobilityd.mobility_store import MobilityStore
+
+from magma.mobilityd.ip_allocator_pool import \
+    IpAllocatorPool
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
 
 
 class RpcTests(unittest.TestCase):
@@ -42,16 +48,19 @@ class RpcTests(unittest.TestCase):
         self._rpc_server = grpc.server(thread_pool)
         port = self._rpc_server.add_insecure_port('0.0.0.0:0')
 
-        # Create a mock "mconfig" for the servicer to use
-        mconfig = unittest.mock.Mock()
-        mconfig.ip_block = None
-        mconfig.ip_allocator_type = MobilityD.IP_POOL
+        store = MobilityStore(get_default_client(), False, 3980)
+        store.dhcp_gw_info.read_default_gw()
+        ip_allocator = IpAllocatorPool(store)
+        ipv6_allocator = IPv6AllocatorPool(store,
+                                           session_prefix_alloc_mode='RANDOM')
+        self._allocator = IPAddressManager(ip_allocator,
+                                           ipv6_allocator,
+                                           store)
 
         # Add the servicer
-        config = {'persist_to_redis': False,
-                  'redis_port': None,
-                  'allocator_type': "ip_pool"}
-        self._servicer = MobilityServiceRpcServicer(mconfig, config)
+        self._servicer = MobilityServiceRpcServicer(self._allocator,
+                                                    '',
+                                                    'fdee:5:6c::/48')
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
 
@@ -68,6 +77,7 @@ class RpcTests(unittest.TestCase):
                                   prefix_len=self._prefix_len)
         self._block = ipaddress.ip_network(
             "%s/%s" % (self._netaddr, self._prefix_len))
+        self._ipv6_block = ipaddress.ip_network('fdee:5:6c::/48')
         self._sid0 = SIDUtils.to_pb('IMSI0')
         self._sid1 = SIDUtils.to_pb('IMSI1')
         self._sid2 = SIDUtils.to_pb('IMSI2')
@@ -76,14 +86,6 @@ class RpcTests(unittest.TestCase):
 
     def tearDown(self):
         self._rpc_server.stop(0)
-
-    def test_add_ipv6_block_to_servicer(self):
-        """ add IPv6 block (ipaddress.ipblock) directly to servicer should
-        raise IPVersionNotSupportedError
-        """
-        ip = ipaddress.ip_address("fc::")
-        with self.assertRaises(IPVersionNotSupportedError):
-            self._servicer.add_ip_block(ip)
 
     def test_add_invalid_ip_block(self):
         """ adding invalid ipblock should raise INVALID_ARGUMENT """
@@ -143,7 +145,7 @@ class RpcTests(unittest.TestCase):
         resp = self._stub.ListAllocatedIPs(self._block_msg)
         self.assertNotEqual(resp, None)
         tmp = ListAllocatedIPsResponse()
-        tmp.ip_list.extend([ip_msg0.ip_addr])
+        tmp.ip_list.extend([ip_msg0.ip_list[0]])
         self.assertEqual(resp, tmp)
 
     def test_list_allocated_ips_from_unknown_ipblock(self):
@@ -168,8 +170,8 @@ class RpcTests(unittest.TestCase):
                                     version=AllocateIPRequest.IPV4,
                                     apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(request)
-        self.assertEqual(ip_msg0.ip_addr.version, AllocateIPRequest.IPV4)
-        ip0 = ipaddress.ip_address(ip_msg0.ip_addr.address)
+        self.assertEqual(ip_msg0.ip_list[0].version, AllocateIPRequest.IPV4)
+        ip0 = ipaddress.ip_address(ip_msg0.ip_list[0].address)
         self.assertTrue(ip0 in self._block)
 
         # TODO: uncomment the code below when ip_allocator
@@ -183,8 +185,8 @@ class RpcTests(unittest.TestCase):
         # allocate 2nd IP
         request.sid.CopyFrom(self._sid1)
         ip_msg2 = self._stub.AllocateIPAddress(request)
-        self.assertEqual(ip_msg2.ip_addr.version, AllocateIPRequest.IPV4)
-        ip2 = ipaddress.ip_address(ip_msg2.ip_addr.address)
+        self.assertEqual(ip_msg2.ip_list[0].version, AllocateIPRequest.IPV4)
+        ip2 = ipaddress.ip_address(ip_msg2.ip_list[0].address)
         self.assertTrue(ip2 in self._block)
 
     def test_multiple_apn_ipallocation(self):
@@ -196,15 +198,15 @@ class RpcTests(unittest.TestCase):
                                     version=AllocateIPRequest.IPV4,
                                     apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(request)
-        self.assertEqual(ip_msg0.ip_addr.version, AllocateIPRequest.IPV4)
-        ip0 = ipaddress.ip_address(ip_msg0.ip_addr.address)
+        self.assertEqual(ip_msg0.ip_list[0].version, AllocateIPRequest.IPV4)
+        ip0 = ipaddress.ip_address(ip_msg0.ip_list[0].address)
         self.assertTrue(ip0 in self._block)
 
         # allocate 2nd IP from another APN to the same user
         request.apn = self._apn1
         ip_msg1 = self._stub.AllocateIPAddress(request)
-        self.assertEqual(ip_msg1.ip_addr.version, AllocateIPRequest.IPV4)
-        ip1 = ipaddress.ip_address(ip_msg1.ip_addr.address)
+        self.assertEqual(ip_msg1.ip_list[0].version, AllocateIPRequest.IPV4)
+        ip1 = ipaddress.ip_address(ip_msg1.ip_list[0].address)
         self.assertTrue(ip1 in self._block)
 
     def test_run_out_of_ip(self):
@@ -252,19 +254,19 @@ class RpcTests(unittest.TestCase):
         # release ip_msg0
         release_request0 = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0.ip_addr,
+            ip=ip_msg0.ip_list[0],
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request0)
         self.assertEqual(resp, Void())
         resp = self._stub.ListAllocatedIPs(self._block_msg)
         tmp = ListAllocatedIPsResponse()
-        tmp.ip_list.extend([ip_msg1.ip_addr])
+        tmp.ip_list.extend([ip_msg1.ip_list[0]])
         self.assertEqual(resp, tmp)
 
         # release ip_msg1
         release_request1 = ReleaseIPRequest(
             sid=self._sid1,
-            ip=ip_msg1.ip_addr,
+            ip=ip_msg1.ip_list[0],
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request1)
         resp = self._stub.ListAllocatedIPs(self._block_msg)
@@ -282,7 +284,7 @@ class RpcTests(unittest.TestCase):
 
         request = ReleaseIPRequest(
             sid=SIDUtils.to_pb("IMSI12345"),
-            ip=ip_msg0.ip_addr,
+            ip=ip_msg0.ip_list[0],
             apn=self._apn0)
         with self.assertRaises(grpc.RpcError) as err:
             self._stub.ReleaseIPAddress(request)
@@ -299,7 +301,7 @@ class RpcTests(unittest.TestCase):
 
         request = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0.ip_addr,
+            ip=ip_msg0.ip_list[0],
             apn=self._apn1)
         with self.assertRaises(grpc.RpcError) as err:
             self._stub.ReleaseIPAddress(request)
@@ -315,11 +317,12 @@ class RpcTests(unittest.TestCase):
             version=AllocateIPRequest.IPV4,
             apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(alloc_request0)
-        ip0 = ipaddress.ip_address(ip_msg0.ip_addr.address)
+        ip0 = ipaddress.ip_address(ip_msg0.ip_list[0].address)
 
         lookup_request0 = IPLookupRequest(
             sid=self._sid0,
-            apn=self._apn0)
+            apn=self._apn0,
+            version=IPAddress.IPV4)
         ip_msg0_returned = self._stub.GetIPForSubscriber(lookup_request0)
         ip0_returned = ipaddress.ip_address(ip_msg0_returned.address)
         self.assertEqual(ip0, ip0_returned)
@@ -329,7 +332,8 @@ class RpcTests(unittest.TestCase):
         status code """
         lookup_request0 = IPLookupRequest(
             sid=self._sid0,
-            apn=self._apn0)
+            apn=self._apn0,
+            version=IPAddress.IPV4)
         with self.assertRaises(grpc.RpcError) as err:
             self._stub.GetIPForSubscriber(lookup_request0)
         self.assertEqual(err.exception.code(),
@@ -425,7 +429,7 @@ class RpcTests(unittest.TestCase):
             version=AllocateIPRequest.IPV4,
             apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(alloc_request0)
-        sid_pb_returned = self._stub.GetSubscriberIDFromIP(ip_msg0.ip_addr)
+        sid_pb_returned = self._stub.GetSubscriberIDFromIP(ip_msg0.ip_list[0])
         self.assertEqual(SIDUtils.to_str(self._sid0),
                          SIDUtils.to_str(sid_pb_returned))
 
@@ -454,7 +458,7 @@ class RpcTests(unittest.TestCase):
             apn=self._apn0)
         ip_msg0 = self._stub.AllocateIPAddress(alloc_request0)
         entry0 = SubscriberIPTableEntry(sid=self._sid0,
-                                        ip=ip_msg0.ip_addr,
+                                        ip=ip_msg0.ip_list[0],
                                         apn=self._apn0)
         resp = self._stub.GetSubscriberIPTable(Void())
         self.assertTrue(entry0 in resp.entries)
@@ -465,7 +469,7 @@ class RpcTests(unittest.TestCase):
             apn=self._apn1)
         ip_msg1 = self._stub.AllocateIPAddress(alloc_request1)
         entry1 = SubscriberIPTableEntry(sid=self._sid1,
-                                        ip=ip_msg1.ip_addr,
+                                        ip=ip_msg1.ip_list[0],
                                         apn=self._apn1)
         resp = self._stub.GetSubscriberIPTable(Void())
         self.assertTrue(entry0 in resp.entries)
@@ -474,7 +478,7 @@ class RpcTests(unittest.TestCase):
         # keep in table after in release
         release_request0 = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0.ip_addr,
+            ip=ip_msg0.ip_list[0],
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request0)
         resp = self._stub.GetSubscriberIPTable(Void())
@@ -589,14 +593,14 @@ class RpcTests(unittest.TestCase):
         # Release the allocated IPs
         release_request0 = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0.ip_addr,
+            ip=ip_msg0.ip_list[0],
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request0)
         self.assertEqual(resp, Void())
 
         release_request1 = ReleaseIPRequest(
             sid=self._sid1,
-            ip=ip_msg1.ip_addr,
+            ip=ip_msg1.ip_list[0],
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request1)
         self.assertEqual(resp, Void())
@@ -650,7 +654,7 @@ class RpcTests(unittest.TestCase):
         # Release the allocated IPs
         release_request0 = ReleaseIPRequest(
             sid=self._sid0,
-            ip=ip_msg0.ip_addr,
+            ip=ip_msg0.ip_list[0],
             apn=self._apn0)
         resp = self._stub.ReleaseIPAddress(release_request0)
         self.assertEqual(resp, Void())
@@ -669,38 +673,20 @@ class RpcTests(unittest.TestCase):
         expect.ip_block_list.extend([self._block_msg])
         self.assertEqual(expect, resp)
 
-    def test_ipv6_unimplemented(self):
-        """ ipv6 requests should raise UNIMPLEMENTED """
-        ip = ipaddress.ip_address("fc::")
-        block = IPBlock(version=IPBlock.IPV6,
-                        net_address=ip.packed,
-                        prefix_len=120)
-        # AddIPBlock
-        with self.assertRaises(grpc.RpcError) as err:
-            self._stub.AddIPBlock(block)
-        self.assertEqual(err.exception.code(),
-                         grpc.StatusCode.UNIMPLEMENTED)
-        # ListAllocatedIPs
-        with self.assertRaises(grpc.RpcError) as err:
-            self._stub.ListAllocatedIPs(block)
-        self.assertEqual(err.exception.code(),
-                         grpc.StatusCode.UNIMPLEMENTED)
-
+    def test_ipv6(self):
+        """ ipv6 requests should work for allocate / release IP requests """
         # AllocateIPAddress
         request = AllocateIPRequest(sid=self._sid1,
                                     version=AllocateIPRequest.IPV6,
                                     apn=self._apn0)
-        with self.assertRaises(grpc.RpcError) as err:
-            self._stub.AllocateIPAddress(request)
-        self.assertEqual(err.exception.code(),
-                         grpc.StatusCode.UNIMPLEMENTED)
+
+        ip_msg = self._stub.AllocateIPAddress(request)
+        self.assertTrue(ipaddress.ip_address(ip_msg.ip_list[0].address) in
+                        self._ipv6_block)
 
         # ReleaseIPAddress
         release_request = ReleaseIPRequest(
-            sid=self._sid0,
-            ip=IPAddress(version=IPAddress.IPV6),
+            sid=self._sid1,
+            ip=ip_msg.ip_list[0],
             apn=self._apn0)
-        with self.assertRaises(grpc.RpcError) as err:
-            self._stub.ReleaseIPAddress(release_request)
-        self.assertEqual(err.exception.code(),
-                         grpc.StatusCode.UNIMPLEMENTED)
+        self._stub.ReleaseIPAddress(release_request)
