@@ -11,16 +11,14 @@ limitations under the License.
 
 #include <string>
 
+#include "AmfServiceImpl.h"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/spgw_service.pb.h"
 #include <folly/IPAddress.h>
 
 extern "C" {
-#include "spgw_service_handler.h"
 #include "log.h"
 }
-#include "AmfServiceImpl.h"
-
 namespace grpc {
 class ServerContext;
 }  // namespace grpc
