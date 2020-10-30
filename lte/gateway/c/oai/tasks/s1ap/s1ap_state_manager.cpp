@@ -165,12 +165,6 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   hashtable_uint64_ts_destroy(s1ap_imsi_map_->mme_ue_id_imsi_htbl);
 
   free_wrapper((void**) &s1ap_imsi_map_);
-
-  if (persist_state_enabled) {
-    std::vector<std::string> keys_to_del;
-    keys_to_del.emplace_back(S1AP_IMSI_MAP_TABLE_NAME);
-    redis_client->clear_keys(keys_to_del);
-  }
 }
 
 s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
