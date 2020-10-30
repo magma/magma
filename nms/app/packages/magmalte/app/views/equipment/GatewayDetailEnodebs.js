@@ -51,7 +51,7 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
       const enbInf = enbInfo[serialNum];
       return {
         health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
-        ip_address: enbInf.enb_state.ip_address ?? 'Not Available',
+        ipAddress: enbInf.enb_state.ip_address ?? 'Not Available',
         name: enbInf.enb.name,
         id: serialNum,
       };
@@ -84,7 +84,7 @@ export default function GatewayDetailEnodebs({gwInfo}: {gwInfo: lte_gateway}) {
           ),
         },
         {title: 'Health', field: 'health'},
-        {title: 'IP Address', field: 'ip_address'},
+        {title: 'IP Address', field: 'ipAddress'},
       ]}
       handleCurrRow={(row: EnodebRowType) => setCurrRow(row)}
       menuItems={[
