@@ -32,8 +32,6 @@ extern "C" {
 static const int OFP_LOCAL   = 65534;
 static const int OF13P_LOCAL = 0xfffffffe;
 
-std::condition_variable cv;
-std::mutex cv_mutex;
 namespace {
 openflow::OpenflowController ctrl(
     CONTROLLER_ADDR, CONTROLLER_PORT, NUM_WORKERS, false);
@@ -73,22 +71,7 @@ int start_of_controller(bool persist_state) {
   ctrl.register_for_event(&gtp_app, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
   ctrl.start();
   OAILOG_INFO(LOG_GTPV1U, "Started openflow controller\n");
-
-  /* pthread conditional variable is added along with wait for 5 minutes in
-   * order to make sure connection is established between Controller and switch
-   * before inserting OVS rules
-   */
-#define CONNECTION_WAIT_TIME 300
-  std::unique_lock<std::mutex> lck(cv_mutex);
-  if (cv.wait_for(lck, std::chrono::seconds(CONNECTION_WAIT_TIME)) ==
-      std::cv_status::timeout) {
-    OAILOG_CRITICAL(
-        LOG_GTPV1U,
-        "Failed to connect openflow controller to switch, waited for 300 "
-        "seconds \n");
-    return -1;
-  }
-  return 0;
+  return (ctrl.is_controller_connected_to_switch());
 }
 
 int stop_of_controller(void) {

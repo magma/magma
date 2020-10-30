@@ -15,7 +15,10 @@
  *      contact@openairinterface.org
  */
 
-#include <pthread.h>
+#include <thread>
+#include <mutex>   // std::timed_mutex
+#include <chrono>  // std::chrono::seconds
+#include <condition_variable>
 #include "OpenflowController.h"
 #include "ControllerMain.h"
 extern "C" {
@@ -24,6 +27,9 @@ extern "C" {
 
 using namespace fluid_base;
 using namespace fluid_msg;
+
+std::condition_variable cv;
+std::mutex cv_mutex;
 
 namespace openflow {
 
@@ -101,22 +107,39 @@ void OpenflowController::dispatch_event(const ControllerEvent& ev) {
 void OpenflowController::inject_external_event(
     std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) ) {
   if (latest_ofconn_ == NULL) {
-#define CONNECTION_WAIT_TIME 5
+#define CONNECTION_EVENT_WAIT_TIME 5
     std::unique_lock<std::mutex> lck(cv_mutex);
-    if (cv.wait_for(lck, std::chrono::seconds(CONNECTION_WAIT_TIME)) ==
+    if (cv.wait_for(lck, std::chrono::seconds(CONNECTION_EVENT_WAIT_TIME)) ==
         std::cv_status::timeout) {
       OAILOG_CRITICAL(
           LOG_GTPV1U,
           "Openflow controller is not connected to switch, waited for 5 "
           "seconds \n");
     } else {
-      OAILOG_ERROR(
-          LOG_GTPV1U,
-          "Fininshed waiting, Controller is now connected to switch \n");
+      OAILOG_INFO(LOG_GTPV1U, "Controller is now connected to switch \n");
     }
   }
   ev->set_of_connection(latest_ofconn_);
   latest_ofconn_->add_immediate_event(cb, ev);
+}
+
+bool OpenflowController::is_controller_connected_to_switch(void) {
+  /* c++ provided conditional variable is added along with wait for 5 minutes in
+   * order to make sure connection is established between Controller and switch
+   * before inserting the OVS rules
+   */
+
+#define CONNECTION_WAIT_TIME 300
+  std::unique_lock<std::mutex> lck(cv_mutex);
+  if (cv.wait_for(lck, std::chrono::seconds(CONNECTION_WAIT_TIME)) ==
+      std::cv_status::timeout) {
+    OAILOG_CRITICAL(
+        LOG_GTPV1U,
+        "Failed to connect openflow controller to switch, waited for 300 "
+        "seconds \n");
+    return -1;
+  }
+  return 0;
 }
 
 }  // namespace openflow

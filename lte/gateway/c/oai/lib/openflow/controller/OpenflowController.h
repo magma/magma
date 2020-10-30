@@ -27,8 +27,6 @@
 #include "ControllerEvents.h"
 #include "OpenflowMessenger.h"
 
-extern std::condition_variable cv;
-extern std::mutex cv_mutex;
 namespace openflow {
 
 #define IP_ETH_TYPE 0x0800
@@ -119,6 +117,7 @@ class OpenflowController : public fluid_base::OFServer {
    */
   void inject_external_event(
       std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) );
+  bool is_controller_connected_to_switch(void);
 
  private:
   std::shared_ptr<OpenflowMessenger> messenger_;
