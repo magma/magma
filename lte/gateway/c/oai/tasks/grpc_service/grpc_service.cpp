@@ -70,7 +70,10 @@ void start_grpc_service(bstring server_address) {
       !strcmp(non_eps_service_control, "SMS")) {
     builder.RegisterService(&sgs_service);
   }
-  builder.RegisterService(&sms_orc8r_service);
+  // Start the SMS service only if non_eps_service_control is set to SMS_ORC8R
+  if (!strcmp(non_eps_service_control, "SMS_ORC8R")) {
+    builder.RegisterService(&sms_orc8r_service);
+  }
   builder.RegisterService(&s1ap_service);
   server = builder.BuildAndStart();
 }
