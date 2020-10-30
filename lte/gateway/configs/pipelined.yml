@@ -160,4 +160,4 @@ ovs_gtp_stats_polling_interval: 60
 
 # For 5G Functionality Support flag
 5G_feature_set:
- enable: True
+ enable: False
