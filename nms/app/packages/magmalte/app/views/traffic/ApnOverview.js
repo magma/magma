@@ -156,16 +156,6 @@ function ApnOverview(props: WithAlert) {
                   Upload CSV
                 </Button>
               </Grid>
-              <Grid item>
-                <Button
-                  className={classes.appBarBtn}
-                  onClick={() => {
-                    setCurrRow({});
-                    setOpen(true);
-                  }}>
-                  {'Create New APN'}
-                </Button>
-              </Grid>
             </Grid>
           </Grid>
           <Grid item xs={12}>

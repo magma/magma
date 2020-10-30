@@ -112,6 +112,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 						MaxBandwidthUl: ula.SubscriptionData.AMBR.MaxRequestedBandwidthUL,
 						MaxBandwidthDl: ula.SubscriptionData.AMBR.MaxRequestedBandwidthDL,
 					}
+					res.DefaultChargingCharacteristics = ula.SubscriptionData.TgppChargingCharacteristics
 					res.AllApnsIncluded =
 						ula.SubscriptionData.APNConfigurationProfile.AllAPNConfigurationsIncludedIndicator == 0
 					res.NetworkAccessMode = protos.UpdateLocationAnswer_NetworkAccessMode(ula.SubscriptionData.NetworkAccessMode)
@@ -133,6 +134,7 @@ func (s *s6aProxy) UpdateLocationImpl(req *protos.UpdateLocationRequest) (*proto
 									MaxBandwidthUl: apnCfg.AMBR.MaxRequestedBandwidthUL,
 									MaxBandwidthDl: apnCfg.AMBR.MaxRequestedBandwidthDL,
 								},
+								ChargingCharacteristics: apnCfg.TgppChargingCharacteristics,
 							})
 					}
 					return res, err
