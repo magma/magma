@@ -16,6 +16,8 @@
 #include "MessageType.h"
 #include "SpareHalfOctet.h"
 #include "5GSRegistrationResult.h"
+#include "5GSMobileIdentity.h"
+#include "UESecurityCapability.h"
 
 using namespace std;
 namespace magma5g {
@@ -26,6 +28,8 @@ class RegistrationAcceptMsg {
   SpareHalfOctetMsg spare_half_octet;
   MessageTypeMsg message_type;
   M5GSRegistrationResultMsg m5gs_reg_result;
+  M5GSMobileIdentityMsg mobile_id;
+  UESecurityCapabilityMsg security_capability;
 #define REGISTRATION_ACCEPT_MINIMUM_LENGTH 5
 
   RegistrationAcceptMsg();

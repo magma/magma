@@ -23,8 +23,8 @@ using namespace magma5g;
 namespace magma5g {
 int encode(void) {
   int enc_r         = 0;
-  uint8_t buffer[5] = {};
-  int len           = 5;
+  uint8_t buffer[19] = {};
+  int len           = 19;
   RegistrationAcceptMsg msg;
 
   // Message to be Encoded
@@ -35,37 +35,33 @@ int encode(void) {
   msg.m5gs_reg_result.spare                             = 0;
   msg.m5gs_reg_result.sms_allowed                        = 0;
   msg.m5gs_reg_result.reg_result_val             = 1;
+  msg.mobile_id.mobile_identity.guti.odd_even = 0;
+  msg.mobile_id.iei = 0x77;
+  msg.mobile_id.len = 11;
+  msg.mobile_id.mobile_identity.guti.type_of_identity = 2;
+  msg.mobile_id.mobile_identity.guti.mcc_digit1 = 2;
+  msg.mobile_id.mobile_identity.guti.mcc_digit2 = 3;
+  msg.mobile_id.mobile_identity.guti.mcc_digit3 = 4;
+  msg.mobile_id.mobile_identity.guti.mnc_digit1 = 6;
+  msg.mobile_id.mobile_identity.guti.mnc_digit2 = 7;
+  msg.mobile_id.mobile_identity.guti.mnc_digit3 = 15;
+  msg.mobile_id.mobile_identity.guti.amf_regionid = 68;
+  msg.mobile_id.mobile_identity.guti.amf_setid = 204;
+  msg.mobile_id.mobile_identity.guti.amf_pointer = 18;
+  msg.mobile_id.mobile_identity.guti.tmsi1 = 0;
+  msg.mobile_id.mobile_identity.guti.tmsi2 = 0;
+  msg.mobile_id.mobile_identity.guti.tmsi3 = 0;
+  msg.mobile_id.mobile_identity.guti.tmsi4 = 1;
 
   MLOG(MDEBUG) << "---Encoding Registration Accept Message---";
   // Encoding Message
   enc_r = msg.EncodeRegistrationAcceptMsg(&msg, buffer, len);
 
-  MLOG(MDEBUG) << " Encoded Message : " << setfill('0') << hex << int(buffer[0])
-               << setw(2) << hex << int(buffer[1]) << hex << int(buffer[2])
-               << setw(2) << hex << int(buffer[3]) << setw(2) << hex
-               << int(buffer[4]);
-
-  MLOG(MDEBUG) << "---Decoding Encoded Registration Accept Message---";
-  int dec_r = 0;
-  // Decoding Message
-  dec_r = msg.DecodeRegistrationAcceptMsg(&msg, buffer, len);
-  MLOG(BEBUG) << "\n\n ---DECODED MESSAGE ---\n\n";
-  MLOG(MDEBUG)
-      << " Extended Protocol Discriminator :" << dec
-      << int(msg.extended_protocol_discriminator.extended_proto_discriminator)
-     ;
-  MLOG(MDEBUG) << " Spare half octet : " << dec << int(msg.spare_half_octet.spare)
-              ;
-  MLOG(MDEBUG) << " Security Header Type : " << dec
-               << int(msg.sec_header_type.sec_hdr);
-  MLOG(MDEBUG) << " Message Type : 0x" << hex << int(msg.message_type.msg_type)
-              ;
-  MLOG(MDEBUG) << " 5GS Registration Result : Spare :" << dec
-               << int(msg.m5gs_reg_result.spare);
-  MLOG(MDEBUG) << " 5GS Registration Result : SMS allowed : " << dec
-               << int(msg.m5gs_reg_result.sms_allowed);
-  MLOG(MDEBUG) << " 5GS Registration Result Registration Result Value : " << dec
-               << int(msg.m5gs_reg_result.reg_result_val);
+  MLOG(MDEBUG) << " Encoded Message : ";
+  for(size_t i = 0; i < sizeof(buffer); i++)
+  {
+     MLOG(MDEBUG) << setfill('0') << hex << setw(2) << int(buffer[i]);
+  }
 
   return 0;
 }

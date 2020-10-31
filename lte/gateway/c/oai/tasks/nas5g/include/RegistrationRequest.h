@@ -18,6 +18,7 @@
 #include "5GSRegistrationType.h"
 #include "NASKeySetIdentifier.h"
 #include "5GSMobileIdentity.h"
+#include "UESecurityCapability.h"
 
 using namespace std;
 namespace magma5g {
@@ -31,6 +32,7 @@ class RegistrationRequestMsg {
   M5GSRegistrationTypeMsg m5gs_reg_type;
   NASKeySetIdentifierMsg nas_key_set_identifier;
   M5GSMobileIdentityMsg m5gs_mobile_identity;
+  UESecurityCapabilityMsg ue_sec_capability;
 #define REGISTRATION_REQUEST_MINIMUM_LENGTH 5
 
   RegistrationRequestMsg();

@@ -13,6 +13,7 @@
 #include <sstream>
 #include <cstdint>
 #include <cstring>
+#include <array>
 #include "5GSMobileIdentity.h"
 #include "CommonDefs.h"
 
@@ -416,9 +417,11 @@ int M5GSMobileIdentityMsg::EncodeImeiMobileIdentityMsg(
   *(buffer + encoded) = 0x00 | ((imei->identity_digit1 & 0xf0) << 4) |
                         ((imei->odd_even & 0x1) << 3) |
                         (imei->type_of_identity & 0x7);
+  MLOG(MDEBUG) << "identity_digit1, odd_even, type_of_identity = " << hex << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) = 0x00 | ((imei->identity_digit2 & 0xf0) << 4) |
                         (imei->identity_digit3 & 0x0f);
+  MLOG(MDEBUG) << "identity_digit2,identity_digit3 = " << hex << int(*(buffer + encoded));
   encoded++;
 
   return encoded;
@@ -433,38 +436,43 @@ int M5GSMobileIdentityMsg::EncodeImsiMobileIdentityMsg(
   *(buffer + encoded) =
       0x00 | ((imsi->spare2 & 0x80) << 7) | ((imsi->supi_format & 0x07) << 4) |
       ((imsi->spare1 & 0x01) << 3) | (imsi->type_of_identity & 0x7);
+  MLOG(MDEBUG) << "  Spare,supi_format,spare1,type_of_identity = " << hex << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->mcc_digit2 & 0x0f) << 4) | (imsi->mcc_digit1 & 0x0f);
+  MLOG(MDEBUG) << "  mcc_digit2,mcc_digit1 = " << hex << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->mnc_digit3 & 0x0f) << 4) | (imsi->mcc_digit3 & 0x0f);
+  MLOG(MDEBUG) << "  mnc_digit3,mcc_digit3 = " << hex << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->mnc_digit2 & 0x0f) << 4) | (imsi->mnc_digit1 & 0x0f);
+  MLOG(MDEBUG) << "  mnc_digit2, mnc_digit1 = " << hex << int(*(buffer + encoded));
   encoded++;
-  *(buffer + encoded) = 0x00 | ((imsi->rout_ind_digit_2 & 0xf0) << 4) |
-                        (imsi->rout_ind_digit_1 & 0x0f);
+  *(buffer + encoded) = 0x00 | ((imsi->rout_ind_digit_2) << 4) |
+                        (imsi->rout_ind_digit_1);
+  MLOG(MDEBUG) << "  rout_ind_digit_2,rout_ind_digit_1 = " << hex << int(*(buffer + encoded));
   encoded++;
-  *(buffer + encoded) = 0x00 | ((imsi->rout_ind_digit_3 & 0xf0) << 4) |
-                        (imsi->rout_ind_digit_4 & 0x0f);
+  *(buffer + encoded) = 0x00 | ((imsi->rout_ind_digit_3) << 4) |
+                        (imsi->rout_ind_digit_4);
+  MLOG(MDEBUG) << "  rout_ind_digit_3,rout_ind_digit_4 = " << hex << int(*(buffer + encoded));
   encoded++;
   *(buffer + encoded) =
       0x00 | ((imsi->spare6 & 0x01) << 7) | ((imsi->spare5 & 0x01) << 6) |
       ((imsi->spare4 & 0x01) << 5) | ((imsi->spare3 & 0x01) << 4) |
       (imsi->protect_schm_id & 0x0f);
   *(buffer + encoded) = imsi->home_nw_id;
+  MLOG(MDEBUG) << "  spare,protect_schm_id = " << hex << int(*(buffer + encoded));
   encoded++;
-  /*
   // Will be supported POST MVC
-  imsi->scheme_output.assign((const char *)(buffer + encoded),
-  imsi->scheme_output.size()); MLOG(MDEBUG) << "ielen = " << hex << (unsigned
-  char)imsi->scheme_output.size() ; MLOG(MDEBUG) << "contents"; int i = 0;
-  for(i; i < imsi->scheme_output.size(); i++) {
-    MLOG(MDEBUG) << (uint8_t)(imsi->scheme_output[i]);
-  }
+
+  memcpy(buffer + encoded, &imsi->scheme_output, imsi->scheme_len);
+  MLOG(MDEBUG) << "  Scheme Output = ";
+  BUFFER_PRINT_LOG(imsi->scheme_output, imsi->scheme_len);
+  encoded = encoded + imsi->scheme_len;
   MLOG(MDEBUG) << endl;
-  */
+  
   return encoded;
 };
 
@@ -526,46 +534,47 @@ int M5GSMobileIdentityMsg::EncodeM5GSMobileIdentityMsg(
   int encoded_rc   = TLV_VALUE_DOESNT_MATCH;
   uint32_t encoded = 0;
 
-  MLOG(MDEBUG) << "EncodeM5GSMobileIdentityMsg:";
 
   // Checking IEI and pointer
   CHECK_PDU_POINTER_AND_LENGTH_ENCODER(buffer, MOBILE_IDENTITY_MIN_LENGTH, len);
 
-  if (iei > 0) {
+  if (m5gs_mobile_identity->iei > 0) {
+    MLOG(MDEBUG) << "EncodeM5GSMobileIdentityMsg:";
     CHECK_IEI_ENCODER((unsigned char) iei, m5gs_mobile_identity->iei);
     *buffer = iei;
     MLOG(MDEBUG) << "iei" << hex << int(*buffer);
     encoded++;
-  }
+  } else
+    return 0;
 
   lenPtr = (uint16_t*) (buffer + encoded);
   encoded += 2;
-
-  if (m5gs_mobile_identity->mobile_identity.imsi.type_of_identity ==
+  m5gs_mobile_identity->toi = m5gs_mobile_identity->mobile_identity.guti.type_of_identity;
+  if (m5gs_mobile_identity->toi ==
       M5GSMobileIdentityMsg_IMSI) {
     MLOG(MDEBUG) << "Type imsi";
     encoded_rc = EncodeImsiMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.imsi, buffer + encoded);
   } else if (
-      m5gs_mobile_identity->mobile_identity.imei.type_of_identity ==
+      m5gs_mobile_identity->toi ==
       M5GSMobileIdentityMsg_IMEI) {
     MLOG(MDEBUG) << "Type imei";
     encoded_rc = EncodeImeiMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.imei, buffer + encoded);
   } else if (
-      m5gs_mobile_identity->mobile_identity.guti.type_of_identity ==
+      m5gs_mobile_identity->toi ==
       M5GSMobileIdentityMsg_GUTI) {
     MLOG(MDEBUG) << "Type guti";
     encoded_rc = EncodeGutiMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.guti, buffer + encoded);
   } else if (
-      m5gs_mobile_identity->mobile_identity.tmsi.type_of_identity ==
+      m5gs_mobile_identity->toi ==
       M5GSMobileIdentityMsg_TMSI) {
     MLOG(MDEBUG) << "Type tmsi";
     encoded_rc = EncodeTmsiMobileIdentityMsg(
         &m5gs_mobile_identity->mobile_identity.tmsi, buffer + encoded);
   } else if (
-      m5gs_mobile_identity->mobile_identity.suci.type_of_identity ==
+      m5gs_mobile_identity->toi ==
       M5GSMobileIdentityMsg_SUCI) {
     MLOG(MDEBUG) << "Type suci";
     encoded_rc = EncodeSuciMobileIdentityMsg(

@@ -85,6 +85,7 @@ class ImsiM5GSMobileIdentity {
   uint8_t spare3 : 1;
   uint8_t protect_schm_id : 4;
   uint8_t home_nw_id;
+  uint16_t scheme_len;
 #define SCHEME_OUTPUT_MAX_LENGTH 65525
   uint8_t scheme_output[SCHEME_OUTPUT_MAX_LENGTH];
 };
@@ -138,6 +139,8 @@ union M5GSMobileIdentityIe {
 class M5GSMobileIdentityMsg {
  public:
   uint8_t iei;
+  uint16_t len;
+  uint8_t toi;
 #define M5GSMobileIdentityMsg_SUCI 0x05
 #define M5GSMobileIdentityMsg_GUTI 0x02
 #define M5GSMobileIdentityMsg_IMEI 0x03

@@ -99,6 +99,13 @@ int RegistrationAcceptMsg::EncodeRegistrationAcceptMsg(
     return encoded_result;
   else
     encoded += encoded_result;
+  if ((encoded_result =
+           reg_accept->mobile_id.EncodeM5GSMobileIdentityMsg(
+               &reg_accept->mobile_id, 0x77, buffer + encoded,
+               len - encoded)) < 0)
+    return encoded_result;
+  else
+    encoded += encoded_result;
 
   return encoded;
 }

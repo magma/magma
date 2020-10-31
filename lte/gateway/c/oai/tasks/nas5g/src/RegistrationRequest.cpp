@@ -70,6 +70,13 @@ int RegistrationRequestMsg::DecodeRegistrationRequestMsg(
     return decoded_result;
   else
     decoded += decoded_result;
+  if ((decoded_result =
+           reg_request->ue_sec_capability.DecodeUESecurityCapabilityMsg(
+               &reg_request->ue_sec_capability, 0x2e, buffer + decoded,
+               len - decoded)) < 0)
+    return decoded_result;
+  else
+    decoded += decoded_result;
 
   return decoded;
 }
