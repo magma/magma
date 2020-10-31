@@ -57,22 +57,27 @@ class UplinkGatewayInfo:
                     default_gw[netifaces.AF_INET] is not None:
                 self.update_ip(default_gw[netifaces.AF_INET][0])
 
-    def update_ip(self, ip: str, vlan_id: Optional[str] = ""):
-        vlan_key = _get_vlan_key(vlan_id)
+    def update_ip(self, ip: Optional[str], vlan_id: Optional[str] = ""):
 
-        logging.info("GW IP[%s]: %s" % (vlan_key, ip))
-        ip_addr = ipaddress.ip_address(ip)
+        try:
+            ip_addr = ipaddress.ip_address(ip)
+        except ValueError:
+            logging.debug("could not parse GW IP: %s", ip)
+            return
+
         gw_ip = IPAddress(version=IPAddress.IPV4,
                           address=ip_addr.packed)
         # keep mac address same if its same GW IP
+        vlan_key = _get_vlan_key(vlan_id)
         if vlan_key in self._backing_map:
             gw_info = self._backing_map[vlan_key]
             if gw_info and gw_info.ip == gw_ip:
-                logging.debug("IP update: no change %s", ip)
+                logging.debug("GW update: no change %s", ip)
                 return
 
         updated_info = GWInfo(ip=gw_ip, mac="", vlan=vlan_id)
         self._backing_map[vlan_key] = updated_info
+        logging.info("GW update: GW IP[%s]: %s" % (vlan_key, ip))
 
     def get_gw_mac(self, vlan_id: Optional[str] = "") -> Optional[str]:
         vlan_key = _get_vlan_key(vlan_id)
@@ -82,7 +87,12 @@ class UplinkGatewayInfo:
         else:
             return None
 
-    def update_mac(self, ip: str, mac: Optional[str], vlan_id: Optional[str] = ""):
+    def update_mac(self, ip: Optional[str], mac: Optional[str], vlan_id: Optional[str] = ""):
+        try:
+            ip_addr = ipaddress.ip_address(ip)
+        except ValueError:
+            logging.debug("could not parse GW IP: %s", ip)
+            return
         vlan_key = _get_vlan_key(vlan_id)
 
         # TODO: enhance check for MAC address sanity.
@@ -90,11 +100,11 @@ class UplinkGatewayInfo:
             logging.error("Incorrect mac format: %s for IP %s (vlan_key %s)",
                           mac, ip, vlan_id)
             return
-        ip_addr = ipaddress.ip_address(ip)
         gw_ip = IPAddress(version=IPAddress.IPV4,
                           address=ip_addr.packed)
         updated_info = GWInfo(ip=gw_ip, mac=mac, vlan=vlan_id)
         self._backing_map[vlan_key] = updated_info
+        logging.info("GW update: GW IP[%s]: %s : mac %s" % (vlan_key, ip, mac))
 
     def get_all_router_ips(self) -> List[GWInfo]:
         return list(self._backing_map.values())
