@@ -42,14 +42,16 @@ const std::string DURATION                 = "duration";
 const std::string FAILURE_REASON           = "failure_reason";
 const std::string RECORD_SEQUENCE_NUMBER   = "record_sequence_number";
 const std::string CAUSE_FOR_RECORD_CLOSING = "cause_for_rec_closing";
+const std::string CHARGING_CHARACTERISTICS = "charging_characteristics";
 
-const std::string SERVICE_DATA        = "list_of_service_data";
-const std::string RATING_GROUP        = "rating_group";
-const std::string SERVICE_IDENTIFIER  = "service_identifier";
-const std::string DATA_UPLINK         = "data_volume_downlink";
-const std::string DATA_DOWNLINK       = "data_volume_uplink";
-const std::string TIME_OF_FIRST_USAGE = "time_of_first_usage";
-const std::string TIME_OF_LAST_USAGE  = "time_of_last_usage";
+const std::string SERVICE_DATA             = "list_of_service_data";
+const std::string RATING_GROUP             = "rating_group";
+const std::string SERVICE_IDENTIFIER       = "service_identifier";
+const std::string DATA_UPLINK              = "data_volume_downlink";
+const std::string DATA_DOWNLINK            = "data_volume_uplink";
+const std::string TIME_OF_FIRST_USAGE      = "time_of_first_usage";
+const std::string TIME_OF_LAST_USAGE       = "time_of_last_usage";
+const std::string SERVICE_CONDITION_CHANGE = "service_condition_change";
 
 const std::string TOTAL_TX      = "total_tx";
 const std::string TOTAL_RX      = "total_rx";
@@ -58,6 +60,12 @@ const std::string CHARGING_RX   = "charging_rx";
 const std::string MONITORING_TX = "monitoring_tx";
 const std::string MONITORING_RX = "monitoring_rx";
 
+enum CauseForRecordClosing {  // TS 132 298
+  NORMAL_RELEASE = 0,
+};
+enum ServiceConditionChange {  // TS 132 298
+  SERVICE_STOP = 1 << 9,
+};
 }  // namespace
 
 namespace magma {
@@ -87,6 +95,8 @@ void EventsReporterImpl::session_created(
   event_value[IMEI]          = get_imei(session_context);
   event_value[SPGW_IP]       = get_spgw_ipv4(session_context);
   event_value[USER_LOCATION] = get_user_location(session_context);
+  event_value[CHARGING_CHARACTERISTICS] =
+      get_charging_characteristics(session_context);
   // CWF specific
   event_value[MAC_ADDR] = get_mac_addr(session_context);
 
@@ -215,12 +225,14 @@ void EventsReporterImpl::session_terminated(
   event_value[PDP_END_TIME]   = end_time;
   // TODO these fields below should be handled by a CDR processor script
   event_value[DURATION]                 = end_time - start_time;
-  event_value[CAUSE_FOR_RECORD_CLOSING] = "SESSION_TERMINATED";
+  event_value[CAUSE_FOR_RECORD_CLOSING] = int(NORMAL_RELEASE);
   event_value[RECORD_SEQUENCE_NUMBER]   = 1;
   // LTE specific
   event_value[IMEI]          = get_imei(session_cfg);
   event_value[SPGW_IP]       = get_spgw_ipv4(session_cfg);
   event_value[USER_LOCATION] = get_user_location(session_cfg);
+  event_value[CHARGING_CHARACTERISTICS] =
+      get_charging_characteristics(session_cfg);
   // CWF specific
   event_value[MAC_ADDR] = get_mac_addr(session_cfg);
 
@@ -234,10 +246,11 @@ void EventsReporterImpl::session_terminated(
     if (summary_pair.first.service_identifier) {
       service_data[SERVICE_IDENTIFIER] = summary_pair.first.service_identifier;
     }
-    service_data[DATA_UPLINK]         = summary.usage.bytes_tx;
-    service_data[DATA_DOWNLINK]       = summary.usage.bytes_rx;
-    service_data[TIME_OF_FIRST_USAGE] = summary.time_of_first_usage;
-    service_data[TIME_OF_LAST_USAGE]  = summary.time_of_last_usage;
+    service_data[DATA_UPLINK]              = summary.usage.bytes_tx;
+    service_data[DATA_DOWNLINK]            = summary.usage.bytes_rx;
+    service_data[TIME_OF_FIRST_USAGE]      = summary.time_of_first_usage;
+    service_data[TIME_OF_LAST_USAGE]       = summary.time_of_last_usage;
+    service_data[SERVICE_CONDITION_CHANGE] = int(SERVICE_STOP);
     service_data_list.push_back(service_data);
   }
   event_value[SERVICE_DATA] = service_data_list;
@@ -293,6 +306,19 @@ std::string EventsReporterImpl::get_user_location(const SessionConfig& config) {
   }
   // Return the HEX values in string
   return magma::bytes_to_hex(user_location);
+}
+
+std::string EventsReporterImpl::get_charging_characteristics(
+    const SessionConfig& config) {
+  // Charging Characteristics is only relevant for LTE
+  const auto& rat_specific             = config.rat_specific_context;
+  std::string charging_characteristics = "";
+  if (rat_specific.has_lte_context()) {
+    charging_characteristics =
+        rat_specific.lte_context().charging_characteristics();
+  }
+  // Return the HEX values in string
+  return charging_characteristics;
 }
 
 }  // namespace lte
