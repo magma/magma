@@ -32,7 +32,7 @@
     - "/var/opt/magma/docker"
 
 - name: install python modules
-  shell: pip3 install jsonpickle
+  shell: pip3 install jsonpickle requests
 
 - name: touch snowflake
   shell: touch /etc/snowflake
@@ -49,9 +49,13 @@
 
 - name: set the hostname for the machine
   become: true
-  script: xwfm_hostname.py --partner {{ partner }} --hwid {{ gateway_hwid.stdout }} --url {{ portal_url }} --env {{ env }}
+  script: xwfm_hostname.py --partner {{ partner }}  --env {{ env }} --hwid {{ gateway_hwid.stdout | default("") | quote }} --url {{ portal_url }}
   register: output
   ignore_errors: true
+
+- name: display script output
+  debug:
+    msg: "{{ output }}"
 
 - name: delete ovs bridges incase they exist
   become: true

@@ -16,6 +16,7 @@ import socket
 import requests
 import urllib3
 import subprocess
+import jsonpickle
 
 admin_cert = (
     "/var/opt/magma/certs/rest_admin.crt",
@@ -39,10 +40,12 @@ def get_gateway_id(url: str, network_id: str, hw_id: str):
     gateways = cloud_get(url + f"/cwf/{network_id}/gateways")
     if gateways is None:
         return str(1)
-    for gw in gateways.values():
-        if hw_id == gw['device']['hardware_id']:
-            gw_id = gw['id'].split("_")[2]
-            return gw_id
+
+    if hw_id != "":
+        for gw in gateways.values():
+            if hw_id == gw['device']['hardware_id']:
+                gw_id = gw['id'].split("_")[2]
+                return gw_id
     return str(len(gateways)+1)
 
 
@@ -72,7 +75,7 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    if not (args.url and args.partner and args.hwid and args.env):
+    if not (args.url and args.partner and args.env):
         parser.print_usage()
         exit(1)
 
