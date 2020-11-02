@@ -121,6 +121,10 @@ export function EnodebStatus({refresh}: {refresh: boolean}) {
         category: 'IP Address',
         value: enbInfo?.enb_state.ip_address ?? 'Not Available',
       },
+      {
+        category: 'IP Address',
+        value: enbInfo.enb_state.ip_address ?? 'Not Available',
+      },
     ],
   ];
   return (
