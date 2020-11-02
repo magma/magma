@@ -13,3 +13,9 @@
 
 # log_level is set in mconfig. it can be overridden here
 mtr_interface: mtr0
+
+# To add ping targets for ap monitoring for cwf enable the following section
+#module: "CWF"
+#ping_targets: 
+#  "AP1": {ip: "x.y.z.w"}
+#  "AP2": {ip: "a.b.c.d"}

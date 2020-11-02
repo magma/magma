@@ -10,27 +10,17 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import logging
 import asyncio
-import ipaddress
+import logging
 from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List
 from magma.configuration import load_service_config
-
-import grpc
 from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
-from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from magma.common.job import Job
-from magma.common.rpc_utils import grpc_async_wrapper
-from magma.common.service_registry import ServiceRegistry
-from magma.magmad.check.network_check import ping
 from magma.magmad.check.network_check.ping import PingCommandResult
 from magma.monitord.icmp_state import ICMPMonitoringResponse
-"""from magma.monitord.metrics import SUBSCRIBER_ICMP_LATENCY_MS"""
-from orc8r.protos.common_pb2 import Void
 from prometheus_client import Histogram
-import yaml
+
 
 AP_ICMP_LATENCY_MS = Histogram('ap_icmp_latency_ms',
                                   'Reported latency for APs '
@@ -44,13 +34,21 @@ class ApMonitoring():
     self._ap_state = defaultdict(ICMPMonitoringResponse)
 
 
-  def get_ping_targets(self):
+  async def get_ping_targets(self):
       targets = {}
-      ap_list = load_service_config("monitord")["ping_targets"]
-      for ap, data in ap_list.items():
-          if "ip" in data:
-              targets[ap] = ipaddress.ip_address(data["ip"])
-      return targets
+      addresses = []
+      try:
+        ap_list = load_service_config("monitord")["ping_targets"]
+        for ap, data in ap_list.items():
+            if "ip" in data:
+                ip = IPAddress(version=IPAddress.IPV4, address=str.encode(data["ip"]))
+                logging.debug('Adding {}:{}:{} to ping target'.format(ap, ip.version, ip.address))
+                targets[ap] = ip
+                addresses.append(data["ip"])
+        return targets, addresses
+      except KeyError:
+          logging.error("No ping targets configured")
+          return [], []
 
   def save_ping_response(self, sid: str, ip_addr: str,
                            ping_resp: PingCommandResult) -> None:

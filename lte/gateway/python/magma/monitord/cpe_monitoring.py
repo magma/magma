@@ -11,8 +11,6 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 import logging
-import asyncio
-import ipaddress
 from collections import defaultdict
 from datetime import datetime
 from typing import Dict, List
@@ -20,13 +18,10 @@ from typing import Dict, List
 import grpc
 from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
 from lte.protos.mobilityd_pb2_grpc import MobilityServiceStub
-from magma.common.job import Job
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.service_registry import ServiceRegistry
-from magma.magmad.check.network_check import ping
 from magma.magmad.check.network_check.ping import PingCommandResult
 from magma.monitord.icmp_state import ICMPMonitoringResponse
-"""from magma.monitord.metrics import SUBSCRIBER_ICMP_LATENCY_MS"""
 from orc8r.protos.common_pb2 import Void
 from prometheus_client import Histogram
 
@@ -35,6 +30,11 @@ SUBSCRIBER_ICMP_LATENCY_MS = Histogram('subscriber_icmp_latency_ms',
                                   'in milliseconds',
                                   ['imsi'],
                                   buckets=[50, 100, 200, 500, 1000, 2000])
+
+def _get_addr_from_subscribers(sub) -> str:
+    return str(ipaddress.IPv4Address(
+        sub.ip.address) if sub.ip.version == 0 else \
+                   ipaddress.IPv6Address(sub.ip.address))
 
 class CpeMonitoring():
 
@@ -48,6 +48,7 @@ class CpeMonitoring():
 
     Returns: List of [Subscriber ID => IP address, APN] entries
     """
+    addresses = []
     try:
       mobilityd_chan = ServiceRegistry.get_rpc_channel('mobilityd',
                                                        ServiceRegistry.LOCAL)
@@ -55,11 +56,13 @@ class CpeMonitoring():
       response = await grpc_async_wrapper(
           mobilityd_stub.GetSubscriberIPTable.future(Void(),
                                                      TIMEOUT_SECS),self._loop)
-      return response.entries
+      for sub in response.entries:
+          addresses.append(_get_addr_from_subscribers(sub))
+      return response.entries, addresses
     except grpc.RpcError as err:
       logging.error(
         "GetSubscribers Error for %s! %s", err.code(), err.details())
-      return []
+      return [], []
 
 
   def save_ping_response(self, sid: str, ip_addr: str,
