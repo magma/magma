@@ -79,6 +79,7 @@ describe('<AddEditEnodeButton />', () => {
       reporting_gateway_id: '',
       rf_tx_desired: true,
       rf_tx_on: false,
+      ip_address: '192.168.1.254',
     },
   };
 
@@ -170,6 +171,80 @@ describe('<AddEditEnodeButton />', () => {
     expect(ran).toHaveTextContent('44290');
     expect(ran).toHaveTextContent('7');
     expect(ran).toHaveTextContent('2');
+  });
+
+  it('Verify Enode unManaged eNodeBs', async () => {
+    const unmanagedEnbInfo = {
+      enb: {
+        attached_gateway_id: '',
+        config: {
+          cell_id: 0,
+          device_class: 'Baicells Nova-233 G2 OD FDD',
+          transmit_enabled: false,
+        },
+        enodeb_config: {
+          config_type: 'UNMANAGED',
+          unmanaged_config: {
+            cell_id: 111,
+            ip_address: '1.1.1.2',
+            tac: 1,
+          },
+        },
+        name: 'testEnodeb1',
+        serial: 'testEnodebSerial1',
+        description: 'test enodeb description',
+      },
+      enb_state: {
+        enodeb_configured: true,
+        enodeb_connected: true,
+        fsm_state: 'Completed provisioning eNB. Awaiting new Inform.',
+        gps_connected: true,
+        gps_latitude: '',
+        gps_longitude: '',
+        mme_connected: false,
+        opstate_enabled: false,
+        ptp_connected: false,
+        reporting_gateway_id: '',
+        rf_tx_desired: true,
+        rf_tx_on: false,
+        ip_address: '192.168.1.254',
+      },
+    };
+    const UnmanagedEnodeWrapper = () => {
+      const enbInf = {
+        testEnodebSerial1: unmanagedEnbInfo,
+      };
+      return (
+        <MemoryRouter
+          initialEntries={['/nms/mynetwork/enodeb/testEnodebSerial1/overview']}
+          initialIndex={0}>
+          <MuiThemeProvider theme={defaultTheme}>
+            <MuiStylesThemeProvider theme={defaultTheme}>
+              <EnodebContext.Provider
+                value={{
+                  state: {enbInfo: enbInf},
+                  setState: async () => {},
+                }}>
+                <Route
+                  path="/nms/:networkId/enodeb/:enodebSerial/overview"
+                  render={props => <EnodebConfig {...props} />}
+                />
+              </EnodebContext.Provider>
+            </MuiStylesThemeProvider>
+          </MuiThemeProvider>
+        </MemoryRouter>
+      );
+    };
+    const {getByTestId} = render(<UnmanagedEnodeWrapper />);
+    await wait();
+    const config = getByTestId('config');
+    expect(config).toHaveTextContent('testEnodeb1');
+    expect(config).toHaveTextContent('testEnodebSerial1');
+    expect(config).toHaveTextContent('test enodeb description');
+
+    const ran = getByTestId('ran');
+    expect(ran).toHaveTextContent('1');
+    expect(ran).toHaveTextContent('1.1.1.2');
   });
 
   it('Verify Enode Add', async () => {

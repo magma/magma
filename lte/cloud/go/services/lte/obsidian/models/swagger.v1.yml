@@ -2123,6 +2123,9 @@ definitions:
         type: boolean
       fsm_state:
         type: string
+      ip_address:
+        type: string
+        format: ipv4
 
   aggregated_maximum_bitrate:
     type: object

@@ -65,7 +65,7 @@ const CONFIGS: Array<MetricGraphConfig> = [
     customQueryConfigs: [
       {
         resolveQuery: gw =>
-          `pdcp_user_plane_bytes_dl{gatewayID="${gw}", service="enodebd"}/1000`,
+          `gtp_port_user_plane_dl_bytes{gatewayID="${gw}", service="pipelined"}/1000`,
       },
     ],
     basicQueryConfigs: [],
@@ -76,7 +76,7 @@ const CONFIGS: Array<MetricGraphConfig> = [
     customQueryConfigs: [
       {
         resolveQuery: gw =>
-          `pdcp_user_plane_bytes_ul{gatewayID="${gw}", service="enodebd"}/1000`,
+          `gtp_port_user_plane_ul_bytes{gatewayID="${gw}", service="pipelined"}/1000`,
       },
     ],
     basicQueryConfigs: [],
