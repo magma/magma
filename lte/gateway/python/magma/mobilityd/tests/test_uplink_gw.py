@@ -98,6 +98,32 @@ class DefGwTest(unittest.TestCase):
         self.assertEqual(self.dhcp_gw_info.get_gw_ip(vlan1), str(ip2))
         self.assertEqual(self.dhcp_gw_info.get_gw_mac(vlan1), '')
 
+    def test_vlan_gw_info_none(self):
+        ip1 = "1.2.3.4"
+        vlan1 = "1"
+        mac1 = "11:22:33:44:55:66"
+
+        self.dhcp_gw_info.update_mac(ip1, mac1, vlan1)
+        self.assertEqual(self.dhcp_gw_info.get_gw_ip(vlan1), str(ip1))
+        self.assertEqual(self.dhcp_gw_info.get_gw_mac(vlan1), mac1)
+
+        # check None IP or mac updates
+        self.dhcp_gw_info.update_ip(None, vlan1)
+        self.assertEqual(self.dhcp_gw_info.get_gw_ip(vlan1), str(ip1))
+        self.assertEqual(self.dhcp_gw_info.get_gw_mac(vlan1), mac1)
+
+        self.dhcp_gw_info.update_mac(ip1, None, vlan1)
+        self.assertEqual(self.dhcp_gw_info.get_gw_ip(vlan1), str(ip1))
+        self.assertEqual(self.dhcp_gw_info.get_gw_mac(vlan1), mac1)
+
+        self.dhcp_gw_info.update_mac(None, mac1, vlan1)
+        self.assertEqual(self.dhcp_gw_info.get_gw_ip(vlan1), str(ip1))
+        self.assertEqual(self.dhcp_gw_info.get_gw_mac(vlan1), mac1)
+
+        self.dhcp_gw_info.update_mac(ip1, '', vlan1)
+        self.assertEqual(self.dhcp_gw_info.get_gw_ip(vlan1), str(ip1))
+        self.assertEqual(self.dhcp_gw_info.get_gw_mac(vlan1), mac1)
+
     def test_vlan_gw_info_list(self):
         ip1 = "1.2.3.4"
         vlan1 = "1"
