@@ -1,0 +1,1275 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/services/orchestrator/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+  temp-gen-filename: orc8r-metrics-swagger.yml
+  output-dir: orc8r/cloud/go/services/metricsd/obsidian
+  types:
+    - go-struct-name: AlertBulkUploadResponse
+      filename: alert_bulk_upload_response_swaggergen.go
+    - go-struct-name: AlertReceiverConfig
+      filename: alert_receiver_config_swaggergen.go
+    - go-struct-name: AlertRoutingTree
+      filename: alert_routing_tree_swaggergen.go
+    - go-struct-name: GettableAlert
+      filename: gettable_alert_swaggergen.go
+    - go-struct-name: MetricDatapoint
+      filename: metric_datapoint_swaggergen.go
+    - go-struct-name: MetricDatapoints
+      filename: metric_datapoints_swaggergen.go
+    - go-struct-name: PromAlertConfigList
+      filename: prom_alert_config_list_swaggergen.go
+    - go-struct-name: PromAlertConfig
+      filename: prom_alert_config_swaggergen.go
+    - go-struct-name: PromAlertLabels
+      filename: prom_alert_labels_swaggergen.go
+    - go-struct-name: PromAlertStatus
+      filename: prom_alert_status_swaggergen.go
+    - go-struct-name: PromFiringAlert
+      filename: prom_firing_alert_swaggergen.go
+    - go-struct-name: PromqlData
+      filename: promql_data_swaggergen.go
+    - go-struct-name: PromqlMetric
+      filename: promql_metric_swaggergen.go
+    - go-struct-name: PromqlMetricValue
+      filename: promql_metric_value_swaggergen.go
+    - go-struct-name: PromqlResult
+      filename: promql_result_swaggergen.go
+    - go-struct-name: PromqlReturnObject
+      filename: promql_return_object_swaggergen.go
+    - go-struct-name: SLACKAction
+      filename: slack_action_swaggergen.go
+    - go-struct-name: SLACKConfirmField
+      filename: slack_confirm_field_swaggergen.go
+    - go-struct-name: SLACKField
+      filename: slack_field_swaggergen.go
+    - go-struct-name: SLACKReceiver
+      filename: slack_receiver_swaggergen.go
+    - go-struct-name: PushedMetric
+      filename: pushed_metric_swaggergen.go
+    - go-struct-name: LabelPair
+      filename: label_pair_swaggergen.go
+    - go-struct-name: TargetMetadata
+      filename: prometheus_target_metadata_swaggergen.go
+    - go-struct-name: TargetsMetadata
+      filename: prometheus_targets_metadata_swaggergen.go
+
+info:
+  title:
+  description: Orchestrator REST APIs
+  version: 1.0.2
+
+tags:
+  - name: Metrics
+    description: Viewing collected gateway metrics
+  - name: Alerts
+    description: Configuring alerting rules on time-series data
+
+basePath: /magma/v1
+
+paths:
+  /tenants/targets_metadata:
+    get:
+      summary: Retrieve description of all metrics
+      tags:
+      - Metrics
+      parameters:
+        - in: query
+          name: match_target
+          type: string
+          description: "Label selectors like {job = \"magma_pushgateway\"} . All targets are selected if left empty"
+          required: false
+        - in: query
+          name: metric
+          type: string
+          description: A metric name to retrieve metadata for. All metric metadata is retrieved if left empty
+          required: false
+        - in: query
+          name: limit
+          type: string
+          description: Maximum number of targets to match
+          required: false
+      responses:
+        '200':
+          description:
+            Info of metrics
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prometheus_targets_metadata'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/query:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query
+      tags:
+      - Metrics
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: query
+        name: query
+        type: string
+        description: PromQL query to proxy to prometheus
+        required: true
+      - in: query
+        name: time
+        type: string
+        description: time for query (UnixTime or RFC3339)
+        required: false
+      responses:
+        '200':
+          description:
+            List of PromQL metrics results
+          schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/query_range:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      tags:
+      - Metrics
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      - in: query
+        name: query
+        type: string
+        description: PromQL query to proxy to prometheus
+        required: true
+      - in: query
+        name: start
+        type: string
+        description: start time of the requested range (UnixTime or RFC3339)
+        required: true
+      - in: query
+        name: end
+        type: string
+        description: end time of the requested range (UnixTime or RFC3339)
+        required: false
+      - in: query
+        name: step
+        type: string
+        description: query range resolution step width
+        required: false
+      responses:
+        '200':
+          description: List of PromQL metrics results
+          schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/series:
+    get:
+      summary: Get a list of metric series in prometheus database
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: match
+          type: array
+          items:
+            type: string
+          collectionFormat: ssv
+          description: Matcher for metric series query
+          required: false
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+      responses:
+        '200':
+          description: List of metric names
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prometheus_labelset'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/metrics/push:
+    post:
+      summary: Submit metrics to orchestrator databases
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: metrics
+          description: Metrics to be submitted
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/pushed_metric'
+
+      responses:
+        '200':
+          description: Submitted
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/alerts:
+    get:
+      summary: View currently firing alerts
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of currently firing alerts
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prom_firing_alert'
+        'default':
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/alerts/silence:
+    get:
+      summary: View active alert silencers
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: active
+          required: false
+          type: boolean
+          description: Retrieve active alerts. Default true.
+        - in: query
+          name: pending
+          required: false
+          type: boolean
+          description: Retrieve pending alerts. Default true.
+        - in: query
+          name: expired
+          required: false
+          type: boolean
+          description: Retrieve expired alerts. Default true.
+        - in: query
+          name: filter
+          required: false
+          type: string
+          description: "{key=\"value\",} pairs to filter the silences"
+      responses:
+        '200':
+          description: List of active alert silencers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/gettable_alert_silencer'
+        'default':
+           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+    post:
+      summary: Create a new alert silencer
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: silencer
+          description: Silencer to be created
+          required: true
+          schema:
+            $ref: '#/definitions/alert_silencer'
+      responses:
+        '200':
+          description: ID of successfully created silencer
+          schema:
+            type: string
+        'default':
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+    delete:
+      summary: Delete an alert silencer
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: silence_id
+          description: ID of silencer to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Successfully deleted silencer
+          schema:
+            type: string
+        'default':
+          $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+
+  /networks/{network_id}/prometheus/alert_config:
+    post:
+      summary: Create new alerting rule
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: alert_config
+          description: Alerting rule that is to be added
+          required: true
+          schema:
+            $ref: '#/definitions/prom_alert_config'
+      responses:
+        '201':
+          description: Created
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    get:
+      summary: Retrive alerting rule configurations
+      description: If no query parameters are included, all alerting rules for the given network are returned.
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: alert_name
+          description: Name of alert to be retrieved
+          required: false
+          type: string
+      responses:
+        '200':
+          description: List of alert configurations
+          schema:
+            $ref: '#/definitions/prom_alert_config_list'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete an alerting rule
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: alert_name
+          description: Name of alert to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Deleted
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_config/bulk:
+    put:
+      summary: Bulk update/create alerting rules
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: alert_configs
+          description: Alerting rules to be updated or created
+          required: true
+          schema:
+            $ref: '#/definitions/prom_alert_config_list'
+      responses:
+        '200':
+          description: Success
+          schema:
+            $ref: '#/definitions/alert_bulk_upload_response'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_config/{alert_name}:
+    put:
+      summary: Update an alerting rule
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: path
+          name: alert_name
+          description: Name of alert to be updated
+          required: true
+          type: string
+        - in: body
+          name: alert_config
+          description: Alerting rule that is to be added
+          required: true
+          schema:
+            $ref: '#/definitions/prom_alert_config'
+      responses:
+        '200':
+          description: Updated
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_receiver:
+    post:
+      summary: Create new alert receiver
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: receiver_config
+          description: Alert receiver that is to be added
+          required: true
+          schema:
+            $ref: '#/definitions/alert_receiver_config'
+      responses:
+        '201':
+          description: Created
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    get:
+      summary: Retrive alert receivers
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of alert receivers
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/alert_receiver_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete alert receiver
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: receiver
+          description: Receiver name to be deleted
+          required: true
+          type: string
+      responses:
+        '200':
+          description: Deleted
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_receiver/{receiver}:
+    put:
+      summary: Update existing alert receiver
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: path
+          name: receiver
+          description: Name of receiver to be updated
+          required: true
+          type: string
+        - in: body
+          name: receiver_config
+          description: Updated alert receiver
+          required: true
+          schema:
+            $ref: '#/definitions/alert_receiver_config'
+      responses:
+        '200':
+          description: Updated
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /networks/{network_id}/prometheus/alert_receiver/route:
+    get:
+      summary: Retrieve alert routing tree
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: Alerting tree
+          schema:
+            $ref: '#/definitions/alert_routing_tree'
+    post:
+      summary: Modify alert routing tree
+      tags:
+        - Alerts
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: route
+          description: Alert routing tree to be used
+          required: true
+          schema:
+            $ref: '#/definitions/alert_routing_tree'
+      responses:
+        '200':
+          description: OK
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/query:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query
+      tags:
+      - Metrics
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+      - in: query
+        name: query
+        type: string
+        description: PromQL query to proxy to prometheus
+        required: true
+      - in: query
+        name: time
+        type: string
+        description: time for query (UnixTime or RFC3339)
+        required: false
+      responses:
+        '200':
+          description:
+            List of PromQL metrics results
+          schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/query_range:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: query
+          name: query
+          type: string
+          description: PromQL query to proxy to prometheus
+          required: true
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: true
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: step
+          type: string
+          description: query range resolution step width
+          required: false
+      responses:
+        '200':
+          description: List of PromQL metrics results
+          schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/series:
+    get:
+      summary: Get a list of metric series in prometheus database
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: query
+          name: match
+          type: array
+          items:
+            type: string
+          collectionFormat: ssv
+          description: Matcher for metric series query
+          required: false
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+      responses:
+        '200':
+          description: List of metric names
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prometheus_labelset'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/api/v1/query:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query
+      tags:
+      - Metrics
+      parameters:
+      - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+      - in: query
+        name: query
+        type: string
+        description: PromQL query to proxy to prometheus
+        required: true
+      - in: query
+        name: time
+        type: string
+        description: time for query (UnixTime or RFC3339)
+        required: false
+      responses:
+        '200':
+          description:
+            List of PromQL metrics results
+          schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/api/v1/label/{label_name}/values:
+    get:
+      summary: Retrieve list of label values for the given label name
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: path
+          name: label_name
+          type: string
+          description: Label name to get values of
+          required: true
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+      responses:
+        '200':
+          description: List of label values
+          schema:
+            type: object
+            required:
+              - status
+              - data
+            properties:
+              status:
+                type: string
+              data:
+                type: array
+                items:
+                  type: string
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/api/v1/query_range:
+    get:
+      summary: Retrieve the datapoints from a Prometheus Query over a specified time range
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: query
+          name: query
+          type: string
+          description: PromQL query to proxy to prometheus
+          required: true
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: true
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: step
+          type: string
+          description: query range resolution step width
+          required: false
+      responses:
+        '200':
+          description: List of PromQL metrics results
+          schema:
+            $ref: '#/definitions/promql_return_object'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}/metrics/api/v1/series:
+    get:
+      summary: Get a list of metric series in prometheus database
+      tags:
+        - Metrics
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: query
+          name: match[]
+          type: array
+          items:
+            type: string
+          collectionFormat: ssv
+          description: Matcher for metric series query
+          required: false
+        - in: query
+          name: start
+          type: string
+          description: start time of the requested range (UnixTime or RFC3339)
+          required: false
+        - in: query
+          name: end
+          type: string
+          description: end time of the requested range (UnixTime or RFC3339)
+          required: false
+      responses:
+        '200':
+          description: List of metric names
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/prometheus_labelset'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+
+definitions:
+  pushed_metric:
+    type: object
+    required:
+      - metricName
+      - value
+    properties:
+      metricName:
+        type: string
+        example: "cpu_percent"
+      value:
+        type: number
+        example: 8.2
+      timestamp:
+        type: string
+        example: 1561567965000
+      labels:
+        type: array
+        items:
+          $ref: '#/definitions/label_pair'
+
+  label_pair:
+    type: object
+    required:
+      - name
+      - value
+    properties:
+      name:
+        type: string
+      value:
+        type: string
+
+  promql_return_object:
+    type: object
+    required:
+    - status
+    - data
+    properties:
+      status:
+        type: string
+        example: "success"
+      data:
+        $ref: '#/definitions/promql_data'
+  promql_data:
+    type: object
+    required:
+    - resultType
+    - result
+    properties:
+      resultType:
+        type: string
+        example: "vector"
+      result:
+        $ref: '#/definitions/promql_result'
+  promql_result:
+    type: array
+    items:
+      $ref: '#/definitions/promql_metric_value'
+    minItems: 2
+    maxItems: 2
+  promql_metric_value:
+    description: If resultType is 'vector' value is in the result, if 'matrix', values is in the result
+    type: object
+    required:
+    - metric
+    properties:
+      metric:
+        $ref: '#/definitions/promql_metric'
+      value:
+        $ref: '#/definitions/metric_datapoint'
+      values:
+        $ref: '#/definitions/metric_datapoints'
+  promql_metric:
+    type: object
+    properties:
+      additionalProperties:
+        type: string
+    example:
+      __name__: "response_status"
+      gatewayID: "gateway01"
+      networkID: "network01"
+      code: "200"
+
+  prometheus_labelset:
+    type: object
+    additionalProperties:
+      type: string
+
+  metric_datapoints:
+    type: array
+    items:
+      $ref: '#/definitions/metric_datapoint'
+  metric_datapoint:
+    type: array
+    items:
+      type: string
+    minItems: 2
+    maxItems: 2
+    example: [1548439790.115,"1"]
+
+  prom_alert_config:
+    type: object
+    required:
+      - alert
+      - expr
+    properties:
+      alert:
+        type: string
+      expr:
+        type: string
+      labels:
+        $ref: '#/definitions/prom_alert_labels'
+      for:
+        type: string
+      annotations:
+        $ref: '#/definitions/prom_alert_labels'
+
+  prom_alert_config_list:
+    type: array
+    items:
+        $ref: '#/definitions/prom_alert_config'
+
+  alert_bulk_upload_response:
+    type: object
+    required:
+      - errors
+      - statuses
+    properties:
+      errors:
+        type: object
+        additionalProperties:
+          type: string
+      statuses:
+        type: object
+        additionalProperties:
+          type: string
+
+  prom_alert_labels:
+    type: object
+    additionalProperties:
+      type: string
+
+  alert_receiver_config:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+      slack_configs:
+        type: array
+        items:
+          $ref: '#/definitions/slack_receiver'
+      webhook_configs:
+        type: array
+        items:
+          $ref: '#/definitions/webhook_receiver'
+      email_configs:
+        type: array
+        items:
+          $ref: '#/definitions/email_receiver'
+
+  email_receiver:
+    type: object
+    required:
+      - to
+      - from
+      - smarthost
+    properties:
+      send_resolved:
+        type: boolean
+      to:
+        type: string
+      from:
+        type: string
+      smarthost:
+        type: string
+      hello:
+        type: string
+      auth_username:
+        type: string
+      auth_password:
+        type: string
+      auth_secret:
+        type: string
+      auth_identity:
+        type: string
+      html:
+        type: string
+      text:
+        type: string
+      headers:
+        type: object
+        additionalProperties:
+          type: string
+
+  slack_receiver:
+    type: object
+    required:
+      - api_url
+    properties:
+      api_url:
+        type: string
+      channel:
+        type: string
+      username:
+        type: string
+      color:
+        type: string
+      title:
+        type: string
+      pretext:
+        type: string
+      text:
+        type: string
+      fields:
+        type: array
+        items:
+          $ref: '#/definitions/slack_field'
+      short_fields:
+        type: boolean
+      footer:
+        type: string
+      fallback:
+        type: string
+      callback_id:
+        type: string
+      icon_emoji:
+        type: string
+      icon_url:
+        type: string
+      image_url:
+        type: string
+      thumb_url:
+        type: string
+      link_names:
+        type: boolean
+      actions:
+        type: array
+        items:
+          $ref: '#/definitions/slack_action'
+
+  slack_field:
+    type: object
+    required:
+      - title
+      - value
+    properties:
+      title:
+        type: string
+      value:
+        type: string
+      short:
+        type: boolean
+
+  slack_action:
+    type: object
+    required:
+      - type
+      - text
+      - url
+    properties:
+      type:
+        type: string
+      text:
+        type: string
+      url:
+        type: string
+      style:
+        type: string
+      name:
+        type: string
+      value:
+        type: string
+      confirm:
+        $ref: '#/definitions/slack_confirm_field'
+
+  slack_confirm_field:
+    type: object
+    required:
+      - text
+      - title
+      - ok_text
+      - dismiss_text
+    properties:
+      text:
+        type: string
+      title:
+        type: string
+      ok_text:
+        type: string
+      dismiss_text:
+        type: string
+
+  webhook_receiver:
+    type: object
+    required:
+      - url
+    properties:
+      url:
+        type: string
+      send_resolved:
+        type: boolean
+      http_config:
+        $ref: '#/definitions/http_config'
+
+  # See https://prometheus.io/docs/alerting/configuration/#http_config. Not
+  # supporting several fields which are filepaths.
+  http_config:
+    type: object
+    properties:
+      basic_auth:
+        $ref: '#/definitions/http_config_basic_auth'
+      bearer_token:
+        type: string
+      proxy_url:
+        type: string
+
+  http_config_basic_auth:
+    type: object
+    required:
+      - username
+      - password
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+
+  prom_firing_alert:
+    type: object
+    required:
+      - annotations
+      - endsAt
+      - fingerprint
+      - receivers
+      - startsAt
+      - status
+      - updatedAt
+      - labels
+    properties:
+      annotations:
+        $ref: '#/definitions/prom_alert_labels'
+      endsAt:
+        type: string
+      fingerprint:
+        type: string
+      receivers:
+        $ref: '#/definitions/gettable_alert'
+      startsAt:
+        type: string
+      status:
+        $ref: '#/definitions/prom_alert_status'
+      updatedAt:
+        type: string
+      generatorURL:
+        type: string
+      labels:
+        $ref: '#/definitions/prom_alert_labels'
+
+  gettable_alert:
+    type: object
+    required:
+      - name
+    properties:
+      name:
+        type: string
+
+  prom_alert_status:
+    type: object
+    required:
+      - inhibitedBy
+      - silencedBy
+      - state
+    properties:
+      inhibitedBy:
+        type: array
+        items:
+          type: string
+      silencedBy:
+        type: array
+        items:
+          type: string
+      state:
+        type: string
+
+  alert_routing_tree:
+    type: object
+    required:
+      - receiver
+    properties:
+      receiver:
+        type: string
+      group_by:
+        type: array
+        items:
+          type: string
+      match:
+        type: object
+        properties:
+          label:
+            type: string
+          value:
+            type: string
+      match_re:
+        type: object
+        properties:
+          label:
+            type: string
+          value:
+            type: string
+      continue:
+        type: boolean
+      routes:
+        type: array
+        items:
+          $ref: '#/definitions/alert_routing_tree'
+      group_wait:
+        type: string
+      group_interval:
+        type: string
+      repeat_interval:
+        type: string
+
+  alert_silencer:
+    type: object
+    required:
+      - comment
+      - createdBy
+      - endsAt
+      - matchers
+      - startsAt
+    properties:
+      comment:
+        type: string
+      createdBy:
+        type: string
+      endsAt:
+        type: string
+        example: 2019-10-17T22:19:41.990Z
+      startsAt:
+        type: string
+        example: 2019-10-17T22:19:41.990Z
+      matchers:
+        type: array
+        items:
+          $ref: '#/definitions/matcher'
+
+  matcher:
+    type: object
+    required:
+      - isRegex
+      - name
+      - value
+    properties:
+      isRegex:
+        type: boolean
+      name:
+        type: string
+      value:
+        type: string
+
+
+  gettable_alert_silencer:
+    allOf:
+      - $ref: '#/definitions/alert_silencer'
+      - type: object
+        required:
+          - id
+          - status
+          - updatedAt
+        properties:
+          id:
+            type: string
+          updatedAt:
+            type: string
+          status:
+            $ref: '#/definitions/alert_silence_status'
+
+  alert_silence_status:
+    type: object
+    required:
+      - state
+    properties:
+      state:
+        type: string
+
+  prometheus_target_metadata:
+    type: object
+    required:
+      - instance
+      - job
+    properties:
+      instance:
+        type: string
+        example: "localhost:9090"
+      job:
+        type: string
+        example: "prometheus"
+
+  prometheus_targets_metadata:
+    type: object
+    required:
+    - target
+    - metric
+    - type
+    - help
+    - unit
+    properties:
+      target:
+        $ref: '#/definitions/prometheus_target_metadata'
+      metric:
+        type: string
+        example: "prometheus_tsdb_compaction_chunk_samples"
+      type:
+        type: string
+        example: "histogram"
+      help:
+        type: string
+        example: "Final number of samples on their first compaction"
+      unit:
+        type: string
+        example: "string"

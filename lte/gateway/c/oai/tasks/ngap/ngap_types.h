@@ -4,20 +4,14 @@
  * This source code is licensed under the BSD-style license found in the
  * LICENSE file in the root directory of this source tree.
  *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the Apache License, Version 2.0  (the "License"); you may not use this file
+ * except in compliance with the License.
+ * You may obtain a copy of the License at
  */
-/****************************************************************************
-  Source      ngap_types.h
-  Date        2020/07/28
-  Author      Ashish Prajapati
-  Subsystem   Access and Mobility Management Function
-  Description Defines NG Application Protocol Messages
-
-*****************************************************************************/
 
 #pragma once
 
@@ -67,6 +61,9 @@ typedef struct m5g_supported_ta_list_s {
   m5g_supported_tai_items_t
       supported_tai_items[NGAP_MAX_TAI_ITEMS];  ///< List of TAIs
 } m5g_supported_ta_list_t;
+
+#define NGAP_TIMER_INACTIVE_ID (-1)
+#define NGAP_UE_CONTEXT_REL_COMP_TIMER 1  // in seconds
 
 typedef struct ngap_state_s {
   // contains gNB_description_s, key is gNB_description_s.gnb_id (uint32_t)

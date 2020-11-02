@@ -1,0 +1,116 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/orc8r/cloud/go/services/orchestrator/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+  temp-gen-filename: orc8r-tenants-swagger.yml
+  output-dir: orc8r/cloud/go/services/tenants/obsidian
+
+info:
+  title: Tenants Model Definitions and Paths
+  description: Magma REST APIs
+  version: 1.0.0
+
+tags:
+  - name: Tenants
+    description: Viewing and Setting Tenant information
+
+basePath: /magma/v1
+
+paths:
+  /tenants:
+    get:
+      summary: Retrieve all tenants
+      tags:
+      - Tenants
+      responses:
+        '200':
+          description: List of tenants
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/tenant'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create an tenant
+      tags:
+      - Tenants
+      parameters:
+        - in: body
+          name: tenant
+          description: Tenant to be created
+          required: true
+          schema:
+            $ref: '#/definitions/tenant'
+      responses:
+        '201':
+          description: Successfully created
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tenants/{tenant_id}:
+    get:
+      summary: Retrieve Tenant Info By Tenant ID
+      tags:
+      - Tenants
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+      responses:
+        '200':
+          description: Requested Tenant Information
+          schema:
+            $ref: '#/definitions/tenant'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Set Tenant info
+      tags:
+        - Tenants
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+        - in: body
+          name: tenant
+          description: Tenant to be updated
+          required: true
+          schema:
+            $ref: '#/definitions/tenant'
+      responses:
+        '204':
+          description: Ok
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete tenant
+      tags:
+        - Tenants
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/tenant_id'
+      responses:
+        '204':
+          description: Ok
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+definitions:
+  tenant:
+    type: object
+    required:
+      - networks
+      - id
+    properties:
+      id:
+        description: Unique integer identifier
+        type: integer
+        format: int64
+        minimum: 0
+      name:
+        description: Name of tenant
+        type: string
+      networks:
+        description: List of accessible networks
+        type: array
+        items:
+          type: string

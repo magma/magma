@@ -1,0 +1,540 @@
+---
+swagger: '2.0'
+
+magma-gen-meta:
+  go-package: magma/fbinternal/cloud/go/services/testcontroller/obsidian/models
+  dependencies:
+    - 'orc8r/cloud/go/models/swagger-common.yml'
+    - 'lte/cloud/go/services/lte/obsidian/models/swagger.v1.yml'
+  temp-gen-filename: fbinternal-testcontroller-swagger.yml
+  output-dir: fbinternal/cloud/go/services/testcontroller/obsidian
+  types:
+    - go-struct-name: E2eTestCase
+      filename: e2e_test_case_swaggergen.go
+    - go-struct-name: E2eTestCaseState
+      filename: e2e_test_case_state_swaggergen.go
+    - go-struct-name: EnodebdE2eTest
+      filename: enodebd_e2e_test_swagger_swaggergen.go
+    - go-struct-name: MutableEnodebdE2eTest
+      filename: mutable_enodebd_e2e_test_swagger_swaggergen.go
+    - go-struct-name: EnodebdTestConfig
+      filename: enodebd_test_config_swaggergen.go
+    - go-struct-name: AgwTestConfig
+      filename: agw_test_config_swaggergen.go
+    - go-struct-name: CiNode
+      filename: ci_node_swaggergen.go
+    - go-struct-name: MutableCiNode
+      filename: mutable_ci_node_swaggergen.go
+    - go-struct-name: NodeLease
+      filename: node_lease_swaggergen.go
+
+info:
+  title: Test Configurations Definitions and Paths
+  description: Magma REST APIs
+  version: 1.0.0
+
+tags:
+  - name: e2e
+    description: End to end testing
+  - name: baremetal
+    description: Baremetal CI executors and workloads
+
+basePath: /magma/v1
+
+paths:
+  /tests/e2e:
+    get:
+      summary: List e2e tests
+      tags:
+        - e2e
+      responses:
+        '200':
+          description: List of test configurations
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/e2e_test_case'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tests/e2e/enodebd:
+    get:
+      summary: List enodebd e2e test cases
+      tags:
+        - e2e
+      responses:
+        '200':
+          description: List of enodebd test cases
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/enodebd_e2e_test'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create new enodebe e2e test case
+      tags:
+        - e2e
+      parameters:
+        - in: body
+          name: test
+          description: enodebd test to create
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_enodebd_e2e_test'
+      responses:
+        '201':
+          description: Created
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /tests/e2e/enodebd/{test_pk}:
+    get:
+      summary: Get enodebd e2e test case
+      tags:
+        - e2e
+      parameters:
+        - $ref: '#/parameters/test_pk'
+      responses:
+        '200':
+          description: Requested enodebd test case
+          schema:
+            $ref: '#/definitions/enodebd_test_config'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update enodebd e2e test case
+      tags:
+        - e2e
+      parameters:
+        - $ref: '#/parameters/test_pk'
+        - in: body
+          name: test
+          description: Updated test case configuration
+          required: true
+          schema:
+            $ref: '#/definitions/enodebd_test_config'
+      responses:
+        '204':
+          description: Updated
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete enodebd e2e test case
+      tags:
+        - e2e
+      parameters:
+        - $ref: '#/parameters/test_pk'
+      responses:
+        '204':
+          description: Deleted
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /ci/nodes:
+    get:
+      summary: List CI worker nodes
+      tags:
+        - baremetal
+      parameters:
+        - name: tag
+          in: query
+          required: false
+          type: string
+          description: Optional tag to filter listed nodes by
+        - name: list_untagged
+          in: query
+          required: false
+          type: string
+          description: Set this to a non-empty value to filter for all untagged nodes
+      responses:
+        '200':
+          description: All CI worker nodes
+          schema:
+            type: array
+            items:
+              $ref: '#/definitions/ci_node'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Create new available CI worker node
+      tags:
+        - baremetal
+      parameters:
+        - in: body
+          name: ci_node
+          description: CI node to create
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_ci_node'
+      responses:
+        '201':
+          description: Created
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /ci/reserve:
+    post:
+      summary: Reserve a CI worker node if available
+      tags:
+        - baremetal
+      parameters:
+        - name: tag
+          in: query
+          required: false
+          type: string
+          description: Optional tag to restrict reservation pool to
+      responses:
+        '200':
+          description: Lease information about the reserved node
+          schema:
+            $ref: '#/definitions/node_lease'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /ci/nodes/{node_id}:
+    get:
+      summary: Get a specific CI node
+      tags:
+        - baremetal
+      parameters:
+        - $ref: '#/parameters/node_id'
+      responses:
+        '200':
+          description: The requested node
+          schema:
+            $ref: '#/definitions/ci_node'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    put:
+      summary: Update a CI node
+      tags:
+        - baremetal
+      parameters:
+        - $ref: '#/parameters/node_id'
+        - in: body
+          name: ci_node
+          description: CI node to create
+          required: true
+          schema:
+            $ref: '#/definitions/mutable_ci_node'
+      responses:
+        '204':
+          description: Updated
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Delete a CI node
+      tags:
+        - baremetal
+      parameters:
+        - $ref: '#/parameters/node_id'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /ci/nodes/{node_id}/reserve:
+    post:
+      summary: Manually reserve a specific CI node
+      tags:
+        - baremetal
+      parameters:
+        - $ref: '#/parameters/node_id'
+      responses:
+        '200':
+          description: Lease for the requested node
+          schema:
+            $ref: '#/definitions/node_lease'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /ci/nodes/{node_id}/release:
+    post:
+      summary: Release a manually reserved CI node
+      tags:
+        - baremetal
+      parameters:
+        - $ref: '#/parameters/node_id'
+      responses:
+        '204':
+          description: Node released successfully
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /ci/nodes/{node_id}/release/{lease_id}:
+    post:
+      summary: Release a CI worker node
+      tags:
+        - baremetal
+      parameters:
+        - $ref: '#/parameters/node_id'
+        - in: path
+          name: lease_id
+          description: Lease ID to release
+          required: true
+          type: string
+      responses:
+        '204':
+          description: Node released successfully
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+parameters:
+  test_pk:
+    in: path
+    name: test_pk
+    description: E2E test case PK
+    required: true
+    type: integer
+    format: int64
+  node_id:
+    in: path
+    name: node_id
+    description: CI node ID
+    required: true
+    type: string
+
+definitions:
+  e2e_test_case:
+    description: Generic e2e test case
+    type: object
+    required:
+      - pk
+      - test_type
+      - config
+      - state
+    properties:
+      pk:
+        type: integer
+        format: int64
+        example: 42
+      test_type:
+        type: string
+        minLength: 1
+        example: "enodebd"
+      config:
+        type: object
+      state:
+        $ref: '#/definitions/e2e_test_case_state'
+
+  e2e_test_case_state:
+    description: Test case execution state
+    type: object
+    required:
+      - is_executing
+    properties:
+      is_executing:
+        type: boolean
+        example: false
+      last_execution_time:
+        type: string
+        format: date-time
+      current_state:
+        type: string
+      error:
+        type: string
+      next_scheduled_time:
+        type: string
+        format: date-time
+
+  enodebd_e2e_test:
+    description: Enodebd e2e test
+    type: object
+    required:
+      - pk
+      - config
+      - state
+    properties:
+      pk:
+        type: integer
+        format: int64
+        example: 42
+      config:
+        $ref: '#/definitions/enodebd_test_config'
+      state:
+        $ref: '#/definitions/e2e_test_case_state'
+
+  mutable_enodebd_e2e_test:
+    type: object
+    required:
+      - pk
+      - config
+    properties:
+      pk:
+        type: integer
+        format: int64
+        example: 42
+      config:
+        $ref: '#/definitions/enodebd_test_config'
+
+  enodebd_test_config:
+    description: Enodebd e2e test configuration
+    type: object
+    required:
+      - network_id
+      - agw_config
+      - enodeb_SN
+      - traffic_gwID
+      - enodeb_config
+      - run_traffic_tests
+      - subscriberID
+    properties:
+      network_id:
+        description: Network for the test case
+        type: string
+        minLength: 1
+        example: "mpk_dogfooding"
+      agw_config:
+        $ref: '#/definitions/agw_test_config'
+      enodeb_SN:
+        description: Enodeb serial number for the test case
+        type: string
+        minLength: 1
+      traffic_gwID:
+        description: NUC gateway ID
+        type: string
+        minLength: 1
+      enodeb_config:
+        description: Config will be used to reconfigure enodeb
+        $ref: './lte-swagger.yml#/definitions/enodeb_config'
+      ssid:
+        description: SSID the enodeb will connect to
+        type: string
+        minLength: 1
+      ssid_pw:
+        description: Password to authenticate to SSID
+        type: string
+        minLength: 1
+      run_traffic_tests:
+        description: Toggle whether or not to run traffic test cases
+        type: boolean
+        example: false
+      subscriberID:
+        description: SubscriberID that will be used to fetch subscriber state
+        type: string
+        minLength: 1
+      start_state:
+        description: Specify which testcontroller state to begin on
+        type: string
+        minLength: 1
+        example: "check_for_upgrade"
+      # TODO: more params (params to flip between)
+
+  agw_test_config:
+    description: Shared AGW test configuration for auto-upgrades
+    type: object
+    required:
+      - target_gateway_id
+      - target_tier
+      - package_repo
+      - release_channel
+      - slack_webhook
+    properties:
+      target_gateway_id:
+        description: Gateway ID of the target gateway
+        type: string
+        minLength: 1
+        example: "mpk_dogfooding_magma_1"
+      target_tier:
+        description: ID of upgrade tier to bump when new version is found in package repo
+        type: string
+        minLength: 1
+        example: "t2"
+      package_repo:
+        description: URL of debian package repo
+        type: string
+        minLength: 1
+        example: "http://packages.magma.etagecom.io"
+      release_channel:
+        description: Release channel for package repo (stretch-beta, stretch-dev, etc)
+        type: string
+        minLength: 1
+        example: "stretch-beta"
+      slack_webhook:
+        description: Slack webhook for test notifications
+        type: string
+        minLength: 1
+        example: "https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX"
+
+  ci_node:
+    description: Baremetal executor status
+    type: object
+    required:
+      - id
+      - vpn_ip
+      - available
+    properties:
+      id:
+        type: string
+        minLength: 1
+        example: 'node1'
+      tag:
+        type: string
+        example: 'tagged'
+      vpn_ip:
+        type: string
+        format: ipv4
+        example: 10.240.0.2
+      available:
+        type: boolean
+        example: false
+      last_lease_time:
+        type: string
+        format: date-time
+
+  mutable_ci_node:
+    description: Baremetal executor writable fields
+    type: object
+    required:
+      - id
+      - vpn_ip
+    properties:
+      id:
+        type: string
+        minLength: 1
+        example: 'node1'
+      tag:
+        type: string
+        example: 'tagged'
+      vpn_ip:
+        type: string
+        format: ipv4
+        example: 10.240.0.2
+
+  node_lease:
+    description: Node lease information
+    type: object
+    required:
+      - id
+      - vpn_ip
+      - lease_id
+    properties:
+      id:
+        type: string
+        minLength: 1
+        example: 'node1'
+      vpn_ip:
+        type: string
+        format: ipv4
+        example: 10.240.0.2
+      lease_id:
+        type: string
+        minLength: 1
+        example: 'abcdefg'
+
+  latest_script_execution:
+    type: object
+    required:
+      - timestamp
+      - version
+    properties:
+      timestamp:
+        description: Timestamp of latest script execution
+        type: integer
+        x-nullable: false
+      version:
+        description: Magma version of latest script execution
+        type: string
+        x-nullable: false
