@@ -104,13 +104,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         for controller in [self._gy_app, self._enforcer_app,
                            self._enforcement_stats]:
-            ret = controller.is_ready_for_restart_recovery(request.epoch)
-            if ret != SetupFlowsResult.SUCCESS:
+            ret = controller.check_setup_request_epoch(request.epoch)
+            if ret:
                 return SetupFlowsResult(result=ret)
 
         fut = Future()
-        self._loop.call_soon_threadsafe(self._setup_flows,
-                                        request, fut)
+        self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
         return fut.result()
 
     def _setup_flows(self, request: SetupPolicyRequest,
@@ -453,8 +452,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        ret = self._ue_mac_app.is_ready_for_restart_recovery(request.epoch)
-        if ret != SetupFlowsResult.SUCCESS:
+        ret = self._ue_mac_app.check_setup_request_epoch(request.epoch)
+        if ret:
             return SetupFlowsResult(result=ret)
 
         fut = Future()
@@ -559,8 +558,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        ret = self._check_quota_app.is_ready_for_restart_recovery(request.epoch)
-        if ret != SetupFlowsResult.SUCCESS:
+        ret = self._check_quota_app.check_setup_request_epoch(request.epoch)
+        if ret:
             return SetupFlowsResult(result=ret)
 
         fut = Future()

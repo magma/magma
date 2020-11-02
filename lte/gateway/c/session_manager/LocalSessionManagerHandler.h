@@ -135,7 +135,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
-  std::chrono::seconds retry_timeout_;
+  std::chrono::milliseconds retry_timeout_;
   static const std::string hex_digit_;
 
  private:
