@@ -22,28 +22,26 @@ namespace magma {
 namespace sctpd {
 
 // Set up basic sctp options of socket "sd"
-int set_sctp_opts( const int sd, const uint16_t instreams, const uint16_t outstreams, const uint16_t max_attempts, const uint16_t init_timeout);
+int set_sctp_opts(
+  const int sd,
+  const uint16_t instreams,
+  const uint16_t outstreams,
+  const uint16_t max_attempts,
+  const uint16_t init_timeout);
 
 // Convert address specified in InitReq into struct sockaddr for sctp setup
 int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs);
-//int convert_addrs_ng(const InitReq *req, struct sockaddr **addrs1, int *num_addrs1);
 
 int create_sctp_sock(const InitReq &req)
 {
-  int num_addrs /*num_addrs1*/;
-  struct sockaddr *addrs /**addrs1*/;
-  int sd /*sd1*/;
+  int num_addrs;
+  struct sockaddr *addrs;
+  int sd;
 
-   MLOG(MDEBUG) << "create_sctp_sock= " << std::to_string(sd); 
+  if (!req.use_ipv4() && !req.use_ipv6()) return -1;
 
-  if (!req.use_ipv4() && !req.use_ipv6()) 
-{
-	return -1;
-}
-  if (req.ipv4_addrs_size() == 0 && req.ipv6_addrs_size() == 0)
-{
-	 return -1;
-}
+  if (req.ipv4_addrs_size() == 0 && req.ipv6_addrs_size() == 0) return -1;
+
   sd = socket(AF_INET6, SOCK_STREAM, IPPROTO_SCTP);
   if (sd < 0) {
     MLOG_perror("socket");
@@ -55,14 +53,11 @@ int create_sctp_sock(const InitReq &req)
   }
 
   if (convert_addrs(&req, &addrs, &num_addrs) < 0) goto fail;
- // if (convert_addrs_ng(&req, &addrs1, &num_addrs1) < 0) goto fail;
 
   if (sctp_bindx(sd, addrs, num_addrs, SCTP_BINDX_ADD_ADDR) < 0) {
     MLOG_perror("sctp_bindx");
-    MLOG(MFATAL) << "bind fail " <<std::to_string(sd);
     goto fail;
   }
-
 
   if (listen(sd, 5) < 0) {
     MLOG_perror("listen");
@@ -70,6 +65,7 @@ int create_sctp_sock(const InitReq &req)
   }
 
   free(addrs);
+
   return sd;
 
 fail:
@@ -95,6 +91,7 @@ int set_sctp_opts(
     MLOG_perror("setsockopt sctp");
     return -1;
   }
+
   int on = 1;
 
   struct linger sctp_linger;
@@ -142,9 +139,9 @@ int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs)
     		ipv4_addr->sin_port = htons(req->port());
 	}
 	else if (req->ngap_port())
+	{
     		ipv4_addr->sin_port = htons(req->ngap_port());
-
-//along with other required configs	
+	}
     if (inet_aton(req->ipv4_addrs(i).c_str(), &ipv4_addr->sin_addr) < 0) {
       return -1;
     }
@@ -165,46 +162,5 @@ int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs)
   return 0;
 }
 
-int convert_addrs_ng(const InitReq *req, struct sockaddr **addrs1, int *num_addrs1)
-{
-int i;
-struct sockaddr_in *ipv4_addr;
-struct sockaddr_in6 *ipv6_addr;
-
-auto num_ipv4_addrs = req->ipv4_addrs_size();
-auto num_ipv6_addrs = req->ipv6_addrs_size();
-*num_addrs1 = num_ipv4_addrs + num_ipv6_addrs;
-
-MLOG(MDEBUG) << "req->ngap_port = " << std::to_string(req->ngap_port());
-*addrs1 = (struct sockaddr *) calloc(*num_addrs1, sizeof(struct sockaddr *));
-if (*addrs1 == NULL) return -1;
-
-for (i = 0; i < num_ipv4_addrs; i++) {
-ipv4_addr = (struct sockaddr_in *) &(*addrs1)[i];
-
-ipv4_addr->sin_family = AF_INET;
-ipv4_addr->sin_port = htons(req->ngap_port());
-if (inet_aton(req->ipv4_addrs(i).c_str(), &ipv4_addr->sin_addr) < 0) {
-return -1;
-}
-}
-
-for (i = 0; i < num_ipv6_addrs; i++) {
-ipv6_addr = (struct sockaddr_in6 *) &(*addrs1)[i + num_ipv4_addrs];
-
-ipv6_addr->sin6_family = AF_INET6;
-ipv6_addr->sin6_port = htons(req->ngap_port());
-if (
-inet_pton(AF_INET6, req->ipv6_addrs(i).c_str(), &ipv6_addr->sin6_addr) <
-0) {
-return -1;
-}
-}
-
-return 0;
-}
-
-
 } // namespace sctpd
 } // namespace magma
-;

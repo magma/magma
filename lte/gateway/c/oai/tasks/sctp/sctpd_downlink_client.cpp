@@ -122,7 +122,6 @@ int sctpd_init(sctp_init_t* init) {
   char ipv4_str[INET_ADDRSTRLEN];
   char ipv6_str[INET6_ADDRSTRLEN];
 
-
   req.set_use_ipv4(init->ipv4);
   req.set_use_ipv6(init->ipv6);
 
@@ -145,9 +144,6 @@ int sctpd_init(sctp_init_t* init) {
   }
   req.set_port(init->port);
   req.set_ppid(init->ppid);
-
-  req.set_ngap_port(init->ngap_port);
-  req.set_ngap_ppid(init->ngap_ppid);
 
   req.set_force_restart(_client->should_force_restart);
 
@@ -177,7 +173,8 @@ void sctpd_exit() {
 }
 
 // sendDl
-int sctpd_send_dl(uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
+int sctpd_send_dl(
+    uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
 

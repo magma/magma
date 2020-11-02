@@ -51,9 +51,9 @@
 #include "3gpp_24.008.h"
 
 //------------------------------------------------------------------------------
-typedef uint32_t sctp_ppid_t;
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
+typedef uint32_t sctp_ppid_t;
 typedef uint64_t enb_s1ap_id_key_t;
 #define MME_APP_ENB_S1AP_ID_KEY(kEy, eNb_Id, eNb_Ue_S1Ap_Id)                   \
   do {                                                                         \
@@ -80,6 +80,7 @@ typedef uint64_t enb_s1ap_id_key_t;
  * invalid
  */
 #define INVALID_MME_UE_S1AP_ID 0x0
+#define INVALID_ENB_UE_S1AP_ID 0x0
 
 //------------------------------------------------------------------------------
 // TEIDs

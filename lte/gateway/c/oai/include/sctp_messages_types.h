@@ -57,7 +57,6 @@ typedef uint32_t sctp_ppid_t;
 #define SCTP_AMF_SERVER_INITIALIZED(msg)                                       \
   (msg)->ittiMsg.sctp_amf_server_initialized
 
-
 typedef struct sctp_data_cnf_s {
   bstring payload;
   sctp_assoc_id_t assoc_id;
@@ -98,6 +97,8 @@ typedef struct sctp_init_s {
   struct in6_addr ipv6_address[10];
   uint16_t port;
   uint32_t ppid;
+  uint32_t ngap_port;
+  uint32_t ngap_ppid;
 } sctp_init_t;
 
 typedef struct sctp_close_association_s {
@@ -117,6 +118,6 @@ typedef struct sctp_mme_server_initialized_s {
 } sctp_mme_server_initialized_t;
 
 typedef struct sctp_amf_server_initialized_s {
-	  bool successful;
+  bool successful;
 } sctp_amf_server_initialized_t;
 #endif /* FILE_SCTP_MESSAGES_TYPES_SEEN */
