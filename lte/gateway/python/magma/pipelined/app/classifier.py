@@ -23,18 +23,11 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import TUN_PORT_REG, Direction
 from magma.pipelined.policy_converters import get_eth_type, get_ue_ip_match_args
 from magma.pipelined.utils import Utils
-from ryu.lib.packet import ether_types
+from ryu.lib.packet import ether_types, packet, ipv4
 from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
-from magma.pipelined.openflow.registers import TUN_PORT_REG
-from lte.protos.mobilityd_pb2 import IPAddress
-from magma.pipelined.policy_converters import get_ue_ip_match_args, get_eth_type
-from magma.pipelined.openflow.registers import Direction
-from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.controller import ofp_event
-from ryu.lib.packet import packet
-from ryu.lib.packet import ipv4
+from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from lte.protos.session_manager_pb2 import UPFPagingInfo
-from magma.pipelined.set_interface_client import send_paging_intiated_notification
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
@@ -48,6 +41,7 @@ class Classifier(MagmaController):
     """
     APP_NAME = "classifier"
     APP_TYPE = ControllerType.SPECIAL
+    SESSIOND_RPC_TIMEOUT = 5
     ClassifierConfig = namedtuple(
             'ClassifierConfig',
             ['gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port',
@@ -67,6 +61,7 @@ class Classifier(MagmaController):
             self._ovs_multi_tunnel_init()
         #Get SessionD Channel
         self._sessiond_setinterface = kwargs['rpc_stubs']['sessiond_setinterface']
+        self.loop = kwargs['loop']
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -194,10 +189,20 @@ class Classifier(MagmaController):
         Build the message
         """
         paging_message=UPFPagingInfo(ue_ip_addr=ue_ip_add)
-
-        send_paging_intiated_notification(paging_message,
-                                          self._sessiond_setinterface)
-
+        #logging.info("_send_messsage_interface:%s", paging_message)
+        future = self._sessiond_setinterface.SetPagingInitiated.future(
+                            paging_message, self.SESSIOND_RPC_TIMEOUT)
+        future.add_done_callback(
+                              lambda future: self.loop.call_soon_threadsafe(
+                              self._callback_method, future))
+    
+    def _callback_method(self, future):
+        """
+        Callback after sessiond RPC completion
+        """
+        err = future.exception()
+        if err:
+            self.logger.error('Couldnt send flow records to sessiond: %s', err)
 
     def add_tunnel_flows(self, precedence:int, i_teid:int,
                          o_teid:int, ue_ip_adr:IPAddress,
