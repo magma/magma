@@ -15,24 +15,8 @@
  *      contact@openairinterface.org
  */
 
-#pragma once
-
-#include <stdint.h>
-
-#include "bstrlib.h"
-
-#include "sctp_messages_types.h"
-
-#define PID_LEN 32
-
-int init_sctpd_downlink_client(bool force_restart);
-
-// init
-int sctpd_init(sctp_init_t* init);
-
-// force sctpd to restart if not stateless
-void sctpd_exit(void);
-
-// sendDl
-int sctpd_send_dl(
-    uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload);
+/*
+ * Sends a SGS_DOWNLINK_UNITDATA message to NAS for SMS Orc8r service.
+ */
+int handle_sms_orc8r_downlink_unitdata(
+    const itti_sgsap_downlink_unitdata_t* sgs_dl_unitdata_p);

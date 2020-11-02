@@ -45,7 +45,8 @@
 #define GX_NW_INITIATED_DEACTIVATE_BEARER_REQ(mSGpTR)                          \
   (mSGpTR)->ittiMsg.gx_nw_init_deactv_bearer_request
 
-#define POLICY_RULE_NAME_MAXLEN 100 // The policy name will be truncated to this
+#define POLICY_RULE_NAME_MAXLEN                                                \
+  100  // The policy name will be truncated to this
 
 typedef struct itti_gx_nw_init_actv_bearer_request_s {
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
