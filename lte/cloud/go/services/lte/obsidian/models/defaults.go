@@ -78,6 +78,6 @@ func NewDefaultEnodebStatus() *EnodebState {
 		PtpConnected:     swag.Bool(false),
 		MmeConnected:     swag.Bool(true),
 		FsmState:         swag.String("TEST"),
-		IPAddress:        swag.String("192.168.0.1"),
+		IPAddress:        "192.168.0.1",
 	}
 }
