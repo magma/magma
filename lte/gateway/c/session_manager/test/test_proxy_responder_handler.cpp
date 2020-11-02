@@ -199,7 +199,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_policy_reauth) {
   grpc::ServerContext create_context;
   EXPECT_CALL(
       *pipelined_client,
-      activate_flows_for_rules(IMSI1, _, _, _, CheckCount(1), _, _))
+      activate_flows_for_rules(IMSI1, _, _, _, _, CheckCount(1), _, _))
       .Times(1);
   proxy_responder->PolicyReAuth(
       &create_context, request,
