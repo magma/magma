@@ -18,6 +18,19 @@
      enabled: false
   ignore_errors: true
 
+- name: create directories for magma configs and files
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "/var/opt/magma"
+    - "/var/opt/magma/configs"
+    - "/var/opt/magma/certs"
+    - "/etc/magma"
+    - "/etc/magma/templates/"
+    - "/var/opt/magma/docker"
+
 - name: install python modules
   shell: pip3 install jsonpickle
 
@@ -172,4 +185,3 @@
 - name: Set OVS controller for XWF bridge
   become: true
   shell: ovs-vsctl set-controller uplink_br0 {{ connection_mode }}:{{ xwf_ctrl_ip }}:6653
-
