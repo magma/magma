@@ -55,7 +55,7 @@ class CpeMonitoring():
       mobilityd_stub = MobilityServiceStub(mobilityd_chan)
       response = await grpc_async_wrapper(
           mobilityd_stub.GetSubscriberIPTable.future(Void(),
-                                                     TIMEOUT_SECS),self._loop)
+                                                     10),self._loop)
       for sub in response.entries:
           addresses.append(_get_addr_from_subscribers(sub))
       return response.entries, addresses
