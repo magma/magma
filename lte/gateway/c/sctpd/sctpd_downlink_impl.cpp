@@ -19,10 +19,11 @@
 #include <unistd.h>
 #include "sctpd.h"
 #include "util.h"
-
+#include "magma_logging.h"
 namespace magma {
 namespace sctpd {
 
+ using namespace std;
 SctpdDownlinkImpl::SctpdDownlinkImpl(SctpEventHandler &uplink_handler):
   _uplink_handler(uplink_handler),
   _sctp_4G_connection(nullptr),
@@ -35,39 +36,48 @@ Status SctpdDownlinkImpl::Init(
   const InitReq *req,
   InitRes *res)
 {
-  MLOG(MDEBUG) << "SctpdDownlinkImpl::Init starting";
+  MLOG(MERROR) << "SctpdDownlinkImpl::Init starting ERROR";
+  MLOG(MERROR) << "SctpdDownlinkImpl::req->ppid()=" << std::to_string(req->ppid());
+  MLOG(MERROR) << "SctpdDownlinkImpl::req->port()=" << std::to_string(req->port());
+  MLOG(MERROR) << "SctpdDownlinkImpl::req->ngap_ppid()=" << std::to_string(req->ngap_ppid());
+  MLOG(MERROR) << "SctpdDownlinkImpl::req->ngap_port()=" << std::to_string(req->ngap_port());
+  
   if (req->ppid() == S1AP) {
-	   if (_sctp_connection != nullptr && !req->force_restart()) {
-		    MLOG(MINFO) << "SctpdDownlinkImpl::Init reusing existing connection";
+	   if (_sctp_4G_connection != nullptr && !req->force_restart()) {
+		    MLOG(MERROR) << "SctpdDownlinkImpl::Init reusing existing connection";
 		    res->set_result(InitRes::INIT_OK);
 		    return Status::OK;
 	   }
 	   if (_sctp_4G_connection != nullptr) {
-		    MLOG(MDEBUG)<< "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener";
-		    auto conn = std::move(_sctp_connection);
+		    MLOG(MINFO)<< "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener";
+		    auto conn = std::move(_sctp_4G_connection);
 		    conn->Close();
 	   }
-	   MLOG(MDEBUG) << "SctpdDownlinkImpl::Init creating new socket and listener";
+	   MLOG(MERROR) << "SctpdDownlinkImpl::Init creating new socket and listener";
 	   try {
+	   MLOG(MDEBUG) << "SctpdDownlinkImpl::1";
 		    _sctp_4G_connection = std::make_unique<SctpConnection>(*req, _uplink_handler);
 		     } catch (...) {
+	   MLOG(MERROR) << "SctpdDownlinkImpl::2";
 			      res->set_result(InitRes::INIT_FAIL);
 			      return Status::OK;
 		     }
+	   MLOG(MERROR) << "SctpdDownlinkImpl::3";
 	    _sctp_4G_connection->Start();
-  }else if (req->ppid() == NGAP) {
-	  MLOG(MDEBUG) << "SctpdDownlinkImpl::Init starting for 5G";
+	   MLOG(MERROR) << "SctpdDownlinkImpl::4";
+  }else if (req->ngap_ppid() == NGAP) {
+	  MLOG(MERROR) << "SctpdDownlinkImpl::Init starting for 5G";
 	  if (_sctp_5G_connection != nullptr && !req->force_restart()) {
-		  MLOG(MINFO) << "SctpdDownlinkImpl::Init reusing existing 5G connection";
+		  MLOG(MERROR) << "SctpdDownlinkImpl::Init reusing existing 5G connection";
 		  res->set_result(InitRes::INIT_OK);
 		  return Status::OK;
 	  }
 	  if (_sctp_5G_connection != nullptr) {
-		  MLOG(MDEBUG<< "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener of 5G";
+		  MLOG(MERROR) << "SctpdDownlinkImpl::Init cleaning up sctp_desc and listener of 5G";
 	          auto conn = std::move(_sctp_5G_connection);
 		  conn->Close();
 		  }
-		  MLOG(MDEBUG) << "SctpdDownlinkImpl::Init creating new socket and listener of 5G";
+		  MLOG(MERROR) << "SctpdDownlinkImpl::Init creating new socket and listener of 5G";
 		  try {
 		  	_sctp_5G_connection = std::make_unique<SctpConnection>(*req, _uplink_handler);
 			} catch (...) {

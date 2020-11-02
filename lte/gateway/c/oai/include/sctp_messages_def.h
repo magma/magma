@@ -47,3 +47,6 @@ MESSAGE_DEF(
 MESSAGE_DEF(
     SCTP_MME_SERVER_INITIALIZED, sctp_mme_server_initialized_t,
     sctp_mme_server_initialized)
+MESSAGE_DEF(
+    SCTP_AMF_SERVER_INITIALIZED, sctp_amf_server_initialized_t,
+    sctp_amf_server_initialized)

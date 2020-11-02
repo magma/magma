@@ -39,6 +39,7 @@ SctpConnection::SctpConnection(const InitReq &req, SctpEventHandler &handler):
   _sctp_desc(0),
   _thread(nullptr)
 {
+
   int sock = create_sctp_sock(req);
   if (sock < 0) throw std::exception();
 
