@@ -163,7 +163,18 @@ using the following command</p>
 <p>Manual configuration of connected eNodeB(s) is always possible. Magma was tested
 with multiple Airspan eNodeB models configured through NetSpan management
 software.
-When manually configuring eNodeBs, make sure the eNodeB configuration matches
+Magma also includes first-class support to track the state and data usage of
+manually provisioned eNodeBs.</p>
+<p>To register your eNodeB, first make sure to disable
+the DHCP server provided on the Gateway on the NMS configuration panel.</p>
+<p><img src="/magma/docs/assets/nms/disable_dhcp_gw.png" alt="Disabling Gateway DHCP server"></p>
+<p>After this, you can add the eNodeB basic information under the RAN section
+of the eNodeB configuration, select <code>eNodeB Managed Externally</code> and add the
+fields based on the provisioning of the radio.</p>
+<p><img src="/magma/docs/assets/nms/register_unmanaged_enb.png" alt="Register unmanaged eNodeB"></p>
+<p>After registering the eNodeB, the last step is to add its serial number to the
+list of Connected eNodeBs on the Access Gateway</p>
+<p>When manually configuring eNodeBs, make sure the eNodeB configuration matches
 that of the Magma cellular configuration. Pay special attention to the
 configuration of <code>PLMN</code>, <code>EARFCN</code> and <code>TAC</code>.</p>
 <h3><a class="anchor" aria-hidden="true" id="basic-troubleshooting-1"></a><a href="#basic-troubleshooting-1" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Basic Troubleshooting</h3>
