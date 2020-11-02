@@ -267,7 +267,7 @@ class LocalEnforcer {
   // [CWF-ONLY] This configures how long we should wait before terminating a
   // session after it is created without any monitoring quota
   long quota_exhaustion_termination_on_init_ms_;
-  std::chrono::seconds retry_timeout_;
+  std::chrono::milliseconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
   std::unique_ptr<Timezone> access_timezone_;
 

@@ -98,7 +98,7 @@ LocalEnforcer::LocalEnforcer(
           session_force_termination_timeout_ms),
       quota_exhaustion_termination_on_init_ms_(
           quota_exhaustion_termination_on_init_ms),
-      retry_timeout_(2),
+      retry_timeout_(2000),
       mconfig_(mconfig),
       access_timezone_(compute_access_timezone()) {}
 
