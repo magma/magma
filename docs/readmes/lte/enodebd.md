@@ -130,6 +130,23 @@ journalctl -u magma@enodebd -f
 Manual configuration of connected eNodeB(s) is always possible. Magma was tested
 with multiple Airspan eNodeB models configured through NetSpan management
 software.
+Magma also includes first-class support to track the state and data usage of 
+manually provisioned eNodeBs. 
+
+To register your eNodeB, first make sure to disable
+the DHCP server provided on the Gateway on the NMS configuration panel.
+
+![Disabling Gateway DHCP server](assets/nms/disable_dhcp_gw.png)
+
+After this, you can add the eNodeB basic information under the RAN section 
+of the eNodeB configuration, select `eNodeB Managed Externally` and add the 
+fields based on the provisioning of the radio.
+
+![Register unmanaged eNodeB](assets/nms/register_unmanaged_enb.png)
+
+After registering the eNodeB, the last step is to add its serial number to the
+list of Connected eNodeBs on the Access Gateway
+
 When manually configuring eNodeBs, make sure the eNodeB configuration matches
 that of the Magma cellular configuration. Pay special attention to the
 configuration of `PLMN`, `EARFCN` and `TAC`.

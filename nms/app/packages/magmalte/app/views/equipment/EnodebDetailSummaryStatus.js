@@ -87,6 +87,10 @@ export function EnodebStatus() {
         value: enbInfo.enb_state.mme_connected ? 'Connected' : 'Disconnected',
         status: enbInfo.enb_state.mme_connected,
       },
+      {
+        category: 'IP Address',
+        value: enbInfo.enb_state.ip_address ?? 'Not Available',
+      },
     ],
   ];
   return <DataGrid data={kpiData} />;

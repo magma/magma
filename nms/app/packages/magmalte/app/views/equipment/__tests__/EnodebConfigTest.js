@@ -93,6 +93,7 @@ describe('<AddEditEnodeButton />', () => {
       reporting_gateway_id: '',
       rf_tx_desired: true,
       rf_tx_on: false,
+      ip_address: '192.168.1.254',
     },
   };
 
@@ -220,6 +221,7 @@ describe('<AddEditEnodeButton />', () => {
         reporting_gateway_id: '',
         rf_tx_desired: true,
         rf_tx_on: false,
+        ip_address: '192.168.1.254',
       },
     };
     const UnmanagedEnodeWrapper = () => {

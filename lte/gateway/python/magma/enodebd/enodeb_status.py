@@ -334,7 +334,10 @@ def get_operational_states(
     configured_serial_ids = []
     enb_status_by_serial = get_all_enb_status(enb_acs_manager)
     for serial_id in enb_status_by_serial:
-        serialized = json.dumps(enb_status_by_serial[serial_id]._asdict())
+        enb_status_dict = enb_status_by_serial[serial_id]._asdict()
+        enb_status_dict['ip_address'] = enb_acs_manager.get_ip_of_serial(
+            serial_id)
+        serialized = json.dumps(enb_status_dict)
         state = State(
             type="single_enodeb",
             deviceID=serial_id,
@@ -368,7 +371,9 @@ def get_enb_s1_connected_states(configured_serial_ids, mconfig) -> List[State]:
                                   ptp_connected=False,
                                   mme_connected=True,
                                   fsm_state='N/A')
-            serialized = json.dumps(status._asdict())
+            status_dict = status._asdict()
+            status_dict['ip_address'] = enb_config.ip_address
+            serialized = json.dumps(status_dict)
             state = State(
                 type="single_enodeb",
                 deviceID=enb_config.serial_num,

@@ -338,6 +338,7 @@ export type enodeb_state = {
     rf_tx_desired: boolean,
     rf_tx_on: boolean,
     time_reported ? : number,
+    ip_address: string,
 };
 export type enodebd_e2e_test = {
     config: enodebd_test_config,
