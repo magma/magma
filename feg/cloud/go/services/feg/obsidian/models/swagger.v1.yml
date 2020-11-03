@@ -966,6 +966,17 @@ definitions:
           maxLength: 6
           pattern: '^(\d{5,6})$'
           example: '123456'
+      use_s6a:
+        type: boolean
+        x-nullable: false
+        default: false
+        example: false
+      mnc_len:
+        type: integer
+        format: int32
+        x-nullable: false
+        default: 3
+        example: 3
 
   eap_sim:
     type: object
@@ -981,6 +992,17 @@ definitions:
           maxLength: 6
           pattern: '^(\d{5,6})$'
           example: '123456'
+      use_s6a:
+        type: boolean
+        x-nullable: false
+        default: false
+        example: false
+      mnc_len:
+        type: integer
+        format: int32
+        x-nullable: false
+        default: 3
+        example: 3
 
   radius_config:
     type: object
