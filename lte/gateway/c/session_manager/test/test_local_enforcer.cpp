@@ -182,6 +182,7 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
 
   SessionConfig test_cwf_cfg;
   const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
@@ -828,6 +829,7 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   test_cwf_cfg.common_context =
       build_common_context(IMSI1, "", "", "", "", TGPP_WLAN);
   const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
@@ -2212,6 +2214,7 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
   test_cwf_cfg.common_context =
       build_common_context(IMSI1, "", "", apn, MSISDN, TGPP_WLAN);
   const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
@@ -2249,6 +2252,7 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
   test_cwf_cfg.common_context =
       build_common_context(IMSI1, IP1, "", apn, MSISDN, TGPP_WLAN);
   const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
@@ -2364,13 +2368,6 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
       *pipelined_client, activate_flows_for_rules(
                              IMSI1, ip_addr, ipv6_addr, testing::_,
                              CheckCount(2), CheckCount(1), testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-
-  EXPECT_CALL(
-      *pipelined_client, update_ipfix_flow(
-                             testing::_, testing::_, testing::_, testing::_,
-                             testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
