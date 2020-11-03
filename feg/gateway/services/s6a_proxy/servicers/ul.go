@@ -24,6 +24,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 
 	"magma/feg/cloud/go/protos"
@@ -46,6 +47,7 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 	m.NewAVP(avp.ULRFlags, avp.Vbit|avp.Mbit, uint32(diameter.Vendor3GPP), datatype.Unsigned32(ULR_FLAGS))
 	m.NewAVP(avp.VisitedPLMNID, avp.Vbit|avp.Mbit, diameter.Vendor3GPP, datatype.OctetString(req.VisitedPlmn))
 
+	glog.V(2).Infof("Sending S6a ULR message\n%s\n", m)
 	err = c.SendRequest(m, retryCount)
 	if err != nil {
 		err = Error(codes.DataLoss, err)
@@ -56,6 +58,7 @@ func (s *s6aProxy) sendULR(sid string, req *protos.UpdateLocationRequest, retryC
 // S6a ULA
 func handleULA(s *s6aProxy) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
+		glog.V(2).Infof("Received S6a ULA message:\n%s\n", m)
 		var ula ULA
 		err := m.Unmarshal(&ula)
 		if err != nil {
