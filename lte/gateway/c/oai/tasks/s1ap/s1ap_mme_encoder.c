@@ -51,7 +51,7 @@ int s1ap_mme_encode_pdu(
       break;
 
     default:
-      OAILOG_NOTICE(
+      OAILOG_DEBUG(
           LOG_S1AP, "Unknown message outcome (%d) or not implemented",
           (int) pdu->present);
       break;

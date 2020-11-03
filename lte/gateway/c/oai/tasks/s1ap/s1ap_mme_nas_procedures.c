@@ -852,16 +852,6 @@ void s1ap_handle_conn_est_cnf(
    * Start the outcome response timer.
    * * * * When time is reached, MME consider that procedure outcome has failed.
    */
-  //     timer_setup(mme_config.s1ap_config.outcome_drop_timer_sec, 0,
-  //     TASK_S1AP, INSTANCE_DEFAULT,
-  //                 TIMER_ONE_SHOT,
-  //                 NULL,
-  //                 &ue_ref->outcome_response_timer_id);
-  /*
-   * Insert the timer in the MAP of mme_ue_s1ap_id <-> timer_id
-   */
-  //     s1ap_timer_insert(ue_ref->mme_ue_s1ap_id,
-  //     ue_ref->outcome_response_timer_id);
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =
@@ -943,16 +933,13 @@ void s1ap_handle_conn_est_cnf(
         conn_est_cnf_pP->e_rab_level_qos_preemption_vulnerability[item];
 
     if (conn_est_cnf_pP->nas_pdu[item]) {
-      // DevAssert(!nas_pdu);
       S1ap_NAS_PDU_t* nas_pdu = calloc(1, sizeof(S1ap_NAS_PDU_t));
       nas_pdu->size           = blength(conn_est_cnf_pP->nas_pdu[item]);
       nas_pdu->buf            = malloc(blength(conn_est_cnf_pP->nas_pdu[item]));
       memcpy(nas_pdu->buf, conn_est_cnf_pP->nas_pdu[item]->data, nas_pdu->size);
       e_RABToBeSetup->nAS_PDU = nas_pdu;
     }
-    /*
-     * Set the GTP-TEID. This is the S1-U S-GW TEID
-     */
+    // Set the GTP-TEID. This is the S1-U S-GW TEID
     INT32_TO_OCTET_STRING(
         conn_est_cnf_pP->gtp_teid[item], &e_RABToBeSetup[item].gTP_TEID);
     // S-GW IP address(es) for user-plane

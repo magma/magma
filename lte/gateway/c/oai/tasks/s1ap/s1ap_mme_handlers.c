@@ -2936,6 +2936,7 @@ int s1ap_mme_handle_enb_configuration_transfer(
   }
 
   targeteNB_ID = &ie->value.choice.SONConfigurationTransfer.targeteNB_ID;
+
   if (targeteNB_ID->global_ENB_ID.eNB_ID.present == S1ap_ENB_ID_PR_homeENB_ID) {
     // Home eNB ID = 28 bits
     enb_id_buf = targeteNB_ID->global_ENB_ID.eNB_ID.choice.homeENB_ID.buf;
