@@ -777,6 +777,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi      = imsi_;
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
+  info.msisdn    = config_.common_context.msisdn();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
@@ -1449,6 +1450,7 @@ void SessionState::terminate_service_action(
   action->set_imsi(imsi_);
   action->set_ip_addr(config_.common_context.ue_ipv4());
   action->set_ipv6_addr(config_.common_context.ue_ipv6());
+  action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
   static_rules_.get_rule_ids_for_charging_key(
       key, *action->get_mutable_rule_ids());

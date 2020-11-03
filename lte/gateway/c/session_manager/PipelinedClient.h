@@ -98,7 +98,7 @@ class PipelinedClient {
    */
   virtual bool activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
+      const std::string& ipv6_addr, const std::string& msisdn,
       const optional<AggregatedMaximumBitrate>& ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules,
@@ -140,7 +140,7 @@ class PipelinedClient {
    */
   virtual bool add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
+      const std::string& ipv6_addr, const std::string& msisdn,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules) = 0;
 
@@ -232,7 +232,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    */
   bool activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
+      const std::string& ipv6_addr, const std::string& msisdn,
       const optional<AggregatedMaximumBitrate>& ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules,
@@ -267,7 +267,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   bool add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
+      const std::string& ipv6_addr, const std::string& msisdn,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules);
 

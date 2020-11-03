@@ -99,6 +99,7 @@ class SessionState {
     std::string imsi;
     std::string ip_addr;
     std::string ipv6_addr;
+    std::string msisdn;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
