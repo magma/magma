@@ -314,12 +314,13 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
   MLOG(MDEBUG) << "Activating " << static_rules.size() << " static rules and "
                << dynamic_rules.size() << " dynamic rules for " << imsi
                << " and ip " << ip_addr << " " << ipv6_addr;
-  // Activate static rules and dynamic rules separately until bug is fixed in
-  // pipelined which crashes if activated at the same time
+  // TODO: Activate static rules and dynamic rules separately until bug
+  //  is fixed in pipelined which crashes if activated at the same time
   auto static_req = create_activate_req(
       imsi, ip_addr, ipv6_addr, ambr, static_rules, std::vector<PolicyRule>(),
       RequestOriginType::GX);
   activate_flows_rpc(static_req, callback);
+
   auto dynamic_req = create_activate_req(
       imsi, ip_addr, ipv6_addr, ambr, std::vector<std::string>(), dynamic_rules,
       RequestOriginType::GX);

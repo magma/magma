@@ -128,9 +128,9 @@ class LocalEnforcer {
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
 
-  void schedule_session_init_bearer_creations(
+  void schedule_session_init_dedicated_bearer_creations(
       const std::string& imsi, const std::string& session_id,
-      BearerUpdate& update);
+      BearerUpdate& bearer_updates);
 
   /**
    * Initialize credit received from the cloud in the system. This adds all the

@@ -993,18 +993,19 @@ void LocalEnforcer::handle_session_init_rule_updates(
     if (bearer_updates.needs_creation) {
       // If a bearer creation is needed, we need to delay this by a few seconds
       // so that the attach fully completes before.
-      schedule_session_init_bearer_creations(
+      schedule_session_init_dedicated_bearer_creations(
           imsi, session_state.get_session_id(), bearer_updates);
     }
   }
 }
 
-void LocalEnforcer::schedule_session_init_bearer_creations(
+void LocalEnforcer::schedule_session_init_dedicated_bearer_creations(
     const std::string& imsi, const std::string& session_id,
     BearerUpdate& bearer_updates) {
-  MLOG(MINFO) << "Scheduling a bearer creation request for newly created "
-              << session_id << " in "
-              << LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT << " ms";
+  MLOG(MINFO)
+      << "Scheduling a dedicated bearer creation request for newly created "
+      << session_id << " in "
+      << LocalEnforcer::BEARER_CREATION_DELAY_ON_SESSION_INIT << " ms";
   evb_->runAfterDelay(
       [this, imsi, session_id, bearer_updates]() mutable {
         auto session_map = session_store_.read_sessions({imsi});
@@ -1090,9 +1091,9 @@ void LocalEnforcer::init_session_credit(
   handle_session_init_rule_updates(
       imsi, *session_state, response, charging_credits_received);
 
-  update_ipfix_flow(imsi, cfg, time_since_epoch);
-
+  // if (session_state->get_config().common_context.rat_type() == TGPP_WLAN) {
   if (session_state->is_radius_cwf_session()) {
+    update_ipfix_flow(imsi, cfg, time_since_epoch);
     if (terminate_on_wallet_exhaust()) {
       handle_session_init_subscriber_quota_state(imsi, *session_state);
     }
