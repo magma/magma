@@ -17,7 +17,7 @@ Before=magma@pipelined.service
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStart=/usr/local/bin/sessiond
+ExecStart=/usr/local/bin/envoy_controller
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py envoyd
 MemoryAccounting=yes
 StandardOutput=syslog

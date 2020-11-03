@@ -16,13 +16,13 @@ package main
 
 import (
 	"flag"
-	"fmt"
 
 	"magma/feg/gateway/registry"
 	"magma/feg/gateway/services/envoy_controller/servicers"
 	"magma/orc8r/lib/go/service"
 
 	"magma/feg/cloud/go/protos"
+
 	lte_p "magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
@@ -31,28 +31,35 @@ import (
 )
 
 func init() {
+    // Temp
+    flag.Set("logtostderr", "true")
+    flag.Set("stderrthreshold", "INFO")
+    flag.Set("v", "2")
 	flag.Parse()
 }
 
 func main() {
 	// Create the service
+	glog.Infof("Creating '%s' Service", registry.ENVOYD)
 	srv, err := service.NewServiceWithOptions(registry.ModuleName, registry.ENVOYD)
 	if err != nil {
 		glog.Fatalf("Error creating Envoy Controller service: %s", err)
 	}
 
+	cli := control_plane.GetControllerClient()
+
+
 	// Create servicers
-	servicer := servicers.NewEnvoydService()
+	servicer := servicers.NewEnvoydService(cli)
+
 
 	// Register services
 	protos.RegisterEnvoydServer(srv.GrpcServer, servicer)
 
-	control_plane.Setup()
-
 	test_proto := []*protos.AddUEHeaderEnrichmentRequest{{
 		UeIp: &lte_p.IPAddress{
 			Version: lte_p.IPAddress_IPV4,
-			Address: []byte("3.3.33.3"),
+			Address: []byte("1.2.3.3"),
 		},
 		Websites: []string{"neverssl.com", "google.com"},
 		Headers: []*protos.Header{{
@@ -75,25 +82,12 @@ func main() {
 					Value: "THIS_IS_MSISDN",
 				}},
 		}}
-	control_plane.UpdateSnapshot(test_proto)
-
-	test_proto = []*protos.AddUEHeaderEnrichmentRequest{{
-		UeIp: &lte_p.IPAddress{
-			Version: lte_p.IPAddress_IPV4,
-			Address: []byte("4.4.4.4"),
-		},
-		Websites: []string{"neverssl.com", "google.com"},
-		Headers: []*protos.Header{{
-			Name:  "IMSI",
-			Value: "4444444",
-		}},
-	}}
-	control_plane.UpdateSnapshot(test_proto)
+	cli.UpdateSnapshot(test_proto)
 
 	// Run the service
 	err = srv.Run()
 	if err != nil {
 		glog.Fatalf("Error running service: %s", err)
 	}
-	glog.Infof("starting '%s' Service", registry.ENVOYD)
+	glog.Infof("Starting '%s' Service", registry.ENVOYD)
 }

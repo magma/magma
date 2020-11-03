@@ -29,7 +29,8 @@ const (
 )
 
 type envoydService struct {
-	ue_infos []*protos.AddUEHeaderEnrichmentRequest
+	ue_infos       []*protos.AddUEHeaderEnrichmentRequest
+	controller_cli control_plane.EnvoyController
 }
 
 // Register sends SAR (code 301) over diameter connection,
@@ -45,7 +46,7 @@ func (s *envoydService) AddUEHeaderEnrichment(
 	s.ue_infos = append(s.ue_infos, req)
 
 	glog.Infof("AddUEHeaderEnrichmentResult received")
-	control_plane.UpdateSnapshot(s.ue_infos)
+	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
 	return res, err
 }
@@ -60,12 +61,14 @@ func (s *envoydService) DeactivateUEHeaderEnrichment(
 	)
 	glog.Infof("DeactivateUEHeaderEnrichmentResult received")
 	s.ue_infos = remove(s.ue_infos, req.UeIp)
+	s.controller_cli.UpdateSnapshot(s.ue_infos)
+
 	return res, err
 }
 
 // NewenvoydService returns a new Envoyd service
-func NewEnvoydService() protos.EnvoydServer {
-	return &envoydService{}
+func NewEnvoydService(controller_cli control_plane.EnvoyController) protos.EnvoydServer {
+	return &envoydService{controller_cli: controller_cli}
 }
 
 func remove(l []*protos.AddUEHeaderEnrichmentRequest, ip *lte_proto.IPAddress) []*protos.AddUEHeaderEnrichmentRequest {
