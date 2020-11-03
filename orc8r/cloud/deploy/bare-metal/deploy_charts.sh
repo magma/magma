@@ -56,7 +56,9 @@ echo "Setting up infra helm charts..."
 helm repo add stable https://kubernetes-charts.storage.googleapis.com
 helm repo add jetstack https://charts.jetstack.io
 helm repo add bitnami https://charts.bitnami.com/bitnami
-#helm repo add github-repo 
+
+# This should point to a repo where built charts are located
+#helm repo add github-repo
 
 kubectl apply -f https://raw.githubusercontent.com/jetstack/cert-manager/release-0.6/deploy/manifests/00-crds.yaml
 sleep 3
