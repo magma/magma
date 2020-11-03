@@ -517,7 +517,7 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
   // expect all rules attached to this session should be removed
   EXPECT_CALL(
       *pipelined_client,
-      deactivate_flows_for_rules(
+      deactivate_flows_for_rules_for_termination(
           IMSI1, testing::_, testing::_, std::vector<std::string>{"rule1"},
           CheckCount(0), testing::_))
       .Times(1)
@@ -560,8 +560,14 @@ TEST_F(LocalEnforcerTest, test_terminate_credit) {
   local_enforcer->handle_termination_from_access(
       session_map, IMSI1, test_cfg_.common_context.apn(), update);
 
-  RuleRecordTable empty_table;
-  local_enforcer->aggregate_records(session_map, empty_table, update);
+  // pipelined still reports default drop flow rule when all flows are removed
+  RuleRecordTable only_drop_rule_table;
+  auto record_list = only_drop_rule_table.mutable_records();
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(),
+      "internal_default_drop_flow_rule", 0, 0, record_list->Add());
+
+  local_enforcer->aggregate_records(session_map, only_drop_rule_table, update);
   run_evb();
   run_evb();
   bool success = session_store->update_sessions(update);
@@ -619,6 +625,29 @@ TEST_F(LocalEnforcerTest, test_terminate_credit_during_reporting) {
   RuleRecordTable empty_table;
   local_enforcer->aggregate_records(session_map, empty_table, update);
   run_evb();
+
+  // pipelined still reports default drop rule and any packet dropped comming
+  // from the previously unistalled rule. If we see only dropped traffic is
+  // observed and session is scheduled for termination, session should be
+  // terminated
+  RuleRecordTable only_drop_rule_table;
+  record_list = only_drop_rule_table.mutable_records();
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 0, 0, 1000, 2000,
+      record_list->Add());
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(),
+      "internal_default_drop_flow_rule", 0, 0, record_list->Add());
+
+  local_enforcer->aggregate_records(session_map, only_drop_rule_table, update);
+  run_evb();
+  run_evb();
+  bool success = session_store->update_sessions(update);
+  EXPECT_TRUE(success);
+
+  // No longer in system
+  session_map = session_store->read_sessions(SessionRead{IMSI1});
+  EXPECT_EQ(session_map[IMSI1].size(), 0);
 }
 
 TEST_F(LocalEnforcerTest, test_sync_sessions_on_restart) {
@@ -763,7 +792,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
                              testing::_, testing::_, testing::_, testing::_,
                              testing::_, testing::_))
       .Times(1)
@@ -815,7 +844,7 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
                              testing::_, testing::_, testing::_, testing::_,
                              testing::_, testing::_))
       .Times(1)
@@ -1077,7 +1106,7 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
   local_enforcer->aggregate_records(session_map, table, update);
 
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
                              testing::_, testing::_, testing::_, CheckCount(2),
                              CheckCount(1), testing::_))
       .Times(1)
@@ -1643,7 +1672,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
   std::unordered_set<std::string> rule_ids({"rule1", "rule2"});
   // Expect NO call to PipelineD for rule1
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
                              IMSI1, testing::_, testing::_,
                              CheckSubset(rule_ids), CheckCount(0), testing::_))
       .Times(0);
@@ -1657,7 +1686,7 @@ TEST_F(LocalEnforcerTest, test_dedicated_bearer_lifecycle) {
       create_policy_bearer_bind_req(IMSI1, default_bearer_id, "rule3", 0);
   EXPECT_CALL(
       *pipelined_client,
-      deactivate_flows_for_rules(
+      deactivate_flows_for_rules_for_termination(
           IMSI1, testing::_, testing::_, std::vector<std::string>{"rule3"},
           CheckCount(0), testing::_))
       .Times(1);
@@ -2296,12 +2325,12 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
 
   EXPECT_CALL(
       *pipelined_client,
-      deactivate_flows_for_rules(
+      deactivate_flows_for_rules_for_termination(
           IMSI1, ip_addr, ipv6_addr, std::vector<std::string>{"static_1"},
           CheckCount(0), RequestOriginType::GX))
       .WillOnce(testing::Return(true));
   EXPECT_CALL(
-      *pipelined_client, deactivate_flows_for_rules(
+      *pipelined_client, deactivate_flows_for_rules_for_termination(
                              IMSI1, ip_addr, ipv6_addr, CheckCount(0),
                              CheckCount(1), RequestOriginType::GY))
       .Times(1)

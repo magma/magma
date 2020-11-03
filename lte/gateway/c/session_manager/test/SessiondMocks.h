@@ -67,6 +67,8 @@ class MockPipelinedClient : public PipelinedClient {
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _, _, _, _))
         .WillByDefault(Return(true));
+    ON_CALL(*this, deactivate_flows_for_rules_for_termination(_, _, _, _, _, _))
+        .WillByDefault(Return(true));
     ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _))
@@ -102,6 +104,14 @@ class MockPipelinedClient : public PipelinedClient {
   MOCK_METHOD1(deactivate_all_flows, bool(const std::string& imsi));
   MOCK_METHOD6(
       deactivate_flows_for_rules,
+      bool(
+          const std::string& imsi, const std::string& ip_addr,
+          const std::string& ipv6_addr,
+          const std::vector<std::string>& rule_ids,
+          const std::vector<PolicyRule>& dynamic_rules,
+          const RequestOriginType_OriginType origin_type));
+  MOCK_METHOD6(
+      deactivate_flows_for_rules_for_termination,
       bool(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr,

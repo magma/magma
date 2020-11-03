@@ -262,7 +262,7 @@ TEST_F(SessionProxyResponderHandlerTest, test_abort_session) {
   grpc::ServerContext create_context;
   EXPECT_CALL(
       *pipelined_client,
-      deactivate_flows_for_rules(
+      deactivate_flows_for_rules_for_termination(
           IMSI1, _, _, CheckCount(1), CheckCount(0), RequestOriginType::GX))
       .Times(1)
       .WillOnce(testing::Return(true));

@@ -423,8 +423,6 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             else:
                 # This must be the default drop flow
                 rule_id = self._default_drop_flow_name
-                # TODO wait for sessiond changes and remove this return
-                return current_usage
         # If this is a pass through app name flow ignore stats
         if _get_policy_type(flow_stat.match) == IGNORE_STATS:
             return current_usage

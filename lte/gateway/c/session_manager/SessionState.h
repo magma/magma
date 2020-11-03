@@ -173,6 +173,7 @@ class SessionState {
    */
   void add_rule_usage(
       const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
+      uint64_t dropped_tx, uint64_t dropped_rx,
       SessionStateUpdateCriteria& update_criteria);
 
   /**
@@ -713,7 +714,14 @@ class SessionState {
    * @param bytes_tx
    * @param bytes_rx
    */
-  void update_data_usage_metrics(uint64_t bytes_tx, uint64_t bytes_rx);
+  void update_used_data_metrics(uint64_t bytes_tx, uint64_t bytes_rx);
+
+  /**
+   * Increments data usage values for session
+   * @param dropped_tx
+   * @param dropped_rx
+   */
+  void update_dropped_data_metrics(uint64_t dropped_tx, uint64_t dropped_rx);
 };
 
 }  // namespace magma

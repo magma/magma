@@ -237,7 +237,7 @@ void LocalEnforcer::aggregate_records(
     SessionUpdate& session_update) {
   // Insert the IMSI+SessionID for sessions we received a rule record into a set
   // for easy access
-  std::unordered_set<ImsiAndSessionID> sessions_with_active_flows;
+  std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows;
   for (const RuleRecord& record : records.records()) {
     const std::string &imsi = record.sid(), &ip = record.ue_ipv4();
     // TODO IPv6 add ipv6 to search criteria
@@ -251,22 +251,24 @@ void LocalEnforcer::aggregate_records(
     auto& session          = **session_it;
     const auto& session_id = session->get_session_id();
     if (record.bytes_tx() > 0 || record.bytes_rx() > 0) {
+      sessions_with_reporting_flows.insert(ImsiAndSessionID(imsi, session_id));
       MLOG(MINFO) << session_id << " used " << record.bytes_tx()
                   << " tx bytes and " << record.bytes_rx()
                   << " rx bytes for rule " << record.rule_id();
     }
     SessionStateUpdateCriteria& uc = session_update[imsi][session_id];
+
     session->add_rule_usage(
-        record.rule_id(), record.bytes_tx(), record.bytes_rx(), uc);
-    sessions_with_active_flows.insert(ImsiAndSessionID(imsi, session_id));
+        record.rule_id(), record.bytes_tx(), record.bytes_rx(),
+        record.dropped_tx(), record.dropped_rx(), uc);
   }
   complete_termination_for_released_sessions(
-      session_map, sessions_with_active_flows, session_update);
+      session_map, sessions_with_reporting_flows, session_update);
 }
 
 void LocalEnforcer::complete_termination_for_released_sessions(
     SessionMap& session_map,
-    std::unordered_set<ImsiAndSessionID> sessions_with_active_flows,
+    std::unordered_set<ImsiAndSessionID> sessions_with_reporting_flows,
     SessionUpdate& session_update) {
   // Iterate through sessions and notify that report has finished. Terminate any
   // sessions that can be terminated.
@@ -279,8 +281,8 @@ void LocalEnforcer::complete_termination_for_released_sessions(
       // PipelineD has reported all usage for the session
       auto imsi_and_session_id = ImsiAndSessionID(imsi, session_id);
       if (session->get_state() == SESSION_RELEASED &&
-          sessions_with_active_flows.find(imsi_and_session_id) ==
-              sessions_with_active_flows.end()) {
+          sessions_with_reporting_flows.find(imsi_and_session_id) ==
+              sessions_with_reporting_flows.end()) {
         sessions_to_terminate.push_back(imsi_and_session_id);
       }
     }
@@ -428,13 +430,13 @@ void LocalEnforcer::remove_all_rules_for_termination(
 
   const auto ip_addr   = session->get_config().common_context.ue_ipv4();
   const auto ipv6_addr = session->get_config().common_context.ue_ipv6();
-  pipelined_client_->deactivate_flows_for_rules(
+  pipelined_client_->deactivate_flows_for_rules_for_termination(
       imsi, ip_addr, ipv6_addr, info.static_rules, info.dynamic_rules,
       RequestOriginType::GX);
 
   auto gy_rules = session->get_all_final_unit_rules();
   if (!gy_rules.static_rules.empty() || !gy_rules.dynamic_rules.empty()) {
-    pipelined_client_->deactivate_flows_for_rules(
+    pipelined_client_->deactivate_flows_for_rules_for_termination(
         imsi, ip_addr, ipv6_addr, gy_rules.static_rules, gy_rules.dynamic_rules,
         RequestOriginType::GY);
   }
@@ -2004,7 +2006,7 @@ void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
       dynamic_rule_to_remove.push_back(rule);
     }
   }
-  pipelined_client_->deactivate_flows_for_rules(
+  pipelined_client_->deactivate_flows_for_rules_for_termination(
       imsi, session.get_config().common_context.ue_ipv4(),
       session.get_config().common_context.ue_ipv6(), static_rule_to_remove,
       dynamic_rule_to_remove, RequestOriginType::GX);
