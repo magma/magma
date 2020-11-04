@@ -31,6 +31,7 @@ magma_services:
   - eventd
   - smsd
   - ctraced
+  - health
 
 # List of services that don't provide service303 interface
 non_service303_services:
