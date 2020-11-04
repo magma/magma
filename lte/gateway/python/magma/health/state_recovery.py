@@ -117,9 +117,9 @@ class StateRecoveryJob(Job):
                 # Restart sctpd
                 await self.restart_service_async('sctpd')
 
-                # Update latest number of restarts for service
-                self._services_restarts_map[
-                    service] = result.num_fail_exits
+            # Update latest number of restarts for services
+            self._services_restarts_map[
+                service] = result.num_fail_exits
             logging.debug('Unexpected restarts for service %s: %s',
                           service, current_restarts)
 
