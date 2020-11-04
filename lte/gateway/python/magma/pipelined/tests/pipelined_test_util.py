@@ -377,6 +377,7 @@ def create_service_manager(services: List[int],
     service_manager.rule_id_mapper._rules_by_rule_num = {}
     service_manager.session_rule_version_mapper._version_by_imsi_and_rule = {}
     service_manager.interface_to_prefix_mapper._prefix_by_interface = {}
+    service_manager.tunnel_id_mapper._tunnel_map = {}
 
     return service_manager
 
