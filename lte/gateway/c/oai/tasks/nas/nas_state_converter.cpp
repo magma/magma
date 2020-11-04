@@ -70,17 +70,17 @@ void NasStateConverter::partial_tai_list_to_proto(
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS: {
       char plmn_array[PLMN_BYTES];
       plmn_array[0] =
-          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 + ASCII_ZERO);
+          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mcc_digit1 + ASCII_ZERO);
       plmn_array[1] =
-          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 + ASCII_ZERO);
+          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mcc_digit2 + ASCII_ZERO);
       plmn_array[2] =
-          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 + ASCII_ZERO);
+          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mcc_digit3 + ASCII_ZERO);
       plmn_array[3] =
-          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 + ASCII_ZERO);
+          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mnc_digit1 + ASCII_ZERO);
       plmn_array[4] =
-          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 + ASCII_ZERO);
+          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mnc_digit2 + ASCII_ZERO);
       plmn_array[5] =
-          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 + ASCII_ZERO);
+          (char) (state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mnc_digit3 + ASCII_ZERO);
       partial_tai_list_proto->set_plmn(plmn_array);
       for (int idx = 0; idx < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI;
            idx++) {
@@ -113,18 +113,18 @@ void NasStateConverter::proto_to_partial_tai_list(
           &state_partial_tai_list->u.tai_one_plmn_consecutive_tacs);
     } break;
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS: {
-      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit1 =
-          (int) (partial_tai_list_proto.plmn()[0]) - ASCII_ZERO;
-      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit2 =
-          (int) (partial_tai_list_proto.plmn()[1]) - ASCII_ZERO;
-      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit3 =
-          (int) (partial_tai_list_proto.plmn()[2]) - ASCII_ZERO;
-      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit1 =
-          (int) (partial_tai_list_proto.plmn()[3]) - ASCII_ZERO;
-      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit2 =
-          (int) (partial_tai_list_proto.plmn()[4]) - ASCII_ZERO;
-      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit3 =
-          (int) (partial_tai_list_proto.plmn()[5]) - ASCII_ZERO;
+      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn
+          .mcc_digit1 = (int) (partial_tai_list_proto.plmn()[0]) - ASCII_ZERO;
+      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn
+          .mcc_digit2 = (int) (partial_tai_list_proto.plmn()[1]) - ASCII_ZERO;
+      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn
+          .mcc_digit3 = (int) (partial_tai_list_proto.plmn()[2]) - ASCII_ZERO;
+      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn
+          .mnc_digit1 = (int) (partial_tai_list_proto.plmn()[3]) - ASCII_ZERO;
+      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn
+          .mnc_digit2 = (int) (partial_tai_list_proto.plmn()[4]) - ASCII_ZERO;
+      state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn
+          .mnc_digit3 = (int) (partial_tai_list_proto.plmn()[5]) - ASCII_ZERO;
       for (int idx = 0; idx < TRACKING_AREA_IDENTITY_LIST_MAXIMUM_NUM_TAI;
            idx++) {
         state_partial_tai_list->u.tai_one_plmn_non_consecutive_tacs.tac[idx] =

@@ -3619,58 +3619,34 @@ void mme_app_update_paging_tai_list(
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
       for (int idx = 0; idx < (num_of_tac + 1); idx++) {
         p_tai_list->tai_list[idx].plmn.mcc_digit1 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit1;
+            tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mcc_digit1;
         p_tai_list->tai_list[idx].plmn.mcc_digit2 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit2;
+            tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mcc_digit2;
         p_tai_list->tai_list[idx].plmn.mcc_digit3 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit3;
+            tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mcc_digit3;
         p_tai_list->tai_list[idx].plmn.mnc_digit1 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit1;
+            tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mnc_digit1;
         p_tai_list->tai_list[idx].plmn.mnc_digit2 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit2;
+            tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mnc_digit2;
         p_tai_list->tai_list[idx].plmn.mnc_digit3 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit3;
+            tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn.mnc_digit3;
         p_tai_list->tai_list[idx].tac =
             tai_list->u.tai_one_plmn_non_consecutive_tacs.tac[idx];
       }
+
       break;
 
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
       for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-        p_tai_list->tai_list[idx].plmn.mcc_digit1 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit1;
-        p_tai_list->tai_list[idx].plmn.mcc_digit2 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit2;
-        p_tai_list->tai_list[idx].plmn.mcc_digit3 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.plmn.mcc_digit3;
-        p_tai_list->tai_list[idx].plmn.mnc_digit1 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit1;
-        p_tai_list->tai_list[idx].plmn.mnc_digit2 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit2;
-        p_tai_list->tai_list[idx].plmn.mnc_digit3 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.plmn.mnc_digit3;
-
-        p_tai_list->tai_list[idx].tac =
-            tai_list->u.tai_one_plmn_consecutive_tacs.tac + idx;
+        COPY_TAI(
+            p_tai_list->tai_list[idx],
+            tai_list->u.tai_one_plmn_consecutive_tacs);
       }
       break;
 
     case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
       for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-        p_tai_list->tai_list[idx].plmn.mcc_digit1 =
-            tai_list->u.tai_many_plmn[idx].plmn.mcc_digit1;
-        p_tai_list->tai_list[idx].plmn.mcc_digit2 =
-            tai_list->u.tai_many_plmn[idx].plmn.mcc_digit2;
-        p_tai_list->tai_list[idx].plmn.mcc_digit3 =
-            tai_list->u.tai_many_plmn[idx].plmn.mcc_digit3;
-        p_tai_list->tai_list[idx].plmn.mnc_digit1 =
-            tai_list->u.tai_many_plmn[idx].plmn.mnc_digit1;
-        p_tai_list->tai_list[idx].plmn.mnc_digit2 =
-            tai_list->u.tai_many_plmn[idx].plmn.mnc_digit2;
-        p_tai_list->tai_list[idx].plmn.mnc_digit3 =
-            tai_list->u.tai_many_plmn[idx].plmn.mnc_digit3;
-
-        p_tai_list->tai_list[idx].tac = tai_list->u.tai_many_plmn[idx].tac;
+        COPY_TAI(p_tai_list->tai_list[idx], tai_list->u.tai_many_plmn[idx]);
       }
       break;
 

@@ -33,9 +33,16 @@ static inline int s1ap_mme_encode_unsuccessfull_outcome(
 int s1ap_mme_encode_pdu(
     S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   int ret = -1;
-  DevAssert(pdu != NULL);
-  DevAssert(buffer != NULL);
-  DevAssert(length != NULL);
+
+  if (pdu == NULL) {
+    OAILOG_DEBUG(LOG_S1AP, "PDU is NULL\n");
+  }
+  if (buffer == NULL) {
+    OAILOG_DEBUG(LOG_S1AP, "Buffer is NULL\n");
+  }
+  if (length == NULL) {
+    OAILOG_DEBUG(LOG_S1AP, "Length is NULL\n");
+  }
 
   switch (pdu->present) {
     case S1ap_S1AP_PDU_PR_initiatingMessage:
@@ -120,8 +127,6 @@ static inline int s1ap_mme_encode_successfull_outcome(
       *length = 0;
       return -1;
   }
-
-  memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(
       NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_S1ap_S1AP_PDU, pdu);
   *buffer = res.buffer;
@@ -150,8 +155,6 @@ static inline int s1ap_mme_encode_unsuccessfull_outcome(
       *length = 0;
       return -1;
   }
-
-  memset(&res, 0, sizeof(res));
   res = asn_encode_to_new_buffer(
       NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_S1ap_S1AP_PDU, pdu);
   *buffer = res.buffer;

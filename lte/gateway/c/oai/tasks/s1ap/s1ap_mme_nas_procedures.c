@@ -81,8 +81,8 @@
 int s1ap_mme_handle_initial_ue_message(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
-  S1ap_InitialUEMessage_t* container;
-  S1ap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi, *ie_csg_id, *ie_gummei,
+  S1ap_InitialUEMessage_t* container = NULL;
+  S1ap_InitialUEMessage_IEs_t *ie    = NULL, *ie_e_tmsi, *ie_csg_id, *ie_gummei,
                               *ie_cause;
   ue_description_t* ue_ref        = NULL;
   enb_description_t* eNB_ref      = NULL;
@@ -450,6 +450,7 @@ int s1ap_generate_downlink_nas_transport(
   uint8_t* buffer_p        = NULL;
   uint32_t length          = 0;
   void* id                 = NULL;
+  uint8_t err              = 0;
 
   OAILOG_FUNC_IN(LOG_S1AP);
 
@@ -497,7 +498,6 @@ int s1ap_generate_downlink_nas_transport(
     S1ap_DownlinkNASTransport_t* out;
     S1ap_S1AP_PDU_t pdu = {0};
 
-    memset(&pdu, 0, sizeof(pdu));
     pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
     pdu.choice.initiatingMessage.procedureCode =
         S1ap_ProcedureCode_id_downlinkNASTransport;
@@ -549,6 +549,10 @@ int s1ap_generate_downlink_nas_transport(
     ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
     if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
+      err = 1;
+    }
+    ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_DownlinkNASTransport, out);
+    if (err) {
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
 
@@ -613,7 +617,6 @@ int s1ap_generate_s1ap_e_rab_setup_req(
     S1ap_S1AP_PDU_t pdu             = {0};
     S1ap_E_RABSetupRequest_t* out   = NULL;
     S1ap_E_RABSetupRequestIEs_t* ie = NULL;
-    memset(&pdu, 0, sizeof(pdu));
     pdu.choice.initiatingMessage.procedureCode =
         S1ap_ProcedureCode_id_E_RABSetup;
     pdu.choice.initiatingMessage.criticality = S1ap_Criticality_reject;
@@ -817,6 +820,7 @@ void s1ap_handle_conn_est_cnf(
    * context setup request message to eNB.
    */
   uint8_t* buffer_p        = NULL;
+  uint8_t err              = 0;
   uint32_t length          = 0;
   ue_description_t* ue_ref = NULL;
   S1ap_InitialContextSetupRequest_t* out;
@@ -852,7 +856,6 @@ void s1ap_handle_conn_est_cnf(
    * Start the outcome response timer.
    * * * * When time is reached, MME consider that procedure outcome has failed.
    */
-  memset(&pdu, 0, sizeof(pdu));
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =
       S1ap_ProcedureCode_id_InitialContextSetup;
@@ -1015,7 +1018,7 @@ void s1ap_handle_conn_est_cnf(
   /*
    * Only add capability information if it's not empty.
    */
-  if (conn_est_cnf_pP->ue_radio_cap_length) {
+  if (conn_est_cnf_pP->ue_radio_capability) {
     OAILOG_DEBUG(LOG_S1AP, "UE radio capability found, adding to message\n");
 
     ie = (S1ap_InitialContextSetupRequestIEs_t*) calloc(
@@ -1033,9 +1036,10 @@ void s1ap_handle_conn_est_cnf(
   }
 
   if (s1ap_mme_encode_pdu(&pdu, &buffer_p, &length) < 0) {
-    // TODO: handle something
-    OAILOG_ERROR(
-        LOG_S1AP, "Failed to encode initial context setup request message\n");
+    err = 1;
+  }
+  ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_InitialContextSetupRequest, out);
+  if (err) {
     OAILOG_FUNC_OUT(LOG_S1AP);
   }
 

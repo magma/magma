@@ -277,20 +277,10 @@ int emm_recv_attach_request(
 
   if (msg->presencemask & ATTACH_REQUEST_LAST_VISITED_REGISTERED_TAI_PRESENT) {
     params->last_visited_registered_tai = calloc(1, sizeof(tai_t));
-    params->last_visited_registered_tai->plmn.mcc_digit1 =
-        msg->lastvisitedregisteredtai.plmn.mcc_digit1;
-    params->last_visited_registered_tai->plmn.mcc_digit2 =
-        msg->lastvisitedregisteredtai.plmn.mcc_digit2;
-    params->last_visited_registered_tai->plmn.mcc_digit3 =
-        msg->lastvisitedregisteredtai.plmn.mcc_digit3;
-    params->last_visited_registered_tai->plmn.mnc_digit1 =
-        msg->lastvisitedregisteredtai.plmn.mnc_digit1;
-    params->last_visited_registered_tai->plmn.mnc_digit2 =
-        msg->lastvisitedregisteredtai.plmn.mnc_digit2;
-    params->last_visited_registered_tai->plmn.mnc_digit3 =
-        msg->lastvisitedregisteredtai.plmn.mnc_digit3;
-    params->last_visited_registered_tai->tac =
-        msg->lastvisitedregisteredtai.tac;
+
+    COPY_TAI(
+        (*(params->last_visited_registered_tai)),
+        msg->lastvisitedregisteredtai);
   }
   if (msg->presencemask & ATTACH_REQUEST_DRX_PARAMETER_PRESENT) {
     params->drx_parameter = calloc(1, sizeof(drx_parameter_t));
