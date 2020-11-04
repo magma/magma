@@ -15,9 +15,9 @@ import logging
 import time
 
 import abc
-import base64
 import grpc
 import subprocess
+from typing import List
 
 from orc8r.protos.common_pb2 import Void
 from lte.protos.subscriberdb_pb2 import (
@@ -138,7 +138,7 @@ class SubscriberDbGrpc(SubscriberDbClient):
         return SubscriberData(sid=sub_db_sid, lte=lte, state=state)
 
     @staticmethod
-    def _get_apn_data(sid, apn_list):
+    def _get_apn_data(sid, apn_list) -> SubscriberUpdate:
         """
         Get APN data in protobuf format.
 
@@ -195,9 +195,10 @@ class SubscriberDbGrpc(SubscriberDbClient):
         sids = ['IMSI' + sid.id for sid in sids_pb]
         return sids
 
-    def config_apn_details(self, imsi, apn_list):
+    def config_apn_details(self, imsi: str, msisdn: str, apn_list: List[object]):
         sid = SIDUtils.to_pb(imsi)
         update_sub = self._get_apn_data(sid, apn_list)
+        update_sub.data.non_3gpp.msisdn = msisdn
         fields = update_sub.mask.paths
         fields.append('non_3gpp')
         SubscriberDbGrpc._try_to_call(

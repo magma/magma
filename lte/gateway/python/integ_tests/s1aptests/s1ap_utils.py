@@ -20,7 +20,10 @@ import threading
 import time
 from enum import Enum
 from queue import Queue
-from typing import Optional
+from typing import (
+    Optional,
+    List,
+)
 
 import grpc
 import subprocess
@@ -534,9 +537,9 @@ class SubscriberUtil(object):
         self._subscriber_client.wait_for_changes()
         return subscribers
 
-    def config_apn_data(self, imsi, apn_list):
+    def config_apn_data(self, imsi: str, msisdn: str, apn_list: List[object]):
         """ Add APN details """
-        self._subscriber_client.config_apn_details(imsi, apn_list)
+        self._subscriber_client.config_apn_details(imsi, msisdn, apn_list)
 
     def cleanup(self):
         """ Cleanup added subscriber from subscriberdb """

@@ -14,6 +14,7 @@ limitations under the License.
 import os
 import time
 import ctypes
+from typing import List
 
 import s1ap_types
 from integ_tests.common.magmad_client import MagmadServiceGrpc
@@ -310,7 +311,11 @@ class TestWrapper(object):
             )
             self._configuredUes.append(reqs[i])
 
-    def configAPN(self, imsi, apn_list, default=True):
+    def configAPN(
+            self,
+            imsi: str,
+            apn_list: List[object],
+            default=True):
         """ Configure the APN """
         # add a default APN to be used in attach requests
         if default:
@@ -328,7 +333,8 @@ class TestWrapper(object):
                 apn_list.insert(0, magma_default_apn)
             else:
                 apn_list = [magma_default_apn]
-        self._sub_util.config_apn_data(imsi, apn_list)
+        default_msisdn = "8801833182167"
+        self._sub_util.config_apn_data(imsi, default_msisdn, apn_list)
 
     def check_gw_health_after_ue_load(self):
         """ Wait for the MME only after adding entries to HSS """
