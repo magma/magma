@@ -119,6 +119,7 @@ s1aptests/test_attach_detach_rar_tcp_data.py \
 s1aptests/test_attach_detach_multiple_rar_tcp_data.py \
 s1aptests/test_attach_asr.py \
 s1aptests/test_attach_detach_with_mme_restart.py \
+s1aptests/test_attach_nw_initiated_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
