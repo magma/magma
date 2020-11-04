@@ -26,7 +26,7 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetApnState} from '../../../state/lte/ApnState';
-import {SetPolicyState} from '../../../state/PolicyState';
+import {SetPolicyState, SetQosProfileState} from '../../../state/PolicyState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
@@ -103,12 +103,34 @@ const policies = {
   },
 };
 
-describe('<TrafficDashboard Policy/>', () => {
+const qosProfiles = {
+  profile_1: {
+    id: 'profile_1',
+    class_id: 1,
+    max_req_bw_ul: 9,
+    max_req_bw_dl: 9,
+  },
+  profile_2: {
+    id: 'profile_2',
+    class_id: 2,
+    max_req_bw_ul: 10,
+    max_req_bw_dl: 10,
+  },
+};
+describe('<TrafficDashboard />', () => {
   const networkId = 'test';
   const policyCtx = {
     state: policies,
-    qosProfiles: {},
-    setQosProfiles: async () => {},
+    qosProfiles: qosProfiles,
+    setQosProfiles: (key, value?) => {
+      return SetQosProfileState({
+        qosProfiles,
+        setQosProfiles: () => {},
+        networkId,
+        key,
+        value,
+      });
+    },
     setState: (key, value?) => {
       return SetPolicyState({
         policies,
@@ -150,7 +172,9 @@ describe('<TrafficDashboard Policy/>', () => {
     </MemoryRouter>
   );
   it('renders', async () => {
-    const {getByTestId, getAllByRole, getAllByTitle} = render(<Wrapper />);
+    const {getByTestId, getAllByRole, getByText, getAllByTitle} = render(
+      <Wrapper />,
+    );
     await wait();
     // Policy tables rows
     const rowItemsPolicy = await getAllByRole('row');
@@ -186,6 +210,27 @@ describe('<TrafficDashboard Policy/>', () => {
     fireEvent.click(policyActionList[0]);
     await wait();
     expect(getByTestId('actions-menu')).toBeVisible();
+
+    // Profiles tab
+    fireEvent.click(getByText('Profiles'));
+    await wait();
+    const rowItemsProfile = await getAllByRole('row');
+    // first row is the header
+    expect(rowItemsProfile[0]).toHaveTextContent('Profile ID');
+    expect(rowItemsProfile[0]).toHaveTextContent('Class ID');
+    expect(rowItemsProfile[0]).toHaveTextContent('Uplink Bandwidth');
+    expect(rowItemsProfile[0]).toHaveTextContent('Downlink Bandwidth');
+    // profile_1
+    expect(rowItemsProfile[1]).toHaveTextContent('profile_1');
+    expect(rowItemsProfile[1]).toHaveTextContent('1');
+    expect(rowItemsProfile[1]).toHaveTextContent('9');
+    expect(rowItemsProfile[1]).toHaveTextContent('9');
+
+    // profile_2
+    expect(rowItemsProfile[2]).toHaveTextContent('profile_2');
+    expect(rowItemsProfile[2]).toHaveTextContent('2');
+    expect(rowItemsProfile[2]).toHaveTextContent('10');
+    expect(rowItemsProfile[2]).toHaveTextContent('10');
   });
 
   it('shows prompt when remove policy is clicked', async () => {
@@ -212,6 +257,36 @@ describe('<TrafficDashboard Policy/>', () => {
     ).toHaveBeenCalledWith({
       networkId: 'test',
       ruleId: 'policy_0',
+    });
+    axiosMock.delete.mockClear();
+  });
+  it('shows prompt when remove profile is clicked', async () => {
+    MagmaAPIBindings.deleteLteByNetworkIdPolicyQosProfilesByProfileId.mockResolvedValueOnce(
+      {},
+    );
+    const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
+    await wait();
+    // Profiles tab
+    fireEvent.click(getByText('Profiles'));
+    await wait();
+    // click remove action for profile_1
+    const profileActionList = getAllByTitle('Actions');
+    expect(getByTestId('actions-menu')).not.toBeVisible();
+    fireEvent.click(profileActionList[0]);
+    await wait();
+    fireEvent.click(getByText('Remove'));
+    await wait();
+    expect(
+      getByText('Are you sure you want to delete profile_1?'),
+    ).toBeInTheDocument();
+    // Confirm deletion
+    fireEvent.click(getByText('Confirm'));
+    await wait();
+    expect(
+      MagmaAPIBindings.deleteLteByNetworkIdPolicyQosProfilesByProfileId,
+    ).toHaveBeenCalledWith({
+      networkId: 'test',
+      profileId: 'profile_1',
     });
     axiosMock.delete.mockClear();
   });

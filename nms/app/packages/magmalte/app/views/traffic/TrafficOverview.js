@@ -22,6 +22,7 @@ import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import PolicyOverview from './PolicyOverview';
 import PolicyRuleEditDialog from './PolicyEdit';
+import ProfileEditDialog from './ProfileEdit';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import Text from '../../theme/design-system/Text';
@@ -76,7 +77,7 @@ function PolicyMenu() {
   const classes = useStyles();
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [open, setOpen] = React.useState(false);
-
+  const [profileDialog, setProfileDialog] = React.useState(false);
   const handleClick = event => {
     setAnchorEl(event.currentTarget);
   };
@@ -88,6 +89,10 @@ function PolicyMenu() {
   return (
     <div>
       <PolicyRuleEditDialog open={open} onClose={() => setOpen(false)} />
+      <ProfileEditDialog
+        open={profileDialog}
+        onClose={() => setProfileDialog(false)}
+      />
       <Button
         onClick={handleClick}
         className={classes.appBarBtn}
@@ -102,11 +107,11 @@ function PolicyMenu() {
         <MenuItem data-testid="newPolicyMenuItem" onClick={() => setOpen(true)}>
           <Text variant="subtitle2">Policy</Text>
         </MenuItem>
-        <MenuItem>
-          <Text variant="subtitle2">Profiles</Text>
+        <MenuItem onClick={() => setProfileDialog(true)}>
+          <Text variant="subtitle2">Profile</Text>
         </MenuItem>
         <MenuItem>
-          <Text variant="subtitle2">Rating Groups</Text>
+          <Text variant="subtitle2">Rating Group</Text>
         </MenuItem>
       </StyledMenu>
     </div>
