@@ -206,7 +206,7 @@ TEST_F(SessionManagerHandlerTest, test_session_recycling_lte) {
   // Termination process for the previous session is started
   EXPECT_CALL(
       *pipelined_client,
-      deactivate_flows_for_rules(
+      deactivate_flows_for_rules_for_termination(
           IMSI1, IP1, IPv6_1, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));

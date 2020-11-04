@@ -55,6 +55,7 @@
     dest: "{{ item }}"
   with_items:
     - /etc/systemd/system/cmd2ods.service
+    - /etc/systemd/system/default.target.wants
 
 - name: install the files for logroates startup
   copy:

@@ -120,7 +120,10 @@ function ApnMenu() {
   return (
     <div>
       <ApnEditDialog open={open} onClose={() => setOpen(false)} />
-      <Button onClick={() => setOpen(true)} className={classes.appBarBtn}>
+      <Button
+        data-testid="newApnButton"
+        onClick={() => setOpen(true)}
+        className={classes.appBarBtn}>
         Create New APN
       </Button>
     </div>

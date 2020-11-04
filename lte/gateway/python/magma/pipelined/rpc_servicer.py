@@ -104,13 +104,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         for controller in [self._gy_app, self._enforcer_app,
                            self._enforcement_stats]:
-            ret = controller.is_ready_for_restart_recovery(request.epoch)
-            if ret != SetupFlowsResult.SUCCESS:
+            ret = controller.check_setup_request_epoch(request.epoch)
+            if ret:
                 return SetupFlowsResult(result=ret)
 
         fut = Future()
-        self._loop.call_soon_threadsafe(self._setup_flows,
-                                        request, fut)
+        self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
         return fut.result()
 
     def _setup_flows(self, request: SetupPolicyRequest,
@@ -147,6 +146,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         prefix = get_ipv6_prefix(ipv6_str)
         self._service_manager.interface_to_prefix_mapper.save_prefix(
             interface, prefix)
+
+    def _update_tunnel_map_store(self, uplink_tunnel: str,
+                                 downlink_tunnel: str):
+        self._service_manager.tunnel_id_mapper.save_tunnels(uplink_tunnel,
+                                                            downlink_tunnel)
 
     def _update_version(self, request: ActivateFlowsRequest, ipv4: IPAddress):
         """
@@ -185,6 +189,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
             ret.static_rule_results.extend(ret_ipv6.static_rule_results)
             ret.dynamic_rule_results.extend(ret_ipv6.dynamic_rule_results)
+        if request.uplink_tunnel and request.downlink_tunnel:
+            self._update_tunnel_map_store(request.uplink_tunnel,
+                                          request.downlink_tunnel)
 
         fut.set_result(ret)
 
@@ -453,8 +460,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        ret = self._ue_mac_app.is_ready_for_restart_recovery(request.epoch)
-        if ret != SetupFlowsResult.SUCCESS:
+        ret = self._ue_mac_app.check_setup_request_epoch(request.epoch)
+        if ret:
             return SetupFlowsResult(result=ret)
 
         fut = Future()
@@ -559,8 +566,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        ret = self._check_quota_app.is_ready_for_restart_recovery(request.epoch)
-        if ret != SetupFlowsResult.SUCCESS:
+        ret = self._check_quota_app.check_setup_request_epoch(request.epoch)
+        if ret:
             return SetupFlowsResult(result=ret)
 
         fut = Future()

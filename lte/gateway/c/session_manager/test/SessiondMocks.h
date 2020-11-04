@@ -67,14 +67,16 @@ class MockPipelinedClient : public PipelinedClient {
     ON_CALL(*this, deactivate_all_flows(_)).WillByDefault(Return(true));
     ON_CALL(*this, deactivate_flows_for_rules(_, _, _, _, _, _))
         .WillByDefault(Return(true));
-    ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _, _))
+    ON_CALL(*this, deactivate_flows_for_rules_for_termination(_, _, _, _, _, _))
+        .WillByDefault(Return(true));
+    ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_ipfix_flow(_, _, _, _, _, _))
         .WillByDefault(Return(true));
-    ON_CALL(*this, add_gy_final_action_flow(_, _, _, _, _))
+    ON_CALL(*this, add_gy_final_action_flow(_, _, _, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_subscriber_quota_state(_))
@@ -108,11 +110,19 @@ class MockPipelinedClient : public PipelinedClient {
           const std::vector<std::string>& rule_ids,
           const std::vector<PolicyRule>& dynamic_rules,
           const RequestOriginType_OriginType origin_type));
-  MOCK_METHOD7(
-      activate_flows_for_rules,
+  MOCK_METHOD6(
+      deactivate_flows_for_rules_for_termination,
       bool(
           const std::string& imsi, const std::string& ip_addr,
           const std::string& ipv6_addr,
+          const std::vector<std::string>& rule_ids,
+          const std::vector<PolicyRule>& dynamic_rules,
+          const RequestOriginType_OriginType origin_type));
+  MOCK_METHOD8(
+      activate_flows_for_rules,
+      bool(
+          const std::string& imsi, const std::string& ip_addr,
+          const std::string& ipv6_addr, const std::string& msisdn,
           const std::experimental::optional<AggregatedMaximumBitrate>& ambr,
           const std::vector<std::string>& static_rules,
           const std::vector<PolicyRule>& dynamic_rules,
@@ -136,11 +146,11 @@ class MockPipelinedClient : public PipelinedClient {
   MOCK_METHOD2(
       delete_ue_mac_flow,
       bool(const SubscriberID& sid, const std::string& ue_mac_addr));
-  MOCK_METHOD5(
+  MOCK_METHOD6(
       add_gy_final_action_flow,
       bool(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr,
+          const std::string& ipv6_addr, const std::string& msisdn,
           const std::vector<std::string>& static_rules,
           const std::vector<PolicyRule>& dynamic_rules));
   MOCK_METHOD2(

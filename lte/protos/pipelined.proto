@@ -76,6 +76,9 @@ message ActivateFlowsRequest {
   RequestOriginType request_origin = 5; // Activate flow source (GX/GY)
   magma.lte.AggregatedMaximumBitrate apn_ambr = 6; // APN AMBR info, passed at the time of session creation
   bytes ipv6_addr = 7; // Subscriber session ipv6 address
+  bytes msisdn = 8; // From SubscriberDB or HSS
+  string uplink_tunnel = 9; // Subscriber uplink tunnel
+  string downlink_tunnel = 10; // Subscriber downlink tunnel
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,

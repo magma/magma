@@ -18,13 +18,11 @@ import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
 import ActionTable from '../../components/ActionTable';
 import ApnContext from '../../components/context/ApnContext';
 import ApnEditDialog from './ApnEdit';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import JsonEditor from '../../components/JsonEditor';
 import Link from '@material-ui/core/Link';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
-import Text from '../../theme/design-system/Text';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
@@ -33,7 +31,6 @@ import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
-const APN_TITLE = 'APNs';
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {
     ambr: {
@@ -116,6 +113,7 @@ type ApnRowType = {
   added: Date,
 };
 
+const APN_TITLE = 'APNs';
 function ApnOverview(props: WithAlert) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -137,108 +135,76 @@ function ApnOverview(props: WithAlert) {
   return (
     <div className={classes.dashboardRoot}>
       <>
-        <Grid container spacing={3}>
-          <Grid container>
-            <Grid item xs={6}>
-              <Text key="title" data-testid={`title_${APN_TITLE}`}>
-                <RssFeedIcon /> {APN_TITLE}
-              </Text>
-            </Grid>
-            <Grid
-              container
-              item
-              xs={6}
-              justify="flex-end"
-              alignItems="center"
-              spacing={2}>
-              <Grid item>
-                <Button className={classes.appBarBtnSecondary}>
-                  Upload CSV
-                </Button>
-              </Grid>
-            </Grid>
-          </Grid>
-          <Grid item xs={12}>
-            <ApnEditDialog
-              open={open}
-              onClose={() => setOpen(false)}
-              apn={
-                Object.keys(currRow).length ? apns[currRow.apnID] : undefined
-              }
-            />
-          </Grid>
-          <Grid item xs={12}>
-            <ActionTable
-              data={apnRows}
-              columns={[
-                {
-                  title: 'Apn ID',
-                  field: 'apnID',
-                  render: currRow => (
-                    <Link
-                      variant="body2"
-                      component="button"
-                      onClick={() => {
-                        setCurrRow(currRow);
-                        setOpen(true);
-                      }}>
-                      {currRow.apnID}
-                    </Link>
-                  ),
-                },
-                {title: 'Description', field: 'description'},
-                {title: 'Qos Profile', field: 'qosProfile', type: 'numeric'},
-                {title: 'Added', field: 'added', type: 'datetime'},
-              ]}
-              handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
-              menuItems={[
-                {
-                  name: 'Edit',
-                  handleFunc: () => {
+        <CardTitleRow key="title" icon={RssFeedIcon} label={APN_TITLE} />
+        <ApnEditDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          apn={Object.keys(currRow).length ? apns[currRow.apnID] : undefined}
+        />
+        <ActionTable
+          data={apnRows}
+          columns={[
+            {
+              title: 'Apn ID',
+              field: 'apnID',
+              render: currRow => (
+                <Link
+                  variant="body2"
+                  component="button"
+                  onClick={() => {
+                    setCurrRow(currRow);
                     setOpen(true);
-                  },
-                },
-                {
-                  name: 'Edit JSON',
-                  handleFunc: () => {
-                    history.push(relativeUrl('/' + currRow.apnID + '/json'));
-                  },
-                },
-                {name: 'Deactivate'},
-                {
-                  name: 'Remove',
-                  handleFunc: () => {
-                    props
-                      .confirm(
-                        `Are you sure you want to delete ${currRow.apnID}?`,
-                      )
-                      .then(async confirmed => {
-                        if (!confirmed) {
-                          return;
-                        }
+                  }}>
+                  {currRow.apnID}
+                </Link>
+              ),
+            },
+            {title: 'Description', field: 'description'},
+            {title: 'Qos Profile', field: 'qosProfile', type: 'numeric'},
+            {title: 'Added', field: 'added', type: 'datetime'},
+          ]}
+          handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
+          menuItems={[
+            {
+              name: 'Edit',
+              handleFunc: () => {
+                setOpen(true);
+              },
+            },
+            {
+              name: 'Edit JSON',
+              handleFunc: () => {
+                history.push(relativeUrl('/' + currRow.apnID + '/json'));
+              },
+            },
+            {name: 'Deactivate'},
+            {
+              name: 'Remove',
+              handleFunc: () => {
+                props
+                  .confirm(`Are you sure you want to delete ${currRow.apnID}?`)
+                  .then(async confirmed => {
+                    if (!confirmed) {
+                      return;
+                    }
 
-                        try {
-                          // trigger deletion
-                          ctx.setState(currRow.apnID);
-                        } catch (e) {
-                          enqueueSnackbar(
-                            'failed deleting APN ' + currRow.apnID,
-                            {
-                              variant: 'error',
-                            },
-                          );
-                        }
+                    try {
+                      // trigger deletion
+                      ctx.setState(currRow.apnID);
+                    } catch (e) {
+                      enqueueSnackbar('failed deleting APN ' + currRow.apnID, {
+                        variant: 'error',
                       });
-                  },
-                },
-              ]}
-              options={{
-                actionsColumnIndex: -1,
-                pageSizeOptions: [5, 10],
-              }}
-            />
-          </Grid>
-        </Grid>
+                    }
+                  });
+              },
+            },
+          ]}
+          options={{
+            actionsColumnIndex: -1,
+            pageSizeOptions: [5, 10],
+          }}
+        />
       </>
     </div>
   );
