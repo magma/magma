@@ -28,6 +28,7 @@
     - pipelined
     - redirectd
     - envoyd
+    - envoy
     # Manhattan services
     - lighttpd
     - sessiond
@@ -69,6 +70,13 @@
     - generate_oai_config.py
     - generate_dnsd_config.py
   when: full_provision
+
+- name: Copy Envoy config
+  copy:
+    src: envoy.yaml
+    dest: /var/opt/magma/
+  when: full_provision
+
 
 - name: Create symlink for stateless scripts
   file: src="{{ magma_root }}/lte/gateway/deploy/roles/magma/files/config_stateless_{{ item }}.sh" path="/usr/local/bin/config_stateless_{{ item }}.sh" state=link force=yes follow=no

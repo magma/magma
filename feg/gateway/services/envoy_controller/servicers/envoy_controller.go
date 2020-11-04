@@ -11,8 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-// Package servicers implements Swx GRPC proxy service which sends MAR/SAR messages over
-// diameter connection, waits (blocks) for diameter's MAA/SAAs returns their RPC representation
+// Package servicers implements the grpc logic for the Envoy Controller
 package servicers
 
 import (
@@ -33,8 +32,7 @@ type envoydService struct {
 	controller_cli control_plane.EnvoyController
 }
 
-// Register sends SAR (code 301) over diameter connection,
-// waits (blocks) for SAA & returns its RPC representation
+// AddUEHeaderEnrichment adds the UE to the current header enrichment list
 func (s *envoydService) AddUEHeaderEnrichment(
 	ctx context.Context,
 	req *protos.AddUEHeaderEnrichmentRequest,
@@ -51,6 +49,7 @@ func (s *envoydService) AddUEHeaderEnrichment(
 	return res, err
 }
 
+// DeactivateUEHeaderEnrichment deactivates/removes the UE from the current header enrichment list
 func (s *envoydService) DeactivateUEHeaderEnrichment(
 	ctx context.Context,
 	req *protos.DeactivateUEHeaderEnrichmentRequest,

@@ -33,12 +33,6 @@ import (
 	"magma/feg/cloud/go/protos"
 )
 
-var (
-	any_addr = "0.0.0.0"
-	//version int32
-	//config cache.SnapshotCache
-)
-
 type EnvoyController interface {
 	UpdateSnapshot([]*protos.AddUEHeaderEnrichmentRequest)
 }
@@ -57,6 +51,12 @@ const (
 	port        = 18000
 	gatewayPort = 18001
 	mode        = Ads
+	any_addr = "0.0.0.0"
+	maxConcurrentStreams = 16
+	initialStreamWindowSize = 65536  // 64Kib
+	initialConnectionWindowSize = 1048576  // 1 MiB
+	connectTimeout = 6 * time.Second
+	idleTimeout = 3600 * time.Second
 )
 
 type logger struct{}
@@ -203,7 +203,7 @@ func (cli *ControllerClient) UpdateSnapshot(ues []*protos.AddUEHeaderEnrichmentR
 		&v2.Cluster{
 			Name:                 clusterName,
 			ClusterDiscoveryType: &v2.Cluster_Type{Type: v2.Cluster_ORIGINAL_DST},
-			ConnectTimeout:       ptypes.DurationProto(6 * time.Second),
+			ConnectTimeout:       ptypes.DurationProto(connectTimeout),
 			LbPolicy:             v2.Cluster_CLUSTER_PROVIDED,
 		},
 	}
@@ -256,16 +256,14 @@ func (cli *ControllerClient) UpdateSnapshot(ues []*protos.AddUEHeaderEnrichmentR
 			StatPrefix:       "ingress_http",
 			UseRemoteAddress: &wrappers.BoolValue{Value: true},
 			CommonHttpProtocolOptions: &core.HttpProtocolOptions{
-				IdleTimeout: ptypes.DurationProto(3600 * time.Second),
+				IdleTimeout: ptypes.DurationProto(idleTimeout),
 				//HeadersWithUnderscoresAction: core.HttpProtocolOptions_REJECT_REQUEST,
 			},
 			Http2ProtocolOptions: &core.Http2ProtocolOptions{
-				MaxConcurrentStreams:        &wrappers.UInt32Value{Value: 100},
-				InitialStreamWindowSize:     &wrappers.UInt32Value{Value: 65536},   // 64Kib
-				InitialConnectionWindowSize: &wrappers.UInt32Value{Value: 1048576}, // 1 MiB
+				MaxConcurrentStreams:        &wrappers.UInt32Value{Value: maxConcurrentStreams},
+				InitialStreamWindowSize:     &wrappers.UInt32Value{Value: initialStreamWindowSize},
+				InitialConnectionWindowSize: &wrappers.UInt32Value{Value: initialConnectionWindowSize},
 			},
-			StreamIdleTimeout: ptypes.DurationProto(300 * time.Second), // 5 mins, must be disabled for long-lived and streaming requests
-			RequestTimeout:    ptypes.DurationProto(300 * time.Second), // 5 mins, must be disabled for long-lived and streaming requests
 			RouteSpecifier: &hcm.HttpConnectionManager_RouteConfig{
 				RouteConfig: &v2.RouteConfiguration{
 					Name:         routeConfigName,
