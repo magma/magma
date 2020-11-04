@@ -20,6 +20,25 @@ import grpc
 import logging
 
 
+class NetworkInfo:
+    def __init__(self, gw_ip: Optional[str] = None, gw_mac: Optional[str] = None,
+                 vlan: int = 0):
+        gw_ip_parsed = None
+        try:
+            gw_ip_parsed = ipaddress.ip_address(gw_ip)
+        except ValueError:
+            logging.debug("invalid internet gw ip: %s", gw_ip)
+
+        self.gw_ip = gw_ip_parsed
+        self.gw_mac = gw_mac
+        self.vlan = vlan
+
+    def __str__(self):
+        return "GW-IP: {} GW-MAC: {} VLAN: {}".format(self.gw_ip,
+                                                      self.gw_mac,
+                                                      self.vlan)
+
+
 class StaticIPInfo:
     """
     Operator can configure Static GW IP and MAC.
@@ -27,23 +46,15 @@ class StaticIPInfo:
     configuration.
     """
 
-    def __init__(self, ip: str, gw_ip: str, gw_mac: str,
-                 vlan: str):
+    def __init__(self, ip: Optional[str],
+                 gw_ip: Optional[str],
+                 gw_mac: Optional[str],
+                 vlan: int):
         self.ip = ipaddress.ip_address(ip)
-        self.gw_mac = gw_mac
-        gw_ip_parsed = None
-        try:
-            gw_ip_parsed = ipaddress.ip_address(gw_ip)
-        except ValueError:
-            logging.debug("invalid internet gw ip: %s", gw_ip)
-        self.gw_ip = gw_ip_parsed
-        self.vlan = vlan
+        self.net_info = NetworkInfo(gw_ip, gw_mac, vlan)
 
     def __str__(self):
-        return "IP: {} GW-IP: {} GW-MAC: {} VLAN: {}".format(self.ip,
-                                                             self.gw_ip,
-                                                             self.gw_mac,
-                                                             self.vlan)
+        return "IP: {} NETWORK: {}".format(self.ip, self.net_info)
 
 
 class SubscriberDbClient:
@@ -77,31 +88,30 @@ class SubscriberDbClient:
                 err.details())
         return None
 
-    def get_subscriber_apn_vlan(self, sid: str) -> int:
+    def get_subscriber_apn_network_info(self, sid: str) -> NetworkInfo:
         """
         Make RPC call to 'GetSubscriberData' method of local SubscriberDB
         service to get assigned IP address if any.
         TODO: Move this API to separate APN configuration service.
         """
-        if self.subscriber_client is None:
-            return 0
+        if self.subscriber_client:
+            try:
+                apn_config = self._find_ip_and_apn_config(sid)
+                logging.debug("vlan: Got APN: %s", apn_config)
+                if apn_config:
+                    return NetworkInfo(gw_ip=apn_config.resource.gateway_ip,
+                                       gw_mac=apn_config.resource.gateway_mac,
+                                       vlan=apn_config.resource.vlan_id)
 
-        try:
-            apn_config = self._find_ip_and_apn_config(sid)
-            logging.debug("vlan: Got APN: %s", apn_config)
-            if apn_config:
-                return apn_config.resource.vlan_id
+            except ValueError:
+                logging.warning("Invalid data for sid %s: ", sid)
 
-        except ValueError:
-            logging.warning("Invalid data for sid %s: ", sid)
-            return 0
-
-        except grpc.RpcError as err:
-            logging.error(
-                "GetSubscriberData while reading vlan-id error[%s] %s",
-                err.code(),
-                err.details())
-        return 0
+            except grpc.RpcError as err:
+                logging.error(
+                    "GetSubscriberData while reading vlan-id error[%s] %s",
+                    err.code(),
+                    err.details())
+        return NetworkInfo()
 
     # use same API to retrieve IP address and related config.
     def _find_ip_and_apn_config(self, sid: str) -> (Optional[APNConfiguration]):
