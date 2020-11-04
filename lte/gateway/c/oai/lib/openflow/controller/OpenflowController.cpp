@@ -23,6 +23,7 @@
 #include "ControllerMain.h"
 extern "C" {
 #include "log.h"
+#include "common_defs.h"
 }
 
 using namespace fluid_base;
@@ -108,14 +109,8 @@ void OpenflowController::inject_external_event(
     std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) ) {
   if (latest_ofconn_ == NULL) {
 #define CONNECTION_EVENT_WAIT_TIME 5
-    std::unique_lock<std::mutex> lck(cv_mutex);
-    if (cv.wait_for(lck, std::chrono::seconds(CONNECTION_EVENT_WAIT_TIME)) ==
-        std::cv_status::timeout) {
-      OAILOG_CRITICAL(
-          LOG_GTPV1U,
-          "Openflow controller is not connected to switch, waited for 5 "
-          "seconds \n");
-    } else {
+    if (is_controller_connected_to_switch(CONNECTION_EVENT_WAIT_TIME) ==
+        RETURNok) {
       OAILOG_INFO(LOG_GTPV1U, "Controller is now connected to switch \n");
     }
   }
@@ -123,23 +118,28 @@ void OpenflowController::inject_external_event(
   latest_ofconn_->add_immediate_event(cb, ev);
 }
 
-bool OpenflowController::is_controller_connected_to_switch(void) {
-  /* c++ provided conditional variable is added along with wait for 5 minutes in
-   * order to make sure connection is established between Controller and switch
-   * before inserting the OVS rules
+bool OpenflowController::is_controller_connected_to_switch(int duration) {
+  /* c++ provided conditional variable is added along with wait for seconds as
+   * specified in duration order to make sure connection is established between
+   * Controller and switch before inserting the OVS rules
    */
 
-#define CONNECTION_WAIT_TIME 300
+  OAILOG_INFO(
+      LOG_GTPV1U,
+      "Openflow controller is waiting for %d seconds to establish connection "
+      "with Switch \n",
+      duration);
   std::unique_lock<std::mutex> lck(cv_mutex);
-  if (cv.wait_for(lck, std::chrono::seconds(CONNECTION_WAIT_TIME)) ==
+  if (cv.wait_for(lck, std::chrono::seconds(duration)) ==
       std::cv_status::timeout) {
     OAILOG_CRITICAL(
         LOG_GTPV1U,
-        "Failed to connect openflow controller to switch, waited for 300 "
-        "seconds \n");
-    return -1;
-  }
-  return 0;
+        "Failed to connect openflow controller to switch, waited for %d "
+        "seconds \n",
+        duration);
+    OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNerror);
+  };
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 }  // namespace openflow

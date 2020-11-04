@@ -71,7 +71,8 @@ int start_of_controller(bool persist_state) {
   ctrl.register_for_event(&gtp_app, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
   ctrl.start();
   OAILOG_INFO(LOG_GTPV1U, "Started openflow controller\n");
-  return (ctrl.is_controller_connected_to_switch());
+#define CONNECTION_WAIT_TIME 300
+  return (ctrl.is_controller_connected_to_switch(CONNECTION_WAIT_TIME));
 }
 
 int stop_of_controller(void) {

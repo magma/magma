@@ -117,7 +117,7 @@ class OpenflowController : public fluid_base::OFServer {
    */
   void inject_external_event(
       std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) );
-  bool is_controller_connected_to_switch(void);
+  bool is_controller_connected_to_switch(int);
 
  private:
   std::shared_ptr<OpenflowMessenger> messenger_;
