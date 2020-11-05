@@ -1,0 +1,2 @@
+WORK_DIR: "~/"
+GO_VERSION: "1.15.3"
