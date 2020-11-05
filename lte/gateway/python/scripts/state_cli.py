@@ -13,6 +13,7 @@ limitations under the License.
 import fire
 import json
 import jsonpickle
+import random
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import get_json_deserializer, \
@@ -75,7 +76,10 @@ class StateCLI(object):
     def keys(self, redis_key: str):
         """
         Get current keys on redis db that match the pattern
-        :param redis_key: pattern to match the reids keys
+
+        Args:
+            redis_key:pattern to match the redis keys
+
         """
         for k in self.client.keys(pattern="{}*".format(redis_key)):
             deserialized_key = k.decode('utf-8')
@@ -85,7 +89,10 @@ class StateCLI(object):
         """
         Parse value of redis key on redis for encoded HASH, SET types, or
         JSON / Protobuf encoded state-wrapped types and prints it
-        :param key: key on redis
+
+        Args:
+            key: key on redis
+
         """
         redis_type = self.client.type(key).decode('utf-8')
         key_type = key
@@ -108,6 +115,20 @@ class StateCLI(object):
                 self._parse_state_json(value)
             except UnicodeDecodeError:
                 self._parse_state_proto(key_type, value)
+
+    def corrupt(self, key):
+        """
+        Mostly used for debugging, purposely corrupts state encoded protobuf
+        in redis, and writes it back to datastore
+
+        Args:
+            key: key on redis
+
+        """
+        rand_bytes = random.getrandbits(8)
+        byte_str = bytes([rand_bytes])
+        self.client[key] = byte_str
+        print('Corrupted %s in redis' % key)
 
     def _parse_state_json(self, value):
         if value:

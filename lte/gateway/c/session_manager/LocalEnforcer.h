@@ -128,9 +128,9 @@ class LocalEnforcer {
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
 
-  void schedule_session_init_bearer_creations(
+  void schedule_session_init_dedicated_bearer_creations(
       const std::string& imsi, const std::string& session_id,
-      BearerUpdate& update);
+      BearerUpdate& bearer_updates);
 
   /**
    * Initialize credit received from the cloud in the system. This adds all the
@@ -267,7 +267,7 @@ class LocalEnforcer {
   // [CWF-ONLY] This configures how long we should wait before terminating a
   // session after it is created without any monitoring quota
   long quota_exhaustion_termination_on_init_ms_;
-  std::chrono::seconds retry_timeout_;
+  std::chrono::milliseconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
   std::unique_ptr<Timezone> access_timezone_;
 
@@ -445,7 +445,8 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, optional<AggregatedMaximumBitrate> ambr,
+      const std::string& ipv6_addr, const std::string& msisdn,
+      optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
@@ -538,8 +539,8 @@ class LocalEnforcer {
 
   void complete_final_unit_action_flows_install(
       SessionMap& session_map, const std::string& ip_addr,
-      const std::string& ipv6_addrs, const FinalActionInstallInfo info,
-      SessionUpdate& session_update);
+      const std::string& ipv6_addrs, const std::string& msisdn,
+      const FinalActionInstallInfo info, SessionUpdate& session_update);
 
   /**
    * Remove final action flows through pipelined

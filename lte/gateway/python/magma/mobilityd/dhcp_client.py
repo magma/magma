@@ -226,6 +226,10 @@ class DHCPClient:
         with self._dhcp_notify:
             if mac_addr_key in self.dhcp_client_state:
                 state_requested = self.dhcp_client_state[mac_addr_key].state_requested
+                if BOOTP not in packet or packet[BOOTP].yiaddr is None:
+                    LOG.error("no ip offered")
+                    return
+
                 ip_offered = packet[BOOTP].yiaddr
                 subnet_mask = self._get_option(packet, "subnet_mask")
                 if subnet_mask is not None:
@@ -236,6 +240,7 @@ class DHCPClient:
                 dhcp_router_opt = self._get_option(packet, "router")
                 if dhcp_router_opt is not None:
                     router_ip_addr = ip_address(dhcp_router_opt)
+                    self.dhcp_gw_info.update_ip(router_ip_addr, vlan)
                 else:
                     router_ip_addr = None
 
@@ -253,8 +258,6 @@ class DHCPClient:
                 LOG.info("Record DHCP for: %s state: %s", mac_addr_key, dhcp_state)
 
                 self.dhcp_client_state[mac_addr_key] = dhcp_state
-
-                self.dhcp_gw_info.update_ip(router_ip_addr, vlan)
                 self._dhcp_notify.notifyAll()
 
                 if state == DHCPState.OFFER:

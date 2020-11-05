@@ -48,9 +48,9 @@ def _get_ipv4_allocator(store: MobilityStore, allocator_type: int,
             ip_allocator=ip_allocator)
 
     if multi_apn:
-        ip_allocator = IPAllocatorMultiAPNWrapper(
-            subscriberdb_rpc_stub=subscriberdb_rpc_stub,
-            ip_allocator=ip_allocator)
+        ip_allocator = IPAllocatorMultiAPNWrapper(store=store,
+                                                  subscriberdb_rpc_stub=subscriberdb_rpc_stub,
+                                                  ip_allocator=ip_allocator)
 
     logging.info("Using allocator: %s static ip: %s multi_apn %s",
                  allocator_type,

@@ -162,7 +162,7 @@ add_library(SESSION_MANAGER
     AmfServiceClient.h
     AmfServiceClient.cpp
     ${PROTO_SRCS}
-    ${PROTO_HDRS})
+    ${PROTO_HDRS} Utilities.cpp Utilities.h)
 
 
 

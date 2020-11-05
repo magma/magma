@@ -69,6 +69,19 @@ class PipelinedClient {
   virtual bool deactivate_all_flows(const std::string& imsi) = 0;
 
   /**
+   * Deactivate all flows for the specified rules plus any drop default rule
+   * added by pipelined
+   * @param imsi - UE to delete flows for
+   * @param rule_ids - rules to deactivate
+   * @return true if the operation was successful
+   */
+  virtual bool deactivate_flows_for_rules_for_termination(
+      const std::string& imsi, const std::string& ip_addr,
+      const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
+      const std::vector<PolicyRule>& dynamic_rules,
+      const RequestOriginType_OriginType origin_type) = 0;
+
+  /**
    * Deactivate all flows for the specified rules
    * @param imsi - UE to delete flows for
    * @param rule_ids - rules to deactivate
@@ -85,7 +98,7 @@ class PipelinedClient {
    */
   virtual bool activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
+      const std::string& ipv6_addr, const std::string& msisdn,
       const optional<AggregatedMaximumBitrate>& ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules,
@@ -127,7 +140,7 @@ class PipelinedClient {
    */
   virtual bool add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
+      const std::string& ipv6_addr, const std::string& msisdn,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules) = 0;
 
@@ -183,6 +196,19 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
   bool deactivate_all_flows(const std::string& imsi);
 
   /**
+   * Deactivate all flows related to a specific charging key plus any default
+   * rule installed by pipelined. Used for session termination.
+   * @param imsi - UE to delete flows for
+   * @param charging_key - key to deactivate
+   * @return true if the operation was successful
+   */
+  bool deactivate_flows_for_rules_for_termination(
+      const std::string& imsi, const std::string& ip_addr,
+      const std::string& ipv6_addr, const std::vector<std::string>& rule_ids,
+      const std::vector<PolicyRule>& dynamic_rules,
+      const RequestOriginType_OriginType origin_type);
+
+  /**
    * Deactivate all flows related to a specific charging key
    * @param imsi - UE to delete flows for
    * @param charging_key - key to deactivate
@@ -195,11 +221,18 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
       const RequestOriginType_OriginType origin_type);
 
   /**
+   * Deactivate all flows included on the request
+   * @param request
+   * @return true if the operation was successful
+   */
+  bool deactivate_flows(DeactivateFlowsRequest& request);
+
+  /**
    * Activate all rules for the specified rules, using a normal vector
    */
   bool activate_flows_for_rules(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
+      const std::string& ipv6_addr, const std::string& msisdn,
       const optional<AggregatedMaximumBitrate>& ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules,
@@ -234,7 +267,7 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
 
   bool add_gy_final_action_flow(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr,
+      const std::string& ipv6_addr, const std::string& msisdn,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules);
 

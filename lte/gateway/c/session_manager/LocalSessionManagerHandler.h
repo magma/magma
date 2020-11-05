@@ -135,7 +135,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
-  std::chrono::seconds retry_timeout_;
+  std::chrono::milliseconds retry_timeout_;
   static const std::string hex_digit_;
 
  private:
@@ -147,8 +147,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   void end_session(
       SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
       std::function<void(Status, LocalEndSessionResponse)> response_callback);
-
-  std::string convert_mac_addr_to_str(const std::string& mac_addr);
 
   void add_session_to_directory_record(
       const std::string& imsi, const std::string& session_id,
@@ -224,8 +222,6 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
           response_callback);
 
   void log_create_session(SessionConfig& cfg);
-
-  std::string bytes_to_hex(const std::string& s);
 };
 
 }  // namespace magma

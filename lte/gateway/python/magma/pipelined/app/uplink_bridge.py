@@ -136,31 +136,31 @@ class UplinkBridgeController(MagmaController):
 
         if self.config.ovs_vlan_workaround:
             # 4.a. All ingress IP traffic for UE mac
-            match = "in_port=%s,ip, dl_dst=%s, vlan_tci=0x0000/0x1000" % \
+            match = "in_port=%s,dl_dst=%s, vlan_tci=0x0000/0x1000" % \
                     (self.config.uplink_eth_port_name,
                      self.config.virtual_mac)
             actions = "output:%s" % self.config.uplink_patch
-            self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+            self._install_ip_v4_v6_flows(flows.MEDIUM_PRIORITY, match, actions)
 
-            match = "in_port=%s,ip, dl_dst=%s, vlan_tci=0x1000/0x1000" % \
+            match = "in_port=%s,dl_dst=%s, vlan_tci=0x1000/0x1000" % \
                     (self.config.uplink_eth_port_name,
                      self.config.virtual_mac)
             actions = "strip_vlan,output:%s" % self.config.dev_vlan_in
-            self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+            self._install_ip_v4_v6_flows(flows.MEDIUM_PRIORITY, match, actions)
 
             # 4.b. redirect all vlan-out traffic to patch port
-            match = "in_port=%s, dl_dst=%s, ip" % \
+            match = "in_port=%s,dl_dst=%s" % \
                     (self.config.dev_vlan_out,
                      self.config.virtual_mac)
             actions = "output:%s" % self.config.uplink_patch
-            self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+            self._install_ip_v4_v6_flows(flows.MEDIUM_PRIORITY, match, actions)
         else:
-            # 4. All ingress IP traffic for UE mac
-            match = "in_port=%s,ip, dl_dst=%s" % \
+            # 4.a. All ingress IP traffic for UE mac
+            match = "in_port=%s, dl_dst=%s" % \
                     (self.config.uplink_eth_port_name,
                      self.config.virtual_mac)
             actions = "output:%s" % self.config.uplink_patch
-            self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+            self._install_ip_v4_v6_flows(flows.MEDIUM_PRIORITY, match, actions)
 
         # 5. Handle ARP from eth0
         match = "in_port=%s,arp" % self.config.uplink_eth_port_name
@@ -202,6 +202,13 @@ class UplinkBridgeController(MagmaController):
             subprocess.Popen(flow_cmd, shell=True).wait()
         except subprocess.CalledProcessError as ex:
             raise Exception('Error: %s failed with: %s' % (flow_cmd, ex))
+
+    def _install_ip_v4_v6_flows(self, priority: int, flow_match: str, flow_action: str):
+        if self.config.enable_nat is True:
+            return
+
+        self._install_flow(priority, flow_match + ", ip", flow_action)
+        self._install_flow(priority, flow_match + ", ipv6", flow_action)
 
     def _add_eth_port(self):
         if self.config.enable_nat is True or \

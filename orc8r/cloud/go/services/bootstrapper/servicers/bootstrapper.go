@@ -266,7 +266,7 @@ func getChallengeKey(hwID string) (protos.ChallengeKey_KeyType, []byte, error) {
 	if err != nil {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Gateway with hwid %s is not registered: %s", hwID, err))
 	}
-	iRecord, err := device.GetDevice(entity.NetworkID, orc8r.AccessGatewayRecordType, hwID)
+	iRecord, err := device.GetDevice(entity.NetworkID, orc8r.AccessGatewayRecordType, hwID, serdes.Device)
 	if err != nil {
 		return empty, nil, errorLogger(status.Errorf(codes.NotFound, "Failed to find gateway record: %s", err))
 	}

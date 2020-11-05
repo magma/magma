@@ -30,4 +30,6 @@ var (
 	Entity = serdes.Entity.
 		MustMerge(models.EntitySerdes).
 		MustMerge(lte_models.EntitySerdes)
+	// Device contains the full set of device serdes used in the FeG module
+	Device = serdes.Device
 )

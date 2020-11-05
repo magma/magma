@@ -79,6 +79,18 @@ describe('<TrafficDashboard />', () => {
     MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
   });
 
+  const {location} = window;
+  beforeAll((): void => {
+    delete window.location;
+    window.location = {
+      pathname: '/nms/test/traffic/apn',
+    };
+  });
+
+  afterAll((): void => {
+    window.location = location;
+  });
+
   const ApnWrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
@@ -90,7 +102,7 @@ describe('<TrafficDashboard />', () => {
             <LteNetworkContextProvider networkId={'test'}>
               <ApnProvider networkId={'test'}>
                 <Route
-                  path="/nms/:networkId/traffic/apn"
+                  path="/nms/:networkId/traffic"
                   component={TrafficDashboard}
                 />
               </ApnProvider>
@@ -118,10 +130,14 @@ describe('<TrafficDashboard />', () => {
 
     expect(queryByTestId('editDialog')).toBeNull();
     await wait();
-    fireEvent.click(getByText('APNs'));
-    await wait();
-    fireEvent.click(getByText('Create New APN'));
-    await wait();
+
+    const newAPNButton = queryByTestId('newApnButton');
+    expect(newAPNButton).not.toBeNull();
+
+    if (newAPNButton) {
+      fireEvent.click(newAPNButton);
+      await wait();
+    }
     expect(queryByTestId('editDialog')).not.toBeNull();
 
     expect(queryByTestId('apnEditDialog')).not.toBeNull();
@@ -209,8 +225,6 @@ describe('<TrafficDashboard />', () => {
     expect(queryByTestId('editDialog')).toBeNull();
 
     // click on apns tab
-    fireEvent.click(getByText('APNs'));
-    await wait();
     fireEvent.click(getByText('apn_0'));
     await wait();
     expect(queryByTestId('editDialog')).not.toBeNull();

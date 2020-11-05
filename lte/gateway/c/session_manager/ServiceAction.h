@@ -77,6 +77,11 @@ class ServiceAction {
     return *this;
   }
 
+  ServiceAction& set_msisdn(const std::string& msisdn) {
+    msisdn_ = std::make_unique<std::string>(msisdn);
+    return *this;
+  }
+
   /**
    * get_imsi returns the associated IMSI for the action, or throws a nullptr
    * exception if there is none stored
@@ -125,6 +130,8 @@ class ServiceAction {
 
   const optional<AggregatedMaximumBitrate> get_ambr() const { return ambr_; }
 
+  const std::string& get_msisdn() const { return *msisdn_; }
+
   /**
    * get_mutable_restrict_rules returns a mutable list of the associated
    * restrict rules
@@ -145,6 +152,7 @@ class ServiceAction {
   std::unique_ptr<std::string> session_id_;
   std::unique_ptr<std::string> ip_addr_;
   std::unique_ptr<std::string> ipv6_addr_;
+  std::unique_ptr<std::string> msisdn_;
   CreditKey credit_key_;
   std::vector<std::string> rule_ids_;
   std::vector<PolicyRule> rule_definitions_;
