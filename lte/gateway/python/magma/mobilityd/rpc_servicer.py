@@ -13,6 +13,7 @@ limitations under the License.
 
 import ipaddress
 import logging
+from typing import Optional
 
 import grpc
 from lte.protos.mobilityd_pb2 import AllocateIPRequest, IPAddress, IPBlock, \
@@ -32,7 +33,7 @@ from .ip_allocator_base import DuplicateIPAssignmentError, \
 from .ipv6_allocator_pool import MaxCalculationError
 
 
-def _get_ip_block(ip_block_str):
+def _get_ip_block(ip_block_str: str) -> Optional[ipaddress.ip_network]:
     """ Convert string into ipaddress.ip_network. Support both IPv4 or IPv6
     addresses.
 
@@ -42,6 +43,9 @@ def _get_ip_block(ip_block_str):
         Returns:
             ip_block(ipaddress.ip_network)
     """
+    if not ip_block_str:
+        logging.error("Empty IP block")
+        return None
     try:
         ip_block = ipaddress.ip_network(ip_block_str)
     except ValueError:
@@ -58,21 +62,23 @@ class MobilityServiceRpcServicer(MobilityServiceServicer):
 
         self._ip_address_man = ip_address_manager
 
-        # Load IPv4 block from the configurable mconfig file
+        # Load IPv4 and IPv6 blocks from the configurable mconfig file
         # No dynamic reloading support for now, assume restart after updates
+        logging.info('Adding ipv4 block')
         ipv4_block = _get_ip_block(ipv4_block_str)
         if ipv4_block is not None:
             try:
                 self.add_ip_block(ipv4_block)
             except OverlappedIPBlocksError:
-                logging.error("Overlapped IPv4 block: %s", ipv4_block)
+                logging.warning("Overlapped IPv4 block: %s", ipv4_block)
 
+        logging.info('Adding ipv6 block')
         ipv6_block = _get_ip_block(ipv6_block_str)
         if ipv6_block is not None:
             try:
                 self.add_ip_block(ipv6_block)
             except OverlappedIPBlocksError:
-                logging.error("Overlapped IPv6 block: %s", ipv6_block)
+                logging.warning("Overlapped IPv6 block: %s", ipv6_block)
 
     def add_to_server(self, server):
         """ Add the servicer to a gRPC server """

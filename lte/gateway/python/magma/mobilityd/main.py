@@ -26,6 +26,8 @@ from magma.mobilityd.mobility_store import MobilityStore
 from lte.protos.mconfig import mconfigs_pb2
 from lte.protos.subscriberdb_pb2_grpc import SubscriberDBStub
 
+DEFAULT_IPV6_PREFIX_ALLOC_MODE = 'RANDOM'
+
 
 def _get_ipv4_allocator(store: MobilityStore, allocator_type: int,
                         static_ip_enabled: bool, multi_apn: bool,
@@ -88,9 +90,10 @@ def main():
                                          SubscriberDBStub(chan))
 
     # Init IPv6 allocator, for now only IP_POOL mode is supported for IPv6
-    ipv6_allocation_type = config['ipv6_ip_allocator_type']
+    ipv6_prefix_allocation_type = mconfig.ipv6_prefix_allocation_type or \
+                                  DEFAULT_IPV6_PREFIX_ALLOC_MODE
     ipv6_allocator = IPv6AllocatorPool(
-        store=store, session_prefix_alloc_mode=ipv6_allocation_type)
+        store=store, session_prefix_alloc_mode=ipv6_prefix_allocation_type)
 
     # Load IPAddressManager
     ip_address_man = IPAddressManager(ipv4_allocator, ipv6_allocator, store)
@@ -98,8 +101,7 @@ def main():
     # Add all servicers to the server
     mobility_service_servicer = MobilityServiceRpcServicer(ip_address_man,
                                                            mconfig.ip_block,
-                                                           config.get(
-                                                               'ipv6_prefix_block'))
+                                                           mconfig.ipv6_block)
     mobility_service_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop
