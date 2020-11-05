@@ -15,25 +15,21 @@ limitations under the License.
 package servicers
 
 import (
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
-
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/envoy_controller/control_plane"
 	lte_proto "magma/lte/cloud/go/protos"
+
+	"github.com/golang/glog"
+	"golang.org/x/net/context"
 )
 
-const (
-	TIMEOUT = 10
-)
-
-type envoydService struct {
+type envoyControllerService struct {
 	ue_infos       []*protos.AddUEHeaderEnrichmentRequest
 	controller_cli control_plane.EnvoyController
 }
 
 // AddUEHeaderEnrichment adds the UE to the current header enrichment list
-func (s *envoydService) AddUEHeaderEnrichment(
+func (s *envoyControllerService) AddUEHeaderEnrichment(
 	ctx context.Context,
 	req *protos.AddUEHeaderEnrichmentRequest,
 ) (*protos.AddUEHeaderEnrichmentResult, error) {
@@ -50,7 +46,7 @@ func (s *envoydService) AddUEHeaderEnrichment(
 }
 
 // DeactivateUEHeaderEnrichment deactivates/removes the UE from the current header enrichment list
-func (s *envoydService) DeactivateUEHeaderEnrichment(
+func (s *envoyControllerService) DeactivateUEHeaderEnrichment(
 	ctx context.Context,
 	req *protos.DeactivateUEHeaderEnrichmentRequest,
 ) (*protos.DeactivateUEHeaderEnrichmentResult, error) {
@@ -65,9 +61,9 @@ func (s *envoydService) DeactivateUEHeaderEnrichment(
 	return res, err
 }
 
-// NewenvoydService returns a new Envoyd service
-func NewEnvoydService(controller_cli control_plane.EnvoyController) protos.EnvoydServer {
-	return &envoydService{controller_cli: controller_cli}
+// NewenvoyControllerService returns a new EnvoyController service
+func NewEnvoyControllerService(controller_cli control_plane.EnvoyController) protos.EnvoyControllerServer {
+	return &envoyControllerService{controller_cli: controller_cli}
 }
 
 func remove(l []*protos.AddUEHeaderEnrichmentRequest, ip *lte_proto.IPAddress) []*protos.AddUEHeaderEnrichmentRequest {

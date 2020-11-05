@@ -21,10 +21,7 @@ import (
 	"magma/feg/gateway/services/envoy_controller/servicers"
 	lte_proto "magma/lte/cloud/go/protos"
 
-	//"github.com/golang/protobuf/ptypes/timestamp"
 	"github.com/stretchr/testify/assert"
-	//"github.com/stretchr/testify/mock"
-	//"github.com/thoas/go-funk"
 	"golang.org/x/net/context"
 )
 
@@ -75,7 +72,7 @@ var (
 func TestEnvoyControllerInit(t *testing.T) {
 
 	cli := new(mocks.EnvoyController)
-	srv := servicers.NewEnvoydService(cli)
+	srv := servicers.NewEnvoyControllerService(cli)
 
 	ctx := context.Background()
 
