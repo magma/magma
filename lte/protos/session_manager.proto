@@ -100,6 +100,16 @@ message LocalEndSessionRequest {
 message LocalEndSessionResponse {
 }
 
+message UpdateTunnelIdsRequest {
+  SubscriberID sid = 1;
+  uint32 bearer_id = 2;
+  string enb_teid = 3;
+  string agw_teid = 4;
+}
+
+message UpdateTunnelIdsResponse {
+}
+
 message PolicyBearerBindingRequest {
   SubscriberID sid = 1;
   uint32 linked_bearer_id = 2;
@@ -285,6 +295,8 @@ service LocalSessionManager {
   rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
   // A set interface of subscribers -> currently active rules
   rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
+
+  rpc UpdateTunnelIds(UpdateTunnelIdsRequest) returns (UpdateTunnelIdsResponse) {}
 }
 
 service SessionProxyResponder {
