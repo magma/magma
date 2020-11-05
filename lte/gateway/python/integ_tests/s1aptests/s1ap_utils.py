@@ -1031,22 +1031,32 @@ class SessionManagerUtil(object):
                 tcp_src_port = 0
                 tcp_dst_port = 0
 
-            ipv4_src_addr = None
+            src_addr = None
             if flow.get("ipv4_src", None):
-                ipv4_src_addr = IPAddress(
+                src_addr = IPAddress(
                     version=IPAddress.IPV4,
                     address=flow.get("ipv4_src").encode('utf-8'))
-            ipv4_dst_addr = None
+            elif flow.get("ipv6_src", None):
+                src_addr = IPAddress(
+                    version=IPAddress.IPV6,
+                    address=flow.get("ipv6_src").encode('utf-8'))
+
+            dst_addr = None
             if flow.get("ipv4_dst", None):
-                ipv4_dst_addr = IPAddress(
+                dst_addr = IPAddress(
                     version=IPAddress.IPV4,
                     address=flow.get("ipv4_dst").encode('utf-8'))
+            elif flow.get("ipv6_dst", None):
+                dst_addr = IPAddress(
+                    version=IPAddress.IPV6,
+                    address=flow.get("ipv6_dst").encode('utf-8'))
+
 
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ip_dst=ipv4_dst_addr,
-                        ip_src=ipv4_src_addr,
+                        ip_dst=dst_addr,
+                        ip_src=src_addr,
                         tcp_src=tcp_src_port,
                         tcp_dst=tcp_dst_port,
                         udp_src=udp_src_port,
