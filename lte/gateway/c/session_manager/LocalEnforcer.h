@@ -238,6 +238,18 @@ class LocalEnforcer {
       SessionMap& session_map, const PolicyBearerBindingRequest& request,
       SessionUpdate& session_update);
 
+  /**
+   * Sends enb_teid and agw_teid for a specific bearer to a flow for a specific
+   * UE on pipelined. UE will be identified by pipelined using its IP
+   * @param session_map
+   * @param request
+   * @param session_update
+   * @return true if successfully processed the request
+   */
+  bool update_tunnel_ids(
+      SessionMap& session_map, const UpdateTunnelIdsRequest& request,
+      SessionUpdate& session_update);
+
   std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
 
   static uint32_t REDIRECT_FLOW_PRIORITY;

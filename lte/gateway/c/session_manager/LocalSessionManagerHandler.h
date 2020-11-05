@@ -64,6 +64,15 @@ class LocalSessionManagerHandler {
       ServerContext* context, const PolicyBearerBindingRequest* request,
       std::function<void(Status, PolicyBearerBindingResponse)>
           response_callback) = 0;
+
+  /**
+   * Updates eNB and AGW tunnels id on a existing session for a default bearer
+   */
+  virtual void UpdateTunnelIds(
+      ServerContext* context, UpdateTunnelIdsRequest* request,
+      std::function<void(Status, UpdateTunnelIdsResponse)>
+          response_callback) = 0;
+
   /**
    * Update active rules for session
    */
@@ -116,6 +125,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       ServerContext* context, const PolicyBearerBindingRequest* request,
       std::function<void(Status, PolicyBearerBindingResponse)>
           response_callback);
+
+  /**
+   * Updates eNB and AGW tunnels id on a existing session for a default bearer
+   */
+  void UpdateTunnelIds(
+      ServerContext* context, UpdateTunnelIdsRequest* request,
+      std::function<void(Status, UpdateTunnelIdsResponse)> response_callback);
 
   /**
    * Update active rules for session

@@ -82,6 +82,13 @@ func (c *MockSessionManager) SetSessionRules(ctx context.Context, in *protos.Ses
 	return &orc8rProtos.Void{}, nil
 }
 
+func (c *MockSessionManager) UpdateTunnelIds(ctx context.Context, in *protos.UpdateTunnelIdsRequest) (*protos.UpdateTunnelIdsResponse, error) {
+	if c.returnErrors {
+		return nil, fmt.Errorf("UpdateTunnelIds returnErrors enabled")
+	}
+	return &protos.UpdateTunnelIdsResponse{}, nil
+}
+
 func (c *MockSessionManager) ReturnErrors(enable bool) {
 	c.returnErrors = enable
 }
