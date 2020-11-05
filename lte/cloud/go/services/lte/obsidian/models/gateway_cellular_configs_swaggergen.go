@@ -17,6 +17,9 @@ import (
 // swagger:model gateway_cellular_configs
 type GatewayCellularConfigs struct {
 
+	// True iff header enrichment feature should be disabled for gateway
+	DisableHeaderEnrichment bool `json:"disable_header_enrichment,omitempty"`
+
 	// dns
 	DNS *GatewayDNSConfigs `json:"dns,omitempty"`
 

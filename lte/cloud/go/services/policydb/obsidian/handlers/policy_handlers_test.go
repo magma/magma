@@ -173,6 +173,32 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Test header enrichment targets
+	testRule.HeaderEnrichmentTargets = []string{"http://example.com", "http://example.net"}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
+		Payload:        testRule,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "PolicyRule1"},
+		Handler:        updatePolicy,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Verify update results
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "PolicyRule1"},
+		Handler:        getPolicy,
+		ExpectedStatus: 200,
+		ExpectedResult: testRule,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Delete a rule
 	tc = tests.Test{
 		Method:         "DELETE",
