@@ -101,6 +101,7 @@ resource "kubernetes_secret" "orc8r_configs" {
     })
 
     "orchestrator.yml" = yamlencode({
+      "useGRPCExporter": true,
       "prometheusGRPCPushAddress" : format("%s-prometheus-cache:9092", var.helm_deployment_name),
       "prometheusPushAddresses" : [
         format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
