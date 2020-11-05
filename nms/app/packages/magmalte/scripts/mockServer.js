@@ -124,6 +124,13 @@ networks.forEach(network => {
     }
   });
 
+  // return empty rating groups
+  server.get(`/magma/v1/networks/${network}/rating_groups`, (req, res) => {
+    if (req.method === 'GET') {
+      res.status(200).jsonp({});
+    }
+  });
+
   // return empty qos profiles
   server.get(`/magma/v1/lte/${network}/policy_qos_profiles`, (req, res) => {
     if (req.method === 'GET') {

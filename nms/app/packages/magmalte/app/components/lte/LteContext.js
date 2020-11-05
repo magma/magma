@@ -25,6 +25,7 @@ import type {
   network_ran_configs,
   policy_qos_profile,
   policy_rule,
+  rating_group,
   subscriber_id,
   tier,
 } from '@fbcnms/magma-api';
@@ -52,7 +53,11 @@ import {
   UpdateGateway,
 } from '../../state/lte/EquipmentState';
 import {SetApnState} from '../../state/lte/ApnState';
-import {SetPolicyState, SetQosProfileState} from '../../state/PolicyState';
+import {
+  SetPolicyState,
+  SetQosProfileState,
+  SetRatingGroupState,
+} from '../../state/PolicyState';
 import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
@@ -266,6 +271,9 @@ export function PolicyProvider(props: Props) {
   const [qosProfiles, setQosProfiles] = useState<{
     [string]: policy_qos_profile,
   }>({});
+  const [ratingGroups, setRatingGroups] = useState<{[string]: rating_group}>(
+    {},
+  );
   const [fegNetwork, setFegNetwork] = useState<feg_network>({});
   const [fegPolicies, setFegPolicies] = useState<{[string]: policy_rule}>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -279,6 +287,10 @@ export function PolicyProvider(props: Props) {
           await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
             networkId,
           }),
+        );
+        setRatingGroups(
+          // $FlowIgnore
+          await MagmaV1API.getNetworksByNetworkIdRatingGroups({networkId}),
         );
         setQosProfiles(
           await MagmaV1API.getLteByNetworkIdPolicyQosProfiles({networkId}),
@@ -309,11 +321,21 @@ export function PolicyProvider(props: Props) {
   if (isLoading) {
     return <LoadingFiller />;
   }
-
   return (
     <PolicyContext.Provider
       value={{
         state: policies,
+        ratingGroups: ratingGroups,
+        setRatingGroups: async (key, value) => {
+          await SetRatingGroupState({
+            networkId,
+            ratingGroups,
+            setRatingGroups,
+            key,
+            value,
+          });
+        },
+
         qosProfiles: qosProfiles,
         setQosProfiles: async (key, value) => {
           await SetQosProfileState({
