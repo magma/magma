@@ -376,6 +376,14 @@ message EsmEbrContext {
   Timer timer = 100; // nas_timer_t
 }
 
+// t3422_arg is nw_detach_data_t
+ message NwDetachData {
+  uint32 ue_id = 1;
+  bool timer_running = 2;
+  uint32 retransmission_count = 3;
+  uint32 detach_type = 4;
+}
+
 // emm_context_t
 message EmmContext {
   uint64 imsi64 = 1; //imsi64_t
@@ -419,5 +427,6 @@ message EmmContext {
   uint32 ksi = 64;
 
   UeNetworkCapability ue_network_capability = 65;
+  NwDetachData nw_detach_data = 66;
   // TODO: add remaining emm_context elements
   }

@@ -16,6 +16,7 @@
  */
 extern "C" {
 #include "log.h"
+#include "dynamic_memory_check.h"
 }
 
 #include "nas_state_converter.h"
@@ -1514,6 +1515,34 @@ void NasStateConverter::proto_to_emm_security_context(
       emm_security_context_proto.next_hop_chaining_count();
 }
 
+void NasStateConverter::nw_detach_data_to_proto(
+    nw_detach_data_t* detach_timer_arg,
+    oai::NwDetachData* detach_timer_arg_proto) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  detach_timer_arg_proto->set_ue_id(detach_timer_arg->ue_id);
+  detach_timer_arg_proto->set_timer_running(true);
+  detach_timer_arg_proto->set_retransmission_count(
+      detach_timer_arg->retransmission_count);
+  detach_timer_arg_proto->set_detach_type(detach_timer_arg->detach_type);
+  // free timer argument
+  free_wrapper((void**) &detach_timer_arg);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void NasStateConverter::proto_to_nw_detach_data(
+    const oai::NwDetachData& detach_timer_arg_proto,
+    nw_detach_data_t** detach_timer_arg) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  if (detach_timer_arg_proto.timer_running()) {
+    *detach_timer_arg = (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
+    (*detach_timer_arg)->ue_id = detach_timer_arg_proto.ue_id();
+    (*detach_timer_arg)->retransmission_count =
+        detach_timer_arg_proto.retransmission_count();
+    (*detach_timer_arg)->detach_type = detach_timer_arg_proto.detach_type();
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
 void NasStateConverter::emm_context_to_proto(
     const emm_context_t* state_emm_context,
     oai::EmmContext* emm_context_proto) {
@@ -1581,6 +1610,11 @@ void NasStateConverter::emm_context_to_proto(
   ue_network_capability_to_proto(
       &state_emm_context->_ue_network_capability,
       emm_context_proto->mutable_ue_network_capability());
+  if (state_emm_context->t3422_arg) {
+    nw_detach_data_to_proto(
+        (nw_detach_data_t*) state_emm_context->t3422_arg,
+        emm_context_proto->mutable_nw_detach_data());
+  }
 }
 
 void NasStateConverter::proto_to_emm_context(
@@ -1656,6 +1690,9 @@ void NasStateConverter::proto_to_emm_context(
   proto_to_ue_network_capability(
       emm_context_proto.ue_network_capability(),
       &state_emm_context->_ue_network_capability);
+  proto_to_nw_detach_data(
+      emm_context_proto.nw_detach_data(),
+      (nw_detach_data_t**) &state_emm_context->t3422_arg);
 }
 
 }  // namespace lte
