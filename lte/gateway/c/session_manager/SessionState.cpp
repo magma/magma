@@ -428,6 +428,7 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
 
 void SessionState::add_rule_usage(
     const std::string& rule_id, uint64_t used_tx, uint64_t used_rx,
+    uint64_t dropped_tx, uint64_t dropped_rx,
     SessionStateUpdateCriteria& update_criteria) {
   CreditKey charging_key;
   if (dynamic_rules_.get_charging_key_for_rule_id(rule_id, &charging_key) ||
@@ -459,8 +460,9 @@ void SessionState::add_rule_usage(
     add_to_monitor(session_level_key_, used_tx, used_rx, update_criteria);
   }
   if (is_dynamic_rule_installed(rule_id) || is_static_rule_installed(rule_id)) {
-    update_data_usage_metrics(used_tx, used_rx);
+    update_used_data_metrics(used_tx, used_rx);
   }
+  update_dropped_data_metrics(dropped_tx, dropped_rx);
 }
 
 void SessionState::apply_session_rule_set(
@@ -775,6 +777,7 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.imsi      = imsi_;
   info.ip_addr   = config_.common_context.ue_ipv4();
   info.ipv6_addr = config_.common_context.ue_ipv6();
+  info.msisdn    = config_.common_context.msisdn();
   get_dynamic_rules().get_rules(info.dynamic_rules);
   get_gy_dynamic_rules().get_rules(info.gy_dynamic_rules);
   info.static_rules = active_static_rules_;
@@ -1447,6 +1450,7 @@ void SessionState::terminate_service_action(
   action->set_imsi(imsi_);
   action->set_ip_addr(config_.common_context.ue_ipv4());
   action->set_ipv6_addr(config_.common_context.ue_ipv6());
+  action->set_msisdn(config_.common_context.msisdn());
   action->set_session_id(session_id_);
   static_rules_.get_rule_ids_for_charging_key(
       key, *action->get_mutable_rule_ids());
@@ -1959,7 +1963,7 @@ optional<RuleSetToApply> RuleSetBySubscriber::get_combined_rule_set_for_apn(
   return {};
 }
 
-void SessionState::update_data_usage_metrics(
+void SessionState::update_used_data_metrics(
     uint64_t bytes_tx, uint64_t bytes_rx) {
   const auto sid    = get_config().common_context.sid().id();
   const auto msisdn = get_config().common_context.msisdn();
@@ -1970,6 +1974,21 @@ void SessionState::update_data_usage_metrics(
       DIRECTION_UP);
   increment_counter(
       "ue_reported_usage", bytes_rx, size_t(4), LABEL_IMSI, sid.c_str(),
+      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_DOWN);
+}
+
+void SessionState::update_dropped_data_metrics(
+    uint64_t dropped_tx, uint64_t dropped_rx) {
+  const auto sid    = get_config().common_context.sid().id();
+  const auto msisdn = get_config().common_context.msisdn();
+  const auto apn    = get_config().common_context.apn();
+  increment_counter(
+      "ue_dropped_usage", dropped_tx, size_t(4), LABEL_IMSI, sid.c_str(),
+      LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
+      DIRECTION_UP);
+  increment_counter(
+      "ue_dropped_usage", dropped_rx, size_t(4), LABEL_IMSI, sid.c_str(),
       LABEL_APN, apn.c_str(), LABEL_MSISDN, msisdn.c_str(), LABEL_DIRECTION,
       DIRECTION_DOWN);
 }

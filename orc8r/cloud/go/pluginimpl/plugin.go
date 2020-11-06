@@ -18,13 +18,9 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
-	"magma/orc8r/cloud/go/services/device"
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/metricsd/collection"
-	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/orchestrator"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/definitions"
@@ -48,10 +44,7 @@ func (*BaseOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 }
 
 func (*BaseOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{
-		// Device service serdes
-		serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
-	}
+	return []serde.Serde{}
 }
 
 func (*BaseOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
@@ -61,7 +54,7 @@ func (*BaseOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {
 }
 
 func (*BaseOrchestratorPlugin) GetMetricsProfiles(metricsConfig *config.ConfigMap) []metricsd.MetricsProfile {
-	return getMetricsProfiles()
+	return []metricsd.MetricsProfile{}
 }
 
 func (*BaseOrchestratorPlugin) GetObsidianHandlers(metricsConfig *config.ConfigMap) []obsidian.Handler {
@@ -77,44 +70,5 @@ func (*BaseOrchestratorPlugin) GetStreamerProviders() []providers.StreamProvider
 func (*BaseOrchestratorPlugin) GetStateIndexers() []indexer.Indexer {
 	return []indexer.Indexer{
 		indexer.NewRemoteIndexer(directoryd.ServiceName, 1, orc8r.DirectoryRecordType),
-	}
-}
-
-const (
-	ProfileNamePrometheus = "prometheus"
-	ProfileNameExportAll  = "exportall"
-)
-
-func getMetricsProfiles() []metricsd.MetricsProfile {
-	// Controller profile - 1 collector for each service
-	services := registry.ListControllerServices()
-
-	deviceCollectors := []collection.MetricCollector{&collection.DiskUsageMetricCollector{}, &collection.ProcMetricsCollector{}}
-	allCollectors := make([]collection.MetricCollector, 0, len(services)+len(deviceCollectors))
-
-	for _, s := range services {
-		allCollectors = append(allCollectors, collection.NewCloudServiceMetricCollector(s))
-	}
-	for _, c := range deviceCollectors {
-		allCollectors = append(allCollectors, c)
-	}
-
-	// Prometheus profile - Exports all service metric to Prometheus
-	prometheusProfile := metricsd.MetricsProfile{
-		Name:       ProfileNamePrometheus,
-		Collectors: allCollectors,
-		Exporters:  []exporters.Exporter{exporters.NewRemoteExporter(metricsd.ServiceName)},
-	}
-
-	// ExportAllProfile - Exports to all exporters
-	exportAllProfile := metricsd.MetricsProfile{
-		Name:       ProfileNameExportAll,
-		Collectors: allCollectors,
-		Exporters:  []exporters.Exporter{exporters.NewRemoteExporter(metricsd.ServiceName)},
-	}
-
-	return []metricsd.MetricsProfile{
-		prometheusProfile,
-		exportAllProfile,
 	}
 }

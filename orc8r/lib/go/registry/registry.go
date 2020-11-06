@@ -141,9 +141,6 @@ func (r *ServiceRegistry) RemoveServicesWithLabel(label string) {
 
 // ListAllServices lists the names of all registered services.
 func (r *ServiceRegistry) ListAllServices() ([]string, error) {
-	r.RLock()
-	defer r.RUnlock()
-
 	switch r.serviceRegistryMode {
 	case DockerRegistryMode, K8sRegistryMode:
 		client, err := r.getServiceRegistryServiceClient()
@@ -154,6 +151,8 @@ func (r *ServiceRegistry) ListAllServices() ([]string, error) {
 	case YamlRegistryMode:
 		fallthrough
 	default:
+		r.RLock()
+		defer r.RUnlock()
 		services := make([]string, 0, len(r.ServiceLocations))
 		for service := range r.ServiceLocations {
 			services = append(services, service)
@@ -165,9 +164,6 @@ func (r *ServiceRegistry) ListAllServices() ([]string, error) {
 // FindServices returns the names of all registered services that have
 // the passed label.
 func (r *ServiceRegistry) FindServices(label string) ([]string, error) {
-	r.RLock()
-	defer r.RUnlock()
-
 	switch r.serviceRegistryMode {
 	case DockerRegistryMode, K8sRegistryMode:
 		client, err := r.getServiceRegistryServiceClient()
@@ -178,6 +174,8 @@ func (r *ServiceRegistry) FindServices(label string) ([]string, error) {
 	case YamlRegistryMode:
 		fallthrough
 	default:
+		r.RLock()
+		defer r.RUnlock()
 		var ret []string
 		for service, location := range r.ServiceLocations {
 			if location.HasLabel(label) {
@@ -191,12 +189,20 @@ func (r *ServiceRegistry) FindServices(label string) ([]string, error) {
 // GetServiceAddress returns the RPC address of the service.
 // The service needs to be added to the registry before this.
 func (r *ServiceRegistry) GetServiceAddress(service string) (string, error) {
-	r.RLock()
-	defer r.RUnlock()
 	service = strings.ToLower(service)
 
 	switch r.serviceRegistryMode {
 	case DockerRegistryMode, K8sRegistryMode:
+		// Fetching the service registry service address is a special case
+		// given that we cannot use the service registry service for discovering
+		// it's own address
+		if service == ServiceRegistryServiceName {
+			addr := r.getServiceRegistryServiceAddress()
+			if len(addr) == 0 {
+				return "", fmt.Errorf("Service registry address is empty")
+			}
+			return addr, nil
+		}
 		client, err := r.getServiceRegistryServiceClient()
 		if err != nil {
 			return "", err
@@ -205,6 +211,8 @@ func (r *ServiceRegistry) GetServiceAddress(service string) (string, error) {
 	case YamlRegistryMode:
 		fallthrough
 	default:
+		r.RLock()
+		defer r.RUnlock()
 		location, ok := r.ServiceLocations[service]
 		if !ok {
 			return "", fmt.Errorf("service %s not registered", service)
@@ -219,8 +227,6 @@ func (r *ServiceRegistry) GetServiceAddress(service string) (string, error) {
 // GetHttpServerAddress returns the HTTP address of the service from global registry
 // The service needs to be added to the registry before this.
 func (r *ServiceRegistry) GetHttpServerAddress(service string) (string, error) {
-	r.RLock()
-	defer r.RUnlock()
 	service = strings.ToLower(service)
 
 	switch r.serviceRegistryMode {
@@ -233,6 +239,8 @@ func (r *ServiceRegistry) GetHttpServerAddress(service string) (string, error) {
 	case YamlRegistryMode:
 		fallthrough
 	default:
+		r.RLock()
+		defer r.RUnlock()
 		location, ok := r.ServiceLocations[service]
 		if !ok {
 			return "", fmt.Errorf("service %s not registered", service)
@@ -308,8 +316,6 @@ func (r *ServiceRegistry) GetEchoServerPort(service string) (int, error) {
 
 // GetAnnotation returns the annotation value for the passed annotation name.
 func (r *ServiceRegistry) GetAnnotation(service, annotationName string) (string, error) {
-	r.RLock()
-	defer r.RUnlock()
 	service = strings.ToLower(service)
 
 	switch r.serviceRegistryMode {
@@ -322,6 +328,8 @@ func (r *ServiceRegistry) GetAnnotation(service, annotationName string) (string,
 	case YamlRegistryMode:
 		fallthrough
 	default:
+		r.RLock()
+		defer r.RUnlock()
 		location, ok := r.ServiceLocations[strings.ToLower(service)]
 		if !ok {
 			return "", fmt.Errorf("service %s not registered", service)
@@ -416,11 +424,7 @@ func (r *ServiceRegistry) GetConnectionImpl(ctx context.Context, service string,
 }
 
 func (r *ServiceRegistry) getServiceRegistryServiceClient() (protos.ServiceRegistryClient, error) {
-	addr := r.getServiceRegistryServiceAddress()
-	if len(addr) == 0 {
-		return nil, fmt.Errorf("Service registry address is empty")
-	}
-	conn, err := GetClientConnection(context.Background(), addr, r.getGRPCDialOptions()...)
+	conn, err := r.GetConnection(ServiceRegistryServiceName)
 	if err != nil {
 		return nil, err
 	}

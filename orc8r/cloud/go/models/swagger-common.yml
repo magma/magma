@@ -99,7 +99,7 @@ definitions:
     minLength: 1
     x-nullable: false
     example: network_1
-    pattern: '^[a-z][\da-z_]+$'
+    pattern: '^[a-z][\da-z_-]+$'
   network_name:
     type: string
     minLength: 1
@@ -119,7 +119,7 @@ definitions:
     type: string
     minLength: 1
     x-nullable: false
-    pattern: '^[a-z][\da-z_]+$'
+    pattern: '^[a-z][\da-z_-]+$'
     example: gw1
   gateway_name:
     type: string

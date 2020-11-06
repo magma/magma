@@ -463,6 +463,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		Config:             newDefaultGatewayConfig(),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
+	lteGW.Config.(*lte_models.GatewayCellularConfigs).DisableHeaderEnrichment = true
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
@@ -515,6 +516,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
+			DisableHeaderEnrichment: true,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -740,6 +742,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
 				"enb1": {
 					CellId: 138777000,
+					Tac:    1,
 				},
 			},
 		},
@@ -761,7 +764,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			HssRelayEnabled:          false,
 			CloudSubscriberdbEnabled: false,
 			EnableDnsCaching:         false,
-			AttachedEnodebTacs:       []int32{0},
+			AttachedEnodebTacs:       []int32{1},
 			NatEnabled:               true,
 		},
 		"pipelined": &lte_mconfig.PipelineD{
@@ -903,6 +906,7 @@ func newDefaultUnmanagedEnodebConfig() *lte_models.EnodebConfig {
 		ConfigType: "UNMANAGED",
 		UnmanagedConfig: &lte_models.UnmanagedEnodebConfiguration{
 			CellID:    swag.Uint32(138777000),
+			Tac:       swag.Uint32(1),
 			IPAddress: &ip,
 		},
 	}

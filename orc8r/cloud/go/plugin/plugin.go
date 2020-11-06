@@ -172,9 +172,9 @@ func (DefaultOrchestratorPluginLoader) LoadPlugins() ([]OrchestratorPlugin, erro
 }
 
 func registerPlugin(p OrchestratorPlugin) error {
-	if err := serde.RegisterSerdesLegacy(p.GetSerdes()...); err != nil {
-		return err
-	}
+
+	// Registering a plugin currently has no effect
+	// Plugin code will soon be removed
 
 	return nil
 }

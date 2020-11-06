@@ -126,7 +126,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription), serdes.Entity)...)
 	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayConfigPath, &models2.MagmadGatewayConfigs{}, serdes.Entity)...)
 	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayTierPath, new(models2.TierID), serdes.Entity)...)
-	ret = append(ret, GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
+	ret = append(ret, GetGatewayDeviceHandlers(ManageGatewayDevicePath, serdes.Device)...)
 
 	ret = append(ret, GetPartialEntityHandlers(ManageTierNamePath, "tier_id", new(models2.TierName), serdes.Entity)...)
 	ret = append(ret, GetPartialEntityHandlers(ManageTierVersionPath, "tier_id", new(models2.TierVersion), serdes.Entity)...)

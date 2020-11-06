@@ -146,6 +146,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
+			DisableHeaderEnrichment:  cellularGwConfig.DisableHeaderEnrichment,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -331,6 +332,11 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 		} else if enodebConfig.ConfigType == "UNMANAGED" {
 			cellularEnbConfig := enodebConfig.UnmanagedConfig
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+			enbMconfig.Tac = int32(swag.Uint32Value(cellularEnbConfig.Tac))
+
+			if enbMconfig.Tac == 0 {
+				enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			}
 		}
 
 		ret[serial] = enbMconfig

@@ -26,7 +26,11 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetApnState} from '../../../state/lte/ApnState';
-import {SetPolicyState} from '../../../state/PolicyState';
+import {
+  SetPolicyState,
+  SetQosProfileState,
+  SetRatingGroupState,
+} from '../../../state/PolicyState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
@@ -103,12 +107,55 @@ const policies = {
   },
 };
 
+const qosProfiles = {
+  profile_1: {
+    id: 'profile_1',
+    class_id: 1,
+    max_req_bw_ul: 9,
+    max_req_bw_dl: 9,
+  },
+  profile_2: {
+    id: 'profile_2',
+    class_id: 2,
+    max_req_bw_ul: 10,
+    max_req_bw_dl: 10,
+  },
+};
+const ratingGroups = {
+  '0': {
+    id: 0,
+    limit_type: 'FINITE',
+  },
+  '1': {
+    id: 1,
+    limit_type: 'INFINITE_UNMETERED',
+  },
+};
+
 describe('<TrafficDashboard />', () => {
   const networkId = 'test';
   const policyCtx = {
     state: policies,
-    qosProfiles: {},
-    setQosProfiles: async () => {},
+    qosProfiles: qosProfiles,
+    ratingGroups: ratingGroups,
+    setRatingGroups: (key, value?) => {
+      return SetRatingGroupState({
+        ratingGroups,
+        setRatingGroups: () => {},
+        networkId,
+        key,
+        value,
+      });
+    },
+    setQosProfiles: (key, value?) => {
+      return SetQosProfileState({
+        qosProfiles,
+        setQosProfiles: () => {},
+        networkId,
+        key,
+        value,
+      });
+    },
     setState: (key, value?) => {
       return SetPolicyState({
         policies,
@@ -119,6 +166,7 @@ describe('<TrafficDashboard />', () => {
       });
     },
   };
+
   const apnCtx = {
     state: apns,
     setState: (key, value?) => {
@@ -140,7 +188,7 @@ describe('<TrafficDashboard />', () => {
           <PolicyContext.Provider value={policyCtx}>
             <ApnContext.Provider value={apnCtx}>
               <Route
-                path="/nms/:networkId/traffic/policy"
+                path="/nms/:networkId/traffic"
                 component={TrafficDashboard}
               />
             </ApnContext.Provider>
@@ -150,7 +198,7 @@ describe('<TrafficDashboard />', () => {
     </MemoryRouter>
   );
   it('renders', async () => {
-    const {getByTestId, getAllByRole, getAllByTitle, getByText} = render(
+    const {getByTestId, getAllByRole, getByText, getAllByTitle} = render(
       <Wrapper />,
     );
     await wait();
@@ -188,30 +236,49 @@ describe('<TrafficDashboard />', () => {
     fireEvent.click(policyActionList[0]);
     await wait();
     expect(getByTestId('actions-menu')).toBeVisible();
-    // Apns tab
-    fireEvent.click(getByText('APNs'));
+
+    // Profiles tab
+    fireEvent.click(getByText('Profiles'));
     await wait();
-    expect(getByTestId('title_APNs')).toHaveTextContent('APNs');
-    // Apn tables rows
-    const rowItemsApns = await getAllByRole('row');
+    const rowItemsProfile = await getAllByRole('row');
     // first row is the header
-    expect(rowItemsApns[0]).toHaveTextContent('Apn ID');
-    expect(rowItemsApns[0]).toHaveTextContent('Description');
-    expect(rowItemsApns[0]).toHaveTextContent('Qos Profile');
-    expect(rowItemsApns[0]).toHaveTextContent('Added');
-    expect(rowItemsApns[1]).toHaveTextContent('apn_0');
-    expect(rowItemsApns[1]).toHaveTextContent('Test APN description');
-    expect(rowItemsApns[1]).toHaveTextContent('1');
-    expect(rowItemsApns[2]).toHaveTextContent('apn_1');
-    expect(rowItemsApns[2]).toHaveTextContent('Test APN description');
-    expect(rowItemsApns[2]).toHaveTextContent('1');
-    // click the actions button for apn 0
-    const apnActionList = getAllByTitle('Actions');
+    expect(rowItemsProfile[0]).toHaveTextContent('Profile ID');
+    expect(rowItemsProfile[0]).toHaveTextContent('Class ID');
+    expect(rowItemsProfile[0]).toHaveTextContent('Uplink Bandwidth');
+    expect(rowItemsProfile[0]).toHaveTextContent('Downlink Bandwidth');
+    // profile_1
+    expect(rowItemsProfile[1]).toHaveTextContent('profile_1');
+    expect(rowItemsProfile[1]).toHaveTextContent('1');
+    expect(rowItemsProfile[1]).toHaveTextContent('9');
+    expect(rowItemsProfile[1]).toHaveTextContent('9');
+
+    // profile_2
+    expect(rowItemsProfile[2]).toHaveTextContent('profile_2');
+    expect(rowItemsProfile[2]).toHaveTextContent('2');
+    expect(rowItemsProfile[2]).toHaveTextContent('10');
+    expect(rowItemsProfile[2]).toHaveTextContent('10');
+
+    //Rating Groups Tab
+    fireEvent.click(getByText('Rating Groups'));
+    await wait();
+    const rowItemsRatingGroups = await getAllByRole('row');
+    // first row is the header
+    expect(rowItemsRatingGroups[0]).toHaveTextContent('Rating Group ID');
+    expect(rowItemsRatingGroups[0]).toHaveTextContent('Limit type');
+    // Rating Group 0
+    expect(rowItemsRatingGroups[1]).toHaveTextContent('0');
+    expect(rowItemsRatingGroups[1]).toHaveTextContent('FINITE');
+    // Rating Group 1
+    expect(rowItemsRatingGroups[2]).toHaveTextContent('1');
+    expect(rowItemsRatingGroups[2]).toHaveTextContent('INFINITE_UNMETERED');
+    // click the actions button for rating group 0
+    const ratingGroupActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
-    fireEvent.click(apnActionList[0]);
+    fireEvent.click(ratingGroupActionList[0]);
     await wait();
     expect(getByTestId('actions-menu')).toBeVisible();
   });
+
   it('shows prompt when remove policy is clicked', async () => {
     MagmaAPIBindings.deleteNetworksByNetworkIdPoliciesRulesByRuleId.mockResolvedValueOnce(
       {},
@@ -239,15 +306,168 @@ describe('<TrafficDashboard />', () => {
     });
     axiosMock.delete.mockClear();
   });
+  it('shows prompt when remove profile is clicked', async () => {
+    MagmaAPIBindings.deleteLteByNetworkIdPolicyQosProfilesByProfileId.mockResolvedValueOnce(
+      {},
+    );
+    const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
+    await wait();
+    // Profiles tab
+    fireEvent.click(getByText('Profiles'));
+    await wait();
+    // click remove action for profile_1
+    const profileActionList = getAllByTitle('Actions');
+    expect(getByTestId('actions-menu')).not.toBeVisible();
+    fireEvent.click(profileActionList[0]);
+    await wait();
+    fireEvent.click(getByText('Remove'));
+    await wait();
+    expect(
+      getByText('Are you sure you want to delete profile_1?'),
+    ).toBeInTheDocument();
+    // Confirm deletion
+    fireEvent.click(getByText('Confirm'));
+    await wait();
+    expect(
+      MagmaAPIBindings.deleteLteByNetworkIdPolicyQosProfilesByProfileId,
+    ).toHaveBeenCalledWith({
+      networkId: 'test',
+      profileId: 'profile_1',
+    });
+    axiosMock.delete.mockClear();
+  });
+  it('shows prompt when remove rating group is clicked', async () => {
+    MagmaAPIBindings.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId.mockResolvedValueOnce(
+      {},
+    );
+    const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
+    await wait();
+    // Rating Groups tab
+    fireEvent.click(getByText('Rating Groups'));
+    await wait();
+    // click remove action for rating group 0
+    const ratingGroupActionList = getAllByTitle('Actions');
+    expect(getByTestId('actions-menu')).not.toBeVisible();
+    fireEvent.click(ratingGroupActionList[0]);
+    await wait();
+    fireEvent.click(getByText('Remove'));
+    await wait();
+    expect(
+      getByText('Are you sure you want to delete Rating Group 0?'),
+    ).toBeInTheDocument();
+    // Confirm deletion
+    fireEvent.click(getByText('Confirm'));
+    await wait();
+    expect(
+      MagmaAPIBindings.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId,
+    ).toHaveBeenCalledWith({
+      networkId: 'test',
+      ratingGroupId: 0,
+    });
+    axiosMock.delete.mockClear();
+  });
+});
+
+describe('<TrafficDashboard APNs/>', () => {
+  const {location} = window;
+  beforeAll((): void => {
+    delete window.location;
+    window.location = {
+      pathname: '/nms/test/traffic/apn',
+    };
+  });
+
+  afterAll((): void => {
+    window.location = location;
+  });
+
+  const networkId = 'test';
+  const policyCtx = {
+    state: policies,
+    qosProfiles: {},
+    ratingGroups: {},
+    setRatingGroups: async () => {},
+    setQosProfiles: async () => {},
+    setState: (key, value?) => {
+      return SetPolicyState({
+        policies,
+        setPolicies: () => {},
+        networkId,
+        key,
+        value,
+      });
+    },
+  };
+  const apnCtx = {
+    state: apns,
+    setState: (key, value?) => {
+      return SetApnState({
+        apns,
+        setApns: () => {},
+        networkId,
+        key,
+        value,
+      });
+    },
+  };
+  const Wrapper = () => (
+    <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
+      <MuiThemeProvider theme={defaultTheme}>
+        <MuiStylesThemeProvider theme={defaultTheme}>
+          <PolicyContext.Provider value={policyCtx}>
+            <ApnContext.Provider value={apnCtx}>
+              <Route
+                path="/nms/:networkId/traffic"
+                component={TrafficDashboard}
+              />
+            </ApnContext.Provider>
+          </PolicyContext.Provider>
+        </MuiStylesThemeProvider>
+      </MuiThemeProvider>
+    </MemoryRouter>
+  );
+  it('renders', async () => {
+    const {
+      debug,
+      getAllByText,
+      getByTestId,
+      getAllByRole,
+      getAllByTitle,
+    } = render(<Wrapper />);
+    await wait();
+    debug();
+
+    const apnTitles = getAllByText('APNs');
+    expect(apnTitles.length).toBe(2);
+
+    // Apn tables rows
+    const rowItemsApns = await getAllByRole('row');
+    // first row is the header
+    expect(rowItemsApns[0]).toHaveTextContent('Apn ID');
+    expect(rowItemsApns[0]).toHaveTextContent('Description');
+    expect(rowItemsApns[0]).toHaveTextContent('Qos Profile');
+    expect(rowItemsApns[0]).toHaveTextContent('Added');
+    expect(rowItemsApns[1]).toHaveTextContent('apn_0');
+    expect(rowItemsApns[1]).toHaveTextContent('Test APN description');
+    expect(rowItemsApns[1]).toHaveTextContent('1');
+    expect(rowItemsApns[2]).toHaveTextContent('apn_1');
+    expect(rowItemsApns[2]).toHaveTextContent('Test APN description');
+    expect(rowItemsApns[2]).toHaveTextContent('1');
+    // click the actions button for apn 0
+    const apnActionList = getAllByTitle('Actions');
+    expect(getByTestId('actions-menu')).not.toBeVisible();
+    fireEvent.click(apnActionList[0]);
+    await wait();
+    expect(getByTestId('actions-menu')).toBeVisible();
+  });
+
   it('shows prompt when remove apn is clicked', async () => {
     MagmaAPIBindings.deleteLteByNetworkIdApnsByApnName.mockResolvedValueOnce(
       {},
     );
     const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
     await wait();
-    fireEvent.click(getByText('APNs'));
-    await wait();
-    // click remove action for policy 0
+
     const apnActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
     fireEvent.click(apnActionList[0]);

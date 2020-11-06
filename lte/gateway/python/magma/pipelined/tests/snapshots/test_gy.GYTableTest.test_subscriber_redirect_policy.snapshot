@@ -17,6 +17,5 @@
  cookie=0x1, table=gy(main_table), priority=3,udp,reg1=0x10,metadata=0x48c2739fd9c3,tp_src=53 actions=note:b'redir_test',set_field:0x1->reg2,set_field:0->reg4,resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
  cookie=0x1, table=gy(main_table), priority=3,tcp,reg1=0x10,metadata=0x48c2739fd9c3,tp_src=53 actions=note:b'redir_test',set_field:0x1->reg2,set_field:0->reg4,resubmit(,egress(main_table)),set_field:0->reg0,set_field:0->reg3
  cookie=0x1, table=gy(main_table), priority=1,metadata=0x48c2739fd9c3 actions=drop
- table=gy(main_table), priority=0,ip,reg1=0x10 actions=resubmit(,enforcement(main_table)),set_field:0->reg0,set_field:0->reg3
- table=gy(main_table), priority=0,ip,reg1=0x1 actions=resubmit(,enforcement(main_table)),set_field:0->reg0,set_field:0->reg3
+ table=gy(main_table), priority=0 actions=resubmit(,enforcement(main_table)),set_field:0->reg0,set_field:0->reg3
  cookie=0x1, table=204, priority=12,tcp,nw_src=192.168.128.1,nw_dst=192.168.0.1,tp_src=8080,tp_dst=42132 actions=load:0x1201020aabb->NXM_OF_ETH_DST[],load:0x48c2739fd9c3->OXM_OF_METADATA[],load:0xc0a8804a->NXM_OF_IP_DST[],load:0x972a297a->NXM_OF_IP_SRC[],load:0x50->NXM_OF_TCP_SRC[]

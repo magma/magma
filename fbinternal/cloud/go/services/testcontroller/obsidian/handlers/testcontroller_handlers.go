@@ -18,6 +18,7 @@ import (
 	"sort"
 	"strconv"
 
+	"magma/fbinternal/cloud/go/serdes"
 	"magma/fbinternal/cloud/go/services/testcontroller"
 	"magma/fbinternal/cloud/go/services/testcontroller/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
@@ -61,7 +62,7 @@ func GetObsidianHandlers() []obsidian.Handler {
 }
 
 func listTestCases(c echo.Context) error {
-	tcs, err := testcontroller.GetTestCases(nil)
+	tcs, err := testcontroller.GetTestCases(nil, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -77,7 +78,7 @@ func listTestCases(c echo.Context) error {
 func listEnodebdTestCase(c echo.Context) error {
 	// We should add some filter criteria to the RPC method but this will be
 	// low-scale enough that it won't matter
-	tcs, err := testcontroller.GetTestCases(nil)
+	tcs, err := testcontroller.GetTestCases(nil, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -107,7 +108,7 @@ func createEnodebdTestCase(e echo.Context) error {
 		enodedTestType = testcontroller.EnodedTestExcludeTraffic
 	}
 
-	err := testcontroller.CreateOrUpdateTestCase(*tc.Pk, enodedTestType, tc.Config)
+	err := testcontroller.CreateOrUpdateTestCase(*tc.Pk, enodedTestType, tc.Config, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -120,7 +121,7 @@ func getEnodebdTestCase(e echo.Context) error {
 		return nerr
 	}
 
-	res, err := testcontroller.GetTestCases([]int64{pk})
+	res, err := testcontroller.GetTestCases([]int64{pk}, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -149,7 +150,7 @@ func updateEnodebdTestCase(e echo.Context) error {
 	if !runTraffic {
 		enodedTestType = testcontroller.EnodedTestExcludeTraffic
 	}
-	err := testcontroller.CreateOrUpdateTestCase(pk, enodedTestType, cfg)
+	err := testcontroller.CreateOrUpdateTestCase(pk, enodedTestType, cfg, serdes.TestController)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}

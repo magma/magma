@@ -200,11 +200,21 @@ static bool gtp_check_ms(struct sk_buff *skb, struct pdp_ctx *pctx,
 	return false;
 }
 
+static int check_header(struct sk_buff *skb, int len)
+{
+        if (unlikely(skb->len < len))
+                return -EINVAL;
+        if (unlikely(!pskb_may_pull(skb, len)))
+                return -ENOMEM;
+        return 0;
+}
+
 static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
 		  unsigned int hdrlen, struct sock *sk,
 		  struct metadata_dst *tun_dst)
 {
 	struct pcpu_sw_netstats *stats;
+        struct iphdr *iph;
 
 	/* Get rid of the GTP + UDP headers. */
 	if (iptunnel_pull_header(skb, hdrlen, skb->protocol,
@@ -223,7 +233,22 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
 	 * calculate the transport header.
 	 */
 	skb_reset_network_header(skb);
+        if (check_header(skb, sizeof(struct iphdr))) {
+                netdev_dbg(gtp->dev, "inner pkt: could not parse");
+                goto rx_err;
+        }
 
+        iph = ip_hdr(skb);
+        if (iph->version == 4) {
+                netdev_dbg(gtp->dev, "inner pkt: ipv4");
+                skb->protocol = htons(ETH_P_IP);
+        } else if (iph->version == 6) {
+                netdev_dbg(gtp->dev, "inner pkt: ipv6");
+                skb->protocol = htons(ETH_P_IPV6);
+        } else {
+                netdev_dbg(gtp->dev, "inner pkt error: Unknown type");
+                goto rx_err;
+        }
 	skb->dev = gtp->dev;
 
 	stats = this_cpu_ptr(gtp->dev->tstats);
@@ -234,6 +259,10 @@ static int gtp_rx(struct gtp_dev *gtp, struct sk_buff *skb,
 
 	netif_rx(skb);
 
+	return 0;
+rx_err:
+	gtp->dev->stats.rx_errors++;
+	dev_kfree_skb(skb);
 	return 0;
 }
 
@@ -1599,7 +1628,7 @@ static int __init gtp_init(void)
 	if (err < 0)
 		goto unreg_genl_family;
 
-	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) v2\n",
+	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v6\n",
 		sizeof(struct pdp_ctx));
 	return 0;
 

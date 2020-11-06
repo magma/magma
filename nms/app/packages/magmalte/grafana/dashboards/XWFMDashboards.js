@@ -62,6 +62,16 @@ export const XWFMDBData = (networks: Array<string>): GrafanaDBData => {
             unit: 'decbytes',
             description: 'Memory Usage (bytes) per container',
           },
+          {
+            title: '7-Day Rolling Availability',
+            targets: [
+              {
+                expr:
+                  'sum_over_time(min by(networkID,gatewayID)(time() - container_last_seen{gatewayID=~"$gatewayID",networkID=~"$networkID",name=~".+",name!="cadvisor"} <= bool 30)[7d:1m]) / 10080',
+                legendFormat: '{{networkID}}-{{gatewayID}}',
+              },
+            ],
+          },
         ],
       },
       {

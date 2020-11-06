@@ -20,11 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
@@ -76,7 +73,6 @@ func (e *testMetricExporter) Start() {}
 func TestCollect(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)
@@ -205,7 +201,6 @@ func TestCollect(t *testing.T) {
 func TestCollectMismatchedGateway(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)
@@ -278,7 +273,6 @@ func TestConsume(t *testing.T) {
 func TestPush(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	_ = serde.RegisterSerdesLegacy(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)

@@ -154,6 +154,8 @@ message UpdateLocationAnswer {
     bool all_apns_included = 4;
     // APN configurations
     repeated APNConfiguration apn = 5;
+    // Charging characteristics for subscriber that can be overridden by per-APN values
+    string default_charging_characteristics = 6;
 
     bytes msisdn = 7;
 
@@ -184,6 +186,8 @@ message UpdateLocationAnswer {
         }
 
         PDNType pdn = 5;
+
+        string charging_characteristics = 6;
 
         // For details about values see 29.212
         message QoSProfile {

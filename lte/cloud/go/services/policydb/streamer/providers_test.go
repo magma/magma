@@ -201,6 +201,7 @@ func TestPolicyStreamers(t *testing.T) {
 						ServerAddress: swag.String("https://www.google.com"),
 						Support:       swag.String("ENABLED"),
 					},
+					HeaderEnrichmentTargets: []string{},
 				},
 				Associations: []storage.TypeAndKey{
 					{Type: lte.PolicyQoSProfileEntityType, Key: "p1"},
@@ -210,7 +211,8 @@ func TestPolicyStreamers(t *testing.T) {
 				Type: lte.PolicyRuleEntityType,
 				Key:  "r3",
 				Config: &models.PolicyRuleConfig{
-					MonitoringKey: "bar",
+					MonitoringKey:           "bar",
+					HeaderEnrichmentTargets: []string{"http://example1.com/", "http://example2.com/"},
 				},
 			},
 		},
@@ -288,7 +290,11 @@ func TestPolicyStreamers(t *testing.T) {
 			},
 			Qos: &lte_protos.FlowQos{Qci: 42},
 		},
-		{Id: "r3", MonitoringKey: []byte("bar")},
+		{
+			Id:            "r3",
+			MonitoringKey: []byte("bar"),
+			He:            &lte_protos.HeaderEnrichment{Urls: []string{"http://example1.com/", "http://example2.com/"}},
+		},
 	}
 	expected := funk.Map(
 		expectedProtos,

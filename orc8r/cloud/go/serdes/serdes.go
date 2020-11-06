@@ -21,6 +21,10 @@ import (
 	"magma/orc8r/cloud/go/services/state"
 )
 
+const (
+	deviceDomain = "device"
+)
+
 var (
 	// Network contains the base orc8r serdes for configurator network configs
 	Network = models.NetworkSerdes
@@ -31,5 +35,9 @@ var (
 		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
 		state.NewStateSerde(orc8r.StringMapSerdeType, &state.StringToStringMap{}),
 		state.NewStateSerde(orc8r.DirectoryRecordType, &directoryd_types.DirectoryRecord{}),
+	)
+	// Device contains the base orc8r serdes for the device service
+	Device = serde.NewRegistry(
+		serde.NewBinarySerde(deviceDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}),
 	)
 )

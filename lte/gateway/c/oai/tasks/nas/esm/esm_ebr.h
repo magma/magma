@@ -49,6 +49,9 @@ Description Defines functions used to handle state of EPS bearer contexts
 
 /* Unassigned EPS bearer identity value */
 #define ESM_EBI_UNASSIGNED (EPS_BEARER_IDENTITY_UNASSIGNED)
+#define ERAB_SETUP_RSP_COUNTER_MAX 5
+// TODO - Make it configurable
+#define ERAB_SETUP_RSP_TMR 5  // In secs
 
 /****************************************************************************/
 /************************  G L O B A L    T Y P E S  ************************/
