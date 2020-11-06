@@ -44,6 +44,7 @@ setup(
         'magma.redirectd',
         'magma.redirectd.templates',
         'magma.smsd',
+        'magma.health',
         'magma.subscriberdb',
         'magma.subscriberdb.crypto',
         'magma.subscriberdb.protocols',

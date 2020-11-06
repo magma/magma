@@ -25,6 +25,7 @@ import (
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
+	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 
 	"magma/feg/cloud/go/protos"
@@ -64,6 +65,7 @@ func (s *s6aProxy) sendAIR(sid string, req *protos.AuthenticationInformationRequ
 			diameter.Vendor3GPP,
 			genAuthInfoAvp(req.NumRequestedUtranGeranVectors, irp, req.UtranGeranResyncInfo))
 	}
+	glog.V(2).Infof("Sending S6a AIR message\n%s\n", m)
 	err = c.SendRequest(m, retryCount)
 	if err != nil {
 		err = Error(codes.DataLoss, err)
@@ -94,6 +96,7 @@ func genAuthInfoAvp(requestedVectorNum, irp uint32, resyncInfo []byte) *diam.Gro
 // S6a AIA
 func handleAIA(s *s6aProxy) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
+		glog.V(2).Infof("Received S6a AIA message:\n%s\n", m)
 		var aia AIA
 		err := m.Unmarshal(&aia)
 		if err != nil {

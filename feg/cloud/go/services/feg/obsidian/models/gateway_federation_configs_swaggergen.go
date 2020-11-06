@@ -47,6 +47,9 @@ type GatewayFederationConfigs struct {
 	// Required: true
 	Hss *Hss `json:"hss"`
 
+	// nh routes
+	NhRoutes NhRoutes `json:"nh_routes,omitempty"`
+
 	// s6a
 	// Required: true
 	S6a *S6a `json:"s6a"`
@@ -54,6 +57,9 @@ type GatewayFederationConfigs struct {
 	// served network ids
 	// Required: true
 	ServedNetworkIds ServedNetworkIds `json:"served_network_ids"`
+
+	// served nh ids
+	ServedNhIds ServedNhIds `json:"served_nh_ids,omitempty"`
 
 	// swx
 	// Required: true
@@ -96,11 +102,19 @@ func (m *GatewayFederationConfigs) Validate(formats strfmt.Registry) error {
 		res = append(res, err)
 	}
 
+	if err := m.validateNhRoutes(formats); err != nil {
+		res = append(res, err)
+	}
+
 	if err := m.validateS6a(formats); err != nil {
 		res = append(res, err)
 	}
 
 	if err := m.validateServedNetworkIds(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateServedNhIds(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -258,6 +272,22 @@ func (m *GatewayFederationConfigs) validateHss(formats strfmt.Registry) error {
 	return nil
 }
 
+func (m *GatewayFederationConfigs) validateNhRoutes(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.NhRoutes) { // not required
+		return nil
+	}
+
+	if err := m.NhRoutes.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("nh_routes")
+		}
+		return err
+	}
+
+	return nil
+}
+
 func (m *GatewayFederationConfigs) validateS6a(formats strfmt.Registry) error {
 
 	if err := validate.Required("s6a", "body", m.S6a); err != nil {
@@ -285,6 +315,22 @@ func (m *GatewayFederationConfigs) validateServedNetworkIds(formats strfmt.Regis
 	if err := m.ServedNetworkIds.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {
 			return ve.ValidateName("served_network_ids")
+		}
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayFederationConfigs) validateServedNhIds(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ServedNhIds) { // not required
+		return nil
+	}
+
+	if err := m.ServedNhIds.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("served_nh_ids")
 		}
 		return err
 	}

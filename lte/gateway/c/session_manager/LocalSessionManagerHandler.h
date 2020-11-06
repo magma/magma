@@ -64,6 +64,15 @@ class LocalSessionManagerHandler {
       ServerContext* context, const PolicyBearerBindingRequest* request,
       std::function<void(Status, PolicyBearerBindingResponse)>
           response_callback) = 0;
+
+  /**
+   * Updates eNB and AGW tunnels id on a existing session for a default bearer
+   */
+  virtual void UpdateTunnelIds(
+      ServerContext* context, UpdateTunnelIdsRequest* request,
+      std::function<void(Status, UpdateTunnelIdsResponse)>
+          response_callback) = 0;
+
   /**
    * Update active rules for session
    */
@@ -118,6 +127,13 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
           response_callback);
 
   /**
+   * Updates eNB and AGW tunnels id on a existing session for a default bearer
+   */
+  void UpdateTunnelIds(
+      ServerContext* context, UpdateTunnelIdsRequest* request,
+      std::function<void(Status, UpdateTunnelIdsResponse)> response_callback);
+
+  /**
    * Update active rules for session
    * Get the SessionMap for the updates, apply the set rules and update the
    * store. The rule updates should be also propagated to PipelineD
@@ -135,7 +151,7 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
   SessionIDGenerator id_gen_;
   uint64_t current_epoch_;
   uint64_t reported_epoch_;
-  std::chrono::seconds retry_timeout_;
+  std::chrono::milliseconds retry_timeout_;
   static const std::string hex_digit_;
 
  private:

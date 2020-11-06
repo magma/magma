@@ -107,13 +107,7 @@ spec:
               value: {{ .Values.controller.spec.database.driver }}
             - name: SQL_DIALECT
               value: {{ .Values.controller.spec.database.sql_dialect }}
-            # Hostname override for dispatcher
-            - name: SERVICE_HOST_NAME
-              valueFrom:
-                fieldRef:
-                  fieldPath: status.podIP
-            # Hostname override for metricsd
-            - name: HOST_NAME
+            - name: SERVICE_HOSTNAME
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
@@ -122,7 +116,7 @@ spec:
             - name: HELM_RELEASE_NAME
               value: {{ .Release.Name }}
             - name: SERVICE_REGISTRY_NAMESPACE
-              value: {{ .Release.Name }}
+              value: {{ .Release.Namespace }}
           livenessProbe:
             tcpSocket:
               port: 9081

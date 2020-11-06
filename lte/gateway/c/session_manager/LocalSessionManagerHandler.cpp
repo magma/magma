@@ -36,7 +36,7 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
       events_reporter_(events_reporter),
       current_epoch_(0),
       reported_epoch_(0),
-      retry_timeout_(1) {}
+      retry_timeout_(5000) {}
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
@@ -158,7 +158,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     return;
   } else if (resp.result() == resp.FAILURE) {
     MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
-                      "for epoch "
+                      "after delay, for epoch "
                    << epoch;
   }
 
@@ -543,6 +543,42 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
     }
   });
   response_callback(Status::OK, PolicyBearerBindingResponse());
+}
+
+void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
+    ServerContext* context, UpdateTunnelIdsRequest* request,
+    std::function<void(Status, UpdateTunnelIdsResponse)> response_callback) {
+  auto& request_cpy = *request;
+  auto imsi         = request->sid().id();
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  MLOG(MDEBUG) << "Received a UpdateTunnelIds request for " << imsi
+               << " with default bearer id: " << request->bearer_id()
+               << " enb_teid= " << request->enb_teid()
+               << " agw_teid= " << request->agw_teid();
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
+                                                    response_callback]() {
+    auto session_map = session_store_.read_sessions({imsi});
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    auto success =
+        enforcer_->update_tunnel_ids(session_map, request_cpy, update);
+    if (!success) {
+      MLOG(MDEBUG) << "Failed to UpdateTunnelIds for imsi " << imsi
+                   << " and bearer " << request_cpy.bearer_id();
+      auto err_status = Status(grpc::ABORTED, "Failed to Update tunnels Ids");
+      response_callback(err_status, UpdateTunnelIdsResponse());
+      return;
+    }
+    auto update_success = session_store_.update_sessions(update);
+    if (!update_success) {
+      MLOG(MERROR)
+          << "Failed in updating SessionStore after processing UpdateTunnelIds";
+      auto err_status = Status(grpc::ABORTED, "Failed to store tunnels Ids");
+      response_callback(err_status, UpdateTunnelIdsResponse());
+      return;
+    }
+    response_callback(Status::OK, UpdateTunnelIdsResponse());
+  });
 }
 
 void LocalSessionManagerHandlerImpl::SetSessionRules(

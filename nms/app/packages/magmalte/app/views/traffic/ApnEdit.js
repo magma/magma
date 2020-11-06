@@ -31,7 +31,6 @@ import InputAdornment from '@material-ui/core/InputAdornment';
 import List from '@material-ui/core/List';
 import ListItem from '@material-ui/core/ListItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
 import React from 'react';
 import Switch from '@material-ui/core/Switch';
 import Text from '../../theme/design-system/Text';
@@ -149,7 +148,7 @@ export function ApnEdit(props: Props) {
   return (
     <>
       <DialogContent data-testid="apnEditDialog">
-        <List component={Paper}>
+        <List>
           {error !== '' && (
             <AltFormField label={''}>
               <FormLabel data-testid="configEditError" error>
