@@ -738,8 +738,9 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			Arfcn_2G:            nil,
 			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
 				"enb1": {
-					CellId: 138777000,
-					Tac:    1,
+					CellId:    138777000,
+					Tac:       1,
+					IpAddress: "192.168.0.124",
 				},
 			},
 		},

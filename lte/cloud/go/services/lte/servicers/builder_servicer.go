@@ -331,6 +331,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			cellularEnbConfig := enodebConfig.UnmanagedConfig
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
 			enbMconfig.Tac = int32(swag.Uint32Value(cellularEnbConfig.Tac))
+			enbMconfig.IpAddress = string(*cellularEnbConfig.IPAddress)
 
 			if enbMconfig.Tac == 0 {
 				enbMconfig.Tac = int32(nwConfig.Epc.Tac)
