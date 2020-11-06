@@ -13,7 +13,6 @@
 
 # log_level is set in mconfig. it can be overridden here
 mtr_interface: lo
-module: "CWF"
 #ping_targets:
 #  "AP1": {ip: "127.0.0.1"}
 #  "AP2": {ip: "2.2.2.2"}

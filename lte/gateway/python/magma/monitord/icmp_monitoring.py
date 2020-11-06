@@ -82,11 +82,11 @@ class ICMPMonitoring(Job):
     async def _run(self) -> None:
         logging.info("Running on interface %s..." % self._MTR_PORT)
         while True:
-            try:
-                targets, addresses = await self.module.get_ping_targets()
+            targets, addresses = await self.module.get_ping_targets(self._loop)
+            if len(targets) > 0:
                 await self._ping_targets(addresses, targets)
                 await asyncio.sleep(self._polling_interval, self._loop)
-            except AttributeError:
+            else:
                 logging.warning('No ping targets found, retrying...')
                 await asyncio.sleep(self._polling_interval, self._loop)
                 continue

@@ -28,12 +28,7 @@ def main():
     # Monitoring thread loop
     mtr_interface = load_service_config("monitord")["mtr_interface"]
 
-    try:
-        module = load_service_config("monitord")["module"]
-        if module == "CWF":
-            obj = ApMonitoring()
-    except KeyError:
-        obj = CpeMonitoring()
+    obj = CpeMonitoring()
 
     icmp_monitor = ICMPMonitoring(obj, service.mconfig.polling_interval,
                                   service.loop, mtr_interface)
