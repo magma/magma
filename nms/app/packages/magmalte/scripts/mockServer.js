@@ -173,11 +173,34 @@ networks.forEach(network => {
     );
   });
 
-  server.get(`/magma/v1/networks/${network}/apns`, (req, res) => {
+  server.get(`/magma/v1/lte/${network}/apns`, (req, res) => {
     if (req.method === 'GET') {
       res.status(200).jsonp(db['apns']);
     }
   });
+
+  server.post(`/magma/v1/lte/${network}/apns`, (req, res) => {
+    if (req.method === 'POST') {
+      res.status(200).jsonp('Success');
+    }
+  });
+
+  // current set of apns
+  const apns = ['internet', 'test_apn0'];
+  apns.forEach(apnName => {
+    server.put(`/magma/v1/lte/${network}/apns/${apnName}`, (req, res) => {
+      if (req.method === 'PUT') {
+        res.status(200).jsonp('Success');
+      }
+    });
+
+    server.get(`/magma/v1/lte/${network}/apns/${apnName}`, (req, res) => {
+      if (req.method === 'GET') {
+        res.status(200).jsonp('Success');
+      }
+    });
+  });
+
   server.get(`/magma/v1/events/${network}/about/count`, (req, res) => {
     if (req.method === 'GET') {
       res.status(200).jsonp(0);
