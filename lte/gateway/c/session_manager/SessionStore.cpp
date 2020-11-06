@@ -212,11 +212,30 @@ optional<SessionVector::iterator> SessionStore::find_session(
             RATType::TGPP_WLAN) {
           return it;
         }
-        // lte case
+        // other cases (lte, 5g)
         if ((*it)->get_config().common_context.ue_ipv4() ==
                 criteria.secondary_key ||
             (*it)->get_config().common_context.ue_ipv6() ==
                 criteria.secondary_key) {
+          return it;
+        }
+        break;
+      case IMSI_AND_BEARER:
+
+        if ((*it)->get_config().common_context.rat_type() ==
+            RATType::TGPP_LTE) {
+          // lte case
+          if ((*it)
+                  ->get_config()
+                  .rat_specific_context.lte_context()
+                  .bearer_id() == criteria.secondary_key_unit32) {
+            return it;
+          }
+        } else {
+          // 5g and cwag
+          MLOG(MERROR) << "find_session by bearer is not implemented "
+                          "for cwg or 5g. Couldnt find session for "
+                       << criteria.imsi;
           return it;
         }
         break;

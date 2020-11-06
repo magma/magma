@@ -1761,6 +1761,10 @@ definitions:
         $ref: '#/definitions/gateway_non_eps_configs'
       dns:
         $ref: '#/definitions/gateway_dns_configs'
+      disable_header_enrichment:
+        description: True iff header enrichment feature should be disabled for gateway
+        type: boolean
+        example: false
 
   gateway_ran_configs:
     type: object
@@ -1866,7 +1870,7 @@ definitions:
           - 0
           - 1
           - 2
-          - 3 
+          - 3
 
   gateway_dns_records:
     type: array

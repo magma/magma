@@ -146,6 +146,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
+			DisableHeaderEnrichment:  cellularGwConfig.DisableHeaderEnrichment,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
