@@ -131,3 +131,9 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
   tmp = __sync_fetch_and_add(mme_app_ue_s1ap_id_generator_p, 1);
   return tmp;
 }
+
+teid_t mme_app_get_new_mme_teid_s11(teid_t* mme_app_teid_s11_generator_p) {
+  teid_t tmp = 0;
+  tmp        = __sync_fetch_and_add(mme_app_teid_s11_generator_p, 1);
+  return tmp;
+}

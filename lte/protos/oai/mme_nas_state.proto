@@ -162,4 +162,5 @@ message MmeNasState {
   uint32 nb_ue_since_last_stat = 11; //TODO: remove
   uint32 nb_bearers_since_last_stat = 12; //TODO: remove
   uint32 mme_app_ue_s1ap_id_generator = 20;
+  uint32 mme_app_mme_teid_s11_generator = 21;
 }

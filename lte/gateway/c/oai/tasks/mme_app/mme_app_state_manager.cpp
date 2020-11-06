@@ -171,7 +171,8 @@ void MmeNasStateManager::create_state() {
   if (!state_cache_p) {
     return;
   }
-  state_cache_p->mme_app_ue_s1ap_id_generator = 1;
+  state_cache_p->mme_app_ue_s1ap_id_generator   = 1;
+  state_cache_p->mme_app_mme_teid_s11_generator = 1;
 
   create_hashtables();
   // Initialize the local timers, which are non-persistent

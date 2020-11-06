@@ -92,6 +92,8 @@ void mme_app_convert_imsi_to_imsi_mme(
 mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
     mme_ue_s1ap_id_t* mme_app_ue_s1ap_id_generator_p);
 
+teid_t mme_app_get_new_mme_teid_s11(teid_t* mme_app_teid_s11_generator_p);
+
 /*
  * Timer identifier returned when in inactive state (timer is stopped or has
  * failed to be started)

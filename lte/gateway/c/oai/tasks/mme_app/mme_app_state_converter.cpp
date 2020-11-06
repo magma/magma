@@ -741,6 +741,8 @@ void MmeNasStateConverter::state_to_proto(
       mme_nas_state_p->nb_bearers_since_last_stat);
   state_proto->set_mme_app_ue_s1ap_id_generator(
       mme_nas_state_p->mme_app_ue_s1ap_id_generator);
+  state_proto->set_mme_app_mme_teid_s11_generator(
+      mme_nas_state_p->mme_app_mme_teid_s11_generator);
 
   // copy mme_ue_contexts
   auto mme_ue_ctxts_proto = state_proto->mutable_mme_ue_contexts();
@@ -783,6 +785,12 @@ void MmeNasStateConverter::proto_to_state(
   if (mme_nas_state_p->mme_app_ue_s1ap_id_generator == 0) {  // uninitialized
     mme_nas_state_p->mme_app_ue_s1ap_id_generator = 1;
   }
+  mme_nas_state_p->mme_app_mme_teid_s11_generator =
+      state_proto.mme_app_mme_teid_s11_generator();
+  if (mme_nas_state_p->mme_app_mme_teid_s11_generator == 0) {  // uninitialized
+    mme_nas_state_p->mme_app_mme_teid_s11_generator = 1;
+  }
+
   OAILOG_INFO(LOG_MME_APP, "Done reading MME statistics from data store");
 
   // copy mme_ue_contexts
