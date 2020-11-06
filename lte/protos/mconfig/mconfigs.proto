@@ -119,6 +119,11 @@ message PipelineD {
     string sgi_management_iface_vlan = 13;
     string sgi_management_iface_ip_addr = 14;
     string sgi_management_iface_gw = 15;
+
+    // disable_header_enrichment is true iff header enrichment feature should
+    // be disabled for gateway
+    bool disable_header_enrichment = 16;
+
     // DEPRECATED
     reserved 4, 11;
     // repeated string apps = 4;
