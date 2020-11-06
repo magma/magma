@@ -10,7 +10,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-
 - name: Include vars of all.yaml
   include_vars:
     file: all.yaml
