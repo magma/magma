@@ -15,6 +15,12 @@
   shell: cat /etc/snowflake
   register: gateway_hwid
 
+- name: copy the admin certificate key
+  copy: content={{ rest_admin_key }} dest=/var/opt/magma/certs/rest_admin.key mode='400'
+
+- name: copy the admin certificate
+  copy: content={{ rest_admin_crt }} dest=/var/opt/magma/certs/rest_admin.crt mode='400'
+
 - name: provision gateway
   script: xwfm_provision.py --partner {{ partner }} --hwid {{ gateway_hwid.stdout }} --url {{ portal_url }}
   register: output

@@ -53,6 +53,10 @@
   register: output
   ignore_errors: true
 
+- name: remove certificates
+  shell: rm -f /var/opt/magma/certs/rest_admin.key && \
+        rm -f /var/opt/magma/certs/rest_admin.crt
+
 - name: display script output
   debug:
     msg: "{{ output }}"
