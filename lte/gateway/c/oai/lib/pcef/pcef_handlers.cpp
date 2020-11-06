@@ -172,6 +172,20 @@ void pcef_send_policy2bearer_binding(
       });
 }
 
+void pcef_update_teids(
+    const char* imsi, uint8_t default_bearer_id, uint32_t enb_teid,
+    uint32_t agw_teid) {
+  magma::UpdateTunnelIdsRequest request;
+  request.mutable_sid()->set_id("IMSI" + std::string(imsi));
+  request.set_bearer_id(default_bearer_id);
+  request.set_enb_teid(std::to_string(enb_teid));
+  request.set_agw_teid(std::to_string(agw_teid));
+
+  magma::PCEFClient::update_teids(
+      request, [&](grpc::Status status,
+                   magma::UpdateTunnelIdsResponse response) { return; });
+}
+
 /*
  * Converts ascii values in [0,9] to [48,57]=['0','9']
  * else if they are in [48,57] keep them the same

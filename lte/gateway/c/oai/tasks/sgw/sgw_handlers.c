@@ -547,6 +547,11 @@ static void sgw_add_gtp_tunnel(
       if (rv < 0) {
         OAILOG_ERROR_UE(
             LOG_SPGW_APP, imsi64, "ERROR in setting up TUNNEL err=%d\n", rv);
+      } else {
+        pcef_update_teids(
+            (char*) imsi.digit, eps_bearer_ctxt_p->eps_bearer_id,
+            eps_bearer_ctxt_p->enb_teid_S1u,
+            eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up);
       }
     } else {
       for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;

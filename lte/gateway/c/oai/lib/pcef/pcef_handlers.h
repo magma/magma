@@ -85,6 +85,15 @@ void get_session_req_data(
     const itti_s11_create_session_request_t* saved_req,
     struct pcef_create_session_data* data);
 
+/**
+ * pcef_update_teids is an asynchronous call that updates
+ * enb teid and sgw/agw teid for a particular session that is
+ * uniquely identified by imsi and default bearer id.
+ */
+
+void pcef_update_teids(
+    const char* imsi, uint8_t default_bearer_id, uint32_t enb_teid,
+    uint32_t agw_teid);
 #ifdef __cplusplus
 }
 #endif
