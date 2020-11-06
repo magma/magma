@@ -1715,6 +1715,7 @@ void mme_app_handle_e_rab_setup_rsp(
 
   for (int i = 0; i < e_rab_setup_rsp->e_rab_setup_list.no_of_items; i++) {
     e_rab_id_t e_rab_id = e_rab_setup_rsp->e_rab_setup_list.item[i].e_rab_id;
+
     bearer_context_t* bc =
         mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
     bc->enb_fteid_s1u.teid = e_rab_setup_rsp->e_rab_setup_list.item[i].gtp_teid;

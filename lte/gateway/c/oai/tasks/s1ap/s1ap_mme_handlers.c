@@ -2371,14 +2371,18 @@ int s1ap_mme_handle_erab_setup_response(
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_E_RABSetupResponseIEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_E_RABFailedToSetupListBearerSURes, false);
+  const S1ap_E_RABList_t* const e_rab_list = &ie->value.choice.E_RABList;
   if (ie) {
     int num_erab = ie->value.choice.E_RABList.list.count;
     for (int index = 0; index < num_erab; index++) {
-      S1ap_E_RABItem_t* erab_item =
-          (S1ap_E_RABItem_t*) ie->value.choice.E_RABList.list.array[index];
+      const S1ap_E_RABItemIEs_t* const erab_item_ies =
+          (S1ap_E_RABItemIEs_t*) e_rab_list->list.array[index];
+      const S1ap_E_RABItem_t* const erab_item =
+          (S1ap_E_RABItem_t*) &erab_item_ies->value.choice.E_RABItem;
       S1AP_E_RAB_SETUP_RSP(message_p)
           .e_rab_failed_to_setup_list.item[index]
           .e_rab_id = erab_item->e_RAB_ID;
+
       S1AP_E_RAB_SETUP_RSP(message_p)
           .e_rab_failed_to_setup_list.item[index]
           .cause = erab_item->cause;
