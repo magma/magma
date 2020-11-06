@@ -16,8 +16,8 @@ generate_cpp_protos("${ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
 
 # SPGW
-set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd)
-set(SPGWSRV_LTE_GRPC_PROTOS spgw_service)
+set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd session_manager)
+set(SPGWSRV_LTE_GRPC_PROTOS spgw_service session_manager)
 generate_cpp_protos("${SPGWSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${SPGWSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
@@ -64,6 +64,7 @@ generate_grpc_protos("${S1APSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(TASK_GRPC_SERVICE
+    AmfServiceImpl.cpp 
     SpgwServiceImpl.cpp
     S6aGatewayImpl.cpp
     S6aServiceImpl.cpp

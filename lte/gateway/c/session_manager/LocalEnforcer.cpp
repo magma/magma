@@ -1221,7 +1221,7 @@ void LocalEnforcer::complete_termination(
   }
   auto& session    = **session_it;
   auto& session_uc = session_updates[imsi][session_id];
-  if (!session->can_complete_termination(session_uc)) {
+  if (!session->complete_termination(session_uc)) {
     return;  // error is logged in SessionState's complete_termination
   }
   auto termination_req = session->make_termination_request(session_uc);

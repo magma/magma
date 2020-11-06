@@ -11,8 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 from typing import List
-from collections import defaultdict
-
+from collections import (
+    defaultdict,
+    namedtuple)
 from lte.protos.pipelined_pb2 import RuleModResult
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.policydb_pb2 import FlowDescription
@@ -37,8 +38,11 @@ from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
-    IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
-
+    IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS, NG_FLOW_ENABLE_REG, \
+    NG_ENABLED, REG_ZERO_VAL
+from magma.pipelined.ng_manager.session_state_manager import SessionStateManager
+from lte.protos.session_manager_pb2 import (
+    UPFSessionState)
 
 ETH_FRAME_SIZE_BYTES = 14
 
@@ -60,9 +64,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
     # 0xffffffffffffffff is reserved in openflow
     DEFAULT_FLOW_COOKIE = 0xfffffffffffffffe
 
+    ng_config = namedtuple(
+        'ng_config',
+        ['ng_service_enabled', 'sessiond_setinterface'],
+    )
+
     _CONTEXTS = {
         'dpset': dpset.DPSet,
     }
+
 
     def __init__(self, *args, **kwargs):
         super(EnforcementStatsController, self).__init__(*args, **kwargs)
@@ -75,6 +85,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         poll_interval = kwargs['config']['enforcement']['poll_interval']
         # Create a rpc channel to sessiond
         self.sessiond = kwargs['rpc_stubs']['sessiond']
+
         self._msg_hub = MessageHub(self.logger)
         self.unhandled_stats_msgs = []  # Store multi-part responses from ovs
         self.total_usage = {}  # Store total usage
@@ -85,7 +96,18 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._clean_restart = kwargs['config']['clean_restart']
         self._default_drop_flow_name = \
             kwargs['config']['enforcement']['default_drop_flow_name']
+        self.ng_config=self._get_ng_config(kwargs['config'], kwargs['rpc_stubs'])
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
+
+    def _get_ng_config(self, config_dict, rpc_stub_dict):
+        ng_service_enabled=False
+        ng_flag = config_dict.get('5G_feature_set', None)
+        if ng_flag:
+            ng_service_enabled = ng_flag['enable']
+
+        sessiond_setinterface = rpc_stub_dict.get('sessiond_setinterface')
+
+        return self.ng_config(ng_service_enabled=ng_service_enabled, sessiond_setinterface=sessiond_setinterface)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
@@ -143,7 +165,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule,
+                               is_ng=False):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
@@ -154,14 +177,18 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             uplink_tunnel (int): tunnel ID of the subscriber.
             ip_addr (string): subscriber session ipv4 address
             rule (PolicyRule): policy rule proto
+            uplink and downlink tunnel-id
         """
         def fail(err):
             self.logger.error(
                 "Failed to install rule %s for subscriber %s: %s",
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
-
-        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+ 
+        if is_ng == True:
+            msgs = self._get_ng_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+        else:
+            msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
 
         chan = self._msg_hub.send(msgs, self._datapath)
         for _ in range(len(msgs)):
@@ -193,10 +220,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self.logger.debug(
             'Installing flow for %s with rule num %s (version %s)', imsi,
             rule_num, version)
+
         inbound_rule_match = _generate_rule_match(imsi, ip_addr, rule_num,
-                                                  version, Direction.IN)
+                                                  version, Direction.IN, None, False)
         outbound_rule_match = _generate_rule_match(imsi, ip_addr, rule_num,
-                                                   version, Direction.OUT)
+                                                   version, Direction.OUT, None, False)
 
         flow_actions = [flow.action for flow in rule.flow_list]
         msgs = []
@@ -254,6 +282,68 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             ])
         return msgs
 
+    # This is ng rule installation for stats
+    # pylint: disable=protected-access,unused-argument
+    def _get_ng_rule_match_flow_msgs(self, imsi, _, uplink_tunnel, ip_addr, ambr, rule):
+        """
+        Returns flow add messages used for rule matching for a particular tunnel.
+        """
+        msgs = []
+        rule_num = self._rule_mapper.get_or_create_rule_num(rule.id)
+        version = self._session_rule_version_mapper.get_ng_version_by_subscriber(imsi)
+
+        for flow in rule.flow_list:
+            if flow.match.direction == flow.match.UPLINK:
+                direction = Direction.OUT
+            elif flow.match.direction == flow.match.DOWNLINK:
+                direction = Direction.IN
+
+            self.logger.debug(
+                'Installing flow for %s with rule num %s (version %s)', imsi,
+                 rule_num, version)
+ 
+            tunnel_id = None
+            if uplink_tunnel:
+                tunnel_id = uplink_tunnel
+
+            rule_match = _generate_rule_match(imsi, ip_addr, rule_num,
+                                              version, direction, tunnel_id,
+                                              True)
+
+            if flow.action == FlowDescription.PERMIT:
+                rule_match._match_kwargs[SCRATCH_REGS[1]] = PROCESS_STATS
+                msgs.extend([
+                    flows.get_add_drop_flow_msg(
+                        self._datapath,
+                        self.tbl_num,
+                        rule_match,
+                        priority=flows.DEFAULT_PRIORITY,
+                        cookie=rule_num),
+                ])
+            else:
+                rule_match._match_kwargs[SCRATCH_REGS[1]] = DROP_FLOW_STATS
+                msgs.extend([
+                    flows.get_add_drop_flow_msg(
+                        self._datapath,
+                        self.tbl_num,
+                        rule_match,
+                        priority=flows.DEFAULT_PRIORITY,
+                        cookie=rule_num),
+                ])
+
+            if rule.app_name:
+                rule_match._match_kwargs[SCRATCH_REGS[1]] = IGNORE_STATS
+                msgs.extend([
+                    flows.get_add_drop_flow_msg(
+                        self._datapath,
+                        self.tbl_num,
+                        rule_match,
+                        priority=flows.DEFAULT_PRIORITY,
+                        cookie=rule_num),
+               ])
+
+        return msgs
+
     def _get_default_flow_msgs_for_subscriber(self, imsi, ip_addr):
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
         match_out = _generate_rule_match(imsi, ip_addr, 0, 0,
@@ -265,6 +355,18 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
                                         priority=Utils.DROP_PRIORITY)]
 
+    def _get_default_ng_flow_msgs_for_subscriber(self, imsi, ip_addr, uplink_tunnel=0):
+        default_flows = []
+        if uplink_tunnel:
+            match_out = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.OUT, uplink_tunnel, True)
+            default_flows = [flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
+                             priority=Utils.DROP_PRIORITY)]
+        else:
+            match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN, None, True)
+            default_flows= [flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_in,
+                            priority=Utils.DROP_PRIORITY)]
+
+        return default_flows
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         pass
@@ -277,7 +379,23 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             imsi (string): subscriber id
             ip_addr (string): subscriber ip_addr
         """
+
         msgs = self._get_default_flow_msgs_for_subscriber(imsi, ip_addr)
+
+        if msgs:
+            chan = self._msg_hub.send(msgs, self._datapath)
+            self._wait_for_responses(chan, len(msgs))
+
+    def _install_default_ng_flow_for_subscriber(self, imsi, ip_addr, uplink_tunnel=0):
+        """
+        Add a low priority flow to drop a subscriber's traffic.
+
+        Args:
+            imsi (string): subscriber id
+            ip_addr (string): subscriber ip_addr
+        """
+        msgs = self._get_default_ng_flow_msgs_for_subscriber(imsi, ip_addr, uplink_tunnel)
+
         if msgs:
             chan = self._msg_hub.send(msgs, self._datapath)
             self._wait_for_responses(chan, len(msgs))
@@ -374,7 +492,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         # recognize when flows have ended
         self._report_usage(delta_usage)
 
-        self._delete_old_flows(stats_msgs)
+        mark_flow_deleted = self._delete_old_flows(stats_msgs)
+
+        #Report only if their is no change in version
+        if self.ng_config.ng_service_enabled == True and mark_flow_deleted == False:
+            self._prepare_session_config_report(stats_msgs)
 
     def deactivate_default_flow(self, imsi, ip_addr):
         match_in = _generate_rule_match(imsi, ip_addr, 0, 0, Direction.IN)
@@ -389,6 +511,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         record_table = RuleRecordTable(records=delta_usage.values(),
                                        epoch=global_epoch)
+
         future = self.sessiond.ReportRuleStats.future(
             record_table, self.SESSIOND_RPC_TIMEOUT)
         future.add_done_callback(
@@ -475,8 +598,11 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         so, delete the flow and update last_usage_for_delta so we calculate the
         correct usage delta for the next poll.
         """
+        mark_flow_deleted = False
+
         deleted_flow_usage = defaultdict(RuleRecord)
         for deletable_stat in self._old_flow_stats(stats_msgs):
+            mark_flow_deleted = True
             stat_rule_id = self._get_rule_id(deletable_stat)
             stat_sid = _get_sid(deletable_stat)
             ipv4_addr_str = _get_ipv4(deletable_stat)
@@ -489,10 +615,16 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 ip_addr = IPAddress(version=IPAddress.IPV6,
                                     address=ipv6_addr_str.encode('utf-8'))
             rule_version = _get_version(deletable_stat)
+            tunnel_id = _get_tunnel_id(deletable_stat)
+            ng_flow_enabled = _get_ng_enable(deletable_stat)
+            if ng_flow_enabled == NG_ENABLED:
+                is_ng = True
+            else:
+                is_ng = False
 
             try:
                 self._delete_flow(deletable_stat, stat_sid, ip_addr,
-                                  rule_version)
+                                  rule_version, tunnel_id, is_ng)
                 # Only remove the usage of the deleted flow if deletion
                 # is successful.
                 self._update_usage_from_flow_stat(deleted_flow_usage,
@@ -505,6 +637,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
         self.last_usage_for_delta = self._delta_usage_maps(self.total_usage,
                                                            deleted_flow_usage)
+
+        return mark_flow_deleted
 
     def _old_flow_stats(self, stats_msgs):
         """
@@ -528,19 +662,29 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 if rule_id == "":
                     continue
 
-                current_ver = \
-                    self._session_rule_version_mapper.get_version(sid,
-                                                                  ipv4_addr,
-                                                                  rule_id)
+                ng_flow_enabled = _get_ng_enable(stat)
+
+                if ng_flow_enabled and ng_flow_enabled == NG_ENABLED:
+                    current_ver = \
+                        self._session_rule_version_mapper.\
+                                     get_ng_version_by_subscriber(sid)
+                else:
+                    current_ver = \
+                        self._session_rule_version_mapper.get_version(sid,
+                                                                      ipv4_addr,
+                                                                      rule_id)
+
                 if current_ver != rule_version:
                     yield stat
 
-    def _delete_flow(self, flow_stat, sid, ip_addr, version):
+    def _delete_flow(self, flow_stat, sid, ip_addr, version, tunnel_id=None,
+                     is_ng=False):
         cookie, mask = (
             flow_stat.cookie, flows.OVS_COOKIE_MATCH_ALL)
+
         match = _generate_rule_match(
             sid, ip_addr, flow_stat.cookie, version,
-            Direction(flow_stat.match[DIRECTION_REG]))
+            Direction(flow_stat.match[DIRECTION_REG]), tunnel_id)
         flows.delete_flow(self._datapath,
                           self.tbl_num,
                           match,
@@ -592,16 +736,69 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 new_usage[key] = current
         return new_usage
 
-def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
+    def _prepare_session_config_report(self, stats_msgs):
+        session_config_dict={}
+
+        for flow_stats in stats_msgs:
+            for stat in flow_stats:
+                if stat.table_id != self.tbl_num:
+                    return
+
+                ng_flow_enabled = _get_ng_enable(stat)
+                if not ng_flow_enabled or  ng_flow_enabled != NG_ENABLED:
+                    continue
+
+                sid = _get_sid(stat)
+                if not sid:
+                    continue
+
+                rule_version = _get_version(stat)
+                if not rule_version:
+                    continue
+
+                if stat.match[DIRECTION_REG] == Direction.OUT:
+                    local_f_teid =  _get_tunnel_id(stat)
+                    if not local_f_teid:
+                        continue
+
+                    # Check if session exists
+                    if sid in session_config_dict:
+                        session_state = session_config_dict[sid]
+
+                        #Rule should match but in case not continue.
+                        if session_state.session_version != rule_version or\
+                           session_state.local_f_teid != local_f_teid:
+                            self.logger.warning("Mismatch entries : sid=%s,verson=%d,teid=%d\n",
+                                                sid, rule_version, local_f_teid)
+                    else:
+                        session_config_dict.update ({sid:
+                                                     UPFSessionState(subscriber_id=sid,\
+                                                                     session_version=rule_version,
+                                                                     local_f_teid=local_f_teid)})
+
+        #Send Session messages
+        if session_config_dict:
+            SessionStateManager.report_session_config_state(session_config_dict,\
+                                                            self.ng_config.sessiond_setinterface)
+
+def _generate_rule_match(imsi, ip_addr, rule_num, version, direction,
+                         tunnel_id=None, is_ng=False):
     """
     Return a MagmaMatch that matches on the rule num and the version.
     """
     ip_match = get_ue_ip_match_args(ip_addr, direction)
+    if is_ng == True:
+        ng_flow_enabled = NG_ENABLED
+    else:
+        ng_flow_enabled = REG_ZERO_VAL
+
+    if tunnel_id:
+        ip_match.update({'tunnel_id': tunnel_id})
 
     return MagmaMatch(imsi=encode_imsi(imsi), eth_type=get_eth_type(ip_addr),
                       direction=direction, rule_num=rule_num,
-                      rule_version=version, **ip_match)
-
+                      rule_version=version, ng_flow_enabled=ng_flow_enabled,
+                      **ip_match)
 
 def _merge_usage_maps(current_usage, last_usage):
     """
@@ -658,6 +855,10 @@ def _get_version(flow):
         return None
     return flow.match[RULE_VERSION_REG]
 
+def _get_ng_enable(flow):
+    if NG_FLOW_ENABLE_REG not in flow.match:
+        return None
+    return flow.match[NG_FLOW_ENABLE_REG]
 
 def _get_downlink_byte_count(flow_stat):
     total_bytes = flow_stat.byte_count
@@ -669,3 +870,13 @@ def _get_policy_type(match):
     if SCRATCH_REGS[1] not in match:
         return None
     return match[SCRATCH_REGS[1]]
+
+def _get_tunnel_id(flow):
+    #if DIRECTION_REG not in flow.match:
+    #    return None
+
+    if 'tunnel_id' in flow.match:
+        return flow.match['tunnel_id']
+
+    return None
+

@@ -25,7 +25,7 @@ from magma.subscriberdb.sid import SIDUtils
 from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 
 SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'ambr',
-                                                'table_id'])
+                                                'table_id', 'uplink_tunnel'])
 default_ambr_config = None
 
 def try_grpc_call_with_retries(grpc_call, retry_count=5, retry_interval=1):
@@ -149,8 +149,9 @@ class RyuDirectSubscriberContext(SubscriberContext):
     """
 
     def __init__(self, imsi, ip, enforcement_controller, table_id=5,
-                 enforcement_stats_controller=None, nuke_flows_on_exit=True):
-        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
+                 enforcement_stats_controller=None, nuke_flows_on_exit=True,
+                 uplink_tunnel=None):
+        self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id, uplink_tunnel)
         self._dynamic_rules = []
         self._static_rule_names = []
         self._ec = enforcement_controller
@@ -171,20 +172,20 @@ class RyuDirectSubscriberContext(SubscriberContext):
             self._ec.activate_rules(
                 imsi=self.cfg.imsi,
                 msisdn=None,
-                uplink_tunnel=None,
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
                 static_rule_ids=self._static_rule_names,
-                dynamic_rules=self._dynamic_rules)
+                dynamic_rules=self._dynamic_rules,
+                uplink_tunnel=self.cfg.uplink_tunnel)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
                     msisdn=None,
-                    uplink_tunnel=None,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
                     static_rule_ids=self._static_rule_names,
-                    dynamic_rules=self._dynamic_rules)
+                    dynamic_rules=self._dynamic_rules,
+                    uplink_tunnel=self.cfg.uplink_tunnel)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):

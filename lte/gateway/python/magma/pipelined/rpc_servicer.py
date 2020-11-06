@@ -16,6 +16,7 @@ import queue
 from concurrent.futures import Future
 from itertools import chain
 from typing import List, Tuple
+from collections import OrderedDict
 
 import grpc
 from lte.protos import pipelined_pb2_grpc
@@ -31,7 +32,12 @@ from lte.protos.pipelined_pb2 import (
     SetupQuotaRequest,
     ActivateFlowsRequest,
     AllTableAssignments,
-    TableAssignment)
+    TableAssignment,
+    SessionSet,
+    PdrState,
+    UPFSessionContextState,
+    OffendingIE,
+    CauseIE)
 from lte.protos.policydb_pb2 import PolicyRule
 from lte.protos.mobilityd_pb2 import IPAddress
 from lte.protos.subscriberdb_pb2 import AggregatedMaximumBitrate
@@ -50,6 +56,8 @@ from magma.pipelined.metrics import (
     ENFORCEMENT_STATS_RULE_INSTALL_FAIL,
     ENFORCEMENT_RULE_INSTALL_FAIL,
 )
+from magma.pipelined.imsi import encode_imsi
+from magma.pipelined.ng_manager.session_state_manager_util import PDRRuleEntry
 
 grpc_msg_queue = queue.Queue()
 
@@ -61,7 +69,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def __init__(self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
                  ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
-                 tunnel_learn_app, classifier_app, service_config, service_manager):
+                 tunnel_learn_app, classifier_app, ng_servicer_app,
+                 service_config, service_manager):
         self._loop = loop
         self._gy_app = gy_app
         self._enforcer_app = enforcer_app
@@ -74,6 +83,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._tunnel_learn_app = tunnel_learn_app
         self._service_config = service_config
         self._classifier_app = classifier_app
+        self._ng_servicer_app = ng_servicer_app
         self._service_manager = service_manager
 
         self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
@@ -269,14 +279,16 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                              ip_addr: IPAddress,
                                              apn_ambr: AggregatedMaximumBitrate,
                                              static_rule_ids: List[str],
-                                             dynamic_rules: List[PolicyRule]
-                                             ) -> ActivateFlowsResult:
+                                             dynamic_rules: List[PolicyRule],
+                                             is_ng: bool=False) -> ActivateFlowsResult:
         if not self._service_manager.is_app_enabled(
                 EnforcementStatsController.APP_NAME):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_rule_ids, dynamic_rules,
+            is_ng)
+
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
@@ -285,12 +297,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                                        ip_addr: IPAddress,
                                        apn_ambr: AggregatedMaximumBitrate,
                                        static_rule_ids: List[str],
-                                       dynamic_rules: List[PolicyRule]
-                                       ) -> ActivateFlowsResult:
+                                       dynamic_rules: List[PolicyRule],
+                                       is_ng: bool=False) -> ActivateFlowsResult:
         # TODO: this will crash pipelined if called with both static rules
         # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
-            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_rule_ids, dynamic_rules,
+            is_ng)
         # TODO ?? Should the enforcement failure be reported per imsi session
         _report_enforcement_failures(enforcement_res, imsi)
         return enforcement_res
@@ -642,6 +655,163 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         if not self._print_grpc_payload:
             return
         logging.info(log_msg)
+
+    def SetSMFSessions(self, request, context):
+        """
+        Setup the 5G Session flows for the subscriber
+        """
+        logging.info("=====SMF-UPF-INTEGRATE: REQUEST=====")
+        logging.info(request)
+
+        fut = Future()
+        self._log_grpc_payload(request)
+        self._loop.call_soon_threadsafe(\
+                      self.ng_update_session_flows, request, fut)
+
+        return fut.result()
+
+    def ng_update_session_flows(self, request: SessionSet,
+                                fut: 'Future(UPFSessionContextState)') -> UPFSessionContextState:
+        """
+        Install PDR, FAR and QER flows for the 5G Session send by SMF
+        """
+        logging.debug('Update 5G Session Flow for SessionID:%s, SessionVersion:%d',
+                      request.subscriber_id, request.session_version)
+
+        # Convert message containing PDR to Named Tuple Rules.
+        process_pdr_rules = OrderedDict()
+        response = self._ng_servicer_app.ng_session_message_handler(request, process_pdr_rules)
+
+        # Failure in message processing return failure
+        if response.cause_info.cause_ie == CauseIE.REQUEST_ACCEPTED:
+            for _, pdr_entries in process_pdr_rules.items():
+                # Create the Tunnel
+                ret = self._ng_tunnel_update(pdr_entries, request.subscriber_id)
+                if ret == True:
+                    # Install the Rules
+                    failed_static_rule_results, failed_dynamic_rule_results =\
+                            self._ng_qer_update(request.session_version, pdr_entries,
+                                                request.subscriber_id)
+
+                if ret == False or failed_static_rule_results or failed_dynamic_rule_results:
+                    offending_ie = OffendingIE(identifier=pdr_entries.pdr_id,
+                                               version=pdr_entries.pdr_version,
+                                               qos_enforce_rule_results=ActivateFlowsResult(\
+                                                       static_rule_results=[failed_static_rule_results],
+                                                       dynamic_rule_results=[failed_dynamic_rule_results]))
+
+                    #Session information is filled already
+                    response.cause_info.cause_ie = CauseIE.RULE_CREATION_OR_MODIFICATION_FAILURE
+                    response.failure_rule_id.pdr.extend([offending_ie])
+                    break
+
+        logging.info("=====SMF-UPF-INTEGRATE: RESPONSE=====")
+        logging.info(response)
+        fut.set_result(response)
+
+    def _ng_tunnel_update(self, pdr_entry: PDRRuleEntry, subscriber_id: str) -> bool:
+        if pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+            ret = self._classifier_app.add_tunnel_flows(\
+                           pdr_entry.precedence, pdr_entry.local_f_teid,\
+                           pdr_entry.far_action.o_teid, pdr_entry.ue_ip_addr,\
+                           pdr_entry.far_action.gnb_ip_addr, encode_imsi(subscriber_id))
+
+        elif pdr_entry.pdr_state == PdrState.Value('REMOVE'):
+            ret = self._classifier_app.delete_tunnel_flows(\
+                           pdr_entry.local_f_teid, pdr_entry.ue_ip_addr)
+
+        return ret
+
+    def _ng_qer_update(self, session_version:int, pdr_entry: PDRRuleEntry,
+                       subscriber_id: str) -> Tuple[List[RuleModResult],
+                                   List[RuleModResult]]:
+        enforcement_res = []
+        failed_static_rule_results = []
+        failed_dynamic_rule_results = []
+
+        if pdr_entry.pdr_state == PdrState.Value('REMOVE') or\
+           pdr_entry.del_qos_enforce_rule:
+            self._ng_deactivate_qer_flows(session_version, pdr_entry, subscriber_id)
+
+        if pdr_entry.pdr_state == PdrState.Value('INSTALL'):
+            enforcement_res = \
+                self._ng_activate_qer_flow(session_version, pdr_entry, subscriber_id)
+
+            failed_static_rule_results, failed_dynamic_rule_results = \
+                    _retrieve_failed_results(enforcement_res)
+
+        return failed_static_rule_results, failed_dynamic_rule_results
+
+    def _ng_activate_qer_flow(self, session_version, pdr_entry, subscriber_id):
+
+        qos_enforce_rule = pdr_entry.add_qos_enforce_rule
+
+        ipv4 = convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr)
+        self._ng_update_version(subscriber_id, session_version)
+        if qos_enforce_rule.ipv6_addr:
+            self._update_ipv6_prefix_store(qos_enforce_rule.ipv6_addr)
+
+        # Install rules in enforcement stats
+        enforcement_stats_res = self._activate_rules_in_enforcement_stats(
+                                         subscriber_id, qos_enforce_rule.msisdn, pdr_entry.local_f_teid, 
+                                         ipv4, qos_enforce_rule.apn_ambr, qos_enforce_rule.rule_ids, 
+                                         qos_enforce_rule.dynamic_rules, True)
+
+        failed_static_rule_results, failed_dynamic_rule_results = \
+             _retrieve_failed_results(enforcement_stats_res)
+
+        # Do not install any rules that failed to install in enforcement_stats.
+        static_rule_ids = \
+             _filter_failed_static_rule_ids(qos_enforce_rule, failed_static_rule_results)
+        dynamic_rules = \
+             _filter_failed_dynamic_rules(qos_enforce_rule, failed_dynamic_rule_results)
+
+        enforcement_res = \
+               self._activate_rules_in_enforcement(
+                    subscriber_id, qos_enforce_rule.msisdn, pdr_entry.local_f_teid,
+                    ipv4, qos_enforce_rule.apn_ambr, static_rule_ids,
+                    dynamic_rules, True)
+
+        # Include the failed rules from enforcement_stats in the response.
+        enforcement_res.static_rule_results.extend(failed_static_rule_results)
+        enforcement_res.dynamic_rule_results.extend(
+             failed_dynamic_rule_results)
+
+        return enforcement_res
+
+    def _ng_deactivate_qer_flows(self, session_version, pdr_entry, subscriber_id):
+
+        if  pdr_entry.del_qos_enforce_rule:
+            self._ng_deactivate_qer_flow_entry(session_version, pdr_entry, \
+                                               pdr_entry.del_qos_enforce_rule,
+                                               subscriber_id)
+
+        if pdr_entry.pdr_state == PdrState.Value('REMOVE') and \
+           pdr_entry.add_qos_enforce_rule:
+            self._ng_deactivate_qer_flow_entry(session_version, pdr_entry, \
+                                               pdr_entry.add_qos_enforce_rule,
+                                               subscriber_id)
+
+    def _ng_deactivate_qer_flow_entry(self, session_version, pdr_entry, qos_enforce_rule,
+                                      subscriber_id):
+        logging.debug('Deactivating N4 flows for %s', subscriber_id)
+
+        ipv4 = convert_ipv4_str_to_ip_proto(pdr_entry.ue_ip_addr)
+
+        self._ng_update_version(subscriber_id, session_version)
+
+        self._enforcer_app.deactivate_rules(subscriber_id, ipv4,
+                                            qos_enforce_rule.rule_ids,
+                                            pdr_entry.local_f_teid,
+                                            True)
+
+    def _ng_update_version(self, subscriber_id: str, session_version: int):
+        """
+        Update 5G version for a given subscriber as QOS is installed.
+        """
+        self._service_manager.session_rule_version_mapper\
+                 .ng_update_rules_version(subscriber_id, session_version)
+
 
 def _retrieve_failed_results(activate_flow_result: ActivateFlowsResult
                              ) -> Tuple[List[RuleModResult],

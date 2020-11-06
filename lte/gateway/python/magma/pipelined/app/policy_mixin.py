@@ -12,7 +12,6 @@ limitations under the License.
 """
 from typing import List
 from abc import ABCMeta, abstractmethod
-
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
 from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult, \
@@ -22,7 +21,8 @@ from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
-    DIRECTION_REG, SCRATCH_REGS, RULE_VERSION_REG, RULE_NUM_REG
+    DIRECTION_REG, SCRATCH_REGS, RULE_VERSION_REG, RULE_NUM_REG, NG_FLOW_ENABLE_REG,\
+    NG_ENABLED, REG_ZERO_VAL
 from magma.pipelined.openflow.messages import MsgChannel
 
 from lte.protos.policydb_pb2 import PolicyRule
@@ -196,7 +196,8 @@ class PolicyMixin(metaclass=ABCMeta):
                 if rule.redirect.support == rule.redirect.ENABLED:
                     self._install_redirect_flow(imsi, ip_addr, rule)
 
-    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, static_rule_ids, dynamic_rules):
+    def activate_rules(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, static_rule_ids, dynamic_rules,
+                       is_ng=False):
         """
         Activate the flows for a subscriber based on the rules stored in Redis.
         During activation, a default flow may be installed for the subscriber.
@@ -223,15 +224,23 @@ class PolicyMixin(metaclass=ABCMeta):
             )
         static_results = []
         for rule_id in static_rule_ids:
-            res = self._install_flow_for_static_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule_id)
+            res = self._install_flow_for_static_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule_id,
+                                                     is_ng)
             static_results.append(RuleModResult(rule_id=rule_id, result=res))
         dyn_results = []
         for rule in dynamic_rules:
-            res = self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+            res = self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule,
+                                              is_ng)
             dyn_results.append(RuleModResult(rule_id=rule.id, result=res))
 
-        # Install a base flow for when no rule is matched.
-        self._install_default_flow_for_subscriber(imsi, ip_addr)
+        if is_ng == True:
+            # Install a base flow for when no rule is matched.
+            self._install_default_ng_flow_for_subscriber(imsi, ip_addr, uplink_tunnel)
+        else:
+            # Install a base flow for when no rule is matched.
+            self._install_default_flow_for_subscriber(imsi, ip_addr)
+
+
         return ActivateFlowsResult(
             static_rule_results=static_results,
             dynamic_rule_results=dyn_results,
@@ -241,7 +250,8 @@ class PolicyMixin(metaclass=ABCMeta):
         if self.proxy_controller:
             self.proxy_controller.remove_subscriber_flow(ip_addr, rule_id)
 
-    def _install_flow_for_static_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule_id):
+    def _install_flow_for_static_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule_id,
+                                      is_ng=False):
         """
         Install a flow to get stats for a particular static rule id. The rule
         will be loaded from Redis and installed.
@@ -255,7 +265,9 @@ class PolicyMixin(metaclass=ABCMeta):
         if rule is None:
             self.logger.error("Could not find rule for rule_id: %s", rule_id)
             return RuleModResult.FAILURE
-        return self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
+
+        return self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule,
+                                           is_ng)
 
     def _wait_for_rule_responses(self, imsi, rule, chan):
         def fail(err):
@@ -290,17 +302,19 @@ class PolicyMixin(metaclass=ABCMeta):
     def _get_classify_rule_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, flow, rule_num,
                                      priority, qos, hard_timeout, rule_id, app_name,
                                      app_service_type, next_table, version, qos_mgr,
-                                     copy_table, urls:List[str] = None):
+                                     copy_table, urls:List[str] = None, is_ng: bool = False):
         """
         Install a flow from a rule. If the flow action is DENY, then the flow
         will drop the packet. Otherwise, the flow classifies the packet with
         its matched rule and injects the rule num into the packet's register.
         """
         parser = self._datapath.ofproto_parser
-        flow_match = flow_match_to_magma_match(flow.match, ip_addr)
+
+        flow_match = flow_match_to_magma_match(flow.match, ip_addr, uplink_tunnel)
+
         flow_match.imsi = encode_imsi(imsi)
         flow_match_actions, instructions = self._get_action_for_rule(
-            flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr)
+            flow, rule_num, imsi, ip_addr, apn_ambr, qos, rule_id, version, qos_mgr, is_ng)
         msgs = []
         if app_name:
             # We have to allow initial traffic to pass through, before it gets
@@ -366,7 +380,7 @@ class PolicyMixin(metaclass=ABCMeta):
         return msgs
 
     def _get_action_for_rule(self, flow, rule_num, imsi, ip_addr,
-                             apn_ambr, qos, rule_id, version, qos_mgr):
+                             apn_ambr, qos, rule_id, version, qos_mgr, is_ng = False):
         """
         Returns an action instructions list to be applied for a specific flow.
         If qos or apn_ambr are set, the appropriate action is returned based
@@ -409,14 +423,21 @@ class PolicyMixin(metaclass=ABCMeta):
             if inst:
                 instructions.append(inst)
 
+        if is_ng:
+            ng_flow_enabled = NG_ENABLED
+        else:
+            ng_flow_enabled = REG_ZERO_VAL
+
         actions.extend(
             [parser.NXActionRegLoad2(dst=RULE_NUM_REG, value=rule_num),
-             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version)
+             parser.NXActionRegLoad2(dst=RULE_VERSION_REG, value=version),
+             parser.NXActionRegLoad2(dst=NG_FLOW_ENABLE_REG, value=ng_flow_enabled)
              ])
         return actions, instructions
 
     @abstractmethod
-    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule,
+                               is_ng=False):
         """
         Install a flow given a rule. Subclass should implement this.
 
@@ -429,6 +450,17 @@ class PolicyMixin(metaclass=ABCMeta):
 
     @abstractmethod
     def _install_default_flow_for_subscriber(self, imsi, ip_addr):
+        """
+        Install a flow for the subscriber in the event no rule is matched.
+        Subclass should implement this.
+
+        Args:
+            imsi (string): subscriber id
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def _install_default_ng_flow_for_subscriber(self, imsi, ip_addr, uplink_tunnel):
         """
         Install a flow for the subscriber in the event no rule is matched.
         Subclass should implement this.

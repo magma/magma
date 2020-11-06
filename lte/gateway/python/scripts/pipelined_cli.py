@@ -17,6 +17,7 @@ import argparse
 import errno
 from pprint import pprint
 import subprocess
+from collections import namedtuple
 
 from magma.common.rpc_utils import grpc_wrapper
 from lte.protos.pipelined_pb2 import (
@@ -33,16 +34,200 @@ from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.service_manager import Tables
 from magma.pipelined.qos.common import QosManager
 from orc8r.protos.common_pb2 import Void
+from lte.protos.session_manager_pb2 import NodeID
 from lte.protos.pipelined_pb2 import (
+    SessionSet,
+    SetGroupFAR,
+    FwdParam,
+    Action,
+    OuterHeaderCreation,
+    SetGroupPDR,
+    PDI,
+    OuterHeadRemoval,
+    Fsm_state,
+    PdrState,
     ActivateFlowsRequest,
     DeactivateFlowsRequest,
     RuleModResult,
     UEMacFlowRequest,
     RequestOriginType,
 )
+from magma.pipelined.ng_manager.session_state_manager_util import FARRuleEntry
+
 from lte.protos.pipelined_pb2_grpc import PipelinedStub
 from lte.protos.policydb_pb2 import FlowMatch, FlowDescription, PolicyRule
 
+QoSEnforceRuleEntry = namedtuple(
+                         'QoSEnforceRuleEntry',
+                         ['imsi', 'rule_id', 'ipv4_dst', 'allow', 'priority', 'hard_timeout', 'direction'])
+
+# --------------------------
+# NG Servicer App
+#---------------------------
+class CreateSessionUtil:
+
+    def __init__(self, subscriber_id:str, local_f_teid:int, session_version, node_id="192.168.220.1"):
+        self._set_session = \
+                  SessionSet(subscriber_id=subscriber_id, local_f_teid=local_f_teid,\
+                             session_version=session_version,\
+                             node_id=NodeID(node_id_type=NodeID.IPv4, node_id=node_id),\
+                             state=Fsm_state(state=Fsm_state.CREATED))
+
+
+    def CreateQERinPDR(self, qos_enforce_rule: QoSEnforceRuleEntry, ue_ip_addr: str):
+        if qos_enforce_rule.allow == 'YES':
+           allow = FlowDescription.PERMIT
+        else:
+           allow = FlowDescription.DENY
+
+        if qos_enforce_rule.direction == FlowMatch.UPLINK:
+            flow_list =  [FlowDescription(match=FlowMatch(
+                                         ip_dst=convert_ipv4_str_to_ip_proto(qos_enforce_rule.ipv4_dst),
+                                         direction=qos_enforce_rule.direction),
+                                         action=allow)]
+        else:
+            flow_list =  [FlowDescription(match=FlowMatch(
+                                         ip_src=convert_ipv4_str_to_ip_proto(qos_enforce_rule.ipv4_dst),
+                                         direction=qos_enforce_rule.direction),
+                                         action=allow)]
+
+
+        qos_enforce_rule = ActivateFlowsRequest(
+                                  sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
+                                  ip_addr=ue_ip_addr,
+                                  dynamic_rules=[PolicyRule(
+                                  id=qos_enforce_rule.rule_id,
+                                  priority=qos_enforce_rule.priority,
+                                  hard_timeout=qos_enforce_rule.hard_timeout,
+                                  flow_list=flow_list
+                                )],
+                                request_origin=RequestOriginType(type=RequestOriginType.N4))
+        return  qos_enforce_rule
+
+    def CreateDelQERinPDR(self, qos_enforce_rule: QoSEnforceRuleEntry, ue_ip_addr: str):
+
+        qos_enforce_rule = DeactivateFlowsRequest(
+                                  sid=SIDUtils.to_pb(qos_enforce_rule.imsi),
+                                  ip_addr=ue_ip_addr,
+                                  rule_ids=[qos_enforce_rule.rule_id],
+                                  request_origin=RequestOriginType(type=RequestOriginType.N4))
+        return  qos_enforce_rule
+
+
+    def CreateSessionPDR(self, pdr_id:int, pdr_version:int, pdr_state,
+                         precedence:int, local_f_teid:int, ue_ip_addr:str,
+                         del_qos_enforcer=None, add_qos_enforcer=None,
+                         far_tuple=None):
+
+        del_qos_enforce_rule = None
+        add_qos_enforce_rule = None
+        far_gr_entry = None
+
+        if far_tuple:
+            if far_tuple.o_teid != 0:
+                # For pdr_id=2 towards access
+                far_gr_entry = SetGroupFAR(far_action_to_apply=[far_tuple.apply_action],\
+                                           fwd_parm=FwdParam(dest_iface=0, \
+                                           outr_head_cr=OuterHeaderCreation(\
+                                             o_teid=far_tuple.o_teid, gnb_ipv4_adr=far_tuple.gnb_ip_addr)))
+            else:
+                far_gr_entry = SetGroupFAR(far_action_to_apply=[far_tuple.apply_action])
+
+        if del_qos_enforcer and len(del_qos_enforcer.rule_id):
+            del_qos_enforce_rule = self.CreateDelQERinPDR(del_qos_enforcer, ue_ip_addr)
+
+        if add_qos_enforcer and len(add_qos_enforcer.rule_id):
+            add_qos_enforce_rule = self.CreateQERinPDR(add_qos_enforcer, ue_ip_addr)
+
+        if local_f_teid != 0:
+            self._set_session.set_gr_pdr.extend([\
+                         SetGroupPDR(pdr_id=pdr_id, pdr_version=pdr_version,
+                                     pdr_state=pdr_state,\
+                                     precedence=precedence,\
+                                     pdi=PDI(src_interface=0,\
+                                              local_f_teid=local_f_teid,\
+                                              ue_ip_adr=ue_ip_addr), \
+                                      o_h_remo_desc=0, \
+                                      set_gr_far=far_gr_entry,
+                                      deactivate_flow_req=del_qos_enforce_rule,
+                                      activate_flow_req=add_qos_enforce_rule)])
+
+
+        else:
+            self._set_session.set_gr_pdr.extend([\
+                         SetGroupPDR(pdr_id=pdr_id, pdr_version=pdr_version,
+                                     pdr_state=pdr_state,\
+                                     precedence=precedence,\
+                                     pdi=PDI(src_interface=1, ue_ip_adr=ue_ip_addr),\
+                                     set_gr_far=far_gr_entry,
+                                     deactivate_flow_req=del_qos_enforce_rule,
+                                     activate_flow_req=add_qos_enforce_rule)])
+
+@grpc_wrapper
+def set_smf_session(client, args):
+
+    cls_sess = CreateSessionUtil(args.subscriber_id, args.in_teid, args.version)
+
+    imsi_val = args.subscriber_id
+
+    if args.pdr_state == "ADD":
+        # From Access towards Core pdrid, version, precedence, teid, ue-ip, farid
+        cls_sess.CreateSessionPDR(1, 1, PdrState.Value('INSTALL'), 32, args.in_teid, args.ue_ip_addr,\
+                                  #For deletion
+                                  QoSEnforceRuleEntry(imsi_val, args.del_rule_id, None, \
+                                                      None, None, None, None),\
+                                  #For addition
+                                  QoSEnforceRuleEntry(imsi_val, args.add_rule_id, args.ipv4_dst,\
+                                                      args.allow, args.priority, args.hard_timeout,
+                                                      FlowMatch.UPLINK),
+                                  FARRuleEntry(Action.Value('FORW'), 0, ''))
+
+        # From Core towards access, pdrid, version, precedence, teid=0, ue-ip, farid
+        cls_sess.CreateSessionPDR(2, 1, PdrState.Value('INSTALL'), 32, 0, args.ue_ip_addr,\
+                                  #For deleteion
+                                  QoSEnforceRuleEntry(imsi_val, args.del_rule_id, None,\
+                                                      None, None, None, None),\
+                                  #For addition
+                                  QoSEnforceRuleEntry(imsi_val, args.add_rule_id, args.ipv4_dst,\
+                                                      args.allow, args.priority, args.hard_timeout,
+                                                      FlowMatch.DOWNLINK),
+                                  FARRuleEntry(Action.Value('FORW'), args.out_teid, args.gnb_ip_addr))
+
+    else:
+        # Use ADD-Rules to delete the QoS along with PDR
+        if args.add_rule_id:
+            # Delete PDR from Acces toward CORE
+            cls_sess.CreateSessionPDR(1, 1, PdrState.Value('REMOVE'), 32, args.in_teid, args.ue_ip_addr,\
+                                      None,
+                                      QoSEnforceRuleEntry(imsi_val, args.add_rule_id, args.ipv4_dst,\
+                                                          args.allow, args.priority, args.hard_timeout,
+                                                          FlowMatch.UPLINK),
+                                      FARRuleEntry(Action.Value('FORW'), 0, ''))
+
+            # Delete PDR from Core toward ACCESS
+            cls_sess.CreateSessionPDR(2, 1, PdrState.Value('REMOVE'), 32, 0, args.ue_ip_addr,\
+                                      None,
+                                      QoSEnforceRuleEntry(imsi_val, args.add_rule_id, args.ipv4_dst,\
+                                                          args.allow, args.priority, args.hard_timeout,
+                                                          FlowMatch.DOWNLINK),
+                                      FARRuleEntry(Action.Value('FORW'), args.out_teid, args.gnb_ip_addr))
+
+        else:
+            # Delete PDR from Acces toward CORE
+            cls_sess.CreateSessionPDR(1, 1, PdrState.Value('REMOVE'), 32, args.in_teid, args.ue_ip_addr,\
+                                      QoSEnforceRuleEntry(imsi_val, args.del_rule_id, None, None, None,\
+                                                          None, None),
+                                      None, FARRuleEntry(Action.Value('FORW'), 0, ''))
+        
+            # Delete PDR from Core toward ACCESS
+            cls_sess.CreateSessionPDR(2, 1, PdrState.Value('REMOVE'), 32, 0, args.ue_ip_addr,\
+                                      QoSEnforceRuleEntry(imsi_val, args.del_rule_id, None, None, None,\
+                                                          None, None),
+                                      None, FARRuleEntry(Action.Value('FORW'), args.out_teid, args.gnb_ip_addr))
+
+    print (cls_sess._set_session)
+    response = client.SetSMFSessions(cls_sess._set_session)
+    print (response)
 
 # --------------------------
 # Enforcement App
@@ -71,6 +256,7 @@ def deactivate_flows(client, args):
 
 @grpc_wrapper
 def activate_dynamic_rule(client, args):
+
     request = ActivateFlowsRequest(
         sid=SIDUtils.to_pb(args.imsi),
         ip_addr=args.ipv4,
@@ -140,6 +326,39 @@ def display_enforcement_flows(client, _):
 def get_policy_usage(client, _):
     rule_table = client.GetPolicyUsage(Void())
     pprint(rule_table)
+
+
+def create_ng_services_parser(apps):
+    """
+    Creates the argparse subparser for the ng_services app
+    """
+    app = apps.add_parser('ng_services')
+    subparsers = app.add_subparsers(title='subcommands', dest='cmd')
+
+    subcmd = subparsers.add_parser('set_smf_session',
+                                   help='SMF set Session Emulator')
+    subcmd.add_argument('--subscriber_id', help='Subscriber Identity', default='IMSI12345-100')
+    subcmd.add_argument('--version', help='Session Version', type=int, default=2)
+    subcmd.add_argument('--pdr_state', help='ADD/DEL the PDR',
+                        default="ADD")
+    subcmd.add_argument('--in_teid', help='Match incoming teid from access',
+                         type=int, default=98)
+    subcmd.add_argument('--out_teid', help='Put outgoing teid towards access',
+                         type=int, default=1)
+    subcmd.add_argument('--ue_ip_addr', help='UE IP address ',
+                         default='60.60.60.1')
+    subcmd.add_argument('--gnb_ip_addr', help='IP address of GNB Node',
+                         default='100.200.200.1')
+    subcmd.add_argument('--del_rule_id', help='rule id to add', default='')
+    subcmd.add_argument('--add_rule_id', help='rule id to add', default='rule1')
+    subcmd.add_argument('--ipv4_dst', help='ipv4 dst for rule', default='')
+    subcmd.add_argument('--allow', help='YES/NO for allow and deny', default='YES')
+    subcmd.add_argument('--priority', help='priority for rule',
+                        type=int, default=0)
+    subcmd.add_argument('--hard_timeout', help='hard timeout for rule',
+                        type=int, default=0)
+
+    subcmd.set_defaults(func=set_smf_session)
 
 
 def create_enforcement_parser(apps):
@@ -398,6 +617,7 @@ def create_parser():
         description='Management CLI for pipelined',
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     apps = parser.add_subparsers(title='apps', dest='cmd')
+    create_ng_services_parser(apps)
     create_enforcement_parser(apps)
     create_ue_mac_parser(apps)
     create_check_flows_parser(apps)

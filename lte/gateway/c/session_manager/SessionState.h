@@ -100,13 +100,13 @@ class SessionState {
     std::string ip_addr;
     std::string ipv6_addr;
     std::string msisdn;
+    uint32_t local_f_teid;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
     optional<AggregatedMaximumBitrate> ambr;
     // 5G specific extensions
     std::vector<SetGroupPDR> Pdr_rules_;
-    std::vector<SetGroupFAR> Far_rules_;
     magma::lte::Fsm_state_FsmState state;
     std::string sess_id;
     uint32_t ver_no;
@@ -119,6 +119,9 @@ class SessionState {
    * get completed
    */
   void sess_infocopy(struct SessionInfo*);
+
+  SessionFsmState get_state();
+  magma::lte::Fsm_state_FsmState get_proto_fsm_state();
 
   struct TotalCreditUsage {
     uint64_t monitoring_tx;
@@ -149,11 +152,14 @@ class SessionState {
   /* methods of new messages of 5G and handle other message*/
   uint32_t get_current_version();
 
-  void set_current_version(int new_session_version);
+  void set_current_version(
+      int new_session_version, SessionStateUpdateCriteria& uc);
 
   void insert_pdr(SetGroupPDR* rule);
 
   void insert_far(SetGroupFAR* rule);
+
+  void remove_all_rules();
 
   std::vector<SetGroupPDR>& get_all_pdr_rules();
 
@@ -192,12 +198,12 @@ class SessionState {
   bool is_terminating();
 
   /**
-   * can_complete_termination checks the FSM state and transitions the state to
+   * complete_termination checks the FSM state and transitions the state to
    * TERMINATED, if it can. If the state is ACTIVE or TERMINATED, it will not do
    * anything.
    * This function will return true if the termination happened successfully.
    */
-  bool can_complete_termination(SessionStateUpdateCriteria& update_criteria);
+  bool complete_termination(SessionStateUpdateCriteria& update_criteria);
 
   bool reset_reporting_charging_credit(
       const CreditKey& key, SessionStateUpdateCriteria& update_criteria);
@@ -238,13 +244,15 @@ class SessionState {
    * get_total_credit_usage returns the tx and rx of the session,
    * accounting for all unique keys (charging and monitoring) used by all
    * rules (static and dynamic)
-   * Should be called after can_complete_termination.
+   * Should be called after complete_termination.
    */
   TotalCreditUsage get_total_credit_usage();
 
   ChargingCreditSummaries get_charging_credit_summaries();
 
   std::string get_session_id() const;
+  uint32_t get_local_teid() const;
+  void set_local_teid(uint32_t teid);
 
   SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
 
@@ -400,8 +408,6 @@ class SessionState {
   DynamicRuleInstall get_dynamic_rule_install(
       const std::string& rule_id, const RuleLifetime& lifetime);
 
-  SessionFsmState get_state();
-
   // Event Triggers
   void add_new_event_trigger(
       magma::lte::EventTrigger trigger,
@@ -507,6 +513,7 @@ class SessionState {
   uint32_t request_number_;
   SessionFsmState curr_state_;
   SessionConfig config_;
+  uint32_t local_teid;
   uint64_t pdp_start_time_;
   uint64_t pdp_end_time_;
   /*5G related message to handle session state context */
@@ -514,7 +521,6 @@ class SessionState {
   // All 5G specific rules
   // use as shared_ptr to check
   std::vector<SetGroupPDR> PdrList_;
-  std::vector<SetGroupFAR> FarList_;
   // Used to keep track of whether the subscriber has valid quota.
   // (only used for CWF at the moment)
   magma::lte::SubscriberQuotaUpdate_Type subscriber_quota_state_;

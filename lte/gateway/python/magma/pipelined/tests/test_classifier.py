@@ -108,14 +108,14 @@ class ClassifierTest(unittest.TestCase):
         self.test_detach_default_tunnel_flows()
 
         seid1 = 5000
-        self.classifier_controller._add_tunnel_flows(65525, 1, 100000,
-                                                     "192.168.128.30",
-                                                     self.EnodeB_IP, seid1)
-        
+        self.classifier_controller.add_tunnel_flows(65525, 1, 100000,
+                                                    "192.168.128.30",
+                                                    self.EnodeB_IP, seid1)
+
         seid2 = 5001
-        self.classifier_controller._add_tunnel_flows(65525, 2,100001, 
-                                                     "192.168.128.31",
-                                                     self.EnodeB_IP, seid2)
+        self.classifier_controller.add_tunnel_flows(65525, 2,100001, 
+                                                    "192.168.128.31",
+                                                    self.EnodeB_IP, seid2)
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)
@@ -124,9 +124,9 @@ class ClassifierTest(unittest.TestCase):
 
     def test_detach_tunnel_flows(self):
         
-        self.classifier_controller._delete_tunnel_flows(1, "192.168.128.30")
+        self.classifier_controller.delete_tunnel_flows(1, "192.168.128.30")
         
-        self.classifier_controller._delete_tunnel_flows(2, "192.168.128.31")
+        self.classifier_controller.delete_tunnel_flows(2, "192.168.128.31")
 
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager)

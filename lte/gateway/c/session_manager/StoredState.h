@@ -121,14 +121,15 @@ enum GrantTrackingType {
  * SESSION_TERMINATED
  */
 enum SessionFsmState {
-  SESSION_ACTIVE     = 0,
-  SESSION_TERMINATED = 4,
-  SESSION_RELEASED   = 6,
-  CREATING           = 7,
-  CREATED            = 8,
-  ACTIVE             = 9,
-  INACTIVE           = 10,
-  RELEASE            = 11,
+  SESSION_ACTIVE                = 0,
+  SESSION_TERMINATED            = 4,
+  SESSION_TERMINATION_SCHEDULED = 5,
+  SESSION_RELEASED              = 6,
+  CREATING                      = 7,
+  CREATED                       = 8,
+  ACTIVE                        = 9,
+  INACTIVE                      = 10,
+  RELEASE                       = 11,
 };
 
 struct StoredSessionCredit {
@@ -252,6 +253,9 @@ struct SessionStateUpdateCriteria {
   SessionConfig updated_config;
   bool is_fsm_updated;
   SessionFsmState updated_fsm_state;
+  // TODO keeping this structure updated for future use.
+  bool is_current_version_updated;
+  uint32_t updated_current_version;
   // true if any of the event trigger state is updated
   bool is_pending_event_triggers_updated;
   EventTriggerStatus pending_event_triggers;
