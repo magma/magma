@@ -23,6 +23,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import PolicyOverview from './PolicyOverview';
 import PolicyRuleEditDialog from './PolicyEdit';
 import ProfileEditDialog from './ProfileEdit';
+import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
 import Text from '../../theme/design-system/Text';
@@ -78,6 +79,8 @@ function PolicyMenu() {
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [open, setOpen] = React.useState(false);
   const [profileDialog, setProfileDialog] = React.useState(false);
+  const [ratingGroupDialog, setRatingGroupDialog] = React.useState(false);
+
   const handleClick = event => {
     setAnchorEl(event.currentTarget);
   };
@@ -92,6 +95,10 @@ function PolicyMenu() {
       <ProfileEditDialog
         open={profileDialog}
         onClose={() => setProfileDialog(false)}
+      />
+      <RatingGroupEditDialog
+        open={ratingGroupDialog}
+        onClose={() => setRatingGroupDialog(false)}
       />
       <Button
         onClick={handleClick}
@@ -110,7 +117,9 @@ function PolicyMenu() {
         <MenuItem onClick={() => setProfileDialog(true)}>
           <Text variant="subtitle2">Profile</Text>
         </MenuItem>
-        <MenuItem>
+        <MenuItem
+          data-testid="newRatingGroupMenuItem"
+          onClick={() => setRatingGroupDialog(true)}>
           <Text variant="subtitle2">Rating Group</Text>
         </MenuItem>
       </StyledMenu>
