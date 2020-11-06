@@ -119,10 +119,6 @@ resource "kubernetes_secret" "orc8r_envdir" {
     name      = "orc8r-envdir"
     namespace = kubernetes_namespace.orc8r.metadata[0].name
   }
-
-  data = {
-    "CONTROLLER_SERVICES" = "CONFIGURATOR,STATE,STREAMER,POLICYDB,METRICSD,CERTIFIER,BOOTSTRAPPER,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD"
-  }
 }
 
 resource "kubernetes_secret" "fluentd_certs" {
