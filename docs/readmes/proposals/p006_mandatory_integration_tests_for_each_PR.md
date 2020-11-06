@@ -50,7 +50,7 @@ This regression pipeline runs twice a day(EU time / US night time) on a schedule
 ### Magma_integration_tests pipeline is the largest bottleneck in our CI process
 At the moment magma_integration_tests pipeline is structured in such a way that it's using a Jenkins slave as a jump host to a real test environment. We only have one real test env for the magma_integration_tests for now. We need to do some simple refactoring to ensure that magma_integration_tests utilizes a Jenkins slave as a real test env (like CWAG and LTE integration tests do). This means replacing all the 'ssh <user>@<host> - '<command>'' with corresponding 'sh <command> ' statements in the pipeline definition. This simple refactoring should allow Jenkins to handle up to 16 builds per hour (instead of just 1 at the present moment).
 
-## Executio plan
+## Execution plan
 Steps:
 - Refactor magma_integration_tests to enable concurrent execution for multiple PRs
 - Configure Jenkins to run Nightly Builds against master with All integration tests
