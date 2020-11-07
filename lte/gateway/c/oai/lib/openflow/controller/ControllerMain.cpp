@@ -27,6 +27,7 @@
 extern "C" {
 #include "log.h"
 #include "spgw_config.h"
+#include "common_defs.h"
 }
 
 static const int OFP_LOCAL   = 65534;
@@ -72,13 +73,14 @@ int start_of_controller(bool persist_state) {
   ctrl.start();
   OAILOG_INFO(LOG_GTPV1U, "Started openflow controller\n");
 #define CONNECTION_WAIT_TIME 300
-  return (ctrl.is_controller_connected_to_switch(CONNECTION_WAIT_TIME));
+  OAILOG_FUNC_RETURN(
+      LOG_GTPV1U, ctrl.is_controller_connected_to_switch(CONNECTION_WAIT_TIME));
 }
 
 int stop_of_controller(void) {
   ctrl.stop();
   OAILOG_INFO(LOG_GTPV1U, "Stopped openflow controller\n");
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 /**
@@ -105,7 +107,7 @@ int openflow_controller_add_gtp_tunnel(
         ue, ue_ipv6, vlan, enb, i_tei, o_tei, imsi, gtp_portno);
     ctrl.inject_external_event(add_tunnel, external_event_callback);
   }
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_del_gtp_tunnel(
@@ -120,7 +122,7 @@ int openflow_controller_del_gtp_tunnel(
         ue, ue_ipv6, i_tei, gtp_portno);
     ctrl.inject_external_event(del_tunnel, external_event_callback);
   }
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_discard_data_on_tunnel(
@@ -136,7 +138,7 @@ int openflow_controller_discard_data_on_tunnel(
         ue, ue_ipv6, i_tei, openflow::EVENT_DISCARD_DATA_ON_GTP_TUNNEL);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   }
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_forward_data_on_tunnel(
@@ -152,17 +154,17 @@ int openflow_controller_forward_data_on_tunnel(
         ue, ue_ipv6, i_tei, openflow::EVENT_FORWARD_DATA_ON_GTP_TUNNEL);
     ctrl.inject_external_event(gtp_tunnel, external_event_callback);
   }
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_add_paging_rule(struct in_addr ue_ip) {
   auto paging_event = std::make_shared<openflow::AddPagingRuleEvent>(ue_ip);
   ctrl.inject_external_event(paging_event, external_event_callback);
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 int openflow_controller_delete_paging_rule(struct in_addr ue_ip) {
   auto paging_event = std::make_shared<openflow::DeletePagingRuleEvent>(ue_ip);
   ctrl.inject_external_event(paging_event, external_event_callback);
-  return 0;
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }

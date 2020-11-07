@@ -19,8 +19,6 @@
 
 #include <unordered_map>
 #include <list>
-#include <mutex>
-#include <condition_variable>
 
 #include <fluid/OFServer.hh>
 
