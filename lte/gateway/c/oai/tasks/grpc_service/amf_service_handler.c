@@ -11,23 +11,22 @@
  * limitations under the License.
  */
 
-#include <string.h>
-#include <sys/types.h>
-#include <conversions.h>
 
 #include "common_types.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
 #include "log.h"
-#include "amf_app_messages_types.h"
+#include "n11_messages_types.h"
 
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
-int send_smf_response_itti(itti_smf_response_t* itti_msg) {
-  OAILOG_INFO(LOG_UTIL, "Sending itti_smf_response to AMF \n");
-  MessageDef* message_p =
-      itti_alloc_new_message(TASK_GRPC_SERVICE, SMF_RESPONSE);
-  message_p->ittiMsg.smf_response = *itti_msg;
+int send_n11_create_pdu_session_resp_itti(
+    itti_n11_create_pdu_session_response_t* itti_msg) {
+  OAILOG_INFO(
+      LOG_UTIL, "Sending itti_n11_create_pdu_session_response to AMF \n");
+  MessageDef* message_p = itti_alloc_new_message(
+      TASK_GRPC_SERVICE, N11_CREATE_PDU_SESSION_RESPONSE);
+  message_p->ittiMsg.itti_n11_create_pdu_session_response = *itti_msg;
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }
