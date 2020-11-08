@@ -1,4 +1,4 @@
-/*
+/**
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -13,4 +13,4 @@
 
 MESSAGE_DEF(
     N11_CREATE_PDU_SESSION_RESPONSE, itti_n11_create_pdu_session_response_t,
-    n11_create_pdu_session_response)
+    itti_n11_create_pdu_session_response)

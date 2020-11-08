@@ -91,7 +91,6 @@ typedef enum RedirectAddressType_response_s {
 
 typedef struct RedirectServer_response_s {
   RedirectAddressType_response redirect_address_type;
-  uint8_t redirect_server_address[16];
 } RedirectServer_response;
 
 typedef struct QosRules_response_s {
@@ -104,13 +103,13 @@ typedef struct QosRules_response_s {
   uint32_t qos_flow_identifier;
 } QosRules_response;
 
+
 typedef struct itti_n11_create_pdu_session_response_s {
   // common context
   char imsi[IMSI_BCD_DIGITS_MAX + 1];
   SMSessionFSMState_response sm_session_fsm_state;
   uint32_t sm_session_version;
   // M5GSMSessionContextAccess
-  uint8_t pdu_session_id[2];
   PduSessionType_response pdu_session_type;
   SscMode_response selected_ssc_mode;
   QosRules_response authorized_qos_rules[4];
