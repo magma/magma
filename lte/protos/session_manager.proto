@@ -103,8 +103,8 @@ message LocalEndSessionResponse {
 message UpdateTunnelIdsRequest {
   SubscriberID sid = 1;
   uint32 bearer_id = 2;
-  string enb_teid = 3;
-  string agw_teid = 4;
+  uint32 enb_teid = 3;
+  uint32 agw_teid = 4;
 }
 
 message UpdateTunnelIdsResponse {
