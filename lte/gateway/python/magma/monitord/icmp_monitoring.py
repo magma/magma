@@ -14,18 +14,17 @@ import asyncio
 import ipaddress
 import logging
 from typing import Dict, List
-import sys
 
 import grpc
+from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
 from magma.common.job import Job
 from magma.common.rpc_utils import grpc_async_wrapper
 from magma.common.service_registry import ServiceRegistry
 from magma.magmad.check.network_check.ping import PingInterfaceCommandParams, ping_interface_async
 from magma.magmad.check.network_check.ping import PingCommandResult
-
 from magma.monitord.icmp_state import ICMPMonitoringResponse
 from orc8r.protos.common_pb2 import Void
-from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
+
 
 NUM_PACKETS = 4
 DEFAULT_POLLING_INTERVAL = 60
@@ -87,6 +86,6 @@ class ICMPMonitoring(Job):
                 await self._ping_targets(addresses, targets)
                 await asyncio.sleep(self._polling_interval, self._loop)
             else:
-                logging.warning('No ping targets found, retrying...')
+                logging.warning('No subscribers/ping targets found, retrying...')
                 await asyncio.sleep(self._polling_interval, self._loop)
                 continue

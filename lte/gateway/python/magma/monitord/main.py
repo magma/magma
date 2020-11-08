@@ -10,14 +10,11 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import logging
 from lte.protos.mconfig import mconfigs_pb2
 from magma.common.service import MagmaService
 from magma.configuration import load_service_config
 from magma.monitord.icmp_monitoring import ICMPMonitoring
-from magma.monitord.cpe_monitoring import CpeMonitoring
 from magma.monitord.icmp_state import serialize_subscriber_states
-from magma.monitord.ap_monitoring import ApMonitoring
 from magma.monitord.cpe_monitoring import CpeMonitoring
 
 

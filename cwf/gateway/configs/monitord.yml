@@ -13,6 +13,8 @@
 
 # log_level is set in mconfig. it can be overridden here
 mtr_interface: lo
+
+# Manual configuration of ping targets
 #ping_targets:
-#  "AP1": {ip: "127.0.0.1"}
-#  "AP2": {ip: "2.2.2.2"}
+#  "NAME1": {ip: "x.y.z.w"}
+#  "NAME2": {ip: "a.b.c.d"}
