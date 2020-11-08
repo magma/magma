@@ -1,23 +1,25 @@
-/*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
+/**
+ * Copyright 2020 The Magma Authors.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
  */
+/****************************************************************************
+  Source      ngap_amf_decoder.h
+  Version     0.1
+  Date        2020/07/28
+  Product     NGAP stack
+  Subsystem   Access and Mobility Management Function
+  Author      Ashish Prajapati
+  Description Defines NG Application Protocol Messages
+
+*****************************************************************************/
 
 #ifndef FILE_NGAP_AMF_DECODER_SEEN
 #define FILE_NGAP_AMF_DECODER_SEEN
@@ -29,7 +31,7 @@ int ngap_amf_decode_pdu(Ngap_NGAP_PDU_t* pdu, const_bstring const raw)
     __attribute__((warn_unused_result));
 
 // int ngap_amf_decode_pdu(ngap_message *message,  const bstring const raw,
-// MessagesIds *messages_id); int ngap_free_amf_decode_pdu(ngap_message *message,
-// MessagesIds messages_id);
+// MessagesIds *messages_id); int ngap_free_amf_decode_pdu(ngap_message
+// *message, MessagesIds messages_id);
 
 #endif /* FILE_NGAP_AMF_DECODER_SEEN */

@@ -1,19 +1,25 @@
-/*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this source tree.
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
  */
+/****************************************************************************
+  Source      ngap_amf_ta.c
+  Version     0.1
+  Date        2020/07/28
+  Product     NGAP stack
+  Subsystem   Access and Mobility Management Function
+  Author      Ashish Prajapati
+  Description Defines NG Application Protocol Messages
+
+*****************************************************************************/
 
 #include <stdio.h>
 #include <stdint.h>
@@ -59,7 +65,7 @@ static int ngap_amf_compare_plmns(Ngap_BroadcastPLMNList_t* b_plmns) {
 static int ngap_amf_compare_tac(/*const*/ Ngap_TAC_t* /*const*/ tac) {
   int i              = 0;
   uint16_t tac_value = 0;
-  tac->size = 2;  // ACL_TAG temp to test remove later
+  tac->size          = 2;  // ACL_TAG temp to test remove later
 
   DevAssert(tac != NULL);
   OCTET_STRING_TO_TAC(tac, tac_value);

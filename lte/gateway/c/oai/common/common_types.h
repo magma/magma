@@ -84,6 +84,15 @@ typedef uint64_t enb_s1ap_id_key_t;
 #define INVALID_MME_UE_S1AP_ID 0x0
 #define INVALID_ENB_UE_S1AP_ID 0x0
 
+// UE NGAP IDs
+#define INVALID_AMF_UE_NGAP_ID 0x0
+
+#define INVALID_GNB_UE_NGAP_ID_KEY 0xFFFFFFFFFFFFFFFF
+#define GNB_UE_NGAP_ID_MASK 0x00FFFFFF
+#define GNB_UE_NGAP_ID_FMT "0x%06" PRIX32
+
+#define AMF_UE_NGAP_ID_FMT "0x%08" PRIX32
+
 //------------------------------------------------------------------------------
 // TEIDs
 typedef uint32_t teid_t;

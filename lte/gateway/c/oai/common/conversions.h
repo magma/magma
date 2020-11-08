@@ -395,6 +395,9 @@
 #define OCTET_STRING_TO_MME_GID OCTET_STRING_TO_INT16
 #define OCTET_STRING_TO_CSG_ID OCTET_STRING_TO_INT27
 
+#define OCTET_STRING_TO_AMF_CODE OCTET_STRING_TO_INT8
+#define OCTET_STRING_TO_AMF_GID OCTET_STRING_TO_INT16
+
 /* Convert the IMSI contained by a char string NULL terminated to uint64_t */
 #define IMSI_STRING_TO_IMSI64(sTRING, iMSI64_pTr)                              \
   sscanf(sTRING, IMSI_64_FMT, iMSI64_pTr)
