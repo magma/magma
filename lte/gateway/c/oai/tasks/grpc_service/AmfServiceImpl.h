@@ -19,11 +19,6 @@
 #include "lte/protos/session_manager.grpc.pb.h"
 #include "lte/protos/policydb.pb.h"
 
-extern "C" {
-#include "amf_service_handler.h"
-#include "log.h"
-}
-
 namespace grpc {
 class ServerContext;
 }  // namespace grpc

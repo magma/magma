@@ -43,11 +43,11 @@
 #include "sctp_messages_types.h"
 #include "gx_messages_types.h"
 #include "mme_app_messages_types.h"
-#include "amf_app_messages_types.h"
 #include "service303_messages_types.h"
 #include "sgs_messages_types.h"
 #include "async_system_messages_types.h"
 #include "udp_messages_types.h"
 #include "ha_messages_types.h"
+#include "n11_messages_types.h"
 
 #endif /* FILE_MESSAGES_TYPES_SEEN */
