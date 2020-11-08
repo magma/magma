@@ -72,50 +72,95 @@ void SetMessageManagerHandler::SetAmfSessionContext(
   // Print the message from AMF
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
   response_callback(Status::OK, SmContextVoid());
-  /*The Event Based main_thread invocation and runs to handle session state*/
-  m5g_enforcer_->get_event_base().runInEventBaseThread(
-      [this, response_callback, request_cpy]() {
-        // extract values from proto
-        auto imsi = request_cpy.common_context().sid().id();
-        std::string dnn =
-            request_cpy.common_context().apn();  // may not required for demo-1
-        std::string session_id = id_gen_.gen_session_id(imsi);
 
-        MLOG(MDEBUG) << "Requested session from UE with IMSI: " << imsi
-                     << " Generated sessioncontext ID" << session_id;
-        /*reach complete message from proto message*/
-        SessionConfig cfg = m5g_build_session_config(request_cpy);
-
-        /*check if it's initial message*/
-        if ((cfg.rat_specific_context.m5gsm_session_context().rquest_type() ==
-             INITIAL_REQUEST) &&
-            (cfg.common_context.sm_session_state() == CREATING_0)) {
-          /* it's new UE establisment request and need to create the session
-           * context
-           */
-          MLOG(MDEBUG)
-              << "AMF request type INITIAL_REQUEST and session state CREATING";
-          /* Read the SessionMap from global session_store,
-           * if it is not found, it will be added w.r.t imsi
-           */
+  /* Read the proto message and check for state. Get the config out of proto.
+   * if state is CREATING - New session to be created
+   * if state is RELEASE  - The session to be delered
+   */
+  // Fetch complete message from proto message
+  SessionConfig cfg = m5g_build_session_config(request_cpy);
+  // extract values from proto
+  auto imsi       = request_cpy.common_context().sid().id();
+  std::string dnn = request_cpy.common_context().apn();
+  if (cfg.common_context.sm_session_state() == RELEASED_4) {
+    if (cfg.common_context.sm_session_version() != 0) {
+      /* This is a serious sync error, as AMF passing wrong version values
+       * for this session to release. As session version can never be 0.
+       * Print the error message and keep releasing the respective session
+       */
+      MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi
+                   << " but continuing release request";
+    }
+    MLOG(MINFO) << "Release request for session from IMSI: " << imsi << " DNN "
+                << dnn;
+    // Requested message from AMF to release the session
+    m5g_enforcer_->get_event_base().runInEventBaseThread(
+        [this, cfg, imsi, dnn]() {
           auto session_map = session_store_.read_sessions({imsi});
-          send_create_session(session_map, imsi, session_id, cfg);
-        }
-      });
+          initiate_release_session(session_map, dnn, imsi);
+        });
+  }
+  // Else the requested message is for establishment or modification
+  else {
+    // The Event Based main_thread invocation and runs to handle session state
+    m5g_enforcer_->get_event_base().runInEventBaseThread([this, cfg, imsi,
+                                                          dnn]() {
+      std::string session_id = id_gen_.gen_session_id(imsi);
+      MLOG(MINFO) << "Requested session from UE with IMSI: " << imsi
+                  << " Generated session context ID " << session_id;
+
+      /* Message may be intial or modification message. Only taken care
+       * intial message. Check if it's initial message
+       */
+      if ((cfg.rat_specific_context.m5gsm_session_context().rquest_type() ==
+           INITIAL_REQUEST) &&
+          (cfg.common_context.sm_session_state() == CREATING_0)) {
+        /* it's new UE establisment request and need to create the session
+         * context
+         */
+        MLOG(MINFO)
+            << "AMF request type INITIAL_REQUEST and session state CREATING";
+        /* Read the SessionMap from global session_store,
+         * if it is not found, it will be added w.r.t imsi
+         */
+        auto session_map = session_store_.read_sessions({imsi});
+        send_create_session(session_map, imsi, session_id, cfg, dnn);
+      }
+    });
+  }  // end of else
 }
 
 /* Creeate respective SessionState and context*/
 void SetMessageManagerHandler::send_create_session(
     SessionMap& session_map, const std::string& imsi,
-    const std::string& session_id, const SessionConfig& cfg) {
+    const std::string& session_id, const SessionConfig& cfg,
+    const std::string& dnn) {
+  /* If it is new session to be created, check for same DNN exists
+   * for same IMSI, i.e if IMSI found and respective DNN found in
+   * SessionStore, then return from here and nothing to do
+   * as already same session exist, its duplicate request
+   */
+  auto imsi_exist = session_map.find(imsi);
+  if (!(imsi_exist == session_map.end())) {
+    // Requested IMSI exists, but check for DNN
+    for (auto& session : imsi_exist->second) {
+      auto existing_config = session->get_config();
+      if (existing_config.common_context.apn() == dnn) {
+        // DNN or APN found and return from here
+        MLOG(MERROR) << "Duplicate request of same DNN " << dnn << " of IMSI "
+                     << imsi << " nothing to do";
+        return;
+      }
+    }
+  }
+
   auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
   /* initialization of SessionState for IMSI by SessionStateEnforcer*/
   bool success = m5g_enforcer_->m5g_init_session_credit(
       *session_map_ptr, imsi, session_id, cfg);
   if (!success) {
     MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
-                 << session_id << " IMSI "
-                 << " imsi";
+                 << session_id << " IMSI " << imsi;
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/
@@ -128,10 +173,41 @@ void SetMessageManagerHandler::send_create_session(
     } else {
       MLOG(MERROR)
           << "Failed to initialize 5G session for subscriber"
-          << cfg.common_context.sid().id() << " with PDU session ID "
+          << cfg.common_context.sid().id() << " with PDU session ID  from UE"
           << cfg.rat_specific_context.m5gsm_session_context().pdu_session_id()
           << " due to failure writing to SessionStore.";
     }
+  }
+}
+
+/* This starts releasing the session in main session enforcer thread context
+ * Before startting it checks if respective session */
+void SetMessageManagerHandler::initiate_release_session(
+    SessionMap& session_map, const std::string& dnn, const std::string& imsi) {
+  // TODO as modification and dynamic rules are not implemented this may
+  // return empty map.
+  auto update = SessionStore::get_default_session_update(session_map);
+  bool exist =
+      m5g_enforcer_->m5g_release_session(session_map, imsi, dnn, update);
+  // If no entry found, nothing to do and return from here
+  if (!exist) {
+    MLOG(MERROR) << "Entry is not found in SessionStore for subscriber "
+                 << imsi;
+    return;
+  }
+
+  bool update_success = session_store_.update_sessions(update);
+  /* No need to respond AMF through gRPC as AMF has informed SessionD
+   * to release this session. if failed in update session & store
+   * print the fatal error and move on
+   */
+  if (!update_success) {
+    MLOG(MERROR) << "Fatal error in updating the SessionStore for subscriber"
+                 << imsi;
+  } else {
+    MLOG(MINFO)
+        << "Successfully released and updated SessionStore of subscriber"
+        << imsi;
   }
 }
 

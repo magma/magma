@@ -195,17 +195,21 @@ uint32_t SessionState::get_current_version() {
   return current_version_;
 }
 
-void SessionState::set_current_version(int new_session_version) {
-  current_version_ = new_session_version;
+void SessionState::set_current_version(
+    int new_session_version, SessionStateUpdateCriteria& session_uc) {
+  current_version_                      = new_session_version;
+  session_uc.is_current_version_updated = true;
+  session_uc.updated_current_version    = new_session_version;
+  MLOG(MINFO) << " Current version is " << get_current_version();
 }
 /* Add PDR rule to this rules session list */
 void SessionState::insert_pdr(SetGroupPDR* rule) {
   PdrList_.push_back(*rule);
 }
 
-/* Add FAR rule to this rules session list */
-void SessionState::insert_far(SetGroupFAR* rule) {
-  FarList_.push_back(*rule);
+/* Remove all Pdr, FAR rules */
+void SessionState::remove_all_rules() {
+  PdrList_.clear();
 }
 
 /* It gets all PDR rule list of the session */
@@ -213,22 +217,47 @@ std::vector<SetGroupPDR>& SessionState::get_all_pdr_rules() {
   return PdrList_;
 }
 
-/* It gets all FAR rule list of the session */
-std::vector<SetGroupFAR>& SessionState::get_all_far_rules() {
-  return FarList_;
+SessionFsmState SessionState::get_state() {
+  return curr_state_;
+}
+
+magma::lte::Fsm_state_FsmState SessionState::get_proto_fsm_state() {
+  SessionFsmState curr_state = get_state();
+  switch (curr_state) {
+    case CREATING:
+      return magma::lte::Fsm_state_FsmState_CREATING;
+      break;
+    case CREATED:
+      return magma::lte::Fsm_state_FsmState_CREATED;
+      break;
+    case ACTIVE:
+      return magma::lte::Fsm_state_FsmState_ACTIVE;
+      break;
+    case RELEASE:
+      return magma::lte::Fsm_state_FsmState_RELEASE;
+      break;
+    case INACTIVE:
+    default:
+      return magma::lte::Fsm_state_FsmState_INACTIVE;
+      break;
+  }
+  return magma::lte::Fsm_state_FsmState_INACTIVE;
 }
 
 /*temporary copy to be removed after upf node code completes */
 void SessionState::sess_infocopy(struct SessionInfo* info) {
   // Static SessionInfo vlaue till UPF node value implementation
   // gets stablized.
-  info->state               = magma::lte::Fsm_state_FsmState_CREATING;
-  info->sess_id             = "1122334455667788";
-  info->ver_no              = 1;
+  std::string imsi_num;
+  // TODO we cud eventually  migrate to SMF-UPF proto enum directly.
+  info->state = get_proto_fsm_state();
+  info->sess_id.assign(imsi_);
+  info->ver_no              = get_current_version();
   info->nodeId.node_id_type = SessionInfo::IPv4;
   strcpy(info->nodeId.node_id, "192.168.2.1");
-  memcpy(&(info->Seid.Nid), &(info->nodeId), sizeof(SessionInfo::NodeId));
-  info->Seid.f_seid = 1122334455667788;
+  /* TODO below to be changed after UPF node association message
+   * completes . Revisit
+   */
 }
 
 static UsageMonitorUpdate make_usage_monitor_update(
@@ -254,6 +283,10 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   SessionStateUpdateCriteria _;
   if (uc.is_fsm_updated) {
     curr_state_ = uc.updated_fsm_state;
+  }
+
+  if (uc.is_current_version_updated) {
+    current_version_ = uc.updated_current_version;
   }
 
   if (uc.is_pending_event_triggers_updated) {
@@ -551,10 +584,6 @@ bool SessionState::active_monitored_rules_exist() {
   return total_monitored_rules_count() > 0;
 }
 
-SessionFsmState SessionState::get_state() {
-  return curr_state_;
-}
-
 bool SessionState::is_terminating() {
   if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED) {
     return true;
@@ -638,7 +667,7 @@ SubscriberQuotaUpdate_Type SessionState::get_subscriber_quota_state() const {
   return subscriber_quota_state_;
 }
 
-bool SessionState::can_complete_termination(SessionStateUpdateCriteria& uc) {
+bool SessionState::complete_termination(SessionStateUpdateCriteria& uc) {
   switch (curr_state_) {
     case SESSION_ACTIVE:
       MLOG(MERROR) << "Encountered unexpected state 'ACTIVE' when "
@@ -769,6 +798,15 @@ std::string SessionState::get_session_id() const {
 
 SessionConfig SessionState::get_config() const {
   return config_;
+}
+
+uint32_t SessionState::get_local_teid() const {
+  return local_teid;
+}
+
+void SessionState::set_local_teid(uint32_t teid) {
+  local_teid = teid;
+  return;
 }
 
 void SessionState::set_config(const SessionConfig& config) {

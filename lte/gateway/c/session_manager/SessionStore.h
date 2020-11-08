@@ -41,6 +41,7 @@ enum SessionSearchCriteriaType {
   IMSI_AND_UE_IPV4         = 2,
   IMSI_AND_UE_IPV4_OR_IPV6 = 3,
   IMSI_AND_BEARER          = 4,
+  IMSI_AND_TEID            = 5,
 };
 
 struct SessionSearchCriteria {
@@ -56,10 +57,10 @@ struct SessionSearchCriteria {
 
   SessionSearchCriteria(
       const std::string p_imsi, SessionSearchCriteriaType p_type,
-      const uint32_t secondary_key_unit32)
+      const uint32_t secondary_key_unit32v)
       : imsi(p_imsi),
         search_type(p_type),
-        secondary_key_unit32(secondary_key_unit32) {}
+        secondary_key_unit32(secondary_key_unit32v) {}
 };
 
 /**
