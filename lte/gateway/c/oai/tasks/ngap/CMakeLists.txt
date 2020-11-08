@@ -37,7 +37,7 @@ set(ngap_h ${ngap_h})
 
 add_library(LIB_NGAP
     ${NGAP_source}
-    ngap_common.c
+#    ngap_common.c
 )
 target_link_libraries(LIB_NGAP
     LIB_BSTR LIB_HASHTABLE

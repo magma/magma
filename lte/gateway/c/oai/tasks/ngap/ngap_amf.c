@@ -1,26 +1,25 @@
-/*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
+/**
+ * Copyright 2020 The Magma Authors.
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
  */
+/****************************************************************************
+  Source      ngap_amf.c
+  Version     0.1
+  Date        2020/07/28
+  Product     NGAP stack
+  Subsystem   Access and Mobility Management Function
+  Author      Ashish Prajapati
+  Description Defines NG Application Protocol Messages
 
-/*! \file ngap_amf.c
- */
+*****************************************************************************/
 
 #if HAVE_CONFIG_H
 #include "config.h"
@@ -37,14 +36,11 @@
 #include "bstrlib.h"
 #include "hashtable.h"
 #include "assertions.h"
-#include "ngap_amf_decoder.h"
-#include "ngap_amf_handlers.h"
-#include "ngap_amf_nas_procedures.h"
-#include "ngap_amf_itti_messaging.h"
-
+#include "ngap_state.h"
 #include "service303.h"
 #include "dynamic_memory_check.h"
 #include "amf_config.h"
+#include "mme_config.h"
 #include "amf_default_values.h"
 #include "timer.h"
 #include "itti_free_defined_msg.h"
@@ -75,8 +71,6 @@
 #endif
 
 amf_config_t amf_config;
-bool hss_associated = false;
-// static int indent = 0;
 task_zmq_ctx_t ngap_task_zmq_ctx;
 
 static int ngap_send_init_sctp(void) {
@@ -89,8 +83,8 @@ static int ngap_send_init_sctp(void) {
   message_p->ittiMsg.sctpInit.ipv4         = 1;
   message_p->ittiMsg.sctpInit.ipv6         = 0;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
-  //  message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr
-  //  =amf_config.ip.ng_amf_v4.s_addr;// TODO Need change
+  message_p->ittiMsg.sctpInit.ipv4_address[0].s_addr =
+      mme_config.ip.s1_mme_v4.s_addr;  // TODO Need change
 
   /*
    * SR WARNING: ipv6 multi-homing fails sometimes for localhost.
@@ -159,6 +153,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
     case SCTP_NEW_ASSOCIATION: {
 #if 0
+TODO:
       increment_counter("amf_new_association", 1, NO_LABELS);
       if (ngap_handle_new_association(
             state, &received_message_p->ittiMsg.sctp_new_peer)) {
@@ -170,11 +165,12 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     case NGAP_NAS_DL_DATA_REQ: {  // packets from NAS
-      /*
-       * New message received from NAS task.
-       * * * * This corresponds to a NGAP downlink nas transport message.
-       */
+                                  /*
+                                   * New message received from NAS task.
+                                   * * * * This corresponds to a NGAP downlink nas transport message.
+                                   */
 #if 0
+//TODO: 
       ngap_generate_downlink_nas_transport(
           state, NGAP_NAS_DL_DATA_REQ(received_message_p).gnb_ue_ngap_id,
           NGAP_NAS_DL_DATA_REQ(received_message_p).amf_ue_ngap_id,

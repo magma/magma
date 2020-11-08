@@ -1,19 +1,25 @@
-/*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this source tree.
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-----------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
  */
+/****************************************************************************
+  Source      amf_app_ue_context.h
+  Version     0.1
+  Date        2020/07/28
+  Product     AMF core
+  Subsystem   Access and Mobility Management Function
+  Author      Ashish Prajapati
+  Description Defines Access and Mobility Management Messages
+
+*****************************************************************************/
 
 #ifndef FILE_AMF_APP_UE_CONTEXT_SEEN
 #define FILE_AMF_APP_UE_CONTEXT_SEEN
@@ -29,14 +35,10 @@
 #include "common_types.h"
 #include "common_defs.h"
 #include "ngap_messages_types.h"
-//#include "s6a_messages_types.h"
 #include "security_types.h"
 #include "sgw_ie_defs.h"
 #include "amf_app_sgs_fsm.h"
-//#include "ngap_intertask_interface_types.h"
 #include "intertask_interface_types.h"
-//#include "emm_data.h"
-//#include "esm_data.h"
 
 typedef enum {
   M5GCM_IDLE = 0,
@@ -115,7 +117,7 @@ typedef struct bearer_context_s {
 
   /* S-GW IP address for S1-u interfaces.
    * S-GW TEID for S1-u interface.
-   * set by S11 CREATE_SESSION_RESPONSE
+   * set by N11,gc CREATE_SESSION_RESPONSE
    */
   fteid_t s_gw_fteid_s1u;
 
@@ -165,7 +167,7 @@ typedef struct pdn_context_s {
   pdn_type_t pdn_type;
 
   /* paa: IPv4 address and/or IPv6 prefix of UE set by
-   *          S11 CREATE_SESSION_RESPONSE
+   *          N11,gc CREATE_SESSION_RESPONSE
    *          NOTE:
    *          The AMF might not have information on the allocated IPv4 address.
    *          Alternatively, following mobility involving a pre-release 8 SGSN,
@@ -220,7 +222,7 @@ typedef struct pdn_context_s {
   int bearer_contexts[BEARERS_PER_UE];
 
   /* S-GW teid and IP address for User-Plane
-   * set by S11 CREATE_SESSION_RESPONSE
+   * set by N11,gc CREATE_SESSION_RESPONSE
    */
 
   ip_address_t s_gw_address_s11_s4;
@@ -461,7 +463,7 @@ typedef struct amf_ue_context_s {
 ue_mm_context_t* amf_ue_context_exists_imsi(
     amf_ue_context_t* const amf_ue_context, const imsi64_t imsi);
 
-/** \brief Retrieve an UE context by selecting the provided S11 teid
+/** \brief Retrieve an UE context by selecting the provided N11,gc teid
  * \param teid The tunnel endpoint identifier used between AMF and S-GW
  * @returns an UE context matching the teid or NULL if the context doesn't
  *exists

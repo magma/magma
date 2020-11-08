@@ -1,38 +1,25 @@
-/*
- * Copyright (c) 2015, EURECOM (www.eurecom.fr)
- * All rights reserved.
+/**
+ * Copyright 2020 The Magma Authors.
  *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
- * 1. Redistributions of source code must retain the above copyright notice,
- * this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- *
- * The views and conclusions contained in the software and documentation are
- * those of the authors and should not be interpreted as representing official
- * policies, either expressed or implied, of the FreeBSD Project.
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
  */
-/*! \file ngap_messages_types.h
-  \brief
-  \author Sebastien ROUX, Lionel Gauthier
-  \company Eurecom
-  \email: lionel.gauthier@eurecom.fr
-*/
+/****************************************************************************
+  Source      ngap_messages_types.h
+  Version     0.1
+  Date        2020/07/28
+  Product     NGAP stack
+  Subsystem   Access and Mobility Management Function
+  Author      Ashish Prajapati
+  Description Defines NG Application Protocol Messages
+
+*****************************************************************************/
 
 #ifndef FILE_NGAP_MESSAGES_TYPES_SEEN
 #define FILE_NGAP_MESSAGES_TYPES_SEEN
@@ -44,8 +31,6 @@
 #include "3gpp_23.003.h"
 #include "TrackingAreaIdentity.h"
 #include "Ngap_Cause.h"
-//#include "ngap_common_types.h"
-//#include "nas/securityDef.h"
 
 typedef uint16_t sctp_stream_id_t;
 typedef uint32_t sctp_assoc_id_t;
@@ -70,28 +55,6 @@ typedef uint8_t
     proc_tid_t;  // procedure transaction identity, related to esm protocol
 typedef uint8_t qci_t;
 typedef uint32_t teid_t;
-
-#if 0
-typedef struct {
-  bitrate_t br_ul;
-  bitrate_t br_dl;
-} ambr_t;
-
-typedef enum {
-  PRE_EMPTION_VULNERABILITY_ENABLED  = 0,
-  PRE_EMPTION_VULNERABILITY_DISABLED = 1,
-  PRE_EMPTION_VULNERABILITY_MAX,
-} pre_emption_vulnerability_t;
-
-
-typedef struct {
-  pdn_type_value_t pdn_type;
-  struct {
-    struct in_addr ipv4_address;
-    struct in6_addr ipv6_address;
-  } address;
-} ip_address_t;
-#endif
 
 #define NGAP_GNB_DEREGISTERED_IND(mSGpTR)                                      \
   (mSGpTR)->ittiMsg.ngap_gNB_deregistered_ind

@@ -25,12 +25,6 @@
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
-////#include "ngap_intertask_interface.h"
-//#include "intertask_interface.h"
-//#include "intertask_messages_def.h"
-//#include "timer_messages_def.h"
-//#include "sctp_messages_types.h"
-//#include "sctp_messages_def.h"
 
 MESSAGE_DEF(NGAP_UPLINK_NAS_LOG, IttiMsgText, ngap_uplink_nas_log)
 MESSAGE_DEF(NGAP_NG_SETUP_LOG, IttiMsgText, ngap_ng_setup_log)
