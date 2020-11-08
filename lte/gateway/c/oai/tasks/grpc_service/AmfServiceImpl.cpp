@@ -53,10 +53,10 @@ Status AmfServiceImpl::SetSmfSessionContext(
   OAILOG_INFO(LOG_UTIL, "Received  GRPC SetSMSessionContextAccess request\n");
   // ToDo processing ITTI,ZMQ
 
-  itti_smf_response_t itti_msg;
+  itti_n11_create_pdu_session_response_t itti_msg;
   auto& req_common = request->common_context();
   auto& req_m5g    = request->rat_specific_context().m5g_session_context_rsp();
-  
+
   // CommonSessionContext
   strcpy(itti_msg.imsi, req_common.sid().id().c_str());
   itti_msg.sm_session_fsm_state =
@@ -79,7 +79,7 @@ Status AmfServiceImpl::SetSmfSessionContext(
   strcpy(
       itti_msg.pdu_address.redirect_server_address,
       req_m5g.pdu_address().redirect_server_address().c_str());
-  send_smf_response_itti(&itti_msg);
+  send_n11_create_pdu_session_resp_itti(&itti_msg);
   return Status::OK;
 }
 

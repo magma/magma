@@ -11,4 +11,6 @@
  * limitations under the License.
  */
 
-MESSAGE_DEF(SMF_RESPONSE, itti_smf_response_t, smf_response)
+MESSAGE_DEF(
+    N11_CREATE_PDU_SESSION_RESPONSE, itti_n11_create_pdu_session_response_t,
+    itti_n11_create_pdu_session_response)
