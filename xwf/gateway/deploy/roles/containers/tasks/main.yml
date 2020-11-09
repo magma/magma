@@ -37,6 +37,12 @@
     - "/etc/magma/templates/"
     - "/var/opt/magma/docker"
 
+- name: create directory on host for fluentbit-logs of apps
+  file:
+    path: "/var/log/fluentbit-logs"
+    state: directory
+    mode: '0700'
+
 - name: touch snowflake
   shell: touch /etc/snowflake
 
@@ -101,7 +107,13 @@
    dest: /var/opt/magma/docker/
    mode: '0755'
 
-- name: place the cron file
+- name: place the fluentbit cleanup cron file
+  copy:
+   src: clean_fluentbit_logs
+   dest: /etc/cron.d/clean_fluentbit_logs
+   mode: '0644'
+
+- name: place the xwfm upgrade cron file
   copy:
    src: xwfm_cron
    dest: /etc/cron.d/xwfm_cron
@@ -119,5 +131,5 @@
 - name: copy the radclient script
   copy: src=xwfm_list_rules.sh dest=/usr/sbin mode='0755'
 
-- name: copy the cp test  script
+- name: copy the cp test script
   copy: src=xwfm_cp_test.sh dest=/usr/sbin mode='0755'
