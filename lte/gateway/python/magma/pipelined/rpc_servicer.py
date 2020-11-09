@@ -147,8 +147,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._service_manager.interface_to_prefix_mapper.save_prefix(
             interface, prefix)
 
-    def _update_tunnel_map_store(self, uplink_tunnel: str,
-                                 downlink_tunnel: str):
+    def _update_tunnel_map_store(self, uplink_tunnel: int,
+                                 downlink_tunnel: int):
         self._service_manager.tunnel_id_mapper.save_tunnels(uplink_tunnel,
                                                             downlink_tunnel)
 
