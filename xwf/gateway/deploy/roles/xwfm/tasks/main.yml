@@ -32,7 +32,7 @@
     - "/var/opt/magma/docker"
 
 - name: install python modules
-  shell: pip3 install jsonpickle requests
+  shell: pip3 install jsonpickle requests yq
 
 - name: touch snowflake
   shell: touch /etc/snowflake
