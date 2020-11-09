@@ -29,13 +29,13 @@ class TunnelToTunnelMapper:
         self._tunnel_map = TunnelDict()
         self._lock = threading.Lock()  # write lock
 
-    def get_tunnel(self, tunnel):
+    def get_tunnel(self, tunnel: int):
         with self._lock:
             if tunnel not in self._tunnel_map:
                 return None
             return self._tunnel_map[tunnel]
 
-    def save_tunnels(self, uplink_tunnel: str, downlink_tunnel: str):
+    def save_tunnels(self, uplink_tunnel: int, downlink_tunnel: int):
         with self._lock:
             self._tunnel_map[uplink_tunnel] = downlink_tunnel
             self._tunnel_map[downlink_tunnel] = uplink_tunnel

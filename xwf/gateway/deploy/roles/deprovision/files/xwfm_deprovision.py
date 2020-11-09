@@ -59,7 +59,7 @@ def create_parser():
     Creates the argparse parser with all the arguments.
     """
     parser = argparse.ArgumentParser(
-        description="Provision XwF-M Gateway",
+        description="Deprovision XwF-M Gateway",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
     )
     parser.add_argument(
@@ -78,7 +78,7 @@ def main():
         parser.print_usage()
         exit(1)
 
-    partner = args.partner.replace("-", "_").strip()
+    partner = args.partner.strip()
     deregister_all_gateways(args.url, partner)
 
 if __name__ == "__main__":
