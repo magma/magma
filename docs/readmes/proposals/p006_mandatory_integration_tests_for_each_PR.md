@@ -37,7 +37,7 @@ Stage 1:
 ### Some PRs are still merged into master without integration tests
 Make Jenkins as a mandatory gatekeeper for merging each PR. Proposed workflow:
  - Reviewer marks appropriate labels to run necessary relevant tests (such as CWAG / NMS / etc.) before indicating "ready-to-merge" (tag or some keyword in a comment)
- - Jenkins triggers all tests (or if we decide, just a subset)
+ - Jenkins triggers all tests
  - When all jobs are green, Jenkins merges the PR (or alternatively set a test result "Jenkins CI Gate: Passed")
 
 ### Reviewers are not applying tags to PRs and waiting for them to complete (or skipping gatekeeping tests)
