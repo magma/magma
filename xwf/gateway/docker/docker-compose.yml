@@ -128,6 +128,8 @@ services:
       - SCRIBE_ACCESS_TOKEN=${SCUBA_ACCESS_TOKEN}
       - SCUBA_TABLE=perfpipe_xwf_xwfm_logs
       - PARTNER_SHORTNAME=${PARTNER_SHORTNAME}
+    volumes:
+      - /var/log/fluentbit-logs:/var/log/fluentbit-logs
 
   cadvisor:
     image: gcr.io/google-containers/cadvisor:latest

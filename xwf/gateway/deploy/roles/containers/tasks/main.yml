@@ -37,6 +37,18 @@
     - "/etc/magma/templates/"
     - "/var/opt/magma/docker"
 
+- name: create directories for magma configs and files
+  file:
+    path: "/var/log/fluentbit-logs/"
+    state: directory
+    mode: '0755'
+
+- name: place clean_fluentbit_logs cron file
+  copy:
+   src: clean_fluentbit_logs
+   dest: /etc/cron.d/clean_fluentbit_logs
+   mode: '0644'
+
 - name: touch snowflake
   shell: touch /etc/snowflake
 
