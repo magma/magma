@@ -11,16 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: copy the admin certificate key
-  copy: content={{ rest_admin_key }} dest=/var/opt/magma/certs/rest_admin.key mode='400'
+- name: remove certificates
+  shell: rm -f /var/opt/magma/certs/rest_admin.key && \
+        rm -f /var/opt/magma/certs/rest_admin.crt
 
-- name: copy the admin certificate
-  copy: content={{ rest_admin_crt }} dest=/var/opt/magma/certs/rest_admin.crt mode='400'
+- name: clean rest key from xwfwhoami
+  shell: yq -i -Y 'del(.rest_admin_key)' /etc/xwfwhoami
+  args:
+    warn: false
 
-- name: deprovision all gateways for this partner
-  script: xwfm_deprovision.py --partner {{ partner }} --url {{ portal_url }}
-  register: output
-
-- name: display script output
-  debug:
-    msg: "{{ output }}"
+- name: clean rest crt from xwfwhoami
+  shell: yq -i -Y 'del(.rest_admin_crt)' /etc/xwfwhoami
+  args:
+    warn: false
