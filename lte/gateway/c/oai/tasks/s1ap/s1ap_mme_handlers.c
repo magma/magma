@@ -1778,6 +1778,15 @@ int s1ap_mme_handle_path_switch_request(
 
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_PathSwitchRequestIEs_t, ie, container,
+      S1ap_ProtocolIE_ID_id_SourceMME_UE_S1AP_ID, true);
+  if (ie) {
+    mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  } else {
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
+  S1AP_FIND_PROTOCOLIE_BY_ID(
+      S1ap_PathSwitchRequestIEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
   // eNB UE S1AP ID is limited to 24 bits
   if (ie) {
@@ -1929,6 +1938,9 @@ int s1ap_mme_handle_path_switch_request(
     TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
     // UE Security Capabilities mandatory IE
+    S1AP_FIND_PROTOCOLIE_BY_ID(
+        S1ap_PathSwitchRequestIEs_t, ie, container,
+        S1ap_ProtocolIE_ID_id_UESecurityCapabilities, true);
     BIT_STRING_TO_INT16(
         &ie->value.choice.UESecurityCapabilities.encryptionAlgorithms,
         encryption_algorithm_capabilitie);
@@ -2977,6 +2989,8 @@ int s1ap_mme_handle_enb_configuration_transfer(
   pdu->choice.initiatingMessage.procedureCode =
       S1ap_ProcedureCode_id_MMEConfigurationTransfer;
   pdu->present = S1ap_S1AP_PDU_PR_initiatingMessage;
+  // Tricky- optimisation needed
+  ie->id = S1ap_ProtocolIE_ID_id_SONConfigurationTransferMCT;
   // Encode message
   int enc_rval = s1ap_mme_encode_pdu(pdu, &buffer, &length);
   if (enc_rval < 0) {
@@ -3066,13 +3080,32 @@ int s1ap_handle_path_switch_req_ack(
   S1ap_PathSwitchRequestAcknowledgeIEs_t* ie = NULL;
   int rc                                     = RETURNok;
 
+  if ((ue_ref_p = s1ap_state_get_ue_mmeid(
+           path_switch_req_ack_p->mme_ue_s1ap_id)) == NULL) {
+    OAILOG_DEBUG_UE(
+        LOG_S1AP, imsi64,
+        "could not get ue context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
+        (uint32_t) path_switch_req_ack_p->mme_ue_s1ap_id);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+
   memset(&pdu, 0, sizeof(pdu));
+  pdu.present = S1ap_S1AP_PDU_PR_successfulOutcome;
   pdu.choice.initiatingMessage.procedureCode =
       S1ap_ProcedureCode_id_PathSwitchRequest;
   pdu.choice.successfulOutcome.criticality = S1ap_Criticality_ignore;
   pdu.choice.successfulOutcome.value.present =
       S1ap_SuccessfulOutcome__value_PR_PathSwitchRequestAcknowledge;
   out = &pdu.choice.successfulOutcome.value.choice.PathSwitchRequestAcknowledge;
+
+  ie = (S1ap_PathSwitchRequestAcknowledgeIEs_t*) calloc(
+      1, sizeof(S1ap_PathSwitchRequestAcknowledgeIEs_t));
+  ie->id          = S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID;
+  ie->criticality = S1ap_Criticality_reject;
+  ie->value.present =
+      S1ap_PathSwitchRequestAcknowledgeIEs__value_PR_MME_UE_S1AP_ID;
+  ie->value.choice.MME_UE_S1AP_ID = ue_ref_p->mme_ue_s1ap_id;
+  ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   /* mandatory */
   ie = (S1ap_PathSwitchRequestAcknowledgeIEs_t*) calloc(
@@ -3114,6 +3147,7 @@ int s1ap_handle_path_switch_req_ack(
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   bstring b = blk2bstr(buffer, length);
+  free_wrapper((void**) &buffer);
   OAILOG_DEBUG_UE(
       LOG_S1AP, imsi64,
       "Send PATH_SWITCH_REQUEST_ACK, mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT "\n",
