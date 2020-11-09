@@ -1,3 +1,4 @@
+{{/*
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -8,24 +9,15 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+*/}}
 
-dependencies:
-  - name: secrets
-    version: 0.1.8
-    repository: ""
-    condition: secrets.create
-  - name: metrics
-    version: 1.4.19
-    repository: ""
-    condition: metrics.enabled
-  - name: nms
-    version: 0.1.7
-    repository: ""
-    condition: nms.enabled
-  - name: logging
-    version: 0.1.10
-    repository: ""
-    condition: logging.enabled
-  - name: orc8rlib
-    version: 0.1.1
-    repository: file://../orc8rlib
+{{- if .Values.thanos.enabled }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: thanos-objstore-config
+data:
+  objstore.yaml: |
+{{ toYaml .Values.thanos.objstore | indent 4 }}
+{{- end }}

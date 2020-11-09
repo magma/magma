@@ -38,6 +38,8 @@ metrics:
     create: false
   prometheusConfigurer:
     create: false
+  thanos:
+    enabled: false
 
 # secrets sub-chart configuration.
 secrets:

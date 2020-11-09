@@ -11,6 +11,8 @@
 # limitations under the License.
 
 prometheusQueryAddress: "http://prometheus:9090"
+# If using Thanos: comment out the above value and use the follwing:
+# prometheusQueryAddress: "http://thanosQuery:19192"
 
 alertmanagerApiURL: "http://alertmanager:9093/api/v2"
 prometheusConfigServiceURL: "http://prometheus-configurer:9100/v1"
