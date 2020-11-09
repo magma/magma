@@ -1051,7 +1051,7 @@ type MobilityD struct {
 	// IPv6 block for IPv6 allocator, for example:
 	// IPv6 IP block:      "fdee:5:6c::/48"
 	Ipv6Block string `protobuf:"bytes,10,opt,name=ipv6_block,json=ipv6Block,proto3" json:"ipv6_block,omitempty"`
-	// Select ipv6 session prefix allocation type, supported:
+	// Select ipv6 session prefix allocation type, example:
 	// "RANDOM", "HASH"
 	Ipv6PrefixAllocationType string   `protobuf:"bytes,11,opt,name=ipv6_prefix_allocation_type,json=ipv6PrefixAllocationType,proto3" json:"ipv6_prefix_allocation_type,omitempty"`
 	XXX_NoUnkeyedLiteral     struct{} `json:"-"`
