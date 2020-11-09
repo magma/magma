@@ -22,8 +22,8 @@ class InterfaceMappersTest(unittest.TestCase):
         self._tunnel_mapper._tunnel_map = {}
 
     def test_prefix_mapper_test(self):
-        uplink_tunnels = ['0xf1231']
-        downlink_tunnels = ['0x111ef3', '0x21312']
+        uplink_tunnels = [0xf1231]
+        downlink_tunnels = [0x111ef3, 0x21312]
 
         self._tunnel_mapper.save_tunnels(uplink_tunnels[0], downlink_tunnels[0])
         self.assertEqual(self._tunnel_mapper.get_tunnel(uplink_tunnels[0]),

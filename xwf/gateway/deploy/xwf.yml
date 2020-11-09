@@ -53,3 +53,6 @@
          - no_ci
     - role: deprovision
       when: xwfm_deprovision | default(False)
+    - role: cleanup
+      tags:
+         - no_ci

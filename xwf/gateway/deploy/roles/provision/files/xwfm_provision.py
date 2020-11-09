@@ -230,7 +230,7 @@ def main():
         exit(1)
 
     # Create XwF-M Network
-    partner = args.partner.replace("-", "_").strip()
+    partner = args.partner.strip()
     create_network_if_not_exists(args.url, partner)
     register_gateway(args.url, partner, args.hwid, "default")
 

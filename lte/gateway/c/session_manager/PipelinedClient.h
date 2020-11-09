@@ -110,8 +110,8 @@ class PipelinedClient {
    * */
   virtual bool update_tunnel_ids(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const std::string enb_teid,
-      const std::string agw_teid) = 0;
+      const std::string& ipv6_addr, const uint32_t enb_teid,
+      const uint32_t agw_teid) = 0;
 
   /**
    * Send the MAC address of UE and the subscriberID
@@ -253,8 +253,8 @@ class AsyncPipelinedClient : public GRPCReceiver, public PipelinedClient {
    */
   bool update_tunnel_ids(
       const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const std::string enb_teid,
-      const std::string agw_teid);
+      const std::string& ipv6_addr, const uint32_t enb_teid,
+      const uint32_t agw_teid);
 
   /**
    * Send the MAC address of UE and the subscriberID

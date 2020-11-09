@@ -79,6 +79,7 @@ func newDefaultEapAka() *EapAka {
 			SessionAuthenticatedMs: 5000,
 			SessionMs:              43200000,
 		},
+		MncLen: 3,
 	}
 }
 
@@ -91,6 +92,7 @@ func newDefaultEapSim() *EapSim {
 			SessionAuthenticatedMs: 5000,
 			SessionMs:              43200000,
 		},
+		MncLen: 3,
 	}
 }
 

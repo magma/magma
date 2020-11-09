@@ -25,6 +25,7 @@ import LteNetworkContext from '../../components/context/LteNetworkContext';
 import PolicyContext from '../../components/context/PolicyContext';
 import PolicyRuleEditDialog from './PolicyEdit';
 import ProfileEditDialog from './ProfileEdit';
+import RatingGroupEditDialog from './RatingGroupEdit';
 import React from 'react';
 import Tab from '@material-ui/core/Tab';
 import Tabs from '@material-ui/core/Tabs';
@@ -124,6 +125,11 @@ type ProfileRowType = {
   downlinkBandwidth: number,
 };
 
+type RatingGroupRowType = {
+  ratingGroupID: string,
+  limitType: string,
+};
+
 const MagmaTabs = withStyles({
   indicator: {
     backgroundColor: colors.secondary.dodgerBlue,
@@ -163,7 +169,7 @@ export default function PolicyOverview() {
       </MagmaTabs>
       {currTabIndex === 0 && <PolicyTable />}
       {currTabIndex === 1 && <ProfileTable />}
-      {currTabIndex === 2 && <Text> Rating Groups </Text>}
+      {currTabIndex === 2 && <RatingGroupTable />}
     </div>
   );
 }
@@ -396,6 +402,97 @@ export function ProfileTableRaw(props: WithAlert) {
   );
 }
 
+export function RatingGroupTableRaw(props: WithAlert) {
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [open, setOpen] = React.useState(false);
+  const [currRow, setCurrRow] = useState<RatingGroupRowType>({});
+  const ctx = useContext(PolicyContext);
+  const ratingGroups = ctx.ratingGroups;
+  const ratingGroupRow: Array<RatingGroupRowType> = ratingGroups
+    ? Object.keys(ratingGroups).map((ratingGroupID: string) => {
+        const ratingGroup = ratingGroups[ratingGroupID];
+        return {
+          ratingGroupID: ratingGroup.id.toString(),
+          limitType: ratingGroup.limit_type,
+        };
+      })
+    : [];
+  return (
+    <>
+      <RatingGroupEditDialog
+        open={open}
+        onClose={() => setOpen(false)}
+        ratingGroup={
+          Object.keys(currRow).length
+            ? ratingGroups[currRow.ratingGroupID]
+            : undefined
+        }
+      />
+      <ActionTable
+        data={ratingGroupRow}
+        columns={[
+          {
+            title: 'Rating Group ID',
+            field: 'ratingGroupID',
+            render: currRow => (
+              <Link
+                variant="body2"
+                component="button"
+                onClick={() => {
+                  setCurrRow(currRow);
+                  setOpen(true);
+                }}>
+                {currRow.ratingGroupID}
+              </Link>
+            ),
+          },
+          {title: 'Limit type', field: 'limitType'},
+        ]}
+        handleCurrRow={(row: RatingGroupRowType) => setCurrRow(row)}
+        menuItems={[
+          {
+            name: 'Edit',
+            handleFunc: () => {
+              setOpen(true);
+            },
+          },
+          {
+            name: 'Remove',
+            handleFunc: () => {
+              props
+                .confirm(
+                  `Are you sure you want to delete Rating Group ${currRow.ratingGroupID}?`,
+                )
+                .then(async confirmed => {
+                  if (!confirmed) {
+                    return;
+                  }
+
+                  try {
+                    ctx.setRatingGroups(currRow.ratingGroupID.toString());
+                  } catch (e) {
+                    enqueueSnackbar(
+                      'failed deleting rating group ' + currRow.ratingGroupID,
+                      {
+                        variant: 'error',
+                      },
+                    );
+                  }
+                });
+            },
+          },
+        ]}
+        options={{
+          actionsColumnIndex: -1,
+          pageSizeOptions: [5, 10],
+        }}
+      />
+    </>
+  );
+}
+
+// trigger deletion
+
 const DEFAULT_POLICY_CONFIG = {
   flow_list: [],
   id: '',
@@ -464,3 +561,4 @@ export function PolicyJsonConfig() {
 
 const PolicyTable = withAlert(PolicyTableRaw);
 const ProfileTable = withAlert(ProfileTableRaw);
+const RatingGroupTable = withAlert(RatingGroupTableRaw);
