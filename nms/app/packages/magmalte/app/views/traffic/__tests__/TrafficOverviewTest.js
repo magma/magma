@@ -26,7 +26,11 @@ import defaultTheme from '@fbcnms/ui/theme/default';
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
 import {SetApnState} from '../../../state/lte/ApnState';
-import {SetPolicyState, SetQosProfileState} from '../../../state/PolicyState';
+import {
+  SetPolicyState,
+  SetQosProfileState,
+  SetRatingGroupState,
+} from '../../../state/PolicyState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 
 jest.mock('axios');
@@ -117,11 +121,32 @@ const qosProfiles = {
     max_req_bw_dl: 10,
   },
 };
+const ratingGroups = {
+  '0': {
+    id: 0,
+    limit_type: 'FINITE',
+  },
+  '1': {
+    id: 1,
+    limit_type: 'INFINITE_UNMETERED',
+  },
+};
+
 describe('<TrafficDashboard />', () => {
   const networkId = 'test';
   const policyCtx = {
     state: policies,
     qosProfiles: qosProfiles,
+    ratingGroups: ratingGroups,
+    setRatingGroups: (key, value?) => {
+      return SetRatingGroupState({
+        ratingGroups,
+        setRatingGroups: () => {},
+        networkId,
+        key,
+        value,
+      });
+    },
     setQosProfiles: (key, value?) => {
       return SetQosProfileState({
         qosProfiles,
@@ -141,6 +166,7 @@ describe('<TrafficDashboard />', () => {
       });
     },
   };
+
   const apnCtx = {
     state: apns,
     setState: (key, value?) => {
@@ -231,6 +257,26 @@ describe('<TrafficDashboard />', () => {
     expect(rowItemsProfile[2]).toHaveTextContent('2');
     expect(rowItemsProfile[2]).toHaveTextContent('10');
     expect(rowItemsProfile[2]).toHaveTextContent('10');
+
+    //Rating Groups Tab
+    fireEvent.click(getByText('Rating Groups'));
+    await wait();
+    const rowItemsRatingGroups = await getAllByRole('row');
+    // first row is the header
+    expect(rowItemsRatingGroups[0]).toHaveTextContent('Rating Group ID');
+    expect(rowItemsRatingGroups[0]).toHaveTextContent('Limit type');
+    // Rating Group 0
+    expect(rowItemsRatingGroups[1]).toHaveTextContent('0');
+    expect(rowItemsRatingGroups[1]).toHaveTextContent('FINITE');
+    // Rating Group 1
+    expect(rowItemsRatingGroups[2]).toHaveTextContent('1');
+    expect(rowItemsRatingGroups[2]).toHaveTextContent('INFINITE_UNMETERED');
+    // click the actions button for rating group 0
+    const ratingGroupActionList = getAllByTitle('Actions');
+    expect(getByTestId('actions-menu')).not.toBeVisible();
+    fireEvent.click(ratingGroupActionList[0]);
+    await wait();
+    expect(getByTestId('actions-menu')).toBeVisible();
   });
 
   it('shows prompt when remove policy is clicked', async () => {
@@ -290,6 +336,36 @@ describe('<TrafficDashboard />', () => {
     });
     axiosMock.delete.mockClear();
   });
+  it('shows prompt when remove rating group is clicked', async () => {
+    MagmaAPIBindings.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId.mockResolvedValueOnce(
+      {},
+    );
+    const {getByText, getByTestId, getAllByTitle} = render(<Wrapper />);
+    await wait();
+    // Rating Groups tab
+    fireEvent.click(getByText('Rating Groups'));
+    await wait();
+    // click remove action for rating group 0
+    const ratingGroupActionList = getAllByTitle('Actions');
+    expect(getByTestId('actions-menu')).not.toBeVisible();
+    fireEvent.click(ratingGroupActionList[0]);
+    await wait();
+    fireEvent.click(getByText('Remove'));
+    await wait();
+    expect(
+      getByText('Are you sure you want to delete Rating Group 0?'),
+    ).toBeInTheDocument();
+    // Confirm deletion
+    fireEvent.click(getByText('Confirm'));
+    await wait();
+    expect(
+      MagmaAPIBindings.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId,
+    ).toHaveBeenCalledWith({
+      networkId: 'test',
+      ratingGroupId: 0,
+    });
+    axiosMock.delete.mockClear();
+  });
 });
 
 describe('<TrafficDashboard APNs/>', () => {
@@ -309,6 +385,8 @@ describe('<TrafficDashboard APNs/>', () => {
   const policyCtx = {
     state: policies,
     qosProfiles: {},
+    ratingGroups: {},
+    setRatingGroups: async () => {},
     setQosProfiles: async () => {},
     setState: (key, value?) => {
       return SetPolicyState({
