@@ -414,16 +414,12 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer))
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	// Update directoryd record to include client IP
-	err := updateDirectorydRecord("IMSI"+imsi, "ipv4_addr", TrafficCltIP)
-	assert.NoError(t, err)
-
 	// we need to generate over 100% of the quota to trigger a session redirection
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:   imsi,
 		Volume: &wrappers.StringValue{Value: "5M"},
 	}
-	_, err = tr.GenULTraffic(req)
+	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
@@ -691,10 +687,6 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	assert.NoError(t, setOCSExpectations(expectations, updateAnswer))
 	tr.AuthenticateAndAssertSuccess(imsi)
 
-	// Update directoryd record to include client IP
-	err := updateDirectorydRecord("IMSI"+imsi, "ipv4_addr", TrafficCltIP)
-	assert.NoError(t, err)
-
 	// we need to generate over 100% of the quota to trigger a session redirection
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:    imsi,
@@ -702,7 +694,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 		Bitrate: &wrappers.StringValue{Value: "60M"},
 		Timeout: 60,
 	}
-	_, err = tr.GenULTraffic(req)
+	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
