@@ -122,7 +122,7 @@ class BridgeTools:
             subprocess.check_call(create_veth)
             logging.debug("if_up_cmd %s", create_veth)
         except subprocess.CalledProcessError as e:
-            logging.debug("Error while creating vlan pop devices: %s", e)
+            logging.debug("Error while creating veth pair: %s", e)
 
     @staticmethod
     def create_bridge(bridge_name, iface_name):

@@ -133,8 +133,8 @@ class MockPipelinedClient : public PipelinedClient {
       update_tunnel_ids,
       bool(
           const std::string& imsi, const std::string& ip_addr,
-          const std::string& ipv6_addr, const std::string enb_teid,
-          const std::string agw_teid));
+          const std::string& ipv6_addr, const uint32_t enb_teid,
+          const uint32_t agw_teid));
   MOCK_METHOD6(
       add_ue_mac_flow,
       bool(

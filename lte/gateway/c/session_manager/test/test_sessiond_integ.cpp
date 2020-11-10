@@ -264,8 +264,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   std::string ipv4_addrs  = "192.168.0.1";
   std::string ipv6_addrs  = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
   uint32_t default_bearer = 5;
-  std::string enb_teid    = "10";
-  std::string agw_teid    = "20";
+  uint32_t enb_teid       = 10;
+  uint32_t agw_teid       = 20;
   {
     // 1- CreateSession
     CreateSessionResponse create_response;
@@ -386,8 +386,8 @@ TEST_F(SessiondTest, end_to_end_success) {
   UpdateTunnelIdsRequest tun_update_request;
   tun_update_request.mutable_sid()->set_id("IMSI1");
   tun_update_request.set_bearer_id(default_bearer);
-  tun_update_request.set_enb_teid("10");
-  tun_update_request.set_agw_teid("20");
+  tun_update_request.set_enb_teid(enb_teid);
+  tun_update_request.set_agw_teid(agw_teid);
   stub->UpdateTunnelIds(
       &tun_update_context, tun_update_request, &tun_update_response);
 

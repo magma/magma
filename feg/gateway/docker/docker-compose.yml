@@ -2,9 +2,7 @@ version: "3.7"
 
 # Standard logging for each service
 x-logging: &logging_anchor
-  driver: "journald"
-  options:
-    tag: "{{.Name}}/{{.ID}}"
+  driver: ${LOG_DRIVER}
 
 # Standard volumes mounted
 x-volumes: &volumes_anchor
@@ -147,6 +145,8 @@ services:
   td-agent-bit:
     <<: *pyservice
     container_name: td-agent-bit
+    logging:
+      driver: json-file
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"

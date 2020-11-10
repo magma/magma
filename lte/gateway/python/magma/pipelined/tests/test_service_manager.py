@@ -25,6 +25,7 @@ from magma.pipelined.app.enforcement import EnforcementController
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.inout import INGRESS, EGRESS, PHYSICAL_TO_LOGICAL
 from magma.pipelined.app.ipfix import IPFIXController
+from magma.pipelined.app.he import HeaderEnrichmentController
 from magma.pipelined.service_manager import (
     ServiceManager,
     TableNumException,
@@ -39,7 +40,7 @@ class ServiceManagerTest(unittest.TestCase):
         magma_service_mock.mconfig.services.extend(
             [PipelineD.ENFORCEMENT, PipelineD.DPI])
         magma_service_mock.config = {
-            'static_services': ['arpd', 'access_control', 'ipfix'],
+            'static_services': ['arpd', 'access_control', 'ipfix', 'proxy'],
             '5G_feature_set': {'enable': False}
         }
         self.service_manager = ServiceManager(magma_service_mock)
@@ -77,7 +78,10 @@ class ServiceManagerTest(unittest.TestCase):
             self.service_manager.get_next_table_num(ArpController.APP_NAME), 3)
         self.assertEqual(
             self.service_manager.get_next_table_num(
-                AccessControlController.APP_NAME), 10)
+                AccessControlController.APP_NAME), 4)
+        self.assertEqual(
+            self.service_manager.get_next_table_num(
+                HeaderEnrichmentController.APP_NAME), 10)
         self.assertEqual(
             self.service_manager.get_next_table_num(DPIController.APP_NAME),
             12)
@@ -151,6 +155,8 @@ class ServiceManagerTest(unittest.TestCase):
             ('arpd', Tables(main_table=2, scratch_tables=[],
                             type=ControllerType.PHYSICAL)),
             ('access_control', Tables(main_table=3, scratch_tables=[],
+                                      type=ControllerType.PHYSICAL)),
+            ('proxy', Tables(main_table=4, scratch_tables=[],
                                       type=ControllerType.PHYSICAL)),
             ('middle', Tables(main_table=10, scratch_tables=[], type=None)),
             ('dpi', Tables(main_table=11, scratch_tables=[],

@@ -24,7 +24,3 @@
 - name: display script output
   debug:
     msg: "{{ output }}"
-
-- name: remove certificates
-  shell: rm -f /var/opt/magma/certs/rest_admin.key && \
-        rm -f /var/opt/magma/certs/rest_admin.crt
