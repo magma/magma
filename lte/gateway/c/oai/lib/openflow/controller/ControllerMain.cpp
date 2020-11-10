@@ -15,10 +15,6 @@
  *      contact@openairinterface.org
  */
 
-#include <thread>
-#include <chrono>
-#include <mutex>
-#include <condition_variable>
 #include "OpenflowController.h"
 #include "PagingApplication.h"
 #include "BaseApplication.h"

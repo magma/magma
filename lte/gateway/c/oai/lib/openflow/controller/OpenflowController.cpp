@@ -16,8 +16,8 @@
  */
 
 #include <thread>
-#include <mutex>   // std::timed_mutex
-#include <chrono>  // std::chrono::seconds
+#include <mutex>
+#include <chrono>
 #include <condition_variable>
 #include "OpenflowController.h"
 #include "ControllerMain.h"
@@ -118,25 +118,25 @@ void OpenflowController::inject_external_event(
   latest_ofconn_->add_immediate_event(cb, ev);
 }
 
-bool OpenflowController::is_controller_connected_to_switch(int duration) {
-  /* c++ provided conditional variable is added along with wait for seconds as
-   * specified in duration order to make sure connection is established between
-   * Controller and switch before inserting the OVS rules
+bool OpenflowController::is_controller_connected_to_switch(int conn_timeout) {
+  /* c++ provided conditional variable is added to wait for
+   * conn_timeout seconds to make sure connection is established
+   * between Controller and switch before inserting the OVS rules
    */
 
   OAILOG_INFO(
       LOG_GTPV1U,
       "Openflow controller is waiting for %d seconds to establish connection "
       "with Switch \n",
-      duration);
+      conn_timeout);
   std::unique_lock<std::mutex> lck(cv_mutex);
-  if (cv.wait_for(lck, std::chrono::seconds(duration)) ==
+  if (cv.wait_for(lck, std::chrono::seconds(conn_timeout)) ==
       std::cv_status::timeout) {
     OAILOG_CRITICAL(
         LOG_GTPV1U,
         "Failed to connect openflow controller to switch, waited for %d "
         "seconds \n",
-        duration);
+        conn_timeout);
     OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNerror);
   };
   OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
