@@ -11,8 +11,8 @@
 #
 [Unit]
 Description=Magma envoy service
-PartOf=magma@envoyd.service
-Before=magma@envoyd.service
+PartOf=magma@envoy_controller.service
+Before=magma@envoy_controller.service
 
 [Service]
 Type=simple
