@@ -82,7 +82,7 @@ def main():
 
     # this is not read from yml file.
     service.config['uplink_port'] = OFPP_LOCAL
-    uplink_port_name = service.config['ovs_uplink_port_name']
+    uplink_port_name = service.config.get('ovs_uplink_port_name', None)
     if enable_nat is False and uplink_port_name is not None:
         service.config['uplink_port'] = BridgeTools.get_ofport(uplink_port_name)
 
