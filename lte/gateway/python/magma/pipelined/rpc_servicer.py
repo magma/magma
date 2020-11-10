@@ -244,8 +244,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr, request.rule_ids,
-            request.dynamic_rules)
+            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
+            request.rule_ids, request.dynamic_rules)
 
         failed_static_rule_results, failed_dynamic_rule_results = \
             _retrieve_failed_results(enforcement_stats_res)
@@ -255,8 +255,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         dynamic_rules = \
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
 
-        gy_res = self._activate_rules_in_gy(request.sid.id, request.msisdn, ip_address,
-            request.apn_ambr, static_rule_ids, dynamic_rules)
+        gy_res = self._activate_rules_in_gy(request.sid.id, request.msisdn, request.uplink_tunnel,
+                                            ip_address, request.apn_ambr, static_rule_ids,
+                                            dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
         gy_res.static_rule_results.extend(failed_static_rule_results)
