@@ -74,8 +74,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
   response_callback(Status::OK, SmContextVoid());
 
   /* Read the proto message and check for state. Get the config out of proto.
-   * if state is CREATING - New session to be created
-   * if state is RELEASE  - The session to be delered
+   * Code for relase state, then creating 
    */
   // Fetch complete message from proto message
   SessionConfig cfg = m5g_build_session_config(request_cpy);
@@ -84,10 +83,6 @@ void SetMessageManagerHandler::SetAmfSessionContext(
   std::string dnn = request_cpy.common_context().apn();
   if (cfg.common_context.sm_session_state() == RELEASED_4) {
     if (cfg.common_context.sm_session_version() != 0) {
-      /* This is a serious sync error, as AMF passing wrong version values
-       * for this session to release. As session version can never be 0.
-       * Print the error message and keep releasing the respective session
-       */
       MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi
                    << " but continuing release request";
     }
@@ -107,7 +102,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
                                                           dnn]() {
       std::string session_id = id_gen_.gen_session_id(imsi);
       MLOG(MINFO) << "Requested session from UE with IMSI: " << imsi
-                  << " Generated session context ID " << session_id;
+                  << " Generated session " << session_id;
 
       /* Message may be intial or modification message. Only taken care
        * intial message. Check if it's initial message
@@ -127,7 +122,7 @@ void SetMessageManagerHandler::SetAmfSessionContext(
         send_create_session(session_map, imsi, session_id, cfg, dnn);
       }
     });
-  }  // end of else
+  }  
 }
 
 /* Creeate respective SessionState and context*/
@@ -160,7 +155,7 @@ void SetMessageManagerHandler::send_create_session(
       *session_map_ptr, imsi, session_id, cfg);
   if (!success) {
     MLOG(MERROR) << "Failed to initialize SessionStore for 5G session "
-                 << session_id << " IMSI " << imsi;
+                 << session_id;
     return;
   } else {
     /* writing of SessionMap in memory through SessionStore object*/
@@ -201,10 +196,7 @@ void SetMessageManagerHandler::initiate_release_session(
    * to release this session. if failed in update session & store
    * print the fatal error and move on
    */
-  if (!update_success) {
-    MLOG(MERROR) << "Fatal error in updating the SessionStore for subscriber"
-                 << imsi;
-  } else {
+  if (update_success) {
     MLOG(MINFO)
         << "Successfully released and updated SessionStore of subscriber"
         << imsi;

@@ -99,8 +99,9 @@ class SessionState {
     std::string imsi;
     std::string ip_addr;
     std::string ipv6_addr;
-    std::string msisdn;
+
     uint32_t local_f_teid;
+    std::string msisdn;
     std::vector<std::string> static_rules;
     std::vector<PolicyRule> dynamic_rules;
     std::vector<PolicyRule> gy_dynamic_rules;
@@ -108,7 +109,7 @@ class SessionState {
     // 5G specific extensions
     std::vector<SetGroupPDR> Pdr_rules_;
     magma::lte::Fsm_state_FsmState state;
-    std::string sess_id;
+    std::string subscriber_id;
     uint32_t ver_no;
     NodeId nodeId;
     FSid Seid;
@@ -203,7 +204,7 @@ class SessionState {
    * anything.
    * This function will return true if the termination happened successfully.
    */
-  bool complete_termination(SessionStateUpdateCriteria& update_criteria);
+  bool can_complete_termination(SessionStateUpdateCriteria& update_criteria);
 
   bool reset_reporting_charging_credit(
       const CreditKey& key, SessionStateUpdateCriteria& update_criteria);
@@ -251,7 +252,7 @@ class SessionState {
 
   std::string get_session_id() const;
   uint32_t get_local_teid() const;
-  void set_local_teid(uint32_t teid);
+  void set_local_teid(uint32_t teid, SessionStateUpdateCriteria& uc);
 
   SubscriberQuotaUpdate_Type get_subscriber_quota_state() const;
 
@@ -530,10 +531,10 @@ class SessionState {
  private:
   std::string imsi_;
   std::string session_id_;
+  uint32_t local_teid_;
   uint32_t request_number_;
   SessionFsmState curr_state_;
   SessionConfig config_;
-  uint32_t local_teid;
   uint64_t pdp_start_time_;
   uint64_t pdp_end_time_;
   /*5G related message to handle session state context */

@@ -55,13 +55,6 @@ class AsyncAmfServiceClient : public GRPCReceiver, public AmfServiceClient {
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
   std::unique_ptr<SmfPduSessionSmContext::Stub> stub_;
-  void handle_response_to_access_rpc(
-      const SetSMSessionContextAccess& response,
-      std::function<void(Status, SmContextVoid)> callback);
-
-  void handle_notification_to_access_rpc(
-      const SetSmNotificationContext& notif,
-      std::function<void(Status, SmContextVoid)> callback);
 };
 
 }  // namespace magma

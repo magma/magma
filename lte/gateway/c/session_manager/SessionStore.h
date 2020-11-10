@@ -57,10 +57,10 @@ struct SessionSearchCriteria {
 
   SessionSearchCriteria(
       const std::string p_imsi, SessionSearchCriteriaType p_type,
-      const uint32_t secondary_key_unit32v)
+      const uint32_t secondary_key_unit32)
       : imsi(p_imsi),
         search_type(p_type),
-        secondary_key_unit32(secondary_key_unit32v) {}
+        secondary_key_unit32(secondary_key_unit32) {}
 };
 
 /**

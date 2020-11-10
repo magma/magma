@@ -223,12 +223,6 @@ message Fsm_state {
 }
 
 
-//CPFseid message
-message CpFSeid {
-  uint64 f_seid = 1;
-  NodeID node_id = 2;
-}
-
 message OuterHeadRemoval {
   uint32 o_hd_remo_descr = 1;
 }

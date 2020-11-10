@@ -28,36 +28,21 @@ AsyncAmfServiceClient::AsyncAmfServiceClient()
 bool AsyncAmfServiceClient::handle_response_to_access(
     const magma::SetSMSessionContextAccess& response) {
   MLOG(MINFO) << "Sending Set SM Session Response from SMF ";
-  handle_response_to_access_rpc(response, callback);
-  return true;
-}
-
-bool AsyncAmfServiceClient::handle_notification_to_access(
-    const magma::SetSmNotificationContext& req) {
-  MLOG(MINFO) << "Sending Set SM Session Notification from SMF ";
-  handle_notification_to_access_rpc(req, callback);
-  return true;
-}
-
-void AsyncAmfServiceClient::handle_response_to_access_rpc(
-    const SetSMSessionContextAccess& response,
-    std::function<void(Status, SmContextVoid)> callback) {
-  MLOG(MINFO) << "Calling RPC of AMF SetSMFSessionContext and sending message"
-              << "\n";
   auto local_resp = new AsyncLocalResponse<SmContextVoid>(
       std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(stub_->AsyncSetSmfSessionContext(
       local_resp->get_context(), response, &queue_)));
+  return true;
 }
 
-void AsyncAmfServiceClient::handle_notification_to_access_rpc(
-    const SetSmNotificationContext& notif,
-    std::function<void(Status, SmContextVoid)> callback) {
-  MLOG(MINFO) << "Calling RPC of AMF SetSmNotificationContext and"
-              << "sending message";
+bool AsyncAmfServiceClient::handle_notification_to_access(
+    const magma::SetSmNotificationContext& notif) {
+  MLOG(MINFO) << "Sending Set SM Session Notification from SMF ";
   auto local_resp = new AsyncLocalResponse<SmContextVoid>(
       std::move(callback), RESPONSE_TIMEOUT);
   local_resp->set_response_reader(std::move(stub_->AsyncSetAmfNotification(
       local_resp->get_context(), notif, &queue_)));
+  return true;
 }
+
 }  // namespace magma

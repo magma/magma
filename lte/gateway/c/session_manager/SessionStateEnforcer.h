@@ -72,7 +72,7 @@ class SessionStateEnforcer {
       SessionUpdate& session_update);
 
   /*Handle and update respective session upon receiving message from UPF*/
-  void m5g_update_session_state_message_from_upf(
+  void m5g_update_session_state_to_amf(
       const std::string& imsi, uint32_t teid, uint32_t version,
       SessionFsmState new_state);
 
@@ -122,7 +122,7 @@ class SessionStateEnforcer {
       const std::string& session_id, SessionUpdate& session_update);
 
   /*Function is to remove the associated rules to respective sessions*/
-  void m5g_remove_rules_from_session_for_termination(
+  void m5g_remove_rules_and_update_upf(
       const std::string& imsi, const std::unique_ptr<SessionState>& session,
       const std::string& dnn, SessionStateUpdateCriteria& uc);
 
