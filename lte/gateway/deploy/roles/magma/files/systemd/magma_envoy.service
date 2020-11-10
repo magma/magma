@@ -17,7 +17,7 @@ Before=magma@envoyd.service
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
-ExecStart=/usr/bin/envoy -c /var/opt/magma/envoy.yaml -l debug
+ExecStart=/sbin/ip netns exec envoy_ns1 /usr/bin/envoy -c /var/opt/magma/envoy.yaml -l debug
 MemoryAccounting=yes
 StandardOutput=syslog
 StandardError=syslog

@@ -72,9 +72,11 @@
   when: full_provision
 
 - name: Copy Envoy config
-  copy:
-    src: envoy.yaml
-    dest: /var/opt/magma/
+  copy: src=envoy.yaml dest=/var/opt/magma/envoy.yaml
+  when: full_provision
+
+- name: Copy Envoy configuration script
+  copy: src=configure_envoy_namespace.sh dest=/usr/local/bin/configure_envoy_namespace.sh
   when: full_provision
 
 - name: Create symlink for stateless scripts
