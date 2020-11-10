@@ -51,7 +51,7 @@ for service in "${allServices[@]}"; do
 done
 
 nonMagmadServices=("sctpd")
-for service in "${notMagmaServices[@]}"; do
+for service in "${nonMagmadServices[@]}"; do
     if ! systemctl is-active --quiet "$service"; then
         addError "$service is not running" "Please check our faq"
     fi
