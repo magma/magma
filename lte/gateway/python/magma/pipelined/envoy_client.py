@@ -16,7 +16,7 @@ import grpc
 import logging
 
 from magma.common.service_registry import ServiceRegistry
-from feg.protos.envoy_controller_pb2_grpc import EnvoydStub
+from feg.protos.envoy_controller_pb2_grpc import EnvoyControllerStub
 from feg.protos.envoy_controller_pb2 import AddUEHeaderEnrichmentRequest
 
 SERVICE_NAME = "envoyd"
@@ -36,7 +36,7 @@ def set_he_urls_for_ue(ip: str, urls: List[str], imsi: str, msisdn: str):
         logging.error('Cant get RPC channel to %s', SERVICE_NAME)
         return
 
-    client = EnvoydStub(chan)
+    client = EnvoyControllerStub(chan)
     try:
         h1 = {IMSI_HDR: imsi}
         h2 = {MSISDN_HDR: msisdn}
