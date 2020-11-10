@@ -112,11 +112,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			EnbConfigsBySerial:  enbConfigsBySerial,
 		},
 		"mobilityd": &lte_mconfig.MobilityD{
-			LogLevel:        protos.LogLevel_INFO,
-			IpBlock:         gwEpc.IPBlock,
-			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
-			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
-			MultiApnIpAlloc: getMobilityDMultuAPNIPAlloc(nwEpc),
+			LogLevel:                 protos.LogLevel_INFO,
+			IpBlock:                  gwEpc.IPBlock,
+			IpAllocatorType:          getMobilityDIPAllocator(nwEpc),
+			Ipv6Block:                gwEpc.IPV6Block,
+			Ipv6PrefixAllocationType: gwEpc.IPV6PrefixAllocationMode,
+			StaticIpEnabled:          getMobilityDStaticIPAllocation(nwEpc),
+			MultiApnIpAlloc:          getMobilityDMultuAPNIPAlloc(nwEpc),
 		},
 		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
