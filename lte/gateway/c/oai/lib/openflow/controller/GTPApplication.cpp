@@ -251,7 +251,7 @@ static void add_ded_brr_dl_match(
       downlink_fm.add_oxm_field(ipv4_src);
     }
   } else {
-    of13::EthType ip_type(0x08DD);
+    of13::EthType ip_type(0x086DD);
     downlink_fm.add_oxm_field(ip_type);
 
     if (flow.set_params & DST_IPV6) {

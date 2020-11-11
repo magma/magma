@@ -506,7 +506,11 @@ static void sgw_add_gtp_tunnel(
 
   int vlan    = eps_bearer_ctxt_p->paa.vlan;
   Imsi_t imsi = new_bearer_ctxt_info_p->sgw_eps_bearer_context_information.imsi;
+  char ip6_str[INET6_ADDRSTRLEN];
 
+  if (ue_ipv6) {
+    inet_ntop(AF_INET6, ue_ipv6, ip6_str, INET6_ADDRSTRLEN);
+  }
   /* UE is switching back to EPS services after the CS Fallback
    * If Modify bearer Request is received in UE suspended mode, Resume PS
    * data
@@ -530,8 +534,6 @@ static void sgw_add_gtp_tunnel(
             .pdn_connection.default_bearer) {
       // Set default precedence and tft for default bearer
       if (ue_ipv6) {
-        char ip6_str[INET6_ADDRSTRLEN];
-        inet_ntop(AF_INET6, ue_ipv6, ip6_str, INET6_ADDRSTRLEN);
         OAILOG_INFO_UE(
             LOG_SPGW_APP, imsi64,
             "Adding tunnel for ipv6 ue addr %s, enb %x, "
@@ -562,6 +564,12 @@ static void sgw_add_gtp_tunnel(
             &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                   .packetfiltercontents),
             ue_ipv4.s_addr, ue_ipv6, eps_bearer_ctxt_p->paa.pdn_type, &dlflow);
+        OAILOG_INFO_UE(
+            LOG_SPGW_APP, imsi64,
+            "Adding tunnel for ded bearer ipv6 ue addr %s, enb %x, "
+            "s_gw_teid_S1u_S12_S4_up %x, enb_teid_S1u %x\n",
+            ip6_str, enb.s_addr, eps_bearer_ctxt_p->s_gw_teid_S1u_S12_S4_up,
+            eps_bearer_ctxt_p->enb_teid_S1u);
 
         rv = gtpv1u_add_tunnel(
             ue_ipv4, ue_ipv6, vlan, enb,
@@ -1650,6 +1658,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           enb.s_addr = eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address
                            .ipv4_address.s_addr;
           struct in_addr ue_ipv4   = {.s_addr = 0};
+          ue_ipv4.s_addr           = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
           struct in6_addr* ue_ipv6 = NULL;
           if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
               (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
@@ -1973,44 +1982,42 @@ static void _generate_dl_flow(
   // The TFTs are DL TFTs: UE is the destination/local,
   // PDN end point is the source/remote.
 
-  if ((pdn_type == IPv4) || (pdn_type == IPv4_AND_v6)) {
+  if (pdn_type == IPv4) {
     // Adding UE to the rule is safe
     dlflow->dst_ip.s_addr = ipv4_s_addr;
 
     // At least we can match UE IPv4 addr;
     // when IPv6 is supported, we need to revisit this.
     dlflow->set_params = DST_IPV4;
-
-    // Process remote address if present
-    if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
-        TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
-      struct in_addr remoteaddr = {.s_addr = 0};
-      remoteaddr.s_addr = (packet_filter->ipv4remoteaddr[0].addr << 24) +
-                          (packet_filter->ipv4remoteaddr[1].addr << 16) +
-                          (packet_filter->ipv4remoteaddr[2].addr << 8) +
-                          packet_filter->ipv4remoteaddr[3].addr;
-      dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
-      dlflow->set_params |= SRC_IPV4;
-    }
   }
   if ((pdn_type == IPv6) || (pdn_type == IPv4_AND_v6)) {
-    // Adding UE to the rule is safe
     if (!ue_ipv6) {
       OAILOG_ERROR(LOG_SPGW_APP, "ue_ipv6 address is NULL\n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
-    memcpy(dlflow->dst_ip6.s6_addr, ue_ipv6->s6_addr, INET6_ADDRSTRLEN);
-
+    // memcpy(&dlflow->dst_ip6, ue_ipv6, sizeof(dlflow->dst_ip6));
+    dlflow->dst_ip6    = *ue_ipv6;
     dlflow->set_params = DST_IPV6;
+  }
 
-    // Process remote address if present
-    if ((TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG & packet_filter->flags) ==
-        TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
-      struct in6_addr remoteaddr = {.s6_addr = 0};
-      memcpy(
-          remoteaddr.s6_addr, packet_filter->ipv6remoteaddr, INET6_ADDRSTRLEN);
-      dlflow->set_params |= SRC_IPV6;
-    }
+  // Adding UE to the rule is safe
+  // Process remote address if present
+  if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
+      TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
+    struct in_addr remoteaddr = {.s_addr = 0};
+    remoteaddr.s_addr         = (packet_filter->ipv4remoteaddr[0].addr << 24) +
+                        (packet_filter->ipv4remoteaddr[1].addr << 16) +
+                        (packet_filter->ipv4remoteaddr[2].addr << 8) +
+                        packet_filter->ipv4remoteaddr[3].addr;
+    dlflow->src_ip.s_addr = ntohl(remoteaddr.s_addr);
+    dlflow->set_params |= SRC_IPV4;
+  }
+  if ((TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG & packet_filter->flags) ==
+      TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG) {
+    struct in6_addr remoteaddr = {.s6_addr = 0};
+    memcpy(remoteaddr.s6_addr, packet_filter->ipv6remoteaddr, INET6_ADDRSTRLEN);
+    memcpy(dlflow->src_ip6.s6_addr, remoteaddr.s6_addr, INET6_ADDRSTRLEN);
+    dlflow->set_params |= SRC_IPV6;
   }
 
   // Specify the next header

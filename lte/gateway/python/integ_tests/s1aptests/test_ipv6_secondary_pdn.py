@@ -51,7 +51,7 @@ class TestIPv6SecondaryPdn(unittest.TestCase):
             "pre_vul": 0,  # preemption-vulnerability
             "mbr_ul": 200000000,  # MBR UL
             "mbr_dl": 100000000,  # MBR DL
-            "pdn_type": 2,  # PDN Type 0-IPv4,1-IPv6,2-IPv4v6
+            "pdn_type": 1,  # PDN Type 0-IPv4,1-IPv6,2-IPv4v6
         }
 
         apn_list = [ims_apn, internet_apn]
@@ -113,16 +113,16 @@ class TestIPv6SecondaryPdn(unittest.TestCase):
             time.sleep(10)
             # TODO- Uncomment once its imlemeted in magma
             # Receive Router Advertisement message
-            # response = self._s1ap_wrapper.s1_util.get_response()
-            # self.assertEqual(
-            #    response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
-            # )
-            # routerAdv = response.cast(s1ap_types.ueRouterAdv_t)
-            # print(
-            #    "******************* Received Router Advertisement for APN-%s
-            #    with IPv6 address-%s ,bearer id-%d",
-            #    apn[i], routerAdv.ipv6Addr, routerAdv.bearerId
-            # )
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+               response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
+            )
+            routerAdv = response.cast(s1ap_types.ueRouterAdv_t)
+            print(
+               "******************* Received Router Advertisement for APN-%s"
+               " bearer id-%d, complete ue ipv6 address-%s"
+               %(apn[i], routerAdv.bearerId, (''.join([chr(i) for i in routerAdv.ipv6Addr]).rstrip('\x00')))
+            )
 
         print(
             "******************* Running UE detach (switch-off) for ",

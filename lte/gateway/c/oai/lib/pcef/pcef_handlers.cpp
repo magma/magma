@@ -178,8 +178,8 @@ void pcef_update_teids(
   magma::UpdateTunnelIdsRequest request;
   request.mutable_sid()->set_id("IMSI" + std::string(imsi));
   request.set_bearer_id(default_bearer_id);
-  request.set_enb_teid(std::to_string(enb_teid));
-  request.set_agw_teid(std::to_string(agw_teid));
+  request.set_enb_teid(enb_teid);
+  request.set_agw_teid(agw_teid);
 
   magma::PCEFClient::update_teids(
       request, [&](grpc::Status status,
