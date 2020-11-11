@@ -398,6 +398,7 @@ static int _pdn_connectivity_create(
                          &pdn_context->paa.ipv6_address),
                 "BAD IPv6 ADDRESS FORMAT FOR PAA!\n");
             break;
+          // TODO Handle static IPv4v6 addr allocation
           case IPv4_AND_v6:
             AssertFatal(0, "TODO\n");
             break;

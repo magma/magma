@@ -49,6 +49,7 @@ struct pcef_create_session_data {
   uint32_t pci;
   uint32_t pvi;
   uint32_t qci;
+  uint8_t pdn_type;
 };
 
 /**
@@ -57,7 +58,7 @@ struct pcef_create_session_data {
  * This is a long process, so it needs to by asynchronous
  */
 void pcef_create_session(
-    spgw_state_t* state, const char* imsi, const char* ip,
+    spgw_state_t* state, const char* imsi, const char* ip4, const char* ip6,
     const struct pcef_create_session_data* session_data,
     itti_sgi_create_end_point_response_t sgi_response,
     s5_create_session_request_t bearer_request,
@@ -84,6 +85,15 @@ void get_session_req_data(
     const itti_s11_create_session_request_t* saved_req,
     struct pcef_create_session_data* data);
 
+/**
+ * pcef_update_teids is an asynchronous call that updates
+ * enb teid and sgw/agw teid for a particular session that is
+ * uniquely identified by imsi and default bearer id.
+ */
+
+void pcef_update_teids(
+    const char* imsi, uint8_t default_bearer_id, uint32_t enb_teid,
+    uint32_t agw_teid);
 #ifdef __cplusplus
 }
 #endif
