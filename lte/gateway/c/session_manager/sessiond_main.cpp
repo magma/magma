@@ -25,6 +25,7 @@
 #include "PolicyLoader.h"
 #include "MConfigLoader.h"
 #include "magma_logging.h"
+#include "OperationalStatesHandler.h"
 #include "SessionCredit.h"
 #include "SessionStore.h"
 #include "GrpcMagmaUtils.h"
@@ -306,6 +307,16 @@ int main(int argc, char* argv[]) {
   MLOG(MINFO) << "Add localservice";
   server.AddServiceToServer(&proxy_service);
   MLOG(MINFO) << "Add proxyservice";
+
+  // Register state polling callback
+  server.SetOperationalStatesCallback([evb, session_store]() {
+    std::promise<magma::OpState> result;
+    std::future<magma::OpState> future = result.get_future();
+    evb->runInEventBaseThread([session_store, &result, &future]() {
+      result.set_value(magma::get_operational_states(session_store));
+    });
+    return future.get();
+  });
 
   magma::AmfPduSessionSmContextAsyncService* conv_set_message_service = nullptr;
   if (converged_access) {

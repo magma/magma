@@ -77,6 +77,7 @@ from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
 from magma.pipelined.app.classifier import Classifier
+from magma.pipelined.app.he import HeaderEnrichmentController, PROXY_TABLE
 
 # Type is either Physical or Logical, highest order_priority is at zero
 App = namedtuple('App', ['name', 'module', 'type', 'order_priority'])
@@ -100,7 +101,7 @@ class TableNumException(Exception):
     pass
 
 
-class TableRange():
+class TableRange:
     """
     Used to generalize different table ranges.
     """
@@ -275,6 +276,7 @@ class ServiceManager:
     XWF_PASSTHRU_NAME = 'xwf_passthru'
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
     CLASSIFIER_NAME = 'classifier'
+    HE_CONTROLLER_NAME = 'proxy'
 
     INTERNAL_APP_SET_TABLE_NUM = 201
     INTERNAL_IMSI_SET_TABLE_NUM = 202
@@ -327,6 +329,13 @@ class ServiceManager:
                 type=AccessControlController.APP_TYPE,
                 order_priority=400),
         ],
+        HE_CONTROLLER_NAME: [
+            App(name=HeaderEnrichmentController.APP_NAME,
+                module=HeaderEnrichmentController.__module__,
+                type=HeaderEnrichmentController.APP_TYPE,
+                order_priority=401),
+        ],
+
         ipv6_solicitation_SERVICE_NAME: [
             App(name=IPV6SolicitationController.APP_NAME,
                 module=IPV6SolicitationController.__module__,

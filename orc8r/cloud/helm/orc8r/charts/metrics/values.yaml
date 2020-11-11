@@ -6,15 +6,78 @@ metrics:
   # alertmanager, and configmanager pods
   volumes:
     prometheusData:
-      volumeSpec: {}
+      volumeSpec:
+        {}
         # hostPath:
         #   path: /prometheusData
         #   type: DirectoryOrCreate
     prometheusConfig:
-      volumeSpec: {}
+      volumeSpec:
+        {}
         # hostPath:
         #   path: /configs/prometheus
         #   type: DirectoryOrCreate
+
+thanos:
+  enabled: false
+
+  image:
+    repository: docker.io/thanosio/thanos
+    tag: v0.15.0
+    pullPolicy: IfNotPresent
+
+  prometheusRetentionTime: 6h
+
+  query:
+    storeDNSDiscovery: true
+    sidecarDNSDiscovery: true
+    logLevel: debug
+
+  # Use thanosRule.enabled for rule configurations since we are using a custom deployment
+  # instead of the third-party helm chart. Use thanos.rule for all other configs
+  # since those have the helm chart defaults. Thanos rule component must be deployed
+  # as part of prometheus-configurer deployment since configurer manages the shared
+  # config files
+  thanosRule:
+    enabled: true
+
+  rule:
+    enabled: false
+    alertmanagers:
+      - orc8r-alertmanager:9093
+    queryDNSDiscovery: true
+    ruleFile: "/etc/rules/alert_rules/*"
+
+  compact:
+    retentionResolutionRaw: 30d
+    retentionResolution5m: 120d
+    retentionResolution1h: 1y
+
+  bucket:
+    enabled: false
+
+  sidecar:
+    selector:
+      app.kubernetes.io/component: prometheus
+
+  objstore:
+    type: S3
+    config:
+      bucket: ""
+      endpoint: ""
+      region: ""
+      access_key: ""
+      secret_key: ""
+      insecure: false
+      signature_version2: false
+      put_user_metadata: {}
+      http_config:
+        idle_conn_timeout: 0s
+        response_header_timeout: 0s
+        insecure_skip_verify: false
+      trace:
+        enable: false
+      part_size: 0
 
 prometheus:
   # Enable/Disable chart

@@ -1,0 +1,44 @@
+---
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+- name: Ensure required dependencies packages are installed.
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - gnupg2
+      - software-properties-common
+  retries: 5
+  when: preburn
+
+- name: Add Getenvoy.io apt key
+  apt_key:
+    url: https://getenvoy.io/gpg
+    state: present
+  when: preburn
+
+- name: Add Getenvoy.io repo
+  apt_repository:
+    repo: "deb [arch=amd64] https://dl.bintray.com/tetrate/getenvoy-deb stretch stable"
+    state: present
+  register: envoy_getenvoy_debian_repo
+  when: preburn
+
+- name: Ensure Envoy package is installed
+  apt:
+    state: present
+    update_cache: yes
+    pkg:
+     - "getenvoy-envoy"
+  when: preburn

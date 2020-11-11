@@ -122,6 +122,7 @@ kubectl exec -it -n magma \
 ```
 
 - Port forward traffic to orchestrator nginx proxy:
+
 ```bash
 kubectl port-forward -n magma svc/orc8r-nginx-proxy 8443:8443
 

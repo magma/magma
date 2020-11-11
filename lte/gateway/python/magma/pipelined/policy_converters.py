@@ -17,7 +17,6 @@ from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.openflow.registers import Direction, load_direction, \
     DPI_REG
-
 from ryu.lib.packet import ether_types
 
 
@@ -155,6 +154,28 @@ def flip_flow_match(match):
     )
 
 
+def get_flow_ip_dst(match):
+    ip_dst = getattr(match, 'ip_dst', None)
+    if ip_dst is None:
+        return
+    decoded_ip = ip_dst.address.decode('utf-8')
+
+    if ip_dst.version == IPAddress.IPV4:
+        return decoded_ip
+    else:
+        return None
+
+
+def ipv4_address_to_str(ipaddr: IPAddress):
+
+    decoded_ip = ipaddr.address.decode('utf-8')
+
+    if ipaddr.version == IPAddress.IPV4:
+        return decoded_ip
+    else:
+        return None
+
+
 def get_ue_ip_match_args(ip_addr: IPAddress, direction: Direction):
     ip_match = {}
 
@@ -196,7 +217,7 @@ def _get_ip_tuple(ip_str):
         ip_block = ipaddress.ip_network(ip_str)
     except ValueError as err:
         raise FlowMatchError("Invalid Ip block: %s" % err)
-    block_tuple = '{}'.format(ip_block.network_address),\
+    block_tuple = '{}'.format(ip_block.network_address), \
                   '{}'.format(ip_block.netmask)
     return block_tuple
 

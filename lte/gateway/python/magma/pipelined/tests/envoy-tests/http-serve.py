@@ -17,6 +17,6 @@ class GetHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
 
 Handler = GetHandler
-httpd = SocketServer.TCPServer(("", PORT), Handler)
+httpd = SocketServer.TCPServer(("192.168.128.1", PORT), Handler)
 print("starting server")
 httpd.serve_forever()

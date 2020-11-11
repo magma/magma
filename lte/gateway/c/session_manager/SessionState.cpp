@@ -26,6 +26,7 @@
 #include "StoredState.h"
 #include "MetricsHelpers.h"
 #include "magma_logging.h"
+#include "Utilities.h"
 
 namespace {
 const char* LABEL_IMSI      = "IMSI";
@@ -784,6 +785,19 @@ void SessionState::get_session_info(SessionState::SessionInfo& info) {
   info.ambr         = config_.get_apn_ambr();
 }
 
+std::vector<PolicyRule> SessionState::get_all_active_policies() {
+  std::vector<PolicyRule> policies;
+  for (auto& rule_id : active_static_rules_) {
+    PolicyRule policy;
+    if (static_rules_.get_rule(rule_id, &policy)) {
+      policies.push_back(policy);
+    }
+  }
+  dynamic_rules_.get_rules(policies);
+  gy_dynamic_rules_.get_rules(policies);
+  return policies;
+}
+
 void SessionState::set_tgpp_context(
     const magma::lte::TgppContext& tgpp_context,
     SessionStateUpdateCriteria& update_criteria) {
@@ -806,6 +820,14 @@ uint64_t SessionState::get_pdp_start_time() {
 
 uint64_t SessionState::get_pdp_end_time() {
   return pdp_end_time_;
+}
+
+uint64_t SessionState::get_active_duration_in_seconds() {
+  if (pdp_end_time_ > 0) {  // session has ended
+    return pdp_end_time_ - pdp_start_time_;
+  }
+  // session is still active
+  return magma::get_time_in_sec_since_epoch() - pdp_start_time_;
 }
 
 void SessionState::set_pdp_end_time(

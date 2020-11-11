@@ -28,6 +28,7 @@ from magma.pipelined.tests.app.start_pipelined import (
 from magma.pipelined.openflow.magma_match import MagmaMatch
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
     as FlowQuery
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.tests.pipelined_test_util import (
     start_ryu_app_thread,
@@ -108,6 +109,7 @@ class UEMacAddressTest(unittest.TestCase):
                     'mon_port_number': 32769,
                     'idle_timeout': 42,
                 },
+                'uplink_port': OFPP_LOCAL,
             },
             mconfig=PipelineD(
                 ue_ip_block="192.168.128.0/24",
