@@ -29,7 +29,7 @@ class TestAttachLoopMmeRestartDetachAndMmeRestartMultiUe(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_loop_mme_restart_detach_and_mme_restart_loop_multi_ue.py(self):
+    def test_attach_loop_mme_restart_detach_and_mme_restart_loop_multi_ue(self):
         """
         Multi UE attach-detach with MME restart. Steps to be followed:
         1-Attach
