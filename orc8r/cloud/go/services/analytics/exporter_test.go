@@ -17,12 +17,13 @@ import (
 	"bytes"
 	"fmt"
 	"io/ioutil"
-	"magma/cwf/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/protos"
 	"net/http"
 	"net/url"
 	"testing"
 
-	"magma/cwf/cloud/go/services/analytics/mocks"
+	"magma/orc8r/cloud/go/services/analytics/mocks"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/stretchr/testify/assert"
@@ -59,7 +60,7 @@ var (
 type exportTestCase struct {
 	client             HttpClient
 	exporter           Exporter
-	exportResult       calculations.Result
+	exportResult       *protos.CalculationResult
 	expectedError      string
 	assertExpectations func(t *testing.T)
 	name               string
@@ -114,16 +115,6 @@ func TestWwwExporter_Export(t *testing.T) {
 			},
 		},
 		{
-			name:          "No networkID in result",
-			client:        successClient,
-			exporter:      testExporter,
-			exportResult:  noNetworkResult,
-			expectedError: "no networkID for exported metric",
-			assertExpectations: func(t *testing.T) {
-				successClient.AssertNotCalled(t, "PostForm", mock.Anything, mock.Anything)
-			},
-		},
-		{
 			name:          "Successful export",
 			client:        successClient,
 			exporter:      testExporter,
@@ -131,7 +122,7 @@ func TestWwwExporter_Export(t *testing.T) {
 			expectedError: "",
 			assertExpectations: func(t *testing.T) {
 				expectedURL := fmt.Sprintf(exportURLTemplate, metricExportURL, appID, appSecret)
-				expectedDatapointJSON := fmt.Sprintf(wwwDatapointJSONStringTemplate, testExporter.FormatEntity(sampleResult, "testNetwork"), testExporter.FormatKey(sampleResult), sampleResult.Value())
+				expectedDatapointJSON := fmt.Sprintf(wwwDatapointJSONStringTemplate, testExporter.FormatEntity(sampleResult, "testNetwork"), testExporter.FormatKey(sampleResult), sampleResult.GetValue())
 				expectedPostData := url.Values{"datapoints": {string(expectedDatapointJSON)}, "category": {categoryName}}
 				successClient.AssertCalled(t, "PostForm", expectedURL, expectedPostData)
 			},

@@ -15,18 +15,24 @@ package calculations
 
 import (
 	"fmt"
-	"github.com/golang/glog"
-	"magma/cwf/cloud/go/services/analytics/query_api"
+
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
+
+	"github.com/golang/glog"
 )
 
+//UserConsumptionCalculation input params, direction can be user consumption volume
+//during upload or download
 type UserConsumptionCalculation struct {
-	CalculationParams
-	Direction ConsumptionDirection
-	Hours     int
+	calculations.CalculationParams
+	Direction calculations.ConsumptionDirection
 }
 
-func (x *UserConsumptionCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]Result, error) {
+//Calculate computes the total volume of data consumed by subscribers over a required timeperiod
+func (x *UserConsumptionCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
 	glog.Infof("Calculating User Consumption. Days: %d, Hours: %d, Direction: %s", x.Days, x.Hours, x.Direction)
 
 	var consumptionQuery string
@@ -42,9 +48,8 @@ func (x *UserConsumptionCalculation) Calculate(prometheusClient query_api.Promet
 		return nil, fmt.Errorf("user Consumption query error: %s", err)
 	}
 
-	baseLabels := combineLabels(x.Labels, map[string]string{DirectionLabel: string(x.Direction)})
-	results := makeVectorResults(vec, baseLabels, x.Name)
-	registerResults(x.CalculationParams, results)
-
+	baseLabels := calculations.CombineLabels(x.Labels, map[string]string{calculations.DirectionLabel: string(x.Direction)})
+	results := calculations.MakeVectorResults(vec, baseLabels, x.Name)
+	calculations.RegisterResults(x.CalculationParams, results)
 	return results, nil
 }

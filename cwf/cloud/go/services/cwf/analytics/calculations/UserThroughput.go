@@ -15,20 +15,26 @@ package calculations
 
 import (
 	"fmt"
-	"github.com/golang/glog"
-	"github.com/prometheus/client_golang/api/prometheus/v1"
-	"magma/cwf/cloud/go/services/analytics/query_api"
-	"magma/orc8r/lib/go/metrics"
 	"time"
+
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
+	"magma/orc8r/lib/go/metrics"
+
+	"github.com/golang/glog"
+	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
+//UserThroughputCalculation params for computing average user throughput
 type UserThroughputCalculation struct {
-	CalculationParams
+	calculations.CalculationParams
 	QueryStepSize time.Duration
-	Direction     ConsumptionDirection
+	Direction     calculations.ConsumptionDirection
 }
 
-func (x *UserThroughputCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]Result, error) {
+//Calculate method calculations average user throughput across the specified direction
+func (x *UserThroughputCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
 	glog.Infof("Calculating User Throughput. Days: %d, Direction: %s", x.Days, x.Direction)
 	// Get datapoints for throughput when the value is not 0 segmented
 	avgRateQuery := fmt.Sprintf(`avg(rate(octets_%s[3m]) > 0) by (%s)`, x.Direction, metrics.NetworkLabelName)
@@ -39,21 +45,20 @@ func (x *UserThroughputCalculation) Calculate(prometheusClient query_api.Prometh
 		return nil, fmt.Errorf("user Throughput query error: %s", err)
 	}
 
-	results := make([]Result, 0)
+	results := make([]*protos.CalculationResult, 0)
 	for _, apnAverages := range avgRateMatrix {
 		nID := string(apnAverages.Metric[metrics.NetworkLabelName])
-		avgThroughputOverTime := averageDatapoints(apnAverages.Values)
+		avgThroughputOverTime := calculations.AverageDatapoints(apnAverages.Values)
 		if nID == "" {
 			glog.Error("Missing NetworkID from Throughput Calculation")
 			continue
 		}
-		results = append(results, Result{
-			value:      avgThroughputOverTime,
-			metricName: x.Name,
-			labels:     combineLabels(x.Labels, map[string]string{metrics.NetworkLabelName: nID, DirectionLabel: string(x.Direction)}),
+		results = append(results, &protos.CalculationResult{
+			Value:      avgThroughputOverTime,
+			MetricName: x.Name,
+			Labels:     calculations.CombineLabels(x.Labels, map[string]string{metrics.NetworkLabelName: nID, calculations.DirectionLabel: string(x.Direction)}),
 		})
 	}
-	registerResults(x.CalculationParams, results)
-
+	calculations.RegisterResults(x.CalculationParams, results)
 	return results, nil
 }

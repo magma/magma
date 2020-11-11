@@ -15,11 +15,13 @@ package calculations
 
 import (
 	"fmt"
-	"magma/cwf/cloud/go/services/analytics/query_api"
 	"testing"
 	"time"
 
-	"magma/cwf/cloud/go/services/analytics/query_api/mocks"
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
+	"magma/orc8r/cloud/go/services/analytics/query_api/mocks"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/common/model"
@@ -75,9 +77,9 @@ const (
 
 type calculationTestCase struct {
 	client          query_api.PrometheusAPI
-	calculation     Calculation
+	calculation     calculations.Calculation
 	expectedError   string
-	expectedResults []Result
+	expectedResults []*protos.CalculationResult
 	name            string
 }
 
@@ -92,7 +94,7 @@ func (tc calculationTestCase) RunTest(t *testing.T) {
 }
 
 var exampleXAPCalculation = XAPCalculation{
-	CalculationParams: CalculationParams{
+	CalculationParams: calculations.CalculationParams{
 		Days:            7,
 		RegisteredGauge: testXAPGauge,
 		Labels:          basicLabels,
@@ -116,10 +118,10 @@ func TestXAPCalculation(t *testing.T) {
 	successClient := &mocks.PrometheusAPI{}
 	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil, nil)
 
-	expectedSuccessResult := Result{
-		value:      1,
-		metricName: exampleXAPCalculation.Name,
-		labels:     map[string]string{"days": "7", "networkID": "testNetwork"},
+	expectedSuccessResult := &protos.CalculationResult{
+		Value:      1,
+		MetricName: exampleXAPCalculation.Name,
+		Labels:     map[string]string{"days": "7", "networkID": "testNetwork"},
 	}
 
 	testCases := []calculationTestCase{
@@ -145,7 +147,7 @@ func TestXAPCalculation(t *testing.T) {
 			name:            "Successful query",
 			client:          successClient,
 			calculation:     &exampleXAPCalculation,
-			expectedResults: []Result{expectedSuccessResult},
+			expectedResults: []*protos.CalculationResult{expectedSuccessResult},
 		},
 	}
 
@@ -154,15 +156,15 @@ func TestXAPCalculation(t *testing.T) {
 	}
 }
 
-var exampleAPThroughputCalculation = APThroughputCalculation{
-	CalculationParams: CalculationParams{
+var exampleAPThroughputCalculation = APNThroughputCalculation{
+	CalculationParams: calculations.CalculationParams{
 		Days:            7,
 		RegisteredGauge: testAPThroughputGauge,
 		Labels:          basicLabels,
 		Name:            testMetricName,
 	},
 	QueryStepSize: time.Second,
-	Direction:     ConsumptionIn,
+	Direction:     calculations.ConsumptionIn,
 }
 
 func TestAPThroughputCalculation(t *testing.T) {
@@ -186,10 +188,10 @@ func TestAPThroughputCalculation(t *testing.T) {
 		Values: values,
 	}}
 
-	expectedSuccessResult := Result{
-		value:      2,
-		metricName: exampleAPThroughputCalculation.Name,
-		labels:     map[string]string{"apn": "apn1", "networkID": "network1", "days": "7", "direction": string(ConsumptionIn)},
+	expectedSuccessResult := &protos.CalculationResult{
+		Value:      2,
+		MetricName: exampleAPThroughputCalculation.Name,
+		Labels:     map[string]string{"apn": "apn1", "networkID": "network1", "days": "7", "direction": string(calculations.ConsumptionIn)},
 	}
 
 	successClient := &mocks.PrometheusAPI{}
@@ -218,7 +220,7 @@ func TestAPThroughputCalculation(t *testing.T) {
 			name:            "Successful query",
 			client:          successClient,
 			calculation:     &exampleAPThroughputCalculation,
-			expectedResults: []Result{expectedSuccessResult},
+			expectedResults: []*protos.CalculationResult{expectedSuccessResult},
 		},
 	}
 
@@ -228,14 +230,14 @@ func TestAPThroughputCalculation(t *testing.T) {
 }
 
 var exampleUserThroughputCalculation = UserThroughputCalculation{
-	CalculationParams: CalculationParams{
+	CalculationParams: calculations.CalculationParams{
 		Days:            7,
 		RegisteredGauge: testUserThroughputGauge,
 		Labels:          basicLabels,
 		Name:            testMetricName,
 	},
 	QueryStepSize: time.Second,
-	Direction:     ConsumptionIn,
+	Direction:     calculations.ConsumptionIn,
 }
 
 func TestUserThroughputCalculation(t *testing.T) {
@@ -258,10 +260,10 @@ func TestUserThroughputCalculation(t *testing.T) {
 		Values: values,
 	}}
 
-	expectedSuccessResult := Result{
-		value:      2,
-		metricName: exampleAPThroughputCalculation.Name,
-		labels:     map[string]string{"networkID": "network1", "days": "7", "direction": string(exampleUserThroughputCalculation.Direction)},
+	expectedSuccessResult := &protos.CalculationResult{
+		Value:      2,
+		MetricName: exampleAPThroughputCalculation.Name,
+		Labels:     map[string]string{"networkID": "network1", "days": "7", "direction": string(exampleUserThroughputCalculation.Direction)},
 	}
 
 	successClient := &mocks.PrometheusAPI{}
@@ -290,7 +292,7 @@ func TestUserThroughputCalculation(t *testing.T) {
 			name:            "Successful query",
 			client:          successClient,
 			calculation:     &exampleUserThroughputCalculation,
-			expectedResults: []Result{expectedSuccessResult},
+			expectedResults: []*protos.CalculationResult{expectedSuccessResult},
 		},
 	}
 
@@ -300,13 +302,13 @@ func TestUserThroughputCalculation(t *testing.T) {
 }
 
 var exampleUserConsumptionCalculation = UserConsumptionCalculation{
-	CalculationParams: CalculationParams{
+	CalculationParams: calculations.CalculationParams{
 		Days:            7,
 		RegisteredGauge: testUserConsumptionGauge,
 		Labels:          basicLabels,
 		Name:            testMetricName,
 	},
-	Direction: ConsumptionIn,
+	Direction: calculations.ConsumptionIn,
 }
 
 func TestUserConsumptionCalculation(t *testing.T) {
@@ -318,10 +320,10 @@ func TestUserConsumptionCalculation(t *testing.T) {
 		Value:  2,
 	}}
 
-	expectedSuccessResult := Result{
-		value:      2,
-		metricName: exampleUserConsumptionCalculation.Name,
-		labels:     map[string]string{"networkID": "network1", "days": "7", "direction": string(exampleUserConsumptionCalculation.Direction)},
+	expectedSuccessResult := &protos.CalculationResult{
+		Value:      2,
+		MetricName: exampleUserConsumptionCalculation.Name,
+		Labels:     map[string]string{"networkID": "network1", "days": "7", "direction": string(exampleUserConsumptionCalculation.Direction)},
 	}
 
 	successClient := &mocks.PrometheusAPI{}
@@ -350,7 +352,7 @@ func TestUserConsumptionCalculation(t *testing.T) {
 			name:            "Successful query",
 			client:          successClient,
 			calculation:     &exampleUserConsumptionCalculation,
-			expectedResults: []Result{expectedSuccessResult},
+			expectedResults: []*protos.CalculationResult{expectedSuccessResult},
 		},
 	}
 
@@ -361,12 +363,12 @@ func TestUserConsumptionCalculation(t *testing.T) {
 
 func TestCheckLabelsMatch(t *testing.T) {
 	expectedLabels := []string{"label1", "label2"}
-	assert.True(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label1": "val", "label2": "val"}))
-	assert.True(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val", "label1": "val"}))
+	assert.True(t, calculations.CheckLabelsMatch(expectedLabels, prometheus.Labels{"label1": "val", "label2": "val"}))
+	assert.True(t, calculations.CheckLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val", "label1": "val"}))
 
-	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label1": "val"}))
-	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val"}))
-	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"newLabel": "val"}))
-	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{}))
-	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val", "label1": "val", "newLabel": "val"}))
+	assert.False(t, calculations.CheckLabelsMatch(expectedLabels, prometheus.Labels{"label1": "val"}))
+	assert.False(t, calculations.CheckLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val"}))
+	assert.False(t, calculations.CheckLabelsMatch(expectedLabels, prometheus.Labels{"newLabel": "val"}))
+	assert.False(t, calculations.CheckLabelsMatch(expectedLabels, prometheus.Labels{}))
+	assert.False(t, calculations.CheckLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val", "label1": "val", "newLabel": "val"}))
 }

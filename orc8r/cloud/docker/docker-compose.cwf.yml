@@ -22,7 +22,6 @@ services:
     <<: *orc8r_service
     depends_on:
       # CWF services
-      - analytics
       # Core orc8r services and non-core essentials
       - orchestrator
       - lte
@@ -33,12 +32,3 @@ services:
       - >
         /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
         /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/cwf -run_echo_server=true -logtostderr=true -v=0
-
-  analytics:
-    <<: *orc8r_service
-    command:
-      - /bin/sh
-      - -c
-      - >
-        /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
-        /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/analytics -logtostderr=true -v=0
