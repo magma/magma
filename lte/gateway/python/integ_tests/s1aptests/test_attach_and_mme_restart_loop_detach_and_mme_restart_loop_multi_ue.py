@@ -20,7 +20,7 @@ from s1ap_utils import MagmadUtil
 import random
 
 
-class TestAttachMmeRestartAttachMmeRestartDetachMultiUe(unittest.TestCase):
+class TestAttachAndMmeRestartLoopDetachAndMmeRestartLoopMultiUe(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper(
             stateless_mode=MagmadUtil.stateless_cmds.ENABLE
@@ -29,14 +29,15 @@ class TestAttachMmeRestartAttachMmeRestartDetachMultiUe(unittest.TestCase):
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_mme_restart_attach_mme_reatsrt_detach_multi_ue(self):
+    def test_attach_and_mme_restart_loop_detach_and_mme_restart_loop_multi_ue(self):
         """
         Multi UE attach-detach with MME restart. Steps to be followed:
         1-Attach
         2-MmeRestart + wait for 30 seconds
         3-Repeat step 1 and 2 in loop for all UEs
         4-Detach
-        5-Repeat step 4 in loop for all UEs
+        5-MmeRestart + wait for 30 seconds
+        6-Repeat step 4 and 5 in loop for all UEs
         """
         num_ues = 32
         detach_type = [
@@ -83,9 +84,18 @@ class TestAttachMmeRestartAttachMmeRestartDetachMultiUe(unittest.TestCase):
             print(
                 "************************* Running UE detach for UE id ",
                 ue,
-                "(Detach type:" + detach_type_str[index] + ")",
+                "(Detach type: " + detach_type_str[index] + ")",
             )
             self._s1ap_wrapper.s1_util.detach(ue, detach_type[index])
+
+            print(
+                "************************* Restarting MME service on gateway",
+            )
+            self._s1ap_wrapper.magmad_util.restart_services(["mme"])
+
+            for j in range(30):
+                print("Waiting for", j, "seconds")
+                time.sleep(1)
 
 
 if __name__ == "__main__":
