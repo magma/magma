@@ -30,6 +30,9 @@ cloud_port: {{ .Values.feg.proxy.cloud_port }}
 bootstrap_address: {{ .Values.feg.proxy.bootstrap_address }}
 bootstrap_port: {{ .Values.feg.proxy.bootstrap_port }}
 
+fluentd_address: {{ .Values.feg.log_aggregation.fluentd_address }}
+fluentd_port: {{ .Values.feg.log_aggregation.fluentd_port }}
+
 # Option to use nghttpx for proxying. If disabled, the individual
 # services would establish the TLS connections themselves.
 proxy_cloud_connections: True

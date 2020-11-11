@@ -80,7 +80,7 @@ def main():
         exit(1)
 
     # Create XwF-M Network
-    partner = args.partner.replace("-", "_").strip()
+    partner = args.partner.strip()
     server_id = get_gateway_id(args.url, partner, args.hwid)
     hostname = 'xwfm.' + args.partner + '.' + args.env + '.' + server_id
     with open('/etc/hostname', 'w') as config:

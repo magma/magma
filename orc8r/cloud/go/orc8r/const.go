@@ -23,10 +23,16 @@ const (
 	DirectoryRecordType     = "directory_record"
 	StringMapSerdeType      = "string_map"
 
+	DnsdNetworkType = "dnsd_network"
+
 	UpgradeTierEntityType           = "upgrade_tier"
 	UpgradeReleaseChannelEntityType = "upgrade_release_channel"
 
-	DnsdNetworkType = "dnsd_network"
+	// ServiceHostnameEnvVar is the name of an environment variable which is
+	// required to hold the public IP of the service.
+	// In dev, this will generally be localhost.
+	// In prod, this will be the relevant pod's IP.
+	ServiceHostnameEnvVar = "SERVICE_HOSTNAME"
 
 	MconfigBuilderLabel   = "orc8r.io/mconfig_builder"
 	MetricsExporterLabel  = "orc8r.io/metrics_exporter"

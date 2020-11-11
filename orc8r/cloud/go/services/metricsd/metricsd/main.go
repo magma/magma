@@ -14,7 +14,6 @@ limitations under the License.
 package main
 
 import (
-	"os"
 	"time"
 
 	"magma/orc8r/cloud/go/obsidian"
@@ -25,10 +24,9 @@ import (
 	"magma/orc8r/cloud/go/services/metricsd/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
 	"magma/orc8r/lib/go/protos"
-	"magma/orc8r/lib/go/registry"
 
 	"github.com/golang/glog"
-	"github.com/prometheus/client_model/go"
+	io_prometheus_client "github.com/prometheus/client_model/go"
 	"google.golang.org/grpc"
 )
 
@@ -51,12 +49,16 @@ func main() {
 	protos.RegisterMetricsControllerServer(srv.GrpcServer, controllerServicer)
 
 	// Initialize gatherers
+	additionalCollectors := []collection.MetricCollector{
+		&collection.DiskUsageMetricCollector{},
+		&collection.ProcMetricsCollector{},
+	}
 	metricsCh := make(chan *io_prometheus_client.MetricFamily)
-	gatherer, err := collection.NewMetricsGatherer(getCollectors(), CloudMetricsCollectInterval, metricsCh)
+	gatherer, err := collection.NewMetricsGatherer(additionalCollectors, CloudMetricsCollectInterval, metricsCh)
 	if err != nil {
 		glog.Fatalf("Error initializing MetricsGatherer: %s", err)
 	}
-	go controllerServicer.ConsumeCloudMetrics(metricsCh, os.Getenv("HOST_NAME"))
+	go controllerServicer.ConsumeCloudMetrics(metricsCh, service.MustGetHostname())
 	gatherer.Run()
 
 	obsidian.AttachHandlers(srv.EchoServer, handlers.GetObsidianHandlers(srv.Config))
@@ -64,21 +66,4 @@ func main() {
 	if err != nil {
 		glog.Fatalf("Error running metricsd service: %s", err)
 	}
-}
-
-// getCollectors returns the set of metrics collectors.
-// Returned collectors include disk usage, process statistics, and
-// per-service custom metrics.
-func getCollectors() []collection.MetricCollector {
-	services := registry.ListControllerServices()
-
-	collectors := []collection.MetricCollector{
-		&collection.DiskUsageMetricCollector{},
-		&collection.ProcMetricsCollector{},
-	}
-	for _, s := range services {
-		collectors = append(collectors, collection.NewCloudServiceMetricCollector(s))
-	}
-
-	return collectors
 }

@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -32,6 +34,13 @@ type GatewayEpcConfigs struct {
 	// Max Length: 49
 	// Min Length: 5
 	IPBlock string `json:"ip_block"`
+
+	// ipv6 block
+	IPV6Block string `json:"ipv6_block,omitempty"`
+
+	// ipv6 prefix allocation mode
+	// Enum: [RANDOM HASH]
+	IPV6PrefixAllocationMode string `json:"ipv6_prefix_allocation_mode,omitempty"`
 
 	// nat enabled
 	// Required: true
@@ -66,6 +75,10 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateIPBlock(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPV6PrefixAllocationMode(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -136,6 +149,49 @@ func (m *GatewayEpcConfigs) validateIPBlock(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MaxLength("ip_block", "body", string(m.IPBlock), 49); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var gatewayEpcConfigsTypeIPV6PrefixAllocationModePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["RANDOM","HASH"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		gatewayEpcConfigsTypeIPV6PrefixAllocationModePropEnum = append(gatewayEpcConfigsTypeIPV6PrefixAllocationModePropEnum, v)
+	}
+}
+
+const (
+
+	// GatewayEpcConfigsIPV6PrefixAllocationModeRANDOM captures enum value "RANDOM"
+	GatewayEpcConfigsIPV6PrefixAllocationModeRANDOM string = "RANDOM"
+
+	// GatewayEpcConfigsIPV6PrefixAllocationModeHASH captures enum value "HASH"
+	GatewayEpcConfigsIPV6PrefixAllocationModeHASH string = "HASH"
+)
+
+// prop value enum
+func (m *GatewayEpcConfigs) validateIPV6PrefixAllocationModeEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, gatewayEpcConfigsTypeIPV6PrefixAllocationModePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateIPV6PrefixAllocationMode(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPV6PrefixAllocationMode) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateIPV6PrefixAllocationModeEnum("ipv6_prefix_allocation_mode", "body", m.IPV6PrefixAllocationMode); err != nil {
 		return err
 	}
 

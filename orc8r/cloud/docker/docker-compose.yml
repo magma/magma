@@ -31,6 +31,7 @@ services:
       - $PWD/../../../.cache/test_certs:/var/opt/magma/certs
     environment:
       TEST_MODE: "1"  # Used to run dev scripts on startup
+      SERVICE_HOSTNAME: localhost  # All services are reachable through localhost
       SQL_DRIVER: postgres
       DATABASE_SOURCE: "dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable"
       SQL_DIALECT: psql

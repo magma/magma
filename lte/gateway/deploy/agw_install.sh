@@ -81,7 +81,7 @@ After=network-online.target
 Wants=network-online.target
 [Service]
 Type=oneshot
-ExecStart=/bin/sh /root/agw_install.sh
+ExecStart=/bin/bash /root/agw_install.sh
 TimeoutStartSec=3800
 TimeoutSec=3600
 User=root

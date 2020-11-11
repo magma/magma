@@ -35,3 +35,6 @@ CONTAINERS=$(docker ps -a -q)
 
 # Remove all stopped containers and dangling images
 docker system prune -af
+
+# update image version in xwfmwhoami
+sed -i "s/image_.*/image_version: $IMAGE_VERSION/g" /etc/xwfwhoami

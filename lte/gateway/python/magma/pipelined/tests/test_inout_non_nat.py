@@ -34,6 +34,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     create_service_manager,
     SnapshotVerifier
 )
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 from magma.pipelined.app import inout
 
@@ -133,6 +134,7 @@ class InOutNonNatTest(unittest.TestCase):
         if non_nat_arp_egress_port is None:
             non_nat_arp_egress_port = cls.DHCP_PORT
 
+        patch_up_port_no = BridgeTools.get_ofport('patch-up')
         test_setup = TestSetup(
             apps=[PipelinedController.InOut,
                   PipelinedController.Testing,
@@ -154,8 +156,8 @@ class InOutNonNatTest(unittest.TestCase):
                 'enable_nat': False,
                 'non_nat_gw_probe_frequency': 0.5,
                 'non_nat_arp_egress_port': non_nat_arp_egress_port,
-                'ovs_uplink_port_name': 'patch-up',
-                'uplink_gw_mac': gw_mac_addr
+                'uplink_port': patch_up_port_no,
+                'uplink_gw_mac': gw_mac_addr,
             },
             mconfig=None,
             loop=None,
@@ -373,7 +375,8 @@ class InOutTestNonNATBasicFlows(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
                 'enable_nat': False,
-                'uplink_gw_mac': '11:22:33:44:55:66'
+                'uplink_gw_mac': '11:22:33:44:55:66',
+                'uplink_port': OFPP_LOCAL
             },
             mconfig=None,
             loop=None,
