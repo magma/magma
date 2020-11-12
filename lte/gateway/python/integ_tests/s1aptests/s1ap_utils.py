@@ -392,7 +392,11 @@ class S1ApUtil(object):
             for item in value:
                 for flow in item:
                     if flow["direction"] == FlowMatch.DOWNLINK:
-                        ip_src_addr = flow["ipv4_src"] if key.version == 4 else flow["ipv6_src"]
+                        ip_src_addr = (
+                            flow["ipv4_src"]
+                            if key.version == 4
+                            else flow["ipv6_src"]
+                        )
                         ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
                         ip_dst = "ipv4_dst" if key.version == 4 else "ipv6_dst"
                         tcp_src_port = flow["tcp_src_port"]
@@ -421,9 +425,7 @@ class S1ApUtil(object):
                         assert (
                             len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
-                        assert (
-                            downlink_flows[0]["match"][ip_dst] == ue_ip_str
-                        )
+                        assert downlink_flows[0]["match"][ip_dst] == ue_ip_str
                         actions = downlink_flows[0]["instructions"][0][
                             "actions"
                         ]
@@ -448,8 +450,10 @@ class S1ApUtil(object):
             uplink_flows = get_flows(
                 self.datapath,
                 {
-                    "table_id": self.SPGW_TABLE,
-                    "match": {"in_port": GTP_PORT},
+                   "table_id": self.SPGW_TABLE,
+                   "match": {
+                       "in_port": GTP_PORT,
+                   }
                 },
             )
             if len(uplink_flows) == num_ul_flows:
