@@ -153,7 +153,7 @@ func TestGyCreditExhaustionWithCRRU(t *testing.T) {
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
-	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, uint64(math.Round(5*MegaBytes+Buffer)))
+	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, 5*MegaBytes+Buffer)
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the OCS
 	tr.AssertAllGyExpectationsMetNoError()
@@ -428,7 +428,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that UE mac flow was not removed and data was passed
-	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, uint64(5*MegaBytes+Buffer))
+	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, 5*MegaBytes+Buffer)
 
 	// Wait for service deactivation
 	time.Sleep(3 * time.Second)
@@ -456,7 +456,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	tr.WaitForEnforcementStatsToSync()
 
 	// Check that UE mac flow was not removed and data was passed
-	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, uint64(7*MegaBytes+Buffer))
+	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, 7*MegaBytes+Buffer)
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
 	terminateRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_TERMINATION)
