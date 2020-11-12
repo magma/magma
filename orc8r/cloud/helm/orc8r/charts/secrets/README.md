@@ -26,6 +26,8 @@ helm template charts/secrets \
 kubectl apply -f -
 ```
 
+Note: If deploying metrics with Thanos add `--set=thanos_enabled=true` when templating
+
 ## Overview
 
 This chart installs a set to secrets required by magma orchestrator.

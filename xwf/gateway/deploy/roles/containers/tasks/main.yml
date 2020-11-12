@@ -24,27 +24,24 @@
     src: dhclient.conf
     dest: /etc/dhcp/dhclient.conf
 
-- name: create directories for magma configs and files
-  file:
-    path: "{{ item }}"
-    state: directory
-    mode: '0755'
-  loop:
-    - "/var/opt/magma"
-    - "/var/opt/magma/configs"
-    - "/var/opt/magma/certs"
-    - "/etc/magma"
-    - "/etc/magma/templates/"
-    - "/var/opt/magma/docker"
-
-- name: touch snowflake
-  shell: touch /etc/snowflake
-
 - name: create the env file
   template:
     src: env.j2
     dest: /var/opt/magma/docker/.env
     mode: 0400
+
+- name: create fluentbit logs directory
+  file:
+    path: "/var/log/fluentbit-logs/"
+    state: directory
+    mode: '0700'
+
+- name: place clean_fluentbit_logs cron file
+  copy:
+   src: clean_fluentbit_logs
+   dest: /etc/cron.d/clean_fluentbit_logs
+   mode: '0644'
+
 
 - name: Clone the git repo
   git:

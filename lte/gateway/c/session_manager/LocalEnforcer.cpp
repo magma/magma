@@ -1995,6 +1995,34 @@ bool LocalEnforcer::bind_policy_to_bearer(
   return false;
 }
 
+bool LocalEnforcer::update_tunnel_ids(
+    SessionMap& session_map, const UpdateTunnelIdsRequest& request,
+    SessionUpdate& session_update) {
+  const auto imsi       = request.sid().id();
+  const uint32_t bearer = request.bearer_id();
+
+  SessionSearchCriteria criteria(imsi, IMSI_AND_BEARER, bearer);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    MLOG(MERROR) << "Could not find session for " << imsi << " and bearer "
+                 << bearer << " during update tunnelIds ";
+    return false;
+  }
+  auto& session = **session_it;
+
+  const auto& config = session->get_config();
+  if (!config.rat_specific_context.has_lte_context()) {
+    MLOG(MERROR) << "Requested update_tunnel_ids for a non LTE session for "
+                 << imsi;
+    return false;
+  }
+  pipelined_client_->update_tunnel_ids(
+      imsi, session->get_config().common_context.ue_ipv4(),
+      session->get_config().common_context.ue_ipv6(), request.enb_teid(),
+      request.agw_teid());
+  return true;
+}
+
 void LocalEnforcer::remove_rule_due_to_bearer_creation_failure(
     const std::string& imsi, SessionState& session, const std::string& rule_id,
     SessionStateUpdateCriteria& uc) {

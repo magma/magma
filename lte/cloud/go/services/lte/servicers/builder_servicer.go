@@ -112,11 +112,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			EnbConfigsBySerial:  enbConfigsBySerial,
 		},
 		"mobilityd": &lte_mconfig.MobilityD{
-			LogLevel:        protos.LogLevel_INFO,
-			IpBlock:         gwEpc.IPBlock,
-			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
-			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
-			MultiApnIpAlloc: getMobilityDMultuAPNIPAlloc(nwEpc),
+			LogLevel:                 protos.LogLevel_INFO,
+			IpBlock:                  gwEpc.IPBlock,
+			IpAllocatorType:          getMobilityDIPAllocator(nwEpc),
+			Ipv6Block:                gwEpc.IPV6Block,
+			Ipv6PrefixAllocationType: gwEpc.IPV6PrefixAllocationMode,
+			StaticIpEnabled:          getMobilityDStaticIPAllocation(nwEpc),
+			MultiApnIpAlloc:          getMobilityDMultuAPNIPAlloc(nwEpc),
 		},
 		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -146,6 +148,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
+			DisableHeaderEnrichment:  cellularGwConfig.DisableHeaderEnrichment,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -332,6 +335,7 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			cellularEnbConfig := enodebConfig.UnmanagedConfig
 			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
 			enbMconfig.Tac = int32(swag.Uint32Value(cellularEnbConfig.Tac))
+			enbMconfig.IpAddress = string(*cellularEnbConfig.IPAddress)
 
 			if enbMconfig.Tac == 0 {
 				enbMconfig.Tac = int32(nwConfig.Epc.Tac)

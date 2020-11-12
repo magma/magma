@@ -32,6 +32,9 @@ type PolicyRuleConfig struct {
 	// Required: true
 	FlowList []*FlowDescription `json:"flow_list"`
 
+	// List of URL targets for header enrichment
+	HeaderEnrichmentTargets []string `json:"header_enrichment_targets"`
+
 	// monitoring key
 	MonitoringKey string `json:"monitoring_key,omitempty"`
 

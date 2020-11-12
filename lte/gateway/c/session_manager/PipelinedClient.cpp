@@ -113,6 +113,19 @@ magma::ActivateFlowsRequest create_activate_req(
   return req;
 }
 
+magma::ActivateFlowsRequest create_activate_req_for_update_tunnel_ids(
+    const std::string& imsi, const std::string& ip_addr,
+    const std::string& ipv6_addr, const uint32_t enb_teid,
+    const uint32_t agw_teid) {
+  magma::ActivateFlowsRequest req;
+  req.mutable_sid()->set_id(imsi);
+  req.set_ip_addr(ip_addr);
+  req.set_ipv6_addr(ipv6_addr);
+  req.set_uplink_tunnel(agw_teid);
+  req.set_downlink_tunnel(enb_teid);
+  return req;
+}
+
 magma::UEMacFlowRequest create_add_ue_mac_flow_req(
     const magma::SubscriberID& sid, const std::string& ue_mac_addr,
     const std::string& msisdn, const std::string& ap_mac_addr,
@@ -327,6 +340,28 @@ bool AsyncPipelinedClient::activate_flows_for_rules(
       imsi, ip_addr, ipv6_addr, msisdn, ambr, std::vector<std::string>(),
       dynamic_rules, RequestOriginType::GX);
   activate_flows_rpc(dynamic_req, callback);
+  return true;
+}
+
+bool AsyncPipelinedClient::update_tunnel_ids(
+    const std::string& imsi, const std::string& ip_addr,
+    const std::string& ipv6_addr, const uint32_t enb_teid,
+    const uint32_t agw_teid) {
+  MLOG(MDEBUG) << "Sending a pipelined update for enb_teid=" << enb_teid
+               << " and agw_teid=" << agw_teid << " for subscirber " << imsi
+               << "(ipv4:" << ip_addr << " ipv6:" << ipv6_addr << ")";
+
+  auto update_req = create_activate_req_for_update_tunnel_ids(
+      imsi, ip_addr, ipv6_addr, enb_teid, agw_teid);
+  activate_flows_rpc(
+      update_req,
+      [imsi, ip_addr, ipv6_addr](Status status, ActivateFlowsResult resp) {
+        if (!status.ok()) {
+          MLOG(MERROR) << "Could send pipelined update for tunnels for " << imsi
+                       << "(ipv4:" << ip_addr << " ipv6:" << ipv6_addr << ")"
+                       << ": " << status.error_message();
+        }
+      });
   return true;
 }
 

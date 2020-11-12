@@ -1761,6 +1761,10 @@ definitions:
         $ref: '#/definitions/gateway_non_eps_configs'
       dns:
         $ref: '#/definitions/gateway_dns_configs'
+      disable_header_enrichment:
+        description: True iff header enrichment feature should be disabled for gateway
+        type: boolean
+        example: false
 
   gateway_ran_configs:
     type: object
@@ -1797,6 +1801,17 @@ definitions:
         maxLength: 49
         x-nullable: false
         example: '192.168.128.0/24'
+      ipv6_block:
+        type: string
+        x-nullable: false
+        example: 'fdee:5:6c::/48'
+      ipv6_prefix_allocation_mode:
+        type: string
+        x-nullable: false
+        enum:
+          - 'RANDOM'
+          - 'HASH'
+        example: 'RANDOM'
       dns_primary:
         type: string
         minLength: 5
@@ -1866,7 +1881,7 @@ definitions:
           - 0
           - 1
           - 2
-          - 3 
+          - 3
 
   gateway_dns_records:
     type: array

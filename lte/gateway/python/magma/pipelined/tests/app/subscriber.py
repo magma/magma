@@ -170,6 +170,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
             ip_addr = convert_ip_str_to_ip_proto(self.cfg.ip)
             self._ec.activate_rules(
                 imsi=self.cfg.imsi,
+                msisdn=None,
+                uplink_tunnel=None,
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
                 static_rule_ids=self._static_rule_names,
@@ -177,6 +179,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
+                    msisdn=None,
+                    uplink_tunnel=None,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
                     static_rule_ids=self._static_rule_names,
