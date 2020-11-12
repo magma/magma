@@ -258,11 +258,10 @@ static itti_sgi_create_end_point_response_t handle_allocate_ipv6_address_status(
           "ue_pdn_connection", 1, 2, "pdn_type", "ipv6", "result",
           "ip_address_already_allocated");
       /*
-       * This implies that UE session was not release properly.
+       * This implies that UE session was not released properly.
        * Release the IP address so that subsequent attempt is successfull
        */
       release_ipv6_address(imsi, apn, &addr);
-      // TODO - Release the GTP-tunnel corresponding to this IP address
       sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SYSTEM_FAILURE;
     } else {
       increment_counter(
@@ -376,11 +375,10 @@ handle_allocate_ipv4v6_address_status(
           "ue_pdn_connection", 1, 2, "pdn_type", "ipv4v6", "result",
           "ip_address_already_allocated");
       /*
-       * This implies that UE session was not release properly.
+       * This implies that UE session was not released properly.
        * Release the IP address so that subsequent attempt is successfull
        */
       release_ipv4v6_address(imsi, apn, &ip4_addr, &ip6_addr);
-      // TODO - Release the GTP-tunnel corresponding to this IP address
       sgi_create_endpoint_resp.status = SGI_STATUS_ERROR_SYSTEM_FAILURE;
     } else {
       increment_counter(

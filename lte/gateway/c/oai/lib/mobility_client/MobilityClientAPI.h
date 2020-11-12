@@ -87,10 +87,9 @@ int pgw_handle_allocate_ipv4_address(
  * and handle response for PGW handler.
  * @param subscriber_id: subscriber id string, i.e. IMSI
  * @param apn: access point name string, e.g., "ims", "internet", etc.
- * @param ipv6_addr: contains the IP address allocated upon returning in
- * "host byte order"
+ * @param ipv6_addr: contains the IP address allocated upon returning
  * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
- * @param pdn_type str for PDN type (ipv6...)
+ * @param pdn_type str for PDN type (ipv6)
  * @param spgw_state spgw_state_t struct
  * @param new_bearer_ctxt_info_p SPGW ue context struct
  * @param s5_response itti message for s5_create_session response
@@ -111,7 +110,7 @@ int pgw_handle_allocate_ipv6_address(
  * periodically.
  *
  * @param subscriber_id: subscriber id string, i.e. IMSI
- * @param addr: IP address to release in "host byte order"
+ * @param addr: IP address to release
  * @return 0 on success
  * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
@@ -179,10 +178,9 @@ int get_subscriber_id_from_ipv4(
  * @param apn: access point name string, e.g., "ims", "internet", etc.
  * @param ip4_addr: contains the IP address allocated upon returning in
  * "host byte order"
- * @param ipv6_addr: contains the IP address allocated upon returning in
- * "host byte order"
+ * @param ipv6_addr: contains the IP address allocated upon returning
  * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
- * @param pdn_type str for PDN type (ipv4v6...)
+ * @param pdn_type str for PDN type (ipv4v6)
  * @param spgw_state spgw_state_t struct
  * @param new_bearer_ctxt_info_p SPGW ue context struct
  * @param s5_response itti message for s5_create_session response

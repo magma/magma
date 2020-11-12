@@ -73,8 +73,7 @@ class MobilityServiceClient : public GRPCReceiver {
    * Allocate an IPv6 address from the free IP pool (non-blocking)
    * @param imsi: IMSI string
    * @param apn:  APN string
-   * @param addr (out): contains the IP address allocated upon returning in
-   * "network byte order"
+   * @param addr (out): contains the IP address allocated upon returning
    * @return status of gRPC call
    */
   int AllocateIPv6AddressAsync(
@@ -86,8 +85,7 @@ class MobilityServiceClient : public GRPCReceiver {
    * Allocate an IPv4v6 address from the free IP pool (non-blocking)
    * @param imsi: IMSI string
    * @param apn:  APN string
-   * @param addr (out): contains the IP address allocated upon returning in
-   * "network byte order"
+   * @param addr (out): contains the IP address allocated upon returning
    * @return status of gRPC call
    */
   int AllocateIPv4v6AddressAsync(
@@ -119,7 +117,7 @@ class MobilityServiceClient : public GRPCReceiver {
    *
    * @param imsi: IMSI string
    * @param apn:  APN string
-   * @param addr: IPv6 address to release in "network byte order"
+   * @param addr: IPv6 address to release
    * @return 0 on success
    * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
    */
@@ -136,7 +134,7 @@ class MobilityServiceClient : public GRPCReceiver {
    * @param imsi: IMSI string
    * @param apn:  APN string
    * @param ipv4_addr: IPv4 address to release in "network byte order"
-   * @param ipv6_addr: IPv6 address to release in "network byte order"
+   * @param ipv6_addr: IPv6 address to release
    * @return 0 on success
    * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
    */

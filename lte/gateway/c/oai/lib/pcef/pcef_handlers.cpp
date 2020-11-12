@@ -53,7 +53,8 @@ static void create_session_response(
       release_ipv4_address(
           imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv4_address);
     }
-    if (sgi_response.paa.pdn_type == IPv6) {
+    if ((sgi_response.paa.pdn_type == IPv6) ||
+        (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
       release_ipv6_address(
           imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv6_address);
     }

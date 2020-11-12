@@ -1983,14 +1983,11 @@ static void _generate_dl_flow(
   // The TFTs are DL TFTs: UE is the destination/local,
   // PDN end point is the source/remote.
 
-  if (pdn_type == IPv4) {
-    // Adding UE to the rule is safe
-    dlflow->dst_ip.s_addr = ipv4_s_addr;
+  // Adding UE to the rule is safe
+  dlflow->dst_ip.s_addr = ipv4_s_addr;
 
-    // At least we can match UE IPv4 addr;
-    // when IPv6 is supported, we need to revisit this.
-    dlflow->set_params = DST_IPV4;
-  }
+  // At least we can match UE IPv4 addr;
+  dlflow->set_params = DST_IPV4;
   if ((pdn_type == IPv6) || (pdn_type == IPv4_AND_v6)) {
     if (!ue_ipv6) {
       OAILOG_ERROR(LOG_SPGW_APP, "ue_ipv6 address is NULL\n");
@@ -2001,7 +1998,6 @@ static void _generate_dl_flow(
     dlflow->set_params = DST_IPV6;
   }
 
-  // Adding UE to the rule is safe
   // Process remote address if present
   if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
       TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG) {
