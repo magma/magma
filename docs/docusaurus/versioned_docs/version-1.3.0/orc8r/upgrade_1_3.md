@@ -35,12 +35,12 @@ container versions:
 
 ```hcl-terraform
 module orc8r {
-  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.2"
+  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.3"
   # ...
 }
 
 module orc8r-app {
-  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.2"
+  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.3"
   # ...
   orc8r_chart_version = "1.4.36"
   orc8r_tag           = "MAGMA_TAG"  # from build step, e.g. v1.3.0
