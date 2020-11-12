@@ -257,12 +257,12 @@ class PolicyMixin(metaclass=ABCMeta):
             return RuleModResult.FAILURE
         return self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
 
-    def _wait_for_rule_responses(self, imsi, rule, chan):
+    def _wait_for_rule_responses(self, imsi, ip_addr, rule, chan):
         def fail(err):
             self.logger.error(
                 "Failed to install rule %s for subscriber %s: %s",
                 rule.id, imsi, err)
-            self._deactivate_flow_for_rule(imsi, rule.id)
+            self._deactivate_flow_for_rule(imsi, ip_addr, rule.id)
             return RuleModResult.FAILURE
 
         for _ in range(len(rule.flow_list)):

@@ -16,11 +16,11 @@
         rm -f /var/opt/magma/certs/rest_admin.crt
 
 - name: clean rest key from xwfwhoami
-  shell: yq -i -Y 'del(.rest_admin_key)' /etc/xwfwhoami
+  shell: /usr/local/bin/yq -i -Y 'del(.rest_admin_key)' /etc/xwfwhoami
   args:
     warn: false
 
 - name: clean rest crt from xwfwhoami
-  shell: yq -i -Y 'del(.rest_admin_crt)' /etc/xwfwhoami
+  shell: /usr/local/bin/yq -i -Y 'del(.rest_admin_crt)' /etc/xwfwhoami
   args:
     warn: false

@@ -12,7 +12,6 @@ limitations under the License.
 """
 
 import unittest
-import time
 import warnings
 from concurrent.futures import Future
 
@@ -28,12 +27,8 @@ from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
     SnapshotVerifier
 from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 
-from magma.pipelined.openflow import messages
 from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.openflow.messages import MsgChannel
-from magma.pipelined.openflow import flows
-
-from magma.pipelined.openflow.magma_match import MagmaMatch
 
 
 def _pkt_total(stats):
