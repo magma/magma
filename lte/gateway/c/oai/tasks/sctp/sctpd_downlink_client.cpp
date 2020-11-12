@@ -146,23 +146,17 @@ int sctpd_init(sctp_init_t* init) {
   req.set_port(init->port);
   req.set_ppid(init->ppid);
 
+  req.set_ngap_port(init->ngap_port);
+  req.set_ngap_ppid(init->ngap_ppid);
+  
+
+
   req.set_force_restart(_client->should_force_restart);
 
-#define MAX_SCTPD_INIT_ATTEMPTS 100
-  int num_inits      = 0;
-  int sctpd_init_res = -1;
-  while (sctpd_init_res != 0) {
-    if (num_inits >= MAX_SCTPD_INIT_ATTEMPTS) {
-      OAILOG_ERROR(LOG_SCTP, "Reached max attempts for Sctpd init");
-      break;
-    }
-    ++num_inits;
-    OAILOG_DEBUG(LOG_SCTP, "Sctpd Init attempt %d", num_inits);
-    auto rc        = _client->init(req, &res);
-    auto init_ok   = res.result() == InitRes::INIT_OK;
-    sctpd_init_res = (rc == 0) && init_ok ? 0 : -1;
-  }
-  return sctpd_init_res;
+  auto rc      = _client->init(req, &res);
+  auto init_ok = res.result() == InitRes::INIT_OK;
+
+  return (rc == 0) && init_ok ? 0 : -1;
 }
 
 // close
@@ -185,10 +179,10 @@ void sctpd_exit() {
 }
 
 // sendDl
-int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload) {
+int sctpd_send_dl(uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
-
+  req.set_ppid(ppid);
   req.set_assoc_id(assoc_id);
   req.set_stream(stream);
   req.set_payload(bdata(payload), blength(payload));

@@ -65,19 +65,31 @@ SctpdUplinkImpl::SctpdUplinkImpl() {}
 Status SctpdUplinkImpl::SendUl(
     ServerContext* context, const SendUlReq* req, SendUlRes* res) {
   bstring payload;
+  uint32_t ppid, i ;
   uint32_t assoc_id;
   uint16_t stream;
 
-  payload = blk2bstr(req->payload().c_str(), req->payload().size());
+/*initial_ue_msg*/
+const char *new_data = "\x00\x0f\x40\x3d\x00\x00\x04\x00\x55\x00\x02\x00\x01\x00\x26\x00\x18\x17\x7e\x00\x41\x71\x00\x0d\x01\x02\xf8\x59\xf0\xff\x00\x00\x00\x00\x00\x00\x13\x2e\x02\x80\x40\x00\x79\x00\x0f\x40\x02\xf8\x59\x00\x00\x00\x5c\xd0\x02\xf8\x59\x00\xa0\x00\x00\x5a\x40\x01\x18";
+
+
+/*Uplink Nas transport reponse*/
+//const char *new_data = "\x00\x2e\x40\x3c\x00\x00\x04\x00\x0a\x00\x02\x00\x01\x00\x55\x00\x02\x00\x01\x00\x26\x00\x16\x15\x7e\x00\x57\x2d\x10\x25\xe8\x7b\x06\x52\xc3\xc6\x3b\x36\x82\x8b\x54\x51\x7e\xbf\x15\x00\x79\x40\x0f\x40\x13\x40\x01\x00\x00\x00\x5c\xd0\x13\x40\x01\x00\xa0\x00"; 
+
+ 
+ payload = blk2bstr((unsigned char *)new_data, req->payload().size());
   if (payload == NULL) {
     OAILOG_ERROR(LOG_SCTP, "failed to allocate bstr for SendUl\n");
     return Status::OK;
-  }
+  
+}
 
+  ppid=req->ppid();
   assoc_id = req->assoc_id();
   stream   = req->stream();
 
-  if (sctp_itti_send_new_message_ind(&payload, assoc_id, stream) < 0) {
+
+  if (sctp_itti_send_new_message_ind(&payload,ppid, assoc_id, stream) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to send new_message_ind for SendUl\n");
     return Status::OK;
   }
@@ -89,16 +101,19 @@ Status SctpdUplinkImpl::SendUl(
 
 Status SctpdUplinkImpl::NewAssoc(
     ServerContext* context, const NewAssocReq* req, NewAssocRes* res) {
+
+  uint32_t ppid;
   uint32_t assoc_id;
   uint16_t instreams;
   uint16_t outstreams;
 
+  ppid	     =req->ppid();
   assoc_id   = req->assoc_id();
   instreams  = req->instreams();
   outstreams = req->outstreams();
 
-  if (sctp_itti_send_new_association(assoc_id, instreams, outstreams) < 0) {
-    OAILOG_ERROR(LOG_SCTP, "failed to send new_association for NewAssoc\n");
+ 
+ if (sctp_itti_send_new_association(ppid, assoc_id, instreams, outstreams) < 0) {
     return Status::OK;
   }
 
@@ -107,13 +122,15 @@ Status SctpdUplinkImpl::NewAssoc(
 
 Status SctpdUplinkImpl::CloseAssoc(
     ServerContext* context, const CloseAssocReq* req, CloseAssocRes* res) {
+  uint32_t ppid;
   uint32_t assoc_id;
   bool reset;
 
+  ppid	   = req->ppid();
   assoc_id = req->assoc_id();
   reset    = req->is_reset();
 
-  if (sctp_itti_send_com_down_ind(assoc_id, reset) < 0) {
+  if (sctp_itti_send_com_down_ind(ppid, assoc_id, reset) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to send com_down_ind for CloseAssoc\n");
     return Status::OK;
   }
