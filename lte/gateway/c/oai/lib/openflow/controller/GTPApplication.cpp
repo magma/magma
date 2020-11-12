@@ -217,7 +217,10 @@ static void add_downlink_match_ipv6(
   // Set match on uplink port and IP eth type
   of13::InPort uplink_port_match(port);
   downlink_fm.add_oxm_field(uplink_port_match);
-  of13::EthType ip6_type(0x08DD);
+  /* TODO-Made this local fix as it was not yet available in master
+   * without this fix ovs rules are not getting created
+   */
+  of13::EthType ip6_type(0x086DD);
   downlink_fm.add_oxm_field(ip6_type);
 
   // Match UE IP destination
