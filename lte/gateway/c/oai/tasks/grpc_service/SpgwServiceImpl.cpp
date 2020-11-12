@@ -262,10 +262,10 @@ bool SpgwServiceImpl::fillUpPacketFilterContents(
           return false;
         }
       }
-      if (flow_match_rule->ip_dst().version() ==
-          flow_match_rule->ip_dst().IPV6) {
+      if (flow_match_rule->ip_src().version() ==
+          flow_match_rule->ip_src().IPV6) {
         flags |= TRAFFIC_FLOW_TEMPLATE_IPV6_REMOTE_ADDR_FLAG;
-        if (!fillIpv6(pf_content, flow_match_rule->ip_dst().address())) {
+        if (!fillIpv6(pf_content, flow_match_rule->ip_src().address())) {
           return false;
         }
       }

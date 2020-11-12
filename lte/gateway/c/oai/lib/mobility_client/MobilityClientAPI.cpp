@@ -195,7 +195,14 @@ int pgw_handle_allocate_ipv6_address(
         std::string ipv6_addr_str = "";
         if (ip_msg.ip_list_size() > 0) {
           ipv6_addr_str = ip_msg.ip_list(0).address();
+        } else {
+          OAILOG_ERROR(
+              LOG_UTIL,
+              " Error in allocating ipv6 address for IMSI <%s> apn <%s>\n",
+              subscriber_id, apn);
+          OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
         }
+
         memcpy(ip6_addr->s6_addr, ipv6_addr_str.c_str(), sizeof(in6_addr));
         int vlan = atoi(ip_msg.vlan().c_str());
 
