@@ -47,16 +47,20 @@ echo "Creating controller cert"
 echo "########################"
 openssl genrsa -out controller.key 2048
 openssl req -new -key controller.key -out controller.csr -subj "/C=US/CN=*.$domain"
-openssl x509 -req -in controller.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out controller.crt -days 3650 -sha256
+
+
+# Create an extension config file
+> ${domain}.ext cat <<-EOF
+basicConstraints=CA:FALSE
+subjectAltName = @alt_names
+[alt_names]
+DNS.1 = *.$domain
+DNS.2 = *.nms.$domain
+EOF
+openssl x509 -req -in controller.csr -CA rootCA.pem -CAkey rootCA.key -CAcreateserial -out controller.crt -days 825 -sha256 -extfile ${domain}.ext
 
 echo ""
 echo "###########################"
 echo "Deleting intermediate files"
 echo "###########################"
-rm -f controller.csr rootCA.srl
-
-echo ""
-echo "####################"
-echo "Deleting root CA key"
-echo "####################"
-rm -f rootCA.key
+rm -f controller.csr rootCA.srl ${domain}.ext

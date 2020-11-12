@@ -101,13 +101,13 @@ mme_ue_s1ap_id_t mme_app_ctx_get_new_ue_id(
 #define MME_APP_DELTA_T3412_REACHABILITY_TIMER 4            // in minutes
 #define MME_APP_DELTA_REACHABILITY_IMPLICIT_DETACH_TIMER 0  // in minutes
 
-#define MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 2  // In seconds
+#define MME_APP_INITIAL_CONTEXT_SETUP_RSP_TIMER_VALUE 4  // In seconds
 #define MME_APP_UE_CONTEXT_MODIFICATION_TIMER_VALUE 2    // In seconds
 #define MME_APP_PAGING_RESPONSE_TIMER_VALUE 4            // In seconds
 #define MME_APP_ULR_RESPONSE_TIMER_VALUE 3               // In seconds
 /* Timer structure */
 struct mme_app_timer_t {
-  long id;  /* The timer identifier                 */
+  long id;      /* The timer identifier                 */
   uint32_t sec; /* The timer interval value in seconds  */
 };
 
@@ -241,6 +241,7 @@ typedef struct pdn_context_s {
   bool is_active;
 
   protocol_configuration_options_t* pco;
+  bool ue_rej_act_def_ber_req;
 } pdn_context_t;
 
 typedef enum {
@@ -356,6 +357,9 @@ typedef struct ue_mm_context_s {
   /* apn_config_profile: set by S6A UPDATE LOCATION ANSWER */
   apn_config_profile_t apn_config_profile;
 
+  /* charging_characteristics: set by S6A UPDATE LOCATION ANSWER */
+  charging_characteristics_t default_charging_characteristics;
+
   /* access_restriction_data: The access restriction subscription information.
    *           set by S6A UPDATE LOCATION ANSWER
    */
@@ -418,12 +422,14 @@ typedef struct ue_mm_context_s {
   time_t time_implicit_detach_timer_started;
   /* Initial Context Setup Procedure Guard timer */
   struct mme_app_timer_t initial_context_setup_rsp_timer;
+  time_t time_ics_rsp_timer_started;
   /* UE Context Modification Procedure Guard timer */
   struct mme_app_timer_t ue_context_modification_timer;
   /* Timer for retrying paging messages */
 #define MAX_PAGING_RETRY_COUNT 1
   uint8_t paging_retx_count;
   struct mme_app_timer_t paging_response_timer;
+  time_t time_paging_response_timer_started;
   /* send_ue_purge_request: If true MME shall send S6a- Purge Req to
    * delete contexts at HSS
    */
@@ -577,8 +583,6 @@ void mme_remove_ue_context(
  * @returns Pointer to the new structure, NULL if allocation failed
  **/
 ue_mm_context_t* mme_create_new_ue_context(void);
-
-void mme_app_free_pdn_connection(pdn_context_t** const pdn_connection);
 
 void mme_app_ue_context_free_content(ue_mm_context_t* const mme_ue_context_p);
 

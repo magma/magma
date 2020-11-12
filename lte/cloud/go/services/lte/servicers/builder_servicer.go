@@ -20,19 +20,21 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
+	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
-	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	merrors "magma/orc8r/lib/go/errors"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 	"github.com/pkg/errors"
+
+	"github.com/thoas/go-funk"
 )
 
 type builderServicer struct{}
@@ -44,11 +46,11 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	network, err := (configurator.Network{}).FromStorageProto(request.Network)
+	network, err := (configurator.Network{}).FromProto(request.Network, serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
+	graph, err := (configurator.EntityGraph{}).FromProto(request.Graph, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -110,11 +112,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			EnbConfigsBySerial:  enbConfigsBySerial,
 		},
 		"mobilityd": &lte_mconfig.MobilityD{
-			LogLevel:        protos.LogLevel_INFO,
-			IpBlock:         gwEpc.IPBlock,
-			IpAllocatorType: getMobilityDIPAllocator(nwEpc),
-			StaticIpEnabled: getMobilityDStaticIPAllocation(nwEpc),
-			MultiApnIpAlloc: getMobilityDMultuAPNIPAlloc(nwEpc),
+			LogLevel:                 protos.LogLevel_INFO,
+			IpBlock:                  gwEpc.IPBlock,
+			IpAllocatorType:          getMobilityDIPAllocator(nwEpc),
+			Ipv6Block:                gwEpc.IPV6Block,
+			Ipv6PrefixAllocationType: gwEpc.IPV6PrefixAllocationMode,
+			StaticIpEnabled:          getMobilityDStaticIPAllocation(nwEpc),
+			MultiApnIpAlloc:          getMobilityDMultuAPNIPAlloc(nwEpc),
 		},
 		"mme": &lte_mconfig.MME{
 			LogLevel:                 protos.LogLevel_INFO,
@@ -123,12 +127,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Tac:                      int32(nwEpc.Tac),
 			MmeCode:                  1,
 			MmeGid:                   1,
-			EnableDnsCaching:         shouldEnableDNSCaching(network),
+			EnableDnsCaching:         shouldEnableDNSCaching(cellularGwConfig.DNS),
 			NonEpsServiceControl:     nonEPSServiceMconfig.nonEpsServiceControl,
 			CsfbMcc:                  nonEPSServiceMconfig.csfbMcc,
 			CsfbMnc:                  nonEPSServiceMconfig.csfbMnc,
 			Lac:                      nonEPSServiceMconfig.lac,
-			RelayEnabled:             swag.BoolValue(nwEpc.RelayEnabled),
+			HssRelayEnabled:          swag.BoolValue(nwEpc.HssRelayEnabled),
 			CloudSubscriberdbEnabled: nwEpc.CloudSubscriberdbEnabled,
 			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
 			DnsPrimary:               gwEpc.DNSPrimary,
@@ -142,25 +146,28 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			DefaultRuleId:            nwEpc.DefaultRuleID,
 			Services:                 pipelineDServices,
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
-			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP.String(),
+			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
+			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
+			DisableHeaderEnrichment:  cellularGwConfig.DisableHeaderEnrichment,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
-			LogLevel:     protos.LogLevel_INFO,
-			LteAuthOp:    nwEpc.LteAuthOp,
-			LteAuthAmf:   nwEpc.LteAuthAmf,
-			SubProfiles:  getSubProfiles(nwEpc),
-			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       nwEpc.LteAuthOp,
+			LteAuthAmf:      nwEpc.LteAuthAmf,
+			SubProfiles:     getSubProfiles(nwEpc),
+			HssRelayEnabled: swag.BoolValue(nwEpc.HssRelayEnabled),
 		},
 		"policydb": &lte_mconfig.PolicyDB{
 			LogLevel: protos.LogLevel_INFO,
 		},
 		"sessiond": &lte_mconfig.SessionD{
-			LogLevel:     protos.LogLevel_INFO,
-			RelayEnabled: swag.BoolValue(nwEpc.RelayEnabled),
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: swag.BoolValue(nwEpc.GxGyRelayEnabled),
 			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 				TerminateOnExhaust: false,
 			},
 		},
+		"dnsd": getGatewayCellularDNSMConfig(cellularGwConfig.DNS),
 	}
 
 	ret.ConfigsByKey, err = mconfig.MarshalConfigs(vals)
@@ -192,14 +199,6 @@ func validateConfigs(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_
 		return errors.New("Network EPC config is nil")
 	}
 	return nil
-}
-
-func shouldEnableDNSCaching(network configurator.Network) bool {
-	idnsConfig, found := network.Configs[orc8r.DnsdNetworkType]
-	if !found || idnsConfig == nil {
-		return false
-	}
-	return swag.BoolValue(idnsConfig.(*models.NetworkDNSConfig).EnableCaching)
 }
 
 type nonEPSServiceMconfigFields struct {
@@ -293,41 +292,54 @@ func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwCon
 			glog.Errorf("enb with serial %s is missing config", serial)
 		}
 
-		cellularEnbConfig := ienbConfig.(*lte_models.EnodebConfiguration)
-		enbMconfig := &lte_mconfig.EnodebD_EnodebConfig{
-			Earfcndl:               int32(cellularEnbConfig.Earfcndl),
-			SubframeAssignment:     int32(cellularEnbConfig.SubframeAssignment),
-			SpecialSubframePattern: int32(cellularEnbConfig.SpecialSubframePattern),
-			Pci:                    int32(cellularEnbConfig.Pci),
-			TransmitEnabled:        swag.BoolValue(cellularEnbConfig.TransmitEnabled),
-			DeviceClass:            cellularEnbConfig.DeviceClass,
-			BandwidthMhz:           int32(cellularEnbConfig.BandwidthMhz),
-			Tac:                    int32(cellularEnbConfig.Tac),
-			CellId:                 int32(swag.Uint32Value(cellularEnbConfig.CellID)),
-		}
+		enodebConfig := ienbConfig.(*lte_models.EnodebConfig)
+		enbMconfig := &lte_mconfig.EnodebD_EnodebConfig{}
 
-		// override zero values with network/gateway configs
-		if enbMconfig.Earfcndl == 0 {
-			enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
-		}
-		if enbMconfig.SubframeAssignment == 0 {
-			if nwConfig.Ran.TddConfig != nil {
-				enbMconfig.SubframeAssignment = int32(nwConfig.Ran.TddConfig.SubframeAssignment)
+		if enodebConfig.ConfigType == "MANAGED" {
+			cellularEnbConfig := enodebConfig.ManagedConfig
+			enbMconfig.Earfcndl = int32(cellularEnbConfig.Earfcndl)
+			enbMconfig.SubframeAssignment = int32(cellularEnbConfig.SubframeAssignment)
+			enbMconfig.SpecialSubframePattern = int32(cellularEnbConfig.SpecialSubframePattern)
+			enbMconfig.Pci = int32(cellularEnbConfig.Pci)
+			enbMconfig.TransmitEnabled = swag.BoolValue(cellularEnbConfig.TransmitEnabled)
+			enbMconfig.DeviceClass = cellularEnbConfig.DeviceClass
+			enbMconfig.BandwidthMhz = int32(cellularEnbConfig.BandwidthMhz)
+			enbMconfig.Tac = int32(cellularEnbConfig.Tac)
+			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+
+			// override zero values with network/gateway configs
+			if enbMconfig.Earfcndl == 0 {
+				enbMconfig.Earfcndl = int32(nwConfig.GetEarfcndl())
 			}
-		}
-		if enbMconfig.SpecialSubframePattern == 0 {
-			if nwConfig.Ran.TddConfig != nil {
-				enbMconfig.SpecialSubframePattern = int32(nwConfig.Ran.TddConfig.SpecialSubframePattern)
+			if enbMconfig.SubframeAssignment == 0 {
+				if nwConfig.Ran.TddConfig != nil {
+					enbMconfig.SubframeAssignment = int32(nwConfig.Ran.TddConfig.SubframeAssignment)
+				}
 			}
-		}
-		if enbMconfig.Pci == 0 {
-			enbMconfig.Pci = int32(gwConfig.Ran.Pci)
-		}
-		if enbMconfig.BandwidthMhz == 0 {
-			enbMconfig.BandwidthMhz = int32(nwConfig.Ran.BandwidthMhz)
-		}
-		if enbMconfig.Tac == 0 {
-			enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			if enbMconfig.SpecialSubframePattern == 0 {
+				if nwConfig.Ran.TddConfig != nil {
+					enbMconfig.SpecialSubframePattern = int32(nwConfig.Ran.TddConfig.SpecialSubframePattern)
+				}
+			}
+			if enbMconfig.Pci == 0 {
+				enbMconfig.Pci = int32(gwConfig.Ran.Pci)
+			}
+			if enbMconfig.BandwidthMhz == 0 {
+				enbMconfig.BandwidthMhz = int32(nwConfig.Ran.BandwidthMhz)
+			}
+			if enbMconfig.Tac == 0 {
+				enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			}
+
+		} else if enodebConfig.ConfigType == "UNMANAGED" {
+			cellularEnbConfig := enodebConfig.UnmanagedConfig
+			enbMconfig.CellId = int32(swag.Uint32Value(cellularEnbConfig.CellID))
+			enbMconfig.Tac = int32(swag.Uint32Value(cellularEnbConfig.Tac))
+			enbMconfig.IpAddress = string(*cellularEnbConfig.IPAddress)
+
+			if enbMconfig.Tac == 0 {
+				enbMconfig.Tac = int32(nwConfig.Epc.Tac)
+			}
 		}
 
 		ret[serial] = enbMconfig
@@ -382,4 +394,51 @@ func getMobilityDMultuAPNIPAlloc(epc *lte_models.NetworkEpcConfigs) bool {
 		return false
 	}
 	return epc.Mobility.EnableMultiApnIPAllocation
+}
+
+func getGatewayCellularDNSMConfig(gwDns *lte_models.GatewayDNSConfigs) *lte_mconfig.DnsD {
+	if gwDns == nil {
+		return &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+			EnableCaching:     false,
+			LocalTTL:          0,
+			Records:           []*lte_mconfig.GatewayDNSConfigRecordsItems{},
+		}
+	} else {
+		return &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: swag.BoolValue(gwDns.DhcpServerEnabled),
+			EnableCaching:     shouldEnableDNSCaching(gwDns),
+			LocalTTL:          *gwDns.LocalTTL,
+			Records:           getGatewayDnsRecords(gwDns),
+		}
+	}
+}
+
+func getGatewayDnsRecords(dns *lte_models.GatewayDNSConfigs) []*lte_mconfig.GatewayDNSConfigRecordsItems {
+	if dns.Records == nil {
+		return []*lte_mconfig.GatewayDNSConfigRecordsItems{}
+	}
+
+	ret := make([]*lte_mconfig.GatewayDNSConfigRecordsItems, 0, len(dns.Records))
+	for _, record := range dns.Records {
+		recordProto := &lte_mconfig.GatewayDNSConfigRecordsItems{}
+		recordProto.Domain = record.Domain
+		recordProto.ARecord = funk.Map(record.ARecord, func(a strfmt.IPv4) string { return string(a) }).([]string)
+		recordProto.AaaaRecord = funk.Map(record.AaaaRecord, func(a strfmt.IPv6) string { return string(a) }).([]string)
+		recordProto.CnameRecord = make([]string, 0, len(record.CnameRecord))
+		for _, cRecord := range record.CnameRecord {
+			recordProto.CnameRecord = append(recordProto.CnameRecord, cRecord)
+		}
+		ret = append(ret, recordProto)
+	}
+	return ret
+}
+
+func shouldEnableDNSCaching(dns *lte_models.GatewayDNSConfigs) bool {
+	if dns == nil {
+		return false
+	}
+	return swag.BoolValue(dns.EnableCaching)
 }

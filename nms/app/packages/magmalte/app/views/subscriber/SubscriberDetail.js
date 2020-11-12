@@ -247,11 +247,13 @@ function Status({subscriberInfo}: {subscriberInfo: subscriber}) {
         category: 'Gateway ID',
         value: gwId,
         statusCircle: false,
+        tooltip: 'latest gateway connected to the subscriber',
       },
       {
         category: 'eNodeB SN',
         value: featureUnsupported,
         statusCircle: false,
+        tooltip: 'not supported',
       },
     ],
     [
@@ -259,10 +261,12 @@ function Status({subscriberInfo}: {subscriberInfo: subscriber}) {
         category: 'Connection Status',
         value: statusUnknown,
         statusCircle: false,
+        tooltip: 'not supported',
       },
       {
         category: 'UE Latency',
-        value: statusUnknown,
+        value: subscriberInfo.monitoring?.icmp?.latency_ms ?? statusUnknown,
+        unit: subscriberInfo.monitoring?.icmp?.latency_ms ? 'ms' : '',
         statusCircle: false,
       },
     ],

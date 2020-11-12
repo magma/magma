@@ -50,22 +50,35 @@ export function EnodebStatus() {
   const kpiData: DataRows[] = [
     [
       {
+        category: 'eNodeB Externally Managed',
+        value:
+          enbInfo.enb?.enodeb_config?.config_type === 'MANAGED'
+            ? 'False'
+            : 'True',
+      },
+      {
         category: 'Health',
         value: isEnbHealthy ? 'Good' : 'Bad',
         statusCircle: true,
         status: isEnbHealthy,
+        tooltip: isEnbHealthy
+          ? 'eNodeB transmit config and status match'
+          : 'mismatch in eNodeB transmit config and status',
       },
       {
         category: 'Transmit Enabled',
-        value: enbInfo.enb.config.transmit_enabled ? 'Enabled' : 'Disabled',
+        value: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled
+          ? 'Enabled'
+          : 'Disabled',
         statusCircle: true,
-        status: enbInfo.enb.config.transmit_enabled,
+        status: enbInfo.enb.enodeb_config?.managed_config?.transmit_enabled,
+        tooltip: 'current transmit configuration on the eNodeB',
       },
     ],
     [
       {
         category: 'Gateway ID',
-        value: enbInfo.enb_state.reporting_gateway_id ?? '',
+        value: enbInfo.enb_state.reporting_gateway_id ?? 'Not Available',
         statusCircle: true,
         status: enbInfo.enb_state.enodeb_connected,
       },
@@ -73,6 +86,10 @@ export function EnodebStatus() {
         category: 'Mme Connected',
         value: enbInfo.enb_state.mme_connected ? 'Connected' : 'Disconnected',
         status: enbInfo.enb_state.mme_connected,
+      },
+      {
+        category: 'IP Address',
+        value: enbInfo.enb_state.ip_address ?? 'Not Available',
       },
     ],
   ];

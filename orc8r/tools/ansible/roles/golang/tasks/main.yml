@@ -63,3 +63,12 @@
   command: go get -u golang.org/x/lint/golint
   when: full_provision
 
+- name: Install gotestsum
+  become: yes
+  become_user: '{{ user }}'
+  environment:
+    GOPATH: "{{ gopath }}"
+    GOBIN: "{{ gobin }}"
+    PATH: "{{ ansible_env.PATH }}:{{ go_bin_path }}"
+  command: go get -u gotest.tools/gotestsum
+  when: full_provision

@@ -37,16 +37,16 @@ var (
 // Initalize mocked Prometheus clients
 func init() {
 	// Query returns error
-	errClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("query error"))
-	errClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(nil, fmt.Errorf("query error"))
+	errClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, fmt.Errorf("query error"))
+	errClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, fmt.Errorf("query error"))
 
 	// Query returns matrix datatype
-	matrixReturnClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(model.Matrix{}, nil)
-	matrixReturnClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(model.Matrix{}, nil)
+	matrixReturnClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(model.Matrix{}, nil, nil)
+	matrixReturnClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(model.Matrix{}, nil, nil)
 
 	// Query returns vector datatype
-	vectorReturnClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(model.Vector{}, nil)
-	vectorReturnClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(model.Vector{}, nil)
+	vectorReturnClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(model.Vector{}, nil, nil)
+	vectorReturnClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(model.Vector{}, nil, nil)
 }
 
 var (
@@ -114,7 +114,7 @@ func TestXAPCalculation(t *testing.T) {
 	vec = []*model.Sample{&sample1}
 
 	successClient := &mocks.PrometheusAPI{}
-	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil)
+	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil, nil)
 
 	expectedSuccessResult := Result{
 		value:      1,
@@ -193,7 +193,7 @@ func TestAPThroughputCalculation(t *testing.T) {
 	}
 
 	successClient := &mocks.PrometheusAPI{}
-	successClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(matrix, nil)
+	successClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(matrix, nil, nil)
 
 	testCases := []calculationTestCase{
 		{
@@ -265,7 +265,7 @@ func TestUserThroughputCalculation(t *testing.T) {
 	}
 
 	successClient := &mocks.PrometheusAPI{}
-	successClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(matrix, nil)
+	successClient.On("QueryRange", mock.Anything, mock.Anything, mock.Anything).Return(matrix, nil, nil)
 
 	testCases := []calculationTestCase{
 		{
@@ -325,7 +325,7 @@ func TestUserConsumptionCalculation(t *testing.T) {
 	}
 
 	successClient := &mocks.PrometheusAPI{}
-	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil)
+	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil, nil)
 
 	testCases := []calculationTestCase{
 		{
@@ -357,4 +357,16 @@ func TestUserConsumptionCalculation(t *testing.T) {
 	for _, test := range testCases {
 		t.Run(test.name, test.RunTest)
 	}
+}
+
+func TestCheckLabelsMatch(t *testing.T) {
+	expectedLabels := []string{"label1", "label2"}
+	assert.True(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label1": "val", "label2": "val"}))
+	assert.True(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val", "label1": "val"}))
+
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label1": "val"}))
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val"}))
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"newLabel": "val"}))
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{}))
+	assert.False(t, checkLabelsMatch(expectedLabels, prometheus.Labels{"label2": "val", "label1": "val", "newLabel": "val"}))
 }

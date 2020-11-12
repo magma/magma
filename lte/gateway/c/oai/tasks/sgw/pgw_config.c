@@ -145,10 +145,13 @@ int pgw_config_process(pgw_config_t* config_pP) {
       if (rv != 0) {
         if (retry++ >= MOBILITYD_API_RETRY_LIMIT) {
           OAILOG_CRITICAL(
-              LOG_SPGW_APP, "ERROR in getting assigned IP block from mobilityd\n");
+              LOG_SPGW_APP,
+              "ERROR in getting assigned IP block from mobilityd\n");
           return -1;
         } else {
-          OAILOG_DEBUG(LOG_SPGW_APP, "mobilityD IP block read: retry attempt: %d", retry);
+          OAILOG_DEBUG(
+              LOG_SPGW_APP, "mobilityD IP block read: retry attempt: %d",
+              retry);
           sleep(1);
         }
       } else {
@@ -437,15 +440,6 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
       config_pP->ue_mtu = 1463;
     }
     OAILOG_DEBUG(LOG_SPGW_APP, "UE MTU : %u\n", config_pP->ue_mtu);
-    if (config_setting_lookup_string(
-            setting_pgw, PGW_RELAY_ENABLED, (const char**) &astring)) {
-      if (strcasecmp(astring, "yes") == 0) {
-        config_pP->relay_enabled = true;
-        OAILOG_DEBUG(LOG_SPGW_APP, "Enabling relay through PCEF\n");
-      } else {
-        config_pP->relay_enabled = false;
-      }
-    }
 
     subsetting = config_setting_get_member(setting_pgw, PGW_CONFIG_STRING_PCEF);
     if (subsetting) {

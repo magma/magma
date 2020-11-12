@@ -18,6 +18,7 @@ import type {lte_gateway} from '@fbcnms/magma-api';
 import 'jest-dom/extend-expect';
 
 import AddEditGatewayButton from '../GatewayDetailConfigEdit';
+import GatewayConfig from '../GatewayDetailConfig';
 import GatewayContext from '../../../components/context/GatewayContext';
 import MagmaAPIBindings from '@fbcnms/magma-api';
 import MuiStylesThemeProvider from '@material-ui/styles/ThemeProvider';
@@ -26,7 +27,10 @@ import defaultTheme from '../../../theme/default.js';
 
 import {MemoryRouter, Route} from 'react-router-dom';
 import {MuiThemeProvider} from '@material-ui/core/styles';
-import {SetGatewayState} from '../../../state/EquipmentState';
+import {
+  SetGatewayState,
+  UpdateGateway,
+} from '../../../state/lte/EquipmentState';
 import {cleanup, fireEvent, render, wait} from '@testing-library/react';
 import {useState} from 'react';
 
@@ -40,6 +44,7 @@ jest
   .mockReturnValue(enqueueSnackbarMock);
 
 const mockGw0: lte_gateway = {
+  apn_resources: {},
   id: ' testGatewayId0',
   name: ' testGateway0',
   description: ' testGateway0',
@@ -59,7 +64,9 @@ const mockGw0: lte_gateway = {
   cellular: {
     epc: {
       ip_block: '192.168.0.1/24',
-      nat_enabled: true,
+      nat_enabled: false,
+      sgi_management_iface_static_ip: '1.1.1.1/24',
+      sgi_management_iface_vlan: '100',
     },
     ran: {
       pci: 620,
@@ -81,6 +88,7 @@ const mockGw0: lte_gateway = {
 describe('<AddEditGatewayButton />', () => {
   afterEach(() => {
     MagmaAPIBindings.postLteByNetworkIdGateways.mockClear();
+    MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularDns.mockClear();
   });
 
   const AddWrapper = () => {
@@ -111,6 +119,36 @@ describe('<AddEditGatewayButton />', () => {
                     isLink={false}
                   />
                 )}
+              />
+            </GatewayContext.Provider>
+          </MuiStylesThemeProvider>
+        </MuiThemeProvider>
+      </MemoryRouter>
+    );
+  };
+
+  const DetailWrapper = () => {
+    const [lteGateways, setLteGateways] = useState({testGatewayId0: mockGw0});
+    return (
+      <MemoryRouter
+        initialEntries={['/nms/test/gateway/testGatewayId0/config']}
+        initialIndex={0}>
+        <MuiThemeProvider theme={defaultTheme}>
+          <MuiStylesThemeProvider theme={defaultTheme}>
+            <GatewayContext.Provider
+              value={{
+                state: lteGateways,
+                setState: async () => {},
+                updateGateway: props =>
+                  UpdateGateway({
+                    networkId: 'test',
+                    setLteGateways: setLteGateways,
+                    ...props,
+                  }),
+              }}>
+              <Route
+                path="/nms/:networkId/gateway/:gatewayId/config"
+                render={props => <GatewayConfig {...props} />}
               />
             </GatewayContext.Provider>
           </MuiStylesThemeProvider>
@@ -178,6 +216,7 @@ describe('<AddEditGatewayButton />', () => {
     await wait();
     expect(MagmaAPIBindings.postLteByNetworkIdGateways).toHaveBeenCalledWith({
       gateway: {
+        apn_resources: {},
         id: 'testGatewayID1',
         name: 'testGatewayName',
         cellular: {
@@ -186,6 +225,9 @@ describe('<AddEditGatewayButton />', () => {
             dns_secondary: '',
             ip_block: '192.168.128.0/24',
             nat_enabled: true,
+            sgi_management_iface_gw: '',
+            sgi_management_iface_static_ip: '',
+            sgi_management_iface_vlan: '',
           },
           ran: {
             pci: 260,
@@ -220,6 +262,60 @@ describe('<AddEditGatewayButton />', () => {
         },
         tier: 'default',
       },
+      networkId: 'test',
+    });
+  });
+
+  it('Verify Gateway Ran Edit', async () => {
+    const {getByTestId, getByText, queryByTestId} = render(<DetailWrapper />);
+    await wait();
+    expect(queryByTestId('editDialog')).toBeNull();
+
+    fireEvent.click(getByTestId('ranEditButton'));
+    await wait();
+
+    expect(queryByTestId('infoEdit')).toBeNull();
+    expect(queryByTestId('epcEdit')).toBeNull();
+    expect(queryByTestId('aggregationEdit')).toBeNull();
+    expect(queryByTestId('ranEdit')).not.toBeNull();
+
+    let pci = getByTestId('pci').firstChild;
+    if (pci instanceof HTMLInputElement) {
+      expect(pci.disabled).toBe(false);
+    } else {
+      throw 'invalid type';
+    }
+
+    const enbDhcpService = getByTestId('enbDhcpService').firstChild;
+    if (
+      enbDhcpService instanceof HTMLElement &&
+      enbDhcpService.firstChild instanceof HTMLElement
+    ) {
+      fireEvent.click(enbDhcpService.firstChild);
+    } else {
+      throw 'invalid type';
+    }
+    await wait();
+
+    pci = getByTestId('pci').firstChild;
+    if (pci instanceof HTMLInputElement) {
+      expect(pci.disabled).toBe(true);
+    } else {
+      throw 'invalid type';
+    }
+
+    fireEvent.click(getByText('Save'));
+    await wait();
+    expect(
+      MagmaAPIBindings.putLteByNetworkIdGatewaysByGatewayIdCellularDns,
+    ).toHaveBeenCalledWith({
+      config: {
+        dhcp_server_enabled: false,
+        enable_caching: false,
+        local_ttl: 0,
+        records: [],
+      },
+      gatewayId: ' testGatewayId0',
       networkId: 'test',
     });
   });

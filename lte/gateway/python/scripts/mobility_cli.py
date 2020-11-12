@@ -35,6 +35,8 @@ def add_ip_block_handler(client, args):
     ipblock_msg = IPBlock()
     if ipblock.version == 4:
         ipblock_msg.version = IPBlock.IPV4
+    elif ipblock.version == 6:
+        ipblock_msg.version = IPBlock.IPV6
     else:
         print("Error: IP version %d is not supported yet" % ipblock.version)
         return
@@ -62,18 +64,28 @@ def allocate_ip_handler(client, args):
         return
 
     request = AllocateIPRequest()
-    request.version = AllocateIPRequest.IPV4
-    request.sid.CopyFrom(sid_msg)
-
-    ip_msg = client.AllocateIPAddress(request)
-    if ip_msg.version == IPAddress.IPV4:
-        ip = ipaddress.IPv4Address(ip_msg.address)
-        print("IPv4 address allocated: %s" % ip)
-    elif ip_msg.version == IPAddress.IPV6:
-        ip = ipaddress.IPv6Address(ip_msg.address)
-        print("IPv6 address allocated: %s" % ip)
+    if int(args.version) == 4:
+        request.version = AllocateIPRequest.IPV4
+    elif int(args.version) == 6:
+        request.version = AllocateIPRequest.IPV6
     else:
-        print("Error: unknown IP version")
+        print("Error: IP version %d is not supported yet" % args.version)
+        return
+
+    request.sid.CopyFrom(sid_msg)
+    request.apn = args.apn
+
+    response = client.AllocateIPAddress(request)
+    ip_list_msg = response.ip_list
+    for ip_msg in ip_list_msg:
+        if ip_msg.version == IPAddress.IPV4:
+            ip = ipaddress.IPv4Address(ip_msg.address)
+            print("IPv4 address allocated: %s" % ip)
+        elif ip_msg.version == IPAddress.IPV6:
+            ip = ipaddress.IPv6Address(ip_msg.address)
+            print("IPv6 address allocated: %s" % ip)
+        else:
+            print("Error: unknown IP version")
 
 
 @grpc_wrapper
@@ -90,6 +102,8 @@ def release_ip_handler(client, args):
         print("Error: invalid IP format: %s" % args.ip)
         return
 
+    apn = args.apn
+
     ip_msg = IPAddress()
     if ip.version == 4:
         ip_msg.version = IPAddress.IPV4
@@ -104,8 +118,10 @@ def release_ip_handler(client, args):
     request = ReleaseIPRequest()
     request.sid.CopyFrom(sid_msg)
     request.ip.CopyFrom(ip_msg)
+    request.apn = apn
 
     client.ReleaseIPAddress(request)
+    print("IPv6 address released: %s" % ipaddress.ip_address(ip_msg.address))
 
 
 @grpc_wrapper
@@ -115,6 +131,8 @@ def remove_ip_block_handler(client, args):
         ipblock_msg = IPBlock()
         if ipblock.version == 4:
             ipblock_msg.version = IPBlock.IPV4
+        elif ipblock.version == 6:
+            ipblock_msg.version = IPBlock.IPV6
         else:
             print(
                 "Error: IP version %d is not supported yet" % ipblock.version)
@@ -125,7 +143,7 @@ def remove_ip_block_handler(client, args):
 
     request = RemoveIPBlockRequest(ip_blocks=ipblock_msgs, force=args.force)
     remove_response = client.RemoveIPBlock(request)
-    print("IPv4 Blocks Removed: ")
+    print("IP Blocks Removed: ")
     for block_msg in remove_response.ip_blocks:
         ip = ipaddress.ip_address(block_msg.net_address)
         block = ipaddress.ip_network("%s/%d" % (ip, block_msg.prefix_len))
@@ -218,12 +236,15 @@ def main():
     subparser = subparsers.add_parser(
         'allocate_ip', help='Allocate an IP address')
     subparser.add_argument('sid', help='Subscriber ID, e.g. "IMSI12345"')
+    subparser.add_argument('apn', help='Access Point Name, e.g. "internet"')
+    subparser.add_argument('version', help='Version, e.g. 4')
     subparser.set_defaults(func=allocate_ip_handler)
 
     # release_ip
     subparser = subparsers.add_parser(
         'release_ip', help='Release an IP address')
     subparser.add_argument('sid', help='Subscriber ID, e.g. "IMSI12345"')
+    subparser.add_argument('apn', help='Access Point Name, e.g. "internet"')
     subparser.add_argument('ip',
                            help='IP address to release, e.g. "192.168.1.1"')
     subparser.set_defaults(func=release_ip_handler)

@@ -20,11 +20,8 @@ import (
 	"testing"
 	"time"
 
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/serde"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/configurator/test_utils"
-	"magma/orc8r/cloud/go/services/device"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
 	"magma/orc8r/cloud/go/services/metricsd/servicers"
@@ -76,13 +73,10 @@ func (e *testMetricExporter) Start() {}
 func TestCollect(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)
 	srv := servicers.NewMetricsControllerServer()
-
-	ctx := context.Background()
 
 	// Create test network
 	networkID := "metricsd_servicer_test_network"
@@ -90,6 +84,8 @@ func TestCollect(t *testing.T) {
 
 	// Register a fake gateway
 	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
+	id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
+	ctx := id.NewContextWithIdentity(context.Background())
 	test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
 
 	name := strconv.Itoa(int(MetricName))
@@ -202,6 +198,60 @@ func TestCollect(t *testing.T) {
 	assert.Equal(t, prevInfoLines+1, glog.Stats.Info.Lines())
 }
 
+func TestCollectMismatchedGateway(t *testing.T) {
+	device_test_init.StartTestService(t)
+	configurator_test_init.StartTestService(t)
+
+	e := &testMetricExporter{}
+	test_init.StartNewTestExporter(t, e)
+	srv := servicers.NewMetricsControllerServer()
+
+	// Create test network
+	networkID := "metricsd_servicer_test_network"
+	test_utils.RegisterNetwork(t, networkID, "Test Network Name")
+
+	// Register a fake gateway
+	gatewayID := "2876171d-bf38-4254-b4da-71a713952904"
+	id := protos.NewGatewayIdentity(gatewayID, "testNwId", "testLogicalId")
+	ctx := id.NewContextWithIdentity(context.Background())
+	test_utils.RegisterGateway(t, networkID, gatewayID, &models.GatewayDevice{HardwareID: gatewayID})
+
+	// Mismatched gateway ID
+	mismatchgatewayID := "2876171d-bf38-4254-b4da-71a713954029"
+
+	name := strconv.Itoa(int(MetricName))
+	key := strconv.Itoa(int(LabelName))
+	value := LabelValue
+	float := 1.0
+	counter_type := dto.MetricType_COUNTER
+	counters := protos.MetricsContainer{
+		GatewayId: mismatchgatewayID,
+		Family: []*dto.MetricFamily{
+			{
+				Type: &counter_type,
+				Name: &name,
+				Metric: []*dto.Metric{
+					{
+						Label:   []*dto.LabelPair{{Name: &key, Value: &value}},
+						Counter: &dto.Counter{Value: &float},
+					},
+				},
+			},
+		},
+	}
+
+	// Collect counters
+	_, err := srv.Collect(ctx, &counters)
+	assert.NoError(t, err)
+	assert.Equal(t, 1, len(e.queue))
+	assert.Equal(t, strconv.FormatFloat(float, 'f', -1, 64), e.queue[0].Value())
+	// check that label protos are converted
+	assert.True(t, tests.HasLabelName(e.queue[0].Labels(), protos.GetEnumNameIfPossible(key, protos.MetricLabelName_name)))
+	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.NetworkLabelName, networkID))
+	assert.True(t, tests.HasLabel(e.queue[0].Labels(), metrics.GatewayLabelName, gatewayID))
+
+}
+
 func TestConsume(t *testing.T) {
 	metricsChan := make(chan *dto.MetricFamily)
 	e := &testMetricExporter{}
@@ -223,7 +273,6 @@ func TestConsume(t *testing.T) {
 func TestPush(t *testing.T) {
 	device_test_init.StartTestService(t)
 	configurator_test_init.StartTestService(t)
-	_ = serde.RegisterSerdes(serde.NewBinarySerde(device.SerdeDomain, orc8r.AccessGatewayRecordType, &models.GatewayDevice{}))
 
 	e := &testMetricExporter{}
 	test_init.StartNewTestExporter(t, e)

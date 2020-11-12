@@ -27,6 +27,7 @@ module.exports.overrides = [
   {
     files: ['*'],
     rules: {
+      'react-hooks/exhaustive-deps': 'error',
       'prettier/prettier': [
         2,
         {

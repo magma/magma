@@ -16,6 +16,7 @@ package servicers
 import (
 	"time"
 
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd"
 	"magma/orc8r/cloud/go/services/metricsd/exporters"
@@ -23,6 +24,7 @@ import (
 	"magma/orc8r/lib/go/protos"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 	prom_proto "github.com/prometheus/client_model/go"
 	"golang.org/x/net/context"
 )
@@ -43,7 +45,11 @@ func (srv *MetricsControllerServer) Push(ctx context.Context, in *protos.PushedM
 		return new(protos.Void), nil
 	}
 
-	for _, e := range metricsd.GetMetricsExporters() {
+	metricsExporters, err := metricsd.GetMetricsExporters()
+	if err != nil {
+		return &protos.Void{}, err
+	}
+	for _, e := range metricsExporters {
 		metricsToSubmit := pushedMetricsToMetricsAndContext(in)
 		err := e.Submit(metricsToSubmit)
 		if err != nil {
@@ -59,14 +65,26 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 	}
 
 	hardwareID := in.GetGatewayId()
-	networkID, gatewayID, err := configurator.GetNetworkAndEntityIDForPhysicalID(hardwareID)
+	checkID, err := protos.GetGatewayIdentity(ctx)
+	if err != nil {
+		return new(protos.Void), err
+	}
+	if len(checkID.HardwareId) > 0 && checkID.HardwareId != hardwareID {
+		glog.Errorf("Expected %s, but found %s as Hardware ID", checkID.HardwareId, hardwareID)
+		hardwareID = checkID.HardwareId
+	}
+	networkID, gatewayID, err := getNetworkAndEntityIDForPhysicalID(hardwareID)
 	if err != nil {
 		return new(protos.Void), err
 	}
 	glog.V(2).Infof("collecting %v metrics from gateway %v\n", len(in.Family), in.GatewayId)
 
 	metricsToSubmit := metricsContainerToMetricAndContexts(in, networkID, gatewayID)
-	for _, e := range metricsd.GetMetricsExporters() {
+	metricsExporters, err := metricsd.GetMetricsExporters()
+	if err != nil {
+		return &protos.Void{}, err
+	}
+	for _, e := range metricsExporters {
 		err := e.Submit(metricsToSubmit)
 		if err != nil {
 			glog.Error(err)
@@ -81,7 +99,12 @@ func (srv *MetricsControllerServer) Collect(ctx context.Context, in *protos.Metr
 func (srv *MetricsControllerServer) ConsumeCloudMetrics(inputChan chan *prom_proto.MetricFamily, hostName string) {
 	for family := range inputChan {
 		metricsToSubmit := preprocessCloudMetrics(family, hostName)
-		for _, e := range metricsd.GetMetricsExporters() {
+		metricsExporters, err := metricsd.GetMetricsExporters()
+		if err != nil {
+			glog.Error(err)
+			continue
+		}
+		for _, e := range metricsExporters {
 			err := e.Submit([]exporters.MetricAndContext{metricsToSubmit})
 			if err != nil {
 				glog.Error(err)
@@ -189,4 +212,15 @@ func addLabel(metric *prom_proto.Metric, labelName, labelValue string) {
 
 func strPtr(s string) *string {
 	return &s
+}
+
+func getNetworkAndEntityIDForPhysicalID(physicalID string) (string, string, error) {
+	if len(physicalID) == 0 {
+		return "", "", errors.New("Empty Hardware ID")
+	}
+	entity, err := configurator.LoadEntityForPhysicalID(physicalID, configurator.EntityLoadCriteria{}, serdes.Entity)
+	if err != nil {
+		return "", "", err
+	}
+	return entity.NetworkID, entity.Key, nil
 }

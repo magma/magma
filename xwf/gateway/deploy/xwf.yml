@@ -16,8 +16,9 @@
   become: yes
   roles:
     - role: xwfmvars
-      tags: 
+      tags:
          - run_pipelined
+         - fbstatsd
     - role: pkgrepo
       tags:
          - install
@@ -29,7 +30,7 @@
          - install
     - role: xwfm
     - role: dhcpd
-      when: uplink_if is not defined
+      when: uplink_if is none
     - role: docker
       tags:
          - install_docker
@@ -37,6 +38,21 @@
     - role: containers
       tags:
          - no_ci
+    - role: exporter
+      tags:
+         - no_ci
     - role: provision
+      tags:
+         - no_ci
+    - role: fbstatsd
+      tags:
+         - no_ci
+         - fbstatsd
+    - role: system_updates
+      tags:
+         - no_ci
+    - role: deprovision
+      when: xwfm_deprovision | default(False)
+    - role: cleanup
       tags:
          - no_ci

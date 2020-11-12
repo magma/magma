@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"magma/lte/cloud/go/lte"
+	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -45,9 +46,10 @@ func ListBaseNames(c echo.Context) error {
 
 	view := c.QueryParam("view")
 	if strings.ToLower(view) == "full" {
-		baseNames, err := configurator.LoadAllEntitiesInNetwork(
+		baseNames, err := configurator.LoadAllEntitiesOfType(
 			networkID, lte.BaseNameEntityType,
 			configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true},
+			serdes.Entity,
 		)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -102,7 +104,7 @@ func CreateBaseName(c echo.Context) error {
 			writes = append(writes, w)
 		}
 	}
-	if err := configurator.WriteEntities(networkID, writes...); err != nil {
+	if err := configurator.WriteEntities(networkID, writes, serdes.Entity); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to create base name"), http.StatusInternalServerError)
 	}
 
@@ -118,6 +120,7 @@ func GetBaseName(c echo.Context) error {
 	ret, err := configurator.LoadEntity(
 		networkID, lte.BaseNameEntityType, baseName,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true},
+		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
@@ -147,6 +150,7 @@ func UpdateBaseName(c echo.Context) error {
 	oldEnt, err := configurator.LoadEntity(
 		networkID, lte.BaseNameEntityType, baseName,
 		configurator.EntityLoadCriteria{LoadAssocsFromThis: true, LoadAssocsToThis: true},
+		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(errors.Wrap(err, "failed to check if base name exists"), http.StatusInternalServerError)
@@ -187,7 +191,7 @@ func UpdateBaseName(c echo.Context) error {
 		writes = append(writes, w)
 	}
 
-	if err = configurator.WriteEntities(networkID, writes...); err != nil {
+	if err = configurator.WriteEntities(networkID, writes, serdes.Entity); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to update base name"), http.StatusInternalServerError)
 	}
 
@@ -217,9 +221,10 @@ func ListRules(c echo.Context) error {
 
 	view := c.QueryParam("view")
 	if strings.ToLower(view) == "full" {
-		rules, err := configurator.LoadAllEntitiesInNetwork(
+		rules, err := configurator.LoadAllEntitiesOfType(
 			networkID, lte.PolicyRuleEntityType,
 			configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
+			serdes.Entity,
 		)
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
@@ -254,6 +259,8 @@ func CreateRule(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
+	updateToNewIPModel(rule.FlowList)
+
 	// Verify that subscribers and policies exist
 	var allAssocs storage.TKs
 	allAssocs = append(allAssocs, rule.GetParentAssocs()...)
@@ -279,7 +286,7 @@ func CreateRule(c echo.Context) error {
 		writes = append(writes, w)
 	}
 
-	if err := configurator.WriteEntities(networkID, writes...); err != nil {
+	if err := configurator.WriteEntities(networkID, writes, serdes.Entity); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to create policy"), http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusCreated)
@@ -292,10 +299,9 @@ func GetRule(c echo.Context) error {
 	}
 
 	ent, err := configurator.LoadEntity(
-		networkID,
-		lte.PolicyRuleEntityType,
-		ruleID,
+		networkID, lte.PolicyRuleEntityType, ruleID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
+		serdes.Entity,
 	)
 	switch {
 	case err == merrors.ErrNotFound:
@@ -324,12 +330,13 @@ func UpdateRule(c echo.Context) error {
 		return obsidian.HttpError(errors.New("rule ID in body does not match URL param"), http.StatusBadRequest)
 	}
 
+	updateToNewIPModel(rule.FlowList)
+
 	// 404 if the rule doesn't exist
 	oldEnt, err := configurator.LoadEntity(
-		networkID,
-		lte.PolicyRuleEntityType,
-		ruleID,
+		networkID, lte.PolicyRuleEntityType, ruleID,
 		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
+		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(errors.Wrap(err, "Failed to check if policy exists"), http.StatusInternalServerError)
@@ -373,7 +380,7 @@ func UpdateRule(c echo.Context) error {
 		writes = append(writes, w)
 	}
 
-	if err = configurator.WriteEntities(networkID, writes...); err != nil {
+	if err = configurator.WriteEntities(networkID, writes, serdes.Entity); err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to update policy rule"), http.StatusInternalServerError)
 	}
 
@@ -402,7 +409,11 @@ func getQoSProfiles(c echo.Context) error {
 		return nerr
 	}
 
-	profiles, err := configurator.LoadAllEntitiesInNetwork(networkID, lte.PolicyQoSProfileEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	profiles, err := configurator.LoadAllEntitiesOfType(
+		networkID, lte.PolicyQoSProfileEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -436,7 +447,7 @@ func createQoSProfile(c echo.Context) error {
 		return echo.ErrBadRequest
 	}
 
-	_, err = configurator.CreateEntity(networkID, profile.ToEntity())
+	_, err = configurator.CreateEntity(networkID, profile.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -462,4 +473,23 @@ func getNetworkAndParam(c echo.Context, paramName string) (string, string, *echo
 		return "", "", err
 	}
 	return vals[0], vals[1], nil
+}
+
+func updateToNewIPModel(flowList []*models.FlowDescription) {
+	for _, flow_desc := range flowList {
+		if flow_desc.Match.IPV4Src != "" {
+			flow_desc.Match.IPSrc = &models.IPAddress{
+				Version: models.IPAddressVersionIPV4,
+				Address: flow_desc.Match.IPV4Src,
+			}
+			flow_desc.Match.IPV4Src = ""
+		}
+		if flow_desc.Match.IPV4Dst != "" {
+			flow_desc.Match.IPDst = &models.IPAddress{
+				Version: models.IPAddressVersionIPV4,
+				Address: flow_desc.Match.IPV4Dst,
+			}
+			flow_desc.Match.IPV4Dst = ""
+		}
+	}
 }

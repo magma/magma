@@ -62,6 +62,8 @@ magma-gen-meta:
       filename: tier_gateways_swaggergen.go
     - go-struct-name: GatewayLoggingConfigs
       filename: gateway_logging_configs_swaggergen.go
+    - go-struct-name: GatewayVpnConfigs
+      filename: gateway_vpn_configs_swaggergen.go
     - go-struct-name: AggregationLoggingConfigs
       filename: aggregation_logging_configs_swaggergen.go
     - go-struct-name: GenericCommandParams
@@ -76,6 +78,7 @@ magma-gen-meta:
       filename: ping_result_swaggergen.go
     - go-struct-name: TailLogsRequest
       filename: tail_logs_request_swaggergen.go
+
 info:
   title: Orchestrator Network Management
   description: Orchestrator REST APIs
@@ -1428,6 +1431,8 @@ definitions:
         example:
           newfeature1: true
           newfeature2: false
+      vpn:
+        $ref: '#/definitions/gateway_vpn_configs'
 
   gateway_logging_configs:
     type: object
@@ -1478,6 +1483,16 @@ definitions:
         pattern: '^\d+(.\d+)?(s|m|h)$'
         example: 1m
         x-nullable: true
+
+  gateway_vpn_configs:
+    type: object
+    description: Configuration for gateway VPN access
+    required:
+      - enable_shell
+    properties:
+      enable_shell:
+        type: boolean
+        example: false
 
   tier_id:
     type: string

@@ -34,6 +34,11 @@ static void set_verbosity(uint32_t verbosity) {
   FLAGS_v = verbosity;
 }
 
+// get_verbosity gets the the global logging verbosity
+static google::int32 get_verbosity(){
+  return FLAGS_v;
+}
+
 // init_logging initializes glog, sets logging to use std::err, and sets the
 // initial verbosity
 static void init_logging(const char* service_name) {
@@ -52,13 +57,16 @@ static void init_logging(const char* service_name) {
 struct _MLOG_NEWLINE {
   ~_MLOG_NEWLINE() { std::cout << std::endl; }
 };
-#define MLOG(VERBOSITY) (_MLOG_NEWLINE(), \
-  std::cout << "[" << __FILE__ << ":" << __LINE__ << "] ")
+#define MLOG(VERBOSITY)                                                        \
+  (_MLOG_NEWLINE(), std::cout << "[" << __FILE__ << ":" << __LINE__ << "] ")
 
 namespace magma {
-// These functions do nothing without glog
 static void set_verbosity(uint32_t verbosity) {}
-static void init_logging(const char* service_name) {
+// get_verbosity gets the the global logging verbosity
+static uint32_t get_verbosity() {
+  return 0;
 }
-}
+static void init_logging(const char* service_name) {}
+
+}  // namespace magma
 #endif

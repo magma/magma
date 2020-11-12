@@ -23,6 +23,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	wifi_plugin "magma/wifi/cloud/go/plugin"
 	wifi_mconfig "magma/wifi/cloud/go/protos/mconfig"
+	"magma/wifi/cloud/go/serdes"
 	wifi_service "magma/wifi/cloud/go/services/wifi"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	wifi_test_init "magma/wifi/cloud/go/services/wifi/test_init"
@@ -505,11 +506,11 @@ func TestBuilder_Build_OverrideXwf(t *testing.T) {
 }
 
 func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
+	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graphProto, err := graph.ToStorageProto()
+	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
 	}

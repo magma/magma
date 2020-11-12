@@ -112,7 +112,6 @@ Creating orc8r_alertmanager_1     ... done
 Creating orc8r_maria_1            ... done
 Creating elasticsearch            ... done
 Creating orc8r_postgres_1         ... done
-Creating orc8r_grafana_1          ... done
 Creating orc8r_config-manager_1   ... done
 Creating orc8r_test_1             ... done
 Creating orc8r_prometheus-cache_1 ... done
@@ -185,10 +184,10 @@ Magma provides an UI for configuring and monitoring the networks. To set up
 the NMS to talk to your local Orchestrator:
 
 ```bash
-HOST [magma]$ cd symphony/app/packages/magmalte
-HOST [magma/symphony/app/packages/magmalte] $ docker-compose build magmalte
-HOST [magma/symphony/app/packages/magmalte] $ docker-compose up -d
-HOST [magma/symphony/app/packages/magmalte] $ ./scripts/dev_setup.sh
+HOST [magma]$ cd nms/app/packages/magmalte
+HOST [magma/nms/app/packages/magmalte] $ docker-compose build magmalte
+HOST [magma/nms/app/packages/magmalte] $ docker-compose up -d
+HOST [magma/nms/app/packages/magmalte] $ ./scripts/dev_setup.sh
 ```
 
 After this, you will be able to access the UI by visiting

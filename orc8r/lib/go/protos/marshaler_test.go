@@ -40,12 +40,11 @@ var marshaledSrc = `{
   },
   "dnsd": {
    "@type": "type.googleapis.com/magma.mconfig.DnsD",
-   "logLevel": "INFO",
+   "dhcpServerEnabled": true,
    "enableCaching": false,
    "localTTL": 0,
-   "records": [
-   ],
-   "dhcpServerEnabled": true
+   "logLevel": "INFO",
+   "records": []
   },
   "eap_aka": {
    "@type": "type.googleapis.com/magma.mconfig.EapAkaConfig",

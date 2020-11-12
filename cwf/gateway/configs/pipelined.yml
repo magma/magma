@@ -72,6 +72,7 @@ meter:
 
 enforcement:
   poll_interval: 5
+  default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
@@ -121,6 +122,8 @@ bridge_name: cwag_br0
 bridge_ip_address: 192.168.128.1
 # For CWF internal redirection, same subnet as the ovs bridge ip address
 internal_ip_subnet: '192.168.0.0/16'
+# For ipv6 router solicitation app
+ipv6_router_addr: 'd88d:aba4:472f:fc95:7e7d:8457:5301:ebce'
 
 # QoS parameters
 qos:
@@ -144,10 +147,17 @@ clean_restart: true
 
 redis_enabled: false
 
+# Logs grpc payload content
+magma_print_grpc_payload: false
+
 # Information for cwf check quota servers
 quota_check_ip: '192.0.0.1'
 has_quota_port: 51115
 no_quota_port: 51125
+
+# For 5G Functionality Support flag
+5G_feature_set:
+ enable: false
 
 ###############
 ## IMPORTANT ##

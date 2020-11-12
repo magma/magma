@@ -68,6 +68,17 @@ metricsd:
   services:
     - magmad
 
+  # List of prometheus scrape targets (not magma services) to poll
+  #  url: url of the metrics source
+  #  name: name to tag metrics with {scrape_target=<name>}
+  #  interval: time (in seconds) between scrapes
+  #
+  # Example:
+  # metric_scrape_targets:
+  #   - url: http://localhost:9091/metrics
+  #     name: node_exporter
+  #     interval: 5
+
 generic_command_config:
   module: magma.magmad.generic_command.shell_command_executor
   class: ShellCommandExecutor

@@ -19,17 +19,18 @@ import (
 	"fmt"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/s6a_proxy/metrics"
-	orcprotos "magma/orc8r/lib/go/protos"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
 	"github.com/fiorix/go-diameter/v4/diam/dict"
 	"github.com/fiorix/go-diameter/v4/diam/sm"
 	"golang.org/x/net/context"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/plmn_filter"
+	"magma/feg/gateway/services/s6a_proxy/metrics"
+	orcprotos "magma/orc8r/lib/go/protos"
 )
 
 const (
@@ -39,9 +40,14 @@ const (
 	MAX_DIAM_RETRIES = 1
 )
 
+type S6aProxyConfig struct {
+	ClientCfg *diameter.DiameterClientConfig
+	ServerCfg *diameter.DiameterServerConfig
+	PlmnIds   plmn_filter.PlmnIdVals
+}
+
 type s6aProxy struct {
-	clientCfg      *diameter.DiameterClientConfig
-	serverCfg      *diameter.DiameterServerConfig
+	config         *S6aProxyConfig
 	smClient       *sm.Client
 	connMan        *diameter.ConnectionManager
 	requestTracker *diameter.RequestTracker
@@ -50,9 +56,13 @@ type s6aProxy struct {
 }
 
 func NewS6aProxy(
-	clientCfg *diameter.DiameterClientConfig,
-	serverCfg *diameter.DiameterServerConfig,
+	config *S6aProxyConfig,
 ) (*s6aProxy, error) {
+	if config == nil {
+		return nil, fmt.Errorf("S6aProxyConfig is nil")
+	}
+	clientCfg, serverCfg := config.ClientCfg, config.ServerCfg
+
 	err := clientCfg.Validate()
 	if err != nil {
 		return nil, err
@@ -105,8 +115,7 @@ func NewS6aProxy(
 	connMan.GetConnection(smClient, serverCfg)
 
 	proxy := &s6aProxy{
-		clientCfg:      clientCfg,
-		serverCfg:      serverCfg,
+		config:         config,
 		smClient:       smClient,
 		connMan:        connMan,
 		requestTracker: diameter.NewRequestTracker(),
@@ -188,7 +197,7 @@ func (s *s6aProxy) Disable(ctx context.Context, req *protos.DisableMessage) (*or
 // exists, Enable has no effect
 func (s *s6aProxy) Enable(ctx context.Context, req *orcprotos.Void) (*orcprotos.Void, error) {
 	s.connMan.Enable()
-	_, err := s.connMan.GetConnection(s.smClient, s.serverCfg)
+	_, err := s.connMan.GetConnection(s.smClient, s.config.ServerCfg)
 	return &orcprotos.Void{}, err
 }
 
@@ -234,5 +243,5 @@ func (s *s6aProxy) GetHealthStatus(ctx context.Context, req *orcprotos.Void) (*p
 }
 
 func (s *s6aProxy) genSID() string {
-	return s.clientCfg.GenSessionID("s6a")
+	return s.config.ClientCfg.GenSessionID("s6a")
 }

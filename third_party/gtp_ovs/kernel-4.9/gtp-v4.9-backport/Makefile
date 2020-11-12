@@ -1,6 +1,6 @@
 PKGNAME=oai-gtp
 VERSION=4.9
-ITERATION=5
+ITERATION=6
 
 ARCH=amd64
 PKGFMT=deb
@@ -16,7 +16,7 @@ obj-m += gtp.o
 
 build:
 	make -C /lib/modules/`uname -r`/build M=$(PWD) modules
-	
+
 modules_install: build
 	make -C /lib/modules/`uname -r`/build M=$(PWD) modules_install
 	mkdir -p ${DEPMOD_CONFIG_DIR}

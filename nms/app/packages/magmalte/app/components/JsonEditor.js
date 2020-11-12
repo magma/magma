@@ -15,12 +15,12 @@
  */
 
 import Button from '@material-ui/core/Button';
+import CardTitleRow from './layout/CardTitleRow';
 import FormLabel from '@material-ui/core/FormLabel';
 import Grid from '@material-ui/core/Grid';
 import React from 'react';
 import ReactJson from 'react-json-view';
 import SettingsIcon from '@material-ui/icons/Settings';
-import Text from '@fbcnms/ui/components/design-system/Text';
 
 import {colors, typography} from '../theme/default';
 import {makeStyles} from '@material-ui/styles';
@@ -73,6 +73,7 @@ const useStyles = makeStyles(theme => ({
 type Props<T> = {
   content: T,
   error: string,
+  customFilter?: React$Node,
   onSave: T => Promise<void>,
 };
 
@@ -89,40 +90,46 @@ export default function JsonEditor<T>(props: Props<T>) {
     setContent(data.updated_src);
   };
 
+  const JsonFilter = () => {
+    return (
+      <Grid container alignItems="center">
+        {props.customFilter}
+        <Grid item>
+          <Button
+            className={classes.appBarBtnSecondary}
+            onClick={() => {
+              setContent(props.content);
+              setError('');
+            }}>
+            Clear
+          </Button>
+        </Grid>
+        <Grid item>
+          <Button
+            className={classes.appBarBtn}
+            onClick={() => {
+              try {
+                props.onSave(content);
+              } catch (e) {
+                setError(e.message);
+              }
+            }}>
+            Save
+          </Button>
+        </Grid>
+      </Grid>
+    );
+  };
+
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={3}>
-        <Grid container item xs={12}>
-          <Grid item xs={6}>
-            <Text>
-              <SettingsIcon /> JSON Config
-            </Text>
-          </Grid>
-          <Grid container item justify="flex-end" xs={6}>
-            <Grid item>
-              <Button
-                className={classes.appBarBtnSecondary}
-                onClick={() => {
-                  setContent(props.content);
-                  setError('');
-                }}>
-                Cancel
-              </Button>
-            </Grid>
-            <Grid item>
-              <Button
-                className={classes.appBarBtn}
-                onClick={() => {
-                  try {
-                    props.onSave(content);
-                  } catch (e) {
-                    setError(e.message);
-                  }
-                }}>
-                Save
-              </Button>
-            </Grid>
-          </Grid>
+        <Grid item xs={12}>
+          <CardTitleRow
+            icon={SettingsIcon}
+            label="JSON Config"
+            filter={JsonFilter}
+          />
         </Grid>
 
         <Grid

@@ -13,11 +13,14 @@
 #include <future>
 #include <memory>
 #include <utility>
+#include <stdio.h>
 
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
 #include "SessiondMocks.h"
+
+#include <google/protobuf/util/message_differencer.h>
 
 using ::testing::Test;
 
@@ -34,6 +37,27 @@ MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
          req.usage_monitors().size() == monitorCount;
 }
 
+MATCHER_P(CheckUpdateRequestNumber, request_number, "") {
+  auto request = static_cast<const UpdateSessionRequest&>(arg);
+  for (const auto& credit_usage_update : request.updates()) {
+    int req_number = credit_usage_update.request_number();
+    return req_number == request_number;
+  }
+  return false;
+}
+
+MATCHER_P(CheckCoreRequest, expected_request, "") {
+  auto req    = static_cast<const CreateSessionRequest&>(arg);
+  auto ex_req = static_cast<const CreateSessionRequest&>(expected_request);
+  if (!google::protobuf::util::MessageDifferencer::Equals(
+          ex_req.requested_units(), req.requested_units())) {
+    return false;
+  }
+
+  // Add other check for the request
+  return true;
+}
+
 MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
   auto req = static_cast<const SessionTerminateRequest>(arg);
   return req.sid() == imsi && req.credit_usages().size() == chargingCount &&
@@ -45,9 +69,9 @@ MATCHER_P2(CheckActivateFlows, imsi, rule_count, "") {
   return request->sid().id() == imsi && request->rule_ids_size() == rule_count;
 }
 
-MATCHER_P5(
-    CheckSessionInfos, imsi_list, ip_address_list, cfg, static_rule_lists,
-    dynamic_rule_ids_lists, "") {
+MATCHER_P6(
+    CheckSessionInfos, imsi_list, ip_address_list, ipv6_address_list, cfg,
+    static_rule_lists, dynamic_rule_ids_lists, "") {
   auto infos = static_cast<const std::vector<SessionState::SessionInfo>>(arg);
 
   if (infos.size() != imsi_list.size()) return false;
@@ -55,6 +79,7 @@ MATCHER_P5(
   for (size_t i = 0; i < infos.size(); i++) {
     if (infos[i].imsi != imsi_list[i]) return false;
     if (infos[i].ip_addr != ip_address_list[i]) return false;
+    if (infos[i].ipv6_addr != ipv6_address_list[i]) return false;
     if (infos[i].static_rules.size() != static_rule_lists[i].size())
       return false;
     if (infos[i].dynamic_rules.size() != dynamic_rule_ids_lists[i].size())
@@ -111,6 +136,15 @@ MATCHER_P(CheckSubset, ids, "") {
     }
   }
   return false;
+}
+
+MATCHER_P(CheckSubscriberQuotaUpdate, quota, "") {
+  auto update = static_cast<std::vector<SubscriberQuotaUpdate>>(arg);
+  if (update.size() != 1) {
+    return false;
+  }
+  std::cerr << "\n\n" << update[0].update_type() << " \n\n";
+  return update[0].update_type() == quota;
 }
 
 };  // namespace magma

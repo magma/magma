@@ -159,8 +159,8 @@ func (m *LteGateway) FromBackendModels(
 		m.Cellular = cellularGateway.Config.(*GatewayCellularConfigs)
 	}
 
-	for _, ent := range loadedEntsByTK.Filter(lte.APNResourceEntityType) {
-		r := (&ApnResource{}).FromEntity(ent)
+	for _, tk := range cellularGateway.Associations.Filter(lte.APNResourceEntityType) {
+		r := (&ApnResource{}).FromEntity(loadedEntsByTK[tk])
 		m.ApnResources[string(r.ApnName)] = *r
 	}
 
@@ -252,7 +252,7 @@ func (m *MutableLteGateway) GetAdditionalWritesOnUpdate(
 		Type:              lte.CellularGatewayEntityType,
 		Key:               string(m.ID),
 		NewConfig:         m.Cellular,
-		AssociationsToAdd: newAPNResourceTKs,
+		AssociationsToSet: newAPNResourceTKs,
 	}
 	if string(m.Name) != existingGateway.Name {
 		gatewayUpdate.NewName = swag.String(string(m.Name))
@@ -304,7 +304,7 @@ func (m *MutableLteGateway) getAPNResourceChanges(
 }
 
 func (m *GatewayCellularConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	cellularConfig, err := configurator.LoadEntityConfig(networkID, lte.CellularGatewayEntityType, gatewayID)
+	cellularConfig, err := configurator.LoadEntityConfig(networkID, lte.CellularGatewayEntityType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -381,8 +381,56 @@ func (m *GatewayNonEpsConfigs) ToUpdateCriteria(networkID string, gatewayID stri
 	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
 }
 
+func (m *GatewayDNSConfigs) FromBackendModels(networkID string, gatewayID string) error {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	if cellularConfig.DNS != nil {
+		*m = *cellularConfig.DNS
+	}
+	return nil
+}
+
+func (m *GatewayDNSConfigs) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	cellularConfig.DNS = m
+	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+}
+
+func (m *GatewayDNSRecords) FromBackendModels(networkID string, gatewayID string) error {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	if cellularConfig.DNS != nil {
+		*m = cellularConfig.DNS.Records
+	}
+	return nil
+}
+
+func (m *GatewayDNSRecords) ToUpdateCriteria(networkID string, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	cellularConfig.DNS.Records = *m
+	return cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+}
+
 func (m *EnodebSerials) FromBackendModels(networkID string, gatewayID string) error {
-	cellularGatewayEntity, err := configurator.LoadEntity(networkID, lte.CellularGatewayEntityType, gatewayID, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+	cellularGatewayEntity, err := configurator.LoadEntity(
+		networkID, lte.CellularGatewayEntityType, gatewayID,
+		configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+		EntitySerdes,
+	)
 	if err != nil {
 		return err
 	}
@@ -429,7 +477,12 @@ func (m *Enodeb) FromBackendModels(ent configurator.NetworkEntity) *Enodeb {
 	m.Description = ent.Description
 	m.Serial = ent.Key
 	if ent.Config != nil {
-		m.Config = ent.Config.(*EnodebConfiguration)
+		// TODO(v1.4.0+): For backwards compatibility we maintain the 'config'
+		// field previously reserved for managed enb configs.
+		//  We can remove this after the next minor version
+		config := ent.Config.(*EnodebConfig)
+		m.Config = config.ManagedConfig
+		m.EnodebConfig = config
 	}
 	for _, tk := range ent.ParentAssociations {
 		if tk.Type == lte.CellularGatewayEntityType {
@@ -445,7 +498,7 @@ func (m *Enodeb) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
 		Key:            m.Serial,
 		NewName:        swag.String(m.Name),
 		NewDescription: swag.String(m.Description),
-		NewConfig:      m.Config,
+		NewConfig:      m.EnodebConfig,
 	}
 }
 
@@ -475,6 +528,7 @@ func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
 		nil, nil, nil,
 		storage.MakeTKs(lte.APNResourceEntityType, ids),
 		configurator.EntityLoadCriteria{LoadConfig: true},
+		EntitySerdes,
 	)
 	if err != nil {
 		return ret, err
@@ -494,8 +548,9 @@ func LoadAPNResources(networkID string, ids []string) (ApnResources, error) {
 
 func (m *ApnResources) GetByID() map[string]*ApnResource {
 	byID := map[string]*ApnResource{}
-	for _, r := range *m {
-		byID[r.ID] = &r
+	for i, r := range *m {
+		var apnr = (*m)[i]
+		byID[r.ID] = &apnr
 	}
 	return byID
 }
@@ -524,10 +579,11 @@ func (m *ApnResource) ToTK() storage.TypeAndKey {
 }
 
 func (m *ApnResource) ToEntity() configurator.NetworkEntity {
+	cfg := *m // make explicit copy
 	return configurator.NetworkEntity{
 		Type:         lte.APNResourceEntityType,
 		Key:          m.ID,
-		Config:       m,
+		Config:       &cfg,
 		Associations: m.getAssocs(),
 	}
 }

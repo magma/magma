@@ -16,15 +16,10 @@ package plugin
 import (
 	"magma/lte/cloud/go/lte"
 	lte_service "magma/lte/cloud/go/services/lte"
-	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	policydb_models "magma/lte/cloud/go/services/policydb/obsidian/models"
-	subscriberdb_models "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/serde"
-	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/metricsd"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/streamer/providers"
 	"magma/orc8r/lib/go/registry"
@@ -47,33 +42,7 @@ func (*LteOrchestratorPlugin) GetServices() []registry.ServiceLocation {
 }
 
 func (*LteOrchestratorPlugin) GetSerdes() []serde.Serde {
-	return []serde.Serde{
-		state.NewStateSerde(lte.EnodebStateType, &lte_models.EnodebState{}),
-		state.NewStateSerde(lte.ICMPStateType, &subscriberdb_models.IcmpStatus{}),
-
-		// AGW state messages which use arbitrary untyped JSON serdes because
-		// they're defined/used as protos in the AGW codebase
-		state.NewStateSerde(lte.MMEStateType, &state.ArbitraryJSON{}),
-		state.NewStateSerde(lte.SPGWStateType, &state.ArbitraryJSON{}),
-		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
-		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitraryJSON{}),
-
-		// Configurator serdes
-		configurator.NewNetworkConfigSerde(lte.CellularNetworkConfigType, &lte_models.NetworkCellularConfigs{}),
-		configurator.NewNetworkConfigSerde(lte.NetworkSubscriberConfigType, &policydb_models.NetworkSubscriberConfig{}),
-
-		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayEntityType, &lte_models.GatewayCellularConfigs{}),
-		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebEntityType, &lte_models.EnodebConfiguration{}),
-
-		configurator.NewNetworkEntityConfigSerde(lte.SubscriberEntityType, &subscriberdb_models.SubscriberConfig{}),
-		configurator.NewNetworkEntityConfigSerde(lte.PolicyRuleEntityType, &policydb_models.PolicyRuleConfig{}),
-		configurator.NewNetworkEntityConfigSerde(lte.BaseNameEntityType, &policydb_models.BaseNameRecord{}),
-		configurator.NewNetworkEntityConfigSerde(lte.RatingGroupEntityType, &policydb_models.RatingGroup{}),
-		configurator.NewNetworkEntityConfigSerde(lte.APNEntityType, &lte_models.ApnConfiguration{}),
-		configurator.NewNetworkEntityConfigSerde(lte.APNResourceEntityType, &lte_models.ApnResource{}),
-
-		configurator.NewNetworkEntityConfigSerde(lte.PolicyQoSProfileEntityType, &policydb_models.PolicyQosProfile{}),
-	}
+	return []serde.Serde{}
 }
 
 func (*LteOrchestratorPlugin) GetMconfigBuilders() []mconfig.Builder {

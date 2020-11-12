@@ -107,6 +107,8 @@ func (tr *TestRunner) DisconnectAndAssertSuccess(imsi string) {
 func (tr *TestRunner) AssertPolicyEnforcementRecordIsNil(imsi string) {
 	recordsBySubID, err := tr.GetPolicyUsage()
 	assert.NoError(tr.t, err)
+	// This string is taken from pipelined.yml enforcement information
+	delete(recordsBySubID[prependIMSIPrefix(imsi)], "internal_default_drop_flow_rule")
 	assert.Empty(tr.t, recordsBySubID[prependIMSIPrefix(imsi)])
 }
 

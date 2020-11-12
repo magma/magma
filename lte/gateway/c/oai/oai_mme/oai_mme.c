@@ -41,6 +41,7 @@
 /* FreeDiameter headers for support of S6A interface */
 #include "s6a_defs.h"
 #include "sgs_defs.h"
+#include "sms_orc8r_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
@@ -80,6 +81,7 @@ static void main_exit(void) {
 }
 
 int main(int argc, char* argv[]) {
+  srand(time(NULL));
   char* pid_file_name;
 
   CHECK_INIT_RETURN(OAILOG_INIT(
@@ -133,6 +135,9 @@ int main(int argc, char* argv[]) {
       !(strcmp(non_eps_service_control, "CSFB_SMS"))) {
     CHECK_INIT_RETURN(sgs_init(&mme_config));
     OAILOG_DEBUG(LOG_MME_APP, "SGS Task initialized\n");
+  } else if (!(strcmp(non_eps_service_control, "SMS_ORC8R"))) {
+    CHECK_INIT_RETURN(sms_orc8r_init(&mme_config));
+    OAILOG_DEBUG(LOG_MME_APP, "SMS_ORC8R Task initialized\n");
   }
   CHECK_INIT_RETURN(grpc_service_init());
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");

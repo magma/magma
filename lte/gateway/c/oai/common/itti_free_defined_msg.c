@@ -99,7 +99,8 @@ void itti_free_msg_content(MessageDef* const message_p) {
       break;
 
     case S11_CREATE_SESSION_REQUEST: {
-      // DO nothing
+      clear_protocol_configuration_options(
+          &message_p->ittiMsg.s11_create_session_request.pco);
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {
@@ -132,6 +133,10 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case S11_RELEASE_ACCESS_BEARERS_RESPONSE:
       // DO nothing (trxn)
       break;
+    case S11_PAGING_REQUEST: {
+      free((char*) message_p->ittiMsg.s11_paging_request.imsi);
+      message_p->ittiMsg.s11_paging_request.imsi = NULL;
+    } break;
 
     case S1AP_UPLINK_NAS_LOG:
     case S1AP_UE_CAPABILITY_IND_LOG:

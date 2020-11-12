@@ -29,6 +29,7 @@ type UserThroughputCalculation struct {
 }
 
 func (x *UserThroughputCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]Result, error) {
+	glog.Infof("Calculating User Throughput. Days: %d, Direction: %s", x.Days, x.Direction)
 	// Get datapoints for throughput when the value is not 0 segmented
 	avgRateQuery := fmt.Sprintf(`avg(rate(octets_%s[3m]) > 0) by (%s)`, x.Direction, metrics.NetworkLabelName)
 
@@ -52,8 +53,7 @@ func (x *UserThroughputCalculation) Calculate(prometheusClient query_api.Prometh
 			labels:     combineLabels(x.Labels, map[string]string{metrics.NetworkLabelName: nID, DirectionLabel: string(x.Direction)}),
 		})
 	}
-	for _, res := range results {
-		x.RegisteredGauge.With(res.labels).Set(res.value)
-	}
+	registerResults(x.CalculationParams, results)
+
 	return results, nil
 }

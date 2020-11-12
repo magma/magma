@@ -24,7 +24,7 @@ func (m NetworkID) Validate(formats strfmt.Registry) error {
 		return err
 	}
 
-	if err := validate.Pattern("", "body", string(m), `^[a-z][\da-z_]+$`); err != nil {
+	if err := validate.Pattern("", "body", string(m), `^[a-z][\da-z_-]+$`); err != nil {
 		return err
 	}
 

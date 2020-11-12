@@ -78,12 +78,19 @@ static void pcef_fill_create_session_req(
   lte_context->set_plmn_id(session_data->mcc_mnc, session_data->mcc_mnc_len);
   lte_context->set_imsi_plmn_id(
       session_data->imsi_mcc_mnc, session_data->imsi_mcc_mnc_len);
+  auto cc = session_data->charging_characteristics;
+  if (cc.length > 0) {
+    OAILOG_DEBUG(LOG_SPGW_APP, "Sending Charging Characteristics to PCEF");
+    lte_context->set_charging_characteristics(cc.value, cc.length);
+  }
   if (session_data->imeisv_exists) {
     lte_context->set_imei(session_data->imeisv, IMEISV_DIGITS_MAX);
   }
   if (session_data->uli_exists) {
+    OAILOG_DEBUG(LOG_SPGW_APP, "Sending ULI to PCEF");
     lte_context->set_user_location(session_data->uli, ULI_DATA_SIZE);
   }
+
   // QoS Info
   magma::QosInformationRequest qos_info;
   qos_info.set_apn_ambr_dl(session_data->ambr_dl);
@@ -212,23 +219,32 @@ static int get_uli_from_session_req(
   uli[0] = 130;  // TAI and ECGI - defined in 29.061
 
   // TAI as defined in 29.274 8.21.4
-  uli[1] = ((saved_req->uli.s.tai.mcc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mcc[0] & 0xf));
-  uli[2] = ((saved_req->uli.s.tai.mnc[2] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mcc[2] & 0xf));
-  uli[3] = ((saved_req->uli.s.tai.mnc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mnc[0] & 0xf));
+  uli[1] = ((saved_req->uli.s.tai.mcc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.mcc_digit1 & 0xf));
+  uli[2] = ((saved_req->uli.s.tai.mnc_digit3 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.mcc_digit3 & 0xf));
+  uli[3] = ((saved_req->uli.s.tai.mnc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.mnc_digit1 & 0xf));
   uli[4] = (saved_req->uli.s.tai.tac >> 8) & 0xff;
   uli[5] = saved_req->uli.s.tai.tac & 0xff;
 
   // ECGI as defined in 29.274 8.21.5
-  uli[6] = ((saved_req->uli.s.ecgi.mcc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mcc[0] & 0xf));
-  uli[7] = ((saved_req->uli.s.ecgi.mnc[2] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mcc[2] & 0xf));
-  uli[8] = ((saved_req->uli.s.ecgi.mnc[1] & 0xf) << 4) |
-           ((saved_req->uli.s.ecgi.mnc[0] & 0xf));
-  uli[9] = '\0';
+  uli[6] = ((saved_req->uli.s.ecgi.plmn.mcc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.ecgi.plmn.mcc_digit1 & 0xf));
+  uli[7] = ((saved_req->uli.s.ecgi.plmn.mnc_digit3 & 0xf) << 4) |
+           ((saved_req->uli.s.ecgi.plmn.mcc_digit3 & 0xf));
+  uli[8] = ((saved_req->uli.s.ecgi.plmn.mnc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.ecgi.plmn.mnc_digit1 & 0xf));
+  uli[9]  = (saved_req->uli.s.ecgi.cell_identity.enb_id >> 16) & 0xf;
+  uli[10] = (saved_req->uli.s.ecgi.cell_identity.enb_id >> 8) & 0xff;
+  uli[11] = saved_req->uli.s.ecgi.cell_identity.enb_id & 0xff;
+  uli[12] = saved_req->uli.s.ecgi.cell_identity.cell_id & 0xff;
+  uli[13] = '\0';
+
+  char hex_uli[3 * ULI_DATA_SIZE + 1];
+  OAILOG_DEBUG(
+      LOG_SPGW_APP, "Session request ULI %s",
+      bytes_to_hex(uli, ULI_DATA_SIZE, hex_uli));
   return 1;
 }
 
@@ -289,6 +305,9 @@ void get_session_req_data(
   data->uli_exists    = get_uli_from_session_req(saved_req, data->uli);
   get_plmn_from_session_req(saved_req, data);
   get_imsi_plmn_from_session_req(saved_req, data);
+  memcpy(
+      &data->charging_characteristics, &saved_req->charging_characteristics,
+      sizeof(charging_characteristics_t));
 
   memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
 

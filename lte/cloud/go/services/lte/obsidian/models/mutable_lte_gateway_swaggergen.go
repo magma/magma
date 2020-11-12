@@ -20,8 +20,7 @@ import (
 type MutableLteGateway struct {
 
 	// apn resources
-	// Required: true
-	ApnResources ApnResources `json:"apn_resources"`
+	ApnResources ApnResources `json:"apn_resources,omitempty"`
 
 	// cellular
 	// Required: true
@@ -103,6 +102,10 @@ func (m *MutableLteGateway) Validate(formats strfmt.Registry) error {
 }
 
 func (m *MutableLteGateway) validateApnResources(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.ApnResources) { // not required
+		return nil
+	}
 
 	if err := m.ApnResources.Validate(formats); err != nil {
 		if ve, ok := err.(*errors.Validation); ok {

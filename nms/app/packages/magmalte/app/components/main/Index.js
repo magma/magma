@@ -15,13 +15,9 @@
  */
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
-import {
-  EnodebContextProvider,
-  GatewayContextProvider,
-  GatewayTierContextProvider,
-  SubscriberContextProvider,
-} from '@fbcnms/magmalte/app/components/lte/LteSections';
-import {LTE, coalesceNetworkType} from '@fbcnms/types/network';
+
+import {FEG_LTE, LTE, coalesceNetworkType} from '@fbcnms/types/network';
+import {LteContextProvider} from '../lte/LteContext';
 import type {NetworkType} from '@fbcnms/types/network';
 import type {Theme} from '@material-ui/core';
 
@@ -58,26 +54,6 @@ const useStyles = makeStyles((theme: Theme) => ({
   },
 }));
 
-type LteContextProviderProps = {
-  networkId: string,
-  children: React.Node,
-};
-
-function LteContextProvider(props: LteContextProviderProps) {
-  const {networkId} = props;
-  return (
-    <SubscriberContextProvider networkId={networkId}>
-      <GatewayTierContextProvider networkId={networkId}>
-        <EnodebContextProvider networkId={networkId}>
-          <GatewayContextProvider networkId={networkId}>
-            {props.children}
-          </GatewayContextProvider>
-        </EnodebContextProvider>
-      </GatewayTierContextProvider>
-    </SubscriberContextProvider>
-  );
-}
-
 export default function Index() {
   const classes = useStyles();
   const {match} = useRouter();
@@ -104,6 +80,7 @@ export default function Index() {
     return <LoadingFiller />;
   }
 
+  const lteNetwork = networkType === LTE || networkType === FEG_LTE;
   return (
     <NetworkContext.Provider value={{networkId, networkType}}>
       <div className={classes.root}>
@@ -118,7 +95,7 @@ export default function Index() {
           user={user}
         />
         <AppContent>
-          {networkType === LTE ? (
+          {lteNetwork ? (
             <LteContextProvider networkId={networkId}>
               <SectionRoutes />
             </LteContextProvider>

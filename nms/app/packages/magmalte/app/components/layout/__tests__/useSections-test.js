@@ -30,7 +30,7 @@ jest
   .spyOn(require('@fbcnms/ui/hooks/useSnackbar'), 'useEnqueueSnackbar')
   .mockReturnValue(enqueueSnackbarMock);
 
-import {AllNetworkTypes, CWF, XWFM} from '@fbcnms/types/network';
+import {CWF, FEG, FEG_LTE, LTE, WIFI, XWFM} from '@fbcnms/types/network';
 
 global.CONFIG = {
   appData: {
@@ -84,32 +84,21 @@ const testCases: {[string]: TestCase} = {
     default: 'map',
     sections: ['map', 'metrics', 'devices', 'configure'],
   },
-  third_party: {
-    default: 'devices',
-    sections: ['devices', 'metrics', 'agents'],
-  },
-  symphony: {
-    default: 'devices',
-    sections: ['devices', 'metrics', 'agents'],
-  },
-  rhino: {
-    default: 'metrics',
-    sections: ['metrics'],
-  },
   feg: {
     default: 'gateways',
-    sections: ['gateways', 'configure'],
+    sections: ['gateways', 'configure', 'alerts'],
   },
   carrier_wifi_network: {
     default: 'gateways',
-    sections: ['gateways', 'configure', 'metrics'],
+    sections: ['gateways', 'configure', 'metrics', 'alerts'],
   },
   xwfm: {
     default: 'gateways',
-    sections: ['gateways', 'configure', 'metrics'],
+    sections: ['gateways', 'configure', 'metrics', 'alerts'],
   },
 };
 
+const AllNetworkTypes = [CWF, FEG, LTE, FEG_LTE, WIFI, XWFM];
 AllNetworkTypes.forEach(networkType => {
   const testCase = testCases[networkType];
   // XWF-M network selection in NMS creates a CWF network on the API just with

@@ -31,9 +31,11 @@ import TextField from '@material-ui/core/TextField';
 import axios from 'axios';
 
 import nullthrows from '@fbcnms/util/nullthrows';
-import {AllNetworkTypes} from '@fbcnms/types/network';
-import {CWF, FEG} from '@fbcnms/types/network';
+import {AllNetworkTypes, XWFM} from '@fbcnms/types/network';
+import {CWF, FEG, FEG_LTE} from '@fbcnms/types/network';
 import {makeStyles} from '@material-ui/styles';
+import {triggerAlertSync} from './Alerts';
+import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useState} from 'react';
 
 const useStyles = makeStyles(() => ({
@@ -51,6 +53,7 @@ type Props = {
 
 export default function NetworkDialog(props: Props) {
   const classes = useStyles();
+  const enqueueSnackbar = useEnqueueSnackbar();
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
   const [networkID, setNetworkId] = useState('');
@@ -75,6 +78,9 @@ export default function NetworkDialog(props: Props) {
       .then(response => {
         if (response.data.success) {
           props.onSave(nullthrows(networkID));
+          if (payload.data.networkType === XWFM) {
+            triggerAlertSync(networkID, enqueueSnackbar);
+          }
         } else {
           setError(response.data.message);
         }
@@ -121,7 +127,7 @@ export default function NetworkDialog(props: Props) {
             ))}
           </Select>
         </FormControl>
-        {networkType === CWF && (
+        {(networkType === CWF || networkType === FEG_LTE) && (
           <TextField
             name="fegNetworkID"
             label="Federation Network ID"

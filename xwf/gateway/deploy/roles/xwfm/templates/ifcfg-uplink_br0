@@ -4,4 +4,4 @@ DEVICETYPE=ovs
 TYPE=OVSBridge
 BOOTPROTO=static
 HOTPLUG=no
-OVS_EXTRA="set-fail-mode $DEVICE secure -- set-controller $DEVICE tcp:{{ xwf_ctrl_ip }}:6653"
+OVS_EXTRA="set-fail-mode $DEVICE secure -- set-controller $DEVICE {{ connection_mode }}:{{ xwf_ctrl_ip }}:6653"

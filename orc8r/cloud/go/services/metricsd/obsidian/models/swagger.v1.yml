@@ -655,7 +655,7 @@ paths:
           name: start
           type: string
           description: start time of the requested range (UnixTime or RFC3339)
-          required: true
+          required: false
         - in: query
           name: end
           type: string

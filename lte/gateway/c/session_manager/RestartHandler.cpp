@@ -110,7 +110,8 @@ bool RestartHandler::populate_sessions_to_terminate_with_retries() {
   while (rpc_try < max_cleanup_retries_) {
     std::future<bool> directoryd_future = directoryd_res.get_future();
     directoryd_client_->get_all_directoryd_records(
-        [this, &directoryd_res](Status status, AllDirectoryRecords response) {
+        [this, &directoryd_res](
+            Status status, const AllDirectoryRecords& response) {
           if (!status.ok()) {
             directoryd_res.set_value(false);
             return;
@@ -148,8 +149,9 @@ void RestartHandler::terminate_previous_session(
   std::future<bool> termination_future = termination_res.get_future();
   (*reporter_)
       .report_terminate_session(
-          term_req, [this, &termination_res, sid, session_id](
-                        Status status, SessionTerminateResponse response) {
+          term_req,
+          [this, &termination_res, sid, session_id](
+              Status status, const SessionTerminateResponse& response) {
             if (!status.ok()) {
               MLOG(MERROR) << "CCR-T cleanup for subscriber " << sid
                            << ", session id: " << session_id << " failed";
@@ -160,7 +162,7 @@ void RestartHandler::terminate_previous_session(
             del_request.set_id(response.sid());
             directoryd_client_->delete_directoryd_record(
                 del_request, [this, &del_request, &termination_res, sid](
-                                 Status status, Void) {
+                                 Status status, const Void&) {
                   if (!status.ok()) {
                     MLOG(MERROR) << "DirectoryD DeleteRecord failed to remove "
                                  << "subscriber " << sid << " from DirectoryD";

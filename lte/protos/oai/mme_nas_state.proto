@@ -134,6 +134,9 @@ message UeContext {
   Timer ulr_response_timer = 206;
   google.protobuf.Timestamp time_mobile_reachability_timer_started = 207;
   google.protobuf.Timestamp time_implicit_detach_timer_started = 208;
+  google.protobuf.Timestamp time_paging_response_timer_started = 209;
+  uint32 paging_retx_count = 210;
+  google.protobuf.Timestamp time_ics_rsp_timer_started = 211;
 }
 
 // mme_ue_context_t

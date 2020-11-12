@@ -21,6 +21,7 @@ import (
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	merrors "magma/orc8r/lib/go/errors"
 	wifi_mconfig "magma/wifi/cloud/go/protos/mconfig"
+	"magma/wifi/cloud/go/serdes"
 	"magma/wifi/cloud/go/services/wifi/obsidian/models"
 	"magma/wifi/cloud/go/wifi"
 
@@ -36,11 +37,11 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	network, err := (configurator.Network{}).FromStorageProto(request.Network)
+	network, err := (configurator.Network{}).FromProto(request.Network, serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
+	graph, err := (configurator.EntityGraph{}).FromProto(request.Graph, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}

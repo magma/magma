@@ -160,10 +160,12 @@ class ArpController(MagmaController):
         self._install_default_flows(self._datapath)
         records = get_all_records()
         attached_ues = [ue.sid.id for ue in ue_requests]
-        self.logger.debug("Setting up ARP controller with list of UEs:")
-        self.logger.debug(str(*attached_ues))
+        self.logger.debug("Setting up ARP controller with list of UEs: %s",
+                          ', '.join(attached_ues))
+
         for rec in records:
-            if rec.id not in attached_ues:
+            if rec.id not in attached_ues and \
+               rec.id.replace('IMSI', '') not in attached_ues:
                 self.logger.debug(
                     "%s is in directoryd, but not an active UE", rec.id)
                 continue

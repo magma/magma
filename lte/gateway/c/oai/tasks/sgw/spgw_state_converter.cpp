@@ -164,16 +164,20 @@ void SpgwStateConverter::proto_to_spgw_bearer_context(
       (void*) sgw_eps_bearer_context_proto.trxn().c_str();
   sgw_eps_bearer_context_state->mme_teid_S11 =
       sgw_eps_bearer_context_proto.mme_teid_s11();
+  bstring ip_addr_bstr =
+      bfromcstr(sgw_eps_bearer_context_proto.mme_ip_address_s11().c_str());
   bstring_to_ip_address(
-      bfromcstr(sgw_eps_bearer_context_proto.mme_ip_address_s11().c_str()),
-      &sgw_eps_bearer_context_state->mme_ip_address_S11);
+      ip_addr_bstr, &sgw_eps_bearer_context_state->mme_ip_address_S11);
+  bdestroy_wrapper(&ip_addr_bstr);
   sgw_eps_bearer_context_state->imsi64 = sgw_eps_bearer_context_proto.imsi64();
 
   sgw_eps_bearer_context_state->s_gw_teid_S11_S4 =
       sgw_eps_bearer_context_proto.sgw_teid_s11_s4();
+  ip_addr_bstr =
+      bfromcstr(sgw_eps_bearer_context_proto.sgw_ip_address_s11_s4().c_str());
   bstring_to_ip_address(
-      bfromcstr(sgw_eps_bearer_context_proto.sgw_ip_address_s11_s4().c_str()),
-      &sgw_eps_bearer_context_state->s_gw_ip_address_S11_S4);
+      ip_addr_bstr, &sgw_eps_bearer_context_state->s_gw_ip_address_S11_S4);
+  bdestroy_wrapper(&ip_addr_bstr);
 
   proto_to_sgw_pdn_connection(
       sgw_eps_bearer_context_proto.pdn_connection(),
@@ -184,7 +188,7 @@ void SpgwStateConverter::proto_to_spgw_bearer_context(
       &sgw_eps_bearer_context_state->saved_message);
   proto_to_sgw_pending_procedures(
       sgw_eps_bearer_context_proto,
-      sgw_eps_bearer_context_state->pending_procedures);
+      &sgw_eps_bearer_context_state->pending_procedures);
 
   auto* pgw_eps_bearer_context_state =
       &spgw_bearer_state->pgw_eps_bearer_context_information;
@@ -242,12 +246,13 @@ void SpgwStateConverter::proto_to_sgw_pdn_connection(
   state_pdn->ue_suspended_for_ps_handover =
       proto.ue_suspended_for_ps_handover();
 
-  bstring_to_ip_address(
-      bfromcstr(proto.pgw_address_in_use_cp().c_str()),
-      &state_pdn->p_gw_address_in_use_up);
-  bstring_to_ip_address(
-      bfromcstr(proto.pgw_address_in_use_up().c_str()),
-      &state_pdn->p_gw_address_in_use_cp);
+  bstring ip_addr_bstr = bfromcstr(proto.pgw_address_in_use_cp().c_str());
+  bstring_to_ip_address(ip_addr_bstr, &state_pdn->p_gw_address_in_use_cp);
+  bdestroy_wrapper(&ip_addr_bstr);
+
+  ip_addr_bstr = bfromcstr(proto.pgw_address_in_use_up().c_str());
+  bstring_to_ip_address(ip_addr_bstr, &state_pdn->p_gw_address_in_use_up);
+  bdestroy_wrapper(&ip_addr_bstr);
 
   for (uint32_t i = 0; i < BEARERS_PER_UE; i++) {
     if (proto.eps_bearer_list(i).eps_bearer_id()) {
@@ -283,9 +288,14 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
   }
 
   if (session_request->uli.present) {
-    char uli[sizeof(Uli_t)];
-    memcpy(&uli, &session_request->uli, sizeof(Uli_t));
-    proto->set_uli(uli);
+    char uli[sizeof(Uli_t)] = "";
+    memcpy(uli, &session_request->uli, sizeof(Uli_t));
+    proto->set_uli(uli, sizeof(Uli_t));
+  }
+
+  const auto cc = session_request->charging_characteristics;
+  if (cc.length > 0) {
+    proto->set_charging_characteristics(cc.value, cc.length);
   }
 
   proto->mutable_serving_network()->set_mcc(
@@ -378,9 +388,20 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
   }
 
   if (proto.uli().length() > 0) {
-    session_request->uli.present = true;
     memcpy(&session_request->uli, proto.uli().c_str(), sizeof(Uli_t));
   }
+
+  const auto length = proto.charging_characteristics().length();
+  session_request->charging_characteristics.length = length;
+  if (length > CHARGING_CHARACTERISTICS_LENGTH) {
+    session_request->charging_characteristics.length =
+        CHARGING_CHARACTERISTICS_LENGTH;
+  }
+  memcpy(
+      &session_request->charging_characteristics.value,
+      proto.charging_characteristics().c_str(), length);
+  session_request->charging_characteristics.value[length] = '\0';
+
   memcpy(
       &session_request->serving_network.mcc,
       proto.serving_network().mcc().c_str(), 3);
@@ -394,7 +415,9 @@ void SpgwStateConverter::proto_to_sgw_create_session_message(
   session_request->ambr.br_ul = proto.ambr().br_ul();
 
   memcpy(&session_request->apn, proto.apn().c_str(), proto.apn().length());
-  bstring_to_paa(bfromcstr(proto.paa().c_str()), &session_request->paa);
+  bstring paa_bstr = bfromcstr(proto.paa().c_str());
+  bstring_to_paa(paa_bstr, &session_request->paa);
+  bdestroy_wrapper(&paa_bstr);
   session_request->edns_peer_ip.addr_v4.sin_addr.s_addr = proto.peer_ip();
 
   session_request->pco.ext   = proto.pco().ext();
@@ -495,28 +518,33 @@ void SpgwStateConverter::proto_to_sgw_eps_bearer(
     sgw_eps_bearer_ctxt_t* eps_bearer) {
   eps_bearer->eps_bearer_id = eps_bearer_proto.eps_bearer_id();
 
-  bstring_to_ip_address(
-      bfromcstr(eps_bearer_proto.pgw_address_in_use_up().c_str()),
-      &eps_bearer->p_gw_address_in_use_up);
+  bstring ip_addr_bstr =
+      bfromcstr(eps_bearer_proto.pgw_address_in_use_up().c_str());
+  bstring_to_ip_address(ip_addr_bstr, &eps_bearer->p_gw_address_in_use_up);
+  bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer->p_gw_teid_S5_S8_up = eps_bearer_proto.pgw_teid_s5_s8_up();
 
-  bstring_to_ip_address(
-      bfromcstr(eps_bearer_proto.sgw_ip_address_s5_s8_up().c_str()),
-      &eps_bearer->s_gw_ip_address_S5_S8_up);
+  ip_addr_bstr = bfromcstr(eps_bearer_proto.sgw_ip_address_s5_s8_up().c_str());
+  bstring_to_ip_address(ip_addr_bstr, &eps_bearer->s_gw_ip_address_S5_S8_up);
+  bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer->s_gw_teid_S5_S8_up = eps_bearer_proto.sgw_teid_s5_s8_up();
 
-  bstring_to_ip_address(
+  ip_addr_bstr =
       bfromcstr(eps_bearer_proto.sgw_ip_address_s1u_s12_s4_up().c_str()),
-      &eps_bearer->s_gw_ip_address_S1u_S12_S4_up);
+  bstring_to_ip_address(
+      ip_addr_bstr, &eps_bearer->s_gw_ip_address_S1u_S12_S4_up);
+  bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer->s_gw_teid_S1u_S12_S4_up =
       eps_bearer_proto.sgw_teid_s1u_s12_s4_up();
 
-  bstring_to_ip_address(
-      bfromcstr(eps_bearer_proto.enb_ip_address_s1u().c_str()),
-      &eps_bearer->enb_ip_address_S1u);
+  ip_addr_bstr = bfromcstr(eps_bearer_proto.enb_ip_address_s1u().c_str());
+  bstring_to_ip_address(ip_addr_bstr, &eps_bearer->enb_ip_address_S1u);
+  bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer->enb_teid_S1u = eps_bearer_proto.enb_teid_s1u();
 
-  bstring_to_paa(bfromcstr(eps_bearer_proto.paa().c_str()), &eps_bearer->paa);
+  ip_addr_bstr = bfromcstr(eps_bearer_proto.paa().c_str());
+  bstring_to_paa(ip_addr_bstr, &eps_bearer->paa);
+  bdestroy_wrapper(&ip_addr_bstr);
 
   proto_to_eps_bearer_qos(
       eps_bearer_proto.eps_bearer_qos(), &eps_bearer->eps_bearer_qos);
@@ -876,15 +904,15 @@ void SpgwStateConverter::sgw_pending_procedures_to_proto(
 
 void SpgwStateConverter::proto_to_sgw_pending_procedures(
     const oai::SgwEpsBearerContextInfo& proto,
-    sgw_eps_bearer_context_information_t::pending_procedures_s* procedures) {
-  procedures =
+    sgw_eps_bearer_context_information_t::pending_procedures_s** procedures_p) {
+  *procedures_p =
       (sgw_eps_bearer_context_information_t::pending_procedures_s*) calloc(
-          1, sizeof(*procedures));
-  LIST_INIT(procedures);
+          1, sizeof(*procedures_p));
+  LIST_INIT(*procedures_p);
   for (auto& procedure_proto : proto.pending_procedures()) {
     if (procedure_proto.type() ==
         PGW_BASE_PROC_TYPE_NETWORK_INITATED_CREATE_BEARER_REQUEST) {
-      insert_proc_into_sgw_pending_procedures(procedure_proto, procedures);
+      insert_proc_into_sgw_pending_procedures(procedure_proto, *procedures_p);
     }
   }
 }

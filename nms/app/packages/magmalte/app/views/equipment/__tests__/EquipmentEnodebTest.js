@@ -76,6 +76,20 @@ describe('<Enodeb />', () => {
         tac: 1,
         transmit_enabled: true,
       },
+      enodeb_config: {
+        config_type: 'MANAGED',
+        managed_config: {
+          bandwidth_mhz: 20,
+          cell_id: 1,
+          device_class: 'Baicells ID TDD/FDD',
+          earfcndl: 44290,
+          pci: 36,
+          special_subframe_pattern: 7,
+          subframe_assignment: 2,
+          tac: 1,
+          transmit_enabled: true,
+        },
+      },
       name: 'testEnodeb0',
       serial: 'testEnodebSerial0',
     },
@@ -93,6 +107,7 @@ describe('<Enodeb />', () => {
       rf_tx_desired: true,
       rf_tx_on: false,
       time_reported: 0,
+      ip_address: '192.168.1.254',
     },
   };
 

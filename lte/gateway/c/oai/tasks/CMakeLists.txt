@@ -5,6 +5,7 @@ add_subdirectory(s6a) # TASK_S6A
 add_subdirectory(sctp) # TASK_SCTP_SERVER
 add_subdirectory(service303) # TASK_SERVICE303
 add_subdirectory(sgs) # TASK_SGS
+add_subdirectory(sms_orc8r) # TASK_SMS_ORC8R
 add_subdirectory(grpc_service) # TASK_GRPC_SERVICE
 
 if (EMBEDDED_SGW)

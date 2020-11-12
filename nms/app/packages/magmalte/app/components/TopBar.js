@@ -110,6 +110,7 @@ export default function TopBar(props: Props) {
                   label={tabLabel(tab.label, tab.icon)}
                   to={tab.to}
                   className={classes.tab}
+                  data-testid={tab.label}
                 />
               ))}
             </Tabs>

@@ -40,16 +40,20 @@ struct ChargingGrant {
   ReAuthState reauth_state;
 
   // Default states
-  ChargingGrant() : credit(), is_final_grant(false),
-    service_state(SERVICE_ENABLED), reauth_state(REAUTH_NOT_NEEDED) {}
+  ChargingGrant()
+      : credit(),
+        is_final_grant(false),
+        service_state(SERVICE_ENABLED),
+        reauth_state(REAUTH_NOT_NEEDED) {}
 
-  ChargingGrant(const StoredChargingGrant &marshaled);
+  ChargingGrant(const StoredChargingGrant& marshaled);
 
   // ChargingGrant -> StoredChargingGrant
   StoredChargingGrant marshal();
 
-  void receive_charging_grant(const magma::lte::ChargingCredit& credit,
-                              SessionCreditUpdateCriteria* uc=NULL);
+  void receive_charging_grant(
+      const magma::lte::ChargingCredit& credit,
+      SessionCreditUpdateCriteria* uc = NULL);
 
   // Returns a SessionCreditUpdateCriteria that reflects the current state
   SessionCreditUpdateCriteria get_update_criteria();
@@ -62,31 +66,44 @@ struct ChargingGrant {
 
   // get_action returns the action to take on the credit based on the last
   // update. If no action needs to take place, CONTINUE_SERVICE is returned.
-  ServiceActionType get_action(SessionCreditUpdateCriteria &update_criteria);
+  ServiceActionType get_action(SessionCreditUpdateCriteria& update_criteria);
 
   // Get unreported usage from credit and return as part of CreditUsage
   // The update_type is also included in CreditUsage
   // If the grant is final or is_terminate is true, we include all unreported
-  // usage, otherwise we only include unreported usage up to the allocated amount.
-  CreditUsage get_credit_usage(CreditUsage::UpdateType update_type,
-    SessionCreditUpdateCriteria& uc, bool is_terminate);
+  // usage, otherwise we only include unreported usage up to the allocated
+  // amount.
+  CreditUsage get_credit_usage(
+      CreditUsage::UpdateType update_type, SessionCreditUpdateCriteria& uc,
+      bool is_terminate);
+
+  // get_requested_units returns total, tx and rx needed to cover one worth of
+  // grant
+  RequestedUnits get_requested_units();
 
   // Return true if the service needs to be deactivated
   bool should_deactivate_service() const;
 
   // Convert FinalAction enum to ServiceActionType
   ServiceActionType final_action_to_action(
-    const ChargingCredit_FinalAction action) const;
+      const ChargingCredit_FinalAction action) const;
 
   // Set is_final_grant and final_action_info values
   void set_final_action_info(
-    const magma::lte::ChargingCredit& credit, SessionCreditUpdateCriteria& uc);
+      const magma::lte::ChargingCredit& credit,
+      SessionCreditUpdateCriteria& uc);
 
   // Set the object and update criteria's reauth state to new_state.
-  void set_reauth_state(const ReAuthState new_state, SessionCreditUpdateCriteria &uc);
+  void set_reauth_state(
+      const ReAuthState new_state, SessionCreditUpdateCriteria& uc);
 
   // Set the object and update criteria's service state to new_state.
-  void set_service_state(const ServiceState new_service_state, SessionCreditUpdateCriteria &uc);
+  void set_service_state(
+      const ServiceState new_service_state, SessionCreditUpdateCriteria& uc);
+
+  // Set the flag reporting. Used to signal this credit is waiting to receive
+  // a response from the core
+  void set_reporting(bool reporting);
 
   // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
   // and assign it to expiry_time

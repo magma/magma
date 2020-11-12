@@ -19,6 +19,7 @@ import (
 
 	"magma/feg/cloud/go/feg"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
@@ -40,11 +41,11 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	network, err := (configurator.Network{}).FromStorageProto(request.Network)
+	network, err := (configurator.Network{}).FromProto(request.Network, serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
+	graph, err := (configurator.EntityGraph{}).FromProto(request.Graph, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -68,6 +69,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	hss := gwConfig.Hss
 	swxc := gwConfig.Swx
 	eapAka := gwConfig.EapAka
+	eapSim := gwConfig.EapSim
 	aaa := gwConfig.AaaServer
 	csfb := gwConfig.Csfb
 	healthc := protos.SafeInit(healthConfig).(*models.Health)
@@ -75,12 +77,13 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	vals := map[string]proto.Message{}
 
 	if s6ac != nil {
-		vals["s6a_proxy"] = &feg_mconfig.S6AConfig{
+		mc := &feg_mconfig.S6AConfig{
 			LogLevel:                protos.LogLevel_INFO,
-			Server:                  s6ac.Server.ToMconfig(),
 			RequestFailureThreshold: healthc.RequestFailureThreshold,
 			MinimumRequestThreshold: healthc.MinimumRequestThreshold,
 		}
+		protos.FillIn(s6ac, mc)
+		vals["s6a_proxy"] = mc
 	}
 
 	if gxc != nil || gyc != nil {
@@ -146,6 +149,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		vals["eap_aka"] = mc
 	}
 
+	if eapSim != nil {
+		mc := &feg_mconfig.EapSimConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(eapSim, mc)
+		vals["eap_sim"] = mc
+	}
+
 	if aaa != nil {
 		mc := &feg_mconfig.AAAConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(aaa, mc)
@@ -165,7 +174,6 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 
 	return ret, nil
 }
-
 func getFegConfig(gatewayID string, network configurator.Network, graph configurator.EntityGraph) (*models.GatewayFederationConfigs, error) {
 	fegGW, err := graph.GetEntity(feg.FegGatewayType, gatewayID)
 	if err != nil && err != merrors.ErrNotFound {

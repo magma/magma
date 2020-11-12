@@ -19,12 +19,14 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	ltePlugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/serdes"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	lteModels "magma/lte/cloud/go/services/lte/obsidian/models"
 	policydbHandlers "magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb/obsidian/handlers"
 	subscriberModels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
+	subscriberdbTestInit "magma/lte/cloud/go/services/subscriberdb/test_init"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/obsidian/tests"
@@ -34,11 +36,12 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configuratorTestInit "magma/orc8r/cloud/go/services/configurator/test_init"
 	deviceTestInit "magma/orc8r/cloud/go/services/device/test_init"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 	stateTestInit "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
+	stateTypes "magma/orc8r/cloud/go/services/state/types"
 	"magma/orc8r/cloud/go/storage"
 
 	"github.com/go-openapi/swag"
@@ -52,7 +55,7 @@ func TestCreateSubscriber(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -68,6 +71,7 @@ func TestCreateSubscriber(t *testing.T) {
 			{Type: lte.APNEntityType, Key: apn1},
 			{Type: lte.APNEntityType, Key: apn2},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -98,7 +102,11 @@ func TestCreateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI1234567890",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1",
@@ -138,7 +146,11 @@ func TestCreateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	_, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI0987654321", configurator.FullEntityLoadCriteria())
+	_, err = configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI0987654321",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.EqualError(t, err, "Not found")
 
 	// nonexistent sub profile should be 400
@@ -154,6 +166,7 @@ func TestCreateSubscriber(t *testing.T) {
 				},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 	payload = &subscriberModels.MutableSubscriber{
@@ -236,7 +249,7 @@ func TestListSubscribers(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -252,6 +265,7 @@ func TestListSubscribers(t *testing.T) {
 			{Type: lte.APNEntityType, Key: apn1},
 			{Type: lte.APNEntityType, Key: apn2},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -296,6 +310,7 @@ func TestListSubscribers(t *testing.T) {
 				Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn1}},
 			},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -357,6 +372,7 @@ func TestListSubscribers(t *testing.T) {
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
@@ -365,13 +381,13 @@ func TestListSubscribers(t *testing.T) {
 
 	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.State)
 	mmeState := state.ArbitraryJSON{"mme": "foo"}
-	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState, serdes.State)
 	spgwState := state.ArbitraryJSON{"spgw": "foo"}
-	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState, serdes.State)
 	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
-	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState, serdes.State)
 	// Report 2 allocated IP addresses for the subscriber
 	mobilitydState1 := state.ArbitraryJSON{
 		"ip": map[string]interface{}{
@@ -383,10 +399,10 @@ func TestListSubscribers(t *testing.T) {
 			"address": "wKiAhg==",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
-	directoryState := directoryd.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
-	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1, serdes.State)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2, serdes.State)
+	directoryState := directorydTypes.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
+	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState, serdes.State)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -473,7 +489,7 @@ func TestGetSubscriber(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -489,6 +505,7 @@ func TestGetSubscriber(t *testing.T) {
 			{Type: lte.APNEntityType, Key: apn1},
 			{Type: lte.APNEntityType, Key: apn2},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -520,6 +537,7 @@ func TestGetSubscriber(t *testing.T) {
 			},
 			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -560,6 +578,7 @@ func TestGetSubscriber(t *testing.T) {
 	_, err = configurator.CreateEntity(
 		"n1",
 		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g1", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw1"},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 	frozenClock := int64(1000000)
@@ -567,13 +586,13 @@ func TestGetSubscriber(t *testing.T) {
 	defer clock.UnfreezeClock(t)
 	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
 	ctx := test_utils.GetContextWithCertificate(t, "hw1")
-	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus)
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.State)
 	mmeState := state.ArbitraryJSON{"mme": "foo"}
-	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState)
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState, serdes.State)
 	spgwState := state.ArbitraryJSON{"spgw": "foo"}
-	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState)
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState, serdes.State)
 	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
-	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState)
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState, serdes.State)
 	// Report 2 allocated IP addresses for the subscriber
 	mobilitydState1 := state.ArbitraryJSON{
 		"ip": map[string]interface{}{
@@ -585,10 +604,10 @@ func TestGetSubscriber(t *testing.T) {
 			"address": "wKiAhg==",
 		},
 	}
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1)
-	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2)
-	directoryState := directoryd.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
-	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1, serdes.State)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2, serdes.State)
+	directoryState := directorydTypes.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
+	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState, serdes.State)
 
 	tc = tests.Test{
 		Method:         "GET",
@@ -647,13 +666,318 @@ func TestGetSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+func TestGetSubscriberByMSISDN(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
+
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	subscriberdbTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	subscriberdbHandlers := handlers.GetHandlers()
+
+	subURLBase := "/magma/v1/lte/:network_id/subscribers"
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
+
+	msisdnURLBase := "/magma/v1/lte/:network_id/msisdns"
+	msisdnURLManage := "/magma/v1/lte/:network_id/msisdns/:msisdn"
+	getAllMSISDNs := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLBase, obsidian.GET).HandlerFunc
+	postMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLBase, obsidian.POST).HandlerFunc
+	getMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.GET).HandlerFunc
+	deleteMSISDN := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, msisdnURLManage, obsidian.DELETE).HandlerFunc
+
+	// MSISDNs initially empty
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/msisdns",
+		Handler:        getAllMSISDNs,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]string{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// List all => empty
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase,
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// List one => 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?msisdn=13109976224",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create default subscriber profile
+	_, err = configurator.CreateEntity(
+		"n0",
+		configurator.NetworkEntity{
+			Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+			Name: "Jane Doe",
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	// Create MSISDN->IMSI mapping
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n0/msisdns",
+		Payload:        &subscriberModels.MsisdnAssignment{ID: "IMSI1234567890", Msisdn: "msisdn0"},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		Handler:        postMSISDN,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create another MSISDN->IMSI mapping
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n0/msisdns",
+		Payload:        &subscriberModels.MsisdnAssignment{ID: "IMSI9999999999", Msisdn: "msisdn1"},
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		Handler:        postMSISDN,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get MSISDN => MSISDN exists
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/msisdns/msisdn0",
+		Handler:        getMSISDN,
+		ParamNames:     []string{"network_id", "msisdn"},
+		ParamValues:    []string{"n0", "msisdn0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler("IMSI1234567890"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get subscriber by MSISDN
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?msisdn=msisdn0",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
+			"IMSI1234567890": {
+				ID:     "IMSI1234567890",
+				Name:   "Jane Doe",
+				Config: &subscriberModels.SubscriberConfig{Lte: nil},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Delete MSISDN->IMSI mapping
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            msisdnURLManage,
+		Handler:        deleteMSISDN,
+		ParamNames:     []string{"network_id", "msisdn"},
+		ParamValues:    []string{"n0", "msisdn0"},
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get MSISDN => 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n0/msisdns/msisdn0",
+		Handler:        getMSISDN,
+		ParamNames:     []string{"network_id", "msisdn"},
+		ParamValues:    []string{"n0", "msisdn0"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get subscriber by MSISDN => 404
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?msisdn=msisdn0",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 404,
+		ExpectedError:  "Not Found",
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetSubscriberByIP(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))
+
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	subscriberdbTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	subscriberdbHandlers := handlers.GetHandlers()
+
+	subURLBase := "/magma/v1/lte/:network_id/subscribers"
+	getAllSubscribers := tests.GetHandlerByPathAndMethod(t, subscriberdbHandlers, subURLBase, obsidian.GET).HandlerFunc
+
+	// List one => none found
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.1",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create default subscriber profiles
+	_, err = configurator.CreateEntities(
+		"n0",
+		[]configurator.NetworkEntity{
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
+				Name: "Jane Doe",
+			},
+			{
+				Type: lte.SubscriberEntityType, Key: "IMSI0000000001",
+				Name: "John Doe",
+			},
+		},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+
+	// List one => still not found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.1",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Report IP state: Jane has an IP
+	_, err = configurator.CreateEntity(
+		"n0",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+	ctx := test_utils.GetContextWithCertificate(t, "hw0")
+	mobilitydState := &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAQ=="}} // 127.0.0.1
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", mobilitydState, serdes.State)
+	// Wait for state to be indexed
+	time.Sleep(time.Second)
+
+	// List one => found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.1",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
+			"IMSI1234567890": {
+				ID:         "IMSI1234567890",
+				Name:       "Jane Doe",
+				Config:     &subscriberModels.SubscriberConfig{Lte: nil},
+				Monitoring: &subscriberModels.SubscriberStatus{},
+				State: &subscriberModels.SubscriberState{
+					Mobility: []*subscriberModels.SubscriberIPAllocation{{Apn: "oai.ipv4", IP: "127.0.0.1"}},
+				},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Report IP state: Jane has new IP
+	mobilitydState = &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAg=="}} // 127.0.0.2
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", mobilitydState, serdes.State)
+	// Wait for state to be indexed
+	time.Sleep(time.Second)
+
+	// List one => IP changed means not found
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.1",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Report IP state: John has Jane's new IP
+	mobilitydState = &state.ArbitraryJSON{"ip": state.ArbitraryJSON{"address": "fwAAAg=="}} // 127.0.0.2
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI0000000001.oai.ipv4", mobilitydState, serdes.State)
+	// Wait for state to be indexed
+	time.Sleep(time.Second)
+
+	// Delete Jane's new IP
+	err = state.DeleteStates("n0", []stateTypes.ID{{Type: lte.MobilitydStateType, DeviceID: "IMSI1234567890.oai.ipv4"}})
+	assert.NoError(t, err)
+
+	// List one => found John (and only John -- Jane should be filtered out)
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            subURLBase + "?ip=127.0.0.2",
+		Handler:        getAllSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.Subscriber{
+			"IMSI0000000001": {
+				ID:         "IMSI0000000001",
+				Name:       "John Doe",
+				Config:     &subscriberModels.SubscriberConfig{Lte: nil},
+				Monitoring: &subscriberModels.SubscriberStatus{},
+				State: &subscriberModels.SubscriberState{
+					Mobility: []*subscriberModels.SubscriberIPAllocation{{Apn: "oai.ipv4", IP: "127.0.0.2"}},
+				},
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 func TestUpdateSubscriber(t *testing.T) {
 	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
 	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -669,6 +993,7 @@ func TestUpdateSubscriber(t *testing.T) {
 			{Type: lte.APNEntityType, Key: apn1},
 			{Type: lte.APNEntityType, Key: apn2},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -709,6 +1034,7 @@ func TestUpdateSubscriber(t *testing.T) {
 				},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 	_, err = configurator.CreateEntity(
@@ -725,6 +1051,7 @@ func TestUpdateSubscriber(t *testing.T) {
 			},
 			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -752,7 +1079,11 @@ func TestUpdateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI1234567890",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID:    "n1",
@@ -787,7 +1118,7 @@ func TestDeleteSubscriber(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -803,6 +1134,7 @@ func TestDeleteSubscriber(t *testing.T) {
 			{Type: lte.APNEntityType, Key: apn1},
 			{Type: lte.APNEntityType, Key: apn2},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -819,6 +1151,7 @@ func TestDeleteSubscriber(t *testing.T) {
 			},
 			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -832,7 +1165,11 @@ func TestDeleteSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadAllEntitiesInNetwork("n1", lte.SubscriberEntityType, configurator.EntityLoadCriteria{})
+	actual, err := configurator.LoadAllEntitiesOfType(
+		"n1", lte.SubscriberEntityType,
+		configurator.EntityLoadCriteria{},
+		serdes.Entity,
+	)
 	assert.Equal(t, 0, len(actual))
 }
 
@@ -842,7 +1179,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 
 	e := echo.New()
@@ -859,6 +1196,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 			{Type: lte.APNEntityType, Key: apn1},
 			{Type: lte.APNEntityType, Key: apn2},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -874,7 +1212,7 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 		},
 		Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 	}
-	_, err = configurator.CreateEntity("n1", expected)
+	_, err = configurator.CreateEntity("n1", expected, serdes.Entity)
 	assert.NoError(t, err)
 	expected.NetworkID = "n1"
 	expected.GraphID = "2"
@@ -891,7 +1229,11 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI1234567890",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expected, actual)
 
@@ -900,7 +1242,11 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tc.Handler = deactivateSubscriber
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	actual, err = configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI1234567890",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "INACTIVE"
 	expected.Version = 2
@@ -908,7 +1254,11 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 
 	// deactivate deactivated sub
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	actual, err = configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI1234567890",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "INACTIVE"
 	expected.Version = 3
@@ -918,7 +1268,11 @@ func TestActivateDeactivateSubscriber(t *testing.T) {
 	tc.URL = testURLRoot + "/activate"
 	tc.Handler = activateSubscriber
 	tests.RunUnitTest(t, e, tc)
-	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	actual, err = configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI1234567890",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	expected.Config.(*subscriberModels.SubscriberConfig).Lte.State = "ACTIVE"
 	expected.Version = 4
@@ -931,7 +1285,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	configuratorTestInit.StartTestService(t)
 	deviceTestInit.StartTestService(t)
 
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1"}, serdes.Network)
 	assert.NoError(t, err)
 	err = configurator.UpdateNetworkConfig(
 		"n1", lte.CellularNetworkConfigType,
@@ -945,6 +1299,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 				},
 			},
 		},
+		serdes.Network,
 	)
 	assert.NoError(t, err)
 
@@ -956,6 +1311,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 			{Type: lte.APNEntityType, Key: apn1},
 			{Type: lte.APNEntityType, Key: apn2},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -973,6 +1329,7 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 			},
 			Associations: []storage.TypeAndKey{{Type: lte.APNEntityType, Key: apn2}, {Type: lte.APNEntityType, Key: apn1}},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -1022,7 +1379,11 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err := configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI1234567890",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	expected := configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
@@ -1053,7 +1414,11 @@ func TestUpdateSubscriberProfile(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
-	actual, err = configurator.LoadEntity("n1", lte.SubscriberEntityType, "IMSI1234567890", configurator.FullEntityLoadCriteria())
+	actual, err = configurator.LoadEntity(
+		"n1", lte.SubscriberEntityType, "IMSI1234567890",
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	expected = configurator.NetworkEntity{
 		NetworkID: "n1", Type: lte.SubscriberEntityType, Key: "IMSI1234567890",
 		Config: &subscriberModels.SubscriberConfig{
@@ -1077,15 +1442,19 @@ func TestAPNPolicyProfile(t *testing.T) {
 
 	configuratorTestInit.StartTestService(t)
 	stateTestInit.StartTestService(t)
-	err := configurator.CreateNetwork(configurator.Network{ID: "n0"})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
 	assert.NoError(t, err)
-	_, err = configurator.CreateEntities("n0", []configurator.NetworkEntity{
-		{Type: lte.APNEntityType, Key: "apn0"},
-		{Type: lte.APNEntityType, Key: "apn1"},
-		{Type: lte.PolicyRuleEntityType, Key: "rule0"},
-		{Type: lte.PolicyRuleEntityType, Key: "rule1"},
-		{Type: lte.PolicyRuleEntityType, Key: "rule2"},
-	})
+	_, err = configurator.CreateEntities(
+		"n0",
+		[]configurator.NetworkEntity{
+			{Type: lte.APNEntityType, Key: "apn0"},
+			{Type: lte.APNEntityType, Key: "apn1"},
+			{Type: lte.PolicyRuleEntityType, Key: "rule0"},
+			{Type: lte.PolicyRuleEntityType, Key: "rule1"},
+			{Type: lte.PolicyRuleEntityType, Key: "rule2"},
+		},
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 
 	e := echo.New()

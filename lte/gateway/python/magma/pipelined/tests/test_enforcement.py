@@ -23,13 +23,15 @@ from magma.pipelined.policy_converters import flow_match_to_magma_match
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
     as FlowQuery
 from magma.pipelined.tests.app.packet_builder import IPPacketBuilder, \
-    TCPPacketBuilder
+    TCPPacketBuilder, IPv6PacketBuilder
 from magma.pipelined.tests.app.packet_injector import ScapyPacketInjector
 from magma.pipelined.tests.app.start_pipelined import PipelinedController, \
     TestSetup
 from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
 from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
     RyuForwardFlowArgsBuilder
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto, \
+    convert_ipv6_bytes_to_ip_proto
 from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     PktsToSend, SubTest, create_service_manager, start_ryu_app_thread, \
     stop_ryu_app_thread, wait_after_send, SnapshotVerifier, \
@@ -113,7 +115,8 @@ class EnforcementTableTest(unittest.TestCase):
         sub_ip = '192.168.128.74'
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_dst='45.10.0.0/24', direction=FlowMatch.UPLINK),
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                direction=FlowMatch.UPLINK),
             action=FlowDescription.PERMIT)
         ]
         policies = [
@@ -158,6 +161,52 @@ class EnforcementTableTest(unittest.TestCase):
 
         flow_verifier.verify()
 
+    def test_subscriber_ipv6_policy(self):
+        """
+        Add policy to subscriber, send 4096 packets
+
+        Assert:
+            Packets are properly matched with the 'simple_match' policy
+            Send /20 (4096) packets, match /16 (256) packets
+        """
+        fake_controller_setup(self.enforcement_controller)
+        imsi = 'IMSI010000000088888'
+        sub_ip = 'de34:431d:1bc::'
+        flow_list1 = [FlowDescription(
+            match=FlowMatch(
+                ip_dst=convert_ipv6_bytes_to_ip_proto(
+                    'f333:432::dbca'.encode('utf-8')),
+                direction=FlowMatch.UPLINK),
+            action=FlowDescription.PERMIT)
+        ]
+        policies = [
+            PolicyRule(id='simple_match', priority=2, flow_list=flow_list1)
+        ]
+
+        self._static_rule_dict[policies[0].id] = policies[0]
+
+        # ============================ Subscriber ============================
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+        ).add_static_rule(policies[0].id)
+        isolator = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
+                .build_requests(),
+            self.testing_controller
+        )
+        pkt_sender = ScapyPacketInjector(self.IFACE)
+        packet = IPv6PacketBuilder() \
+            .set_ip_layer('f333:432::dbca', sub_ip) \
+            .set_ether_layer(self.MAC_DEST, "00:00:00:00:00:00") \
+            .build()
+
+        # =========================== Verification ===========================
+        snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
+                                             self.service_manager)
+
+        with isolator, sub_context, snapshot_verifier:
+            pkt_sender.send(packet)
+
     def test_invalid_subscriber(self):
         """
         Try to apply an invalid policy to a subscriber, should log and error
@@ -169,7 +218,8 @@ class EnforcementTableTest(unittest.TestCase):
         imsi = 'IMSI000000000000001'
         sub_ip = '192.168.128.45'
         flow_list = [FlowDescription(
-            match=FlowMatch(ipv4_src='9999.0.0.0/24'),
+            match=FlowMatch(
+                ip_src=convert_ipv4_str_to_ip_proto('9999.0.0.0/24')),
             action=FlowDescription.DENY
         )]
         policy = PolicyRule(id='invalid', priority=2, flow_list=flow_list)
@@ -190,7 +240,7 @@ class EnforcementTableTest(unittest.TestCase):
             wait_after_send(self.testing_controller)
             num_flows_final = len(flow_query.lookup())
 
-        self.assertEqual(num_flows_final - num_flows_start, 1)
+        self.assertEqual(num_flows_final - num_flows_start, 0)
 
     def test_subscriber_two_policies(self):
         """
@@ -205,7 +255,8 @@ class EnforcementTableTest(unittest.TestCase):
         sub_ip = '192.168.128.74'
         flow_list1 = [FlowDescription(
             match=FlowMatch(
-                ipv4_src='15.0.0.0/24', direction=FlowMatch.DOWNLINK),
+                ip_src=convert_ipv4_str_to_ip_proto('15.0.0.0/24'),
+                direction=FlowMatch.DOWNLINK),
             action=FlowDescription.DENY)
         ]
         flow_list2 = [FlowDescription(
@@ -269,7 +320,8 @@ class EnforcementTableTest(unittest.TestCase):
         fake_controller_setup(self.enforcement_controller)
         pkt_sender = ScapyPacketInjector(self.IFACE)
         ip_match = [FlowDescription(
-            match=FlowMatch(ipv4_src='8.8.8.0/24', direction=1),
+            match=FlowMatch(ip_src=convert_ipv4_str_to_ip_proto('8.8.8.0/24'),
+                            direction=1),
             action=1)
         ]
         tcp_match = [FlowDescription(

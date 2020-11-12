@@ -12,8 +12,6 @@
 module magma/feg/gateway
 
 replace (
-	github.com/fiorix/go-diameter/v4 => github.com/emakeev/go-diameter/v4 v4.0.7
-
 	magma/feg/cloud/go => ../../feg/cloud/go
 	magma/feg/cloud/go/protos => ../../feg/cloud/go/protos
 	magma/gateway => ../../orc8r/gateway/go
@@ -24,22 +22,33 @@ replace (
 )
 
 require (
+	github.com/emakeev/milenage v1.0.0
 	github.com/emakeev/snowflake v0.0.0-20200206205012-767080b052fe
-	github.com/fiorix/go-diameter/v4 v4.0.1-0.20200120193412-55a1c21738f9
+	github.com/fiorix/go-diameter/v4 v4.0.2
+	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/go-openapi/swag v0.19.5
 	github.com/go-redis/redis v6.14.1+incompatible
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
-	github.com/ishidawataru/sctp v0.0.0-20190922091402-408ec287e38c
-	github.com/pkg/errors v0.8.1
+	github.com/ishidawataru/sctp v0.0.0-20191218070446-00ab2ac2db07
+	github.com/mitchellh/mapstructure v1.3.3 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/prometheus/client_model v0.2.0
 	github.com/prometheus/common v0.9.1
 	github.com/shirou/gopsutil v2.20.3+incompatible
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/objx v0.3.0 // indirect
+	github.com/stretchr/testify v1.6.1
 	github.com/thoas/go-funk v0.7.0
-	golang.org/x/net v0.0.0-20200324143707-d3edc9973b7e
-	google.golang.org/grpc v1.27.1
+	golang.org/x/crypto v0.0.0-20201016220609-9e8e0b390897 // indirect
+	golang.org/x/net v0.0.0-20200822124328-c89045814202
+	golang.org/x/sys v0.0.0-20201018230417-eeed37f84f13 // indirect
+	golang.org/x/text v0.3.3 // indirect
+	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	google.golang.org/genproto v0.0.0-20191108220845-16a3f7862a1a // indirect
+	google.golang.org/grpc v1.31.0
+	gopkg.in/yaml.v2 v2.3.0 // indirect
+	gopkg.in/yaml.v3 v3.0.0-20200615113413-eeeca48fe776 // indirect
 	layeh.com/radius v0.0.0-20200615152116-663b41c3bf86
 	magma/feg/cloud/go v0.0.0
 	magma/feg/cloud/go/protos v0.0.0

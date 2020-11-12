@@ -38,6 +38,7 @@ struct pcef_create_session_data {
   char apn[APN_MAX_LENGTH + 1];
   char sgw_ip[INET_ADDRSTRLEN];
   char uli[14];
+  charging_characteristics_t charging_characteristics;
   uint8_t uli_exists;
   uint32_t msisdn_len;
   uint32_t mcc_mnc_len;
@@ -70,9 +71,9 @@ void pcef_create_session(
 bool pcef_end_session(char* imsi, char* apn);
 
 /**
- * pcef_send_policy2bearer_binding is an asynchronous call that binds policy rule id
- * to the newly created bearer id for a particular session that is uniquely
- * identified by imsi and default bearer id.
+ * pcef_send_policy2bearer_binding is an asynchronous call that binds policy
+ * rule id to the newly created bearer id for a particular session that is
+ * uniquely identified by imsi and default bearer id.
  */
 void pcef_send_policy2bearer_binding(
     const char* imsi, uint8_t default_bearer_id, char* policy_rule_name,

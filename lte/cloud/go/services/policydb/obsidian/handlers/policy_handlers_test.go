@@ -19,6 +19,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	lteplugin "magma/lte/cloud/go/plugin"
+	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/handlers"
 	policyModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
@@ -42,7 +43,7 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	listPolicies := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.GET).HandlerFunc
@@ -82,12 +83,18 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_ICMP"),
-					IPV4Dst:   "42.42.42.42",
-					IPV4Src:   "192.168.0.1/24",
-					TCPDst:    2,
-					TCPSrc:    1,
-					UDPDst:    4,
-					UDPSrc:    3,
+					IPDst: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "42.42.42.42",
+					},
+					IPSrc: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "192.168.0.1/24",
+					},
+					TCPDst: 2,
+					TCPSrc: 1,
+					UDPDst: 4,
+					UDPSrc: 3,
 				},
 			},
 		},
@@ -166,6 +173,32 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	}
 	tests.RunUnitTest(t, e, tc)
 
+	// Test header enrichment targets
+	testRule.HeaderEnrichmentTargets = []string{"http://example.com", "http://example.net"}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
+		Payload:        testRule,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "PolicyRule1"},
+		Handler:        updatePolicy,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Verify update results
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/networks/n1/policies/rules/PolicyRule1",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "PolicyRule1"},
+		Handler:        getPolicy,
+		ExpectedStatus: 200,
+		ExpectedResult: testRule,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Delete a rule
 	tc = tests.Test{
 		Method:         "DELETE",
@@ -194,6 +227,113 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 	tc.ExpectedResult = tests.JSONMarshaler([]string{})
 	tests.RunUnitTest(t, e, tc)
 
+	// Test add invalid policy rule
+	testRule_invalid_rule := &policyModels.PolicyRule{
+		ID: "PolicyRule_invalid",
+		FlowList: []*policyModels.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &policyModels.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPDst: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "42.42.42.42",
+					},
+					IPSrc: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "192.168.0.1/24",
+					},
+					IPV4Dst: "42.42.42.42",
+					IPV4Src: "192.168.0.1/24",
+					TCPDst:  2,
+				},
+			},
+		},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n1/policies/rules",
+		Payload:        testRule_invalid_rule,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createPolicy,
+		ExpectedStatus: 400,
+		ExpectedError:  "Invalid Argument: Can't mix old ipv4_src/ipv4_dst type with the new ip_src/ip_dst",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Test old ip(ipv4_src/ipvr_dst) is properly converted to new ip_src/ip_dst
+	test_old_ip_policy := &policyModels.PolicyRule{
+		ID: "test_old_ip_policy",
+		FlowList: []*policyModels.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &policyModels.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPV4Dst:   "42.42.42.42",
+					IPV4Src:   "192.168.0.1/24",
+					TCPDst:    2,
+				},
+			},
+		},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            "/magma/v1/networks/n1/policies/rules",
+		Payload:        test_old_ip_policy,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createPolicy,
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	test_modified_policy := &policyModels.PolicyRule{
+		ID: "test_old_ip_policy",
+		FlowList: []*policyModels.FlowDescription{
+			{
+				Action: swag.String("PERMIT"),
+				Match: &policyModels.FlowMatch{
+					Direction: swag.String("UPLINK"),
+					IPProto:   swag.String("IPPROTO_ICMP"),
+					IPDst: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "42.42.42.42",
+					},
+					IPSrc: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "192.168.0.1/24",
+					},
+					TCPDst: 2,
+				},
+			},
+		},
+		Priority:     swag.Uint32(5),
+		RatingGroup:  *swag.Uint32(2),
+		TrackingType: "ONLY_OCS",
+	}
+
+	// Test Read Rule Using URL based ID
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/networks/n1/policies/rules/test_old_ip_policy",
+		Payload:        nil,
+		ParamNames:     []string{"network_id", "rule_id"},
+		ParamValues:    []string{"n1", "test_old_ip_policy"},
+		Handler:        getPolicy,
+		ExpectedStatus: 200,
+		ExpectedResult: test_modified_policy,
+	}
+	tests.RunUnitTest(t, e, tc)
+
 	// Test Multi Match Add Rule
 	testRule = &policyModels.PolicyRule{
 		ID: "Test_mult",
@@ -212,12 +352,18 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_ICMP"),
-					IPV4Dst:   "42.42.42.42",
-					IPV4Src:   "192.168.0.1/24",
-					TCPDst:    2,
-					TCPSrc:    1,
-					UDPDst:    4,
-					UDPSrc:    3,
+					IPDst: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "42.42.42.42",
+					},
+					IPSrc: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "192.168.0.1/24",
+					},
+					TCPDst: 2,
+					TCPSrc: 1,
+					UDPDst: 4,
+					UDPSrc: 3,
 				},
 			},
 		},
@@ -327,12 +473,18 @@ func TestPolicyDBHandlersBasic(t *testing.T) {
 				Match: &policyModels.FlowMatch{
 					Direction: swag.String("UPLINK"),
 					IPProto:   swag.String("IPPROTO_ICMP"),
-					IPV4Dst:   "42.42.42.42",
-					IPV4Src:   "192.168.0.1/24",
-					TCPDst:    2,
-					TCPSrc:    1,
-					UDPDst:    4,
-					UDPSrc:    3,
+					IPDst: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "42.42.42.42",
+					},
+					IPSrc: &policyModels.IPAddress{
+						Version: policyModels.IPAddressVersionIPV4,
+						Address: "192.168.0.1/24",
+					},
+					TCPDst: 2,
+					TCPSrc: 1,
+					UDPDst: 4,
+					UDPSrc: 3,
 				},
 			},
 		},
@@ -505,7 +657,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 	e := echo.New()
 
 	obsidianHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	createPolicy := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/networks/:network_id/policies/rules", obsidian.POST).HandlerFunc
@@ -525,6 +677,7 @@ func TestPolicyHandlersAssociations(t *testing.T) {
 			{Type: lte.SubscriberEntityType, Key: imsi2},
 			{Type: lte.SubscriberEntityType, Key: imsi3},
 		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 
@@ -729,7 +882,7 @@ func TestQoSProfile(t *testing.T) {
 	e := echo.New()
 
 	policydbHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	getAllProfiles := tests.GetHandlerByPathAndMethod(t, policydbHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles", obsidian.GET).HandlerFunc
@@ -951,7 +1104,7 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 	e := echo.New()
 
 	policydbHandlers := handlers.GetHandlers()
-	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType})
+	err := configurator.CreateNetwork(configurator.Network{ID: "n1", Type: lte.NetworkType}, serdes.Network)
 	assert.NoError(t, err)
 
 	postProfile := tests.GetHandlerByPathAndMethod(t, policydbHandlers, "/magma/v1/lte/:network_id/policy_qos_profiles", obsidian.POST).HandlerFunc
@@ -1081,7 +1234,11 @@ func TestPolicyWithQoSProfile(t *testing.T) {
 func validatePolicy(t *testing.T, e *echo.Echo, getRule echo.HandlerFunc, expectedModel *policyModels.PolicyRule, expectedEnt configurator.NetworkEntity) {
 	expectedEnt.Config = getExpectedRuleConfig(expectedModel)
 
-	actual, err := configurator.LoadEntity("n1", lte.PolicyRuleEntityType, string(expectedModel.ID), configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity(
+		"n1", lte.PolicyRuleEntityType, string(expectedModel.ID),
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnt, actual)
 	tc := tests.Test{
@@ -1108,7 +1265,11 @@ func getExpectedRuleConfig(m *policyModels.PolicyRule) *policyModels.PolicyRuleC
 }
 
 func validateBaseName(t *testing.T, e *echo.Echo, getName echo.HandlerFunc, expectedModel *policyModels.BaseNameRecord, expectedEnt configurator.NetworkEntity) {
-	actual, err := configurator.LoadEntity("n1", lte.BaseNameEntityType, string(expectedModel.Name), configurator.FullEntityLoadCriteria())
+	actual, err := configurator.LoadEntity(
+		"n1", lte.BaseNameEntityType, string(expectedModel.Name),
+		configurator.FullEntityLoadCriteria(),
+		serdes.Entity,
+	)
 	assert.NoError(t, err)
 	assert.Equal(t, expectedEnt, actual)
 	tc := tests.Test{

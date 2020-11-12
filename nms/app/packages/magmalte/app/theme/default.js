@@ -231,6 +231,11 @@ export default createMuiTheme({
         color: colors.primary.white,
       },
     },
+    MuiAccordionSummary: {
+      content: {
+        margin: '0px',
+      },
+    },
     MuiBackdrop: {
       root: {
         backgroundColor: `rgba(50, 56, 69, 0.8)`, // colors.primary.brightGray RGB value
@@ -386,6 +391,17 @@ export default createMuiTheme({
         },
       },
     },
+    MuiSwitch: {
+      colorSecondary: {
+        '&$checked': {
+          color: colors.secondary.dodgerBlue,
+        },
+        '&$checked + .MuiSwitch-track': {
+          backgroundColor: colors.secondary.dodgerBlue,
+          opacity: 0.5,
+        },
+      },
+    },
     MuiTabs: {
       indicator: {
         height: '4px',
@@ -435,13 +451,13 @@ export default createMuiTheme({
         padding: 0,
         ...typography.button,
         '&::-webkit-input-placeholder': {
-          opacity: 1,
+          opacity: 0.5,
         },
         '&::-moz-placeholder': {
-          opacity: 1,
+          opacity: 0.5,
         },
         '&::-ms-input-placeholder': {
-          opacity: 1,
+          opacity: 0.5,
         },
       },
       inputMarginDense: {

@@ -101,7 +101,7 @@ class DhcpClient(unittest.TestCase):
         self._validate_ip_subnet(mac1, vlan1)
         self._release_ip(mac1, vlan1)
 
-    @unittest.skipIf(os.getuid(), reason="needs root user")
+    @unittest.skip("needs more investigation.")
     def test_dhcp_vlan_multi(self):
         self._setup_vlan_network()
 

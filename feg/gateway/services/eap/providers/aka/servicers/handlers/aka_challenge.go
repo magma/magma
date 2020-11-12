@@ -155,6 +155,7 @@ attrLoop:
 	if uc.Profile != nil {
 		ctx.Msisdn = uc.Profile.Msisdn
 	}
+	ctx.AuthSessionId = uc.AuthSessionId
 	ctx.Msk = uc.MSK
 	ctx.Identity = uc.Identity
 	uc.SetState(aka.StateAuthenticated)

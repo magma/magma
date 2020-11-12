@@ -20,6 +20,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"time"
 
 	"fbc/lib/go/radius"
 	cwfprotos "magma/cwf/cloud/go/protos"
@@ -39,6 +40,9 @@ const (
 	blobTypePlaceholder  = "uesim"
 	trafficMSS           = "1300"
 	trafficSrvIP         = "192.168.129.42"
+	trafficSrvSSHport    = "22"
+	numRetries           = 10
+	retryDelay           = 1000 * time.Millisecond
 )
 
 // UESimServer tracks all the UEs being simulated.
@@ -54,12 +58,13 @@ type UESimConfig struct {
 	radiusAcctAddress string
 	radiusSecret      string
 	brMac             string
+	bypassHssAuth     bool
 }
 
 // NewUESimServer initializes a UESimServer with an empty store map.
 // Output: a new UESimServer
 func NewUESimServer(factory blobstore.BlobStorageFactory) (*UESimServer, error) {
-	config, err := getUESimConfig()
+	config, err := GetUESimConfig()
 	if err != nil {
 		return nil, err
 	}
@@ -79,29 +84,7 @@ func (srv *UESimServer) AddUE(ctx context.Context, ue *cwfprotos.UEConfig) (ret 
 		err = ConvertStorageErrorToGrpcStatus(err)
 		return
 	}
-	blob, err := ueToBlob(ue)
-	store, err := srv.store.StartTransaction(nil)
-	if err != nil {
-		err = errors.Wrap(err, "Error while starting transaction")
-		err = ConvertStorageErrorToGrpcStatus(err)
-		return
-	}
-	defer func() {
-		switch err {
-		case nil:
-			if commitErr := store.Commit(); commitErr != nil {
-				err = errors.Wrap(err, "Error while committing transaction")
-				err = ConvertStorageErrorToGrpcStatus(err)
-			}
-		default:
-			if rollbackErr := store.Rollback(); rollbackErr != nil {
-				err = errors.Wrap(err, "Error while rolling back transaction")
-				err = ConvertStorageErrorToGrpcStatus(err)
-			}
-		}
-	}()
-
-	err = store.CreateOrUpdate(networkIDPlaceholder, []blobstore.Blob{blob})
+	addUeToStore(srv.store, ue)
 	return
 }
 
@@ -176,6 +159,8 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 		return &cwfprotos.GenTrafficResponse{}, fmt.Errorf("Nil GenTrafficRequest provided")
 	}
 
+	restartIperfServer(trafficSrvIP, trafficSrvSSHport)
+
 	argList := []string{"--json", "-c", trafficSrvIP, "-M", trafficMSS}
 	if req.Volume != nil {
 		argList = append(argList, []string{"-n", req.Volume.Value}...)
@@ -198,19 +183,6 @@ func (srv *UESimServer) GenTraffic(ctx context.Context, req *cwfprotos.GenTraffi
 	}
 	output, err := executeIperfWithOptions(argList, req)
 	return &cwfprotos.GenTrafficResponse{Output: output}, err
-}
-
-// Converts UE data to a blob for storage.
-func ueToBlob(ue *cwfprotos.UEConfig) (blobstore.Blob, error) {
-	marshaledUE, err := protos.Marshal(ue)
-	if err != nil {
-		return blobstore.Blob{}, err
-	}
-	return blobstore.Blob{
-		Type:  blobTypePlaceholder,
-		Key:   ue.GetImsi(),
-		Value: marshaledUE,
-	}, nil
 }
 
 // Converts a blob back into a UE config
@@ -263,6 +235,7 @@ func ConvertStorageErrorToGrpcStatus(err error) error {
 // executeIperfWithOptions runs iperf with the timeout and server reachability options per req
 func executeIperfWithOptions(argList []string, req *cwfprotos.GenTrafficRequest) ([]byte, error) {
 	// server reachability option (Enabled by default)
+
 	if req.DisableServerReachabilityCheck == false {
 		// Check if server is reachable by requesting the server to send UE 10b of data
 		reachable, err := checkIperfServerReachabilityWithRetries()
@@ -284,12 +257,14 @@ func checkIperfServerReachabilityWithRetries() (bool, error) {
 		res bool
 		err error
 	)
-	for i := 0; i < 3; i++ {
+
+	for i := 0; i < numRetries; i++ {
 		res, err = checkIperfServerReachability()
 		if res == true {
 			break
 		}
-		glog.V(2).Infof("Iperf server was not reachable, trying one more time...")
+		glog.V(2).Infof("Iperf server was not reachable, trying one more time (%d out of %d)", i+1, numRetries)
+		time.Sleep(retryDelay)
 	}
 	return res, err
 }
@@ -322,11 +297,30 @@ func executeIperfWithTimeout(argList []string, timeout uint32) ([]byte, error) {
 	timeoutString := fmt.Sprintf("%ds", timeout)
 	argsList2 := []string{timeoutString, "iperf3"}
 	argsList2 = append(argsList2, argList...)
-	return executeCommand("timeout", argsList2)
+	return executeCommandWithRetries("timeout", argsList2)
 }
 
 func executeIperf(argList []string) ([]byte, error) {
-	return executeCommand("iperf3", argList)
+	return executeCommandWithRetries("iperf3", argList)
+}
+
+// executeCommandWithRetries will retry a command if the error of that command contains
+// a specific content (so far it will only retry in case of error `unable to receive control`
+func executeCommandWithRetries(command string, argList []string) ([]byte, error) {
+	var err error
+	var res []byte
+
+	for i := 0; i < numRetries; i++ {
+		res, err = executeCommand(command, argList)
+		if !isIperfErrorDueToControlMessage(err) {
+			break
+		}
+		err_msg := "Retried IPERF command due to unable to receive control message"
+		glog.Warning(err_msg)
+		err = errors.Wrap(err, err_msg)
+		time.Sleep(300 * time.Millisecond)
+	}
+	return res, err
 }
 
 func executeCommand(command string, argList []string) ([]byte, error) {
@@ -336,7 +330,7 @@ func executeCommand(command string, argList []string) ([]byte, error) {
 	output, err := cmd.Output()
 	if err != nil {
 		newError := errors.Wrap(err, fmt.Sprintf(
-			"error while executing \"%s %s\"\n %v",
+			"error while executing \"%s %s\"\n output:\n%v",
 			command, strings.Join(argList, " "), string(output)))
 		glog.Error(newError)
 		return output, newError
@@ -345,13 +339,11 @@ func executeCommand(command string, argList []string) ([]byte, error) {
 	return output, nil
 }
 
-func unmarshallIper3Response(output []byte) (map[string]interface{}, error) {
-	var jsonResponse map[string]interface{}
-	err := json.Unmarshal(output, &jsonResponse)
-	if err != nil {
-		return nil, err
+func isIperfErrorDueToControlMessage(iperf_err error) bool {
+	if iperf_err == nil {
+		return false
 	}
-	return jsonResponse, nil
+	return strings.Contains(iperf_err.Error(), "unable to receive control message")
 }
 
 // TODO: create a new file and structs to to parse and dump iperf message
@@ -374,6 +366,27 @@ func ExtractBytesReceived(output []byte) (float64, error) {
 		return 0, fmt.Errorf("Couldn't parse iperf result 'bytes'(float64)\n%s", PrettyPrintIperfResponse(output))
 	}
 	return bytes_param, nil
+}
+
+func ExtractIperfError(output []byte) (string, error) {
+	outputU, err := unmarshallIper3Response(output)
+	if err != nil {
+		return "", err
+	}
+	iperfErrorMessage, found := outputU["error"].(string)
+	if !found {
+		return "", fmt.Errorf("Couldn't parse iperf result 'end' section\n%s", PrettyPrintIperfResponse(output))
+	}
+	return iperfErrorMessage, nil
+}
+
+func unmarshallIper3Response(output []byte) (map[string]interface{}, error) {
+	var jsonResponse map[string]interface{}
+	err := json.Unmarshal(output, &jsonResponse)
+	if err != nil {
+		return nil, err
+	}
+	return jsonResponse, nil
 }
 
 func PrettyPrintIperfResponse(input []byte) string {
