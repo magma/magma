@@ -118,7 +118,11 @@ class PipelinedController(Enum):
     )
     Classifier = Controller(
         'magma.pipelined.app.classifier', 'classifier'
-   )
+    )
+    HeaderEnrichment = Controller(
+        'magma.pipelined.app.he', 'proxy'
+    )
+
 
 def assert_pipelined_not_running():
     """

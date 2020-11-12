@@ -27,6 +27,7 @@ message AddUEHeaderEnrichmentRequest {
     repeated string websites = 2;
     repeated Header headers = 3;
 }
+
 message AddUEHeaderEnrichmentResult {
 }
 
@@ -37,10 +38,12 @@ message DeactivateUEHeaderEnrichmentResult {
 }
 
 // --------------------------------------------------------------------------
-// Envoyd service definition.
+// EnvoyController service definition.
 // --------------------------------------------------------------------------
-service Envoyd {
-  // Add UE header enrichment configuration
+service EnvoyController {
+  // Add UE to the header enrichment configuration
   rpc AddUEHeaderEnrichment (AddUEHeaderEnrichmentRequest) returns (AddUEHeaderEnrichmentResult) {}
+
+  // Remove UE from the header enrichment configuration
   rpc DeactivateUEHeaderEnrichment (DeactivateUEHeaderEnrichmentRequest) returns (DeactivateUEHeaderEnrichmentResult) {}
 }

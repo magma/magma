@@ -1801,6 +1801,17 @@ definitions:
         maxLength: 49
         x-nullable: false
         example: '192.168.128.0/24'
+      ipv6_block:
+        type: string
+        x-nullable: false
+        example: 'fdee:5:6c::/48'
+      ipv6_prefix_allocation_mode:
+        type: string
+        x-nullable: false
+        enum:
+          - 'RANDOM'
+          - 'HASH'
+        example: 'RANDOM'
       dns_primary:
         type: string
         minLength: 5

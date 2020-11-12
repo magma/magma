@@ -30,7 +30,7 @@
     dest: /var/opt/magma/docker/.env
     mode: 0400
 
-- name: create directories for magma configs and files
+- name: create fluentbit logs directory
   file:
     path: "/var/log/fluentbit-logs/"
     state: directory

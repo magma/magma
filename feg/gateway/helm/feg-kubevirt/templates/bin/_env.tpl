@@ -24,6 +24,12 @@ CONFIGS_TEMPLATES_PATH=/etc/magma/templates
 CERTS_VOLUME=/var/opt/magma/certs
 CONFIGS_VOLUME=/var/opt/magma/configs
 
+{{ if .Values.feg.log_aggregation.enabled }}
+LOG_DRIVER=fluentd
+{{ else }}
+LOG_DRIVER=journald
+{{- end }}
+
 {{ if .Values.feg.env }}
 {{ .Values.feg.env }}
 {{- end }}

@@ -274,6 +274,8 @@ class SessionState {
 
   uint64_t get_pdp_end_time();
 
+  uint64_t get_active_duration_in_seconds();
+
   void increment_request_number(uint32_t incr);
 
   SessionTerminateRequest make_termination_request(
@@ -355,6 +357,8 @@ class SessionState {
   DynamicRuleStore& get_dynamic_rules();
 
   DynamicRuleStore& get_scheduled_dynamic_rules();
+
+  std::vector<PolicyRule> get_all_active_policies();
 
   /**
    * Schedule a dynamic rule for activation in the future.

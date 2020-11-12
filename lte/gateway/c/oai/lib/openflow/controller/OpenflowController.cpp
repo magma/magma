@@ -15,13 +15,22 @@
  *      contact@openairinterface.org
  */
 
+#include <thread>
+#include <mutex>
+#include <chrono>
+#include <condition_variable>
 #include "OpenflowController.h"
+#include "ControllerMain.h"
 extern "C" {
 #include "log.h"
+#include "common_defs.h"
 }
 
 using namespace fluid_base;
 using namespace fluid_msg;
+
+std::condition_variable cv;
+std::mutex cv_mutex;
 
 namespace openflow {
 
@@ -59,9 +68,15 @@ void OpenflowController::message_callback(
     OAILOG_DEBUG(LOG_GTPV1U, "Openflow controller got packet-in message\n");
     dispatch_event(PacketInEvent(ofconn, *this, data, len));
   } else if (type == OFPT_FEATURES_REPLY_TYPE) {
-    OAILOG_DEBUG(LOG_GTPV1U, "Openflow controller connected to switch\n");
+    OAILOG_INFO(LOG_GTPV1U, "Openflow controller connected to switch \n");
     // Save OF connection for external events
     latest_ofconn_ = ofconn;
+    std::lock_guard<std::mutex> lck(cv_mutex);
+    cv.notify_all();
+    OAILOG_INFO(
+        LOG_GTPV1U,
+        "Send signal that Controller is connected to switch to all waiting "
+        "threads \n");
     dispatch_event(SwitchUpEvent(ofconn, *this, data, len));
   } else if (type == OFPT_ERROR) {
     dispatch_event(
@@ -70,7 +85,6 @@ void OpenflowController::message_callback(
     OAILOG_DEBUG(LOG_GTPV1U, "Openflow controller unknown callback %d\n", type);
   }
 }
-
 void OpenflowController::connection_callback(
     OFConnection* ofconn, OFConnection::Event type) {
   if (type == OFConnection::EVENT_CLOSED || type == OFConnection::EVENT_DEAD) {
@@ -82,7 +96,7 @@ void OpenflowController::connection_callback(
 void OpenflowController::dispatch_event(const ControllerEvent& ev) {
   if (not running_) {
     throw std::runtime_error(
-        "Openflow controller needs to be running beforehandling an event\n");
+        "Openflow controller needs to be running before handling an event\n");
     return;
   }
   std::vector<Application*> listeners = event_listeners[ev.get_type()];
@@ -94,12 +108,38 @@ void OpenflowController::dispatch_event(const ControllerEvent& ev) {
 void OpenflowController::inject_external_event(
     std::shared_ptr<ExternalEvent> ev, void* (*cb)(std::shared_ptr<void>) ) {
   if (latest_ofconn_ == NULL) {
-    OAILOG_ERROR(
-        LOG_GTPV1U, "Null connection on event type %d", ev->get_type());
-    throw std::runtime_error("Controller not connected to switch:\n");
+#define CONNECTION_EVENT_WAIT_TIME 5
+    if (is_controller_connected_to_switch(CONNECTION_EVENT_WAIT_TIME) ==
+        RETURNok) {
+      OAILOG_INFO(LOG_GTPV1U, "Controller is now connected to switch \n");
+    }
   }
   ev->set_of_connection(latest_ofconn_);
   latest_ofconn_->add_immediate_event(cb, ev);
+}
+
+bool OpenflowController::is_controller_connected_to_switch(int conn_timeout) {
+  /* c++ provided conditional variable is added to wait for
+   * conn_timeout seconds to make sure connection is established
+   * between Controller and switch before inserting the OVS rules
+   */
+
+  OAILOG_INFO(
+      LOG_GTPV1U,
+      "Openflow controller is waiting for %d seconds to establish connection "
+      "with Switch \n",
+      conn_timeout);
+  std::unique_lock<std::mutex> lck(cv_mutex);
+  if (cv.wait_for(lck, std::chrono::seconds(conn_timeout)) ==
+      std::cv_status::timeout) {
+    OAILOG_CRITICAL(
+        LOG_GTPV1U,
+        "Failed to connect openflow controller to switch, waited for %d "
+        "seconds \n",
+        conn_timeout);
+    OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNerror);
+  };
+  OAILOG_FUNC_RETURN(LOG_GTPV1U, RETURNok);
 }
 
 }  // namespace openflow

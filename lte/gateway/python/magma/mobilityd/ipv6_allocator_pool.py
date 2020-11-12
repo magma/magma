@@ -46,7 +46,7 @@ class IPv6AllocatorPool(IPAllocator):
         """
         if self._assigned_ip_block and ipblock.overlaps(
                 self._assigned_ip_block):
-            logging.error("Overlapped IP block: %s", ipblock)
+            logging.warning("Overlapped IP block: %s", ipblock)
             raise OverlappedIPBlocksError(ipblock)
 
         if ipblock.prefixlen > MAX_IPV6_CONF_PREFIX_LEN:
@@ -90,10 +90,10 @@ class IPv6AllocatorPool(IPAllocator):
             ip_desc = self._store.sid_ips_map[sid]
             if ip_desc.ip.version == 6:
                 self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
-                                                         IPState.FREE)
+                                                              IPState.FREE)
                 if force:
                     self._store.ip_state_map.remove_ip_from_state(ip_desc.ip,
-                                                             IPState.ALLOCATED)
+                                                                  IPState.ALLOCATED)
                 self._store.sid_ips_map.pop(sid)
 
         removed_blocks.append(self._assigned_ip_block)
@@ -196,7 +196,8 @@ class IPv6AllocatorPool(IPAllocator):
         Returns: session prefix N bits
         """
         session_prefix_len = IPV6_PREFIX_PART_LEN - self._assigned_ip_block.prefixlen
-        session_prefix_allocated = self._store.sid_session_prefix_allocated.get(sid)
+        session_prefix_allocated = self._store.sid_session_prefix_allocated.get(
+            sid)
         # TODO: Support multiple alloc modes
         if self._ipv6_session_prefix_alloc_mode == IPv6SessionAllocType.RANDOM:
             for i in range(MAX_CALC_TRIES):
