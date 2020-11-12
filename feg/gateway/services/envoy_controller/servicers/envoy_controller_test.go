@@ -60,6 +60,19 @@ var (
 				}},
 		},
 	}
+	overwrtie_ue_req = []*protos.AddUEHeaderEnrichmentRequest{
+		{
+			UeIp: &lte_proto.IPAddress{
+				Version: lte_proto.IPAddress_IPV4,
+				Address: []byte("2.2.2.2"),
+			},
+			Websites: []string{"magma.com", "qqq.com"},
+			Headers: []*protos.Header{{
+				Name:  "NEW_IMSI",
+				Value: "212412",
+			}},
+		},
+	}
 	deactivate_req = &protos.DeactivateUEHeaderEnrichmentRequest{
 		UeIp: &lte_proto.IPAddress{
 			Version: lte_proto.IPAddress_IPV4,
@@ -84,8 +97,11 @@ func TestEnvoyControllerInit(t *testing.T) {
 	cli.On("UpdateSnapshot", add_ue_reqs[1:]).Return()
 	_, err = srv.DeactivateUEHeaderEnrichment(ctx, deactivate_req)
 
+    // Make sure duplicate doesn't get reinserted but gets overwritten
+	cli.On("UpdateSnapshot", overwrtie_ue_req).Return()
+	_, err = srv.AddUEHeaderEnrichment(ctx, overwrtie_ue_req[0])
+
 	assert.NoError(t, err)
 
 	cli.AssertExpectations(t)
-
 }
