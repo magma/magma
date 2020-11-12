@@ -26,6 +26,7 @@ extern "C" {
 #include "log.h"
 #include "ip_forward_messages_types.h"
 #include "intertask_interface.h"
+#include "dynamic_memory_check.h"
 #include "spgw_state.h"
 
 // Status codes from gRPC
@@ -69,8 +70,6 @@ int get_assigned_ipv4_block(
  * "host byte order"
  * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
  * @param pdn_type str for PDN type (ipv4, ipv6...)
- * @param context_teid tunnel id
- * @param eps_bearer_id bearer id
  * @param spgw_state spgw_state_t struct
  * @param new_bearer_ctxt_info_p SPGW ue context struct
  * @param s5_response itti message for s5_create_session response
@@ -79,8 +78,28 @@ int get_assigned_ipv4_block(
 int pgw_handle_allocate_ipv4_address(
     const char* subscriber_id, const char* apn, struct in_addr* addr,
     itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
-    const char* pdn_type, teid_t context_teid, ebi_t eps_bearer_id,
-    spgw_state_t* spgw_state,
+    const char* pdn_type, spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    s5_create_session_response_t s5_response);
+
+/**
+ * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
+ * and handle response for PGW handler.
+ * @param subscriber_id: subscriber id string, i.e. IMSI
+ * @param apn: access point name string, e.g., "ims", "internet", etc.
+ * @param ipv6_addr: contains the IP address allocated upon returning
+ * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
+ * @param pdn_type str for PDN type (ipv6)
+ * @param spgw_state spgw_state_t struct
+ * @param new_bearer_ctxt_info_p SPGW ue context struct
+ * @param s5_response itti message for s5_create_session response
+ * @return status of gRPC call
+ */
+
+int pgw_handle_allocate_ipv6_address(
+    const char* subscriber_id, const char* apn, struct in6_addr* ip6_addr,
+    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+    const char* pdn_type, spgw_state_t* spgw_state,
     s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
     s5_create_session_response_t s5_response);
 
@@ -91,12 +110,44 @@ int pgw_handle_allocate_ipv4_address(
  * periodically.
  *
  * @param subscriber_id: subscriber id string, i.e. IMSI
- * @param addr: IP address to release in "host byte order"
+ * @param addr: IP address to release
  * @return 0 on success
  * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
  */
 int release_ipv4_address(
     const char* subscriber_id, const char* apn, const struct in_addr* addr);
+
+/*
+ * Release an allocated IP address.
+ *
+ * The released IP address is put into a tombstone state, and recycled
+ * periodically.
+ *
+ * @param subscriber_id: subscriber id string, i.e. IMSI
+ * @param apn: access point name string, e.g., "ims", "internet", etc.
+ * @param addr: IPv6 address to release in "host byte order
+ * @return 0 on success
+ * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
+ */
+int release_ipv6_address(
+    const char* subscriber_id, const char* apn, const struct in6_addr* addr);
+
+/*
+ * Release an allocated IP address.
+ *
+ * The released IP address is put into a tombstone state, and recycled
+ * periodically.
+ *
+ * @param subscriber_id: subscriber id string, i.e. IMSI
+ * @param apn: access point name string, e.g., "ims", "internet", etc.
+ * @param ipv4_addr: IPv4 address to release in "host byte order
+ * @param ipv6_addr: IPv6 address to release in "host byte order
+ * @return 0 on success
+ * @return -RPC_STATUS_NOT_FOUND if the requested (SID, IP) pair is not found
+ */
+int release_ipv4v6_address(
+    const char* subscriber_id, const char* apn, const struct in_addr* ipv4_addr,
+    const struct in6_addr* ipv6_addr);
 
 /*
  * Get the allocated IPv4 address for a subscriber
@@ -119,6 +170,30 @@ int get_ipv4_address_for_subscriber(
  */
 int get_subscriber_id_from_ipv4(
     const struct in_addr* addr, char** subscriber_id);
+
+/**
+ * Allocate IP address from MobilityServiceClient over gRPC (non-blocking),
+ * and handle response for PGW handler.
+ * @param subscriber_id: subscriber id string, i.e. IMSI
+ * @param apn: access point name string, e.g., "ims", "internet", etc.
+ * @param ip4_addr: contains the IP address allocated upon returning in
+ * "host byte order"
+ * @param ipv6_addr: contains the IP address allocated upon returning
+ * @param sgi_create_endpoint_resp itti message for sgi_create_endpoint_resp
+ * @param pdn_type str for PDN type (ipv4v6)
+ * @param spgw_state spgw_state_t struct
+ * @param new_bearer_ctxt_info_p SPGW ue context struct
+ * @param s5_response itti message for s5_create_session response
+ * @return status of gRPC call
+ */
+
+int pgw_handle_allocate_ipv4v6_address(
+    const char* subscriber_id, const char* apn, struct in_addr* ip4_addr,
+    struct in6_addr* ip6_addr,
+    itti_sgi_create_end_point_response_t sgi_create_endpoint_resp,
+    const char* pdn_type, spgw_state_t* spgw_state,
+    s_plus_p_gw_eps_bearer_context_information_t* new_bearer_ctxt_info_p,
+    s5_create_session_response_t s5_response);
 
 #ifdef __cplusplus
 }

@@ -14,17 +14,18 @@ import s1ap_wrapper
 import ipaddress
 
 
-class TestAttachDetachWithIpv6PcscfDnsAddr(unittest.TestCase):
+class TestIPv6SecondaryPdnRSRetransmit(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
 
     def tearDown(self):
         self._s1ap_wrapper.cleanup()
 
-    def test_attach_detach_with_ipv6_pcscf_and_dns_addr(self):
+    def test_ipv6_secondary_pdn_rs_retransmit(self):
         """ Attach a single UE + add a secondary pdn with
-        IPv6 address and include ipv6 pcscf address and dns address req
+        IPv6 address + drop the RA received + restransmit RS 2 times
         + detach """
+
         num_ue = 1
 
         self._s1ap_wrapper.configUEDevice(num_ue)
@@ -40,7 +41,7 @@ class TestAttachDetachWithIpv6PcscfDnsAddr(unittest.TestCase):
             "pre_vul": 0,  # preemption-vulnerability
             "mbr_ul": 200000000,  # MBR UL
             "mbr_dl": 100000000,  # MBR DL
-            "pdn_type": 1,  # PDN Type 0-IPv4,1-IPv6,2-IPv4v6
+            "pdn_type": 2,  # PDN Type 0-IPv4,1-IPv6,2-IPv4v6
         }
 
         apn_list = [ims_apn]
@@ -62,6 +63,7 @@ class TestAttachDetachWithIpv6PcscfDnsAddr(unittest.TestCase):
             s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
             s1ap_types.ueAttachAccept_t,
         )
+
         addr = attach.esmInfo.pAddr.addrInfo
         default_ip = ipaddress.ip_address(bytes(addr[:4]))
 
@@ -73,13 +75,21 @@ class TestAttachDetachWithIpv6PcscfDnsAddr(unittest.TestCase):
         apn = "ims"
         # PDN Type 2 = IPv6, 3 = IPv4v6
         pdn_type = 2
-        # Send PDN Connectivity Request
+
+        # Send an indication to s1ap tester to drop the RA message
+        print("*** Sending indication to drop Router Advertisement ***")
+        drop_ra = s1ap_types.UeDropRA()
+        drop_ra.ue_Id = req.ue_id
+        drop_ra.flag = 1
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_SET_DROP_ROUTER_ADV, drop_ra
+        )
+
+        print("***** Sleeping for 5 seconds")
+        time.sleep(5)
+        # Send PDN Connectivity Request for ims apn
         self._s1ap_wrapper.sendPdnConnectivityReq(
-            ue_id,
-            apn,
-            pdn_type=pdn_type,
-            pcscf_addr_type="ipv6",
-            dns_ipv6_addr=True,
+            ue_id, apn, pdn_type=pdn_type
         )
         # Receive PDN CONN RSP/Activate default EPS bearer context request
         response = self._s1ap_wrapper.s1_util.get_response()
@@ -88,40 +98,37 @@ class TestAttachDetachWithIpv6PcscfDnsAddr(unittest.TestCase):
         )
         act_def_bearer_req = response.cast(s1ap_types.uePdnConRsp_t)
 
-        addr = act_def_bearer_req.m.pdnInfo.pAddr.addrInfo
         print(
-            "************** Sending Activate default EPS bearer "
+            "********************** Sending Activate default EPS bearer "
             "context accept for APN-%s, UE id-%d" % (apn, ue_id),
         )
         print(
-            "*************** Added default bearer for apn-%s,"
+            "********************** Added default bearer for apn-%s,"
             " bearer id-%d, pdn type-%d"
             % (apn, act_def_bearer_req.m.pdnInfo.epsBearerId, pdn_type,)
         )
-
-        # Receive Router Advertisement message
+        # Receive UE_DEACTIVATE_BER_REQ
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ROUTER_ADV_IND.value
+            response.msg_type, s1ap_types.tfwCmd.UE_DEACTIVATE_BER_REQ.value
         )
-        routerAdv = response.cast(s1ap_types.ueRouterAdv_t)
+
         print(
-            "************* Received Router Advertisement for APN-%s"
-            " bearer id-%d" % (apn, routerAdv.bearerId)
+            "******************* Received deactivate eps bearer context"
+            " request"
         )
-        ipv6_addr = "".join([chr(i) for i in routerAdv.ipv6Addr]).rstrip(
-            "\x00"
+        # Send DeactDedicatedBearerAccept
+        deactv_bearer_req = response.cast(s1ap_types.UeDeActvBearCtxtReq_t)
+        self._s1ap_wrapper.sendDeactDedicatedBearerAccept(
+            req.ue_id, deactv_bearer_req.bearerId
         )
-        print("********** UE IPv6 address: ", ipv6_addr)
-        sec_ip_ipv6 = ipaddress.ip_address(ipv6_addr)
 
         print("***** Sleeping for 5 seconds")
         time.sleep(5)
-
-        num_ul_flows = 2
+        # 1 UL flow is created per bearer
+        num_ul_flows = 1
         dl_flow_rules = {
             default_ip: [],
-            sec_ip_ipv6: [],
         }
 
         # Verify if flow rules are created
