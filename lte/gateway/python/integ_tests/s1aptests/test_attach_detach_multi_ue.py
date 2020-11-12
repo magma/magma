@@ -44,11 +44,11 @@ class TestAttachDetachMultiUe(unittest.TestCase):
             self._s1ap_wrapper._s1_util.receive_emm_info()
             ue_ids.append(req.ue_id)
 
-        for ue in ue_ids:
-            print("************************* Calling detach for UE id ", ue)
-            self._s1ap_wrapper.s1_util.detach(
-                ue,
-                s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
+        # for ue in ue_ids:
+        #     print("************************* Calling detach for UE id ", ue)
+        #     self._s1ap_wrapper.s1_util.detach(
+        #         ue,
+        #         s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value)
 
 
 if __name__ == "__main__":
