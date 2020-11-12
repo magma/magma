@@ -86,7 +86,11 @@ def main():
     if enable_nat is False and uplink_port_name is not None:
         service.config['uplink_port'] = BridgeTools.get_ofport(uplink_port_name)
 
+    # header enrichment related configuration.
     service.config['proxy_port_name'] = PROXY_PORT_NAME
+    he_enabled = service.config.get('he_enabled',
+                                    not service.mconfig.disable_header_enrichment)
+    service.config['he_enabled'] = he_enabled
 
     # Load the ryu apps
     service_manager = ServiceManager(service)
