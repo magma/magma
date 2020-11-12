@@ -268,8 +268,12 @@ int mme_app_send_s11_create_session_req(
       .eps_bearer_id                                                  = bc->ebi;
   session_request_p->bearer_contexts_to_be_created.num_bearer_context = 1;
   // Asking for default bearer in initial UE message.
-  session_request_p->sender_fteid_for_cp.teid = mme_app_get_new_mme_teid_s11(
-      &mme_app_desc_p->mme_app_mme_teid_s11_generator);
+  if (ue_mm_context->mme_teid_s11 != 0) {
+    session_request_p->sender_fteid_for_cp.teid = ue_mm_context->mme_teid_s11;
+  } else {
+    session_request_p->sender_fteid_for_cp.teid = mme_app_get_new_mme_teid_s11(
+        &mme_app_desc_p->mme_app_mme_teid_s11_generator);
+  }
 
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);
