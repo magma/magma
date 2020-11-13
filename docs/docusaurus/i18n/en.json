@@ -222,6 +222,9 @@
       "proposals/p005_call_tracing": {
         "title": "Call Tracing Feature"
       },
+      "proposals/p007_header_enrichment": {
+        "title": "Header Enrichment"
+      },
       "version-1.0.0/basics/version-1.0.0-introduction": {
         "title": "Introduction"
       },
