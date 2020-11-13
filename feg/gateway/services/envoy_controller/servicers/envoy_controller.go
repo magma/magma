@@ -33,15 +33,11 @@ func (s *envoyControllerService) AddUEHeaderEnrichment(
 	ctx context.Context,
 	req *protos.AddUEHeaderEnrichmentRequest,
 ) (*protos.AddUEHeaderEnrichmentResult, error) {
-	var (
-		res *protos.AddUEHeaderEnrichmentResult
-		err error
-	)
 	glog.Infof("AddUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
 	s.ue_infos = add_to_list(s.ue_infos, req)
 	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
-	return res, err
+	return &protos.AddUEHeaderEnrichmentResult{}, nil
 }
 
 // DeactivateUEHeaderEnrichment deactivates/removes the UE from the current header enrichment list
@@ -49,15 +45,11 @@ func (s *envoyControllerService) DeactivateUEHeaderEnrichment(
 	ctx context.Context,
 	req *protos.DeactivateUEHeaderEnrichmentRequest,
 ) (*protos.DeactivateUEHeaderEnrichmentResult, error) {
-	var (
-		res *protos.DeactivateUEHeaderEnrichmentResult
-		err error
-	)
 	glog.Infof("DeactivateUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
 	s.ue_infos = remove_from_list(s.ue_infos, req.UeIp)
 	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
-	return res, err
+	return &protos.DeactivateUEHeaderEnrichmentResult{}, nil
 }
 
 // NewenvoyControllerService returns a new EnvoyController service
