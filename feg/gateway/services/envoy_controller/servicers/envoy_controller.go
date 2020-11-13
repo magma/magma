@@ -34,6 +34,7 @@ func (s *envoyControllerService) AddUEHeaderEnrichment(
 	req *protos.AddUEHeaderEnrichmentRequest,
 ) (*protos.AddUEHeaderEnrichmentResult, error) {
 	glog.Infof("AddUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
+	glog.Infof("req %s", (req))
 	s.ue_infos = add_to_list(s.ue_infos, req)
 	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
@@ -46,6 +47,7 @@ func (s *envoyControllerService) DeactivateUEHeaderEnrichment(
 	req *protos.DeactivateUEHeaderEnrichmentRequest,
 ) (*protos.DeactivateUEHeaderEnrichmentResult, error) {
 	glog.Infof("DeactivateUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
+	glog.Infof("req %s", (req))
 	s.ue_infos = remove_from_list(s.ue_infos, req.UeIp)
 	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
@@ -69,9 +71,9 @@ func remove_from_list(l []*protos.AddUEHeaderEnrichmentRequest, ip *lte_proto.IP
 func add_to_list(l []*protos.AddUEHeaderEnrichmentRequest, new *protos.AddUEHeaderEnrichmentRequest) []*protos.AddUEHeaderEnrichmentRequest {
 	for i, other := range l {
 		if string(other.UeIp.Address) == string(new.UeIp.Address) {
-		    // Overwrite duplicate UE
-		    ret := append(l[:i], l[i+1:]...)
-		    return append(ret, new)
+			// Overwrite duplicate UE
+			ret := append(l[:i], l[i+1:]...)
+			return append(ret, new)
 		}
 	}
 	l = append(l, new)
