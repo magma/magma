@@ -269,8 +269,13 @@ message MME {
     }
     repeated ApnCorrectionMap apn_correction_map_list = 25;
 
-    string ipv6_dns_primary = 30;
-    string ipv6_dns_secondary = 31;
+    // P_CSCF IP address configs
+    string ipv4_p_cscf_address = 26;
+    string ipv6_p_cscf_address = 27;
+
+    // IPv6 DNS server
+    string ipv6_dns_address = 30;
+
 }
 
 

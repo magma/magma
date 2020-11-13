@@ -257,7 +257,7 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 	}
 
 	if m.DNSPrimary != "" {
-		ip := net.ParseIP(m.DNSPrimary)
+		ip := net.ParseIP(string(m.DNSPrimary))
 		if ip == nil {
 			return errors.New("Invalid primary DNS address")
 		} else if ip.To4() == nil {
@@ -266,11 +266,18 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 	}
 
 	if m.DNSSecondary != "" {
-		secIp := net.ParseIP(m.DNSSecondary)
+		secIp := net.ParseIP(string(m.DNSSecondary))
 		if secIp == nil {
 			return errors.New("Invalid secondary DNS address")
 		} else if secIp.To4() == nil {
 			return errors.New("Only IPv4 is supported currently for DNS")
+		}
+	}
+
+	if m.IPV6DNSAddr != "" {
+		ip := net.ParseIP(string(m.IPV6DNSAddr))
+		if ip == nil {
+			return errors.New("Invalid IPV6 DNS address")
 		}
 	}
 	return nil

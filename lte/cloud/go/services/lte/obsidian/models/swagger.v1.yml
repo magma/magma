@@ -1814,18 +1814,26 @@ definitions:
         example: 'RANDOM'
       dns_primary:
         type: string
-        format: ipv4
+        minLength: 5
+        maxLength: 45
         example: '8.8.8.8'
       dns_secondary:
         type: string
-        format: ipv4
+        minLength: 5
+        maxLength: 45
         example: '8.8.4.4'
-      ipv6_dns_primary:
+      ipv4_p_cscf_addr:
+        type: string
+        format: ipv4
+        example: '172.27.23.150'
+      ipv6_dns_addr:
         type: string
         format: ipv6
-      ipv6_dns_secondary:
+        example: '2001:4860:4860:0:0:0:0:8888'
+      ipv6_p_cscf_addr:
         type: string
         format: ipv6
+        example: '2a12:577:9941:f99c:0002:0001:c731:f114'
       sgi_management_iface_vlan:
         type: string
         description: VLAN ID for management interface traffic on the AGW

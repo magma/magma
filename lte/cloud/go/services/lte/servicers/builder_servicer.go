@@ -137,6 +137,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
 			DnsPrimary:               gwEpc.DNSPrimary,
 			DnsSecondary:             gwEpc.DNSSecondary,
+			Ipv4PCscfAddress:         string(gwEpc.IPV4pCscfAddr),
+			Ipv6DnsAddress:           string(gwEpc.IPV6DNSAddr),
+			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
