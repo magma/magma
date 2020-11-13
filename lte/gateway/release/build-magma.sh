@@ -141,6 +141,14 @@ OVS_DEPS=(
     "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.9"
     )
 
+ENVOY_DEPS=(
+    "apt-transport-https"
+    "ca-certificates"
+    "curl"
+    "gnupg2"
+    "software-properties-common"
+)
+
 # generate string for FPM
 SYSTEM_DEPS=""
 for dep in "${MAGMA_DEPS[@]}"
@@ -152,6 +160,10 @@ do
     SYSTEM_DEPS=${SYSTEM_DEPS}" -d '"${dep}"'"
 done
 for dep in "${OVS_DEPS[@]}"
+do
+    SYSTEM_DEPS=${SYSTEM_DEPS}" -d '"${dep}"'"
+done
+for dep in "${ENVOY_DEPS[@]}"
 do
     SYSTEM_DEPS=${SYSTEM_DEPS}" -d '"${dep}"'"
 done
@@ -330,7 +342,7 @@ $(glob_files "${SERVICE_DIR}/magma@mme.service" /etc/systemd/system/magma@mme.se
 $(glob_files "${SERVICE_DIR}/magma@sessiond.service" /etc/systemd/system/magma@sessiond.service) \
 $(glob_files "${SERVICE_DIR}/magma@mobilityd.service" /etc/systemd/system/magma@mobilityd.service) \
 $(glob_files "${SERVICE_DIR}/magma@pipelined.service" /etc/systemd/system/magma@pipelined.service) \
-$(glob_files "${SERVICE_DIR}/magma@envoy.service" /etc/systemd/system/magma@envoy.service) \
+$(glob_files "${SERVICE_DIR}/magma_dp@envoy.service" /etc/systemd/system/magma_dp@envoy.service) \
 $(glob_files "${SERVICE_DIR}/magma@envoy_controller.service" /etc/systemd/system/magma@envoy_controller.service) \
 $(glob_files "${SERVICE_DIR}/magma@redirectd.service" /etc/systemd/system/magma@redirectd.service) \
 $(glob_files "${SERVICE_DIR}/magma@dnsd.service" /etc/systemd/system/magma@dnsd.service) \
