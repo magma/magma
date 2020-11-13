@@ -191,7 +191,7 @@ class GYController(PolicyMixin, MagmaController):
             return RuleModResult.FAILURE
 
         chan = self._msg_hub.send(flow_adds, self._datapath)
-        return self._wait_for_rule_responses(imsi, rule, chan)
+        return self._wait_for_rule_responses(imsi, ip_addr, rule, chan)
 
     def _get_default_flow_msgs_for_subscriber(self, *_):
         return None

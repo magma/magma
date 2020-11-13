@@ -15,48 +15,48 @@ envoy_ns="envoy_ns1"
 
 function setup {
   # root nameapce config
-  ip link add $envoylink_cntr type veth peer name  "$envoylink_cntr"_ns
+  /sbin/ip link add $envoylink_cntr type veth peer name  "$envoylink_cntr"_ns
 
   # envoy controller IP
-  ifconfig $envoylink_cntr "$envoy_ip_cntr_root"/24 up
+  /sbin/ifconfig $envoylink_cntr "$envoy_ip_cntr_root"/24 up
 
   # add namespace
-  ip netns add $envoy_ns
+  /sbin/ip netns add $envoy_ns
 
   # move devices
-  ip link set dev "$envoy_dp_dev"_ns    netns $envoy_ns
-  ip link set dev "$envoylink_cntr"_ns  netns $envoy_ns
+  /sbin/ip link set dev "$envoy_dp_dev"_ns    netns $envoy_ns
+  /sbin/ip link set dev "$envoylink_cntr"_ns  netns $envoy_ns
 
-  ip netns exec  $envoy_ns ip link set dev "$envoy_dp_dev"_ns address $mac_addr
+  /sbin/ip netns exec  $envoy_ns /sbin/ip link set dev "$envoy_dp_dev"_ns address $mac_addr
   # namespace configi
-  ip netns exec  $envoy_ns ifconfig "$envoylink_cntr"_ns  "$envoy_ip_cntr"/24 up
+  /sbin/ip netns exec  $envoy_ns /sbin/ifconfig "$envoylink_cntr"_ns  "$envoy_ip_cntr"/24 up
 
-  ip netns exec  $envoy_ns ifconfig "$envoy_dp_dev"_ns    "$envoy_dp_dev_ip"/24 up
+  /sbin/ip netns exec  $envoy_ns /sbin/ifconfig "$envoy_dp_dev"_ns    "$envoy_dp_dev_ip"/24 up
 
-  ip netns exec  $envoy_ns ifconfig lo up
+  /sbin/ip netns exec  $envoy_ns /sbin/ifconfig lo up
 
-  ip netns exec  $envoy_ns ip route add default via $Router_IP
+  /sbin/ip netns exec  $envoy_ns /sbin/ip route add default via $Router_IP
 
-  ip netns exec  $envoy_ns ip neigh replace $Router_IP  lladdr $Router_mac dev "$envoy_dp_dev"_ns
+  /sbin/ip netns exec  $envoy_ns /sbin/ip neigh replace $Router_IP  lladdr $Router_mac dev "$envoy_dp_dev"_ns
 
-  ip netns exec  $envoy_ns iptables -t mangle -I PREROUTING -p tcp --dport 80 -j MARK --set-mark 1
-  ip netns exec  $envoy_ns iptables -t mangle -I PREROUTING -p tcp --sport 80 -j MARK --set-mark 1
+  /sbin/ip netns exec  $envoy_ns /sbin/iptables -t mangle -I PREROUTING -p tcp --dport 80 -j MARK --set-mark 1
+  /sbin/ip netns exec  $envoy_ns /sbin/iptables -t mangle -I PREROUTING -p tcp --sport 80 -j MARK --set-mark 1
 
-  ip netns exec  $envoy_ns ip rule add fwmark 1 lookup 100
-  ip netns exec  $envoy_ns ip route add local 0.0.0.0/0 dev lo table 100
+  /sbin/ip netns exec  $envoy_ns /sbin/ip rule add fwmark 1 lookup 100
+  /sbin/ip netns exec  $envoy_ns /sbin/ip route add local 0.0.0.0/0 dev lo table 100
 
-  ip netns exec  $envoy_ns sysctl -w net.ipv4.conf.all.rp_filter=0
-  ip netns exec  $envoy_ns sysctl -w net.ipv4.conf.all.route_localnet=1
+  /sbin/ip netns exec  $envoy_ns /sbin/sysctl -w net.ipv4.conf.all.rp_filter=0
+  /sbin/ip netns exec  $envoy_ns /sbin/sysctl -w net.ipv4.conf.all.route_localnet=1
 }
 
 function destroy {
-  ip netns exec  $envoy_ns ip link set dev "$envoy_dp_dev"_ns    netns 1
-  ip netns exec  $envoy_ns ip link set dev "$envoylink_cntr"_ns  netns 1
+  /sbin/ip netns exec  $envoy_ns /sbin/ip link set dev "$envoy_dp_dev"_ns    netns 1
+  /sbin/ip netns exec  $envoy_ns /sbin/ip link set dev "$envoylink_cntr"_ns  netns 1
 
-  sleep 1
-  ip link del $envoylink_cntr
-  sleep 1
-  ip netns delete $envoy_ns
+  /bin/sleep 1
+  /sbin/ip link del $envoylink_cntr
+  /bin/sleep 1
+  /sbin/ip netns delete $envoy_ns
 }
 
 $1

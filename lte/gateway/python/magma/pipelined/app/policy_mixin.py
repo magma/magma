@@ -239,7 +239,7 @@ class PolicyMixin(metaclass=ABCMeta):
 
     def _remove_he_flows(self, ip_addr: IPAddress, rule_id:int = -1):
         if self.proxy_controller:
-            self.proxy_controller.remove_subscriber_flow(ip_addr, rule_id)
+            self.proxy_controller.remove_subscriber_he_flows(ip_addr, rule_id)
 
     def _install_flow_for_static_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule_id):
         """
@@ -257,12 +257,12 @@ class PolicyMixin(metaclass=ABCMeta):
             return RuleModResult.FAILURE
         return self._install_flow_for_rule(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
 
-    def _wait_for_rule_responses(self, imsi, rule, chan):
+    def _wait_for_rule_responses(self, imsi, ip_addr, rule, chan):
         def fail(err):
             self.logger.error(
                 "Failed to install rule %s for subscriber %s: %s",
                 rule.id, imsi, err)
-            self._deactivate_flow_for_rule(imsi, rule.id)
+            self._deactivate_flow_for_rule(imsi, ip_addr, rule.id)
             return RuleModResult.FAILURE
 
         for _ in range(len(rule.flow_list)):
@@ -359,9 +359,10 @@ class PolicyMixin(metaclass=ABCMeta):
             ue_ip = ipv4_address_to_str(ip_addr)
             ip_dst = get_flow_ip_dst(flow.match)
 
-            proxy_msgs = self.proxy_controller.get_subscriber_flows(ue_ip, uplink_tunnel, ip_dst,
-                                                                    rule_num,
-                                                                    urls, imsi, msisdn)
+            proxy_msgs = self.proxy_controller.get_subscriber_he_flows(ue_ip, uplink_tunnel,
+                                                                       ip_dst,
+                                                                       rule_num,
+                                                                       urls, imsi, msisdn)
             msgs.extend(proxy_msgs)
         return msgs
 
