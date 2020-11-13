@@ -121,7 +121,6 @@ class SessionState {
    */
   void sess_infocopy(struct SessionInfo*);
 
-  SessionFsmState get_state();
   magma::lte::Fsm_state_FsmState get_proto_fsm_state();
 
   struct TotalCreditUsage {

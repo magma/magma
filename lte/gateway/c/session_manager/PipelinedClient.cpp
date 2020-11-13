@@ -26,11 +26,11 @@ magma::SessionSet create_session_set_req(
     magma::SessionState::SessionInfo info) {
   magma::SessionSet req;
   magma::lte::Fsm_state_FsmState state         = info.state;
-  std::string seid                             = info.subscriber_id;
+  std::string subscriber_id                    = info.subscriber_id;
   uint32_t sess_ver_no                         = info.ver_no;
   magma::SessionState::SessionInfo::NodeId tmp = info.nodeId;
   std::string node_id                          = tmp.node_id;
-  req.set_subscriber_id(seid);
+  req.set_subscriber_id(subscriber_id);
   req.set_session_version(sess_ver_no);
   req.set_local_f_teid(info.local_f_teid);
   req.mutable_node_id()->set_node_id(node_id);
@@ -528,8 +528,8 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
 uint32_t AsyncPipelinedClient::get_next_teid() {
   /* For now TEID we use current no, increment for next, later we plan to 
      maintain  release/alloc table for reu sing */
-   uint32_t ret_te= teid++;
-   return ret_te;
+   uint32_t allocated_teid= teid++;
+   return allocated_teid;
 }
 
 uint32_t AsyncPipelinedClient::get_current_teid() {
