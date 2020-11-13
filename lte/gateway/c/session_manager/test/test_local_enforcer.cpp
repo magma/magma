@@ -224,20 +224,21 @@ TEST_F(LocalEnforcerTest, test_init_no_credit) {
   insert_static_rule(1, "", "rule1");
 
   CreateSessionResponse response;
-  auto credits = response.mutable_credits();
-  create_credit_update_response(IMSI1, SESSION_ID_1, 1, FINITE, credits->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 0, response.mutable_credits()->Add());
 
   StaticRuleInstall rule1;
   rule1.set_rule_id("rule1");
   auto rules_to_install = response.mutable_static_rules();
   rules_to_install->Add()->CopyFrom(rule1);
 
-  // Expect rule1 to not be activated
+  // Expect rule1 to be activated even if the GSU is all 0s
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
-          testing::_, testing::_, testing::_, test_cfg_.common_context.msisdn(),
-          testing::_, CheckCount(0), CheckCount(0), testing::_))
+          IMSI1, test_cfg_.common_context.ue_ipv4(),
+          test_cfg_.common_context.ue_ipv6(), test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(1), CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(

@@ -206,15 +206,14 @@ class SessionState {
    * Receive the credit grant if the credit update was successful
    *
    * @param update
-   * @param uc
+   * @param session_uc
    * @return True if usage for the charging key is allowed after receiving
    *         the credit response. This requires that the credit update was
-   *         a success. Also it must either be an infinite credit rating group,
-   *         or have associated credit grant.
+   *         a success.
    */
   bool receive_charging_credit(
       const CreditUpdateResponse& update,
-      SessionStateUpdateCriteria& update_criteria);
+      SessionStateUpdateCriteria& session_uc);
 
   uint64_t get_charging_credit(const CreditKey& key, Bucket bucket) const;
 
@@ -585,14 +584,14 @@ class SessionState {
    * Receive the credit grant if the credit update was successful
    *
    * @param update
-   * @param uc
+   * @param session_uc
    * @return True if usage for the charging key is allowed after receiving
    *         the credit response. This requires that the credit update was
-   *         a success. Also it must either be an infinite credit rating group,
-   *         or have associated credit grant.
+   *         a success.
    */
   bool init_charging_credit(
-      const CreditUpdateResponse& update, SessionStateUpdateCriteria& uc);
+      const CreditUpdateResponse& update,
+      SessionStateUpdateCriteria& session_uc);
 
   /**
    * Return true if any credit unit is valid and has non-zero volume

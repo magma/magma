@@ -1164,8 +1164,8 @@ bool SessionState::reset_reporting_charging_credit(
     const CreditKey& key, SessionStateUpdateCriteria& update_criteria) {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
-    MLOG(MERROR) << "Could not reset credit for IMSI" << imsi_
-                 << " and charging key " << key << " because it wasn't found";
+    MLOG(MERROR) << "Could not find credit RG:" << key << " to resetting for "
+                 << session_id_;
     return false;
   }
   auto credit_uc = get_credit_uc(key, update_criteria);
@@ -1175,26 +1175,25 @@ bool SessionState::reset_reporting_charging_credit(
 
 bool SessionState::receive_charging_credit(
     const CreditUpdateResponse& update,
-    SessionStateUpdateCriteria& update_criteria) {
+    SessionStateUpdateCriteria& session_uc) {
+  const uint32_t key = update.charging_key();
+
   auto it = credit_map_.find(CreditKey(update));
   if (it == credit_map_.end()) {
     // new credit
-    return init_charging_credit(update, update_criteria);
+    return init_charging_credit(update, session_uc);
   }
   auto& grant    = it->second;
-  auto credit_uc = get_credit_uc(CreditKey(update), update_criteria);
-  if (!update.success()) {
+  auto credit_uc = get_credit_uc(CreditKey(update), session_uc);
+  if (!ChargingGrant::is_valid_credit_response(update)) {
     // update unsuccessful, reset credit and return
-    MLOG(MDEBUG) << session_id_ << " Received an unsuccessful update for RG "
-                 << update.charging_key();
     grant->credit.mark_failure(update.result_code(), credit_uc);
     if (grant->should_deactivate_service()) {
       grant->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
     }
     return false;
   }
-  MLOG(MINFO) << session_id_ << " Received a charging credit for RG: "
-              << update.charging_key();
+  MLOG(MINFO) << "Received a credit RG:" << key << " for " << session_id_;
   grant->receive_charging_grant(update.credit(), credit_uc);
 
   if (grant->reauth_state == REAUTH_PROCESSING) {
@@ -1202,46 +1201,32 @@ bool SessionState::receive_charging_credit(
   }
   if (!grant->credit.is_quota_exhausted(1) &&
       grant->service_state != SERVICE_ENABLED) {
-    // if quota no longer exhausted, reenable services as needed
-    MLOG(MINFO) << "Quota available. Activating service";
+    // if quota no longer exhausted, re-enable services as needed
+    MLOG(MINFO) << "New quota now available. Activating service RG:" << key
+                << " for " << session_id_;
     grant->set_service_state(SERVICE_NEEDS_ACTIVATION, *credit_uc);
   }
-  return contains_credit(update.credit().granted_units()) ||
-         is_infinite_credit(update);
+  return true;
 }
 
 bool SessionState::init_charging_credit(
     const CreditUpdateResponse& update,
-    SessionStateUpdateCriteria& update_criteria) {
-  if (!update.success()) {
+    SessionStateUpdateCriteria& session_uc) {
+  const uint32_t key = update.charging_key();
+  if (!ChargingGrant::is_valid_credit_response(update)) {
     // init failed, don't track key
-    MLOG(MERROR) << "Credit init failed for imsi " << imsi_
-                 << " and charging key " << update.charging_key();
     return false;
   }
-  MLOG(MINFO) << session_id_ << " Initialized a charging credit for RG: "
-              << update.charging_key();
-
-  auto charging_grant    = std::make_unique<ChargingGrant>();
-  charging_grant->credit = SessionCredit(SERVICE_ENABLED, update.limit_type());
-
-  charging_grant->receive_charging_grant(update.credit());
-  update_criteria.charging_credit_to_install[CreditKey(update)] =
-      charging_grant->marshal();
-  credit_map_[CreditKey(update)] = std::move(charging_grant);
-  return contains_credit(update.credit().granted_units()) ||
-         is_infinite_credit(update);
-}
-
-bool SessionState::contains_credit(const GrantedUnits& gsu) {
-  return (gsu.total().is_valid() && gsu.total().volume() > 0) ||
-         (gsu.tx().is_valid() && gsu.tx().volume() > 0) ||
-         (gsu.rx().is_valid() && gsu.rx().volume() > 0);
-}
-
-bool SessionState::is_infinite_credit(const CreditUpdateResponse& response) {
-  return (response.limit_type() == INFINITE_UNMETERED) ||
-         (response.limit_type() == INFINITE_METERED);
+  ChargingGrant charging_grant;
+  charging_grant.credit = SessionCredit(SERVICE_ENABLED, update.limit_type());
+  charging_grant.receive_charging_grant(update.credit());
+  session_uc.charging_credit_to_install[CreditKey(update)] =
+      charging_grant.marshal();
+  credit_map_[CreditKey(update)] =
+      std::make_unique<ChargingGrant>(charging_grant);
+  MLOG(MINFO) << "Initialized a new credit RG:" << key << " for "
+              << session_id_;
+  return true;
 }
 
 uint64_t SessionState::get_charging_credit(
@@ -1255,16 +1240,17 @@ uint64_t SessionState::get_charging_credit(
 
 bool SessionState::set_credit_reporting(
     const CreditKey& key, bool reporting,
-    SessionStateUpdateCriteria* update_criteria) {
+    SessionStateUpdateCriteria* session_uc) {
   auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
-    MLOG(MWARNING) << "Dident set reporting flag for RG " << key;
+    MLOG(MWARNING) << "Did not set reporting flag for RG:" << key << " for "
+                   << session_id_;
     return false;
   }
 
   it->second->credit.set_reporting(reporting);
-  if (update_criteria != NULL) {
-    auto credit_uc       = get_credit_uc(key, *update_criteria);
+  if (session_uc != NULL) {
+    auto credit_uc       = get_credit_uc(key, *session_uc);
     credit_uc->reporting = reporting;
   }
   return true;

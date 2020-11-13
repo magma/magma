@@ -47,6 +47,39 @@ StoredChargingGrant ChargingGrant::marshal() {
   return marshaled;
 }
 
+bool ChargingGrant::is_valid_credit_response(
+    const CreditUpdateResponse& update) {
+  const uint32_t key           = update.charging_key();
+  const std::string session_id = update.session_id();
+  if (!update.success()) {
+    MLOG(MERROR) << "Credit update failed RG:" << key
+                 << " code:" << update.result_code() << " for " << session_id;
+    return false;
+  }
+  // For infinite credit, we do not care about the GSU value
+  if (update.limit_type() == INFINITE_UNMETERED ||
+      update.limit_type() == INFINITE_METERED) {
+    return true;
+  }
+  const auto& gsu = update.credit().granted_units();
+  bool gsu_all_invalid =
+      !gsu.total().is_valid() && !gsu.rx().is_valid() && !gsu.tx().is_valid();
+  if (gsu_all_invalid) {
+    if (update.credit().is_final()) {
+      // TODO @themarwhal look into this case. Before I figure it out, I will
+      // allow empty GSU credits with FUA to be on the conservative side.
+      MLOG(MWARNING)
+          << "GSU for RG: " << key << " " << session_id
+          << " is invalid, but accepting it as it has a final unit action";
+      return true;
+    }
+    MLOG(MERROR) << "Credit update failed RG:" << key
+                 << " invalid, empty GSU and no FUA for " << session_id;
+    return false;
+  }
+  return true;
+}
+
 void ChargingGrant::receive_charging_grant(
     const magma::lte::ChargingCredit& p_credit,
     SessionCreditUpdateCriteria* uc) {
