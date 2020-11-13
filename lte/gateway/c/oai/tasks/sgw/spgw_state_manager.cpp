@@ -115,6 +115,7 @@ int SpgwStateManager::read_ue_state_from_db() {
   }
   auto keys = redis_client->get_keys("IMSI*" + task_name + "*");
   for (const auto& key : keys) {
+    OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
     oai::S11BearerContext ue_proto = oai::S11BearerContext();
     s_plus_p_gw_eps_bearer_context_information_t* ue_context =
         (s_plus_p_gw_eps_bearer_context_information_t*) (calloc(
@@ -124,11 +125,26 @@ int SpgwStateManager::read_ue_state_from_db() {
     }
     SpgwStateConverter::proto_to_ue(ue_proto, ue_context);
 
-    hashtable_ts_insert(
+    hashtable_rc_t h_rc = hashtable_ts_insert(
         state_ue_ht,
         ue_context->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
         (void*) ue_context);
-    OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
+    if (HASH_TABLE_OK != h_rc) {
+      OAILOG_ERROR_UE(
+          log_task, ue_context->sgw_eps_bearer_context_information.imsi64,
+          "Failed to insert UE state with key s_gw_teid_S11_S4 " TEID_FMT
+          ", mme_teid_S11: " TEID_FMT " (Error Code: %s)\n",
+          ue_context->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
+          ue_context->sgw_eps_bearer_context_information.mme_teid_S11,
+          hashtable_rc_code2string(h_rc));
+    } else {
+      OAILOG_DEBUG_UE(
+          log_task, ue_context->sgw_eps_bearer_context_information.imsi64,
+          "Inserted UE state with key s_gw_teid_S11_S4 " TEID_FMT
+          ", mme_teid_S11: " TEID_FMT,
+          ue_context->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
+          ue_context->sgw_eps_bearer_context_information.mme_teid_S11);
+    }
   }
   return RETURNok;
 }
