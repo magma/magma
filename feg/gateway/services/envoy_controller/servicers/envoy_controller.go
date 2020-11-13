@@ -28,21 +28,16 @@ type envoyControllerService struct {
 	controller_cli control_plane.EnvoyController
 }
 
-// AddUEHeaderEnrichment adds the UE to the current header enrichment list
+// AddUEHeaderEnrichment adds the UE to the current header enrichment list, if UE is already in the list replaces the he information for that UE
 func (s *envoyControllerService) AddUEHeaderEnrichment(
 	ctx context.Context,
 	req *protos.AddUEHeaderEnrichmentRequest,
 ) (*protos.AddUEHeaderEnrichmentResult, error) {
-	var (
-		res *protos.AddUEHeaderEnrichmentResult
-		err error
-	)
-	s.ue_infos = append(s.ue_infos, req)
-
-	glog.Infof("AddUEHeaderEnrichmentResult received")
+	glog.Infof("AddUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
+	s.ue_infos = add_to_list(s.ue_infos, req)
 	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
-	return res, err
+	return &protos.AddUEHeaderEnrichmentResult{}, nil
 }
 
 // DeactivateUEHeaderEnrichment deactivates/removes the UE from the current header enrichment list
@@ -50,15 +45,11 @@ func (s *envoyControllerService) DeactivateUEHeaderEnrichment(
 	ctx context.Context,
 	req *protos.DeactivateUEHeaderEnrichmentRequest,
 ) (*protos.DeactivateUEHeaderEnrichmentResult, error) {
-	var (
-		res *protos.DeactivateUEHeaderEnrichmentResult
-		err error
-	)
-	glog.Infof("DeactivateUEHeaderEnrichmentResult received")
-	s.ue_infos = remove(s.ue_infos, req.UeIp)
+	glog.Infof("DeactivateUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
+	s.ue_infos = remove_from_list(s.ue_infos, req.UeIp)
 	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
-	return res, err
+	return &protos.DeactivateUEHeaderEnrichmentResult{}, nil
 }
 
 // NewenvoyControllerService returns a new EnvoyController service
@@ -66,11 +57,23 @@ func NewEnvoyControllerService(controller_cli control_plane.EnvoyController) pro
 	return &envoyControllerService{controller_cli: controller_cli}
 }
 
-func remove(l []*protos.AddUEHeaderEnrichmentRequest, ip *lte_proto.IPAddress) []*protos.AddUEHeaderEnrichmentRequest {
+func remove_from_list(l []*protos.AddUEHeaderEnrichmentRequest, ip *lte_proto.IPAddress) []*protos.AddUEHeaderEnrichmentRequest {
 	for i, other := range l {
 		if string(other.UeIp.Address) == string(ip.Address) {
 			return append(l[:i], l[i+1:]...)
 		}
 	}
+	return l
+}
+
+func add_to_list(l []*protos.AddUEHeaderEnrichmentRequest, new *protos.AddUEHeaderEnrichmentRequest) []*protos.AddUEHeaderEnrichmentRequest {
+	for i, other := range l {
+		if string(other.UeIp.Address) == string(new.UeIp.Address) {
+		    // Overwrite duplicate UE
+		    ret := append(l[:i], l[i+1:]...)
+		    return append(ret, new)
+		}
+	}
+	l = append(l, new)
 	return l
 }

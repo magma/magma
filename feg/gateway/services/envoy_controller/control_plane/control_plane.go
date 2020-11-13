@@ -175,15 +175,14 @@ func newCallbacks(signal chan struct{}, fetches int, requests int) *callbacks {
 }
 
 func GetControllerClient() *ControllerClient {
-	cli := ControllerClient{}
-	ctx := context.Background()
-
 	glog.Infof("Starting Envoy control plane")
-
 	signal := make(chan struct{})
 	cb := newCallbacks(signal, 0, 0)
+
+	cli := ControllerClient{}
 	cli.config = cache.NewSnapshotCache(mode == Ads, Hasher{}, nil)
 
+	ctx := context.Background()
 	srv := xds.NewServer(ctx, cli.config, cb)
 
 	// start the xDS server
@@ -191,7 +190,6 @@ func GetControllerClient() *ControllerClient {
 	go RunManagementGateway(ctx, srv, gatewayPort)
 
 	<-signal
-
 	cb.Report()
 
 	return &cli
