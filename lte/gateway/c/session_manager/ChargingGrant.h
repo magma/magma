@@ -55,6 +55,10 @@ struct ChargingGrant {
       const magma::lte::ChargingCredit& credit,
       SessionCreditUpdateCriteria* uc = NULL);
 
+  // Returns true if the credit returned from the Policy component is valid and
+  // good to be installed.
+  static bool is_valid_credit_response(const CreditUpdateResponse& update);
+
   // Returns a SessionCreditUpdateCriteria that reflects the current state
   SessionCreditUpdateCriteria get_update_criteria();
 

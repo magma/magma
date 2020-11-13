@@ -50,7 +50,7 @@ void create_charging_credit(
     uint64_t volume, bool is_final, ChargingCredit* credit);
 
 void create_credit_update_response(
-    const std::string& imsi, const std::string sessiond_id,
+    const std::string& imsi, const std::string session_id,
     uint32_t charging_key, CreditLimitType limit_type,
     CreditUpdateResponse* response);
 

@@ -17,6 +17,7 @@
 #include <glog/logging.h>
 #include <gtest/gtest.h>
 
+#include "Consts.h"
 #include "ProtobufCreators.h"
 #include "SessionState.h"
 #include "SessiondMocks.h"
@@ -734,22 +735,42 @@ TEST_F(SessionStateTest, test_final_restrict_credit_install) {
   EXPECT_EQ(fa.restrict_rules[0], "restrict-rule");
 }
 
-// We want to test a case where we do not receive a GSU, but we receive a
-// final_action on credit exhaust.
-TEST_F(SessionStateTest, test_empty_credit_grant) {
+// Test the case where the GSU is empty. (All credit has is_valid=false). We
+// treat this as an invalid credit and reject it.
+TEST_F(SessionStateTest, test_empty_gsu_credit_grant) {
   insert_rule(1, "m1", "rule1", STATIC, 0, 0);
   CreditUpdateResponse charge_resp;
   charge_resp.set_success(true);
-  charge_resp.set_sid("IMSI1");
+  charge_resp.set_sid(IMSI1);
+  charge_resp.set_charging_key(1);
+  // A ChargingCredit with no GSU but FinalAction
+  charge_resp.mutable_credit()->set_type(ChargingCredit::BYTES);
+  // Should return false to indicate credit installation did not go through
+  EXPECT_FALSE(
+      session_state->receive_charging_credit(charge_resp, update_criteria));
+  // Test that the update criteria is untouched
+  EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 0);
+}
+
+// We want to test a case where we receive a GSU with credit 0, but we
+// receive a final_action on credit exhaust.
+TEST_F(SessionStateTest, test_zero_gsu_credit_grant) {
+  insert_rule(1, "m1", "rule1", STATIC, 0, 0);
+  CreditUpdateResponse charge_resp;
+  charge_resp.set_success(true);
+  charge_resp.set_sid(IMSI1);
   charge_resp.set_charging_key(1);
 
-  // A ChargingCredit with no GSU but FinalAction
+  // A ChargingCredit with 0 GSU and FinalAction
   auto p_credit = charge_resp.mutable_credit();
+  uint64_t zero = 0;
   p_credit->set_type(ChargingCredit::BYTES);
   p_credit->set_is_final(true);
   p_credit->set_final_action(ChargingCredit_FinalAction_TERMINATE);
+  create_granted_units(&zero, &zero, &zero, p_credit->mutable_granted_units());
 
-  session_state->receive_charging_credit(charge_resp, update_criteria);
+  EXPECT_TRUE(
+      session_state->receive_charging_credit(charge_resp, update_criteria));
 
   // Test that the update criteria is filled out properly
   EXPECT_EQ(update_criteria.charging_credit_to_install.size(), 1);
