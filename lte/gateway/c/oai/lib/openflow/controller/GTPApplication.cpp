@@ -212,9 +212,17 @@ static void add_downlink_match(
   downlink_fm.add_oxm_field(ip_match);
 }
 
+static void mask_ipv6_address(
+    uint8_t* dst, const uint8_t* src, const uint8_t* mask) {
+  for (int i = 0; i < INET6_ADDRSTRLEN; i++) {
+    dst[i] = src[i] & mask[i];
+  }
+}
+
 static void add_downlink_match_ipv6(
     of13::FlowMod& downlink_fm, const struct in6_addr& ue_ip6, uint32_t port) {
   // Set match on uplink port and IP eth type
+  static IPAddress mask("ffff:ffff:ffff:ffff::");
   of13::InPort uplink_port_match(port);
   downlink_fm.add_oxm_field(uplink_port_match);
   /* TODO-Made this local fix as it was not yet available in master
@@ -224,7 +232,11 @@ static void add_downlink_match_ipv6(
   downlink_fm.add_oxm_field(ip6_type);
 
   // Match UE IP destination
-  of13::IPv6Dst ipv6_dst(IPAddress((struct in6_addr) ue_ip6));
+  struct in6_addr ue_ip6_masked;
+  mask_ipv6_address(
+      (uint8_t*) &ue_ip6_masked, (const uint8_t*) &ue_ip6, mask.getIPv6());
+
+  of13::IPv6Dst ipv6_dst(IPAddress(ue_ip6_masked), mask);
   downlink_fm.add_oxm_field(ipv6_dst);
 }
 
