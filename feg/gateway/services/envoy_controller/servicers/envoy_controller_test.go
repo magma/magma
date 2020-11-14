@@ -97,7 +97,7 @@ func TestEnvoyControllerInit(t *testing.T) {
 	cli.On("UpdateSnapshot", add_ue_reqs[1:]).Return()
 	_, err = srv.DeactivateUEHeaderEnrichment(ctx, deactivate_req)
 
-    // Make sure duplicate doesn't get reinserted but gets overwritten
+	// Make sure duplicate doesn't get reinserted but gets overwritten
 	cli.On("UpdateSnapshot", overwrtie_ue_req).Return()
 	_, err = srv.AddUEHeaderEnrichment(ctx, overwrtie_ue_req[0])
 
