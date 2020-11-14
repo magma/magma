@@ -91,10 +91,11 @@ enum ReAuthState {
 enum ServiceState {
   SERVICE_ENABLED            = 0,
   SERVICE_NEEDS_DEACTIVATION = 1,
-  SERVICE_DISABLED           = 2,
-  SERVICE_NEEDS_ACTIVATION   = 3,
-  SERVICE_REDIRECTED         = 4,
-  SERVICE_RESTRICTED         = 5,
+  SERVICE_NEEDS_SUSPENSION   = 2,
+  SERVICE_DISABLED           = 3,
+  SERVICE_NEEDS_ACTIVATION   = 4,
+  SERVICE_REDIRECTED         = 5,
+  SERVICE_RESTRICTED         = 6,
 };
 
 enum GrantTrackingType {
@@ -154,6 +155,7 @@ struct StoredChargingGrant {
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t expiry_time;
+  bool is_suspended;
 };
 
 struct RuleLifetime {
@@ -244,6 +246,8 @@ struct SessionCreditUpdateCriteria {
 
   uint64_t time_of_first_usage;
   uint64_t time_of_last_usage;
+
+  bool is_suspended;
 };
 
 struct SessionStateUpdateCriteria {

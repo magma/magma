@@ -136,6 +136,7 @@ std::string serialize_stored_charging_grant(StoredChargingGrant& stored) {
   marshaled["reauth_state"]  = static_cast<int>(stored.reauth_state);
   marshaled["service_state"] = static_cast<int>(stored.service_state);
   marshaled["credit"]        = serialize_stored_session_credit(stored.credit);
+  marshaled["is_suspended"]  = stored.is_suspended;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
@@ -158,6 +159,7 @@ StoredChargingGrant deserialize_stored_charging_grant(
       std::stoul(marshaled["expiry_time"].getString()));
   stored.credit =
       deserialize_stored_session_credit(marshaled["credit"].getString());
+  stored.is_suspended = marshaled["is_suspended"].getBool();
 
   return stored;
 }
