@@ -20,4 +20,4 @@ $ ansible-pull -U https://github.com/magma/magma.git show-tech/show-tech.yml -d 
 
 ## Output:
 
-Report will be saved under /tmp/magma_reports/report.<DATE>.tgz
+Report will be saved under /tmp/magma_reports/report.<HOSTNAME>.<DATE>.tgz
