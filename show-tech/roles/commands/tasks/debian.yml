@@ -11,17 +11,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Get output of commands for all distributions
+- name: Get output of debian commands
   shell: |
-    ( echo Command: {{item}} && {{item}} 2>&1) | tee -a {{ report_dir_output.stdout }}/commands_output.log
+    ( echo Command: {{item}} && {{item}} ) | tee -a {{ report_dir_output.stdout }}/commands_output.log
   register: output
   ignore_errors: yes
   loop:
-    - "uname -a"
+    - "dpkg -l"
+    - "timeout 60 sudo tcpdump -i any sctp -w {{ report_dir_output.stdout }}/sctp.pcap"
 - debug:
     msg: "{{item.cmd}} -> {{item.stdout_lines}}"
   with_items: "{{output.results}}"
-
-- name: Run debian commands
-  when: ansible_facts['distribution'] == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
-  include_tasks: debian.yml
