@@ -1,5 +1,6 @@
 ## Prereq:
 
+On your GW host make sure yo have the following:
 1) ansible binary
 2) ansible collection 'community.general' should be installed by:
 ```
@@ -9,7 +10,7 @@ $ ansible-galaxy collection install community.general
 ## Execution:
 
 ```
-# run the following comamnd as user root
+# On your GW host, run the following command as user root:
 
 $ ansible-playbook show-tech.yml
 
