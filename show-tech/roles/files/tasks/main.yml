@@ -1,0 +1,44 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+# Magma config collection
+- name: Create a dest directory for magma configs under report directory
+  file:
+    path: "{{ report_dir_output.stdout }}{{ item }}"
+    state: directory
+    mode: "0700"
+  loop:
+    - "/var/opt/magma/configs"
+    - "/etc/magma/configs"
+
+- name: Copy magma config files to destination
+  copy:
+    src: "{{ item }}"
+    dest: "{{ report_dir_output.stdout }}/{{item}}"
+  with_fileglob:
+    - "/var/opt/magma/configs/*"
+    - "/etc/magma/configs/*"
+
+# Core files
+- name: Create a dest directory for magma cores report directory
+  file:
+    path: "{{ report_dir_output.stdout }}/cores"
+    state: directory
+    mode: "0700"
+
+- name: Copy magma cores to destination
+  copy:
+    src: "{{ item }}"
+    dest: "{{ report_dir_output.stdout }}/cores"
+  with_fileglob:
+    - "/tmp/*core*"
