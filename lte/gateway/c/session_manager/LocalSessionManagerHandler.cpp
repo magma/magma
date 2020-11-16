@@ -112,16 +112,19 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
         session_store_.set_and_save_reporting_flag(false, request, session_uc);
 
         if (!status.ok()) {
-          MLOG(MERROR) << "Update of size " << request.updates_size()
-                       << " to OCS failed entirely: " << status.error_message();
+          MLOG(MERROR)
+              << "UpdateSession request to FeG/PolicyDB failed entirely: "
+              << status.error_message();
+          enforcer_->handle_update_failure(
+              *session_map_ptr, UpdateRequestsBySession(request), session_uc);
           report_session_update_event_failure(
               *session_map_ptr, session_uc, status.error_message());
         } else {
           enforcer_->update_session_credits_and_rules(
               *session_map_ptr, response, session_uc);
-          session_store_.update_sessions(session_uc);
           report_session_update_event(*session_map_ptr, session_uc);
         }
+        session_store_.update_sessions(session_uc);
       });
 }
 
