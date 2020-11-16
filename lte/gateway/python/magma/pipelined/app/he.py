@@ -125,11 +125,13 @@ class HeaderEnrichmentController(MagmaController):
         ip_addr = convert_ipv4_str_to_ip_proto(ue_addr)
         return activate_he_urls_for_ue(ip_addr, urls, imsi, msisdn_str)
 
-    def get_subscriber_he_flows(self, ue_addr: str, uplink_tunnel: int, ip_dst: str, rule_num: int,
-                             urls: List[str], imsi: str, msisdn: bytes):
+    def get_subscriber_he_flows(self, direction: Direction, ue_addr: str, uplink_tunnel: int,
+                                ip_dst: str, rule_num: int,
+                                urls: List[str], imsi: str, msisdn: bytes):
         """
         Add flow to steer traffic to and from proxy port.
         Args:
+            direction(Direction): HE rules are only used for upstream traffic.
             ue_addr(str): IP address of UE
             uplink_tunnel(int) Tunnel ID of the session
             ip_dst(str): HTTP server dst IP (CIDR)
@@ -139,6 +141,9 @@ class HeaderEnrichmentController(MagmaController):
             msisdn (bytes): subscriber MSISDN
         """
         if not self.config.he_enabled:
+            return []
+
+        if direction != Direction.OUT:
             return []
 
         dp = self._datapath
