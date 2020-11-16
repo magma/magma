@@ -19,9 +19,17 @@
 #include "HaServiceImpl.h"
 #include "lte/protos/ha_service.pb.h"
 #include "mme_app_state_manager.h"
+#include "s1ap_state_manager.h"
 extern "C" {
 #include "log.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "s1ap_state.h"
+#include "S1ap-CauseRadioNetwork.h"
+// #include "s1ap_messages_types.h"
 }
+extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 // namespace grpc {
 // class ServerContext;
@@ -47,16 +55,36 @@ grpc::Status HaServiceImpl::StartAgwOffload(
   OAILOG_INFO(LOG_UTIL, "Received StartAgwOffloadRequest GRPC request\n");
   hash_table_ts_t* state_imsi_ht =
       MmeNasStateManager::getInstance().get_ue_state_ht();
+  s1ap_state_t* s1ap_state = S1apStateManager::getInstance().get_state(false);
   hashtable_ts_apply_callback_on_elements(
-      state_imsi_ht, process_ue_context, NULL, NULL);
+      state_imsi_ht, process_ue_context, (void*) s1ap_state, NULL);
   return grpc::Status::OK;
-}  // namespace magma
+}
 
 }  // namespace magma
 
 bool process_ue_context(
     const hash_key_t keyP, void* const elementP, void* parameterP,
     void** resultP) {
-  OAILOG_INFO(LOG_UTIL, "Processing UE " IMSI_64_FMT "\n", keyP);
+  s1ap_state_t* s1ap_state             = (s1ap_state_t*) parameterP;
+  struct ue_mm_context_s* ue_context_p = (struct ue_mm_context_s*) elementP;
+  enb_description_t* enb_ref_p =
+      s1ap_state_get_enb(s1ap_state, ue_context_p->sctp_assoc_id_key);
+  MessageDef* message_p =
+      itti_alloc_new_message(TASK_GRPC_SERVICE, S1AP_UE_CONTEXT_RELEASE_REQ);
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id =
+      ue_context_p->mme_ue_s1ap_id;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
+      ue_context_p->enb_ue_s1ap_id;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id   = enb_ref_p->enb_id;
+  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = S1AP_NAS_MME_OFFLOADING;
+
+  OAILOG_INFO(
+      LOG_UTIL,
+      "Processing MME UE ID: %d, ENB UE ID: %d, ENB ID: %d, ENB ID: %d",
+      ue_context_p->mme_ue_s1ap_id, ue_context_p->enb_ue_s1ap_id,
+      ue_context_p->e_utran_cgi.cell_identity.enb_id, enb_ref_p->enb_id);
+
+  send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_MME_APP, message_p);
   return false;
 }

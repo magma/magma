@@ -103,6 +103,7 @@ target_link_libraries(TASK_GRPC_SERVICE
     grpc++
     folly
     TASK_MME_APP
+    TASK_S1AP
     )
 target_include_directories(TASK_GRPC_SERVICE PUBLIC
     ${CMAKE_CURRENT_SOURCE_DIR}
