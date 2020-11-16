@@ -95,6 +95,12 @@ def tail_logs(client, args):
     for log_line in stream:
         print(log_line.line, end='')
 
+@grpc_wrapper
+def config_stateless(client, args):
+    check_cmd=magmad_pb2.StatelessConfig.CHECK
+    print("Check cmd", check_cmd)
+    response = client.ConfigureStateless(
+            magmad_pb2.StatelessConfig(config_cmd=check_cmd))
 
 def create_parser():
     """
@@ -126,6 +132,9 @@ def create_parser():
                                                    help='Execute generic command')
     parser_tail_logs = subparsers.add_parser('tail_logs',
                                              help='Tail logs')
+    parser_stateless = subparsers.add_parser('config_stateless',
+                                             help=\
+                                            'Check or change AGW stateless mode')
 
     parser_ping.add_argument('hosts', nargs='+', type=str,
                              help='Hosts (URLs or IPs) to ping')
@@ -156,6 +165,7 @@ def create_parser():
     parser_get_id.set_defaults(func=get_gateway_id)
     parser_generic_command.set_defaults(func=generic_command)
     parser_tail_logs.set_defaults(func=tail_logs)
+    parser_stateless.set_defaults(func=config_stateless)
     return parser
 
 

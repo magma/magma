@@ -12,6 +12,8 @@ limitations under the License.
 """
 import queue
 import signal
+import shlex
+import subprocess
 
 import grpc
 
@@ -253,6 +255,34 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                 yield magmad_pb2.LogLine(line=log_line)
             except queue.Empty:
                 pass
+
+    def ConfigureStateless(self, request, context):
+        """
+        Check or change the stateless mode on AGW, with one of the following:
+        check: Return whether AGW is stateful or stateless
+        enable: Modify AGW config to be stateless
+        disable: Modify AGW config to be stateful
+        """
+        config_cmd = \
+        magmad_pb2.StatelessConfig.ConfigCmd.Name(request.config_cmd).lower()
+        logging.info("RPC: config command %s", config_cmd)
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        sudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH"
+        command = magtivate_cmd + " && " + sudo_cmd + " python3 \
+                /usr/local/bin/config_stateless_agw.py " + config_cmd
+        param_list = shlex.split(command)
+        logging.info("Subprocess command %s", command)
+        if config_cmd == "check":
+            result = subprocess.check_output(param_list, shell=False)
+            # stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+            logging.info("Config_stateless_agw.py returned %d", result)
+        else:
+            result = subprocess.call(
+                param_list,
+                shell=False,
+                #stdout=subprocess.DEVNULL,
+                #stderr=subprocess.DEVNULL,
+            )
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):

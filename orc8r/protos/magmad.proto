@@ -93,6 +93,15 @@ message LogLine {
   string line = 1;
 }
 
+message StatelessConfig {
+  enum ConfigCmd {
+    CHECK = 0;
+    DISABLE = 1;
+    ENABLE = 2;
+  }
+  ConfigCmd config_cmd = 1;
+}
+
 // --------------------------------------------------------------------------
 // Magmad service definition.
 // --------------------------------------------------------------------------
@@ -127,4 +136,7 @@ service Magmad {
 
   // Get stream of logs
   rpc TailLogs (TailLogsRequest) returns (stream LogLine) {}
+
+  // Configure stateless mode
+  rpc ConfigureStateless (StatelessConfig) returns (Void) {}
 }
