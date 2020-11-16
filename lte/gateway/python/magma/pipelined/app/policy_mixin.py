@@ -358,7 +358,7 @@ class PolicyMixin(metaclass=ABCMeta):
         if self.proxy_controller:
             ue_ip = ipv4_address_to_str(ip_addr)
             ip_dst = get_flow_ip_dst(flow.match)
-            direction = get_direction_for_match(flows.match)
+            direction = get_direction_for_match(flow.match)
 
             proxy_msgs = self.proxy_controller.get_subscriber_he_flows(direction,
                                                                        ue_ip, uplink_tunnel,
