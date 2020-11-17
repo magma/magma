@@ -78,7 +78,8 @@ RUN apt-get -y update && apt-get -y install \
     libtool \
     libcap-ng-dev \
     linux-headers-generic \
-    netcat
+    netcat \
+    iputils-ping
 
 RUN python3.5 -m pip install \
     Cython \
