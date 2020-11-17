@@ -1246,7 +1246,11 @@ RulesToProcess SessionState::get_all_final_unit_rules() {
 void SessionState::handle_update_failure(
     const UpdateRequests& failed_requests,
     SessionStateUpdateCriteria& session_uc) {
-  MLOG(MINFO) << "Rolling back changes due to a failed update " << session_id_;
+  MLOG(MDEBUG) << "Rolling back changes due to failed updates ("
+               << failed_requests.charging_requests.size()
+               << " charging requests and "
+               << failed_requests.monitor_requests.size()
+               << " monitor requests) for " << session_id_;
   for (const auto& failed_charging : failed_requests.charging_requests) {
     const auto key = failed_charging.usage().charging_key();
     if (credit_map_.find(key) == credit_map_.end()) {

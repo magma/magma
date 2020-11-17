@@ -503,7 +503,7 @@ void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
       auto session_id = (*session)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         std::ostringstream failure_stream;
-        failure_stream << "Update Session failed due to response from OCS: "
+        failure_stream << "UpdateSession request to FeG/PolicyDB failed: "
                        << failure_reason;
         std::string failure_msg = failure_stream.str();
         MLOG(MERROR) << failure_msg;
