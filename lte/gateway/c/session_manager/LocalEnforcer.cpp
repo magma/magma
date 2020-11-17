@@ -15,6 +15,7 @@
 #include <time.h>
 #include <utility>
 #include <vector>
+#include <tuple>
 
 #include <google/protobuf/repeated_field.h>
 #include <google/protobuf/timestamp.pb.h>
@@ -38,13 +39,13 @@ using google::protobuf::util::TimeUtil;
 
 using namespace std::placeholders;
 
-// For command level result codes, we will mark the subscriber to be terminated
-// if the result code indicates a permanent failure.
-static void handle_command_level_result_code(
+static void handle_command_level_result_code_for_monitors(
     const std::string& imsi, const std::string& session_id,
     const uint32_t result_code,
     std::unordered_set<ImsiAndSessionID>& sessions_to_terminate);
+
 static bool is_valid_mac_address(const char* mac);
+
 static bool parse_apn(
     const std::string& apn, std::string& mac_addr, std::string& name);
 
@@ -1118,6 +1119,17 @@ void LocalEnforcer::init_session_credit(
         imsi, *session_state, response.revalidation_time(), _);
   }
 
+  // handle transient errors during first init
+  for (const auto& credit : response.credits()) {
+    // TODO this uc is not doing anything here, modify interface
+    if (!credit.success() &&
+        DiameterCodeHandler::is_transient_failure(credit.result_code())) {
+      auto uc = get_default_update_criteria();
+      remove_rules_for_suspended_credit(
+          session_state, credit.charging_key(), uc);
+    }
+  }
+
   auto it = session_map.find(imsi);
   if (it == session_map.end()) {
     // First time a session is created for IMSI
@@ -1125,6 +1137,7 @@ void LocalEnforcer::init_session_credit(
                  << session_id;
     session_map[imsi] = SessionVector();
   }
+
   events_reporter_->session_created(imsi, session_id, cfg, session_state);
   session_map[imsi].push_back(std::move(session_state));
 }
@@ -1266,10 +1279,88 @@ void LocalEnforcer::terminate_multiple_sessions(
   }
 }
 
+void LocalEnforcer::remove_rules_for_multiple_suspended_credit(
+    SessionMap& session_map,
+    std::unordered_set<
+        ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>&
+        suspended_credits,
+    SessionUpdate& session_update) {
+  for (const auto& suspended_credit : suspended_credits) {
+    const auto& imsi       = suspended_credit.imsi;
+    const auto& session_id = suspended_credit.session_id;
+    const CreditKey& ckey  = suspended_credit.cKey;
+
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MWARNING) << "Session " << session_id
+                     << " not found for termination";
+      return;
+    }
+    auto& session    = **session_it;
+    auto& session_uc = session_update[imsi][session_id];
+    remove_rules_for_suspended_credit(session, ckey, session_uc);
+  }
+}
+
+void LocalEnforcer::remove_rules_for_suspended_credit(
+    const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
+    SessionStateUpdateCriteria& session_uc) {
+  // suspend this specific credit
+  session->set_suspend_credit(ckey, true, session_uc);
+
+  // check if this is the last credit. That will trigger Final Unit Actions
+  session->suspend_service_if_needed_for_credit(ckey, session_uc);
+
+  // Remove pipelined rules
+  RulesToProcess rules_to_remove;
+  session->get_rules_per_credit_key(ckey, rules_to_remove);
+  auto imsi = session->get_config().common_context.sid().id();
+  propagate_rule_updates_to_pipelined(
+      imsi, session->get_config(), RulesToProcess{}, rules_to_remove, false);
+}
+
+void LocalEnforcer::add_rules_for_multiple_unsuspended_credit(
+    SessionMap& session_map,
+    std::unordered_set<
+        ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>&
+        unsuspended_credits,
+    SessionUpdate& session_update) {
+  for (const auto& suspended_credit : unsuspended_credits) {
+    const auto& imsi       = suspended_credit.imsi;
+    const auto& session_id = suspended_credit.session_id;
+    const CreditKey& ckey  = suspended_credit.cKey;
+
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MWARNING) << "Session " << session_id
+                     << " not found for termination";
+      return;
+    }
+    auto& session    = **session_it;
+    auto& session_uc = session_update[imsi][session_id];
+    add_rules_for_unsuspended_credit(session, ckey, session_uc);
+  }
+}
+
+void LocalEnforcer::add_rules_for_unsuspended_credit(
+    const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
+    SessionStateUpdateCriteria& session_uc) {
+  // unsuspend this credit
+  session->set_suspend_credit(ckey, false, session_uc);
+
+  //  add pipelined rules
+  RulesToProcess rules_to_add;
+  session->get_rules_per_credit_key(ckey, rules_to_add);
+  auto imsi = session->get_config().common_context.sid().id();
+  propagate_rule_updates_to_pipelined(
+      imsi, session->get_config(), rules_to_add, RulesToProcess{}, false);
+}
+
 void LocalEnforcer::update_charging_credits(
     SessionMap& session_map, const UpdateSessionResponse& response,
-    std::unordered_set<ImsiAndSessionID>& sessions_to_terminate,
-    SessionUpdate& session_update) {
+    UpdateChargingCreditActions& actions, SessionUpdate& session_update) {
   for (const auto& credit_update_resp : response.responses()) {
     const std::string& imsi       = credit_update_resp.sid();
     const std::string& session_id = credit_update_resp.session_id();
@@ -1281,13 +1372,16 @@ void LocalEnforcer::update_charging_credits(
                    << " during charging update for RG " << ckey;
       continue;
     }
-    auto& session = **session_it;
-    auto& uc      = session_update[imsi][session_id];
+    auto& session    = **session_it;
+    auto& uc         = session_update[imsi][session_id];
+    auto result_code = credit_update_resp.result_code();
 
-    if (!credit_update_resp.success()) {
-      handle_command_level_result_code(
-          imsi, session_id, credit_update_resp.result_code(),
-          sessions_to_terminate);
+    // handle permanent failure -> terminate
+    if (!credit_update_resp.success() &&
+        DiameterCodeHandler::is_permanent_failure(result_code)) {
+      MLOG(MERROR) << session_id << " Received permanent failure result code "
+                   << result_code << " during update" << session_id;
+      actions.sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
       continue;
     }
 
@@ -1298,9 +1392,34 @@ void LocalEnforcer::update_charging_credits(
     session->get_final_action_restrict_rules(credit_key, restrict_rules);
     bool is_final_action_state =
         session->is_credit_in_final_unit_state(credit_key);
-    session->receive_charging_credit(credit_update_resp, uc);
+    bool valid_credit =
+        session->receive_charging_credit(credit_update_resp, uc);
     session->set_tgpp_context(credit_update_resp.tgpp_ctx(), uc);
 
+    // handle suspended credits -> unsuspend
+    if (valid_credit && session->is_credit_suspended(credit_key)) {
+      actions.unsuspended_credits.insert(
+          ImsiSessionIDAndCreditkey{imsi, session_id, ckey});
+    }
+
+    // handle other failures
+    if (!credit_update_resp.success()) {
+      // handle transient failure -> suspend
+      if (DiameterCodeHandler::is_transient_failure(
+              credit_update_resp.result_code())) {
+        MLOG(MERROR) << session_id << " Received transient failure result code "
+                     << result_code << " during update" << session_id;
+        actions.suspended_credits.insert(
+            ImsiSessionIDAndCreditkey{imsi, session_id, ckey});
+      } else {
+        // TODO: deal with other error codes
+        MLOG(MERROR) << "Received Unimplemented result code " << result_code
+                     << " for " << session_id
+                     << " during update. Not action taken";
+      }
+    }
+
+    // TODO: move it to actions vector
     if (is_final_action_state) {
       // We need to cancel final unit action flows installed in pipelined here
       // following the reception of new charging credit.
@@ -1311,8 +1430,7 @@ void LocalEnforcer::update_charging_credits(
 
 void LocalEnforcer::update_monitoring_credits_and_rules(
     SessionMap& session_map, const UpdateSessionResponse& response,
-    std::unordered_set<ImsiAndSessionID>& sessions_to_terminate,
-    SessionUpdate& session_update) {
+    UpdateChargingCreditActions& actions, SessionUpdate& session_update) {
   // Since revalidation timer is session wide, we will only schedule one for
   // the entire session. The expectation is that if event triggers should be
   // included in all monitors or none.
@@ -1335,9 +1453,9 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     auto& uc      = session_update[imsi][session_id];
 
     if (!usage_monitor_resp.success()) {
-      handle_command_level_result_code(
+      handle_command_level_result_code_for_monitors(
           imsi, session_id, usage_monitor_resp.result_code(),
-          sessions_to_terminate);
+          actions.sessions_to_terminate);
       continue;
     }
 
@@ -1361,7 +1479,7 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
         imsi, config, rules_to_activate, rules_to_deactivate, false);
 
     if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
-      sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
+      actions.sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
     }
 
     auto imsi_and_session_id = ImsiAndSessionID(imsi, session_id);
@@ -1393,15 +1511,21 @@ void LocalEnforcer::update_session_credits_and_rules(
   // These subscribers will include any subscriber that received a permanent
   // diameter error code. Additionally, it will also include CWF sessions that
   // have run out of monitoring quota.
-  std::unordered_set<ImsiAndSessionID> sessions_to_terminate;
+  UpdateChargingCreditActions actions;
 
-  update_charging_credits(
-      session_map, response, sessions_to_terminate, session_update);
+  update_charging_credits(session_map, response, actions, session_update);
+
   update_monitoring_credits_and_rules(
-      session_map, response, sessions_to_terminate, session_update);
+      session_map, response, actions, session_update);
+
+  remove_rules_for_multiple_suspended_credit(
+      session_map, actions.suspended_credits, session_update);
+
+  add_rules_for_multiple_unsuspended_credit(
+      session_map, actions.unsuspended_credits, session_update);
 
   terminate_multiple_sessions(
-      session_map, sessions_to_terminate, session_update);
+      session_map, actions.sessions_to_terminate, session_update);
 }
 
 // handle_termination_from_access terminates the session that is
@@ -2080,24 +2204,21 @@ std::unique_ptr<Timezone> LocalEnforcer::compute_access_timezone() {
   return std::make_unique<Timezone>(timezone);
 }
 
-static void handle_command_level_result_code(
+static void handle_command_level_result_code_for_monitors(
     const std::string& imsi, const std::string& session_id,
     const uint32_t result_code,
     std::unordered_set<ImsiAndSessionID>& sessions_to_terminate) {
   if (DiameterCodeHandler::is_permanent_failure(result_code)) {
     MLOG(MERROR) << session_id << " Received permanent failure result code "
-                 << result_code << " during update. Terminating session "
-                 << session_id;
+                 << result_code << " during update" << session_id;
     sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
     return;
   }
 
-  if (DiameterCodeHandler::is_terminator_failure(result_code)) {
-    MLOG(MERROR) << session_id << " Received failure result code "
-                 << result_code << " during update. Terminating session "
-                 << session_id;
-    sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
-    return;
+  if (DiameterCodeHandler::is_transient_failure(result_code)) {
+    MLOG(MERROR) << session_id << " Received transient failure result code "
+                 << result_code << " during update" << session_id
+                 << " Not action taken";
   }
 
   // TODO: deal with other error codes
