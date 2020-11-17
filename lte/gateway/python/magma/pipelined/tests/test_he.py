@@ -20,8 +20,12 @@ from lte.protos.mconfig.mconfigs_pb2 import PipelineD
 from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.app.he import HeaderEnrichmentController
+from magma.pipelined.app.enforcement import EnforcementController
+from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule, \
+    HeaderEnrichment
 
 from magma.pipelined.bridge_util import BridgeTools
+from magma.pipelined.tests.app.subscriber import RyuDirectSubscriberContext
 
 from magma.pipelined.tests.app.start_pipelined import TestSetup, \
     PipelinedController
@@ -30,10 +34,17 @@ from magma.pipelined.tests.pipelined_test_util import start_ryu_app_thread, \
     SnapshotVerifier
 from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 
+from magma.pipelined.tests.app.table_isolation import RyuDirectTableIsolator, \
+    RyuForwardFlowArgsBuilder
+
 from magma.pipelined.openflow.messages import MessageHub
 from magma.pipelined.openflow.messages import MsgChannel
 from magma.pipelined.app import he
 from magma.pipelined.openflow.registers import Direction
+from magma.pipelined.policy_converters import convert_ipv4_str_to_ip_proto
+
+from magma.pipelined.tests.pipelined_test_util import fake_controller_setup
+
 
 def mocked_activate_he_urls_for_ue(ip: IPAddress, urls: List[str], imsi: str, msisdn: str):
     return True
@@ -41,10 +52,6 @@ def mocked_activate_he_urls_for_ue(ip: IPAddress, urls: List[str], imsi: str, ms
 
 def mocked_deactivate_he_urls_for_ue(ip: IPAddress):
     pass
-
-
-def _pkt_total(stats):
-    return sum(n.packets for n in stats)
 
 
 class HeTableTest(unittest.TestCase):
@@ -321,6 +328,127 @@ class HeTableTest(unittest.TestCase):
             pass
         # verify multiple remove works.
         cls.he_controller.remove_subscriber_he_flows(convert_ip_str_to_ip_proto(ue_ip2))
+
+
+class EnforcementTableHeTest(unittest.TestCase):
+    BRIDGE = 'testing_br'
+    IFACE = 'testing_br'
+    MAC_DEST = "5e:cc:cc:b1:49:4b"
+    he_controller_reference = Future()
+    VETH = 'tveth1'
+    VETH_NS = 'tveth1_ns'
+    PROXY_PORT = '16'
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Starts the thread which launches ryu apps
+
+        Create a testing bridge, add a port, setup the port interfaces. Then
+        launch the ryu apps for testing pipelined. Gets the references
+        to apps launched by using futures, mocks the redis policy_dictionary
+        of enforcement_controller
+        """
+        super(EnforcementTableHeTest, cls).setUpClass()
+        warnings.simplefilter('ignore')
+        cls._static_rule_dict = {}
+        cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT], ['proxy'])
+        cls._tbl_num = cls.service_manager.get_table_num(
+            EnforcementController.APP_NAME)
+        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+
+        BridgeTools.create_veth_pair(cls.VETH, cls.VETH_NS)
+        BridgeTools.add_ovs_port(cls.BRIDGE, cls.VETH, cls.PROXY_PORT)
+
+        enforcement_controller_reference = Future()
+        testing_controller_reference = Future()
+        he.activate_he_urls_for_ue = mocked_activate_he_urls_for_ue
+        he.deactivate_he_urls_for_ue = mocked_deactivate_he_urls_for_ue
+
+        test_setup = TestSetup(
+            apps=[PipelinedController.Enforcement,
+                  PipelinedController.HeaderEnrichment,
+                  PipelinedController.Testing,
+                  PipelinedController.StartupFlows],
+            references={
+                PipelinedController.Enforcement:
+                    enforcement_controller_reference,
+                PipelinedController.HeaderEnrichment:
+                    cls.he_controller_reference,
+                PipelinedController.Testing:
+                    testing_controller_reference,
+                PipelinedController.StartupFlows:
+                    Future(),
+            },
+            config={
+                'bridge_name': cls.BRIDGE,
+                'bridge_ip_address': '192.168.128.1',
+                'nat_iface': 'eth2',
+                'enodeb_iface': 'eth1',
+                'qos': {'enable': False},
+                'clean_restart': True,
+                'uplink_port': 20,
+                'proxy_port_name': cls.VETH,
+                'enable_nat': True,
+                'ovs_gtp_port_number': 10,
+            },
+            mconfig=PipelineD(),
+            loop=None,
+            service_manager=cls.service_manager,
+            integ_test=False
+        )
+
+        cls.thread = start_ryu_app_thread(test_setup)
+
+        cls.enforcement_controller = enforcement_controller_reference.result()
+        cls.testing_controller = testing_controller_reference.result()
+
+        cls.enforcement_controller._policy_dict = cls._static_rule_dict
+
+    @classmethod
+    def tearDownClass(cls):
+        stop_ryu_app_thread(cls.thread)
+        BridgeTools.destroy_bridge(cls.BRIDGE)
+
+    def test_subscriber_policy_with_he(self):
+        """
+        Add policy to subscriber with HE config
+
+        """
+        cls = self.__class__
+
+        fake_controller_setup(self.enforcement_controller)
+
+        imsi = 'IMSI010000000088888'
+        sub_ip = '192.168.128.74'
+        flow_list1 = [FlowDescription(
+            match=FlowMatch(
+                ip_dst=convert_ipv4_str_to_ip_proto('45.10.0.0/24'),
+                direction=FlowMatch.UPLINK),
+            action=FlowDescription.PERMIT)
+        ]
+        he = HeaderEnrichment(urls=['abc.com'])
+        policies = [
+            PolicyRule(id='simple_match', priority=2, flow_list=flow_list1, he=he)
+        ]
+
+        self._static_rule_dict[policies[0].id] = policies[0]
+
+        # ============================ Subscriber ============================
+        sub_context = RyuDirectSubscriberContext(
+            imsi, sub_ip, self.enforcement_controller, self._tbl_num
+        ).add_static_rule(policies[0].id)
+
+        isolator = RyuDirectTableIsolator(
+            RyuForwardFlowArgsBuilder.from_subscriber(sub_context.cfg)
+                .build_requests(),
+            self.testing_controller
+        )
+        snapshot_verifier = SnapshotVerifier(self,
+                                             self.BRIDGE,
+                                             self.service_manager)
+        with isolator, sub_context, snapshot_verifier:
+            pass
 
 
 if __name__ == "__main__":

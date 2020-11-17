@@ -148,12 +148,12 @@ class HeaderEnrichmentController(MagmaController):
 
         dp = self._datapath
         parser = dp.ofproto_parser
-
+        tunnel_id = 0
         try:
-            tunnel_id = int(uplink_tunnel)
+            if uplink_tunnel:
+                tunnel_id = int(uplink_tunnel)
         except ValueError:
             self.logger.error("parsing tunnel id: [%s], HE might not work in every case", uplink_tunnel)
-            tunnel_id = 0
 
         if urls is None or len(urls) == 0:
             return []
