@@ -185,6 +185,7 @@ def _get_context():
     context["ipv4_dns"] = _get_primary_dns_ip(mme_service_config, 'dns_iface_name')
     context["ipv4_sec_dns"] = _get_secondary_dns_ip(mme_service_config)
     context["ipv4_p_cscf_address"] = _get_ipv4_pcscf_ip(mme_service_config)
+    context["ipv6_dns"] = _get_ipv6_dns_ip(mme_service_config)
     context["ipv6_p_cscf_address"] = _get_ipv6_pcscf_ip(mme_service_config)
     context["identity"] = _get_identity()
     context["relay_enabled"] = _get_relay_enabled(mme_service_config)
