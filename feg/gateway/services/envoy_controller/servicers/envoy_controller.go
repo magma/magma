@@ -17,15 +17,15 @@ package servicers
 import (
 	"magma/feg/cloud/go/protos"
 	"magma/feg/gateway/services/envoy_controller/control_plane"
-	lte_proto "magma/lte/cloud/go/protos"
+	//lte_proto "magma/lte/cloud/go/protos"
 
 	"github.com/golang/glog"
 	"golang.org/x/net/context"
 )
 
 type envoyControllerService struct {
-	ue_infos       []*protos.AddUEHeaderEnrichmentRequest
-	controller_cli control_plane.EnvoyController
+	ueInfos       map[string]map[string]*control_plane.UEInfo
+	controllerCli control_plane.EnvoyController
 }
 
 // AddUEHeaderEnrichment adds the UE to the current header enrichment list, if UE is already in the list replaces the he information for that UE
@@ -35,10 +35,36 @@ func (s *envoyControllerService) AddUEHeaderEnrichment(
 ) (*protos.AddUEHeaderEnrichmentResult, error) {
 	glog.Infof("AddUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
 	glog.Infof("req %s", (req))
-	s.ue_infos = add_to_list(s.ue_infos, req)
-	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
-	return &protos.AddUEHeaderEnrichmentResult{}, nil
+	ueIp := string(req.UeIp.Address)
+
+	if _, ok := s.ueInfos[ueIp]; !ok {
+		s.ueInfos[ueIp] = map[string]*control_plane.UEInfo{}
+	} else {
+		if _, ok := s.ueInfos[ueIp][req.RuleId]; ok {
+			return &protos.AddUEHeaderEnrichmentResult{Result: protos.AddUEHeaderEnrichmentResult_RULE_ID_CONFLICT}, nil
+		}
+	}
+
+	// Loop over other rules, check if there is a conflict with the Websites (2 identical Websites will cause an envoy deadloop)
+	for _, ue_info := range s.ueInfos[ueIp] {
+		for _, new_website := range req.Websites {
+			for _, existing_website := range ue_info.Websites {
+				if existing_website == new_website {
+					return &protos.AddUEHeaderEnrichmentResult{Result: protos.AddUEHeaderEnrichmentResult_IP_CONFLICT}, nil
+				}
+			}
+		}
+	}
+
+	s.ueInfos[ueIp][req.RuleId] = &control_plane.UEInfo{
+		Websites: req.Websites,
+		Headers:  req.Headers,
+	}
+
+	s.controllerCli.UpdateSnapshot(s.ueInfos)
+
+	return &protos.AddUEHeaderEnrichmentResult{Result: protos.AddUEHeaderEnrichmentResult_SUCCESS}, nil
 }
 
 // DeactivateUEHeaderEnrichment deactivates/removes the UE from the current header enrichment list
@@ -48,34 +74,28 @@ func (s *envoyControllerService) DeactivateUEHeaderEnrichment(
 ) (*protos.DeactivateUEHeaderEnrichmentResult, error) {
 	glog.Infof("DeactivateUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
 	glog.Infof("req %s", (req))
-	s.ue_infos = remove_from_list(s.ue_infos, req.UeIp)
-	s.controller_cli.UpdateSnapshot(s.ue_infos)
 
-	return &protos.DeactivateUEHeaderEnrichmentResult{}, nil
+	ueIp := string(req.UeIp.Address)
+	if _, ok := s.ueInfos[ueIp]; !ok {
+		return &protos.DeactivateUEHeaderEnrichmentResult{Result: protos.DeactivateUEHeaderEnrichmentResult_UE_NOT_FOUND}, nil
+	}
+	if req.RuleId != "" {
+		if _, ok := s.ueInfos[ueIp][req.RuleId]; !ok {
+			return &protos.DeactivateUEHeaderEnrichmentResult{Result: protos.DeactivateUEHeaderEnrichmentResult_RULE_NOT_FOUND}, nil
+		}
+		delete(s.ueInfos[ueIp], req.RuleId)
+		if len(s.ueInfos[ueIp]) == 0 {
+			delete(s.ueInfos, ueIp)
+		}
+	} else {
+		delete(s.ueInfos, ueIp)
+	}
+	s.controllerCli.UpdateSnapshot(s.ueInfos)
+
+	return &protos.DeactivateUEHeaderEnrichmentResult{Result: protos.DeactivateUEHeaderEnrichmentResult_SUCCESS}, nil
 }
 
 // NewenvoyControllerService returns a new EnvoyController service
-func NewEnvoyControllerService(controller_cli control_plane.EnvoyController) protos.EnvoyControllerServer {
-	return &envoyControllerService{controller_cli: controller_cli}
-}
-
-func remove_from_list(l []*protos.AddUEHeaderEnrichmentRequest, ip *lte_proto.IPAddress) []*protos.AddUEHeaderEnrichmentRequest {
-	for i, other := range l {
-		if string(other.UeIp.Address) == string(ip.Address) {
-			return append(l[:i], l[i+1:]...)
-		}
-	}
-	return l
-}
-
-func add_to_list(l []*protos.AddUEHeaderEnrichmentRequest, new *protos.AddUEHeaderEnrichmentRequest) []*protos.AddUEHeaderEnrichmentRequest {
-	for i, other := range l {
-		if string(other.UeIp.Address) == string(new.UeIp.Address) {
-			// Overwrite duplicate UE
-			ret := append(l[:i], l[i+1:]...)
-			return append(ret, new)
-		}
-	}
-	l = append(l, new)
-	return l
+func NewEnvoyControllerService(controllerCli control_plane.EnvoyController) protos.EnvoyControllerServer {
+	return &envoyControllerService{ueInfos: map[string]map[string]*control_plane.UEInfo{}, controllerCli: controllerCli}
 }

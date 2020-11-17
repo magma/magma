@@ -11,7 +11,6 @@ import (
 	"time"
 
 	"magma/feg/cloud/go/protos"
-	lte_proto "magma/lte/cloud/go/protos"
 
 	v2 "github.com/envoyproxy/go-control-plane/envoy/api/v2"
 	core "github.com/envoyproxy/go-control-plane/envoy/api/v2/core"
@@ -55,7 +54,12 @@ const (
 )
 
 type EnvoyController interface {
-	UpdateSnapshot([]*protos.AddUEHeaderEnrichmentRequest)
+	UpdateSnapshot(map[string]map[string]*UEInfo)
+}
+
+type UEInfo struct {
+	Websites []string
+	Headers  []*protos.Header
 }
 
 type ControllerClient struct {
@@ -254,25 +258,31 @@ func getVirtualHost(virtualHostName string, domains []string, requestHeadersToAd
 	}
 }
 
-func getUEFilterChains(ues []*protos.AddUEHeaderEnrichmentRequest) ([]*listener.FilterChain, error) {
-	filterChains := []*listener.FilterChain{}
-	for _, req := range ues {
-		var ue_ip_addr = string(req.UeIp.Address)
-		requestHeadersToAdd := []*core.HeaderValueOption{}
-		glog.Infof("Adding UE - " + ue_ip_addr)
+func getHeadersToAdd(ueInfo *UEInfo) []*core.HeaderValueOption {
+	requestHeadersToAdd := []*core.HeaderValueOption{}
+	for _, header := range ueInfo.Headers {
+		headerValueOption := &core.HeaderValueOption{
+			Header: &core.HeaderValue{
+				Key:   header.Name,
+				Value: header.Value,
+			},
+		}
+		requestHeadersToAdd = append(requestHeadersToAdd, headerValueOption)
+	}
+	return requestHeadersToAdd
+}
 
-		for _, header := range req.Headers {
-			headerValueOption := &core.HeaderValueOption{
-				Header: &core.HeaderValue{
-					Key:   header.Name,
-					Value: header.Value,
-				},
-			}
-			requestHeadersToAdd = append(requestHeadersToAdd, headerValueOption)
+func getUEFilterChains(ues map[string]map[string]*UEInfo) ([]*listener.FilterChain, error) {
+	filterChains := []*listener.FilterChain{}
+	for ue_ip_addr, rule_map := range ues {
+		glog.Infof("Adding UE - " + ue_ip_addr)
+		virtualHosts := []*v2route.VirtualHost{getVirtualHost(virtualHostName, []string{"*"}, []*core.HeaderValueOption{})}
+
+		for _, ueInfo := range rule_map {
+			requestHeadersToAdd := getHeadersToAdd(ueInfo)
+			virtualHosts = append(virtualHosts, getVirtualHost(virtualHostName, ueInfo.Websites, requestHeadersToAdd))
 		}
 
-	    virtualHosts := []*v2route.VirtualHost{getVirtualHost(virtualHostName, []string{"*"}, []*core.HeaderValueOption{})}
-		virtualHosts = append(virtualHosts, getVirtualHost(virtualHostName, req.Websites, requestHeadersToAdd))
 		pbst, err := ptypes.MarshalAny(getHttpConnectionManager(routeConfigName, virtualHosts))
 		if err != nil {
 			glog.Errorf("Couldn't marshal UE HTTP connection manager")
@@ -293,13 +303,14 @@ func getUEFilterChains(ues []*protos.AddUEHeaderEnrichmentRequest) ([]*listener.
 			FilterChainMatch: filterChainMatch,
 			Filters:          filters,
 		})
-	    glog.Infof("Returning virtual hosts %s", virtualHosts)
+		glog.Infof("Returning virtual hosts %s", virtualHosts)
+
 	}
 
 	return filterChains, nil
 }
 
-func getListener(ues []*protos.AddUEHeaderEnrichmentRequest) ([]cache.Resource, error) {
+func GetListener(ues map[string]map[string]*UEInfo) (*v2.Listener, error) {
 	glog.Infof("Creating listener " + listenerName)
 	filterChains, err := getUEFilterChains(ues)
 	if err != nil {
@@ -334,32 +345,28 @@ func getListener(ues []*protos.AddUEHeaderEnrichmentRequest) ([]cache.Resource, 
 		},
 	}
 
-	var listener = []cache.Resource{
-		&v2.Listener{
-			Name:            listenerName,
-			Transparent:     &wrappers.BoolValue{Value: true},
-			Address:         address,
-			FilterChains:    filterChains,
-			ListenerFilters: listenerFilters,
-		}}
+	var listener = &v2.Listener{
+		Name:            listenerName,
+		Transparent:     &wrappers.BoolValue{Value: true},
+		Address:         address,
+		FilterChains:    filterChains,
+		ListenerFilters: listenerFilters,
+	}
 
-	glog.Infof("Returning listener %s", listener[0])
+	glog.Infof("Returning listener %s", listener)
 	return listener, nil
 }
 
-func getDefaultReq() []*protos.AddUEHeaderEnrichmentRequest {
-	return []*protos.AddUEHeaderEnrichmentRequest{{
-        UeIp: &lte_proto.IPAddress{
-            Version: lte_proto.IPAddress_IPV4,
-            Address: []byte("0.0.0.0"),
-        },
-        Websites: []string{"0.0.0.0"},
-        Headers: []*protos.Header{},
-    }}
+func getDefaultReq() map[string]map[string]*UEInfo {
+	ret := map[string]map[string]*UEInfo{}
+	ret["0.0.0.0"] = map[string]*UEInfo{}
+	ret["0.0.0.0"]["default"] = &UEInfo{
+		Websites: []string{"0.0.0.0"},
+	}
+	return ret
 }
 
-func (cli *ControllerClient) UpdateSnapshot(ues []*protos.AddUEHeaderEnrichmentRequest) {
-	glog.Infof("Updating Snapshot foe UEs %s", ues)
+func (cli *ControllerClient) UpdateSnapshot(ues map[string]map[string]*UEInfo) {
 	cluster := []cache.Resource{
 		&v2.Cluster{
 			Name:                 clusterName,
@@ -370,17 +377,19 @@ func (cli *ControllerClient) UpdateSnapshot(ues []*protos.AddUEHeaderEnrichmentR
 	}
 
 	if len(ues) == 0 {
-        ues = getDefaultReq()
+		ues = getDefaultReq()
 	}
-	listener, err := getListener(ues)
-	if (err != nil) {
-	    glog.Errorf("Get Listener error %s", err)
-	    return
+	listener, err := GetListener(ues)
+	listener_resource := []cache.Resource{listener}
+
+	if err != nil {
+		glog.Errorf("Get Listener error %s", err)
+		return
 	}
 	nodeId := cli.config.GetStatusKeys()[0]
 
 	atomic.AddInt32(&cli.version, 1)
 	glog.Infof("Saved snapshot version " + fmt.Sprint(cli.version))
-	snap := cache.NewSnapshot(fmt.Sprint(cli.version), nil, cluster, nil, listener, nil)
+	snap := cache.NewSnapshot(fmt.Sprint(cli.version), nil, cluster, nil, listener_resource, nil)
 	cli.config.SetSnapshot(nodeId, snap)
 }
