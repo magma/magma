@@ -24,7 +24,7 @@ import (
 )
 
 type envoyControllerService struct {
-	ueInfos       map[string]map[string]*control_plane.UEInfo
+	ueInfos       control_plane.UEInfoMap
 	controllerCli control_plane.EnvoyController
 }
 
@@ -34,7 +34,7 @@ func (s *envoyControllerService) AddUEHeaderEnrichment(
 	req *protos.AddUEHeaderEnrichmentRequest,
 ) (*protos.AddUEHeaderEnrichmentResult, error) {
 	glog.Infof("AddUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
-	glog.Infof("req %s", (req))
+	glog.V(2).Infof("req %s", req)
 
 	ueIp := string(req.UeIp.Address)
 
@@ -51,7 +51,7 @@ func (s *envoyControllerService) AddUEHeaderEnrichment(
 		for _, new_website := range req.Websites {
 			for _, existing_website := range ue_info.Websites {
 				if existing_website == new_website {
-					return &protos.AddUEHeaderEnrichmentResult{Result: protos.AddUEHeaderEnrichmentResult_IP_CONFLICT}, nil
+					return &protos.AddUEHeaderEnrichmentResult{Result: protos.AddUEHeaderEnrichmentResult_WEBSITE_CONFLICT}, nil
 				}
 			}
 		}
@@ -73,7 +73,7 @@ func (s *envoyControllerService) DeactivateUEHeaderEnrichment(
 	req *protos.DeactivateUEHeaderEnrichmentRequest,
 ) (*protos.DeactivateUEHeaderEnrichmentResult, error) {
 	glog.Infof("DeactivateUEHeaderEnrichmentResult received for IP %s", req.UeIp.Address)
-	glog.Infof("req %s", (req))
+	glog.V(2).Infof("req %s", (req))
 
 	ueIp := string(req.UeIp.Address)
 	if _, ok := s.ueInfos[ueIp]; !ok {
@@ -97,5 +97,5 @@ func (s *envoyControllerService) DeactivateUEHeaderEnrichment(
 
 // NewenvoyControllerService returns a new EnvoyController service
 func NewEnvoyControllerService(controllerCli control_plane.EnvoyController) protos.EnvoyControllerServer {
-	return &envoyControllerService{ueInfos: map[string]map[string]*control_plane.UEInfo{}, controllerCli: controllerCli}
+	return &envoyControllerService{ueInfos: control_plane.UEInfoMap{}, controllerCli: controllerCli}
 }

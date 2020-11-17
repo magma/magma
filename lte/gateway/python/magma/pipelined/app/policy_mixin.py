@@ -237,9 +237,11 @@ class PolicyMixin(metaclass=ABCMeta):
             dynamic_rule_results=dyn_results,
         )
 
-    def _remove_he_flows(self, ip_addr: IPAddress, rule_id:int = -1):
+    def _remove_he_flows(self, ip_addr: IPAddress, rule_id: str = "",
+                         rule_num: int = -1):
         if self.proxy_controller:
-            self.proxy_controller.remove_subscriber_he_flows(ip_addr, rule_id)
+            self.proxy_controller.remove_subscriber_he_flows(ip_addr, rule_id,
+                                                             rule_num)
 
     def _install_flow_for_static_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule_id):
         """
@@ -360,11 +362,9 @@ class PolicyMixin(metaclass=ABCMeta):
             ip_dst = get_flow_ip_dst(flow.match)
             direction = get_direction_for_match(flow.match)
 
-            proxy_msgs = self.proxy_controller.get_subscriber_he_flows(direction,
-                                                                       ue_ip, uplink_tunnel,
-                                                                       ip_dst,
-                                                                       rule_num,
-                                                                       urls, imsi, msisdn)
+            proxy_msgs = self.proxy_controller.get_subscriber_he_flows(
+                rule_id, direction, ue_ip, uplink_tunnel, ip_dst, rule_num,
+                urls, imsi, msisdn)
             msgs.extend(proxy_msgs)
         return msgs
 

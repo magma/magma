@@ -14,6 +14,6 @@ type EnvoyController struct {
 }
 
 // UpdateSnapshot provides a mock function with given fields: _a0
-func (_m *EnvoyController) UpdateSnapshot(_a0 map[string]map[string]*control_plane.UEInfo) {
+func (_m *EnvoyController) UpdateSnapshot(_a0 control_plane.UEInfoMap) {
 	_m.Called(_a0)
 }

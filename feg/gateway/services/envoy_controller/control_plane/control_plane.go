@@ -54,13 +54,15 @@ const (
 )
 
 type EnvoyController interface {
-	UpdateSnapshot(map[string]map[string]*UEInfo)
+	UpdateSnapshot(UEInfoMap)
 }
 
 type UEInfo struct {
 	Websites []string
 	Headers  []*protos.Header
 }
+
+type UEInfoMap map[string]map[string]*UEInfo
 
 type ControllerClient struct {
 	version int32
@@ -80,20 +82,20 @@ type Hasher struct{}
 func (cb *callbacks) Report() {
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
-	glog.Infof("cb.Report() fetches %d,  callbacks %d", cb.fetches, cb.requests)
+	glog.V(2).Infof("cb.Report() fetches %d,  callbacks %d", cb.fetches, cb.requests)
 }
 
 func (cb *callbacks) OnStreamOpen(ctx context.Context, id int64, typ string) error {
-	glog.Infof("OnStreamOpen %d open for %s", id, typ)
+	glog.V(2).Infof("OnStreamOpen %d open for %s", id, typ)
 	return nil
 }
 
 func (cb *callbacks) OnStreamClosed(id int64) {
-	glog.Infof("OnStreamClosed %d closed", id)
+	glog.V(2).Infof("OnStreamClosed %d closed", id)
 }
 
 func (cb *callbacks) OnStreamRequest(int64, *v2.DiscoveryRequest) error {
-	glog.Infof("OnStreamRequest")
+	glog.V(2).Infof("OnStreamRequest")
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
 	cb.requests++
@@ -104,11 +106,11 @@ func (cb *callbacks) OnStreamRequest(int64, *v2.DiscoveryRequest) error {
 	return nil
 }
 func (cb *callbacks) OnStreamResponse(int64, *v2.DiscoveryRequest, *v2.DiscoveryResponse) {
-	glog.Infof("OnStreamResponse...")
+	glog.V(2).Infof("OnStreamResponse...")
 	cb.Report()
 }
 func (cb *callbacks) OnFetchRequest(ctx context.Context, req *v2.DiscoveryRequest) error {
-	glog.Infof("OnFetchRequest...")
+	glog.V(2).Infof("OnFetchRequest...")
 	cb.mu.Lock()
 	defer cb.mu.Unlock()
 	cb.fetches++
@@ -272,10 +274,10 @@ func getHeadersToAdd(ueInfo *UEInfo) []*core.HeaderValueOption {
 	return requestHeadersToAdd
 }
 
-func getUEFilterChains(ues map[string]map[string]*UEInfo) ([]*listener.FilterChain, error) {
+func getUEFilterChains(ues UEInfoMap) ([]*listener.FilterChain, error) {
 	filterChains := []*listener.FilterChain{}
 	for ue_ip_addr, rule_map := range ues {
-		glog.Infof("Adding UE - " + ue_ip_addr)
+		glog.V(2).Infof("Adding UE - " + ue_ip_addr)
 		virtualHosts := []*v2route.VirtualHost{getVirtualHost(virtualHostName, []string{"*"}, []*core.HeaderValueOption{})}
 
 		for _, ueInfo := range rule_map {
@@ -303,15 +305,15 @@ func getUEFilterChains(ues map[string]map[string]*UEInfo) ([]*listener.FilterCha
 			FilterChainMatch: filterChainMatch,
 			Filters:          filters,
 		})
-		glog.Infof("Returning virtual hosts %s", virtualHosts)
+		glog.V(2).Infof("Returning virtual hosts %s", virtualHosts)
 
 	}
 
 	return filterChains, nil
 }
 
-func GetListener(ues map[string]map[string]*UEInfo) (*v2.Listener, error) {
-	glog.Infof("Creating listener " + listenerName)
+func GetListener(ues UEInfoMap) (*v2.Listener, error) {
+	glog.V(2).Infof("Creating listener " + listenerName)
 	filterChains, err := getUEFilterChains(ues)
 	if err != nil {
 		return nil, err
@@ -353,12 +355,12 @@ func GetListener(ues map[string]map[string]*UEInfo) (*v2.Listener, error) {
 		ListenerFilters: listenerFilters,
 	}
 
-	glog.Infof("Returning listener %s", listener)
+	glog.V(2).Infof("Returning listener %s", listener)
 	return listener, nil
 }
 
-func getDefaultReq() map[string]map[string]*UEInfo {
-	ret := map[string]map[string]*UEInfo{}
+func getDefaultReq() UEInfoMap {
+	ret := UEInfoMap{}
 	ret["0.0.0.0"] = map[string]*UEInfo{}
 	ret["0.0.0.0"]["default"] = &UEInfo{
 		Websites: []string{"0.0.0.0"},
@@ -366,7 +368,7 @@ func getDefaultReq() map[string]map[string]*UEInfo {
 	return ret
 }
 
-func (cli *ControllerClient) UpdateSnapshot(ues map[string]map[string]*UEInfo) {
+func (cli *ControllerClient) UpdateSnapshot(ues UEInfoMap) {
 	cluster := []cache.Resource{
 		&v2.Cluster{
 			Name:                 clusterName,

@@ -278,7 +278,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._redirect_manager.deactivate_flow_for_rule(self._datapath, imsi,
                                                         num)
         self._qos_mgr.remove_subscriber_qos(imsi, num)
-        self._remove_he_flows(ip_addr, num)
+        self._remove_he_flows(ip_addr, rule_id, num)
 
     def _deactivate_flows_for_subscriber(self, imsi, ip_addr):
         """ Deactivate all rules for specified subscriber session """

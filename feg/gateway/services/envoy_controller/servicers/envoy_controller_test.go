@@ -129,17 +129,17 @@ var (
 					Value: "THIS_IS_MSISDN",
 				}},
 		}}
-	emptyDict = map[string]map[string]*control_plane.UEInfo{}
-	ue1Dict   = map[string]map[string]*control_plane.UEInfo{
+	emptyDict = control_plane.UEInfoMap{}
+	ue1Dict   = control_plane.UEInfoMap{
 		UEIP1: ue1Entry,
 	}
-	ue1Rule12Dict = map[string]map[string]*control_plane.UEInfo{
+	ue1Rule12Dict = control_plane.UEInfoMap{
 		UEIP1: ue1EntryRule12,
 	}
-	ue_2_dict = map[string]map[string]*control_plane.UEInfo{
+	ue_2_dict = control_plane.UEInfoMap{
 		UEIP2: ue2Entry,
 	}
-	ue12Dict = map[string]map[string]*control_plane.UEInfo{
+	ue12Dict = control_plane.UEInfoMap{
 		UEIP1: ue1Entry,
 		UEIP2: ue2Entry,
 	}
@@ -416,7 +416,7 @@ func TestInvalidAdd(t *testing.T) {
 	assert.Equal(t, ret, rule_id_conflict, "Can't insert duplicate rule")
 
 	ret, err = srv.AddUEHeaderEnrichment(ctx, addUe1Rule3Conflict)
-	ip_conflict := &protos.AddUEHeaderEnrichmentResult{Result: protos.AddUEHeaderEnrichmentResult_IP_CONFLICT}
+	ip_conflict := &protos.AddUEHeaderEnrichmentResult{Result: protos.AddUEHeaderEnrichmentResult_WEBSITE_CONFLICT}
 	assert.Equal(t, ret, ip_conflict, "Can't insert rule that will cause website collison")
 
 	assert.NoError(t, err)

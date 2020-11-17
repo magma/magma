@@ -32,7 +32,7 @@ message AddUEHeaderEnrichmentRequest {
 message AddUEHeaderEnrichmentResult {
   enum Result {
     SUCCESS = 0;
-    IP_CONFLICT = 1;
+    WEBSITE_CONFLICT = 1;
     RULE_ID_CONFLICT = 2;
     FAILURE = 3;
   }

@@ -35,11 +35,11 @@ from magma.pipelined.openflow.messages import MsgChannel
 from magma.pipelined.app import he
 from magma.pipelined.openflow.registers import Direction
 
-def mocked_activate_he_urls_for_ue(ip: IPAddress, urls: List[str], imsi: str, msisdn: str):
+def mocked_activate_he_urls_for_ue(ip: IPAddress, rule_id: str, urls: List[str], imsi: str, msisdn: str):
     return True
 
 
-def mocked_deactivate_he_urls_for_ue(ip: IPAddress):
+def mocked_deactivate_he_urls_for_ue(ip: IPAddress, rule_id: str):
     pass
 
 
@@ -171,7 +171,7 @@ class HeTableTest(unittest.TestCase):
         ue_ip = '1.1.1.1'
         tun_id = 1
         dest_server = '2.2.2.2'
-        flow_msg = cls.he_controller.get_subscriber_he_flows(Direction.OUT, ue_ip, tun_id, dest_server, 123,
+        flow_msg = cls.he_controller.get_subscriber_he_flows("rule1", Direction.OUT, ue_ip, tun_id, dest_server, 123,
                                                              ['abc.com'], 'IMSI01', b'1')
         chan = self._msg_hub.send(flow_msg,
                                   HeTableTest.he_controller._datapath, )
@@ -196,7 +196,7 @@ class HeTableTest(unittest.TestCase):
         ue_ip = '1.1.1.1'
         tun_id = 1
         dest_server = '2.2.2.2'
-        flow_msg = cls.he_controller.get_subscriber_he_flows(Direction.IN, ue_ip, tun_id, dest_server, 123,
+        flow_msg = cls.he_controller.get_subscriber_he_flows("rule1", Direction.IN, ue_ip, tun_id, dest_server, 123,
                                                              ['abc.com'], 'IMSI01', b'1')
         chan = self._msg_hub.send(flow_msg,
                                   HeTableTest.he_controller._datapath, )
@@ -222,14 +222,14 @@ class HeTableTest(unittest.TestCase):
         tun_id1 = 1
         dest_server1 = '2.2.2.4'
         rule1 = 123
-        flow_msg = cls.he_controller.get_subscriber_he_flows(Direction.OUT, ue_ip1, tun_id1, dest_server1, rule1,
+        flow_msg = cls.he_controller.get_subscriber_he_flows("rule1", Direction.OUT, ue_ip1, tun_id1, dest_server1, rule1,
                                                              ['abc.com'], 'IMSI01', b'1')
 
         ue_ip2 = '10.10.10.20'
         tun_id2 = 2
         dest_server2 = '20.20.20.40'
         rule2 = 1230
-        flow_msg.extend(cls.he_controller.get_subscriber_he_flows(Direction.OUT, ue_ip2, tun_id2, dest_server2, rule2,
+        flow_msg.extend(cls.he_controller.get_subscriber_he_flows("rule2", Direction.OUT, ue_ip2, tun_id2, dest_server2, rule2,
                                                                   ['abc.com'], 'IMSI01', b'1'))
         chan = self._msg_hub.send(flow_msg, dp)
         self._wait_for_responses(chan, len(flow_msg), HeTableTest.he_controller.logger)
@@ -255,20 +255,20 @@ class HeTableTest(unittest.TestCase):
 
         dest_server1 = '2.2.2.4'
         rule1 = 123
-        flow_msg = cls.he_controller.get_subscriber_he_flows(Direction.OUT, ue_ip1, tun_id1, dest_server1, rule1,
+        flow_msg = cls.he_controller.get_subscriber_he_flows('rule1', Direction.OUT, ue_ip1, tun_id1, dest_server1, rule1,
                                                              ['abc.com'], 'IMSI01', b'1')
 
         ue_ip2 = '10.10.10.20'
         tun_id2 = 2
         dest_server2 = '20.20.20.40'
         rule2 = 1230
-        flow_msg2 = cls.he_controller.get_subscriber_he_flows(Direction.OUT, ue_ip2, tun_id2, dest_server2, rule2,
+        flow_msg2 = cls.he_controller.get_subscriber_he_flows('rule2', Direction.OUT, ue_ip2, tun_id2, dest_server2, rule2,
                                                               ['abc.com'], 'IMSI01', b'1')
         flow_msg.extend(flow_msg2)
         chan = self._msg_hub.send(flow_msg, dp)
         self._wait_for_responses(chan, len(flow_msg), HeTableTest.he_controller.logger)
 
-        cls.he_controller.remove_subscriber_he_flows(convert_ip_str_to_ip_proto(ue_ip2), rule2)
+        cls.he_controller.remove_subscriber_he_flows(convert_ip_str_to_ip_proto(ue_ip2), 'rule2', rule2)
 
         snapshot_verifier = SnapshotVerifier(self,
                                              self.BRIDGE,
@@ -290,20 +290,20 @@ class HeTableTest(unittest.TestCase):
         tun_id1 = 1
         dest_server1 = '2.2.2.4'
         rule1 = 123
-        flow_msg = cls.he_controller.get_subscriber_he_flows(Direction.OUT, ue_ip1, tun_id1, dest_server1, rule1,
+        flow_msg = cls.he_controller.get_subscriber_he_flows('rule1', Direction.OUT, ue_ip1, tun_id1, dest_server1, rule1,
                                                              ['abc.com'], 'IMSI01', b'1')
 
         ue_ip2 = '10.10.10.20'
         tun_id2 = 2
         dest_server2 = '20.20.20.40'
         rule2 = 1230
-        flow_msg.extend(cls.he_controller.get_subscriber_he_flows(Direction.OUT, ue_ip2, tun_id2, dest_server2, rule2,
+        flow_msg.extend(cls.he_controller.get_subscriber_he_flows('rule2', Direction.OUT, ue_ip2, tun_id2, dest_server2, rule2,
                                                                   ['abc.com'], 'IMSI01', b'1'))
 
         ue_ip2 = '10.10.10.20'
         dest_server2 = '20.20.40.40'
         rule2 = 1230
-        flow_msg.extend(cls.he_controller.get_subscriber_he_flows(Direction.OUT, ue_ip2, tun_id2, dest_server2, rule2,
+        flow_msg.extend(cls.he_controller.get_subscriber_he_flows('rule2', Direction.OUT, ue_ip2, tun_id2, dest_server2, rule2,
                                                                   ['abc.com'], 'IMSI01', None))
 
         chan = self._msg_hub.send(flow_msg, dp)

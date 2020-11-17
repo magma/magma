@@ -117,20 +117,22 @@ class HeaderEnrichmentController(MagmaController):
                                              priority=flows.MINIMUM_PRIORITY,
                                              resubmit_table=self.next_table)
 
-    def _set_he_target_urls(self, ue_addr: str, urls: List[str], imsi: str, msisdn: bytes) -> bool:
+    def _set_he_target_urls(self, ue_addr: str, rule_id: str, urls: List[str], imsi: str, msisdn: bytes) -> bool:
         if msisdn:
             msisdn_str = msisdn.decode("utf-8")
         else:
             msisdn_str = None
         ip_addr = convert_ipv4_str_to_ip_proto(ue_addr)
-        return activate_he_urls_for_ue(ip_addr, urls, imsi, msisdn_str)
+        return activate_he_urls_for_ue(ip_addr, rule_id, urls, imsi, msisdn_str)
 
-    def get_subscriber_he_flows(self, direction: Direction, ue_addr: str, uplink_tunnel: int,
-                                ip_dst: str, rule_num: int,
-                                urls: List[str], imsi: str, msisdn: bytes):
+    def get_subscriber_he_flows(self, rule_id: str, direction: Direction,
+                                ue_addr: str, uplink_tunnel: int, ip_dst: str,
+                                rule_num: int, urls: List[str], imsi: str,
+                                msisdn: bytes):
         """
         Add flow to steer traffic to and from proxy port.
         Args:
+            rule_id(str) Rule id
             direction(Direction): HE rules are only used for upstream traffic.
             ue_addr(str): IP address of UE
             uplink_tunnel(int) Tunnel ID of the session
@@ -162,11 +164,11 @@ class HeaderEnrichmentController(MagmaController):
             logging.error("Missing dst ip, ignoring HE rule.")
             return []
 
-        logging.info("Add HE: ue_addr %s, uplink_tunnel %s, ip_dst %s, rule_num %s "
-                     "urls %s, imsi %s, msisdn %s", ue_addr, uplink_tunnel, ip_dst,
+        logging.info("Add HE: ue_addr %s, rule_id: %s, uplink_tunnel %s, ip_dst %s, rule_num %s "
+                     "urls %s, imsi %s, msisdn %s", ue_addr, rule_id, uplink_tunnel, ip_dst,
                      str(rule_num), str(urls), imsi, str(msisdn))
 
-        success = self._set_he_target_urls(ue_addr, urls, imsi, msisdn)
+        success = self._set_he_target_urls(ue_addr, rule_id, urls, imsi, msisdn)
         if not success:
             return []
         msgs = []
@@ -275,14 +277,17 @@ class HeaderEnrichmentController(MagmaController):
         self._he_enabled_ue_ips.append(ue_addr)
         return msgs
 
-    def remove_subscriber_he_flows(self, ue_addr: IPAddress, rule_num: int = -1):
+    def remove_subscriber_he_flows(self, ue_addr: IPAddress, rule_id: str = "",
+                                   rule_num: int = -1):
         """
         Remove proxy flows of give policy rule of the subscriber.
         Args:
             ue_addr(str): IP address of UE
+            rule_id(str) Rule id
             rule_num(int): rule num of the policy rule
         """
-        logging.info("Del HE rule: ue-ip: %s rule %d", ue_addr, rule_num)
+        logging.info("Del HE rule: ue-ip: %s rule_id: %s rule %d",
+                     ue_addr, rule_id, rule_num)
         ue_ip_str = ipv4_address_to_str(ue_addr)
 
         if ue_ip_str not in self._he_enabled_ue_ips:
@@ -302,5 +307,5 @@ class HeaderEnrichmentController(MagmaController):
             flows.delete_flow(self._datapath, self.tbl_num, match,
                               cookie=rule_num, cookie_mask=flows.OVS_COOKIE_MATCH_ALL)
 
-        deactivate_he_urls_for_ue(ue_addr)
+        deactivate_he_urls_for_ue(ue_addr, rule_id)
         self._he_enabled_ue_ips.remove(ue_ip_str)
