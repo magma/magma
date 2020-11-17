@@ -257,7 +257,7 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 	}
 
 	if m.DNSPrimary != "" {
-		ip := net.ParseIP(string(m.DNSPrimary))
+		ip := net.ParseIP(m.DNSPrimary)
 		if ip == nil {
 			return errors.New("Invalid primary DNS address")
 		} else if ip.To4() == nil {
@@ -266,7 +266,7 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 	}
 
 	if m.DNSSecondary != "" {
-		secIp := net.ParseIP(string(m.DNSSecondary))
+		secIp := net.ParseIP(m.DNSSecondary)
 		if secIp == nil {
 			return errors.New("Invalid secondary DNS address")
 		} else if secIp.To4() == nil {
