@@ -1,0 +1,34 @@
+{
+    "general": {
+        "ng40_test_files": [
+            "working_testplan_s6a_CI_run.ntl", "working_testplan_gxgy_CI_run.ntl"
+        ],
+        "magma_username": "magma",
+        "ng40_username" : "ng40",
+        "key_filename" : "/home/magma/.ssh/id_rsa",
+        "slack_channel" : "#magma_ci",
+        "feg_docker_compose_git" : "https://raw.githubusercontent.com/facebookincubator/magma/master/feg/gateway/docker/docker-compose.yml",
+        "agw_apt_etagecom_pubkey": "http://packages.magma.etagecom.io/pubkey.gpg",
+        "agw_apt_etagecom_source": "http://packages.magma.etagecom.io",
+        "agw_apt_etagecom_branch": "stretch-test main",
+        "agw_apt_source_file": "/etc/apt/sources.list.d/packages_magma_etagecom_io.list"
+    },
+    "setups" :{
+        "setup_1": {
+            "_description": "Configuration for terraVM setup 1",
+            "controller":"192.168.60.111",
+            "proxy": "192.168.60.110",
+            "feg": "192.168.60.112",
+            "gateway": "192.168.60.17",
+            "ng40": "192.168.60.75"
+        },
+        "setup_2": {
+            "_description": "Configuration for terraVM setup @",
+            "controller": "192.168.61.111",
+            "proxy": "192.168.61.110",
+            "feg": "192.168.61.112",
+            "gateway": "192.168.61.19",
+            "ng40": "192.168.60.81"
+        }
+    }
+}
