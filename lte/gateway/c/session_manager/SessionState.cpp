@@ -1291,8 +1291,9 @@ bool SessionState::receive_charging_credit(
   if (!grant->credit.is_quota_exhausted(1) &&
       grant->service_state != SERVICE_ENABLED) {
     // if quota no longer exhausted, re-enable services as needed
-    MLOG(MINFO) << "New quota now available. Activating service RG:" << key
-                << " for " << session_id_;
+    MLOG(MINFO) << "New quota now available. Service is in state: "
+                << service_state_to_str(grant->service_state)
+                << " Activating service RG: " << key << " for " << session_id_;
     grant->set_service_state(SERVICE_NEEDS_ACTIVATION, *credit_uc);
   }
   return true;
@@ -1565,6 +1566,7 @@ void SessionState::get_charging_updates(
         action->set_ambr(config_.get_apn_ambr());
         fill_service_action(action, action_type, key);
         actions_out->push_back(std::move(action));
+        grant->set_suspended(false, credit_uc);
         break;
       case TERMINATE_SERVICE:
         fill_service_action(action, action_type, key);
