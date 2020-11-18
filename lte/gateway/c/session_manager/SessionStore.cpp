@@ -194,6 +194,11 @@ optional<SessionVector::iterator> SessionStore::find_session(
           return it;
         }
         break;
+      case IMSI_AND_TEID:
+        if ((*it)->get_local_teid() == criteria.secondary_key_unit32) {
+          return it;
+        }
+        break;
       case IMSI_AND_APN:
         if ((*it)->get_config().common_context.apn() ==
             criteria.secondary_key) {
@@ -212,7 +217,8 @@ optional<SessionVector::iterator> SessionStore::find_session(
             RATType::TGPP_WLAN) {
           return it;
         }
-        // other cases (lte, 5g)
+	// other case(lte,5g)
+        // lte case
         if ((*it)->get_config().common_context.ue_ipv4() ==
                 criteria.secondary_key ||
             (*it)->get_config().common_context.ue_ipv6() ==

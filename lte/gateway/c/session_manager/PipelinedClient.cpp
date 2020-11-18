@@ -21,41 +21,29 @@ using grpc::Status;
 
 namespace {  // anonymous
 using std::experimental::optional;
-
-void call_back_void_upf(grpc::Status, magma::UpfRes response) {
-  MLOG(MDEBUG) << "Handle UPF response reached";  // ToDo
-}
-std::function<void(grpc::Status, magma::UpfRes)> callback = call_back_void_upf;
-
 // Preparation of Set Session request to UPF
 magma::SessionSet create_session_set_req(
     magma::SessionState::SessionInfo info) {
   magma::SessionSet req;
   magma::lte::Fsm_state_FsmState state         = info.state;
-  std::string seid                             = info.sess_id;
+  std::string subscriber_id                    = info.subscriber_id;
   uint32_t sess_ver_no                         = info.ver_no;
   magma::SessionState::SessionInfo::NodeId tmp = info.nodeId;
   std::string node_id                          = tmp.node_id;
-  uint64_t f_seid_                             = info.Seid.f_seid;
-  req.set_seid(seid);
-  req.set_sess_ver_no(sess_ver_no);
+  req.set_subscriber_id(subscriber_id);
+  req.set_session_version(sess_ver_no);
+  req.set_local_f_teid(info.local_f_teid);
   req.mutable_node_id()->set_node_id(node_id);
   req.mutable_node_id()->set_node_id_type(magma::NodeID::IPv4);
   req.mutable_state()->set_state(state);
-  req.mutable_f_seid()->set_f_seid(f_seid_);
 
   std::vector<magma::SetGroupPDR> pdr_reqs;
   std::vector<magma::SetGroupFAR> far_reqs;
   pdr_reqs = info.Pdr_rules_;
-  far_reqs = info.Far_rules_;
 
   auto mut_pdr_requests = req.mutable_set_gr_pdr();
   for (const auto& final_req : pdr_reqs) {
     mut_pdr_requests->Add()->CopyFrom(final_req);
-  }
-  auto mut_far_requests = req.mutable_set_gr_far();
-  for (const auto& final_req : far_reqs) {
-    mut_far_requests->Add()->CopyFrom(final_req);
   }
   return req;
 }
@@ -217,7 +205,9 @@ namespace magma {
 
 AsyncPipelinedClient::AsyncPipelinedClient(
     std::shared_ptr<grpc::Channel> channel)
-    : stub_(Pipelined::NewStub(channel)) {}
+    : stub_(Pipelined::NewStub(channel)) {
+  teid = M5G_MIN_TEID;
+}
 
 AsyncPipelinedClient::AsyncPipelinedClient()
     : AsyncPipelinedClient(ServiceRegistrySingleton::Instance()->GetGrpcChannel(
@@ -257,7 +247,7 @@ bool AsyncPipelinedClient::setup_lte(
 // Method to Setup UPF Session
 bool AsyncPipelinedClient::set_upf_session(
     const SessionState::SessionInfo info,
-    std::function<void(Status status, UpfRes)> callback) {
+    std::function<void(Status status, UPFSessionContextState)> callback) {
   SessionSet setup_session_req = create_session_set_req(info);
   set_upf_session_rpc(setup_session_req, callback);
   return true;
@@ -445,19 +435,11 @@ bool AsyncPipelinedClient::add_gy_final_action_flow(
 
 // RPC definition to Send Set Session request to UPF
 void AsyncPipelinedClient::set_upf_session_rpc(
-    const SessionSet& request, std::function<void(Status, UpfRes)> callback) {
-  auto local_resp =
-      new AsyncLocalResponse<UpfRes>(std::move(callback), RESPONSE_TIMEOUT);
+    const SessionSet& request,
+    std::function<void(Status, UPFSessionContextState)> callback) {
+  auto local_resp = new AsyncLocalResponse<UPFSessionContextState>(
+      std::move(callback), RESPONSE_TIMEOUT);
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request));
-  for (int i = 0; i < request.set_gr_pdr_size(); i++) {
-    const magma::SetGroupPDR pdr_ = request.set_gr_pdr(i);
-  }
-  for (int i = 0; i < request.set_gr_far_size(); i++) {
-    const magma::SetGroupPDR pdr_ = request.set_gr_pdr(i);
-  }
-  for (int i = 0; i < request.set_gr_far_size(); i++) {
-    const magma::SetGroupFAR far_ = request.set_gr_far(i);
-  }
   local_resp->set_response_reader(std::move(
       stub_->AsyncSetSMFSessions(local_resp->get_context(), request, &queue_)));
 }
@@ -541,6 +523,19 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
   local_resp->set_response_reader(
       std::move(stub_->AsyncUpdateSubscriberQuotaState(
           local_resp->get_context(), request, &queue_)));
+}
+
+uint32_t AsyncPipelinedClient::get_next_teid() {
+  /* For now TEID we use current no, increment for next, later we plan to 
+     maintain  release/alloc table for reu sing */
+   uint32_t allocated_teid= teid++;
+   return allocated_teid;
+}
+
+uint32_t AsyncPipelinedClient::get_current_teid() {
+  /* For now TEID we use current no, increment for next, later we plan to 
+     maintain  release/alloc table for reu sing */
+   return teid;
 }
 
 }  // namespace magma
