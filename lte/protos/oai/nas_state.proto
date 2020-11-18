@@ -356,10 +356,8 @@ message EsmProcData {
 // esm_context_t
 message EsmContext {
   uint32 n_active_ebrs = 1;
-  uint32 n_active_pdns = 2;
-  uint32 n_pdns = 3;
-  bool is_emergency = 4;
-  EsmProcData esm_proc_data = 5;
+  bool is_emergency = 2;
+  EsmProcData esm_proc_data = 3;
 
   Timer t3489 = 199;
 }

@@ -167,7 +167,6 @@ typedef struct esm_data_context_s {
   mme_ue_s1ap_id_t ue_id;
 
   int n_ebrs;        /* Total number of active EPS bearer contexts   */
-  int n_pdns;        /* Number of active PDN connections     */
   bool is_emergency; /* Indicates whether a PDN connection for emergency
                       * bearer services is established       */
 #define ESM_DATA_PDN_MAX 4
