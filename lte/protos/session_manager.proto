@@ -952,10 +952,16 @@ message UPFSessionConfigState {
      repeated UPFSessionState upf_session_state = 1;
 }
 
+message UPFPagingInfo {
+    string subscriber_id = 1;
+    uint32 local_f_teid = 2;
+    string ue_ip_addr = 3;
+}
 //Set Interface from Pipelined
 service SetInterfaceForUserPlane {
     rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
+    rpc SendPagingReuest(UPFPagingInfo) returns (orc8r.Void);
 }
 
 // RPC service and method

@@ -12,7 +12,9 @@ limitations under the License.
 """
 import json
 import threading
-from collections import namedtuple
+from collections import (
+  namedtuple,
+  OrderedDict)
 from typing import Optional
 
 from lte.protos.mobilityd_pb2 import IPAddress
@@ -88,6 +90,7 @@ class SessionRuleToVersionMapper:
 
     def __init__(self):
         self._version_by_imsi_and_rule = {}
+        self._ng_version_by_teid = OrderedDict()
         self._lock = threading.Lock()  # write lock
 
     def setup_redis(self):
@@ -157,6 +160,24 @@ class SessionRuleToVersionMapper:
     def _get_json_key(self, imsi: str, ip_addr: str, rule_id: str):
         return json.dumps(SubscriberRuleKey('imsi_rule', imsi, ip_addr,
                                             rule_id))
+
+    # Update the rule version for all the existing and new rules
+    def ng_update_rules_version(self, ng_session_id: int, session_version: int):
+        """
+        Increment the version number for a given subscriber for 5G subscriber
+        """
+        with self._lock:
+            self._ng_version_by_teid [ng_session_id] = session_version
+
+    def get_ng_version_by_session_teid(self, ng_session_id: int) -> int:
+        """
+        Returns the version number given a subscriber.
+        """
+        with self._lock:
+            version = self._ng_version_by_teid.get(ng_session_id)
+            if version is None:
+                version = 0
+        return version
 
 
 class RuleIDDict(RedisFlatDict):

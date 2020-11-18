@@ -83,6 +83,8 @@ class RyuForwardFlowArgsBuilder():
 
     def __init__(self, table_dest, table_start=0):
         self._ip = None
+        self._teid_dlink_action = []
+        self._teid_uplink_match = 0
         self._reg_sets = []
         self._request = {
             "table_id": table_start, "cookie": self.COOKIE,
@@ -145,10 +147,33 @@ class RyuForwardFlowArgsBuilder():
                               "value": Direction.IN}
         return self
 
+    def set_tunnel_id(self, uplink_tunnel):
+        self._teid_uplink_match = uplink_tunnel 
+
+        if uplink_tunnel:
+            self._teid_ulink_action = {"type": "SET_FIELD", "field": "tunnel_id",
+                                        "value": uplink_tunnel}
+        return self
+
     def set_eth_match(self, eth_src, eth_dst):
         self._match_kwargs['eth_src'] = eth_src
         self._match_kwargs['eth_dst'] = eth_dst
         return self
+
+    def _update_ng_subscriber_tunnel_id_requests(self, uplink, downlink):
+        if self._teid_dlink_action:
+            for down_insts in downlink["instructions"]:
+                if "actions" in down_insts.keys():
+                    down_insts["actions"].append(self._teid_dlink_action)
+
+        #Matching with tunnel id is challenging
+        if self._teid_ulink_action:
+            #uplink["match"].update({"tunnel_id": self._teid_uplink_match})
+            for up_insts in uplink["instructions"]:
+               if "actions" in up_insts.keys():
+                  up_insts["actions"].append(self._teid_ulink_action)
+
+        return [uplink, downlink]
 
     def _create_subscriber_ip_requests(self):
         """
@@ -183,18 +208,28 @@ class RyuForwardFlowArgsBuilder():
                 {"ipv6_src": self._ip})
             downlink["match"].update(
                 {"ipv6_dst": self._ip})
+
+        if self._teid_dlink_action or self._teid_uplink_match:
+            self._update_ng_subscriber_tunnel_id_requests(uplink, downlink)
+
         return [uplink, downlink]
 
     def set_eth_type_arp(self):
         self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_ARP}
         return self
 
-    def _set_subscriber_match(self, sub_info):
+    def _set_subscriber_match(self, sub_info, sub_ng_info=None):
         """ Sets up match/action for subscriber flows """
         if sub_info.ip.count(":") >= 2:
             self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IPV6}
         else:
             self._match_kwargs = {"eth_type": ether_types.ETH_TYPE_IP}
+
+        if sub_ng_info and sub_ng_info.uplink_tunnel:
+            return self.set_ip(sub_info.ip).\
+                   set_reg_value(IMSI_REG, encode_imsi(sub_info.imsi)).\
+                   set_tunnel_id(sub_ng_info.uplink_tunnel)
+
         return self.set_ip(sub_info.ip) \
             .set_reg_value(IMSI_REG, encode_imsi(sub_info.imsi))
 
@@ -215,8 +250,8 @@ class RyuForwardFlowArgsBuilder():
             return [self._request]
 
     @classmethod
-    def from_subscriber(cls, sub_info):
-        return cls(sub_info.table_id)._set_subscriber_match(sub_info)
+    def from_subscriber(cls, sub_info, sub_ng_info=None):
+        return cls(sub_info.table_id)._set_subscriber_match(sub_info, sub_ng_info)
 
 
 # REST API is deprecated transition to RyuDirectTableIsolator

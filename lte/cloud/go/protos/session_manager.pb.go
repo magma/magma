@@ -5840,6 +5840,45 @@ func (m *UPFSessionConfigState) GetUpfSessionState() []*UPFSessionState {
 	return nil
 }
 
+type UPFPagingInfo struct {
+	UeIpAddr             string   `protobuf:"bytes,1,opt,name=ue_ip_addr,json=ueIpAddr,proto3" json:"ue_ip_addr,omitempty"`
+	XXX_NoUnkeyedLiteral struct{} `json:"-"`
+	XXX_unrecognized     []byte   `json:"-"`
+	XXX_sizecache        int32    `json:"-"`
+}
+
+func (m *UPFPagingInfo) Reset()         { *m = UPFPagingInfo{} }
+func (m *UPFPagingInfo) String() string { return proto.CompactTextString(m) }
+func (*UPFPagingInfo) ProtoMessage()    {}
+func (*UPFPagingInfo) Descriptor() ([]byte, []int) {
+	return fileDescriptor_85add0446af78174, []int{69}
+}
+
+func (m *UPFPagingInfo) XXX_Unmarshal(b []byte) error {
+	return xxx_messageInfo_UPFPagingInfo.Unmarshal(m, b)
+}
+func (m *UPFPagingInfo) XXX_Marshal(b []byte, deterministic bool) ([]byte, error) {
+	return xxx_messageInfo_UPFPagingInfo.Marshal(b, m, deterministic)
+}
+func (m *UPFPagingInfo) XXX_Merge(src proto.Message) {
+	xxx_messageInfo_UPFPagingInfo.Merge(m, src)
+}
+func (m *UPFPagingInfo) XXX_Size() int {
+	return xxx_messageInfo_UPFPagingInfo.Size(m)
+}
+func (m *UPFPagingInfo) XXX_DiscardUnknown() {
+	xxx_messageInfo_UPFPagingInfo.DiscardUnknown(m)
+}
+
+var xxx_messageInfo_UPFPagingInfo proto.InternalMessageInfo
+
+func (m *UPFPagingInfo) GetUeIpAddr() string {
+	if m != nil {
+		return m.UeIpAddr
+	}
+	return ""
+}
+
 func init() {
 	proto.RegisterEnum("magma.lte.RATType", RATType_name, RATType_value)
 	proto.RegisterEnum("magma.lte.EventTrigger", EventTrigger_name, EventTrigger_value)
@@ -5936,6 +5975,7 @@ func init() {
 	proto.RegisterType((*OverloadControlInformation)(nil), "magma.lte.OverloadControlInformation")
 	proto.RegisterType((*UPFSessionState)(nil), "magma.lte.UPFSessionState")
 	proto.RegisterType((*UPFSessionConfigState)(nil), "magma.lte.UPFSessionConfigState")
+	proto.RegisterType((*UPFPagingInfo)(nil), "magma.lte.UPFPagingInfo")
 }
 
 func init() { proto.RegisterFile("lte/protos/session_manager.proto", fileDescriptor_85add0446af78174) }
@@ -7072,6 +7112,7 @@ var _AmfPduSessionSmContext_serviceDesc = grpc.ServiceDesc{
 type SetInterfaceForUserPlaneClient interface {
 	SetUPFNodeState(ctx context.Context, in *UPFNodeState, opts ...grpc.CallOption) (*protos.Void, error)
 	SetUPFSessionsConfig(ctx context.Context, in *UPFSessionConfigState, opts ...grpc.CallOption) (*protos.Void, error)
+	SendPagingReuest(ctx context.Context, in *UPFPagingInfo, opts ...grpc.CallOption) (*protos.Void, error)
 }
 
 type setInterfaceForUserPlaneClient struct {
@@ -7100,10 +7141,20 @@ func (c *setInterfaceForUserPlaneClient) SetUPFSessionsConfig(ctx context.Contex
 	return out, nil
 }
 
+func (c *setInterfaceForUserPlaneClient) SendPagingReuest(ctx context.Context, in *UPFPagingInfo, opts ...grpc.CallOption) (*protos.Void, error) {
+	out := new(protos.Void)
+	err := c.cc.Invoke(ctx, "/magma.lte.SetInterfaceForUserPlane/SendPagingReuest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SetInterfaceForUserPlaneServer is the server API for SetInterfaceForUserPlane service.
 type SetInterfaceForUserPlaneServer interface {
 	SetUPFNodeState(context.Context, *UPFNodeState) (*protos.Void, error)
 	SetUPFSessionsConfig(context.Context, *UPFSessionConfigState) (*protos.Void, error)
+	SendPagingReuest(context.Context, *UPFPagingInfo) (*protos.Void, error)
 }
 
 // UnimplementedSetInterfaceForUserPlaneServer can be embedded to have forward compatible implementations.
@@ -7115,6 +7166,9 @@ func (*UnimplementedSetInterfaceForUserPlaneServer) SetUPFNodeState(ctx context.
 }
 func (*UnimplementedSetInterfaceForUserPlaneServer) SetUPFSessionsConfig(ctx context.Context, req *UPFSessionConfigState) (*protos.Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUPFSessionsConfig not implemented")
+}
+func (*UnimplementedSetInterfaceForUserPlaneServer) SendPagingReuest(ctx context.Context, req *UPFPagingInfo) (*protos.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendPagingReuest not implemented")
 }
 
 func RegisterSetInterfaceForUserPlaneServer(s *grpc.Server, srv SetInterfaceForUserPlaneServer) {
@@ -7157,6 +7211,24 @@ func _SetInterfaceForUserPlane_SetUPFSessionsConfig_Handler(srv interface{}, ctx
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SetInterfaceForUserPlane_SendPagingReuest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UPFPagingInfo)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SetInterfaceForUserPlaneServer).SendPagingReuest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/magma.lte.SetInterfaceForUserPlane/SendPagingReuest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SetInterfaceForUserPlaneServer).SendPagingReuest(ctx, req.(*UPFPagingInfo))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 var _SetInterfaceForUserPlane_serviceDesc = grpc.ServiceDesc{
 	ServiceName: "magma.lte.SetInterfaceForUserPlane",
 	HandlerType: (*SetInterfaceForUserPlaneServer)(nil),
@@ -7168,6 +7240,10 @@ var _SetInterfaceForUserPlane_serviceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "SetUPFSessionsConfig",
 			Handler:    _SetInterfaceForUserPlane_SetUPFSessionsConfig_Handler,
+		},
+		{
+			MethodName: "SendPagingReuest",
+			Handler:    _SetInterfaceForUserPlane_SendPagingReuest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -26,6 +26,7 @@ from magma.pipelined.policy_converters import convert_ip_str_to_ip_proto
 
 SubContextConfig = namedtuple('ContextConfig', ['imsi', 'ip', 'ambr',
                                                 'table_id'])
+
 default_ambr_config = None
 
 def try_grpc_call_with_retries(grpc_call, retry_count=5, retry_interval=1):
@@ -132,8 +133,15 @@ class RyuDirectSubscriberContext(SubscriberContext):
     """
 
     def __init__(self, imsi, ip, enforcement_controller, table_id=5,
-                 enforcement_stats_controller=None, nuke_flows_on_exit=True):
+                 enforcement_stats_controller=None, nuke_flows_on_exit=True,
+                 ng_session_id=0):
+
         self.cfg = SubContextConfig(imsi, ip, default_ambr_config, table_id)
+
+        self._ng_session_id = 0 
+        if ng_session_id:
+            self._ng_session_id = ng_session_id
+
         self._dynamic_rules = []
         self._ec = enforcement_controller
         self._esc = enforcement_stats_controller
@@ -152,7 +160,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
                 uplink_tunnel=None,
                 ip_addr=ip_addr,
                 apn_ambr=default_ambr_config,
-                dynamic_rules=self._dynamic_rules)
+                dynamic_rules=self._dynamic_rules,
+                ng_session_id=self._ng_session_id)
             if self._esc:
                 self._esc.activate_rules(
                     imsi=self.cfg.imsi,
@@ -160,7 +169,8 @@ class RyuDirectSubscriberContext(SubscriberContext):
                     uplink_tunnel=None,
                     ip_addr=ip_addr,
                     apn_ambr=default_ambr_config,
-                    dynamic_rules=self._dynamic_rules)
+                    dynamic_rules=self._dynamic_rules,
+                    ng_session_id=self._ng_session_id)
         hub.joinall([hub.spawn(activate_flows)])
 
     def _deactivate_subscriber_rules(self):

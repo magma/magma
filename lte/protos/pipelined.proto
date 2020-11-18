@@ -304,6 +304,12 @@ message DupParam {
   uint32 dest_iface = 1;
 }
 
+enum  SourceInterfaceType {
+  ACCESS = 0;
+  CORE   = 1;
+  SGiLAN = 2;
+} 
+
 //pdr_state variable for SessionSet message per PDR.
 enum PdrState {
   INSTALL = 0;
@@ -340,7 +346,6 @@ message SetGroupPDR {
 
 //FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
 message SetGroupFAR {
-  uint32 far_id = 1;
   repeated Action far_action_to_apply = 2;
   FwdParam fwd_parm = 3;
   DupParam du_param = 4;
