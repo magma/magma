@@ -403,7 +403,6 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   marshaled["pdp_start_time"] = std::to_string(stored.pdp_start_time);
   marshaled["pdp_end_time"]   = std::to_string(stored.pdp_end_time);
 
-
   marshaled["pending_event_triggers"] =
       serialize_pending_event_triggers(stored.pending_event_triggers);
   std::string revalidation_time;
@@ -456,8 +455,8 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
   stored.session_level_key = marshaled["session_level_key"].getString();
   stored.imsi              = marshaled["imsi"].getString();
   stored.session_id        = marshaled["session_id"].getString();
-  stored.local_teid        = static_cast<uint32_t>(
-      std::stoul(marshaled["local_teid"].getString()));
+  stored.local_teid =
+      static_cast<uint32_t>(std::stoul(marshaled["local_teid"].getString()));
   stored.subscriber_quota_state =
       static_cast<magma::lte::SubscriberQuotaUpdate_Type>(
           marshaled["subscriber_quota_state"].getInt());
