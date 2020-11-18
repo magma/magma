@@ -120,8 +120,8 @@ def upgrade_teravm(
 
     return hash
 
-
-def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
+def get_agw(setup):
+    version = None
     """
     Upgrade teravm agw to image with the given hash.
     hash: a hash to identify what version from APT to use for upgrading.
@@ -134,34 +134,57 @@ def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     work instead. This can be used if the script is run manually.
     """
 
-    fastprint("Upgrade teraVM AGW to %s" % hash)
+    fastprint("Upgrade teraVM AGW to %s")
+    _setup_env_agw("magma", VM_IP_MAP[setup]["gateway"])
+    err = _set_magma_apt_repo()
+    if err:
+        return err
+    sudo("apt update")
+    fastprint("Get latest version\n")
+    # Get the whole version string containing that hash and 'apt install' it
+    with settings(abort_exception=FabricException):
+	version = sudo ("apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'")
+        #fastprint(version)
+    return version
+
+def upgrade_teravm_agw(setup, key_filename=DEFAULT_KEY_FILENAME):
+    """
+    Upgrade teravm agw to image with the given hash.
+    hash: a hash to identify what version from APT to use for upgrading.
+    If not hash provided or "latest" is passed, it will install latest
+    on the repository.
+
+    key_filename: path to where the private key is for authorized-key based
+    ssh. The public key counterpart needs to in the authorized_keys file on
+    the remote host. If empty file name is passed, password-based ssh will
+    work instead. This can be used if the script is run manually.
+    """
+
+    fastprint("Upgrade teraVM AGW to %s")
     _setup_env("magma", VM_IP_MAP[setup]["gateway"], key_filename)
     err = _set_magma_apt_repo()
     if err:
         return err
     sudo("apt update")
-    fastprint("Install version with hash %s\n" % hash)
+    fastprint("Install version with latest version\n")
     # Get the whole version string containing that hash and 'apt install' it
     with settings(abort_exception=FabricException):
         try:
-            if hash is None or hash.lower() == "latest":
-                # install latest on the repository
-                sudo("apt install -f -y --allow-downgrades magma")
-            else:
-                sudo(
-                    "version=$("
-                    "apt-cache madison magma | grep {hash} | awk 'NR==1{{print $3}}');"
-                    "apt install -f -y --allow-downgrades magma=$version".format(
-                        hash=hash
-                    )
-                )
-        except Exception:
-            err = (
-                "Error during install of version {} on AGW. "
-                "Maybe the version doesn't exist. Not installing.\n".format(hash)
+            version = sudo ("apt-cache madison magma | awk 'NR==1{{print $3}}'")
+            sudo(
+            "version=$("
+            "apt-cache madison magma | awk 'NR==1{{print $3}}');"
+            "apt install magma=$version -V".format()
             )
-            fastprint(err)
-    return err
+            status = ("Upgrade Status : Successful AGW upgrade : %s \n" % version)
+            fastprint(status)
+        except Exception:
+            status = (
+                "Upgrade Status : Error during install of version {%s} on AGW.: "
+                "Maybe the version doesn't exist. Not installing. \n" % version
+            )
+            fastprint(status)
+    return status
 
 
 def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
@@ -204,7 +227,7 @@ def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
         sudo("systemctl restart magma@magmad")
 
 
-def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
+def upgrade_teravm_feg(setup, key_filename=DEFAULT_KEY_FILENAME):
     """
     Upgrade teravm feg to the image with the given hash.
 
@@ -217,14 +240,16 @@ def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     work instead. This can be used if the script is run manually.
     """
     err = None
-    fastprint("Upgrade teraVM FEG to %s" % hash)
+    version = get_agw(setup)
+    fastprint("Upgrade teraVM FEG to %s\n" % version)
     _setup_env("magma", VM_IP_MAP[setup]["feg"], key_filename)
-
     with cd("/var/opt/magma/docker"), settings(abort_exception=FabricException):
         sudo("docker-compose down")
         sudo("cp docker-compose.yml docker-compose.yml.backup")
         sudo("cp .env .env.backup")
-        sudo('sed -i "s/IMAGE_VERSION=.*/IMAGE_VERSION=%s/g" .env' % hash)
+        version1 = version.split("-")[2]
+        #sudo('sed -i "s/IMAGE_VERSION=.*/IMAGE_VERSION=%s/g" .env' version )
+        sudo('sed -i "s/^IMAGE_VERSION=.*$/IMAGE_VERSION=%s/g" .env' % version1)
         if len(_check_disk_space()) != 0:
             fastprint("Disk space alert: cleaning docker images\n")
             sudo("docker system prune --all  --force")
@@ -232,18 +257,20 @@ def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
             # TODO: obtain .yml file from jfrog artifact instead of git master
             sudo("wget -O docker-compose.yml %s" % FEG_DOCKER_COMPOSE_GIT)
             sudo("docker-compose up -d")
+            status = ("\nUpgrade Status : Successful FEG upgrade : %s \n" % version1)
+            fastprint(status)
         except Exception:
-            err = (
-                "Error during install of version {}. Maybe the image "
-                "doesn't exist. Reverting to the original "
-                "config\n".format(hash)
+            status = (
+                "Upgrade Status : Error during install of version {} on FEG. Maybe the image "
+                "doesn't exist:. Reverting to the original "
+                "config \n".format(version1)
             )
-            fastprint(err)
+            fastprint(status)
             with hide("running", "stdout"):
                 sudo("mv docker-compose.yml.backup docker-compose.yml")
                 sudo("mv .env.backup .env")
                 sudo("docker-compose up -d")
-    return err
+    return status
 
 
 def run_3gpp_tests(
@@ -272,8 +299,9 @@ def run_3gpp_tests(
                 output = run("ng40test %s" % test_file)
                 test_output.append(output)
         fastprint("Done with file %s\n" % (test_file))
-
+    
     verdicts = _parse_stats(test_output)
+    print(verdicts)
     return verdicts
 
 
@@ -373,6 +401,9 @@ def _setup_env(username, remote_machine_ip, key_filename):
     env.host_string = "%s@%s" % (username, remote_machine_ip)
     env.user = username
 
+def _setup_env_agw(username, remote_machine_ip):
+    env.host_string = "%s@%s" % (username, remote_machine_ip)
+    env.user = username
 
 def _prep_bool_arg(arg):
     return bool(distutils.util.strtobool(str(arg)))
