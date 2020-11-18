@@ -113,7 +113,8 @@ MAGMA_DEPS=(
     "libboost-chrono-dev" # required for folly
     "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
-    "python3-scapy >= 2.4.3-4"
+    "python3-scapy >= 2.4.3-4",
+    "tshark" # required for call tracing
     )
 
 # OAI runtime dependencies
