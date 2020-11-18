@@ -11,18 +11,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-syntax = "proto3";
-
-package magma.lte;
-
-option go_package = "magma/lte/cloud/go/protos";
-
-message StartAgwOffloadRequest {
-    uint32 enb_id = 1;
-}
-
-message StartAgwOffloadResponse {}
-
-service HaService {
-    rpc StartAgwOffload (StartAgwOffloadRequest) returns (StartAgwOffloadResponse) {}
-}
+MESSAGE_DEF(AGW_OFFLOAD_REQ, ha_agw_offload_req_t, ha_agw_offload_req)

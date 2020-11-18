@@ -42,6 +42,7 @@
 #include "s6a_defs.h"
 #include "sgs_defs.h"
 #include "sms_orc8r_defs.h"
+#include "ha_defs.h"
 #include "oai_mme.h"
 #include "pid_file.h"
 #include "service303_message_utils.h"
@@ -140,6 +141,7 @@ int main(int argc, char* argv[]) {
     OAILOG_DEBUG(LOG_MME_APP, "SMS_ORC8R Task initialized\n");
   }
   CHECK_INIT_RETURN(grpc_service_init());
+  CHECK_INIT_RETURN(ha_init(&mme_config));
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW

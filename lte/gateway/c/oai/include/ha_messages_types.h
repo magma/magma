@@ -11,18 +11,22 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-syntax = "proto3";
+#ifndef FILE_HA_MESSAGES_TYPES_SEEN
+#define FILE_HA_MESSAGES_TYPES_SEEN
 
-package magma.lte;
+#include <stdint.h>
 
-option go_package = "magma/lte/cloud/go/protos";
+#include "3gpp_23.003.h"
+// #include "common_types.h"
+// #include "security_types.h"
 
-message StartAgwOffloadRequest {
-    uint32 enb_id = 1;
-}
+#define AGW_OFFLOAD_REQ(mSGpTR) (mSGpTR)->ittiMsg.ha_agw_offload_req
 
-message StartAgwOffloadResponse {}
+typedef struct ha_agw_offload_req_s {
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];  // username
+  uint8_t imsi_length;                 // username
 
-service HaService {
-    rpc StartAgwOffload (StartAgwOffloadRequest) returns (StartAgwOffloadResponse) {}
-}
+  uint32_t eNB_id;
+} ha_agw_offload_req_t;
+
+#endif /* FILE_HA_MESSAGES_TYPES_SEEN */

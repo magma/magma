@@ -26,7 +26,7 @@ from lte.protos.ha_service_pb2_grpc import HaServiceStub
 @grpc_wrapper
 def send_offload_trigger(client, args):
     req = StartAgwOffloadRequest(
-            cell_id = args.cell_id,
+            enb_id = args.enb_id,
     )
     print("Sending offload trigger with following fields:\n %s" % req)
     try:
@@ -50,7 +50,7 @@ def create_parser():
     ha_parser = subparsers.add_parser(
             'offload', help="Send downlink unitdata to SMSOrc8rGW service")
     ha_parser.add_argument('--imsi', help='e.g. 001010000090122 (no prefix required)')
-    ha_parser.add_argument("--cell-id", type=int, help="Cell ID to offload")
+    ha_parser.add_argument("--enb-id", type=int, help="Cell ID to offload")
     ha_parser.set_defaults(func=send_offload_trigger)
 
     return parser

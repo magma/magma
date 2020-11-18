@@ -10,19 +10,20 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
+#ifndef HA_DEFS_H_
+#define HA_DEFS_H_
 
-syntax = "proto3";
+#include "intertask_interface.h"
+#include "mme_config.h"
+// #include "ha_service_handler.h"
 
-package magma.lte;
+extern task_zmq_ctx_t ha_task_zmq_ctx;
 
-option go_package = "magma/lte/cloud/go/protos";
+int ha_init(const mme_config_t* mme_config);
 
-message StartAgwOffloadRequest {
-    uint32 enb_id = 1;
-}
+/*
+ * Sends a S1AP_UE_CONTEXT_RELEASE_REQ message to MME.
+ */
+bool handle_agw_offload_req(ha_agw_offload_req_t* offload_req);
 
-message StartAgwOffloadResponse {}
-
-service HaService {
-    rpc StartAgwOffload (StartAgwOffloadRequest) returns (StartAgwOffloadResponse) {}
-}
+#endif /* HA_DEFS_H_ */
