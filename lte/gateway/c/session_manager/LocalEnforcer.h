@@ -36,7 +36,37 @@
 
 namespace magma {
 using std::experimental::optional;
+
 typedef std::pair<std::string, std::string> ImsiAndSessionID;
+
+struct ImsiSessionIDAndCreditkey {
+  std::string imsi;
+  std::string session_id;
+  CreditKey cKey;
+
+  bool operator==(const ImsiSessionIDAndCreditkey& other) const {
+    return this->imsi == other.imsi && this->session_id == other.session_id &&
+           ccEqual(cKey, other.cKey);
+  }
+};
+
+struct ImsiSessionIDAndCreditkey_hash {
+  std::size_t operator()(const ImsiSessionIDAndCreditkey& el) const {
+    size_t h1 = std::hash<std::string>()(el.imsi);
+    size_t h2 = std::hash<std::string>()(el.session_id);
+    size_t h3 = ccHash(el.cKey);
+    return h1 ^ h2 ^ h3;
+  }
+};
+
+struct UpdateChargingCreditActions {
+  std::unordered_set<ImsiAndSessionID> sessions_to_terminate;
+  std::unordered_set<ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>
+      suspended_credits;
+  std::unordered_set<ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>
+      unsuspended_credits;
+};
+
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;
@@ -317,8 +347,7 @@ class LocalEnforcer {
    */
   void update_charging_credits(
       SessionMap& session_map, const UpdateSessionResponse& response,
-      std::unordered_set<ImsiAndSessionID>& subscribers_to_terminate,
-      SessionUpdate& session_update);
+      UpdateChargingCreditActions& actions, SessionUpdate& session_update);
 
   /**
    * Processes the monitoring component of UpdateSessionResponse.
@@ -329,8 +358,7 @@ class LocalEnforcer {
    */
   void update_monitoring_credits_and_rules(
       SessionMap& session_map, const UpdateSessionResponse& response,
-      std::unordered_set<ImsiAndSessionID>& subscribers_to_terminate,
-      SessionUpdate& session_update);
+      UpdateChargingCreditActions& actions, SessionUpdate& session_update);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
@@ -538,6 +566,20 @@ class LocalEnforcer {
       const std::unordered_set<ImsiAndSessionID>& sessions,
       SessionUpdate& session_update);
 
+  void remove_rules_for_multiple_suspended_credit(
+      SessionMap& session_map,
+      std::unordered_set<
+          ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>&
+          suspended_credits,
+      SessionUpdate& session_update);
+
+  void add_rules_for_multiple_unsuspended_credit(
+      SessionMap& session_map,
+      std::unordered_set<
+          ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>&
+          unsuspended_credits,
+      SessionUpdate& session_update);
+
   void handle_activate_service_action(
       SessionMap& session_map, const std::unique_ptr<ServiceAction>& action_p,
       SessionUpdate& session_update);
@@ -613,6 +655,14 @@ class LocalEnforcer {
       const std::string& rule_id, SessionStateUpdateCriteria& uc);
 
   static std::unique_ptr<Timezone> compute_access_timezone();
+
+  void remove_rules_for_suspended_credit(
+      const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
+      SessionStateUpdateCriteria& session_uc);
+
+  void add_rules_for_unsuspended_credit(
+      const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
+      SessionStateUpdateCriteria& session_uc);
 };
 
 }  // namespace magma

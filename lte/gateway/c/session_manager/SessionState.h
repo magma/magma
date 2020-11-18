@@ -385,6 +385,12 @@ class SessionState {
   void install_scheduled_static_rule(
       const std::string& rule_id, SessionStateUpdateCriteria& update_criteria);
 
+  void set_suspend_credit(
+      const CreditKey& charging_key, bool new_suspended,
+      SessionStateUpdateCriteria& update_criteria);
+
+  bool is_credit_suspended(const CreditKey& charging_key);
+
   RuleLifetime& get_rule_lifetime(const std::string& rule_id);
 
   DynamicRuleStore& get_gy_dynamic_rules();
@@ -404,6 +410,9 @@ class SessionState {
       const std::string& rule_id, const RuleLifetime& lifetime);
 
   SessionFsmState get_state();
+
+  void get_rules_per_credit_key(
+      CreditKey charging_key, RulesToProcess& rulesToProcess);
 
   // Event Triggers
   void add_new_event_trigger(
@@ -504,6 +513,12 @@ class SessionState {
       const PolicyBearerBindingRequest& request,
       SessionStateUpdateCriteria& uc);
 
+  /**
+   * Returns true if all the credits are suspended
+   */
+  void suspend_service_if_needed_for_credit(
+      CreditKey ckey, SessionStateUpdateCriteria& update_criteria);
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -573,7 +588,7 @@ class SessionState {
       std::vector<std::unique_ptr<ServiceAction>>* actions_out,
       SessionStateUpdateCriteria& uc);
 
-  void terminate_service_action(
+  void fill_service_action(
       std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
       const CreditKey& key);
 

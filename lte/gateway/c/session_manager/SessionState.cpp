@@ -27,6 +27,7 @@
 #include "MetricsHelpers.h"
 #include "magma_logging.h"
 #include "Utilities.h"
+#include "DiameterCodes.h"
 
 namespace {
 const char* LABEL_IMSI      = "IMSI";
@@ -659,13 +660,17 @@ bool SessionState::can_complete_termination(SessionStateUpdateCriteria& uc) {
 SessionTerminateRequest SessionState::make_termination_request(
     SessionStateUpdateCriteria& uc) {
   SessionTerminateRequest req;
-  req.set_sid(imsi_);
   req.set_session_id(session_id_);
   req.set_request_number(request_number_);
+  req.mutable_common_context()->CopyFrom(config_.common_context);
+  // TODO deprecate following fields once FeG migrates to reading from common
+  // context
+  req.set_sid(imsi_);
   req.set_ue_ipv4(config_.common_context.ue_ipv4());
   req.set_msisdn(config_.common_context.msisdn());
   req.set_apn(config_.common_context.apn());
   req.set_rat_type(config_.common_context.rat_type());
+
   fill_protos_tgpp_context(req.mutable_tgpp_ctx());
   if (config_.rat_specific_context.has_lte_context()) {
     const auto& lte_context = config_.rat_specific_context.lte_context();
@@ -1089,6 +1094,28 @@ void SessionState::set_fsm_state(
   }
 }
 
+// Suspend the service due to all the remaining credits are transient.
+// Use the rg to trigger redirection
+void SessionState::suspend_service_if_needed_for_credit(
+    CreditKey ckey, SessionStateUpdateCriteria& update_criteria) {
+  uint suspended_count = 0;
+
+  auto it = credit_map_.find(ckey);
+  if (it == credit_map_.end()) {
+    MLOG(MDEBUG) << "Could not find RG " << ckey
+                 << " Not suspending serivce for " << session_id_;
+  }
+  for (const auto& credit : credit_map_) {
+    if (credit.second->suspended) {
+      suspended_count++;
+    }
+  }
+  if (credit_map_.size() > 0 && suspended_count == credit_map_.size()) {
+    auto credit_uc = get_credit_uc(ckey, update_criteria);
+    it->second->set_service_state(SERVICE_NEEDS_SUSPENSION, *credit_uc);
+  }
+}
+
 bool SessionState::should_rule_be_active(
     const std::string& rule_id, std::time_t time) {
   auto lifetime = rule_lifetimes_[rule_id];
@@ -1183,15 +1210,21 @@ bool SessionState::receive_charging_credit(
     // new credit
     return init_charging_credit(update, session_uc);
   }
-  auto& grant    = it->second;
-  auto credit_uc = get_credit_uc(CreditKey(update), session_uc);
-  if (!ChargingGrant::is_valid_credit_response(update)) {
+  auto& grant          = it->second;
+  auto credit_uc       = get_credit_uc(CreditKey(update), session_uc);
+  auto credit_validity = ChargingGrant::is_valid_credit_response(update);
+  if (credit_validity == INVALID_CREDIT) {
     // update unsuccessful, reset credit and return
     grant->credit.mark_failure(update.result_code(), credit_uc);
     if (grant->should_deactivate_service()) {
       grant->set_service_state(SERVICE_NEEDS_DEACTIVATION, *credit_uc);
     }
     return false;
+  }
+  if (credit_validity == TRANSIENT_ERROR) {
+    // for transient errors, try to install the credit
+    // but clear the reported credit
+    grant->credit.mark_failure(update.result_code(), credit_uc);
   }
   MLOG(MINFO) << "Received a credit RG:" << key << " for " << session_id_;
   grant->receive_charging_grant(update.credit(), credit_uc);
@@ -1213,7 +1246,7 @@ bool SessionState::init_charging_credit(
     const CreditUpdateResponse& update,
     SessionStateUpdateCriteria& session_uc) {
   const uint32_t key = update.charging_key();
-  if (!ChargingGrant::is_valid_credit_response(update)) {
+  if (ChargingGrant::is_valid_credit_response(update) == INVALID_CREDIT) {
     // init failed, don't track key
     return false;
   }
@@ -1227,6 +1260,34 @@ bool SessionState::init_charging_credit(
   MLOG(MINFO) << "Initialized a new credit RG:" << key << " for "
               << session_id_;
   return true;
+}
+
+void SessionState::set_suspend_credit(
+    const CreditKey& charging_key, bool new_suspended,
+    SessionStateUpdateCriteria& update_criteria) {
+  auto it = credit_map_.find(charging_key);
+  if (it != credit_map_.end()) {
+    auto credit_uc = get_credit_uc(charging_key, update_criteria);
+    auto& grant    = it->second;
+    grant->set_suspended(new_suspended, credit_uc);
+  }
+}
+
+bool SessionState::is_credit_suspended(const CreditKey& charging_key) {
+  auto it = credit_map_.find(charging_key);
+  if (it != credit_map_.end()) {
+    auto& grant = it->second;
+    return grant->get_suspended();
+  }
+  return false;
+}
+
+void SessionState::get_rules_per_credit_key(
+    CreditKey charging_key, RulesToProcess& rulesToProcess) {
+  static_rules_.get_rule_ids_for_charging_key(
+      charging_key, rulesToProcess.static_rules);
+  dynamic_rules_.get_rule_definitions_for_charging_key(
+      charging_key, rulesToProcess.dynamic_rules);
 }
 
 uint64_t SessionState::get_charging_credit(
@@ -1323,6 +1384,7 @@ void SessionState::apply_charging_credit_update(
   charging_grant->expiry_time       = credit_uc.expiry_time;
   charging_grant->reauth_state      = credit_uc.reauth_state;
   charging_grant->service_state     = credit_uc.service_state;
+  charging_grant->suspended         = credit_uc.suspended;
 }
 
 void SessionState::set_charging_credit(
@@ -1337,12 +1399,18 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
   CreditUsageUpdate req;
   req.set_session_id(session_id_);
   req.set_request_number(request_number_);
+  fill_protos_tgpp_context(req.mutable_tgpp_ctx());
+  req.mutable_common_context()->CopyFrom(config_.common_context);
+
+  // TODO deprecate below as it is already covered by common context
   req.set_sid(imsi_);
   req.set_msisdn(config_.common_context.msisdn());
   req.set_ue_ipv4(config_.common_context.ue_ipv4());
   req.set_apn(config_.common_context.apn());
   req.set_rat_type(config_.common_context.rat_type());
-  fill_protos_tgpp_context(req.mutable_tgpp_ctx());
+
+  // TODO keep RAT specific fields separate for now as we may not always want to
+  // send the entire context
   if (config_.rat_specific_context.has_lte_context()) {
     const auto& lte_context = config_.rat_specific_context.lte_context();
     req.set_spgw_ipv4(lte_context.spgw_ipv4());
@@ -1384,6 +1452,12 @@ void SessionState::get_charging_updates(
               << key;
           break;  // no update
         }
+        if (grant->suspended && update_type == CreditUsage::QUOTA_EXHAUSTED) {
+          MLOG(MDEBUG) << "Credit " << key << " for " << session_id_
+                       << " is suspended. Not sending update to the core";
+          break;  // no update
+        }
+
         // Create Update struct
         MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key
                      << " updating due to type "
@@ -1411,7 +1485,7 @@ void SessionState::get_charging_updates(
         // activate service
         action->set_ambr(config_.get_apn_ambr());
         // terminate service
-        terminate_service_action(action, action_type, key);
+        fill_service_action(action, action_type, key);
         actions_out->push_back(std::move(action));
         break;
       case RESTRICT_ACCESS: {
@@ -1427,17 +1501,17 @@ void SessionState::get_charging_updates(
         // activate service
         action->set_ambr(config_.get_apn_ambr());
         // terminate service
-        terminate_service_action(action, action_type, key);
+        fill_service_action(action, action_type, key);
         actions_out->push_back(std::move(action));
         break;
       }
       case ACTIVATE_SERVICE:
         action->set_ambr(config_.get_apn_ambr());
-        terminate_service_action(action, action_type, key);
+        fill_service_action(action, action_type, key);
         actions_out->push_back(std::move(action));
         break;
       case TERMINATE_SERVICE:
-        terminate_service_action(action, action_type, key);
+        fill_service_action(action, action_type, key);
         actions_out->push_back(std::move(action));
         break;
       default:
@@ -1449,7 +1523,7 @@ void SessionState::get_charging_updates(
   }
 }
 
-void SessionState::terminate_service_action(
+void SessionState::fill_service_action(
     std::unique_ptr<ServiceAction>& action, ServiceActionType action_type,
     const CreditKey& key) {
   MLOG(MDEBUG) << "Subscriber " << imsi_ << " rating group " << key

@@ -99,7 +99,7 @@ definitions:
     minLength: 1
     x-nullable: false
     example: network_1
-    pattern: '^[a-z][\da-z_-]+$'
+    pattern: '^[\da-z_-]+$'
   network_name:
     type: string
     minLength: 1

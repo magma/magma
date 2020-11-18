@@ -31,6 +31,26 @@ MATCHER_P(CheckCount, count, "") {
   return arg_count == count;
 }
 
+MATCHER_P(CheckStaticRulesNames, list_static_rules, "") {
+  std::vector<std::string> static_rules = arg;
+  if (static_rules.size() != list_static_rules.size()) {
+    return false;
+  }
+  for (auto rule : list_static_rules) {
+    bool found = false;
+    for (auto rule_to_check : list_static_rules) {
+      if (rule == rule_to_check) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return false;
+    }
+  }
+  return true;
+}
+
 MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
   auto req = static_cast<const UpdateSessionRequest>(arg);
   return req.updates().size() == chargingCount &&

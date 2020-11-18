@@ -103,7 +103,7 @@ metrics:
     create: true
     image:
       repository: docker.io/facebookincubator/prometheus-edge-hub
-      tag: 1.0.0
+      tag: 1.1.0
     limit: 500000
   grafana:
     create: false
@@ -126,6 +126,27 @@ metrics:
       grafanaData:
         persistentVolumeClaim:
           claimName: ${grafana_pvc_grafanaData}
+
+  thanos:
+    enabled: ${thanos_enabled}
+    objstore:
+      type: S3
+      config:
+        bucket: ${thanos_bucket}
+        endpoint: s3.${region}.amazonaws.com
+        region: ${region}
+        access_key: ${thanos_aws_access_key}
+        secret_key: ${thanos_aws_secret_key}
+        insecure: false
+        signature_version2: false
+        put_user_metadata: {}
+        http_config:
+          idle_conn_timeout: 0s
+          response_header_timeout: 0s
+          insecure_skip_verify: false
+        trace:
+          enable: false
+        part_size: 0
 
 nms:
   enabled: ${deploy_nms}

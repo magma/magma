@@ -12,4 +12,9 @@
 # limitations under the License.
 
 # log_level is set in mconfig. it can be overridden here
-mtr_interface: mtr0
+mtr_interface: lo
+
+# Manual configuration of ping targets
+#ping_targets:
+#  "NAME1": {ip: "x.y.z.w"}
+#  "NAME2": {ip: "a.b.c.d"}

@@ -183,4 +183,18 @@ std::string service_action_type_to_str(ServiceActionType action) {
       return "INVALID ACTION TYPE";
   }
 }
+
+std::string credit_validity_to_str(CreditValidity validity) {
+  switch (validity) {
+    case VALID_CREDIT:
+      return "VALID_CREDIT";
+    case INVALID_CREDIT:
+      return "INVALID_CREDIT";
+    case TRANSIENT_ERROR:
+      return "TRANSIENT_ERROR";
+    default:
+      return "INVALID CREDIT TYPE";
+  }
+}
+
 }  // namespace magma
