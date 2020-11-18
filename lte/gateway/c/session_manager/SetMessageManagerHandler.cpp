@@ -73,33 +73,31 @@ void SetMessageManagerHandler::SetAmfSessionContext(
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
 
   // Requested message from AMF to release the session
-  m5g_enforcer_->get_event_base().runInEventBaseThread(
-        [this, response_callback, request_cpy]() {
-     // extract values from proto
-     auto imsi       = request_cpy.common_context().sid().id();
-     std::string dnn = request_cpy.common_context().apn();
-     // Fetch complete message from proto message
-     SessionConfig cfg = m5g_build_session_config(request_cpy);
+  m5g_enforcer_->get_event_base().runInEventBaseThread([this, response_callback,
+                                                        request_cpy]() {
+    // extract values from proto
+    auto imsi       = request_cpy.common_context().sid().id();
+    std::string dnn = request_cpy.common_context().apn();
+    // Fetch complete message from proto message
+    SessionConfig cfg = m5g_build_session_config(request_cpy);
 
-
-     /* Read the proto message and check for state. Get the config out of proto.
-      * Code for relase state, then creating 
-      */
+    /* Read the proto message and check for state. Get the config out of proto.
+     * Code for relase state, then creating
+     */
     // Requested message from AMF to release the session
     if (cfg.common_context.sm_session_state() == RELEASED_4) {
-       if (cfg.common_context.sm_session_version() != 0) {
-         MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi
-                   << " but continuing release request";
-       }
-       MLOG(MINFO) << "Release request for session from IMSI: " << imsi << " DNN "
-                << dnn;
-        /* Read the SessionMap from global session_store,
-         * if it is not found, it will be added w.r.t imsi
-         */
-       auto session_map = session_store_.read_sessions({imsi});
-       initiate_release_session(session_map, dnn, imsi);
-    }
-    else {
+      if (cfg.common_context.sm_session_version() != 0) {
+        MLOG(MERROR) << "Wrong version received from AMF for IMSI " << imsi
+                     << " but continuing release request";
+      }
+      MLOG(MINFO) << "Release request for session from IMSI: " << imsi
+                  << " DNN " << dnn;
+      /* Read the SessionMap from global session_store,
+       * if it is not found, it will be added w.r.t imsi
+       */
+      auto session_map = session_store_.read_sessions({imsi});
+      initiate_release_session(session_map, dnn, imsi);
+    } else {
       // The Event Based main_thread invocation and runs to handle session state
       std::string session_id = id_gen_.gen_session_id(imsi);
       MLOG(MINFO) << "Requested session from UE with IMSI: " << imsi
@@ -134,16 +132,15 @@ void SetMessageManagerHandler::send_create_session(
    * SessionStore, then return from here and nothing to do
    * as already same session exist, its duplicate request
    */
-  
+
   SessionSearchCriteria criteria(imsi, IMSI_AND_APN, dnn);
   auto session_it = session_store_.find_session(session_map, criteria);
   if (session_it) {
-        // DNN or APN found and return from here
-        MLOG(MERROR) << "Duplicate request of same DNN " << dnn << " of IMSI "
-                     << imsi << " nothing to do";
-        return;
-
-  } 
+    // DNN or APN found and return from here
+    MLOG(MERROR) << "Duplicate request of same DNN " << dnn << " of IMSI "
+                 << imsi << " nothing to do";
+    return;
+  }
 
   auto session_map_ptr = std::make_shared<SessionMap>(std::move(session_map));
   /* initialization of SessionState for IMSI by SessionStateEnforcer*/

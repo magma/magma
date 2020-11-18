@@ -86,7 +86,7 @@ StoredSessionState SessionState::marshal() {
   for (auto& rule_id : active_static_rules_) {
     marshaled.static_rule_ids.push_back(rule_id);
   }
-  for (auto& rule: PdrList_) {
+  for (auto& rule : PdrList_) {
     marshaled.PdrList.push_back(rule);
   }
 
@@ -151,7 +151,7 @@ SessionState::SessionState(
   for (auto& rule : marshaled.dynamic_rules) {
     dynamic_rules_.insert_rule(rule);
   }
-  for (auto& rule: marshaled.PdrList) {
+  for (auto& rule : marshaled.PdrList) {
     PdrList_.push_back(rule);
   }
   for (const std::string& rule_id : marshaled.scheduled_static_rules) {
@@ -298,7 +298,7 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   if (uc.is_current_version_updated) {
     current_version_ = uc.updated_current_version;
   }
- 
+
   if (uc.is_local_teid_updated) {
     local_teid_ = uc.local_teid_updated;
   }
@@ -818,10 +818,11 @@ uint32_t SessionState::get_local_teid() const {
   return local_teid_;
 }
 
-void SessionState::set_local_teid(uint32_t teid, SessionStateUpdateCriteria& uc){
-  local_teid_ = teid;
+void SessionState::set_local_teid(
+    uint32_t teid, SessionStateUpdateCriteria& uc) {
+  local_teid_              = teid;
   uc.is_local_teid_updated = true;
-  uc.local_teid_updated= teid;
+  uc.local_teid_updated    = teid;
   return;
 }
 
@@ -1139,7 +1140,7 @@ void SessionState::set_fsm_state(
     SessionFsmState new_state, SessionStateUpdateCriteria& uc) {
   // Only log and reflect change into update criteria if the state is new
   if (curr_state_ != new_state) {
-    MLOG(MDEBUG) << "Session " << session_id_ << " Teid " << local_teid_ 
+    MLOG(MDEBUG) << "Session " << session_id_ << " Teid " << local_teid_
                  << " FSM state change from "
                  << session_fsm_state_to_str(curr_state_) << " to "
                  << session_fsm_state_to_str(new_state);

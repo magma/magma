@@ -526,16 +526,16 @@ void AsyncPipelinedClient::update_subscriber_quota_state_rpc(
 }
 
 uint32_t AsyncPipelinedClient::get_next_teid() {
-  /* For now TEID we use current no, increment for next, later we plan to 
+  /* For now TEID we use current no, increment for next, later we plan to
      maintain  release/alloc table for reu sing */
-   uint32_t allocated_teid= teid++;
-   return allocated_teid;
+  uint32_t allocated_teid = teid++;
+  return allocated_teid;
 }
 
 uint32_t AsyncPipelinedClient::get_current_teid() {
-  /* For now TEID we use current no, increment for next, later we plan to 
+  /* For now TEID we use current no, increment for next, later we plan to
      maintain  release/alloc table for reu sing */
-   return teid;
+  return teid;
 }
 
 }  // namespace magma

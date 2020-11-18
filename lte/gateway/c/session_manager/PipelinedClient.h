@@ -23,7 +23,7 @@
 #include "GRPCReceiver.h"
 #include "SessionState.h"
 
-#define  M5G_MIN_TEID  (UINT32_MAX/2)
+#define M5G_MIN_TEID (UINT32_MAX / 2)
 
 using grpc::Status;
 
@@ -162,7 +162,7 @@ class PipelinedClient {
       const SessionState::SessionInfo info,
       std::function<void(Status status, UPFSessionContextState)> callback) = 0;
 
-  virtual uint32_t get_next_teid() = 0;
+  virtual uint32_t get_next_teid()    = 0;
   virtual uint32_t get_current_teid() = 0;
 };
 

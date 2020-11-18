@@ -217,7 +217,7 @@ optional<SessionVector::iterator> SessionStore::find_session(
             RATType::TGPP_WLAN) {
           return it;
         }
-	// other case(lte,5g)
+        // other case(lte,5g)
         // lte case
         if ((*it)->get_config().common_context.ue_ipv4() ==
                 criteria.secondary_key ||
