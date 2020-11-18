@@ -27,7 +27,8 @@ MSISDN_HDR = 'msisdn'
 TIMEOUT_SEC = 30
 
 
-def activate_he_urls_for_ue(ip: IPAddress, urls: List[str], imsi: str, msisdn: str) -> bool:
+def activate_he_urls_for_ue(ip: IPAddress, rule_id: str, urls: List[str],
+                            imsi: str, msisdn: str) -> bool:
     """
     Make RPC call to 'Envoy Controller' to add target URLs to envoy datapath.
     """
@@ -44,6 +45,7 @@ def activate_he_urls_for_ue(ip: IPAddress, urls: List[str], imsi: str, msisdn: s
         if msisdn:
             headers.append(Header(name=MSISDN_HDR, value=msisdn))
         he_info = AddUEHeaderEnrichmentRequest(ue_ip=ip,
+                                               rule_id=rule_id,
                                                websites=urls,
                                                headers=headers)
         client.AddUEHeaderEnrichment(he_info, timeout=TIMEOUT_SEC)
@@ -57,7 +59,7 @@ def activate_he_urls_for_ue(ip: IPAddress, urls: List[str], imsi: str, msisdn: s
     return False
 
 
-def deactivate_he_urls_for_ue(ip: IPAddress):
+def deactivate_he_urls_for_ue(ip: IPAddress, rule_id: str):
     """
     Make RPC call to 'Envoy Controller' to remove the proxy rule for the UE.
     """
@@ -71,7 +73,7 @@ def deactivate_he_urls_for_ue(ip: IPAddress):
     client = EnvoyControllerStub(chan)
 
     try:
-        he_info = DeactivateUEHeaderEnrichmentRequest(ue_ip=ip)
+        he_info = DeactivateUEHeaderEnrichmentRequest(ue_ip=ip, rule_id=rule_id)
         client.DeactivateUEHeaderEnrichment(he_info, timeout=TIMEOUT_SEC)
 
     except grpc.RpcError as err:
