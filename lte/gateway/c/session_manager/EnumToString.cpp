@@ -33,6 +33,8 @@ std::string service_state_to_str(ServiceState state) {
       return "SERVICE_ENABLED";
     case SERVICE_NEEDS_DEACTIVATION:
       return "SERVICE_NEEDS_DEACTIVATION";
+    case SERVICE_NEEDS_SUSPENSION:
+      return "SERVICE_NEEDS_SUSPENSION";
     case SERVICE_DISABLED:
       return "SERVICE_DISABLED";
     case SERVICE_NEEDS_ACTIVATION:

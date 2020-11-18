@@ -1293,8 +1293,7 @@ void LocalEnforcer::remove_rules_for_multiple_suspended_credit(
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
-      MLOG(MWARNING) << "Session " << session_id
-                     << " not found for termination";
+      MLOG(MWARNING) << "Session " << session_id << " not found for suspension";
       return;
     }
     auto& session    = **session_it;
@@ -1306,6 +1305,8 @@ void LocalEnforcer::remove_rules_for_multiple_suspended_credit(
 void LocalEnforcer::remove_rules_for_suspended_credit(
     const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
     SessionStateUpdateCriteria& session_uc) {
+  MLOG(MWARNING) << "Suspending RG " << ckey << " for "
+                 << session->get_session_id();
   // suspend this specific credit
   session->set_suspend_credit(ckey, true, session_uc);
 
@@ -1330,12 +1331,11 @@ void LocalEnforcer::add_rules_for_multiple_unsuspended_credit(
     const auto& imsi       = suspended_credit.imsi;
     const auto& session_id = suspended_credit.session_id;
     const CreditKey& ckey  = suspended_credit.cKey;
-
     SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
     auto session_it = session_store_.find_session(session_map, criteria);
     if (!session_it) {
       MLOG(MWARNING) << "Session " << session_id
-                     << " not found for termination";
+                     << " not found for un-suspension";
       return;
     }
     auto& session    = **session_it;
@@ -1347,6 +1347,8 @@ void LocalEnforcer::add_rules_for_multiple_unsuspended_credit(
 void LocalEnforcer::add_rules_for_unsuspended_credit(
     const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
     SessionStateUpdateCriteria& session_uc) {
+  MLOG(MWARNING) << "Un-suspending RG " << ckey << " for "
+                 << session->get_session_id();
   // unsuspend this credit
   session->set_suspend_credit(ckey, false, session_uc);
 

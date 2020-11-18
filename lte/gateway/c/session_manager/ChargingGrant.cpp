@@ -80,12 +80,14 @@ CreditValidity ChargingGrant::is_valid_credit_response(
   bool gsu_all_invalid =
       !gsu.total().is_valid() && !gsu.rx().is_valid() && !gsu.tx().is_valid();
   if (gsu_all_invalid) {
-    if (update.credit().is_final()) {
+    if (update.credit().is_final() || credit_validity == TRANSIENT_ERROR) {
       // TODO @themarwhal look into this case. Before I figure it out, I will
-      // allow empty GSU credits with FUA to be on the conservative side.
+      // allow empty GSU credits with FUA or to be suspended
+      // to be on the conservative side.
       MLOG(MWARNING)
           << "GSU for RG: " << key << " " << session_id
-          << " is invalid, but accepting it as it has a final unit action";
+          << " is invalid, but accepting it as it has a final unit action or "
+             "suspended credit ";
       return credit_validity;
     }
     MLOG(MERROR) << "Credit update failed RG:" << key
