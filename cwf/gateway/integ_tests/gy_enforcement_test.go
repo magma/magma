@@ -420,7 +420,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 		},
 		IsFinalCredit:       true,
 		FinalUnitIndication: &finalUnitIndication,
-		ResultCode:          diameter.DiameterCreditLimitReached,
+		ResultCode:          diameter.SuccessCode,
 	}
 
 	initRequest := protos.NewGyCCRequest(imsi, protos.CCRequestType_INITIAL)
