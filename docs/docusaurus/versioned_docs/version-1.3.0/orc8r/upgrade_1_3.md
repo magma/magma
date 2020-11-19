@@ -27,8 +27,7 @@ Build and publish the application containers on the head of the release branch
 by following the documentation, and package and upload version `1.4.36` of the
 orc8r Helm chart as well.
 
-Ensure that all Terraform state files (I.e. terraform.tfstate) are located
- within your working directory before proceeding. 
+If you are using local Terraform state (the default), ensure all Terraform state files (i.e. [`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are located in your working directory before proceeding. This means `terraform show` should list existing state (rather than outputting `No state`). 
 
 ## Upgrade Terraform Modules
 
