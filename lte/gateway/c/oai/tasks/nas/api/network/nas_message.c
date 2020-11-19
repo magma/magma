@@ -267,6 +267,7 @@ int nas_message_decrypt(
     uint32_t mac = _nas_message_get_mac(
         inbuf + offset, length - offset, SECU_DIRECTION_UPLINK,
         emm_security_context);
+
     /*
      * Check NAS message integrity
      */

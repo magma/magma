@@ -41,9 +41,6 @@ bool S6aGrpcIface::update_location_req(s6a_update_location_req_t* ulr_p) {
 }
 //------------------------------------------------------------------------------
 bool S6aGrpcIface::authentication_info_req(s6a_auth_info_req_t* air_p) {
-  OAILOG_DEBUG(
-      LOG_S6A, "State PLMN from grpc_iface " PLMN_FMT "from proto",
-      PLMN_ARG(&air_p->visited_plmn));
   return s6a_authentication_info_req(air_p);
 }
 //------------------------------------------------------------------------------

@@ -48,9 +48,10 @@ int s1ap_mme_handle_ue_cap_indication(
 /** \brief Handle an S1 Setup request message.
  * Typically add the eNB in the list of served eNB if not present, simply reset
  * UEs association otherwise. S1SetupResponse message is sent in case of success
- *or S1SetupFailure if the MME cannot accept the configuration received. \param
- *assoc_id SCTP association ID \param stream Stream number \param message_p The
- *message decoded by the ASN1C decoder
+ * or S1SetupFailure if the MME cannot accept the configuration received.
+ * \param assoc_id SCTP association ID
+ * \param stream Stream number
+ * \param message_p The message decoded by the ASN1C decoder
  * @returns int
  **/
 int s1ap_mme_handle_s1_setup_request(

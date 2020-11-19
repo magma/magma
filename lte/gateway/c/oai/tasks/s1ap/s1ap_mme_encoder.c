@@ -22,6 +22,7 @@
 #include "s1ap_mme_encoder.h"
 #include "assertions.h"
 #include "log.h"
+#include "common_defs.h"
 
 static inline int s1ap_mme_encode_initiating(
     S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length);
@@ -36,12 +37,15 @@ int s1ap_mme_encode_pdu(
 
   if (pdu == NULL) {
     OAILOG_DEBUG(LOG_S1AP, "PDU is NULL\n");
+    return RETURNerror;
   }
   if (buffer == NULL) {
     OAILOG_DEBUG(LOG_S1AP, "Buffer is NULL\n");
+    return RETURNerror;
   }
   if (length == NULL) {
     OAILOG_DEBUG(LOG_S1AP, "Length is NULL\n");
+    return RETURNerror;
   }
 
   switch (pdu->present) {
@@ -71,7 +75,11 @@ int s1ap_mme_encode_pdu(
 static inline int s1ap_mme_encode_initiating(
     S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
-  DevAssert(pdu != NULL);
+
+  if (pdu == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "PDU is NULL\n");
+    return RETURNerror;
+  }
 
   switch (pdu->choice.initiatingMessage.procedureCode) {
     case S1ap_ProcedureCode_id_downlinkNASTransport:
@@ -92,7 +100,7 @@ static inline int s1ap_mme_encode_initiating(
           (int) pdu->choice.initiatingMessage.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      return RETURNerror;
   }
 
   memset(&res, 0, sizeof(res));
@@ -100,15 +108,18 @@ static inline int s1ap_mme_encode_initiating(
       NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_S1ap_S1AP_PDU, pdu);
   *buffer = res.buffer;
   *length = res.result.encoded;
-  return 0;
+  return RETURNok;
 }
 
 //------------------------------------------------------------------------------
 static inline int s1ap_mme_encode_successfull_outcome(
     S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
-  DevAssert(pdu != NULL);
 
+  if (pdu == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "PDU is NULL\n");
+    return RETURNerror;
+  }
   switch (pdu->choice.successfulOutcome.procedureCode) {
     case S1ap_ProcedureCode_id_S1Setup:
     case S1ap_ProcedureCode_id_PathSwitchRequest:
@@ -125,20 +136,24 @@ static inline int s1ap_mme_encode_successfull_outcome(
           (int) pdu->choice.successfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      return RETURNerror;
   }
   res = asn_encode_to_new_buffer(
       NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_S1ap_S1AP_PDU, pdu);
   *buffer = res.buffer;
   *length = res.result.encoded;
-  return 0;
+  return RETURNok;
 }
 
 //------------------------------------------------------------------------------
 static inline int s1ap_mme_encode_unsuccessfull_outcome(
     S1ap_S1AP_PDU_t* pdu, uint8_t** buffer, uint32_t* length) {
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
-  DevAssert(pdu != NULL);
+
+  if (pdu == NULL) {
+    OAILOG_ERROR(LOG_S1AP, "PDU is NULL\n");
+    return RETURNerror;
+  }
 
   switch (pdu->choice.unsuccessfulOutcome.procedureCode) {
     case S1ap_ProcedureCode_id_S1Setup:
@@ -153,11 +168,11 @@ static inline int s1ap_mme_encode_unsuccessfull_outcome(
           (int) pdu->choice.unsuccessfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
-      return -1;
+      return RETURNerror;
   }
   res = asn_encode_to_new_buffer(
       NULL, ATS_ALIGNED_CANONICAL_PER, &asn_DEF_S1ap_S1AP_PDU, pdu);
   *buffer = res.buffer;
   *length = res.result.encoded;
-  return 0;
+  return RETURNok;
 }

@@ -359,24 +359,6 @@ static int _start_authentication_information_procedure(
 
   plmn_t visited_plmn = {0};
   COPY_PLMN(visited_plmn, emm_context->originating_tai.plmn);
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "First mcc digit %d\n",
-      emm_context->originating_tai.plmn.mcc_digit1);
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "Second mcc digit %d\n",
-      emm_context->originating_tai.plmn.mcc_digit1);
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "Third mcc digit %d\n",
-      emm_context->originating_tai.plmn.mcc_digit1);
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "First mcc digit %d\n",
-      emm_context->originating_tai.plmn.mnc_digit1);
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "Second mnc digit %d\n",
-      emm_context->originating_tai.plmn.mnc_digit1);
-  OAILOG_DEBUG(
-      LOG_NAS_EMM, "Third mnc digit %d\n",
-      emm_context->originating_tai.plmn.mnc_digit1);
 
   bool is_initial_req          = !(auth_info_proc->request_sent);
   auth_info_proc->request_sent = true;

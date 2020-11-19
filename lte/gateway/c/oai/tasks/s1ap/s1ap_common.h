@@ -414,16 +414,14 @@ extern int asn1_xer_print;
     if (ie == NULL) {                                                          \
       if (mandatory)                                                           \
         OAILOG_ERROR(                                                          \
-            LOG_S1AP,                                                          \
-            "S1AP_FIND_PROTOCOLIE_BY_ID: %s %d: Mandatory ie is NULL\n",       \
-            __FILE__, __LINE__);                                               \
+            LOG_S1AP, "IE_ID: %s %d: Mandatory ie is NULL\n", __FILE__,        \
+            __LINE__);                                                         \
       else                                                                     \
         OAILOG_DEBUG(                                                          \
-            LOG_S1AP,                                                          \
-            "S1AP_FIND_PROTOCOLIE_BY_ID: %s %d: Optional ie is NULL\n",        \
-            __FILE__, __LINE__);                                               \
+            LOG_S1AP, "IE_ID: %s %d: Optional ie is NULL\n", __FILE__,         \
+            __LINE__);                                                         \
     }                                                                          \
-    if (mandatory) DevAssert(ie != NULL);                                      \
+                                                                               \
   } while (0)
 
 /** \brief Function callback prototype.

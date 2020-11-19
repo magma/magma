@@ -1182,6 +1182,7 @@ void emm_context_dump(
         tai.plmn.mnc_digit3 =
             emm_context->_tai_list.partial_tai_list[k]
                 .u.tai_one_plmn_non_consecutive_tacs.plmn.mnc_digit3;
+
         for (int p = 0;
              p <
              (emm_context->_tai_list.partial_tai_list[k].numberofelements + 1);

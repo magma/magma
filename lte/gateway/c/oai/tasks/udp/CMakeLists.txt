@@ -3,7 +3,6 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../lib/3gpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../lib/itti)
 include_directories(${PROJECT_BINARY_DIR}/s1ap/${ASN1RELDIR})
 
-
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../lib/bstr)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../../lib/hashtable)
 

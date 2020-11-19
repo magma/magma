@@ -3,11 +3,7 @@
  * contributor license agreements.  See the NOTICE file distributed with
  * this work for additional information regarding copyright ownership.
  * The OpenAirInterface Software Alliance licenses this file to You under
- * the Apache License, Version 2.0  (the "License"); you may not use this file
- * except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * the terms found in the LICENSE file in the root of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -18,6 +14,13 @@
  * For more information about the OpenAirInterface (OAI) Software Alliance:
  *      contact@openairinterface.org
  */
+
+/*! \file s1ap_mme_decoder.c
+   \brief s1ap decode procedures for MME
+   \author Sebastien ROUX <sebastien.roux@eurecom.fr>
+   \date 2012
+   \version 0.1
+*/
 
 /*! \file s1ap_mme_decoder.c
    \brief s1ap decode procedures for MME
@@ -45,7 +48,7 @@
 
 //-----------------------------------------------------------------------------
 int s1ap_mme_decode_pdu(S1ap_S1AP_PDU_t* pdu, const_bstring const raw) {
-  if ((pdu != NULL) && (raw)) {
+  if ((pdu) && (raw)) {
     if (blength(raw) == 0) {
       OAILOG_DEBUG(LOG_S1AP, "Buffer length is Zero \n");
     }
@@ -55,11 +58,11 @@ int s1ap_mme_decode_pdu(S1ap_S1AP_PDU_t* pdu, const_bstring const raw) {
 
     if (dec_ret.code != RC_OK) {
       OAILOG_ERROR(LOG_S1AP, "Failed to decode PDU\n");
-      return -1;
+      return RETURNerror;
     }
-    return 0;
+    return RETURNok;
   } else {
     OAILOG_DEBUG(LOG_S1AP, "PDU is NULL \n");
-    return -1;
+    return RETURNerror;
   }
 }
