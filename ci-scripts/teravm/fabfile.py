@@ -120,39 +120,33 @@ def upgrade_teravm(
 
     return hash
 
-def get_agw(setup):
+def get_latest_agw_tag(setup):
     version = None
+    
     """
-    Upgrade teravm agw to image with the given hash.
-    hash: a hash to identify what version from APT to use for upgrading.
-    If not hash provided or "latest" is passed, it will install latest
-    on the repository.
-
-    key_filename: path to where the private key is for authorized-key based
-    ssh. The public key counterpart needs to in the authorized_keys file on
-    the remote host. If empty file name is passed, password-based ssh will
-    work instead. This can be used if the script is run manually.
+    Version: versiion to identify what tag from APT to use for upgrading.
     """
+    fastprint("Set enviroment to return latest tag to upgrade ")
 
-    fastprint("Upgrade teraVM AGW to %s")
     _setup_env_agw("magma", VM_IP_MAP[setup]["gateway"])
     err = _set_magma_apt_repo()
     if err:
         return err
     sudo("apt update")
+
     fastprint("Get latest version\n")
-    # Get the whole version string containing that hash and 'apt install' it
+    # Get the whole version string and 'apt install' it
+
     with settings(abort_exception=FabricException):
 	version = sudo ("apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'")
-        #fastprint(version)
+
     return version
 
-def upgrade_teravm_agw(setup, key_filename=DEFAULT_KEY_FILENAME):
+def upgrade_teravm_agw_to_latest(setup, key_filename=DEFAULT_KEY_FILENAME):
     """
-    Upgrade teravm agw to image with the given hash.
-    hash: a hash to identify what version from APT to use for upgrading.
-    If not hash provided or "latest" is passed, it will install latest
-    on the repository.
+    Upgrade teravm agw to image with the latest tag.
+
+    version: latest version from APT to use for upgrading.
 
     key_filename: path to where the private key is for authorized-key based
     ssh. The public key counterpart needs to in the authorized_keys file on
@@ -160,7 +154,7 @@ def upgrade_teravm_agw(setup, key_filename=DEFAULT_KEY_FILENAME):
     work instead. This can be used if the script is run manually.
     """
 
-    fastprint("Upgrade teraVM AGW to %s")
+    fastprint("Upgrade teraVM AGW")
     _setup_env("magma", VM_IP_MAP[setup]["gateway"], key_filename)
     err = _set_magma_apt_repo()
     if err:
@@ -186,6 +180,47 @@ def upgrade_teravm_agw(setup, key_filename=DEFAULT_KEY_FILENAME):
             fastprint(status)
     return status
 
+def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
+    """
+    Upgrade teravm agw to image with the given hash.
+    hash: a hash to identify what version from APT to use for upgrading.
+    If not hash provided or "latest" is passed, it will install latest
+    on the repository.
+
+    key_filename: path to where the private key is for authorized-key based
+    ssh. The public key counterpart needs to in the authorized_keys file on
+    the remote host. If empty file name is passed, password-based ssh will
+    work instead. This can be used if the script is run manually.
+    """
+
+    fastprint("Upgrade teraVM AGW to %s" % hash)
+    _setup_env("magma", VM_IP_MAP[setup]["gateway"], key_filename)
+    err = _set_magma_apt_repo()
+    if err:
+        return err
+    sudo("apt update")
+    fastprint("Install version with hash %s\n" % hash)
+    # Get the whole version string containing that hash and 'apt install' it
+    with settings(abort_exception=FabricException):
+        try:
+            if hash is None or hash.lower() == "latest":
+                # install latest on the repository
+                sudo("apt install -f -y --allow-downgrades magma")
+            else:
+                sudo(
+                    "version=$("
+                    "apt-cache madison magma | grep {hash} | awk 'NR==1{{print $3}}');"
+                    "apt install -f -y --allow-downgrades magma=$version".format(
+                        hash=hash
+                    )
+                )
+        except Exception:
+            err = (
+                "Error during install of version {} on AGW. "
+                "Maybe the version doesn't exist. Not installing.\n".format(hash)
+            )
+            fastprint(err)
+    return err
 
 def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     """
@@ -231,8 +266,8 @@ def upgrade_teravm_feg(setup, key_filename=DEFAULT_KEY_FILENAME):
     """
     Upgrade teravm feg to the image with the given hash.
 
-    hash: a hash to identify what images to pull from s3 bucket and use
-    for upgrading. If None, try find the most recent hash.
+    version: To get latest tag from get_latest_agw_tag() retturn and use
+    for upgrading.
 
     key_filename: path to where the private key is for authorized-key based
     ssh. The public key counterpart needs to in the authorized_keys file on
@@ -240,16 +275,19 @@ def upgrade_teravm_feg(setup, key_filename=DEFAULT_KEY_FILENAME):
     work instead. This can be used if the script is run manually.
     """
     err = None
-    version = get_agw(setup)
+    tag = get_latest_agw_tag(setup)
+    version = tag.split("-")[2]
+
     fastprint("Upgrade teraVM FEG to %s\n" % version)
     _setup_env("magma", VM_IP_MAP[setup]["feg"], key_filename)
+
     with cd("/var/opt/magma/docker"), settings(abort_exception=FabricException):
         sudo("docker-compose down")
         sudo("cp docker-compose.yml docker-compose.yml.backup")
         sudo("cp .env .env.backup")
-        version1 = version.split("-")[2]
-        #sudo('sed -i "s/IMAGE_VERSION=.*/IMAGE_VERSION=%s/g" .env' version )
-        sudo('sed -i "s/^IMAGE_VERSION=.*$/IMAGE_VERSION=%s/g" .env' % version1)
+        #version1 = version.split("-")[2]
+
+        sudo('sed -i "s/^IMAGE_VERSION=.*$/IMAGE_VERSION=%s/g" .env' % version)
         if len(_check_disk_space()) != 0:
             fastprint("Disk space alert: cleaning docker images\n")
             sudo("docker system prune --all  --force")
@@ -257,13 +295,13 @@ def upgrade_teravm_feg(setup, key_filename=DEFAULT_KEY_FILENAME):
             # TODO: obtain .yml file from jfrog artifact instead of git master
             sudo("wget -O docker-compose.yml %s" % FEG_DOCKER_COMPOSE_GIT)
             sudo("docker-compose up -d")
-            status = ("\nUpgrade Status : Successful FEG upgrade : %s \n" % version1)
+            status = ("\nUpgrade Status : Successful FEG upgrade : %s \n" % version)
             fastprint(status)
         except Exception:
             status = (
                 "Upgrade Status : Error during install of version {} on FEG. Maybe the image "
                 "doesn't exist:. Reverting to the original "
-                "config \n".format(version1)
+                "config \n".format(version)
             )
             fastprint(status)
             with hide("running", "stdout"):
