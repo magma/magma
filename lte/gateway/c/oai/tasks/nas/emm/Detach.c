@@ -127,6 +127,7 @@ void detach_t3422_handler(void* args, imsi64_t* imsi64) {
     if (data) {
       // free timer argument
       free_wrapper((void**) &data);
+      emm_ctx->t3422_arg = NULL;
     }
     if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
@@ -545,22 +546,27 @@ int emm_proc_nw_initiated_detach_request(
       void** timer_callback = &unused;
       emm_ctx->T3422.id     = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
       nw_detach_data_t* data = (nw_detach_data_t*) emm_ctx->t3422_arg;
-      ;
-      emm_ctx->T3422.id = nas_timer_start(
+      emm_ctx->T3422.id      = nas_timer_start(
           emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
     } else {
       /*
        * Start T3422 timer
        */
-      nw_detach_data_t* data =
-          (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
-      DevAssert(data);
-      data->ue_id                = ue_id;
-      data->retransmission_count = 0;
-      data->detach_type          = detach_type;
-      emm_ctx->T3422.id          = nas_timer_start(
-          emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
-      emm_ctx->t3422_arg = (void*) data;
+      if (emm_ctx->t3422_arg) {
+        emm_ctx->T3422.id = nas_timer_start(
+            emm_ctx->T3422.sec, 0, detach_t3422_handler,
+            (void*) emm_ctx->t3422_arg);
+      } else {
+        nw_detach_data_t* data =
+            (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
+        DevAssert(data);
+        data->ue_id                = ue_id;
+        data->retransmission_count = 0;
+        data->detach_type          = detach_type;
+        emm_ctx->T3422.id          = nas_timer_start(
+            emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
+        emm_ctx->t3422_arg = (void*) data;
+      }
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);

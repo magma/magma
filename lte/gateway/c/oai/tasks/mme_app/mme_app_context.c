@@ -2330,6 +2330,7 @@ static bool mme_app_recover_timers_for_ue(
 
   // timer for network initiated detach procedure
   if (ue_mm_context_pP && ue_mm_context_pP->emm_context.t3422_arg) {
+    ue_mm_context_pP->emm_context.T3422.id = NAS_TIMER_INACTIVE_ID;
     detach_t3422_handler(
         (void*) ue_mm_context_pP->emm_context.t3422_arg,
         &ue_mm_context_pP->emm_context._imsi64);
