@@ -303,6 +303,8 @@ pipeline {
                 echo "Disabling TCP checksumming on all VMs"
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"', 'archives/magma_vagrant_disable_tcp_checksumming.log', new_host_flag, new_host_user, new_host)
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "sudo ethtool --offload eth1 rx off tx off && sudo ethtool --offload eth2 rx off tx off"', 'archives/magma_vagrant_test_disable_tcp_checksumming.log', new_host_flag, new_host_user, new_host)
+                // Adding capture on the S1 interface
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "nohup sudo tcpdump -i eth1 port 36412 -w ~/magma/archives/magma_run_s1ap_tester.pcap > /dev/null & sleep 1"', new_host_flag, new_host_user, new_host)
 
                 // Making sure the Traffic server is up and running
                 sh "sleep 20"
@@ -352,6 +354,8 @@ pipeline {
           post {
             always {
               script {
+                // Stopping capture
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo pkill tcpdump"', new_host_flag, new_host_user, new_host)
                 def retrieveOAIcovFiles = true
                 try {
                   myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make coverage_oai"', 'archives/magma_vagrant_make_coverage_oai.log', new_host_flag, new_host_user, new_host)
@@ -372,6 +376,14 @@ pipeline {
                 myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo cp /var/log/syslog archives/magma_dev_syslog.log"', new_host_flag, new_host_user, new_host)
                 myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo cp /var/log/mme.log archives/magma_dev_mme.log"', new_host_flag, new_host_user, new_host)
                 myShCmd('cd lte/gateway && vagrant ssh magma_test -c "sudo cp /var/log/syslog archives/magma_test_syslog.log"', new_host_flag, new_host_user, new_host)
+                try {
+                  copyFrom2ndServer('archives/magma_dev_syslog.log', 'archives', new_host_flag, new_host_user, new_host)
+                  copyFrom2ndServer('archives/magma_dev_mme.log', 'archives', new_host_flag, new_host_user, new_host)
+                  copyFrom2ndServer('archives/magma_test_syslog.log', 'archives', new_host_flag, new_host_user, new_host)
+                  copyFrom2ndServer('archives/magma_run_s1ap_tester.pcap', 'archives', new_host_flag, new_host_user, new_host)
+                } catch (Exception e) {
+                  echo "Maybe copy did not go well?"
+                }
               }
             }
             success {
@@ -480,6 +492,8 @@ stage ("Deploy SPGW-CUPS") {
         stage ("Test-AGW1-w-S11") {
           steps {
             script {
+                // Adding capture on the S1 and S11 interfaces
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "nohup sudo tcpdump -i any port 36412 or port 2123 -w ~/magma/archives/magma_run_s1ap_tester_s11.pcap > /dev/null & sleep 1"', new_host_flag, new_host_user, new_host)
               // making sure the TRF server is up
               sh "sleep 60"
                 echo "Starting the integration Tests - S1AP Tester"
@@ -517,6 +531,7 @@ stage ("Deploy SPGW-CUPS") {
             always {
               script {
                 myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make stop"', 'archives/magma_vagrant_make_stop2.log', new_host_flag, new_host_user, new_host)
+                myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo pkill tcpdump"', new_host_flag, new_host_user, new_host)
 
                 // Retrieving the sys logs and mme log for more debugging.
                 myShCmd('cd lte/gateway && vagrant ssh magma -c "sudo cp /var/log/syslog archives/magma_dev_syslog_s11.log"', new_host_flag, new_host_user, new_host)
@@ -525,6 +540,12 @@ stage ("Deploy SPGW-CUPS") {
                   myShCmd('docker cp magma-oai-spgwc:/openair-spgwc/spgwc_check_run.log archives', new_host_flag, new_host_user, new_host)
                 } catch (Exception e) {
                   echo "MME log may not be available"
+                }
+                try {
+                  copyFrom2ndServer('archives/magma_dev_*_s11.log', 'archives', new_host_flag, new_host_user, new_host)
+                  copyFrom2ndServer('archives/magma_run_s1ap_tester_s11.pcap', 'archives', new_host_flag, new_host_user, new_host)
+                } catch (Exception e) {
+                  echo "MME logs may not be available"
                 }
                 myShCmd('cd lte/gateway && vagrant ssh magma_test -c "sudo cp /var/log/syslog archives/magma_test_syslog_s11.log"', new_host_flag, new_host_user, new_host)
                 // Retrieving the container logs
