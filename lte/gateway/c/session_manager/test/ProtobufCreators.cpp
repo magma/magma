@@ -170,6 +170,32 @@ void create_credit_update_response(
   response->set_charging_key(charging_key);
 }
 
+void create_credit_update_response_with_error(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, bool is_final, DiameterResultCode resultCode,
+    CreditUpdateResponse* response) {
+  response->set_success(false);
+  create_charging_credit(0, is_final, response->mutable_credit());
+  response->set_sid(imsi);
+  response->set_session_id(session_id);
+  response->set_charging_key(charging_key);
+  response->set_result_code(resultCode);
+}
+
+void create_credit_update_response_with_error(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, bool is_final, DiameterResultCode resultCode,
+    ChargingCredit_FinalAction action, std::string redirect_server,
+    std::string restrict_rule, CreditUpdateResponse* response) {
+  response->set_success(false);
+  create_charging_credit(
+      0, action, redirect_server, restrict_rule, response->mutable_credit());
+  response->set_sid(imsi);
+  response->set_session_id(session_id);
+  response->set_charging_key(charging_key);
+  response->set_result_code(resultCode);
+}
+
 void create_charging_credit(
     uint64_t total_volume, uint64_t tx_volume, uint64_t rx_volume,
     bool is_final, ChargingCredit* credit) {

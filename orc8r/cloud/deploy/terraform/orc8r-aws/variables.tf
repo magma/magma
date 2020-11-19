@@ -342,3 +342,4 @@ variable "elasticsearch_domain_tags" {
   description = "Extra tags for the ES domain."
   default     = {}
 }
+

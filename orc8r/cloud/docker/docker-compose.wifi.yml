@@ -1,0 +1,33 @@
+version: "3.7"
+
+# NOTE: x-orc8r is somewhat replicated from the main docker-compose file.
+# Please keep it in sync.
+x-orc8r_service: &orc8r_service
+  image: orc8r_base
+  environment:
+    TEST_MODE: "1"  # Run dev scripts on startup
+    SERVICE_HOSTNAME: localhost  # All services are reachable through localhost
+    SERVICE_REGISTRY_MODE: docker
+    SQL_DRIVER: postgres
+    DATABASE_SOURCE: dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable
+    SQL_DIALECT: psql
+  links:
+    - fluentd
+  depends_on:
+    - postgres
+    - fluentd
+  restart: always
+
+services:
+  wifi:
+    <<: *orc8r_service
+    depends_on:
+      # Wifi services
+      # Core orc8r services and non-core essentials
+      - orchestrator
+    command:
+      - /bin/sh
+      - -c
+      - >
+        /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
+        /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/wifi -run_echo_server=true -logtostderr=true -v=0

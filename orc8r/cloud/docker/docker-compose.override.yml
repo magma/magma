@@ -8,7 +8,6 @@ services:
 
   controller:
     build:
-      # Use the temporary context created by the build.py script
       context: /tmp/magma_orc8r_build
       dockerfile: $PWD/controller/Dockerfile
 
@@ -19,8 +18,10 @@ services:
       context: /tmp/magma_orc8r_build
       dockerfile: $PWD/controller/Dockerfile
       target: base
+    depends_on:
+      - postgres_test
     entrypoint: /bin/bash -lc
-    command: ['echo Hello World!']
+    command: ["echo Hello World!"]
 
   # Test instance of psql
   postgres_test:

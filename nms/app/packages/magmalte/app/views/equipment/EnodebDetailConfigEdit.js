@@ -519,6 +519,16 @@ export function ConfigEdit(props: Props) {
           return;
         }
       }
+
+      if (enb.config == null) {
+        enb.config = DEFAULT_ENB_CONFIG.config;
+      }
+      if (enb.enodeb_config == null || enb.enodeb_config.config_type == '') {
+        enb.enodeb_config = {
+          config_type: 'MANAGED',
+          managed_config: DEFAULT_ENB_CONFIG.config,
+        };
+      }
       await ctx.setState(enb.serial, {
         enb_state: enbInfo?.enb_state ?? {},
         enb: enb,

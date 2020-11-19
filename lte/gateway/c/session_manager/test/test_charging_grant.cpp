@@ -29,6 +29,7 @@ class ChargingGrantTest : public ::testing::Test {
     grant.expiry_time    = time(NULL);
     grant.service_state  = SERVICE_ENABLED;
     grant.reauth_state   = REAUTH_NOT_NEEDED;
+    grant.suspended      = false;
     return grant;
   }
 

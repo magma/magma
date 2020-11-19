@@ -46,7 +46,8 @@ class SessionStateEnforcer {
          AMF*/
       std::shared_ptr<PipelinedClient> pipelined_client,
       std::shared_ptr<AmfServiceClient> amf_srv_client,
-      magma::mconfig::SessionD mconfig);
+      magma::mconfig::SessionD mconfig,
+      long session_force_termination_timeout_ms);
 
   ~SessionStateEnforcer() {}
 
@@ -65,6 +66,16 @@ class SessionStateEnforcer {
       SessionMap& session_map, const std::string& imsi,
       SessionState& session_state);
 
+  /*Release request handle*/
+  bool m5g_release_session(
+      SessionMap& session_map, const std::string& imsi, const std::string& dnn,
+      SessionUpdate& session_update);
+
+  /*Handle and update respective session upon receiving message from UPF*/
+  void m5g_update_session_state_to_amf(
+      const std::string& imsi, uint32_t teid, uint32_t version,
+      SessionFsmState new_state);
+
  private:
   std::vector<std::string> static_rules;
 
@@ -79,6 +90,8 @@ class SessionStateEnforcer {
   folly::EventBase* evb_;
   std::chrono::seconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
+  // Timer used to forcefully terminate session context on time out
+  long session_force_termination_timeout_ms_;
   bool static_rule_init();
   /* To send response back to AMF
    * Fill the response structure and call rpc of AmfServiceClient
@@ -86,6 +99,32 @@ class SessionStateEnforcer {
   void prepare_response_to_access(
       const std::string& imsi, SessionState& session_state,
       const magma::lte::M5GSMCause m5gsmcause);
+
+  void handle_state_update_to_amf(
+      const std::string& imsi, SessionState& session_state,
+      const magma::lte::M5GSMCause m5gsmcause);
+
+  /*Start processing to terminate respective session requested from AMF*/
+  void m5g_start_session_termination(
+      const std::string& imsi, const std::unique_ptr<SessionState>& session,
+      const std::string& dnn, SessionStateUpdateCriteria& uc);
+
+  /* Function to handle termination if UPF doesn't send required report
+   * As per current implementation, upf report is not in place and
+   * termination on time out will be executed forcefully
+   */
+  void m5g_handle_termination_on_timeout(
+      const std::string& imsi, const std::string& session_id);
+
+  /*Function will clean up all resources related to requested session*/
+  void m5g_complete_termination(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, SessionUpdate& session_update);
+
+  /*Function is to remove the associated rules to respective sessions*/
+  void m5g_remove_rules_and_update_upf(
+      const std::string& imsi, const std::unique_ptr<SessionState>& session,
+      const std::string& dnn, SessionStateUpdateCriteria& uc);
 
 };  // End of class SessionStateEnforcer
 

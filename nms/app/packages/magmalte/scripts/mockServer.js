@@ -71,6 +71,18 @@ server.get('/magma/v1/lte/test', (req, res) => {
   }
 });
 
+server.put('/magma/v1/lte/test_network/cellular/epc', (req, res) => {
+  if (req.method === 'PUT') {
+    res.status(200).jsonp('Success');
+  }
+});
+
+server.put('/magma/v1/lte/test_network/cellular/ran', (req, res) => {
+  if (req.method === 'PUT') {
+    res.status(200).jsonp('Success');
+  }
+});
+
 const networks = ['test', 'test_feg_lte_network'];
 networks.forEach(network => {
   server.get(`/magma/v1/networks/${network}/gateways`, (req, res) => {

@@ -15,8 +15,15 @@
 #include "ServiceAction.h"
 #include "StoredState.h"
 #include "SessionCredit.h"
+#include "DiameterCodes.h"
 
 namespace magma {
+
+enum CreditValidity {
+  VALID_CREDIT    = 0,
+  INVALID_CREDIT  = 1,
+  TRANSIENT_ERROR = 2,
+};
 
 // Used to keep track of credit grants from Gy. Some features of this type of
 // grants include:
@@ -38,13 +45,16 @@ struct ChargingGrant {
   std::time_t expiry_time;
   ServiceState service_state;
   ReAuthState reauth_state;
+  // indicates the rules have been removed from pipelined
+  bool suspended;
 
   // Default states
   ChargingGrant()
       : credit(),
         is_final_grant(false),
         service_state(SERVICE_ENABLED),
-        reauth_state(REAUTH_NOT_NEEDED) {}
+        reauth_state(REAUTH_NOT_NEEDED),
+        suspended(false) {}
 
   ChargingGrant(const StoredChargingGrant& marshaled);
 
@@ -54,6 +64,11 @@ struct ChargingGrant {
   void receive_charging_grant(
       const magma::lte::ChargingCredit& credit,
       SessionCreditUpdateCriteria* uc = NULL);
+
+  // Returns true if the credit returned from the Policy component is valid and
+  // good to be installed.
+  static CreditValidity is_valid_credit_response(
+      const CreditUpdateResponse& update);
 
   // Returns a SessionCreditUpdateCriteria that reflects the current state
   SessionCreditUpdateCriteria get_update_criteria();
@@ -88,10 +103,17 @@ struct ChargingGrant {
   ServiceActionType final_action_to_action(
       const ChargingCredit_FinalAction action) const;
 
+  ServiceActionType final_action_to_action_on_suspension(
+      const ChargingCredit_FinalAction action) const;
+
   // Set is_final_grant and final_action_info values
   void set_final_action_info(
       const magma::lte::ChargingCredit& credit,
-      SessionCreditUpdateCriteria& uc);
+      SessionCreditUpdateCriteria* uc = NULL);
+
+  bool get_suspended();
+
+  void set_suspended(bool suspended, SessionCreditUpdateCriteria* uc);
 
   // Set the object and update criteria's reauth state to new_state.
   void set_reauth_state(
@@ -104,6 +126,9 @@ struct ChargingGrant {
   // Set the flag reporting. Used to signal this credit is waiting to receive
   // a response from the core
   void set_reporting(bool reporting);
+
+  // Rollback reporting changes for failed updates
+  void reset_reporting_grant(SessionCreditUpdateCriteria* credit_uc);
 
   // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
   // and assign it to expiry_time
