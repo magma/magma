@@ -171,6 +171,7 @@ class UplinkBridgeController(MagmaController):
         # everything else:
         self._set_sgi_ip_addr(self.config.uplink_bridge)
         self._set_sgi_gw(self.config.uplink_bridge)
+        self._set_arp_ignore('all', '1')
 
     def cleanup_on_disconnect(self, datapath):
         self._del_eth_port()
@@ -346,3 +347,7 @@ class UplinkBridgeController(MagmaController):
                              setup_dhclient, ex)
 
         self.logger.info("SGi DHCP: restart for %s done", if_name)
+
+    def _set_arp_ignore(self, if_name: str, val: str):
+        sysctl_setting = 'net.ipv4.conf.' + if_name + '.arp_ignore=' + val
+        subprocess.check_call(['sysctl', sysctl_setting])
