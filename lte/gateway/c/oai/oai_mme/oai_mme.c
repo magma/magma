@@ -71,7 +71,7 @@ static int main_init(void) {
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
                     TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP,
-                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
+                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG, TASK_HA},
       10, NULL, &main_zmq_ctx);
 
   return RETURNok;
