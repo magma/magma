@@ -1,9 +1,7 @@
 """
 Copyright 2020 The Magma Authors.
-
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -59,12 +57,10 @@ def upgrade_and_run_3gpp_tests(
     Runs upgrade and s6a and gxgy tests once. This is run in the cron job on
     magma-driver:
     fab upgrade_and_run_3gpp_tests: 2>&1 | tee /tmp/teravm_cronjob.log
-
     key_filename: path to where the private key is for authorized-key based
     ssh. The public key counterpart needs to in the authorized_keys file on
     the remote host. If empty file name is passed, password-based ssh will
     work instead. This can be used if the script is run manually.
-
     custom_test_file: a 3gpp test file to run. The default uses s6a and gxgy
     """
     upgrade_teravm(
@@ -93,15 +89,12 @@ def upgrade_teravm(
     This will be run by a cron job on magma-driver(192.168.60.109) in teraVM.
     magma-driver is the control vm in teraVM. It will run a cron job that
     upgrades and runs teraVM tests automatically.
-
     Alternatively, this script can be run from a local machine that is on TIP
     lab VPN to 192.168.60.0/24. When run manually, a hash can be provided to
     specify what are the hash of the images that it should pull and use to
     upgrade test vms.
-
     hash: a hash to identify what images to pull from s3 bucket and use
     for upgrading. If None, try find the most recent hash.
-
     key_filename: path to where the private key is for authorized-key based
     ssh. The public key counterpart needs to in the authorized_keys file on
     the remote host. If empty file name is passed, password-based ssh will
@@ -120,71 +113,47 @@ def upgrade_teravm(
 
     return hash
 
-def get_agw(setup):
-    version = None
+
+def upgrade_teravm_agw(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     """
     Upgrade teravm agw to image with the given hash.
     hash: a hash to identify what version from APT to use for upgrading.
     If not hash provided or "latest" is passed, it will install latest
     on the repository.
-
     key_filename: path to where the private key is for authorized-key based
     ssh. The public key counterpart needs to in the authorized_keys file on
     the remote host. If empty file name is passed, password-based ssh will
     work instead. This can be used if the script is run manually.
     """
 
-    fastprint("Upgrade teraVM AGW to %s")
-    _setup_env_agw("magma", VM_IP_MAP[setup]["gateway"])
-    err = _set_magma_apt_repo()
-    if err:
-        return err
-    sudo("apt update")
-    fastprint("Get latest version\n")
-    # Get the whole version string containing that hash and 'apt install' it
-    with settings(abort_exception=FabricException):
-	version = sudo ("apt-cache madison magma | awk 'NR==1{{print substr ($3,1)}}'")
-        #fastprint(version)
-    return version
-
-def upgrade_teravm_agw(setup, key_filename=DEFAULT_KEY_FILENAME):
-    """
-    Upgrade teravm agw to image with the given hash.
-    hash: a hash to identify what version from APT to use for upgrading.
-    If not hash provided or "latest" is passed, it will install latest
-    on the repository.
-
-    key_filename: path to where the private key is for authorized-key based
-    ssh. The public key counterpart needs to in the authorized_keys file on
-    the remote host. If empty file name is passed, password-based ssh will
-    work instead. This can be used if the script is run manually.
-    """
-
-    fastprint("Upgrade teraVM AGW to %s")
+    fastprint("Upgrade teraVM AGW to %s" % hash)
     _setup_env("magma", VM_IP_MAP[setup]["gateway"], key_filename)
     err = _set_magma_apt_repo()
     if err:
         return err
     sudo("apt update")
-    fastprint("Install version with latest version\n")
+    fastprint("Install version with hash %s\n" % hash)
     # Get the whole version string containing that hash and 'apt install' it
     with settings(abort_exception=FabricException):
         try:
-            version = sudo ("apt-cache madison magma | awk 'NR==1{{print $3}}'")
-            sudo(
-            "version=$("
-            "apt-cache madison magma | awk 'NR==1{{print $3}}');"
-            "apt install magma=$version -V".format()
-            )
-            status = ("Upgrade Status : Successful AGW upgrade : %s \n" % version)
-            fastprint(status)
+            if hash is None or hash.lower() == "latest":
+                # install latest on the repository
+                sudo("apt install -f -y --allow-downgrades magma")
+            else:
+                sudo(
+                    "version=$("
+                    "apt-cache madison magma | grep {hash} | awk 'NR==1{{print $3}}');"
+                    "apt install -f -y --allow-downgrades magma=$version".format(
+                        hash=hash
+                    )
+                )
         except Exception:
-            status = (
-                "Upgrade Status : Error during install of version {%s} on AGW.: "
-                "Maybe the version doesn't exist. Not installing. \n" % version
+            err = (
+                "Error during install of version {} on AGW. "
+                "Maybe the version doesn't exist. Not installing.\n".format(hash)
             )
-            fastprint(status)
-    return status
+            fastprint(err)
+    return err
 
 
 def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
@@ -192,7 +161,6 @@ def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     Upgrade teravm agw to image with the given hash.
     hash: a hash to identify what images to pull from s3 bucket and use
     for upgrading. If None, try find the most recent hash.
-
     key_filename: path to where the private key is for authorized-key based
     ssh. The public key counterpart needs to in the authorized_keys file on
     the remote host. If empty file name is passed, password-based ssh will
@@ -227,29 +195,25 @@ def upgrade_teravm_agw_AWS(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
         sudo("systemctl restart magma@magmad")
 
 
-def upgrade_teravm_feg(setup, key_filename=DEFAULT_KEY_FILENAME):
+def upgrade_teravm_feg(setup, hash, key_filename=DEFAULT_KEY_FILENAME):
     """
     Upgrade teravm feg to the image with the given hash.
-
     hash: a hash to identify what images to pull from s3 bucket and use
     for upgrading. If None, try find the most recent hash.
-
     key_filename: path to where the private key is for authorized-key based
     ssh. The public key counterpart needs to in the authorized_keys file on
     the remote host. IIf empty file name is passed, password-based ssh will
     work instead. This can be used if the script is run manually.
     """
     err = None
-    version = get_agw(setup)
-    fastprint("Upgrade teraVM FEG to %s\n" % version)
+    fastprint("Upgrade teraVM FEG to %s" % hash)
     _setup_env("magma", VM_IP_MAP[setup]["feg"], key_filename)
+
     with cd("/var/opt/magma/docker"), settings(abort_exception=FabricException):
         sudo("docker-compose down")
         sudo("cp docker-compose.yml docker-compose.yml.backup")
         sudo("cp .env .env.backup")
-        version1 = version.split("-")[2]
-        #sudo('sed -i "s/IMAGE_VERSION=.*/IMAGE_VERSION=%s/g" .env' version )
-        sudo('sed -i "s/^IMAGE_VERSION=.*$/IMAGE_VERSION=%s/g" .env' % version1)
+        sudo('sed -i "s/IMAGE_VERSION=.*/IMAGE_VERSION=%s/g" .env' % hash)
         if len(_check_disk_space()) != 0:
             fastprint("Disk space alert: cleaning docker images\n")
             sudo("docker system prune --all  --force")
@@ -257,20 +221,18 @@ def upgrade_teravm_feg(setup, key_filename=DEFAULT_KEY_FILENAME):
             # TODO: obtain .yml file from jfrog artifact instead of git master
             sudo("wget -O docker-compose.yml %s" % FEG_DOCKER_COMPOSE_GIT)
             sudo("docker-compose up -d")
-            status = ("\nUpgrade Status : Successful FEG upgrade : %s \n" % version1)
-            fastprint(status)
         except Exception:
-            status = (
-                "Upgrade Status : Error during install of version {} on FEG. Maybe the image "
-                "doesn't exist:. Reverting to the original "
-                "config \n".format(version1)
+            err = (
+                "Error during install of version {}. Maybe the image "
+                "doesn't exist. Reverting to the original "
+                "config\n".format(hash)
             )
-            fastprint(status)
+            fastprint(err)
             with hide("running", "stdout"):
                 sudo("mv docker-compose.yml.backup docker-compose.yml")
                 sudo("mv .env.backup .env")
                 sudo("docker-compose up -d")
-    return status
+    return err
 
 
 def run_3gpp_tests(
@@ -279,12 +241,10 @@ def run_3gpp_tests(
     """
     Run teravm s6a and gxgy test cases. Usage: 'fab run_3gpp_tests:' for
     default key filename and default test files.
-
     key_filename: path to where the private key is for authorized-key based
     ssh. The public key counterpart needs to in the authorized_keys file on
     the remote host. If empty file name is passed, password-based ssh will
     work instead. This can be used if the script is run manually.
-
     test_file: a test file to use instead of the s6a and gxgy defaults.
     """
     if isinstance(test_files, str):
@@ -299,9 +259,8 @@ def run_3gpp_tests(
                 output = run("ng40test %s" % test_file)
                 test_output.append(output)
         fastprint("Done with file %s\n" % (test_file))
-    
+
     verdicts = _parse_stats(test_output)
-    print(verdicts)
     return verdicts
 
 
@@ -333,7 +292,6 @@ def _set_magma_apt_repo():
 def _parse_stats(teravm_raw_result):
     """
     Gets stats from teraVM result output string
-
     teravm_test_result: output comming from the teravm stdout
     """
     verdicts = collections.defaultdict(list)
@@ -401,9 +359,6 @@ def _setup_env(username, remote_machine_ip, key_filename):
     env.host_string = "%s@%s" % (username, remote_machine_ip)
     env.user = username
 
-def _setup_env_agw(username, remote_machine_ip):
-    env.host_string = "%s@%s" % (username, remote_machine_ip)
-    env.user = username
 
 def _prep_bool_arg(arg):
     return bool(distutils.util.strtobool(str(arg)))
@@ -411,4 +366,3 @@ def _prep_bool_arg(arg):
 
 class FabricException(Exception):
     pass
-
