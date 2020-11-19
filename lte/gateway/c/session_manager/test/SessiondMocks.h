@@ -83,6 +83,7 @@ class MockPipelinedClient : public PipelinedClient {
     ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_subscriber_quota_state(_))
         .WillByDefault(Return(true));
+    ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
   }
 
   MOCK_METHOD9(
@@ -165,7 +166,7 @@ class MockPipelinedClient : public PipelinedClient {
       set_upf_session,
       bool(
           const SessionState::SessionInfo info,
-          std::function<void(Status status, UpfRes)> callback));
+          std::function<void(Status status, UPFSessionContextState)> callback));
 };
 
 class MockDirectorydClient : public AsyncDirectorydClient {

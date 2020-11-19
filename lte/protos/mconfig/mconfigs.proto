@@ -293,6 +293,14 @@ message MME {
       string apn_override = 2;
     }
     repeated ApnCorrectionMap apn_correction_map_list = 25;
+
+    // P_CSCF IP address configs
+    string ipv4_p_cscf_address = 26;
+    string ipv6_p_cscf_address = 27;
+
+    // IPv6 DNS server
+    string ipv6_dns_address = 30;
+
 }
 
 

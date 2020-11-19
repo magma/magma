@@ -21,11 +21,11 @@ type GatewayHeConfig struct {
 
 	// True if headers should be encrypted
 	// Required: true
-	EnableEncryption *bool `json:"enable_encryption"`
+	EnableEncryption bool `json:"enable_encryption"`
 
 	// True if header enrichment feature should be disabled for gateway
 	// Required: true
-	EnableHeaderEnrichment *bool `json:"enable_header_enrichment"`
+	EnableHeaderEnrichment bool `json:"enable_header_enrichment"`
 
 	// he encoding type
 	// Required: true
@@ -75,7 +75,7 @@ func (m *GatewayHeConfig) Validate(formats strfmt.Registry) error {
 
 func (m *GatewayHeConfig) validateEnableEncryption(formats strfmt.Registry) error {
 
-	if err := validate.Required("enable_encryption", "body", m.EnableEncryption); err != nil {
+	if err := validate.Required("enable_encryption", "body", bool(m.EnableEncryption)); err != nil {
 		return err
 	}
 
@@ -84,7 +84,7 @@ func (m *GatewayHeConfig) validateEnableEncryption(formats strfmt.Registry) erro
 
 func (m *GatewayHeConfig) validateEnableHeaderEnrichment(formats strfmt.Registry) error {
 
-	if err := validate.Required("enable_header_enrichment", "body", m.EnableHeaderEnrichment); err != nil {
+	if err := validate.Required("enable_header_enrichment", "body", bool(m.EnableHeaderEnrichment)); err != nil {
 		return err
 	}
 

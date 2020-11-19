@@ -1822,6 +1822,21 @@ definitions:
         minLength: 5
         maxLength: 45
         example: '8.8.4.4'
+      ipv4_p_cscf_addr:
+        type: string
+        description: IP address for IPv4 P-CSCF on the AGW
+        format: ipv4
+        example: '172.27.23.150'
+      ipv6_dns_addr:
+        description: IPv6 DNS Server address on the AGW
+        type: string
+        format: ipv6
+        example: '2001:4860:4860:0:0:0:0:8888'
+      ipv6_p_cscf_addr:
+        description: IP address for IPv6 P-CSCF on the AGW
+        type: string
+        format: ipv6
+        example: '2a12:577:9941:f99c:0002:0001:c731:f114'
       sgi_management_iface_vlan:
         type: string
         description: VLAN ID for management interface traffic on the AGW
@@ -1958,10 +1973,12 @@ definitions:
         description: True if header enrichment feature should be disabled for gateway
         type: boolean
         example: false
+        x-nullable: false
         default: true
       enable_encryption:
         description: True if headers should be encrypted
         type: boolean
+        x-nullable: false
         example: true
       he_encryption_algorithm:
         type: string
