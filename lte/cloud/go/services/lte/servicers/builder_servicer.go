@@ -96,6 +96,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	}
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
+	heConfig := getHEConfig(cellularGwConfig.HeConfig)
 
 	vals := map[string]proto.Message{
 		"enodebd": &lte_mconfig.EnodebD{
@@ -148,7 +149,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
-			DisableHeaderEnrichment:  cellularGwConfig.DisableHeaderEnrichment,
+			HeConfig:                 heConfig,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -283,6 +284,19 @@ func getTddConfig(tddConfig *lte_models.NetworkRanConfigsTddConfig) *lte_mconfig
 	}
 }
 
+func getHEConfig(gwConfig *lte_models.GatewayHeConfig) *lte_mconfig.PipelineD_HEConfig{
+    if gwConfig == nil {
+        return &lte_mconfig.PipelineD_HEConfig{}
+    }
+
+    return &lte_mconfig.PipelineD_HEConfig{
+        EnableHeaderEnrichment: bool(swag.BoolValue(gwConfig.EnableHeaderEnrichment)),
+        EnableEncryption: swag.BoolValue(gwConfig.EnableEncryption),
+        EncryptionAlgorithm: lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm(lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm_value[gwConfig.HeEncryptionAlgorithm]),
+        HashFunction: lte_mconfig.PipelineD_HEConfig_HashFunction(lte_mconfig.PipelineD_HEConfig_HashFunction_value[gwConfig.HeHashFunction]),
+        EncodingType: lte_mconfig.PipelineD_HEConfig_EncodingType(lte_mconfig.PipelineD_HEConfig_EncodingType_value[gwConfig.HeEncodingType]),
+    }
+}
 func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*lte_mconfig.EnodebD_EnodebConfig {
 	ret := make(map[string]*lte_mconfig.EnodebD_EnodebConfig, len(enodebs))
 	for _, ent := range enodebs {
