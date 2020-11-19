@@ -270,19 +270,11 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         sudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH"
         command = magtivate_cmd + " && " + sudo_cmd + " python3 \
                 /usr/local/bin/config_stateless_agw.py " + config_cmd
-        param_list = shlex.split(command)
+        param_list = (command)
         logging.info("Subprocess command %s", command)
-        if config_cmd == "check":
-            result = subprocess.check_output(param_list, shell=False)
-            # stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-            logging.info("Config_stateless_agw.py returned %d", result)
-        else:
-            result = subprocess.call(
-                param_list,
-                shell=False,
-                #stdout=subprocess.DEVNULL,
-                #stderr=subprocess.DEVNULL,
-            )
+        result = subprocess.call(param_list, shell=True)
+        # stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        logging.info("Config_stateless_agw.py returned %d", result)
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):
