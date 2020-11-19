@@ -67,6 +67,13 @@ struct UpdateChargingCreditActions {
       unsuspended_credits;
 };
 
+// Used to transform the UpdateSessionRequest proto message into a per-session
+// structure
+struct UpdateRequestsBySession {
+  std::unordered_map<ImsiAndSessionID, UpdateRequests> requests_by_id;
+  UpdateRequestsBySession() {}
+  UpdateRequestsBySession(const magma::lte::UpdateSessionRequest& response);
+};
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;
@@ -128,16 +135,17 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * reset_updates resets all of the charging keys being updated in
-   * failed_request. This should only be called if the *entire* request fails
-   * (i.e. the entire request to the cloud timed out). Individual failures
-   * are handled when update_session_credits_and_rules is called.
+   * handle_update_failure resets all of the charging keys / monitors being
+   * updated in failed_request. This should only be called if the *entire*
+   * request fails (i.e. the entire request to the cloud timed out). Individual
+   * failures are handled when update_session_credits_and_rules is called.
    *
-   * @param failed_request - UpdateSessionRequest that couldn't be sent to the
-   *                         cloud for whatever reason
+   * @param failed_request - UpdateRequestsBySession that couldn't be sent to
+   * the cloud for whatever reason
    */
-  void reset_updates(
-      SessionMap& session_map, const UpdateSessionRequest& failed_request);
+  void handle_update_failure(
+      SessionMap& session_map, const UpdateRequestsBySession& failed_request,
+      SessionUpdate& updates);
 
   /**
    * Collect any credit keys that are either exhausted, timed out, or terminated

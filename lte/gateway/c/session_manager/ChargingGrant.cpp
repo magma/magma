@@ -308,6 +308,14 @@ bool ChargingGrant::get_suspended() {
   return suspended;
 }
 
+void ChargingGrant::reset_reporting_grant(
+    SessionCreditUpdateCriteria* credit_uc) {
+  credit.reset_reporting_credit(credit_uc);
+  if (reauth_state == REAUTH_PROCESSING) {
+    set_reauth_state(REAUTH_REQUIRED, *credit_uc);
+  }
+}
+
 void ChargingGrant::log_final_action_info() const {
   std::string final_action = "";
   if (is_final_grant) {
