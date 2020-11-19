@@ -35,18 +35,18 @@ type GatewayEpcConfigs struct {
 	// Min Length: 5
 	IPBlock string `json:"ip_block"`
 
-	// ipv4 p cscf addr
+	// IP address for IPv4 P-CSCF on the AGW
 	// Format: ipv4
 	IPV4pCscfAddr strfmt.IPv4 `json:"ipv4_p_cscf_addr,omitempty"`
 
 	// ipv6 block
 	IPV6Block string `json:"ipv6_block,omitempty"`
 
-	// ipv6 dns addr
+	// IPv6 DNS Server address on the AGW
 	// Format: ipv6
 	IPV6DNSAddr strfmt.IPv6 `json:"ipv6_dns_addr,omitempty"`
 
-	// ipv6 p cscf addr
+	// IP address for IPv6 P-CSCF on the AGW
 	// Format: ipv6
 	IPV6pCscfAddr strfmt.IPv6 `json:"ipv6_p_cscf_addr,omitempty"`
 
