@@ -36,7 +36,7 @@ def main():
                 logging.debug('Adding {}:{}:{} to ping target'.format(target, ip.version, ip.address))
                 manual_ping_targets[target] = ip
     except KeyError:
-        logging.error("No ping targets configured")
+        logging.warning("No ping targets configured")
 
     obj = CpeMonitoringModule()
     obj.set_manually_configured_targets(manual_ping_targets)
