@@ -35,7 +35,6 @@ replace (
 require (
 	fbc/cwf/radius v0.0.0
 	fbc/lib/go/radius v0.0.0-00010101000000-000000000000
-	github.com/coreos/go-iptables v0.4.5
 	github.com/docker/docker v1.13.1
 	github.com/fiorix/go-diameter/v4 v4.0.2
 	github.com/go-openapi/swag v0.19.5
