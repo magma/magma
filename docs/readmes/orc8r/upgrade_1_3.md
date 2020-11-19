@@ -89,4 +89,8 @@ $ kubectl exec -it ${CNTLR_POD} -- bash
 (pod)$ ./m013_policy_ipv6
 
 ...
+
+(pod)$ ./m014_enodeb_config
+
+...
 ```
