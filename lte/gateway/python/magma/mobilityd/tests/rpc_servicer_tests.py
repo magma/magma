@@ -58,9 +58,7 @@ class RpcTests(unittest.TestCase):
                                            store)
 
         # Add the servicer
-        self._servicer = MobilityServiceRpcServicer(self._allocator,
-                                                    '',
-                                                    'fdee:5:6c::/48')
+        self._servicer = MobilityServiceRpcServicer(self._allocator)
         self._servicer.add_to_server(self._rpc_server)
         self._rpc_server.start()
 
@@ -75,9 +73,13 @@ class RpcTests(unittest.TestCase):
         self._block_msg = IPBlock(version=IPBlock.IPV4,
                                   net_address=ip_bytes,
                                   prefix_len=self._prefix_len)
+        self._ipv6_block = ipaddress.ip_network('fdee:5:6c::/48')
+        self._ipv6_netaddr = self._ipv6_block.network_address.packed
+        self._ipv6_block_msg = IPBlock(version=IPBlock.IPV6,
+                                       net_address=self._ipv6_netaddr,
+                                       prefix_len=self._ipv6_block.prefixlen)
         self._block = ipaddress.ip_network(
             "%s/%s" % (self._netaddr, self._prefix_len))
-        self._ipv6_block = ipaddress.ip_network('fdee:5:6c::/48')
         self._sid0 = SIDUtils.to_pb('IMSI0')
         self._sid1 = SIDUtils.to_pb('IMSI1')
         self._sid2 = SIDUtils.to_pb('IMSI2')
@@ -675,6 +677,8 @@ class RpcTests(unittest.TestCase):
 
     def test_ipv6(self):
         """ ipv6 requests should work for allocate / release IP requests """
+        # Assign IP block
+        self._stub.AddIPBlock(self._ipv6_block_msg)
         # AllocateIPAddress
         request = AllocateIPRequest(sid=self._sid1,
                                     version=AllocateIPRequest.IPV6,

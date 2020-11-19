@@ -53,7 +53,7 @@ class IpAllocatorPool(IPAllocator):
         """
         for blk in self._store.assigned_ip_blocks:
             if ipblock.overlaps(blk):
-                logging.error("Overlapped IP block: %s", ipblock)
+                logging.warning("Overlapped IP block: %s", ipblock)
                 raise OverlappedIPBlocksError(ipblock)
 
         self._store.assigned_ip_blocks.add(ipblock)

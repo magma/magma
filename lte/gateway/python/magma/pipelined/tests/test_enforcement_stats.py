@@ -227,7 +227,7 @@ class EnforcementStatsTest(unittest.TestCase):
         total_bytes_pkt2 = num_pkts_rx_match * len(packet2[IP])
         self.assertEqual(stats[enf_stat_name[1]].bytes_rx, total_bytes_pkt2)
 
-        self.assertEqual(len(stats), 2)
+        self.assertEqual(len(stats), 3)
 
     def test_redirect_policy(self):
         """
@@ -338,7 +338,6 @@ class EnforcementStatsTest(unittest.TestCase):
         with sub_context, snapshot_verifier:
             pass
 
-    @unittest.skip("wait for sesssiond changes")
     def test_deny_rule_install(self):
         """
         Adds a policy to a subscriber. Verifies that flows are properly
@@ -522,7 +521,7 @@ class EnforcementStatsTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name].bytes_tx,
                          num_pkts_tx_match * len(packet))
 
-        self.assertEqual(len(stats), 1)
+        self.assertEqual(len(stats), 2)
 
         self.enforcement_stats_controller.deactivate_default_flow(
             imsi, convert_ipv4_str_to_ip_proto(sub_ip))
@@ -601,10 +600,10 @@ class EnforcementStatsTest(unittest.TestCase):
             self.enforcement_controller.deactivate_rules(
                 imsi, convert_ipv4_str_to_ip_proto(sub_ip), [policy.id])
             self.enforcement_controller.activate_rules(
-                imsi, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
+                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
                 [])
             self.enforcement_stats_controller.activate_rules(
-                imsi, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
+                imsi, None, None, convert_ipv4_str_to_ip_proto(sub_ip), None, [policy.id],
                 [])
             pkt_sender.send(packet)
 
@@ -622,7 +621,7 @@ class EnforcementStatsTest(unittest.TestCase):
         # TODO Figure out why this one fails.
         #self.assertEqual(stats[enf_stat_name].bytes_tx,
         #                 num_pkts_tx_match * len(packet))
-        self.assertEqual(len(stats), 1)
+        self.assertEqual(len(stats), 2)
 
 
 if __name__ == "__main__":

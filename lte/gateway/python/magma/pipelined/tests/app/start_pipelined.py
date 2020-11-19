@@ -118,7 +118,11 @@ class PipelinedController(Enum):
     )
     Classifier = Controller(
         'magma.pipelined.app.classifier', 'classifier'
-   )
+    )
+    HeaderEnrichment = Controller(
+        'magma.pipelined.app.he', 'proxy'
+    )
+
 
 def assert_pipelined_not_running():
     """
@@ -202,6 +206,8 @@ class StartThread(object):
             self._test_setup.service_manager.session_rule_version_mapper
         contexts['interface_to_prefix_mapper'] = \
             self._test_setup.service_manager.interface_to_prefix_mapper
+        contexts['tunnel_id_mapper'] = \
+            self._test_setup.service_manager.tunnel_id_mapper
         contexts['app_futures'] = app_futures
         contexts['config'] = self._test_setup.config
         contexts['mconfig'] = self._test_setup.mconfig

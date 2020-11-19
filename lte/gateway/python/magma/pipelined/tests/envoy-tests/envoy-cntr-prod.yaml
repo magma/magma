@@ -1,0 +1,40 @@
+admin:
+  access_log_path: /dev/null
+  address:
+    socket_address:
+      address: 127.0.0.1
+      port_value: 9000
+
+dynamic_resources:
+  ads_config:
+    api_type: GRPC
+    grpc_services:
+    - envoy_grpc:
+        cluster_name: xds_cluster
+  cds_config:
+    api_config_source:
+      api_type: GRPC
+      grpc_services:
+      - envoy_grpc:
+          cluster_name: xds_cluster
+      set_node_on_first_message_only: true
+  lds_config:
+    api_config_source:
+      api_type: GRPC
+      grpc_services:
+      - envoy_grpc:
+          cluster_name: xds_cluster
+      set_node_on_first_message_only: true
+node:
+  cluster: service_greeter
+  id: test-id
+static_resources:
+  clusters:
+  - connect_timeout: 1s
+    hosts:
+    - socket_address:
+        address: 10.5.0.2
+        port_value: 18000
+    http2_protocol_options: {}
+    name: xds_cluster
+    type: STATIC

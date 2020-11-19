@@ -114,9 +114,9 @@ class MultiAPNIPAllocationTests(unittest.TestCase):
         ip_allocator = IpAllocatorPool(store)
         ip_allocator_static = IPAllocatorStaticWrapper(
             store, MockedSubscriberDBStub(), ip_allocator)
-        ipv4_allocator = IPAllocatorMultiAPNWrapper(
-            subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-            ip_allocator=ip_allocator_static)
+        ipv4_allocator = IPAllocatorMultiAPNWrapper(store,
+                                                    subscriberdb_rpc_stub=MockedSubscriberDBStub(),
+                                                    ip_allocator=ip_allocator_static)
         ipv6_allocator = IPv6AllocatorPool(store,
                                            session_prefix_alloc_mode='RANDOM')
         self._allocator = IPAddressManager(ipv4_allocator,

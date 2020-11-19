@@ -97,15 +97,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["usage-enforcement-static-pass-all"]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
-	if record != nil {
-		// We should not be seeing > 1024k data here
-		assert.True(t, record.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record.RuleId))
-		assert.True(t, record.BytesTx <= uint64(math.Round(1.2*MegaBytes+Buffer)), fmt.Sprintf("policy usage: %v", record))
-	}
+	tr.AssertPolicyUsage(imsi, "usage-enforcement-static-pass-all", 0, uint64(math.Round(1.2*MegaBytes+Buffer)))
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
@@ -245,7 +237,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 // - Sleep for Y seconds and check policy usage again. Assert that
 //   static-pass-all-2 is uninstalled.
 // Note: things might get weird if there are clock skews
-func testGxRuleInstallTime(t *testing.T) {
+func TestGxRuleInstallTime(t *testing.T) {
+	t.Skip()
 	fmt.Println("\nRunning TestGxRuleInstallTime...")
 
 	tr := NewTestRunner(t)

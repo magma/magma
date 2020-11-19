@@ -355,7 +355,7 @@ def _check_docker_services(ignoreList):
             if result.return_code == 1:
                 # grep returns code 1 when empty string
                 return
-            print("Container restarting detected. Tryin one more time")
+            print("Container restarting detected. Trying one more time")
             count+=1
     # if we got here, that means all attempts failed
     print("ERROR: Test NOT started due to docker container restarting")

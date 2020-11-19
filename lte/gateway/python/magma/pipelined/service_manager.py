@@ -69,6 +69,7 @@ from magma.pipelined.app.uplink_bridge import UplinkBridgeController
 from magma.pipelined.rule_mappers import RuleIDToNumMapper, \
     SessionRuleToVersionMapper
 from magma.pipelined.ipv6_prefix_store import InterfaceIDToPrefixMapper
+from magma.pipelined.tunnel_id_store import TunnelToTunnelMapper
 from magma.pipelined.internal_ip_allocator import InternalIPAllocator
 from ryu.base.app_manager import AppManager
 
@@ -76,6 +77,7 @@ from magma.common.service import MagmaService
 from magma.common.service_registry import ServiceRegistry
 from magma.configuration import environment
 from magma.pipelined.app.classifier import Classifier
+from magma.pipelined.app.he import HeaderEnrichmentController, PROXY_TABLE
 
 # Type is either Physical or Logical, highest order_priority is at zero
 App = namedtuple('App', ['name', 'module', 'type', 'order_priority'])
@@ -99,7 +101,7 @@ class TableNumException(Exception):
     pass
 
 
-class TableRange():
+class TableRange:
     """
     Used to generalize different table ranges.
     """
@@ -274,6 +276,7 @@ class ServiceManager:
     XWF_PASSTHRU_NAME = 'xwf_passthru'
     UPLINK_BRIDGE_NAME = 'uplink_bridge'
     CLASSIFIER_NAME = 'classifier'
+    HE_CONTROLLER_NAME = 'proxy'
 
     INTERNAL_APP_SET_TABLE_NUM = 201
     INTERNAL_IMSI_SET_TABLE_NUM = 202
@@ -326,6 +329,13 @@ class ServiceManager:
                 type=AccessControlController.APP_TYPE,
                 order_priority=400),
         ],
+        HE_CONTROLLER_NAME: [
+            App(name=HeaderEnrichmentController.APP_NAME,
+                module=HeaderEnrichmentController.__module__,
+                type=HeaderEnrichmentController.APP_TYPE,
+                order_priority=401),
+        ],
+
         ipv6_solicitation_SERVICE_NAME: [
             App(name=IPV6SolicitationController.APP_NAME,
                 module=IPV6SolicitationController.__module__,
@@ -428,6 +438,7 @@ class ServiceManager:
         self.rule_id_mapper = RuleIDToNumMapper()
         self.session_rule_version_mapper = SessionRuleToVersionMapper()
         self.interface_to_prefix_mapper = InterfaceIDToPrefixMapper()
+        self.tunnel_id_mapper = TunnelToTunnelMapper()
 
         apps = self._get_static_apps()
         apps.extend(self._get_dynamic_apps())
@@ -506,6 +517,7 @@ class ServiceManager:
             self.rule_id_mapper._rules_by_rule_num = {}
             self.session_rule_version_mapper._version_by_imsi_and_rule = {}
             self.interface_to_prefix_mapper._prefix_by_interface = {}
+            self.tunnel_id_mapper._tunnel_map = {}
 
         manager = AppManager.get_instance()
         manager.load_apps([app.module for app in self._apps])
@@ -514,6 +526,7 @@ class ServiceManager:
         contexts[
             'session_rule_version_mapper'] = self.session_rule_version_mapper
         contexts['interface_to_prefix_mapper'] = self.interface_to_prefix_mapper
+        contexts['tunnel_id_mapper'] = self.tunnel_id_mapper
         contexts['app_futures'] = {app.name: Future() for app in self._apps}
         contexts['internal_ip_allocator'] = \
             InternalIPAllocator(self._magma_service.config)

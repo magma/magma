@@ -112,16 +112,16 @@ class IPAllocatorStaticWrapper(IPAllocator):
                 raise DuplicateIPAssignmentError(error_msg)
 
         # update gw info if available.
-        if ip_addr_info.gw_ip:
-            self._store.dhcp_gw_info.update_ip(ip_addr_info.gw_ip,
-                                               str(ip_addr_info.vlan))
+        if ip_addr_info.net_info.gw_ip:
+            self._store.dhcp_gw_info.update_ip(ip_addr_info.net_info.gw_ip,
+                                               ip_addr_info.net_info.vlan)
             # update mac if IP is present.
-            if ip_addr_info.gw_mac != "":
-                self._store.dhcp_gw_info.update_mac(ip_addr_info.gw_ip,
-                                               ip_addr_info.gw_mac,
-                                               str(ip_addr_info.vlan))
+            if ip_addr_info.net_info.gw_mac != "":
+                self._store.dhcp_gw_info.update_mac(ip_addr_info.net_info.gw_ip,
+                                                    ip_addr_info.net_info.gw_mac,
+                                                    ip_addr_info.net_info.vlan)
         ip_block = ip_network(ip_addr_info.ip)
         self._store.assigned_ip_blocks.add(ip_block)
         return IPDesc(ip=ip_addr_info.ip, state=IPState.ALLOCATED,
                       sid=sid, ip_block=ip_block, ip_type=IPType.STATIC,
-                      vlan_id=ip_addr_info.vlan)
+                      vlan_id=ip_addr_info.net_info.vlan)

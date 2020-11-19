@@ -217,7 +217,7 @@ def create_parser():
         "--hwid", dest="hwid", action="store", help="Gateway Hardware ID"
     )
     parser.add_argument(
-        "--portal", dest="portal", action="store", help="Orchestrator URL Address"
+        "--url", dest="url", action="store", help="Orchestrator URL Address"
     )
     return parser
 
@@ -225,14 +225,14 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    if not (args.hwid and args.portal and args.partner):
+    if not (args.hwid and args.url and args.partner):
         parser.print_usage()
         exit(1)
 
     # Create XwF-M Network
-    partner = args.partner.replace("-", "_").strip()
-    create_network_if_not_exists(args.portal, partner)
-    register_gateway(args.portal, partner, args.hwid, "default")
+    partner = args.partner.strip()
+    create_network_if_not_exists(args.url, partner)
+    register_gateway(args.url, partner, args.hwid, "default")
 
 
 if __name__ == "__main__":

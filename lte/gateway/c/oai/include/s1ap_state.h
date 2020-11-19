@@ -49,8 +49,8 @@ ue_description_t* s1ap_state_get_ue_imsi(imsi64_t imsi64);
  * @param enb_ue_s1ap_id unique UE s1ap ID on eNB
  * @return uint64_t of composite id
  */
-uint64_t s1ap_get_comp_s1ap_id(
-    sctp_assoc_id_t sctp_assoc_id, enb_ue_s1ap_id_t enb_ue_s1ap_id);
+#define S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id)              \
+  (uint64_t) enb_ue_s1ap_id << 32 | sctp_assoc_id
 
 /**
  * Converts s1ap_imsi_map to protobuf and saves it into data store

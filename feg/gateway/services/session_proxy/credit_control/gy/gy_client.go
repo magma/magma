@@ -183,6 +183,7 @@ func (gyClient *GyClient) DisableConnections(period time.Duration) {
 // messages received from the OCS
 func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diameter.Client) {
 	reqHandler := func(conn diam.Conn, message *diam.Message) {
+		glog.V(2).Infof("Received Gy reauth message:\n%s\n", message)
 		rar := &ChargingReAuthRequest{}
 		if err := message.Unmarshal(rar); err != nil {
 			glog.Errorf("Received unparseable RAR over Gy %s\n%s", message, err)
@@ -192,6 +193,7 @@ func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diam
 			raa := reAuthHandler(rar)
 			raaMsg := createReAuthAnswerMessage(message, raa)
 			raaMsg = diamClient.AddOriginAVPsToMessage(raaMsg)
+			glog.V(2).Infof("Sending (responding) Gy reauth message:\n%s\n", raaMsg)
 			_, err := raaMsg.WriteToWithRetry(conn, diamClient.Retries())
 			if err != nil {
 				glog.Errorf(

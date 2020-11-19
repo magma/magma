@@ -29,6 +29,7 @@
 #include "SessionStore.h"
 #include "SessiondMocks.h"
 #include "magma_logging.h"
+#include "DiameterCodes.h"
 
 #define SECONDS_A_DAY 86400
 
@@ -63,7 +64,7 @@ class LocalEnforcerTest : public ::testing::Test {
 
   void initialize_lte_test_config() {
     test_cfg_.common_context =
-        build_common_context("", IP1, IPv6_1, APN1, "", TGPP_LTE);
+        build_common_context(IMSI1, IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
@@ -163,13 +164,19 @@ class LocalEnforcerTest : public ::testing::Test {
 TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
   insert_static_rule(1, "", "rule1");
 
+  SessionConfig test_cwf_cfg;
+  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
+  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
+
   CreateSessionResponse response;
   auto credits = response.mutable_credits();
   create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1024, credits->Add());
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, testing::_, testing::_, testing::_,
-                             CheckCount(0), CheckCount(0), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, testing::_, testing::_, test_cwf_cfg.common_context.msisdn(),
+          testing::_, CheckCount(0), CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -179,10 +186,6 @@ TEST_F(LocalEnforcerTest, test_init_cwf_session_credit) {
                              testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
-
-  SessionConfig test_cwf_cfg;
-  const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
-  test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
       session_map, IMSI1, SESSION_ID_1, test_cwf_cfg, response);
@@ -206,9 +209,10 @@ TEST_F(LocalEnforcerTest, test_init_infinite_metered_credit) {
 
   // Expect rule1 to be activated
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, IP1, IPv6_1, testing::_, CheckCount(1),
-                             CheckCount(0), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, IP1, IPv6_1, test_cfg_.common_context.msisdn(), testing::_,
+          CheckCount(1), CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
@@ -221,19 +225,21 @@ TEST_F(LocalEnforcerTest, test_init_no_credit) {
   insert_static_rule(1, "", "rule1");
 
   CreateSessionResponse response;
-  auto credits = response.mutable_credits();
-  create_credit_update_response(IMSI1, SESSION_ID_1, 1, FINITE, credits->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 0, response.mutable_credits()->Add());
 
   StaticRuleInstall rule1;
   rule1.set_rule_id("rule1");
   auto rules_to_install = response.mutable_static_rules();
   rules_to_install->Add()->CopyFrom(rule1);
 
-  // Expect rule1 to not be activated
+  // Expect rule1 to be activated even if the GSU is all 0s
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(0), CheckCount(0), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, test_cfg_.common_context.ue_ipv4(),
+          test_cfg_.common_context.ue_ipv6(), test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(1), CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
@@ -250,11 +256,13 @@ TEST_F(LocalEnforcerTest, test_init_session_credit) {
   create_credit_update_response(IMSI1, SESSION_ID_1, 1, 1024, credits->Add());
 
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(0), CheckCount(0), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          testing::_, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+          testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
+  ;
   local_enforcer->init_session_credit(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
@@ -512,7 +520,8 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
       IMSI1, SESSION_ID_1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048,
       monitor_response);
   monitor_response->set_success(false);
-  monitor_response->set_result_code(5001);  // USER_UNKNOWN permanent failure
+  monitor_response->set_result_code(
+      DIAMETER_USER_UNKNOWN);  // USER_UNKNOWN permanent failure
 
   // expect all rules attached to this session should be removed
   EXPECT_CALL(
@@ -828,6 +837,7 @@ TEST_F(LocalEnforcerTest, test_cwf_final_unit_handling) {
   test_cwf_cfg.common_context =
       build_common_context(IMSI1, "", "", "", "", TGPP_WLAN);
   const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
@@ -984,6 +994,192 @@ TEST_F(LocalEnforcerTest, test_all) {
   local_enforcer->aggregate_records(session_map, empty_table, update);
 }
 
+TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
+  // insert key rule mapping
+  insert_static_rule(1, "", "rule1");
+
+  // insert initial session credit
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response_with_error(
+      IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
+      ChargingCredit_FinalAction_REDIRECT, "12.7.7.4", "", credits->Add());
+
+  EXPECT_CALL(
+      *pipelined_client, deactivate_flows_for_rules(
+                             testing::_, testing::_, testing::_, CheckCount(1),
+                             CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  auto update = SessionStore::get_default_session_update(session_map);
+
+  // receive usages from pipeline and check we still collect them but don't
+  // terminate session (this step helps to check the credit is in the suspended
+  // state
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
+      record_list->Add());
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 10}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 20}});
+  EXPECT_EQ(update.size(), 1);
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 1);
+  EXPECT_TRUE(update[IMSI1][SESSION_ID_1]
+                  .charging_credit_map.find(1)
+                  ->second.suspended);
+  EXPECT_EQ(
+      update[IMSI1][SESSION_ID_1]
+          .charging_credit_map.find(1)
+          ->second.service_state,
+      SERVICE_NEEDS_SUSPENSION);
+
+  // Collect updates for reporting and check Redirect action needs to be done
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto session_update =
+      local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(actions.size(), 1);
+
+  // execute actions (from collect_updates)
+  EXPECT_CALL(
+      *pipelined_client,
+      add_gy_final_action_flow(
+          IMSI1, test_cfg_.common_context.ue_ipv4(),
+          test_cfg_.common_context.ue_ipv6(), test_cfg_.common_context.msisdn(),
+          CheckCount(0), CheckCount(1)))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  local_enforcer->execute_actions(session_map, actions, update);
+  EXPECT_EQ(session_update.updates_size(), 0);
+  EXPECT_EQ(
+      update[IMSI1][SESSION_ID_1]
+          .charging_credit_map.find(1)
+          ->second.service_state,
+      SERVICE_REDIRECTED);
+  EXPECT_TRUE(update[IMSI1][SESSION_ID_1]
+                  .charging_credit_map.find(1)
+                  ->second.suspended);
+}
+
+TEST_F(LocalEnforcerTest, test_update_with_transient_error) {
+  // insert key rule mapping
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+  insert_static_rule(2, "", "rule3");
+
+  // insert initial session credit
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  // Add updated credit from cloud
+  auto session_uc = SessionStore::get_default_session_update(session_map);
+  UpdateSessionResponse update_response;
+  auto updates = update_response.mutable_responses();
+  create_credit_update_response_with_error(
+      IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
+      updates->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+  EXPECT_CALL(
+      *pipelined_client, deactivate_flows_for_rules(
+                             testing::_, testing::_, testing::_, CheckCount(2),
+                             CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, session_uc);
+  EXPECT_FALSE(session_uc[IMSI1][SESSION_ID_1].updated_fsm_state);
+  EXPECT_TRUE(session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
+  EXPECT_EQ(
+      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].service_state,
+      SESSION_ACTIVE);
+  EXPECT_FALSE(
+      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].suspended);
+  EXPECT_EQ(
+      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].service_state,
+      SESSION_ACTIVE);
+}
+
+// gy_rar
+TEST_F(LocalEnforcerTest, test_reauth_with_redirected_suspended_credit) {
+  // insert key rule mapping
+  insert_static_rule(1, "", "rule1");
+
+  // 1- INITIAL SET UP TO CREATE A REDIRECTED due to SUSPENDED CREDIT
+  // insert initial suspended and redirected credit
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response_with_error(
+      IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
+      ChargingCredit_FinalAction_REDIRECT, "12.7.7.4", "", credits->Add());
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  // execute redirection
+  auto update = SessionStore::get_default_session_update(session_map);
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto session_update =
+      local_enforcer->collect_updates(session_map, actions, update);
+  local_enforcer->execute_actions(session_map, actions, update);
+  EXPECT_EQ(actions.size(), 1);
+  EXPECT_EQ(session_update.updates_size(), 0);
+  EXPECT_EQ(
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].service_state,
+      SERVICE_REDIRECTED);
+  EXPECT_TRUE(update[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
+
+  // 2- SETUP REAUTH ON A SUSPENDED CREDIT
+  // reset update and actions
+  update = SessionStore::get_default_session_update(session_map);
+  actions.clear();
+
+  ChargingReAuthRequest reauth;
+  reauth.set_sid(IMSI1);
+  reauth.set_session_id(SESSION_ID_1);
+  reauth.set_type(ChargingReAuthRequest::ENTIRE_SESSION);
+  auto result =
+      local_enforcer->init_charging_reauth(session_map, reauth, update);
+  EXPECT_EQ(result, ReAuthResult::UPDATE_INITIATED);
+
+  // check suspended credit is requested
+  auto update_req =
+      local_enforcer->collect_updates(session_map, actions, update);
+  local_enforcer->execute_actions(session_map, actions, update);
+  EXPECT_EQ(update_req.updates_size(), 1);
+  EXPECT_EQ(update_req.updates(0).sid(), IMSI1);
+  EXPECT_EQ(update_req.updates(0).usage().type(), CreditUsage::REAUTH_REQUIRED);
+
+  // 3- SUSPENSION IS CLEARED
+  // receive credit from OCS as a reauth answer
+  UpdateSessionResponse update_response;
+  auto updates = update_response.mutable_responses();
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 4096, updates->Add());
+  std::vector<std::string> static_rules_to_activate;
+  static_rules_to_activate.push_back("rule1");
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          testing::_, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+          testing::_, CheckStaticRulesNames(static_rules_to_activate),
+          CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, update);
+  EXPECT_FALSE(update[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
+}
+
 TEST_F(LocalEnforcerTest, test_re_auth) {
   insert_static_rule(1, "", "rule1");
   CreateSessionResponse response;
@@ -1018,9 +1214,10 @@ TEST_F(LocalEnforcerTest, test_re_auth) {
   // when next update is collected, this should trigger an action to activate
   // the flow in pipelined
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             testing::_, testing::_, testing::_, testing::_,
-                             testing::_, testing::_, testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          testing::_, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+          testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   actions.clear();
@@ -1085,9 +1282,10 @@ TEST_F(LocalEnforcerTest, test_dynamic_rule_actions) {
 
   // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             testing::_, testing::_, testing::_, testing::_,
-                             CheckCount(2), CheckCount(1), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          testing::_, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(2), CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1173,25 +1371,28 @@ TEST_F(LocalEnforcerTest, test_installing_rules_with_activation_time) {
   std::string ip_addr   = test_cfg_.common_context.ue_ipv4();
   std::string ipv6_addr = test_cfg_.common_context.ue_ipv6();
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, testing::_,
-                             CheckCount(2), CheckCount(2), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, ip_addr, ipv6_addr, test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(2), CheckCount(2), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // expect calling activate_flows_for_rules for activating a static rule later
   // static rules: rule5
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, testing::_,
-                             CheckCount(1), CheckCount(0), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, ip_addr, ipv6_addr, test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(1), CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // expect calling activate_flows_for_rules for activating a dynamic rule later
   // dynamic rules: rule2
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, testing::_,
-                             CheckCount(0), CheckCount(1), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, ip_addr, ipv6_addr, test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(0), CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -1347,8 +1548,9 @@ TEST_F(LocalEnforcerTest, test_usage_monitors) {
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
-          IMSI1, testing::_, testing::_, testing::_,
-          std::vector<std::string>{"pcrf_only"}, CheckCount(0), testing::_))
+          IMSI1, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+          testing::_, std::vector<std::string>{"pcrf_only"}, CheckCount(0),
+          testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->update_session_credits_and_rules(
@@ -1820,15 +2022,16 @@ TEST_F(LocalEnforcerTest, test_set_session_rules) {
   EXPECT_CALL(
       *pipelined_client,
       activate_flows_for_rules(
-          IMSI1, ip1, testing::_, testing::_,
+          IMSI1, ip1, testing::_, config1.common_context.msisdn(), testing::_,
           std::vector<std::string>{"static3"}, CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // PipelineD expectations for Session2
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip2, testing::_, testing::_, CheckCount(0),
-                             CheckCount(1), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, ip2, testing::_, config2.common_context.msisdn(), testing::_,
+          CheckCount(0), CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // For both Session1 + Session2
@@ -2212,6 +2415,7 @@ TEST_F(LocalEnforcerTest, test_valid_apn_parsing) {
   test_cwf_cfg.common_context =
       build_common_context(IMSI1, "", "", apn, MSISDN, TGPP_WLAN);
   const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
@@ -2249,6 +2453,7 @@ TEST_F(LocalEnforcerTest, test_invalid_apn_parsing) {
   test_cwf_cfg.common_context =
       build_common_context(IMSI1, IP1, "", apn, MSISDN, TGPP_WLAN);
   const auto& wlan = build_wlan_context(MAC_ADDR, RADIUS_SESSION_ID);
+  test_cwf_cfg.common_context.set_rat_type(TGPP_WLAN);
   test_cwf_cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
 
   local_enforcer->init_session_credit(
@@ -2286,9 +2491,10 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
   auto& ipv6_addr = test_cfg_.common_context.ue_ipv6();
   // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
   EXPECT_CALL(
-      *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, testing::_,
-                             CheckCount(1), CheckCount(0), testing::_))
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, ip_addr, ipv6_addr, test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(1), CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   local_enforcer->init_session_credit(
@@ -2314,7 +2520,8 @@ TEST_F(LocalEnforcerTest, test_final_unit_redirect_activation_and_termination) {
   EXPECT_CALL(
       *pipelined_client,
       add_gy_final_action_flow(
-          IMSI1, ip_addr, ipv6_addr, CheckCount(0), CheckCount(1)))
+          IMSI1, ip_addr, ipv6_addr, test_cfg_.common_context.msisdn(),
+          CheckCount(0), CheckCount(1)))
       .Times(1)
       .WillOnce(testing::Return(true));
   // Execute actions and asset final action state
@@ -2357,20 +2564,14 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
 
   insert_static_rule(1, "", "rule1");
   insert_static_rule(1, "", "rule3");
-  auto& ip_addr   = test_cfg_.common_context.ue_ipv4();
-  auto& ipv6_addr = test_cfg_.common_context.ue_ipv6();
+  auto& ip_addr      = test_cfg_.common_context.ue_ipv4();
+  auto& ipv6_addr    = test_cfg_.common_context.ue_ipv6();
+  const auto& msisdn = test_cfg_.common_context.msisdn();
   // The activation for the static rules (rule1,rule3) and dynamic rule (rule2)
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, testing::_,
+                             IMSI1, ip_addr, ipv6_addr, msisdn, testing::_,
                              CheckCount(2), CheckCount(1), testing::_))
-      .Times(1)
-      .WillOnce(testing::Return(true));
-
-  EXPECT_CALL(
-      *pipelined_client, update_ipfix_flow(
-                             testing::_, testing::_, testing::_, testing::_,
-                             testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
 
@@ -2397,7 +2598,7 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   EXPECT_CALL(
       *pipelined_client,
       add_gy_final_action_flow(
-          IMSI1, ip_addr, ipv6_addr, CheckCount(1), testing::_))
+          IMSI1, ip_addr, ipv6_addr, msisdn, CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // Execute actions and asset final action state
@@ -2437,8 +2638,8 @@ TEST_F(LocalEnforcerTest, test_final_unit_activation_and_canceling) {
   // the flow in pipelined
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, testing::_, testing::_,
-                             testing::_, testing::_))
+                             IMSI1, ip_addr, ipv6_addr, msisdn, testing::_,
+                             testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   actions.clear();
@@ -2463,12 +2664,13 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
 
   insert_static_rule(1, "", "static_rule1");
   insert_static_rule(1, "", "restrict_rule");
-  auto& ip_addr   = test_cfg_.common_context.ue_ipv4();
-  auto& ipv6_addr = test_cfg_.common_context.ue_ipv6();
+  auto& ip_addr     = test_cfg_.common_context.ue_ipv4();
+  auto& ipv6_addr   = test_cfg_.common_context.ue_ipv6();
+  const auto msisdn = test_cfg_.common_context.msisdn();
   // The activation for the static rule (static_rule1) and no dynamic
   EXPECT_CALL(
       *pipelined_client, activate_flows_for_rules(
-                             IMSI1, ip_addr, ipv6_addr, testing::_,
+                             IMSI1, ip_addr, ipv6_addr, msisdn, testing::_,
                              CheckCount(1), CheckCount(0), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
@@ -2508,7 +2710,8 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   EXPECT_CALL(
       *pipelined_client,
       add_gy_final_action_flow(
-          IMSI1, ip_addr, ipv6_addr, CheckCount(1), testing::_))
+          IMSI1, ip_addr, ipv6_addr, test_cfg_.common_context.msisdn(),
+          CheckCount(1), testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
   // Execute actions and asset final action state

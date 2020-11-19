@@ -34,9 +34,9 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
         The test case validates the functionality of ICS timer expiry while UE
         is in idle mode after mme restart
         Step 1: Attach UE to network
-        Step 2: Let the UE goes into Idle mode
+        Step 2: Let the UE go to Idle mode
         Step 3: Send Service Request to move the ECM state to connected mode
-        Step 4: Send an idication to s1ap module to drop ICS Request message
+        Step 4: Send an indication to s1ap module to drop ICS Request message
                 So s1ap shall not send ICS Response message to mme
         Step 5: While ICS timer is running at mme, restart mme service
         Step 6: On mme recovery, it is expected  that ICS timer has lapsed and
@@ -108,7 +108,7 @@ class TestIcsTimerExpiryWithMmeRestart(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_ICS_DROPD_IND.value
         )
-        print("************************* Restarting MME service on", "gateway")
+        print("************************* Restarting MME service on gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
 
         for j in range(30):

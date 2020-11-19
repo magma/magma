@@ -18,12 +18,15 @@ import type {
   policy_id,
   policy_qos_profile,
   policy_rule,
+  rating_group,
 } from '@fbcnms/magma-api';
 
 import React from 'react';
 
 export type PolicyContextType = {
   state: {[string]: policy_rule},
+  ratingGroups: {[string]: rating_group},
+  setRatingGroups: (key: string, val?: rating_group) => Promise<void>,
   qosProfiles: {[string]: policy_qos_profile},
   setQosProfiles: (key: string, val?: policy_qos_profile) => Promise<void>,
   setState: (

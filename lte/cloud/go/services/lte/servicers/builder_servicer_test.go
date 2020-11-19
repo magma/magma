@@ -463,6 +463,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		Config:             newDefaultGatewayConfig(),
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
+	lteGW.Config.(*lte_models.GatewayCellularConfigs).DisableHeaderEnrichment = true
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
@@ -515,6 +516,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
+			DisableHeaderEnrichment: true,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -739,8 +741,9 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			Arfcn_2G:            nil,
 			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
 				"enb1": {
-					CellId: 138777000,
-					Tac:    1,
+					CellId:    138777000,
+					Tac:       1,
+					IpAddress: "192.168.0.124",
 				},
 			},
 		},

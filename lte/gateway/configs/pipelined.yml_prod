@@ -146,4 +146,6 @@ uplink_bridge: uplink_br0
 uplink_eth_port_name: eth0
 uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 
+he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
+
 ovs_gtp_stats_polling_interval: 60

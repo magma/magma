@@ -26,21 +26,40 @@ message AddUEHeaderEnrichmentRequest {
     lte.IPAddress ue_ip = 1;
     repeated string websites = 2;
     repeated Header headers = 3;
+    string rule_id = 4;
 }
+
 message AddUEHeaderEnrichmentResult {
+  enum Result {
+    SUCCESS = 0;
+    WEBSITE_CONFLICT = 1;
+    RULE_ID_CONFLICT = 2;
+    FAILURE = 3;
+  }
+  Result result = 1;
 }
 
 message DeactivateUEHeaderEnrichmentRequest {
     lte.IPAddress ue_ip = 1;
+    string rule_id = 2;
 }
 message DeactivateUEHeaderEnrichmentResult {
+  enum Result {
+    SUCCESS = 0;
+    UE_NOT_FOUND = 1;
+    RULE_NOT_FOUND = 2;
+    FAILURE = 3;
+  }
+  Result result = 1;
 }
 
 // --------------------------------------------------------------------------
-// Envoyd service definition.
+// EnvoyController service definition.
 // --------------------------------------------------------------------------
-service Envoyd {
-  // Add UE header enrichment configuration
+service EnvoyController {
+  // Add UE to the header enrichment configuration
   rpc AddUEHeaderEnrichment (AddUEHeaderEnrichmentRequest) returns (AddUEHeaderEnrichmentResult) {}
+
+  // Remove UE from the header enrichment configuration
   rpc DeactivateUEHeaderEnrichment (DeactivateUEHeaderEnrichmentRequest) returns (DeactivateUEHeaderEnrichmentResult) {}
 }

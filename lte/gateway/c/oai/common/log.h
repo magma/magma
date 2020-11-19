@@ -166,6 +166,7 @@ typedef enum {
   LOG_SMS_ORC8R,
   LOG_ASYNC_SYSTEM,
   LOG_ASSERT,
+  LOG_COMMON,
   MAX_LOG_PROTOS,
 } log_proto_t;
 

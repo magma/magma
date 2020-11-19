@@ -2,9 +2,7 @@ version: "3.7"
 
 # Standard logging for each service
 x-logging: &logging_anchor
-  driver: "journald"
-  options:
-    tag: "{{.Name}}/{{.ID}}"
+  driver: ${LOG_DRIVER}
 
 # Standard volumes mounted
 x-standard-volumes: &volumes_anchor
@@ -158,6 +156,11 @@ services:
         /var/opt/magma/scripts/add_uplink_bridge_flows.sh ${UPLINK_PORTS:-eth2 eth3} &&
         python3.5 -m magma.pipelined.main"
 
+  monitord:
+    <<: *ltepyservice
+    container_name: monitord
+    command: python3.5 -m magma.monitord.main
+
   policydb:
     <<: *ltepyservice
     container_name: policydb
@@ -234,6 +237,8 @@ services:
   td-agent-bit:
     <<: *pyservice
     container_name: td-agent-bit
+    logging:
+      driver: "json-file"
     command: >
         /bin/bash -c "/usr/local/bin/generate_fluent_bit_config.py &&
         /opt/td-agent-bit/bin/td-agent-bit -c /var/opt/magma/tmp/td-agent-bit.conf"

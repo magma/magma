@@ -14,6 +14,7 @@
 
 #include "StoredState.h"
 #include "ServiceAction.h"
+#include "ChargingGrant.h"
 #include <lte/protos/abort_session.pb.h>
 
 namespace magma {

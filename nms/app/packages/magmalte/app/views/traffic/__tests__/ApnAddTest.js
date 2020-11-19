@@ -20,6 +20,7 @@ import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '@fbcnms/ui/theme/default';
+import {LTE} from '@fbcnms/types/network';
 
 import {
   ApnProvider,
@@ -79,6 +80,18 @@ describe('<TrafficDashboard />', () => {
     MagmaAPIBindings.getLteByNetworkIdApns.mockResolvedValue(apns);
   });
 
+  const {location} = window;
+  beforeAll((): void => {
+    delete window.location;
+    window.location = {
+      pathname: '/nms/test/traffic/apn',
+    };
+  });
+
+  afterAll((): void => {
+    window.location = location;
+  });
+
   const ApnWrapper = () => (
     <MemoryRouter initialEntries={['/nms/test/traffic/apn']} initialIndex={0}>
       <MuiThemeProvider theme={defaultTheme}>
@@ -87,10 +100,10 @@ describe('<TrafficDashboard />', () => {
             value={{
               networkId: 'test',
             }}>
-            <LteNetworkContextProvider networkId={'test'}>
-              <ApnProvider networkId={'test'}>
+            <LteNetworkContextProvider networkId={'test'} networkType={LTE}>
+              <ApnProvider networkId={'test'} networkType={LTE}>
                 <Route
-                  path="/nms/:networkId/traffic/apn"
+                  path="/nms/:networkId/traffic"
                   component={TrafficDashboard}
                 />
               </ApnProvider>
@@ -104,94 +117,98 @@ describe('<TrafficDashboard />', () => {
   // verify apn add
   // verify apn edit
 
-  // it('verify apn add', async () => {
-  //   const networkId = 'test';
-  //   const {queryByTestId, getByTestId, getByText} = render(<ApnWrapper />);
-  //   await wait();
+  it('verify apn add', async () => {
+    const networkId = 'test';
+    const {queryByTestId, getByTestId, getByText} = render(<ApnWrapper />);
+    await wait();
 
-  //   expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
-  //     networkId,
-  //   });
-  //   expect(MagmaAPIBindings.getLteByNetworkIdApns).toHaveBeenCalledWith({
-  //     networkId,
-  //   });
+    expect(MagmaAPIBindings.getLteByNetworkId).toHaveBeenCalledWith({
+      networkId,
+    });
+    expect(MagmaAPIBindings.getLteByNetworkIdApns).toHaveBeenCalledWith({
+      networkId,
+    });
 
-  //   expect(queryByTestId('editDialog')).toBeNull();
-  //   await wait();
-  //   fireEvent.click(getByText('APNs'));
-  //   await wait();
-  //   fireEvent.click(getByText('Create New APN'));
-  //   await wait();
-  //   expect(queryByTestId('editDialog')).not.toBeNull();
+    expect(queryByTestId('editDialog')).toBeNull();
+    await wait();
 
-  //   expect(queryByTestId('apnEditDialog')).not.toBeNull();
+    const newAPNButton = queryByTestId('newApnButton');
+    expect(newAPNButton).not.toBeNull();
 
-  //   const apnID = getByTestId('apnID').firstChild;
-  //   const classID = getByTestId('classID').firstChild;
-  //   const apnPriority = getByTestId('apnPriority').firstChild;
-  //   const apnBandwidthUL = getByTestId('apnBandwidthUL').firstChild;
-  //   const apnBandwidthDL = getByTestId('apnBandwidthDL').firstChild;
-  //   const preemptionCapability = getByTestId('preemptionCapability').firstChild;
-  //   const preemptionVulnerability = getByTestId('preemptionVulnerability')
-  //     .firstChild;
+    if (newAPNButton) {
+      fireEvent.click(newAPNButton);
+      await wait();
+    }
+    expect(queryByTestId('editDialog')).not.toBeNull();
 
-  //   // test adding an existing apn
-  //   if (apnID instanceof HTMLInputElement) {
-  //     fireEvent.change(apnID, {target: {value: 'apn_0'}});
-  //   } else {
-  //     throw 'invalid type';
-  //   }
+    expect(queryByTestId('apnEditDialog')).not.toBeNull();
 
-  //   fireEvent.click(getByText('Save'));
-  //   await wait();
+    const apnID = getByTestId('apnID').firstChild;
+    const classID = getByTestId('classID').firstChild;
+    const apnPriority = getByTestId('apnPriority').firstChild;
+    const apnBandwidthUL = getByTestId('apnBandwidthUL').firstChild;
+    const apnBandwidthDL = getByTestId('apnBandwidthDL').firstChild;
+    const preemptionCapability = getByTestId('preemptionCapability').firstChild;
+    const preemptionVulnerability = getByTestId('preemptionVulnerability')
+      .firstChild;
 
-  //   expect(getByTestId('configEditError')).toHaveTextContent(
-  //     'APN apn_0 already exists',
-  //   );
+    // test adding an existing apn
+    if (apnID instanceof HTMLInputElement) {
+      fireEvent.change(apnID, {target: {value: 'apn_0'}});
+    } else {
+      throw 'invalid type';
+    }
 
-  //   if (
-  //     apnID instanceof HTMLInputElement &&
-  //     classID instanceof HTMLInputElement &&
-  //     apnPriority instanceof HTMLInputElement &&
-  //     apnBandwidthUL instanceof HTMLInputElement &&
-  //     apnBandwidthDL instanceof HTMLInputElement
-  //   ) {
-  //     fireEvent.change(apnID, {target: {value: 'apn_2'}});
-  //     fireEvent.change(classID, {target: {value: 9}});
-  //     fireEvent.change(apnPriority, {target: {value: 15}});
-  //     fireEvent.change(apnBandwidthUL, {target: {value: 1000000}});
-  //     fireEvent.change(apnBandwidthDL, {target: {value: 1000000}});
-  //     if (preemptionCapability?.firstChild instanceof HTMLElement) {
-  //       fireEvent.click(preemptionCapability.firstChild);
-  //     }
-  //     if (preemptionVulnerability?.firstChild instanceof HTMLElement) {
-  //       fireEvent.click(preemptionVulnerability.firstChild);
-  //     }
-  //   } else {
-  //     throw 'invalid type';
-  //   }
+    fireEvent.click(getByText('Save'));
+    await wait();
 
-  //   fireEvent.click(getByText('Save'));
-  //   await wait();
+    expect(getByTestId('configEditError')).toHaveTextContent(
+      'APN apn_0 already exists',
+    );
 
-  //   const newApn = {
-  //     apn_configuration: {
-  //       ambr: {max_bandwidth_dl: 1000000, max_bandwidth_ul: 1000000},
-  //       qos_profile: {
-  //         class_id: 9,
-  //         preemption_capability: true,
-  //         preemption_vulnerability: true,
-  //         priority_level: 15,
-  //       },
-  //     },
-  //     apn_name: 'apn_2',
-  //   };
+    if (
+      apnID instanceof HTMLInputElement &&
+      classID instanceof HTMLInputElement &&
+      apnPriority instanceof HTMLInputElement &&
+      apnBandwidthUL instanceof HTMLInputElement &&
+      apnBandwidthDL instanceof HTMLInputElement
+    ) {
+      fireEvent.change(apnID, {target: {value: 'apn_2'}});
+      fireEvent.change(classID, {target: {value: 9}});
+      fireEvent.change(apnPriority, {target: {value: 15}});
+      fireEvent.change(apnBandwidthUL, {target: {value: 1000000}});
+      fireEvent.change(apnBandwidthDL, {target: {value: 1000000}});
+      if (preemptionCapability?.firstChild instanceof HTMLElement) {
+        fireEvent.click(preemptionCapability.firstChild);
+      }
+      if (preemptionVulnerability?.firstChild instanceof HTMLElement) {
+        fireEvent.click(preemptionVulnerability.firstChild);
+      }
+    } else {
+      throw 'invalid type';
+    }
 
-  //   expect(MagmaAPIBindings.postLteByNetworkIdApns).toHaveBeenCalledWith({
-  //     networkId,
-  //     apn: newApn,
-  //   });
-  // });
+    fireEvent.click(getByText('Save'));
+    await wait();
+
+    const newApn = {
+      apn_configuration: {
+        ambr: {max_bandwidth_dl: 1000000, max_bandwidth_ul: 1000000},
+        qos_profile: {
+          class_id: 9,
+          preemption_capability: true,
+          preemption_vulnerability: true,
+          priority_level: 15,
+        },
+      },
+      apn_name: 'apn_2',
+    };
+
+    expect(MagmaAPIBindings.postLteByNetworkIdApns).toHaveBeenCalledWith({
+      networkId,
+      apn: newApn,
+    });
+  });
 
   it('verify apn edit', async () => {
     const networkId = 'test';
@@ -209,8 +226,6 @@ describe('<TrafficDashboard />', () => {
     expect(queryByTestId('editDialog')).toBeNull();
 
     // click on apns tab
-    fireEvent.click(getByText('APNs'));
-    await wait();
     fireEvent.click(getByText('apn_0'));
     await wait();
     expect(queryByTestId('editDialog')).not.toBeNull();

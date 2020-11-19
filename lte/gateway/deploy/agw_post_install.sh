@@ -43,9 +43,16 @@ if [ "$PING_RESULT" != "$SUCCESS_MESSAGE" ]; then
     addError "eth0 is connected to the internet" "Make sure the hardware has been properly plugged in (eth0 to internet)"
 fi
 
-allServices=("control_proxy" "directoryd" "dnsd" "enodebd" "magmad" "mme" "mobilityd" "pipelined" "policydb" "redis" "sctpd" "sessiond" "state" "subscriberdb")
+allServices=("control_proxy" "directoryd" "dnsd" "enodebd" "magmad" "mme" "mobilityd" "pipelined" "policydb" "redis" "sessiond" "state" "subscriberdb")
 for service in "${allServices[@]}"; do
     if ! systemctl is-active --quiet "magma@$service"; then
+        addError "$service is not running" "Please check our faq"
+    fi
+done
+
+nonMagmadServices=("sctpd")
+for service in "${nonMagmadServices[@]}"; do
+    if ! systemctl is-active --quiet "$service"; then
         addError "$service is not running" "Please check our faq"
     fi
 done

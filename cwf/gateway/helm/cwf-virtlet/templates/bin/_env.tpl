@@ -36,6 +36,12 @@ CONFIGS_OVERRIDE_VOLUME=/var/opt/magma/configs
 CONFIGS_DEFAULT_VOLUME=/etc/magma
 SECRETS_VOLUME=/var/opt/magma/secrets
 
+{{ if .Values.cwf.log_aggregation.enabled }}
+LOG_DRIVER=fluentd
+{{ else }}
+LOG_DRIVER=journald
+{{- end }}
+
 {{ if .Values.cwf.gateway_ha.enabled }}
 RADIUS_STORAGE_TYPE=redis
 RADIUS_REDIS_ADDR={{ .Values.cwf.redis.bind }}:{{.Values.cwf.redis.port }}

@@ -19,8 +19,16 @@ if [ "$RUNNING_TAG" == "$IMAGE_VERSION" ]; then
   exit
 fi
 
+if pidof -o %PPID -x $0 >/dev/null; then
+  echo "Upgrade process already running"
+  exit
+fi
+
 # Otherwise recreate containers with the new image
 cd /var/opt/magma/docker || exit
+
+# Pull all images
+/usr/local/bin/docker-compose pull
 
 # Stop all containers
 # NOTE: add docker restart to work around GoRadius failures to stop
@@ -35,3 +43,6 @@ CONTAINERS=$(docker ps -a -q)
 
 # Remove all stopped containers and dangling images
 docker system prune -af
+
+# update image version in xwfmwhoami
+sed -i "s/image_.*/image_version: $IMAGE_VERSION/g" /etc/xwfwhoami

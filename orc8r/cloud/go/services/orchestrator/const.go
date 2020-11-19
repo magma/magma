@@ -21,4 +21,7 @@ const (
 	// PrometheusGRPCPushAddress is the orchestrator.yml key for the GRPC address
 	// to which the metrics exporter will push Prometheus metrics
 	PrometheusGRPCPushAddress = "prometheusGRPCPushAddress"
+
+	// UseGRPCExporter is a flag to determine which exporter to use
+	UseGRPCExporter = "useGRPCExporter"
 )
