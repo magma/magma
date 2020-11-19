@@ -329,8 +329,10 @@ func (m *Enodeb) ValidateModel() error {
 		return err
 	}
 
-	if err := m.EnodebConfig.validateEnodebConfig(); err != nil {
-		return err
+	if m.EnodebConfig != nil{
+		if err := m.EnodebConfig.validateEnodebConfig(); err != nil {
+			return err
+		}
 	}
 
 	return nil
