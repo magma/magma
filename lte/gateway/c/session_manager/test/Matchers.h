@@ -167,4 +167,53 @@ MATCHER_P(CheckSubscriberQuotaUpdate, quota, "") {
   return update[0].update_type() == quota;
 }
 
+MATCHER_P(CheckCreateSession, imsi, "") {
+  auto req = static_cast<const CreateSessionRequest*>(arg);
+  return req->common_context().sid().id() == imsi;
+}
+
+MATCHER_P(CheckSingleUpdate, expected_update, "") {
+  auto request = static_cast<const UpdateSessionRequest*>(arg);
+  if (request->updates_size() != 1) {
+    return false;
+  }
+
+  auto& update = request->updates(0);
+  bool val =
+      update.usage().type() == expected_update.usage().type() &&
+      update.usage().bytes_tx() == expected_update.usage().bytes_tx() &&
+      update.usage().bytes_rx() == expected_update.usage().bytes_rx() &&
+      update.sid() == expected_update.sid() &&
+      update.usage().charging_key() == expected_update.usage().charging_key();
+  return val;
+}
+
+MATCHER_P(CheckTerminate, imsi, "") {
+  auto request = static_cast<const SessionTerminateRequest*>(arg);
+  return request->sid() == imsi;
+}
+
+MATCHER_P4(CheckActivateFlows, imsi, rule_count, ipv4, ipv6, "") {
+  auto request = static_cast<const ActivateFlowsRequest*>(arg);
+  auto res     = request->sid().id() == imsi &&
+             request->rule_ids_size() == rule_count &&
+             request->ip_addr() == ipv4 && request->ipv6_addr() == ipv6;
+  return res;
+}
+
+MATCHER_P5(
+    CheckActivateFlowsForTunnIds, imsi, ipv4, ipv6, enb_teid, agw_teid, "") {
+  auto request = static_cast<const ActivateFlowsRequest*>(arg);
+  auto res     = request->sid().id() == imsi && request->ip_addr() == ipv4 &&
+             request->ipv6_addr() == ipv6 &&
+             request->uplink_tunnel() == agw_teid &&
+             request->downlink_tunnel() == enb_teid;
+  return res;
+}
+
+MATCHER_P(CheckDeactivateFlows, imsi, "") {
+  auto request = static_cast<const DeactivateFlowsRequest*>(arg);
+  return request->sid().id() == imsi;
+}
+
 };  // namespace magma
