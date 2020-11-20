@@ -409,7 +409,7 @@ class RestartResilienceTest(unittest.TestCase):
 
         # NOTE this value is 8 because the EnforcementStatsController rule
         # reporting doesn't reset on clearing flows(lingers from old tests)
-        self.assertEqual(len(stats), 5)
+        self.assertEqual(len(stats), 8)
 
         setup_flows_request = SetupFlowsRequest(
             requests=[

@@ -34,6 +34,7 @@ setup_type: LTE
 static_services: [
   'arpd',
   'access_control',
+  'proxy',
   'ryu_rest_service',
   'startup_flows',
 #  'packet_tracer',
@@ -158,6 +159,7 @@ uplink_gw_mac: 'ff:ff:ff:ff:ff:ff'
 
 ovs_gtp_stats_polling_interval: 60
 
+he_proxy_eth_mac: 'e6:8f:a2:80:80:80'
 # For 5G Functionality Support flag
 5G_feature_set:
- enable: True
+ enable: False

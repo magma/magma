@@ -1,5 +1,12 @@
 ---
 
+- name: get the  server id
+  shell: cat /etc/hostname | cut -d. -f4
+  register: foo
+
+- name: set the fact
+  set_fact: server_id={{ foo.stdout | default('1') }}
+
 - name: update the hosts file
   template:
     src: hosts.j2
@@ -55,6 +62,7 @@
     dest: "{{ item }}"
   with_items:
     - /etc/systemd/system/cmd2ods.service
+    - /etc/systemd/system/default.target.wants
 
 - name: install the files for logroates startup
   copy:

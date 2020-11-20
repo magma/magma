@@ -64,6 +64,7 @@ message RequestOriginType {
   enum OriginType {
     GX = 0;
     GY = 1;
+    N4 = 2;
   }
   OriginType type = 1;
 }
@@ -76,6 +77,9 @@ message ActivateFlowsRequest {
   RequestOriginType request_origin = 5; // Activate flow source (GX/GY)
   magma.lte.AggregatedMaximumBitrate apn_ambr = 6; // APN AMBR info, passed at the time of session creation
   bytes ipv6_addr = 7; // Subscriber session ipv6 address
+  bytes msisdn = 8; // From SubscriberDB or HSS
+  uint32 uplink_tunnel = 9; // Subscriber uplink tunnel
+  uint32 downlink_tunnel = 10; // Subscriber downlink tunnel
 }
 
 // DeactivateFlowsRequest can be used to deactivate all flows for a subscriber,
@@ -201,21 +205,13 @@ message PacketDropTableId {
 // source file: https://www.etsi.org/deliver/etsi_ts/129200_129299/129244/15.08.00_60/ts_129244v150800p.pdf
 //
 
-message NodeID {
-  enum NodeIDType {
-    IPv4 = 0;
-    IPv6 = 1;
-    FQDN = 2;
-    }
-  NodeIDType node_id_type = 1;
-  string node_id = 2;
-}
 
 //ToDo latest state change will reflect in upcoming proto
 message Fsm_state {
   enum FsmState {
         SESSION_ACTIVE                        = 0;
         SESSION_TERMINATED                    = 4;
+        SESSION_TERMINATION_SCHEDULED         = 5;
         SESSION_RELEASED                      = 6;
         CREATING                              = 7;
         CREATED                               = 8;
@@ -226,12 +222,6 @@ message Fsm_state {
   FsmState  state = 1;
 }
 
-
-//CPFseid message
-message CpFSeid {
-  uint64 f_seid = 1;
-  NodeID node_id = 2;
-}
 
 message OuterHeadRemoval {
   uint32 o_hd_remo_descr = 1;
@@ -247,51 +237,25 @@ message SdfFilters {                               //8.2.5
 
 message FlowDescriptor {
 FlowMatchNew match = 1;
-  enum Action {
-    PERMIT = 0;
-    DENY = 1;
-  }
-  Action action = 2;
+Action action = 2;
 }
 
 message FlowMatchNew {
   string ipv4_src = 1;
   string ipv4_dst = 2;
-  uint32 tcp_src = 3;
-  uint32 tcp_dst = 4;
-  uint32 udp_src = 5;
-  uint32 udp_dst = 6;
+  string protocol_type = 3;   //can be UDP TCP
+  uint32 dst_port = 4;
+  uint32 src_port = 5;
 }
 
-message MacAddress {            //8.2.93
-  bytes mac_src_value = 1;
-  bytes mac_dst_value = 2;
-  bytes upper_mac_src_value = 3;
-  bytes upper_mac_dst_value = 4;
-}
-
-//Table 7.5.2.2-3: Ethernet Packet Filter IE within PFCP Session Establishment $
-message EthPackFilter {
-  uint32 eth_filt_id = 1;
-  uint32 eth_filt_prop = 2;
-  MacAddress mac_addr = 3;
-  uint32 c_tag = 4;                              
-  uint32 s_tag = 5;
-  SdfFilters sdf_filters = 6;
-  uint32 ethertype = 7;
-}
-
-//ToDo ApplyAction will be simplified and will reflect in upcoming proto
-message ApplyAction {               //8.2.26
-  enum Action{
-    DROP = 0;
-    FORW = 1;
-//Below fields may be required In future.
-    BUFF = 2;
-    NOCP = 3;
-    DUPL = 4;
-  }
-  repeated Action apply_action = 1;
+//8.2.26
+enum Action {
+  DROP = 0;
+  FORW = 1;
+  //Below will be required in future use case
+  BUFF = 2;
+  NOCP = 3;
+  DUPL = 4;
 }
 
 message RedirectInfo {                //8.2.20
@@ -308,14 +272,14 @@ message RedirectInfo {                //8.2.20
 
 message OuterHeaderCreation {
  uint32 o_teid = 1;
- string ipv4_adr = 2;
+ string gnb_ipv4_adr = 2;
  uint32 port_no = 3;
 }
 
 //Table 7.5.2.3-2: Forwarding Parameters IE in FAR
 message FwdParam {
   uint32 dest_iface = 1;     
-  string net_instace = 2;
+  string net_instance = 2;
   RedirectInfo redirect_info = 3;
   OuterHeaderCreation outr_head_cr = 4;
 }
@@ -323,6 +287,12 @@ message FwdParam {
 //Table 7.5.2.3-3: Duplicating Parameters IE in FAR
 message DupParam {
   uint32 dest_iface = 1;
+}
+
+//pdr_state variable for SessionSet message per PDR.
+enum PdrState {
+  INSTALL = 0;
+  REMOVE  = 1;
 }
 
 //PDI Message Table 7.5.2.2-2: PDI IE within PFCP Session Establishment Request
@@ -336,30 +306,27 @@ message PDI {
   string app_id = 7;
 }
 
-//Group Type messages - Currently Includes -> 1. PDR 2. FAR
+//Group Type messages - Currently Includes -> 1. PDR 2. FAR 3.For QER ActivateFlowRequest
 
 //PDR message Table 7.5.2.2-1: Create PDR IE within PFCP Session Establishment
 message SetGroupPDR {
   uint32 pdr_id = 1;
-  int32 sess_ver_no = 2;
+  int32 pdr_version = 2;
   uint32 precedence = 3;
-  PDI pdi = 4;
-  OuterHeadRemoval o_h_remo_desc = 5;   
-  uint32 far_id = 6;
-  uint32 urr_id = 7;
-  uint32 qer_id = 8;
-  uint32 bar_id = 9;
-  string active_pred_rule = 10;    //8.2.72
+  PdrState pdr_state = 4;
+  PDI pdi = 5;
+  uint32 o_h_remo_desc = 6; 
+  string active_pred_rule = 7;
+  ActivateFlowsRequest activate_flow_req = 8;
+  SetGroupFAR set_gr_far = 9;  
 }
 
 //FAR message Table 7.5.2.3-1: Create FAR IE within PFCP Session Establishment
 message SetGroupFAR {
   uint32 far_id = 1;
-  int32 sess_ver_no = 2;
-  ApplyAction apply_action = 3;
-  FwdParam fwd_parm = 4;
-  DupParam du_param = 5;
-  uint32 bar_id = 6;
+  repeated Action far_action_to_apply = 2;
+  FwdParam fwd_parm = 3;
+  DupParam du_param = 4;
 }
 
 // ToDO  SetGroupQER
@@ -368,18 +335,60 @@ message SetGroupFAR {
 //SET message - SMF to Upf Session Requests
 //ToDo Flattening of SessionSet is in progress so will be updated along with addressing the comments
 message SessionSet {
-  string seid = 1;
-  int32 sess_ver_no = 2;    //ToDo renaming of the field example sess_ver_no will be done on the latest proto
-  NodeID node_id = 3;
-  Fsm_state  state = 16;
-  CpFSeid f_seid = 4;
-  repeated SetGroupPDR set_gr_pdr = 5;
-  repeated SetGroupFAR set_gr_far = 6;
+  string subscriber_id = 1;
+  uint32 local_f_teid = 2; 
+  uint32 session_version = 3; 
+  NodeID node_id = 4;
+  Fsm_state state = 5;
+  repeated SetGroupPDR set_gr_pdr = 6;
 }
 
-//ToDo Response will reflect in upcoming proto
-message UpfRes {}
+// Response of SetSession Message from SMF.
+// 15.8 (Sec 7.5.3.1) : PFCP Session Response format
+message UPFSessionContextState {
+    CauseIE cause_info = 1;
+    UPFSessionState session_snaphot = 2;
+    repeated FailureRuleInformation failure_rule_id = 3; // The session and version which failed in UPF
+    repeated ActivateFlowsResult qos_enforce_rule_results = 4;
+}
 
+//15.8,  Section 8.2.1
+message CauseIE {
+   //15.8, Table 8.2.1-1
+   enum CauseValues {
+       RESERVED = 0;
+       REQUEST_ACCEPTED = 1;
+       REQUEST_REJECTED_NO_REASON = 2;
+       SESSION_CONTEXT_NOT_FOUND = 3;
+       MANDATORY_IE_MISSING = 4;
+       CONDITIONAL_IE_MISSING = 5;
+       INVALID_LENGTH = 6;
+       MANDATORY_IE_INCORRECT = 7;
+       INVALID_FORWARDING_POLICY = 8;
+       INVALID_F_TEID_ALLOCATION_OPTION = 9;
+       NO_ESTABLISHED_PFCP_ASSOCIATION = 10;
+       RULE_CREATION_OR_MODIFICATION_FAILURE = 11;
+       PFCP_ENTRY_IN_CONGESTION = 12;
+       NO_RESOURCES_AVAILABLE = 13;
+       SERVICE_NOT_SUPPORTED = 14;
+       SYSTEM_FAILURE = 15;
+   }
+
+   CauseValues cause_ie=1;
+}
+
+message FailureRuleInformation {
+   OffendingIE pdr = 1;
+   OffendingIE far = 2;
+   OffendingIE qer = 3;
+   OffendingIE urr = 4;
+   OffendingIE bar = 5;
+}
+
+message OffendingIE {
+    uint32 identifier = 1;
+    uint32 version = 2;
+}
 
 // --------------------------------------------------------------------------
 // Pipelined gateway RPC service
@@ -390,7 +399,7 @@ service Pipelined {
   // Smf to Upf rpc
   // ------------
 
-  rpc SetSMFSessions(SessionSet) returns (UpfRes) {}
+  rpc SetSMFSessions(SessionSet) returns (UPFSessionContextState) {}
 
   // ----------------
   // Enforcement App:

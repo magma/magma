@@ -35,7 +35,7 @@ class Classifier(MagmaController):
     APP_TYPE = ControllerType.SPECIAL
     ClassifierConfig = namedtuple(
             'ClassifierConfig',
-            ['gtp_port', 'uplink_port_name', 'mtr_ip', 'mtr_port', 'internal_sampling_port', 'internal_sampling_fwd_tbl'],
+            ['gtp_port', 'mtr_ip', 'mtr_port', 'internal_sampling_port', 'internal_sampling_fwd_tbl'],
     )
 
     def __init__(self, *args, **kwargs):
@@ -47,13 +47,9 @@ class Classifier(MagmaController):
         self._datapath = None
 
     def _get_config(self, config_dict):
-        port_name = None
         mtr_ip = None
         mtr_port = None
         
-        if 'ovs_uplink_port_name' in config_dict:
-            port_name = config_dict['ovs_uplink_port_name']
-
         if 'mtr_ip' in config_dict:
             self._mtr_service_enabled = True
             mtr_ip = config_dict['mtr_ip']
@@ -61,7 +57,6 @@ class Classifier(MagmaController):
 
         return self.ClassifierConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
-            uplink_port_name=port_name,
             mtr_ip=mtr_ip,
             mtr_port=mtr_port,
             internal_sampling_port=

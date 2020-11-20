@@ -68,6 +68,9 @@ services:
   spgw_service:
     ip_address: 127.0.0.1
     port: 50073
+  amf_service:
+    ip_address: 127.0.0.1
+    port: 50073
   state:
     ip_address: 127.0.0.1
     port: 50074
@@ -86,3 +89,9 @@ services:
   ctraced:
     ip_address: 127.0.0.1
     port: 50079
+  health:
+    ip_address: 127.0.0.1
+    port: 50080
+  envoy_controller:
+    ip_address: 127.0.0.1
+    port: 50081

@@ -30,6 +30,8 @@ magma-gen-meta:
       filename: gateway_dns_configs_swaggergen.go
     - go-struct-name: GatewayDNSRecords
       filename: gateway_dns_records_swaggergen.go
+    - go-struct-name: GatewayHEConfig
+      filename: gateway_he_config_swaggergen.go
     - go-struct-name: DNSConfigRecord
       filename: dns_config_record_swaggergen.go
     - go-struct-name: LteGateway
@@ -1761,6 +1763,8 @@ definitions:
         $ref: '#/definitions/gateway_non_eps_configs'
       dns:
         $ref: '#/definitions/gateway_dns_configs'
+      he_config:
+        $ref: '#/definitions/gateway_he_config'
 
   gateway_ran_configs:
     type: object
@@ -1797,6 +1801,17 @@ definitions:
         maxLength: 49
         x-nullable: false
         example: '192.168.128.0/24'
+      ipv6_block:
+        type: string
+        x-nullable: false
+        example: 'fdee:5:6c::/48'
+      ipv6_prefix_allocation_mode:
+        type: string
+        x-nullable: false
+        enum:
+          - 'RANDOM'
+          - 'HASH'
+        example: 'RANDOM'
       dns_primary:
         type: string
         minLength: 5
@@ -1807,6 +1822,21 @@ definitions:
         minLength: 5
         maxLength: 45
         example: '8.8.4.4'
+      ipv4_p_cscf_addr:
+        type: string
+        description: IP address for IPv4 P-CSCF on the AGW
+        format: ipv4
+        example: '172.27.23.150'
+      ipv6_dns_addr:
+        description: IPv6 DNS Server address on the AGW
+        type: string
+        format: ipv6
+        example: '2001:4860:4860:0:0:0:0:8888'
+      ipv6_p_cscf_addr:
+        description: IP address for IPv6 P-CSCF on the AGW
+        type: string
+        format: ipv6
+        example: '2a12:577:9941:f99c:0002:0001:c731:f114'
       sgi_management_iface_vlan:
         type: string
         description: VLAN ID for management interface traffic on the AGW
@@ -1866,7 +1896,7 @@ definitions:
           - 0
           - 1
           - 2
-          - 3 
+          - 3
 
   gateway_dns_records:
     type: array
@@ -1928,6 +1958,46 @@ definitions:
         example: true
       records:
         $ref: '#/definitions/gateway_dns_records'
+
+  gateway_he_config:
+    description: Header Enrichment configuration
+    type: object
+    required:
+      - enable_header_enrichment
+      - enable_encryption
+      - he_encryption_algorithm
+      - he_hash_function
+      - he_encoding_type
+    properties:
+      enable_header_enrichment:
+        description: True if header enrichment feature should be disabled for gateway
+        type: boolean
+        example: false
+        x-nullable: false
+        default: true
+      enable_encryption:
+        description: True if headers should be encrypted
+        type: boolean
+        x-nullable: false
+        example: true
+      he_encryption_algorithm:
+        type: string
+        x-nullable: false
+        enum:
+          - 'RC4'
+        example: 'RC4'
+      he_hash_function:
+        type: string
+        x-nullable: false
+        enum:
+          - 'MD5'
+        example: 'MD5'
+      he_encoding_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'BASE64'
+        example: 'BASE64'
 
   enodeb_serials:
     type: array
@@ -2123,6 +2193,9 @@ definitions:
         type: boolean
       fsm_state:
         type: string
+      ip_address:
+        type: string
+        format: ipv4
 
   aggregated_maximum_bitrate:
     type: object

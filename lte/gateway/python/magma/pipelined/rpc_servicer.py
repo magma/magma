@@ -104,13 +104,12 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
         for controller in [self._gy_app, self._enforcer_app,
                            self._enforcement_stats]:
-            ret = controller.is_ready_for_restart_recovery(request.epoch)
-            if ret != SetupFlowsResult.SUCCESS:
+            ret = controller.check_setup_request_epoch(request.epoch)
+            if ret:
                 return SetupFlowsResult(result=ret)
 
         fut = Future()
-        self._loop.call_soon_threadsafe(self._setup_flows,
-                                        request, fut)
+        self._loop.call_soon_threadsafe(self._setup_flows, request, fut)
         return fut.result()
 
     def _setup_flows(self, request: SetupPolicyRequest,
@@ -147,6 +146,11 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         prefix = get_ipv6_prefix(ipv6_str)
         self._service_manager.interface_to_prefix_mapper.save_prefix(
             interface, prefix)
+
+    def _update_tunnel_map_store(self, uplink_tunnel: int,
+                                 downlink_tunnel: int):
+        self._service_manager.tunnel_id_mapper.save_tunnels(uplink_tunnel,
+                                                            downlink_tunnel)
 
     def _update_version(self, request: ActivateFlowsRequest, ipv4: IPAddress):
         """
@@ -185,6 +189,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
                 ret_ipv6 = self._install_flows_gy(request, ipv6)
             ret.static_rule_results.extend(ret_ipv6.static_rule_results)
             ret.dynamic_rule_results.extend(ret_ipv6.dynamic_rule_results)
+        if request.uplink_tunnel and request.downlink_tunnel:
+            self._update_tunnel_map_store(request.uplink_tunnel,
+                                          request.downlink_tunnel)
 
         fut.set_result(ret)
 
@@ -202,7 +209,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, ip_address, request.apn_ambr, request.rule_ids,
+            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr, request.rule_ids,
             request.dynamic_rules)
 
         failed_static_rule_results, failed_dynamic_rule_results = \
@@ -214,7 +221,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
 
         enforcement_res = self._activate_rules_in_enforcement(
-            request.sid.id, ip_address, request.apn_ambr, static_rule_ids,
+            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr, static_rule_ids,
             dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
@@ -237,8 +244,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._update_version(request, ip_address)
         # Install rules in enforcement stats
         enforcement_stats_res = self._activate_rules_in_enforcement_stats(
-            request.sid.id, ip_address, request.apn_ambr, request.rule_ids,
-            request.dynamic_rules)
+            request.sid.id, request.msisdn, request.uplink_tunnel, ip_address, request.apn_ambr,
+            request.rule_ids, request.dynamic_rules)
 
         failed_static_rule_results, failed_dynamic_rule_results = \
             _retrieve_failed_results(enforcement_stats_res)
@@ -248,8 +255,9 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         dynamic_rules = \
             _filter_failed_dynamic_rules(request, failed_dynamic_rule_results)
 
-        gy_res = self._activate_rules_in_gy(request.sid.id, ip_address,
-            request.apn_ambr, static_rule_ids, dynamic_rules)
+        gy_res = self._activate_rules_in_gy(request.sid.id, request.msisdn, request.uplink_tunnel,
+                                            ip_address, request.apn_ambr, static_rule_ids,
+                                            dynamic_rules)
 
         # Include the failed rules from enforcement_stats in the response.
         gy_res.static_rule_results.extend(failed_static_rule_results)
@@ -257,6 +265,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         return gy_res
 
     def _activate_rules_in_enforcement_stats(self, imsi: str,
+                                             msisdn: bytes,
+                                             uplink_tunnel: int,
                                              ip_addr: IPAddress,
                                              apn_ambr: AggregatedMaximumBitrate,
                                              static_rule_ids: List[str],
@@ -267,11 +277,13 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             return ActivateFlowsResult()
 
         enforcement_stats_res = self._enforcement_stats.activate_rules(
-            imsi, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
         _report_enforcement_stats_failures(enforcement_stats_res, imsi)
         return enforcement_stats_res
 
-    def _activate_rules_in_enforcement(self, imsi: str, ip_addr: IPAddress,
+    def _activate_rules_in_enforcement(self, imsi: str, msisdn: bytes,
+                                       uplink_tunnel: int,
+                                       ip_addr: IPAddress,
                                        apn_ambr: AggregatedMaximumBitrate,
                                        static_rule_ids: List[str],
                                        dynamic_rules: List[PolicyRule]
@@ -279,17 +291,21 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         # TODO: this will crash pipelined if called with both static rules
         # and dynamic rules at the same time
         enforcement_res = self._enforcer_app.activate_rules(
-            imsi, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
+            imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, static_rule_ids, dynamic_rules)
         # TODO ?? Should the enforcement failure be reported per imsi session
         _report_enforcement_failures(enforcement_res, imsi)
         return enforcement_res
 
-    def _activate_rules_in_gy(self, imsi: str, ip_addr: IPAddress,
+    def _activate_rules_in_gy(self, imsi: str, msisdn: bytes,
+                              uplink_tunnel: int,
+                              ip_addr: IPAddress,
                               apn_ambr: AggregatedMaximumBitrate,
                               static_rule_ids: List[str],
                               dynamic_rules: List[PolicyRule]
                               ) -> ActivateFlowsResult:
-        gy_res = self._gy_app.activate_rules(imsi, ip_addr, apn_ambr, static_rule_ids,
+        gy_res = self._gy_app.activate_rules(imsi, msisdn, uplink_tunnel,
+                                             ip_addr, apn_ambr,
+                                             static_rule_ids,
                                              dynamic_rules)
         # TODO: add metrics
         return gy_res
@@ -453,8 +469,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        ret = self._ue_mac_app.is_ready_for_restart_recovery(request.epoch)
-        if ret != SetupFlowsResult.SUCCESS:
+        ret = self._ue_mac_app.check_setup_request_epoch(request.epoch)
+        if ret:
             return SetupFlowsResult(result=ret)
 
         fut = Future()
@@ -559,8 +575,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
             context.set_details('Service not enabled!')
             return None
 
-        ret = self._check_quota_app.is_ready_for_restart_recovery(request.epoch)
-        if ret != SetupFlowsResult.SUCCESS:
+        ret = self._check_quota_app.check_setup_request_epoch(request.epoch)
+        if ret:
             return SetupFlowsResult(result=ret)
 
         fut = Future()

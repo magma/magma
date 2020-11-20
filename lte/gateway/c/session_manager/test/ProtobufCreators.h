@@ -16,6 +16,8 @@
 #include <lte/protos/session_manager.grpc.pb.h>
 #include <lte/protos/pipelined.grpc.pb.h>
 
+#include "DiameterCodes.h"
+
 namespace magma {
 using namespace lte;
 
@@ -46,11 +48,16 @@ void create_rule_record(
     const std::string& imsi, const std::string& ip, const std::string& rule_id,
     uint64_t bytes_rx, uint64_t bytes_tx, RuleRecord* rule_record);
 
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t bytes_rx, uint64_t bytes_tx, uint64_t dropped_rx,
+    uint64_t dropped_tx, RuleRecord* rule_record);
+
 void create_charging_credit(
     uint64_t volume, bool is_final, ChargingCredit* credit);
 
 void create_credit_update_response(
-    const std::string& imsi, const std::string sessiond_id,
+    const std::string& imsi, const std::string session_id,
     uint32_t charging_key, CreditLimitType limit_type,
     CreditUpdateResponse* response);
 
@@ -73,6 +80,17 @@ void create_credit_update_response(
     const std::string& imsi, const std::string session_id,
     uint32_t charging_key, uint64_t volume, bool is_final,
     CreditUpdateResponse* response);
+
+void create_credit_update_response_with_error(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, bool is_final, DiameterResultCode resultCode,
+    CreditUpdateResponse* response);
+
+void create_credit_update_response_with_error(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, bool is_final, DiameterResultCode resultCode,
+    ChargingCredit_FinalAction action, std::string redirect_server,
+    std::string restrict_rule, CreditUpdateResponse* response);
 
 void create_charging_credit(
     uint64_t total_volume, uint64_t tx_volume, uint64_t rx_volume,

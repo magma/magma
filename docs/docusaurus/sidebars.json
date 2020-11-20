@@ -79,7 +79,8 @@
       "proposals/p002_scaled_prometheus_pipeline",
       "proposals/p003_qos_enforcement",
       "proposals/p004_fua-restrict-feature",
-      "proposals/p005_call_tracing"
+      "proposals/p005_call_tracing",
+      "proposals/p007_header_enrichment"
     ]
   }
 }

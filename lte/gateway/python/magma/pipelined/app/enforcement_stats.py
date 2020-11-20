@@ -143,13 +143,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if self._clean_restart:
             self.delete_all_flows(datapath)
 
-    def _install_flow_for_rule(self, imsi, ip_addr, apn_ambr, rule):
+    def _install_flow_for_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
         """
         Install a flow to get stats for a particular rule. Flows will match on
         IMSI, cookie (the rule num), in/out direction
 
         Args:
             imsi (string): subscriber to install rule for
+            msisdn (bytes): subscriber MSISDN
+            uplink_tunnel (int): tunnel ID of the subscriber.
             ip_addr (string): subscriber session ipv4 address
             rule (PolicyRule): policy rule proto
         """
@@ -159,7 +161,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                 rule.id, imsi, err)
             return RuleModResult.FAILURE
 
-        msgs = self._get_rule_match_flow_msgs(imsi, ip_addr, apn_ambr, rule)
+        msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
 
         chan = self._msg_hub.send(msgs, self._datapath)
         for _ in range(len(msgs)):
@@ -181,7 +183,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._msg_hub.handle_error(ev)
 
     # pylint: disable=protected-access,unused-argument
-    def _get_rule_match_flow_msgs(self, imsi, ip_addr, ambr, rule):
+    def _get_rule_match_flow_msgs(self, imsi, _, __, ip_addr, ambr, rule):
         """
         Returns flow add messages used for rule matching.
         """
@@ -360,8 +362,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                     current_usage, stat)
 
         # Calculate the delta values from last stat update
-        delta_usage = _delta_usage_maps(current_usage,
-                                        self.last_usage_for_delta)
+        delta_usage = self._delta_usage_maps(current_usage,
+                                             self.last_usage_for_delta)
         self.total_usage = current_usage
 
         # Append any records which we couldn't send to session manager earlier
@@ -423,8 +425,6 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             else:
                 # This must be the default drop flow
                 rule_id = self._default_drop_flow_name
-                # TODO wait for sessiond changes and remove this return
-                return current_usage
         # If this is a pass through app name flow ignore stats
         if _get_policy_type(flow_stat.match) == IGNORE_STATS:
             return current_usage
@@ -503,8 +503,8 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                     '(version: %s): %s', stat_rule_id,
                     stat_sid, rule_version, e)
 
-        self.last_usage_for_delta = _delta_usage_maps(self.total_usage,
-                                                      deleted_flow_usage)
+        self.last_usage_for_delta = self._delta_usage_maps(self.total_usage,
+                                                           deleted_flow_usage)
 
     def _old_flow_stats(self, stats_msgs):
         """
@@ -562,6 +562,35 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                               rule_num, e)
             return ""
 
+    def _delta_usage_maps(self, current_usage, last_usage):
+        """
+        Calculate the delta between the 2 usage maps and returns a new
+        usage map.
+        """
+        if len(last_usage) == 0:
+            return current_usage
+        new_usage = {}
+        for key, current in current_usage.items():
+            last = last_usage.get(key, None)
+            if last is not None:
+                rec = RuleRecord()
+                rec.MergeFrom(current)  # copy metadata
+                if current.bytes_rx < last.bytes_rx or \
+                        current.bytes_tx < last.bytes_tx:
+                    self.logger.error(
+                        'Resetting usage for rule %s, for subscriber %s, '
+                        'current usage(rx/tx) %d/%d, last usage %d/%d',
+                        rec.sid, rec.rule_id, current.bytes_rx,
+                        current.bytes_tx, last.bytes_rx, last.bytes_tx)
+                    rec.bytes_rx = last.bytes_rx
+                    rec.bytes_tx = last.bytes_tx
+                else:
+                    rec.bytes_rx = current.bytes_rx - last.bytes_rx
+                    rec.bytes_tx = current.bytes_tx - last.bytes_tx
+                new_usage[key] = rec
+            else:
+                new_usage[key] = current
+        return new_usage
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
@@ -572,27 +601,6 @@ def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     return MagmaMatch(imsi=encode_imsi(imsi), eth_type=get_eth_type(ip_addr),
                       direction=direction, rule_num=rule_num,
                       rule_version=version, **ip_match)
-
-
-def _delta_usage_maps(current_usage, last_usage):
-    """
-    Calculate the delta between the 2 usage maps and returns a new
-    usage map.
-    """
-    if len(last_usage) == 0:
-        return current_usage
-    new_usage = {}
-    for key, current in current_usage.items():
-        last = last_usage.get(key, None)
-        if last is not None:
-            rec = RuleRecord()
-            rec.MergeFrom(current)  # copy metadata
-            rec.bytes_rx = current.bytes_rx - last.bytes_rx
-            rec.bytes_tx = current.bytes_tx - last.bytes_tx
-            new_usage[key] = rec
-        else:
-            new_usage[key] = current
-    return new_usage
 
 
 def _merge_usage_maps(current_usage, last_usage):

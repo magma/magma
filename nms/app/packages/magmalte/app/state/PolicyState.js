@@ -19,6 +19,7 @@ import type {
   policy_id,
   policy_qos_profile,
   policy_rule,
+  rating_group,
 } from '@fbcnms/magma-api';
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
@@ -117,5 +118,57 @@ export async function SetQosProfileState(props: QosProfileProps) {
     const newQosProfiles = {...qosProfiles};
     delete newQosProfiles[key];
     setQosProfiles(newQosProfiles);
+  }
+}
+
+type RatingGroupProps = {
+  networkId: network_id,
+  ratingGroups: {[string]: rating_group},
+  setRatingGroups: ({[string]: rating_group}) => void,
+  key: string,
+  value?: rating_group,
+};
+
+/* SetQosProfileState
+SetQosProfileState
+if key and value are passed in,
+if key is not present, a new profile is created (POST)
+if key is present, existing profile is updated (PUT)
+if value is not present, the profile is deleted (DELETE)
+*/
+export async function SetRatingGroupState(props: RatingGroupProps) {
+  const {networkId, ratingGroups, setRatingGroups, key, value} = props;
+  if (value != null) {
+    if (!(key in ratingGroups)) {
+      await MagmaV1API.postNetworksByNetworkIdRatingGroups({
+        networkId: networkId,
+        ratingGroup: value,
+      });
+    } else {
+      await MagmaV1API.putNetworksByNetworkIdRatingGroupsByRatingGroupId({
+        networkId: networkId,
+        ratingGroupId: parseInt(key),
+        ratingGroup: value,
+      });
+    }
+    const ratingGroup = await MagmaV1API.getNetworksByNetworkIdRatingGroupsByRatingGroupId(
+      {
+        networkId: networkId,
+        ratingGroupId: parseInt(key),
+      },
+    );
+
+    if (ratingGroup) {
+      const newRatingGroups = {...ratingGroups, [key]: ratingGroup};
+      setRatingGroups(newRatingGroups);
+    }
+  } else {
+    await MagmaV1API.deleteNetworksByNetworkIdRatingGroupsByRatingGroupId({
+      networkId: networkId,
+      ratingGroupId: parseInt(key),
+    });
+    const newRatingGroups = {...ratingGroups};
+    delete newRatingGroups[key];
+    setRatingGroups(newRatingGroups);
   }
 }

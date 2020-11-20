@@ -93,6 +93,7 @@ describe('<AddEditEnodeButton />', () => {
       reporting_gateway_id: '',
       rf_tx_desired: true,
       rf_tx_on: false,
+      ip_address: '192.168.1.254',
     },
   };
 
@@ -220,6 +221,7 @@ describe('<AddEditEnodeButton />', () => {
         reporting_gateway_id: '',
         rf_tx_desired: true,
         rf_tx_on: false,
+        ip_address: '192.168.1.254',
       },
     };
     const UnmanagedEnodeWrapper = () => {
@@ -313,6 +315,14 @@ describe('<AddEditEnodeButton />', () => {
           device_class: 'Baicells Nova-233 G2 OD FDD',
           transmit_enabled: false,
         },
+        enodeb_config: {
+          config_type: 'MANAGED',
+          managed_config: {
+            cell_id: 0,
+            device_class: 'Baicells Nova-233 G2 OD FDD',
+            transmit_enabled: false,
+          },
+        },
         description: 'Enode1 Description',
         name: 'Test Enodeb 1',
         serial: 'TestEnodebSerial1',
@@ -367,6 +377,14 @@ describe('<AddEditEnodeButton />', () => {
         description: 'Enode1 New Description',
         name: 'Test Enodeb 1',
         serial: 'TestEnodebSerial1',
+        enodeb_config: {
+          config_type: 'MANAGED',
+          managed_config: {
+            cell_id: 0,
+            device_class: 'Baicells Nova-233 G2 OD FDD',
+            transmit_enabled: false,
+          },
+        },
       },
       enodebSerial: 'TestEnodebSerial1',
       networkId: 'test',

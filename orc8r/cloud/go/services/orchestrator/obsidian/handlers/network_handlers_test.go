@@ -224,7 +224,7 @@ func Test_PostNetworkHandlers(t *testing.T) {
 		Handler:        createNetwork,
 		ExpectedStatus: 400,
 		ExpectedError: "validation failure list:\n" +
-			"id in body should match '^[a-z][\\da-z_-]+$'",
+			"id in body should match '^[\\da-z_-]+$'",
 	}
 	tests.RunUnitTest(t, e, tc)
 

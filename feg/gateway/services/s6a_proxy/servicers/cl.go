@@ -34,7 +34,7 @@ const (
 // S6a CLR
 func handleCLR(s *s6aProxy) diam.HandlerFunc {
 	return func(c diam.Conn, m *diam.Message) {
-		glog.V(2).Infof("handling CLR\n")
+		glog.V(2).Infof("Received S6a CLR message:\n%s\n", m)
 		var code uint32 //result-code
 		var clr CLR
 		err := m.Unmarshal(&clr)
@@ -91,7 +91,7 @@ func (s *s6aProxy) sendCLA(c diam.Conn, m *diam.Message, code uint32, clr *CLR, 
 	ans.InsertAVP(diam.NewAVP(avp.SessionID, avp.Mbit, 0, datatype.UTF8String(clr.SessionID)))
 	ans.NewAVP(avp.AuthSessionState, avp.Mbit, 0, datatype.Enumerated(clr.AuthSessionState))
 	s.addDiamOriginAVPs(m)
-
+	glog.V(2).Infof("Sending S6a CLA message\n%s\n", m)
 	_, err := ans.WriteToWithRetry(c, retries)
 	return err
 

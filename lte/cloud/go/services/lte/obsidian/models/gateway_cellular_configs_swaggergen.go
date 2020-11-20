@@ -24,6 +24,9 @@ type GatewayCellularConfigs struct {
 	// Required: true
 	Epc *GatewayEpcConfigs `json:"epc"`
 
+	// he config
+	HeConfig *GatewayHeConfig `json:"he_config,omitempty"`
+
 	// non eps service
 	NonEpsService *GatewayNonEpsConfigs `json:"non_eps_service,omitempty"`
 
@@ -41,6 +44,10 @@ func (m *GatewayCellularConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateEpc(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateHeConfig(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -86,6 +93,24 @@ func (m *GatewayCellularConfigs) validateEpc(formats strfmt.Registry) error {
 		if err := m.Epc.Validate(formats); err != nil {
 			if ve, ok := err.(*errors.Validation); ok {
 				return ve.ValidateName("epc")
+			}
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) validateHeConfig(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.HeConfig) { // not required
+		return nil
+	}
+
+	if m.HeConfig != nil {
+		if err := m.HeConfig.Validate(formats); err != nil {
+			if ve, ok := err.(*errors.Validation); ok {
+				return ve.ValidateName("he_config")
 			}
 			return err
 		}

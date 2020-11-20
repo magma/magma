@@ -229,8 +229,10 @@ def wait_after_send(test_controller, wait_time=1, max_sleep_time=20):
 def setup_controller(controller, setup_req, sleep_time: float = 1,
                      retries: int = 5):
     for _ in range(0, retries):
-        if controller.is_ready_for_restart_recovery(
-                setup_req.epoch) == SetupFlowsResult.SUCCESS:
+        ret = controller.check_setup_request_epoch( setup_req.epoch)
+        if ret == SetupFlowsResult.SUCCESS:
+            return ret
+        else:
             res = controller.handle_restart(setup_req.requests)
             if res.result == SetupFlowsResult.SUCCESS:
                 return SetupFlowsResult.SUCCESS
@@ -263,6 +265,7 @@ def fake_controller_setup(enf_controller=None,
         TestCase().assertEqual(enf_controller._clean_restart, True)
         if enf_stats_controller:
             TestCase().assertEqual(enf_stats_controller._clean_restart, True)
+    enf_controller.init_finished = False
     TestCase().assertEqual(setup_controller(
         enf_controller, setup_flows_request),
         SetupFlowsResult.SUCCESS)
@@ -374,6 +377,7 @@ def create_service_manager(services: List[int],
     service_manager.rule_id_mapper._rules_by_rule_num = {}
     service_manager.session_rule_version_mapper._version_by_imsi_and_rule = {}
     service_manager.interface_to_prefix_mapper._prefix_by_interface = {}
+    service_manager.tunnel_id_mapper._tunnel_map = {}
 
     return service_manager
 

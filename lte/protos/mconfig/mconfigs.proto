@@ -119,10 +119,40 @@ message PipelineD {
     string sgi_management_iface_vlan = 13;
     string sgi_management_iface_ip_addr = 14;
     string sgi_management_iface_gw = 15;
+
+    message HEConfig {
+        enum EncryptionAlgorithm {
+            RC4 = 0;
+            AES256_CBC_HMAC_MD5 = 1;
+            AES256_ECB_HMAC_MD5 = 2;
+            GZIPPED_AES256_ECB_SHA1 = 3;
+        }
+        enum HashFunction{
+            MD5 = 0;
+            HEX = 1;
+            SHA256 = 2;
+        }
+        enum EncodingType {
+            BASE64 = 0;
+            HEX2BIN = 1;
+        }
+
+        // enable_header_enrichment is true if header enrichment feature is
+        // enabled for gateway
+        bool enable_header_enrichment = 1;
+        bool enable_encryption = 2;
+        // encryption/hashing/encoding information for headers
+        EncryptionAlgorithm encryptionAlgorithm = 3;
+        HashFunction hashFunction = 4;
+        EncodingType encodingType = 5;
+    }
+    HEConfig he_config = 17;
+
     // DEPRECATED
     reserved 4, 11;
     // repeated string apps = 4;
     // repeated string li_imsis = 11;
+    bool disable_header_enrichment = 16 [deprecated = true];;
 }
 
 //------------------------------------------------------------------------------
@@ -178,7 +208,6 @@ message MobilityD {
     // An IP block is a range of IP addresses specified by a network address and
     // a prefix-length of the netmask. For example,
     //    IPv4 IP block:      "192.168.0.0/24"
-    //    IPv6 IP block:      "2401:db00:1116:301b::/64"
     string ip_block = 2;
     // ip allocation type, either dhcp or ip_pool
     // default is ip_pool
@@ -187,6 +216,13 @@ message MobilityD {
     bool static_ip_enabled = 4;
     // Enable multi APN IP allocation
     bool multi_apn_ip_alloc = 5;
+
+    // IPv6 block for IPv6 allocator, for example:
+    // IPv6 IP block:      "fdee:5:6c::/48"
+    string ipv6_block = 10;
+    // Select ipv6 session prefix allocation type, example:
+    // "RANDOM", "HASH"
+    string ipv6_prefix_allocation_type = 11;
 }
 
 //------------------------------------------------------------------------------
@@ -257,6 +293,14 @@ message MME {
       string apn_override = 2;
     }
     repeated ApnCorrectionMap apn_correction_map_list = 25;
+
+    // P_CSCF IP address configs
+    string ipv4_p_cscf_address = 26;
+    string ipv6_p_cscf_address = 27;
+
+    // IPv6 DNS server
+    string ipv6_dns_address = 30;
+
 }
 
 

@@ -71,6 +71,8 @@
 /* Total number of PDN connections (should not exceed MME_API_PDN_MAX) */
 static int _mme_api_pdn_id = 0;
 
+static tmsi_t generate_random_TMSI(void);
+
 /****************************************************************************/
 /******************  E X P O R T E D    F U N C T I O N S  ******************/
 /****************************************************************************/
@@ -450,7 +452,7 @@ int mme_api_new_guti(
     }
     is_plmn_equal = false;
     // TODO Find another way to generate m_tmsi
-    guti->m_tmsi = (tmsi_t)(uintptr_t) ue_context;
+    guti->m_tmsi = generate_random_TMSI();
     if (guti->m_tmsi == INVALID_M_TMSI) {
       OAILOG_FUNC_RETURN(LOG_NAS, RETURNerror);
     }
@@ -637,4 +639,9 @@ int mme_api_unsubscribe(bstring apn) {
    */
   _mme_api_pdn_id -= 1;
   OAILOG_FUNC_RETURN(LOG_NAS, rc);
+}
+
+static tmsi_t generate_random_TMSI() {
+  // note srand with seed is init at main
+  return (tmsi_t) rand();
 }

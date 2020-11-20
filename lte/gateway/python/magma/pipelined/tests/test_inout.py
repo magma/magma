@@ -26,6 +26,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     create_service_manager,
     assert_bridge_snapshot_match,
 )
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
 class InOutTest(unittest.TestCase):
@@ -67,7 +68,8 @@ class InOutTest(unittest.TestCase):
                 'ovs_gtp_port_number': 32768,
                 'clean_restart': True,
                 'enable_nat': True,
-                'uplink_gw_mac': '11:22:33:44:55:66'
+                'uplink_gw_mac': '11:22:33:44:55:66',
+                'uplink_port': OFPP_LOCAL
             },
             mconfig=None,
             loop=None,
@@ -132,7 +134,8 @@ class InOutTestLTE(unittest.TestCase):
                 'enable_nat': True,
                 'uplink_gw_mac': '11:22:33:44:55:66',
                 'mtr_ip': '1.2.3.4',
-                'ovs_mtr_port_number': 211
+                'ovs_mtr_port_number': 211,
+                'uplink_port': OFPP_LOCAL
             },
             mconfig=None,
             loop=None,

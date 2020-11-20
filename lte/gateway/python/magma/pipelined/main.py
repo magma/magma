@@ -23,6 +23,7 @@ import aioeventlet
 from ryu import cfg
 from ryu.base.app_manager import AppManager
 from scapy.arch import get_if_hwaddr
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 from magma.common.misc_utils import call_process
 from magma.common.service import MagmaService
@@ -34,6 +35,9 @@ from magma.pipelined.ifaces import monitor_ifaces
 from magma.pipelined.rpc_servicer import PipelinedRpcServicer
 from magma.pipelined.gtp_stats_collector import GTPStatsCollector, \
     MIN_OVSDB_DUMP_POLLING_INTERVAL
+
+from magma.pipelined.app.he import PROXY_PORT_NAME
+from magma.pipelined.bridge_util import BridgeTools
 from lte.protos.mconfig import mconfigs_pb2
 
 
@@ -66,7 +70,7 @@ def main():
     service.config['sgi_management_iface_vlan'] = vlan_tag
 
     sgi_ip = service.config.get('sgi_management_iface_ip_addr',
-                                  service.mconfig.sgi_management_iface_ip_addr)
+                                service.mconfig.sgi_management_iface_ip_addr)
     service.config['sgi_management_iface_ip_addr'] = sgi_ip
 
     sgi_gateway_ip = service.config.get('sgi_management_iface_gw',
@@ -75,6 +79,20 @@ def main():
 
     if 'virtual_mac' not in service.config:
         service.config['virtual_mac'] = get_if_hwaddr(service.config.get('bridge_name'))
+
+    # this is not read from yml file.
+    service.config['uplink_port'] = OFPP_LOCAL
+    uplink_port_name = service.config.get('ovs_uplink_port_name', None)
+    if enable_nat is False and uplink_port_name is not None:
+        service.config['uplink_port'] = BridgeTools.get_ofport(uplink_port_name)
+
+    # header enrichment related configuration.
+    service.config['proxy_port_name'] = PROXY_PORT_NAME
+    he_enabled_flag = False
+    if service.mconfig.he_config:
+        he_enabled_flag = service.mconfig.he_config.enable_header_enrichment
+    he_enabled = service.config.get('he_enabled', he_enabled_flag)
+    service.config['he_enabled'] = he_enabled
 
     # Load the ryu apps
     service_manager = ServiceManager(service)

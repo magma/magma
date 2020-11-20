@@ -36,7 +36,7 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
       events_reporter_(events_reporter),
       current_epoch_(0),
       reported_epoch_(0),
-      retry_timeout_(1) {}
+      retry_timeout_(5000) {}
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
@@ -112,16 +112,19 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
         session_store_.set_and_save_reporting_flag(false, request, session_uc);
 
         if (!status.ok()) {
-          MLOG(MERROR) << "Update of size " << request.updates_size()
-                       << " to OCS failed entirely: " << status.error_message();
+          MLOG(MERROR)
+              << "UpdateSession request to FeG/PolicyDB failed entirely: "
+              << status.error_message();
+          enforcer_->handle_update_failure(
+              *session_map_ptr, UpdateRequestsBySession(request), session_uc);
           report_session_update_event_failure(
               *session_map_ptr, session_uc, status.error_message());
         } else {
           enforcer_->update_session_credits_and_rules(
               *session_map_ptr, response, session_uc);
-          session_store_.update_sessions(session_uc);
           report_session_update_event(*session_map_ptr, session_uc);
         }
+        session_store_.update_sessions(session_uc);
       });
 }
 
@@ -158,7 +161,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     return;
   } else if (resp.result() == resp.FAILURE) {
     MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
-                      "for epoch "
+                      "after delay, for epoch "
                    << epoch;
   }
 
@@ -500,7 +503,7 @@ void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
       auto session_id = (*session)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         std::ostringstream failure_stream;
-        failure_stream << "Update Session failed due to response from OCS: "
+        failure_stream << "UpdateSession request to FeG/PolicyDB failed: "
                        << failure_reason;
         std::string failure_msg = failure_stream.str();
         MLOG(MERROR) << failure_msg;
@@ -543,6 +546,42 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
     }
   });
   response_callback(Status::OK, PolicyBearerBindingResponse());
+}
+
+void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
+    ServerContext* context, UpdateTunnelIdsRequest* request,
+    std::function<void(Status, UpdateTunnelIdsResponse)> response_callback) {
+  auto& request_cpy = *request;
+  auto imsi         = request->sid().id();
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  MLOG(MDEBUG) << "Received a UpdateTunnelIds request for " << imsi
+               << " with default bearer id: " << request->bearer_id()
+               << " enb_teid= " << request->enb_teid()
+               << " agw_teid= " << request->agw_teid();
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
+                                                    response_callback]() {
+    auto session_map = session_store_.read_sessions({imsi});
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    auto success =
+        enforcer_->update_tunnel_ids(session_map, request_cpy, update);
+    if (!success) {
+      MLOG(MDEBUG) << "Failed to UpdateTunnelIds for imsi " << imsi
+                   << " and bearer " << request_cpy.bearer_id();
+      auto err_status = Status(grpc::ABORTED, "Failed to Update tunnels Ids");
+      response_callback(err_status, UpdateTunnelIdsResponse());
+      return;
+    }
+    auto update_success = session_store_.update_sessions(update);
+    if (!update_success) {
+      MLOG(MERROR)
+          << "Failed in updating SessionStore after processing UpdateTunnelIds";
+      auto err_status = Status(grpc::ABORTED, "Failed to store tunnels Ids");
+      response_callback(err_status, UpdateTunnelIdsResponse());
+      return;
+    }
+    response_callback(Status::OK, UpdateTunnelIdsResponse());
+  });
 }
 
 void LocalSessionManagerHandlerImpl::SetSessionRules(

@@ -4,6 +4,8 @@
       "@type": "type.googleapis.com/magma.mconfig.MobilityD",
       "logLevel": "INFO",
       "ipBlock": "192.168.128.0/24",
+      "ipv6Block": "fdee:5:6c::/48",
+      "ipv6PrefixAllocationType": "RANDOM",
       "ip_allocator_type": "IP_POOL",
       "static_ip_enabled": true,
       "multi_apn_ip_alloc": true
@@ -25,8 +27,11 @@
       "csfbMnc": "01",
       "lac": 1,
       "attachedEnodebTacs": [],
-      "dns_primary": "8.8.8.8",
-      "dns_secondary": "8.8.4.4",
+      "dnsPrimary": "8.8.8.8",
+      "dnsSecondary": "8.8.4.4",
+      "ipv4PCscfAddress": "172.27.23.150",
+      "ipv6PCscfAddress": "2a12:577:9941:f99c:0002:0001:c731:f114",
+      "ipv6DnsAddress": "2001:4860:4860:0:0:0:0:8888",
       "natEnabled": true
     },
     "enodebd": {

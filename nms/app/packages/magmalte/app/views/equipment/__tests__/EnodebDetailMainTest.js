@@ -106,6 +106,7 @@ describe('<Enodeb />', () => {
         rf_tx_desired: true,
         rf_tx_on: false,
         time_reported: 0,
+        ip_address: '192.168.1.254',
       },
     },
     testEnodebSerial1: {
@@ -141,6 +142,7 @@ describe('<Enodeb />', () => {
         rf_tx_desired: true,
         rf_tx_on: false,
         time_reported: 0,
+        ip_address: '192.168.1.254',
       },
     },
   };

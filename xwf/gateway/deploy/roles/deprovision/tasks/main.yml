@@ -11,6 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+- name: copy the admin certificate key
+  copy: content={{ rest_admin_key }} dest=/var/opt/magma/certs/rest_admin.key mode='400'
+
+- name: copy the admin certificate
+  copy: content={{ rest_admin_crt }} dest=/var/opt/magma/certs/rest_admin.crt mode='400'
+
 - name: deprovision all gateways for this partner
   script: xwfm_deprovision.py --partner {{ partner }} --url {{ portal_url }}
   register: output

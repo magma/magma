@@ -20,8 +20,10 @@
 #include <gtest/gtest.h>
 #include <gmock/gmock.h>
 
+#include "Consts.h"
 #include "SessionReporter.h"
 #include "MagmaService.h"
+#include "Matchers.h"
 #include "ProtobufCreators.h"
 #include "ServiceRegistrySingleton.h"
 #include "SessionManagerServer.h"
@@ -187,45 +189,6 @@ class SessiondTest : public ::testing::Test {
   SessionMap session_map;
 };
 
-MATCHER_P(CheckCreateSession, imsi, "") {
-  auto req = static_cast<const CreateSessionRequest*>(arg);
-  return req->common_context().sid().id() == imsi;
-}
-
-MATCHER_P(CheckSingleUpdate, expected_update, "") {
-  auto request = static_cast<const UpdateSessionRequest*>(arg);
-  if (request->updates_size() != 1) {
-    return false;
-  }
-
-  auto& update = request->updates(0);
-  bool val =
-      update.usage().type() == expected_update.usage().type() &&
-      update.usage().bytes_tx() == expected_update.usage().bytes_tx() &&
-      update.usage().bytes_rx() == expected_update.usage().bytes_rx() &&
-      update.sid() == expected_update.sid() &&
-      update.usage().charging_key() == expected_update.usage().charging_key();
-  return val;
-}
-
-MATCHER_P(CheckTerminate, imsi, "") {
-  auto request = static_cast<const SessionTerminateRequest*>(arg);
-  return request->sid() == imsi;
-}
-
-MATCHER_P4(CheckActivateFlows, imsi, rule_count, ipv4, ipv6, "") {
-  auto request = static_cast<const ActivateFlowsRequest*>(arg);
-  auto res     = request->sid().id() == imsi &&
-             request->rule_ids_size() == rule_count &&
-             request->ip_addr() == ipv4 && request->ipv6_addr() == ipv6;
-  return res;
-}
-
-MATCHER_P(CheckDeactivateFlows, imsi, "") {
-  auto request = static_cast<const DeactivateFlowsRequest*>(arg);
-  return request->sid().id() == imsi;
-}
-
 ACTION_P2(SetEndPromise, promise_p, status) {
   promise_p->set_value();
   return status;
@@ -244,16 +207,20 @@ ACTION_P2(SetEndPromise, promise_p, status) {
  * creating session --> updating usage --> terminating session,
  * in reality, the order of those functions is not guaranteed
  * because of the following two reasons.
- * 1) All function calls to either feg or pipelined are async calls.
- * 2) ReportRuleStats() is an GRPC invoked by pipelined periodically no matter
+ * 1) All function calls to either feg or PipelineD are async calls.
+ * 2) ReportRuleStats() is an GRPC invoked by PipelineD periodically no matter
  *    if we have any alive session or not. The invoking of ReportRuleStats()
  *    is completely independent of both CreateSession() and EndSession().
  */
 TEST_F(SessiondTest, end_to_end_success) {
   std::promise<void> end_promise;
-  std::string ipv4_addrs = "192.168.0.1";
-  std::string ipv6_addrs = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+  std::string ipv4_addrs  = "192.168.0.1";
+  std::string ipv6_addrs  = "2001:0db8:85a3:0000:0000:8a2e:0370:7334";
+  uint32_t default_bearer = 5;
+  uint32_t enb_teid       = 10;
+  uint32_t agw_teid       = 20;
   {
+    // 1- CreateSession
     CreateSessionResponse create_response;
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
         "rule1");
@@ -262,47 +229,58 @@ TEST_F(SessiondTest, end_to_end_success) {
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
         "rule3");
     create_credit_update_response(
-        "IMSI1", "1234", 1, 1536, create_response.mutable_credits()->Add());
+        IMSI1, SESSION_ID_1, 1, 1536, create_response.mutable_credits()->Add());
     create_credit_update_response(
-        "IMSI1", "1234", 2, 1024, create_response.mutable_credits()->Add());
+        IMSI1, SESSION_ID_1, 2, 1024, create_response.mutable_credits()->Add());
     // Expect create session with IMSI1
     EXPECT_CALL(
         *controller_mock,
-        CreateSession(testing::_, CheckCreateSession("IMSI1"), testing::_))
+        CreateSession(testing::_, CheckCreateSession(IMSI1), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
             testing::SetArgPointee<2>(create_response),
             testing::Return(grpc::Status::OK)));
     EXPECT_CALL(
         *events_reporter,
-        session_created("IMSI1", testing::_, testing::_, testing::_))
+        session_created(IMSI1, testing::_, testing::_, testing::_))
         .Times(1);
 
-    // Temporary fix for pipelined client in sessiond introduces separate calls
+    // Temporary fix for PipelineD client in SessionD introduces separate calls
     // for static and dynamic rules. So here is the call for static rules.
     EXPECT_CALL(
         *pipelined_mock,
         ActivateFlows(
-            testing::_, CheckActivateFlows("IMSI1", 3, ipv4_addrs, ipv6_addrs),
+            testing::_, CheckActivateFlows(IMSI1, 3, ipv4_addrs, ipv6_addrs),
             testing::_))
         .Times(1);
     // Here is the call for dynamic rules, which in this case should be empty.
     EXPECT_CALL(
         *pipelined_mock,
         ActivateFlows(
-            testing::_, CheckActivateFlows("IMSI1", 0, ipv4_addrs, ipv6_addrs),
+            testing::_, CheckActivateFlows(IMSI1, 0, ipv4_addrs, ipv6_addrs),
             testing::_))
         .Times(1);
 
+    // 2- UpdateTunnelIds
     EXPECT_CALL(
-        *events_reporter, session_updated("IMSI1", testing::_, testing::_))
+        *pipelined_mock,
+        ActivateFlows(
+            testing::_,
+            CheckActivateFlowsForTunnIds(
+                IMSI1, ipv4_addrs, ipv6_addrs, enb_teid, agw_teid),
+            testing::_))
+        .Times(1);
+    // 3- ReportRuleStats
+    EXPECT_CALL(
+        *events_reporter, session_updated(IMSI1, testing::_, testing::_))
         .Times(1);
     CreditUsageUpdate expected_update;
     create_usage_update(
-        "IMSI1", 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
+        IMSI1, 1, 1024, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
     UpdateSessionResponse update_response;
     create_credit_update_response(
-        "IMSI1", "1234", 1, 1024, update_response.mutable_responses()->Add());
+        IMSI1, SESSION_ID_1, 1, 1024,
+        update_response.mutable_responses()->Add());
     // Expect update with IMSI1, charging key 1
     EXPECT_CALL(
         *controller_mock,
@@ -313,23 +291,24 @@ TEST_F(SessiondTest, end_to_end_success) {
             testing::SetArgPointee<2>(update_response),
             testing::Return(grpc::Status::OK)));
 
+    // 4- EndSession
     // Expect flows to be deactivated before final update is sent out
     EXPECT_CALL(
         *pipelined_mock,
-        DeactivateFlows(testing::_, CheckDeactivateFlows("IMSI1"), testing::_))
+        DeactivateFlows(testing::_, CheckDeactivateFlows(IMSI1), testing::_))
         .Times(1);
 
     SessionTerminateResponse terminate_response;
-    terminate_response.set_sid("IMSI1");
+    terminate_response.set_sid(IMSI1);
 
     EXPECT_CALL(
         *controller_mock,
-        TerminateSession(testing::_, CheckTerminate("IMSI1"), testing::_))
+        TerminateSession(testing::_, CheckTerminate(IMSI1), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
             testing::SetArgPointee<2>(terminate_response),
             SetEndPromise(&end_promise, Status::OK)));
-    EXPECT_CALL(*events_reporter, session_terminated("IMSI1", testing::_))
+    EXPECT_CALL(*events_reporter, session_terminated(IMSI1, testing::_))
         .Times(1);
   }
 
@@ -337,27 +316,43 @@ TEST_F(SessiondTest, end_to_end_success) {
       "sessiond", ServiceRegistrySingleton::LOCAL);
   auto stub = LocalSessionManager::NewStub(channel);
 
+  // 1- CreateSession
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
-  request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
+  request.mutable_common_context()->mutable_sid()->set_id(IMSI1);
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
+  request.mutable_rat_specific_context()->mutable_lte_context()->set_bearer_id(
+      5);
   request.mutable_common_context()->set_ue_ipv4(ipv4_addrs);
   request.mutable_common_context()->set_ue_ipv6(ipv6_addrs);
   stub->CreateSession(&create_context, request, &create_resp);
 
   // The thread needs to be halted before proceeding to call ReportRuleStats()
-  // because the call to pipelined within CreateSession() is an async call,
-  // and the call to pipelined, ActivateFlows(), is assumed in this test
-  // to happend before the ReportRuleStats().
+  // because the call to PipelineD within CreateSession() is an async call,
+  // and the call to PipelineD, ActivateFlows(), is assumed in this test
+  // to happened before the ReportRuleStats().
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+  // 2- UpdateTunnelIds
+  grpc::ClientContext tun_update_context;
+  UpdateTunnelIdsResponse tun_update_response;
+  UpdateTunnelIdsRequest tun_update_request;
+  tun_update_request.mutable_sid()->set_id(IMSI1);
+  tun_update_request.set_bearer_id(default_bearer);
+  tun_update_request.set_enb_teid(enb_teid);
+  tun_update_request.set_agw_teid(agw_teid);
+  stub->UpdateTunnelIds(
+      &tun_update_context, tun_update_request, &tun_update_response);
+
+  std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+  // 3- ReportRuleStats
   RuleRecordTable table;
   auto record_list = table.mutable_records();
-  create_rule_record(
-      "IMSI1", ipv4_addrs, "rule1", 512, 512, record_list->Add());
-  create_rule_record("IMSI1", ipv6_addrs, "rule2", 512, 0, record_list->Add());
-  create_rule_record("IMSI1", ipv4_addrs, "rule3", 32, 32, record_list->Add());
+  create_rule_record(IMSI1, ipv4_addrs, "rule1", 512, 512, record_list->Add());
+  create_rule_record(IMSI1, ipv6_addrs, "rule2", 512, 0, record_list->Add());
+  create_rule_record(IMSI1, ipv4_addrs, "rule3", 32, 32, record_list->Add());
   grpc::ClientContext update_context;
   Void void_resp;
   stub->ReportRuleStats(&update_context, table, &void_resp);
@@ -368,10 +363,11 @@ TEST_F(SessiondTest, end_to_end_success) {
   // to happened before the EndSession().
   std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
+  // 4- EndSession
   LocalEndSessionResponse update_resp;
   grpc::ClientContext end_context;
   LocalEndSessionRequest end_request;
-  end_request.mutable_sid()->set_id("IMSI1");
+  end_request.mutable_sid()->set_id(IMSI1);
   stub->EndSession(&end_context, end_request, &update_resp);
 
   set_timeout(5000, &end_promise);
@@ -384,7 +380,9 @@ TEST_F(SessiondTest, end_to_end_success) {
  * 2) Report rule stats, charging key 1 goes over
  *    Expect update with charging key 1
  * 3) Cloud will respond with a timeout
- * 4) In next rule stats report, expect same update again, since last failed
+ * 4) Report rule stats for charging key 1 again
+ *    Since the last update failed, this will trigger another update
+ * 5) Expect update with usage from both (2) and (4).
  */
 TEST_F(SessiondTest, end_to_end_cloud_down) {
   std::promise<void> end_promise;
@@ -399,36 +397,41 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
     create_response.mutable_static_rules()->Add()->mutable_rule_id()->assign(
         "rule3");
     create_credit_update_response(
-        "IMSI1", "1234", 1, 1025, create_response.mutable_credits()->Add());
+        IMSI1, SESSION_ID_1, 1, 1025, create_response.mutable_credits()->Add());
     create_credit_update_response(
-        "IMSI1", "1234", 2, 1024, create_response.mutable_credits()->Add());
+        IMSI1, SESSION_ID_1, 2, 1024, create_response.mutable_credits()->Add());
     // Expect create session with IMSI1
     EXPECT_CALL(
         *controller_mock,
-        CreateSession(testing::_, CheckCreateSession("IMSI1"), testing::_))
+        CreateSession(testing::_, CheckCreateSession(IMSI1), testing::_))
         .Times(1)
         .WillOnce(testing::DoAll(
             testing::SetArgPointee<2>(create_response),
             testing::Return(grpc::Status::OK)));
 
-    CreditUsageUpdate expected_update;
+    CreditUsageUpdate expected_update_fail;
     create_usage_update(
-        "IMSI1", 1, 512, 512, CreditUsage::QUOTA_EXHAUSTED, &expected_update);
+        IMSI1, 1, 512, 512, CreditUsage::QUOTA_EXHAUSTED,
+        &expected_update_fail);
     // Expect update with IMSI1, charging key 1, return timeout from cloud
     EXPECT_CALL(
         *controller_mock,
         UpdateSession(
-            testing::_, CheckSingleUpdate(expected_update), testing::_))
+            testing::_, CheckSingleUpdate(expected_update_fail), testing::_))
         .Times(1)
         .WillOnce(
             testing::Return(grpc::Status(grpc::DEADLINE_EXCEEDED, "timeout")));
 
-    auto second_update = expected_update;
-    second_update.mutable_usage()->set_bytes_rx(513);
-    // expect second update that's exactly the same but with an increased rx
+    CreditUsageUpdate expected_update_success;
+    create_usage_update(
+        IMSI1, 1, 1024, 1024, CreditUsage::QUOTA_EXHAUSTED,
+        &expected_update_success);
+    // second update should contain the original usage report + new usage
+    // report since the first update failed
     EXPECT_CALL(
         *controller_mock,
-        UpdateSession(testing::_, CheckSingleUpdate(second_update), testing::_))
+        UpdateSession(
+            testing::_, CheckSingleUpdate(expected_update_success), testing::_))
         .Times(1)
         .WillOnce(SetEndPromise(&end_promise, Status::OK));
   }
@@ -440,14 +443,14 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
   grpc::ClientContext create_context;
   LocalCreateSessionResponse create_resp;
   LocalCreateSessionRequest request;
-  request.mutable_common_context()->mutable_sid()->set_id("IMSI1");
+  request.mutable_common_context()->mutable_sid()->set_id(IMSI1);
   request.mutable_common_context()->set_rat_type(RATType::TGPP_LTE);
   stub->CreateSession(&create_context, request, &create_resp);
 
   RuleRecordTable table1;
   auto record_list = table1.mutable_records();
-  create_rule_record("IMSI1", "rule1", 0, 512, record_list->Add());
-  create_rule_record("IMSI1", "rule2", 512, 0, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 0, 512, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 512, 0, record_list->Add());
   grpc::ClientContext update_context1;
   Void void_resp;
   stub->ReportRuleStats(&update_context1, table1, &void_resp);
@@ -459,8 +462,8 @@ TEST_F(SessiondTest, end_to_end_cloud_down) {
 
   RuleRecordTable table2;
   record_list = table2.mutable_records();
-  create_rule_record("IMSI1", "rule1", 1, 512, record_list->Add());
-  create_rule_record("IMSI1", "rule2", 512, 0, record_list->Add());
+  create_rule_record(IMSI1, "rule1", 512, 0, record_list->Add());
+  create_rule_record(IMSI1, "rule2", 0, 512, record_list->Add());
   grpc::ClientContext update_context2;
   stub->ReportRuleStats(&update_context2, table2, &void_resp);
 

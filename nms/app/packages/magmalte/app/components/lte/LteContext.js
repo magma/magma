@@ -23,8 +23,10 @@ import type {
   mutable_subscriber,
   network_id,
   network_ran_configs,
+  network_type,
   policy_qos_profile,
   policy_rule,
+  rating_group,
   subscriber_id,
   tier,
 } from '@fbcnms/magma-api';
@@ -42,7 +44,7 @@ import NetworkContext from '../../components/context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 
-import {FEG_LTE} from '@fbcnms/types/network';
+import {FEG_LTE, LTE} from '@fbcnms/types/network';
 import {
   InitEnodeState,
   InitTierState,
@@ -52,7 +54,11 @@ import {
   UpdateGateway,
 } from '../../state/lte/EquipmentState';
 import {SetApnState} from '../../state/lte/ApnState';
-import {SetPolicyState, SetQosProfileState} from '../../state/PolicyState';
+import {
+  SetPolicyState,
+  SetQosProfileState,
+  SetRatingGroupState,
+} from '../../state/PolicyState';
 import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
@@ -65,6 +71,7 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
   networkId: network_id,
+  networkType: network_type,
   children: React.Node,
 };
 
@@ -266,6 +273,9 @@ export function PolicyProvider(props: Props) {
   const [qosProfiles, setQosProfiles] = useState<{
     [string]: policy_qos_profile,
   }>({});
+  const [ratingGroups, setRatingGroups] = useState<{[string]: rating_group}>(
+    {},
+  );
   const [fegNetwork, setFegNetwork] = useState<feg_network>({});
   const [fegPolicies, setFegPolicies] = useState<{[string]: policy_rule}>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -279,6 +289,10 @@ export function PolicyProvider(props: Props) {
           await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
             networkId,
           }),
+        );
+        setRatingGroups(
+          // $FlowIgnore
+          await MagmaV1API.getNetworksByNetworkIdRatingGroups({networkId}),
         );
         setQosProfiles(
           await MagmaV1API.getLteByNetworkIdPolicyQosProfiles({networkId}),
@@ -309,11 +323,21 @@ export function PolicyProvider(props: Props) {
   if (isLoading) {
     return <LoadingFiller />;
   }
-
   return (
     <PolicyContext.Provider
       value={{
         state: policies,
+        ratingGroups: ratingGroups,
+        setRatingGroups: async (key, value) => {
+          await SetRatingGroupState({
+            networkId,
+            ratingGroups,
+            setRatingGroups,
+            key,
+            value,
+          });
+        },
+
         qosProfiles: qosProfiles,
         setQosProfiles: async (key, value) => {
           await SetQosProfileState({
@@ -579,15 +603,28 @@ export function LteNetworkContextProvider(props: Props) {
 }
 
 export function LteContextProvider(props: Props) {
-  const {networkId} = props;
+  const {networkId, networkType} = props;
+  const lteNetwork = networkType === LTE || networkType === FEG_LTE;
+  if (!lteNetwork) {
+    return props.children;
+  }
+
   return (
-    <LteNetworkContextProvider networkId={networkId}>
-      <PolicyProvider networkId={networkId}>
-        <ApnProvider networkId={networkId}>
-          <SubscriberContextProvider networkId={networkId}>
-            <GatewayTierContextProvider networkId={networkId}>
-              <EnodebContextProvider networkId={networkId}>
-                <GatewayContextProvider networkId={networkId}>
+    <LteNetworkContextProvider networkId={networkId} networkType={networkType}>
+      <PolicyProvider networkId={networkId} networkType={networkType}>
+        <ApnProvider networkId={networkId} networkType={networkType}>
+          <SubscriberContextProvider
+            networkId={networkId}
+            networkType={networkType}>
+            <GatewayTierContextProvider
+              networkId={networkId}
+              networkType={networkType}>
+              <EnodebContextProvider
+                networkId={networkId}
+                networkType={networkType}>
+                <GatewayContextProvider
+                  networkId={networkId}
+                  networkType={networkType}>
                   {props.children}
                 </GatewayContextProvider>
               </EnodebContextProvider>

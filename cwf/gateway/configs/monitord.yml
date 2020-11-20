@@ -1,4 +1,4 @@
-#!/bin/bash
+---
 #
 # Copyright 2020 The Magma Authors.
 
@@ -9,6 +9,12 @@
 # distributed under the License is distributed on an "AS IS" BASIS,
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
-# limitations under the License
+# limitations under the License.
 
-echo "Calling-Station-Id = aa:bb:33:44:cc:ff, Called-Station-Id = 11:11:11:11:11:12, User-Name = aa:bb:33:44:cc:ff, NAS-IP-Address = 192.168.1.1, NAS-Identifier = blabla" | radclient -x 127.0.0.1 auth 123456
+# log_level is set in mconfig. it can be overridden here
+mtr_interface: lo
+
+# Manual configuration of ping targets
+#ping_targets:
+#  "NAME1": {ip: "x.y.z.w"}
+#  "NAME2": {ip: "a.b.c.d"}
