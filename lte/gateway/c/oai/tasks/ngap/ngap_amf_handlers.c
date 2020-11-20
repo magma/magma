@@ -1,19 +1,25 @@
-/*
- * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
- * contributor license agreements.  See the NOTICE file distributed with
- * this work for additional information regarding copyright ownership.
- * The OpenAirInterface Software Alliance licenses this file to You under
- * the terms found in the LICENSE file in the root of this source tree.
+/**
+ * Copyright 2020 The Magma Authors.
+ *
+ * This source code is licensed under the BSD-style license found in the
+ * LICENSE file in the root directory of this source tree.
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- *-------------------------------------------------------------------------------
- * For more information about the OpenAirInterface (OAI) Software Alliance:
- *      contact@openairinterface.org
  */
+/****************************************************************************
+  Source      ngap_amf_handlers.c
+  Version     0.1
+  Date        2020/07/28
+  Product     NGAP stack
+  Subsystem   Access and Mobility Management Function
+  Author      Ashish Prajapati
+  Description Defines NG Application Protocol Messages Handlers
+
+*****************************************************************************/
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -159,26 +165,26 @@ int ngap_amf_handle_message(
   /*
    * Checking procedure Code and direction of pdu
    */
-  if (pdu->choice.initiatingMessage->procedureCode >=
+  if (pdu->choice.initiatingMessage.procedureCode >=
           COUNT_OF(ngap_message_handlers) ||
       pdu->present > Ngap_NGAP_PDU_PR_unsuccessfulOutcome) {
     OAILOG_DEBUG(
         LOG_NGAP,
         "[SCTP %d] Either procedureCode %d or direction %d exceed expected\n",
-        assoc_id, (int) pdu->choice.initiatingMessage->procedureCode,
+        assoc_id, (int) pdu->choice.initiatingMessage.procedureCode,
         (int) pdu->present);
     return -1;
   }
 
   ngap_message_handler_t handler =
-      ngap_message_handlers[pdu->choice.initiatingMessage->procedureCode]
+      ngap_message_handlers[pdu->choice.initiatingMessage.procedureCode]
                            [pdu->present - 1];
 
   if (handler == NULL) {
     // not implemented or no procedure for gNB (wrong message)
     OAILOG_DEBUG(
         LOG_NGAP, "[SCTP %d] No handler for procedureCode %d in %s\n", assoc_id,
-        (int) pdu->choice.initiatingMessage->procedureCode,
+        (int) pdu->choice.initiatingMessage.procedureCode,
         ngap_direction2str(pdu->present));
     return -2;
   }
@@ -236,11 +242,11 @@ int ngap_amf_generate_ng_setup_failure(
 
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = Ngap_NGAP_PDU_PR_unsuccessfulOutcome;
-  pdu.choice.unsuccessfulOutcome->procedureCode = Ngap_ProcedureCode_id_NGSetup;
-  pdu.choice.unsuccessfulOutcome->criticality   = Ngap_Criticality_reject;
-  pdu.choice.unsuccessfulOutcome->value.present =
+  pdu.choice.unsuccessfulOutcome.procedureCode = Ngap_ProcedureCode_id_NGSetup;
+  pdu.choice.unsuccessfulOutcome.criticality   = Ngap_Criticality_reject;
+  pdu.choice.unsuccessfulOutcome.value.present =
       Ngap_UnsuccessfulOutcome__value_PR_NGSetupFailure;
-  out = &pdu.choice.unsuccessfulOutcome->value.choice.NGSetupFailure;
+  out = &pdu.choice.unsuccessfulOutcome.value.choice.NGSetupFailure;
 
   ie = (Ngap_NGSetupFailureIEs_t*) calloc(1, sizeof(Ngap_NGSetupFailureIEs_t));
   ie->id            = Ngap_ProtocolIE_ID_id_Cause;
@@ -313,7 +319,7 @@ int ngap_amf_handle_ng_setup_request(
   }
 
   DevAssert(pdu != NULL);
-  container = &pdu->choice.initiatingMessage->value.choice.NGSetupRequest;
+  container = &pdu->choice.initiatingMessage.value.choice.NGSetupRequest;
   /*
    * We received a new valid Ng Setup Request on a stream != 0.
    * This should not happen -> reject gNB ng setup request.
@@ -390,13 +396,13 @@ int ngap_amf_handle_ng_setup_request(
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_NGSetupRequestIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_GlobalRANNodeID, true);
-  if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID->gNB_ID.present ==
+  if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.present ==
       Ngap_GNB_ID_PR_gNB_ID) {
     // Home gNB ID = 28 bits
     uint8_t* gnb_id_buf = ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID
-                              ->gNB_ID.choice.gNB_ID.buf;
+                              .gNB_ID.choice.gNB_ID.buf;
 
-    if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID->gNB_ID.choice
+    if (ie->value.choice.GlobalRANNodeID.choice.globalGNB_ID.gNB_ID.choice
             .gNB_ID.size != 28) {
       // TODO: handle case were size != 28 -> notify ? reject ?
     }
@@ -500,7 +506,7 @@ int ngap_generate_ng_setup_response(
   Ngap_NGAP_PDU_t pdu;
   Ngap_NGSetupResponse_t* out;
   Ngap_NGSetupResponseIEs_t* ie        = NULL;
-  Ngap_ServedGUAMIList_t* servedGUAMFI = NULL;
+  Ngap_ServedGUAMIItem_t* servedGUAMFI = NULL;
   int i, j;
   int enc_rval    = 0;
   uint8_t* buffer = NULL;
@@ -513,14 +519,11 @@ int ngap_generate_ng_setup_response(
 
   pdu.present = Ngap_NGAP_PDU_PR_successfulOutcome;
 
-  pdu.choice.successfulOutcome = (struct Ngap_SuccessfulOutcome*) calloc(
-      1, sizeof(struct Ngap_SuccessfulOutcome));
-
-  pdu.choice.successfulOutcome->procedureCode = Ngap_ProcedureCode_id_NGSetup;
-  pdu.choice.successfulOutcome->criticality   = Ngap_Criticality_reject;
-  pdu.choice.successfulOutcome->value.present =
+  pdu.choice.successfulOutcome.procedureCode = Ngap_ProcedureCode_id_NGSetup;
+  pdu.choice.successfulOutcome.criticality   = Ngap_Criticality_reject;
+  pdu.choice.successfulOutcome.value.present =
       Ngap_SuccessfulOutcome__value_PR_NGSetupResponse;
-  out = &pdu.choice.successfulOutcome->value.choice.NGSetupResponse;
+  out = &pdu.choice.successfulOutcome.value.choice.NGSetupResponse;
 
   // Generating response
   ie =
@@ -552,11 +555,10 @@ int ngap_generate_ng_setup_response(
     }
     if (false == plmn_added) {
       Ngap_PLMNIdentity_t* plmn = NULL;
-      plmn                      = calloc(1, sizeof(*plmn));
+      plmn                      = &servedGUAMFI->gUAMI.pLMNIdentity;
       MCC_MNC_TO_PLMNID(
           amf_config.served_tai.plmn_mcc[i], amf_config.served_tai.plmn_mnc[i],
           amf_config.served_tai.plmn_mnc_len[i], plmn);
-      ASN_SEQUENCE_ADD(&servedGUAMFI->list, plmn);
     }
   }
 
@@ -564,13 +566,11 @@ int ngap_generate_ng_setup_response(
     Ngap_AMFRegionID_t* amf_gid = NULL;
     Ngap_AMFSetID_t* amfc       = NULL;
 
-    amf_gid = calloc(1, sizeof(*amf_gid));
+    amf_gid = &servedGUAMFI->gUAMI.aMFRegionID;
     INT16_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_gid, amf_gid);
-    ASN_SEQUENCE_ADD(&servedGUAMFI->list, amf_gid);
 
-    amfc = calloc(1, sizeof(*amfc));
+    amfc = &servedGUAMFI->gUAMI.aMFSetID;
     INT8_TO_OCTET_STRING(amf_config.guamfi.guamfi[i].amf_code, amfc);
-    ASN_SEQUENCE_ADD(&servedGUAMFI->list, amfc);
   }
   ASN_SEQUENCE_ADD(&ie->value.choice.ServedGUAMIList.list, servedGUAMFI);
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
@@ -635,14 +635,15 @@ int ngap_amf_handle_initial_context_setup_response(
 
   OAILOG_FUNC_IN(LOG_NGAP);
   container =
-      &pdu->choice.successfulOutcome->value.choice.InitialContextSetupResponse;
+      &pdu->choice.successfulOutcome.value.choice.InitialContextSetupResponse;
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_InitialContextSetupResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_AMF_UE_NGAP_ID, true);
-#if 0
+
   if (ie) {
-    amf_ue_ngap_id =(uint32_t)ie->value.choice.AMF_UE_NGAP_ID;
-    if ((ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) == NULL) {
+    amf_ue_ngap_id = (uint32_t) ie->value.choice.AMF_UE_NGAP_ID;
+    if ((ue_ref_p = ngap_state_get_ue_amfid((uint32_t) amf_ue_ngap_id)) ==
+        NULL) {
       OAILOG_DEBUG(
           LOG_NGAP,
           "No UE is attached to this amf UE ngap id: " AMF_UE_NGAP_ID_FMT
@@ -653,7 +654,6 @@ int ngap_amf_handle_initial_context_setup_response(
   } else {
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
-#endif
   ngap_imsi_map_t* ngap_imsi_map = get_ngap_imsi_map();
   hashtable_uint64_ts_get(
       ngap_imsi_map->amf_ue_id_imsi_htbl, (const hash_key_t) amf_ue_ngap_id,
@@ -681,55 +681,42 @@ int ngap_amf_handle_initial_context_setup_response(
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_InitialContextSetupResponseIEs_t, ie, container,
-      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, true);
+      Ngap_ProtocolIE_ID_id_PDUSessionResourceSetupListSURes, false);
 
   if (ie) {
     if (ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count < 1) {
       OAILOG_WARNING_UE(LOG_NGAP, imsi64, "PDUSession creation has failed\n");
       OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
     }
-  } else {
-    OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
   ue_ref_p->ng_ue_state = NGAP_UE_CONNECTED;
   message_p =
       itti_alloc_new_message(TASK_NGAP, AMF_APP_INITIAL_CONTEXT_SETUP_RSP);
   AssertFatal(message_p != NULL, "itti_alloc_new_message Failed");
   AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p).ue_id = ue_ref_p->amf_ue_ngap_id;
-  AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-      .pdusesssion_setup_list.no_of_items =
-      ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count;
 
-  for (int item = 0;
-       item < ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count;
-       item++) {
-    /*
-     * Bad, very bad cast...
-     */
-    // Info: need to update 38413 for this
-
-    pduSessionSetupListCtxRes =
-        (Ngap_PDUSessionResourceSetupItemSURes_t*)
-            ie->value.choice.PDUSessionResourceSetupListCxtRes.list.array[item];
+  if (ie) {
     AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-        .pdusesssion_setup_list.item[item]
-        .Pdu_Session_ID = pduSessionSetupListCtxRes->pDUSessionID;
-    // AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-    //      .pdusesssion_setup_list.item[item]
-    //    .gtp_teid = htonl(*((uint32_t*)
-    //    pduSessionSetupListCtxRes->value.choice
-    //                             .E_RABSetupItemCtxtSURes.gTP_TEID.buf));
-    //  AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-    //     .pdusesssion_setup_list.item[item]
-    //      .transport_layer_address = blk2bstr(
-    //      pduSessionSetupListCtxRes->value.choice.E_RABSetupItemCtxtSURes
-    //          .transportLayerAddress.buf,
-    //      pduSessionSetupListCtxRes->value.choice.E_RABSetupItemCtxtSURes
-    //          .transportLayerAddress.size);
-  }
+        .pdusesssion_setup_list.no_of_items =
+        ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count;
 
-  // Failed bearers
-  // itti_amf_app_initial_context_setup_rsp_t* initial_context_setup_rsp = NULL;
+    for (int item = 0;
+         item < ie->value.choice.PDUSessionResourceSetupListCxtRes.list.count;
+         item++) {
+      /*
+       * Bad, very bad cast...
+       */
+      // Info: need to update 38413 for this
+
+      pduSessionSetupListCtxRes =
+          (Ngap_PDUSessionResourceSetupItemSURes_t*) ie->value.choice
+              .PDUSessionResourceSetupListCxtRes.list.array[item];
+      AMF_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+          .pdusesssion_setup_list.item[item]
+          .Pdu_Session_ID = pduSessionSetupListCtxRes->pDUSessionID;
+    }
+  } /*if(ie)*/
+
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_InitialContextSetupResponseIEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_PDUSessionResourceFailedToSetupListSURes, false);
@@ -758,7 +745,7 @@ int ngap_amf_handle_ue_context_release_request(
 
   OAILOG_FUNC_IN(LOG_NGAP);
   container =
-      &pdu->choice.initiatingMessage->value.choice.UEContextReleaseRequest;
+      &pdu->choice.initiatingMessage.value.choice.UEContextReleaseRequest;
   // Log the Cause Type and Cause value
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UEContextReleaseRequest_IEs_t, ie, container,
@@ -928,12 +915,12 @@ int ngap_amf_generate_ue_context_release_command(
   }
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
-  pdu.choice.initiatingMessage->procedureCode =
+  pdu.choice.initiatingMessage.procedureCode =
       Ngap_ProcedureCode_id_UEContextRelease;
-  pdu.choice.initiatingMessage->criticality = Ngap_Criticality_reject;
-  pdu.choice.initiatingMessage->value.present =
+  pdu.choice.initiatingMessage.criticality = Ngap_Criticality_reject;
+  pdu.choice.initiatingMessage.value.present =
       Ngap_InitiatingMessage__value_PR_UEContextReleaseCommand;
-  out = &pdu.choice.initiatingMessage->value.choice.UEContextReleaseCommand;
+  out = &pdu.choice.initiatingMessage.value.choice.UEContextReleaseCommand;
   /*
    * Fill in ID pair
    */
@@ -943,11 +930,11 @@ int ngap_amf_generate_ue_context_release_command(
   ie->criticality   = Ngap_Criticality_reject;
   ie->value.present = Ngap_UEContextReleaseCommand_IEs__value_PR_UE_NGAP_IDs;
   ie->value.choice.UE_NGAP_IDs.present = Ngap_UE_NGAP_IDs_PR_uE_NGAP_ID_pair;
-  ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair->aMF_UE_NGAP_ID =
+  ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.aMF_UE_NGAP_ID =
       ue_ref_p->amf_ue_ngap_id;
-  ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair->rAN_UE_NGAP_ID =
+  ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.rAN_UE_NGAP_ID =
       ue_ref_p->gnb_ue_ngap_id;
-  ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair->iE_Extensions = NULL;
+  ie->value.choice.UE_NGAP_IDs.choice.uE_NGAP_ID_pair.iE_Extensions = NULL;
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
   ie = (Ngap_UEContextReleaseCommand_IEs_t*) calloc(
@@ -1015,8 +1002,8 @@ int ngap_amf_generate_ue_context_modification(
     OAILOG_FUNC_RETURN(LOG_NGAP, RETURNerror);
   }
   container =
-      &pdu.choice.initiatingMessage->value.choice.UEContextModificationRequest;
-  pdu.choice.successfulOutcome->procedureCode =
+      &pdu.choice.initiatingMessage.value.choice.UEContextModificationRequest;
+  pdu.choice.successfulOutcome.procedureCode =
       Ngap_ProcedureCode_id_UEContextModification;
   pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
   /*
@@ -1132,7 +1119,7 @@ int ngap_amf_handle_ue_context_release_complete(
 
   OAILOG_FUNC_IN(LOG_NGAP);
   container =
-      &pdu->choice.successfulOutcome->value.choice.UEContextReleaseComplete;
+      &pdu->choice.successfulOutcome.value.choice.UEContextReleaseComplete;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UEContextReleaseComplete_IEs_t, ie, container,
@@ -1188,7 +1175,7 @@ int ngap_amf_handle_initial_context_setup_failure(
 
   OAILOG_FUNC_IN(LOG_NGAP);
   container =
-      &pdu->choice.unsuccessfulOutcome->value.choice.InitialContextSetupFailure;
+      &pdu->choice.unsuccessfulOutcome.value.choice.InitialContextSetupFailure;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_InitialContextSetupFailureIEs_t, ie, container,
@@ -1329,8 +1316,8 @@ int ngap_amf_handle_ue_context_modification_response(
   imsi64_t imsi64                                 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_NGAP);
-  container = &pdu->choice.successfulOutcome->value.choice
-                   .UEContextModificationResponse;
+  container =
+      &pdu->choice.successfulOutcome.value.choice.UEContextModificationResponse;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UEContextModificationResponseIEs_t, ie, container,
@@ -1412,7 +1399,7 @@ int ngap_amf_handle_ue_context_modification_failure(
   imsi64_t imsi64 = INVALID_IMSI64;
 
   OAILOG_FUNC_IN(LOG_NGAP);
-  container = &pdu->choice.unsuccessfulOutcome->value.choice
+  container = &pdu->choice.unsuccessfulOutcome.value.choice
                    .UEContextModificationFailure;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
