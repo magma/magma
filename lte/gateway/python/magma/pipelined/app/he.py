@@ -96,6 +96,10 @@ class HeaderEnrichmentController(MagmaController):
         'heConfig',
         ['he_proxy_port',
          'he_enabled',
+         'encryption_enabled',
+         'encryption_algorithm',
+         'hash_function',
+         'encoding_type',
          'uplink_port',
          'gtp_port'],
     )
@@ -107,11 +111,11 @@ class HeaderEnrichmentController(MagmaController):
         self.tbl_num = self._service_manager.get_table_num(self.APP_NAME)
         self.next_table = \
             self._service_manager.get_next_table_num(self.APP_NAME)
-        self.config = self._get_config(kwargs['config'])
+        self.config = self._get_config(kwargs['config'], kwargs['mconfig'])
         self._ue_rule_counter = UeProxyRuleCounter()
         self.logger.info("Header Enrichment app config: %s", self.config)
 
-    def _get_config(self, config_dict) -> namedtuple:
+    def _get_config(self, config_dict, mconfig) -> namedtuple:
         try:
             he_proxy_port = BridgeTools.get_ofport(config_dict.get('proxy_port_name'))
 
@@ -122,10 +126,24 @@ class HeaderEnrichmentController(MagmaController):
             uplink_port = 0
             he_proxy_port = 0
 
+        encryption_algorithm = None
+        hash_function = None
+        encoding_type = None
+        encryption_enabled = False
+        if mconfig.he_config and mconfig.he_config.encrption_enabled:
+            encryption_enabled = True
+            encryption_algorithm = mconfig.he_config.encryptionAlgorithm
+            hash_function = mconfig.he_config.hashFunction
+            encoding_type = mconfig.he_config.encodingType
+
         return self.UplinkConfig(
             gtp_port=config_dict['ovs_gtp_port_number'],
             he_proxy_port=he_proxy_port,
             he_enabled=he_enabled,
+            encryption_enabled=encryption_enabled,
+            encryption_algorithm=encryption_algorithm,
+            hash_function=hash_function,
+            encoding_type=encoding_type,
             uplink_port=uplink_port)
 
     def initialize_on_connect(self, datapath):
