@@ -138,7 +138,7 @@ func TestBuilder_Build(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
-		    HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -270,7 +270,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
-		    HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -376,7 +376,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			lte_mconfig.PipelineD_ENFORCEMENT,
 		},
 		SgiManagementIfaceVlan: "30",
-		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+		HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -406,7 +406,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		},
 		SgiManagementIfaceVlan:   "44",
 		SgiManagementIfaceIpAddr: "1.2.3.4",
-		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -437,7 +437,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceVlan:   "55",
 		SgiManagementIfaceIpAddr: "1.2.3.4/24",
 		SgiManagementIfaceGw:     "1.2.3.1",
-		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -465,11 +465,11 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		},
 	}
 	heConfig := &lte_models.GatewayHeConfig{
-	    EnableHeaderEnrichment: true,
-        EnableEncryption: true,
-        HeEncryptionAlgorithm: "RC4",
-	    HeHashFunction: "MD5",
-	    HeEncodingType: "BASE64",
+		EnableHeaderEnrichment: true,
+		EnableEncryption:       true,
+		HeEncryptionAlgorithm:  "RC4",
+		HeHashFunction:         "MD5",
+		HeEncodingType:         "BASE64",
 	}
 	gatewayConfig := newDefaultGatewayConfig()
 	gatewayConfig.HeConfig = heConfig
@@ -532,11 +532,11 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			HeConfig: &lte_mconfig.PipelineD_HEConfig{
-			    EnableHeaderEnrichment: true,
-			    EnableEncryption: true,
-			    EncryptionAlgorithm: lte_mconfig.PipelineD_HEConfig_RC4,
-			    HashFunction: lte_mconfig.PipelineD_HEConfig_MD5,
-			    EncodingType: lte_mconfig.PipelineD_HEConfig_BASE64,
+				EnableHeaderEnrichment: true,
+				EnableEncryption:       true,
+				EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_RC4,
+				HashFunction:           lte_mconfig.PipelineD_HEConfig_MD5,
+				EncodingType:           lte_mconfig.PipelineD_HEConfig_BASE64,
 			},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
@@ -675,7 +675,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
-			HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -799,7 +799,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
-		    HeConfig: &lte_mconfig.PipelineD_HEConfig{},
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
