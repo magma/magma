@@ -1605,8 +1605,7 @@ void NasStateConverter::emm_context_to_proto(
   ue_network_capability_to_proto(
       &state_emm_context->_ue_network_capability,
       emm_context_proto->mutable_ue_network_capability());
-  nas_timer_to_proto(
-      state_emm_context->T3422, emm_context_proto->mutable_t3422());
+  emm_context_proto->set_t3422_timer_value(state_emm_context->T3422.sec);
   if (state_emm_context->t3422_arg) {
     nw_detach_data_to_proto(
         (nw_detach_data_t*) state_emm_context->t3422_arg,
@@ -1688,7 +1687,8 @@ void NasStateConverter::proto_to_emm_context(
       emm_context_proto.ue_network_capability(),
       &state_emm_context->_ue_network_capability);
 
-  proto_to_nas_timer(emm_context_proto.t3422(), &state_emm_context->T3422);
+  state_emm_context->T3422.id  = NAS_TIMER_INACTIVE_ID;
+  state_emm_context->T3422.sec = emm_context_proto.t3422_timer_value();
   if (emm_context_proto.has_nw_detach_data()) {
     proto_to_nw_detach_data(
         emm_context_proto.nw_detach_data(),

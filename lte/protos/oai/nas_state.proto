@@ -426,7 +426,7 @@ message EmmContext {
   uint32 ksi = 64;
 
   UeNetworkCapability ue_network_capability = 65;
-  Timer t3422 = 66;
+  uint64 t3422_timer_value = 66;
   NwDetachData nw_detach_data = 67;
   // TODO: add remaining emm_context elements
   }

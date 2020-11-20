@@ -559,7 +559,13 @@ int emm_proc_nw_initiated_detach_request(
       } else {
         nw_detach_data_t* data =
             (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
-        DevAssert(data);
+        if (!data) {
+          OAILOG_ERROR(
+              LOG_NAS_EMM,
+              "Failed to allocate memory for 3422 timer argument. Didn't start "
+              "the 3422 timer \n");
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+        }
         data->ue_id                = ue_id;
         data->retransmission_count = 0;
         data->detach_type          = detach_type;
