@@ -48,9 +48,9 @@ ssize_t ngap_generate_initiating_message(
 
   memset(&pdu, 0, sizeof(Ngap_NGAP_PDU_t));
   pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
-  pdu.choice.initiatingMessage->procedureCode = procedureCode;
-  pdu.choice.initiatingMessage->criticality   = criticality;
-  // ANY_fromType_aper(&(pdu.choice.initiatingMessage->value), td, sptr);
+  pdu.choice.initiatingMessage.procedureCode = procedureCode;
+  pdu.choice.initiatingMessage.criticality   = criticality;
+  // ANY_fromType_aper(&(pdu.choice.initiatingMessage.value), td, sptr);
 
   if (asn1_xer_print) {
     xer_fprint(stdout, &asn_DEF_Ngap_PDUSessionType, (void*) &pdu);
@@ -81,9 +81,9 @@ ssize_t ngap_generate_successfull_outcome(
 
   memset(&pdu, 0, sizeof(Ngap_NGAP_PDU_t));
   pdu.present = Ngap_NGAP_PDU_PR_successfulOutcome;
-  pdu.choice.successfulOutcome->procedureCode = procedureCode;
-  pdu.choice.successfulOutcome->criticality   = criticality;
-  // ANY_fromType_aper(&pdu.choice.successfulOutcome->value, td, sptr);
+  pdu.choice.successfulOutcome.procedureCode = procedureCode;
+  pdu.choice.successfulOutcome.criticality   = criticality;
+  // ANY_fromType_aper(&pdu.choice.successfulOutcome.value, td, sptr);
 
   if (asn1_xer_print) {
     xer_fprint(stdout, &asn_DEF_Ngap_PDUSessionType, (void*) &pdu);
@@ -115,9 +115,9 @@ ssize_t ngap_generate_unsuccessfull_outcome(
 
   memset(&pdu, 0, sizeof(Ngap_NGAP_PDU_t));
   pdu.present = Ngap_NGAP_PDU_PR_unsuccessfulOutcome;
-  pdu.choice.unsuccessfulOutcome->procedureCode = procedureCode;
-  pdu.choice.unsuccessfulOutcome->criticality   = criticality;
-  // ANY_fromType_aper(pdu.choice.unsuccessfulOutcome->value, td, sptr);
+  pdu.choice.unsuccessfulOutcome.procedureCode = procedureCode;
+  pdu.choice.unsuccessfulOutcome.criticality   = criticality;
+  // ANY_fromType_aper(pdu.choice.unsuccessfulOutcome.value, td, sptr);
 
   if (asn1_xer_print) {
     xer_fprint(stdout, &asn_DEF_Ngap_PDUSessionType, (void*) &pdu);

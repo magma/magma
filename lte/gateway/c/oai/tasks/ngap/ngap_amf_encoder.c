@@ -82,7 +82,7 @@ static inline int ngap_amf_encode_initiating(
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
-  switch (pdu->choice.initiatingMessage->procedureCode) {
+  switch (pdu->choice.initiatingMessage.procedureCode) {
     case Ngap_ProcedureCode_id_DownlinkNASTransport:
     case Ngap_ProcedureCode_id_InitialContextSetup:
     case Ngap_ProcedureCode_id_UEContextRelease:
@@ -93,7 +93,7 @@ static inline int ngap_amf_encode_initiating(
     default:
       OAILOG_NOTICE(
           LOG_NGAP, "Unknown procedure ID (%d) for initiating message_p\n",
-          (int) pdu->choice.initiatingMessage->procedureCode);
+          (int) pdu->choice.initiatingMessage.procedureCode);
       *buffer = NULL;
       *length = 0;
       return -1;
@@ -113,19 +113,18 @@ static inline int ngap_amf_encode_successfull_outcome(
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
-  switch (pdu->choice.successfulOutcome->procedureCode) {
+  switch (pdu->choice.successfulOutcome.procedureCode) {
     case Ngap_ProcedureCode_id_NGSetup:
     case Ngap_ProcedureCode_id_PathSwitchRequest:
     case Ngap_ProcedureCode_id_HandoverPreparation:
     case Ngap_ProcedureCode_id_HandoverCancel:
-      // case Ngap_ProcedureCode_id_Reset:
       break;
 
     default:
       OAILOG_DEBUG(
           LOG_NGAP,
           "Unknown procedure ID (%d) for successfull outcome message\n",
-          (int) pdu->choice.successfulOutcome->procedureCode);
+          (int) pdu->choice.successfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
       return -1;
@@ -146,7 +145,7 @@ static inline int ngap_amf_encode_unsuccessfull_outcome(
   asn_encode_to_new_buffer_result_t res = {NULL, {0, NULL, NULL}};
   DevAssert(pdu != NULL);
 
-  switch (pdu->choice.unsuccessfulOutcome->procedureCode) {
+  switch (pdu->choice.unsuccessfulOutcome.procedureCode) {
     case Ngap_ProcedureCode_id_NGSetup:
     case Ngap_ProcedureCode_id_PathSwitchRequest:
     case Ngap_ProcedureCode_id_HandoverPreparation:
@@ -156,7 +155,7 @@ static inline int ngap_amf_encode_unsuccessfull_outcome(
       OAILOG_DEBUG(
           LOG_NGAP,
           "Unknown procedure ID (%d) for unsuccessfull outcome message\n",
-          (int) pdu->choice.unsuccessfulOutcome->procedureCode);
+          (int) pdu->choice.unsuccessfulOutcome.procedureCode);
       *buffer = NULL;
       *length = 0;
       return -1;

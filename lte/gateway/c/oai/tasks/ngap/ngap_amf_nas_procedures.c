@@ -80,7 +80,7 @@ int ngap_amf_handle_initial_ue_message(
   gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
 
   OAILOG_FUNC_IN(LOG_NGAP);
-  container = &pdu->choice.initiatingMessage->value.choice.InitialUEMessage;
+  container = &pdu->choice.initiatingMessage.value.choice.InitialUEMessage;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_InitialUEMessage_IEs_t, ie, container,
@@ -159,33 +159,37 @@ int ngap_amf_handle_initial_ue_message(
       gNB_ref->next_sctp_stream = 1;
     }
     // ngap_dump_gnb(gNB_ref);
-    // TAI mandatory IE
     NGAP_FIND_PROTOCOLIE_BY_ID(
         Ngap_InitialUEMessage_IEs_t, ie, container,
-        Ngap_ProtocolIE_ID_id_SupportedTAList, true);
+        Ngap_ProtocolIE_ID_id_UserLocationInformation, true);
+#if 1
+    ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
+        .tAI.tAC.size = 2;  // temp hadrcode to test
+#endif
+
     OCTET_STRING_TO_TAC(
         &ie->value.choice.UserLocationInformation.choice
-             .userLocationInformationNR->tAI.tAC,
+             .userLocationInformationNR.tAI.tAC,
         tai.tac);
     DevAssert(
         ie->value.choice.UserLocationInformation.choice
-            .userLocationInformationNR->tAI.pLMNIdentity.size == 3);
+            .userLocationInformationNR.tAI.pLMNIdentity.size == 3);
     // TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
     // CGI mandatory IE
     NGAP_FIND_PROTOCOLIE_BY_ID(
         Ngap_InitialUEMessage_IEs_t, ie, container,
-        Ngap_ProtocolIE_ID_id_EUTRA_CGI, true);
+        Ngap_ProtocolIE_ID_id_UserLocationInformation, true);
     DevAssert(
         ie->value.choice.UserLocationInformation.choice
-            .userLocationInformationEUTRA->eUTRA_CGI.pLMNIdentity.size == 3);
+            .userLocationInformationEUTRA.eUTRA_CGI.pLMNIdentity.size == 3);
     TBCD_TO_PLMN_T(
         &ie->value.choice.UserLocationInformation.choice
-             .userLocationInformationEUTRA->eUTRA_CGI.pLMNIdentity,
+             .userLocationInformationEUTRA.eUTRA_CGI.pLMNIdentity,
         &ecgi.plmn);
     BIT_STRING_TO_CELL_IDENTITY(
         &ie->value.choice.UserLocationInformation.choice
-             .userLocationInformationEUTRA->eUTRA_CGI.eUTRACellIdentity,
+             .userLocationInformationEUTRA.eUTRA_CGI.eUTRACellIdentity,
         ecgi.cell_identity);
 
     /** Set the GNB Id. */
@@ -254,7 +258,7 @@ int ngap_amf_handle_uplink_nas_transport(
   gnb_ue_ngap_id_t gnb_ue_ngap_id = 0;
 
   OAILOG_FUNC_IN(LOG_NGAP);
-  container = &pdu->choice.initiatingMessage->value.choice.UplinkNASTransport;
+  container = &pdu->choice.initiatingMessage.value.choice.UplinkNASTransport;
 
   NGAP_FIND_PROTOCOLIE_BY_ID(
       Ngap_UplinkNASTransport_IEs_t, ie, container,
@@ -316,15 +320,15 @@ int ngap_amf_handle_uplink_nas_transport(
       Ngap_UplinkNASTransport_IEs_t, ie, container,
       Ngap_ProtocolIE_ID_id_SupportedTAList, true);
   OCTET_STRING_TO_TAC(
-      &ie->value.choice.UserLocationInformation.choice
-           .userLocationInformationNR->tAI.tAC,
+      &ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
+           .tAI.tAC,
       tai.tac);
   DevAssert(
       ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
-          ->tAI.pLMNIdentity.size == 3);
+          .tAI.pLMNIdentity.size == 3);
   TBCD_TO_PLMN_T(
-      &ie->value.choice.UserLocationInformation.choice
-           .userLocationInformationNR->tAI.pLMNIdentity,
+      &ie->value.choice.UserLocationInformation.choice.userLocationInformationNR
+           .tAI.pLMNIdentity,
       &tai.plmn);
 
   // CGI mandatory IE
@@ -333,14 +337,14 @@ int ngap_amf_handle_uplink_nas_transport(
       Ngap_ProtocolIE_ID_id_EUTRA_CGI, true);
   DevAssert(
       ie->value.choice.UserLocationInformation.choice
-          .userLocationInformationEUTRA->eUTRA_CGI.pLMNIdentity.size == 3);
+          .userLocationInformationEUTRA.eUTRA_CGI.pLMNIdentity.size == 3);
   TBCD_TO_PLMN_T(
       &ie->value.choice.UserLocationInformation.choice
-           .userLocationInformationEUTRA->eUTRA_CGI.pLMNIdentity,
+           .userLocationInformationEUTRA.eUTRA_CGI.pLMNIdentity,
       &ecgi.plmn);
   BIT_STRING_TO_CELL_IDENTITY(
       &ie->value.choice.UserLocationInformation.choice
-           .userLocationInformationEUTRA->eUTRA_CGI.eUTRACellIdentity,
+           .userLocationInformationEUTRA.eUTRA_CGI.eUTRACellIdentity,
       ecgi.cell_identity);
 
   // TODO optional GW Transport Layer Address
@@ -385,7 +389,7 @@ int ngap_generate_downlink_nas_transport(
   // finally!
   if (!ue_ref) {
     /*
-     * If the UE-associated logical S1-connection is not established,
+     * If the UE-associated logical NG-connection is not established,
      * * * * the AMF shall allocate a unique AMF UE NGAP ID to be used for the
      * UE.
      */
@@ -410,14 +414,13 @@ int ngap_generate_downlink_nas_transport(
 
     memset(&pdu, 0, sizeof(pdu));
     pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
-    pdu.choice.initiatingMessage->procedureCode =
+    pdu.choice.initiatingMessage.procedureCode =
         Ngap_ProcedureCode_id_DownlinkNASTransport;
-    pdu.choice.initiatingMessage->criticality = Ngap_Criticality_ignore;
-    pdu.choice.initiatingMessage->value.present =
+    pdu.choice.initiatingMessage.criticality = Ngap_Criticality_ignore;
+    pdu.choice.initiatingMessage.value.present =
         Ngap_InitiatingMessage__value_PR_DownlinkNASTransport;
 
-    out = &pdu.choice.initiatingMessage->value.choice.DownlinkNASTransport;
-
+    out = &pdu.choice.initiatingMessage.value.choice.DownlinkNASTransport;
     if (ue_ref->ng_ue_state == NGAP_UE_WAITING_CRR) {
       OAILOG_ERROR_UE(
           LOG_NGAP, imsi64,
@@ -536,12 +539,12 @@ void ngap_handle_conn_est_cnf(
   //     ue_ref->outcome_response_timer_id);
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = Ngap_NGAP_PDU_PR_initiatingMessage;
-  pdu.choice.initiatingMessage->procedureCode =
+  pdu.choice.initiatingMessage.procedureCode =
       Ngap_ProcedureCode_id_InitialContextSetup;
-  pdu.choice.initiatingMessage->value.present =
+  pdu.choice.initiatingMessage.value.present =
       Ngap_InitiatingMessage__value_PR_InitialContextSetupRequest;
-  pdu.choice.initiatingMessage->criticality = Ngap_Criticality_ignore;
-  out = &pdu.choice.initiatingMessage->value.choice.InitialContextSetupRequest;
+  pdu.choice.initiatingMessage.criticality = Ngap_Criticality_ignore;
+  out = &pdu.choice.initiatingMessage.value.choice.InitialContextSetupRequest;
 
   /* mandatory */
   ie = (Ngap_InitialContextSetupRequestIEs_t*) calloc(
