@@ -891,6 +891,7 @@ void SpgwStateConverter::sgw_pending_procedures_to_proto(
         auto* cbr_procedure_proto = proto->add_pending_procedures();
         cbr_procedure_proto->set_teid(create_proc->teid);
         cbr_procedure_proto->set_sdf_id(create_proc->sdf_id);
+        cbr_procedure_proto->set_type(create_proc->proc.type);
         sgw_eps_bearer_entry_wrapper_t* b1 = nullptr;
         LIST_FOREACH(b1, create_proc->pending_eps_bearers, entries) {
           sgw_eps_bearer_to_proto(
@@ -926,6 +927,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
   s11_proc_create_bearer->teid   = proto.teid();
   s11_proc_create_bearer->sdf_id = (sdf_id_t) proto.sdf_id();
   pgw_base_proc_t* base_proc     = (pgw_base_proc_t*) s11_proc_create_bearer;
+  base_proc->type                = (pgw_base_proc_type_t) proto.type();
   LIST_INSERT_HEAD(pending_procedures, base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =

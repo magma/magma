@@ -16,6 +16,7 @@
  */
 extern "C" {
 #include "log.h"
+#include "dynamic_memory_check.h"
 }
 
 #include "nas_state_converter.h"
@@ -295,6 +296,40 @@ void NasStateConverter::proto_to_protocol_configuration_options(
       state_protocol_configuration_options);
 }
 
+void NasStateConverter::esm_ebr_timer_data_to_proto(
+    const esm_ebr_timer_data_t& state_esm_ebr_timer_data,
+    oai::EsmEbrTimerData* proto_esm_ebr_timer_data) {
+  OAILOG_FUNC_IN(LOG_NAS_ESM);
+  proto_esm_ebr_timer_data->set_ue_id(state_esm_ebr_timer_data.ue_id);
+  proto_esm_ebr_timer_data->set_ebi(state_esm_ebr_timer_data.ebi);
+  proto_esm_ebr_timer_data->set_count(state_esm_ebr_timer_data.count);
+  if (state_esm_ebr_timer_data.msg) {
+    BSTRING_TO_STRING(
+        state_esm_ebr_timer_data.msg,
+        proto_esm_ebr_timer_data->mutable_esm_msg());
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_ESM);
+}
+
+void NasStateConverter::proto_to_esm_ebr_timer_data(
+    const oai::EsmEbrTimerData& proto_esm_ebr_timer_data,
+    esm_ebr_timer_data_t** state_esm_ebr_timer_data) {
+  OAILOG_FUNC_IN(LOG_NAS_ESM);
+  *state_esm_ebr_timer_data =
+      (esm_ebr_timer_data_t*) calloc(1, sizeof(esm_ebr_timer_data_t));
+  if (*state_esm_ebr_timer_data) {
+    (*state_esm_ebr_timer_data)->ue_id = proto_esm_ebr_timer_data.ue_id();
+    (*state_esm_ebr_timer_data)->ebi   = proto_esm_ebr_timer_data.ebi();
+    (*state_esm_ebr_timer_data)->count = proto_esm_ebr_timer_data.count();
+    if (!proto_esm_ebr_timer_data.esm_msg().empty()) {
+      (*state_esm_ebr_timer_data)->msg = bfromcstr_with_str_len(
+          proto_esm_ebr_timer_data.esm_msg().c_str(),
+          proto_esm_ebr_timer_data.esm_msg().length());
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_ESM);
+}
+
 void NasStateConverter::esm_proc_data_to_proto(
     const esm_proc_data_t* state_esm_proc_data,
     oai::EsmProcData* esm_proc_data_proto) {
@@ -392,6 +427,11 @@ void NasStateConverter::esm_ebr_context_to_proto(
   }
   nas_timer_to_proto(
       state_esm_ebr_context.timer, esm_ebr_context_proto->mutable_timer());
+  if (state_esm_ebr_context.args != nullptr) {
+    esm_ebr_timer_data_to_proto(
+        *state_esm_ebr_context.args,
+        esm_ebr_context_proto->mutable_esm_ebr_timer_data());
+  }
 }
 
 void NasStateConverter::proto_to_esm_ebr_context(
@@ -411,6 +451,12 @@ void NasStateConverter::proto_to_esm_ebr_context(
   }
   proto_to_nas_timer(
       esm_ebr_context_proto.timer(), &state_esm_ebr_context->timer);
+
+  if (esm_ebr_context_proto.has_esm_ebr_timer_data()) {
+    proto_to_esm_ebr_timer_data(
+        esm_ebr_context_proto.esm_ebr_timer_data(),
+        &state_esm_ebr_context->args);
+  }
 }
 
 /*************************************************/

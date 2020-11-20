@@ -1567,13 +1567,13 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
   char policy_rule_name[POLICY_RULE_NAME_MAXLEN + 1];
   ebi_t default_bearer_id;
 
+  bearer_context =
+      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index];
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64,
       "Received nw_initiated_bearer_actv_rsp from MME with EBI %u\n",
       bearer_context.eps_bearer_id);
 
-  bearer_context =
-      s11_actv_bearer_rsp->bearer_contexts.bearer_contexts[msg_bearer_index];
   s_plus_p_gw_eps_bearer_context_information_t* spgw_context =
       sgw_cm_get_spgw_context(s11_actv_bearer_rsp->sgw_s11_teid);
   if (!spgw_context) {

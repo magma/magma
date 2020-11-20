@@ -55,7 +55,6 @@
 /*
    Timer handlers
 */
-static void _default_eps_bearer_activate_t3485_handler(void*, imsi64_t* imsi64);
 
 /* Maximum value of the activate default EPS bearer context request
    retransmission counter */
@@ -445,7 +444,7 @@ int esm_proc_default_eps_bearer_context_failure(
 */
 /****************************************************************************
  **                                                                        **
- ** Name:    _default_eps_bearer_activate_t3485_handler()              **
+ ** Name:    default_eps_bearer_activate_t3485_handler()              **
  **                                                                        **
  ** Description: T3485 timeout handler                                     **
  **                                                                        **
@@ -465,8 +464,7 @@ int esm_proc_default_eps_bearer_context_failure(
  **      Others:    None                                       **
  **                                                                        **
  ***************************************************************************/
-static void _default_eps_bearer_activate_t3485_handler(
-    void* args, imsi64_t* imsi64) {
+void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   int rc;
 
@@ -591,7 +589,7 @@ static int _default_eps_bearer_activate(
      */
     rc = esm_ebr_start_timer(
         emm_context, ebi, *msg, mme_config.nas_config.t3485_sec,
-        _default_eps_bearer_activate_t3485_handler);
+        default_eps_bearer_activate_t3485_handler);
     if (rc != RETURNerror) {
       OAILOG_DEBUG(
           LOG_NAS_ESM,
@@ -659,7 +657,7 @@ static int _default_eps_bearer_activate_in_bearer_setup_req(
      */
     rc = esm_ebr_start_timer(
         emm_context, ebi, msg_dup, mme_config.nas_config.t3485_sec,
-        _default_eps_bearer_activate_t3485_handler);
+        default_eps_bearer_activate_t3485_handler);
   }
 
   bdestroy_wrapper(&msg_dup);

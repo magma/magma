@@ -53,6 +53,7 @@
 #include "nas_proc.h"
 #include "common_defs.h"
 #include "esm_ebr.h"
+#include "esm_ebr_context.h"
 #include "timer.h"
 #include "mme_app_statistics.h"
 #include "directoryd.h"
@@ -120,6 +121,7 @@ static void _directoryd_remove_location(uint64_t imsi, uint8_t imsi_len) {
   OAILOG_INFO_UE(LOG_MME_APP, imsi, "Deleted UE location from directoryd\n");
 }
 
+static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p);
 //------------------------------------------------------------------------------
 // warning: lock the UE context
 ue_mm_context_t* mme_create_new_ue_context(void) {
@@ -2327,6 +2329,10 @@ static bool mme_app_recover_timers_for_ue(
         mme_app_handle_initial_context_setup_rsp_timer_expiry,
         "Initial Context Setup Response");
   }
+  if (ue_mm_context_pP &&
+      ue_mm_context_pP->emm_context._emm_fsm_state == EMM_REGISTERED) {
+    mme_app_resume_esm_ebr_timer(ue_mm_context_pP);
+  }
 
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }
@@ -2377,6 +2383,38 @@ static void mme_app_resume_timers(
         LOG_MME_APP, ue_mm_context_pP->emm_context._imsi64,
         "Started %s timer for UE id " MME_UE_S1AP_ID_FMT "\n", timer_name,
         ue_mm_context_pP->mme_ue_s1ap_id);
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  for (int idx = 0; idx < BEARERS_PER_UE; idx++) {
+    if (ue_context_p->bearer_contexts[idx]) {
+      pdn_cid_t pdn_cid = ue_context_p->bearer_contexts[idx]->pdn_cx_id;
+      // Below check is added to identify default and dedicated bearer
+      if (ue_context_p->pdn_contexts[pdn_cid] &&
+          (ue_context_p->pdn_contexts[pdn_cid]->default_ebi ==
+           ue_context_p->bearer_contexts[idx]->ebi)) {
+        // Invoke callback registered for default bearer's activation
+        if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
+            (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
+             ESM_EBR_ACTIVE_PENDING)) {
+          default_eps_bearer_activate_t3485_handler(
+              ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
+              &ue_context_p->emm_context._imsi64);
+        }
+      } else {
+        // Invoke callback registered for dedicated bearer's activation
+        if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
+            (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
+             ESM_EBR_ACTIVE_PENDING)) {
+          dedicated_eps_bearer_activate_t3485_handler(
+              ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
+              &ue_context_p->emm_context._imsi64);
+        }
+      }
+    }
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
