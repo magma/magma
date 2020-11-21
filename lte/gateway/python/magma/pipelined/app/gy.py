@@ -69,6 +69,7 @@ class GYController(PolicyMixin, MagmaController):
                 self._bridge_ip_address,
                 self.logger,
                 self.tbl_num,
+                self._enforcement_stats_tbl,
                 self._service_manager.get_table_num(EGRESS),
                 self._redirect_scratch,
                 self._session_rule_version_mapper

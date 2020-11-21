@@ -25,6 +25,7 @@ from magma.pipelined.openflow.registers import load_direction, Direction, \
     PROXY_TAG_TO_PROXY, set_tun_id
 from magma.pipelined.envoy_client import activate_he_urls_for_ue, \
     deactivate_he_urls_for_ue
+from magma.pipelined.encoding import encrypt_str, get_hash, encode_str
 
 from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools, DatapathLookupError
@@ -130,7 +131,7 @@ class HeaderEnrichmentController(MagmaController):
         hash_function = None
         encoding_type = None
         encryption_enabled = False
-        if mconfig.he_config and mconfig.he_config.encrption_enabled:
+        if mconfig.he_config and mconfig.he_config.enable_encryption:
             encryption_enabled = True
             encryption_algorithm = mconfig.he_config.encryptionAlgorithm
             hash_function = mconfig.he_config.hashFunction
@@ -173,12 +174,31 @@ class HeaderEnrichmentController(MagmaController):
                                              priority=flows.MINIMUM_PRIORITY,
                                              resubmit_table=self.next_table)
 
+    def encrypt_header(self, header_value):
+        """
+        MSISDN = 5521966054601
+        key = C14r0315v0x
+        MD5(C14r0315v0x)=37ee40eecb484166d68c29930e48313c
+        RC4(key=37ee40eecb484166d68c29930e48313c, msisdn=5521966054601))=>a82530f1f34cfcdba5569fb60f
+        base64(a82530f1f34cfcdba5569fb60f)=>qCUw8fNM/NulVp+2Dw==
+        X-alias=qCUw8fNM/NulVp+2Dw==
+        """
+        hash = get_hash(self.config.key, self.config.hash_function)
+        encrypted = encrypt_str(header_value, hash, self.config.encryption_algorithm)
+        ret = encode_str(encrypted, self.config.encoding_type)
+
+        return ret
+
     def _set_he_target_urls(self, ue_addr: str, rule_id: str, urls: List[str], imsi: str, msisdn: bytes) -> bool:
         if msisdn:
             msisdn_str = msisdn.decode("utf-8")
         else:
             msisdn_str = None
         ip_addr = convert_ipv4_str_to_ip_proto(ue_addr)
+        if self.config.encryption_enabled:
+            imsi = self.encrypt_header(imsi)
+            msisdn_str = self.encrypt_header(msisdn_str)
+
         return activate_he_urls_for_ue(ip_addr, rule_id, urls, imsi, msisdn_str)
 
     def get_subscriber_he_flows(self, rule_id: str, direction: Direction,

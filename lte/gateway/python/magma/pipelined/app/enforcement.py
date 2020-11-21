@@ -76,6 +76,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             self.logger,
             self.tbl_num,
             self._enforcement_stats_tbl,
+            self.next_main_table,
             self._redirect_scratch,
             self._session_rule_version_mapper)
 

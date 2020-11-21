@@ -1980,6 +1980,11 @@ definitions:
         type: boolean
         x-nullable: false
         example: true
+      encryption_key:
+        description: Key to be used in header encryption
+        type: string
+        x-nullable: false
+        example: 'C14r0315v0x'
       he_encryption_algorithm:
         type: string
         x-nullable: false
