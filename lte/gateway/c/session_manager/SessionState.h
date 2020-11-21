@@ -162,6 +162,8 @@ class SessionState {
 
   void insert_pdr(SetGroupPDR* rule);
 
+  void set_remove_all_pdrs();
+
   void insert_far(SetGroupFAR* rule);
 
   void remove_all_rules();
