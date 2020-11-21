@@ -145,6 +145,7 @@ message PipelineD {
         EncryptionAlgorithm encryptionAlgorithm = 3;
         HashFunction hashFunction = 4;
         EncodingType encodingType = 5;
+        string encryption_key = 6;
     }
     HEConfig he_config = 17;
 

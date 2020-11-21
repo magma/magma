@@ -298,6 +298,7 @@ func getHEConfig(gwConfig *lte_models.GatewayHeConfig) *lte_mconfig.PipelineD_HE
 		EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm(lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm_value[gwConfig.HeEncryptionAlgorithm]),
 		HashFunction:           lte_mconfig.PipelineD_HEConfig_HashFunction(lte_mconfig.PipelineD_HEConfig_HashFunction_value[gwConfig.HeHashFunction]),
 		EncodingType:           lte_mconfig.PipelineD_HEConfig_EncodingType(lte_mconfig.PipelineD_HEConfig_EncodingType_value[gwConfig.HeEncodingType]),
+	    EncryptionKey:          gwConfig.EncryptionKey,
 	}
 }
 func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*lte_mconfig.EnodebD_EnodebConfig {
