@@ -17,6 +17,7 @@
   apt_repository:
     repo: "{{ansible_apt_repo}}"
     state: present
+    codename: trusty
 
 - name: Import the ubuntu apt key
   apt_key:
@@ -25,5 +26,4 @@
     state: present
 
 - name: install packages
-  apt: name={{ item }} state=installed
-  with_items: "{{apt_prereq_packages}}"
+  apt: name={{apt_prereq_packages}} state=present
