@@ -81,7 +81,7 @@
     name: "{{ packages }}"
   vars:
     packages:
-      - 'magma={{ magma_version }}'
+      - 'magma={{ all_vars.magma_version }}'
 
 - name: Start service openvswitch-switch.
   become: yes
