@@ -13,7 +13,7 @@
 
 
 # Add source repository into sources list.
-- name: Updating /etc/apt/sources.list with ansible for ubuntu repo
+- name: Updating repos with ansible for debian repo
   apt_repository:
     repo: "{{ansible_apt_repo}}"
     state: present

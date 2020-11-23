@@ -1,13 +1,14 @@
 ## Prereq:
 
 On your GW host make sure you have the following packages:
+```
+$ apt-get install git ansible -y
+```
+
+Then run the pre-req playbook which will upgrade ansible, need to run one time.
 
 ```
-$ echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list
-$ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
-$ sudo apt update
-$ apt-get install git ansible software-properties-common dirmngr -y
-$ ansible-galaxy collection install community.general
+$ ansible-playbook install_prereq.yml
 ```
 
 ## Execution:
