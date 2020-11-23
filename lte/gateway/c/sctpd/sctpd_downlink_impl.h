@@ -23,6 +23,9 @@
 
 #include "sctp_connection.h"
 
+#define S1AP 18
+#define NGAP 60
+
 namespace magma {
 namespace sctpd {
 
@@ -40,17 +43,18 @@ class SctpdDownlinkImpl final : public SctpdDownlink::Service {
     override;
 
   // Implementation of SctpdDownlink.SendDl method (see sctpd.proto for more info)
-  Status SendDl(
-    ServerContext *context,
-    const SendDlReq *request,
-    SendDlRes *response) override;
+  Status SendDl( ServerContext *context, const SendDlReq *request, SendDlRes *response)
+    override;
+  Status create_sctp_connection(std::unique_ptr<SctpConnection>& sctp_connection,
+    const InitReq *request, InitRes *response);
 
   // Close SCTP connection for this SctpdDownlink.
   void stop();
 
  private:
   SctpEventHandler &_uplink_handler;
-  std::unique_ptr<SctpConnection> _sctp_connection;
+  std::unique_ptr<SctpConnection> _sctp_4G_connection;
+  std::unique_ptr<SctpConnection> _sctp_5G_connection;
 };
 
 } // namespace sctpd

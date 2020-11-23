@@ -30,7 +30,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-
 #include "bstrlib.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
@@ -42,9 +41,10 @@
 #include "common_types.h"
 #include "dynamic_memory_check.h"
 #include "log.h"
+
+#include "amf_default_values.h"
 #include "mme_default_values.h"
 #include "service303.h"
-
 #include "sctp_itti_messaging.h"
 #include "sctp_messages_types.h"
 #include "sctpd_downlink_client.h"
@@ -62,8 +62,6 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case SCTP_INIT_MSG: {
-      OAILOG_DEBUG(LOG_SCTP, "Received SCTP_INIT_MSG\n");
-
       if (start_sctpd_uplink_server() < 0) {
         Fatal("Failed to start sctpd uplink server\n");
       }
@@ -74,24 +72,51 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
       MessageDef* msg;
 
-      msg = itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
-      SCTP_MME_SERVER_INITIALIZED(msg).successful = true;
+      if (received_message_p->ittiMsg.sctpInit.ppid == S1AP) {
+        msg = itti_alloc_new_message(TASK_S1AP, SCTP_MME_SERVER_INITIALIZED);
+        SCTP_MME_SERVER_INITIALIZED(msg).successful = true;
+        send_msg_to_task(&sctp_task_zmq_ctx, TASK_MME_APP, msg);
 
-      send_msg_to_task(&sctp_task_zmq_ctx, TASK_MME_APP, msg);
+      } else if (received_message_p->ittiMsg.sctpInit.ppid == NGAP) {
+        msg = itti_alloc_new_message(TASK_NGAP, SCTP_AMF_SERVER_INITIALIZED);
+        SCTP_AMF_SERVER_INITIALIZED(msg).successful = true;
+        send_msg_to_task(&sctp_task_zmq_ctx, TASK_AMF_APP, msg);
+      } else {
+        OAILOG_ERROR(
+            LOG_SCTP,
+            "Invalid Ppid: %d",
+            received_message_p->ittiMsg.sctpInit.ppid);
+      }
     } break;
 
     case SCTP_CLOSE_ASSOCIATION: {
     } break;
 
     case SCTP_DATA_REQ: {
+      uint32_t ppid     = SCTP_DATA_REQ(received_message_p).ppid;
       uint32_t assoc_id = SCTP_DATA_REQ(received_message_p).assoc_id;
       uint16_t stream   = SCTP_DATA_REQ(received_message_p).stream;
       bstring payload   = SCTP_DATA_REQ(received_message_p).payload;
 
-      if (sctpd_send_dl(assoc_id, stream, payload) < 0) {
-        sctp_itti_send_lower_layer_conf(
-            received_message_p->ittiMsgHeader.originTaskId, assoc_id, stream,
-            SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id, false);
+      if (sctpd_send_dl(ppid, assoc_id, stream, payload) < 0) {
+        if (ppid == S1AP) {
+          OAILOG_DEBUG(
+              LOG_SCTP, "Ppid S1AP in sctp_data_req ");
+          sctp_itti_send_lower_layer_conf(
+              received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
+              stream, SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id, false);
+        } else if (ppid == NGAP) {
+          OAILOG_DEBUG(
+              LOG_SCTP, "ppid match NGAP in sctp_itti_send_lower_layer_conf ");
+          sctp_itti_send_lower_layer_conf(
+              received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
+              stream, SCTP_DATA_REQ(received_message_p).amf_ue_ngap_id, false);
+        } else {
+          OAILOG_ERROR(
+              LOG_SCTP,
+              "ppid: %d not matching in sctp_itti_send_lower_layer_conf ",
+              ppid);
+        }
       }
     } break;
 
@@ -120,8 +145,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 static void* sctp_thread(__attribute__((unused)) void* args_p) {
   itti_mark_task_ready(TASK_SCTP);
   init_task_context(
-      TASK_SCTP, (task_id_t[]){TASK_MME_APP, TASK_S1AP}, 2, handle_message,
-      &sctp_task_zmq_ctx);
+      TASK_SCTP, (task_id_t[]){TASK_MME_APP, TASK_S1AP, TASK_NGAP, TASK_AMF_APP}, 4,
+      handle_message, &sctp_task_zmq_ctx);
 
   zloop_start(sctp_task_zmq_ctx.event_loop);
   sctp_exit();
@@ -141,7 +166,7 @@ int sctp_init(const mme_config_t* mme_config_p) {
     return -1;
   }
 
-  OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: DONE\n");
+OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: DONE\n");
   return 0;
 }
 
