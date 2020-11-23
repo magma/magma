@@ -1,0 +1,104 @@
+#!/bin/groovy
+/*
+ * Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The OpenAirInterface Software Alliance licenses this file to You under
+ * the terms found in the LICENSE file in the root of this
+ * source tree.
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ *-------------------------------------------------------------------------------
+ * For more information about the OpenAirInterface (OAI) Software Alliance:
+ *      contact@openairinterface.org
+ */
+
+
+def GIT_URL = "github.com/magma/magma"
+def GIT_COMMIT
+
+pipeline {
+  agent {
+    label "buildPacketSlave"
+  }
+  parameters {
+    string(name: 'branch', defaultValue: 'master')
+  } 
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+  }
+  stages {
+    stage ("Retrieve and Prepare Source Code") {
+      steps {
+        script {
+          cleanWs()
+          checkout( 
+            changelog: false, 
+            poll: false, 
+            scm: [
+            $class: 'GitSCM', 
+            branches: [[name: params.branch]], 
+            doGenerateSubmoduleConfigurations: false, 
+            extensions: [], 
+            submoduleCfg: [], 
+            userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+          )
+          GIT_COMMIT = sh returnStdout: true, script: 'git log -1 --pretty="%H"'
+        }
+      }
+    }
+    stage ("Build magma-dev") {
+      environment {
+        // TODO(119vik): Replace with Jenkins.Secret
+        ATLAS_TOKEN = "123"
+      }
+      steps {
+        script {
+          dir('orc8r/tools/packer') {
+            // build fort virtualbox
+            sh "PACKER_LOG=1 /usr/bin/packer build magma-dev-virtualbox.json"
+            // build fort libvirt
+            sh "PACKER_LOG=1 /usr/bin/packer build magma-dev-libvirt.json"
+          }
+        }
+      }
+    }
+    stage ("Build magma-test") {
+      environment {
+        // TODO(119vik): Replace with Jenkins.Secret
+        ATLAS_TOKEN = "123"
+      }
+      steps {
+        script {
+          dir('orc8r/tools/packer') {
+            // build fort virtualbox
+            sh "PACKER_LOG=1 /usr/bin/packer build magma-test-virtualbox.json"
+            // build fort libvirt
+            sh "PACKER_LOG=1 /usr/bin/packer build magma-test-libvirt.json"
+          }
+        }
+      }
+    }
+    stage ("Build magma-tfserver") {
+      environment {
+        // TODO(119vik): Replace with Jenkins.Secret 
+        ATLAS_TOKEN = "123"
+      }
+      steps {
+        script {
+          dir('orc8r/tools/packer') {
+            // build fort virtualbox
+            sh "PACKER_LOG=1 /usr/bin/packer build magma-trfserver-virtualbox.json"
+            // build fort libvirt
+            sh "PACKER_LOG=1 /usr/bin/packer build magma-trfserver-libvirt.json"
+          }
+        }
+      }
+    }
+  }
