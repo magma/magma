@@ -16,8 +16,8 @@
     ( echo Command: {{item}} && {{item}} 2>&1) | tee -a {{ report_dir_output.stdout }}/commands_output.log
   register: output
   ignore_errors: yes
-  loop:
-    - "uname -a"
+  loop: "{{general_commands}}"
+
 - debug:
     msg: "{{item.cmd}} -> {{item.stdout_lines}}"
   with_items: "{{output.results}}"

@@ -11,13 +11,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Collect GW data
-  hosts: localhost
-  become: no
-  gather_facts: yes
-  roles:
-    - role: load_vars
-    - role: destdir
-    - role: files
-    - role: commands
-    - role: package
+
+- name: Run debian prereq
+  when: ansible_facts['distribution'] == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
+  include_tasks: debian.yml
+
+- name: Install community modules for all distross
+  shell: "{{item}}"
+  register: output
+  ignore_errors: no
+  loop: "{{ansible_community_commands}}"
+
+- debug:
+    msg: "{{item.cmd}} -> {{item.stdout_lines}}"
+  with_items: "{{output.results}}"

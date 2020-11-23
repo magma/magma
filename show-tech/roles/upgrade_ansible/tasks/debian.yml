@@ -11,13 +11,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Collect GW data
-  hosts: localhost
-  become: no
-  gather_facts: yes
-  roles:
-    - role: load_vars
-    - role: destdir
-    - role: files
-    - role: commands
-    - role: package
+
+# Add source repository into sources list.
+- name: Updating /etc/apt/sources.list with ansible for ubuntu repo
+  apt_repository:
+    repo: "{{ansible_apt_repo}}"
+    state: present
+
+- name: Import the ubuntu apt key
+  apt_key:
+    id: "{{ubuntu_apt_id}}"
+    keyserver: "{{ubuntu_apt_keyserver}}"
+    state: present
+
+- name: install packages
+  apt: name={{ item }} state=installed
+  with_items: "{{apt_prereq_packages}}"

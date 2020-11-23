@@ -11,13 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Collect GW data
+- name: install pre-requisites for show-tech
   hosts: localhost
   become: no
   gather_facts: yes
   roles:
     - role: load_vars
-    - role: destdir
-    - role: files
-    - role: commands
-    - role: package
+    - role: upgrade_ansible

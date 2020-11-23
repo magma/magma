@@ -11,34 +11,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-# Magma config collection
-- name: Create a dest directory for magma configs under report directory
+# Magma files collection based on map paths_to_collect
+- name: Create a dest directory for magma files under report directory
   file:
-    path: "{{ report_dir_output.stdout }}{{ item }}"
+    path: "{{report_dir_output.stdout}}/{{item.relative_dest}}"
     state: directory
     mode: "0700"
-  loop:
-    - "/var/opt/magma/configs"
-    - "/etc/magma/configs"
+  loop: "{{paths_to_collect}}"
 
-- name: Copy magma config files to destination
+
+- debug:
+    msg: "{{ item }}"
+  loop: "{{ paths_to_collect | community.general.json_query('[*].src') }}"
+
+
+- name: Copy magma files to destination
   copy:
-    src: "{{ item }}"
-    dest: "{{ report_dir_output.stdout }}/{{item}}"
-  with_fileglob:
-    - "/var/opt/magma/configs/*"
-    - "/etc/magma/configs/*"
-
-# Core files
-- name: Create a dest directory for magma cores report directory
-  file:
-    path: "{{ report_dir_output.stdout }}/cores"
-    state: directory
-    mode: "0700"
-
-- name: Copy magma cores to destination
-  copy:
-    src: "{{ item }}"
-    dest: "{{ report_dir_output.stdout }}/cores"
-  with_fileglob:
-    - "/tmp/*core*"
+    src: "{{item}}"
+    dest: "{{report_dir_output.stdout }}/{{item}}"
+  with_fileglob: "{{ paths_to_collect | community.general.json_query('[*].src') }}"

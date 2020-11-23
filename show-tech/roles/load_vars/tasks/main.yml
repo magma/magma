@@ -11,13 +11,5 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Collect GW data
-  hosts: localhost
-  become: no
-  gather_facts: yes
-  roles:
-    - role: load_vars
-    - role: destdir
-    - role: files
-    - role: commands
-    - role: package
+- name: include the vars for deployment from constants.yml
+  include_vars: "constants.yml"

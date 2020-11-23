@@ -1,9 +1,12 @@
 ## Prereq:
 
-On your GW host make sure yo have the following:
-1) ansible binary
-2) ansible collection 'community.general' should be installed by:
+On your GW host make sure you have the following packages:
+
 ```
+$ echo "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main" >> /etc/apt/sources.list
+$ apt-key adv --keyserver keyserver.ubuntu.com --recv-keys 93C4A3FD7BB9C367
+$ sudo apt update
+$ apt-get install git ansible software-properties-common dirmngr -y
 $ ansible-galaxy collection install community.general
 ```
 

@@ -16,9 +16,8 @@
     ( echo Command: {{item}} && {{item}} ) | tee -a {{ report_dir_output.stdout }}/commands_output.log
   register: output
   ignore_errors: yes
-  loop:
-    - "dpkg -l"
-    - "timeout 60 sudo tcpdump -i any sctp -w {{ report_dir_output.stdout }}/sctp.pcap"
+  loop: "{{debian_commands}}"
+
 - debug:
     msg: "{{item.cmd}} -> {{item.stdout_lines}}"
   with_items: "{{output.results}}"
