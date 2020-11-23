@@ -38,12 +38,14 @@
 #include <netinet/sctp.h>
 
 #include "mme_config.h"
+#include "amf_config.h"
 
 /** \brief SCTP Init function. Initialize SCTP layer
  \param mme_config The global MME configuration structure
  @returns -1 on error, 0 otherwise.
  **/
-int sctp_init(const mme_config_t* mme_config_p);
+int sctp_init(
+    const mme_config_t* mme_config_p /*, const amf_config_t* amf_config_p*/);
 
 #endif /* FILE_SCTP_PRIMITIVES_SERVER_SEEN */
 

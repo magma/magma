@@ -149,7 +149,6 @@ int sctpd_init(sctp_init_t* init) {
     }
     req.add_ipv6_addrs(ipv6_str);
   }
-
   req.set_port(init->port);
   req.set_ppid(init->ppid);
 
@@ -201,10 +200,12 @@ void sctpd_exit() {
 }
 
 // sendDl
-int sctpd_send_dl(uint32_t assoc_id, uint16_t stream, bstring payload) {
+int sctpd_send_dl(
+    uint32_t ppid, uint32_t assoc_id, uint16_t stream, bstring payload) {
   SendDlReq req;
   SendDlRes res;
 
+  req.set_ppid(ppid);
   req.set_assoc_id(assoc_id);
   req.set_stream(stream);
   req.set_payload(bdata(payload), blength(payload));
