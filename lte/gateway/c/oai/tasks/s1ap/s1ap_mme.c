@@ -144,6 +144,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       }
 
       // Free received PDU array
+      ASN_STRUCT_FREE_CONTENTS_ONLY(asn_DEF_S1ap_S1AP_PDU, &pdu);
       bdestroy_wrapper(&SCTP_DATA_IND(received_message_p).payload);
     } break;
 
