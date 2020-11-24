@@ -54,6 +54,11 @@ struct RuleSetToApply {
   void combine_rule_set(const RuleSetToApply& other);
 };
 
+struct UpdateRequests {
+  std::vector<UsageMonitoringUpdateRequest> monitor_requests;
+  std::vector<CreditUsageUpdate> charging_requests;
+};
+
 // Used to transform the proto message RulesPerSubscriber into a more useful
 // structure
 struct RuleSetBySubscriber {
@@ -205,8 +210,9 @@ class SessionState {
    */
   bool can_complete_termination(SessionStateUpdateCriteria& update_criteria);
 
-  bool reset_reporting_charging_credit(
-      const CreditKey& key, SessionStateUpdateCriteria& update_criteria);
+  void handle_update_failure(
+      const UpdateRequests& failed_requests,
+      SessionStateUpdateCriteria& session_uc);
 
   /**
    * Receive the credit grant if the credit update was successful
@@ -471,9 +477,6 @@ class SessionState {
 
   void set_monitor(
       const std::string& key, Monitor monitor, SessionStateUpdateCriteria& uc);
-
-  bool reset_reporting_monitor(
-      const std::string& key, SessionStateUpdateCriteria& uc);
 
   void set_session_level_key(const std::string new_key);
 
