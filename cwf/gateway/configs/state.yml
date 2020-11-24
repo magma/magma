@@ -28,3 +28,7 @@ state_protos:
 json_state:
   - redis_key: "directory_record"
     state_scope: "network"
+  - redis_key: "cwf_ha_pair_status"
+    state_scope: "network"
+  - redis_key: "cwf_gateway_health"
+    state_scope: "network"

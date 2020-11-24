@@ -38,8 +38,13 @@ services:
     proxy_type: "clientcert"
     labels:
       orc8r.io/obsidian_handlers: "true"
+      orc8r.io/state_indexer: "true"
     annotations:
-      orc8r.io/obsidian_handlers_path_prefixes: "/magma/v1/lte/:network_id/subscribers"
+      orc8r.io/state_indexer_types: "mobilityd_ipdesc_record"
+      orc8r.io/state_indexer_version: "1"
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/lte/:network_id/msisdns,
+        /magma/v1/lte/:network_id/subscribers,
 
   policydb:
     host: "localhost"
@@ -53,3 +58,14 @@ services:
         /magma/v1/lte/:network_id/policy_qos_profiles,
         /magma/v1/networks/:network_id/policies,
         /magma/v1/networks/:network_id/rating_groups,
+
+  smsd:
+    host: "localhost"
+    port: 9120
+    echo_port: 10086
+    proxy_type: "clientcert"
+    labels:
+      orc8r.io/obsidian_handlers: "true"
+    annotations:
+      orc8r.io/obsidian_handlers_path_prefixes: >
+        /magma/v1/lte/:network_id/sms,

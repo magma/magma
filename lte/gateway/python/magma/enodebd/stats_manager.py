@@ -362,5 +362,7 @@ class StatsManager:
         """
         logger.info('Clearing performance counter statistics')
         # Set all metrics to 0 if eNodeB not connected
-        for metric in self.PM_FILE_TO_METRIC_MAP.values():
-            metric.set(0)
+        for pm_name, metric in self.PM_FILE_TO_METRIC_MAP:
+            # eNB data usage metrics will not be cleared
+            if pm_name not in ('PDCP.UpOctUl', 'PDCP.UpOctDl'):
+                metric.set(0)

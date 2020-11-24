@@ -22,6 +22,10 @@ magma-gen-meta:
       filename: icmp_status_swaggergen.go
     - go-struct-name: MutableSubscriber
       filename: mutable_subscriber_swaggergen.go
+    - go-struct-name: Msisdn
+      filename: msisdn_swaggergen.go
+    - go-struct-name: MsisdnAssignment
+      filename: msisdn_assignment_swaggergen.go
     - go-struct-name: SubscriberDirectoryRecord
       filename: subscriber_directory_record_swaggergen.go
 
@@ -40,6 +44,16 @@ paths:
         - Subscribers
       parameters:
         - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: query
+          name: msisdn
+          type: string
+          description: Filter to subscribers with the passed MSISDN
+          required: false
+        - in: query
+          name: ip
+          type: string
+          description: Filter to subscribers assigned the passed IP address
+          required: false
       responses:
         '200':
           description: List of all the subscribers in the network
@@ -113,6 +127,68 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+  /lte/{network_id}/msisdns:
+    get:
+      summary: List MSISDNS in the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+      responses:
+        '200':
+          description: List of all MSISDNS in the network, mapped to their subscriber ID
+          schema:
+            type: object
+            additionalProperties:
+              $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    post:
+      summary: Add a new MSISDN to the network
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - in: body
+          name: msisdn_assignment
+          description: MSISDN to associate with an existing subscriber ID
+          required: true
+          schema:
+            $ref: '#/definitions/msisdn_assignment'
+      responses:
+        '201':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /lte/{network_id}/msisdns/{msisdn}:
+    get:
+      summary: Retrieve subscriber ID for the MSISDN
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/msisdn'
+      responses:
+        '200':
+          description: Subscriber ID
+          schema:
+            $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+    delete:
+      summary: Remove MSISDN association
+      tags:
+        - Subscribers
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/msisdn'
+      responses:
+        '204':
+          description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
   /lte/{network_id}/subscribers/{subscriber_id}/lte/sub_profile:
     put:
       summary: Change a subscriber's data profile
@@ -161,6 +237,14 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
+parameters:
+  msisdn:
+    in: path
+    name: msisdn
+    description: Mobile station international subscriber directory number
+    required: true
+    type: string
+
 definitions:
   subscriber:
     type: object
@@ -198,6 +282,8 @@ definitions:
         $ref: '#/definitions/subscriber_status'
       state:
         $ref: '#/definitions/subscriber_state'
+      msisdn:
+        $ref: '#/definitions/msisdn'
 
   mutable_subscriber:
     description: Subset of subscriber field which are mutable
@@ -241,6 +327,24 @@ definitions:
         $ref: '#/definitions/lte_subscription'
       static_ips:
         $ref: '#/definitions/subscriber_static_ips'
+
+  msisdn:
+    type: string
+    x-nullable: false
+    description: Mobile station international subscriber directory number
+    minLength: 1
+    example: '13109976224'
+
+  msisdn_assignment:
+    type: object
+    required:
+      - id
+      - msisdn
+    properties:
+      id:
+        $ref: './lte-policydb-swagger.yml#/definitions/subscriber_id'
+      msisdn:
+        $ref: '#/definitions/msisdn'
 
   subscriber_static_ips:
     type: object

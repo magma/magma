@@ -29,6 +29,7 @@ import (
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/serdes"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	configurator_test "magma/orc8r/cloud/go/services/configurator/test_utils"
 	device_test_init "magma/orc8r/cloud/go/services/device/test_init"
@@ -43,8 +44,8 @@ import (
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-	assert "github.com/stretchr/testify/require"
 )
 
 const (
@@ -142,7 +143,7 @@ func reportGatewayStatusForID(t *testing.T, id state_types.ID) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
 
-	serialized, err := serde.Serialize(state.SerdeDomain, orc8r.GatewayStateType, status)
+	serialized, err := serde.Serialize(status, orc8r.GatewayStateType, serdes.State)
 	assert.NoError(t, err)
 	pState := &protos.State{
 		Type:     orc8r.GatewayStateType,
@@ -185,9 +186,10 @@ func assertEqualBool(t *testing.T, expected bool, recv interface{}) {
 func assertEqualStatus(t *testing.T, recv interface{}, sid state_types.ID) {
 	hwid := hwidByID[sid]
 	reported := statusByID[sid]
-	recvStates := recv.(state_types.StatesByID)
+	recvStates := recv.(state_types.SerializedStatesByID)
 	assert.Len(t, recvStates, 1)
-	assert.Equal(t, orc8r.GatewayStateType, recvStates[sid].Type)
 	assert.Equal(t, hwid, recvStates[sid].ReporterID)
-	assert.Equal(t, reported, recvStates[sid].ReportedState)
+	actualReported, err := serde.Deserialize(recvStates[sid].SerializedReportedState, orc8r.GatewayStateType, serdes.State)
+	assert.NoError(t, err)
+	assert.Equal(t, reported, actualReported)
 }

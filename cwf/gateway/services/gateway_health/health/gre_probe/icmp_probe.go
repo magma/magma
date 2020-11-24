@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/gateway/services/gateway_health/metrics"
 
 	"github.com/sparrc/go-ping"
 )
@@ -116,8 +117,10 @@ func (i *ICMPProbe) executeProbe(pingers []*ping.Pinger) {
 			defer i.Unlock()
 			if stats.PacketsRecv == 0 {
 				i.endpointStatus[stats.Addr] = EndpointUnreachable
+				metrics.GreEndpointReachable.WithLabelValues(stats.Addr).Set(0)
 			} else {
 				i.endpointStatus[stats.Addr] = EndpointReachable
+				metrics.GreEndpointReachable.WithLabelValues(stats.Addr).Set(1)
 			}
 		}
 		pinger.Run()

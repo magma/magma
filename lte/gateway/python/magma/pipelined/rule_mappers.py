@@ -15,6 +15,7 @@ import threading
 from collections import namedtuple
 from typing import Optional
 
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.imsi import encode_imsi
 from magma.common.redis.client import get_default_client
 from magma.common.redis.containers import RedisHashDict
@@ -22,7 +23,7 @@ from magma.common.redis.serializers import get_json_deserializer, \
     get_json_serializer
 
 
-SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi rule_id')
+SubscriberRuleKey = namedtuple('SubscriberRuleKey', 'key_type imsi ip_addr rule_id')
 
 
 class RuleIDToNumMapper:
@@ -82,43 +83,53 @@ class SessionRuleToVersionMapper:
         self._version_by_imsi_and_rule = RuleVersionDict()
         self._lock = threading.Lock()  # write lock
 
-    def _update_version_unsafe(self, imsi: str, rule_id: str):
-        key = self._get_json_key(encode_imsi(imsi), rule_id)
+    def _update_version_unsafe(self, imsi: str, ip_addr: str, rule_id: str):
+        key = self._get_json_key(encode_imsi(imsi), ip_addr, rule_id)
         version = self._version_by_imsi_and_rule.get(key)
         if not version:
             version = 0
         self._version_by_imsi_and_rule[key] = \
             (version % self.VERSION_LIMIT) + 1
 
-    def update_version(self, imsi: str, rule_id: Optional[str] = None):
+    def update_version(self, imsi: str, ip_addr: IPAddress,
+                       rule_id: Optional[str] = None):
         """
         Increment the version number for a given subscriber and rule. If the
         rule id is not specified, then all rules for the subscriber will be
         incremented.
         """
         encoded_imsi = encode_imsi(imsi)
+        if ip_addr is None or ip_addr.address is None:
+            ip_addr_str = ""
+        else:
+            ip_addr_str = ip_addr.address.decode('utf-8')
         with self._lock:
             if rule_id is None:
                 for k, v in self._version_by_imsi_and_rule.items():
-                    _, i, _ = SubscriberRuleKey(*json.loads(k))
-                    if i == encoded_imsi:
+                    _, imsi, ip_addr_str, _ = SubscriberRuleKey(*json.loads(k))
+                    if imsi == encoded_imsi and ip_addr_str == ip_addr_str:
                         self._version_by_imsi_and_rule[k] = v + 1
             else:
-                self._update_version_unsafe(imsi, rule_id)
+                self._update_version_unsafe(imsi, ip_addr_str, rule_id)
 
-    def get_version(self, imsi: str, rule_id: str) -> int:
+    def get_version(self, imsi: str, ip_addr: IPAddress, rule_id: str) -> int:
         """
         Returns the version number given a subscriber and a rule.
         """
-        key = self._get_json_key(encode_imsi(imsi), rule_id)
+        if ip_addr is None or ip_addr.address is None:
+            ip_addr_str = ""
+        else:
+            ip_addr_str = ip_addr.address.decode('utf-8')
+        key = self._get_json_key(encode_imsi(imsi), ip_addr_str, rule_id)
         with self._lock:
             version = self._version_by_imsi_and_rule.get(key)
             if version is None:
                 version = 0
         return version
 
-    def _get_json_key(self, imsi: str, rule_id: str):
-        return json.dumps(SubscriberRuleKey('imsi_rule', imsi, rule_id))
+    def _get_json_key(self, imsi: str, ip_addr: str, rule_id: str):
+        return json.dumps(SubscriberRuleKey('imsi_rule', imsi, ip_addr,
+                                            rule_id))
 
 
 class RuleIDDict(RedisHashDict):

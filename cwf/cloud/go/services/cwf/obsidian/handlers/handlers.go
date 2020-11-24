@@ -19,6 +19,7 @@ import (
 	"net/http"
 
 	"magma/cwf/cloud/go/cwf"
+	"magma/cwf/cloud/go/serdes"
 	cwfModels "magma/cwf/cloud/go/services/cwf/obsidian/models"
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -27,7 +28,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
-	"magma/orc8r/cloud/go/services/directoryd"
+	directorydTypes "magma/orc8r/cloud/go/services/directoryd/types"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	orc8rModels "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
@@ -50,12 +51,12 @@ const (
 	ManageNetworkFederationPath    = ManageNetworkPath + obsidian.UrlSep + "federation"
 	ListNetworkHAPairsPath         = ManageNetworkPath + obsidian.UrlSep + "ha_pairs"
 	ManageNetworkHAPairsPath       = ListNetworkHAPairsPath + obsidian.UrlSep + ":ha_pair_id"
+	ManageNetworkHAPairsStatusPath = ManageNetworkHAPairsPath + obsidian.UrlSep + "status"
 	ManageNetworkSubscriberPath    = ManageNetworkPath + obsidian.UrlSep + "subscriber_config"
 	ManageNetworkBaseNamesPath     = ManageNetworkSubscriberPath + obsidian.UrlSep + "base_names"
 	ManageNetworkRuleNamesPath     = ManageNetworkSubscriberPath + obsidian.UrlSep + "rule_names"
 	ManageNetworkBaseNamePath      = ManageNetworkBaseNamesPath + obsidian.UrlSep + ":base_name"
 	ManageNetworkRuleNamePath      = ManageNetworkRuleNamesPath + obsidian.UrlSep + ":rule_id"
-	ManageNetworkClusterStatusPath = ManageNetworkPath + obsidian.UrlSep + "cluster_status"
 	ManageNetworkLiUesPath         = ManageNetworkPath + obsidian.UrlSep + ":li_ues"
 
 	Gateways                      = "gateways"
@@ -77,14 +78,14 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(ListGatewaysPath, &cwfModels.MutableCwfGateway{}, makeCwfGateways),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, &cwfModels.MutableCwfGateway{}, makeCwfGateways, serdes.Entity, serdes.Device),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.DELETE, HandlerFunc: deleteGateway},
 
 		{Path: ManageGatewayStatePath, Methods: obsidian.GET, HandlerFunc: handlers.GetStateHandler},
-		{Path: ManageNetworkClusterStatusPath, Methods: obsidian.GET, HandlerFunc: getClusterStatusHandler},
+		{Path: ManageNetworkHAPairsStatusPath, Methods: obsidian.GET, HandlerFunc: getHAPairStatusHandler},
 		{Path: ManageGatewayHealthStatusPath, Methods: obsidian.GET, HandlerFunc: getHealthStatusHandler},
 		{Path: SubscriberDirectoryRecordPath, Methods: obsidian.GET, HandlerFunc: getSubscriberDirectoryHandler},
 
@@ -100,31 +101,31 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
 	}
 
-	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, cwf.CwfNetworkType, &cwfModels.CwfNetwork{})...)
+	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListNetworksPath, ManageNetworkPath, cwf.CwfNetworkType, &cwfModels.CwfNetwork{}, serdes.Network)...)
 
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rModels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8rModels.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCarrierWifiPath, &cwfModels.NetworkCarrierWifiConfigs{}, cwf.CwfNetworkType)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFederationPath, &fegModels.FederatedNetworkConfigs{}, cwf.CwfNetworkType)...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkLiUesPath, new(cwfModels.LiUes), "")...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &orc8rModels.NetworkFeatures{}, orc8r.NetworkFeaturesConfig, serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkDNSPath, &orc8rModels.NetworkDNSConfig{}, orc8r.DnsdNetworkType, serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkCarrierWifiPath, &cwfModels.NetworkCarrierWifiConfigs{}, cwf.CwfNetworkType, serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkFederationPath, &fegModels.FederatedNetworkConfigs{}, cwf.CwfNetworkType, serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkRuleNamesPath, new(policyModels.RuleNames), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkBaseNamesPath, new(policyModels.BaseNames), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageNetworkLiUesPath, new(cwfModels.LiUes), "", serdes.Network)...)
 
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rModels.MagmadGatewayConfigs{})...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rModels.TierID))...)
-	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCarrierWifiPath, &cwfModels.GatewayCwfConfigs{})...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName), serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription), serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConfigPath, &orc8rModels.MagmadGatewayConfigs{}, serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayTierPath, new(orc8rModels.TierID), serdes.Entity)...)
+	ret = append(ret, handlers.GetGatewayDeviceHandlers(ManageGatewayDevicePath, serdes.Device)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCarrierWifiPath, &cwfModels.GatewayCwfConfigs{}, serdes.Entity)...)
 
 	return ret
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateGateway(c, &cwfModels.MutableCwfGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &cwfModels.MutableCwfGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -144,6 +145,7 @@ func getGateway(c echo.Context) error {
 	ent, err := configurator.LoadEntity(
 		nid, cwf.CwfGatewayType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: false},
+		serdes.Entity,
 	)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load cwf gateway"), http.StatusInternalServerError)
@@ -170,7 +172,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateGateway(c, nid, gid, &cwfModels.MutableCwfGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &cwfModels.MutableCwfGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -230,7 +232,7 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	configuratorNetwork, err := configurator.LoadNetwork(networkID, false, false)
+	configuratorNetwork, err := configurator.LoadNetwork(networkID, false, false, serdes.Network)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	}
@@ -241,7 +243,7 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 	if subscriberID == "" {
 		return obsidian.HttpError(fmt.Errorf("SubscriberID cannot be empty"), http.StatusBadRequest)
 	}
-	directoryState, err := state.GetState(networkID, orc8r.DirectoryRecordType, subscriberID)
+	directoryState, err := state.GetState(networkID, orc8r.DirectoryRecordType, subscriberID, serdes.State)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
 	} else if err != nil {
@@ -255,7 +257,7 @@ func getSubscriberDirectoryHandler(c echo.Context) error {
 }
 
 func convertDirectoryRecordToSubscriberRecord(iRecord interface{}) (*cwfModels.CwfSubscriberDirectoryRecord, error) {
-	record, ok := iRecord.(*directoryd.DirectoryRecord)
+	record, ok := iRecord.(*directorydTypes.DirectoryRecord)
 	if !ok {
 		return nil, fmt.Errorf("Could not convert retrieved state to DirectoryRecord")
 	}
@@ -272,12 +274,12 @@ func convertDirectoryRecordToSubscriberRecord(iRecord interface{}) (*cwfModels.C
 	return c, nil
 }
 
-func getClusterStatusHandler(c echo.Context) error {
-	nid, nerr := obsidian.GetNetworkId(c)
+func getHAPairStatusHandler(c echo.Context) error {
+	nid, haPairID, nerr := getNetworkIDAndHaPairID(c)
 	if nerr != nil {
 		return nerr
 	}
-	network, err := configurator.LoadNetwork(nid, true, true)
+	network, err := configurator.LoadNetwork(nid, true, true, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 	}
@@ -287,17 +289,11 @@ func getClusterStatusHandler(c echo.Context) error {
 	if network.Type != cwf.CwfNetworkType {
 		return echo.NewHTTPError(http.StatusBadRequest, fmt.Sprintf("network %s is not a <%s> network", nid, cwf.CwfNetworkType))
 	}
-	reportedClusterStatus, err := state.GetState(nid, cwf.CwfClusterHealthType, "cluster")
-	if err == merrors.ErrNotFound {
-		return obsidian.HttpError(err, http.StatusNotFound)
-	} else if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
+	haPairStatus, err := getCwfHaPairStatus(nid, haPairID)
+	if err != nil {
+		return err
 	}
-	clusterStatus, ok := reportedClusterStatus.ReportedState.(*cwfModels.CarrierWifiNetworkClusterStatus)
-	if !ok {
-		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to ClusterStatus"), http.StatusInternalServerError)
-	}
-	return c.JSON(http.StatusOK, clusterStatus)
+	return c.JSON(http.StatusOK, haPairStatus)
 }
 
 func getHealthStatusHandler(c echo.Context) error {
@@ -312,15 +308,9 @@ func getHealthStatusHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
-	reportedGatewayState, err := state.GetState(nid, cwf.CwfGatewayHealthType, gid)
-	if err == merrors.ErrNotFound {
-		return obsidian.HttpError(err, http.StatusNotFound)
-	} else if err != nil {
-		return obsidian.HttpError(err, http.StatusInternalServerError)
-	}
-	healthState, ok := reportedGatewayState.ReportedState.(*cwfModels.CarrierWifiGatewayHealthStatus)
-	if !ok {
-		return obsidian.HttpError(fmt.Errorf("could not convert reported retrieved state to HealthStatus"), http.StatusInternalServerError)
+	healthState, err := getCwfGatewayHealth(nid, gid)
+	if err != nil {
+		return err
 	}
 	return c.JSON(http.StatusOK, healthState)
 }
@@ -330,7 +320,7 @@ func listHAPairsHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	haPairEnts, err := configurator.LoadAllEntitiesInNetwork(nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria())
+	haPairEnts, err := configurator.LoadAllEntitiesOfType(nid, cwf.CwfHAPairType, configurator.FullEntityLoadCriteria(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -341,6 +331,7 @@ func listHAPairsHandler(c echo.Context) error {
 		if err != nil {
 			return obsidian.HttpError(err, http.StatusInternalServerError)
 		}
+		cwfHaPair.State = getHaPairState(nid, cwfHaPair)
 		ret[haPairEnt.Key] = cwfHaPair
 	}
 	return c.JSON(http.StatusOK, ret)
@@ -351,11 +342,14 @@ func createHAPairHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	haPair := new(cwfModels.CwfHaPair)
+	haPair := new(cwfModels.MutableCwfHaPair)
 	if err := c.Bind(haPair); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
-	_, err := configurator.CreateEntity(networkID, haPair.ToEntity())
+	if err := haPair.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	_, err := configurator.CreateEntity(networkID, haPair.ToEntity(), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -368,10 +362,9 @@ func getHAPairHandler(c echo.Context) error {
 		return nerr
 	}
 	ent, err := configurator.LoadEntity(
-		networkID,
-		cwf.CwfHAPairType,
-		haPairID,
+		networkID, cwf.CwfHAPairType, haPairID,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
 	)
 	if err == merrors.ErrNotFound {
 		return obsidian.HttpError(err, http.StatusNotFound)
@@ -384,6 +377,7 @@ func getHAPairHandler(c echo.Context) error {
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
+	cwfHaPair.State = getHaPairState(networkID, cwfHaPair)
 	return c.JSON(http.StatusOK, cwfHaPair)
 }
 
@@ -399,6 +393,10 @@ func updateHAPairHandler(c echo.Context) error {
 	if err := mutableHaPair.ValidateModel(); err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
+	if string(mutableHaPair.HaPairID) != haPairID {
+		err := fmt.Errorf("ha pair ID from parameters (%s) and payload (%s) must match", haPairID, mutableHaPair.HaPairID)
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
 	// 404 if pair doesn't exist
 	exists, err := configurator.DoesEntityExist(networkID, cwf.CwfHAPairType, haPairID)
 	if err != nil {
@@ -407,7 +405,7 @@ func updateHAPairHandler(c echo.Context) error {
 	if !exists {
 		return echo.ErrNotFound
 	}
-	_, err = configurator.UpdateEntity(networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID))
+	_, err = configurator.UpdateEntity(networkID, mutableHaPair.ToEntityUpdateCriteria(haPairID), serdes.Entity)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
@@ -424,6 +422,57 @@ func deleteHAPairHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func getHaPairState(networkID string, haPair *cwfModels.CwfHaPair) *cwfModels.CarrierWifiHaPairState {
+	ret := &cwfModels.CarrierWifiHaPairState{}
+	gateway1Health, err := getCwfGatewayHealth(networkID, haPair.GatewayID1)
+	if err == nil {
+		ret.Gateway1Health = gateway1Health
+	}
+	gateway2Health, err := getCwfGatewayHealth(networkID, haPair.GatewayID2)
+	if err == nil {
+		ret.Gateway2Health = gateway2Health
+	}
+	status, err := getCwfHaPairStatus(networkID, haPair.HaPairID)
+	if err == nil {
+		ret.HaPairStatus = status
+	}
+	return ret
+}
+
+func getCwfGatewayHealth(networkID string, gatewayID string) (*cwfModels.CarrierWifiGatewayHealthStatus, error) {
+	reportedGatewayState, err := state.GetState(networkID, cwf.CwfGatewayHealthType, gatewayID, serdes.State)
+	if err == merrors.ErrNotFound {
+		return nil, obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	healthState, ok := reportedGatewayState.ReportedState.(*cwfModels.CarrierWifiGatewayHealthStatus)
+	if !ok {
+		return nil, obsidian.HttpError(
+			fmt.Errorf("could not convert retrieved type %T to CarrierWifiGatewayHealthStatus", reportedGatewayState.ReportedState),
+			http.StatusInternalServerError,
+		)
+	}
+	return healthState, nil
+}
+
+func getCwfHaPairStatus(networkID string, haPairID string) (*cwfModels.CarrierWifiHaPairStatus, error) {
+	reportedHaPairStatus, err := state.GetState(networkID, cwf.CwfHAPairStatusType, haPairID, serdes.State)
+	if err == merrors.ErrNotFound {
+		return nil, obsidian.HttpError(err, http.StatusNotFound)
+	} else if err != nil {
+		return nil, obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	haPairStatus, ok := reportedHaPairStatus.ReportedState.(*cwfModels.CarrierWifiHaPairStatus)
+	if !ok {
+		return nil, obsidian.HttpError(
+			fmt.Errorf("could not convert retrieved type %T to CarrierWifiHaPairStatus", reportedHaPairStatus.ReportedState),
+			http.StatusInternalServerError,
+		)
+	}
+	return haPairStatus, nil
 }
 
 func getNetworkIDAndHaPairID(c echo.Context) (string, string, *echo.HTTPError) {

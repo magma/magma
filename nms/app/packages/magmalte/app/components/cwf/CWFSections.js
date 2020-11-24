@@ -15,6 +15,8 @@
  */
 import type {SectionsConfigs} from '@fbcnms/magmalte/app/components/layout/Section';
 
+import AlarmIcon from '@material-ui/icons/Alarm';
+import Alarms from '@fbcnms/ui/insights/Alarms/Alarms';
 import CWFConfigure from './CWFConfigure';
 import CWFGateways from './CWFGateways';
 import CWFMetrics from './CWFMetrics';
@@ -23,7 +25,7 @@ import React from 'react';
 import SettingsCellIcon from '@material-ui/icons/SettingsCell';
 import ShowChartIcon from '@material-ui/icons/ShowChart';
 
-export function getCWFSections(): SectionsConfigs {
+export function getCWFSections(dashboardV2Enabled: boolean): SectionsConfigs {
   const sections = [
     {
       path: 'gateways',
@@ -43,7 +45,17 @@ export function getCWFSections(): SectionsConfigs {
       icon: <ShowChartIcon />,
       component: CWFMetrics,
     },
+    {
+      path: 'alerts',
+      label: 'Alerts',
+      icon: <AlarmIcon />,
+      component: Alarms,
+    },
   ];
+
+  if (dashboardV2Enabled) {
+    // TODO add equipment, policy and subscriber section
+  }
 
   return [
     'gateways', // landing path

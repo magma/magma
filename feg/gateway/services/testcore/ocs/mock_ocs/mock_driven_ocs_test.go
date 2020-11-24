@@ -102,7 +102,12 @@ func TestOCSExpectations(t *testing.T) {
 		Type:          credit_control.CRTUpdate,
 		IMSI:          test.IMSI1,
 		RequestNumber: 1,
-		Credits:       []*gy.UsedCredits{{TotalOctets: 100, RatingGroup: 1, Type: gy.QUOTA_EXHAUSTED}},
+		Credits: []*gy.UsedCredits{{
+			TotalOctets:    100,
+			RatingGroup:    1,
+			Type:           gy.QUOTA_EXHAUSTED,
+			RequestedUnits: &lteprotos.RequestedUnits{Total: 1000, Tx: 1000, Rx: 1000},
+		}},
 	}
 	done = make(chan interface{}, 1000)
 	assert.NoError(t, gyClient.SendCreditControlRequest(&serverConfig, done, ccrUpdate))

@@ -1,9 +1,7 @@
 /*
 Copyright 2020 The Magma Authors.
-
 This source code is licensed under the BSD-style license found in the
 LICENSE file in the root directory of this source tree.
-
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
@@ -21,10 +19,6 @@ import (
 	"strings"
 	"time"
 
-	"magma/feg/cloud/go/protos"
-	"magma/feg/gateway/diameter"
-	"magma/feg/gateway/services/swx_proxy/metrics"
-
 	"github.com/fiorix/go-diameter/v4/diam"
 	"github.com/fiorix/go-diameter/v4/diam/avp"
 	"github.com/fiorix/go-diameter/v4/diam/datatype"
@@ -32,28 +26,42 @@ import (
 	"github.com/golang/glog"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"magma/feg/cloud/go/protos"
+	"magma/feg/gateway/diameter"
+	"magma/feg/gateway/services/swx_proxy/metrics"
 )
 
-const MinRequestedVectors uint32 = 5
+const (
+	MinRequestedVectors uint32 = 5
+	MaxReturnedVectors  int    = 5
+)
 
 // AuthenticateImpl sends MAR over diameter connection,
 // waits (blocks) for MAA & returns its RPC representation
 func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.AuthenticationAnswer, error) {
 	var (
-		res = &protos.AuthenticationAnswer{}
-		err = validateAuthRequest(req)
+		res       = &protos.AuthenticationAnswer{}
+		err       = validateAuthRequest(req)
+		cachedRes *protos.AuthenticationAnswer
 	)
 	if err != nil {
 		return res, status.Errorf(codes.InvalidArgument, err.Error())
 	}
 	res.UserName = req.GetUserName()
 	shouldSendSar := s.config.VerifyAuthorization || req.GetRetrieveUserProfile()
-
+	requestedVectors := int(req.SipNumAuthVectors)
+	if requestedVectors < 1 {
+		requestedVectors = 1
+	} else if requestedVectors > MaxReturnedVectors {
+		requestedVectors = MaxReturnedVectors
+	}
 	if s.cache != nil {
 		// Check if we still have valid vectors for the user in the cache
 		if len(req.GetResyncInfo()) == 0 { // Only try to get cached vectors if it's not resync request
-			cachedRes := s.cache.Get(res.UserName)
-			if cachedRes != nil && ((!shouldSendSar) || cachedRes.GetUserProfile() != nil) {
+			cachedRes = s.cache.Get(res.UserName, requestedVectors)
+			if cachedRes != nil && ((!shouldSendSar) || cachedRes.GetUserProfile() != nil) &&
+				len(cachedRes.SipAuthVectors) >= requestedVectors {
 				return cachedRes, nil // We have a valid result in the cache, return it
 			}
 		}
@@ -66,6 +74,11 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	maa, err := s.sendMAR(req, sid)
 	if err != nil {
 		if protos.SwxErrorCode(status.Code(err)) != protos.SwxErrorCode_IDENTITY_ALREADY_REGISTERED {
+			if cachedRes != nil {
+				// if we have a cached result with insufficient # of vectors, log an error & return it
+				glog.Errorf("SWx send MAR Error: %v, returning %d cached vectors", err, len(cachedRes.SipAuthVectors))
+				return cachedRes, nil
+			}
 			return res, err
 		}
 		aaaHost := string(maa.AAAServerName)
@@ -113,7 +126,14 @@ func (s *swxProxy) AuthenticateImpl(req *protos.AuthenticationRequest) (*protos.
 	res.SipAuthVectors = getSIPAuthenticationVectors(maa.SIPAuthDataItems)
 	// The only point when we cache vectors
 	if s.cache != nil {
-		res = s.cache.Put(res)
+		if cachedRes != nil {
+			cacheVectors := len(cachedRes.SipAuthVectors)
+			requestedVectors -= cacheVectors
+			res = s.cache.Put(res, requestedVectors)
+			res.SipAuthVectors = append(cachedRes.SipAuthVectors, res.SipAuthVectors...)
+		} else {
+			res = s.cache.Put(res, requestedVectors)
+		}
 	}
 	return res, err
 }

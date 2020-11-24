@@ -16,6 +16,7 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+#include <iomanip>
 
 #include <folly/io/async/EventBaseManager.h>
 #include <lte/protos/mconfig/mconfigs.pb.h>
@@ -34,6 +35,45 @@
 #include "SpgwServiceClient.h"
 
 namespace magma {
+using std::experimental::optional;
+
+typedef std::pair<std::string, std::string> ImsiAndSessionID;
+
+struct ImsiSessionIDAndCreditkey {
+  std::string imsi;
+  std::string session_id;
+  CreditKey cKey;
+
+  bool operator==(const ImsiSessionIDAndCreditkey& other) const {
+    return this->imsi == other.imsi && this->session_id == other.session_id &&
+           ccEqual(cKey, other.cKey);
+  }
+};
+
+struct ImsiSessionIDAndCreditkey_hash {
+  std::size_t operator()(const ImsiSessionIDAndCreditkey& el) const {
+    size_t h1 = std::hash<std::string>()(el.imsi);
+    size_t h2 = std::hash<std::string>()(el.session_id);
+    size_t h3 = ccHash(el.cKey);
+    return h1 ^ h2 ^ h3;
+  }
+};
+
+struct UpdateChargingCreditActions {
+  std::unordered_set<ImsiAndSessionID> sessions_to_terminate;
+  std::unordered_set<ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>
+      suspended_credits;
+  std::unordered_set<ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>
+      unsuspended_credits;
+};
+
+// Used to transform the UpdateSessionRequest proto message into a per-session
+// structure
+struct UpdateRequestsBySession {
+  std::unordered_map<ImsiAndSessionID, UpdateRequests> requests_by_id;
+  UpdateRequestsBySession() {}
+  UpdateRequestsBySession(const magma::lte::UpdateSessionRequest& response);
+};
 class SessionNotFound : public std::exception {
  public:
   SessionNotFound() = default;
@@ -95,16 +135,17 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * reset_updates resets all of the charging keys being updated in
-   * failed_request. This should only be called if the *entire* request fails
-   * (i.e. the entire request to the cloud timed out). Individual failures
-   * are handled when update_session_credits_and_rules is called.
+   * handle_update_failure resets all of the charging keys / monitors being
+   * updated in failed_request. This should only be called if the *entire*
+   * request fails (i.e. the entire request to the cloud timed out). Individual
+   * failures are handled when update_session_credits_and_rules is called.
    *
-   * @param failed_request - UpdateSessionRequest that couldn't be sent to the
-   *                         cloud for whatever reason
+   * @param failed_request - UpdateRequestsBySession that couldn't be sent to
+   * the cloud for whatever reason
    */
-  void reset_updates(
-      SessionMap& session_map, const UpdateSessionRequest& failed_request);
+  void handle_update_failure(
+      SessionMap& session_map, const UpdateRequestsBySession& failed_request,
+      SessionUpdate& updates);
 
   /**
    * Collect any credit keys that are either exhausted, timed out, or terminated
@@ -124,6 +165,10 @@ class LocalEnforcer {
       const std::string& imsi, SessionState& session_state,
       const CreateSessionResponse& response,
       std::unordered_set<uint32_t>& charging_credits_received);
+
+  void schedule_session_init_dedicated_bearer_creations(
+      const std::string& imsi, const std::string& session_id,
+      BearerUpdate& bearer_updates);
 
   /**
    * Initialize credit received from the cloud in the system. This adds all the
@@ -145,17 +190,28 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * terminate_session handles externally triggered session termination.
-   * This assumes that the termination is coming from the access component, so
-   * it does not notify the termination back to the access component.
+   * handle_termination_from_access handles externally triggered session
+   * termination. This assumes that the termination is coming from the access
+   * component, so it does not notify the termination back to the access
+   * component.
    * @param session_map
    * @param imsi
    * @param apn
    * @param session_update
    */
-  void terminate_session(
+  bool handle_termination_from_access(
       SessionMap& session_map, const std::string& imsi, const std::string& apn,
-      SessionUpdate& session_update);
+      SessionUpdate& session_updates);
+
+  /**
+   * handle abort session - ungraceful termination
+   * 1. Remove all rules attached to the session + update PipelineD
+   * 2. Notify the access component
+   * 3. Remove the session from SessionMap
+   */
+  bool handle_abort_session(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, SessionUpdate& session_updates);
 
   /**
    * Initialize reauth for a subscriber service. If the subscriber cannot be
@@ -220,14 +276,27 @@ class LocalEnforcer {
       SessionMap& session_map, const PolicyBearerBindingRequest& request,
       SessionUpdate& session_update);
 
+  /**
+   * Sends enb_teid and agw_teid for a specific bearer to a flow for a specific
+   * UE on pipelined. UE will be identified by pipelined using its IP
+   * @param session_map
+   * @param request
+   * @param session_update
+   * @return true if successfully processed the request
+   */
+  bool update_tunnel_ids(
+      SessionMap& session_map, const UpdateTunnelIdsRequest& request,
+      SessionUpdate& session_update);
+
+  std::unique_ptr<Timezone>& get_access_timezone() { return access_timezone_; };
+
   static uint32_t REDIRECT_FLOW_PRIORITY;
+  static uint32_t BEARER_CREATION_DELAY_ON_SESSION_INIT;
+  // If this is set to true, we will send the timezone along with
+  // CreateSessionRequest
+  static bool SEND_ACCESS_TIMEZONE;
 
  private:
-  struct RedirectInstallInfo {
-    std::string imsi;
-    std::string session_id;
-    magma::lte::RedirectServer redirect_server;
-  };
   std::shared_ptr<SessionReporter> reporter_;
   std::shared_ptr<StaticRuleStore> rule_store_;
   std::shared_ptr<PipelinedClient> pipelined_client_;
@@ -241,8 +310,9 @@ class LocalEnforcer {
   // [CWF-ONLY] This configures how long we should wait before terminating a
   // session after it is created without any monitoring quota
   long quota_exhaustion_termination_on_init_ms_;
-  std::chrono::seconds retry_timeout_;
+  std::chrono::milliseconds retry_timeout_;
   magma::mconfig::SessionD mconfig_;
+  std::unique_ptr<Timezone> access_timezone_;
 
  private:
   /**
@@ -257,7 +327,7 @@ class LocalEnforcer {
    */
   void complete_termination_for_released_sessions(
       SessionMap& session_map,
-      std::unordered_set<std::string> sessions_with_active_flows,
+      std::unordered_set<ImsiAndSessionID> sessions_with_active_flows,
       SessionUpdate& session_update);
 
   void filter_rule_installs(
@@ -278,8 +348,7 @@ class LocalEnforcer {
    */
   void update_charging_credits(
       SessionMap& session_map, const UpdateSessionResponse& response,
-      std::unordered_set<std::string>& subscribers_to_terminate,
-      SessionUpdate& session_update);
+      UpdateChargingCreditActions& actions, SessionUpdate& session_update);
 
   /**
    * Processes the monitoring component of UpdateSessionResponse.
@@ -290,8 +359,7 @@ class LocalEnforcer {
    */
   void update_monitoring_credits_and_rules(
       SessionMap& session_map, const UpdateSessionResponse& response,
-      std::unordered_set<std::string>& subscribers_to_terminate,
-      SessionUpdate& session_update);
+      UpdateChargingCreditActions& actions, SessionUpdate& session_update);
 
   /**
    * Process the list of rule names given and fill in rules_to_deactivate by
@@ -303,16 +371,6 @@ class LocalEnforcer {
       const google::protobuf::RepeatedPtrField<std::basic_string<char>>
           rules_to_remove,
       RulesToProcess& rules_to_deactivate, SessionStateUpdateCriteria& uc);
-
-  /**
-   * Populate existing rules from a specific session;
-   * used to delete flow rules for a PDN session,
-   * distinct APNs are assumed to have mutually exclusive
-   * rules.
-   */
-  void populate_rules_from_session_to_remove(
-      const std::string& imsi, const std::unique_ptr<SessionState>& session,
-      RulesToProcess& rules_to_deactivate);
 
   /**
    * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
@@ -352,6 +410,16 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
+   * find_and_terminate_session call start_session_termination on
+   * a session with IMSI + session id.
+   * @return true if start_session_termination was called, false if session was
+   * not found
+   */
+  bool find_and_terminate_session(
+      SessionMap& session_map, const std::string& imsi,
+      const std::string& session_id, SessionUpdate& session_updates);
+
+  /**
    * Completes the session termination and executes the callback function
    * registered in terminate_session.
    * complete_termination is called some time after terminate_session
@@ -364,21 +432,23 @@ class LocalEnforcer {
    */
   void complete_termination(
       SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, SessionStateUpdateCriteria& uc);
+      const std::string& session_id, SessionUpdate& session_update);
 
   void schedule_static_rule_activation(
       const std::string& imsi, const std::string& ip_addr,
-      const StaticRuleInstall& static_rule);
+      const std::string& ipv6_addr, const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_activation(
       const std::string& imsi, const std::string& ip_addr,
-      const DynamicRuleInstall& dynamic_rule);
+      const std::string& ipv6_addr, const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
-      const std::string& imsi, const StaticRuleInstall& static_rule);
+      const std::string& imsi, const std::string& ip_addr,
+      const std::string& ipv6_addr, const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
-      const std::string& imsi, DynamicRuleInstall& dynamic_rule);
+      const std::string& imsi, const std::string& ip_addr,
+      const std::string& ipv6_addr, DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
@@ -416,20 +486,11 @@ class LocalEnforcer {
 
   void handle_activate_ue_flows_callback(
       const std::string& imsi, const std::string& ip_addr,
-      std::experimental::optional<AggregatedMaximumBitrate> ambr,
+      const std::string& ipv6_addr, const std::string& msisdn,
+      optional<AggregatedMaximumBitrate> ambr,
       const std::vector<std::string>& static_rules,
       const std::vector<PolicyRule>& dynamic_rules, Status status,
       ActivateFlowsResult resp);
-
-  /**
-   * find_and_terminate_session call start_session_termination on a session with
-   * IMSI + session id.
-   * @return true if start_session_termination was called, false if session was
-   * not found
-   */
-  bool find_and_terminate_session(
-      SessionMap& session_map, const std::string& imsi,
-      const std::string& session_id, SessionUpdate& session_update);
 
   /**
    * start_session_termination starts the termination process. This includes:
@@ -499,11 +560,25 @@ class LocalEnforcer {
       SubscriberQuotaUpdate_Type new_state);
 
   /**
-   * Deactivate rules for multiple IMSIs.
-   * Notify AAA service if the session is a CWF session.
+   * Start the termination process for multiple sessions
    */
-  void terminate_multiple_services(
-      SessionMap& session_map, const std::unordered_set<std::string>& imsis,
+  void terminate_multiple_sessions(
+      SessionMap& session_map,
+      const std::unordered_set<ImsiAndSessionID>& sessions,
+      SessionUpdate& session_update);
+
+  void remove_rules_for_multiple_suspended_credit(
+      SessionMap& session_map,
+      std::unordered_set<
+          ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>&
+          suspended_credits,
+      SessionUpdate& session_update);
+
+  void add_rules_for_multiple_unsuspended_credit(
+      SessionMap& session_map,
+      std::unordered_set<
+          ImsiSessionIDAndCreditkey, ImsiSessionIDAndCreditkey_hash>&
+          unsuspended_credits,
       SessionUpdate& session_update);
 
   void handle_activate_service_action(
@@ -511,17 +586,24 @@ class LocalEnforcer {
       SessionUpdate& session_update);
 
   /**
-   * Install flow for redirection through pipelined
+   * Install final action flows through pipelined
    */
-  void start_redirect_flow_install(
+  void install_final_unit_action_flows(
       SessionMap& session_map, const std::unique_ptr<ServiceAction>& action,
       SessionUpdate& session_update);
 
-  void complete_redirect_flow_install(
-      Status status, DirectoryField resp,
-      const RedirectInstallInfo redirect_info);
+  /**
+   * Remove final action flows through pipelined
+   */
+  void cancel_final_unit_action(
+      const std::unique_ptr<SessionState>& session,
+      const std::vector<std::string>& restrict_rules,
+      SessionStateUpdateCriteria& uc);
 
-  PolicyRule create_redirect_rule(const RedirectInstallInfo& info);
+  /**
+   * Create redirection rule
+   */
+  PolicyRule create_redirect_rule(const std::unique_ptr<ServiceAction>& action);
 
   bool rules_to_process_is_not_empty(const RulesToProcess& rules_to_process);
 
@@ -546,7 +628,7 @@ class LocalEnforcer {
 
   bool terminate_on_wallet_exhaust();
 
-  void schedule_termination(std::unordered_set<std::string>& imsis);
+  void schedule_termination(std::unordered_set<ImsiAndSessionID>& sessions);
 
   void propagate_bearer_updates_to_mme(const BearerUpdate& updates);
 
@@ -559,6 +641,16 @@ class LocalEnforcer {
   void remove_rule_due_to_bearer_creation_failure(
       const std::string& imsi, SessionState& session,
       const std::string& rule_id, SessionStateUpdateCriteria& uc);
+
+  static std::unique_ptr<Timezone> compute_access_timezone();
+
+  void remove_rules_for_suspended_credit(
+      const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
+      SessionStateUpdateCriteria& session_uc);
+
+  void add_rules_for_unsuspended_credit(
+      const std::unique_ptr<SessionState>& session, const CreditKey& ckey,
+      SessionStateUpdateCriteria& session_uc);
 };
 
 }  // namespace magma

@@ -14,26 +14,23 @@
  * @format
  */
 import type {WithAlert} from '@fbcnms/ui/components/Alert/withAlert';
-import type {apn} from '@fbcnms/magma-api';
 
 import ActionTable from '../../components/ActionTable';
-import Button from '@material-ui/core/Button';
-import Grid from '@material-ui/core/Grid';
+import ApnContext from '../../components/context/ApnContext';
+import ApnEditDialog from './ApnEdit';
+import CardTitleRow from '../../components/layout/CardTitleRow';
 import JsonEditor from '../../components/JsonEditor';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 import RssFeedIcon from '@material-ui/icons/RssFeed';
-import Text from '@fbcnms/ui/components/design-system/Text';
-import nullthrows from '@fbcnms/util/nullthrows';
 import withAlert from '@fbcnms/ui/components/Alert/withAlert';
 
 import {colors, typography} from '../../theme/default';
 import {makeStyles} from '@material-ui/styles';
+import {useContext, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
-import {useState} from 'react';
 
-const APN_TITLE = 'APNs';
 const DEFAULT_APN_CONFIG = {
   apn_configuration: {
     ambr: {
@@ -109,12 +106,6 @@ const useStyles = makeStyles(theme => ({
   },
 }));
 
-type Props = WithAlert & {
-  apns: {[string]: apn},
-  onSave?: apn => void,
-  onDelete?: string => void,
-};
-
 type ApnRowType = {
   apnID: string,
   description: string,
@@ -122,14 +113,17 @@ type ApnRowType = {
   added: Date,
 };
 
-function ApnOverview(props: Props) {
+const APN_TITLE = 'APNs';
+function ApnOverview(props: WithAlert) {
   const classes = useStyles();
   const enqueueSnackbar = useEnqueueSnackbar();
-  const {history, match, relativeUrl} = useRouter();
+  const {history, relativeUrl} = useRouter();
   const [currRow, setCurrRow] = useState<ApnRowType>({});
-  const networkId: string = nullthrows(match.params.networkId);
-  const apnRows: Array<ApnRowType> = props.apns
-    ? Object.keys(props.apns).map((apn: string) => {
+  const [open, setOpen] = React.useState(false);
+  const ctx = useContext(ApnContext);
+  const apns = ctx.state;
+  const apnRows: Array<ApnRowType> = apns
+    ? Object.keys(apns).map((apn: string) => {
         return {
           apnID: apn,
           description: 'Test APN description',
@@ -140,99 +134,90 @@ function ApnOverview(props: Props) {
     : [];
   return (
     <div className={classes.dashboardRoot}>
-      <Grid container spacing={3}>
-        <Grid container>
-          <Grid item xs={6}>
-            <Text key="title" data-testid={`title_${APN_TITLE}`}>
-              <RssFeedIcon /> {APN_TITLE}
-            </Text>
-          </Grid>
-          <Grid
-            container
-            item
-            xs={6}
-            justify="flex-end"
-            alignItems="center"
-            spacing={2}>
-            <Button
-              className={classes.appBarBtn}
-              onClick={() => history.push(relativeUrl('/json'))}>
-              Add New APN
-            </Button>
-          </Grid>
-        </Grid>
-
-        <Grid item xs={12}>
-          <ActionTable
-            data={apnRows}
-            columns={[
-              {title: 'Apn ID', field: 'apnID'},
-              {title: 'Description', field: 'description'},
-              {title: 'Qos Profile', field: 'qosProfile', type: 'numeric'},
-              {title: 'Added', field: 'added', type: 'datetime'},
-            ]}
-            handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
-            menuItems={[
-              {
-                name: 'Edit JSON',
-                handleFunc: () => {
-                  history.push(relativeUrl('/' + currRow.apnID + '/json'));
-                },
+      <>
+        <CardTitleRow key="title" icon={RssFeedIcon} label={APN_TITLE} />
+        <ApnEditDialog
+          open={open}
+          onClose={() => setOpen(false)}
+          apn={Object.keys(currRow).length ? apns[currRow.apnID] : undefined}
+        />
+        <ActionTable
+          data={apnRows}
+          columns={[
+            {
+              title: 'Apn ID',
+              field: 'apnID',
+              render: currRow => (
+                <Link
+                  variant="body2"
+                  component="button"
+                  onClick={() => {
+                    setCurrRow(currRow);
+                    setOpen(true);
+                  }}>
+                  {currRow.apnID}
+                </Link>
+              ),
+            },
+            {title: 'Description', field: 'description'},
+            {title: 'Qos Profile', field: 'qosProfile', type: 'numeric'},
+            {title: 'Added', field: 'added', type: 'datetime'},
+          ]}
+          handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
+          menuItems={[
+            {
+              name: 'Edit',
+              handleFunc: () => {
+                setOpen(true);
               },
-              {name: 'Deactivate'},
-              {
-                name: 'Remove',
-                handleFunc: () => {
-                  props
-                    .confirm(
-                      `Are you sure you want to delete ${currRow.apnID}?`,
-                    )
-                    .then(async confirmed => {
-                      if (!confirmed) {
-                        return;
-                      }
-
-                      try {
-                        await MagmaV1API.deleteLteByNetworkIdApnsByApnName({
-                          networkId: networkId,
-                          apnName: currRow.apnID,
-                        });
-                        props.onDelete?.(currRow.apnID);
-                      } catch (e) {
-                        enqueueSnackbar(
-                          'failed deleting policy ' + currRow.apnID,
-                          {
-                            variant: 'error',
-                          },
-                        );
-                      }
-                    });
-                },
+            },
+            {
+              name: 'Edit JSON',
+              handleFunc: () => {
+                history.push(relativeUrl('/' + currRow.apnID + '/json'));
               },
-            ]}
-            options={{
-              actionsColumnIndex: -1,
-              pageSizeOptions: [5, 10],
-            }}
-          />
-        </Grid>
-      </Grid>
+            },
+            {name: 'Deactivate'},
+            {
+              name: 'Remove',
+              handleFunc: () => {
+                props
+                  .confirm(`Are you sure you want to delete ${currRow.apnID}?`)
+                  .then(async confirmed => {
+                    if (!confirmed) {
+                      return;
+                    }
+
+                    try {
+                      // trigger deletion
+                      ctx.setState(currRow.apnID);
+                    } catch (e) {
+                      enqueueSnackbar('failed deleting APN ' + currRow.apnID, {
+                        variant: 'error',
+                      });
+                    }
+                  });
+              },
+            },
+          ]}
+          options={{
+            actionsColumnIndex: -1,
+            pageSizeOptions: [5, 10],
+          }}
+        />
+      </>
     </div>
   );
 }
 
-type JsonConfigType = {
-  apns: {[string]: apn},
-  onSave?: apn => void,
-};
-
-export function ApnJsonConfig(props: JsonConfigType) {
+export function ApnJsonConfig() {
   const {match, history} = useRouter();
   const [error, setError] = useState('');
-  const networkId: string = nullthrows(match.params.networkId);
   const apnName: string = match.params.apnId;
   const enqueueSnackbar = useEnqueueSnackbar();
-  const apn: apn = props.apns[apnName] || DEFAULT_APN_CONFIG;
+  const ctx = useContext(ApnContext);
+  const apns = ctx.state;
+  const apn: apn = apns[apnName] || DEFAULT_APN_CONFIG;
   return (
     <JsonEditor
       content={apn}
@@ -242,28 +227,11 @@ export function ApnJsonConfig(props: JsonConfigType) {
           if (apn.apn_name === '') {
             throw Error('Invalid Name');
           }
-          if (apnName) {
-            await MagmaV1API.putLteByNetworkIdApnsByApnName({
-              networkId: networkId,
-              apn: apn,
-              apnName: apnName,
-            });
-            enqueueSnackbar('APN saved successfully', {
-              variant: 'success',
-            });
-            setError('');
-            props.onSave?.(apn);
-          } else {
-            await MagmaV1API.postLteByNetworkIdApns({
-              networkId: networkId,
-              apn: (apn: apn),
-            });
-            enqueueSnackbar('APN added successfully', {
-              variant: 'success',
-            });
-          }
+          ctx.setState(apn.apn_name, apn);
+          enqueueSnackbar('APN saved successfully', {
+            variant: 'success',
+          });
           setError('');
-          props.onSave?.(apn);
           history.goBack();
         } catch (e) {
           setError(e.response?.data?.message ?? e.message);

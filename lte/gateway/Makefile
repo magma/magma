@@ -67,6 +67,8 @@ all: build
 
 build: build_python build_common build_oai build_sctpd build_session_manager build_connection_tracker ## Build all
 
+smf_build: build_session_manager  ## Build only sessionD component make smf_build
+
 test: test_python test_oai test_session_manager ## Run all tests
 
 clean: clean_python  ## Clean all builds
@@ -128,7 +130,7 @@ build_python: stop ## Build Python environment
 build_common: ## Build shared libraries
 	$(call run_cmake, $(C_BUILD)/magma_common, $(MAGMA_ROOT)/orc8r/gateway/c/common, )
 
-build_oai: build_common ## Build OAI
+build_oai: format_oai build_common ## Build OAI
 	$(call run_cmake, $(C_BUILD)/oai, $(GATEWAY_C_DIR)/oai, $(OAI_FLAGS))
 
 build_sctpd: build_common ## Build SCTPD
@@ -152,6 +154,10 @@ format_oai: ## Format OAI
 	find $(GATEWAY_C_DIR)/oai \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
 	clang-format --style=file -i {} \;
 
+format_session_manager: ## Format SessionD
+	find $(GATEWAY_C_DIR)/session_manager \( -iname "*.c" -o -iname "*.cpp" -o -iname "*.h" \) -exec \
+	clang-format --style=file -i {} \;
+
 test_python: stop ## Run all Python-specific tests
 	make -C $(MAGMA_ROOT)/lte/gateway/python test_all
 
@@ -162,6 +168,12 @@ test_oai: build_common ## Run all OAI-specific tests
 # This works with test_dpi and test_session_manager
 test_%: stop build_common
 	$(call run_ctest, $(C_BUILD)/$*, $(GATEWAY_C_DIR)/$*, )
+
+# format and test c/session_manager
+precommit_sm: format_session_manager test_session_manager
+
+# format and test c/oai
+precommit_oai: format_oai test_oai
 
 # TODO: include coverage of dpim when it is included in make build
 COV_OUTPUT_OAI = $(OAI_BUILD)/coverage.info

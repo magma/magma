@@ -35,6 +35,8 @@ services:
       - ../../packages/magmalte/app:/usr/src/packages/magmalte/app
       - ../../packages/magmalte/scripts:/usr/src/packages/magmalte/scripts
       - ../../packages/magmalte/server:/usr/src/packages/magmalte/server
+      - ../../packages/magmalte/grafana:/usr/src/packages/magmalte/grafana
+      - ../../packages/magmalte/alerts:/usr/src/packages/magmalte/alerts
     depends_on:
       - mariadb
     networks:
@@ -54,6 +56,8 @@ services:
       MYSQL_PASS: password
       MAPBOX_ACCESS_TOKEN: ${MAPBOX_ACCESS_TOKEN:-}
       MYSQL_DIALECT: mariadb
+      # Tell Puppeteer to skip installing Chrome. We'll be using the installed package.
+      PUPPETEER_SKIP_DOWNLOAD: "true"
     healthcheck:
       test: curl -If localhost:8081/healthz
     restart: on-failure

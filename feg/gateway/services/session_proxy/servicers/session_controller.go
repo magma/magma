@@ -81,7 +81,7 @@ func NewCentralSessionController(
 // CreateSession begins a UE session by requesting rules from PCEF
 // and credit from OCS (if RatingGroup is present) and returning them.
 func (srv *CentralSessionController) CreateSession(
-	ctx context.Context,
+	_ context.Context,
 	request *protos.CreateSessionRequest,
 ) (*protos.CreateSessionResponse, error) {
 	glog.V(2).Info("Trying to create session")

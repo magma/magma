@@ -36,8 +36,8 @@ magma-gen-meta:
       filename: cwf_subscriber_directory_record_swaggergen.go
     - go-struct-name: GatewayHealthConfigs
       filename: gateway_health_configs_swaggergen.go
-    - go-struct-name: CarrierWifiClusterStatus
-      filename: carrier_wifi_network_cluster_status_swaggergen.go
+    - go-struct-name: CarrierWifiHAPairStatus
+      filename: carrier_wifi_ha_pair_status_swaggergen.go
     - go-struct-name: CarrierWifiGatewayHealthStatus
       filename: carrier_wifi_gateway_health_status_swaggergen.go
     - go-struct-name: CwfHaPair
@@ -271,7 +271,7 @@ paths:
           description: Carrier Wifi HA gateway pair
           required: true
           schema:
-            $ref: '#/definitions/cwf_ha_pair'
+            $ref: '#/definitions/mutable_cwf_ha_pair'
       responses:
         '201':
           description: Success
@@ -321,6 +321,22 @@ paths:
       responses:
         '204':
           description: Success
+        default:
+          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
+
+  /cwf/{network_id}/ha_pairs/{ha_pair_id}/status:
+    get:
+      summary: Retrieve status of a Carrier Wifi HA pair
+      tags:
+        - Carrier Wifi Networks
+      parameters:
+        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
+        - $ref: '#/parameters/ha_pair_id'
+      responses:
+        '200':
+          description: Status of a HA pair
+          schema:
+            $ref: '#/definitions/carrier_wifi_ha_pair_status'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -516,21 +532,6 @@ paths:
           description: The directory record of a subscriber
           schema:
             $ref: '#/definitions/cwf_subscriber_directory_record'
-        default:
-          $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
-
-  /cwf/{network_id}/cluster_status:
-    get:
-      summary: Retrieve HA cluster status of a Carrier Wifi Network
-      tags:
-        - Carrier Wifi Networks
-      parameters:
-        - $ref: './orc8r-swagger-common.yml#/parameters/network_id'
-      responses:
-        '200':
-          description: Cluster status of Carrier Wifi Network
-          schema:
-            $ref: '#/definitions/carrier_wifi_network_cluster_status'
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
@@ -975,6 +976,8 @@ definitions:
           - 'policy_enforcement'
       eap_aka:
         $ref: './feg-swagger.yml#/definitions/eap_aka'
+      eap_sim:
+        $ref: './feg-swagger.yml#/definitions/eap_sim'
       aaa_server:
         $ref: './feg-swagger.yml#/definitions/aaa_server'
       li_ues:
@@ -1093,8 +1096,19 @@ definitions:
         format: uint32
         example: 3
 
-  carrier_wifi_network_cluster_status:
-    description: Status of a Carrier Wifi HA cluster
+  carrier_wifi_ha_pair_state:
+    type: object
+    description: Full state object of an ha pair
+    properties:
+        ha_pair_status:
+          $ref: '#/definitions/carrier_wifi_ha_pair_status'
+        gateway1_health:
+          $ref: '#/definitions/carrier_wifi_gateway_health_status'
+        gateway2_health:
+          $ref: '#/definitions/carrier_wifi_gateway_health_status'
+
+  carrier_wifi_ha_pair_status:
+    description: Status of a Carrier Wifi HA pair status
     type: object
     required:
       - active_gateway
@@ -1144,15 +1158,22 @@ definitions:
         example: "gateway2"
       config:
         $ref: "#/definitions/cwf_ha_pair_configs"
+      state:
+        $ref: "#/definitions/carrier_wifi_ha_pair_state"
 
   mutable_cwf_ha_pair:
    description: HA Gateway pair with read-only fields omitted
    type: object
    required:
+     - ha_pair_id
      - gateway_id_1
      - gateway_id_2
      - config
    properties:
+     ha_pair_id:
+       type: string
+       x-nullable: false
+       example: "pair1"
      gateway_id_1:
        type: string
        x-nullable: false
@@ -1172,6 +1193,7 @@ definitions:
     properties:
       transport_virtual_ip:
         type: string
-        format: ipv4
+        minLength: 5
+        maxLength: 49
         x-nullable: false
-        example: "10.10.10.12"
+        example: '192.168.128.0/32'

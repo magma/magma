@@ -31,7 +31,7 @@ from .bootstrap_manager import BootstrapManager
 from .config_manager import CONFIG_STREAM_NAME, ConfigManager
 from .gateway_status import GatewayStatusFactory, KernelVersionsPoller
 from .metrics import metrics_collection_loop, monitor_unattended_upgrade_status
-from .metrics_collector import MetricsCollector
+from .metrics_collector import MetricsCollector, ScrapeTarget
 from .rpc_servicer import MagmadRpcServicer
 from .service_manager import ServiceManager
 from .service_poller import ServicePoller
@@ -76,6 +76,10 @@ def main():
     queue_length = metrics_config['queue_length']
     metrics_post_processor_fn = metrics_config.get('post_processing_fn')
 
+    metric_scrape_targets = map(lambda x: ScrapeTarget(x['url'], x['name'],
+                                                       x['interval']),
+                                metrics_config.get('metric_scrape_targets', []))
+
     # Create local metrics collector
     metrics_collector = MetricsCollector(
         services=metrics_services,
@@ -87,6 +91,7 @@ def main():
         loop=service.loop,
         post_processing_fn=
         get_metrics_postprocessor_fn(metrics_post_processor_fn),
+        scrape_targets=metric_scrape_targets
     )
 
     # Poll and sync the metrics collector loops

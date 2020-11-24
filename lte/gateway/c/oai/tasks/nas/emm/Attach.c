@@ -2304,6 +2304,9 @@ void free_emm_attach_request_ies(emm_attach_request_ies_t** const ies) {
   if ((*ies)->drx_parameter) {
     free_wrapper((void**) &(*ies)->drx_parameter);
   }
+  if ((*ies)->mob_st_clsMark2) {
+    free_wrapper((void**) &(*ies)->mob_st_clsMark2);
+  }
   if ((*ies)->voicedomainpreferenceandueusagesetting) {
     free_wrapper((void**) &(*ies)->voicedomainpreferenceandueusagesetting);
   }

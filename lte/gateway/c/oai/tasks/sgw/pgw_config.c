@@ -145,10 +145,13 @@ int pgw_config_process(pgw_config_t* config_pP) {
       if (rv != 0) {
         if (retry++ >= MOBILITYD_API_RETRY_LIMIT) {
           OAILOG_CRITICAL(
-              LOG_SPGW_APP, "ERROR in getting assigned IP block from mobilityd\n");
+              LOG_SPGW_APP,
+              "ERROR in getting assigned IP block from mobilityd\n");
           return -1;
         } else {
-          OAILOG_DEBUG(LOG_SPGW_APP, "mobilityD IP block read: retry attempt: %d", retry);
+          OAILOG_DEBUG(
+              LOG_SPGW_APP, "mobilityD IP block read: retry attempt: %d",
+              retry);
           sleep(1);
         }
       } else {
@@ -215,12 +218,13 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
   int i                         = 0;
   unsigned char buf_in_addr[sizeof(struct in_addr)];
   struct in_addr addr_start;
-  bstring system_cmd = NULL;
-  libconfig_int mtu  = 0;
-  int prefix_mask    = 0;
-  char* pcscf_ipv4   = NULL;
-  char* pcscf_ipv6   = NULL;
-  char* nat_enabled  = NULL;
+  bstring system_cmd  = NULL;
+  libconfig_int mtu   = 0;
+  int prefix_mask     = 0;
+  char* pcscf_ipv4    = NULL;
+  char* pcscf_ipv6    = NULL;
+  char* dns_ipv6_addr = NULL;
+  char* nat_enabled   = NULL;
 
   config_init(&cfg);
 
@@ -415,6 +419,20 @@ int pgw_config_parse_file(pgw_config_t* config_pP) {
           pcscf_ipv6);
     } else {
       OAILOG_WARNING(LOG_SPGW_APP, "NO P-CSCF IPv6 CONFIGURATION FOUND\n");
+    }
+
+    if (config_setting_lookup_string(
+            setting_pgw, PGW_CONFIG_DNS_SERVER_IPV6_ADDRESS,
+            (const char**) &dns_ipv6_addr)) {
+      IPV6_STR_ADDR_TO_INADDR(
+          dns_ipv6_addr, config_pP->ipv6.dns_ipv6_addr,
+          "BAD IPv6 ADDRESS FORMAT FOR DNS SERVER IPv6 address !\n");
+      OAILOG_DEBUG(
+          LOG_SPGW_APP,
+          "Parsing configuration file DNS SERVER IPv6 address: %s\n",
+          pcscf_ipv6);
+    } else {
+      OAILOG_WARNING(LOG_SPGW_APP, "NO DNS SERVER IPv6 CONFIGURATION FOUND\n");
     }
 
     if (config_setting_lookup_string(

@@ -20,6 +20,7 @@ import (
 	"magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/serdes"
 	eventdh "magma/orc8r/cloud/go/services/eventd/obsidian/handlers"
 	models2 "magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/lib/go/service/config"
@@ -114,23 +115,23 @@ func GetObsidianHandlers() []obsidian.Handler {
 		{Path: GatewayGenericCommandV1, Methods: obsidian.POST, HandlerFunc: gatewayGenericCommand},
 		{Path: TailGatewayLogsV1, Methods: obsidian.POST, HandlerFunc: tailGatewayLogs},
 	}
-	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "")...)
-	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "")...)
-	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "")...)
-	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models2.NetworkFeatures{}, orc8r.NetworkFeaturesConfig)...)
-	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSPath, &models2.NetworkDNSConfig{}, orc8r.DnsdNetworkType)...)
-	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(models2.NetworkDNSRecords), "")...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkNamePath, new(models.NetworkName), "", serdes.Network)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkTypePath, new(models.NetworkType), "", serdes.Network)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDescriptionPath, new(models.NetworkDescription), "", serdes.Network)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkFeaturesPath, &models2.NetworkFeatures{}, orc8r.NetworkFeaturesConfig, serdes.Network)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSPath, &models2.NetworkDNSConfig{}, orc8r.DnsdNetworkType, serdes.Network)...)
+	ret = append(ret, GetPartialNetworkHandlers(ManageNetworkDNSRecordsPath, new(models2.NetworkDNSRecords), "", serdes.Network)...)
 
-	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName))...)
-	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription))...)
-	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayConfigPath, &models2.MagmadGatewayConfigs{})...)
-	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayTierPath, new(models2.TierID))...)
-	ret = append(ret, GetGatewayDeviceHandlers(ManageGatewayDevicePath)...)
+	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayNamePath, new(models.GatewayName), serdes.Entity)...)
+	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayDescriptionPath, new(models.GatewayDescription), serdes.Entity)...)
+	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayConfigPath, &models2.MagmadGatewayConfigs{}, serdes.Entity)...)
+	ret = append(ret, GetPartialGatewayHandlers(ManageGatewayTierPath, new(models2.TierID), serdes.Entity)...)
+	ret = append(ret, GetGatewayDeviceHandlers(ManageGatewayDevicePath, serdes.Device)...)
 
-	ret = append(ret, GetPartialEntityHandlers(ManageTierNamePath, "tier_id", new(models2.TierName))...)
-	ret = append(ret, GetPartialEntityHandlers(ManageTierVersionPath, "tier_id", new(models2.TierVersion))...)
-	ret = append(ret, GetPartialEntityHandlers(ManageTierImagesPath, "tier_id", new(models2.TierImages))...)
-	ret = append(ret, GetPartialEntityHandlers(ManageTierGatewaysPath, "tier_id", new(models2.TierGateways))...)
+	ret = append(ret, GetPartialEntityHandlers(ManageTierNamePath, "tier_id", new(models2.TierName), serdes.Entity)...)
+	ret = append(ret, GetPartialEntityHandlers(ManageTierVersionPath, "tier_id", new(models2.TierVersion), serdes.Entity)...)
+	ret = append(ret, GetPartialEntityHandlers(ManageTierImagesPath, "tier_id", new(models2.TierImages), serdes.Entity)...)
+	ret = append(ret, GetPartialEntityHandlers(ManageTierGatewaysPath, "tier_id", new(models2.TierGateways), serdes.Entity)...)
 
 	// Elastic
 	elasticConfig, err := config.GetServiceConfig(orc8r.ModuleName, "elastic")

@@ -249,7 +249,15 @@ esm_cause_t esm_recv_pdn_connectivity_request(
    */
   if (msg->presencemask & PDN_CONNECTIVITY_REQUEST_ACCESS_POINT_NAME_PRESENT) {
     if (esm_data->apn) bdestroy_wrapper(&esm_data->apn);
-    esm_data->apn = msg->accesspointname;
+    if (mme_config.nas_config.enable_apn_correction) {
+      esm_data->apn = mme_app_process_apn_correction(
+          &(emm_context->_imsi), msg->accesspointname);
+      OAILOG_INFO(
+          LOG_NAS_ESM, "ESM-SAP   - APN CORRECTION (apn = %s)\n",
+          (const char*) bdata(esm_data->apn));
+    } else {
+      esm_data->apn = msg->accesspointname;
+    }
   }
 
   if (msg->presencemask &
@@ -288,53 +296,14 @@ esm_cause_t esm_recv_pdn_connectivity_request(
       "ESM-PROC  - _esm_data.conf.features %08x, esm pdn type = %d\n",
       _esm_data.conf.features, esm_data->pdn_type);
   emm_context->emm_cause = ESM_CAUSE_SUCCESS;
-  switch (_esm_data.conf.features & (MME_API_IPV4 | MME_API_IPV6)) {
-    case (MME_API_IPV4 | MME_API_IPV6):
-      /*
-       * The network supports both IPv4 and IPv6 connection
-       */
-      if ((esm_data->pdn_type == ESM_PDN_TYPE_IPV4V6) &&
-          (_esm_data.conf.features & MME_API_SINGLE_ADDR_BEARERS)) {
-        /*
-         * The network supports single IP version bearers only
-         */
-        emm_context->emm_cause = ESM_CAUSE_SINGLE_ADDRESS_BEARERS_ONLY_ALLOWED;
-      }
-      break;
-
-    case MME_API_IPV6:
-      /*
-       * The network supports connection to IPv6 only
-       */
-      if (esm_data->pdn_type != ESM_PDN_TYPE_IPV6) {
-        emm_context->emm_cause = ESM_CAUSE_PDN_TYPE_IPV6_ONLY_ALLOWED;
-      }
-      break;
-
-    case MME_API_IPV4:
-      /*
-       * The network supports connection to IPv4 only
-       */
-      if (esm_data->pdn_type != ESM_PDN_TYPE_IPV4) {
-        emm_context->emm_cause = ESM_CAUSE_PDN_TYPE_IPV4_ONLY_ALLOWED;
-      }
-      break;
-
-    default:
-      OAILOG_ERROR(
-          LOG_NAS_ESM,
-          "ESM-PROC  - _esm_data.conf.features incorrect value (no IPV4 or "
-          "IPV6 "
-          ") %X for (ue_id = %u)\n",
-          _esm_data.conf.features, ue_id);
-  }
 
   if (is_standalone) {
     ue_mm_context_t* ue_mm_context_p =
         mme_ue_context_exists_mme_ue_s1ap_id(ue_id);
     // Select APN
-    struct apn_configuration_s* apn_config = mme_app_select_apn(
-        ue_mm_context_p, emm_context->esm_ctx.esm_proc_data->apn);
+    struct apn_configuration_s* apn_config =
+        mme_app_select_apn(ue_mm_context_p, &esm_cause);
+
     /*
      * Execute the PDN connectivity procedure requested by the UE
      */
@@ -343,7 +312,23 @@ esm_cause_t esm_recv_pdn_connectivity_request(
           LOG_NAS_ESM,
           "ESM-PROC  - Cannot select APN for ue id" MME_UE_S1AP_ID_FMT "\n",
           ue_id);
-      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_UNKNOWN_ACCESS_POINT_NAME);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+    }
+
+    /* Check if a session already exists for this APN. Only 1 session
+     * is supported per APN
+     */
+    for (uint8_t itr = 0; itr < MAX_APN_PER_UE; itr++) {
+      if (ue_mm_context_p->pdn_contexts[itr]) {
+        if (!(strcmp(
+                (const char*) ue_mm_context_p->pdn_contexts[itr]
+                    ->apn_subscribed->data,
+                apn_config->service_selection)) &&
+            (ue_mm_context_p->pdn_contexts[itr]->is_active)) {
+          OAILOG_FUNC_RETURN(
+              LOG_NAS_ESM, ESM_CAUSE_MULTIPLE_PDN_CONNECTIONS_NOT_ALLOWED);
+        }
+      }
     }
 
     /* Find a free PDN Connection ID*/
@@ -367,7 +352,7 @@ esm_cause_t esm_recv_pdn_connectivity_request(
     rc                       = esm_proc_pdn_connectivity_request(
         emm_context, pti, pdn_cid, apn_config->context_identifier,
         emm_context->esm_ctx.esm_proc_data->request_type, esm_data->apn,
-        esm_data->pdn_type, esm_data->pdn_addr, &esm_data->bearer_qos,
+        apn_config->pdn_type, esm_data->pdn_addr, &esm_data->bearer_qos,
         (emm_context->esm_ctx.esm_proc_data->pco.num_protocol_or_container_id) ?
             &emm_context->esm_ctx.esm_proc_data->pco :
             NULL,
@@ -572,6 +557,15 @@ esm_cause_t esm_recv_information_response(
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
   }
 
+  bstring apn = msg->accesspointname;
+  if (mme_config.nas_config.enable_apn_correction) {
+    apn = mme_app_process_apn_correction(
+        &(emm_context->_imsi), msg->accesspointname);
+    OAILOG_INFO(
+        LOG_NAS_ESM, "ESM-SAP   - APN CORRECTION (apn = %s)\n",
+        (const char*) bdata(apn));
+  }
+
   /*
    * Message processing
    */
@@ -579,8 +573,7 @@ esm_cause_t esm_recv_information_response(
    * Execute the PDN disconnect procedure requested by the UE
    */
   int pid = esm_proc_esm_information_response(
-      emm_context, pti, msg->accesspointname,
-      &msg->protocolconfigurationoptions, &esm_cause);
+      emm_context, pti, apn, &msg->protocolconfigurationoptions, &esm_cause);
 
   bdestroy_wrapper((bstring*) &msg->accesspointname);
   if (pid != RETURNerror) {
@@ -594,6 +587,105 @@ esm_cause_t esm_recv_information_response(
    * Return the ESM cause value
    */
   OAILOG_FUNC_RETURN(LOG_NAS_ESM, esm_cause);
+}
+
+/****************************************************************************
+ **                                                                        **
+ ** Name:    _erab_setup_rsp_tmr_exp_handler()                             **
+ **                                                                        **
+ ** Description: Handles Erab setup rsp timer expiry                       **
+ **                                                                        **
+ ** Inputs:                                                                **
+ **      imsi64:     IMSI                                                  **
+ **      args:       timer data                                            **
+ **                                                                        **
+ ** Outputs:     None                                                      **
+ **      Return:  None                                                     **
+ **      Others:  None                                                     **
+ **                                                                        **
+ ***************************************************************************/
+
+static void _erab_setup_rsp_tmr_exp_handler(void* args, imsi64_t* imsi64) {
+  OAILOG_FUNC_IN(LOG_NAS_ESM);
+  int rc;
+
+  // Get retransmission timer parameters data
+  esm_ebr_timer_data_t* esm_ebr_timer_data = (esm_ebr_timer_data_t*) (args);
+
+  if (esm_ebr_timer_data) {
+    // Increment the retransmission counter
+    esm_ebr_timer_data->count += 1;
+    OAILOG_WARNING(
+        LOG_NAS_ESM,
+        "ESM-PROC  - erab_setup_rsp timer expired (ue_id=" MME_UE_S1AP_ID_FMT
+        ", ebi=%d), "
+        "retransmission counter = %d\n",
+        esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
+        esm_ebr_timer_data->count);
+
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
+    ue_mm_context_t* ue_mm_context =
+        mme_ue_context_exists_mme_ue_s1ap_id(esm_ebr_timer_data->ue_id);
+
+    bearer_context_t* bearer_ctx =
+        mme_app_get_bearer_context(ue_mm_context, esm_ebr_timer_data->ebi);
+    if (!bearer_ctx) {
+      OAILOG_ERROR(
+          LOG_NAS_ESM,
+          "Bearer context is NULL for (ebi=%u)"
+          "\n",
+          esm_ebr_timer_data->ebi);
+      OAILOG_FUNC_OUT(LOG_NAS_ESM);
+    }
+    if (!bearer_ctx->enb_fteid_s1u.teid) {
+      if (esm_ebr_timer_data->count < ERAB_SETUP_RSP_COUNTER_MAX) {
+        // Restart the timer
+        rc = esm_ebr_start_timer(
+            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, NULL,
+            ERAB_SETUP_RSP_TMR, _erab_setup_rsp_tmr_exp_handler);
+        if (rc != RETURNerror) {
+          OAILOG_INFO(
+              LOG_NAS_ESM,
+              "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
+              "ue_id=" MME_UE_S1AP_ID_FMT
+              "ebi (%u)"
+              "\n",
+              esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+        }
+      } else {
+        OAILOG_WARNING(
+            LOG_NAS_ESM,
+            "ESM-PROC  - ERAB_SETUP_RSP_COUNTER_MAX reached for ERAB_SETUP_RSP "
+            "ue_id= " MME_UE_S1AP_ID_FMT
+            " ebi (%u)"
+            "\n",
+            esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+        if (bearer_ctx->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
+          bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
+        }
+        if (esm_ebr_timer_data) {
+          free_wrapper((void**) &esm_ebr_timer_data);
+        }
+      }
+    } else {
+      rc = send_modify_bearer_req(
+          esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi);
+      if (rc != RETURNok) {
+        OAILOG_ERROR(
+            LOG_NAS_ESM,
+            "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
+            "\n",
+            esm_ebr_timer_data->ebi);
+      }
+      if (bearer_ctx->esm_ebr_context.timer.id != NAS_TIMER_INACTIVE_ID) {
+        bearer_ctx->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
+      }
+      if (esm_ebr_timer_data) {
+        free_wrapper((void**) &esm_ebr_timer_data);
+      }
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_NAS_ESM);
 }
 
 /****************************************************************************
@@ -675,14 +767,50 @@ esm_cause_t esm_recv_activate_default_eps_bearer_context_accept(
    */
   if (emm_context->esm_ctx.is_standalone == true) {
     emm_context->esm_ctx.is_standalone = false;
-    rc                                 = send_modify_bearer_req(ue_id, ebi);
-    if (rc != RETURNok) {
+    bearer_context_t* bearer_ctx       = mme_app_get_bearer_context(
+        PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context), ebi);
+    if (!bearer_ctx) {
       OAILOG_ERROR(
           LOG_NAS_ESM,
-          "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
+          "Bearer context is NULL for (ebi=%u)"
           "\n",
           ebi);
-      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
+      OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_INVALID_EPS_BEARER_IDENTITY);
+    }
+    /* Send MBR only after receiving ERAB_SETUP_RSP.
+     * bearer_ctx->enb_fteid_s1u.teid gets updated after receiving
+     * ERAB_SETUP_RSP.*/
+    if (bearer_ctx->enb_fteid_s1u.teid) {
+      rc = send_modify_bearer_req(ue_id, ebi);
+      if (rc != RETURNok) {
+        OAILOG_ERROR(
+            LOG_NAS_ESM,
+            "ESM-SAP - Sending Modify bearer req failed for (ebi=%u)"
+            "\n",
+            ebi);
+        OAILOG_FUNC_RETURN(LOG_NAS_ESM, ESM_CAUSE_PROTOCOL_ERROR);
+      }
+      OAILOG_DEBUG(
+          LOG_NAS_ESM,
+          "ESM-PROC  - Sending Modify bearer req ue_id=" MME_UE_S1AP_ID_FMT
+          "ebi (%u), enb_fteid_s1u.teid %x"
+          "\n",
+          ue_id, ebi, bearer_ctx->enb_fteid_s1u.teid);
+
+    } else {
+      // Wait for ERAB SETUP RSP.Start a timer for 5 secs
+      rc = esm_ebr_start_timer(
+          emm_context, ebi, NULL, ERAB_SETUP_RSP_TMR,
+          _erab_setup_rsp_tmr_exp_handler);
+      if (rc != RETURNerror) {
+        OAILOG_DEBUG(
+            LOG_NAS_ESM,
+            "ESM-PROC  - Started ERAB_SETUP_RSP_TMR for "
+            "ue_id=" MME_UE_S1AP_ID_FMT
+            "ebi (%u)"
+            "\n",
+            ue_id, ebi);
+      }
     }
   }
   /*

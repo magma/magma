@@ -1,6 +1,6 @@
 #!/bin/bash
 SRC_DIR=/usr/local/bin
-SERVICE_LIST=("mme" "mobilityd" "pipelined" "sctpd" "sessiond")
+SERVICE_LIST=("mme" "mobilityd" "pipelined" "sessiond")
 RETURN_STATELESS=0
 RETURN_STATEFUL=1
 RETURN_CORRUPT=2
@@ -71,21 +71,19 @@ elif [[ $1 == "sctpd_pre" ]]; then
   check_stateless_agw; ret_check=$?
   if [[ $ret_check -eq 1 ]]; then
     echo "AGW is stateful."
-    exit $RETURN_STATEFUL
+    exit 0
   fi
   stop_and_clear_state
-  exit $RETURN_STATELESS
+  exit 0
 elif [[ $1 == "sctpd_post" ]]; then
   # In stateless mode, start magmad after sctpd starts
   check_stateless_agw; ret_check=$?
   if [[ $ret_check -eq 1 ]]; then
     echo "AGW is stateful."
-    exit $RETURN_STATEFUL
+    exit 0
   fi
   sudo service magma@magmad start
-  # Sleep for a bit so OVS and Magma services come up before proceeding
-  sleep 15
-  exit $RETURN_STATELESS
+  exit 0
 else
   echo "Invalid argument. Use one of the following"
   echo "check: Run a check whether AGW is stateless or not"
@@ -102,10 +100,12 @@ echo "Config complete"
 
 check_stateless_agw; ret_check=$?
 
-if [[ $ret_check -eq 1 ]]; then
+if [[ $ret_check -eq $RETURN_STATEFUL ]]; then
+  # For stateless AGW, Magmad is started as part of sctpd_post
   sudo service magma@magmad start
-  # Sleep for a bit so OVS and Magma services come up before proceeding
-  sleep 15
 fi
+
+# Sleep for a bit so OVS and Magma services come up before proceeding
+sleep 60
 
 exit $ret_check

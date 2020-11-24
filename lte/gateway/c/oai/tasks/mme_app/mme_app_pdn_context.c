@@ -42,19 +42,10 @@ static void mme_app_pdn_context_init(
 
 //------------------------------------------------------------------------------
 void mme_app_free_pdn_context(pdn_context_t** const pdn_context) {
-  if ((*pdn_context)->apn_in_use) {
-    bdestroy_wrapper(&(*pdn_context)->apn_in_use);
-  }
-  if ((*pdn_context)->apn_subscribed) {
-    bdestroy_wrapper(&(*pdn_context)->apn_subscribed);
-  }
-  if ((*pdn_context)->apn_oi_replacement) {
-    bdestroy_wrapper(&(*pdn_context)->apn_oi_replacement);
-  }
-  if ((*pdn_context)->pco) {
-    free_protocol_configuration_options(&(*pdn_context)->pco);
-  }
-
+  bdestroy_wrapper(&(*pdn_context)->apn_in_use);
+  bdestroy_wrapper(&(*pdn_context)->apn_subscribed);
+  bdestroy_wrapper(&(*pdn_context)->apn_oi_replacement);
+  free_protocol_configuration_options(&(*pdn_context)->pco);
   free_wrapper((void**) pdn_context);
 }
 //------------------------------------------------------------------------------

@@ -27,6 +27,9 @@ http {
       '"nginx.client_cn": "$ssl_client_s_dn_cn"'
     '}';
 
+  ## Fix - [emerg]: could not build the map_hash, you should increase
+  map_hash_bucket_size 64;
+
   # See https://kubernetes.github.io/ingress-nginx/examples/grpc/#notes-on-using-responserequest-streams
   grpc_send_timeout 1200s;
   grpc_read_timeout 1200s;

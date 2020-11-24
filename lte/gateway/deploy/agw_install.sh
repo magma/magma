@@ -8,7 +8,7 @@ SUCCESS_MESSAGE="ok"
 NEED_REBOOT=0
 WHOAMI=$(whoami)
 KVERS=$(uname -r)
-MAGMA_VERSION="v1.2"
+MAGMA_VERSION="v1.3"
 
 echo "Checking if the script has been executed by root user"
 if [ "$WHOAMI" != "root" ]; then
@@ -81,7 +81,7 @@ After=network-online.target
 Wants=network-online.target
 [Service]
 Type=oneshot
-ExecStart=/bin/sh /root/agw_install.sh
+ExecStart=/bin/bash /root/agw_install.sh
 TimeoutStartSec=3800
 TimeoutSec=3600
 User=root

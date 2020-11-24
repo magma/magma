@@ -19,6 +19,7 @@ import (
 	"magma/feg/cloud/go/feg"
 	feg_plugin "magma/feg/cloud/go/plugin"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
+	"magma/feg/cloud/go/serdes"
 	feg_service "magma/feg/cloud/go/services/feg"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	feg_test_init "magma/feg/cloud/go/services/feg/test_init"
@@ -79,6 +80,7 @@ func TestBuilder_Build(t *testing.T) {
 				Realm:            "magma.com",
 				Host:             "magma-fedgw.magma.com",
 			},
+			PlmnIds:                 []string{"123456"},
 			RequestFailureThreshold: 0.50,
 			MinimumRequestThreshold: 1,
 		},
@@ -271,11 +273,11 @@ func TestBuilder_Build(t *testing.T) {
 }
 
 func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
+	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graphProto, err := graph.ToStorageProto()
+	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -309,6 +311,7 @@ var defaultConfig = &models.NetworkFederationConfigs{
 			Host:             "magma-fedgw.magma.com",
 			Realm:            "magma.com",
 		},
+		PlmnIds: []string{"123456"},
 	},
 	Gx: &models.Gx{
 		DisableGx: swag.Bool(true),

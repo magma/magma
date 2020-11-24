@@ -94,7 +94,7 @@ variable "orc8r_proxy_replicas" {
 variable "use_nginx_proxy" {
   description = "Feature flag for Nginx proxy."
   type        = bool
-  default     = false
+  default     = true
 }
 
 variable "orc8r_db_name" {
@@ -264,4 +264,20 @@ variable "deploy_openvpn" {
   description = "Flag to deploy OpenVPN server into cluster. This is useful if you want to remotely access AGWs."
   type        = bool
   default     = false
+}
+
+##############################################################################
+# Thanos Object Storage
+##############################################################################
+
+variable "thanos_enabled" {
+  description = "Deploy thanos components and object storage"
+  type        = bool
+  default     = false
+}
+
+variable "thanos_object_store_bucket_name" {
+  description = "Bucket name for s3 object storage. Must be globally unique"
+  type        = string
+  default     = ""
 }

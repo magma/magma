@@ -169,7 +169,7 @@ func (m *MutableWifiGateway) GetAdditionalWritesOnUpdate(
 }
 
 func (m *GatewayWifiConfigs) FromBackendModels(networkID string, gatewayID string) error {
-	wifiConfig, err := configurator.LoadEntityConfig(networkID, wifi.WifiGatewayType, gatewayID)
+	wifiConfig, err := configurator.LoadEntityConfig(networkID, wifi.WifiGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -185,9 +185,7 @@ func (m *GatewayWifiConfigs) ToUpdateCriteria(networkID string, gatewayID string
 		NewConfig: m,
 	})
 
-	existingWifiConfigEnt, err := configurator.LoadEntityConfig(
-		networkID, wifi.WifiGatewayType, gatewayID,
-	)
+	existingWifiConfigEnt, err := configurator.LoadEntityConfig(networkID, wifi.WifiGatewayType, gatewayID, EntitySerdes)
 	if err != nil {
 		return nil, err
 	}
@@ -241,7 +239,7 @@ func (m *WifiMesh) ToUpdateCriteria() []configurator.EntityUpdateCriteria {
 }
 
 func (m *MeshWifiConfigs) FromBackendModels(networkID string, meshID string) error {
-	meshConfig, err := configurator.LoadEntityConfig(networkID, wifi.MeshEntityType, meshID)
+	meshConfig, err := configurator.LoadEntityConfig(networkID, wifi.MeshEntityType, meshID, EntitySerdes)
 	if err != nil {
 		return err
 	}
@@ -261,7 +259,11 @@ func (m *MeshWifiConfigs) ToUpdateCriteria(networkID string, meshID string) ([]c
 }
 
 func (m *MeshName) FromBackendModels(networkID string, meshID string) error {
-	meshEnt, err := configurator.LoadEntity(networkID, wifi.MeshEntityType, meshID, configurator.EntityLoadCriteria{LoadMetadata: true})
+	meshEnt, err := configurator.LoadEntity(
+		networkID, wifi.MeshEntityType, meshID,
+		configurator.EntityLoadCriteria{LoadMetadata: true},
+		EntitySerdes,
+	)
 	if err != nil {
 		return err
 	}

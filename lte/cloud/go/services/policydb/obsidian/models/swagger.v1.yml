@@ -47,6 +47,8 @@ magma-gen-meta:
       filename: base_name_record_swaggergen.go
     - go-struct-name: NetworkSubscriberConfig
       filename: network_subscriber_config_swaggergen.go
+    - go-struct-name: IPAddress
+      filename: ip_address_swaggergen.go
 
 info:
   title: LTE Policy Management
@@ -632,10 +634,18 @@ definitions:
       qos_profile:
         type: string
         description: ID of the QoS profile associated with this policy
-        example: 'profile0'
+        example: profile0
+      header_enrichment_targets:
+        type: array
+        description: List of URL targets for header enrichment
+        items:
+          type: string
+          x-nullable: false
+          example: http://example.com/
 
-  # This should be kept in sync with the policy rule above, we use this as the
-  # config type which is stored on the backend for policy rules.
+  # This should be kept in sync with the policy rule above (for the
+  # config-related fields), we use this as the config type which is stored on
+  # the backend for policy rules.
   # But for API backwards-compatibility, we can't nest this struct in the
   # top-level policy rule
   policy_rule_config:
@@ -699,6 +709,13 @@ definitions:
           - VIDEO
       redirect:
         $ref: '#/definitions/redirect_information'
+      header_enrichment_targets:
+        type: array
+        description: List of URL targets for header enrichment
+        items:
+          type: string
+          x-nullable: false
+          example: http://example.com/
 
   rating_group:
     type: object
@@ -786,6 +803,12 @@ definitions:
         format: ip-address
         example: "0.0.0.0/0"
         x-go-custom-tag: 'magma_alt_name:"Ipv4Dst"'
+      ip_src:
+        $ref: '#/definitions/ip_address'
+        x-go-custom-tag: 'magma_alt_name:"IpSrc"'
+      ip_dst:
+        $ref: '#/definitions/ip_address'
+        x-go-custom-tag: 'magma_alt_name:"IpDst"'
       tcp_src:
         type: integer
         format: uint32
@@ -907,3 +930,17 @@ definitions:
         type: boolean
         example: false
         default: false
+
+  ip_address:
+    description: IP address
+    type: object
+    properties:
+      version:
+        type: string
+        enum:
+          - IPv4
+          - IPv6
+      address:
+        type: string
+        format: ip-address
+        example: "192.168.0.1/24"

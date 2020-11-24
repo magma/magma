@@ -92,18 +92,34 @@ func makeCCRInit(
 	} else {
 		glog.Warning("No RatSpecificContext is specified")
 	}
+	request.Credits = makeUsedCreditsForCCRInit(pReq.RequestedUnits, keys)
+	return request
+}
 
+func makeUsedCreditsForCCRInit(
+	requestedUnits *protos.RequestedUnits,
+	keys []policydb.ChargingKey) []*gy.UsedCredits {
 	usedCredits := make([]*gy.UsedCredits, 0, len(keys))
 	for _, key := range keys {
-		uc := &gy.UsedCredits{RatingGroup: key.RatingGroup}
+		uc := &gy.UsedCredits{
+			RatingGroup:    key.RatingGroup,
+			RequestedUnits: getRequestedUnitsOrDefault(requestedUnits),
+		}
 		if key.ServiceIdTracking {
 			sid := key.ServiceIdentifier
 			uc.ServiceIdentifier = &sid
 		}
 		usedCredits = append(usedCredits, uc)
 	}
-	request.Credits = usedCredits
-	return request
+	return usedCredits
+}
+
+// TODO: function for backwards compatibility. Delete once older AGW are updated
+func getRequestedUnitsOrDefault(requestedUnits *protos.RequestedUnits) *protos.RequestedUnits {
+	if requestedUnits == nil {
+		return &protos.RequestedUnits{Total: 100000, Tx: 100000, Rx: 100000}
+	}
+	return requestedUnits
 }
 
 // makeCCRInitWithoutChargingKeys creates a CreditControlRequest for an INIT
@@ -244,10 +260,13 @@ func getSingleCreditResponseFromCCA(
 ) *protos.CreditUpdateResponse {
 	success := answer.ResultCode == diameter.SuccessCode
 	imsi := credit_control.AddIMSIPrefix(request.IMSI)
+
 	if len(answer.Credits) == 0 {
 		return &protos.CreditUpdateResponse{
-			Success: false,
-			Sid:     imsi,
+			Success:    false,
+			Sid:        imsi,
+			SessionId:  request.SessionID,
+			ResultCode: answer.ResultCode,
 		}
 	}
 	receivedCredit := answer.Credits[0]
@@ -261,11 +280,12 @@ func getSingleCreditResponseFromCCA(
 	}
 	res := &protos.CreditUpdateResponse{
 		Success:     success && msccSuccess,
+		SessionId:   request.SessionID,
 		Sid:         imsi,
 		ChargingKey: receivedCredit.RatingGroup,
 		Credit:      getSingleChargingCreditFromCCA(receivedCredit),
 		TgppCtx:     tgppCtx,
-		ResultCode:  answer.ResultCode,
+		ResultCode:  receivedCredit.ResultCode, //answer.ResultCode is returned in case of general failure
 	}
 
 	if receivedCredit.ServiceIdentifier != nil {
@@ -337,11 +357,12 @@ func getGyUpdateRequestsFromUsage(updates []*protos.CreditUsageUpdate) []*gy.Cre
 			UserLocation:  update.UserLocation,
 			Type:          credit_control.CRTUpdate,
 			Credits: []*gy.UsedCredits{&gy.UsedCredits{
-				RatingGroup:  update.Usage.ChargingKey,
-				InputOctets:  update.Usage.BytesTx, // transmit == input
-				OutputOctets: update.Usage.BytesRx, // receive == output
-				TotalOctets:  update.Usage.BytesTx + update.Usage.BytesRx,
-				Type:         gy.UsedCreditsType(update.Usage.Type),
+				RatingGroup:    update.Usage.ChargingKey,
+				InputOctets:    update.Usage.BytesTx, // transmit == input
+				OutputOctets:   update.Usage.BytesRx, // receive == output
+				TotalOctets:    update.Usage.BytesTx + update.Usage.BytesRx,
+				Type:           gy.UsedCreditsType(update.Usage.Type),
+				RequestedUnits: update.Usage.GetRequestedUnits(),
 			}},
 			RatType: gy.GetRATType(update.GetRatType()),
 			TgppCtx: update.GetTgppCtx(),

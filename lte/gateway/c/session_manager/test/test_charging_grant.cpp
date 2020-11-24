@@ -29,6 +29,7 @@ class ChargingGrantTest : public ::testing::Test {
     grant.expiry_time    = time(NULL);
     grant.service_state  = SERVICE_ENABLED;
     grant.reauth_state   = REAUTH_NOT_NEEDED;
+    grant.suspended      = false;
     return grant;
   }
 
@@ -47,6 +48,8 @@ class ChargingGrantTest : public ::testing::Test {
           RedirectServer_RedirectAddressType::
               RedirectServer_RedirectAddressType_IPV6);
       fa.redirect_server.set_redirect_server_address("addr");
+    } else if (action == ChargingCredit_FinalAction_RESTRICT_ACCESS) {
+      fa.restrict_rules.push_back("restrict_rule");
     }
     return fa;
   }
@@ -225,6 +228,30 @@ TEST_F(ChargingGrantTest, test_get_action_redirect) {
   EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
 }
 
+TEST_F(ChargingGrantTest, test_get_action_restrict) {
+  ChargingGrant grant = get_default_grant();
+  auto uc             = grant.get_update_criteria();
+  GrantedUnits gsu;
+  uint64_t total_grant = 1024;
+  create_granted_units(&total_grant, NULL, NULL, &gsu);
+
+  // Final with REDIRECT final action
+  grant.is_final_grant = true;
+  grant.final_action_info =
+      get_final_action_info(ChargingCredit_FinalAction_RESTRICT_ACCESS);
+  grant.credit.receive_credit(gsu, &uc);
+  grant.credit.add_used_credit(2048, 0, uc);
+  grant.credit.add_used_credit(30, 20, uc);
+  grant.service_state = SERVICE_NEEDS_DEACTIVATION;
+  auto term_action    = grant.get_action(uc);
+  // Check that the update criteria also includes the changes
+  EXPECT_EQ(term_action, RESTRICT_ACCESS);
+
+  // Termination action only returned once
+  auto repeated_action = grant.get_action(uc);
+  EXPECT_EQ(repeated_action, CONTINUE_SERVICE);
+}
+
 // test_tolerance_quota_exhausted checks that user will not be terminated if
 // quota is exhausted but not final unit indication is received.
 // That can happen if the quota reported by pipeline is too big and we go over
@@ -260,7 +287,8 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   // Now receive new quota (not final unit)
   uc = grant.get_update_criteria();  // reset UC
   grant.credit.receive_credit(gsu, &uc);
-  // we overused, so we take into consideration the 2000 we used plus granted 1000
+  // we overused, so we take into consideration the 2000 we used plus granted
+  // 1000
   EXPECT_EQ(credit.get_credit(ALLOWED_TOTAL), 3000);
   EXPECT_EQ(credit.get_credit(REPORTED_TX), 2000);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);

@@ -200,7 +200,7 @@ export default function FEGGatewayDialog(props: Props) {
     },
     health: {},
     hss: {},
-    s6a: getDiameterConfigs(s6a),
+    s6a: {...getDiameterConfigs(s6a), plmn_ids: []},
     served_network_ids: [],
     swx: {...getDiameterConfigs(swx)},
     csfb: {...getSCTPConfigs(csfb)},

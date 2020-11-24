@@ -102,7 +102,7 @@ void S1apStateManager::free_state() {
       ht_rc    = hashtable_ts_get(
           &state_cache_p->enbs, (hash_key_t) assoc_id, (void**) &enb);
       AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
-      AssertFatal(ht_rc == HASH_TABLE_OK, "eNB UE id not in assoc_id");
+      hashtable_uint64_ts_destroy(&enb->ue_id_coll);
     }
     FREE_HASHTABLE_KEY_ARRAY(keys);
   }
@@ -150,7 +150,7 @@ void S1apStateManager::create_s1ap_imsi_map() {
   s1ap_imsi_map_->mme_ue_id_imsi_htbl =
       hashtable_uint64_ts_create(max_ues_, nullptr, nullptr);
 
-  if(persist_state_enabled) {
+  if (persist_state_enabled) {
     oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();
     redis_client->read_proto(S1AP_IMSI_MAP_TABLE_NAME, imsi_proto);
 
@@ -165,12 +165,6 @@ void S1apStateManager::clear_s1ap_imsi_map() {
   hashtable_uint64_ts_destroy(s1ap_imsi_map_->mme_ue_id_imsi_htbl);
 
   free_wrapper((void**) &s1ap_imsi_map_);
-
-  if(persist_state_enabled) {
-    std::vector<std::string> keys_to_del;
-    keys_to_del.emplace_back(S1AP_IMSI_MAP_TABLE_NAME);
-    redis_client->clear_keys(keys_to_del);
-  }
 }
 
 s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
@@ -178,7 +172,7 @@ s1ap_imsi_map_t* S1apStateManager::get_s1ap_imsi_map() {
 }
 
 void S1apStateManager::write_s1ap_imsi_map_to_db() {
-  if(!persist_state_enabled) {
+  if (!persist_state_enabled) {
     return;
   }
   oai::S1apImsiMap imsi_proto = oai::S1apImsiMap();

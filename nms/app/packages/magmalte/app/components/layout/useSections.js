@@ -20,7 +20,7 @@ import type {SectionsConfigs} from '../layout/Section';
 import AppContext from '@fbcnms/ui/context/AppContext';
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import NetworkContext from '../context/NetworkContext';
-import {CWF, FEG, LTE, coalesceNetworkType} from '@fbcnms/types/network';
+import {CWF, FEG, LTE, WIFI, coalesceNetworkType} from '@fbcnms/types/network';
 
 import {getCWFSections} from '../cwf/CWFSections';
 import {getFEGSections} from '../feg/FEGSections';
@@ -28,16 +28,24 @@ import {
   getLteSections,
   getLteSectionsV2,
 } from '@fbcnms/magmalte/app/components/lte/LteSections';
+import {getMeshSections} from '@fbcnms/magmalte/app/components/wifi/WifiSections';
 import {useContext, useEffect, useState} from 'react';
 
 export default function useSections(): SectionsConfigs {
   const {networkId} = useContext<NetworkContextType>(NetworkContext);
-  const {isFeatureEnabled} = useContext(AppContext);
+  const {user, isFeatureEnabled} = useContext(AppContext);
   const [networkType, setNetworkType] = useState<?NetworkType>(null);
   const alertsEnabled = isFeatureEnabled('alerts');
   const logsEnabled = isFeatureEnabled('logs');
   const dashboardV2Enabled = isFeatureEnabled('dashboard_v2');
+  let dashboardV2EnabledFegCwf = false;
 
+  // enable dashboard v2 for cwf and feg in test mode
+  if (user && user.tenant !== '') {
+    if (user.tenant.endsWith('-test') && dashboardV2Enabled) {
+      dashboardV2EnabledFegCwf = true;
+    }
+  }
   useEffect(() => {
     const fetchNetworkType = async () => {
       if (networkId) {
@@ -56,10 +64,12 @@ export default function useSections(): SectionsConfigs {
   }
 
   switch (networkType) {
+    case WIFI:
+      return getMeshSections(alertsEnabled);
     case CWF:
-      return getCWFSections();
+      return getCWFSections(dashboardV2EnabledFegCwf);
     case FEG:
-      return getFEGSections();
+      return getFEGSections(dashboardV2EnabledFegCwf);
     case LTE:
     default: {
       if (dashboardV2Enabled) {

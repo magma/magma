@@ -19,6 +19,7 @@ import (
 
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
+	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/storage"
@@ -39,12 +40,16 @@ func (p *RatingGroupsProvider) GetStreamName() string {
 }
 
 func (p *RatingGroupsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
 
-	ratingGroupEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.RatingGroupEntityType, configurator.EntityLoadCriteria{LoadConfig: true})
+	ratingGroupEnts, err := configurator.LoadAllEntitiesOfType(
+		gwEnt.NetworkID, lte.RatingGroupEntityType,
+		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -89,14 +94,15 @@ func (p *PoliciesProvider) GetStreamName() string {
 }
 
 func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	gw, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	gw, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
 
-	rules, err := configurator.LoadAllEntitiesInNetwork(
+	rules, err := configurator.LoadAllEntitiesOfType(
 		gw.NetworkID, lte.PolicyRuleEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true},
+		serdes.Entity,
 	)
 	if err != nil {
 		return nil, err
@@ -114,26 +120,25 @@ func (p *PoliciesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*
 }
 
 // loadQosProfiles returns all policy_qos_profile ents, keyed by the key of
-// their parent policy rule ent.
+// their parent policy rule ent, once for each parent.
 func loadQosProfiles(networkID string) (map[string]configurator.NetworkEntity, error) {
-	profiles, err := configurator.LoadAllEntitiesInNetwork(
+	profiles, err := configurator.LoadAllEntitiesOfType(
 		networkID, lte.PolicyQoSProfileEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsToThis: true},
+		serdes.Entity,
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	byPolicyID := map[string]configurator.NetworkEntity{}
-	for _, prof := range profiles {
-		tk, err := prof.ParentAssociations.GetFirst(lte.PolicyRuleEntityType)
-		if err != nil {
-			return nil, err
+	qosByProfileID := map[string]configurator.NetworkEntity{}
+	for _, qos := range profiles {
+		for _, tk := range qos.ParentAssociations.Filter(lte.PolicyRuleEntityType) {
+			qosByProfileID[tk.Key] = qos
 		}
-		byPolicyID[tk.Key] = prof
 	}
 
-	return byPolicyID, nil
+	return qosByProfileID, nil
 }
 
 func createRuleProtoFromEnt(rule, qosProfile configurator.NetworkEntity) *lte_protos.PolicyRule {
@@ -170,14 +175,15 @@ func (p *BaseNamesProvider) GetStreamName() string {
 }
 
 func (p *BaseNamesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
 
-	bnEnts, err := configurator.LoadAllEntitiesInNetwork(
+	bnEnts, err := configurator.LoadAllEntitiesOfType(
 		gwEnt.NetworkID, lte.BaseNameEntityType,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true, LoadAssocsToThis: true},
+		serdes.Entity,
 	)
 	if err != nil {
 		return nil, err
@@ -217,13 +223,13 @@ func (p *ApnRuleMappingsProvider) GetStreamName() string {
 
 // GetUpdates implements GetUpdates for the rule mappings stream provider
 func (p *ApnRuleMappingsProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
 
 	loadCrit := configurator.EntityLoadCriteria{LoadAssocsFromThis: true}
-	subEnts, err := configurator.LoadAllEntitiesInNetwork(gwEnt.NetworkID, lte.SubscriberEntityType, loadCrit)
+	subEnts, err := configurator.LoadAllEntitiesOfType(gwEnt.NetworkID, lte.SubscriberEntityType, loadCrit, serdes.Entity)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load subscribers")
 	}
@@ -292,7 +298,7 @@ func loadApnPolicyProfileEnts(networkID string, tks []storage.TypeAndKey) (confi
 	}
 	loadCrit := configurator.EntityLoadCriteria{LoadAssocsFromThis: true}
 	typeFilter := lte.APNPolicyProfileEntityType
-	apnPolicyProfileEnts, _, err := configurator.LoadEntities(networkID, &typeFilter, nil, nil, tks, loadCrit)
+	apnPolicyProfileEnts, _, err := configurator.LoadEntities(networkID, &typeFilter, nil, nil, tks, loadCrit, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -332,11 +338,11 @@ func (p *NetworkWideRulesProvider) GetStreamName() string {
 }
 
 func (p *NetworkWideRulesProvider) GetUpdates(gatewayId string, extraArgs *any.Any) ([]*protos.DataUpdate, error) {
-	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{})
+	gwEnt, err := configurator.LoadEntityForPhysicalID(gatewayId, configurator.EntityLoadCriteria{}, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
-	iNetworkSubscriberConfig, err := configurator.LoadNetworkConfig(gwEnt.NetworkID, lte.NetworkSubscriberConfigType)
+	iNetworkSubscriberConfig, err := configurator.LoadNetworkConfig(gwEnt.NetworkID, lte.NetworkSubscriberConfigType, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return []*protos.DataUpdate{}, nil
 	}

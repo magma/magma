@@ -20,15 +20,22 @@ import ipaddress
 import unittest
 import time
 
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+from magma.common.redis.client import get_default_client
 
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError
 from magma.mobilityd.ip_allocator_pool import IPBlockNotFoundError, \
     NoAvailableIPError
+from magma.mobilityd.ip_allocator_pool import \
+    IpAllocatorPool
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
+from magma.mobilityd.mobility_store import MobilityStore
 
 # If the preallocated IP addresses in ip_address_man.py code
 # changes, then the test cases must be updated
+
+
 class IPAllocatorTests(unittest.TestCase):
     """
     Test class for the Mobilityd IP Allocator
@@ -40,20 +47,15 @@ class IPAllocatorTests(unittest.TestCase):
         """
         Creates and sets up an IPAllocator with the given recycling interval.
         """
-        # NOTE: change below to True to run IP allocator tests locally. We
-        # don't persist to Redis during normal unit tests since they are run
-        # in Sandcastle.
-        config = {
-            'recycling_interval': recycling_interval,
-            'persist_to_redis': False,
-            'redis_port': 6379,
-        }
-        mconfig = MobilityD(ip_allocator_type=MobilityD.IP_POOL,
-                            static_ip_enabled=False)
-        self._allocator = IPAddressManager(
-                recycling_interval=recycling_interval,
-                config=config,
-                mconfig=mconfig)
+        store = MobilityStore(get_default_client(), False, 3980)
+        store.dhcp_gw_info.read_default_gw()
+        ip_allocator = IpAllocatorPool(store)
+        ipv6_allocator = IPv6AllocatorPool(store,
+                                           session_prefix_alloc_mode='RANDOM')
+        self._allocator = IPAddressManager(ip_allocator,
+                                           ipv6_allocator,
+                                           store,
+                                           recycling_interval)
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
@@ -255,24 +257,24 @@ class IPAllocatorTests(unittest.TestCase):
     def test_remove_unallocated_block(self):
         """ test removing the allocator for an unallocated block """
         self.assertEqual(
-            {self._block}, self._allocator.remove_ip_blocks(self._block))
+            [self._block], self._allocator.remove_ip_blocks(self._block))
 
     def test_remove_allocated_block_without_force(self):
         """ test removing the allocator for an allocated block unforcibly """
         self._allocator.alloc_ip_address('SID0')
         self.assertEqual(
-            set(), self._allocator.remove_ip_blocks(self._block, force=False))
+            [], self._allocator.remove_ip_blocks(self._block, force=False))
 
     def test_remove_unforcible_is_default_behavior(self):
         """ test that removing by default is unforcible remove """
         self._allocator.alloc_ip_address('SID0')
-        self.assertEqual(set(), self._allocator.remove_ip_blocks(self._block))
+        self.assertEqual([], self._allocator.remove_ip_blocks(self._block))
 
     def test_remove_allocated_block_with_force(self):
         """ test removing the allocator for an allocated block forcibly """
         self._allocator.alloc_ip_address('SID0')
         self.assertEqual(
-            {self._block},
+            [self._block],
             self._allocator.remove_ip_blocks(self._block, force=True))
 
     def test_remove_after_releasing_all_addresses(self):
@@ -283,13 +285,13 @@ class IPAllocatorTests(unittest.TestCase):
         ip1, _ = self._allocator.alloc_ip_address('SID1')
 
         self.assertEqual(
-            set(), self._allocator.remove_ip_blocks(self._block, force=False))
+            [], self._allocator.remove_ip_blocks(self._block, force=False))
 
         self._allocator.release_ip_address('SID0', ip0)
         self._allocator.release_ip_address('SID1', ip1)
 
         self.assertEqual(
-            {self._block},
+            [self._block],
             self._allocator.remove_ip_blocks(self._block, force=False))
 
     def test_remove_after_releasing_some_addresses(self):
@@ -300,12 +302,12 @@ class IPAllocatorTests(unittest.TestCase):
         ip1, _ = self._allocator.alloc_ip_address('SID1')
 
         self.assertEqual(
-            set(), self._allocator.remove_ip_blocks(self._block, force=False))
+            [], self._allocator.remove_ip_blocks(self._block, force=False))
 
         self._allocator.release_ip_address('SID0', ip0)
 
         self.assertEqual(
-            set(), self._allocator.remove_ip_blocks(self._block, force=False))
+            [], self._allocator.remove_ip_blocks(self._block, force=False))
 
         self.assertTrue(
             ip0 not in self._allocator.list_allocated_ips(self._block))
@@ -324,7 +326,7 @@ class IPAllocatorTests(unittest.TestCase):
         ip1, _ = self._allocator.alloc_ip_address('SID1')
         self._allocator.release_ip_address('SID0', ip0)
         self.assertEqual(
-            {self._block},
+            [self._block],
             self._allocator.remove_ip_blocks(self._block, force=True))
         self._allocator.add_ip_block(self._block)
         ip0, _ = self._allocator.alloc_ip_address('SID0')

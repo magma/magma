@@ -30,6 +30,16 @@ extern "C" {}
 
 namespace magma {
 
+void copy_charging_characteristics(
+    charging_characteristics_t* target, const char* proto_c_str, int length) {
+  if (length > CHARGING_CHARACTERISTICS_LENGTH) {
+    length = CHARGING_CHARACTERISTICS_LENGTH;
+  }
+  if (length) memcpy(target->value, proto_c_str, length);
+  target->value[length] = '\0';
+  target->length        = length;
+}
+
 void convert_proto_msg_to_itti_s6a_auth_info_ans(
     AuthenticationInformationAnswer msg, s6a_auth_info_ans_t* itti_msg) {
   if (msg.eutran_vectors_size() > MAX_EPS_AUTH_VECTORS) {
@@ -103,6 +113,12 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
         msg.msisdn().length());
     itti_msg->subscription_data.msisdn_length = msg.msisdn().length();
   }
+
+  copy_charging_characteristics(
+      &itti_msg->subscription_data.default_charging_characteristics,
+      msg.default_charging_characteristics().c_str(),
+      msg.default_charging_characteristics().length());
+
   itti_msg->subscription_data.subscriber_status = SS_SERVICE_GRANTED;
   itti_msg->subscription_data.access_restriction =
       ARD_HO_TO_NON_3GPP_NOT_ALLOWED;
@@ -132,7 +148,8 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
 
     itti_msg_apn->context_identifier = apn.context_id();
     itti_msg_apn->pdn_type           = (pdn_type_t) apn.pdn();
-    auto service_sel                 = apn.service_selection();
+
+    auto service_sel = apn.service_selection();
     if (service_sel.length() > APN_MAX_LENGTH) {
       itti_msg_apn->service_selection_length = APN_MAX_LENGTH;
     } else {
@@ -141,6 +158,11 @@ void convert_proto_msg_to_itti_s6a_update_location_ans(
     memcpy(
         itti_msg_apn->service_selection, service_sel.c_str(),
         itti_msg_apn->service_selection_length);
+
+    copy_charging_characteristics(
+        &itti_msg_apn->charging_characteristics,
+        apn.charging_characteristics().c_str(),
+        apn.charging_characteristics().length());
 
     // Qos profile
     itti_msg_apn->subscribed_qos.qci = (qci_t) apn.qos_profile().class_id();

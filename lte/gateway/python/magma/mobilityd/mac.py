@@ -36,7 +36,7 @@ class MacAddress:
         """
         key = str(self.mac_address).replace(':', '_').lower()
         if vlan:
-            return vlan + "." + key
+            return "v{}.{}".format(vlan, key)
         else:
             return key
 

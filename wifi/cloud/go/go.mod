@@ -16,9 +16,9 @@ require (
 	github.com/golang/glog v0.0.0-20160126235308-23def4e6c14b
 	github.com/golang/protobuf v1.3.3
 	github.com/google/uuid v1.1.1
-	github.com/labstack/echo v0.0.0-20181123063414-c54d9e8eed6c
+	github.com/labstack/echo v3.3.10+incompatible
 	github.com/pkg/errors v0.8.1
-	github.com/stretchr/testify v1.4.0
+	github.com/stretchr/testify v1.5.1
 	github.com/thoas/go-funk v0.7.0
 	magma/orc8r/cloud/go v0.0.0
 	magma/orc8r/lib/go v0.0.0

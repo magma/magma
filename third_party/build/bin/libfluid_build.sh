@@ -22,7 +22,7 @@ source "${SCRIPT_DIR}"/../lib/util.sh
 
 GIT_VERSION=0.1.0
 ITERATION=1
-PKGVERSION=${GIT_VERSION}.4
+PKGVERSION=${GIT_VERSION}.5
 VERSION="${PKGVERSION}"-"${ITERATION}"
 PKGNAME=magma-libfluid
 
@@ -71,6 +71,7 @@ git -C libfluid_msg checkout $LIBFLUID_MSG_COMMIT
 
 pushd libfluid_msg
 git apply "${PATCH_DIR}"/libfluid_msg_patches/TunnelDstPatch.patch
+git apply "${PATCH_DIR}"/libfluid_msg_patches/Add-support-for-setting-OVS-reg8.patch
 popd
 
 for repo in libfluid_base libfluid_msg

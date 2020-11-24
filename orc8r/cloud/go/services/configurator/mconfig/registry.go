@@ -23,8 +23,10 @@ import (
 
 // GetBuilders returns all registered mconfig builders.
 func GetBuilders() ([]Builder, error) {
-	services := registry.FindServices(orc8r.MconfigBuilderLabel)
-
+	services, err := registry.FindServices(orc8r.MconfigBuilderLabel)
+	if err != nil {
+		return []Builder{}, err
+	}
 	var builders []Builder
 	for _, s := range services {
 		builders = append(builders, NewRemoteBuilder(s))

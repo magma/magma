@@ -15,12 +15,24 @@ import ipaddress
 import unittest
 from typing import Optional
 
-from lte.protos.mconfig.mconfigs_pb2 import MobilityD
+from magma.common.redis.client import get_default_client
+from magma.common.redis.mocks.mock_redis import MockRedis
 from magma.mobilityd.ip_descriptor import IPDesc, IPType
 from magma.mobilityd.ip_address_man import IPAddressManager, \
     IPNotInUseError, MappingNotFoundError, DuplicateIPAssignmentError
-from magma.mobilityd.tests.test_multi_apn_ip_alloc import MockedSubscriberDBStub
+from magma.mobilityd.tests.test_multi_apn_ip_alloc import \
+    MockedSubscriberDBStub
 from magma.mobilityd.uplink_gw import InvalidVlanId
+
+from magma.mobilityd.ip_allocator_static import \
+    IPAllocatorStaticWrapper
+from magma.mobilityd.ip_allocator_pool import \
+    IpAllocatorPool
+from magma.mobilityd.ipv6_allocator_pool import \
+    IPv6AllocatorPool
+from magma.mobilityd.mobility_store import MobilityStore
+
+from unittest import mock
 
 
 class StaticIPAllocationTests(unittest.TestCase):
@@ -29,22 +41,23 @@ class StaticIPAllocationTests(unittest.TestCase):
     """
     RECYCLING_INTERVAL_SECONDS = 1
 
+    @mock.patch("redis.Redis", MockRedis)
     def _new_ip_allocator(self, recycling_interval):
         """
         Creates and sets up an IPAllocator with the given recycling interval.
         """
-        config = {
-            'recycling_interval': recycling_interval,
-            'persist_to_redis': False,
-            'redis_port': 6379,
-        }
-        mconfig = MobilityD(ip_allocator_type=MobilityD.IP_POOL,
-                            static_ip_enabled=True)
 
-        self._allocator = IPAddressManager(recycling_interval=recycling_interval,
-                                           subscriberdb_rpc_stub=MockedSubscriberDBStub(),
-                                           config=config,
-                                           mconfig=mconfig)
+        store = MobilityStore(get_default_client(), False, 3980)
+        ip_allocator = IpAllocatorPool(store)
+        ipv4_allocator = IPAllocatorStaticWrapper(store,
+                                                  subscriberdb_rpc_stub=MockedSubscriberDBStub(),
+                                                  ip_allocator=ip_allocator)
+        ipv6_allocator = IPv6AllocatorPool(store,
+                                           session_prefix_alloc_mode='RANDOM')
+        self._allocator = IPAddressManager(ipv4_allocator,
+                                           ipv6_allocator,
+                                           store,
+                                           recycling_interval)
         self._allocator.add_ip_block(self._block)
 
     def setUp(self):
@@ -55,7 +68,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         MockedSubscriberDBStub.clear_subs()
 
     def check_type(self, sid: str, type: IPType):
-        ip_desc = self._allocator.sid_ips_map[sid]
+        ip_desc = self._allocator._store.sid_ips_map[sid]
         self.assertEqual(ip_desc.type, type)
         if type == IPType.IP_POOL:
             ip_block = self._block
@@ -63,10 +76,11 @@ class StaticIPAllocationTests(unittest.TestCase):
             ip_block = ipaddress.ip_network(ip_desc.ip)
         self.assertEqual(ip_desc.ip_block, ip_block)
 
-    def check_gw_info(self, vlan: Optional[int], gw_ip: str, gw_mac: Optional[str]):
-        gw_info_ip = self._allocator._dhcp_gw_info.get_gw_ip(vlan)
+    def check_gw_info(self, vlan: Optional[int], gw_ip: str,
+                      gw_mac: Optional[str]):
+        gw_info_ip = self._allocator._store.dhcp_gw_info.get_gw_ip(vlan)
         self.assertEqual(gw_info_ip, gw_ip)
-        gw_info_mac = self._allocator._dhcp_gw_info.get_gw_mac(vlan)
+        gw_info_mac = self._allocator._store.dhcp_gw_info.get_gw_mac(vlan)
         self.assertEqual(gw_info_mac, gw_mac)
 
     def test_get_ip_for_subscriber(self):
@@ -84,7 +98,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
@@ -100,7 +114,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with different APN assigned ip"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="xyz", ip=assigned_ip)
 
@@ -116,7 +130,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test wildcard apn"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip)
 
@@ -132,7 +146,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test IP assignement from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         assigned_ip_wild = '22.22.22.22'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
@@ -150,7 +164,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test invalid data from DB """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.hh'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
@@ -166,10 +180,11 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test IP assignment from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         assigned_ip_wild = '22.22.22.22'
-        MockedSubscriberDBStub.add_sub(sid=imsi, apn="abc", ip=assigned_ip_wild)
+        MockedSubscriberDBStub.add_sub(sid=imsi, apn="abc",
+                                       ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="xyz", ip=assigned_ip)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
@@ -184,7 +199,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test IP assignment from subscriber without non_3gpp config"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         MockedSubscriberDBStub.add_incomplete_sub(sid=imsi)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
@@ -197,7 +212,7 @@ class StaticIPAllocationTests(unittest.TestCase):
     def test_get_ip_for_subscriber_with_wildcard_no_apn(self):
         """ test wildcard apn"""
         imsi = 'IMSI110'
-        sid = imsi
+        sid = imsi + ",ipv4"
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip)
 
@@ -213,7 +228,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma.ipv4'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
@@ -229,7 +244,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test IP assignement from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         assigned_ip_wild = '22.22.22.22'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
@@ -247,7 +262,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test IP assignement from multiple  APNs"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip_wild = '22.22.22.22'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn="*", ip=assigned_ip_wild)
         MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn=apn, ip=None)
@@ -257,14 +272,14 @@ class StaticIPAllocationTests(unittest.TestCase):
 
         # check if retrieved ip is the same as the one allocated
         self.assertEqual(ip0, ip0_returned)
-        self.assertEqual(ip0, ipaddress.ip_address(assigned_ip_wild))
-        self.check_type(sid, IPType.STATIC)
+        self.assertNotEqual(ip0, ipaddress.ip_address(assigned_ip_wild))
+        self.check_type(sid, IPType.IP_POOL)
 
     def test_get_ip_for_subscriber_with_apn_with_gw(self):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         gw_ip = "1.2.3.1"
         gw_mac = "11:22:33:11:77:28"
@@ -284,7 +299,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test wildcard apn"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         gw_ip = "1.2.3.100"
         gw_mac = "11:22:33:11:77:81"
@@ -303,7 +318,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         gw_ip = "1.2.3.1"
         gw_mac = "11:22:33:11:77:44"
@@ -324,7 +339,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         gw_ip = "1.2.3.1333"
         gw_mac = "11:22:33:11:77:76"
@@ -345,7 +360,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         gw_ip = ""
         gw_mac = "11:22:33:11:77:45"
@@ -366,7 +381,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.24'
         gw_ip = "1.2.3.55"
         gw_mac = None
@@ -387,7 +402,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test wildcard apn"""
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         gw_ip = "1.2.3.100"
         gw_mac = "11:22:33:11:77:81"
@@ -401,8 +416,10 @@ class StaticIPAllocationTests(unittest.TestCase):
         wildcard_gw_mac = "11:22:33:88:77:99"
         wildcard_vlan = "400"
 
-        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="*", ip=wildcard_assigned_ip,
-                                          gw_ip=wildcard_gw_ip, gw_mac=wildcard_gw_mac,
+        MockedSubscriberDBStub.add_sub_ip(sid=imsi, apn="*",
+                                          ip=wildcard_assigned_ip,
+                                          gw_ip=wildcard_gw_ip,
+                                          gw_mac=wildcard_gw_mac,
                                           vlan=wildcard_vlan)
 
         ip0, _ = self._allocator.alloc_ip_address(sid)
@@ -419,7 +436,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         gw_ip = "1.2.3.1"
         gw_mac = "11:22:33:11:77:44"
@@ -434,7 +451,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test duplicate static IPs """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
@@ -448,7 +465,7 @@ class StaticIPAllocationTests(unittest.TestCase):
 
         apn = 'magma'
         imsi = 'IMSI999'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
         with self.assertRaises(DuplicateIPAssignmentError):
             ip0, _ = self._allocator.alloc_ip_address(sid)
@@ -457,7 +474,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test duplicate static IPs """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '1.2.3.4'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 
@@ -472,7 +489,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         apn1 = 'magma'
         imsi1 = 'IMSI999'
         assigned_ip1 = '1.2.3.5'
-        sid1 = imsi1 + '.' + apn1
+        sid1 = imsi1 + '.' + apn1 + ",ipv4"
         MockedSubscriberDBStub.add_sub(sid=imsi1, apn=apn1, ip=assigned_ip1)
 
         ip1, _ = self._allocator.alloc_ip_address(sid1)
@@ -487,7 +504,7 @@ class StaticIPAllocationTests(unittest.TestCase):
         """ test get_ip_for_sid with static IP """
         apn = 'magma'
         imsi = 'IMSI110'
-        sid = imsi + '.' + apn
+        sid = imsi + '.' + apn + ",ipv4"
         assigned_ip = '192.168.0.10'
         MockedSubscriberDBStub.add_sub(sid=imsi, apn=apn, ip=assigned_ip)
 

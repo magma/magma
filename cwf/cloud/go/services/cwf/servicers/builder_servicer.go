@@ -20,6 +20,7 @@ import (
 
 	"magma/cwf/cloud/go/cwf"
 	cwf_mconfig "magma/cwf/cloud/go/protos/mconfig"
+	"magma/cwf/cloud/go/serdes"
 	"magma/cwf/cloud/go/services/cwf/obsidian/models"
 	feg_mconfig "magma/feg/cloud/go/protos/mconfig"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
@@ -54,11 +55,11 @@ func NewBuilderServicer() builder_protos.MconfigBuilderServer {
 func (s *builderServicer) Build(ctx context.Context, request *builder_protos.BuildRequest) (*builder_protos.BuildResponse, error) {
 	ret := &builder_protos.BuildResponse{ConfigsByKey: map[string][]byte{}}
 
-	network, err := (configurator.Network{}).FromStorageProto(request.Network)
+	network, err := (configurator.Network{}).FromProto(request.Network, serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graph, err := (configurator.EntityGraph{}).FromStorageProto(request.Graph)
+	graph, err := (configurator.EntityGraph{}).FromProto(request.Graph, serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -80,7 +81,14 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 		return ret, nil
 	}
 
-	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs))
+	var haPairConfigs *models.CwfHaPairConfigs
+	haPairEnt, err := graph.GetFirstAncestorOfType(gwConfig, cwf.CwfHAPairType)
+	if err != nil {
+		haPairConfigs = nil
+	} else {
+		haPairConfigs = haPairEnt.Config.(*models.CwfHaPairConfigs)
+	}
+	vals, err := buildFromConfigs(nwConfig, gwConfig.Config.(*models.GatewayCwfConfigs), haPairConfigs)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -92,7 +100,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	return ret, nil
 }
 
-func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *models.GatewayCwfConfigs) (map[string]proto.Message, error) {
+func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *models.GatewayCwfConfigs, haPairConfigs *models.CwfHaPairConfigs) (map[string]proto.Message, error) {
 	ret := map[string]proto.Message{}
 	if nwConfig == nil {
 		return ret, nil
@@ -113,13 +121,18 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 	if err != nil {
 		return nil, err
 	}
-
 	eapAka := nwConfig.EapAka
+	eapSim := nwConfig.EapSim
 	aaa := nwConfig.AaaServer
 	if eapAka != nil {
 		mc := &feg_mconfig.EapAkaConfig{LogLevel: protos.LogLevel_INFO}
 		protos.FillIn(eapAka, mc)
 		ret["eap_aka"] = mc
+	}
+	if eapSim != nil {
+		mc := &feg_mconfig.EapSimConfig{LogLevel: protos.LogLevel_INFO}
+		protos.FillIn(eapSim, mc)
+		ret["eap_sim"] = mc
 	}
 	if aaa != nil {
 		mc := &feg_mconfig.AAAConfig{LogLevel: protos.LogLevel_INFO}
@@ -137,8 +150,8 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		IpdrExportDst:   ipdrExportDst,
 	}
 	ret["sessiond"] = &lte_mconfig.SessionD{
-		LogLevel:     protos.LogLevel_INFO,
-		RelayEnabled: true,
+		LogLevel:         protos.LogLevel_INFO,
+		GxGyRelayEnabled: true,
 		WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
 			TerminateOnExhaust: true,
 			Method:             lte_mconfig.WalletExhaustDetection_GxTrackedRules,
@@ -151,22 +164,16 @@ func buildFromConfigs(nwConfig *models.NetworkCarrierWifiConfigs, gwConfig *mode
 		LogLevel: protos.LogLevel_INFO,
 	}
 	healthCfg := gwConfig.GatewayHealthConfigs
-	if healthCfg != nil {
-		mc := &cwf_mconfig.CwfGatewayHealthConfig{
-			CpuUtilThresholdPct: healthCfg.CPUUtilThresholdPct,
-			MemUtilThresholdPct: healthCfg.MemUtilThresholdPct,
-			GreProbeInterval:    healthCfg.GreProbeIntervalSecs,
-			IcmpProbePktCount:   healthCfg.IcmpProbePktCount,
-		}
-		protos.FillIn(healthCfg, mc)
-		mc.GrePeers = getHealthServiceGrePeers(allowedGrePeers)
-		ret["health"] = mc
-	} else {
-		mc := &cwf_mconfig.CwfGatewayHealthConfig{
-			GrePeers: getHealthServiceGrePeers(allowedGrePeers),
-		}
-		ret["health"] = mc
+	mc := &cwf_mconfig.CwfGatewayHealthConfig{
+		GrePeers: getHealthServiceGrePeers(allowedGrePeers),
 	}
+	if haPairConfigs != nil {
+		mc.ClusterVirtualIp = haPairConfigs.TransportVirtualIP
+	}
+	if healthCfg != nil {
+		protos.FillIn(healthCfg, mc)
+	}
+	ret["health"] = mc
 
 	return ret, nil
 }

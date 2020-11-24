@@ -28,6 +28,7 @@ from magma.pipelined.tests.pipelined_test_util import (
     create_service_manager,
     assert_bridge_snapshot_match,
 )
+from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 
 
 class LIMirrorTest(unittest.TestCase):
@@ -81,6 +82,7 @@ class LIMirrorTest(unittest.TestCase):
                 'li_mirror_all': True,
                 'li_local_iface': cls.LI_LOCAL_IFACE,
                 'li_dst_iface': cls.LI_DST_IFACE,
+                'uplink_port': OFPP_LOCAL
             },
             mconfig=None,
             loop=None,

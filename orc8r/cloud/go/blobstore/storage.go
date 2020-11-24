@@ -30,6 +30,16 @@ type Blob struct {
 	Version uint64
 }
 
+type Blobs []Blob
+
+func (bs Blobs) GetKeys() []string {
+	var keys []string
+	for _, b := range bs {
+		keys = append(keys, b.Key)
+	}
+	return keys
+}
+
 // CreateSearchFilter creates a search filter for the given criteria.
 // Nil elements result in no filtering. If you prefer to instantiate string
 // sets manually, you can also create a SearchFilter directly.
@@ -58,6 +68,7 @@ type BlobStorageFactory interface {
 // TransactionalBlobStorage is the client API for blob storage operations
 // within the context of a transaction.
 // TODO(4/9/2020): refactor Get-like methods into package-level defaults wrapping Search -- see e.g. ListKeysByNetwork
+// TODO(10/19/2020): refactor []Blob to Blobs in interface
 type TransactionalBlobStorage interface {
 	// Commit commits the existing transaction.
 	// If an error is returned from the backing storage while committing,
@@ -109,6 +120,19 @@ type TransactionalBlobStorage interface {
 	// IncrementVersion is an atomic upsert (INSERT DO ON CONFLICT) that
 	// increments the version column or inserts 1 if it does not exist.
 	IncrementVersion(networkID string, id storage.TypeAndKey) error
+}
+
+// GetAllOfType returns all blobs in the network of the passed type.
+func GetAllOfType(store TransactionalBlobStorage, networkID, typ string) ([]Blob, error) {
+	filter := CreateSearchFilter(nil, []string{typ}, nil, nil)
+	criteria := LoadCriteria{LoadValue: true}
+
+	blobsByNetwork, err := store.Search(filter, criteria)
+	if err != nil {
+		return nil, err
+	}
+
+	return blobsByNetwork[networkID], nil
 }
 
 // ListKeysByNetwork returns all blob keys, keyed by network ID.

@@ -50,16 +50,17 @@ TEST_F(StoreClientTest, test_read_and_write) {
   std::string radius_session_id =
       "AA-AA-AA-AA-AA-AA:TESTAP__"
       "0F-10-2E-12-3A-55";
-  auto sid                    = id_gen_.gen_session_id(imsi);
-  auto sid2                   = id_gen_.gen_session_id(imsi2);
-  auto sid3                   = id_gen_.gen_session_id(imsi3);
+  auto sid  = id_gen_.gen_session_id(imsi);
+  auto sid2 = id_gen_.gen_session_id(imsi2);
+  auto sid3 = id_gen_.gen_session_id(imsi3);
   SessionConfig cfg;
-  cfg.common_context =
-      build_common_context("", "128.0.0.1", "APN", msisdn, TGPP_WLAN);
+  cfg.common_context = build_common_context(
+      "", "128.0.0.1", "2001:0db8:0a0b:12f0:0000:0000:0000:0001", "APN", msisdn,
+      TGPP_WLAN);
   const auto& wlan = build_wlan_context("0f:10:2e:12:3a:55", radius_session_id);
   cfg.rat_specific_context.mutable_wlan_context()->CopyFrom(wlan);
-  auto rule_store   = std::make_shared<StaticRuleStore>();
-  auto tgpp_context = TgppContext{};
+  auto rule_store     = std::make_shared<StaticRuleStore>();
+  auto tgpp_context   = TgppContext{};
   auto pdp_start_time = 12345;
 
   auto store_client = new MemoryStoreClient(rule_store);
@@ -68,9 +69,9 @@ TEST_F(StoreClientTest, test_read_and_write) {
   std::set<std::string> requested_ids{imsi, imsi2};
   auto session_map = store_client->read_sessions(requested_ids);
 
-  auto uc = get_default_update_criteria();
-  auto session =
-      std::make_unique<SessionState>(imsi, sid, cfg, *rule_store, tgpp_context, pdp_start_time);
+  auto uc      = get_default_update_criteria();
+  auto session = std::make_unique<SessionState>(
+      imsi, sid, cfg, *rule_store, tgpp_context, pdp_start_time);
   auto session2 = std::make_unique<SessionState>(
       imsi2, sid2, cfg, *rule_store, tgpp_context, pdp_start_time);
   auto session3 = std::make_unique<SessionState>(
@@ -89,7 +90,7 @@ TEST_F(StoreClientTest, test_read_and_write) {
 
   // Since the grant was not given with R/W permission for subscriber IMSI2,
   // The session for IMSI2 should not be saved into the store
-  session_map[imsi2] = std::vector<std::unique_ptr<SessionState>>();
+  session_map[imsi2] = SessionVector();
   session_map[imsi2].push_back(std::move(session2));
   EXPECT_EQ(session_map.size(), 2);
   EXPECT_EQ(session_map[imsi2].size(), 1);

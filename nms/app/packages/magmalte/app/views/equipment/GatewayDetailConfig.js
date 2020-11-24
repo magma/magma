@@ -339,14 +339,23 @@ function GatewayRAN({gwInfo}: {gwInfo: lte_gateway}) {
   const enbInfo =
     gwInfo.connected_enodeb_serials?.reduce(
       (enbs: {[string]: EnodebInfo}, serial: string) => {
-        if (enbCtx.state.enbInfo[serial] != null) {
+        if (enbCtx?.state?.enbInfo?.[serial] != null) {
           enbs[serial] = enbCtx.state.enbInfo[serial];
         }
         return enbs;
       },
       {},
     ) || {};
+  const dhcpServiceStatus = gwInfo.cellular.dns?.dhcp_server_enabled ?? true;
   const ran: DataRows[] = [
+    [
+      {
+        category: 'eNodeB DHCP Service',
+        value: dhcpServiceStatus ? 'Enabled' : 'Disabled',
+        statusCircle: true,
+        status: dhcpServiceStatus,
+      },
+    ],
     [
       {
         category: 'PCI',

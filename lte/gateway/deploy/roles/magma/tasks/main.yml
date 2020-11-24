@@ -10,6 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+- name: Include vars of all.yaml
+  include_vars:
+    file: all.yaml
+    name: all_vars
+
 - name: Copy magma service files
   copy:
     src: "systemd/magma_{{ item }}.service"
@@ -20,12 +25,15 @@
     - mobilityd
     - dnsd
     - eventd
+    - ctraced
     # Magma OAI services
     - mme
     # Magma third-party services
     - redis
     - pipelined
     - redirectd
+    - envoy
+    - envoy_controller
     # Manhattan services
     - lighttpd
     - sessiond
@@ -63,8 +71,18 @@
     force: yes
     remote_src: yes
   with_items:
+    - config_stateless_agw.py
     - create_oai_certs.py
     - generate_oai_config.py
+    - generate_dnsd_config.py
+  when: full_provision
+
+- name: Copy Envoy config
+  copy: src=envoy.yaml dest=/var/opt/magma/envoy.yaml
+  when: full_provision
+
+- name: Copy Envoy configuration script
+  copy: src=configure_envoy_namespace.sh dest=/usr/local/bin/configure_envoy_namespace.sh
   when: full_provision
 
 - name: Create symlink for stateless scripts
@@ -87,6 +105,10 @@
 
 - name: Create symlink for session_manager binary
   file: src='{{ c_build }}/session_manager/sessiond' path=/usr/local/bin/sessiond state=link force=yes follow=no
+  when: full_provision
+
+- name: Create symlink for envoy controller binary
+  file: src='{{ go_build }}/envoy_controller' path=/usr/local/bin/envoy_controller state=link force=yes follow=no
   when: full_provision
 
 - name: Create symlink for dpid binary
@@ -113,6 +135,13 @@
   become: no
   file:
     path: '{{ magma_repo }}/'
+    state: directory
+  when: full_provision
+
+- name: Add Magma dependency package directory
+  become: no
+  file:
+    path: '{{ magma_deps }}/'
     state: directory
   when: full_provision
 
@@ -176,6 +205,8 @@
       - magma-cpp-redis
       # Time synchronization with NTP for eventd
       - ntpdate
+      # For call tracing
+      - tshark
   retries: 5
   when: preburn
 
@@ -219,6 +250,20 @@
   with_items:
     - gtest
     - gmock
+  when: preburn
+
+- name: Download golang tar
+  get_url:
+    url: "https://storage.googleapis.com/golang/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    dest: "{{ all_vars.WORK_DIR }}"
+    mode: 0440
+  when: preburn
+
+- name: Extract Go tarball
+  unarchive:
+    src: "{{all_vars.WORK_DIR}}/go{{ all_vars.GO_VERSION }}.linux-amd64.tar.gz"
+    dest: /usr/local
+    copy: no
   when: preburn
 
 - name: Install dnsmasq

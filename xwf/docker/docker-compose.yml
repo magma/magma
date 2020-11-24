@@ -28,6 +28,7 @@ services:
     privileged: true
     networks:
       - control
+      - server
     environment:
       - APPURL=${APPURL:-https://graph.expresswifi.com}
       - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID:-}
@@ -49,6 +50,8 @@ services:
       - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
       - ODS_ENTITY=ofproxy
       - OFPRADIUS=${OFPRADIUS:-0}
+      - METERURL=${METERURL:-}
+      - AWSENDPOINT=${AWSENDPOINT:-}
     logging: *logging_anchor
     depends_on:
       - logrouter
@@ -131,6 +134,8 @@ services:
       /bin/sh -c "./docker-entrypoint.sh"
     networks:
       - control
+    ports:
+      - "1812:1812/udp"
     logging:
       driver: "json-file"
       options:
@@ -193,6 +198,7 @@ services:
       - OFPROXY_ADDR=ofproxy
       - OFPROXY_PORT=6653
       - ACCESS_TOKEN=${XWF_ACCESSTOKEN}
+      - INSECURE=${INSECURE:-}
     depends_on:
       - ofproxy
       - logrouter
@@ -207,6 +213,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - control
+      - server
     environment:
       - ACCESSTOKEN=${XWF_ACCESSTOKEN}
       - BASE_URL=${APPURL:-https://graph.expresswifi.com}
@@ -218,6 +225,7 @@ services:
       - PARTNERNAME=${XWF_PARTNER_SHORT_NAME}
       - CPURL=${XWF_CPURL}
       - VPCEndPointID=${XWF_VPCEndPointID}
+      - BACKEND=${BACKEND:-WWW}
     logging: *logging_anchor
     depends_on:
       - xwf_client
@@ -257,6 +265,7 @@ services:
       - SRCPORT=6653
       - DSTPORT=6653
       - FORWARD=ofproxy-mt
+      - VPCEndPointID=${XWF_VPCEndPointID}
     networks:
       - control
     logging: *logging_anchor
@@ -271,8 +280,7 @@ volumes:
   configs_templates:
   openvswitch:
 networks:
-  wan:
-  lan:
+  server:
   control:
     ipam:
       config:

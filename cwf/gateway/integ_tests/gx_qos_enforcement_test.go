@@ -23,6 +23,7 @@ import (
 	fegProtos "magma/feg/cloud/go/protos"
 	lteProtos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/services/policydb/obsidian/models"
+	"strings"
 
 	"math"
 	"math/rand"
@@ -134,6 +135,19 @@ func TestGxUplinkTrafficQosEnforcement(t *testing.T) {
 	time.Sleep(3 * time.Second)
 }
 
+func checkIfRuleInstalled(tr *TestRunner, ruleName string) bool {
+	cmdList := [][]string{
+		{"pipelined_cli.py", "debug", "display_flows"},
+	}
+	cmdOutputList, err := tr.RunCommandInContainer("pipelined", cmdList)
+	if err != nil || len(cmdList) != 1 {
+		fmt.Printf("error dumping pipelined state %v", err)
+		return false
+	}
+
+	return strings.Contains(cmdOutputList[0].output, ruleName)
+}
+
 //TestGxDownlinkTrafficQosEnforcement
 // This test verifies the QOS configuration(downlink) present in the rules
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -188,6 +202,13 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
 		Timeout:     60,
 	}
+
+	// wait for rule to be installed
+	waitForRuleToBeInstalled := func() bool {
+		return checkIfRuleInstalled(tr, ruleKey)
+	}
+	assert.Eventually(t, waitForRuleToBeInstalled, time.Minute, 2*time.Second)
+
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
 	// Assert that enforcement_stats rules are properly installed and the right
@@ -394,10 +415,8 @@ func TestGxQosDowngradeWithReAuth(t *testing.T) {
 		},
 	)
 	assert.NoError(t, err)
-	tr.WaitForReAuthToProcess()
+	assert.Eventually(t, tr.WaitForPolicyReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
 
-	// Check ReAuth success
-	assert.Contains(t, raa.SessionId, "IMSI"+imsi)
 	assert.Equal(t, diam.Success, int(raa.ResultCode))
 
 	_, err = tr.GenULTraffic(req)

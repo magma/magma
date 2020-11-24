@@ -16,8 +16,8 @@ generate_cpp_protos("${ORC8R_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${ORC8R_PROTO_DIR} ${ORC8R_OUT_DIR})
 
 # SPGW
-set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb)
-set(SPGWSRV_LTE_GRPC_PROTOS spgw_service)
+set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd session_manager)
+set(SPGWSRV_LTE_GRPC_PROTOS spgw_service session_manager)
 generate_cpp_protos("${SPGWSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${SPGWSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
@@ -45,13 +45,32 @@ generate_cpp_protos("${SGSSRV_FEG_CPP_PROTOS}" "${PROTO_SRCS}"
 generate_grpc_protos("${SGSSRV_FEG_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${FEG_PROTO_DIR} ${FEG_OUT_DIR})
 
+# SMS Orc8r
+set(SMOSRV_LTE_CPP_PROTOS sms_orc8r)
+set(SMOSRV_LTE_GRPC_PROTOS sms_orc8r)
+generate_cpp_protos("${SMOSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${SMOSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
+  "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
+# S1ap Service
+set(S1APSRV_LTE_CPP_PROTOS s1ap_service)
+set(S1APSRV_LTE_GRPC_PROTOS s1ap_service)
+generate_cpp_protos("${S1APSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
+        "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+generate_grpc_protos("${S1APSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
+        "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_library(TASK_GRPC_SERVICE
+    AmfServiceImpl.cpp 
     SpgwServiceImpl.cpp
     S6aGatewayImpl.cpp
     S6aServiceImpl.cpp
     CSFBGatewayServiceImpl.cpp
+    SMSOrc8rGatewayServiceImpl.cpp
+    S1apServiceImpl.cpp
     spgw_service_handler.c
     proto_msg_to_itti_msg.cpp
     grpc_service.cpp

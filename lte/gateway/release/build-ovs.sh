@@ -39,10 +39,10 @@
 # /!\ Note this file is going to move elsewhere It's just temp.
 
 set -e
-WORK_DIR=~/build-ovs
-OVS_VERSION="v2.8.9"
+WORK_DIR=/tmp/build-ovs
 OVS_VERSION_SHORT="2.8.9"
-MAGMA_ROOT="../../../"
+OVS_VERSION="v${OVS_VERSION_SHORT}"
+MAGMA_ROOT="$(realpath "$(dirname $0)"/../../../)"
 GTP_PATCH_PATH="${MAGMA_ROOT}/third_party/gtp_ovs/kernel-4.9"
 # Build time dependencies
 BUILD_DEPS="graphviz debhelper dh-autoreconf python-all python-twisted-conch module-assistant git ruby-dev openssl pkg-config libssl-dev build-essential"
@@ -50,6 +50,8 @@ PATCHES="$(ls ${GTP_PATCH_PATH}/${OVS_VERSION_SHORT})"
 FLOWBASED_PATH=$(readlink -f ${MAGMA_ROOT}/third_party/gtp_ovs/kernel-4.9/gtp-v4.9-backport/)
 PATCH_ROOT=$(readlink -f "$GTP_PATCH_PATH/$OVS_VERSION_SHORT/")
 VLAN_FIX="3cf2b424bb"
+# be sure to increment this to enable upgrade from package repo when rebuilding identical upstream versions
+LOCAL_REV=1
 
 # The resulting package is placed in $OUTPUT_DIR
 # or in the cwd.
@@ -80,14 +82,31 @@ sudo gem install fpm
 
 # pull code and apply patches
 cd ${WORK_DIR}
-git clone https://github.com/openvswitch/ovs.git
+(wget "${OVS_ARCHIVE_URL}" && tar xzf "${OVS_ARCHIVE}") || git clone https://github.com/openvswitch/ovs.git
 cd ovs
 git checkout ${OVS_VERSION}
 cp $PATCH_ROOT/*.patch $WORK_DIR/ovs
 cp -r "${FLOWBASED_PATH}" "${WORK_DIR}/ovs/flow-based-gtp-linux-v4.9"
-git am ${PATCHES}
+git apply ${PATCHES}
 # vlan fix
-git cherry-pick $VLAN_FIX
+git show $VLAN_FIX | git apply -3 -
+
+# fakeroot finds version in debian/changelog
+# -- build changelog entry with the correct version string and patch
+cat <<EOF | git apply -
+diff --git a/debian/changelog b/debian/changelog
+index 824ed7d5f..b606d4331 100644
+--- a/debian/changelog
++++ b/debian/changelog
+@@ -1,3 +1,9 @@
++openvswitch (${OVS_VERSION_SHORT}-${LOCAL_REV}) unstable; urgency=low
++   [ local team ]
++   * New local version
++
++ -- local team <noreply@example.com>  $(date '+%a, %d %b %Y %H:%M:%S %z')
++
+$(head -3 debian/changelog | sed 's/^/ /g')
+EOF
 
 ./boot.sh
 # Building OVS user packages
@@ -102,4 +121,4 @@ kvers=$(uname -r)
 ksrc="/lib/modules/$kvers/build"
 sudo make -f debian/rules.modules KSRC="$ksrc" KVERS="$kvers" binary-modules
 
-cp /usr/src/*.deb ${WORK_DIR}
+cp /usr/src/*.deb ${WORK_DIR}/*.deb ${OUTPUT_DIR}

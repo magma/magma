@@ -11,14 +11,15 @@
 #
 [Unit]
 Description=Magma sctpd service
-PartOf=magma@mme.service
 Before=magma@mme.service
 
 [Service]
 Type=simple
 EnvironmentFile=/etc/environment
 ExecStartPre=-/bin/cp -f /usr/local/share/sctpd/version /var/run/sctpd.version
+ExecStartPre=/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py sctpd_pre
 ExecStart=/usr/local/sbin/sctpd
+ExecStartPost=/usr/bin/env python3 /usr/local/bin/config_stateless_agw.py sctpd_post
 ExecStopPost=/usr/bin/env python3 /usr/local/bin/service_util.py sctpd
 ExecStopPost=-/bin/rm -f /var/run/sctpd.version
 MemoryAccounting=yes

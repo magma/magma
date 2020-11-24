@@ -1,0 +1,89 @@
+{
+  "version-1.3.0-docs": {
+    "Basics": [
+      "version-1.3.0-basics/introduction",
+      "version-1.3.0-basics/prerequisites",
+      "version-1.3.0-basics/quick_start_guide"
+    ],
+    "Orchestrator": [
+      {
+        "type": "subcategory",
+        "label": "Deploy Orchestrator",
+        "ids": [
+          "version-1.3.0-orc8r/deploy_intro",
+          "version-1.3.0-orc8r/deploy_build",
+          "version-1.3.0-orc8r/deploy_install"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Upgrade Orchestrator",
+        "ids": [
+          "version-1.3.0-orc8r/upgrade_intro",
+          "version-1.3.0-orc8r/upgrade_1_3",
+          "version-1.3.0-orc8r/upgrade_1_2",
+          "version-1.3.0-orc8r/upgrade_1_1"
+        ]
+      }
+    ],
+    "NMS User Guide": [
+      "version-1.3.0-nms/nms_overview",
+      "version-1.3.0-nms/nms_dashboard",
+      "version-1.3.0-nms/nms_equipment",
+      "version-1.3.0-nms/nms_network",
+      "version-1.3.0-nms/nms_subscriber",
+      "version-1.3.0-nms/nms_traffic",
+      "version-1.3.0-nms/nms_organizations",
+      "version-1.3.0-nms/nms_developer",
+      "version-1.3.0-nms/nms_how_to_guide"
+    ],
+    "Access Gateway": [
+      {
+        "type": "subcategory",
+        "label": "Deploy AGWs",
+        "ids": [
+          "version-1.3.0-lte/setup_deb",
+          "version-1.3.0-lte/config_agw",
+          "version-1.3.0-lte/enodebd",
+          "version-1.3.0-lte/config_apn",
+          "version-1.3.0-lte/agw_130_upgrade",
+          "version-1.3.0-lte/agw_120_upgrade",
+          "version-1.3.0-lte/agw_110_upgrade"
+        ]
+      },
+      {
+        "type": "subcategory",
+        "label": "AGW Development",
+        "ids": [
+          "version-1.3.0-lte/tr069",
+          "version-1.3.0-lte/s1ap_tests",
+          "version-1.3.0-lte/dev_notes"
+        ]
+      }
+    ],
+    "Feature Guides": [
+      "version-1.3.0-howtos/ue_metering",
+      "version-1.3.0-howtos/config_agw_bridged"
+    ],
+    "Federation Gateway": [
+      {
+        "type": "subcategory",
+        "label": "Deploy FeG",
+        "ids": [
+          "version-1.3.0-feg/deploy_intro",
+          "version-1.3.0-feg/deploy_build",
+          "version-1.3.0-feg/deploy_install",
+          "version-1.3.0-feg/federated_FWA_setup_guide"
+        ]
+      }
+    ],
+    "FAQ": [
+      "version-1.3.0-faq/magma_faq"
+    ],
+    "Proposals": [
+      "version-1.3.0-proposals/p001_vpn_config_from_api",
+      "version-1.3.0-proposals/p002_scaled_prometheus_pipeline",
+      "version-1.3.0-proposals/p003_qos_enforcement"
+    ]
+  }
+}

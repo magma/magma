@@ -174,14 +174,15 @@ func (m *PolicyRule) GetAssocs() storage.TKs {
 
 func (m *PolicyRule) getConfig() *PolicyRuleConfig {
 	return &PolicyRuleConfig{
-		FlowList:       m.FlowList,
-		MonitoringKey:  m.MonitoringKey,
-		Priority:       m.Priority,
-		RatingGroup:    m.RatingGroup,
-		Redirect:       m.Redirect,
-		TrackingType:   m.TrackingType,
-		AppName:        m.AppName,
-		AppServiceType: m.AppServiceType,
+		FlowList:                m.FlowList,
+		MonitoringKey:           m.MonitoringKey,
+		Priority:                m.Priority,
+		RatingGroup:             m.RatingGroup,
+		Redirect:                m.Redirect,
+		TrackingType:            m.TrackingType,
+		AppName:                 m.AppName,
+		AppServiceType:          m.AppServiceType,
+		HeaderEnrichmentTargets: m.HeaderEnrichmentTargets,
 	}
 }
 
@@ -203,6 +204,7 @@ func (m *PolicyRule) fillFromConfig(entConfig interface{}) *PolicyRule {
 	m.TrackingType = cfg.TrackingType
 	m.AppName = cfg.AppName
 	m.AppServiceType = cfg.AppServiceType
+	m.HeaderEnrichmentTargets = cfg.HeaderEnrichmentTargets
 	return m
 }
 
@@ -281,6 +283,9 @@ func (m *PolicyRuleConfig) ToProto(id string, qos *protos.FlowQos) *protos.Polic
 		}
 		rule.FlowList = flowList
 	}
+	if len(m.HeaderEnrichmentTargets) != 0 {
+		rule.He = &protos.HeaderEnrichment{Urls: m.HeaderEnrichmentTargets}
+	}
 	return rule
 }
 
@@ -315,6 +320,23 @@ func (m *FlowDescription) ToProto() *protos.FlowDescription {
 		IpProto:   protos.FlowMatch_IPProto(protos.FlowMatch_IPProto_value[*m.Match.IPProto]),
 	}
 	orc8rProtos.FillIn(m.Match, flowDescription.Match)
+
+	// Backwards compatible for old flow match definition
+	if m.Match.IPSrc != nil {
+		flowDescription.Match.IpSrc = &protos.IPAddress{
+			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPSrc.Version]),
+			Address: []byte(m.Match.IPSrc.Address),
+		}
+		flowDescription.Match.Ipv4Src = m.Match.IPSrc.Address
+	}
+	if m.Match.IPDst != nil {
+		flowDescription.Match.IpDst = &protos.IPAddress{
+			Version: protos.IPAddress_IPVersion(protos.IPAddress_IPVersion_value[m.Match.IPDst.Version]),
+			Address: []byte(m.Match.IPDst.Address),
+		}
+		flowDescription.Match.Ipv4Dst = m.Match.IPDst.Address
+	}
+
 	return flowDescription
 }
 
@@ -375,7 +397,7 @@ func (m *NetworkSubscriberConfig) ToUpdateCriteria(network configurator.Network)
 }
 
 func (m *PolicyQosProfile) FromBackendModels(networkID string, key string) error {
-	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key)
+	config, err := configurator.LoadEntityConfig(networkID, lte.PolicyQoSProfileEntityType, key, EntitySerdes)
 	if err != nil {
 		return err
 	}

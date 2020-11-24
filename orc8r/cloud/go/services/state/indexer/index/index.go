@@ -47,7 +47,7 @@ const (
 // Per-state indexing errors are logged and reported as metrics.
 // Overarching indexing errors are retried, then eventually logged.
 // Returns after completing attempt at indexing states.
-func MustIndex(networkID string, states state_types.StatesByID) {
+func MustIndex(networkID string, states state_types.SerializedStatesByID) {
 	errs, err := Index(networkID, states)
 	if err != nil {
 		// Since we don't have a good way of recovering from failed goroutines
@@ -64,7 +64,7 @@ func MustIndex(networkID string, states state_types.StatesByID) {
 //	- each indexer gets up to maxRetry attempts
 //	- returns after all goroutines have completed
 // Prefer MustIndex except where receiving the returned errors is relevant.
-func Index(networkID string, states state_types.StatesByID) ([]error, error) {
+func Index(networkID string, states state_types.SerializedStatesByID) ([]error, error) {
 	index := func(indexers chan indexer.Indexer, out chan error) {
 		for x := range indexers {
 			var indexErr error
@@ -105,8 +105,8 @@ func Index(networkID string, states state_types.StatesByID) ([]error, error) {
 	return indexErrs, nil
 }
 
-func indexOne(networkID string, idx indexer.Indexer, states state_types.StatesByID) error {
-	filtered := indexer.FilterStates(idx.GetTypes(), states)
+func indexOne(networkID string, idx indexer.Indexer, states state_types.SerializedStatesByID) error {
+	filtered := states.Filter(idx.GetTypes()...)
 	if len(filtered) == 0 {
 		return nil
 	}

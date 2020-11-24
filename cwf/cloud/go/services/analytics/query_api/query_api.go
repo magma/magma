@@ -16,15 +16,15 @@ package query_api
 import (
 	"context"
 	"fmt"
-	"github.com/prometheus/client_golang/api"
+	"time"
+
 	"github.com/prometheus/client_golang/api/prometheus/v1"
 	"github.com/prometheus/common/model"
-	"time"
 )
 
 type PrometheusAPI interface {
-	Query(ctx context.Context, query string, ts time.Time) (model.Value, api.Warnings, error)
-	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, api.Warnings, error)
+	Query(ctx context.Context, query string, ts time.Time) (model.Value, v1.Warnings, error)
+	QueryRange(ctx context.Context, query string, r v1.Range) (model.Value, v1.Warnings, error)
 }
 
 // QueryPrometheusVector handles all the error cases of making an instant query

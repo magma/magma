@@ -61,6 +61,7 @@ import (
 	"sort"
 
 	"magma/lte/cloud/go/tools/migrations/m010_default_apns/types"
+	"magma/orc8r/cloud/go/serde"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/sqorc"
 	"magma/orc8r/cloud/go/storage"
@@ -404,6 +405,10 @@ func mergeGraphs(tx *sql.Tx, builder sqorc.StatementBuilder, gids []string) erro
 func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 	registry.MustPopulateServices()
 
+	serdes := serde.NewRegistry(
+		configurator.NewNetworkEntityConfigSerde(apnEntType, &types.ApnConfiguration{}),
+	)
+
 	nids, err := configurator.ListNetworkIDs()
 	if err != nil {
 		return err
@@ -413,7 +418,11 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 
 		// All subscribers have an APN
 
-		allSubs, err := configurator.LoadAllEntitiesInNetwork(nid, subscriberEntType, configurator.EntityLoadCriteria{LoadAssocsFromThis: true})
+		allSubs, err := configurator.LoadAllEntitiesOfType(
+			nid, subscriberEntType,
+			configurator.EntityLoadCriteria{LoadAssocsFromThis: true},
+			serdes,
+		)
 		if err != nil {
 			return err
 		}
@@ -438,7 +447,11 @@ func verifyMigration(db *sql.DB, builder sqorc.StatementBuilder) error {
 
 		// Default APN and its subscribers have same graph ID
 
-		defaultAPN, err := configurator.LoadEntity(nid, apnEntType, types.DefaultAPNName, configurator.EntityLoadCriteria{LoadAssocsToThis: true})
+		defaultAPN, err := configurator.LoadEntity(
+			nid, apnEntType, types.DefaultAPNName,
+			configurator.EntityLoadCriteria{LoadAssocsToThis: true},
+			serdes,
+		)
 		if err != nil {
 			return err
 		}

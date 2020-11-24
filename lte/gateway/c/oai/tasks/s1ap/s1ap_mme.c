@@ -260,7 +260,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           mme_ue_s1ap_id_t mme_ue_s1ap_id = timer_arg.instance_id;
           if ((ue_ref_p = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id)) == NULL) {
             OAILOG_WARNING_UE(
-                imsi64, LOG_S1AP,
+                LOG_S1AP, imsi64,
                 "Timer expired but no assoicated UE context for UE id %d\n",
                 mme_ue_s1ap_id);
             timer_handle_expired(
@@ -499,7 +499,8 @@ ue_description_t* s1ap_new_ue(
   DevAssert(ue_ref != NULL);
   ue_ref->sctp_assoc_id  = sctp_assoc_id;
   ue_ref->enb_ue_s1ap_id = enb_ue_s1ap_id;
-  ue_ref->comp_s1ap_id   = s1ap_get_comp_s1ap_id(sctp_assoc_id, enb_ue_s1ap_id);
+  ue_ref->comp_s1ap_id =
+      S1AP_GENERATE_COMP_S1AP_ID(sctp_assoc_id, enb_ue_s1ap_id);
 
   hash_table_ts_t* state_ue_ht = get_s1ap_ue_state();
   hashtable_rc_t hashrc        = hashtable_ts_insert(

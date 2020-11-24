@@ -34,6 +34,7 @@ resource "null_resource" orc8r_seed_secrets {
 
 locals {
   orc8r_cert_names = [
+    "rootCA.key",
     "rootCA.pem",
     "controller.key",
     "controller.crt",
@@ -100,6 +101,8 @@ resource "kubernetes_secret" "orc8r_configs" {
     })
 
     "orchestrator.yml" = yamlencode({
+      "useGRPCExporter": true,
+      "prometheusGRPCPushAddress" : format("%s-prometheus-cache:9092", var.helm_deployment_name),
       "prometheusPushAddresses" : [
         format("http://%s-prometheus-cache:9091/metrics", var.helm_deployment_name),
       ],
@@ -116,10 +119,6 @@ resource "kubernetes_secret" "orc8r_envdir" {
   metadata {
     name      = "orc8r-envdir"
     namespace = kubernetes_namespace.orc8r.metadata[0].name
-  }
-
-  data = {
-    "CONTROLLER_SERVICES" = "CONFIGURATOR,STATE,STREAMER,POLICYDB,METRICSD,CERTIFIER,BOOTSTRAPPER,ACCESSD,OBSIDIAN,DISPATCHER,DIRECTORYD"
   }
 }
 

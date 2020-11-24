@@ -33,7 +33,8 @@ func NewDefaultTDDNetworkConfig() *NetworkCellularConfigs {
 			LteAuthOp:  []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf: []byte("\x80\x00"),
 
-			RelayEnabled:             swag.Bool(false),
+			HssRelayEnabled:          swag.Bool(false),
+			GxGyRelayEnabled:         swag.Bool(false),
 			CloudSubscriberdbEnabled: false,
 			DefaultRuleID:            "",
 		},
@@ -56,7 +57,8 @@ func NewDefaultFDDNetworkConfig() *NetworkCellularConfigs {
 			// 16 bytes of \x11
 			LteAuthOp:                []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
 			LteAuthAmf:               []byte("\x80\x00"),
-			RelayEnabled:             swag.Bool(false),
+			HssRelayEnabled:          swag.Bool(false),
+			GxGyRelayEnabled:         swag.Bool(false),
 			CloudSubscriberdbEnabled: false,
 			DefaultRuleID:            "",
 		},
@@ -76,5 +78,6 @@ func NewDefaultEnodebStatus() *EnodebState {
 		PtpConnected:     swag.Bool(false),
 		MmeConnected:     swag.Bool(true),
 		FsmState:         swag.String("TEST"),
+		IPAddress:        "192.168.0.1",
 	}
 }

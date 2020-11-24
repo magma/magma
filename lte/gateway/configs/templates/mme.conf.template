@@ -33,8 +33,6 @@ MME :
     # Display statistics about whole system (expressed in seconds)
     MME_STATISTIC_TIMER                       = 10;
 
-    IP_CAPABILITY = "IPV4";                                                   # UE PDN_TYPE
-
     USE_STATELESS = "{{ use_stateless }}";
 
     INTERTASK_INTERFACE :
@@ -158,6 +156,17 @@ MME :
         T3486                                 =  8                              # UNUSED in seconds (default is 8s)
         T3489                                 =  4                              # UNUSED in seconds (default is 4s)
         T3495                                 =  8                              # UNUSED in seconds (default is 8s)
+
+        # APN CORRECTION FEATURE
+        ENABLE_APN_CORRECTION                 = "{{ enable_apn_correction }}"
+        APN_CORRECTION_MAP_LIST               = (
+          {% for apn_map in apn_correction_map_list -%}
+          {
+            APN_CORRECTION_MAP_IMSI_PREFIX = "{{ apn_map.imsi_prefix }}" ;
+            APN_CORRECTION_MAP_APN_OVERRIDE = "{{ apn_map.apn_override }}" ;
+          }{% if not loop.last %},{% endif %}
+         {% endfor %}
+        );
     };
 
     SGS :
@@ -217,7 +226,7 @@ MME :
         COLOR             = "no";
 
         # Log level choice in { "EMERGENCY", "ALERT", "CRITICAL", "ERROR", "WARNING", "NOTICE", "INFO", "DEBUG", "TRACE"}
-        SCTP_LOG_LEVEL     = "ERROR";
+        SCTP_LOG_LEVEL     = "{{ oai_log_level }}";
         GTPV1U_LOG_LEVEL   = "{{ oai_log_level }}";
         SPGW_APP_LOG_LEVEL = "{{ oai_log_level }}";
         UDP_LOG_LEVEL      = "{{ oai_log_level }}";

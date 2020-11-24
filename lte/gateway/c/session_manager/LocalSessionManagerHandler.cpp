@@ -17,14 +17,12 @@
 
 #include "LocalSessionManagerHandler.h"
 #include "magma_logging.h"
+#include "Utilities.h"
 #include "GrpcMagmaUtils.h"
 
 using grpc::Status;
 
 namespace magma {
-
-const std::string LocalSessionManagerHandlerImpl::hex_digit_ =
-    "0123456789abcdef";
 
 LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
     std::shared_ptr<LocalEnforcer> enforcer, SessionReporter* reporter,
@@ -38,12 +36,16 @@ LocalSessionManagerHandlerImpl::LocalSessionManagerHandlerImpl(
       events_reporter_(events_reporter),
       current_epoch_(0),
       reported_epoch_(0),
-      retry_timeout_(1) {}
+      retry_timeout_(5000) {}
 
 void LocalSessionManagerHandlerImpl::ReportRuleStats(
     ServerContext* context, const RuleRecordTable* request,
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
+  if (request_cpy.records_size() > 0) {
+    PrintGrpcMessage(
+        static_cast<const google::protobuf::Message&>(request_cpy));
+  }
   MLOG(MDEBUG) << "Aggregating " << request_cpy.records_size() << " records";
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = session_store_.read_all_sessions();
@@ -55,7 +57,9 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 
   reported_epoch_ = request_cpy.epoch();
   if (is_pipelined_restarted()) {
-    MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows";
+    MLOG(MINFO) << "Pipelined has been restarted, attempting to sync flows,"
+                << " old epoch = " << current_epoch_
+                << ", new epoch = " << reported_epoch_;
     restart_pipelined(reported_epoch_);
     // Set the current epoch right away to prevent double setup call requests
     current_epoch_ = reported_epoch_;
@@ -64,13 +68,12 @@ void LocalSessionManagerHandlerImpl::ReportRuleStats(
 }
 
 void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
-    SessionMap session_map, SessionUpdate& session_update) {
+    SessionMap session_map, SessionUpdate& session_uc) {
   std::vector<std::unique_ptr<ServiceAction>> actions;
-  auto request =
-      enforcer_->collect_updates(session_map, actions, session_update);
-  enforcer_->execute_actions(session_map, actions, session_update);
+  auto request = enforcer_->collect_updates(session_map, actions, session_uc);
+  enforcer_->execute_actions(session_map, actions, session_uc);
   if (request.updates_size() == 0 && request.usage_monitors_size() == 0) {
-    auto update_success = session_store_.update_sessions(session_update);
+    auto update_success = session_store_.update_sessions(session_uc);
     if (update_success) {
       MLOG(MDEBUG) << "Succeeded in updating session after no reporting";
     } else {
@@ -78,13 +81,18 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
     }
     return;  // nothing to report
   }
+
   MLOG(MINFO) << "Sending " << request.updates_size()
               << " charging updates and " << request.usage_monitors_size()
               << " monitor updates to OCS and PCRF";
 
+  // set reporting flag for those sessions reporting
+  session_store_.set_and_save_reporting_flag(true, request, session_uc);
+
   // Before reporting and returning control to the event loop, increment the
   // request numbers stored for the sessions in SessionStore
-  session_store_.sync_request_numbers(session_update);
+  session_store_.sync_request_numbers(session_uc);
+
   // report to cloud
   // NOTE: It is not possible to construct a std::function from a move-only type
   //       So because of this, we can't directly move session_map into the
@@ -94,22 +102,29 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
   //       https://stackoverflow.com/questions/25421346/how-to-create-an-stdfunction-from-a-move-capturing-lambda-expression
   reporter_->report_updates(
       request,
-      [this, request, session_update,
+      [this, request, session_uc,
        session_map_ptr = std::make_shared<SessionMap>(std::move(session_map))](
           Status status, UpdateSessionResponse response) mutable {
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
+
+        // clear all the reporting flags
+        session_store_.set_and_save_reporting_flag(false, request, session_uc);
+
         if (!status.ok()) {
-          MLOG(MERROR) << "Update of size " << request.updates_size()
-                       << " to OCS failed entirely: " << status.error_message();
+          MLOG(MERROR)
+              << "UpdateSession request to FeG/PolicyDB failed entirely: "
+              << status.error_message();
+          enforcer_->handle_update_failure(
+              *session_map_ptr, UpdateRequestsBySession(request), session_uc);
           report_session_update_event_failure(
-              *session_map_ptr, session_update, status.error_message());
+              *session_map_ptr, session_uc, status.error_message());
         } else {
           enforcer_->update_session_credits_and_rules(
-              *session_map_ptr, response, session_update);
-          session_store_.update_sessions(session_update);
-          report_session_update_event(*session_map_ptr, session_update);
+              *session_map_ptr, response, session_uc);
+          report_session_update_event(*session_map_ptr, session_uc);
         }
+        session_store_.update_sessions(session_uc);
       });
 }
 
@@ -146,7 +161,7 @@ void LocalSessionManagerHandlerImpl::handle_setup_callback(
     return;
   } else if (resp.result() == resp.FAILURE) {
     MLOG(MWARNING) << "Pipelined setup failed, retrying pipelined setup "
-                      "for epoch "
+                      "after delay, for epoch "
                    << epoch;
   }
 
@@ -179,12 +194,22 @@ bool LocalSessionManagerHandlerImpl::restart_pipelined(
 }
 
 static CreateSessionRequest make_create_session_request(
-    const SessionConfig& cfg, const std::string& session_id) {
+    const SessionConfig& cfg, const std::string& session_id,
+    const std::unique_ptr<Timezone>& access_timezone) {
   CreateSessionRequest create_request;
   create_request.set_session_id(session_id);
   create_request.mutable_common_context()->CopyFrom(cfg.common_context);
   create_request.mutable_rat_specific_context()->CopyFrom(
       cfg.rat_specific_context);
+
+  if (access_timezone != nullptr) {
+    create_request.mutable_access_timezone()->CopyFrom(*access_timezone);
+  }
+
+  const RequestedUnits requestedUnits =
+      SessionCredit::get_initial_requested_credits_units();
+  create_request.mutable_requested_units()->CopyFrom(requestedUnits);
+
   return create_request;
 }
 
@@ -230,7 +255,8 @@ void LocalSessionManagerHandlerImpl::send_create_session(
     const SessionConfig& cfg,
     std::function<void(grpc::Status, LocalCreateSessionResponse)> cb) {
   const auto& imsi = cfg.common_context.sid().id();
-  auto create_req  = make_create_session_request(cfg, session_id);
+  auto create_req  = make_create_session_request(
+      cfg, session_id, enforcer_->get_access_timezone());
   MLOG(MINFO) << "Sending a CreateSessionRequest to fetch policies for "
               << session_id;
   reporter_->report_create_session(
@@ -241,10 +267,10 @@ void LocalSessionManagerHandlerImpl::send_create_session(
         PrintGrpcMessage(
             static_cast<const google::protobuf::Message&>(response));
         if (status.ok()) {
-          MLOG(MINFO) << "Sending a CreateSessionResponse for " << session_id;
+          MLOG(MINFO) << "Processing a CreateSessionResponse for "
+                      << session_id;
           enforcer_->init_session_credit(
               *session_map_ptr, imsi, session_id, cfg, response);
-
           bool write_success = session_store_.create_sessions(
               imsi, std::move((*session_map_ptr)[imsi]));
           if (write_success) {
@@ -396,25 +422,6 @@ void LocalSessionManagerHandlerImpl::add_session_to_directory_record(
       });
 }
 
-std::string LocalSessionManagerHandlerImpl::convert_mac_addr_to_str(
-    const std::string& mac_addr) {
-  std::string res;
-  auto l = mac_addr.length();
-  if (l == 0) {
-    return res;
-  }
-  res.reserve(l * 3 - 1);
-  for (size_t i = 0; i < l; i++) {
-    if (i > 0) {
-      res.push_back(':');
-    }
-    unsigned char c = mac_addr[i];
-    res.push_back(hex_digit_[c >> 4]);
-    res.push_back(hex_digit_[c & 0x0F]);
-  }
-  return res;
-}
-
 /**
  * EndSession completes the entire termination procedure with the OCS & PCRF.
  * The process for session termination is as follows:
@@ -443,26 +450,29 @@ void LocalSessionManagerHandlerImpl::EndSession(
 void LocalSessionManagerHandlerImpl::end_session(
     SessionMap& session_map, const SubscriberID& sid, const std::string& apn,
     std::function<void(Status, LocalEndSessionResponse)> response_callback) {
-  try {
-    auto update = SessionStore::get_default_session_update(session_map);
-    enforcer_->terminate_session(session_map, sid.id(), apn, update);
-
-    bool update_success = session_store_.update_sessions(update);
-    if (update_success) {
-      response_callback(Status::OK, LocalEndSessionResponse());
-    } else {
-      auto status = Status(
-          grpc::ABORTED,
-          "EndSession no longer valid due to another update that "
-          "occurred to the session first.");
-      response_callback(status, LocalEndSessionResponse());
-    }
-  } catch (const SessionNotFound& ex) {
+  auto update = SessionStore::get_default_session_update(session_map);
+  MLOG(MINFO) << "Received a termination request from Access for " << sid.id()
+              << " apn " << apn;
+  auto found = enforcer_->handle_termination_from_access(
+      session_map, sid.id(), apn, update);
+  if (!found) {
     MLOG(MERROR) << "Failed to find session to terminate for subscriber "
-                 << sid.id();
+                 << sid.id() << " apn " << apn;
     Status status(grpc::FAILED_PRECONDITION, "Session not found");
     response_callback(status, LocalEndSessionResponse());
+    return;
   }
+  bool update_success = session_store_.update_sessions(update);
+  if (!update_success) {
+    auto status = Status(
+        grpc::ABORTED,
+        "EndSession no longer valid due to another update that "
+        "occurred to the session first.");
+    response_callback(status, LocalEndSessionResponse());
+    return;
+  }
+  // Success
+  response_callback(Status::OK, LocalEndSessionResponse());
 }
 
 void LocalSessionManagerHandlerImpl::report_session_update_event(
@@ -493,7 +503,7 @@ void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
       auto session_id = (*session)->get_session_id();
       if (updates.find(session_id) != updates.end()) {
         std::ostringstream failure_stream;
-        failure_stream << "Update Session failed due to response from OCS: "
+        failure_stream << "UpdateSession request to FeG/PolicyDB failed: "
                        << failure_reason;
         std::string failure_msg = failure_stream.str();
         MLOG(MERROR) << failure_msg;
@@ -511,10 +521,11 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
         response_callback) {
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  MLOG(INFO) << "imsi: " << request->sid().id()
-             << " default bearer: " << request->linked_bearer_id()
-             << " policy rule: " << request->policy_rule_id()
-             << " created bearer: " << request->bearer_id();
+  MLOG(INFO) << "Received a BindPolicy2Bearer request for "
+             << request->sid().id()
+             << " with default bearerID: " << request->linked_bearer_id()
+             << " policyID: " << request->policy_rule_id()
+             << " created dedicated bearerID: " << request->bearer_id();
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     auto session_map = session_store_.read_sessions({request_cpy.sid().id()});
     SessionUpdate update =
@@ -537,12 +548,48 @@ void LocalSessionManagerHandlerImpl::BindPolicy2Bearer(
   response_callback(Status::OK, PolicyBearerBindingResponse());
 }
 
+void LocalSessionManagerHandlerImpl::UpdateTunnelIds(
+    ServerContext* context, UpdateTunnelIdsRequest* request,
+    std::function<void(Status, UpdateTunnelIdsResponse)> response_callback) {
+  auto& request_cpy = *request;
+  auto imsi         = request->sid().id();
+  PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
+  MLOG(MDEBUG) << "Received a UpdateTunnelIds request for " << imsi
+               << " with default bearer id: " << request->bearer_id()
+               << " enb_teid= " << request->enb_teid()
+               << " agw_teid= " << request->agw_teid();
+  enforcer_->get_event_base().runInEventBaseThread([this, request_cpy, imsi,
+                                                    response_callback]() {
+    auto session_map = session_store_.read_sessions({imsi});
+    SessionUpdate update =
+        SessionStore::get_default_session_update(session_map);
+    auto success =
+        enforcer_->update_tunnel_ids(session_map, request_cpy, update);
+    if (!success) {
+      MLOG(MDEBUG) << "Failed to UpdateTunnelIds for imsi " << imsi
+                   << " and bearer " << request_cpy.bearer_id();
+      auto err_status = Status(grpc::ABORTED, "Failed to Update tunnels Ids");
+      response_callback(err_status, UpdateTunnelIdsResponse());
+      return;
+    }
+    auto update_success = session_store_.update_sessions(update);
+    if (!update_success) {
+      MLOG(MERROR)
+          << "Failed in updating SessionStore after processing UpdateTunnelIds";
+      auto err_status = Status(grpc::ABORTED, "Failed to store tunnels Ids");
+      response_callback(err_status, UpdateTunnelIdsResponse());
+      return;
+    }
+    response_callback(Status::OK, UpdateTunnelIdsResponse());
+  });
+}
+
 void LocalSessionManagerHandlerImpl::SetSessionRules(
     ServerContext* context, const SessionRules* request,
     std::function<void(Status, Void)> response_callback) {
   auto& request_cpy = *request;
   PrintGrpcMessage(static_cast<const google::protobuf::Message&>(request_cpy));
-  MLOG(MINFO) << "Received session <-> rule associations";
+  MLOG(MDEBUG) << "Received session <-> rule associations";
 
   enforcer_->get_event_base().runInEventBaseThread([this, request_cpy]() {
     SessionRead req = {};
@@ -572,9 +619,10 @@ void LocalSessionManagerHandlerImpl::log_create_session(SessionConfig& cfg) {
       "Received a LocalCreateSessionRequest for " + imsi + " with APN:" + apn;
   if (cfg.rat_specific_context.has_lte_context()) {
     const auto& lte = cfg.rat_specific_context.lte_context();
-    create_message += ", default bearer ID:" + std::to_string(lte.bearer_id()) +
-                      ", PLMN ID:" + lte.plmn_id() +
-                      ", IMSI PLMN ID:" + lte.imsi_plmn_id();
+    create_message +=
+        ", default bearer ID:" + std::to_string(lte.bearer_id()) +
+        ", PLMN ID:" + lte.plmn_id() + ", IMSI PLMN ID:" + lte.imsi_plmn_id() +
+        ", User location:" + magma::bytes_to_hex(lte.user_location());
   } else if (cfg.rat_specific_context.has_wlan_context()) {
     create_message +=
         ", MAC addr:" + cfg.rat_specific_context.wlan_context().mac_addr();

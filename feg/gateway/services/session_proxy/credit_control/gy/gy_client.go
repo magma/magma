@@ -183,6 +183,7 @@ func (gyClient *GyClient) DisableConnections(period time.Duration) {
 // messages received from the OCS
 func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diameter.Client) {
 	reqHandler := func(conn diam.Conn, message *diam.Message) {
+		glog.V(2).Infof("Received Gy reauth message:\n%s\n", message)
 		rar := &ChargingReAuthRequest{}
 		if err := message.Unmarshal(rar); err != nil {
 			glog.Errorf("Received unparseable RAR over Gy %s\n%s", message, err)
@@ -192,6 +193,7 @@ func registerReAuthHandler(reAuthHandler ChargingReAuthHandler, diamClient *diam
 			raa := reAuthHandler(rar)
 			raaMsg := createReAuthAnswerMessage(message, raa)
 			raaMsg = diamClient.AddOriginAVPsToMessage(raaMsg)
+			glog.V(2).Infof("Sending (responding) Gy reauth message:\n%s\n", raaMsg)
 			_, err := raaMsg.WriteToWithRetry(conn, diamClient.Retries())
 			if err != nil {
 				glog.Errorf(
@@ -300,8 +302,6 @@ func getServiceInfoAvp(server *diameter.DiameterServerConfig, request *CreditCon
 	psInfoAvps := []*diam.AVP{
 		// Set PDP Type as IPV4(0)
 		diam.NewAVP(avp.TGPPPDPType, avp.Vbit, diameter.Vendor3GPP, datatype.Enumerated(0)),
-		// Argentina TZ (UTC-3hrs) TODO: Make it so that it takes the FeG's timezone
-		// diam.NewAVP(avp.TGPPMSTimeZone, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(string([]byte{0x29, 0}))),
 		// Set RAT Type as EUTRAN(6). See 3GPP TS 29.274, 8.17 "Table 8.17-1: RAT Type values"
 		diam.NewAVP(avp.TGPPRATType, avp.Vbit, diameter.Vendor3GPP, datatype.OctetString(ratType)),
 		// Set it to 0
@@ -381,6 +381,25 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 	avpGroup := []*diam.AVP{
 		diam.NewAVP(avp.RatingGroup, avp.Mbit, 0, datatype.Unsigned32(credits.RatingGroup)),
 	}
+
+	// Requested-Service-Unit can only be send in CCR-I and CCR-U
+	if requestType != credit_control.CRTTerminate {
+		var usuGrp []*diam.AVP
+		if credits.RequestedUnits == nil {
+			glog.Errorf("Not adding AVP Requested-Service-Unit. Not found on credit request for session %+v", credits)
+			usuGrp = []*diam.AVP{}
+		} else {
+			usuGrp = []*diam.AVP{
+				diam.NewAVP(avp.CCInputOctets, avp.Mbit, 0, datatype.Unsigned64(credits.RequestedUnits.Rx)),
+				diam.NewAVP(avp.CCOutputOctets, avp.Mbit, 0, datatype.Unsigned64(credits.RequestedUnits.Tx)),
+				diam.NewAVP(avp.CCTotalOctets, avp.Mbit, 0, datatype.Unsigned64(credits.RequestedUnits.Total)),
+			}
+		}
+		avpGroup = append(
+			avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: usuGrp}))
+
+	}
+
 	if serviceIdentifier >= 0 {
 		avpGroup = append(
 			avpGroup,
@@ -389,12 +408,6 @@ func getMSCCAVP(requestType credit_control.CreditRequestType, credits *UsedCredi
 		avpGroup = append(
 			avpGroup,
 			diam.NewAVP(avp.ServiceIdentifier, avp.Mbit, 0, datatype.Unsigned32(*credits.ServiceIdentifier)))
-	}
-
-	/*** Altamira OCS needs empty RSU ***/
-	if requestType != credit_control.CRTTerminate {
-		avpGroup = append(
-			avpGroup, diam.NewAVP(avp.RequestedServiceUnit, avp.Mbit, 0, &diam.GroupedAVP{AVP: []*diam.AVP{}}))
 	}
 
 	// Used credits can only be sent on updates and terminates

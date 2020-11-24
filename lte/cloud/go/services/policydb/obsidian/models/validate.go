@@ -15,6 +15,7 @@ package models
 
 import (
 	"github.com/go-openapi/strfmt"
+	"github.com/pkg/errors"
 )
 
 func (m BaseNames) ValidateModel() error {
@@ -26,6 +27,21 @@ func (m RuleNames) ValidateModel() error {
 }
 
 func (m *PolicyRule) ValidateModel() error {
+	for _, flow := range m.FlowList {
+		if flow.Match != nil {
+			errMatch := flow.Match.ValidateModel()
+			if errMatch != nil {
+				return errMatch
+			}
+		}
+	}
+	return m.Validate(strfmt.Default)
+}
+
+func (m *FlowMatch) ValidateModel() error {
+	if (m.IPV4Dst != "" || m.IPV4Src != "") && (m.IPSrc != nil || m.IPDst != nil) {
+		return errors.New("Invalid Argument: Can't mix old ipv4_src/ipv4_dst type with the new ip_src/ip_dst")
+	}
 	return m.Validate(strfmt.Default)
 }
 
