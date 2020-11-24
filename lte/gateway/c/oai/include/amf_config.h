@@ -22,8 +22,6 @@
 
   Subsystem   Access and Mobility Management Function
 
-  Author      Sandeep Kumar Mall
-
   Description Defines Access and Mobility Management Messages
 
 *****************************************************************************/
@@ -34,7 +32,6 @@
 #include <stdint.h>
 #include <arpa/inet.h>
 #include <stdlib.h>
-//#include "amf_default_values.h"
 #include "common_types.h"
 #include "3gpp_23.003.h"
 #include "3gpp_24.008.h"
@@ -92,22 +89,11 @@ typedef struct ngap_config_s {
   uint16_t port_number;
   uint8_t outcome_drop_timer_sec;
 } ngap_config_t;
-#if 0
-typedef struct sctp_config_s {
-  uint16_t in_streams;
-  uint16_t out_streams;
-} sctp_config_t;
 
-typedef struct itti_config_s {
-  uint32_t queue_size;
-  bstring log_file;
-} itti_config_t;
-#endif
 typedef struct guamfi_config_s {
   int nb;
   guamfi_t guamfi[MAX_GUMMEI];
 } guamfi_config_t;
-// typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
 typedef struct amf_config_s {
   /* Reader/writer lock for this configuration */
@@ -128,18 +114,9 @@ typedef struct amf_config_s {
   guamfi_config_t guamfi;
   m5g_served_tai_t served_tai;
   service303_data_t service303_config;
-  // sctp_config_t sctp_config;
   ngap_config_t ngap_config;
-  // itti_config_t itti_config;
   m5g_nas_config_t m5g_nas_config;
-  // sgs_config_t sgs_config;
   log_config_t log_config;
-  // e_dns_config_t e_dns_emulation;
-
-  // ip_t ip;
-
-  // lai_t lai;
-
   bool use_stateless;
 } amf_config_t;
 

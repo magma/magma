@@ -21,8 +21,6 @@
  *
  * Subsystem   Access and Mobility Management Function
  *
- * Author      Sandeep Kumar Mall
- *
  * Description Defines Access and Mobility Management Messages
  *
  *******************************************************************************/
