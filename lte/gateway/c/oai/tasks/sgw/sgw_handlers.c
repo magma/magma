@@ -1941,7 +1941,7 @@ static void _generate_dl_flow(
   // Adding UE to the rule is safe
   if (ipv4_s_addr && ue_ipv6) {
     /* In case of ipv4v6 since there is no other way to know if ipv4 or ipv6
-     * address should be set. Check the remote address flag and set the
+     * address should be set, check the remote address flag and set the
      * ips accordingly
      */
     if ((TRAFFIC_FLOW_TEMPLATE_IPV4_REMOTE_ADDR_FLAG & packet_filter->flags) ==
