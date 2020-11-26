@@ -2049,7 +2049,6 @@ static void _add_tunnel_helper(
   }
   int vlan    = eps_bearer_ctxt_entry_p->paa.vlan;
   Imsi_t imsi = spgw_context->sgw_eps_bearer_context_information.imsi;
-  // Iterate of packet filter rules
   OAILOG_INFO_UE(
       LOG_SPGW_APP, imsi64, "Number of packet filter rules: %d\n",
       eps_bearer_ctxt_entry_p->tft.numberofpacketfilters);
