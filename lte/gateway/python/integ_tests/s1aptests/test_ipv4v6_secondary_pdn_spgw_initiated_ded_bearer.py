@@ -11,13 +11,12 @@ import time
 
 import s1ap_types
 import s1ap_wrapper
-from integ_tests.s1aptests.s1ap_utils import SessionManagerUtil, SpgwUtil
+from integ_tests.s1aptests.s1ap_utils import SpgwUtil
 
 
 class TestIPv4v6SecondaryPdnSpgwInitiatedDedBearer(unittest.TestCase):
     def setUp(self):
         self._s1ap_wrapper = s1ap_wrapper.TestWrapper()
-        self._sessionManager_util = SessionManagerUtil()
         self._spgw_util = SpgwUtil()
 
     def tearDown(self):
