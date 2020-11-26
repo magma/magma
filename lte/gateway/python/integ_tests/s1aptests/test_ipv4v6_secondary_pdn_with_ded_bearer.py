@@ -33,7 +33,7 @@ class TestIPv4v6SecondaryPdnWithDedBearer(unittest.TestCase):
         req = self._s1ap_wrapper.ue_req
         ue_id = req.ue_id
 
-        # APN of the secondary PDNs
+        # APN of the secondary PDN
         ims_apn = {
             "apn_name": "ims",  # APN-name
             "qci": 5,  # qci
