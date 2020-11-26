@@ -2618,7 +2618,7 @@ int s1ap_mme_handle_enb_reset(
       reset_req->ue_to_reset_list = calloc(
           resetType->choice.partOfS1_Interface.list.count,
           sizeof(*(reset_req->ue_to_reset_list)));
-
+      // Careful! This struct allocated will be re-used in another itti message.
       if (reset_req->ue_to_reset_list == NULL) {
         OAILOG_ERROR(LOG_S1AP, "ue_to_reset_list is NULL\n");
         return RETURNerror;
