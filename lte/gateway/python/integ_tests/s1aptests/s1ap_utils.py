@@ -364,9 +364,11 @@ class S1ApUtil(object):
             ip_proto = 0
             ue_ip6_str = None
             ue_ip_str = str(key)
-            if key.version == 6 :
-              ue_ip6_str = ipaddress.ip_network((ue_ip_str + "/64"), strict=False).exploded
-            ue_ip_addr =  ue_ip6_str if key.version == 6 else ue_ip_str
+            if key.version == 6:
+                ue_ip6_str = ipaddress.ip_network(
+                    (ue_ip_str + "/64"), strict=False
+                ).exploded
+            ue_ip_addr = ue_ip6_str if key.version == 6 else ue_ip_str
             dst_addr = "nw_dst" if key.version == 4 else "ipv6_dst"
             key_to_be_matched = "ipv4_src" if key.version == 4 else "ipv6_src"
             eth_typ = 2048 if key.version == 4 else 34525
@@ -375,7 +377,10 @@ class S1ApUtil(object):
             total_num_dl_flows_to_be_verified = 1
             for item in value:
                 for flow in item:
-                    if flow["direction"] == FlowMatch.DOWNLINK and key_to_be_matched in flow:
+                    if (
+                        flow["direction"] == FlowMatch.DOWNLINK
+                        and key_to_be_matched in flow
+                    ):
                         total_num_dl_flows_to_be_verified += 1
             total_dl_ovs_flows_created = get_flows(
                 self.datapath,
@@ -396,7 +401,10 @@ class S1ApUtil(object):
             # Now verify the rules for every flow
             for item in value:
                 for flow in item:
-                    if flow["direction"] == FlowMatch.DOWNLINK and key_to_be_matched in flow:
+                    if (
+                        flow["direction"] == FlowMatch.DOWNLINK
+                        and key_to_be_matched in flow
+                    ):
                         ip_src_addr = flow[key_to_be_matched]
                         ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
                         ip_dst = "ipv4_dst" if key.version == 4 else "ipv6_dst"
@@ -992,29 +1000,29 @@ class SpgwUtil(object):
                 FlowDescription(
                     match=FlowMatch(
                         ip_dst=IPAddress(
-                        version=IPAddress.IPV4,
-                        address="192.168.129.42/24".encode('utf-8')
+                            version=IPAddress.IPV4,
+                            address="192.168.129.42/24".encode("utf-8"),
+                        ),
+                        tcp_dst=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.UPLINK,
                     ),
-                    tcp_dst=5001,
-                    ip_proto=FlowMatch.IPPROTO_TCP,
-                    direction=FlowMatch.UPLINK,
-                 ),
-                 action=FlowDescription.PERMIT,
-              )
+                    action=FlowDescription.PERMIT,
+                )
             )
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
                         ip_src=IPAddress(
-                        version=IPAddress.IPV4,
-                        address="192.168.129.42".encode('utf-8')
+                            version=IPAddress.IPV4,
+                            address="192.168.129.42".encode("utf-8"),
+                        ),
+                        tcp_src=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.DOWNLINK,
                     ),
-                    tcp_src=5001,
-                    ip_proto=FlowMatch.IPPROTO_TCP,
-                    direction=FlowMatch.DOWNLINK,
-                ),
-                action=FlowDescription.PERMIT,
-              )
+                    action=FlowDescription.PERMIT,
+                )
             )
 
         if ipv6:
@@ -1022,29 +1030,31 @@ class SpgwUtil(object):
                 FlowDescription(
                     match=FlowMatch(
                         ip_dst=IPAddress(
-                        version=IPAddress.IPV6,
-                        address="5546:222:2259::226".encode('utf-8')
+                            version=IPAddress.IPV6,
+                            address="5546:222:2259::226".encode("utf-8"),
+                        ),
+                        tcp_dst=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.UPLINK,
                     ),
-                    tcp_dst=5001,
-                    ip_proto=FlowMatch.IPPROTO_TCP,
-                    direction=FlowMatch.UPLINK,
-                ),
-                action=FlowDescription.PERMIT,
-              )
+                    action=FlowDescription.PERMIT,
+                )
             )
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
                         ip_src=IPAddress(
-                        version=IPAddress.IPV6,
-                        address="fdee:0005:006c:018c::8c99".encode('utf-8')
+                            version=IPAddress.IPV6,
+                            address="fdee:0005:006c:018c::8c99".encode(
+                                "utf-8"
+                            ),
+                        ),
+                        tcp_src=5002,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.DOWNLINK,
                     ),
-                    tcp_src=5002,
-                    ip_proto=FlowMatch.IPPROTO_TCP,
-                    direction=FlowMatch.DOWNLINK,
-                ),
-                action=FlowDescription.PERMIT,
-              )
+                    action=FlowDescription.PERMIT,
+                )
             )
 
         req = CreateBearerRequest(
@@ -1151,7 +1161,6 @@ class SessionManagerUtil(object):
                 dst_addr = IPAddress(
                     version=IPAddress.IPV6,
                     address=flow.get("ipv6_dst").encode('utf-8'))
-
 
             flow_match_list.append(
                 FlowDescription(
