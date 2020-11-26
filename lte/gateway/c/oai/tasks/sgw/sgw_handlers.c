@@ -82,7 +82,6 @@ static bool does_bearer_context_hold_valid_enb_ip(
 
 static void _add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
-    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64);
 
 #if EMBEDDED_SGW
@@ -1659,8 +1658,7 @@ int sgw_handle_nw_initiated_actv_bearer_rsp(
           strcpy(policy_rule_name, eps_bearer_ctxt_entry_p->policy_rule_name);
           // setup GTPv1-U tunnel for each packet filter
           // enb, UE and imsi are common across rules
-          _add_tunnel_helper(
-              spgw_context, eps_bearer_ctxt_p, eps_bearer_ctxt_entry_p, imsi64);
+          _add_tunnel_helper(spgw_context, eps_bearer_ctxt_entry_p, imsi64);
         }
       }
       // Remove the temporary spgw entry
@@ -2036,18 +2034,17 @@ static void _generate_dl_flow(
 // bearers
 static void _add_tunnel_helper(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context,
-    sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_p,
     sgw_eps_bearer_ctxt_t* eps_bearer_ctxt_entry_p, imsi64_t imsi64) {
   uint32_t rc        = RETURNerror;
   struct in_addr enb = {.s_addr = 0};
   enb.s_addr =
       eps_bearer_ctxt_entry_p->enb_ip_address_S1u.address.ipv4_address.s_addr;
   struct in_addr ue_ipv4   = {.s_addr = 0};
-  ue_ipv4.s_addr           = eps_bearer_ctxt_p->paa.ipv4_address.s_addr;
+  ue_ipv4.s_addr           = eps_bearer_ctxt_entry_p->paa.ipv4_address.s_addr;
   struct in6_addr* ue_ipv6 = NULL;
-  if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
-      (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
-    ue_ipv6 = &eps_bearer_ctxt_p->paa.ipv6_address;
+  if ((eps_bearer_ctxt_entry_p->paa.pdn_type == IPv6) ||
+      (eps_bearer_ctxt_entry_p->paa.pdn_type == IPv4_AND_v6)) {
+    ue_ipv6 = &eps_bearer_ctxt_entry_p->paa.ipv6_address;
   }
   int vlan    = eps_bearer_ctxt_entry_p->paa.vlan;
   Imsi_t imsi = spgw_context->sgw_eps_bearer_context_information.imsi;
