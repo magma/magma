@@ -509,7 +509,7 @@ int s1ap_generate_s1ap_e_rab_setup_req(
      * * * * the MME shall allocate a unique MME UE S1AP ID to be used for the
      * UE.
      */
-    OAILOG_DEBUG(
+    OAILOG_ERROR(
         LOG_S1AP,
         "Unknown UE MME ID " MME_UE_S1AP_ID_FMT
         ", This case is not handled right now\n",

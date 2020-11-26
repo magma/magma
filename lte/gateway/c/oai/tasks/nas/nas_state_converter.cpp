@@ -391,6 +391,7 @@ void NasStateConverter::esm_context_to_proto(
   }
   nas_timer_to_proto(
       state_esm_context->T3489, esm_context_proto->mutable_t3489());
+  esm_context_proto->set_is_standalone(state_esm_context->is_standalone);
 }
 
 void NasStateConverter::proto_to_esm_context(
@@ -408,6 +409,7 @@ void NasStateConverter::proto_to_esm_context(
         esm_context_proto.esm_proc_data(), state_esm_context->esm_proc_data);
   }
   proto_to_nas_timer(esm_context_proto.t3489(), &state_esm_context->T3489);
+  state_esm_context->is_standalone = esm_context_proto.is_standalone();
 }
 
 void NasStateConverter::esm_ebr_context_to_proto(

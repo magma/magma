@@ -129,6 +129,9 @@ int SpgwStateManager::read_ue_state_from_db() {
         ue_context->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
         (void*) ue_context);
     OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
+    OAILOG_DEBUG(
+        log_task, "Rashmi Reading UE state from db for s11-teid %u",
+        ue_context->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
   }
   return RETURNok;
 }

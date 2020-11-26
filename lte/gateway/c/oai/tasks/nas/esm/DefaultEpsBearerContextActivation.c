@@ -506,6 +506,7 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
         rc = _default_eps_bearer_activate(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       }
+      bdestroy_wrapper(&b);
     } else {
       /*
        * The maximum number of activate default EPS bearer context request
@@ -521,18 +522,7 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
           esm_ebr_timer_data->ctx, true, esm_ebr_timer_data->ebi, &pid, &bidx,
           NULL);
 
-      if (rc != RETURNerror) {
-        /*
-         * Stop timer T3485
-         */
-        rc = esm_ebr_stop_timer(
-            esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi);
-      }
     }
-    if (esm_ebr_timer_data->msg) {
-      bdestroy_wrapper(&esm_ebr_timer_data->msg);
-    }
-    free_wrapper((void**) &esm_ebr_timer_data);
   }
 
   OAILOG_FUNC_OUT(LOG_NAS_ESM);

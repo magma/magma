@@ -2391,6 +2391,8 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   for (int idx = 0; idx < BEARERS_PER_UE; idx++) {
     if (ue_context_p->bearer_contexts[idx]) {
+      ue_context_p->bearer_contexts[idx]->esm_ebr_context.timer.id =
+          NAS_TIMER_INACTIVE_ID;
       pdn_cid_t pdn_cid = ue_context_p->bearer_contexts[idx]->pdn_cx_id;
       // Below check is added to identify default and dedicated bearer
       if (ue_context_p->pdn_contexts[pdn_cid] &&

@@ -207,6 +207,9 @@ sgw_cm_create_bearer_context_information_in_collection(
   hashtable_ts_insert(
       state_imsi_ht, (const hash_key_t) teid, new_bearer_context_information);
 
+  bstring tmp1 = bfromcstr(" ");
+  hashtable_ts_dump_content(state_imsi_ht, tmp1);
+  OAILOG_DEBUG(LOG_SPGW_APP, "Rashmi state_imsi_ht %s\n", bdata(tmp1));
   hashtable_uint64_ts_insert(
       spgw_state->imsi_teid_htbl, (const hash_key_t) imsi64, teid);
   OAILOG_DEBUG(
@@ -214,6 +217,9 @@ sgw_cm_create_bearer_context_information_in_collection(
       "Added new s_plus_p_gw_eps_bearer_context_information_t in "
       "s11_bearer_context_information_hashtable key TEID " TEID_FMT "\n",
       teid);
+  bstring tmp = bfromcstr(" ");
+  hashtable_uint64_ts_dump_content(spgw_state->imsi_teid_htbl, tmp);
+  OAILOG_DEBUG(LOG_SPGW_APP, "Rashmi state_imsi_ht %s\n", bdata(tmp));
   return new_bearer_context_information;
 }
 

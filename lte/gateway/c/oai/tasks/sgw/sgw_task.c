@@ -209,6 +209,10 @@ int spgw_app_init(spgw_config_t* spgw_config_pP, bool persist_state) {
 
   // Read SPGW state for subscribers from db
   read_spgw_ue_state_db();
+  bstring tmp                    = bfromcstr(" ");
+  hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
+  hashtable_ts_dump_content(state_imsi_ht, tmp);
+  OAILOG_DEBUG(LOG_SPGW_APP, "Rashmi state_imsi_ht %s\n", bdata(tmp));
 
   if (gtpv1u_init(spgw_state_p, spgw_config_pP, persist_state) < 0) {
     OAILOG_ALERT(LOG_SPGW_APP, "Initializing GTPv1-U ERROR\n");
