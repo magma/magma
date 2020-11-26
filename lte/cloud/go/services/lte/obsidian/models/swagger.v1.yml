@@ -30,6 +30,8 @@ magma-gen-meta:
       filename: gateway_dns_configs_swaggergen.go
     - go-struct-name: GatewayDNSRecords
       filename: gateway_dns_records_swaggergen.go
+    - go-struct-name: GatewayHEConfig
+      filename: gateway_he_config_swaggergen.go
     - go-struct-name: DNSConfigRecord
       filename: dns_config_record_swaggergen.go
     - go-struct-name: LteGateway
@@ -1761,10 +1763,8 @@ definitions:
         $ref: '#/definitions/gateway_non_eps_configs'
       dns:
         $ref: '#/definitions/gateway_dns_configs'
-      disable_header_enrichment:
-        description: True iff header enrichment feature should be disabled for gateway
-        type: boolean
-        example: false
+      he_config:
+        $ref: '#/definitions/gateway_he_config'
 
   gateway_ran_configs:
     type: object
@@ -1958,6 +1958,46 @@ definitions:
         example: true
       records:
         $ref: '#/definitions/gateway_dns_records'
+
+  gateway_he_config:
+    description: Header Enrichment configuration
+    type: object
+    required:
+      - enable_header_enrichment
+      - enable_encryption
+      - he_encryption_algorithm
+      - he_hash_function
+      - he_encoding_type
+    properties:
+      enable_header_enrichment:
+        description: True if header enrichment feature should be disabled for gateway
+        type: boolean
+        example: false
+        x-nullable: false
+        default: true
+      enable_encryption:
+        description: True if headers should be encrypted
+        type: boolean
+        x-nullable: false
+        example: true
+      he_encryption_algorithm:
+        type: string
+        x-nullable: false
+        enum:
+          - 'RC4'
+        example: 'RC4'
+      he_hash_function:
+        type: string
+        x-nullable: false
+        enum:
+          - 'MD5'
+        example: 'MD5'
+      he_encoding_type:
+        type: string
+        x-nullable: false
+        enum:
+          - 'BASE64'
+        example: 'BASE64'
 
   enodeb_serials:
     type: array
