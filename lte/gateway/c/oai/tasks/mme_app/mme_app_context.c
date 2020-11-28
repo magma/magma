@@ -2414,6 +2414,15 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
           dedicated_eps_bearer_activate_t3485_handler(
               ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
               &ue_context_p->emm_context._imsi64);
+        } else {  // Invoke callback registered for dedicated bearer's
+                  // deactivation procedure
+          if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
+              (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
+               ESM_EBR_INACTIVE_PENDING)) {
+            eps_bearer_deactivate_t3495_handler(
+                ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
+                &ue_context_p->emm_context._imsi64);
+          }
         }
       }
     }
