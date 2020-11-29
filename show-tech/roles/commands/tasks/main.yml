@@ -18,10 +18,6 @@
   ignore_errors: yes
   loop: "{{general_commands}}"
 
-- debug:
-    msg: "{{item.cmd}} -> {{item.stdout_lines}}"
-  with_items: "{{output.results}}"
-
 - name: Run debian commands
   when: ansible_facts['distribution'] == 'Debian' or ansible_facts['distribution'] == 'Ubuntu'
   include_tasks: debian.yml
