@@ -11,18 +11,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Collect GW data
-  hosts: localhost
-  pre_tasks:
-    - name: Verify Ansible meets version requirements.
-      assert:
-        that: "ansible_version.full is version_compare('2.9', '>=')"
-  become: no
-  gather_facts: yes
-  roles:
-    - role: load_vars
-    - role: install_ansible_modules
-    - role: destdir
-    - role: files
-    - role: commands
-    - role: package
+- name: Install community modules for all distross
+  shell: "{{item}}"
+  register: output
+  ignore_errors: no
+  loop: "{{ansible_community_commands}}"
+
+- debug:
+    msg: "{{item.cmd}} -> {{item.stdout_lines}}"
+  with_items: "{{output.results}}"

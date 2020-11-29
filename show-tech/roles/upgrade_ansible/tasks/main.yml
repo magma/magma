@@ -11,6 +11,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
+- name: Validate OS is debian
+  assert: { that: "ansible_os_family == 'Debian' or ansible_os_family == 'Ubuntu'" }
+
+# This role will upgrade ansible from 2.2 to latest >2.9 so show-tech can run.
 # Updating /etc/apt/sources.list.d/
 - name: Updating repos with ansible for debian repo
   apt_repository:
@@ -25,17 +29,7 @@
 
 - name: install packages
   apt:
-    name: {{item}}
+    name: "{{item}}"
     state: latest
     update_cache: yes
-  loop: {{apt_prereq_packages}}
-
-- name: Install community modules for all distross
-  shell: "{{item}}"
-  register: output
-  ignore_errors: no
-  loop: "{{ansible_community_commands}}"
-
-- debug:
-    msg: "{{item.cmd}} -> {{item.stdout_lines}}"
-  with_items: "{{output.results}}"
+  with_items: "{{apt_prereq_packages}}"
