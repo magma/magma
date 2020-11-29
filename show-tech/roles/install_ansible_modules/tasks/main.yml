@@ -11,12 +11,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License
 
-- name: Install community modules for all distross
+- name: Install community modules for all distros
   shell: "{{item}}"
   register: output
   ignore_errors: no
   loop: "{{ansible_community_commands}}"
-
-- debug:
-    msg: "{{item.cmd}} -> {{item.stdout_lines}}"
-  with_items: "{{output.results}}"
