@@ -5,9 +5,16 @@ On your GW host make sure you have the following packages:
 $ apt-get install git ansible -y
 ```
 
+and cloned magma repo:
+```
+$ git clone https://github.com/magma/magma.git
+```
+
+
 Then run the pre-req playbook which will upgrade ansible, need to run one time.
 
 ```
+$ cd magma/show-tech
 $ ansible-playbook install_prereq.yml
 ```
 
