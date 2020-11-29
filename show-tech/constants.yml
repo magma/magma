@@ -7,7 +7,6 @@ ansible_community_commands:
 apt_prereq_packages:
     - git
     - ansible
-    - python-jmespath
 
 # SHOW_TECH section
 general_commands:
@@ -27,24 +26,16 @@ debian_commands:
   - "ip addr"
   - "ping google.com -I eth0 -c 5"
   - "journalctl -u magma@*"
-  - "timeout 60 sudo tcpdump -i any sctp -w {{ report_dir_output.stdout }}/sctp.pcap"
+  - "timeout 60 sudo tcpdump -i any sctp -w {{report_dir_output.stdout}}/sctp.pcap"
 
 
 # files to collect from src to relative destination in tar.gz package
 paths_to_collect:
-  - src: "/var/opt/magma/configs/*"
-    relative_dest: "var/opt/magma/configs"
-  - src: "/etc/magma/configs/*"
-    relative_dest: "etc/magma/configs"
-  - src: "/etc/systemd/system"
-    relative_dest: "systemd"
-  - src: "/tmp/*core*"
-    relative_dest: "cores"
-  - src: "/usr/local/bin/mme"
-    relative_dest: "cores"
-  - src: "/var/log/syslog"
-    relative_dest: "var_logs"
-  - src: "/var/log/MME.*"
-    relative_dest: "var_logs"
-  - src: "/var/log/enode.*"
-    relative_dest: "var_logs"
+  - "/var/opt/magma/configs/*"
+  - "/etc/magma/configs/*"
+  - "/etc/systemd/system/*"
+  - "/tmp/*core*"
+  - "/usr/local/bin/mme"
+  - "/var/log/syslog"
+  - "/var/log/MME.*"
+  - "/var/log/enode.*"

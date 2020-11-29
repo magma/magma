@@ -13,10 +13,10 @@
 
 - name: Compress directory report_dir into /tmp/magma_reports/report.<HOSTNAME>.<DATE>.tgz
   community.general.archive:
-    path: "{{ report_dir_output.stdout }}"
-    dest: "{{ report_dir_output.stdout }}.tgz"
+    path: "{{report_dir_output.stdout}}"
+    dest: "{{report_dir_output.stdout}}.tgz"
 
 - name: Recursively remove report directory /tmp/magma_reports/report.<HOSTNAME>.<DATE>
   file:
-    path: "{{ report_dir_output.stdout }}"
+    path: "{{report_dir_output.stdout}}"
     state: absent

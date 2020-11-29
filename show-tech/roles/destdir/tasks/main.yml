@@ -12,16 +12,16 @@
 # limitations under the License
 
 - name: Get timestamp
-  shell: echo {{ ansible_date_time.iso8601 }}
+  shell: echo {{ansible_date_time.iso8601}}
   register: date_output
 
 - name: Get report destination directory
-  shell: echo /tmp/magma_reports/report.{{ ansible_facts['nodename'] }}.{{ date_output.stdout }}
+  shell: echo /tmp/magma_reports/report.{{ansible_facts['nodename']}}.{{date_output.stdout}}
   register: report_dir_output
 - debug: var=report_dir_output.stdout_lines
 
 - name: Create a directory for report
   file:
-    path: "{{ report_dir_output.stdout }}"
+    path: "{{report_dir_output.stdout}}"
     state: directory
     mode: "0777"
