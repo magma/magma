@@ -88,8 +88,10 @@ def main():
 
     # header enrichment related configuration.
     service.config['proxy_port_name'] = PROXY_PORT_NAME
-    he_enabled = service.config.get('he_enabled',
-                                    not service.mconfig.disable_header_enrichment)
+    he_enabled_flag = False
+    if service.mconfig.he_config:
+        he_enabled_flag = service.mconfig.he_config.enable_header_enrichment
+    he_enabled = service.config.get('he_enabled', he_enabled_flag)
     service.config['he_enabled'] = he_enabled
 
     # Load the ryu apps

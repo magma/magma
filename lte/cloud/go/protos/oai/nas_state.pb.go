@@ -2680,9 +2680,8 @@ func (m *EsmProcData) GetPco() *ProtocolConfigurationOptions {
 
 // esm_context_t
 type EsmContext struct {
-	NActiveEbrs          uint32       `protobuf:"varint,1,opt,name=n_active_ebrs,json=nActiveEbrs,proto3" json:"n_active_ebrs,omitempty"`
-	NActivePdns          uint32       `protobuf:"varint,2,opt,name=n_active_pdns,json=nActivePdns,proto3" json:"n_active_pdns,omitempty"`
-	NPdns                uint32       `protobuf:"varint,3,opt,name=n_pdns,json=nPdns,proto3" json:"n_pdns,omitempty"`
+	NActiveEbrs uint32 `protobuf:"varint,1,opt,name=n_active_ebrs,json=nActiveEbrs,proto3" json:"n_active_ebrs,omitempty"`
+	// field 2 and 3 are deprecated
 	IsEmergency          bool         `protobuf:"varint,4,opt,name=is_emergency,json=isEmergency,proto3" json:"is_emergency,omitempty"`
 	EsmProcData          *EsmProcData `protobuf:"bytes,5,opt,name=esm_proc_data,json=esmProcData,proto3" json:"esm_proc_data,omitempty"`
 	T3489                *Timer       `protobuf:"bytes,199,opt,name=t3489,proto3" json:"t3489,omitempty"`
@@ -2719,20 +2718,6 @@ var xxx_messageInfo_EsmContext proto.InternalMessageInfo
 func (m *EsmContext) GetNActiveEbrs() uint32 {
 	if m != nil {
 		return m.NActiveEbrs
-	}
-	return 0
-}
-
-func (m *EsmContext) GetNActivePdns() uint32 {
-	if m != nil {
-		return m.NActivePdns
-	}
-	return 0
-}
-
-func (m *EsmContext) GetNPdns() uint32 {
-	if m != nil {
-		return m.NPdns
 	}
 	return 0
 }

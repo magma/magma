@@ -2026,6 +2026,7 @@ void mme_ue_context_update_ue_emm_state(
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "UE STATE - UNREGISTERED.\n");
+    ue_context_p->nb_active_pdn_contexts = 0;
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }

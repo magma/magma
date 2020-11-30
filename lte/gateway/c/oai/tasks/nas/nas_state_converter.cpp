@@ -347,8 +347,6 @@ void NasStateConverter::esm_context_to_proto(
     const esm_context_t* state_esm_context,
     oai::EsmContext* esm_context_proto) {
   esm_context_proto->set_n_active_ebrs(state_esm_context->n_active_ebrs);
-  esm_context_proto->set_n_active_pdns(state_esm_context->n_active_pdns);
-  esm_context_proto->set_n_pdns(state_esm_context->n_pdns);
   esm_context_proto->set_is_emergency(state_esm_context->is_emergency);
   if (state_esm_context->esm_proc_data) {
     esm_proc_data_to_proto(
@@ -364,8 +362,6 @@ void NasStateConverter::proto_to_esm_context(
     esm_context_t* state_esm_context) {
   OAILOG_DEBUG(LOG_NAS_ESM, "Reading esm context from proto");
   state_esm_context->n_active_ebrs = esm_context_proto.n_active_ebrs();
-  state_esm_context->n_active_pdns = esm_context_proto.n_active_pdns();
-  state_esm_context->n_pdns        = esm_context_proto.n_pdns();
   state_esm_context->is_emergency  = esm_context_proto.is_emergency();
   if (esm_context_proto.has_esm_proc_data()) {
     state_esm_context->esm_proc_data =

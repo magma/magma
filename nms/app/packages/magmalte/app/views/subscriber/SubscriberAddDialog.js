@@ -316,7 +316,7 @@ export function SubscriberEditDialog(props: DialogProps) {
   // this is done because TypedSelect expects items in this form to verify
   // if the passed in input is of expected type
   const subProfiles = Array.from(
-    new Set(Object.keys(lteCtx.state.cellular.epc?.sub_profiles || {})).add(
+    new Set(Object.keys(lteCtx.state.cellular?.epc?.sub_profiles || {})).add(
       'default',
     ),
   ).reduce(function (o, v) {
@@ -477,7 +477,7 @@ function AddSubscriberDetails(props: DialogProps) {
   const apns = Array.from(new Set(Object.keys(apnCtx.state || {})));
 
   const subProfiles = Array.from(
-    new Set(Object.keys(lteCtx.state.cellular.epc?.sub_profiles || {})).add(
+    new Set(Object.keys(lteCtx.state.cellular?.epc?.sub_profiles || {})).add(
       'default',
     ),
   );
