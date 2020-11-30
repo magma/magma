@@ -213,7 +213,9 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case SCTP_CLOSE_ASSOCIATION:
       // DO nothing
       break;
-
+    case TIMER_HAS_EXPIRED:
+       free_wrapper (&arg);
+      break;
     default:;
   }
 }

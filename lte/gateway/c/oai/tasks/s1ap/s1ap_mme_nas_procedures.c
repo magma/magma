@@ -115,12 +115,6 @@ int s1ap_mme_handle_initial_ue_message(
       enb_ue_s1ap_id);
   ue_ref = s1ap_state_get_ue_enbid(eNB_ref->sctp_assoc_id, enb_ue_s1ap_id);
 
-  if (ie) {
-    OAILOG_WARNING(
-        LOG_S1AP, "Received (unhandled) GUMMEI-Type %ld\n",
-        ie->value.choice.GUMMEIType);
-  }
-
   if (ue_ref == NULL) {
     tai_t tai       = {0};
     gummei_t gummei = {

@@ -2930,7 +2930,7 @@ int s1ap_handle_paging_request(
       TAC_TO_ASN1(
           paging_request->paging_tai_list[tai_idx].tai_list[idx].tac,
           &tai_item->tAI.tAC);
-      ASN_SEQUENCE_ADD(&tai_list->list, tai_item);
+      ASN_SEQUENCE_ADD(&tai_list->list, tai_item_ies);
     }
   }
 
