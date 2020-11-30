@@ -227,3 +227,6 @@ message CsfbConfig {
     SCTPClientConfig client = 2;
 }
 
+message EnvoyControllerConfig {
+    orc8r.LogLevel log_level = 1;
+}

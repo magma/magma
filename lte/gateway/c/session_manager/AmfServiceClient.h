@@ -34,7 +34,8 @@ class AmfServiceClient {
   virtual ~AmfServiceClient() {}
   virtual bool handle_response_to_access(
       const magma::SetSMSessionContextAccess& response) = 0;
-
+  virtual bool handle_notification_to_access(
+      const magma::SetSmNotificationContext& req) = 0;
 };  // end of abstract class
 
 class AsyncAmfServiceClient : public GRPCReceiver, public AmfServiceClient {
@@ -48,12 +49,12 @@ class AsyncAmfServiceClient : public GRPCReceiver, public AmfServiceClient {
   bool handle_response_to_access(
       const magma::SetSMSessionContextAccess& response);
 
+  bool handle_notification_to_access(
+      const magma::SetSmNotificationContext& req);
+
  private:
   static const uint32_t RESPONSE_TIMEOUT = 6;  // seconds
   std::unique_ptr<SmfPduSessionSmContext::Stub> stub_;
-  void handle_response_to_access_rpc(
-      const SetSMSessionContextAccess& response,
-      std::function<void(Status, SmContextVoid)> callback);
 };
 
 }  // namespace magma

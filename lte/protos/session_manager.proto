@@ -71,6 +71,21 @@ message RatSpecificContext {
   }
 }
 
+message RatSpecificNotification {
+  bytes pdu_session_id = 1;            //One byte
+  RequestType request_type = 2;
+  AccessType access_type = 3;
+  PduSessionType pdu_session_type = 4;
+  M5GSMCapability m5g_sm_capability = 5;
+  M5GSMCause m5gsm_cause = 6;
+}
+
+message SetSmNotificationContext {
+  CommonSessionContext common_context = 1;                             //Common message for 4g, 5g and WiFi.
+  RatSpecificNotification rat_specific_notification = 2;
+}
+
+
 message LTESessionContext {
   string spgw_ipv4 = 1;
   string imei = 2;
@@ -98,6 +113,16 @@ message LocalEndSessionRequest {
 }
 
 message LocalEndSessionResponse {
+}
+
+message UpdateTunnelIdsRequest {
+  SubscriberID sid = 1;
+  uint32 bearer_id = 2;
+  uint32 enb_teid = 3;
+  uint32 agw_teid = 4;
+}
+
+message UpdateTunnelIdsResponse {
 }
 
 message PolicyBearerBindingRequest {
@@ -285,6 +310,8 @@ service LocalSessionManager {
   rpc BindPolicy2Bearer(PolicyBearerBindingRequest) returns (PolicyBearerBindingResponse) {}
   // A set interface of subscribers -> currently active rules
   rpc SetSessionRules(SessionRules) returns (orc8r.Void) {}
+
+  rpc UpdateTunnelIds(UpdateTunnelIdsRequest) returns (UpdateTunnelIdsResponse) {}
 }
 
 service SessionProxyResponder {
@@ -379,16 +406,16 @@ message CreditUsageUpdate {
   CreditUsage usage = 1;
   string session_id = 2;
   uint32 request_number = 3; // unique among session
-  string sid = 4; // System Identification Number
-  bytes msisdn = 5;
-  string ue_ipv4 = 6;
+  string sid = 4; // TODO deprecate with common_context
+  bytes msisdn = 5; // TODO deprecate with common_context
+  string ue_ipv4 = 6; // TODO deprecate with common_context
   string spgw_ipv4 = 7;
-  string apn = 8;
+  string apn = 8; // TODO deprecate with common_context
   string imei = 9;
   string plmn_id = 10;
   string imsi_plmn_id = 11;
   bytes user_location = 12;
-  RATType rat_type = 13;
+  RATType rat_type = 13; // TODO deprecate with common_context
   bytes hardware_addr = 14; // MAC Address for WLAN
   TgppContext tgpp_ctx = 15;
   CommonSessionContext common_context = 16;
@@ -540,22 +567,23 @@ message SessionTerminateResponse {
 }
 
 message SessionTerminateRequest {
-  string sid = 1; // System Identification Number
+  string sid = 1; // TODO deprecate with common_context
   string session_id = 2;
-  string apn = 3;
+  string apn = 3; // TODO deprecate with common_context
   uint32 request_number = 4;
   repeated CreditUsage credit_usages = 5;
   repeated UsageMonitorUpdate monitor_usages = 6;
-  string ue_ipv4 = 7;
-  bytes msisdn = 8;
+  string ue_ipv4 = 7; // TODO deprecate with common_context
+  bytes msisdn = 8; // TODO deprecate with common_context
   string spgw_ipv4 = 9;
   string imei = 10;
   string plmn_id = 11;
   string imsi_plmn_id = 12;
   bytes user_location = 13;
-  RATType rat_type = 14;
+  RATType rat_type = 14; // TODO deprecate with common_context
   bytes hardware_addr = 15; // MAC Address for WLAN
   TgppContext tgpp_ctx = 16;
+  CommonSessionContext common_context = 17;
 }
 
 service CentralSessionController {
@@ -571,6 +599,17 @@ service CentralSessionController {
 }
 
 ////////////5GSMCONTEXT/////////////
+
+message NodeID {
+  enum NodeIDType {
+    IPv4 = 0;
+    IPv6 = 1;
+    FQDN = 2;
+    }
+  NodeIDType node_id_type = 1;
+  string node_id = 2;
+}
+
 //PduSessionType
 enum PduSessionType {
    IPV4 = 0;
@@ -706,7 +745,6 @@ message M5GSMSessionContext {
   RedirectServer pdu_address = 3; //IP address. Imported from session_manager.proto file
   priorityaccess priority_access = 4;
   AccessType access_type = 5;     //Define enum TS-29.571 - section 5.4.3
-  SubscriberID sid = 25;
   string imei = 8; // pei - permanent equipment ID. Variable length of 16 bytes. TS-23.003 - 6.4 Like IMEI or IMEISV
   string gpsi = 9; //Lenght is 10 bytes + 2 bytes country code generic public subscription id.
   string user_location_info = 10; //up to 6 byte. TS-23.003 - 28.15.3
@@ -786,8 +824,145 @@ message SetSMSessionContextAccess {
   RatSpecificContextAccess   rat_specific_context = 2;
 }
 
+
+
+// Node Level Messages from UPF. Purely Event Based.
+message UPFNodeState {
+    string upf_id = 1;
+
+    oneof upf_node_messages {
+         // Message for establishing association
+         UPFAssociationState associaton_state = 2;
+
+         // Contains node information and any GTPU Peer failure report.
+         UPFNodeReport node_report = 3;
+
+    }
+}
+
+//15.8 (Sec 8.2.82 User Plane IP Resource Information)
+message UserPlaneIPResourceSchema {
+    string ipv4_address = 1;
+    string ipv6_address = 2;
+    uint32 teid_range_indication = 3;
+    uint32 teid_range = 4;
+    string assoc_network_instance = 5;
+
+    enum InterfaceValue {    // 15.8 (Sec 8.2.2) Source Interface
+       ACCESS = 0;
+       CORE = 1;
+       LAN  = 2;
+       CP_FUNCTION = 3;
+    }
+    uint32 assoc_source_interface = 6;
+}
+
+
+
+// 15.8 (Sec 7.4.4.3) : PFCP Association Update Reqest.
+message UPFAssociationState {
+
+  // Version of the associated state
+  uint32 state_version = 2;
+
+  enum AssociationState {
+     STARTED=0;
+     INITIATED=1;
+     ESTABLISHED=2;
+     MODIFIED=3;
+     RELEASE=4;
+  }
+
+  //Association state of the UPF
+  AssociationState assoc_state = 3;
+
+  // Time when UPF got started
+  google.protobuf.Timestamp recovery_time_stamp = 4;
+
+  // Feature set supported by UPF
+  UPFFeatureSet feature_set = 5;
+
+  // User plane IP Resource schema
+  repeated UserPlaneIPResourceSchema ip_resource_schema = 6;
+
+  google.protobuf.Timestamp graceful_release_period = 7;
+
+}
+
+
+message UPFFeatureSet {
+  // 15.8 (Sec 8.2.25) :  UP Function Features
+  bool downlink_data_buffering_cp = 1;   // Downlink Data Buffering in CP function supported in UPF
+  bool downlink_data_notification_delay = 2;
+                                           // Buffering parameter, Downlink DataNotification Delay supported by UPF
+  bool dl_buffering_duration = 3;        // Buffering parameter, DL Buffering Duration is supported by UPF
+  bool traffic_steering = 4;             // Traffic Steering is supported by the UPF
+  bool f_teid = 5;                       // F-TEID allocation/release in the UP function is supported by UPF
+  bool pfd_management = 6;               // PFD Management is supported by UPF
+  bool header_enrichment_uplink = 7;     // Header enrichment of Uplink Traffic is supported by UPF
+  bool traffic_redirection_enforcement = 8;
+                                         // Traffic Redirection Enforcement in the UP function is supported in UPF
+  bool end_of_marker_packet = 9;         // Sending End of Marker packets supported by the UPF
+  bool pdi_optimization_signalling = 10; // Support PDI optimized signalling in UPF
+  bool ul_dl_buffering_control = 11;     // Support of UL/DL Buffering Control
+  bool quota_application_to_apply = 12;  // The UPF supports being provisioned with the Quota Action to apply
+  bool trace = 13;                       // The UPF supports Trace
+  bool frame_routing = 14;               // UPF supports Framed Routing
+  bool pfd_contents = 15;
+}
+
+
+//15.8 (Sec 7.4.5.1) : PFCP Node Report Request
+message UPFNodeReport {
+    uint32 state_version = 2;                                        // Version of the report
+    LoadControlInformation load_control_info = 3;                    // Load Control Information
+    OverloadControlInformation overload_control_info = 4;            // OverLoad Control Information
+}
+
+// 15.8 (Table 7.5.3.3-1) : Load Control Information
+message LoadControlInformation {
+   uint32 load_control_seq_number = 1;   // Sec 6.2.3.3.2.1
+   uint32 load_metric = 2;               // Sec 6.2.3.3.2.2
+}
+
+// 15.8 (Sec 8.2.35) : Timer
+message OverloadTimer {
+  uint32 timer_unit = 1;
+  uint32 timer_value = 2;
+}
+
+// 15.8 (Sec 7.5.3.4) : Overload Control Information
+message OverloadControlInformation {
+   uint32 overload_ctrl_seqno = 1;
+   uint32 overload_reduction_metric = 2;
+   OverloadTimer period_of_validity = 3;
+   uint32 flags = 4;
+}
+
+// Current Session snapshot in UPF.
+message UPFSessionState {
+  string subscriber_id = 1;       // Subscriber ID
+  uint32 session_version = 2;      // Successful Version number snapshot from UPF. If its not the expected parse Failure report.
+  uint32 local_f_teid = 3;        // Local TEID to uniquely identify the session
+}
+
+// Perodic Session snapshot information from UPF to SMF
+message UPFSessionConfigState {
+     repeated UPFSessionState upf_session_state = 1;
+}
+
+//Set Interface from Pipelined
+service SetInterfaceForUserPlane {
+    rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
+    rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
+}
+
 // RPC service and method
 service SmfPduSessionSmContext {
+ rpc SetAmfNotification(SetSmNotificationContext) returns (SmContextVoid){}    //SMF to AMF
  rpc SetSmfSessionContext(SetSMSessionContextAccess) returns (SmContextVoid);
 }
 
+service AmfSmfSmNotification {
+ rpc SetSmfNotification(SetSmNotificationContext) returns (SmContextVoid);    //AMF to SMF
+}

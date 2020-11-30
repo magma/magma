@@ -252,10 +252,11 @@ def _run_remote_cwf_integ_test(repo: str, magma_root: str):
                 print(f'Exception while running cwf integ_test\n {e}')
                 sys.exit(1)
         # Move JUnit test result to /tmp/test-results directory
-        local('mkdir cwf-tests-xml')
-        get(test_xml, 'cwf-tests-xml')
-        local('sudo mkdir -p /tmp/test-results/')
-        local('sudo mv cwf-tests-xml/* /tmp/test-results/')
+        if exists(test_xml):
+            local('mkdir cwf-tests-xml')
+            get(test_xml, 'cwf-tests-xml')
+            local('sudo mkdir -p /tmp/test-results/')
+            local('sudo mv cwf-tests-xml/* /tmp/test-results/')
         # On failure, transfer logs of key services from docker containers and
         # copy to the log directory. This will get stored as an artifact in the
         # circleCI config.

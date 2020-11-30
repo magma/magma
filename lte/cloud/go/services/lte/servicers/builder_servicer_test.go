@@ -138,6 +138,7 @@ func TestBuilder_Build(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -183,6 +184,7 @@ func TestBuilder_Build(t *testing.T) {
 		Services: []lte_mconfig.PipelineD_NetworkServices{
 			lte_mconfig.PipelineD_METERING,
 		},
+		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
 	}
 	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
@@ -268,6 +270,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -373,6 +376,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			lte_mconfig.PipelineD_ENFORCEMENT,
 		},
 		SgiManagementIfaceVlan: "30",
+		HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -402,6 +406,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		},
 		SgiManagementIfaceVlan:   "44",
 		SgiManagementIfaceIpAddr: "1.2.3.4",
+		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -432,6 +437,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceVlan:   "55",
 		SgiManagementIfaceIpAddr: "1.2.3.4/24",
 		SgiManagementIfaceGw:     "1.2.3.1",
+		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -458,11 +464,21 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
+	heConfig := &lte_models.GatewayHeConfig{
+		EnableHeaderEnrichment: true,
+		EnableEncryption:       true,
+		HeEncryptionAlgorithm:  "RC4",
+		HeHashFunction:         "MD5",
+		HeEncodingType:         "BASE64",
+	}
+	gatewayConfig := newDefaultGatewayConfig()
+	gatewayConfig.HeConfig = heConfig
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newDefaultGatewayConfig(),
+		Config:             gatewayConfig,
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
+
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
@@ -514,6 +530,13 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			DefaultRuleId: "",
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
+			},
+			HeConfig: &lte_mconfig.PipelineD_HEConfig{
+				EnableHeaderEnrichment: true,
+				EnableEncryption:       true,
+				EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_RC4,
+				HashFunction:           lte_mconfig.PipelineD_HEConfig_MD5,
+				EncodingType:           lte_mconfig.PipelineD_HEConfig_BASE64,
 			},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
@@ -652,6 +675,7 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -739,8 +763,9 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 			Arfcn_2G:            nil,
 			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
 				"enb1": {
-					CellId: 138777000,
-					Tac:    1,
+					CellId:    138777000,
+					Tac:       1,
+					IpAddress: "192.168.0.124",
 				},
 			},
 		},
@@ -774,6 +799,7 @@ func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -849,6 +875,7 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 			EnableCaching:     swag.Bool(false),
 			LocalTTL:          swag.Int32(0),
 		},
+		HeConfig: &lte_models.GatewayHeConfig{},
 	}
 }
 
@@ -878,6 +905,7 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string) *lte_mode
 			EnableCaching:     swag.Bool(false),
 			LocalTTL:          swag.Int32(0),
 		},
+		HeConfig: &lte_models.GatewayHeConfig{},
 	}
 }
 

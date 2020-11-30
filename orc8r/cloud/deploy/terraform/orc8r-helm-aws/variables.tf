@@ -265,3 +265,19 @@ variable "deploy_openvpn" {
   type        = bool
   default     = false
 }
+
+##############################################################################
+# Thanos Object Storage
+##############################################################################
+
+variable "thanos_enabled" {
+  description = "Deploy thanos components and object storage"
+  type        = bool
+  default     = false
+}
+
+variable "thanos_object_store_bucket_name" {
+  description = "Bucket name for s3 object storage. Must be globally unique"
+  type        = string
+  default     = ""
+}

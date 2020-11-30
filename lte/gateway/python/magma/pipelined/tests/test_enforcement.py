@@ -15,9 +15,13 @@ import unittest
 from concurrent.futures import Future
 
 import warnings
+from typing import List
+
 from lte.protos.mconfig.mconfigs_pb2 import PipelineD
-from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule
+from lte.protos.policydb_pb2 import FlowDescription, FlowMatch, PolicyRule,\
+    HeaderEnrichment
 from magma.pipelined.app.enforcement import EnforcementController
+from lte.protos.mobilityd_pb2 import IPAddress
 from magma.pipelined.bridge_util import BridgeTools
 from magma.pipelined.policy_converters import flow_match_to_magma_match
 from magma.pipelined.tests.app.flow_query import RyuDirectFlowQuery \
@@ -37,11 +41,25 @@ from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
     stop_ryu_app_thread, wait_after_send, SnapshotVerifier, \
     fake_controller_setup
 
+from magma.pipelined.app import he
+
+
+def mocked_activate_he_urls_for_ue(ip: IPAddress, urls: List[str], imsi: str, msisdn: str):
+    return True
+
+
+def mocked_deactivate_he_urls_for_ue(ip: IPAddress):
+    pass
+
 
 class EnforcementTableTest(unittest.TestCase):
     BRIDGE = 'testing_br'
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
+    he_controller_reference = Future()
+    VETH = 'tveth1'
+    VETH_NS = 'tveth1_ns'
+    PROXY_PORT = '16'
 
     @classmethod
     def setUpClass(cls):
@@ -56,19 +74,29 @@ class EnforcementTableTest(unittest.TestCase):
         super(EnforcementTableTest, cls).setUpClass()
         warnings.simplefilter('ignore')
         cls._static_rule_dict = {}
-        cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT])
+        cls.service_manager = create_service_manager([PipelineD.ENFORCEMENT], ['proxy'])
         cls._tbl_num = cls.service_manager.get_table_num(
             EnforcementController.APP_NAME)
+        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
+
+        BridgeTools.create_veth_pair(cls.VETH, cls.VETH_NS)
+        BridgeTools.add_ovs_port(cls.BRIDGE, cls.VETH, cls.PROXY_PORT)
 
         enforcement_controller_reference = Future()
         testing_controller_reference = Future()
+        he.activate_he_urls_for_ue = mocked_activate_he_urls_for_ue
+        he.deactivate_he_urls_for_ue = mocked_deactivate_he_urls_for_ue
+
         test_setup = TestSetup(
             apps=[PipelinedController.Enforcement,
+                  PipelinedController.HeaderEnrichment,
                   PipelinedController.Testing,
                   PipelinedController.StartupFlows],
             references={
                 PipelinedController.Enforcement:
                     enforcement_controller_reference,
+                PipelinedController.HeaderEnrichment:
+                    cls.he_controller_reference,
                 PipelinedController.Testing:
                     testing_controller_reference,
                 PipelinedController.StartupFlows:
@@ -81,6 +109,10 @@ class EnforcementTableTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'clean_restart': True,
+                'uplink_port': 20,
+                'proxy_port_name': cls.VETH,
+                'enable_nat': True,
+                'ovs_gtp_port_number': 10,
             },
             mconfig=PipelineD(),
             loop=None,
@@ -88,7 +120,6 @@ class EnforcementTableTest(unittest.TestCase):
             integ_test=False
         )
 
-        BridgeTools.create_bridge(cls.BRIDGE, cls.IFACE)
 
         cls.thread = start_ryu_app_thread(test_setup)
 

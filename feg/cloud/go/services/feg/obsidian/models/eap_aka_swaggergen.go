@@ -19,11 +19,17 @@ import (
 // swagger:model eap_aka
 type EapAka struct {
 
+	// mnc len
+	MncLen int32 `json:"mnc_len,omitempty"`
+
 	// plmn ids
 	PlmnIds []string `json:"plmn_ids"`
 
 	// timeout
 	Timeout *EapAkaTimeouts `json:"timeout,omitempty"`
+
+	// use s6a
+	UseS6a bool `json:"use_s6a,omitempty"`
 }
 
 // Validate validates this eap aka

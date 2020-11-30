@@ -31,6 +31,26 @@ MATCHER_P(CheckCount, count, "") {
   return arg_count == count;
 }
 
+MATCHER_P(CheckStaticRulesNames, list_static_rules, "") {
+  std::vector<std::string> static_rules = arg;
+  if (static_rules.size() != list_static_rules.size()) {
+    return false;
+  }
+  for (auto rule : list_static_rules) {
+    bool found = false;
+    for (auto rule_to_check : list_static_rules) {
+      if (rule == rule_to_check) {
+        found = true;
+        break;
+      }
+    }
+    if (!found) {
+      return false;
+    }
+  }
+  return true;
+}
+
 MATCHER_P2(CheckUpdateRequestCount, monitorCount, chargingCount, "") {
   auto req = static_cast<const UpdateSessionRequest>(arg);
   return req.updates().size() == chargingCount &&
@@ -145,6 +165,55 @@ MATCHER_P(CheckSubscriberQuotaUpdate, quota, "") {
   }
   std::cerr << "\n\n" << update[0].update_type() << " \n\n";
   return update[0].update_type() == quota;
+}
+
+MATCHER_P(CheckCreateSession, imsi, "") {
+  auto req = static_cast<const CreateSessionRequest*>(arg);
+  return req->common_context().sid().id() == imsi;
+}
+
+MATCHER_P(CheckSingleUpdate, expected_update, "") {
+  auto request = static_cast<const UpdateSessionRequest*>(arg);
+  if (request->updates_size() != 1) {
+    return false;
+  }
+
+  auto& update = request->updates(0);
+  bool val =
+      update.usage().type() == expected_update.usage().type() &&
+      update.usage().bytes_tx() == expected_update.usage().bytes_tx() &&
+      update.usage().bytes_rx() == expected_update.usage().bytes_rx() &&
+      update.sid() == expected_update.sid() &&
+      update.usage().charging_key() == expected_update.usage().charging_key();
+  return val;
+}
+
+MATCHER_P(CheckTerminate, imsi, "") {
+  auto request = static_cast<const SessionTerminateRequest*>(arg);
+  return request->sid() == imsi;
+}
+
+MATCHER_P4(CheckActivateFlows, imsi, rule_count, ipv4, ipv6, "") {
+  auto request = static_cast<const ActivateFlowsRequest*>(arg);
+  auto res     = request->sid().id() == imsi &&
+             request->rule_ids_size() == rule_count &&
+             request->ip_addr() == ipv4 && request->ipv6_addr() == ipv6;
+  return res;
+}
+
+MATCHER_P5(
+    CheckActivateFlowsForTunnIds, imsi, ipv4, ipv6, enb_teid, agw_teid, "") {
+  auto request = static_cast<const ActivateFlowsRequest*>(arg);
+  auto res     = request->sid().id() == imsi && request->ip_addr() == ipv4 &&
+             request->ipv6_addr() == ipv6 &&
+             request->uplink_tunnel() == agw_teid &&
+             request->downlink_tunnel() == enb_teid;
+  return res;
+}
+
+MATCHER_P(CheckDeactivateFlows, imsi, "") {
+  auto request = static_cast<const DeactivateFlowsRequest*>(arg);
+  return request->sid().id() == imsi;
 }
 
 };  // namespace magma

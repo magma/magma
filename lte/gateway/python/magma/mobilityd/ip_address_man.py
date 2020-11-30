@@ -151,7 +151,6 @@ class IPAddressManager:
         """
         with self._lock:
             if ipblock.version == 4:
-                logging.info('Adding ipv4 block')
                 self.ip_allocator.add_ip_block(ipblock)
                 logging.info("Added block %s to the IPv4 address pool",
                              ipblock)

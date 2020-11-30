@@ -634,10 +634,18 @@ definitions:
       qos_profile:
         type: string
         description: ID of the QoS profile associated with this policy
-        example: 'profile0'
+        example: profile0
+      header_enrichment_targets:
+        type: array
+        description: List of URL targets for header enrichment
+        items:
+          type: string
+          x-nullable: false
+          example: http://example.com/
 
-  # This should be kept in sync with the policy rule above, we use this as the
-  # config type which is stored on the backend for policy rules.
+  # This should be kept in sync with the policy rule above (for the
+  # config-related fields), we use this as the config type which is stored on
+  # the backend for policy rules.
   # But for API backwards-compatibility, we can't nest this struct in the
   # top-level policy rule
   policy_rule_config:
@@ -701,6 +709,13 @@ definitions:
           - VIDEO
       redirect:
         $ref: '#/definitions/redirect_information'
+      header_enrichment_targets:
+        type: array
+        description: List of URL targets for header enrichment
+        items:
+          type: string
+          x-nullable: false
+          example: http://example.com/
 
   rating_group:
     type: object

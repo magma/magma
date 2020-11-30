@@ -71,6 +71,8 @@ class MockPipelinedClient : public PipelinedClient {
         .WillByDefault(Return(true));
     ON_CALL(*this, activate_flows_for_rules(_, _, _, _, _, _, _, _))
         .WillByDefault(Return(true));
+    ON_CALL(*this, update_tunnel_ids(_, _, _, _, _))
+        .WillByDefault(Return(true));
     ON_CALL(*this, add_ue_mac_flow(_, _, _, _, _, _))
         .WillByDefault(Return(true));
     ON_CALL(*this, delete_ue_mac_flow(_, _)).WillByDefault(Return(true));
@@ -81,6 +83,7 @@ class MockPipelinedClient : public PipelinedClient {
     ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_subscriber_quota_state(_))
         .WillByDefault(Return(true));
+    ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
   }
 
   MOCK_METHOD9(
@@ -127,6 +130,12 @@ class MockPipelinedClient : public PipelinedClient {
           const std::vector<std::string>& static_rules,
           const std::vector<PolicyRule>& dynamic_rules,
           std::function<void(Status status, ActivateFlowsResult)> callback));
+  MOCK_METHOD5(
+      update_tunnel_ids,
+      bool(
+          const std::string& imsi, const std::string& ip_addr,
+          const std::string& ipv6_addr, const uint32_t enb_teid,
+          const uint32_t agw_teid));
   MOCK_METHOD6(
       add_ue_mac_flow,
       bool(
@@ -157,7 +166,7 @@ class MockPipelinedClient : public PipelinedClient {
       set_upf_session,
       bool(
           const SessionState::SessionInfo info,
-          std::function<void(Status status, UpfRes)> callback));
+          std::function<void(Status status, UPFSessionContextState)> callback));
 };
 
 class MockDirectorydClient : public AsyncDirectorydClient {

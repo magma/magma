@@ -72,6 +72,10 @@ class S1ApUtil(object):
     CM_ESM_PDN_IPV6 = 0b10
     CM_ESM_PDN_IPV4V6 = 0b11
 
+    PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST = 0x0001
+    PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST = 0x000C
+    PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST = 0x0003
+
     lib_name = "libtfw.so"
 
     _cond = threading.Condition()
@@ -173,12 +177,15 @@ class S1ApUtil(object):
         # Wait until callback is invoked.
         return self._msg.get(True)
 
-    def populate_pco(self, protCfgOpts_pr, pcscf_addr_type):
+    def populate_pco(
+        self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+    ):
         """
         Populates the PCO values.
         Args:
             protCfgOpts_pr: PCO structure
             pcscf_addr_type: ipv4/ipv6/ipv4v6 flag
+            dns_ipv6_addr: True/False flag
         Returns:
             None
         """
@@ -195,18 +202,37 @@ class S1ApUtil(object):
         protCfgOpts_pr.numProtId = 0
 
         # Fill Number of container IDs and Container ID
+        idx = 0
         if pcscf_addr_type == "ipv4":
-            protCfgOpts_pr.numContId = 1
-            protCfgOpts_pr.c[0].cid = 0x000C
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            idx += 1
 
         elif pcscf_addr_type == "ipv6":
-            protCfgOpts_pr.numContId = 1
-            protCfgOpts_pr.c[0].cid = 0x0001
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            idx += 1
 
         elif pcscf_addr_type == "ipv4v6":
-            protCfgOpts_pr.numContId = 2
-            protCfgOpts_pr.c[0].cid = 0x000C
-            protCfgOpts_pr.c[1].cid = 0x0001
+            protCfgOpts_pr.numContId += 2
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV4_ADDR_REQUEST
+            idx += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_PCSCF_IPV6_ADDR_REQUEST
+            idx += 1
+
+        if dns_ipv6_addr:
+            protCfgOpts_pr.numContId += 1
+            protCfgOpts_pr.c[
+                idx
+            ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
         self,
@@ -219,6 +245,7 @@ class S1ApUtil(object):
         eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
         pdn_type=1,
         pcscf_addr_type=None,
+        dns_ipv6_addr=False,
     ):
         """
         Given a UE issue the attach request of specified type
@@ -247,8 +274,10 @@ class S1ApUtil(object):
         attach_req.pdnType_pr.pdn_type = pdn_type
 
         # Populate PCO only if pcscf_addr_type is set
-        if pcscf_addr_type:
-            self.populate_pco(attach_req.protCfgOpts_pr, pcscf_addr_type)
+        if pcscf_addr_type or dns_ipv6_addr:
+            self.populate_pco(
+                attach_req.protCfgOpts_pr, pcscf_addr_type, dns_ipv6_addr
+            )
         assert self.issue_cmd(attach_type, attach_req) == 0
 
         response = self.get_response()
@@ -331,10 +360,12 @@ class S1ApUtil(object):
         # Verify the total number of DL flows for this UE ip address
         num_dl_flows = 1
         for key, value in dl_flow_rules.items():
-            ipv4_src_addr = None
             tcp_src_port = 0
             ip_proto = 0
             ue_ip_str = str(key)
+            dst_addr = "nw_dst" if key.version == 4 else "ipv6_dst"
+            eth_typ = 2048 if key.version == 4 else 34525
+
             # Set to 1 for the default bearer
             total_num_dl_flows_to_be_verified = 1
             for item in value:
@@ -346,8 +377,8 @@ class S1ApUtil(object):
                 {
                     "table_id": self.SPGW_TABLE,
                     "match": {
-                        "nw_dst": ue_ip_str,
-                        "eth_type": 2048,
+                        dst_addr: ue_ip_str,
+                        "eth_type": eth_typ,
                         "in_port": self.LOCAL_PORT,
                     },
                 },
@@ -361,7 +392,13 @@ class S1ApUtil(object):
             for item in value:
                 for flow in item:
                     if flow["direction"] == FlowMatch.DOWNLINK:
-                        ipv4_src_addr = flow["ipv4_src"]
+                        ip_src_addr = (
+                            flow["ipv4_src"]
+                            if key.version == 4
+                            else flow["ipv6_src"]
+                        )
+                        ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
+                        ip_dst = "ipv4_dst" if key.version == 4 else "ipv6_dst"
                         tcp_src_port = flow["tcp_src_port"]
                         ip_proto = flow["ip_proto"]
                         for i in range(self.MAX_NUM_RETRIES):
@@ -371,10 +408,10 @@ class S1ApUtil(object):
                                 {
                                     "table_id": self.SPGW_TABLE,
                                     "match": {
-                                        "nw_dst": ue_ip_str,
-                                        "eth_type": 2048,
+                                        dst_addr: ue_ip_str,
+                                        "eth_type": eth_typ,
                                         "in_port": self.LOCAL_PORT,
-                                        "ipv4_src": ipv4_src_addr,
+                                        ip_src: ip_src_addr,
                                         "tcp_src": tcp_src_port,
                                         "ip_proto": ip_proto,
                                     },
@@ -388,9 +425,7 @@ class S1ApUtil(object):
                         assert (
                             len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
-                        assert (
-                            downlink_flows[0]["match"]["ipv4_dst"] == ue_ip_str
-                        )
+                        assert downlink_flows[0]["match"][ip_dst] == ue_ip_str
                         actions = downlink_flows[0]["instructions"][0][
                             "actions"
                         ]
@@ -415,8 +450,10 @@ class S1ApUtil(object):
             uplink_flows = get_flows(
                 self.datapath,
                 {
-                    "table_id": self.SPGW_TABLE,
-                    "match": {"in_port": GTP_PORT},
+                   "table_id": self.SPGW_TABLE,
+                   "match": {
+                       "in_port": GTP_PORT,
+                   }
                 },
             )
             if len(uplink_flows) == num_ul_flows:
@@ -941,6 +978,82 @@ class SpgwUtil(object):
         )
         self._stub.CreateBearer(req)
 
+    def create_bearer_ipv4v6(
+        self, imsi, lbi, qci_val=1, ipv4=False, ipv6=False
+    ):
+        """
+        Sends a CreateBearer Request with ipv4/ipv6/ipv4v6 packet """
+        """ filters to SPGW service """
+        print("Sending CreateBearer request to spgw service")
+        flow_match_list = []
+        if ipv4:
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ipv4_dst="192.168.129.42/24",
+                        tcp_src=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.UPLINK,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ipv4_src="192.168.129.42",
+                        tcp_src=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
+                        direction=FlowMatch.DOWNLINK,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+
+        if ipv6:
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ipv6_dst="5546:222:2259::226",
+                        ip_proto=FlowMatch.IPPROTO_UDP,
+                        direction=FlowMatch.UPLINK,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+            flow_match_list.append(
+                FlowDescription(
+                    match=FlowMatch(
+                        ip_proto=FlowMatch.IPPROTO_UDP,
+                        direction=FlowMatch.DOWNLINK,
+                    ),
+                    action=FlowDescription.PERMIT,
+                )
+            )
+
+        req = CreateBearerRequest(
+            sid=SIDUtils.to_pb(imsi),
+            link_bearer_id=lbi,
+            policy_rules=[
+                PolicyRule(
+                    qos=FlowQos(
+                        qci=qci_val,
+                        gbr_ul=10000000,
+                        gbr_dl=10000000,
+                        max_req_bw_ul=10000000,
+                        max_req_bw_dl=10000000,
+                        arp=QosArp(
+                            priority_level=1,
+                            pre_capability=1,
+                            pre_vulnerability=0,
+                        ),
+                    ),
+                    flow_list=flow_match_list,
+                )
+            ],
+        )
+        self._stub.CreateBearer(req)
+
     def delete_bearer(self, imsi, lbi, ebi):
         """
         Sends a DeleteBearer Request to SPGW service
@@ -1002,22 +1115,32 @@ class SessionManagerUtil(object):
                 tcp_src_port = 0
                 tcp_dst_port = 0
 
-            ipv4_src_addr = None
+            src_addr = None
             if flow.get("ipv4_src", None):
-                ipv4_src_addr = IPAddress(
+                src_addr = IPAddress(
                     version=IPAddress.IPV4,
                     address=flow.get("ipv4_src").encode('utf-8'))
-            ipv4_dst_addr = None
+            elif flow.get("ipv6_src", None):
+                src_addr = IPAddress(
+                    version=IPAddress.IPV6,
+                    address=flow.get("ipv6_src").encode('utf-8'))
+
+            dst_addr = None
             if flow.get("ipv4_dst", None):
-                ipv4_dst_addr = IPAddress(
+                dst_addr = IPAddress(
                     version=IPAddress.IPV4,
                     address=flow.get("ipv4_dst").encode('utf-8'))
+            elif flow.get("ipv6_dst", None):
+                dst_addr = IPAddress(
+                    version=IPAddress.IPV6,
+                    address=flow.get("ipv6_dst").encode('utf-8'))
+
 
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ip_dst=ipv4_dst_addr,
-                        ip_src=ipv4_src_addr,
+                        ip_dst=dst_addr,
+                        ip_src=src_addr,
                         tcp_src=tcp_src_port,
                         tcp_dst=tcp_dst_port,
                         udp_src=udp_src_port,

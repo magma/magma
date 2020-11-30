@@ -15,6 +15,7 @@ package models
 
 import (
 	"fmt"
+	"regexp"
 
 	"magma/orc8r/cloud/go/services/configurator"
 
@@ -50,7 +51,7 @@ func (m *FederatedNetworkConfigs) ValidateModel() error {
 			return errors.Wrap(err, fmt.Sprintf("Failed to search for network %s", string(nid)))
 		}
 		if !exists {
-			return errors.New(fmt.Sprintf("Network: %s does not exist", string(nid)))
+			return fmt.Errorf("Network: %s does not exist", string(nid))
 		}
 	}
 	return nil
@@ -84,9 +85,18 @@ func (m *GatewayFederationConfigs) ValidateModel() error {
 	return nil
 }
 
+var nhRouteRegex = regexp.MustCompile(`^(\d{5,6})$`)
+
 func (m *NetworkFederationConfigs) ValidateModel() error {
 	if err := m.Validate(strfmt.Default); err != nil {
 		return err
+	}
+	if m != nil {
+		for k, v := range m.NhRoutes {
+			if !nhRouteRegex.Match([]byte(k)) {
+				return fmt.Errorf("invalid NH route PLMNID: %s for serving FeG network: %s", k, v)
+			}
+		}
 	}
 	return nil
 }

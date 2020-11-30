@@ -113,6 +113,9 @@ func GetOperatorACL(
 
 // GetOperatorsACLs returns the operators' Identities permission lists
 func GetOperatorsACLs(operators []*protos.Identity) ([]*accessprotos.AccessControl_List, error) {
+	if len(operators) == 0 {
+		return nil, nil
+	}
 	client, err := getAccessdClient()
 	if err != nil {
 		return nil, err
