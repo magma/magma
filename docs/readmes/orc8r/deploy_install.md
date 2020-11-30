@@ -260,7 +260,7 @@ also need to add a new admin user with the updated `admin_operator` cert.
 Create an admin user for the `master` organization on the NMS
 
 ```bash
-export NMS_POD=$(kubectl get pod -l app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
+export NMS_POD=$(kubectl -n orc8r get pod app.kubernetes.io/component=magmalte -o jsonpath='{.items[0].metadata.name}')
 kubectl exec -it ${NMS_POD} -- yarn setAdminPassword master ADMIN_USER_EMAIL ADMIN_USER_PASSWORD
 ```
 
