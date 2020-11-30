@@ -349,7 +349,7 @@ static int _pdn_connectivity_create(
       /*
        * Increment the number of PDN connections
        */
-      ue_mm_context->emm_context.esm_ctx.n_pdns += 1;
+      ue_mm_context->nb_active_pdn_contexts += 1;
       /*
        * Set the procedure transaction identity
        */
@@ -526,7 +526,7 @@ proc_tid_t _pdn_connectivity_delete(
   }
   if (pti != ESM_PT_UNASSIGNED) {
     // Decrement the number of PDN connections
-    ue_mm_context->emm_context.esm_ctx.n_pdns -= 1;
+    ue_mm_context->nb_active_pdn_contexts -= 1;
 
     // Release allocated PDN connection data
     bdestroy_wrapper(&ue_mm_context->pdn_contexts[pdn_cid]->apn_in_use);
