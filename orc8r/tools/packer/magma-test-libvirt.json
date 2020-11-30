@@ -117,7 +117,14 @@
       {
         "output": "builds/magma_test_{{.Provider}}.box",
         "type": "vagrant"
+      },
+      {
+        "type": "vagrant-cloud",
+        "box_tag": "magmacore/magma_test",
+        "access_token": "{{user `cloud_token`}}",
+        "version": "{{user `version`}}"
       }
+
     ]
   ]
 }

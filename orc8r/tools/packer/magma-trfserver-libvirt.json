@@ -95,6 +95,12 @@
       {
         "output": "builds/magma_trfserver_{{.Provider}}.box",
         "type": "vagrant"
+      },
+      {
+        "type": "vagrant-cloud",
+        "box_tag": "magmacore/magma_trfserver",
+        "access_token": "{{user `cloud_token`}}",
+        "version": "{{user `version`}}"
       }
     ]
   ]

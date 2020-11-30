@@ -83,7 +83,7 @@
       },
       {
         "type": "vagrant-cloud",
-        "box_tag": "fbcmagma/magma_trfserver",
+        "box_tag": "magmacore/magma_trfserver",
         "access_token": "{{user `cloud_token`}}",
         "version": "{{user `version`}}"
       }
