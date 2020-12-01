@@ -20,7 +20,7 @@
 
 
 - name: handle core files
-  script: handle_cores.py --cores-map {{cores_paths}} --component {{item.key}} --max-age {{core_file_age_in_days}} --dest-dir {{report_dir_output.stdout}}
+  script: handle_cores.py --cores-map '{{cores_paths | to_json }}' --component {{item.key}} --max-age {{core_file_age_in_days}} --dest-dir {{report_dir_output.stdout}}
   register: output
   loop: "{{cores_paths | dict2items}}"
 
