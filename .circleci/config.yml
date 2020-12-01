@@ -13,6 +13,7 @@ aliases:
         only:
           - master
           - develop
+          - revert-sanity-test
   - &lte_build_verify
     paths: "orc8r lte"
   - &federated_build_verify
@@ -73,6 +74,7 @@ orbs:
                   fi
                 done
                 echo "No changes in [$paths]"
+                exit 0
                 circleci step halt
 
 commands:
