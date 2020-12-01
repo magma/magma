@@ -13,9 +13,9 @@ apiVersion: v1
 description: Magma NMS
 name: nms
 version: 0.1.7
-home: https://github.com/facebookincubator/magma
+home: https://github.com/magma/magma
 sources:
-  - https://github.com/facebookincubator/magma
+  - https://github.com/magma/magma
 keywords:
   - magma
   - nms
