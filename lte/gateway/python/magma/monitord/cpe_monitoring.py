@@ -12,7 +12,7 @@ limitations under the License.
 """
 import logging
 from collections import defaultdict
-from datetime import datetime
+from time import time
 from typing import Dict, List, NamedTuple, Optional
 import ipaddress
 
@@ -26,7 +26,7 @@ from magma.monitord.icmp_state import ICMPMonitoringResponse
 from orc8r.protos.common_pb2 import Void
 from prometheus_client import Histogram
 
-SUBSCRIBER_ICMP_LATENCY_MS = Histogram('subscriber_icmp_latency_ms',
+subscriber_icmp_latency_ms = Histogram('subscriber_icmp_latency_ms',
                                        'Reported latency for subscriber '
                                        'in milliseconds',
                                        ['imsi'],
@@ -38,9 +38,10 @@ PingedTargets = NamedTuple('PingedTargets',
 
 
 def _get_addr_from_subscribers(sub_ip) -> str:
-    return str(ipaddress.IPv4Address(sub_ip.address)
-               if sub_ip.version == IPAddress.IPV4
-               else str(ipaddress.IPv6Address(sub_ip.address)))
+    if sub_ip.version == IPAddress.IPV4:
+        return str(ipaddress.IPv4Address(sub_ip.address))
+    else:
+        return str(ipaddress.IPv6Address(sub_ip.address))
 
 
 class CpeMonitoringModule:
@@ -50,9 +51,8 @@ class CpeMonitoringModule:
         self.ping_addresses = []
         self.ping_targets = {}
 
-    def set_manually_configured_targets(self,
-                                        configured_ping_targets:
-                                        Optional[Dict] = None):
+    def set_manually_configured_targets(
+            self, configured_ping_targets: Optional[Dict] = None):
         if configured_ping_targets:
             self.ping_targets = configured_ping_targets.copy()
             for value in self.ping_targets.values():
@@ -84,11 +84,11 @@ class CpeMonitoringModule:
 
     def save_ping_response(self, sid: str, ip_addr: str,
                            ping_resp: PingCommandResult) -> None:
-        reported_time = datetime.now().timestamp()
+        reported_time = int(round(time() * 1000))
         self._subscriber_state[sid] = ICMPMonitoringResponse(
-            last_reported_time=float(reported_time),
+            last_reported_time=reported_time,
             latency_ms=ping_resp.stats.rtt_avg)
-        SUBSCRIBER_ICMP_LATENCY_MS.labels(sid).observe(ping_resp.stats.rtt_avg)
+        subscriber_icmp_latency_ms.labels(sid).observe(ping_resp.stats.rtt_avg)
         logging.info(
             '{}:{} => {}ms'.format(sid, ip_addr,
                                    self._subscriber_state[sid].latency_ms))
