@@ -55,7 +55,7 @@ cwf:
     port: 6380
     bind: 127.0.0.1
   repo:
-    url: https://github.com/facebookincubator/magma.git
+    url: https://github.com/magma/magma.git
     branch: master
 #  dpi:
 #    dpi_license_name: cwftest.bin
