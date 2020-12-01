@@ -27,6 +27,7 @@ from lte.protos.ha_service_pb2_grpc import HaServiceStub
 def send_offload_trigger(client, args):
     req = StartAgwOffloadRequest(
             enb_id = args.enb_id,
+            imsi = args.imsi,
     )
     print("Sending offload trigger with following fields:\n %s" % req)
     try:

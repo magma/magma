@@ -43,7 +43,17 @@ bool HaServiceImpl::send_agw_offload_req(
     const StartAgwOffloadRequest* request) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AGW_OFFLOAD_REQ);
+
+  std::string imsi = request->imsi();
+  // if IMSI prefix is used, strip it off
+  if (imsi.compare(0, 4, "IMSI") == 0) {
+    imsi = imsi.substr(4, std::string::npos);
+  }
+  AGW_OFFLOAD_REQ(message_p).imsi_length = imsi.size();
+  strcpy(AGW_OFFLOAD_REQ(message_p).imsi, imsi.c_str());
+
   AGW_OFFLOAD_REQ(message_p).eNB_id = request->enb_id();
+
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_HA, message_p);
 
   return true;

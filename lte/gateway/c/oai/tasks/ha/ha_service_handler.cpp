@@ -32,39 +32,90 @@ static bool process_ue_context(
     const hash_key_t keyP, void* const elementP, void* parameterP,
     void** resultP);
 
+typedef struct callback_data_s {
+  s1ap_state_t* s1ap_state;
+  ha_agw_offload_req_t* request;
+} callback_data_t;
+
 bool handle_agw_offload_req(ha_agw_offload_req_t* offload_req) {
   hash_table_ts_t* state_imsi_ht =
       magma::lte::MmeNasStateManager::getInstance().get_ue_state_ht();
-  s1ap_state_t* s1ap_state =
+  callback_data_t callback_data;
+  callback_data.s1ap_state =
       magma::lte::S1apStateManager::getInstance().get_state(false);
+  callback_data.request = offload_req;
   hashtable_ts_apply_callback_on_elements(
-      state_imsi_ht, process_ue_context, (void*) s1ap_state, NULL);
+      state_imsi_ht, process_ue_context, (void*) &callback_data, NULL);
 }
 
 bool process_ue_context(
     const hash_key_t keyP, void* const elementP, void* parameterP,
     void** resultP) {
-  s1ap_state_t* s1ap_state             = (s1ap_state_t*) parameterP;
+  imsi64_t imsi64                = INVALID_IMSI64;
+  callback_data_t* callback_data = (callback_data_t*) parameterP;
+  ha_agw_offload_req_t* offload_request =
+      (ha_agw_offload_req_t*) callback_data->request;
+  s1ap_state_t* s1ap_state = (s1ap_state_t*) callback_data->s1ap_state;
   struct ue_mm_context_s* ue_context_p = (struct ue_mm_context_s*) elementP;
+
+  IMSI_STRING_TO_IMSI64(offload_request->imsi, &imsi64);
+
   enb_description_t* enb_ref_p =
       s1ap_state_get_enb(s1ap_state, ue_context_p->sctp_assoc_id_key);
-  MessageDef* message_p =
-      itti_alloc_new_message(TASK_HA, S1AP_UE_CONTEXT_RELEASE_REQ);
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id =
-      ue_context_p->mme_ue_s1ap_id;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
-      ue_context_p->enb_ue_s1ap_id;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id   = enb_ref_p->enb_id;
-  S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = S1AP_NAS_MME_OFFLOADING;
 
-  OAILOG_INFO(
-      LOG_UTIL,
-      "Processing MME UE ID: %d, ENB UE ID: %d, UE Context ENB ID: %d, UE "
-      "Context cell id: %d, S1AP State ENB ID: %d",
-      ue_context_p->mme_ue_s1ap_id, ue_context_p->enb_ue_s1ap_id,
-      ue_context_p->e_utran_cgi.cell_identity.enb_id,
-      ue_context_p->e_utran_cgi.cell_identity.cell_id, enb_ref_p->enb_id);
+  // Return if this UE does not satisfy any of the filtering criterion
+  if ((imsi64 != ue_context_p->emm_context._imsi64) &&
+      (offload_request->eNB_id != enb_ref_p->enb_id)) {
+    return false;
+  }
 
-  send_msg_to_task(&ha_task_zmq_ctx, TASK_MME_APP, message_p);
+  if (ue_context_p->ecm_state == ECM_CONNECTED) {
+    MessageDef* message_p =
+        itti_alloc_new_message(TASK_HA, S1AP_UE_CONTEXT_RELEASE_REQ);
+    S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id =
+        ue_context_p->mme_ue_s1ap_id;
+    S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_ue_s1ap_id =
+        ue_context_p->enb_ue_s1ap_id;
+    S1AP_UE_CONTEXT_RELEASE_REQ(message_p).enb_id   = enb_ref_p->enb_id;
+    S1AP_UE_CONTEXT_RELEASE_REQ(message_p).relCause = S1AP_NAS_MME_OFFLOADING;
+
+    OAILOG_INFO(
+        LOG_UTIL,
+        "Processing IMSI64: " IMSI_64_FMT
+        " Requested IMSI: %s, MME UE ID: %d, ENB UE ID: %d, UE "
+        "Context ENB ID: "
+        "%d, UE "
+        "Context cell id: %d, S1AP State ENB ID: %d",
+        ue_context_p->emm_context._imsi64, offload_request->imsi,
+        ue_context_p->mme_ue_s1ap_id, ue_context_p->enb_ue_s1ap_id,
+        ue_context_p->e_utran_cgi.cell_identity.enb_id,
+        ue_context_p->e_utran_cgi.cell_identity.cell_id, enb_ref_p->enb_id);
+    OAILOG_INFO(
+        LOG_UTIL, "UE Context Release procedure initiated for IMSI%s",
+        offload_request->imsi);
+    IMSI_STRING_TO_IMSI64(
+        offload_request->imsi, &message_p->ittiMsgHeader.imsi);
+    send_msg_to_task(&ha_task_zmq_ctx, TASK_MME_APP, message_p);
+  } else if (
+      (ue_context_p->ecm_state == ECM_IDLE) &&
+      (ue_context_p->mm_state == UE_REGISTERED)) {
+    ue_context_p->ue_context_rel_cause = S1AP_NAS_MME_OFFLOADING;
+
+    char imsi[IMSI_BCD_DIGITS_MAX + 1] = {0};
+    IMSI64_TO_STRING(
+        ue_context_p->emm_context._imsi64, imsi,
+        ue_context_p->emm_context._imsi.length);
+
+    OAILOG_INFO(LOG_UTIL, "Paging procedure initiated for IMSI%s", imsi);
+    MessageDef* message_p                       = NULL;
+    itti_s11_paging_request_t* paging_request_p = NULL;
+
+    message_p        = itti_alloc_new_message(TASK_HA, S11_PAGING_REQUEST);
+    paging_request_p = &message_p->ittiMsg.s11_paging_request;
+    memset((void*) paging_request_p, 0, sizeof(itti_s11_paging_request_t));
+    paging_request_p->imsi        = strdup(imsi);
+    message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
+    send_msg_to_task(&ha_task_zmq_ctx, TASK_MME_APP, message_p);
+  }
   return false;
 }

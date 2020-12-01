@@ -33,8 +33,9 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
   switch (ITTI_MSG_ID(received_message_p)) {
     case AGW_OFFLOAD_REQ: {
-      OAILOG_DEBUG(
-          LOG_UTIL, "Received AGW_OFFLOAD_REQ message for eNB ID %d ",
+      OAILOG_INFO(
+          LOG_UTIL, "[%s] Received AGW_OFFLOAD_REQ message for eNB ID %d",
+          AGW_OFFLOAD_REQ(received_message_p).imsi,
           AGW_OFFLOAD_REQ(received_message_p).eNB_id);
       handle_agw_offload_req(&received_message_p->ittiMsg.ha_agw_offload_req);
     } break;
@@ -46,7 +47,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
     } break;
 
     default: {
-      OAILOG_DEBUG(
+      OAILOG_ERROR(
           LOG_UTIL, "Unknown message ID %d:%s\n",
           ITTI_MSG_ID(received_message_p), ITTI_MSG_NAME(received_message_p));
     } break;
