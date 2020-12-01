@@ -18,7 +18,7 @@ import (
 type IcmpStatus struct {
 
 	// last reported time
-	LastReportedTime int64 `json:"last_reported_time,omitempty"`
+	LastReportedTime float32 `json:"last_reported_time,omitempty"`
 
 	// latency ms
 	// Required: true
