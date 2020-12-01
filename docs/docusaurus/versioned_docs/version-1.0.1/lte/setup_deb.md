@@ -52,7 +52,7 @@ satisfies the following requirements:
 
 ```bash
 su
-wget https://raw.githubusercontent.com/facebookincubator/magma/v1.0/lte/gateway/deploy/agw_install.sh
+wget https://raw.githubusercontent.com/magma/magma/v1.0/lte/gateway/deploy/agw_install.sh
 bash agw_install.sh
 ```
 

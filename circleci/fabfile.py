@@ -62,7 +62,7 @@ def lte():
     env.stack = LTE_STACK
 
 
-def integ_test(repo: str = 'git@github.com:facebookincubator/magma.git',
+def integ_test(repo: str = 'git@github.com:magma/magma.git',
                branch: str = '', sha1: str = '', tag: str = '',
                pr_num: str = '',
                magma_root: str = '',
