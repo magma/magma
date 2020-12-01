@@ -39,12 +39,9 @@ paths_to_collect:
   - "/var/log/MME.*"
   - "/var/log/enode.*"
 
-# core file paths for gdb execution
+# core file paths for gdb execution, requires core file location and binary
 core_file_age_in_days: 7
 cores_paths:
   mme:
     path: "/tmp/core-*/core-*-mme-*"
     binary: "/usr/local/bin/mme"
-  stam:
-    path: "/tmp/core-*/core-*-stam-*"
-    binary: "/usr/local/bin/stam"
