@@ -1424,7 +1424,7 @@ int s1ap_mme_handle_initial_context_setup_failure(
       S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
 
   if (!ie) {
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   enb_ue_s1ap_id =
       (enb_ue_s1ap_id_t)(ie->value.choice.ENB_UE_S1AP_ID & ENB_UE_S1AP_ID_MASK);
@@ -1688,7 +1688,7 @@ int s1ap_mme_handle_ue_context_modification_failure(
           S1ap_UEContextModificationFailureIEs_t, ie, container,
           S1ap_ProtocolIE_ID_id_Cause, true);
       if (!ie) {
-        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+        OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
       }
       cause_value = ie->value.choice.Cause.choice.radioNetwork;
       switch (cause_type) {
@@ -2273,6 +2273,7 @@ void s1ap_mme_handle_ue_context_rel_comp_timer_expiry(
 
   if (ue_ref_p == NULL) {
     OAILOG_ERROR(LOG_S1AP, "ue_ref_p is NULL\n");
+    return;
   }
 
   ue_ref_p->s1ap_ue_context_rel_timer.id = S1AP_TIMER_INACTIVE_ID;
@@ -2981,6 +2982,7 @@ int s1ap_handle_paging_request(
       }
     }
   }
+  free_wrapper((void**) &enb_array->elements);
   free(buffer_p);
   if (rc != RETURNok) {
     OAILOG_ERROR(
@@ -3416,6 +3418,20 @@ int s1ap_mme_handle_erab_rel_response(
       S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.item[index].cause =
           erab_item->cause;
       S1AP_E_RAB_REL_RSP(message_p).e_rab_rel_list.no_of_items++;
+    }
+  }
+  if (ie) {
+    for (int index = 0; index < num_erab; index++) {
+      const S1ap_E_RABItemIEs_t* const erab_item_ies =
+          (S1ap_E_RABItemIEs_t*) e_rab_list->list.array[index];
+      const S1ap_E_RABItem_t* const erab_item =
+          (S1ap_E_RABItem_t*) &erab_item_ies->value.choice.E_RABItem;
+      S1AP_E_RAB_REL_RSP(message_p)
+          .e_rab_failed_to_rel_list.item[index]
+          .e_rab_id = erab_item->e_RAB_ID;
+      S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.item[index].cause =
+          erab_item->cause;
+      S1AP_E_RAB_REL_RSP(message_p).e_rab_failed_to_rel_list.no_of_items++;
     }
   }
   message_p->ittiMsgHeader.imsi = imsi64;

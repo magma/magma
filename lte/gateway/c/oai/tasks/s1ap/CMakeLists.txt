@@ -34,7 +34,6 @@ set(s1ap_h ${s1ap_h})
 
 add_library(LIB_S1AP
     ${S1AP_source}
-    s1ap_common.c
 )
 target_link_libraries(LIB_S1AP
     LIB_BSTR LIB_HASHTABLE

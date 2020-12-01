@@ -22,13 +22,6 @@
    \version 0.1
 */
 
-/*! \file s1ap_mme_decoder.c
-   \brief s1ap decode procedures for MME
-   \author Sebastien ROUX <sebastien.roux@eurecom.fr>
-   \date 2012
-   \version 0.1
-*/
-
 #include <stdbool.h>
 #include <string.h>
 

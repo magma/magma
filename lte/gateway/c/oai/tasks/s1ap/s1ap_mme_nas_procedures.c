@@ -82,11 +82,11 @@ int s1ap_mme_handle_initial_ue_message(
     s1ap_state_t* state, const sctp_assoc_id_t assoc_id,
     const sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   S1ap_InitialUEMessage_t* container = NULL;
-  S1ap_InitialUEMessage_IEs_t *ie    = NULL, *ie_e_tmsi, *ie_csg_id, *ie_gummei,
-                              *ie_cause;
+  S1ap_InitialUEMessage_IEs_t *ie = NULL, *ie_e_tmsi = NULL, *ie_csg_id = NULL,
+                              *ie_gummei = NULL, *ie_cause = NULL;
   ue_description_t* ue_ref        = NULL;
   enb_description_t* eNB_ref      = NULL;
-  enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   container = &pdu->choice.initiatingMessage.value.choice.InitialUEMessage;
@@ -173,14 +173,20 @@ int s1ap_mme_handle_initial_ue_message(
         S1ap_InitialUEMessage_IEs_t, ie, container, S1ap_ProtocolIE_ID_id_TAI,
         true);
     OCTET_STRING_TO_TAC(&ie->value.choice.TAI.tAC, tai.tac);
-    DevAssert(ie->value.choice.TAI.pLMNidentity.size == 3);
+    if (!(ie->value.choice.TAI.pLMNidentity.size == 3)) {
+      OAILOG_ERROR(LOG_S1AP, "Incorrect PLMN size \n");
+      return RETURNerror;
+    }
     TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
     // CGI mandatory IE
     S1AP_FIND_PROTOCOLIE_BY_ID(
         S1ap_InitialUEMessage_IEs_t, ie, container,
         S1ap_ProtocolIE_ID_id_EUTRAN_CGI, true);
-    DevAssert(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3);
+    if (!(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3)) {
+      OAILOG_ERROR(LOG_S1AP, "Incorrect PLMN size \n");
+      return RETURNerror;
+    }
     TBCD_TO_PLMN_T(&ie->value.choice.EUTRAN_CGI.pLMNidentity, &ecgi.plmn);
     BIT_STRING_TO_CELL_IDENTITY(
         &ie->value.choice.EUTRAN_CGI.cell_ID, ecgi.cell_identity);
@@ -210,7 +216,6 @@ int s1ap_mme_handle_initial_ue_message(
         S1ap_ProtocolIE_ID_id_GUMMEI_ID, false);
     memset(&gummei, 0, sizeof(gummei));
     if (ie_gummei) {
-      // TBCD_TO_PLMN_T(&ie->gummei_id.pLMN_Identity, &gummei.plmn);
       OCTET_STRING_TO_MME_GID(
           &ie_gummei->value.choice.GUMMEI.mME_Group_ID, gummei.mme_gid);
       OCTET_STRING_TO_MME_CODE(
@@ -259,8 +264,8 @@ int s1ap_mme_handle_uplink_nas_transport(
   enb_description_t* enb_ref      = NULL;
   tai_t tai                       = {0};
   ecgi_t ecgi                     = {.plmn = {0}, .cell_identity = {0}};
-  mme_ue_s1ap_id_t mme_ue_s1ap_id = 0;
-  enb_ue_s1ap_id_t enb_ue_s1ap_id = 0;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   container = &pdu->choice.initiatingMessage.value.choice.UplinkNASTransport;
@@ -268,14 +273,14 @@ int s1ap_mme_handle_uplink_nas_transport(
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_UplinkNASTransport_IEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_eNB_UE_S1AP_ID, true);
-  enb_ue_s1ap_id = ie->value.choice.ENB_UE_S1AP_ID;
+  enb_ue_s1ap_id = (enb_ue_s1ap_id_t) ie->value.choice.ENB_UE_S1AP_ID;
 
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_UplinkNASTransport_IEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
-  mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
+  mme_ue_s1ap_id = (mme_ue_s1ap_id_t) ie->value.choice.MME_UE_S1AP_ID;
 
-  if (INVALID_MME_UE_S1AP_ID == ie->value.choice.MME_UE_S1AP_ID) {
+  if (mme_ue_s1ap_id == INVALID_MME_UE_S1AP_ID) {
     OAILOG_WARNING(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT message MME_UE_S1AP_ID unknown\n");
@@ -283,12 +288,12 @@ int s1ap_mme_handle_uplink_nas_transport(
     enb_ref = s1ap_state_get_enb(state, assoc_id);
 
     if (!(ue_ref = s1ap_state_get_ue_enbid(
-              enb_ref->sctp_assoc_id, (enb_ue_s1ap_id_t) enb_ue_s1ap_id))) {
+              enb_ref->sctp_assoc_id, enb_ue_s1ap_id))) {
       OAILOG_WARNING(
           LOG_S1AP,
           "Received S1AP UPLINK_NAS_TRANSPORT No UE is attached to this "
           "enb_ue_s1ap_id: " ENB_UE_S1AP_ID_FMT "\n",
-          (enb_ue_s1ap_id_t) enb_ue_s1ap_id);
+          enb_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   } else {
@@ -296,7 +301,7 @@ int s1ap_mme_handle_uplink_nas_transport(
         LOG_S1AP,
         "Received S1AP UPLINK_NAS_TRANSPORT message "
         "MME_UE_S1AP_ID " MME_UE_S1AP_ID_FMT "\n",
-        (mme_ue_s1ap_id_t) mme_ue_s1ap_id);
+        mme_ue_s1ap_id);
 
     if (!(ue_ref = s1ap_state_get_ue_mmeid(mme_ue_s1ap_id))) {
       OAILOG_WARNING(
@@ -325,14 +330,20 @@ int s1ap_mme_handle_uplink_nas_transport(
       S1ap_UplinkNASTransport_IEs_t, ie, container, S1ap_ProtocolIE_ID_id_TAI,
       true);
   OCTET_STRING_TO_TAC(&ie->value.choice.TAI.tAC, tai.tac);
-  DevAssert(ie->value.choice.TAI.pLMNidentity.size == 3);
+  if (!(ie->value.choice.TAI.pLMNidentity.size == 3)) {
+    OAILOG_ERROR(LOG_S1AP, "Incorrect PLMN size \n");
+    return RETURNerror;
+  }
   TBCD_TO_PLMN_T(&ie->value.choice.TAI.pLMNidentity, &tai.plmn);
 
   // CGI mandatory IE
   S1AP_FIND_PROTOCOLIE_BY_ID(
       S1ap_UplinkNASTransport_IEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_EUTRAN_CGI, true);
-  DevAssert(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3);
+  if (!(ie->value.choice.EUTRAN_CGI.pLMNidentity.size == 3)) {
+    OAILOG_ERROR(LOG_S1AP, "Incorrect PLMN size \n");
+    return RETURNerror;
+  }
   TBCD_TO_PLMN_T(&ie->value.choice.EUTRAN_CGI.pLMNidentity, &ecgi.plmn);
   BIT_STRING_TO_CELL_IDENTITY(
       &ie->value.choice.EUTRAN_CGI.cell_ID, ecgi.cell_identity);
@@ -351,11 +362,11 @@ int s1ap_mme_handle_nas_non_delivery(
     s1ap_state_t* state, __attribute__((unused)) sctp_assoc_id_t assoc_id,
     sctp_stream_id_t stream, S1ap_S1AP_PDU_t* pdu) {
   S1ap_NASNonDeliveryIndication_t* container;
-  S1ap_NASNonDeliveryIndication_IEs_t *ie = NULL, *ie_nas_pdu;
-  ue_description_t* ue_ref                = NULL;
-  imsi64_t imsi64                         = INVALID_IMSI64;
-  mme_ue_s1ap_id_t mme_ue_s1ap_id         = 0;
-  enb_ue_s1ap_id_t enb_ue_s1ap_id         = 0;
+  S1ap_NASNonDeliveryIndication_IEs_t *ie = NULL, *ie_nas_pdu = NULL;
+  ue_description_t* ue_ref        = NULL;
+  imsi64_t imsi64                 = INVALID_IMSI64;
+  mme_ue_s1ap_id_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+  enb_ue_s1ap_id_t enb_ue_s1ap_id = INVALID_ENB_UE_S1AP_ID;
 
   OAILOG_FUNC_IN(LOG_S1AP);
   increment_counter("nas_non_delivery_indication_received", 1, NO_LABELS);
@@ -489,8 +500,8 @@ int s1ap_generate_downlink_nas_transport(
         imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) ue_id, imsi64);
 
     S1ap_DownlinkNASTransport_IEs_t* ie = NULL;
-    S1ap_DownlinkNASTransport_t* out;
-    S1ap_S1AP_PDU_t pdu = {0};
+    S1ap_DownlinkNASTransport_t* out    = NULL;
+    S1ap_S1AP_PDU_t pdu                 = {0};
 
     pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
     pdu.choice.initiatingMessage.procedureCode =
@@ -822,7 +833,10 @@ void s1ap_handle_conn_est_cnf(
   S1ap_S1AP_PDU_t pdu                      = {0};  // yes, alloc on stack
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  DevAssert(conn_est_cnf_pP != NULL);
+  if (conn_est_cnf_pP == NULL) {
+    OAILOG_DEBUG(LOG_S1AP, "conn_est_cnf_pP is NULL\n");
+    return;
+  }
 
   OAILOG_INFO(
       LOG_S1AP,
@@ -1056,8 +1070,10 @@ void s1ap_handle_mme_ue_id_notification(
     const itti_mme_app_s1ap_mme_ue_id_notification_t* const notification_p) {
   OAILOG_FUNC_IN(LOG_S1AP);
 
-  DevAssert(notification_p != NULL);
-
+  if (notification_p == NULL) {
+    OAILOG_DEBUG(LOG_S1AP, "notification_p is NULL\n");
+    return;
+  }
   sctp_assoc_id_t sctp_assoc_id   = notification_p->sctp_assoc_id;
   enb_ue_s1ap_id_t enb_ue_s1ap_id = notification_p->enb_ue_s1ap_id;
   mme_ue_s1ap_id_t mme_ue_s1ap_id = notification_p->mme_ue_s1ap_id;

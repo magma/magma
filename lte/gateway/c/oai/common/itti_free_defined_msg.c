@@ -162,12 +162,11 @@ void itti_free_msg_content(MessageDef* const message_p) {
       // DO nothing
       break;
 
-      // We do not free ue_to_reset_list in "S1AP_ENB_INITIATED_RESET_REQ"
-      // because it is re-use in another itti message. case
-      // S1AP_ENB_INITIATED_RESET_REQ:
-      // free_wrapper((void**) &message_p->ittiMsg.s1ap_enb_initiated_reset_req
-      //           .ue_to_reset_list);
-      // break;
+    case S1AP_ENB_INITIATED_RESET_REQ:
+      // Do Nothing
+      // No need to free ue_to_reset_list in "S1AP_ENB_INITIATED_RESET_REQ"
+      // because it is re-used in another ITTI message
+      break;
     case S1AP_E_RAB_REL_CMD:
       bdestroy_wrapper(&message_p->ittiMsg.s1ap_e_rab_rel_cmd.nas_pdu);
       break;
