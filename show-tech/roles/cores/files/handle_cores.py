@@ -45,16 +45,16 @@ class ComponentCores(object):
 
     def process_cores(self):
         # Copy them to destination folder
-        logger.debug(f"Processing cores of component {self.component} dirs {self.get_core_dirs()}")
+        logger.debug("Processing cores of component {} dirs {}".format(self.component, self.get_core_dirs()))
         for core_dir in self.get_core_dirs():
             dest_core_dir = os.path.join(self.dest_dir, os.path.basename(core_dir))
-            logger.info(f"Copying {core_dir} to {dest_core_dir}")
+            logger.info("Copying {} to {}".format(core_dir, dest_core_dir))
             if os.path.exists(dest_core_dir):
                 shutil.rmtree(dest_core_dir)
             shutil.copytree(core_dir, dest_core_dir)
         # Uncompress them on source dir
         for core_file in  self.get_core_files():
-            logger.debug(f"Analyzing {core_file}")
+            logger.debug("Analyzing {}".format(core_file))
             core = CoreFile(core_file, self.app_binary, self.dest_dir)
             core.analyze()
 
@@ -82,11 +82,11 @@ class CoreFile(object):
 
     def analyze(self):
         self.uncompress_file()
-        cmd = f"gdb --batch --quiet -ex 'thread apply all bt full' -ex 'quit'  {self.app_binary} {self.uncompressed_core_file}"
+        cmd = "gdb --batch --quiet -ex 'thread apply all bt full' -ex 'quit'  {} {}".format(self.app_binary, self.uncompressed_core_file)
         core_dest_dir = os.path.join(self.dest_dir, os.path.basename(os.path.dirname(self.uncompressed_core_file)))
         dbg_file = os.path.join(core_dest_dir, "dbg.txt")
         os.makedirs(core_dest_dir, exist_ok=True)
-        logger.info(f"component {self.app_binary} core {self.uncompressed_core_file} - dbg output file: {dbg_file}")
+        logger.info("component {} core {} - dbg output file: {}".format(self.app_binary, self.uncompressed_core_file, dbg_file))
 
         with open(dbg_file, 'a') as fout:
             ret = subprocess.run(
@@ -121,7 +121,7 @@ class CoreFile(object):
 )
 def main(cores_map : str, component: str, max_age: int, dest_dir: str):
     cores_map = json.loads(cores_map)
-    logger.info(f"processing cores on component {component}")
+    logger.info("processing cores on component {}".format(component))
     c = ComponentCores(cores_map, component, max_age, dest_dir)
     c.process_cores()
 
