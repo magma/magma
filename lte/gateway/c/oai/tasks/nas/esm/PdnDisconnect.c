@@ -92,10 +92,10 @@ int esm_proc_pdn_disconnect_request(
     emm_context_t* emm_context, proc_tid_t pti, esm_cause_t* esm_cause) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
   pdn_cid_t pid = RETURNerror;
-  mme_ue_s1ap_id_t ue_id =
-      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context)
-          ->mme_ue_s1ap_id;
-
+  ue_mm_context_t* ue_context_p =
+      PARENT_STRUCT(emm_context, struct ue_mm_context_s, emm_context);
+  mme_ue_s1ap_id_t ue_id     = ue_context_p->mme_ue_s1ap_id;
+  int nb_active_pdn_contexts = ue_context_p->nb_active_pdn_contexts;
   OAILOG_INFO(
       LOG_NAS_ESM,
       "ESM-PROC  - PDN disconnect requested by the UE "
@@ -105,7 +105,7 @@ int esm_proc_pdn_disconnect_request(
   /*
    * Get UE's ESM context
    */
-  if (emm_context->esm_ctx.n_pdns > 1) {
+  if (nb_active_pdn_contexts > 1) {
     /*
      * Get the identifier of the PDN connection entry assigned to the
      * * * * procedure transaction identity

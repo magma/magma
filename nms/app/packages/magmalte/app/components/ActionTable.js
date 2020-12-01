@@ -144,6 +144,7 @@ type SelectProps = {
   defaultValue?: string,
   value: string,
   onChange: string => void,
+  testId?: string,
 };
 
 export function SelectEditComponent(props: SelectProps) {
@@ -156,6 +157,7 @@ export function SelectEditComponent(props: SelectProps) {
   return (
     <FormControl>
       <Select
+        data-testid={props.testId ?? ''}
         value={props.value}
         onChange={({target}) => props.onChange(target.value)}
         input={<OutlinedInput />}>

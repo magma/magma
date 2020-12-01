@@ -16,6 +16,7 @@
  */
 extern "C" {
 #include "log.h"
+#include "dynamic_memory_check.h"
 }
 
 #include "nas_state_converter.h"
@@ -348,8 +349,6 @@ void NasStateConverter::esm_context_to_proto(
     const esm_context_t* state_esm_context,
     oai::EsmContext* esm_context_proto) {
   esm_context_proto->set_n_active_ebrs(state_esm_context->n_active_ebrs);
-  esm_context_proto->set_n_active_pdns(state_esm_context->n_active_pdns);
-  esm_context_proto->set_n_pdns(state_esm_context->n_pdns);
   esm_context_proto->set_is_emergency(state_esm_context->is_emergency);
   if (state_esm_context->esm_proc_data) {
     esm_proc_data_to_proto(
@@ -365,8 +364,6 @@ void NasStateConverter::proto_to_esm_context(
     esm_context_t* state_esm_context) {
   OAILOG_DEBUG(LOG_NAS_ESM, "Reading esm context from proto");
   state_esm_context->n_active_ebrs = esm_context_proto.n_active_ebrs();
-  state_esm_context->n_active_pdns = esm_context_proto.n_active_pdns();
-  state_esm_context->n_pdns        = esm_context_proto.n_pdns();
   state_esm_context->is_emergency  = esm_context_proto.is_emergency();
   if (esm_context_proto.has_esm_proc_data()) {
     state_esm_context->esm_proc_data =
@@ -1516,6 +1513,29 @@ void NasStateConverter::proto_to_emm_security_context(
       emm_security_context_proto.next_hop_chaining_count();
 }
 
+void NasStateConverter::nw_detach_data_to_proto(
+    nw_detach_data_t* detach_timer_arg,
+    oai::NwDetachData* detach_timer_arg_proto) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  detach_timer_arg_proto->set_ue_id(detach_timer_arg->ue_id);
+  detach_timer_arg_proto->set_retransmission_count(
+      detach_timer_arg->retransmission_count);
+  detach_timer_arg_proto->set_detach_type(detach_timer_arg->detach_type);
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
+void NasStateConverter::proto_to_nw_detach_data(
+    const oai::NwDetachData& detach_timer_arg_proto,
+    nw_detach_data_t** detach_timer_arg) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  *detach_timer_arg = (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
+  (*detach_timer_arg)->ue_id = detach_timer_arg_proto.ue_id();
+  (*detach_timer_arg)->retransmission_count =
+      detach_timer_arg_proto.retransmission_count();
+  (*detach_timer_arg)->detach_type = detach_timer_arg_proto.detach_type();
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}
+
 void NasStateConverter::emm_context_to_proto(
     const emm_context_t* state_emm_context,
     oai::EmmContext* emm_context_proto) {
@@ -1583,6 +1603,11 @@ void NasStateConverter::emm_context_to_proto(
   ue_network_capability_to_proto(
       &state_emm_context->_ue_network_capability,
       emm_context_proto->mutable_ue_network_capability());
+  if (state_emm_context->t3422_arg) {
+    nw_detach_data_to_proto(
+        (nw_detach_data_t*) state_emm_context->t3422_arg,
+        emm_context_proto->mutable_nw_detach_data());
+  }
 }
 
 void NasStateConverter::proto_to_emm_context(
@@ -1658,6 +1683,14 @@ void NasStateConverter::proto_to_emm_context(
   proto_to_ue_network_capability(
       emm_context_proto.ue_network_capability(),
       &state_emm_context->_ue_network_capability);
+
+  state_emm_context->T3422.id  = NAS_TIMER_INACTIVE_ID;
+  state_emm_context->T3422.sec = T3422_DEFAULT_VALUE;
+  if (emm_context_proto.has_nw_detach_data()) {
+    proto_to_nw_detach_data(
+        emm_context_proto.nw_detach_data(),
+        (nw_detach_data_t**) &state_emm_context->t3422_arg);
+  }
 }
 
 }  // namespace lte

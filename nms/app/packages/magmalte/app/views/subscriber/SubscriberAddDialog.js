@@ -203,7 +203,11 @@ export function EditSubscriberButton(props: EditProps) {
         open={open}
         onClose={() => setOpen(false)}
       />
-      <Button component="button" variant="text" onClick={() => setOpen(true)}>
+      <Button
+        component="button"
+        data-testid={props.editTable}
+        variant="text"
+        onClick={() => setOpen(true)}>
         {'Edit'}
       </Button>
     </>
@@ -230,7 +234,7 @@ function AddSubscriberDialog(props: DialogProps) {
   const classes = useStyles();
   return (
     <Dialog
-      data-testid="editDialog"
+      data-testid="addSubscriberDialog"
       open={props.open}
       fullWidth={true}
       maxWidth="lg">
@@ -316,7 +320,7 @@ export function SubscriberEditDialog(props: DialogProps) {
   // this is done because TypedSelect expects items in this form to verify
   // if the passed in input is of expected type
   const subProfiles = Array.from(
-    new Set(Object.keys(lteCtx.state.cellular.epc?.sub_profiles || {})).add(
+    new Set(Object.keys(lteCtx.state.cellular?.epc?.sub_profiles || {})).add(
       'default',
     ),
   ).reduce(function (o, v) {
@@ -362,7 +366,7 @@ export function SubscriberEditDialog(props: DialogProps) {
         if (isValidHex(authOpc)) {
           subscriberState.lte.auth_opc = hexToBase64(authOpc);
         } else {
-          setError('auth_opc is not a valid hex ');
+          setError('auth_opc is not a valid hex');
           return;
         }
       }
@@ -371,7 +375,7 @@ export function SubscriberEditDialog(props: DialogProps) {
         if (isValidHex(authKey)) {
           subscriberState.lte.auth_key = hexToBase64(authKey);
         } else {
-          setError('auth_key is not a valid hex ');
+          setError('auth_key is not a valid hex');
           return;
         }
       }
@@ -384,7 +388,6 @@ export function SubscriberEditDialog(props: DialogProps) {
       await ctx.setState?.(subscriberState.id, {
         ...mutableSubscriber,
         static_ips: staticIps,
-        active_base_names: subscriberState.active_base_names,
       });
       enqueueSnackbar('Subscriber saved successfully', {
         variant: 'success',
@@ -455,7 +458,11 @@ export function SubscriberEditDialog(props: DialogProps) {
         <Button onClick={props.onClose} skin="regular">
           {'Close'}
         </Button>
-        <Button variant="contained" color="primary" onClick={onSave}>
+        <Button
+          data-testid={`${props.editProps?.editTable || ''}-saveButton`}
+          variant="contained"
+          color="primary"
+          onClick={onSave}>
           {'Save'}
         </Button>
       </DialogActions>
@@ -477,7 +484,7 @@ function AddSubscriberDetails(props: DialogProps) {
   const apns = Array.from(new Set(Object.keys(apnCtx.state || {})));
 
   const subProfiles = Array.from(
-    new Set(Object.keys(lteCtx.state.cellular.epc?.sub_profiles || {})).add(
+    new Set(Object.keys(lteCtx.state.cellular?.epc?.sub_profiles || {})).add(
       'default',
     ),
   );
@@ -512,6 +519,9 @@ function AddSubscriberDetails(props: DialogProps) {
             state: subscriber.state,
             sub_profile: subscriber.dataPlan,
           },
+        });
+        enqueueSnackbar('Subscriber(s) saved successfully', {
+          variant: 'success',
         });
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
@@ -554,6 +564,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'name',
               editComponent: props => (
                 <OutlinedInput
+                  data-testid="name"
                   variant="outlined"
                   placeholder="Enter Name"
                   type="text"
@@ -569,6 +580,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'imsi',
               editComponent: props => (
                 <OutlinedInput
+                  data-testid="IMSI"
                   type="text"
                   placeholder="Enter IMSI"
                   variant="outlined"
@@ -582,6 +594,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'authKey',
               editComponent: props => (
                 <PasswordInput
+                  data-testid="authKey"
                   placeholder="Key"
                   value={props.value}
                   onChange={v => props.onChange(v)}
@@ -593,6 +606,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'authOpc',
               editComponent: props => (
                 <PasswordInput
+                  data-testid="authOpc"
                   placeholder="OPC"
                   value={props.value}
                   onChange={v => props.onChange(v)}
@@ -606,6 +620,7 @@ function AddSubscriberDetails(props: DialogProps) {
                 return (
                   <SelectEditComponent
                     {...props}
+                    testId="service"
                     defaultValue={'ACTIVE'}
                     content={['ACTIVE', 'INACTIVE']}
                     onChange={value => props.onChange(value)}
@@ -619,6 +634,7 @@ function AddSubscriberDetails(props: DialogProps) {
               editComponent: props => (
                 <SelectEditComponent
                   {...props}
+                  testId="dataPlan"
                   defaultValue={'default'}
                   content={subProfiles}
                   onChange={value => props.onChange(value)}
@@ -631,6 +647,7 @@ function AddSubscriberDetails(props: DialogProps) {
               editComponent: props => (
                 <FormControl>
                   <Select
+                    data-testid="activeApns"
                     multiple
                     value={props.value ?? []}
                     onChange={({target}) => props.onChange(target.value)}
@@ -666,6 +683,7 @@ function AddSubscriberDetails(props: DialogProps) {
               editComponent: props => (
                 <FormControl>
                   <Select
+                    data-testid="activePolicies"
                     multiple
                     value={props.value ?? []}
                     onChange={({target}) => props.onChange(target.value)}
@@ -751,7 +769,9 @@ function AddSubscriberDetails(props: DialogProps) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}> Cancel </Button>
-        <Button onClick={saveSubscribers}> Save and Add Subscribers </Button>
+        <Button data-testid="saveSubscriber" onClick={saveSubscribers}>
+          {'Save and Add Subscribers'}
+        </Button>
       </DialogActions>
     </>
   );
@@ -787,6 +807,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
       <List>
         <AltFormField label={'Subscriber Name'}>
           <OutlinedInput
+            data-testid="name"
             className={classes.input}
             placeholder="Enter Name"
             fullWidth={true}
@@ -829,6 +850,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
         </AltFormField>
         <AltFormField label={'Auth Key'}>
           <PasswordInput
+            data-testid="authKey"
             className={classes.input}
             placeholder="Eg. 8baf473f2f8fd09487cccbd7097c6862"
             value={props.authKey}
@@ -838,6 +860,7 @@ function EditSubscriberDetails(props: EditSubscriberProps) {
         </AltFormField>
         <AltFormField label={'Auth OPC'}>
           <PasswordInput
+            data-testid="authOPC"
             value={props.authOpc}
             placeholder="Eg. 8e27b6af0e692e750f32667a3b14605d"
             className={classes.input}
