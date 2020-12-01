@@ -13,4 +13,4 @@ private_package: "deb http://packages.magma.etagecom.io stretch-stable main"
 source_name: "packages_magma_etagecom_io"
 apt_key: "http://packages.magma.etagecom.io/pubkey.gpg"
 
-magma_version: '1.3.1-1605904866-7933c828'
+magma_version: '1.3.2-1606853089-b9625061'
