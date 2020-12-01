@@ -11,8 +11,8 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
-import argparse
 import click
+import datetime
 import glob
 import gzip
 import logging
@@ -21,7 +21,6 @@ import os
 import shutil
 import subprocess
 import shlex
-
 
 logging.basicConfig(format='%(levelname)s: %(message)s' ,level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -33,9 +32,18 @@ class ComponentCores(object):
         self.component_data = cores_map[component]
         self.max_age = max_age
         self.dest_dir = dest_dir
-        self.cores = glob.glob(self.component_data["path"])
+        self.all_cores = glob.glob(self.component_data["path"])
+        self.cores = self.filter_files_by_ctime()
         self.app_binary = self.component_data["binary"]
         self.core_dirs = { os.path.dirname(x) for x in self.cores }
+
+    def filter_files_by_ctime(self):
+        cores = []
+        start_time = (datetime.datetime.now() - datetime.timedelta(days=self.max_age)).timestamp()
+        for corefile in self.all_cores:
+            if os.path.getctime(corefile) > start_time:
+                cores.append(corefile)
+        return cores
 
     def get_core_files(self):
         return self.cores
