@@ -907,14 +907,14 @@ void LocalEnforcer::handle_session_init_rule_updates(
   SessionStateUpdateCriteria uc;  // TODO remove unused UC
   process_rules_to_install(
       session_state, imsi, static_rule_installs, dynamic_rule_installs,
-      rules_to_activate, rules_to_deactivate, uc);
+      rules_to_activate, uc);
 
   // activate_flows_for_rules() should be called even if there is no rule
   // to activate, because pipelined activates a "drop all packet" rule
   // when no rule is provided as the parameter.
   const auto& config = session_state.get_config();
   propagate_rule_updates_to_pipelined(
-      imsi, config, rules_to_activate, rules_to_deactivate, true);
+      config, rules_to_activate, rules_to_deactivate, true);
 
   if (config.common_context.rat_type() == TGPP_LTE) {
     auto bearer_updates = session_state.get_dedicated_bearer_updates(
@@ -1233,9 +1233,8 @@ void LocalEnforcer::remove_rules_for_suspended_credit(
   // Remove pipelined rules
   RulesToProcess rules_to_remove;
   session->get_rules_per_credit_key(ckey, rules_to_remove);
-  auto imsi = session->get_config().common_context.sid().id();
   propagate_rule_updates_to_pipelined(
-      imsi, session->get_config(), RulesToProcess{}, rules_to_remove, false);
+      session->get_config(), RulesToProcess{}, rules_to_remove, false);
 }
 
 void LocalEnforcer::add_rules_for_multiple_unsuspended_credit(
@@ -1272,9 +1271,8 @@ void LocalEnforcer::add_rules_for_unsuspended_credit(
   //  add pipelined rules
   RulesToProcess rules_to_add;
   session->get_rules_per_credit_key(ckey, rules_to_add);
-  auto imsi = session->get_config().common_context.sid().id();
   propagate_rule_updates_to_pipelined(
-      imsi, session->get_config(), rules_to_add, RulesToProcess{}, false);
+      session->get_config(), rules_to_add, RulesToProcess{}, false);
 }
 
 void LocalEnforcer::update_charging_credits(
@@ -1392,10 +1390,10 @@ void LocalEnforcer::update_monitoring_credits_and_rules(
     process_rules_to_install(
         *session, imsi, to_vec(usage_monitor_resp.static_rules_to_install()),
         to_vec(usage_monitor_resp.dynamic_rules_to_install()),
-        rules_to_activate, rules_to_deactivate, uc);
+        rules_to_activate, uc);
 
     propagate_rule_updates_to_pipelined(
-        imsi, config, rules_to_activate, rules_to_deactivate, false);
+        config, rules_to_activate, rules_to_deactivate, false);
 
     if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
       actions.sessions_to_terminate.insert(ImsiAndSessionID(imsi, session_id));
@@ -1539,7 +1537,7 @@ void LocalEnforcer::handle_set_session_rules(
 
       // Propagate these rule changes to PipelineD and MME (if 4G)
       propagate_rule_updates_to_pipelined(
-          imsi, config, rules_to_activate, rules_to_deactivate, false);
+          config, rules_to_activate, rules_to_deactivate, false);
       if (config.common_context.rat_type() == TGPP_LTE) {
         const auto update = session->get_dedicated_bearer_updates(
             rules_to_activate, rules_to_deactivate, uc);
@@ -1627,7 +1625,7 @@ void LocalEnforcer::init_policy_reauth_for_session(
   RulesToProcess rules_to_activate;
   RulesToProcess rules_to_deactivate;
 
-  MLOG(MDEBUG) << "Processing policy reauth for subscriber " << request.imsi();
+  MLOG(MDEBUG) << "Processing policy ReAuth for subscriber " << request.imsi();
   if (revalidation_required(request.event_triggers())) {
     schedule_revalidation(imsi, *session, request.revalidation_time(), uc);
   }
@@ -1637,12 +1635,10 @@ void LocalEnforcer::init_policy_reauth_for_session(
 
   process_rules_to_install(
       *session, imsi, to_vec(request.rules_to_install()),
-      to_vec(request.dynamic_rules_to_install()), rules_to_activate,
-      rules_to_deactivate, uc);
+      to_vec(request.dynamic_rules_to_install()), rules_to_activate, uc);
 
   propagate_rule_updates_to_pipelined(
-      imsi, session->get_config(), rules_to_activate, rules_to_deactivate,
-      false);
+      session->get_config(), rules_to_activate, rules_to_deactivate, false);
 
   if (terminate_on_wallet_exhaust() && is_wallet_exhausted(*session)) {
     start_session_termination(imsi, session, true, uc);
@@ -1654,11 +1650,11 @@ void LocalEnforcer::init_policy_reauth_for_session(
 }
 
 void LocalEnforcer::propagate_rule_updates_to_pipelined(
-    const std::string& imsi, const SessionConfig& config,
-    const RulesToProcess& rules_to_activate,
+    const SessionConfig& config, const RulesToProcess& rules_to_activate,
     const RulesToProcess& rules_to_deactivate, bool always_send_activate) {
-  const auto ip_addr   = config.common_context.ue_ipv4();
-  const auto ipv6_addr = config.common_context.ue_ipv6();
+  const std::string imsi = config.common_context.sid().id();
+  const auto ip_addr     = config.common_context.ue_ipv4();
+  const auto ipv6_addr   = config.common_context.ue_ipv6();
   // deactivate_flows_for_rules() should not be called when there is no rule
   // to deactivate, because pipelined deactivates all rules
   // when no rule is provided as the parameter
@@ -1742,59 +1738,59 @@ void LocalEnforcer::process_rules_to_install(
     SessionState& session, const std::string& imsi,
     std::vector<StaticRuleInstall> static_rule_installs,
     std::vector<DynamicRuleInstall> dynamic_rule_installs,
-    RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
-    SessionStateUpdateCriteria& uc) {
+    RulesToProcess& rules_to_activate, SessionStateUpdateCriteria& uc) {
   std::time_t current_time     = time(nullptr);
-  std::string ip_addr          = session.get_config().common_context.ue_ipv4();
-  std::string ipv6_addr        = session.get_config().common_context.ue_ipv6();
   const std::string session_id = session.get_session_id();
   for (const auto& rule_install : static_rule_installs) {
-    const auto& id = rule_install.rule_id();
-    if (session.is_static_rule_installed(id)) {
+    const auto& rule_id = rule_install.rule_id();
+    // TODO we may not want to ignore duplicate installs as activation time /
+    // deactivation times could change
+    if (session.is_static_rule_installed(rule_id)) {
       // Session proxy may ask for duplicate rule installs.
       // Ignore them here.
       continue;
     }
     RuleLifetime lifetime(rule_install);
-    if (lifetime.activation_time > current_time) {
-      session.schedule_static_rule(id, lifetime, uc);
+    if (lifetime.before_lifetime(current_time)) {
+      session.schedule_static_rule(rule_id, lifetime, uc);
       schedule_static_rule_activation(
-          imsi, session_id, id, lifetime.activation_time);
+          imsi, session_id, rule_id, lifetime.activation_time);
+    } else if (lifetime.is_within_lifetime(current_time)) {
+      session.activate_static_rule(rule_id, lifetime, uc);
+      rules_to_activate.static_rules.push_back(rule_id);
     } else {
-      session.activate_static_rule(id, lifetime, uc);
-      rules_to_activate.static_rules.push_back(id);
+      MLOG(MWARNING) << session_id << " not installing rule " << rule_id
+                     << " since it is outside of the rule's lifetime";
     }
-
+    // TODO we may only want to schedule deactivation at the time of rule
+    // installation. If we are scheduling a rule activation, we may want to wait
+    // to schedule the deactivation until afterwards.
     if (lifetime.deactivation_time > current_time) {
       schedule_static_rule_deactivation(
-          imsi, session_id, id, lifetime.deactivation_time);
-    } else if (lifetime.deactivation_time > 0) {
-      // 0: never scheduled to deactivate
-      if (!session.deactivate_static_rule(id, uc)) {
-        MLOG(MWARNING) << "Could not find rule " << id << "for " << session_id
-                       << " during static rule removal";
-      }
-      rules_to_deactivate.static_rules.push_back(id);
+          imsi, session_id, rule_id, lifetime.deactivation_time);
     }
   }
 
   for (auto& rule_install : dynamic_rule_installs) {
     auto rule_id = rule_install.policy_rule().id();
     RuleLifetime lifetime(rule_install);
-    if (lifetime.activation_time > current_time) {
+    if (lifetime.before_lifetime(current_time)) {
       session.schedule_dynamic_rule(rule_install.policy_rule(), lifetime, uc);
       schedule_dynamic_rule_activation(
           imsi, session_id, rule_id, lifetime.deactivation_time);
-    } else {
+    } else if (lifetime.is_within_lifetime(current_time)) {
       session.insert_dynamic_rule(rule_install.policy_rule(), lifetime, uc);
       rules_to_activate.dynamic_rules.push_back(rule_install.policy_rule());
+    } else {
+      MLOG(MWARNING) << session_id << " not installing rule " << rule_id
+                     << " since it is outside of the rule's lifetime";
     }
+    // TODO we may only want to schedule deactivation at the time of rule
+    // installation. If we are scheduling a rule activation, we may want to wait
+    // to schedule the deactivation until afterwards.
     if (lifetime.deactivation_time > current_time) {
       schedule_dynamic_rule_deactivation(
           imsi, session_id, rule_id, lifetime.deactivation_time);
-    } else if (lifetime.deactivation_time > 0) {
-      session.remove_dynamic_rule(rule_id, NULL, uc);
-      rules_to_deactivate.dynamic_rules.push_back(rule_install.policy_rule());
     }
   }
 }

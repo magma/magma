@@ -374,20 +374,18 @@ class LocalEnforcer {
 
   /**
    * Process protobuf StaticRuleInstalls and DynamicRuleInstalls to fill in
-   * rules_to_activate and rules_to_deactivate. Modifies session state.
+   * rules_to_activate. Modifies session state.
    * TODO separate out logic that modifies state vs logic that does not.
    */
   void process_rules_to_install(
       SessionState& session, const std::string& imsi,
       std::vector<StaticRuleInstall> static_rule_installs,
       std::vector<DynamicRuleInstall> dynamic_rule_installs,
-      RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
-      SessionStateUpdateCriteria& uc);
+      RulesToProcess& rules_to_activate, SessionStateUpdateCriteria& uc);
 
   /**
    * propagate_rule_updates_to_pipelined calls the PipelineD RPC calls to
    * install/uninstall flows
-   * @param imsi
    * @param config
    * @param rules_to_activate
    * @param rules_to_deactivate
@@ -395,8 +393,7 @@ class LocalEnforcer {
    * even if rules_to_activate is empty
    */
   void propagate_rule_updates_to_pipelined(
-      const std::string& imsi, const SessionConfig& config,
-      const RulesToProcess& rules_to_activate,
+      const SessionConfig& config, const RulesToProcess& rules_to_activate,
       const RulesToProcess& rules_to_deactivate, bool always_send_activate);
 
   /**

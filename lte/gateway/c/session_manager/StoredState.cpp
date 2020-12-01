@@ -519,4 +519,19 @@ RuleLifetime::RuleLifetime(const DynamicRuleInstall& rule_install) {
       TimeUtil::TimestampToSeconds(rule_install.deactivation_time()));
 }
 
+bool RuleLifetime::is_within_lifetime(std::time_t time) {
+  auto past_activation_time = activation_time <= time;
+  auto before_deactivation_time =
+      (deactivation_time == 0) || (time < deactivation_time);
+  return past_activation_time && before_deactivation_time;
+}
+
+bool RuleLifetime::exceeded_lifetime(std::time_t time) {
+  return deactivation_time != 0 && deactivation_time < time;
+}
+
+bool RuleLifetime::before_lifetime(std::time_t time) {
+  return time < activation_time;
+}
+
 };  // namespace magma
