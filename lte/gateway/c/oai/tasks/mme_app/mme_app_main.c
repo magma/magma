@@ -152,9 +152,16 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           ue_context_p->path_switch_req = false;
         }
 
-        if (ue_context_p->ue_context_rel_cause == S1AP_NAS_MME_OFFLOADING) {
+        if (ue_context_p->ue_context_rel_cause ==
+            S1AP_NAS_MME_PENDING_OFFLOADING) {
           OAILOG_INFO(
-              LOG_MME_APP, "UE CONTEXT REL CAUSE is S1AP_NAS_MME_OFFLOADING");
+              LOG_MME_APP,
+              "UE CONTEXT REL CAUSE is S1AP_NAS_MME_PENDING_OFFLOADING");
+          // This will be again overwritten when a release request is received.
+          // It is safe to set it any value other than
+          // S1AP_NAS_MME_PENDING_OFFLOADING to allow a UE be able to reattach
+          // to this AGW instance.
+          ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
           mme_app_handle_ue_offload(ue_context_p);
         }
       }

@@ -99,7 +99,9 @@ bool process_ue_context(
   } else if (
       (ue_context_p->ecm_state == ECM_IDLE) &&
       (ue_context_p->mm_state == UE_REGISTERED)) {
-    ue_context_p->ue_context_rel_cause = S1AP_NAS_MME_OFFLOADING;
+    // Upon connection re-establishment, this release cause value will
+    // be checked and cleared by MME APP to send offload request.
+    ue_context_p->ue_context_rel_cause = S1AP_NAS_MME_PENDING_OFFLOADING;
 
     char imsi[IMSI_BCD_DIGITS_MAX + 1] = {0};
     IMSI64_TO_STRING(

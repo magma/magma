@@ -190,7 +190,8 @@ enum s1cause {
   S1AP_INVALID_MME_UE_S1AP_ID,
   S1AP_CSFB_TRIGGERED,
   S1AP_NAS_UE_NOT_AVAILABLE_FOR_PS,
-  S1AP_NAS_MME_OFFLOADING
+  S1AP_NAS_MME_OFFLOADING,
+  S1AP_NAS_MME_PENDING_OFFLOADING
 };
 typedef struct itti_s1ap_ue_context_release_command_s {
   mme_ue_s1ap_id_t mme_ue_s1ap_id;
