@@ -146,9 +146,6 @@ int sctpd_init(sctp_init_t* init) {
   req.set_port(init->port);
   req.set_ppid(init->ppid);
 
-  req.set_ngap_port(init->ngap_port);
-  req.set_ngap_ppid(init->ngap_ppid);
-
   req.set_force_restart(_client->should_force_restart);
 
   auto rc      = _client->init(req, &res);

@@ -78,8 +78,8 @@ static int ngap_send_init_sctp(void) {
   MessageDef* message_p = NULL;
 
   message_p = itti_alloc_new_message(TASK_NGAP, SCTP_INIT_MSG);
-  message_p->ittiMsg.sctpInit.ngap_port    = NGAP_PORT_NUMBER;
-  message_p->ittiMsg.sctpInit.ngap_ppid    = NGAP_SCTP_PPID;
+  message_p->ittiMsg.sctpInit.port    = NGAP_PORT_NUMBER;
+  message_p->ittiMsg.sctpInit.ppid    = NGAP_SCTP_PPID;
   message_p->ittiMsg.sctpInit.ipv4         = 1;
   message_p->ittiMsg.sctpInit.ipv6         = 0;
   message_p->ittiMsg.sctpInit.nb_ipv4_addr = 1;
