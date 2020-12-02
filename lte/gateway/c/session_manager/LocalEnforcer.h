@@ -435,20 +435,20 @@ class LocalEnforcer {
       const std::string& session_id, SessionUpdate& session_update);
 
   void schedule_static_rule_activation(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const StaticRuleInstall& static_rule);
+      const std::string& imsi, const std::string& session_id,
+      const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_activation(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const DynamicRuleInstall& dynamic_rule);
+      const std::string& imsi, const std::string& session_id,
+      const DynamicRuleInstall& dynamic_rule);
 
   void schedule_static_rule_deactivation(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, const StaticRuleInstall& static_rule);
+      const std::string& imsi, const std::string& session_id,
+      const StaticRuleInstall& static_rule);
 
   void schedule_dynamic_rule_deactivation(
-      const std::string& imsi, const std::string& ip_addr,
-      const std::string& ipv6_addr, DynamicRuleInstall& dynamic_rule);
+      const std::string& imsi, const std::string& session_id,
+      DynamicRuleInstall& dynamic_rule);
 
   /**
    * Get the monitoring credits from PolicyReAuthRequest (RAR) message
