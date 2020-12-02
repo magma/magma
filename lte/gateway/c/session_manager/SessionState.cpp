@@ -1281,15 +1281,15 @@ void SessionState::handle_update_failure(
 bool SessionState::receive_charging_credit(
     const CreditUpdateResponse& update,
     SessionStateUpdateCriteria& session_uc) {
-  const uint32_t key = update.charging_key();
+  auto key = CreditKey(update);
 
-  auto it = credit_map_.find(CreditKey(update));
+  auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
     // new credit
     return init_charging_credit(update, session_uc);
   }
   auto& grant          = it->second;
-  auto credit_uc       = get_credit_uc(CreditKey(update), session_uc);
+  auto credit_uc       = get_credit_uc(key, session_uc);
   auto credit_validity = ChargingGrant::is_valid_credit_response(update);
   if (credit_validity == INVALID_CREDIT) {
     // update unsuccessful, reset credit and return
@@ -1304,8 +1304,7 @@ bool SessionState::receive_charging_credit(
     // but clear the reported credit
     grant->credit.mark_failure(update.result_code(), credit_uc);
   }
-  MLOG(MINFO) << "Received a credit RG:" << key << " for " << session_id_;
-  grant->receive_charging_grant(update.credit(), credit_uc);
+  grant->receive_charging_grant(update, credit_uc);
 
   if (grant->reauth_state == REAUTH_PROCESSING) {
     grant->set_reauth_state(REAUTH_NOT_NEEDED, *credit_uc);
@@ -1331,7 +1330,7 @@ bool SessionState::init_charging_credit(
   }
   ChargingGrant charging_grant;
   charging_grant.credit = SessionCredit(SERVICE_ENABLED, update.limit_type());
-  charging_grant.receive_charging_grant(update.credit());
+  charging_grant.receive_charging_grant(update);
   session_uc.charging_credit_to_install[CreditKey(update)] =
       charging_grant.marshal();
   credit_map_[CreditKey(update)] =

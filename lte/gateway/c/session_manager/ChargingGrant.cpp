@@ -98,8 +98,8 @@ CreditValidity ChargingGrant::is_valid_credit_response(
 }
 
 void ChargingGrant::receive_charging_grant(
-    const magma::lte::ChargingCredit& p_credit,
-    SessionCreditUpdateCriteria* uc) {
+    const CreditUpdateResponse& update, SessionCreditUpdateCriteria* uc) {
+  auto p_credit = update.credit();
   credit.receive_credit(p_credit.granted_units(), uc);
 
   // Final Action
@@ -120,7 +120,6 @@ void ChargingGrant::receive_charging_grant(
       default:  // do nothing
         break;
     }
-    log_final_action_info();
   }
 
   // Expiry Time
@@ -130,6 +129,7 @@ void ChargingGrant::receive_charging_grant(
   } else {
     expiry_time = std::time(nullptr) + delta_time_sec;
   }
+  log_received_grant(update);
 
   // Update the UpdateCriteria if not NULL
   if (uc != NULL) {
@@ -189,16 +189,17 @@ bool ChargingGrant::get_update_type(
     *update_type = CreditUsage::REAUTH_REQUIRED;
     return true;
   }
+  if (time(nullptr) >= expiry_time) {
+    *update_type = CreditUsage::VALIDITY_TIMER_EXPIRED;
+    return true;
+  }
   if (is_final_grant) {
     // Don't request updates if this is the final grant
     return false;
   }
+
   if (credit.is_quota_exhausted(SessionCredit::USAGE_REPORTING_THRESHOLD)) {
     *update_type = CreditUsage::QUOTA_EXHAUSTED;
-    return true;
-  }
-  if (time(NULL) >= expiry_time) {
-    *update_type = CreditUsage::VALIDITY_TIMER_EXPIRED;
     return true;
   }
   return false;
@@ -316,29 +317,33 @@ void ChargingGrant::reset_reporting_grant(
   }
 }
 
-void ChargingGrant::log_final_action_info() const {
-  std::string final_action = "";
+void ChargingGrant::log_received_grant(const CreditUpdateResponse& update) {
+  std::ostringstream log;
+  log << update.session_id() << " received a credit " << CreditKey(update);
   if (is_final_grant) {
-    final_action += "final action: ";
-    final_action += final_action_to_str(final_action_info.final_action);
+    log << " with final action "
+        << final_action_to_str(final_action_info.final_action);
     switch (final_action_info.final_action) {
       case ChargingCredit_FinalAction_REDIRECT:
-        final_action += ", redirect_server: ";
-        final_action +=
-            final_action_info.redirect_server.redirect_server_address();
+        log << ", redirect_server: "
+            << final_action_info.redirect_server.redirect_server_address();
         break;
       case ChargingCredit_FinalAction_RESTRICT_ACCESS:
-        final_action += ", restrict_rules: { ";
+        log << ", restrict_rules: { ";
         for (auto rule : final_action_info.restrict_rules) {
-          final_action += rule + " ";
+          log << (rule + " ");
         }
-        final_action += "}";
+        log << "}";
         break;
       default:  // do nothing;
         break;
     }
   }
-  MLOG(MINFO) << "This is a final credit, with " << final_action;
+  if (update.credit().validity_time() != 0) {
+    log << " with expiry timer in " << update.credit().validity_time()
+        << " seconds";
+  }
+  MLOG(MINFO) << log.str();
 }
 
 void ChargingGrant::set_reporting(bool reporting) {
