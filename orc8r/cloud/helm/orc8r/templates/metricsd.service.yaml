@@ -30,5 +30,5 @@ spec:
       targetPort: 9084
     - name: http
       port: 8080
-      targetPort: 10984
+      targetPort: 10084
 {{- end -}}

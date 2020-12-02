@@ -88,6 +88,21 @@ void create_rule_record(
   rule_record->set_rule_id(rule_id);
   rule_record->set_bytes_rx(bytes_rx);
   rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_dropped_rx(0);
+  rule_record->set_dropped_tx(0);
+  rule_record->set_ue_ipv4(ip);
+}
+
+void create_rule_record(
+    const std::string& imsi, const std::string& ip, const std::string& rule_id,
+    uint64_t bytes_rx, uint64_t bytes_tx, uint64_t dropped_rx,
+    uint64_t dropped_tx, RuleRecord* rule_record) {
+  rule_record->set_sid(imsi);
+  rule_record->set_rule_id(rule_id);
+  rule_record->set_bytes_rx(bytes_rx);
+  rule_record->set_bytes_tx(bytes_tx);
+  rule_record->set_dropped_rx(dropped_rx);
+  rule_record->set_dropped_tx(dropped_tx);
   rule_record->set_ue_ipv4(ip);
 }
 
@@ -153,6 +168,32 @@ void create_credit_update_response(
   response->set_sid(imsi);
   response->set_session_id(session_id);
   response->set_charging_key(charging_key);
+}
+
+void create_credit_update_response_with_error(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, bool is_final, DiameterResultCode resultCode,
+    CreditUpdateResponse* response) {
+  response->set_success(false);
+  create_charging_credit(0, is_final, response->mutable_credit());
+  response->set_sid(imsi);
+  response->set_session_id(session_id);
+  response->set_charging_key(charging_key);
+  response->set_result_code(resultCode);
+}
+
+void create_credit_update_response_with_error(
+    const std::string& imsi, const std::string session_id,
+    uint32_t charging_key, bool is_final, DiameterResultCode resultCode,
+    ChargingCredit_FinalAction action, std::string redirect_server,
+    std::string restrict_rule, CreditUpdateResponse* response) {
+  response->set_success(false);
+  create_charging_credit(
+      0, action, redirect_server, restrict_rule, response->mutable_credit());
+  response->set_sid(imsi);
+  response->set_session_id(session_id);
+  response->set_charging_key(charging_key);
+  response->set_result_code(resultCode);
 }
 
 void create_charging_credit(

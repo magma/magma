@@ -99,7 +99,8 @@ void itti_free_msg_content(MessageDef* const message_p) {
       break;
 
     case S11_CREATE_SESSION_REQUEST: {
-      // DO nothing
+      clear_protocol_configuration_options(
+          &message_p->ittiMsg.s11_create_session_request.pco);
     } break;
 
     case S11_CREATE_SESSION_RESPONSE: {

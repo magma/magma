@@ -525,6 +525,7 @@ void mme_app_handle_conn_est_cnf(
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
   } else {
+    ue_context_p->time_ics_rsp_timer_started = time(NULL);
     OAILOG_INFO_UE(
         LOG_MME_APP, emm_context._imsi64,
         "MME APP : Sent Initial context Setup Request and Started guard timer "
@@ -1172,11 +1173,35 @@ int mme_app_handle_create_sess_resp(
   emm_cn_cs_response_success_t nas_pdn_cs_respose_success = {0};
   nas_pdn_cs_respose_success.pdn_cid                      = pdn_cx_id;
   nas_pdn_cs_respose_success.pti = transaction_identifier;  // NAS internal ref
-  nas_pdn_cs_respose_success.pdn_addr =
-      paa_to_bstring(&create_sess_resp_pP->paa);
+
+  /* In Create session response IPv6 prefix + interface idntifier is sent.
+   * Copy only the interface identifier to be sent in NAS ESM message
+   */
+  if (create_sess_resp_pP->paa.pdn_type == IPv4) {
+    nas_pdn_cs_respose_success.pdn_addr =
+        paa_to_bstring(&create_sess_resp_pP->paa);
+  } else {
+    paa_t paa_temp;
+    paa_temp.pdn_type           = create_sess_resp_pP->paa.pdn_type;
+    paa_temp.ipv6_prefix_length = create_sess_resp_pP->paa.ipv6_prefix_length;
+    memcpy(
+        &paa_temp.ipv6_address,
+        &create_sess_resp_pP->paa.ipv6_address.s6_addr[IPV6_INTERFACE_ID_LEN],
+        IPV6_INTERFACE_ID_LEN);
+    if (create_sess_resp_pP->paa.pdn_type == IPv4_AND_v6) {
+      paa_temp.ipv4_address = create_sess_resp_pP->paa.ipv4_address;
+    }
+    nas_pdn_cs_respose_success.pdn_addr = paa_to_bstring(&paa_temp);
+  }
+  if (!nas_pdn_cs_respose_success.pdn_addr) {
+    OAILOG_ERROR_UE(
+        LOG_MME_APP, ue_context_p->emm_context._imsi64,
+        "Error in converting PAA to bstring\n");
+    OAILOG_FUNC_RETURN(LOG_MME_APP, RETURNerror);
+  }
   nas_pdn_cs_respose_success.pdn_type = create_sess_resp_pP->paa.pdn_type;
 
-  // ASSUME NO HO now, so assume 1 bearer only and is default bearer
+  // ASSUME NO HO now
 
   nas_pdn_cs_respose_success.ue_id      = ue_context_p->mme_ue_s1ap_id;
   nas_pdn_cs_respose_success.ebi        = bearer_id;
@@ -1444,7 +1469,7 @@ static int mme_app_send_modify_bearer_request_for_active_pdns(
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint8_t bc_to_be_removed_idx = 0;
   // Send MBR per PDN
-  for (uint8_t pid = 0; pid < ue_context_p->emm_context.esm_ctx.n_pdns; pid++) {
+  for (uint8_t pid = 0; pid < ue_context_p->nb_active_pdn_contexts; pid++) {
     if (!ue_context_p->pdn_contexts[pid]) {
       continue;
     }
@@ -1533,6 +1558,7 @@ void mme_app_handle_initial_context_setup_rsp(
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
+    ue_context_p->time_ics_rsp_timer_started = 0;
   }
 
   if (mme_app_send_modify_bearer_request_for_active_pdns(
@@ -1587,8 +1613,7 @@ void mme_app_handle_release_access_bearers_resp(
   mme_app_itti_ue_context_release(
       ue_context_p, ue_context_p->ue_context_rel_cause);
   if (ue_context_p->ue_context_rel_cause == S1AP_SCTP_SHUTDOWN_OR_RESET ||
-      ue_context_p->ue_context_rel_cause ==
-          S1AP_INITIAL_CONTEXT_SETUP_TMR_EXPRD) {
+      ue_context_p->ue_context_rel_cause == S1AP_INITIAL_CONTEXT_SETUP_FAILED) {
     // Just cleanup the MME APP state associated with s1.
     mme_ue_context_update_ue_sig_connection_state(
         &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
@@ -1849,6 +1874,7 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
   }
   *imsi64 = ue_context_p->emm_context._imsi64;
   ue_context_p->initial_context_setup_rsp_timer.id = MME_APP_TIMER_INACTIVE_ID;
+  ue_context_p->time_ics_rsp_timer_started         = 0;
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is
    * active. If so then release the S1AP context and move the UE back to idle
@@ -1857,11 +1883,11 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
    * context.
    */
   ue_context_p->ue_context_rel_cause = S1AP_INITIAL_CONTEXT_SETUP_FAILED;
-  mme_app_desc_t* mme_app_desc_p = get_mme_nas_state(false);
+  mme_app_desc_t* mme_app_desc_p     = get_mme_nas_state(false);
   // Remove enb_s1ap_id_key from the hashtable
   hashtable_uint64_ts_remove(
-    mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
-    (const hash_key_t) ue_context_p->enb_s1ap_id_key);
+      mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+      (const hash_key_t) ue_context_p->enb_s1ap_id_key);
 
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
     // Initiate Implicit Detach for the UE
@@ -1923,6 +1949,7 @@ void mme_app_handle_initial_context_setup_failure(
     }
     ue_context_p->initial_context_setup_rsp_timer.id =
         MME_APP_TIMER_INACTIVE_ID;
+    ue_context_p->time_implicit_detach_timer_started = 0;
   }
   /* *********Abort the ongoing procedure*********
    * Check if UE is registered already that implies service request procedure is
@@ -2260,7 +2287,7 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
         "Reached max re-transmission of Paging Ind for "
         "ue_id " MME_UE_S1AP_ID_FMT "\n",
         mme_ue_s1ap_id);
-    ue_context_p->paging_retx_count = 0;
+    ue_context_p->paging_retx_count                  = 0;
     ue_context_p->time_paging_response_timer_started = 0;
     /* If there are any pending dedicated bearer requests to be sent to UE
      * send create_dedicated_bearer_reject to SPGW as UE did not respond
@@ -3095,7 +3122,7 @@ void mme_app_handle_nw_init_bearer_deactv_req(
    *  Send Detach Request to UE
    */
   if ((nw_init_bearer_deactv_req_p->delete_default_bearer) &&
-      (ue_context_p->emm_context.esm_ctx.n_pdns == 1)) {
+      (ue_context_p->nb_active_pdn_contexts == 1)) {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Send MME initiated Detach Req to NAS module for EBI %u"

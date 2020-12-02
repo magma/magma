@@ -66,6 +66,7 @@ class IPV6SolicitationController(MagmaController):
             self.APP_NAME)
         self.config = self._get_config(kwargs['config'])
         self._prefix_mapper = kwargs['interface_to_prefix_mapper']
+        self._tunnel_id_mapper = kwargs['tunnel_id_mapper']
         self._datapath = None
         self.logger.info("IPv6 Router using ll_addr %s, and src ip %s",
                          self.config.ll_addr, self.config.ipv6_src)
@@ -284,14 +285,17 @@ class IPV6SolicitationController(MagmaController):
         ipv6_header = pkt.get_protocols(ipv6.ipv6)[0]
         icmpv6_header = pkt.get_protocols(icmpv6.icmpv6)[0]
 
+        tun_id_dst = self._tunnel_id_mapper.get_tunnel(tun_id)
+
         if icmpv6_header.type_ == icmpv6.ND_ROUTER_SOLICIT:
             self.logger.debug("Received router solicitation MSG")
-            self._send_router_advertisement(ipv6_header.src, tun_id,
+            self._send_router_advertisement(ipv6_header.src, tun_id_dst,
                                             tun_ipv4_src, in_port)
         elif icmpv6_header.type_ == icmpv6.ND_NEIGHBOR_SOLICIT:
             self.logger.debug("Received neighbor solicitation MSG")
-            self._send_neighbor_advertisement(icmpv6_header.data.dst, tun_id,
-                                              tun_ipv4_src, in_port, direction)
+            self._send_neighbor_advertisement(icmpv6_header.data.dst,
+                                              tun_id_dst, tun_ipv4_src,
+                                              in_port, direction)
 
     def handle_restart(self):
         pass

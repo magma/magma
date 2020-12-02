@@ -16,7 +16,7 @@
   become: yes
   roles:
     - role: xwfmvars
-      tags: 
+      tags:
          - run_pipelined
          - fbstatsd
     - role: pkgrepo
@@ -48,4 +48,11 @@
       tags:
          - no_ci
          - fbstatsd
-
+    - role: system_updates
+      tags:
+         - no_ci
+    - role: deprovision
+      when: xwfm_deprovision | default(False)
+    - role: cleanup
+      tags:
+         - no_ci

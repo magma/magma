@@ -436,7 +436,6 @@ jobs:
       docker_layer_caching: true
     environment:
       - MAGMA_ROOT=/home/circleci/project
-      - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
       - build/determinator:
@@ -445,11 +444,11 @@ jobs:
       - run:
           name: "Set Python Version"
           command: pyenv global 3.7.0
-      - run: pip3 install PyYAML
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
-            python3 build.py -t
+            python3 build.py -t -l
+          no_output_timeout: 15m
       - magma_slack_notify
 
   insync-checkin:
@@ -458,7 +457,6 @@ jobs:
       #docker_layer_caching: true
     environment:
       - MAGMA_ROOT=/home/circleci/project
-      - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
       - build/determinator:
@@ -468,7 +466,6 @@ jobs:
       - run:
           name: "Set Python Version"
           command: pyenv global 3.7.0
-      - run: pip3 install PyYAML
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
@@ -486,7 +483,6 @@ jobs:
     environment:
       - MODULE_DIR=/home/circleci/project
       - MAGMA_ROOT=/home/circleci/project
-      - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
     steps:
       - checkout
       - build/determinator:
@@ -496,7 +492,6 @@ jobs:
       - run:
           name: "Set Python Version"
           command: pyenv global 3.7.0
-      - run: pip3 install PyYAML
       - run:
           command: |
             cd ${MAGMA_ROOT}/orc8r/cloud/docker
@@ -742,7 +737,6 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_MODULES_FILE=/home/circleci/project/circleci/modules.yml
       - MAGMA_ROOT=/home/circleci/project
     steps:
       - checkout
@@ -1080,10 +1074,10 @@ workflows:
             - nms-yarn-test
             - nms-e2e-test
 
-  docusaurus:
-   jobs:
-    - docusaurus_build_and_deploy:
-        <<: *only_master
+#  docusaurus:
+#   jobs:
+#    - docusaurus_build_and_deploy:
+#        <<: *only_master
 
   fossa:
     jobs:

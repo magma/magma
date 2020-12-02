@@ -19,6 +19,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
 	"magma/orc8r/cloud/go/pluginimpl"
+	"magma/orc8r/cloud/go/serdes"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/configurator/mconfig"
 	"magma/orc8r/cloud/go/services/orchestrator"
@@ -322,11 +323,11 @@ func TestBaseOrchestratorMconfigBuilder_Build(t *testing.T) {
 }
 
 func buildBaseOrchestrator(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
+	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graphProto, err := graph.ToStorageProto()
+	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
 	}

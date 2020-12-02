@@ -161,6 +161,10 @@ add_library(SESSION_MANAGER
     SessionStateEnforcer.cpp
     AmfServiceClient.h
     AmfServiceClient.cpp
+    Utilities.cpp
+    Utilities.h
+    OperationalStatesHandler.cpp
+    OperationalStatesHandler.h
     ${PROTO_SRCS}
     ${PROTO_HDRS})
 

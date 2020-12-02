@@ -6,6 +6,8 @@ package models
 // Editing this file might prove futile when you re-run the swagger generate command
 
 import (
+	"encoding/json"
+
 	strfmt "github.com/go-openapi/strfmt"
 
 	"github.com/go-openapi/errors"
@@ -32,6 +34,25 @@ type GatewayEpcConfigs struct {
 	// Max Length: 49
 	// Min Length: 5
 	IPBlock string `json:"ip_block"`
+
+	// IP address for IPv4 P-CSCF on the AGW
+	// Format: ipv4
+	IPV4pCscfAddr strfmt.IPv4 `json:"ipv4_p_cscf_addr,omitempty"`
+
+	// ipv6 block
+	IPV6Block string `json:"ipv6_block,omitempty"`
+
+	// IPv6 DNS Server address on the AGW
+	// Format: ipv6
+	IPV6DNSAddr strfmt.IPv6 `json:"ipv6_dns_addr,omitempty"`
+
+	// IP address for IPv6 P-CSCF on the AGW
+	// Format: ipv6
+	IPV6pCscfAddr strfmt.IPv6 `json:"ipv6_p_cscf_addr,omitempty"`
+
+	// ipv6 prefix allocation mode
+	// Enum: [RANDOM HASH]
+	IPV6PrefixAllocationMode string `json:"ipv6_prefix_allocation_mode,omitempty"`
 
 	// nat enabled
 	// Required: true
@@ -66,6 +87,22 @@ func (m *GatewayEpcConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateIPBlock(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPV4pCscfAddr(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPV6DNSAddr(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPV6pCscfAddr(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validateIPV6PrefixAllocationMode(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -136,6 +173,88 @@ func (m *GatewayEpcConfigs) validateIPBlock(formats strfmt.Registry) error {
 	}
 
 	if err := validate.MaxLength("ip_block", "body", string(m.IPBlock), 49); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateIPV4pCscfAddr(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPV4pCscfAddr) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("ipv4_p_cscf_addr", "body", "ipv4", m.IPV4pCscfAddr.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateIPV6DNSAddr(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPV6DNSAddr) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("ipv6_dns_addr", "body", "ipv6", m.IPV6DNSAddr.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateIPV6pCscfAddr(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPV6pCscfAddr) { // not required
+		return nil
+	}
+
+	if err := validate.FormatOf("ipv6_p_cscf_addr", "body", "ipv6", m.IPV6pCscfAddr.String(), formats); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+var gatewayEpcConfigsTypeIPV6PrefixAllocationModePropEnum []interface{}
+
+func init() {
+	var res []string
+	if err := json.Unmarshal([]byte(`["RANDOM","HASH"]`), &res); err != nil {
+		panic(err)
+	}
+	for _, v := range res {
+		gatewayEpcConfigsTypeIPV6PrefixAllocationModePropEnum = append(gatewayEpcConfigsTypeIPV6PrefixAllocationModePropEnum, v)
+	}
+}
+
+const (
+
+	// GatewayEpcConfigsIPV6PrefixAllocationModeRANDOM captures enum value "RANDOM"
+	GatewayEpcConfigsIPV6PrefixAllocationModeRANDOM string = "RANDOM"
+
+	// GatewayEpcConfigsIPV6PrefixAllocationModeHASH captures enum value "HASH"
+	GatewayEpcConfigsIPV6PrefixAllocationModeHASH string = "HASH"
+)
+
+// prop value enum
+func (m *GatewayEpcConfigs) validateIPV6PrefixAllocationModeEnum(path, location string, value string) error {
+	if err := validate.Enum(path, location, value, gatewayEpcConfigsTypeIPV6PrefixAllocationModePropEnum); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *GatewayEpcConfigs) validateIPV6PrefixAllocationMode(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.IPV6PrefixAllocationMode) { // not required
+		return nil
+	}
+
+	// value enum
+	if err := m.validateIPV6PrefixAllocationModeEnum("ipv6_prefix_allocation_mode", "body", m.IPV6PrefixAllocationMode); err != nil {
 		return err
 	}
 

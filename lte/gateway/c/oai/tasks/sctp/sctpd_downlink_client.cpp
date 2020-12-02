@@ -148,10 +148,21 @@ int sctpd_init(sctp_init_t* init) {
 
   req.set_force_restart(_client->should_force_restart);
 
-  auto rc      = _client->init(req, &res);
-  auto init_ok = res.result() == InitRes::INIT_OK;
-
-  return (rc == 0) && init_ok ? 0 : -1;
+#define MAX_SCTPD_INIT_ATTEMPTS 100
+  int num_inits      = 0;
+  int sctpd_init_res = -1;
+  while (sctpd_init_res != 0) {
+    if (num_inits >= MAX_SCTPD_INIT_ATTEMPTS) {
+      OAILOG_ERROR(LOG_SCTP, "Reached max attempts for Sctpd init");
+      break;
+    }
+    ++num_inits;
+    OAILOG_DEBUG(LOG_SCTP, "Sctpd Init attempt %d", num_inits);
+    auto rc        = _client->init(req, &res);
+    auto init_ok   = res.result() == InitRes::INIT_OK;
+    sctpd_init_res = (rc == 0) && init_ok ? 0 : -1;
+  }
+  return sctpd_init_res;
 }
 
 // close

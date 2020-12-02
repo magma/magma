@@ -19,6 +19,7 @@ import (
 	"strings"
 
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/serdes"
 	"magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/feg_relay/utils"
 	"magma/orc8r/cloud/go/services/configurator"
@@ -131,7 +132,7 @@ func getFegServedIds(networkId string) ([]string, error) {
 	if len(networkId) == 0 {
 		return []string{}, fmt.Errorf("Empty networkID provided.")
 	}
-	fegCfg, err := configurator.LoadNetworkConfig(networkId, feg.FegNetworkType)
+	fegCfg, err := configurator.LoadNetworkConfig(networkId, feg.FegNetworkType, serdes.Network)
 	if err != nil || fegCfg == nil {
 		return []string{}, fmt.Errorf("unable to retrieve config for federation network: %s", networkId)
 	}

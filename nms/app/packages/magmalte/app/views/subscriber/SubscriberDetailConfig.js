@@ -16,11 +16,13 @@
 import type {DataRows} from '../../components/DataGrid';
 import type {mutable_subscriber} from '@fbcnms/magma-api';
 
+import ActionTable from '../../components/ActionTable';
 import Button from '@material-ui/core/Button';
 import CardTitleRow from '../../components/layout/CardTitleRow';
 import DataGrid from '../../components/DataGrid';
 import Grid from '@material-ui/core/Grid';
 import JsonEditor from '../../components/JsonEditor';
+import Link from '@material-ui/core/Link';
 import React from 'react';
 import SettingsIcon from '@material-ui/icons/Settings';
 import SubscriberContext from '../../components/context/SubscriberContext';
@@ -122,16 +124,28 @@ export default function SubscriberDetailConfig() {
           </Grid>
           <Grid container spacing={4}>
             <Grid item xs={12} md={6}>
-              <CardTitleRow label="Subscriber" filter={EditSubscriberButton} />
+              <CardTitleRow
+                label="Subscriber"
+                filter={() => EditSubscriberButton({editTable: 'subscriber'})}
+              />
               <SubscriberInfoConfig />
             </Grid>
 
             <Grid item xs={12} md={6}>
               <CardTitleRow
                 label="Traffic Policy"
-                filter={EditSubscriberButton}
+                filter={() =>
+                  EditSubscriberButton({editTable: 'trafficPolicy'})
+                }
               />
               <SubscriberConfigTrafficPolicy />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <CardTitleRow
+                label="APN Static IPs"
+                filter={() => EditSubscriberButton({editTable: 'staticIps'})}
+              />
+              <SubscriberApnStaticIpsTable />
             </Grid>
           </Grid>
         </Grid>
@@ -236,4 +250,60 @@ function SubscriberInfoConfig() {
   }
 
   return <DataGrid data={kpiData} />;
+}
+
+function SubscriberApnStaticIpsTable() {
+  const {history, match} = useRouter();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const ctx = useContext(SubscriberContext);
+  const subscriberInfo = ctx.state?.[subscriberId];
+  const staticIps = subscriberInfo.config.static_ips || {};
+  type SubscriberApnStaticIpsRowType = {
+    apnName: string,
+    apnStaticIp: string,
+  };
+  const apnRows: Array<SubscriberApnStaticIpsRowType> = Object.keys(
+    staticIps,
+  ).map((apnName: string) => {
+    return {
+      apnName: apnName,
+      apnStaticIp: staticIps[apnName],
+    };
+  });
+  const [_currRow, setCurrRow] = useState<SubscriberApnStaticIpsRowType>({});
+  return (
+    <ActionTable
+      title=""
+      data={apnRows}
+      columns={[
+        {
+          title: 'APN Name',
+          field: 'apnName',
+          render: currRow => (
+            <Link
+              variant="body2"
+              component="button"
+              onClick={() => {
+                history.push(
+                  match.url.replace(
+                    `subscribers/overview/${subscriberId}/config`,
+                    `traffic/apn`,
+                  ),
+                );
+              }}>
+              {currRow.apnName}
+            </Link>
+          ),
+        },
+        {title: 'Static IP', field: 'apnStaticIp'},
+      ]}
+      handleCurrRow={(row: SubscriberApnStaticIpsRowType) => setCurrRow(row)}
+      options={{
+        actionsColumnIndex: -1,
+        pageSizeOptions: [],
+        toolbar: false,
+        paging: false,
+      }}
+    />
+  );
 }

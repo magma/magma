@@ -71,6 +71,7 @@ meter:
 
 enforcement:
   poll_interval: 1
+  default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
@@ -138,6 +139,9 @@ li_mirror_all: false
 #li_dst_iface: eth4
 
 redis_enabled: false
+
+# Logs grpc payload content
+magma_print_grpc_payload: true
 
 # Configuration for IPFIX sampling
 ipfix:

@@ -85,7 +85,7 @@ export default function Enodeb() {
             unit={'Throughput(mb/s)'}
             title={CHART_TITLE}
             queries={[
-              `sum(pdcp_user_plane_bytes_dl{service="enodebd"} + pdcp_user_plane_bytes_ul{service="enodebd"})/1000`,
+              `sum(rate(gtp_port_user_plane_dl_bytes{service="pipelined"}[5m]) + rate(gtp_port_user_plane_ul_bytes{service="pipelined"}[5m]))/1000`,
             ]}
             legendLabels={['mbps']}
           />
@@ -119,6 +119,7 @@ function EnodebTableRaw(props: WithAlert) {
         name: enbInf.enb.name,
         id: serialNum,
         sessionName: enbInf.enb_state?.fsm_state ?? 'not available',
+        ipAddress: enbInf.enb_state?.ip_address ?? 'not available',
         health: isEnodebHealthy(enbInf) ? 'Good' : 'Bad',
         reportedTime: new Date(enbInf.enb_state.time_reported ?? 0),
       };
@@ -145,6 +146,7 @@ function EnodebTableRaw(props: WithAlert) {
           ),
         },
         {title: 'Session State Name', field: 'sessionName'},
+        {title: 'IP Address', field: 'ipAddress'},
         {title: 'Health', field: 'health', width: 100},
         {title: 'Reported Time', field: 'reportedTime', type: 'datetime'},
       ]}

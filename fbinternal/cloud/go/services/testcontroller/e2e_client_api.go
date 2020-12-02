@@ -44,7 +44,7 @@ func getE2EClient() (protos.TestControllerClient, error) {
 	return protos.NewTestControllerClient(conn), nil
 }
 
-func ExecuteNextTestCase(testMachines map[string]statemachines.TestMachine, store storage.TestControllerStorage) error {
+func ExecuteNextTestCase(testMachines map[string]statemachines.TestMachine, store storage.TestControllerStorage, serdes serde.Registry) error {
 	tc, err := store.GetNextTestForExecution()
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func ExecuteNextTestCase(testMachines map[string]statemachines.TestMachine, stor
 	if !ok {
 		return errors.Errorf("no test state machine found matching %s", tc.TestCaseType)
 	}
-	unmarshalledConfig, err := serde.Deserialize(SerdeDomain, tc.TestCaseType, tc.TestConfig)
+	unmarshalledConfig, err := serde.Deserialize(tc.TestConfig, tc.TestCaseType, serdes)
 	if err != nil {
 		return errors.Wrapf(err, "could not deserialize test %s config", tc.TestCaseType)
 	}
@@ -82,7 +82,7 @@ func strPtr(s string) *string {
 	return &s
 }
 
-func GetTestCases(pks []int64) (map[int64]*UnmarshalledTestCase, error) {
+func GetTestCases(pks []int64, serdes serde.Registry) (map[int64]*UnmarshalledTestCase, error) {
 	client, err := getE2EClient()
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func GetTestCases(pks []int64) (map[int64]*UnmarshalledTestCase, error) {
 
 	ret := map[int64]*UnmarshalledTestCase{}
 	for pk, tc := range res.Tests {
-		unmarshalledConfig, err := serde.Deserialize(SerdeDomain, tc.TestCaseType, tc.TestConfig)
+		unmarshalledConfig, err := serde.Deserialize(tc.TestConfig, tc.TestCaseType, serdes)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to deserialize test case of type %s", tc.TestCaseType)
 		}
@@ -106,8 +106,8 @@ func GetTestCases(pks []int64) (map[int64]*UnmarshalledTestCase, error) {
 	return ret, nil
 }
 
-func CreateOrUpdateTestCase(pk int64, testCaseType string, testCaseConfig interface{}) error {
-	marshaledConfig, err := serde.Serialize(SerdeDomain, testCaseType, testCaseConfig)
+func CreateOrUpdateTestCase(pk int64, testCaseType string, testCaseConfig interface{}, serdes serde.Registry) error {
+	marshaledConfig, err := serde.Serialize(testCaseConfig, testCaseType, serdes)
 	if err != nil {
 		return errors.Wrap(err, "failed to serialize config")
 	}

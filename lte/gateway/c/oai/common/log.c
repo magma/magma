@@ -305,9 +305,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
       log_exit();
     } break;
 
-    default: {
-    } break;
-  }
+    default: { } break; }
 
   zframe_destroy(&msg_frame);
   return 0;
@@ -1533,9 +1531,9 @@ const char* const get_short_file_name(const char* const source_file_nameP) {
 
 char* bytes_to_hex(char* byte_array, int length, char* hex_array) {
   int i;
-  for(i = 0; i < length; i++){
-    sprintf(hex_array+i*3, " %02x", (unsigned char)byte_array[i]);
+  for (i = 0; i < length; i++) {
+    sprintf(hex_array + i * 3, " %02x", (unsigned char) byte_array[i]);
   }
-  hex_array[3*length+1] = '\0';
+  hex_array[3 * length + 1] = '\0';
   return hex_array;
 }

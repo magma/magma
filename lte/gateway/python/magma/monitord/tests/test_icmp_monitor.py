@@ -17,7 +17,7 @@ import unittest
 
 from lte.protos.mobilityd_pb2 import IPAddress, SubscriberIPTable
 from magma.monitord.icmp_monitoring import ICMPMonitoring
-from magma.subscriberdb.sid import SIDUtils
+from magma.monitord.cpe_monitoring import CpeMonitoringModule
 
 LOCALHOST = '127.0.0.1'
 
@@ -28,20 +28,20 @@ class ICMPMonitoringTests(unittest.TestCase):
 
     def _add_test_subscriber(self, imsi):
         ip = IPAddress(version=IPAddress.IPV4, address=b'127.0.0.1')
-        sid = SIDUtils.to_pb(imsi)
-        self.subscribers.entries.add(sid=sid, ip=ip, apn='test_apn')
+        self.subscribers[imsi] = ip
 
     async def _ping_local(self):
-        return await self._monitor._ping_subscribers([LOCALHOST],
-                                                     self.subscribers.entries)
+        return await self._monitor._ping_targets([LOCALHOST],
+                                                     self.subscribers)
 
     def setUp(self):
         """
         Creates and sets up ICMP monitor
         """
         self.loop = asyncio.get_event_loop()
-        self.subscribers = SubscriberIPTable()
-        self._monitor = ICMPMonitoring(polling_interval=5,
+        self.subscribers = {}
+        self.obj = CpeMonitoringModule()
+        self._monitor = ICMPMonitoring(self.obj, polling_interval=5,
                                        service_loop=self.loop,
                                        mtr_interface=LOCALHOST)
 
@@ -49,6 +49,6 @@ class ICMPMonitoringTests(unittest.TestCase):
         imsi = 'IMSI00000000001'
         self._add_test_subscriber(imsi)
         self.loop.run_until_complete(self._ping_local())
-        sub_states = self._monitor.get_subscriber_state()
+        sub_states = self.obj.get_subscriber_state()
         self.loop.close()
         self.assertTrue(imsi in sub_states)

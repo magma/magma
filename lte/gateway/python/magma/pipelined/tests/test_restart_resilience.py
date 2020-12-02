@@ -49,6 +49,7 @@ class RestartResilienceTest(unittest.TestCase):
     IFACE = 'testing_br'
     MAC_DEST = "5e:cc:cc:b1:49:4b"
     BRIDGE_IP_ADDRESS = '192.168.128.1'
+    DEFAULT_DROP_FLOW_NAME = '(┛ಠ_ಠ)┛彡┻━┻'
 
     def _wait_func(self, stat_names):
         def func():
@@ -104,7 +105,10 @@ class RestartResilienceTest(unittest.TestCase):
             config={
                 'bridge_name': cls.BRIDGE,
                 'bridge_ip_address': cls.BRIDGE_IP_ADDRESS,
-                'enforcement': {'poll_interval': 5},
+                'enforcement': {
+                    'poll_interval': 2,
+                    'default_drop_flow_name': cls.DEFAULT_DROP_FLOW_NAME
+                },
                 'nat_iface': 'eth2',
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
@@ -294,7 +298,7 @@ class RestartResilienceTest(unittest.TestCase):
             startup_flow_controller=self.startup_flows_contoller)
         snapshot_verifier = SnapshotVerifier(self, self.BRIDGE,
                                              self.service_manager,
-                                             'default_flows')
+                                             'default_flows_w_packets')
 
         with snapshot_verifier:
             pass
@@ -394,7 +398,6 @@ class RestartResilienceTest(unittest.TestCase):
         self.assertEqual(stats[enf_stat_name[0]].bytes_rx, 0)
         self.assertEqual(stats[enf_stat_name[0]].bytes_tx,
                          num_pkts_tx_match * len(packet1))
-
         self.assertEqual(stats[enf_stat_name[1]].sid, imsi)
         self.assertEqual(stats[enf_stat_name[1]].rule_id, "rx_match")
         self.assertEqual(stats[enf_stat_name[1]].bytes_tx, 0)
@@ -404,9 +407,9 @@ class RestartResilienceTest(unittest.TestCase):
         total_bytes_pkt2 = num_pkts_rx_match * len(packet2[IP])
         self.assertEqual(stats[enf_stat_name[1]].bytes_rx, total_bytes_pkt2)
 
-        # NOTE this value is 5 because the EnforcementStatsController rule
+        # NOTE this value is 8 because the EnforcementStatsController rule
         # reporting doesn't reset on clearing flows(lingers from old tests)
-        self.assertEqual(len(stats), 5)
+        self.assertEqual(len(stats), 8)
 
         setup_flows_request = SetupFlowsRequest(
             requests=[

@@ -1,0 +1,35 @@
+---
+#
+# Copyright 2020 The Magma Authors.
+
+# This source code is licensed under the BSD-style license found in the
+# LICENSE file in the root directory of this source tree.
+
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License
+
+- name: Validate OS is debian
+  assert: { that: "ansible_os_family == 'Debian' or ansible_os_family == 'Ubuntu'" }
+
+# This role will upgrade ansible from 2.2 to latest >2.9 so show-tech can run.
+# Updating /etc/apt/sources.list.d/
+- name: Updating repos with ansible for debian repo
+  apt_repository:
+    repo: "{{ansible_apt_repo}}"
+    state: present
+
+- name: Import the ubuntu apt key
+  apt_key:
+    id: "{{ubuntu_apt_id}}"
+    keyserver: "{{ubuntu_apt_keyserver}}"
+    state: present
+
+- name: install packages
+  apt:
+    name: "{{item}}"
+    state: latest
+    update_cache: yes
+  with_items: "{{apt_prereq_packages}}"

@@ -72,6 +72,7 @@ meter:
 
 enforcement:
   poll_interval: 5
+  default_drop_flow_name: 'internal_default_drop_flow_rule'
 
 # Enable polling mobilityd to identify which subscriber sessions need to be
 # terminated. If disabling this, make sure to set a valid idle_timeout for
@@ -145,6 +146,9 @@ monitored_ifaces: ['cwag_br0',
 clean_restart: true
 
 redis_enabled: false
+
+# Logs grpc payload content
+magma_print_grpc_payload: false
 
 # Information for cwf check quota servers
 quota_check_ip: '192.0.0.1'

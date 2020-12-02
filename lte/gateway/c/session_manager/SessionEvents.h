@@ -35,16 +35,16 @@ class EventsReporter {
       const std::unique_ptr<SessionState>& session){};
 
   virtual void session_create_failure(
-      const std::string& imsi, const SessionConfig& session_context,
+      const SessionConfig& session_context,
       const std::string& failure_reason){};
 
   virtual void session_updated(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& session_context){};
+      const std::string& session_id, const SessionConfig& session_context,
+      const UpdateRequests& update_request){};
 
   virtual void session_update_failure(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& session_context,
+      const std::string& session_id, const SessionConfig& session_context,
+      const UpdateRequests& failed_request,
       const std::string& failure_reason){};
 
   virtual void session_terminated(
@@ -64,16 +64,15 @@ class EventsReporterImpl : public EventsReporter {
       const std::unique_ptr<SessionState>& session);
 
   void session_create_failure(
-      const std::string& imsi, const SessionConfig& session_context,
-      const std::string& failure_reason);
+      const SessionConfig& session_context, const std::string& failure_reason);
 
   void session_updated(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& session_context);
+      const std::string& session_id, const SessionConfig& session_context,
+      const UpdateRequests& update_request);
 
   void session_update_failure(
-      const std::string& imsi, const std::string& session_id,
-      const SessionConfig& session_context, const std::string& failure_reason);
+      const std::string& session_id, const SessionConfig& session_context,
+      const UpdateRequests& failed_request, const std::string& failure_reason);
 
   void session_terminated(
       const std::string& imsi, const std::unique_ptr<SessionState>& session);
@@ -82,6 +81,9 @@ class EventsReporterImpl : public EventsReporter {
   std::string get_mac_addr(const SessionConfig& config);
   std::string get_imei(const SessionConfig& config);
   std::string get_spgw_ipv4(const SessionConfig& config);
+  std::string get_user_location(const SessionConfig& config);
+  std::string get_charging_characteristics(const SessionConfig& config);
+  folly::dynamic get_update_summary(const UpdateRequests& updates);
 
  private:
   AsyncEventdClient& eventd_client_;

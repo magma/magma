@@ -31,6 +31,7 @@ ChargingGrant::ChargingGrant(const StoredChargingGrant& marshaled) {
   service_state  = marshaled.service_state;
   expiry_time    = marshaled.expiry_time;
   is_final_grant = marshaled.is_final;
+  suspended      = marshaled.suspended;
 }
 
 StoredChargingGrant ChargingGrant::marshal() {
@@ -44,7 +45,56 @@ StoredChargingGrant ChargingGrant::marshal() {
   marshaled.service_state                    = service_state;
   marshaled.expiry_time                      = expiry_time;
   marshaled.credit                           = credit.marshal();
+  marshaled.suspended                        = suspended;
   return marshaled;
+}
+
+CreditValidity ChargingGrant::is_valid_credit_response(
+    const CreditUpdateResponse& update) {
+  const uint32_t key             = update.charging_key();
+  const std::string session_id   = update.session_id();
+  CreditValidity credit_validity = VALID_CREDIT;
+  if (!update.success()) {
+    if (DiameterCodeHandler::is_permanent_failure(update.result_code())) {
+      MLOG(MERROR) << "Credit update failed RG:" << key
+                   << " code:" << update.result_code() << " for " << session_id;
+      return INVALID_CREDIT;
+    } else if (DiameterCodeHandler::is_transient_failure(
+                   update.result_code())) {
+      MLOG(MDEBUG) << " Received a transient failure update for RG "
+                   << update.charging_key() << ". Continuing service";
+      credit_validity = TRANSIENT_ERROR;
+
+    } else {
+      MLOG(MDEBUG) << " Received an unknown on update for RG "
+                   << update.charging_key() << ". Discarding";
+      return INVALID_CREDIT;
+    }
+  }
+  // For infinite credit, we do not care about the GSU value
+  if (update.limit_type() == INFINITE_UNMETERED ||
+      update.limit_type() == INFINITE_METERED) {
+    return credit_validity;
+  }
+  const auto& gsu = update.credit().granted_units();
+  bool gsu_all_invalid =
+      !gsu.total().is_valid() && !gsu.rx().is_valid() && !gsu.tx().is_valid();
+  if (gsu_all_invalid) {
+    if (update.credit().is_final() || credit_validity == TRANSIENT_ERROR) {
+      // TODO @themarwhal look into this case. Before I figure it out, I will
+      // allow empty GSU credits with FUA or to be suspended
+      // to be on the conservative side.
+      MLOG(MWARNING)
+          << "GSU for RG: " << key << " " << session_id
+          << " is invalid, but accepting it as it has a final unit action or "
+             "suspended credit ";
+      return credit_validity;
+    }
+    MLOG(MERROR) << "Credit update failed RG:" << key
+                 << " invalid, empty GSU and no FUA for " << session_id;
+    return INVALID_CREDIT;
+  }
+  return credit_validity;
 }
 
 void ChargingGrant::receive_charging_grant(
@@ -86,6 +136,7 @@ void ChargingGrant::receive_charging_grant(
     uc->is_final          = is_final_grant;
     uc->final_action_info = final_action_info;
     uc->expiry_time       = expiry_time;
+    uc->suspended         = suspended;
   }
 }
 
@@ -96,6 +147,7 @@ SessionCreditUpdateCriteria ChargingGrant::get_update_criteria() {
   uc.expiry_time                 = expiry_time;
   uc.reauth_state                = reauth_state;
   uc.service_state               = service_state;
+  uc.suspended                   = suspended;
   return uc;
 }
 
@@ -186,6 +238,10 @@ ServiceActionType ChargingGrant::get_action(SessionCreditUpdateCriteria& uc) {
     case SERVICE_NEEDS_ACTIVATION:
       set_service_state(SERVICE_ENABLED, uc);
       return ACTIVATE_SERVICE;
+    case SERVICE_NEEDS_SUSPENSION:
+      set_service_state(SERVICE_DISABLED, uc);
+      return final_action_to_action_on_suspension(
+          final_action_info.final_action);
     default:
       return CONTINUE_SERVICE;
   }
@@ -201,6 +257,19 @@ ServiceActionType ChargingGrant::final_action_to_action(
     case ChargingCredit_FinalAction_TERMINATE:
     default:
       return TERMINATE_SERVICE;
+  }
+}
+
+ServiceActionType ChargingGrant::final_action_to_action_on_suspension(
+    const ChargingCredit_FinalAction action) const {
+  switch (action) {
+    case ChargingCredit_FinalAction_REDIRECT:
+      return REDIRECT;
+    case ChargingCredit_FinalAction_RESTRICT_ACCESS:
+      return RESTRICT_ACCESS;
+    case ChargingCredit_FinalAction_TERMINATE:
+    default:
+      return CONTINUE_SERVICE;
   }
 }
 
@@ -224,6 +293,27 @@ void ChargingGrant::set_service_state(
   }
   service_state    = new_service_state;
   uc.service_state = new_service_state;
+}
+
+void ChargingGrant::set_suspended(
+    bool new_suspended, SessionCreditUpdateCriteria* uc) {
+  if (suspended != new_suspended) {
+    MLOG(MDEBUG) << "Credit suspension set to: " << new_suspended;
+  }
+  suspended     = new_suspended;
+  uc->suspended = new_suspended;
+}
+
+bool ChargingGrant::get_suspended() {
+  return suspended;
+}
+
+void ChargingGrant::reset_reporting_grant(
+    SessionCreditUpdateCriteria* credit_uc) {
+  credit.reset_reporting_credit(credit_uc);
+  if (reauth_state == REAUTH_PROCESSING) {
+    set_reauth_state(REAUTH_REQUIRED, *credit_uc);
+  }
 }
 
 void ChargingGrant::log_final_action_info() const {

@@ -95,72 +95,83 @@ class UplinkBridgeController(MagmaController):
         self._add_eth_port()
         self._setup_vlan_pop_dev()
         # flows to forward traffic between patch port to eth port
-
-        # 1.a. Setup SGi Vlan flows
+        # 1. Setup SGi management iface flows
         if self.config.sgi_management_iface_vlan:
+            # 1.a. Ingress
             match = "in_port=%s,vlan_vid=%s/0x1fff" % (self.config.uplink_eth_port_name,
                                                        hex(0x1000 | int(self.config.sgi_management_iface_vlan)))
             actions = "strip_vlan,output:LOCAL"
             self._install_flow(flows.MAXIMUM_PRIORITY, match, actions)
 
+            # 1.b. Egress
             match = "in_port=LOCAL"
             actions = "push_vlan:0x8100,mod_vlan_vid=%s,output:%s" % (self.config.sgi_management_iface_vlan,
                                                                       self.config.uplink_eth_port_name)
             self._install_flow(flows.MAXIMUM_PRIORITY, match, actions)
+        else:
+            # 1.a. Ingress
+            match = "in_port=%s,ip" % self.config.uplink_eth_port_name
+            actions = "output:LOCAL"
+            self._install_flow(flows.MINIMUM_PRIORITY, match, actions)
 
-        # 1.b. DHCP traffic
+            # 1.b. Egress
+            match = "in_port=LOCAL"
+            actions = "output:%s" % self.config.uplink_eth_port_name
+            self._install_flow(flows.MINIMUM_PRIORITY, match, actions)
+
+        # 2.a. DHCP Req traffic
         match = "in_port=%s,ip,udp,tp_dst=68" % self.config.uplink_eth_port_name
         actions = "output:%s,output:LOCAL" % self.config.dhcp_port
         self._install_flow(flows.MAXIMUM_PRIORITY - 1, match, actions)
+        # 2.b DHCP reply flows
+        match = "in_port=%s" % self.config.dhcp_port
+        actions = "output:%s" % self.config.uplink_eth_port_name
+        self._install_flow(flows.MAXIMUM_PRIORITY - 1, match, actions)
 
-        # 2.a. all egress traffic
-        match = "in_port=%s,ip" % self.config.uplink_patch
+        # 3. UE egress traffic
+        match = "in_port=%s" % self.config.uplink_patch
         actions = "mod_dl_src=%s, output:%s" % (self.config.virtual_mac,
                                                 self.config.uplink_eth_port_name)
         self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
 
         if self.config.ovs_vlan_workaround:
-            # 2.b. All ingress IP traffic for UE mac
-            match = "in_port=%s,ip, dl_dst=%s, vlan_tci=0x0000/0x1000" % \
+            # 4.a. All ingress IP traffic for UE mac
+            match = "in_port=%s,dl_dst=%s, vlan_tci=0x0000/0x1000" % \
                     (self.config.uplink_eth_port_name,
                      self.config.virtual_mac)
             actions = "output:%s" % self.config.uplink_patch
-            self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+            self._install_ip_v4_v6_flows(flows.MEDIUM_PRIORITY, match, actions)
 
-            match = "in_port=%s,ip, dl_dst=%s, vlan_tci=0x1000/0x1000" % \
+            match = "in_port=%s,dl_dst=%s, vlan_tci=0x1000/0x1000" % \
                     (self.config.uplink_eth_port_name,
                      self.config.virtual_mac)
             actions = "strip_vlan,output:%s" % self.config.dev_vlan_in
-            self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+            self._install_ip_v4_v6_flows(flows.MEDIUM_PRIORITY, match, actions)
 
-            # 2.c. redirect all vlan-out traffic to patch port
-            match = "in_port=%s, dl_dst=%s, ip" % \
+            # 4.b. redirect all vlan-out traffic to patch port
+            match = "in_port=%s,dl_dst=%s" % \
                     (self.config.dev_vlan_out,
                      self.config.virtual_mac)
             actions = "output:%s" % self.config.uplink_patch
-            self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+            self._install_ip_v4_v6_flows(flows.MEDIUM_PRIORITY, match, actions)
         else:
-            # 2.b. All ingress IP traffic for UE mac
-            match = "in_port=%s,ip, dl_dst=%s" % \
+            # 4.a. All ingress IP traffic for UE mac
+            match = "in_port=%s, dl_dst=%s" % \
                     (self.config.uplink_eth_port_name,
                      self.config.virtual_mac)
             actions = "output:%s" % self.config.uplink_patch
-            self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
+            self._install_ip_v4_v6_flows(flows.MEDIUM_PRIORITY, match, actions)
 
-        # 3.a. drop all packets from vlan_in
-        match = "in_port=%s" % self.config.dev_vlan_in
-        actions = "drop"
-        self._install_flow(flows.MEDIUM_PRIORITY, match, actions)
-
-        # 3.b. drop all remaining packets form vlan_out
-        match = "in_port=%s" % self.config.dev_vlan_out
-        actions = "drop"
-        self._install_flow(flows.MINIMUM_PRIORITY + 1, match, actions)
+        # 5. Handle ARP from eth0
+        match = "in_port=%s,arp" % self.config.uplink_eth_port_name
+        actions = "output:%s,output:%s,output:LOCAL" % (self.config.dhcp_port,
+                                                        self.config.uplink_patch)
+        self._install_flow(flows.MINIMUM_PRIORITY, match, actions)
 
         # everything else:
-        self._install_flow(flows.MINIMUM_PRIORITY, "", "NORMAL")
         self._set_sgi_ip_addr(self.config.uplink_bridge)
         self._set_sgi_gw(self.config.uplink_bridge)
+        self._set_arp_ignore('all', '1')
 
     def cleanup_on_disconnect(self, datapath):
         self._del_eth_port()
@@ -192,6 +203,13 @@ class UplinkBridgeController(MagmaController):
             subprocess.Popen(flow_cmd, shell=True).wait()
         except subprocess.CalledProcessError as ex:
             raise Exception('Error: %s failed with: %s' % (flow_cmd, ex))
+
+    def _install_ip_v4_v6_flows(self, priority: int, flow_match: str, flow_action: str):
+        if self.config.enable_nat is True:
+            return
+
+        self._install_flow(priority, flow_match + ", ip", flow_action)
+        self._install_flow(priority, flow_match + ", ipv6", flow_action)
 
     def _add_eth_port(self):
         if self.config.enable_nat is True or \
@@ -329,3 +347,7 @@ class UplinkBridgeController(MagmaController):
                              setup_dhclient, ex)
 
         self.logger.info("SGi DHCP: restart for %s done", if_name)
+
+    def _set_arp_ignore(self, if_name: str, val: str):
+        sysctl_setting = 'net.ipv4.conf.' + if_name + '.arp_ignore=' + val
+        subprocess.check_call(['sysctl', sysctl_setting])

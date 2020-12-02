@@ -23,7 +23,10 @@ import type {
   mutable_subscriber,
   network_id,
   network_ran_configs,
+  network_type,
+  policy_qos_profile,
   policy_rule,
+  rating_group,
   subscriber_id,
   tier,
 } from '@fbcnms/magma-api';
@@ -41,7 +44,7 @@ import NetworkContext from '../../components/context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 
-import {FEG_LTE} from '@fbcnms/types/network';
+import {FEG_LTE, LTE} from '@fbcnms/types/network';
 import {
   InitEnodeState,
   InitTierState,
@@ -51,7 +54,11 @@ import {
   UpdateGateway,
 } from '../../state/lte/EquipmentState';
 import {SetApnState} from '../../state/lte/ApnState';
-import {SetPolicyState} from '../../state/PolicyState';
+import {
+  SetPolicyState,
+  SetQosProfileState,
+  SetRatingGroupState,
+} from '../../state/PolicyState';
 import {UpdateNetworkState as UpdateFegLteNetworkState} from '../../state/feg_lte/NetworkState';
 import {UpdateNetworkState as UpdateFegNetworkState} from '../../state/feg/NetworkState';
 import {UpdateNetworkState as UpdateLteNetworkState} from '../../state/lte/NetworkState';
@@ -64,6 +71,7 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
   networkId: network_id,
+  networkType: network_type,
   children: React.Node,
 };
 
@@ -262,6 +270,12 @@ export function PolicyProvider(props: Props) {
   const networkCtx = useContext(NetworkContext);
   const lteNetworkCtx = useContext(LteNetworkContext);
   const [policies, setPolicies] = useState<{[string]: policy_rule}>({});
+  const [qosProfiles, setQosProfiles] = useState<{
+    [string]: policy_qos_profile,
+  }>({});
+  const [ratingGroups, setRatingGroups] = useState<{[string]: rating_group}>(
+    {},
+  );
   const [fegNetwork, setFegNetwork] = useState<feg_network>({});
   const [fegPolicies, setFegPolicies] = useState<{[string]: policy_rule}>({});
   const [isLoading, setIsLoading] = useState(true);
@@ -275,6 +289,13 @@ export function PolicyProvider(props: Props) {
           await MagmaV1API.getNetworksByNetworkIdPoliciesRulesViewFull({
             networkId,
           }),
+        );
+        setRatingGroups(
+          // $FlowIgnore
+          await MagmaV1API.getNetworksByNetworkIdRatingGroups({networkId}),
+        );
+        setQosProfiles(
+          await MagmaV1API.getLteByNetworkIdPolicyQosProfiles({networkId}),
         );
         if (networkType === FEG_LTE) {
           const fegNetworkId = lteNetworkCtx.state?.federation.feg_network_id;
@@ -302,11 +323,31 @@ export function PolicyProvider(props: Props) {
   if (isLoading) {
     return <LoadingFiller />;
   }
-
   return (
     <PolicyContext.Provider
       value={{
         state: policies,
+        ratingGroups: ratingGroups,
+        setRatingGroups: async (key, value) => {
+          await SetRatingGroupState({
+            networkId,
+            ratingGroups,
+            setRatingGroups,
+            key,
+            value,
+          });
+        },
+
+        qosProfiles: qosProfiles,
+        setQosProfiles: async (key, value) => {
+          await SetQosProfileState({
+            networkId,
+            qosProfiles,
+            setQosProfiles,
+            key,
+            value,
+          });
+        },
         setState: async (key, value?, isNetworkWide?) => {
           if (networkType === FEG_LTE) {
             const fegNetworkID = lteNetworkCtx.state?.federation.feg_network_id;
@@ -346,59 +387,41 @@ export function PolicyProvider(props: Props) {
               ruleNames =
                 lteNetworkCtx.state?.subscriber_config
                   ?.network_wide_rule_names ?? [];
-              if (!ruleNames.includes(key)) {
-                ruleNames.push(key);
-              }
               fegRuleNames =
                 fegNetwork.subscriber_config?.network_wide_rule_names ?? [];
+
+              // update subscriber config if necessary
+              if (!ruleNames.includes(key)) {
+                ruleNames.push(key);
+                lteNetworkCtx.updateNetworks({
+                  networkId,
+                  subscriberConfig: {
+                    network_wide_base_names:
+                      lteNetworkCtx.state?.subscriber_config
+                        ?.network_wide_base_names,
+                    network_wide_rule_names: ruleNames,
+                  },
+                });
+              }
+
               if (!fegRuleNames.includes(key)) {
                 fegRuleNames.push(key);
+                if (networkType === FEG_LTE && fegNetwork) {
+                  UpdateFegNetworkState({
+                    networkId: fegNetwork.id,
+                    subscriberConfig: {
+                      network_wide_base_names:
+                        fegNetwork.subscriber_config?.network_wide_base_names,
+                      network_wide_rule_names: fegRuleNames,
+                    },
+                    setFegNetwork,
+                    refreshState: true,
+                  });
+                }
               }
-            } else {
-              // this is a delete operation
-              const oldRuleNames =
-                lteNetworkCtx.state?.subscriber_config
-                  ?.network_wide_rule_names ?? [];
-              const oldFegRuleNames =
-                fegNetwork.subscriber_config?.network_wide_rule_names ?? [];
-
-              ruleNames = oldRuleNames.filter(function (
-                ruleId,
-                _unused0,
-                _unused1,
-              ) {
-                return ruleId !== key;
-              });
-              fegRuleNames = oldFegRuleNames.filter(function (
-                ruleId,
-                _unused0,
-                _unused1,
-              ) {
-                return ruleId !== key;
-              });
             }
-            lteNetworkCtx.updateNetworks({
-              networkId,
-              subscriberConfig: {
-                network_wide_base_names:
-                  lteNetworkCtx.state?.subscriber_config
-                    ?.network_wide_base_names,
-                network_wide_rule_names: ruleNames,
-              },
-            });
-            UpdateFegNetworkState({
-              networkId: fegNetwork.id,
-              subscriberConfig: {
-                network_wide_base_names:
-                  fegNetwork.subscriber_config?.network_wide_base_names,
-                network_wide_rule_names: fegRuleNames,
-              },
-              setFegNetwork,
-              refreshState: true,
-            });
           } else {
-            // delete network wide rules for the key
-            console.log('DELETING NETWORK WIDE RULES FOR ', key);
+            // delete network wide rules for the key if present
             let ruleNames = [];
             let fegRuleNames = [];
             const oldRuleNames =
@@ -407,39 +430,48 @@ export function PolicyProvider(props: Props) {
             const oldFegRuleNames =
               fegNetwork.subscriber_config?.network_wide_rule_names ?? [];
 
-            ruleNames = oldRuleNames.filter(function (
-              ruleId,
-              _unused0,
-              _unused1,
-            ) {
-              return ruleId !== key;
-            });
-            fegRuleNames = oldFegRuleNames.filter(function (
-              ruleId,
-              _unused0,
-              _unused1,
-            ) {
-              return ruleId !== key;
-            });
-            lteNetworkCtx.updateNetworks({
-              networkId,
-              subscriberConfig: {
-                network_wide_base_names:
-                  lteNetworkCtx.state?.subscriber_config
-                    ?.network_wide_base_names,
-                network_wide_rule_names: ruleNames,
-              },
-            });
-            UpdateFegNetworkState({
-              networkId: fegNetwork.id,
-              subscriberConfig: {
-                network_wide_base_names:
-                  fegNetwork.subscriber_config?.network_wide_base_names,
-                network_wide_rule_names: fegRuleNames,
-              },
-              setFegNetwork,
-              refreshState: true,
-            });
+            if (oldRuleNames.includes(key)) {
+              ruleNames = oldRuleNames.filter(function (
+                ruleId,
+                _unused0,
+                _unused1,
+              ) {
+                return ruleId !== key;
+              });
+              lteNetworkCtx.updateNetworks({
+                networkId,
+                subscriberConfig: {
+                  network_wide_base_names:
+                    lteNetworkCtx.state?.subscriber_config
+                      ?.network_wide_base_names,
+                  network_wide_rule_names: ruleNames,
+                },
+              });
+            }
+
+            // if we have old feg rul
+            if (oldFegRuleNames.includes(key)) {
+              fegRuleNames = oldFegRuleNames.filter(function (
+                ruleId,
+                _unused0,
+                _unused1,
+              ) {
+                return ruleId !== key;
+              });
+
+              if (networkType === FEG_LTE && fegNetwork) {
+                UpdateFegNetworkState({
+                  networkId: fegNetwork.id,
+                  subscriberConfig: {
+                    network_wide_base_names:
+                      fegNetwork.subscriber_config?.network_wide_base_names,
+                    network_wide_rule_names: fegRuleNames,
+                  },
+                  setFegNetwork,
+                  refreshState: true,
+                });
+              }
+            }
           }
         },
       }}>
@@ -571,15 +603,28 @@ export function LteNetworkContextProvider(props: Props) {
 }
 
 export function LteContextProvider(props: Props) {
-  const {networkId} = props;
+  const {networkId, networkType} = props;
+  const lteNetwork = networkType === LTE || networkType === FEG_LTE;
+  if (!lteNetwork) {
+    return props.children;
+  }
+
   return (
-    <LteNetworkContextProvider networkId={networkId}>
-      <PolicyProvider networkId={networkId}>
-        <ApnProvider networkId={networkId}>
-          <SubscriberContextProvider networkId={networkId}>
-            <GatewayTierContextProvider networkId={networkId}>
-              <EnodebContextProvider networkId={networkId}>
-                <GatewayContextProvider networkId={networkId}>
+    <LteNetworkContextProvider networkId={networkId} networkType={networkType}>
+      <PolicyProvider networkId={networkId} networkType={networkType}>
+        <ApnProvider networkId={networkId} networkType={networkType}>
+          <SubscriberContextProvider
+            networkId={networkId}
+            networkType={networkType}>
+            <GatewayTierContextProvider
+              networkId={networkId}
+              networkType={networkType}>
+              <EnodebContextProvider
+                networkId={networkId}
+                networkType={networkType}>
+                <GatewayContextProvider
+                  networkId={networkId}
+                  networkType={networkType}>
                   {props.children}
                 </GatewayContextProvider>
               </EnodebContextProvider>

@@ -146,7 +146,7 @@ def cloud_post(url: str, data: str):
 def create_network_if_not_exists(url: str, network_id: str):
     values = cloud_get(url + "/networks")
     if network_id in values:
-        print(f"{network_id} NMS XWF-M Network exists already")
+        print(f"NMS XWF-M Network exists already - {network_id}")
     else:
         data = XwFMNetwork(
             id=network_id, name="XWFM Network", description="XWFM Network"
@@ -164,35 +164,41 @@ def create_network_if_not_exists(url: str, network_id: str):
         print(f"{network_id} NMS XWF-M Network created successfully")
 
 
-def get_next_gateway_id(url: str, network_id: str) -> str:
-    values = cloud_get(url + f"/cwf/{network_id}/gateways")
-    nbr = len(values) + 1
-    return str(nbr)
+def get_next_gateway_id(url: str, network_id: str, hw_id: str) -> (bool, str):
+    gateways = cloud_get(url + f"/cwf/{network_id}/gateways")
+    for gw in gateways.values():
+        if gw['device']['hardware_id'] == hw_id:
+            return True, gw['id']
+    nbr = len(gateways) + 1
+    return False, str(nbr)
 
 
 def register_gateway(url: str, network_id: str, hardware_id: str, tier_id: str):
     """
     Register XwF-M Gateway in the requested network.
     """
-    gid = get_next_gateway_id(url, network_id)
-    grePeer = AllowedGREPeers(ip="192.168.128.2", key=100)
-    data = Gateway(
-        name=socket.gethostname().strip(),
-        description=f"XWFM Gateway {gid}",
-        tier="default",
-        id=f"fbc_gw_{gid}",
-        device=GatewayDevice(
-            hardware_id=hardware_id, key=ChallengeKey(key_type="ECHO")
-        ),
-        magmad=MagmadGatewayConfigs(
-            autoupgrade_enabled=True,
-            autoupgrade_poll_interval=60,
-            checkin_interval=60,
-            checkin_timeout=30,
-        ),
-        carrier_wifi=CarrierWiFiConfig(grePeers=[grePeer]),
-    )
-    cloud_post(url + f"/cwf/{network_id}/gateways", jsonpickle.pickler.encode(data))
+    found, gid = get_next_gateway_id(url, network_id, hardware_id)
+    if found:
+        print(f"XWF-M Gateway exists already - {hardware_id}")
+    else:
+        grePeer = AllowedGREPeers(ip="192.168.128.2", key=100)
+        data = Gateway(
+	    name=socket.gethostname().strip(),
+	    description=f"XWFM Gateway {gid}",
+	    tier="default",
+            id=f"fbc_gw_{gid}",
+            device=GatewayDevice(
+                hardware_id=hardware_id, key=ChallengeKey(key_type="ECHO")
+	    ),
+	    magmad=MagmadGatewayConfigs(
+	        autoupgrade_enabled=True,
+	        autoupgrade_poll_interval=60,
+	        checkin_interval=60,
+	        checkin_timeout=30,
+	    ),
+	    carrier_wifi=CarrierWiFiConfig(grePeers=[grePeer]),
+        )
+        cloud_post(url + f"/cwf/{network_id}/gateways", jsonpickle.pickler.encode(data))
 
 
 def create_parser():
@@ -211,7 +217,7 @@ def create_parser():
         "--hwid", dest="hwid", action="store", help="Gateway Hardware ID"
     )
     parser.add_argument(
-        "--portal", dest="portal", action="store", help="Orchestrator URL Address"
+        "--url", dest="url", action="store", help="Orchestrator URL Address"
     )
     return parser
 
@@ -219,14 +225,14 @@ def create_parser():
 def main():
     parser = create_parser()
     args = parser.parse_args()
-    if not (args.hwid and args.portal and args.partner):
+    if not (args.hwid and args.url and args.partner):
         parser.print_usage()
         exit(1)
 
     # Create XwF-M Network
-    partner = args.partner.replace("-", "_").strip()
-    create_network_if_not_exists(args.portal, partner)
-    register_gateway(args.portal, partner, args.hwid, "default")
+    partner = args.partner.strip()
+    create_network_if_not_exists(args.url, partner)
+    register_gateway(args.url, partner, args.hwid, "default")
 
 
 if __name__ == "__main__":

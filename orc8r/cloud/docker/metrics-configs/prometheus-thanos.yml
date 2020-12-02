@@ -1,0 +1,45 @@
+global:
+  scrape_interval:     15s # By default, scrape targets every 15 seconds.
+  evaluation_interval: 15s # By default, scrape targets every 15 seconds.
+  external_labels:
+    monitor: 'master'
+
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  - job_name: "magma_pushgateway"
+    honor_labels: true
+    metric_relabel_configs:
+      - regex: 'job'
+        action: labeldrop
+      - regex: 'instance'
+        action: labeldrop
+    static_configs:
+      - targets: ['prometheus-cache:9091']
+
+  - job_name: "thanos_sidecar"
+    static_configs:
+      - targets: ['thanosSidecar:10902']
+
+  - job_name: "thanos_ruler"
+    static_configs:
+      - targets: ['thanosRuler:10902']
+
+  - job_name: "thanos_compactor"
+    static_configs:
+      - targets: ['thanosCompactor:10902']
+
+  - job_name: "thanos_query"
+    static_configs:
+      - targets: ['thanosQuery:19192']
+
+rule_files:
+  - '/etc/prometheus/alert_rules/*_rules.yml'
+
+alerting:
+  alertmanagers:
+    - scheme: http
+      static_configs:
+        - targets: ['alertmanager:9093']

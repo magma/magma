@@ -18,16 +18,16 @@ import (
 	"encoding/json"
 	"fmt"
 
+	"magma/orc8r/cloud/go/identity"
+	"magma/orc8r/cloud/go/orc8r"
+	"magma/orc8r/cloud/go/services/directoryd/types"
+	"magma/orc8r/cloud/go/services/state"
+	state_types "magma/orc8r/cloud/go/services/state/types"
+	"magma/orc8r/lib/go/protos"
+
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
-
-	"magma/orc8r/cloud/go/identity"
-	"magma/orc8r/cloud/go/orc8r"
-	"magma/orc8r/cloud/go/services/directoryd"
-	"magma/orc8r/cloud/go/services/state"
-	"magma/orc8r/cloud/go/services/state/types"
-	"magma/orc8r/lib/go/protos"
 )
 
 type directoryUpdateServicer struct {
@@ -54,7 +54,7 @@ func (d *directoryUpdateServicer) UpdateRecord(c context.Context, r *protos.Upda
 	if err != nil {
 		return ret, err
 	}
-	dr := &directoryd.DirectoryRecord{LocationHistory: []string{r.GetLocation()}, Identifiers: map[string]interface{}{}}
+	dr := &types.DirectoryRecord{LocationHistory: []string{r.GetLocation()}, Identifiers: map[string]interface{}{}}
 	for k, v := range r.GetFields() {
 		dr.Identifiers[k] = v
 	}
@@ -118,12 +118,12 @@ func (d *directoryUpdateServicer) GetDirectoryField(
 	if len(res.GetStates()) != 1 {
 		return ret, status.Errorf(codes.NotFound, "directory record for ID: %s is not found", r.GetId())
 	}
-	serialized := &types.SerializedStateWithMeta{}
+	serialized := &state_types.SerializedState{}
 	err = json.Unmarshal(res.States[0].Value, serialized)
 	if err != nil {
 		return ret, status.Errorf(codes.Internal, "failed to unmarshal json-encoded state proto value")
 	}
-	dr := &directoryd.DirectoryRecord{}
+	dr := &types.DirectoryRecord{}
 	err = dr.UnmarshalBinary(serialized.SerializedReportedState)
 	if err != nil {
 		return ret, status.Errorf(codes.Internal, "failed to unmarshal DirectoryRecord: %v", err)
@@ -168,7 +168,7 @@ func (d *directoryUpdateServicer) GetAllDirectoryRecords(
 		if st == nil {
 			continue
 		}
-		dr := &directoryd.DirectoryRecord{}
+		dr := &types.DirectoryRecord{}
 		err = dr.UnmarshalBinary(st.Value)
 		if err != nil {
 			continue

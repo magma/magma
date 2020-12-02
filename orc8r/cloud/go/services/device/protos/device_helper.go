@@ -20,8 +20,8 @@ import (
 
 // EntitiesToBlobs maps a list of PhysicalEntity to a list of blobstore.Blob
 // by using each entity's networkID as blob value
-func EntitiesToBlobs(entities []*PhysicalEntity) []blobstore.Blob {
-	blobs := []blobstore.Blob{}
+func EntitiesToBlobs(entities []*PhysicalEntity) blobstore.Blobs {
+	var blobs blobstore.Blobs
 	for _, entity := range entities {
 		blobs = append(blobs, entityToBlob(entity))
 	}

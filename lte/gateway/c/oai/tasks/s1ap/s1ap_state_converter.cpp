@@ -161,6 +161,9 @@ void S1apStateConverter::proto_to_ue(
   ue->sctp_stream_send              = proto.sctp_stream_send();
   ue->s1ap_ue_context_rel_timer.id  = proto.s1ap_ue_context_rel_timer().id();
   ue->s1ap_ue_context_rel_timer.sec = proto.s1ap_ue_context_rel_timer().sec();
+
+  ue->comp_s1ap_id =
+      S1AP_GENERATE_COMP_S1AP_ID(ue->sctp_assoc_id, ue->enb_ue_s1ap_id);
 }
 
 void S1apStateConverter::s1ap_imsi_map_to_proto(

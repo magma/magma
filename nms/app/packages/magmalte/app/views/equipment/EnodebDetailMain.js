@@ -165,6 +165,7 @@ function Overview() {
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
+  const enbIpAddress = enbInfo?.enb_state?.ip_address;
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>
@@ -189,8 +190,8 @@ function Overview() {
             title={CHART_TITLE}
             unit={'Throughput(mb/s)'}
             queries={[
-              `sum(pdcp_user_plane_bytes_dl{service="enodebd", enodeb="${enodebSerial}"})/1000`,
-              `sum(pdcp_user_plane_bytes_ul{service="enodebd", enodeb="${enodebSerial}"})/1000`,
+              `rate(gtp_port_user_plane_dl_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000`,
+              `rate(gtp_port_user_plane_ul_bytes{service="pipelined", ip_addr="${enbIpAddress}"}[5m])/1000`,
             ]}
             legendLabels={['Download', 'Upload']}
           />

@@ -90,7 +90,7 @@ def add_output_flow(datapath, table, match, actions=None, instructions=None,
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
         output_port (int): the port to send the packet
-        copy_table (int): optional table to copy the packet to
+        copy_table (int): optional table to send the packet to
         max_len (int): Max length to send to controller
 
     Raises:
@@ -172,7 +172,7 @@ def add_resubmit_next_service_flow(datapath, table, match, actions=None,
                                    instructions=None,
                                    priority=MINIMUM_PRIORITY, retries=3,
                                    cookie=0x0, idle_timeout=0, hard_timeout=0,
-                                   resubmit_table=None):
+                                   copy_table=None, resubmit_table=None):
     """
     Add a flow to a table that resubmits to another service.
     All scratch registers will be reset before resubmitting.
@@ -207,7 +207,7 @@ def add_resubmit_next_service_flow(datapath, table, match, actions=None,
         datapath, table, match, actions=actions,
         instructions=instructions, priority=priority,
         cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
-        resubmit_table=resubmit_table)
+        copy_table=copy_table, resubmit_table=resubmit_table)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 
@@ -320,7 +320,7 @@ def get_add_output_flow_msg(datapath, table, match, actions=None,
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
         output_port (int): the port to send the packet
-        copy_table (int): optional table to copy the packet to
+        copy_table (int): optional table to send the packet to
         max_len (int): Max length to send to controller
 
     Raises:
@@ -364,7 +364,7 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
                                            actions=None, instructions=None,
                                            priority=MINIMUM_PRIORITY,
                                            cookie=0x0, idle_timeout=0,
-                                           hard_timeout=0,
+                                           hard_timeout=0, copy_table=None,
                                            resubmit_table=None):
     """
     Get an add flow modification message that resubmits to another service
@@ -384,6 +384,7 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
         cookie (hex): cookie value for the flow
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
+        copy_table (int): optional table to send the packet to
         resubmit_table (int): Table number of the next service to
             forward traffic to.
 
@@ -406,6 +407,10 @@ def get_add_resubmit_next_service_flow_msg(datapath, table, match,
     reset_scratch_reg_actions = [
         parser.NXActionRegLoad2(dst=reg, value=REG_ZERO_VAL)
         for reg in SCRATCH_REGS]
+
+    if copy_table:
+        actions.append(parser.NXActionResubmitTable(table_id=copy_table))
+
     actions = actions + reset_scratch_reg_actions
 
     inst = __get_instructions_for_actions(ofproto, parser,
@@ -423,7 +428,7 @@ def get_add_resubmit_current_service_flow_msg(datapath, table, match,
                                               actions=None, instructions=None,
                                               priority=MINIMUM_PRIORITY,
                                               cookie=0x0, idle_timeout=0,
-                                              hard_timeout=0,
+                                              hard_timeout=0, copy_table=None,
                                               resubmit_table=None):
     """
     Get an add flow modification message that resubmits to the current service
@@ -443,6 +448,7 @@ def get_add_resubmit_current_service_flow_msg(datapath, table, match,
         cookie (hex): cookie value for the flow
         idle_timeout (int): idle timeout for the flow
         hard_timeout (int): hard timeout for the flow
+        copy_table (int): optional table to send the packet to
         resubmit_table (int): Table number of the table within the
             current service to forward traffic to.
 
@@ -458,6 +464,10 @@ def get_add_resubmit_current_service_flow_msg(datapath, table, match,
 
     if actions is None:
         actions = []
+
+    if copy_table:
+        actions.append(parser.NXActionResubmitTable(table_id=copy_table))
+
     actions = actions + [
         parser.NXActionResubmitTable(table_id=resubmit_table),
     ]

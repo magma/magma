@@ -33,10 +33,13 @@ popd
 # Link the build binaries again
 $SCRIPT_DIR/build_s1_tester.sh
 
+echo "Install pyparsing"
 # Re-generate the s1ap_types.py
 pip3 show pyparsing 1>/dev/null
 if [ $? != 0 ]; then
    echo "Installing pyparsing"
    pip3 install pyparsing
 fi
+
+echo "Regenerating s1ap_types.py"
 /usr/bin/python3.5 $SCRIPT_DIR/c_parser.py

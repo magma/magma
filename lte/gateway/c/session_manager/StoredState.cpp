@@ -136,6 +136,7 @@ std::string serialize_stored_charging_grant(StoredChargingGrant& stored) {
   marshaled["reauth_state"]  = static_cast<int>(stored.reauth_state);
   marshaled["service_state"] = static_cast<int>(stored.service_state);
   marshaled["credit"]        = serialize_stored_session_credit(stored.credit);
+  marshaled["suspended"]     = stored.suspended;
 
   std::string serialized = folly::toJson(marshaled);
   return serialized;
@@ -158,6 +159,7 @@ StoredChargingGrant deserialize_stored_charging_grant(
       std::stoul(marshaled["expiry_time"].getString()));
   stored.credit =
       deserialize_stored_session_credit(marshaled["credit"].getString());
+  stored.suspended = marshaled["suspended"].getBool();
 
   return stored;
 }
@@ -171,7 +173,10 @@ std::string serialize_stored_session_credit(StoredSessionCredit& stored) {
       static_cast<int>(stored.grant_tracking_type);
   marshaled["received_granted_units"] =
       stored.received_granted_units.SerializeAsString();
-  marshaled["report_last_credit"] = stored.report_last_credit;
+  marshaled["report_last_credit"]  = stored.report_last_credit;
+  marshaled["time_of_first_usage"] = std::to_string(stored.time_of_first_usage);
+  marshaled["time_of_last_usage"]  = std::to_string(stored.time_of_last_usage);
+
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket = static_cast<Bucket>(bucket_int);
     marshaled["buckets"][std::to_string(bucket_int)] =
@@ -199,6 +204,10 @@ StoredSessionCredit deserialize_stored_session_credit(
       marshaled["received_granted_units"].getString());
   stored.received_granted_units = received_granted_units;
   stored.report_last_credit     = marshaled["report_last_credit"].getBool();
+  stored.time_of_first_usage    = static_cast<uint64_t>(
+      std::stoul(marshaled["time_of_first_usage"].getString()));
+  stored.time_of_last_usage = static_cast<uint64_t>(
+      std::stoul(marshaled["time_of_last_usage"].getString()));
 
   for (int bucket_int = USED_TX; bucket_int != MAX_VALUES; bucket_int++) {
     Bucket bucket          = static_cast<Bucket>(bucket_int);
@@ -384,6 +393,7 @@ std::string serialize_stored_session(StoredSessionState& stored) {
   marshaled["session_level_key"] = stored.session_level_key;
   marshaled["imsi"]              = stored.imsi;
   marshaled["session_id"]        = stored.session_id;
+  marshaled["local_teid"]        = std::to_string(stored.local_teid);
   marshaled["subscriber_quota_state"] =
       static_cast<int>(stored.subscriber_quota_state);
 
@@ -445,6 +455,8 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
   stored.session_level_key = marshaled["session_level_key"].getString();
   stored.imsi              = marshaled["imsi"].getString();
   stored.session_id        = marshaled["session_id"].getString();
+  stored.local_teid =
+      static_cast<uint32_t>(std::stoul(marshaled["local_teid"].getString()));
   stored.subscriber_quota_state =
       static_cast<magma::lte::SubscriberQuotaUpdate_Type>(
           marshaled["subscriber_quota_state"].getInt());

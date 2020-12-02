@@ -110,3 +110,10 @@ message FluentBit {
 message OpenVPN {
     bool enable_shell_access = 1;
 }
+
+//------------------------------------------------------------------------------
+// CtraceD configs
+//------------------------------------------------------------------------------
+message CtraceD {
+    orc8r.LogLevel log_level = 1;
+}

@@ -205,6 +205,7 @@ int mme_app_send_s11_create_session_req(
    * - PGW address for CP
    * - paa
    * - ambr
+   * - charging characteristics
    * and by MME Application layer:
    * - selection_mode
    * Set these parameters with random values for now.
@@ -237,7 +238,7 @@ int mme_app_send_s11_create_session_req(
   }
 
   // Fill User Location Information
-  session_request_p->uli.present = 0;   // initialize the presencemask
+  session_request_p->uli.present = 0;  // initialize the presencemask
   mme_app_get_user_location_information(&session_request_p->uli, ue_mm_context);
 
   session_request_p->rat_type = RAT_EUTRAN;
@@ -300,8 +301,7 @@ int mme_app_send_s11_create_session_req(
    * Copy the APN AMBR to the sgw create session request message
    */
   memcpy(
-      &session_request_p->ambr, &selected_apn_config_p->ambr,
-      sizeof(ambr_t));
+      &session_request_p->ambr, &selected_apn_config_p->ambr, sizeof(ambr_t));
   /*
    * Set PDN type for pdn_type and PAA even if this IE is redundant
    */
@@ -334,6 +334,22 @@ int mme_app_send_s11_create_session_req(
             sizeof(session_request_p->paa.ipv6_address));
       }
     }
+  }
+
+  // Add Charging Characteristics
+  // If per-APN characteristics is specified, pass it. Otherwise, pass the
+  // default value. The length values should be set to 0 if there is no value
+  // specified.
+  if (selected_apn_config_p->charging_characteristics.length > 0) {
+    memcpy(
+        &session_request_p->charging_characteristics,
+        &selected_apn_config_p->charging_characteristics,
+        sizeof(charging_characteristics_t));
+  } else {
+    memcpy(
+        &session_request_p->charging_characteristics,
+        &ue_mm_context->default_charging_characteristics,
+        sizeof(charging_characteristics_t));
   }
 
   if (ue_mm_context->pdn_contexts[pdn_cid]->pco) {
@@ -481,7 +497,8 @@ void nas_itti_sgsap_uplink_unitdata(
           "Failed to send SGSAP Uplink Unitdata to SMS_ORC8R task\n");
     } else {
       OAILOG_DEBUG_UE(
-          LOG_MME_APP, imsi64, "Sent SGSAP Uplink Unitdata to SMS_ORC8R task\n");
+          LOG_MME_APP, imsi64,
+          "Sent SGSAP Uplink Unitdata to SMS_ORC8R task\n");
     }
   } else {
     if (send_msg_to_task(&mme_app_task_zmq_ctx, TASK_SGS, message_p) !=

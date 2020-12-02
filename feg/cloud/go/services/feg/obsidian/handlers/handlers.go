@@ -18,6 +18,7 @@ import (
 	"net/http"
 
 	"magma/feg/cloud/go/feg"
+	"magma/feg/cloud/go/serdes"
 	fegModels "magma/feg/cloud/go/services/feg/obsidian/models"
 	"magma/feg/cloud/go/services/health"
 	lteHandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
@@ -66,7 +67,7 @@ const (
 
 func GetHandlers() []obsidian.Handler {
 	ret := []obsidian.Handler{
-		handlers.GetListGatewaysHandler(ListGatewaysPath, &fegModels.MutableFederationGateway{}, makeFederationGateways),
+		handlers.GetListGatewaysHandler(ListGatewaysPath, &fegModels.MutableFederationGateway{}, makeFederationGateways, serdes.Entity, serdes.Device),
 		{Path: ListGatewaysPath, Methods: obsidian.POST, HandlerFunc: createGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.GET, HandlerFunc: getGateway},
 		{Path: ManageGatewayPath, Methods: obsidian.PUT, HandlerFunc: updateGateway},
@@ -86,24 +87,24 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageFegLteNetworkRuleNamePath, Methods: obsidian.DELETE, HandlerFunc: lteHandlers.RemoveNetworkWideSubscriberRuleName},
 	}
 
-	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegModels.FegNetwork{})...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkFederationPath, &fegModels.NetworkFederationConfigs{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
-	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayFederationPath, &fegModels.GatewayFederationConfigs{})...)
+	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegNetworksPath, ManageFegNetworkPath, feg.FederationNetworkType, &fegModels.FegNetwork{}, serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkFederationPath, &fegModels.NetworkFederationConfigs{}, "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkRuleNamesPath, new(policyModels.RuleNames), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegNetworkBaseNamesPath, new(policyModels.BaseNames), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayFederationPath, &fegModels.GatewayFederationConfigs{}, serdes.Entity)...)
 
-	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegLteNetworksPath, ManageFegLteNetworkPath, feg.FederatedLteNetworkType, &fegModels.FegLteNetwork{})...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkFederationPath, &fegModels.FederatedNetworkConfigs{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkRuleNamesPath, new(policyModels.RuleNames), "")...)
-	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkBaseNamesPath, new(policyModels.BaseNames), "")...)
+	ret = append(ret, handlers.GetTypedNetworkCRUDHandlers(ListFegLteNetworksPath, ManageFegLteNetworkPath, feg.FederatedLteNetworkType, &fegModels.FegLteNetwork{}, serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkFederationPath, &fegModels.FederatedNetworkConfigs{}, "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkSubscriberPath, &policyModels.NetworkSubscriberConfig{}, "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkRuleNamesPath, new(policyModels.RuleNames), "", serdes.Network)...)
+	ret = append(ret, handlers.GetPartialNetworkHandlers(ManageFegLteNetworkBaseNamesPath, new(policyModels.BaseNames), "", serdes.Network)...)
 
 	return ret
 }
 
 func createGateway(c echo.Context) error {
-	if nerr := handlers.CreateGateway(c, &fegModels.MutableFederationGateway{}); nerr != nil {
+	if nerr := handlers.CreateGateway(c, &fegModels.MutableFederationGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusCreated)
@@ -123,6 +124,7 @@ func getGateway(c echo.Context) error {
 	ent, err := configurator.LoadEntity(
 		nid, feg.FegGatewayType, gid,
 		configurator.EntityLoadCriteria{LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
 	)
 	if err != nil {
 		return obsidian.HttpError(errors.Wrap(err, "failed to load federation gateway"), http.StatusInternalServerError)
@@ -146,7 +148,7 @@ func updateGateway(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	if nerr = handlers.UpdateGateway(c, nid, gid, &fegModels.MutableFederationGateway{}); nerr != nil {
+	if nerr = handlers.UpdateGateway(c, nid, gid, &fegModels.MutableFederationGateway{}, serdes.Entity, serdes.Device); nerr != nil {
 		return nerr
 	}
 	return c.NoContent(http.StatusNoContent)
@@ -207,7 +209,7 @@ func getClusterStatusHandler(c echo.Context) error {
 	if nerr != nil {
 		return nerr
 	}
-	network, err := configurator.LoadNetwork(nid, true, true)
+	network, err := configurator.LoadNetwork(nid, true, true, serdes.Network)
 	if err == merrors.ErrNotFound {
 		return c.NoContent(http.StatusNotFound)
 	}

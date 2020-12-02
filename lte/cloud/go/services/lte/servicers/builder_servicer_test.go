@@ -19,6 +19,7 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_plugin "magma/lte/cloud/go/plugin"
 	lte_mconfig "magma/lte/cloud/go/protos/mconfig"
+	"magma/lte/cloud/go/serdes"
 	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
@@ -31,6 +32,7 @@ import (
 	"magma/orc8r/cloud/go/storage"
 	"magma/orc8r/lib/go/protos"
 
+	"github.com/go-openapi/strfmt"
 	"github.com/go-openapi/swag"
 	"github.com/golang/protobuf/proto"
 	"github.com/stretchr/testify/assert"
@@ -136,6 +138,7 @@ func TestBuilder_Build(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -181,6 +184,7 @@ func TestBuilder_Build(t *testing.T) {
 		Services: []lte_mconfig.PipelineD_NetworkServices{
 			lte_mconfig.PipelineD_METERING,
 		},
+		HeConfig: &lte_mconfig.PipelineD_HEConfig{},
 	}
 	actual, err = build(&nw, &graph, "gw1")
 	assert.NoError(t, err)
@@ -266,6 +270,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -371,6 +376,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 			lte_mconfig.PipelineD_ENFORCEMENT,
 		},
 		SgiManagementIfaceVlan: "30",
+		HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -400,6 +406,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		},
 		SgiManagementIfaceVlan:   "44",
 		SgiManagementIfaceIpAddr: "1.2.3.4",
+		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -430,6 +437,7 @@ func TestBuilder_Build_NonNat(t *testing.T) {
 		SgiManagementIfaceVlan:   "55",
 		SgiManagementIfaceIpAddr: "1.2.3.4/24",
 		SgiManagementIfaceGw:     "1.2.3.1",
+		HeConfig:                 &lte_mconfig.PipelineD_HEConfig{},
 	}
 
 	actual, err = build(&nw, &graph, "gw1")
@@ -456,11 +464,21 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
 		},
 	}
+	heConfig := &lte_models.GatewayHeConfig{
+		EnableHeaderEnrichment: true,
+		EnableEncryption:       true,
+		HeEncryptionAlgorithm:  "RC4",
+		HeHashFunction:         "MD5",
+		HeEncodingType:         "BASE64",
+	}
+	gatewayConfig := newDefaultGatewayConfig()
+	gatewayConfig.HeConfig = heConfig
 	lteGW := configurator.NetworkEntity{
 		Type: lte.CellularGatewayEntityType, Key: "gw1",
-		Config:             newDefaultGatewayConfig(),
+		Config:             gatewayConfig,
 		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
 	}
+
 	graph := configurator.EntityGraph{
 		Entities: []configurator.NetworkEntity{lteGW, gw},
 		Edges: []configurator.GraphEdge{
@@ -512,6 +530,13 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 			DefaultRuleId: "",
 			Services: []lte_mconfig.PipelineD_NetworkServices{
 				lte_mconfig.PipelineD_ENFORCEMENT,
+			},
+			HeConfig: &lte_mconfig.PipelineD_HEConfig{
+				EnableHeaderEnrichment: true,
+				EnableEncryption:       true,
+				EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_RC4,
+				HashFunction:           lte_mconfig.PipelineD_HEConfig_MD5,
+				EncodingType:           lte_mconfig.PipelineD_HEConfig_BASE64,
 			},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
@@ -573,10 +598,13 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 	}
 	enb := configurator.NetworkEntity{
 		Type: lte.CellularEnodebEntityType, Key: "enb1",
-		Config: &lte_models.EnodebConfiguration{
-			CellID:          swag.Uint32(42),
-			DeviceClass:     "Baicells ID TDD/FDD",
-			TransmitEnabled: swag.Bool(true),
+		Config: &lte_models.EnodebConfig{
+			ConfigType: "MANAGED",
+			ManagedConfig: &lte_models.EnodebConfiguration{
+				CellID:          swag.Uint32(42),
+				DeviceClass:     "Baicells ID TDD/FDD",
+				TransmitEnabled: swag.Bool(true),
+			},
 		},
 		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
 	}
@@ -647,6 +675,131 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 				lte_mconfig.PipelineD_ENFORCEMENT,
 			},
 			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
+		},
+		"subscriberdb": &lte_mconfig.SubscriberDB{
+			LogLevel:        protos.LogLevel_INFO,
+			LteAuthOp:       []byte("\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11\x11"),
+			LteAuthAmf:      []byte("\x80\x00"),
+			SubProfiles:     nil,
+			HssRelayEnabled: false,
+		},
+		"policydb": &lte_mconfig.PolicyDB{
+			LogLevel: protos.LogLevel_INFO,
+		},
+		"sessiond": &lte_mconfig.SessionD{
+			LogLevel:         protos.LogLevel_INFO,
+			GxGyRelayEnabled: false,
+			WalletExhaustDetection: &lte_mconfig.WalletExhaustDetection{
+				TerminateOnExhaust: false,
+			},
+		},
+		"dnsd": &lte_mconfig.DnsD{
+			LogLevel:          protos.LogLevel_INFO,
+			DhcpServerEnabled: true,
+		},
+	}
+
+	actual, err := build(&nw, &graph, "gw1")
+	assert.NoError(t, err)
+	assert.Equal(t, expected, actual)
+}
+
+func TestBuilder_BuildUnmanagedEnbConfig(t *testing.T) {
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
+	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
+	lte_test_init.StartTestService(t)
+
+	nw := configurator.Network{
+		ID: "n1",
+		Configs: map[string]interface{}{
+			lte.CellularNetworkConfigType: lte_models.NewDefaultTDDNetworkConfig(),
+			orc8r.DnsdNetworkType: &models.NetworkDNSConfig{
+				EnableCaching: swag.Bool(true),
+			},
+		},
+	}
+	gw := configurator.NetworkEntity{
+		Type: orc8r.MagmadGatewayType, Key: "gw1",
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularGatewayEntityType, Key: "gw1"},
+		},
+	}
+	lteGW := configurator.NetworkEntity{
+		Type: lte.CellularGatewayEntityType, Key: "gw1",
+		Config: newDefaultGatewayConfig(),
+		Associations: []storage.TypeAndKey{
+			{Type: lte.CellularEnodebEntityType, Key: "enb1"},
+		},
+		ParentAssociations: []storage.TypeAndKey{gw.GetTypeAndKey()},
+	}
+	enb := configurator.NetworkEntity{
+		Type: lte.CellularEnodebEntityType, Key: "enb1",
+		Config:             newDefaultUnmanagedEnodebConfig(),
+		ParentAssociations: []storage.TypeAndKey{lteGW.GetTypeAndKey()},
+	}
+	graph := configurator.EntityGraph{
+		Entities: []configurator.NetworkEntity{enb, lteGW, gw},
+		Edges: []configurator.GraphEdge{
+			{From: gw.GetTypeAndKey(), To: lteGW.GetTypeAndKey()},
+			{From: lteGW.GetTypeAndKey(), To: enb.GetTypeAndKey()},
+		},
+	}
+
+	expected := map[string]proto.Message{
+		"enodebd": &lte_mconfig.EnodebD{
+			LogLevel: protos.LogLevel_INFO,
+			Pci:      260,
+			TddConfig: &lte_mconfig.EnodebD_TDDConfig{
+				Earfcndl:               44590,
+				SubframeAssignment:     2,
+				SpecialSubframePattern: 7,
+			},
+			BandwidthMhz:        20,
+			AllowEnodebTransmit: true,
+			Tac:                 1,
+			PlmnidList:          "00101",
+			CsfbRat:             lte_mconfig.EnodebD_CSFBRAT_2G,
+			Arfcn_2G:            nil,
+			EnbConfigsBySerial: map[string]*lte_mconfig.EnodebD_EnodebConfig{
+				"enb1": {
+					CellId:    138777000,
+					Tac:       1,
+					IpAddress: "192.168.0.124",
+				},
+			},
+		},
+		"mobilityd": &lte_mconfig.MobilityD{
+			LogLevel: protos.LogLevel_INFO,
+			IpBlock:  "192.168.128.0/24",
+		},
+		"mme": &lte_mconfig.MME{
+			LogLevel:                 protos.LogLevel_INFO,
+			Mcc:                      "001",
+			Mnc:                      "01",
+			Tac:                      1,
+			MmeCode:                  1,
+			MmeGid:                   1,
+			NonEpsServiceControl:     lte_mconfig.MME_NON_EPS_SERVICE_CONTROL_OFF,
+			CsfbMcc:                  "001",
+			CsfbMnc:                  "01",
+			Lac:                      1,
+			HssRelayEnabled:          false,
+			CloudSubscriberdbEnabled: false,
+			EnableDnsCaching:         false,
+			AttachedEnodebTacs:       []int32{1},
+			NatEnabled:               true,
+		},
+		"pipelined": &lte_mconfig.PipelineD{
+			LogLevel:      protos.LogLevel_INFO,
+			UeIpBlock:     "192.168.128.0/24",
+			NatEnabled:    true,
+			DefaultRuleId: "",
+			Services: []lte_mconfig.PipelineD_NetworkServices{
+				lte_mconfig.PipelineD_ENFORCEMENT,
+			},
+			SgiManagementIfaceVlan: "",
+			HeConfig:               &lte_mconfig.PipelineD_HEConfig{},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -677,11 +830,11 @@ func TestBuilder_BuildInheritedProperties(t *testing.T) {
 }
 
 func build(network *configurator.Network, graph *configurator.EntityGraph, gatewayID string) (map[string]proto.Message, error) {
-	networkProto, err := network.ToStorageProto()
+	networkProto, err := network.ToProto(serdes.Network)
 	if err != nil {
 		return nil, err
 	}
-	graphProto, err := graph.ToStorageProto()
+	graphProto, err := graph.ToProto(serdes.Entity)
 	if err != nil {
 		return nil, err
 	}
@@ -722,6 +875,7 @@ func newDefaultGatewayConfig() *lte_models.GatewayCellularConfigs {
 			EnableCaching:     swag.Bool(false),
 			LocalTTL:          swag.Int32(0),
 		},
+		HeConfig: &lte_models.GatewayHeConfig{},
 	}
 }
 
@@ -751,20 +905,36 @@ func newGatewayConfigNonNat(vlan string, sgi_ip string, sgi_gw string) *lte_mode
 			EnableCaching:     swag.Bool(false),
 			LocalTTL:          swag.Int32(0),
 		},
+		HeConfig: &lte_models.GatewayHeConfig{},
 	}
 }
 
-func newDefaultEnodebConfig() *lte_models.EnodebConfiguration {
-	return &lte_models.EnodebConfiguration{
-		Earfcndl:               39150,
-		SubframeAssignment:     2,
-		SpecialSubframePattern: 7,
-		Pci:                    260,
-		CellID:                 swag.Uint32(138777000),
-		Tac:                    15000,
-		BandwidthMhz:           20,
-		TransmitEnabled:        swag.Bool(true),
-		DeviceClass:            "Baicells ID TDD/FDD",
+func newDefaultEnodebConfig() *lte_models.EnodebConfig {
+	return &lte_models.EnodebConfig{
+		ConfigType: "MANAGED",
+		ManagedConfig: &lte_models.EnodebConfiguration{
+			Earfcndl:               39150,
+			SubframeAssignment:     2,
+			SpecialSubframePattern: 7,
+			Pci:                    260,
+			CellID:                 swag.Uint32(138777000),
+			Tac:                    15000,
+			BandwidthMhz:           20,
+			TransmitEnabled:        swag.Bool(true),
+			DeviceClass:            "Baicells ID TDD/FDD",
+		},
+	}
+}
+
+func newDefaultUnmanagedEnodebConfig() *lte_models.EnodebConfig {
+	ip := strfmt.IPv4("192.168.0.124")
+	return &lte_models.EnodebConfig{
+		ConfigType: "UNMANAGED",
+		UnmanagedConfig: &lte_models.UnmanagedEnodebConfiguration{
+			CellID:    swag.Uint32(138777000),
+			Tac:       swag.Uint32(1),
+			IPAddress: &ip,
+		},
 	}
 }
 

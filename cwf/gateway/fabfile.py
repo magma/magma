@@ -178,11 +178,6 @@ def transfer_artifacts(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml",
     if get_core_dump == "True":
         execute(_tar_coredump, gateway_vm=gateway_vm, gateway_ansible_file=gateway_ansible_file)
 
-    # get uesim logs
-    _switch_to_vm(None, "cwag_test", "cwag_test.yml", False)
-    uesim_log = 'uesim.log'
-    with cd(f'{CWAG_ROOT}'):
-        run('tmux capture-pane -pt "$target-pane" >>' + uesim_log)
 
 def _tar_coredump(gateway_vm="cwag", gateway_ansible_file="cwag_dev.yml"):
     _switch_to_vm_no_destroy(None, gateway_vm, gateway_ansible_file)
@@ -360,7 +355,7 @@ def _check_docker_services(ignoreList):
             if result.return_code == 1:
                 # grep returns code 1 when empty string
                 return
-            print("Container restarting detected. Tryin one more time")
+            print("Container restarting detected. Trying one more time")
             count+=1
     # if we got here, that means all attempts failed
     print("ERROR: Test NOT started due to docker container restarting")
@@ -368,9 +363,9 @@ def _check_docker_services(ignoreList):
 
 
 def _start_ue_simulator():
-    """ Starts the UE Sim Service """
+    """ Starts the UE Sim Service and logs into uesim.log"""
     with cd(CWAG_ROOT + '/services/uesim/uesim'):
-        run('tmux new -d \'go run main.go -logtostderr=true -v=2\'')
+        run('tmux new -d \'go run main.go -logtostderr=true -v=9 &> %s/uesim.log\'' % CWAG_ROOT)
 
 
 def _start_trfserver():
@@ -402,11 +397,11 @@ def _run_integ_tests(test_host, trf_host, tests_to_run: SubTests,
     if test_re:
         shell_env_vars["TESTS"] = test_re
 
-    # QOS take a while to run. Increasing the timeout to 20m
+    # QOS take a while to run. Increasing the timeout to 50m
     go_test_cmd = "gotestsum --format=standard-verbose "
     if test_result_xml: # generate test result XML in cwf/gateway directory
         go_test_cmd += "--junitfile ../" + test_result_xml + " "
-    go_test_cmd += " -- -test.short -timeout 20m" # go test args
+    go_test_cmd += " -- -test.short -timeout 50m" # go test args
     go_test_cmd += " -tags=" + tests_to_run.value
     if test_re:
         go_test_cmd += " -run=" + test_re
