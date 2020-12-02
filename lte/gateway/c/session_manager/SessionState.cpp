@@ -217,6 +217,11 @@ void SessionState::insert_pdr(SetGroupPDR* rule) {
   PdrList_.push_back(*rule);
 }
 
+void SessionState::set_remove_all_pdrs() {
+  for (auto& rule : PdrList_) {
+    rule.set_pdr_state(PdrState::REMOVE);
+  }
+}
 /* Remove all Pdr, FAR rules */
 void SessionState::remove_all_rules() {
   PdrList_.clear();
@@ -599,7 +604,8 @@ bool SessionState::active_monitored_rules_exist() {
 }
 
 bool SessionState::is_terminating() {
-  if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED) {
+  if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED ||
+      curr_state_ == RELEASE) {
     return true;
   }
   return false;

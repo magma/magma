@@ -41,13 +41,13 @@ void call_back_upf(grpc::Status, magma::UPFSessionContextState response) {
   uint32_t fteid               = response.session_snaphot().local_f_teid();
   const std::string session_id = response.session_snaphot().subscriber_id();
   MLOG(MINFO) << " Async Response received from UPF: imsi " << imsi
-              << " local fteid : " << fteid << " Moving to Active State ";
+              << " local fteid : " << fteid;
   conv_session_enforcer->get_event_base().runInEventBaseThread(
       [imsi, fteid, version]() {
         /* Update the state change, and notifiy to AMF */
         // For now fteid will be zero in all cases
         conv_session_enforcer->m5g_update_session_state_to_amf(
-            imsi, fteid, version, ACTIVE);
+            imsi, fteid, version);
       });
 }
 
@@ -139,6 +139,7 @@ void SessionStateEnforcer::handle_session_init_rule_updates(
   auto update_criteria = get_default_update_criteria();
   session_state.set_local_teid(l_teid, update_criteria);
   session_state.set_fsm_state(CREATED, update_criteria);
+  MLOG(MINFO) << " Teid " << session_state.get_local_teid();
   uint32_t cur_version = session_state.get_current_version();
   session_state.set_current_version(++cur_version, update_criteria);
 
@@ -268,36 +269,36 @@ void SessionStateEnforcer::m5g_handle_termination_on_timeout(
 void SessionStateEnforcer::m5g_complete_termination(
     SessionMap& session_map, const std::string& imsi,
     const std::string& session_id, SessionUpdate& session_update) {
-  auto map_element = session_map.find(imsi);
-  if (map_element == session_map.end()) {
-    MLOG(MERROR) << "No session found in SessionMap for IMSI " << imsi
-                 << " during terminating session_id " << session_id
-                 << "skipping termination";
-    return;
+  // If the session cannot be found in session_map, or a new session has
+  // already begun, do nothing.
+  SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+  auto session_it = session_store_.find_session(session_map, criteria);
+  if (!session_it) {
+    // Session is already deleted, or new session already began, ignore.
+    MLOG(MDEBUG) << "Could not find session for IMSI " << imsi
+                 << " and session ID " << session_id
+                 << ". Skipping termination.";
   }
-
-  SessionStateUpdateCriteria& session_uc = session_update[imsi][session_id];
-
-  for (auto session_element = map_element->second.begin();
-       session_element != map_element->second.end(); ++session_element) {
-    if ((*session_element)->get_session_id() == session_id) {
-      session_uc.is_session_ended = true;
-      /*Removing session from map*/
-      map_element->second.erase(session_element--);
-      MLOG(MINFO) << "Successfully terminated session " << session_id;
-      /* If it is last session terminated and no session left for this IMSI
-       * remove the imsi as well
-       */
-      if (map_element->second.size() == 0) {
-        session_map.erase(imsi);
-        MLOG(MINFO) << "All sessions terminated for IMSI " << imsi;
-      }
-      return;
-    }
-  }  // end of for loop
-  // reached end of map and no session found.
-  MLOG(MINFO) << "No session found to complete termination"
-              << " session id " << session_id;
+  auto& session    = **session_it;
+  auto& session_uc = session_update[imsi][session_id];
+  if (!session->can_complete_termination(session_uc)) {
+    return;  // error is logged in SessionState's complete_termination
+  }
+  // Now remove all rules
+  session->remove_all_rules();
+  // Release and maintain TEID trakcing data structure TODO
+  session_uc.is_session_ended = true;
+  /*Removing session from map*/
+  session_map[imsi].erase(*session_it);
+  MLOG(MINFO) << session_id << " deleted from SessionMap";
+  /* If it is last session terminated and no session left for this IMSI
+   * remove the imsi as well
+   */
+  if (session_map[imsi].size() == 0) {
+    session_map.erase(imsi);
+    MLOG(MINFO) << "All sessions terminated for IMSI " << imsi;
+  }
+  MLOG(MINFO) << "Successfully terminated session " << session_id;
   return;
 }
 
@@ -308,16 +309,19 @@ void SessionStateEnforcer::m5g_remove_rules_and_update_upf(
   // remove all rules;
   MLOG(MINFO) << "Will be removing all associated rules of session id "
               << session->get_session_id();
-  session->remove_all_rules();
   auto ip_addr = session->get_config()
                      .rat_specific_context.m5gsm_session_context()
                      .pdu_address()
                      .redirect_server_address();
   // Update to UPF
   SessionState::SessionInfo sess_info;
-  sess_info.imsi    = imsi;
-  sess_info.ip_addr = ip_addr;
+  sess_info.imsi         = imsi;
+  sess_info.ip_addr      = ip_addr;
+  sess_info.local_f_teid = session->get_local_teid();
   session->sess_infocopy(&sess_info);
+  // Set PDR state as  REMOVE for all PDRs
+  session->set_remove_all_pdrs();
+  sess_info.Pdr_rules_ = session->get_all_pdr_rules();
   pipelined_client_->set_upf_session(sess_info, call_back_upf);
   return;
 }
@@ -331,8 +335,7 @@ void SessionStateEnforcer::m5g_remove_rules_and_update_upf(
  * new_state - state change required w.r.t. UPF message
  */
 void SessionStateEnforcer::m5g_update_session_state_to_amf(
-    const std::string& imsi, uint32_t teid, uint32_t version,
-    SessionFsmState new_state) {
+    const std::string& imsi, uint32_t teid, uint32_t version) {
   auto session_map = session_store_.read_sessions({imsi});
   /* Search with session search criteria of IMSI and session_id and
    * find  respective sesion to operate
@@ -344,24 +347,40 @@ void SessionStateEnforcer::m5g_update_session_state_to_amf(
                  << " with teid " << teid;
     return;
   }
+  bool amf_update_pending = false;
+  uint32_t cur_version;
   auto& session       = **session_it;
   auto session_update = SessionStore::get_default_session_update(session_map);
   SessionStateUpdateCriteria& session_uc =
       session_update[imsi][session->get_session_id()];
-  session->set_fsm_state(new_state, session_uc);
-  uint32_t cur_version = session->get_current_version();
-  session->set_current_version(++cur_version, session_uc);
-  bool update_success = session_store_.update_sessions(session_update);
-  if (update_success) {
-    MLOG(MINFO) << "Updated SessionStore SessionState based on UPF message "
-                << " with session_id" << session->get_session_id();
-  } else {
-    MLOG(MERROR) << "Failed to update SessionStore based on UPF message"
-                 << " with session_id" << session->get_session_id();
+  switch (session->get_state()) {
+    case CREATED:
+      session->set_fsm_state(ACTIVE, session_uc);
+      cur_version = session->get_current_version();
+      session->set_current_version(++cur_version, session_uc);
+      amf_update_pending = true;
+      break;
+    case RELEASE:
+      m5g_complete_termination(
+          session_map, imsi, session->get_session_id(), session_update);
+    default:
+      break;
   }
-  /* Update the state change notification to AMF */
-  handle_state_update_to_amf(
-      imsi, *session, magma::lte::M5GSMCause::OPERATION_SUCCESS);
+  if (amf_update_pending) {
+    bool update_success = session_store_.update_sessions(session_update);
+    if (update_success) {
+      MLOG(MINFO) << "Updated SessionStore SessionState based on UPF message "
+                  << " with session_id" << session->get_session_id();
+    } else {
+      MLOG(MERROR) << "Failed to update SessionStore based on UPF message"
+                   << " with session_id" << session->get_session_id();
+    }
+    /* Update the state change notification to AMF */
+    handle_state_update_to_amf(
+        imsi, *session, magma::lte::M5GSMCause::OPERATION_SUCCESS);
+  } else {
+    session_store_.update_sessions(session_update);
+  }
 }
 
 /* To prepare response back to AMF
@@ -456,26 +475,19 @@ void SessionStateEnforcer::handle_state_update_to_amf(
 bool SessionStateEnforcer::static_rule_init() {
   // Static PDR, FAR, QDR, URR and BAR mapping  and also define 1 PDR and FAR
   SetGroupPDR reqpdr1;
-  Action Value = FORW;
+  Action Value   = FORW;
+  uint32_t count = 0;
 
-  reqpdr1.set_pdr_id(1);
+  reqpdr1.set_pdr_id(++count);
   reqpdr1.set_precedence(32);
   reqpdr1.set_pdr_version(1);
   reqpdr1.set_pdr_state(PdrState::INSTALL);
-  // reqpdddr1.mutable_pdi()->set_src_interface(3);
-  reqpdr1.mutable_pdi()->set_local_f_teid(
-      pipelined_client_->get_current_teid());
+
   reqpdr1.mutable_pdi()->set_ue_ip_adr("192.168.128.11");
   reqpdr1.mutable_pdi()->set_net_instance("uplink");
   reqpdr1.set_o_h_remo_desc(0);
   reqpdr1.mutable_set_gr_far()->add_far_action_to_apply(Value);
-  reqpdr1.mutable_set_gr_far()->set_far_id(1);
-  // Fill the  action apply
-  // reqpdr1.mutable_set_gr_far()
-  //    ->mutable_fwd_parm()
-  //   ->mutable_outr_head_cr()
-  //  ->set_o_teid(200);
-  // Filling qos params
+  reqpdr1.mutable_set_gr_far()->set_far_id(count);
   reqpdr1.mutable_activate_flow_req()->mutable_request_origin()->set_type(
       RequestOriginType_OriginType_N4);
   // Add rule 1
@@ -485,9 +497,6 @@ bool SessionStateEnforcer::static_rule_init() {
   FlowDescription fd1;
   fd1.mutable_match()->set_ipv4_dst("192.168.0.0/16");
   fd1.mutable_match()->set_direction(FlowMatch_Direction_UPLINK);
-  // fd1.mutable_match()->set_ip_proto(FlowMatch_IPProto_IPPROTO_TCP);
-  // fd1.mutable_match()->set_tcp_dst(430);
-  // fd1.mutable_match()->set_tcp_src(430);
   fd1.set_action(FlowDescription_Action_PERMIT);
   rule1.mutable_flow_list()->Add()->CopyFrom(fd1);
   reqpdr1.mutable_activate_flow_req()->mutable_dynamic_rules()->Add()->CopyFrom(
@@ -495,7 +504,7 @@ bool SessionStateEnforcer::static_rule_init() {
   GlobalRuleList.insert_rule(1, reqpdr1);
   // PDR 2 details
   SetGroupPDR reqpdr2;
-  reqpdr2.set_pdr_id(2);
+  reqpdr2.set_pdr_id(++count);
   reqpdr2.set_precedence(32);
   reqpdr2.set_pdr_version(1);
   reqpdr2.set_pdr_state(PdrState::INSTALL);
@@ -503,7 +512,7 @@ bool SessionStateEnforcer::static_rule_init() {
   reqpdr2.mutable_pdi()->set_ue_ip_adr("192.168.128.11");
   reqpdr2.mutable_set_gr_far()->add_far_action_to_apply(Value);
   reqpdr2.mutable_set_gr_far()->set_far_id(2);
-  //  reqpdr1.mutable_set_gr_far()->mutable_fwd_parm()->set_dest_iface(9);
+  reqpdr2.mutable_set_gr_far()->set_far_id(count);
 
   reqpdr2.mutable_set_gr_far()
       ->mutable_fwd_parm()
@@ -518,10 +527,6 @@ bool SessionStateEnforcer::static_rule_init() {
   reqpdr2.mutable_activate_flow_req()->mutable_request_origin()->set_type(
       RequestOriginType_OriginType_N4);
   // For rule 1 change the driection alone
-  fd1.mutable_match()->set_direction(FlowMatch_Direction_DOWNLINK);
-  // fd1.mutable_match()->set_ip_proto(FlowMatch_IPProto_IPPROTO_TCP);
-  // fd1.mutable_match()->set_tcp_dst(430);
-  // fd1.mutable_match()->set_tcp_src(430);
   PolicyRule rule2;
   rule2.set_id("rule2");
   rule2.set_priority(10);
@@ -532,39 +537,53 @@ bool SessionStateEnforcer::static_rule_init() {
   rule2.mutable_flow_list()->Add()->CopyFrom(fd2);
   reqpdr2.mutable_activate_flow_req()->mutable_dynamic_rules()->Add()->CopyFrom(
       rule2);
-
-  reqpdr2.mutable_activate_flow_req()->mutable_dynamic_rules()->Add()->CopyFrom(
-      rule2);
   GlobalRuleList.insert_rule(2, reqpdr2);
 
-#if 0
-  FlowDescription fd2;
-  fd2.mutable_match()->set_ipv4_dst("192.168.129.0/24");
-  fd2.mutable_match()->set_ipv4_src("192.168.2.0");
-  fd2.mutable_match()->set_direction(FlowMatch_Direction_DOWNLINK);
-//  fd2.mutable_match()->set_app_name("youtube");
-//  fd2.mutable_match()->set_ip_proto(FlowMatch_IPProto_IPPROTO_TCP);
- // fd2.mutable_match()->set_tcp_dst(430); 
- // fd2.mutable_match()->set_tcp_src(430); 
-  fd2.set_action(FlowDescription_Action_PERMIT); 
-  PolicyRule rule2;
-#endif
-#if 0
-        // Add rule 2
-  reqpdr2.set_pdr_id(2);
-  reqpdr2.set_sess_ver_no(1);
-  reqpdr2.set_precedence(2);
-  reqpdr2.set_far_id(2);
-  pdireq.set_src_interface(3);
-  pdireq.set_net_instance("uplink");
-  pdireq.set_ue_ip_adr("10.10.1.2");
-  GlobalRuleList.insert_rule(2, reqpdr2);
-#endif
   // subscriber Id 1 to PDR 1 and FAR 1
+  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000001", 1));
+  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000001", 2));
   pdr_map_.insert(std::pair<std::string, uint32_t>("IMSI001222333", 1));
   pdr_map_.insert(std::pair<std::string, uint32_t>("IMSI001222333", 2));
-  // subscriber Id 2  PDR list shud 2 and 4, far list also 2 and 4
-  //  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000002", 2));
+  reqpdr1.set_pdr_id(++count);
+  reqpdr1.mutable_set_gr_far()->set_far_id(count);
+  reqpdr1.mutable_pdi()->set_ue_ip_adr("192.168.128.12");
+  GlobalRuleList.insert_rule(3, reqpdr1);
+  reqpdr2.set_pdr_id(++count);
+  reqpdr2.mutable_set_gr_far()->set_far_id(count);
+  reqpdr2.mutable_pdi()->set_ue_ip_adr("192.168.128.12");
+  reqpdr2.mutable_set_gr_far()
+      ->mutable_fwd_parm()
+      ->mutable_outr_head_cr()
+      ->set_o_teid(200 + count);
+  GlobalRuleList.insert_rule(4, reqpdr2);
+  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000002", 3));
+  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000002", 4));
+  reqpdr1.set_pdr_id(++count);
+  reqpdr1.mutable_set_gr_far()->set_far_id(count);
+  reqpdr1.mutable_pdi()->set_ue_ip_adr("192.168.128.13");
+  GlobalRuleList.insert_rule(5, reqpdr1);
+  reqpdr2.set_pdr_id(++count);
+  reqpdr2.mutable_set_gr_far()->set_far_id(count);
+  reqpdr2.mutable_pdi()->set_ue_ip_adr("192.168.128.13");
+  reqpdr2.mutable_set_gr_far()
+      ->mutable_fwd_parm()
+      ->mutable_outr_head_cr()
+      ->set_o_teid(200 + count);
+  GlobalRuleList.insert_rule(6, reqpdr2);
+  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000003", 5));
+  pdr_map_.insert(std::pair<std::string, uint32_t>("imsi00000000003", 6));
+  reqpdr1.set_pdr_id(++count);
+  reqpdr1.mutable_set_gr_far()->set_far_id(count);
+  reqpdr1.mutable_pdi()->set_ue_ip_adr("192.168.128.14");
+  GlobalRuleList.insert_rule(7, reqpdr1);
+  reqpdr2.set_pdr_id(++count);
+  reqpdr2.mutable_set_gr_far()->set_far_id(count);
+  reqpdr2.mutable_pdi()->set_ue_ip_adr("192.168.128.14");
+  reqpdr2.mutable_set_gr_far()
+      ->mutable_fwd_parm()
+      ->mutable_outr_head_cr()
+      ->set_o_teid(200 + count);
+  GlobalRuleList.insert_rule(8, reqpdr2);
   return true;
 }
 }  // end namespace magma
