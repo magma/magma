@@ -104,22 +104,21 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {/*ngap_amf_handle_path_switch_request*/ 0, 0,
      0},       /* TODO PathSwitchRequest */
     {0, 0, 0}, /* HandoverCancel */
-
-    {0, 0, /*ngap_amf_handle_pduSession_setup_failure*/ 0}, /* TODO PduSession*/
-    {0, 0, 0}, /* PduSessionModify */
-    {0, /* ngap_amf_handle_pduSession_release_response*/ 0,
-     0},       /*TODO  PduSessionRelease */
-    {0, 0, 0}, /* PduSessionReleaseIndication */
+    {0, 0 /*ngap_amf_handle_pduSession_setup_response*/,
+     0 /*ngap_amf_handle_pduSession_setup_failure*/}, /* TODO PduSession*/
+    {0, 0, 0},                                        /*Padding */
+    {0, 0, 0},                                        /*Padding */
+    {0, 0, 0},                                        /* PduSessionModify */
+    {0, ngap_amf_handle_pduSession_release_response,
+     0},                                       /*TODO  PduSessionRelease */
+    {0, 0, 0},                                 /* PduSessionReleaseIndication */
+    {0, 0, 0},                                 /* Paging */
+    {/*ngap_amf_handle_gnb_reset*/ 0, 0, 0},   /* TODO Reset */
+    {ngap_amf_handle_error_ind_message, 0, 0}, /*  ErrorIndication */
     {0, ngap_amf_handle_initial_context_setup_response,
      ngap_amf_handle_initial_context_setup_failure}, /* InitialContextSetup */
-    {0, 0, 0},                                       /* Paging */
-    {0, 0, 0},                                       /* downlinkNASTransport */
     {ngap_amf_handle_initial_ue_message, 0, 0},      /* initialUEMessage */
-    {ngap_amf_handle_uplink_nas_transport, 0, 0},    /* uplinkNASTransport */
-    {/*ngap_amf_handle_gnb_reset*/ 0, 0, 0},         /* TODO Reset */
-    {ngap_amf_handle_error_ind_message, 0, 0},       /*  ErrorIndication */
     {ngap_amf_handle_nas_non_delivery, 0, 0}, /* NASNonDeliveryIndication */
-    {ngap_amf_handle_ng_setup_request, 0, 0}, /* NGSetup */
     {ngap_amf_handle_ue_context_release_request, 0,
      0},       /* UEContextReleaseRequest */
     {0, 0, 0}, /* DownlinkNgcdma2000tunneling */
@@ -127,14 +126,13 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {0, ngap_amf_handle_ue_context_modification_response,
      ngap_amf_handle_ue_context_modification_failure}, /* UEContextModification
                                                         */
+    {ngap_amf_handle_ng_setup_request, 0, 0},          /* NGSetup */
     {/*ngap_amf_handle_ue_cap_indication*/ 0, 0,
-     0}, /* TODO UECapabilityInfoIndication */
-    {ngap_amf_handle_ue_context_release_request,
-     ngap_amf_handle_ue_context_release_complete, 0}, /* UEContextRelease */
-    {0, 0, 0},                                        /* gNBStatusTransfer */
-    {0, 0, 0},                                        /* AMFStatusTransfer */
-    {0, 0, 0},                                        /* DeactivateTrace */
-    {0, 0, 0},                                        /* TraceStart */
+     0},       /* TODO UECapabilityInfoIndication */
+    {0, 0, 0}, /* gNBStatusTransfer */
+    {0, 0, 0}, /* AMFStatusTransfer */
+    {0, 0, 0}, /* DeactivateTrace */
+    {0, 0, 0}, /* TraceStart */
     {0, 0, 0}, /* TraceFailureIndication */
     {0, 0, 0}, /* GNBConfigurationUpdate */
     {0, 0, 0}, /* AMFConfigurationUpdate */
@@ -147,14 +145,18 @@ ngap_message_handler_t ngap_message_handlers[][3] = {
     {0, 0, 0}, /* gNBDirectInformationTransfer */
     {0, 0, 0}, /* AMFDirectInformationTransfer */
     {0, 0, 0}, /* PrivateMessage */
-               // {ngap_amf_handle_gnb_configuration_transfer, 0,  /*TODO*/
-               //  0},       /* gNBConfigurationTransfer */
+    {/*ngap_amf_handle_gnb_configuration_transfer*/ 0, 0,
+     0},       /* TODO gNBConfigurationTransfer */
     {0, 0, 0}, /* AMFConfigurationTransfer */
-    {0, 0, 0}, /* CellTrafficTrace */
-               // UPDATE RELEASE 9
-    {0, 0, 0}, /* Kill */
+    {ngap_amf_handle_ue_context_release_request,
+     ngap_amf_handle_ue_context_release_complete, 0}, /* UEContextRelease */
+    {0, 0, 0},                                        /* CellTrafficTrace */
+                                                      // UPDATE RELEASE 9
+    {0, 0, 0},                                        /* Kill */
     {0, 0, 0}, /* DownlinkUEAssociatedLPPaTransport  */
     {0, 0, 0}, /* UplinkUEAssociatedLPPaTransport */
+    {ngap_amf_handle_uplink_nas_transport, 0, 0}, /* uplinkNASTransport */
+    {0, 0, 0},                                    /* downlinkNASTransport */
     {0, 0, 0}, /* DownlinkNonUEAssociatedLPPaTransport */
     {0, 0, 0}, /* UplinkNonUEAssociatedLPPaTransport */
 };
