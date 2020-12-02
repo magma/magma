@@ -112,7 +112,7 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
               stream, SCTP_DATA_REQ(received_message_p).amf_ue_ngap_id, false);
         } else {
           OAILOG_ERROR(
-              LOG_SCTP, "pid not matching in sctp_itti_send_lower_layer_conf ");
+              LOG_SCTP, "ppid not matching in sctp_itti_send_lower_layer_conf ");
         }
       }
     } break;
