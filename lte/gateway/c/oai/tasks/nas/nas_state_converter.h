@@ -360,6 +360,14 @@ class NasStateConverter : StateConverter {
   static void proto_to_emm_security_context(
       const oai::EmmSecurityContext& emm_security_context_proto,
       emm_security_context_t* state_emm_security_context);
+
+  static void nw_detach_data_to_proto(
+      nw_detach_data_t* detach_timer_arg,
+      oai::NwDetachData* detach_timer_arg_proto);
+
+  static void proto_to_nw_detach_data(
+      const oai::NwDetachData& detach_timer_arg_proto,
+      nw_detach_data_t** detach_timer_arg);
 };
 
 }  // namespace lte

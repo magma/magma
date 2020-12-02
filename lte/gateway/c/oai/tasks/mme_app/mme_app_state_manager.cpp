@@ -154,6 +154,23 @@ void MmeNasStateManager::create_hashtables() {
   bassigncstr(b, UE_ID_UE_CTXT_TABLE_NAME);
   state_ue_ht = hashtable_ts_create(
       max_ue_htbl_lists_, nullptr, mme_app_state_free_ue_context, b);
+
+  if (!(state_ue_ht->lock_attr = (pthread_mutexattr_t*) calloc(
+            max_ue_htbl_lists_, sizeof(pthread_mutexattr_t)))) {
+    free_wrapper((void**) &state_ue_ht->lock_nodes);
+    free_wrapper((void**) &state_ue_ht->nodes);
+    free_wrapper((void**) &state_ue_ht->name);
+    free_wrapper((void**) &state_ue_ht);
+    return;
+  }
+
+  for (int i = 0; i < max_ue_htbl_lists_; i++) {
+    pthread_mutexattr_init(&state_ue_ht->lock_attr[i]);
+    pthread_mutexattr_settype(
+        &state_ue_ht->lock_attr[i], PTHREAD_MUTEX_RECURSIVE);
+    pthread_mutex_init(&state_ue_ht->lock_nodes[i], &state_ue_ht->lock_attr[i]);
+  }
+
   btrunc(b, 0);
   bassigncstr(b, ENB_UE_ID_MME_UE_ID_TABLE_NAME);
   state_cache_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl =

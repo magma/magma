@@ -16,7 +16,7 @@
  */
 
 /*****************************************************************************
-Source      esmData.h
+Source      esm_data.h
 
 Version     0.1
 
@@ -173,8 +173,6 @@ struct esm_proc_data_s;
  */
 typedef struct esm_context_s {
   int n_active_ebrs; /* Total number of active EPS bearer contexts   */
-  int n_active_pdns; /* Number of active PDN connections     */
-  int n_pdns;
   bool is_emergency; /* Indicates whether a PDN connection for emergency bearer
                         services is established       */
   struct esm_proc_data_s* esm_proc_data;
