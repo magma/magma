@@ -860,10 +860,6 @@ void s1ap_handle_conn_est_cnf(
       imsi_map->mme_ue_id_imsi_htbl, (const hash_key_t) conn_est_cnf_pP->ue_id,
       &imsi64);
 
-  /*
-   * Start the outcome response timer.
-   * * * * When time is reached, MME consider that procedure outcome has failed.
-   */
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =
       S1ap_ProcedureCode_id_InitialContextSetup;

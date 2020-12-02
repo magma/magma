@@ -212,7 +212,6 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case SCTP_CLOSE_ASSOCIATION:
       // DO nothing
       break;
-
     default:;
   }
 }
