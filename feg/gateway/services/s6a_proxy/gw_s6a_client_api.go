@@ -14,11 +14,11 @@ limitations under the License.
 package s6a_proxy
 
 import (
+	"context"
 	"errors"
 	"fmt"
 
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 
 	"magma/feg/cloud/go/protos"
