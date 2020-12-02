@@ -533,10 +533,7 @@ void SessionState::apply_session_static_rule_set(
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& uc) {
   // No activation time / deactivation support yet for rule set interface
-  RuleLifetime lifetime{
-      .activation_time   = 0,
-      .deactivation_time = 0,
-  };
+  RuleLifetime lifetime;
   // Go through the rule set and install any rules not yet installed
   for (const auto& static_rule_id : static_rules) {
     if (!is_static_rule_installed(static_rule_id)) {
@@ -568,10 +565,7 @@ void SessionState::apply_session_dynamic_rule_set(
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& uc) {
   // No activation time / deactivation support yet for rule set interface
-  RuleLifetime lifetime{
-      .activation_time   = 0,
-      .deactivation_time = 0,
-  };
+  RuleLifetime lifetime;
   for (const auto& dynamic_rule_pair : dynamic_rules) {
     if (!is_dynamic_rule_installed(dynamic_rule_pair.first)) {
       MLOG(MINFO) << "Installing dynamic rule " << dynamic_rule_pair.first

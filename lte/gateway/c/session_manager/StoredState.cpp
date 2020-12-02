@@ -11,11 +11,15 @@
  * limitations under the License.
  */
 
+#include <google/protobuf/timestamp.pb.h>
+#include <google/protobuf/util/time_util.h>
+
 #include "StoredState.h"
 #include "CreditKey.h"
 #include "magma_logging.h"
 
 namespace magma {
+using google::protobuf::util::TimeUtil;
 
 SessionConfig::SessionConfig(const LocalCreateSessionRequest& request) {
   common_context       = request.common_context();
@@ -499,6 +503,20 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
       static_cast<uint64_t>(std::stoul(marshaled["pdp_end_time"].getString()));
 
   return stored;
+}
+
+RuleLifetime::RuleLifetime(const StaticRuleInstall& rule_install) {
+  activation_time =
+      std::time_t(TimeUtil::TimestampToSeconds(rule_install.activation_time()));
+  deactivation_time = std::time_t(
+      TimeUtil::TimestampToSeconds(rule_install.deactivation_time()));
+}
+
+RuleLifetime::RuleLifetime(const DynamicRuleInstall& rule_install) {
+  activation_time =
+      std::time_t(TimeUtil::TimestampToSeconds(rule_install.activation_time()));
+  deactivation_time = std::time_t(
+      TimeUtil::TimestampToSeconds(rule_install.deactivation_time()));
 }
 
 };  // namespace magma

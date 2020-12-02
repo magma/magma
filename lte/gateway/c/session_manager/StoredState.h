@@ -162,6 +162,11 @@ struct StoredChargingGrant {
 struct RuleLifetime {
   std::time_t activation_time;    // Unix timestamp
   std::time_t deactivation_time;  // Unix timestamp
+  RuleLifetime() : activation_time(0), deactivation_time(0){};
+  RuleLifetime(const time_t activation, const time_t deactivation)
+      : activation_time(activation), deactivation_time(deactivation){};
+  RuleLifetime(const StaticRuleInstall& rule_install);
+  RuleLifetime(const DynamicRuleInstall& rule_install);
 };
 
 // QoS Management

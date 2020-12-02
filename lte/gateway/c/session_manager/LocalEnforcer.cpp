@@ -175,16 +175,18 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         if (lifetime.deactivation_time > current_time) {
           auto rule_install =
               session->get_static_rule_install(rule_id, lifetime);
-          schedule_static_rule_deactivation(imsi, session_id, rule_install);
+          schedule_static_rule_deactivation(
+              imsi, session_id, rule_id, lifetime.deactivation_time);
         }
       }
       // Schedule rule activations / deactivations
       for (std::string rule_id : session->get_scheduled_static_rules()) {
-        auto lifetime     = session->get_rule_lifetime(rule_id);
-        auto rule_install = session->get_static_rule_install(rule_id, lifetime);
-        schedule_static_rule_activation(imsi, session_id, rule_install);
+        auto lifetime = session->get_rule_lifetime(rule_id);
+        schedule_static_rule_activation(
+            imsi, session_id, rule_id, lifetime.activation_time);
         if (lifetime.deactivation_time > current_time) {
-          schedule_static_rule_deactivation(imsi, session_id, rule_install);
+          schedule_static_rule_deactivation(
+              imsi, session_id, rule_id, lifetime.deactivation_time);
         }
       }
 
@@ -195,7 +197,8 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         if (lifetime.deactivation_time > current_time) {
           auto rule_install =
               session->get_dynamic_rule_install(rule_id, lifetime);
-          schedule_dynamic_rule_deactivation(imsi, session_id, rule_install);
+          schedule_dynamic_rule_deactivation(
+              imsi, session_id, rule_id, lifetime.deactivation_time);
         }
       }
       rule_ids.clear();
@@ -204,9 +207,11 @@ void LocalEnforcer::sync_sessions_on_restart(std::time_t current_time) {
         auto lifetime = session->get_rule_lifetime(rule_id);
         auto rule_install =
             session->get_dynamic_rule_install(rule_id, lifetime);
-        schedule_dynamic_rule_activation(imsi, session_id, rule_install);
+        schedule_dynamic_rule_activation(
+            imsi, session_id, rule_id, lifetime.deactivation_time);
         if (lifetime.deactivation_time > current_time) {
-          schedule_dynamic_rule_deactivation(imsi, session_id, rule_install);
+          schedule_dynamic_rule_deactivation(
+              imsi, session_id, rule_id, lifetime.deactivation_time);
         }
       }
       // Reschedule termination if subscriber has no quota
@@ -539,7 +544,7 @@ void LocalEnforcer::install_final_unit_action_flows(
   const std::string &ip_addr = config.ue_ipv4(), &ipv6_addr = config.ue_ipv6(),
                     &msisdn = config.msisdn();
   const auto fua_type       = action->get_type();
-  RuleLifetime lifetime{};
+  RuleLifetime lifetime;
 
   MLOG(MINFO) << "Installing final unit action "
               << service_action_type_to_str(fua_type) << " flows for "
@@ -674,14 +679,13 @@ static bool should_activate(
 
 void LocalEnforcer::schedule_static_rule_activation(
     const std::string& imsi, const std::string& session_id,
-    const StaticRuleInstall& static_rule) {
-  std::vector<std::string> static_rules{static_rule.rule_id()};
+    const std::string& rule_id, const std::time_t activation_time) {
+  std::vector<std::string> static_rules{rule_id};
   std::vector<PolicyRule> empty_dynamic_rules;
 
-  auto delta = magma::time_difference_from_now(static_rule.activation_time());
-  MLOG(MDEBUG) << "Scheduling " << session_id << " static rule "
-               << static_rule.rule_id() << " activation in "
-               << (delta.count() / 1000) << " secs";
+  auto delta = magma::time_difference_from_now(activation_time);
+  MLOG(MDEBUG) << "Scheduling " << session_id << " static rule " << rule_id
+               << " activation in " << (delta.count() / 1000) << " secs";
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
@@ -692,19 +696,27 @@ void LocalEnforcer::schedule_static_rule_activation(
           auto session_it = session_store_.find_session(session_map, criteria);
           if (!session_it) {
             MLOG(MWARNING) << "Could not find session  " << session_id
-                           << "during installation of static rule "
-                           << static_rule.rule_id();
+                           << "during installation of static rule " << rule_id;
             return;
           }
-          auto& session        = **session_it;
+          auto& session = **session_it;
+          auto& uc      = session_update[imsi][session_id];
+
+          std::time_t current_time = time(nullptr);
+          // don't install the rule if the current time is out of lifetime
+          if (session->should_rule_be_active(rule_id, current_time)) {
+            session->deactivate_scheduled_static_rule(rule_id, uc);
+            session_store_.update_sessions(session_update);
+            return;
+          }
+
           auto config          = session->get_config();
           const auto ip_addr   = config.common_context.ue_ipv4();
           const auto ipv6_addr = config.common_context.ue_ipv6();
           const auto ambr      = config.get_apn_ambr();
           const auto msisdn    = config.common_context.msisdn();
 
-          auto& uc = session_update[imsi][session->get_session_id()];
-          session->install_scheduled_static_rule(static_rule.rule_id(), uc);
+          session->install_scheduled_static_rule(rule_id, uc);
           pipelined_client_->activate_flows_for_rules(
               imsi, ip_addr, ipv6_addr, msisdn, ambr, static_rules, {},
               std::bind(
@@ -720,18 +732,15 @@ void LocalEnforcer::schedule_static_rule_activation(
 
 void LocalEnforcer::schedule_dynamic_rule_activation(
     const std::string& imsi, const std::string& session_id,
-    const DynamicRuleInstall& dynamic_rule) {
+    const std::string& rule_id, const std::time_t activation_time) {
   std::vector<std::string> empty_static_rules;
-  std::vector<PolicyRule> dynamic_rules{dynamic_rule.policy_rule()};
 
-  auto delta = magma::time_difference_from_now(dynamic_rule.activation_time());
-  MLOG(MDEBUG) << "Scheduling " << session_id << " dynamic rule "
-               << dynamic_rule.policy_rule().id() << " activation in "
-               << (delta.count() / 1000) << " secs";
+  auto delta = magma::time_difference_from_now(activation_time);
+  MLOG(MDEBUG) << "Scheduling " << session_id << " dynamic rule " << rule_id
+               << " activation in " << (delta.count() / 1000) << " secs";
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
-          auto rule_id     = dynamic_rule.policy_rule().id();
           auto session_map = session_store_.read_sessions(SessionRead{imsi});
           auto session_update =
               session_store_.get_default_session_update(session_map);
@@ -742,15 +751,30 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
                            << "during installation of dynamic rule " << rule_id;
             return;
           }
-          auto& session        = **session_it;
+          auto& session    = **session_it;
+          auto& session_uc = session_update[imsi][session_id];
+          if (!session->is_dynamic_rule_scheduled(rule_id)) {
+            return;
+          }
+          // don't install the rule if the current time is out of lifetime
+          std::time_t current_time = time(nullptr);
+          if (session->should_rule_be_active(rule_id, current_time)) {
+            session->remove_scheduled_dynamic_rule(
+                rule_id, nullptr, session_uc);
+            session_store_.update_sessions(session_update);
+            return;
+          }
+
           auto config          = session->get_config();
           const auto ip_addr   = config.common_context.ue_ipv4();
           const auto ipv6_addr = config.common_context.ue_ipv6();
           const auto ambr      = config.get_apn_ambr();
           const auto msisdn    = config.common_context.msisdn();
 
-          auto& uc = session_update[imsi][session_id];
-          session->install_scheduled_dynamic_rule(rule_id, uc);
+          session->install_scheduled_dynamic_rule(rule_id, session_uc);
+          PolicyRule policy;
+          session->get_scheduled_dynamic_rules().get_rule(rule_id, &policy);
+          std::vector<PolicyRule> dynamic_rules{policy};
 
           pipelined_client_->activate_flows_for_rules(
               imsi, ip_addr, ipv6_addr, msisdn, ambr, {}, dynamic_rules,
@@ -767,18 +791,15 @@ void LocalEnforcer::schedule_dynamic_rule_activation(
 
 void LocalEnforcer::schedule_static_rule_deactivation(
     const std::string& imsi, const std::string& session_id,
-    const StaticRuleInstall& static_rule) {
-  std::vector<std::string> static_rules{static_rule.rule_id()};
-
-  auto delta = magma::time_difference_from_now(static_rule.deactivation_time());
+    const std::string& rule_id, const std::time_t deactivation_time) {
+  auto delta = magma::time_difference_from_now(deactivation_time);
   MLOG(MDEBUG) << "Scheduling session " << session_id << " static rule "
-               << static_rule.rule_id() << " deactivation in "
-               << (delta.count() / 1000) << " secs";
+               << rule_id << " deactivation in " << (delta.count() / 1000)
+               << " secs";
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
-          const auto rule_id = static_rule.rule_id();
-          auto session_map   = session_store_.read_sessions(SessionRead{imsi});
+          auto session_map = session_store_.read_sessions(SessionRead{imsi});
           auto session_update =
               session_store_.get_default_session_update(session_map);
           SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
@@ -788,13 +809,12 @@ void LocalEnforcer::schedule_static_rule_deactivation(
                            << "during removal of static rule " << rule_id;
             return;
           }
-          auto& session   = **session_it;
-          auto& ip_addr   = session->get_config().common_context.ue_ipv4();
-          auto& ipv6_addr = session->get_config().common_context.ue_ipv6();
+          auto& session  = **session_it;
+          auto ip_addr   = session->get_config().common_context.ue_ipv4();
+          auto ipv6_addr = session->get_config().common_context.ue_ipv6();
 
           pipelined_client_->deactivate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, static_rules, {},
-              RequestOriginType::GX);
+              imsi, ip_addr, ipv6_addr, {rule_id}, {}, RequestOriginType::GX);
 
           auto& session_uc = session_update[imsi][session_id];
           if (!session->deactivate_static_rule(rule_id, session_uc)) {
@@ -809,18 +829,14 @@ void LocalEnforcer::schedule_static_rule_deactivation(
 
 void LocalEnforcer::schedule_dynamic_rule_deactivation(
     const std::string& imsi, const std::string& session_id,
-    DynamicRuleInstall& dynamic_rule) {
-  PolicyRule policy = dynamic_rule.policy_rule();
-
-  auto delta =
-      magma::time_difference_from_now(dynamic_rule.deactivation_time());
+    const std::string& rule_id, const std::time_t deactivation_time) {
+  auto delta = magma::time_difference_from_now(deactivation_time);
   MLOG(MDEBUG) << "Scheduling subscriber " << imsi << " dynamic rule "
-               << policy.id() << " deactivation in " << (delta.count() / 1000)
+               << rule_id << " deactivation in " << (delta.count() / 1000)
                << " secs";
   evb_->runInEventBaseThread([=] {
     evb_->timer().scheduleTimeoutFn(
         std::move([=] {
-          std::vector<PolicyRule> dynamic_rules{policy};
           auto session_map = session_store_.read_sessions(SessionRead{imsi});
           auto session_update =
               session_store_.get_default_session_update(session_map);
@@ -828,18 +844,19 @@ void LocalEnforcer::schedule_dynamic_rule_deactivation(
           auto session_it = session_store_.find_session(session_map, criteria);
           if (!session_it) {
             MLOG(MWARNING) << "Could not find session " << session_id
-                           << "during removal of dynamic rule " << policy.id();
+                           << "during removal of dynamic rule " << rule_id;
             return;
           }
-          auto& session   = **session_it;
-          auto& ip_addr   = session->get_config().common_context.ue_ipv4();
-          auto& ipv6_addr = session->get_config().common_context.ue_ipv6();
+          auto& session  = **session_it;
+          auto ip_addr   = session->get_config().common_context.ue_ipv4();
+          auto ipv6_addr = session->get_config().common_context.ue_ipv6();
 
+          PolicyRule policy;
+          session->get_scheduled_dynamic_rules().get_rule(rule_id, &policy);
           pipelined_client_->deactivate_flows_for_rules(
-              imsi, ip_addr, ipv6_addr, {}, dynamic_rules,
-              RequestOriginType::GX);
+              imsi, ip_addr, ipv6_addr, {}, {policy}, RequestOriginType::GX);
           auto& uc = session_update[imsi][session_id];
-          session->remove_dynamic_rule(policy.id(), NULL, uc);
+          session->remove_dynamic_rule(policy.id(), nullptr, uc);
           session_store_.update_sessions(session_update);
         }),
         delta);
@@ -1727,7 +1744,7 @@ void LocalEnforcer::process_rules_to_install(
     std::vector<DynamicRuleInstall> dynamic_rule_installs,
     RulesToProcess& rules_to_activate, RulesToProcess& rules_to_deactivate,
     SessionStateUpdateCriteria& uc) {
-  std::time_t current_time     = time(NULL);
+  std::time_t current_time     = time(nullptr);
   std::string ip_addr          = session.get_config().common_context.ue_ipv4();
   std::string ipv6_addr        = session.get_config().common_context.ue_ipv6();
   const std::string session_id = session.get_session_id();
@@ -1738,26 +1755,21 @@ void LocalEnforcer::process_rules_to_install(
       // Ignore them here.
       continue;
     }
-    auto activation_time =
-        TimeUtil::TimestampToSeconds(rule_install.activation_time());
-    auto deactivation_time =
-        TimeUtil::TimestampToSeconds(rule_install.deactivation_time());
-    RuleLifetime lifetime{
-        // TODO: check if we're building the time correctly
-        .activation_time   = std::time_t(activation_time),
-        .deactivation_time = std::time_t(deactivation_time),
-    };
-    if (activation_time > current_time) {
+    RuleLifetime lifetime(rule_install);
+    if (lifetime.activation_time > current_time) {
       session.schedule_static_rule(id, lifetime, uc);
-      schedule_static_rule_activation(imsi, session_id, rule_install);
+      schedule_static_rule_activation(
+          imsi, session_id, id, lifetime.activation_time);
     } else {
       session.activate_static_rule(id, lifetime, uc);
       rules_to_activate.static_rules.push_back(id);
     }
 
-    if (deactivation_time > current_time) {
-      schedule_static_rule_deactivation(imsi, session_id, rule_install);
-    } else if (deactivation_time > 0) {  // 0: never scheduled to deactivate
+    if (lifetime.deactivation_time > current_time) {
+      schedule_static_rule_deactivation(
+          imsi, session_id, id, lifetime.deactivation_time);
+    } else if (lifetime.deactivation_time > 0) {
+      // 0: never scheduled to deactivate
       if (!session.deactivate_static_rule(id, uc)) {
         MLOG(MWARNING) << "Could not find rule " << id << "for " << session_id
                        << " during static rule removal";
@@ -1767,26 +1779,21 @@ void LocalEnforcer::process_rules_to_install(
   }
 
   for (auto& rule_install : dynamic_rule_installs) {
-    auto activation_time =
-        TimeUtil::TimestampToSeconds(rule_install.activation_time());
-    auto deactivation_time =
-        TimeUtil::TimestampToSeconds(rule_install.deactivation_time());
-    RuleLifetime lifetime{
-        // TODO: check if we're building the time correctly
-        .activation_time   = std::time_t(activation_time),
-        .deactivation_time = std::time_t(deactivation_time),
-    };
-    if (activation_time > current_time) {
+    auto rule_id = rule_install.policy_rule().id();
+    RuleLifetime lifetime(rule_install);
+    if (lifetime.activation_time > current_time) {
       session.schedule_dynamic_rule(rule_install.policy_rule(), lifetime, uc);
-      schedule_dynamic_rule_activation(imsi, session_id, rule_install);
+      schedule_dynamic_rule_activation(
+          imsi, session_id, rule_id, lifetime.deactivation_time);
     } else {
       session.insert_dynamic_rule(rule_install.policy_rule(), lifetime, uc);
       rules_to_activate.dynamic_rules.push_back(rule_install.policy_rule());
     }
-    if (deactivation_time > current_time) {
-      schedule_dynamic_rule_deactivation(imsi, session_id, rule_install);
-    } else if (deactivation_time > 0) {
-      session.remove_dynamic_rule(rule_install.policy_rule().id(), NULL, uc);
+    if (lifetime.deactivation_time > current_time) {
+      schedule_dynamic_rule_deactivation(
+          imsi, session_id, rule_id, lifetime.deactivation_time);
+    } else if (lifetime.deactivation_time > 0) {
+      session.remove_dynamic_rule(rule_id, NULL, uc);
       rules_to_deactivate.dynamic_rules.push_back(rule_install.policy_rule());
     }
   }
