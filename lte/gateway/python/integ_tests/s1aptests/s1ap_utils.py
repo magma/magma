@@ -367,7 +367,7 @@ class S1ApUtil(object):
             if key.version == 6:
                 ue_ip6_str = ipaddress.ip_network(
                     (ue_ip_str + "/64"), strict=False
-                ).exploded
+                ).with_netmask
             ue_ip_addr = ue_ip6_str if key.version == 6 else ue_ip_str
             dst_addr = "nw_dst" if key.version == 4 else "ipv6_dst"
             key_to_be_matched = "ipv4_src" if key.version == 4 else "ipv6_src"
@@ -417,7 +417,7 @@ class S1ApUtil(object):
                                 {
                                     "table_id": self.SPGW_TABLE,
                                     "match": {
-                                        dst_addr: ue_ip_str,
+                                        ip_dst: ue_ip_addr,
                                         "eth_type": eth_typ,
                                         "in_port": self.LOCAL_PORT,
                                         ip_src: ip_src_addr,
@@ -434,7 +434,7 @@ class S1ApUtil(object):
                         assert (
                             len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
-                        assert downlink_flows[0]["match"][ip_dst] == ue_ip_str
+                        assert downlink_flows[0]["match"][ip_dst] == ue_ip_addr
                         actions = downlink_flows[0]["instructions"][0][
                             "actions"
                         ]
