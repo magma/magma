@@ -29,9 +29,11 @@ software version in. If it hasn't changed, something probably went wrong with
 the autoupgrade. You will probably have to SSH into the AGW to troubleshoot
 the installation (see the next section).
 
-If you want to roll out an upgrade slowly to your fleet, you can segment your
-AGWs into different tiers and upgrade tiers one-by-one. Use the NMS to create
-new tiers and assign your AGWs to them.
+It is recommended that you conduct upgrades on a test prior to rolling it out to your entire network. 
+
+Setting up a test tier is a two part process. First, create a test tier in the "Equipment" tab by clicking the "Upgrade" button. Next, click the "Add" button in the top right corner and enter in your test tier information and click the "Save" button. 
+
+Once this is created, navigate back to the main "Equipment" tab page. Under the Gateways table select the "Actions" button on the row of the AGW you would like to add to the test tier.  Select the "Edit" option to take you into the configuration page and then select "Edit JSON" in the top right. At the bottom on the JSON object change the "tier" to match the name of your test tier. Click "Save" in the top right to complete the process.  
 
 ## Manual Upgrade
 
