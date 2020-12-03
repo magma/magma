@@ -113,7 +113,7 @@
   shell: gem install fpm
   when: preburn
 
-- name: Install dependencies for building and shipping client release
+- name: Common install dependencies for building and shipping client release
   tags: dev
   apt:
     state: present
@@ -123,13 +123,11 @@
       - autoconf
       - build-essential
       - ccache
-      - clang-3.8
       - clang-format-7
       - ninja-build
       - git
       - libtool
       - python3-apt
-      - python3-aioeventlet
       - python3-setuptools
       - python3-requests
       - python3-pip
@@ -139,6 +137,23 @@
       - curl
   retries: 5
   when: preburn
+
+- name: Install python build requirements for Debian systems
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    pkg:
+      - clang-3.8
+      - python3-aioeventlet
+  retries: 5
+
+- name: Install python build requirements for Ubuntu systems
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    pkg:
+      - clang
+  retries: 5
 
 # /etc/environment doesn't expand variables, so if we want to modify the path,
 # we need to do it in profile.d
@@ -169,17 +184,13 @@
       # install gRPC
       - grpc-dev
       # install protobuf
-      - libprotobuf10
       - libprotobuf-dev
-      - libprotobuf-lite10
-      - libprotoc10
       - libprotoc-dev
       - libxml2-dev
       - libxslt-dev
       - protobuf-compiler
       # install ethtool for disabling TCP checksumming
       - ethtool
-      - libssl1.0-dev
       - libffi-dev
       - iperf3
       - libsystemd-dev
@@ -189,6 +200,30 @@
       - libmnl-dev
   retries: 5
   when: preburn
+
+- name: Install Debian Magma gateway dev dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libprotobuf10
+      - libprotobuf-lite10
+      - libprotoc10
+      - libssl1.0-dev
+
+- name: Install Ubuntu Magma gateway dev dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libprotobuf17
+      - libprotobuf-lite17
+      - libprotoc17
+      - libssl-dev
 
 ###############################################
 # Download and build swagger-codegen

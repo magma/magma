@@ -145,12 +145,13 @@
   when: full_provision
 
 - name: Install OpenAirInterface (OAI) dependencies
+  retries: 5
+  when: preburn
   apt:
     state: present
     update_cache: yes
     pkg:
       - check
-      - libconfig8-dev
       - libgtest-dev
       - liblfds710
       - google-mock
@@ -163,8 +164,24 @@
       - oai-freediameter
       - prometheus-cpp-dev
       - libczmq-dev
+
+- name: Install Debian Magma gateway dev dependencies
   retries: 5
-  when: preburn
+  when: preburn and ansible_distribution == "Debian"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libconfig8-dev
+
+- name: Install Ubuntu Magma gateway dev dependencies
+  retries: 5
+  when: preburn and ansible_distribution == "Ubuntu"
+  apt:
+    state: present
+    update_cache: no
+    pkg:
+      - libconfig-dev
 
 - name: Overwrite linux 4.9 GTP module with patched module
   apt: pkg=oai-gtp=4.9-5 state=present update_cache=yes dpkg_options=force-overwrite
@@ -172,6 +189,8 @@
   when: preburn
 
 - name: Install Magma dependencies
+  retries: 5
+  when: preburn
   apt:
     state: present
     update_cache: yes
@@ -202,8 +221,6 @@
       - ntpdate
       # For call tracing
       - tshark
-  retries: 5
-  when: preburn
 
 - name: Copy the gtp interface initialization definition
   copy:
