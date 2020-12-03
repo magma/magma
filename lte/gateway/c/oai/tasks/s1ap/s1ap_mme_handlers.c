@@ -3082,7 +3082,7 @@ int s1ap_mme_handle_enb_configuration_transfer(
   pdu->choice.initiatingMessage.procedureCode =
       S1ap_ProcedureCode_id_MMEConfigurationTransfer;
   pdu->present = S1ap_S1AP_PDU_PR_initiatingMessage;
-  // Tricky- optimisation needed
+  // Message is received and immediately sent back by changing only the IE type which is different from the usual approach of creating a new message.
   ie->id = S1ap_ProtocolIE_ID_id_SONConfigurationTransferMCT;
   // Encode message
   int enc_rval = s1ap_mme_encode_pdu(pdu, &buffer, &length);
