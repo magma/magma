@@ -41,6 +41,7 @@ paths_to_collect:
   - "/var/log/enode.*"
 
 # core file paths for gdb execution, requires core file location and binary
+gdb_command: "gdb --batch --quiet -ex 'start thread apply all bt full' -ex 'quit'"
 core_file_age_in_days: 7
 cores_paths:
   mme:

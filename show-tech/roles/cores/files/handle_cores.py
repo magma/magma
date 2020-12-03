@@ -90,7 +90,7 @@ class CoreFile(object):
 
     def analyze(self):
         self.uncompress_file()
-        cmd = "gdb --batch --quiet -ex 'thread apply all bt full' -ex 'quit'  {} {}".format(self.app_binary, self.uncompressed_core_file)
+        cmd = "{{gdb_command}}  {} {}".format(self.app_binary, self.uncompressed_core_file)
         core_dest_dir = os.path.join(self.dest_dir, os.path.basename(os.path.dirname(self.uncompressed_core_file)))
         dbg_file = os.path.join(core_dest_dir, "dbg.txt")
         os.makedirs(core_dest_dir, exist_ok=True)
