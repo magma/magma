@@ -226,10 +226,10 @@ class LocalSessionManagerHandlerImpl : public LocalSessionManagerHandler {
       const std::uint64_t& epoch, Status status, SetupFlowsResult resp);
 
   void report_session_update_event(
-      SessionMap& session_map, SessionUpdate& session_update);
+      SessionMap& session_map, const UpdateRequestsBySession& request);
 
   void report_session_update_event_failure(
-      SessionMap& session_map, SessionUpdate& session_update,
+      SessionMap& session_map, const UpdateRequestsBySession& failed_update,
       const std::string& failure_reason);
 
   void send_local_create_session_response(

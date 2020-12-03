@@ -127,6 +127,9 @@ struct ChargingGrant {
   // a response from the core
   void set_reporting(bool reporting);
 
+  // Rollback reporting changes for failed updates
+  void reset_reporting_grant(SessionCreditUpdateCriteria* credit_uc);
+
   // Convert rel_time_sec, which is a delta value in seconds, into a timestamp
   // and assign it to expiry_time
   void set_expiry_time_as_timestamp(uint32_t rel_time_sec);

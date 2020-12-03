@@ -199,4 +199,17 @@ std::string credit_validity_to_str(CreditValidity validity) {
   }
 }
 
+std::string event_trigger_to_str(EventTrigger event_trigger) {
+  switch (event_trigger) {
+    case USAGE_REPORT:
+      return "USAGE_REPORT";
+    case REVALIDATION_TIMEOUT:
+      return "REVALIDATION_TIMEOUT";
+    default:
+      std::ostringstream message;
+      message << "UNIMPLEMENTED EVENT TRIGGER: " << event_trigger;
+      return message.str();
+  }
+}
+
 }  // namespace magma

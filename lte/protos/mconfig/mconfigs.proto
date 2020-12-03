@@ -120,14 +120,39 @@ message PipelineD {
     string sgi_management_iface_ip_addr = 14;
     string sgi_management_iface_gw = 15;
 
-    // disable_header_enrichment is true iff header enrichment feature should
-    // be disabled for gateway
-    bool disable_header_enrichment = 16;
+    message HEConfig {
+        enum EncryptionAlgorithm {
+            RC4 = 0;
+            AES256_CBC_HMAC_MD5 = 1;
+            AES256_ECB_HMAC_MD5 = 2;
+            GZIPPED_AES256_ECB_SHA1 = 3;
+        }
+        enum HashFunction{
+            MD5 = 0;
+            HEX = 1;
+            SHA256 = 2;
+        }
+        enum EncodingType {
+            BASE64 = 0;
+            HEX2BIN = 1;
+        }
+
+        // enable_header_enrichment is true if header enrichment feature is
+        // enabled for gateway
+        bool enable_header_enrichment = 1;
+        bool enable_encryption = 2;
+        // encryption/hashing/encoding information for headers
+        EncryptionAlgorithm encryptionAlgorithm = 3;
+        HashFunction hashFunction = 4;
+        EncodingType encodingType = 5;
+    }
+    HEConfig he_config = 17;
 
     // DEPRECATED
     reserved 4, 11;
     // repeated string apps = 4;
     // repeated string li_imsis = 11;
+    bool disable_header_enrichment = 16 [deprecated = true];;
 }
 
 //------------------------------------------------------------------------------
@@ -268,6 +293,14 @@ message MME {
       string apn_override = 2;
     }
     repeated ApnCorrectionMap apn_correction_map_list = 25;
+
+    // P_CSCF IP address configs
+    string ipv4_p_cscf_address = 26;
+    string ipv6_p_cscf_address = 27;
+
+    // IPv6 DNS server
+    string ipv6_dns_address = 30;
+
 }
 
 

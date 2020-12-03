@@ -217,6 +217,11 @@ void SessionState::insert_pdr(SetGroupPDR* rule) {
   PdrList_.push_back(*rule);
 }
 
+void SessionState::set_remove_all_pdrs() {
+  for (auto& rule : PdrList_) {
+    rule.set_pdr_state(PdrState::REMOVE);
+  }
+}
 /* Remove all Pdr, FAR rules */
 void SessionState::remove_all_rules() {
   PdrList_.clear();
@@ -599,7 +604,8 @@ bool SessionState::active_monitored_rules_exist() {
 }
 
 bool SessionState::is_terminating() {
-  if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED) {
+  if (curr_state_ == SESSION_RELEASED || curr_state_ == SESSION_TERMINATED ||
+      curr_state_ == RELEASE) {
     return true;
   }
   return false;
@@ -1243,17 +1249,33 @@ RulesToProcess SessionState::get_all_final_unit_rules() {
   return rules;
 }
 
-bool SessionState::reset_reporting_charging_credit(
-    const CreditKey& key, SessionStateUpdateCriteria& update_criteria) {
-  auto it = credit_map_.find(key);
-  if (it == credit_map_.end()) {
-    MLOG(MERROR) << "Could not find credit RG:" << key << " to resetting for "
-                 << session_id_;
-    return false;
+void SessionState::handle_update_failure(
+    const UpdateRequests& failed_requests,
+    SessionStateUpdateCriteria& session_uc) {
+  MLOG(MDEBUG) << "Rolling back changes due to failed updates ("
+               << failed_requests.charging_requests.size()
+               << " charging requests and "
+               << failed_requests.monitor_requests.size()
+               << " monitor requests) for " << session_id_;
+  for (const auto& failed_charging : failed_requests.charging_requests) {
+    const auto key = failed_charging.usage().charging_key();
+    if (credit_map_.find(key) == credit_map_.end()) {
+      MLOG(MERROR) << "Could not find credit RG:" << key << " to reset for "
+                   << session_id_;
+      continue;
+    }
+    credit_map_[key]->reset_reporting_grant(get_credit_uc(key, session_uc));
   }
-  auto credit_uc = get_credit_uc(key, update_criteria);
-  it->second->credit.reset_reporting_credit(credit_uc);
-  return true;
+  for (const auto& failed_monitor : failed_requests.monitor_requests) {
+    const auto key = failed_monitor.update().monitoring_key();
+    if (monitor_map_.find(key) == monitor_map_.end()) {
+      MLOG(MERROR) << "Could not find monitor:" << key << " to reset for "
+                   << session_id_;
+      continue;
+    }
+    monitor_map_[key]->credit.reset_reporting_credit(
+        get_monitor_uc(key, session_uc));
+  }
 }
 
 bool SessionState::receive_charging_credit(
@@ -1744,19 +1766,6 @@ void SessionState::set_monitor(
     SessionStateUpdateCriteria& update_criteria) {
   update_criteria.monitor_credit_to_install[key] = monitor.marshal();
   monitor_map_[key] = std::make_unique<Monitor>(monitor);
-}
-
-bool SessionState::reset_reporting_monitor(
-    const std::string& key, SessionStateUpdateCriteria& update_criteria) {
-  auto it = monitor_map_.find(key);
-  if (it == monitor_map_.end()) {
-    MLOG(MERROR) << "Could not reset credit for IMSI" << imsi_
-                 << " and monitoring key " << key << " because it wasn't found";
-    return false;
-  }
-  auto credit_uc = get_monitor_uc(key, update_criteria);
-  it->second->credit.reset_reporting_credit(credit_uc);
-  return true;
 }
 
 bool SessionState::init_new_monitor(

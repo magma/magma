@@ -898,11 +898,13 @@ void mme_app_handle_delete_session_rsp(
   }
 
   /*
-   * If UE is already in idle state, skip asking eNB to release UE context and
-   * just clean up locally. This can happen during implicit detach and UE
-   * initiated detach when UE sends detach req (type = switch off)
+   * If UE is already in idle state or if response received with
+   * CONTEXT_NOT_FOUND, skip asking eNB to release UE context and just clean up
+   * locally. This can happen during implicit detach and UE initiated detach
+   * when UE sends detach req (type = switch off).
    */
-  if (ECM_IDLE == ue_context_p->ecm_state) {
+  if ((ECM_IDLE == ue_context_p->ecm_state) ||
+      (delete_sess_resp_pP->cause.cause_value == CONTEXT_NOT_FOUND)) {
     ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
     // Notify S1AP to release S1AP UE context locally.
     mme_app_itti_ue_context_release(
@@ -1469,7 +1471,7 @@ static int mme_app_send_modify_bearer_request_for_active_pdns(
   OAILOG_FUNC_IN(LOG_MME_APP);
   uint8_t bc_to_be_removed_idx = 0;
   // Send MBR per PDN
-  for (uint8_t pid = 0; pid < ue_context_p->emm_context.esm_ctx.n_pdns; pid++) {
+  for (uint8_t pid = 0; pid < ue_context_p->nb_active_pdn_contexts; pid++) {
     if (!ue_context_p->pdn_contexts[pid]) {
       continue;
     }
@@ -3122,7 +3124,7 @@ void mme_app_handle_nw_init_bearer_deactv_req(
    *  Send Detach Request to UE
    */
   if ((nw_init_bearer_deactv_req_p->delete_default_bearer) &&
-      (ue_context_p->emm_context.esm_ctx.n_pdns == 1)) {
+      (ue_context_p->nb_active_pdn_contexts == 1)) {
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "Send MME initiated Detach Req to NAS module for EBI %u"

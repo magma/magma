@@ -301,16 +301,15 @@ class MockEventsReporter : public EventsReporter {
       void(
           const std::string&, const std::string&, const SessionConfig&,
           const std::unique_ptr<SessionState>& session));
-  MOCK_METHOD3(
-      session_create_failure,
-      void(const std::string&, const SessionConfig&, const std::string&));
+  MOCK_METHOD2(
+      session_create_failure, void(const SessionConfig&, const std::string&));
   MOCK_METHOD3(
       session_updated,
-      void(const std::string&, const std::string&, const SessionConfig&));
+      void(const std::string&, const SessionConfig&, const UpdateRequests&));
   MOCK_METHOD4(
       session_update_failure, void(
-                                  const std::string&, const std::string&,
-                                  const SessionConfig&, const std::string&));
+                                  const std::string&, const SessionConfig&,
+                                  const UpdateRequests&, const std::string&));
   MOCK_METHOD2(
       session_terminated,
       void(const std::string&, const std::unique_ptr<SessionState>&));

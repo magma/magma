@@ -621,38 +621,21 @@ UpdateSessionRequest LocalEnforcer::collect_updates(
   return request;
 }
 
-void LocalEnforcer::reset_updates(
-    SessionMap& session_map, const UpdateSessionRequest& failed_request) {
-  MLOG(MDEBUG) << "Reseting_updates";
-  for (const auto& update : failed_request.updates()) {
-    auto it = session_map.find(update.sid());
-    if (it == session_map.end()) {
-      MLOG(MERROR) << "Could not reset credit for IMSI " << update.sid()
+void LocalEnforcer::handle_update_failure(
+    SessionMap& session_map, const UpdateRequestsBySession& failed_request,
+    SessionUpdate& updates) {
+  for (const auto& request_by_id : failed_request.requests_by_id) {
+    const std::string& imsi       = request_by_id.first.first;
+    const std::string& session_id = request_by_id.first.second;
+    const auto& request           = request_by_id.second;
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MERROR) << "Could not reset failed update for " << session_id
                    << " because it couldn't be found";
-      return;
+      continue;
     }
-
-    for (const auto& session : it->second) {
-      // When updates are reset, they aren't written back into SessionStore,
-      // so we can just put in a default UpdateCriteria
-      auto uc = get_default_update_criteria();
-      session->reset_reporting_charging_credit(CreditKey(update.usage()), uc);
-    }
-  }
-  for (const auto& update : failed_request.usage_monitors()) {
-    auto it = session_map.find(update.sid());
-    if (it == session_map.end()) {
-      MLOG(MERROR) << "Could not reset credit for IMSI " << update.sid()
-                   << " because it couldn't be found";
-      return;
-    }
-
-    for (const auto& session : it->second) {
-      // When updates are reset, they aren't written back into SessionStore,
-      // so we can just put in a default UpdateCriteria
-      auto uc = get_default_update_criteria();
-      session->reset_reporting_monitor(update.update().monitoring_key(), uc);
-    }
+    (**session_it)->handle_update_failure(request, updates[imsi][session_id]);
   }
 }
 
@@ -2234,6 +2217,20 @@ static bool does_session_ip_match(
                  << ue_ip_addr << " " << ue_ipv6_addr
                  << " Request = " << ip_addr << " " << ipv6_addr;
   return false;
+}
+
+UpdateRequestsBySession::UpdateRequestsBySession(
+    const UpdateSessionRequest& request) {
+  for (const auto& charging_request : request.updates()) {
+    const auto id =
+        ImsiAndSessionID(charging_request.sid(), charging_request.session_id());
+    requests_by_id[id].charging_requests.push_back(charging_request);
+  }
+  for (const auto& monitor_request : request.usage_monitors()) {
+    const auto id =
+        ImsiAndSessionID(monitor_request.sid(), monitor_request.session_id());
+    requests_by_id[id].monitor_requests.push_back(monitor_request);
+  }
 }
 
 }  // namespace magma

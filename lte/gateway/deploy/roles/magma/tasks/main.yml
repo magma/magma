@@ -200,6 +200,8 @@
       - magma-cpp-redis
       # Time synchronization with NTP for eventd
       - ntpdate
+      # For call tracing
+      - tshark
   retries: 5
   when: preburn
 

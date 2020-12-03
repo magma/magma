@@ -273,6 +273,13 @@ func (m *GatewayEpcConfigs) ValidateModel() error {
 			return errors.New("Only IPv4 is supported currently for DNS")
 		}
 	}
+
+	if m.IPV6DNSAddr != "" {
+		ip := net.ParseIP(string(m.IPV6DNSAddr))
+		if ip == nil {
+			return errors.New("Invalid IPV6 DNS address")
+		}
+	}
 	return nil
 }
 
@@ -329,8 +336,10 @@ func (m *Enodeb) ValidateModel() error {
 		return err
 	}
 
-	if err := m.EnodebConfig.validateEnodebConfig(); err != nil {
-		return err
+	if m.EnodebConfig != nil {
+		if err := m.EnodebConfig.validateEnodebConfig(); err != nil {
+			return err
+		}
 	}
 
 	return nil
