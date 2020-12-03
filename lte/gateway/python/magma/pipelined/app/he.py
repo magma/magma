@@ -176,15 +176,12 @@ class HeaderEnrichmentController(MagmaController):
 
     def encrypt_header(self, header_value):
         """
-        MSISDN = 5521966054601
-        key = C14r0315v0x
-        MD5(C14r0315v0x)=37ee40eecb484166d68c29930e48313c
-        RC4(key=37ee40eecb484166d68c29930e48313c, msisdn=5521966054601))=>a82530f1f34cfcdba5569fb60f
-        base64(a82530f1f34cfcdba5569fb60f)=>qCUw8fNM/NulVp+2Dw==
-        X-alias=qCUw8fNM/NulVp+2Dw==
+        Gets the hash, encryptes the header and encodes it depending on the
+        configuration
         """
-        hash = get_hash(self.config.key, self.config.hash_function)
-        encrypted = encrypt_str(header_value, hash, self.config.encryption_algorithm)
+        hash_hex = get_hash(self.config.key, self.config.hash_function)
+        encrypted = encrypt_str(header_value, hash_hex,
+                                self.config.encryption_algorithm)
         ret = encode_str(encrypted, self.config.encoding_type)
 
         return ret
