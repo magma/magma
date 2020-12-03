@@ -16,7 +16,7 @@ satisfies the following requirements:
   enp2s0 with your current interfaces name in this guideline.
   One port is for the SGi interface (default: enp1s0) and one for the S1
   interface (default: enp2s0). Note that the `agw_install.sh` script will
-  rename the `enp1s0` interface to `eth0`.
+  rename the `enp1s0` interface to `eth0`. By default, `agw_install.sh` will configure the `eth0` interface for DHCP. In order to make any custom changes, you will need to alter the `agw_install.sh` script.  
 
 ## Deployment
 ### 1. Create boot USB stick and install Debian on your AGW host

@@ -1183,6 +1183,7 @@ int sgw_handle_delete_session_request(
     delete_session_resp_p->trxn              = delete_session_req_pP->trxn;
     delete_session_resp_p->peer_ip.s_addr =
         delete_session_req_pP->peer_ip.s_addr;
+    delete_session_resp_p->lbi = delete_session_req_pP->lbi;
 
     message_p->ittiMsgHeader.imsi = imsi64;
     rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
