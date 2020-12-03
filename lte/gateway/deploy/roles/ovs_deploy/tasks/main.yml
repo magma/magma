@@ -130,7 +130,7 @@
     dpkg_options: 'force-confold,force-confdef,force-overwrite'
   vars:
     packages:
-      - 'magma={{ magma_version }}'
+      - 'magma'
 
 - name: Start service openvswitch-switch.
   become: yes
