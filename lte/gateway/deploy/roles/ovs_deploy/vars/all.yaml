@@ -2,7 +2,7 @@
 ovs_version: "v2.8.9"
 # Patches you want to apply
 packages:
-  - "oai-gtp_4.9-7_amd64.deb"
+  - "oai-gtp_4.9-5_amd64.deb"
   - "libopenvswitch_2.8.9-1_amd64.deb"
   - "openvswitch-datapath-dkms_2.8.9-1_all.deb"
   - "openvswitch-datapath-source_2.8.9-1_all.deb"
