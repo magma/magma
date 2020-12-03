@@ -94,7 +94,11 @@ variable "eks_worker_groups" {
 
 variable "thanos_worker_groups" {
   # Check the docs at https://github.com/terraform-aws-modules/terraform-aws-eks
-  # for the complete set of valid properties for these objects.
+  # for the complete set of valid properties for these objects. This worker group
+  # exists because some thanos components (compact) require significant instance
+  # storage to operate.
+  # Use label key 'compute-type' to specify the node used by nodeSelector
+  # in the helm release
   description = "Worker group configuration for Thanos. Default consists of 1 group consisting of 1 m5d.xlarge for thanos."
   type        = any
   default = [
