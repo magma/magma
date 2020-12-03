@@ -898,9 +898,10 @@ void mme_app_handle_delete_session_rsp(
   }
 
   /*
-   * If UE is already in idle state or if response received with CONTEXT_NOT_FOUND,
-   * skip asking eNB to release UE context and just clean up locally. This can happen
-   * during implicit detach and UE initiated detach when UE sends detach req (type = switch off).
+   * If UE is already in idle state or if response received with
+   * CONTEXT_NOT_FOUND, skip asking eNB to release UE context and just clean up
+   * locally. This can happen during implicit detach and UE initiated detach
+   * when UE sends detach req (type = switch off).
    */
   if ((ECM_IDLE == ue_context_p->ecm_state) ||
       (delete_sess_resp_pP->cause.cause_value == CONTEXT_NOT_FOUND)) {
