@@ -948,18 +948,18 @@ void s1ap_handle_conn_est_cnf(
     }
     // Set the GTP-TEID. This is the S1-U S-GW TEID
     INT32_TO_OCTET_STRING(
-        conn_est_cnf_pP->gtp_teid[item], &e_RABToBeSetup[item].gTP_TEID);
+        conn_est_cnf_pP->gtp_teid[item], &e_RABToBeSetup->gTP_TEID);
     // S-GW IP address(es) for user-plane
-    e_RABToBeSetup[item].transportLayerAddress.buf = calloc(
+    e_RABToBeSetup->transportLayerAddress.buf = calloc(
         blength(conn_est_cnf_pP->transport_layer_address[item]),
         sizeof(uint8_t));
     memcpy(
-        e_RABToBeSetup[item].transportLayerAddress.buf,
+        e_RABToBeSetup->transportLayerAddress.buf,
         conn_est_cnf_pP->transport_layer_address[item]->data,
         blength(conn_est_cnf_pP->transport_layer_address[item]));
-    e_RABToBeSetup[item].transportLayerAddress.size =
+    e_RABToBeSetup->transportLayerAddress.size =
         blength(conn_est_cnf_pP->transport_layer_address[item]);
-    e_RABToBeSetup[item].transportLayerAddress.bits_unused = 0;
+    e_RABToBeSetup->transportLayerAddress.bits_unused = 0;
     ASN_SEQUENCE_ADD(&e_rab_to_be_setup_list->list, e_rab_tobesetup_item);
   }
   {
