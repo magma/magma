@@ -196,6 +196,8 @@ class DhcpClient(unittest.TestCase):
             LOG.debug("wait for state: %d" % x)
             with self.dhcp_wait:
                 dhcp1 = self.dhcp_store.get(mac.as_redis_key(vlan))
+                if state == DHCPState.RELEASE and dhcp1 is None:
+                    return
                 if dhcp1.state_requested == state:
                     return
             time.sleep(PKT_CAPTURE_WAIT)
