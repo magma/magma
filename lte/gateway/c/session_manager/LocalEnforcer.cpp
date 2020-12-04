@@ -1651,6 +1651,14 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
     const RulesToProcess& rules_to_deactivate, bool always_send_activate) {
   const auto ip_addr   = config.common_context.ue_ipv4();
   const auto ipv6_addr = config.common_context.ue_ipv6();
+  // deactivate_flows_for_rules() should not be called when there is no rule
+  // to deactivate, because pipelined deactivates all rules
+  // when no rule is provided as the parameter
+  if (rules_to_process_is_not_empty(rules_to_deactivate)) {
+    pipelined_client_->deactivate_flows_for_rules(
+        imsi, ip_addr, ipv6_addr, rules_to_deactivate.static_rules,
+        rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
+  }
   if (always_send_activate ||
       rules_to_process_is_not_empty(rules_to_activate)) {
     const auto ambr   = config.get_apn_ambr();
@@ -1662,14 +1670,6 @@ void LocalEnforcer::propagate_rule_updates_to_pipelined(
             &LocalEnforcer::handle_activate_ue_flows_callback, this, imsi,
             ip_addr, ipv6_addr, msisdn, ambr, rules_to_activate.static_rules,
             rules_to_activate.dynamic_rules, _1, _2));
-  }
-  // deactivate_flows_for_rules() should not be called when there is no rule
-  // to deactivate, because pipelined deactivates all rules
-  // when no rule is provided as the parameter
-  if (rules_to_process_is_not_empty(rules_to_deactivate)) {
-    pipelined_client_->deactivate_flows_for_rules(
-        imsi, ip_addr, ipv6_addr, rules_to_deactivate.static_rules,
-        rules_to_deactivate.dynamic_rules, RequestOriginType::GX);
   }
 }
 
