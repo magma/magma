@@ -38,7 +38,7 @@ packages.
 1. Build the release like you normally would.
 2. Spin up a fresh prod VM or gateway machine and copy the magma_<version>.deb
 generated above.
-3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version>.deb' 
+3. Run `sudo apt-get install gdebi; sudo gdebi magma_<version>.deb'
 4. A VM reload or gateway reboot will likely be required due to kernel upgrade.
 
 This will simulate the exact steps that apt-get performs in production.
@@ -70,3 +70,9 @@ What is magma.lockfile?
 and captures a specific set of Python packages that satisfy the Python
 dependencies of Magma. This lets us keep track of what we're actually using for
 each release.
+
+Use change_source.sh
+-----------------------
+`change_souce.sh` ${VERSION}
+is a script that allows you to change the version of the registry in order to
+install ${VERSION} of magma
