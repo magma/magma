@@ -111,7 +111,8 @@ setup(
         'eventlet>=0.24',
         'h2>=3.2.0',
         'hpack>=3.0',
-        'freezegun>=0.3.15'
+        'freezegun>=0.3.15',
+        'crypto>=1.4.1
     ],
     extras_require={
         'dev': [
