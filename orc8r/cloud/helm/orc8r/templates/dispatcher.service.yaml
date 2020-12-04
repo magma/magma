@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "dispatcher.service") -}}
 {{- define "dispatcher.service" -}}
 metadata:
-  name: {{ .Release.Name }}-dispatcher
+  name: orc8r-dispatcher
   labels:
     {{- with .Values.dispatcher.service.labels }}
 {{ toYaml . | indent 4}}
