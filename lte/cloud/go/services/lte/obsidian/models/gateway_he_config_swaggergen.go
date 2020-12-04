@@ -27,6 +27,9 @@ type GatewayHeConfig struct {
 	// Required: true
 	EnableHeaderEnrichment bool `json:"enable_header_enrichment"`
 
+	// Key to be used in header encryption
+	EncryptionKey string `json:"encryption_key,omitempty"`
+
 	// he encoding type
 	// Required: true
 	// Enum: [BASE64]
