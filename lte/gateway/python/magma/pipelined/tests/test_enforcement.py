@@ -44,11 +44,11 @@ from magma.pipelined.tests.pipelined_test_util import FlowTest, FlowVerifier, \
 from magma.pipelined.app import he
 
 
-def mocked_activate_he_urls_for_ue(ip: IPAddress, urls: List[str], imsi: str, msisdn: str):
+def mocked_activate_he_urls_for_ue(ip: IPAddress, rule_id, urls: List[str], imsi: str, msisdn: str):
     return True
 
 
-def mocked_deactivate_he_urls_for_ue(ip: IPAddress):
+def mocked_deactivate_he_urls_for_ue(ip: IPAddress, rule_id):
     pass
 
 
