@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "obsidian.service") -}}
 {{- define "obsidian.service" -}}
 metadata:
-  name: {{ .Release.Name }}-obsidian
+  name: orc8r-obsidian
   labels:
     {{- with .Values.obsidian.service.labels }}
 {{ toYaml . | indent 4}}

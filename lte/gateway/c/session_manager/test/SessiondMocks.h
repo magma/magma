@@ -83,7 +83,8 @@ class MockPipelinedClient : public PipelinedClient {
     ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
     ON_CALL(*this, update_subscriber_quota_state(_))
         .WillByDefault(Return(true));
-    ON_CALL(*this, set_upf_session(_, _)).WillByDefault(Return(true));
+    ON_CALL(*this, get_next_teid()).WillByDefault(Return(0));
+    ON_CALL(*this, get_current_teid()).WillByDefault(Return(0));
   }
 
   MOCK_METHOD9(
@@ -167,6 +168,8 @@ class MockPipelinedClient : public PipelinedClient {
       bool(
           const SessionState::SessionInfo info,
           std::function<void(Status status, UPFSessionContextState)> callback));
+  MOCK_METHOD0(get_next_teid, uint32_t());
+  MOCK_METHOD0(get_current_teid, uint32_t());
 };
 
 class MockDirectorydClient : public AsyncDirectorydClient {
@@ -301,16 +304,15 @@ class MockEventsReporter : public EventsReporter {
       void(
           const std::string&, const std::string&, const SessionConfig&,
           const std::unique_ptr<SessionState>& session));
-  MOCK_METHOD3(
-      session_create_failure,
-      void(const std::string&, const SessionConfig&, const std::string&));
+  MOCK_METHOD2(
+      session_create_failure, void(const SessionConfig&, const std::string&));
   MOCK_METHOD3(
       session_updated,
-      void(const std::string&, const std::string&, const SessionConfig&));
+      void(const std::string&, const SessionConfig&, const UpdateRequests&));
   MOCK_METHOD4(
       session_update_failure, void(
-                                  const std::string&, const std::string&,
-                                  const SessionConfig&, const std::string&));
+                                  const std::string&, const SessionConfig&,
+                                  const UpdateRequests&, const std::string&));
   MOCK_METHOD2(
       session_terminated,
       void(const std::string&, const std::unique_ptr<SessionState>&));

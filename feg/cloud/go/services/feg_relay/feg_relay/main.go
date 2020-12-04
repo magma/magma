@@ -16,15 +16,16 @@ package main
 import (
 	"fmt"
 
+	"github.com/golang/glog"
+
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay"
 	"magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay"
+	nh_servicers "magma/feg/cloud/go/services/feg_relay/gw_to_feg_relay/servicers"
 	"magma/feg/cloud/go/services/feg_relay/servicers"
 	lteprotos "magma/lte/cloud/go/protos"
 	"magma/orc8r/cloud/go/service"
-
-	"github.com/golang/glog"
 )
 
 const GwToFeGServerPort = 9079
@@ -46,6 +47,14 @@ func main() {
 	protos.RegisterSwxGatewayServiceServer(srv.GrpcServer, servicer)
 	lteprotos.RegisterSessionProxyResponderServer(srv.GrpcServer, servicer)
 	lteprotos.RegisterAbortSessionResponderServer(srv.GrpcServer, servicer)
+
+	// Register Neutral Host Routing services
+	nhServicer := nh_servicers.NewRelayRouter()
+	protos.RegisterS6AProxyServer(srv.GrpcServer, nhServicer)
+	protos.RegisterSwxProxyServer(srv.GrpcServer, nhServicer)
+	protos.RegisterHelloServer(srv.GrpcServer, nhServicer)
+	lteprotos.RegisterCentralSessionControllerServer(srv.GrpcServer, nhServicer)
+
 	// create and run GW_TO_FEG httpserver
 	gwToFeGServer := gw_to_feg_relay.NewGatewayToFegServer()
 	go gwToFeGServer.Run(fmt.Sprintf(":%d", GwToFeGServerPort))
