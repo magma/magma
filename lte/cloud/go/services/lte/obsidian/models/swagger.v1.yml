@@ -1980,23 +1980,34 @@ definitions:
         type: boolean
         x-nullable: false
         example: true
+      encryption_key:
+        description: Key to be used in header encryption
+        type: string
+        x-nullable: false
+        example: 'C14r0315v0x'
       he_encryption_algorithm:
         type: string
         x-nullable: false
         enum:
           - 'RC4'
+          - 'AES256_CBC_HMAC_MD5'
+          - 'AES256_ECB_HMAC_MD5'
+          - 'GZIPPED_AES256_ECB_SHA1'
         example: 'RC4'
       he_hash_function:
         type: string
         x-nullable: false
         enum:
           - 'MD5'
+          - 'HEX'
+          - 'SHA256'
         example: 'MD5'
       he_encoding_type:
         type: string
         x-nullable: false
         enum:
           - 'BASE64'
+          - 'HEX2BIN'
         example: 'BASE64'
 
   enodeb_serials:
