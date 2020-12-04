@@ -1,3 +1,2 @@
 /var/log/mme.log
-/var/log/spgw.log
 /var/log/syslog
