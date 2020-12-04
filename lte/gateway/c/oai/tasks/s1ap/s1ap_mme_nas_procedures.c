@@ -308,7 +308,7 @@ int s1ap_mme_handle_uplink_nas_transport(
           LOG_S1AP,
           "Received S1AP UPLINK_NAS_TRANSPORT No UE is attached to this "
           "mme_ue_s1ap_id: " MME_UE_S1AP_ID_FMT "\n",
-          (mme_ue_s1ap_id_t) mme_ue_s1ap_id);
+          mme_ue_s1ap_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }

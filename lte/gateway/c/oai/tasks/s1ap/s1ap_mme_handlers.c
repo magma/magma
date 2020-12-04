@@ -1415,7 +1415,7 @@ int s1ap_mme_handle_initial_context_setup_failure(
       S1ap_InitialContextSetupFailureIEs_t, ie, container,
       S1ap_ProtocolIE_ID_id_MME_UE_S1AP_ID, true);
   if (!ie) {
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
   mme_ue_s1ap_id = ie->value.choice.MME_UE_S1AP_ID;
 
@@ -2817,7 +2817,7 @@ int s1ap_handle_enb_initiated_reset_ack(
     DevAssert(!buffer);
     OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
   }
-
+  increment_counter("s1_reset_from_enb", 1, 1, "action", "reset_ack_sent");
   if (buffer) {
     bstring b = blk2bstr(buffer, length);
     free_wrapper((void**) &buffer);
@@ -2983,6 +2983,7 @@ int s1ap_handle_paging_request(
     }
   }
   free_wrapper((void**) &enb_array->elements);
+  free_wrapper((void**) &enb_array);
   free(buffer_p);
   if (rc != RETURNok) {
     OAILOG_ERROR(
