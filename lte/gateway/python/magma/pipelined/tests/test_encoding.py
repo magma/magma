@@ -37,8 +37,6 @@ class EncodingTest(unittest.TestCase):
 
         ret = encode_str(encrypted, PipelineD.HEConfig.BASE64)
         self.assertEqual(ret, 'pMyMsiOTpmdhH0k5tg==')
-        """
-
         # Not implemented yet
         hash = get_hash(key, PipelineD.HEConfig.SHA256)
         self.assertEqual(hash, '')
@@ -47,6 +45,7 @@ class EncodingTest(unittest.TestCase):
         self.assertEqual(encrypted, '')
         ret = encode_str(encrypted, PipelineD.HEConfig.BASE64)
         self.assertEqual(ret, '')
+        """
 
 
 if __name__ == "__main__":
