@@ -12,15 +12,6 @@
 # limitations under the License.
 ################################################################################
 
-- name: Set up Magma prod environment on a local machine
-  hosts: prod
+- name: Preconfigure tshark (wireshark) SETUID property
   become: yes
-
-  vars:
-    preburn: false
-    full_provision: true
-
-  roles:
-    - role: stretch_snapshot
-    - role: uselocalpkgrepo
-    - role: tshark_setuid_config
+  shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
