@@ -122,11 +122,13 @@ s1aptests/test_attach_detach_with_mme_restart.py \
 s1aptests/test_attach_detach_with_mobilityd_restart.py \
 s1aptests/test_attach_detach_multiple_ip_blocks_mobilityd_restart.py \
 s1aptests/test_attach_detach_with_sctpd_restart.py \
+s1aptests/test_idle_mode_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_ul_udp_data_with_mobilityd_restart.py \
 s1aptests/test_attach_ul_udp_data_with_multiple_service_restart.py \
 s1aptests/test_attach_ul_udp_data_with_pipelined_restart.py \
 s1aptests/test_attach_ul_udp_data_with_sessiond_restart.py \
+s1aptests/test_service_req_ul_udp_data_with_mme_restart.py \
 s1aptests/test_attach_detach_attach_ul_tcp_data.py \
 s1aptests/test_restore_mme_config_after_sanity.py
 
