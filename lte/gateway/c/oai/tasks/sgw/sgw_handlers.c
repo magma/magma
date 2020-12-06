@@ -65,6 +65,7 @@
 #include "pgw_handlers.h"
 #include "conversions.h"
 #include "mme_config.h"
+#include "spgw_state.h"
 
 extern spgw_config_t spgw_config;
 extern struct gtp_tunnel_ops* gtp_tunnel_ops;
@@ -158,13 +159,21 @@ int sgw_handle_s11_create_session_request(
 
   OAILOG_DEBUG_UE(
       LOG_SPGW_APP, imsi64,
-      "Rx CREATE-SESSION-REQUEST MME S11 teid %u S-GW"
-      "S11 teid %u APN %s EPS bearer Id %d\n",
+      "Rx CREATE-SESSION-REQUEST MME S11 teid " TEID_FMT
+      "S-GW S11 teid " TEID_FMT " APN %s EPS bearer Id %d\n",
       new_endpoint_p->remote_teid, new_endpoint_p->local_teid,
       session_req_pP->apn,
       session_req_pP->bearer_contexts_to_be_created.bearer_contexts[0]
           .eps_bearer_id);
 
+  if (spgw_update_teid_in_ue_context(
+          state, imsi64, new_endpoint_p->local_teid) == RETURNerror) {
+    OAILOG_DEBUG_UE(
+        LOG_SPGW_APP, imsi64,
+        "Failed to update sgw_s11_teid" TEID_FMT " in UE context \n",
+        new_endpoint_p->local_teid);
+    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
+  }
   s_plus_p_gw_eps_bearer_ctxt_info_p =
       sgw_cm_create_bearer_context_information_in_collection(
           state, new_endpoint_p->local_teid, imsi64);
@@ -413,11 +422,7 @@ int sgw_handle_sgi_endpoint_created(
           .cause.cause_value);
 
   message_p->ittiMsgHeader.imsi = imsi64;
-  rv          = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
-  bstring tmp = bfromcstr(" ");
-  hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
-  hashtable_ts_dump_content(state_imsi_ht, tmp);
-  OAILOG_DEBUG(LOG_SPGW_APP, "Rashmi state_imsi_ht %s\n", bdata(tmp));
+  rv = send_msg_to_task(&spgw_app_task_zmq_ctx, TASK_MME, message_p);
   OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 }
 
@@ -930,10 +935,6 @@ int sgw_handle_modify_bearer_request(
       LOG_SPGW_APP, imsi64, "Rx MODIFY_BEARER_REQUEST, teid " TEID_FMT "\n",
       modify_bearer_pP->teid);
 
-  bstring tmp                    = bfromcstr(" ");
-  hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
-  hashtable_ts_dump_content(state_imsi_ht, tmp);
-  OAILOG_DEBUG(LOG_SPGW_APP, "Rashmi state_imsi_ht %s\n", bdata(tmp));
   s_plus_p_gw_eps_bearer_context_information_t* bearer_ctxt_info_p =
       sgw_cm_get_spgw_context(modify_bearer_pP->teid);
   if (bearer_ctxt_info_p) {
@@ -1061,20 +1062,11 @@ int sgw_handle_delete_session_request(
         "should be forwarded to P-GW entity\n");
   }
 
-  bstring tmp                    = bfromcstr(" ");
-  hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
-  hashtable_ts_dump_content(state_imsi_ht, tmp);
-  OAILOG_DEBUG(LOG_SPGW_APP, "Rashmi state_imsi_ht %s\n", bdata(tmp));
-  OAILOG_DEBUG(
-      LOG_SPGW_APP, "**** Rashmi sgw s11 teid :%u \n",
-      delete_session_req_pP->teid);
   s_plus_p_gw_eps_bearer_context_information_t* ctx_p =
       sgw_cm_get_spgw_context(delete_session_req_pP->teid);
   if (ctx_p) {
-    OAILOG_DEBUG(LOG_SPGW_APP, "**** Rashmi sgw context found \n");
     if ((delete_session_req_pP->sender_fteid_for_cp.ipv4) &&
         (delete_session_req_pP->sender_fteid_for_cp.ipv6)) {
-      OAILOG_DEBUG(LOG_SPGW_APP, "**** Rashmi ip check\n");
       /*
        * Sender F-TEID IE present
        */
@@ -1089,7 +1081,6 @@ int sgw_handle_delete_session_request(
             delete_session_req_pP->sender_fteid_for_cp.teid;
       }
     } else {
-      OAILOG_DEBUG(LOG_SPGW_APP, "**** Rashmi no ip check\n");
       delete_session_resp_p->cause.cause_value = REQUEST_ACCEPTED;
       delete_session_resp_p->teid =
           ctx_p->sgw_eps_bearer_context_information.mme_teid_S11;
@@ -1184,7 +1175,6 @@ int sgw_handle_delete_session_request(
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, rv);
 
   } else {
-    OAILOG_DEBUG(LOG_SPGW_APP, "**** Rashmi sgw context not found \n");
     /*
      * Context not found... set the cause to CONTEXT_NOT_FOUND
      * * * * 3GPP TS 29.274 #7.2.10.1

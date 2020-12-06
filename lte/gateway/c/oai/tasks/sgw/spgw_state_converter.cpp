@@ -17,6 +17,7 @@
 
 extern "C" {
 #include "dynamic_memory_check.h"
+#include "sgw_context_manager.h"
 }
 
 #include "spgw_state_converter.h"
@@ -32,6 +33,7 @@ using magma::lte::oai::SgwEpsBearerContext;
 using magma::lte::oai::SgwEpsBearerContextInfo;
 using magma::lte::oai::SgwPdnConnection;
 using magma::lte::oai::SpgwState;
+using magma::lte::oai::SpgwUeContext;
 using magma::lte::oai::TrafficFlowTemplate;
 
 namespace magma {
@@ -950,15 +952,38 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
 }
 
 void SpgwStateConverter::ue_to_proto(
-    const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
-    oai::S11BearerContext* ue_proto) {
-  spgw_bearer_context_to_proto(ue_state, ue_proto);
+    const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto) {
+  if (ue_state && (!(LIST_EMPTY(&ue_state->sgw_s11_teid_list)))) {
+    sgw_s11_teid_t* s11_teid_p = NULL;
+    LIST_FOREACH(s11_teid_p, &ue_state->sgw_s11_teid_list, entries) {
+      auto spgw_ctxt = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
+      if (spgw_ctxt) {
+        spgw_bearer_context_to_proto(
+            spgw_ctxt, ue_proto->add_s11_bearer_context());
+      }
+    }
+  }
 }
 
 void SpgwStateConverter::proto_to_ue(
-    const oai::S11BearerContext& spgw_bearer_proto,
-    s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state) {
-  proto_to_spgw_bearer_context(spgw_bearer_proto, spgw_bearer_state);
+    const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
+  for (int idx = 0; idx < ue_proto.s11_bearer_context_size(); idx++) {
+    oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
+    s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
+        (s_plus_p_gw_eps_bearer_context_information_t*) (calloc(
+            1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
+
+    proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
+    spgw_state_t* spgw_state       = get_spgw_state(false);
+    hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
+    hashtable_ts_insert(
+        state_imsi_ht,
+        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
+        (void*) spgw_context_p);
+    spgw_update_teid_in_ue_context(
+        spgw_state, spgw_context_p->sgw_eps_bearer_context_information.imsi64,
+        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+  }
 }
 
 }  // namespace lte
