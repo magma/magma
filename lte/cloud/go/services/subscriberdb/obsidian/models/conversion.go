@@ -59,7 +59,7 @@ func (m *MutableSubscriber) ToSubscriber() *Subscriber {
 	return sub
 }
 
-func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
+func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) {
 	if !funk.IsEmpty(states) {
 		m.Monitoring = &SubscriberStatus{}
 		m.State = &SubscriberState{}
@@ -70,6 +70,8 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 		case orc8r.DirectoryRecordType:
 			reportedState := stateVal.ReportedState.(*directoryd_types.DirectoryRecord)
 			m.State.Directory = &SubscriberDirectoryRecord{LocationHistory: reportedState.LocationHistory}
+		case lte.SubscriberStateType:
+			m.State.SubscriberState = stateVal.ReportedState.(*state.ArbitraryJSON)
 		case lte.ICMPStateType:
 			reportedState := stateVal.ReportedState.(*IcmpStatus)
 			// Reported time is unix timestamp in seconds, so divide ms by 1k
@@ -96,8 +98,8 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 				glog.Errorf("failed to retrieve allocated IP for state key %s: %s", stateID.DeviceID, err)
 			}
 			// State ID is the IMSI with the APN appended after a dot
-			ipAPN := strings.TrimPrefix(stateID.DeviceID, fmt.Sprintf("%s.", m.ID))
-			m.State.Mobility = append(m.State.Mobility, &SubscriberIPAllocation{Apn: ipAPN, IP: strfmt.IPv4(reportedIP)})
+			apn := strings.TrimPrefix(stateID.DeviceID, fmt.Sprintf("%s.", m.ID))
+			m.State.Mobility = append(m.State.Mobility, &SubscriberIPAllocation{Apn: apn, IP: strfmt.IPv4(reportedIP)})
 		default:
 			glog.Errorf("Loaded unrecognized subscriber state type %s", stateID.Type)
 		}
@@ -108,8 +110,6 @@ func (m *Subscriber) FillAugmentedFields(states state_types.StatesByID) error {
 			return m.State.Mobility[i].Apn < m.State.Mobility[j].Apn
 		})
 	}
-
-	return nil
 }
 
 // IsAssignedIP returns true if the subscriber has mobility state assigning it

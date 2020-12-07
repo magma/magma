@@ -35,6 +35,7 @@
 
 using grpc::ServerContext;
 using grpc::Status;
+using ::testing::InSequence;
 using ::testing::Test;
 
 namespace magma {
@@ -2720,6 +2721,72 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   const CreditKey& credit_key(1);
   assert_session_is_in_final_state(
       session_map, IMSI1, SESSION_ID_1, credit_key, true);
+}
+
+// Test how we handle UpdateSessionResponse with dynamic rule modification
+// 1. Start with a case where dynamic rule X is installed.
+// 2. Receive an UpdateSessionResponse with removal instruction for the
+// rule as well as an install for a dynamic rule with the same name X.
+// 3. Assert we have rule X installed with modified entry
+TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
+  auto dynamic_rule =
+      response.mutable_dynamic_rules()->Add()->mutable_policy_rule();
+  dynamic_rule->set_id("d-rule1");
+  dynamic_rule->set_rating_group(1);
+  dynamic_rule->set_tracking_type(PolicyRule::ONLY_OCS);
+  // The activation for no static rules and 1 dynamic rule (d-rule1)
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(0), CheckCount(1), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
+
+  // session store create session
+  session_map      = session_store->read_sessions(SessionRead{IMSI1});
+  auto session_ucs = SessionStore::get_default_session_update(session_map);
+
+  PolicyReAuthRequest rar;
+  PolicyReAuthAnswer raa;
+  rar.set_imsi(IMSI1);
+  rar.set_session_id(SESSION_ID_1);
+  rar.add_rules_to_remove("d-rule1");
+  auto dynamic_install = rar.mutable_dynamic_rules_to_install()->Add();
+  dynamic_install->mutable_policy_rule()->set_id("d-rule1");
+  dynamic_install->mutable_policy_rule()->set_rating_group(2);
+  dynamic_install->mutable_policy_rule()->set_tracking_type(
+      PolicyRule::ONLY_OCS);
+  {
+    InSequence s;
+
+    EXPECT_CALL(
+        *pipelined_client, deactivate_flows_for_rules(
+                               IMSI1, testing::_, testing::_, CheckCount(0),
+                               CheckCount(1), testing::_))
+        .Times(1)
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(
+        *pipelined_client,
+        activate_flows_for_rules(
+            IMSI1, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+            testing::_, CheckCount(0), CheckCount(1), testing::_))
+        .Times(1)
+        .WillOnce(testing::Return(true));
+  }
+  local_enforcer->init_policy_reauth(session_map, rar, raa, session_ucs);
+  auto& dynamic_rules = session_map[IMSI1][0]->get_dynamic_rules();
+  PolicyRule policy_out;
+  EXPECT_TRUE(dynamic_rules.get_rule("d-rule1", &policy_out));
+  EXPECT_EQ(2, policy_out.rating_group());
+  EXPECT_TRUE(session_store->update_sessions(session_ucs));
 }
 
 int main(int argc, char** argv) {

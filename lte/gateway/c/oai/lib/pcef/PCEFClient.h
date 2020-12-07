@@ -72,7 +72,7 @@ class PCEFClient : public GRPCReceiver {
       std::function<void(Status, PolicyBearerBindingResponse)> callback);
 
   /**
-   * Proxy a  gRPC call to sessiond
+   * Proxy a UpdateTunnelIdsRequest gRPC call to sessiond
    */
   static void update_teids(
       const UpdateTunnelIdsRequest& request,

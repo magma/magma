@@ -1176,7 +1176,7 @@ int mme_app_handle_create_sess_resp(
   nas_pdn_cs_respose_success.pdn_cid                      = pdn_cx_id;
   nas_pdn_cs_respose_success.pti = transaction_identifier;  // NAS internal ref
 
-  /* In Create session response IPv6 prefix + interface idntifier is sent.
+  /* In Create session response IPv6 prefix + interface identifier is sent.
    * Copy only the interface identifier to be sent in NAS ESM message
    */
   if (create_sess_resp_pP->paa.pdn_type == IPv4) {

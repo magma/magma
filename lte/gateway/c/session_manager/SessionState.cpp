@@ -327,6 +327,19 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   }
 
   // Static rules
+  for (const auto& rule_id : uc.static_rules_to_uninstall) {
+    if (is_static_rule_installed(rule_id)) {
+      deactivate_static_rule(rule_id, _);
+    } else if (is_static_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+      deactivate_static_rule(rule_id, _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because static rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
   for (const auto& rule_id : uc.static_rules_to_install) {
     if (is_static_rule_installed(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
@@ -346,19 +359,6 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
       return false;
     }
   }
-  for (const auto& rule_id : uc.static_rules_to_uninstall) {
-    if (is_static_rule_installed(rule_id)) {
-      deactivate_static_rule(rule_id, _);
-    } else if (is_static_rule_scheduled(rule_id)) {
-      install_scheduled_static_rule(rule_id, _);
-      deactivate_static_rule(rule_id, _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because static rule already uninstalled: " << rule_id
-                   << std::endl;
-      return false;
-    }
-  }
   for (const auto& rule_id : uc.new_scheduled_static_rules) {
     if (is_static_rule_scheduled(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
@@ -371,6 +371,19 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   }
 
   // Dynamic rules
+  for (const auto& rule_id : uc.dynamic_rules_to_uninstall) {
+    if (is_dynamic_rule_installed(rule_id)) {
+      dynamic_rules_.remove_rule(rule_id, NULL);
+    } else if (is_dynamic_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+      dynamic_rules_.remove_rule(rule_id, NULL);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because dynamic rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
   for (const auto& rule : uc.dynamic_rules_to_install) {
     if (is_dynamic_rule_installed(rule.id())) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
@@ -386,19 +399,6 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     } else {
       MLOG(MERROR) << "Failed to merge: " << session_id_
                    << " because rule lifetime is unspecified: " << rule.id()
-                   << std::endl;
-      return false;
-    }
-  }
-  for (const auto& rule_id : uc.dynamic_rules_to_uninstall) {
-    if (is_dynamic_rule_installed(rule_id)) {
-      dynamic_rules_.remove_rule(rule_id, NULL);
-    } else if (is_dynamic_rule_scheduled(rule_id)) {
-      install_scheduled_static_rule(rule_id, _);
-      dynamic_rules_.remove_rule(rule_id, NULL);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because dynamic rule already uninstalled: " << rule_id
                    << std::endl;
       return false;
     }
@@ -1281,15 +1281,15 @@ void SessionState::handle_update_failure(
 bool SessionState::receive_charging_credit(
     const CreditUpdateResponse& update,
     SessionStateUpdateCriteria& session_uc) {
-  const uint32_t key = update.charging_key();
+  auto key = CreditKey(update);
 
-  auto it = credit_map_.find(CreditKey(update));
+  auto it = credit_map_.find(key);
   if (it == credit_map_.end()) {
     // new credit
     return init_charging_credit(update, session_uc);
   }
   auto& grant          = it->second;
-  auto credit_uc       = get_credit_uc(CreditKey(update), session_uc);
+  auto credit_uc       = get_credit_uc(key, session_uc);
   auto credit_validity = ChargingGrant::is_valid_credit_response(update);
   if (credit_validity == INVALID_CREDIT) {
     // update unsuccessful, reset credit and return
@@ -1304,8 +1304,7 @@ bool SessionState::receive_charging_credit(
     // but clear the reported credit
     grant->credit.mark_failure(update.result_code(), credit_uc);
   }
-  MLOG(MINFO) << "Received a credit RG:" << key << " for " << session_id_;
-  grant->receive_charging_grant(update.credit(), credit_uc);
+  grant->receive_charging_grant(update, credit_uc);
 
   if (grant->reauth_state == REAUTH_PROCESSING) {
     grant->set_reauth_state(REAUTH_NOT_NEEDED, *credit_uc);
@@ -1331,7 +1330,7 @@ bool SessionState::init_charging_credit(
   }
   ChargingGrant charging_grant;
   charging_grant.credit = SessionCredit(SERVICE_ENABLED, update.limit_type());
-  charging_grant.receive_charging_grant(update.credit());
+  charging_grant.receive_charging_grant(update);
   session_uc.charging_credit_to_install[CreditKey(update)] =
       charging_grant.marshal();
   credit_map_[CreditKey(update)] =

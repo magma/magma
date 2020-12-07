@@ -383,3 +383,52 @@ func (m *EnodebState) ValidateModel() error {
 func (m *Apn) ValidateModel() error {
 	return m.Validate(strfmt.Default)
 }
+
+func (m *CellularGatewayPool) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
+		return err
+	}
+	return m.Config.ValidateModel()
+}
+
+func (m *CellularGatewayPoolConfigs) ValidateModel() error {
+	return m.Validate(strfmt.Default)
+}
+
+func (m *MutableCellularGatewayPool) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
+		return err
+	}
+	return m.Config.ValidateModel()
+}
+
+func (m *CellularGatewayPoolRecords) ValidateModel() error {
+	err := m.Validate(strfmt.Default)
+	if err != nil {
+		return err
+	}
+	uniquePool := make(map[GatewayPoolID]bool, len(*m))
+	for _, record := range *m {
+		if !uniquePool[record.GatewayPoolID] {
+			uniquePool[record.GatewayPoolID] = true
+		} else {
+			return fmt.Errorf("All pool records must have unique pool IDs")
+		}
+	}
+	if len(*m) == 0 {
+		return nil
+	}
+	relCapacity := (*m)[0].MmeRelativeCapacity
+	mmeCode := (*m)[0].MmeCode
+	for _, record := range *m {
+		if record.MmeRelativeCapacity != relCapacity {
+			return fmt.Errorf("Setting different MME relative capacities for the same gateway is currently unsupported")
+		}
+		if record.MmeCode != mmeCode {
+			return fmt.Errorf("Setting different MME codes for the same gateway is currently unsupported")
+		}
+	}
+	return nil
+}
