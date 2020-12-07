@@ -905,7 +905,10 @@ void mme_app_handle_delete_session_rsp(
    */
   if ((ECM_IDLE == ue_context_p->ecm_state) ||
       (delete_sess_resp_pP->cause.cause_value == CONTEXT_NOT_FOUND)) {
-    ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
+    /*if (ue_context_p->ue_context_rel_cause !=
+        S1AP_INITIAL_CONTEXT_SETUP_FAILED) {
+      ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
+    }*/
     // Notify S1AP to release S1AP UE context locally.
     mme_app_itti_ue_context_release(
         ue_context_p, ue_context_p->ue_context_rel_cause);
@@ -960,6 +963,9 @@ void mme_app_handle_delete_session_rsp(
         mme_app_desc_p->mme_ue_contexts.tun11_ue_context_htbl,
         (const hash_key_t) ue_context_p->mme_teid_s11);
     ue_context_p->mme_teid_s11 = 0;
+    if (ue_context_p->nb_active_pdn_contexts != 0) {
+      ue_context_p->nb_active_pdn_contexts -= 1;
+    }
 
     /* In case of Ue initiated explicit IMSI Detach or Combined EPS/IMSI detach
        Do not send UE Context Release Command to eNB before receiving SGs IMSI
@@ -1892,6 +1898,16 @@ void mme_app_handle_initial_context_setup_rsp_timer_expiry(
       (const hash_key_t) ue_context_p->enb_s1ap_id_key);
 
   if (ue_context_p->mm_state == UE_UNREGISTERED) {
+    nas_emm_attach_proc_t* attach_proc =
+        get_nas_specific_procedure_attach(&ue_context_p->emm_context);
+    if (attach_proc) {
+      nas_stop_T3450(attach_proc->ue_id, &attach_proc->T3450, NULL);
+    }
+    /*
+    // Move the UE to Idle state
+    mme_ue_context_update_ue_sig_connection_state(
+        &mme_app_desc_p->mme_ue_contexts, ue_context_p, ECM_IDLE);
+*/
     // Initiate Implicit Detach for the UE
     nas_proc_implicit_detach_ue_ind(mme_ue_s1ap_id);
     increment_counter(
