@@ -167,8 +167,9 @@ MATCHER_P(CheckSubscriberQuotaUpdate, quota, "") {
   return update[0].update_type() == quota;
 }
 
-MATCHER_P(CheckCreateSession, imsi, "") {
+MATCHER_P2(CheckCreateSession, imsi, promise_p, "") {
   auto req = static_cast<const CreateSessionRequest*>(arg);
+  promise_p->set_value(req->session_id());
   return req->common_context().sid().id() == imsi;
 }
 

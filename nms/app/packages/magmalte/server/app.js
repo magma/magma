@@ -106,6 +106,14 @@ app.use(configureAccess({loginUrl: '/user/login'}));
 // to superusers
 app.use('/grafana', access(SUPERUSER), require('../grafana/routes.js').default);
 
+// add lte metrics json file handler
+const fs = require('fs');
+const lteMetricsJsonData = fs.readFileSync(
+  path.join(__dirname, '..', 'data/LteMetrics.json'),
+  'utf-8',
+);
+app.get('/data/LteMetrics', (req, res) => res.send(lteMetricsJsonData));
+
 // Trigger syncing of automatically generated alerts
 app.use('/sync_alerts', access(USER), require('../alerts/routes.js').default);
 

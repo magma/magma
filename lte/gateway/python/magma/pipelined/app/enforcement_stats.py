@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 from typing import List
 from collections import defaultdict
 
@@ -86,6 +87,10 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._default_drop_flow_name = \
             kwargs['config']['enforcement']['default_drop_flow_name']
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
+        self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
+        if self._print_grpc_payload is None:
+            self._print_grpc_payload = \
+                kwargs['config'].get('magma_print_grpc_payload', False)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
@@ -389,6 +394,10 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         record_table = RuleRecordTable(records=delta_usage.values(),
                                        epoch=global_epoch)
+        if self._print_grpc_payload:
+            record_msg = 'Sending RPC payload: {0}{{\n{1}}}'.format(
+                record_table.DESCRIPTOR.name, str(record_table))
+            self.logger.info(record_msg)
         future = self.sessiond.ReportRuleStats.future(
             record_table, self.SESSIOND_RPC_TIMEOUT)
         future.add_done_callback(

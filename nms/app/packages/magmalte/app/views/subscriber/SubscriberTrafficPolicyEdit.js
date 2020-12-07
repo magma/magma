@@ -70,13 +70,13 @@ export default function EditSubscriberTrafficPolicy(
           <FormControl className={classes.input}>
             <Select
               multiple
+              id="activeApnTestId"
               value={props.subscriberState.active_apns ?? []}
               onChange={({target}) => {
                 props.onSubscriberChange('active_apns', target.value);
               }}
               renderValue={selected => selected.join(', ')}
               input={<OutlinedInput />}>
-              s
               {apns.map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
                   <Checkbox
@@ -103,7 +103,6 @@ export default function EditSubscriberTrafficPolicy(
               }}
               renderValue={selected => selected.join(', ')}
               input={<OutlinedInput />}>
-              s
               {(baseNames || []).map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
                   <Checkbox
@@ -131,7 +130,6 @@ export default function EditSubscriberTrafficPolicy(
               }}
               renderValue={selected => selected.join(', ')}
               input={<OutlinedInput />}>
-              s
               {Object.keys(policyCtx.state).map((k: string, idx: number) => (
                 <MenuItem key={idx} value={k}>
                   <Checkbox

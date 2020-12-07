@@ -100,6 +100,7 @@ typedef struct hash_table_ts_s {
   hash_size_t num_elements;
   struct hash_node_s** nodes;
   pthread_mutex_t* lock_nodes;
+  pthread_mutexattr_t* lock_attr;
   hash_size_t (*hashfunc)(const hash_key_t);
   void (*freefunc)(void**);
   bstring name;

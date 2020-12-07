@@ -43,9 +43,10 @@ var (
 		// AGW state messages which use arbitrary untyped JSON serdes because
 		// they're defined/used as protos in the AGW codebase
 		state.NewStateSerde(lte.MMEStateType, &state.ArbitraryJSON{}),
-		state.NewStateSerde(lte.SPGWStateType, &state.ArbitraryJSON{}),
-		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
 		state.NewStateSerde(lte.MobilitydStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.S1APStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.SPGWStateType, &state.ArbitraryJSON{}),
+		state.NewStateSerde(lte.SubscriberStateType, &state.ArbitraryJSON{}),
 	))
 	// Device contains the full set of device serdes used in the LTE module
 	Device = serdes.Device

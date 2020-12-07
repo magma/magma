@@ -491,7 +491,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	// New test
 	sm := statemachines.NewEnodebdE2ETestStateMachine(tcTestInit.GetTestTestcontrollerStorage(t), cli, mockMagmad)
 
-	testConfig.EnodebConfig.Pci = 261
+	testConfig.EnodebConfig.ManagedConfig.Pci = 261
 	// ---
 	// Reconfig Enodeb
 	// ---
@@ -521,7 +521,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	assert.Equal(t, "check_for_upgrade", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
 
-	testConfig.EnodebConfig.Pci = 260
+	testConfig.EnodebConfig.ManagedConfig.Pci = 260
 	// ---
 	// Restore Enodeb config
 	// ---
@@ -554,7 +554,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	mockStatus.EnodebConfigured = swag.Bool(true)
 	reportEnodebState(t, ctx, "1202000038269KP0037", mockStatus)
 	mockMagmad.On("GenerateTraffic", "n1", "g2", "magmawifi", "magmamagma").Return(mockGenericCommandResp, nil)
-	testConfig.EnodebConfig.Pci = 261
+	testConfig.EnodebConfig.ManagedConfig.Pci = 261
 	mockGenericCommandResp.Response.Fields = map[string]*structpb.Value{
 		"returncode": {Kind: &structpb.Value_NumberValue{NumberValue: float64(1)}},
 		"stdout":     {Kind: &structpb.Value_StringValue{StringValue: ""}},
@@ -617,7 +617,7 @@ func Test_EnodebdE2ETestStateMachine_ReconfigEnb(t *testing.T) {
 	assert.Equal(t, "restore_enodeb1", actualState)
 	assert.Equal(t, time.Minute, actualDuration)
 
-	testConfig.EnodebConfig.Pci = 260
+	testConfig.EnodebConfig.ManagedConfig.Pci = 260
 	// ---
 	// Restore Enodeb config
 	// ---
@@ -879,16 +879,19 @@ func GetEnodebTestConfig() *models.EnodebdTestConfig {
 		Ssid:        ("magmawifi"),
 		SsidPw:      ("magmamagma"),
 		TrafficGwID: swag.String("g2"),
-		EnodebConfig: &ltemodels.EnodebConfiguration{
-			BandwidthMhz:           20,
-			CellID:                 swag.Uint32(138777000),
-			DeviceClass:            "Baicells ID TDD/FDD",
-			Earfcndl:               44590,
-			Pci:                    260,
-			SpecialSubframePattern: 7,
-			SubframeAssignment:     2,
-			Tac:                    1,
-			TransmitEnabled:        swag.Bool(true),
+		EnodebConfig: &ltemodels.EnodebConfig{
+			ConfigType: "MANAGED",
+			ManagedConfig: &ltemodels.EnodebConfiguration{
+				BandwidthMhz:           20,
+				CellID:                 swag.Uint32(138777000),
+				DeviceClass:            "Baicells ID TDD/FDD",
+				Earfcndl:               44590,
+				Pci:                    260,
+				SpecialSubframePattern: 7,
+				SubframeAssignment:     2,
+				Tac:                    1,
+				TransmitEnabled:        swag.Bool(true),
+			},
 		},
 		SubscriberID: swag.String("IMSI1234567890"),
 		StartState:   "check_for_upgrade",

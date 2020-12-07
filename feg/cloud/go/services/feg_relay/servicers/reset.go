@@ -14,8 +14,9 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
+
 	"github.com/golang/glog"
-	"golang.org/x/net/context"
 
 	"magma/feg/cloud/go/protos"
 	"magma/feg/cloud/go/services/feg_relay/utils"

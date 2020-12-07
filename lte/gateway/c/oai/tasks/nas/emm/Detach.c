@@ -67,21 +67,9 @@ static const char* _emm_sgs_detach_type_str[] = {"EPS",
                                                  "NW-INITIATED-EPS",
                                                  "NW-INITIATED-IMPLICIT-NONEPS",
                                                  "RESERVED"};
-/*
- *  Detach Proc: Timer handler
- */
-void _detach_t3422_handler(void*, imsi64_t* imsi64);
-
-typedef struct {
-  unsigned int ue_id;
-#define DETACH_REQ_COUNTER_MAX 5
-  unsigned int retransmission_count;
-  uint8_t detach_type;
-} nw_detach_data_t;
-
 /****************************************************************************
  **                                                                        **
- ** Name:    _detach_t3422_handler()                                       **
+ ** Name:    detach_t3422_handler()                                       **
  **                                                                        **
  ** Description: T3422 timeout handler                                     **
  **      Upon T3422 timer expiration, the Detach request                   **
@@ -98,11 +86,17 @@ typedef struct {
  **      Others:    None                                                   **
  **                                                                        **
  ***************************************************************************/
-void _detach_t3422_handler(void* args, imsi64_t* imsi64) {
+void detach_t3422_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_EMM);
   nw_detach_data_t* data = (nw_detach_data_t*) (args);
 
-  DevAssert(data);
+  if (!data) {
+    OAILOG_ERROR(
+        LOG_NAS_EMM,
+        "The argument for network initiated"
+        "detach timer is NULL \n");
+    OAILOG_FUNC_OUT(LOG_NAS_EMM);
+  }
 
   mme_ue_s1ap_id_t ue_id = data->ue_id;
   uint8_t detach_type    = data->detach_type;
@@ -133,6 +127,7 @@ void _detach_t3422_handler(void* args, imsi64_t* imsi64) {
     if (data) {
       // free timer argument
       free_wrapper((void**) &data);
+      emm_ctx->t3422_arg = NULL;
     }
     if (detach_type != NW_DETACH_TYPE_IMSI_DETACH) {
       emm_detach_request_ies_t emm_detach_request_params;
@@ -551,22 +546,33 @@ int emm_proc_nw_initiated_detach_request(
       void** timer_callback = &unused;
       emm_ctx->T3422.id     = nas_timer_stop(emm_ctx->T3422.id, timer_callback);
       nw_detach_data_t* data = (nw_detach_data_t*) emm_ctx->t3422_arg;
-      ;
-      emm_ctx->T3422.id = nas_timer_start(
-          emm_ctx->T3422.sec, 0, _detach_t3422_handler, (void*) data);
+      emm_ctx->T3422.id      = nas_timer_start(
+          emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
     } else {
       /*
        * Start T3422 timer
        */
-      nw_detach_data_t* data =
-          (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
-      DevAssert(data);
-      data->ue_id                = ue_id;
-      data->retransmission_count = 0;
-      data->detach_type          = detach_type;
-      emm_ctx->T3422.id          = nas_timer_start(
-          emm_ctx->T3422.sec, 0, _detach_t3422_handler, (void*) data);
-      emm_ctx->t3422_arg = (void*) data;
+      if (emm_ctx->t3422_arg) {
+        emm_ctx->T3422.id = nas_timer_start(
+            emm_ctx->T3422.sec, 0, detach_t3422_handler,
+            (void*) emm_ctx->t3422_arg);
+      } else {
+        nw_detach_data_t* data =
+            (nw_detach_data_t*) calloc(1, sizeof(nw_detach_data_t));
+        if (!data) {
+          OAILOG_ERROR(
+              LOG_NAS_EMM,
+              "Failed to allocate memory for 3422 timer argument. Didn't start "
+              "the 3422 timer \n");
+          OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNerror);
+        }
+        data->ue_id                = ue_id;
+        data->retransmission_count = 0;
+        data->detach_type          = detach_type;
+        emm_ctx->T3422.id          = nas_timer_start(
+            emm_ctx->T3422.sec, 0, detach_t3422_handler, (void*) data);
+        emm_ctx->t3422_arg = (void*) data;
+      }
     }
   }
   OAILOG_FUNC_RETURN(LOG_NAS_EMM, RETURNok);
