@@ -129,6 +129,9 @@ metrics:
 
   thanos:
     enabled: ${thanos_enabled}
+    compact:
+      nodeSelector:
+        compute-type: thanos
     objstore:
       type: S3
       config:
