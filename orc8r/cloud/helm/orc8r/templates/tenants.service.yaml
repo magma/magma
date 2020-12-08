@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "tenants.service") -}}
 {{- define "tenants.service" -}}
 metadata:
-  name: {{ .Release.Name }}-tenants
+  name: orc8r-tenants
   labels:
     {{- with .Values.tenants.service.labels }}
 {{ toYaml . | indent 4}}

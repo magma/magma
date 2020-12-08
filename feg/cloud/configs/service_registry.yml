@@ -34,7 +34,7 @@ services:
       session_proxy:
         port: 9079
       swx_proxy:
-        port: 9079
+        port: 9103
       csfb:
         port: 9079
       feg_hello:

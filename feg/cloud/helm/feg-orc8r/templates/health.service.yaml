@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "health.service") -}}
 {{- define "health.service" -}}
 metadata:
-  name: {{ .Release.Name }}-health
+  name: orc8r-health
   labels:
     {{- with .Values.health.service.labels }}
 {{ toYaml . | indent 4}}

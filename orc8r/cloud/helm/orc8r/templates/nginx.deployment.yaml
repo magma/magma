@@ -80,6 +80,8 @@ spec:
               value: {{ required "nginx.spec.hostname must be provided" .Values.nginx.spec.hostname | quote }}
             - name: RESOLVER
               value: {{ .Values.nginx.spec.resolver | quote }}
+            - name: SERVICE_REGISTRY_MODE
+              value: {{ .Values.controller.spec.service_registry.mode }}
           livenessProbe:
             tcpSocket:
               port: health

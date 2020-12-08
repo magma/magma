@@ -923,6 +923,7 @@ void emm_init_context(
   if (init_esm_ctxt) {
     esm_init_context(&emm_ctx->esm_ctx);
   }
+  emm_ctx->emm_procedures = NULL;
 }
 
 //------------------------------------------------------------------------------
