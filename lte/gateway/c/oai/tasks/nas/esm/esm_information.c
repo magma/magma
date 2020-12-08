@@ -216,7 +216,7 @@ static void _esm_information_t3489_handler(void* args, imsi64_t* imsi64) {
        * Re-start T3489 timer
        */
       bdestroy_wrapper(&esm_ebr_timer_data->msg);
-      free_wrapper((void**) esm_ebr_timer_data);
+      free_wrapper((void**) &esm_ebr_timer_data);
     }
   }
 
