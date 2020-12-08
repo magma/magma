@@ -110,6 +110,11 @@ services:
     port: 9108
     proxy_type: "clientcert"
 
+  ctraced:
+    host: "localhost"
+    port: 9118
+    proxy_type: "clientcert"
+
   tenants:
     host: "localhost"
     port: 9110

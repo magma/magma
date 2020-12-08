@@ -224,6 +224,11 @@ configurator:
     labels: {}
     annotations: {}
 
+ctraced:
+  service:
+    labels: {}
+    annotations: {}
+
 device:
   service:
     labels: {}
