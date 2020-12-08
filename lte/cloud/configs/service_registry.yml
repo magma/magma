@@ -24,11 +24,11 @@ services:
         /magma/v1/lte,
         /magma/v1/lte/:network_id,
       orc8r.io/stream_provider_streams: >
+        apn_rule_mappings,
         base_names,
         network_wide_rules,
         policydb,
         rating_groups,
-        apn_rule_mappings,
         subscriberdb,
 
   subscriberdb:
@@ -44,6 +44,7 @@ services:
       orc8r.io/state_indexer_version: "1"
       orc8r.io/obsidian_handlers_path_prefixes: >
         /magma/v1/lte/:network_id/msisdns,
+        /magma/v1/lte/:network_id/subscriber_state,
         /magma/v1/lte/:network_id/subscribers,
 
   policydb:
