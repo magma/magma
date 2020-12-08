@@ -28,15 +28,18 @@ def OAI_GIT_BRANCH = "master"
 // Location of the executor node
 def nodeExecutor = "libvirt"
 
+def GITHUB_USER = "magmabot"
 def slack_channel = "#magma-ci-bot"
-// lock mechanism
-def cn_ci_resource = params.MagmaVmDockerResources
 
 
 pipeline {
   agent {
     label "libvirt"
   }
+  parameters {
+    booleanParam(name: 'REGRESSION_TEST', defaultValue: false, description: 'Test master branch for regressions and submit a Github issue')
+  }
+
   options {
     timestamps()
     ansiColor('xterm')
@@ -57,11 +60,17 @@ pipeline {
     stage ("Retrieve and Prepare Source Code") {
       steps {
         script {
+          def branch
+          if (params.REGRESSION_TEST) {
+            branch = 'master'
+          } else {
+            branch = sha1
+          }
           checkout(
             changelog: false,
             poll: false,
             scm: [$class: 'GitSCM',
-                  branches: [[name: '$sha1']],
+                  branches: [[name: "$branch"]],
                   doGenerateSubmoduleConfigurations: false,
                   extensions: [],
                   submoduleCfg: [],
@@ -558,6 +567,9 @@ stage ("Test-AGW1-w-S11") {
           def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
           echo message
           sendSocialMediaMessage(slack_channel,color, message)
+          if (params.REGRESSION_TEST) {
+            createOrUpdateGithubIssue(GIT_URL, GITHUB_USER, message)
+          }
       }
     }
   }
@@ -576,6 +588,67 @@ def myShCmdWithLogAppend(cmd, logFile) {
         ${cmd} 2>&1 | tee -a $WORKSPACE/${logFile}
   """
 }
+
+def createOrUpdateGithubIssue(git_url, github_user, message) {
+  issueTitle = "[CI] Regression tests failed"
+  githubProject = git_url.split('/')[1] + "/" + git_url.split('/')[2]
+  issueId = getIssueByTitle(githubProject, github_user, issueTitle)
+  if (issueId != false) {
+    updateGitHubIssue(githubProject, github_user, issueId, message)
+    println("GitHub issue #${issueId} updated")
+  } else {
+    createGitHubIssue(githubProject, github_user, issueTitle, message)
+    println("GitHub issue created")
+  }
+}
+
+def getIssueByTitle(githubProject, github_user, title) {
+  withCredentials([string(credentialsId: 'magma_bot_github_api_token', variable: 'TOKEN')]) {
+    try {
+      id = sh(returnStdout: true, script: """curl -G -u "$github_user:$TOKEN" \
+        "https://api.github.com/search/issues" \
+        -H "Accept: application/vnd.github.v3+json" \
+        --data-urlencode "q=repo:${githubProject} author:$github_user state:open in:title ${title}" \
+        | jq .items[0].number""") .trim()
+    } catch (Exception e) {
+      println("Failed looking up github issue")
+      return false
+    }
+    if (id && id != "null") {
+      println("Found matching github issue $id")
+      return id
+    } else {
+      return false
+    }
+  }
+}
+
+def updateGitHubIssue(githubProject, github_user, issueId, message) {
+  message = message.replace('\n', '\\n')
+  withCredentials([string(credentialsId: 'magma_bot_github_api_token', variable: 'TOKEN')]) {
+    sh(returnStdout: true, script: """curl -X "POST" -u "$github_user:$TOKEN" \
+       "https://api.github.com/repos/${githubProject}/issues/${issueId}/comments" \
+       -H "Accept: application/vnd.github.v3+json" \
+       -d '{"body": "${message}"}' """)
+  }
+}
+
+def createGitHubIssue(githubProject, github_user, title, message) {
+  message = message.replace('\n', '\\n')
+  withCredentials([string(credentialsId: 'magma_bot_github_api_token', variable: 'TOKEN')]) {
+    sh(returnStdout: true, script: """curl -X "POST" -u "$github_user:$TOKEN" \
+       "https://api.github.com/repos/magma/magma/issues" \
+       -H "Accept: application/vnd.github.v3+json" \
+       -d '{
+           "title": "${title}",
+           "body": "${message}",
+           "labels": [
+           "type: bug"
+           ]
+       }' """)
+  }
+}
+
 //-------------------------------------------------------------------------------
 // Abstraction function to send social media messages:
 // like on Slack or Mattermost
