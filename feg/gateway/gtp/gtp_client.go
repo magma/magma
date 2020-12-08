@@ -11,6 +11,9 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// gtp module wraps gp-gtp v2 client providing the client with some custom functions
+// to ease its instantiation
+
 package gtp
 
 import (
@@ -33,17 +36,18 @@ type Client struct {
 	remoteAddr *net.UDPAddr
 }
 
-// NewConnectedAutoClient creates a GTP-C client finding out automatically the local Address that needs to
-// be used to reach the remote IP. It checks remote address using echo. And It also runs the GTP-C
-// server waiting for incoming calls.
-func NewConnectedAutoClient(ctx context.Context, remoteAddrStr string, connType uint8) (*Client, error) {
-	remoteAddr, err := net.ResolveUDPAddr("udp", remoteAddrStr)
+// NewConnectedAutoClient creates a GTP client finding out automatically the local IP Address to
+// be used to reach the remote IP.
+// It checks if remote end is alive using echo.
+// It runs the GTP-C server to serve incoming calls and responses.
+func NewConnectedAutoClient(ctx context.Context, remoteIPAndPortStr string, connType uint8) (*Client, error) {
+	remoteAddr, err := net.ResolveUDPAddr("udp", remoteIPAndPortStr)
 	if err != nil {
-		return nil, fmt.Errorf("could not resolve remote address: %s", err)
+		return nil, fmt.Errorf("could not resolve remote address %s: %s", remoteIPAndPortStr, err)
 	}
 	localAddrIp, err := GetOutboundIP(remoteAddr)
 	if err != nil {
-		return nil, fmt.Errorf("Could not find automatically local address:  %s", err)
+		return nil, fmt.Errorf("could not find local address automatically:  %s", err)
 	}
 	localAddr := &net.UDPAddr{IP: localAddrIp, Port: GTPC_PORT, Zone: ""}
 
@@ -57,7 +61,7 @@ func NewConnectedClient(ctx context.Context, localAddr, remoteAddr *net.UDPAddr,
 	c := NewClient(localAddr, remoteAddr, connType)
 	c.Conn, err = gtpv2.Dial(ctx, localAddr, remoteAddr, connType, 0)
 	if err != nil {
-		return nil, fmt.Errorf("Could not connect to GTP-C %s server:  %s", remoteAddr.String(), err)
+		return nil, fmt.Errorf("could not connect to GTP-C %s server:  %s", remoteAddr.String(), err)
 	}
 	return c, nil
 }
@@ -111,10 +115,9 @@ func (c *Client) GetLocalAddress() *net.UDPAddr {
 
 // Get preferred outbound ip of this machine
 func GetOutboundIP(testIp *net.UDPAddr) (net.IP, error) {
-	//Conn, err := net.Dial("udp", "8.8.8.8:80")
 	connection, err := net.Dial("udp", testIp.String())
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't local io running in this server: %s", err)
+		return nil, err
 	}
 	defer connection.Close()
 	localAddr := connection.LocalAddr().(*net.UDPAddr)
