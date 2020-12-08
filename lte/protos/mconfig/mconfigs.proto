@@ -272,6 +272,8 @@ message MME {
     // Overrides field 4 if this is not empty. Field 4 is in the process of
     // being deprecated
     repeated int32 attached_enodeb_tacs = 15;
+    // MME relative capacity - capacity within an MME group. 8-bit
+    int32 mme_relative_capacity = 16;
 
     // DEPRECATED
     // Use relay_enabled instead
