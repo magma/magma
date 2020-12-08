@@ -116,19 +116,24 @@ class ApnRuleMappingsStreamerCallback(StreamerClient.Callback):
     ):
         logging.info('Processing %d SID -> apn -> policy updates', len(updates))
         all_subscriber_rules = [] # type: List[RulesPerSubscriber]
+        found_update = False
         for update in updates:
             imsi = update.key
             subApnPolicies = SubscriberPolicySet()
             subApnPolicies.ParseFromString(update.value)
             is_updated = self._are_sub_policies_updated(imsi, subApnPolicies)
             if is_updated:
+                found_update = True
                 all_subscriber_rules.append(
                     self._build_sub_rule_set(imsi, subApnPolicies))
                 self._apn_rules_by_sid[imsi] = subApnPolicies
+        if not found_update:
+            logging.debug("No IMSIs with APN->Policy assignments found. "
+                          "Not sending an update to SessionD")
+            return
         logging.info('Updating %d IMSIs with new APN->policy assignments',
                      len(all_subscriber_rules))
         update = SessionRules(rules_per_subscriber=all_subscriber_rules)
-
         try:
             self._session_mgr_stub.SetSessionRules(update, timeout=5)
         except grpc.RpcError as e:

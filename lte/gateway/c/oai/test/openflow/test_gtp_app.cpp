@@ -626,17 +626,17 @@ TEST_F(GTPApplicationTest, TestAddTunnelIpv6) {
       *messenger, send_of_msg(
                       AllOf(
                           CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-                          CheckEthType(0x08DD), CheckIPv6Dst(ue_ipv6),
+                          CheckEthType(0x086DD), CheckIPv6Dst(ue_ipv6),
                           CheckCommandType(of13::OFPFC_ADD)),
                       _))
       .Times(1);
   EXPECT_CALL(
-      *messenger,
-      send_of_msg(
-          AllOf(
-              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x08DD),
-              CheckIPv6Dst(ue_ipv6), CheckCommandType(of13::OFPFC_ADD)),
-          _))
+      *messenger, send_of_msg(
+                      AllOf(
+                          CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+                          CheckEthType(0x086DD), CheckIPv6Dst(ue_ipv6),
+                          CheckCommandType(of13::OFPFC_ADD)),
+                      _))
       .Times(1);
 
   EXPECT_CALL(
@@ -699,17 +699,17 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelIpv6) {
       *messenger, send_of_msg(
                       AllOf(
                           CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-                          CheckEthType(0x08DD), CheckIPv6Dst(ue_ipv6),
+                          CheckEthType(0x086DD), CheckIPv6Dst(ue_ipv6),
                           CheckCommandType(of13::OFPFC_DELETE)),
                       _))
       .Times(1);
   EXPECT_CALL(
-      *messenger,
-      send_of_msg(
-          AllOf(
-              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x08DD),
-              CheckIPv6Dst(ue_ipv6), CheckCommandType(of13::OFPFC_DELETE)),
-          _))
+      *messenger, send_of_msg(
+                      AllOf(
+                          CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+                          CheckEthType(0x086DD), CheckIPv6Dst(ue_ipv6),
+                          CheckCommandType(of13::OFPFC_DELETE)),
+                      _))
       .Times(1);
 
   EXPECT_CALL(
@@ -772,7 +772,7 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowIpv6) {
       send_of_msg(
           AllOf(
               CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-              CheckEthType(0x08DD), CheckIPv6Dst(dl_flow.dst_ip6),
+              CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
               CheckIPv6Src(dl_flow.src_ip6), CheckIPv4Proto(dl_flow.ip_proto),
               CheckTcpDstPort(dl_flow.tcp_dst_port),
               CheckTcpSrcPort(dl_flow.tcp_src_port),
@@ -783,9 +783,9 @@ TEST_F(GTPApplicationTest, TestAddTunnelDlFlowIpv6) {
       *messenger,
       send_of_msg(
           AllOf(
-              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x08DD),
-              CheckIPv6Dst(dl_flow.dst_ip6), CheckIPv6Src(dl_flow.src_ip6),
-              CheckIPv4Proto(dl_flow.ip_proto),
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+              CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
+              CheckIPv6Src(dl_flow.src_ip6), CheckIPv4Proto(dl_flow.ip_proto),
               CheckTcpDstPort(dl_flow.tcp_dst_port),
               CheckTcpSrcPort(dl_flow.tcp_src_port),
               CheckCommandType(of13::OFPFC_ADD)),
@@ -842,7 +842,7 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlowIpv6) {
       send_of_msg(
           AllOf(
               CheckTableId(0), CheckInPort(of13::OFPP_LOCAL),
-              CheckEthType(0x08DD), CheckIPv6Dst(dl_flow.dst_ip6),
+              CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
               CheckIPv6Src(dl_flow.src_ip6), CheckIPv4Proto(dl_flow.ip_proto),
               CheckTcpDstPort(dl_flow.tcp_dst_port),
               CheckTcpSrcPort(dl_flow.tcp_src_port),
@@ -853,9 +853,9 @@ TEST_F(GTPApplicationTest, TestDeleteTunnelDlFlowIpv6) {
       *messenger,
       send_of_msg(
           AllOf(
-              CheckTableId(0), CheckInPort(TEST_MTR_PORT), CheckEthType(0x08DD),
-              CheckIPv6Dst(dl_flow.dst_ip6), CheckIPv6Src(dl_flow.src_ip6),
-              CheckIPv4Proto(dl_flow.ip_proto),
+              CheckTableId(0), CheckInPort(TEST_MTR_PORT),
+              CheckEthType(0x086DD), CheckIPv6Dst(dl_flow.dst_ip6),
+              CheckIPv6Src(dl_flow.src_ip6), CheckIPv4Proto(dl_flow.ip_proto),
               CheckTcpDstPort(dl_flow.tcp_dst_port),
               CheckTcpSrcPort(dl_flow.tcp_src_port),
               CheckCommandType(of13::OFPFC_DELETE)),

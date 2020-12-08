@@ -33,7 +33,7 @@ static_resources:
   - connect_timeout: 1s
     hosts:
     - socket_address:
-        address: 127.0.0.1
+        address: 10.5.0.2
         port_value: 18000
     http2_protocol_options: {}
     name: xds_cluster

@@ -109,28 +109,31 @@ void LocalSessionManagerHandlerImpl::check_usage_for_reporting(
             static_cast<const google::protobuf::Message&>(response));
 
         // clear all the reporting flags
+        // TODO this could be done in one go with the SessionStore update below
         session_store_.set_and_save_reporting_flag(false, request, session_uc);
-
+        auto updates_by_session = UpdateRequestsBySession(request);
         if (!status.ok()) {
-          MLOG(MERROR) << "Update of size " << request.updates_size()
-                       << " to OCS failed entirely: " << status.error_message();
+          MLOG(MERROR)
+              << "UpdateSession request to FeG/PolicyDB failed entirely: "
+              << status.error_message();
+          enforcer_->handle_update_failure(
+              *session_map_ptr, updates_by_session, session_uc);
           report_session_update_event_failure(
-              *session_map_ptr, session_uc, status.error_message());
-        } else {
-          enforcer_->update_session_credits_and_rules(
-              *session_map_ptr, response, session_uc);
+              *session_map_ptr, updates_by_session, status.error_message());
           session_store_.update_sessions(session_uc);
-          report_session_update_event(*session_map_ptr, session_uc);
+          return;
         }
+        // Success!
+        enforcer_->update_session_credits_and_rules(
+            *session_map_ptr, response, session_uc);
+        report_session_update_event(*session_map_ptr, updates_by_session);
+        session_store_.update_sessions(session_uc);
       });
 }
 
 bool LocalSessionManagerHandlerImpl::is_pipelined_restarted() {
   // If 0 also setup pipelined because it always waits for setup instructions
-  if (current_epoch_ == 0 || current_epoch_ != reported_epoch_) {
-    return true;
-  }
-  return false;
+  return (current_epoch_ == 0 || current_epoch_ != reported_epoch_);
 }
 
 void LocalSessionManagerHandlerImpl::handle_setup_callback(
@@ -238,7 +241,7 @@ void LocalSessionManagerHandlerImpl::CreateSession(
             failure_stream << "Received an invalid RAT type " << rat_type;
             std::string failure_msg = failure_stream.str();
             MLOG(MERROR) << failure_msg;
-            events_reporter_->session_create_failure(imsi, cfg, failure_msg);
+            events_reporter_->session_create_failure(cfg, failure_msg);
             send_local_create_session_response(
                 Status(grpc::FAILED_PRECONDITION, "Invalid RAT type"),
                 session_id, response_callback);
@@ -290,7 +293,7 @@ void LocalSessionManagerHandlerImpl::send_create_session(
                          << status.error_message();
           std::string failure_msg = failure_stream.str();
           MLOG(MERROR) << failure_msg;
-          events_reporter_->session_create_failure(imsi, cfg, failure_msg);
+          events_reporter_->session_create_failure(cfg, failure_msg);
         }
         send_local_create_session_response(status, session_id, cb);
       });
@@ -473,42 +476,40 @@ void LocalSessionManagerHandlerImpl::end_session(
 }
 
 void LocalSessionManagerHandlerImpl::report_session_update_event(
-    SessionMap& session_map, SessionUpdate& session_update) {
-  for (auto& it : session_map) {
-    auto imsi    = it.first;
-    auto session = it.second.begin();
-    while (session != it.second.end()) {
-      auto updates    = session_update.find(it.first)->second;
-      auto session_id = (*session)->get_session_id();
-      if (updates.find(session_id) != updates.end()) {
-        events_reporter_->session_updated(
-            imsi, session_id, (*session)->get_config());
-      }
-      ++session;
+    SessionMap& session_map, const UpdateRequestsBySession& updates) {
+  for (auto& it : updates.requests_by_id) {
+    const std::string &imsi = it.first.first, &session_id = it.first.second;
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MWARNING) << "Not reporting session update event for " << session_id
+                     << " because it couldn't be found";
+      continue;
     }
+    events_reporter_->session_updated(
+        session_id, (**session_it)->get_config(), it.second);
   }
 }
 
 void LocalSessionManagerHandlerImpl::report_session_update_event_failure(
-    SessionMap& session_map, SessionUpdate& session_update,
+    SessionMap& session_map, const UpdateRequestsBySession& failed_updates,
     const std::string& failure_reason) {
-  for (auto& it : session_map) {
-    auto imsi    = it.first;
-    auto session = it.second.begin();
-    while (session != it.second.end()) {
-      auto updates    = session_update.find(it.first)->second;
-      auto session_id = (*session)->get_session_id();
-      if (updates.find(session_id) != updates.end()) {
-        std::ostringstream failure_stream;
-        failure_stream << "Update Session failed due to response from OCS: "
-                       << failure_reason;
-        std::string failure_msg = failure_stream.str();
-        MLOG(MERROR) << failure_msg;
-        events_reporter_->session_update_failure(
-            imsi, session_id, (*session)->get_config(), failure_msg);
-      }
-      ++session;
+  for (auto& it : failed_updates.requests_by_id) {
+    const std::string &imsi = it.first.first, &session_id = it.first.second;
+    SessionSearchCriteria criteria(imsi, IMSI_AND_SESSION_ID, session_id);
+    auto session_it = session_store_.find_session(session_map, criteria);
+    if (!session_it) {
+      MLOG(MWARNING) << "Not reporting session update failure event for "
+                     << session_id << " because it couldn't be found";
+      continue;
     }
+    std::ostringstream failure_stream;
+    failure_stream << "UpdateSession request to FeG/PolicyDB failed: "
+                   << failure_reason;
+    std::string failure_msg = failure_stream.str();
+    MLOG(MERROR) << failure_msg;
+    events_reporter_->session_update_failure(
+        session_id, (**session_it)->get_config(), it.second, failure_msg);
   }
 }
 

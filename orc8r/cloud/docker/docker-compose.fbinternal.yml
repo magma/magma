@@ -1,0 +1,62 @@
+version: "3.7"
+
+# NOTE: x-orc8r is somewhat replicated from the main docker-compose file.
+# Please keep it in sync.
+x-orc8r_service: &orc8r_service
+  image: orc8r_base
+  environment:
+    TEST_MODE: "1"  # Run dev scripts on startup
+    SERVICE_HOSTNAME: localhost  # All services are reachable through localhost
+    SERVICE_REGISTRY_MODE: docker
+    SQL_DRIVER: postgres
+    DATABASE_SOURCE: dbname=magma_dev user=magma_dev password=magma_dev host=postgres sslmode=disable
+    SQL_DIALECT: psql
+  links:
+    - fluentd
+  depends_on:
+    - orchestrator
+  restart: always
+
+services:
+  fbinternal:
+    <<: *orc8r_service
+    depends_on:
+      # Fbinternal services
+      - download
+      - testcontroller
+      - vpnservice
+      # Core orc8r services and non-core essentials
+      - orchestrator
+    command:
+      - /bin/sh
+      - -c
+      - >
+        /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
+        /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/fbinternal -logtostderr=true -v=0
+
+  download:
+    <<: *orc8r_service
+    command:
+      - /bin/sh
+      - -c
+      - >
+        /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
+        /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/download -logtostderr=true -v=0
+
+  testcontroller:
+    <<: *orc8r_service
+    command:
+      - /bin/sh
+      - -c
+      - >
+        /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
+        /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/testcontroller -run_echo_server=true -logtostderr=true -v=0
+
+  vpnservice:
+    <<: *orc8r_service
+    command:
+      - /bin/sh
+      - -c
+      - >
+        /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
+        /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/vpnservice -logtostderr=true -v=0

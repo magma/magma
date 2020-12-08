@@ -231,7 +231,7 @@ Create the Orchestrator admin user with the `admin_operator` certificate
 created earlier
 
 ```bash
-export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
+export CNTLR_POD=$(kubectli -n orc8r get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
 kubectl exec ${CNTLR_POD} -- envdir /var/opt/magma/envdir /var/opt/magma/bin/accessc add-existing -admin -cert /var/opt/magma/certs/admin_operator.pem admin_operator
 ```
 

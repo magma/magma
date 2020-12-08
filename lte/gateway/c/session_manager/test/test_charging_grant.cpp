@@ -26,9 +26,10 @@ class ChargingGrantTest : public ::testing::Test {
   ChargingGrant get_default_grant() {
     ChargingGrant grant;
     grant.is_final_grant = false;
-    grant.expiry_time    = time(NULL);
+    grant.expiry_time    = std::numeric_limits<std::time_t>::max();
     grant.service_state  = SERVICE_ENABLED;
     grant.reauth_state   = REAUTH_NOT_NEEDED;
+    grant.suspended      = false;
     return grant;
   }
 
@@ -95,7 +96,7 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
 
   grant.credit.add_used_credit(2000, 0, uc);
   EXPECT_TRUE(grant.credit.is_quota_exhausted(0.8));
-  // Credit is exhausted, we expect a quota exhaustion updat type
+  // Credit is exhausted, we expect a quota exhaustion update type
   CreditUsage::UpdateType update_type;
   EXPECT_TRUE(grant.get_update_type(&update_type));
   EXPECT_EQ(update_type, CreditUsage::QUOTA_EXHAUSTED);
@@ -124,6 +125,13 @@ TEST_F(ChargingGrantTest, test_get_update_type) {
   grant.reauth_state   = REAUTH_REQUIRED;
   EXPECT_TRUE(grant.get_update_type(&update_type));
   EXPECT_EQ(update_type, CreditUsage::REAUTH_REQUIRED);
+
+  // Set final_grant && validity timer
+  grant.is_final_grant = true;
+  grant.reauth_state   = REAUTH_NOT_NEEDED;
+  grant.expiry_time    = time(nullptr) - 50;  // 50 seconds ago
+  EXPECT_TRUE(grant.get_update_type(&update_type));
+  EXPECT_EQ(update_type, CreditUsage::VALIDITY_TIMER_EXPIRED);
 }
 
 TEST_F(ChargingGrantTest, test_should_deactivate_service) {
@@ -278,6 +286,7 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   CreditUsage::UpdateType update_type;
   EXPECT_TRUE(grant.get_update_type(&update_type));
   auto c_usage = grant.get_credit_usage(update_type, uc, false);
+  EXPECT_EQ(update_type, CreditUsage::QUOTA_EXHAUSTED);
   EXPECT_EQ(c_usage.bytes_tx(), 2000);
   EXPECT_EQ(c_usage.bytes_rx(), 0);
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
@@ -294,13 +303,9 @@ TEST_F(ChargingGrantTest, test_tolerance_quota_exhausted) {
   // we overused, so the delta is the overusage
   EXPECT_EQ(uc.bucket_deltas[ALLOWED_TOTAL], 2000);
 
-  // Trigger an update again, we expect the rest to be reported
+  // No update should be triggered as everything is reported
   uc = grant.get_update_criteria();  // reset UC
-  EXPECT_TRUE(grant.get_update_type(&update_type));
-  c_usage = grant.get_credit_usage(update_type, uc, false);
-  EXPECT_EQ(c_usage.bytes_tx(), 0);
-  EXPECT_EQ(c_usage.bytes_rx(), 0);
-  // we have used 2000 but we will report only what we were granted
+  EXPECT_FALSE(grant.get_update_type(&update_type));
   EXPECT_EQ(credit.get_credit(USED_TX), 2000);
   EXPECT_EQ(credit.get_credit(REPORTING_TX), 0);
 

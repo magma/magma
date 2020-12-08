@@ -32,7 +32,7 @@ ret=1
 counter=0
 until [[ ${ret} -eq 0 || ${counter} -gt 10  ]]; do
     echo "performing curl"
-    result=$( curl -X POST "https://graph.expresswifi.com/openflow/configxwfm?access_token=${ACCESSTOKEN}" )
+    result=$( curl -k -X POST "https://graph.expresswifi.com/openflow/configxwfm?access_token=${ACCESSTOKEN}" )
     echo $result | grep -q  configxwfm
     ret=$?
     echo "Counter: $counter -> $ret"

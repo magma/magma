@@ -16,8 +16,8 @@
 
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
-import {FEG_LTE, LTE, coalesceNetworkType} from '@fbcnms/types/network';
 import {LteContextProvider} from '../lte/LteContext';
+import {coalesceNetworkType} from '@fbcnms/types/network';
 import type {NetworkType} from '@fbcnms/types/network';
 import type {Theme} from '@material-ui/core';
 
@@ -80,30 +80,25 @@ export default function Index() {
     return <LoadingFiller />;
   }
 
-  const lteNetwork = networkType === LTE || networkType === FEG_LTE;
   return (
     <NetworkContext.Provider value={{networkId, networkType}}>
-      <div className={classes.root}>
-        <AppSideBar
-          mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
-          secondaryItems={[<NetworkSelector key={1} />]}
-          projects={getProjectLinks(tabs, user)}
-          showSettings={shouldShowSettings({
-            isSuperUser: user.isSuperUser,
-            ssoEnabled,
-          })}
-          user={user}
-        />
-        <AppContent>
-          {lteNetwork ? (
-            <LteContextProvider networkId={networkId}>
-              <SectionRoutes />
-            </LteContextProvider>
-          ) : (
+      <LteContextProvider networkId={networkId} networkType={networkType}>
+        <div className={classes.root}>
+          <AppSideBar
+            mainItems={[<SectionLinks key={1} />, <VersionTooltip key={2} />]}
+            secondaryItems={[<NetworkSelector key={1} />]}
+            projects={getProjectLinks(tabs, user)}
+            showSettings={shouldShowSettings({
+              isSuperUser: user.isSuperUser,
+              ssoEnabled,
+            })}
+            user={user}
+          />
+          <AppContent>
             <SectionRoutes />
-          )}
-        </AppContent>
-      </div>
+          </AppContent>
+        </div>
+      </LteContextProvider>
     </NetworkContext.Provider>
   );
 }

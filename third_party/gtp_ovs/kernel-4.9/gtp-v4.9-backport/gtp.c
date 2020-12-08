@@ -445,12 +445,12 @@ static void gtp_dev_uninit(struct net_device *dev)
 
 static struct rtable *ip4_route_output_gtp(struct flowi4 *fl4,
 					   const struct sock *sk,
-					   __be32 daddr)
+					   __be32 daddr, __be32 saddr)
 {
 	memset(fl4, 0, sizeof(*fl4));
 	fl4->flowi4_oif		= sk->sk_bound_dev_if;
 	fl4->daddr		= daddr;
-	fl4->saddr		= inet_sk(sk)->inet_saddr;
+	fl4->saddr		= saddr;
 	fl4->flowi4_tos		= RT_CONN_FLAGS(sk);
 	fl4->flowi4_proto	= sk->sk_protocol;
 
@@ -499,7 +499,7 @@ static inline void gtp1_push_header(struct sk_buff *skb, __be32 tid)
 
 struct gtp_pktinfo {
 	struct sock		*sk;
-	struct iphdr		*iph;
+        __u8                    tos;
 	struct flowi4		fl4;
 	struct rtable		*rt;
 	struct net_device	*dev;
@@ -507,12 +507,12 @@ struct gtp_pktinfo {
 };
 
 static inline void gtp_set_pktinfo_ipv4(struct gtp_pktinfo *pktinfo,
-					struct sock *sk, struct iphdr *iph,
+					struct sock *sk, __u8 tos,
 					struct rtable *rt, struct flowi4 *fl4,
 					struct net_device *dev)
 {
 	pktinfo->sk	= sk;
-	pktinfo->iph	= iph;
+	pktinfo->tos	= tos;
 	pktinfo->rt	= rt;
 	pktinfo->fl4	= *fl4;
 	pktinfo->dev	= dev;
@@ -525,16 +525,15 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 	struct pdp_ctx *pctx;
 	struct rtable *rt;
 	struct flowi4 fl4;
-	struct iphdr *iph;
 	struct ip_tunnel_info *info = NULL;
 	struct sock *sk = NULL;
-	__be16 df;
 	__be32 tun_id;
 	__be32 daddr;
+	__be32 saddr;
 	u8 gtp_version;
 	int mtu;
-
-	iph = ip_hdr(skb);
+        __u8 tos;
+        __be16 df = 0;
 
 	// flow-based GTP1U encap
 	info = skb_tunnel_info(skb);
@@ -543,11 +542,22 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		gtp_version = GTP_V1;
 		tun_id = tunnel_id_to_key32(info->key.tun_id);
 		daddr = info->key.u.ipv4.dst;
+		saddr = info->key.u.ipv4.src;
 		sk = gtp->sk1u;
+                tos = info->key.tos;
+                if (info->key.tun_flags & TUNNEL_DONT_FRAGMENT)
+                        df = htons(IP_DF);
 
 		netdev_dbg(dev, "flow-based GTP1U encap: tunnel id %d\n",
 			   be32_to_cpu(tun_id));
 	} else {
+	        struct iphdr *iph;
+
+                if (ntohs(skb->protocol) != ETH_P_IP)
+                         return -EOPNOTSUPP;
+
+	        iph = ip_hdr(skb);
+
 		/* Read the IP destination address and resolve the PDP context.
 		 * Prepend PDP header with TEI/TID from PDP ctx.
 		 */
@@ -566,10 +576,15 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		gtp_version = pctx->gtp_version;
 		tun_id	= htonl(pctx->u.v1.o_tei);
 		daddr = pctx->peer_addr_ip4.s_addr;
+		saddr = inet_sk(sk)->inet_saddr;
 		sk = pctx->sk;
+                tos = iph->tos;
+	        df = iph->frag_off;
+		netdev_dbg(dev, "gtp -> IP src: %pI4 dst: %pI4\n",
+			   &iph->saddr, &iph->daddr);
 	}
 
-	rt = ip4_route_output_gtp(&fl4, sk, daddr);
+	rt = ip4_route_output_gtp(&fl4, sk, daddr, saddr);
 	if (IS_ERR(rt)) {
 		netdev_dbg(dev, "no route to SSGN %pI4\n", &daddr);
 		dev->stats.tx_carrier_errors++;
@@ -585,7 +600,6 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 	skb_dst_drop(skb);
 
 	/* This is similar to tnl_update_pmtu(). */
-	df = iph->frag_off;
 	if (df) {
 		mtu = dst_mtu(&rt->dst) - dev->hard_header_len -
 			sizeof(struct iphdr) - sizeof(struct udphdr);
@@ -603,8 +617,8 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 
 	rt->dst.ops->update_pmtu(&rt->dst, NULL, skb, mtu);
 
-	if (!skb_is_gso(skb) && (iph->frag_off & htons(IP_DF)) &&
-	    mtu < ntohs(iph->tot_len)) {
+	if (!skb_is_gso(skb) && (df & htons(IP_DF)) &&
+	    mtu < skb->len) {
 		netdev_dbg(dev, "packet too big, fragmentation needed\n");
 		memset(IPCB(skb), 0, sizeof(*IPCB(skb)));
 		icmp_send(skb, ICMP_DEST_UNREACH, ICMP_FRAG_NEEDED,
@@ -612,7 +626,7 @@ static int gtp_build_skb_ip4(struct sk_buff *skb, struct net_device *dev,
 		goto err_rt;
 	}
 
-	gtp_set_pktinfo_ipv4(pktinfo, sk, iph, rt, &fl4, dev);
+	gtp_set_pktinfo_ipv4(pktinfo, sk, tos, rt, &fl4, dev);
 
 	switch (gtp_version) {
 	case GTP_V0:
@@ -648,6 +662,7 @@ static netdev_tx_t gtp_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 	rcu_read_lock();
 	switch (proto) {
 	case ETH_P_IP:
+        case ETH_P_IPV6:
 		err = gtp_build_skb_ip4(skb, dev, &pktinfo);
 		break;
 	default:
@@ -659,19 +674,13 @@ static netdev_tx_t gtp_dev_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (err < 0)
 		goto tx_err;
 
-	switch (proto) {
-	case ETH_P_IP:
-		netdev_dbg(pktinfo.dev, "gtp -> IP src: %pI4 dst: %pI4\n",
-			   &pktinfo.iph->saddr, &pktinfo.iph->daddr);
-		udp_tunnel_xmit_skb(pktinfo.rt, pktinfo.sk, skb,
-				    pktinfo.fl4.saddr, pktinfo.fl4.daddr,
-				    pktinfo.iph->tos,
-				    ip4_dst_hoplimit(&pktinfo.rt->dst),
-				    0,
-				    pktinfo.gtph_port, pktinfo.gtph_port,
-				    false, false);
-		break;
-	}
+	udp_tunnel_xmit_skb(pktinfo.rt, pktinfo.sk, skb,
+			    pktinfo.fl4.saddr, pktinfo.fl4.daddr,
+			    pktinfo.tos,
+			    ip4_dst_hoplimit(&pktinfo.rt->dst),
+			    0,
+			    pktinfo.gtph_port, pktinfo.gtph_port,
+			    false, false);
 
 	return NETDEV_TX_OK;
 tx_err:
@@ -1628,7 +1637,7 @@ static int __init gtp_init(void)
 	if (err < 0)
 		goto unreg_genl_family;
 
-	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v6\n",
+	pr_info("Flow-based GTP module loaded (pdp ctx size %zd bytes) : v7\n",
 		sizeof(struct pdp_ctx));
 	return 0;
 
