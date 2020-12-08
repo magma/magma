@@ -327,6 +327,19 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   }
 
   // Static rules
+  for (const auto& rule_id : uc.static_rules_to_uninstall) {
+    if (is_static_rule_installed(rule_id)) {
+      deactivate_static_rule(rule_id, _);
+    } else if (is_static_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+      deactivate_static_rule(rule_id, _);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because static rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
   for (const auto& rule_id : uc.static_rules_to_install) {
     if (is_static_rule_installed(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
@@ -346,19 +359,6 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
       return false;
     }
   }
-  for (const auto& rule_id : uc.static_rules_to_uninstall) {
-    if (is_static_rule_installed(rule_id)) {
-      deactivate_static_rule(rule_id, _);
-    } else if (is_static_rule_scheduled(rule_id)) {
-      install_scheduled_static_rule(rule_id, _);
-      deactivate_static_rule(rule_id, _);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because static rule already uninstalled: " << rule_id
-                   << std::endl;
-      return false;
-    }
-  }
   for (const auto& rule_id : uc.new_scheduled_static_rules) {
     if (is_static_rule_scheduled(rule_id)) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
@@ -371,6 +371,19 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
   }
 
   // Dynamic rules
+  for (const auto& rule_id : uc.dynamic_rules_to_uninstall) {
+    if (is_dynamic_rule_installed(rule_id)) {
+      dynamic_rules_.remove_rule(rule_id, NULL);
+    } else if (is_dynamic_rule_scheduled(rule_id)) {
+      install_scheduled_static_rule(rule_id, _);
+      dynamic_rules_.remove_rule(rule_id, NULL);
+    } else {
+      MLOG(MERROR) << "Failed to merge: " << session_id_
+                   << " because dynamic rule already uninstalled: " << rule_id
+                   << std::endl;
+      return false;
+    }
+  }
   for (const auto& rule : uc.dynamic_rules_to_install) {
     if (is_dynamic_rule_installed(rule.id())) {
       MLOG(MERROR) << "Failed to merge: " << session_id_
@@ -386,19 +399,6 @@ bool SessionState::apply_update_criteria(SessionStateUpdateCriteria& uc) {
     } else {
       MLOG(MERROR) << "Failed to merge: " << session_id_
                    << " because rule lifetime is unspecified: " << rule.id()
-                   << std::endl;
-      return false;
-    }
-  }
-  for (const auto& rule_id : uc.dynamic_rules_to_uninstall) {
-    if (is_dynamic_rule_installed(rule_id)) {
-      dynamic_rules_.remove_rule(rule_id, NULL);
-    } else if (is_dynamic_rule_scheduled(rule_id)) {
-      install_scheduled_static_rule(rule_id, _);
-      dynamic_rules_.remove_rule(rule_id, NULL);
-    } else {
-      MLOG(MERROR) << "Failed to merge: " << session_id_
-                   << " because dynamic rule already uninstalled: " << rule_id
                    << std::endl;
       return false;
     }
