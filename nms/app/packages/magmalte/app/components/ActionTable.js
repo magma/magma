@@ -101,6 +101,8 @@ type ActionTableOptions = {
   actionsColumnIndex: number,
   pageSize?: number,
   pageSizeOptions: Array<number>,
+  rowStyle?: {},
+  headerStyle?: {},
 };
 
 type ActionOrderType = {

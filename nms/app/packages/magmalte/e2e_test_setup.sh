@@ -15,7 +15,7 @@ set -e
 mkdir -p .cache
 mkdir -p /tmp/nms_artifacts
 
-openssl req -nodes -new -x509 -batch -keyout .cache/mock_server.key -out .cache/mock_server.cert
+openssl req -nodes -new -x509 -batch -keyout .cache/mock_server.key -out .cache/mock_server.cert -subj "/"
 docker-compose --env-file .env.mock -f docker-compose-e2e.yml up -d
 
 i=0
