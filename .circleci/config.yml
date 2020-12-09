@@ -13,6 +13,7 @@ aliases:
         only:
           - master
           - develop
+          - test-stateless-s1ap
   - &lte_build_verify
     paths: "orc8r lte"
   - &federated_build_verify
@@ -72,7 +73,8 @@ orbs:
                     exit 0
                   fi
                 done
-                echo "No changes in [$paths]"
+                echo "No changes in [$paths] ... but running anyways :)"
+                exit 0
                 circleci step halt
 
 commands:

@@ -56,7 +56,7 @@ class TestWrapper(object):
 
     def __init__(
         self,
-        stateless_mode=MagmadUtil.stateless_cmds.DISABLE,
+        stateless_mode=MagmadUtil.stateless_cmds.ENABLE,
         apn_correction=MagmadUtil.apn_correction_cmds.DISABLE,
     ):
         """
