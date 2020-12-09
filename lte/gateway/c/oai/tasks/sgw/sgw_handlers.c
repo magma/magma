@@ -171,7 +171,7 @@ int sgw_handle_s11_create_session_request(
 
   if (spgw_update_teid_in_ue_context(
           state, imsi64, new_endpoint_p->local_teid) == RETURNerror) {
-    OAILOG_DEBUG_UE(
+    OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
         "Failed to update sgw_s11_teid" TEID_FMT " in UE context \n",
         new_endpoint_p->local_teid);

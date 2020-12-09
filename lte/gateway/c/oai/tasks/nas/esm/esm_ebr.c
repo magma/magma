@@ -258,7 +258,9 @@ int esm_ebr_start_timer(
     /*
      * EPS bearer context not assigned
      */
-    OAILOG_ERROR(LOG_NAS_ESM, "ESM-FSM - EPS bearer context not assigned\n");
+    OAILOG_ERROR_UE(
+        LOG_NAS_ESM, ue_mm_context->emm_context._imsi64,
+        "ESM-FSM - EPS bearer context not assigned for ebi %u \n", ebi);
     OAILOG_FUNC_RETURN(LOG_NAS_ESM, RETURNerror);
   }
   ebr_ctx = &bearer_context->esm_ebr_context;
@@ -285,27 +287,18 @@ int esm_ebr_start_timer(
           (esm_ebr_timer_data_t*) calloc(1, sizeof(esm_ebr_timer_data_t));
 
       if (esm_ebr_timer_data) {
-        /*
-         * Set the UE identifier
-         */
+        // Set the UE identifier
         esm_ebr_timer_data->ue_id = ue_mm_context->mme_ue_s1ap_id;
         esm_ebr_timer_data->ctx   = emm_context;
-        /*
-         * Set the EPS bearer identity
-         */
+        // Set the EPS bearer identity
         esm_ebr_timer_data->ebi = ebi;
-        /*
-         * Reset the retransmission counter
-         */
+        // Reset the retransmission counter
         esm_ebr_timer_data->count = 0;
-        /*
-         * Set the ESM message to be re-transmited
-         */
+        // Set the ESM message to be re-transmited
         esm_ebr_timer_data->msg = bstrcpy(msg);
 
-        /*
-         * Setup the retransmission timer to expire at the given
-         * * * * time interval
+        /* Setup the retransmission timer to expire at the given
+         *  time interval
          */
         ebr_ctx->timer.id =
             nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
