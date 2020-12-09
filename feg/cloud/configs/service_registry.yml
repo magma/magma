@@ -48,4 +48,3 @@ services:
     host: "localhost"
     port: 9107
     proxy_type: "clientcert"
-
