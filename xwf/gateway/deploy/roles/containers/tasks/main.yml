@@ -86,12 +86,6 @@
   args:
    chdir: "/var/opt/magma/docker/"
 
-
-- name: pull the latest image
-  shell: docker-compose pull
-  args:
-   chdir: "/var/opt/magma/docker/"
-
 - name: copy the recreate script
   copy:
    src: xwfm_update.sh

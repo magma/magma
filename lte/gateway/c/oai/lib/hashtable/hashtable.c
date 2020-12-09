@@ -374,6 +374,7 @@ hashtable_rc_t hashtable_ts_destroy(hash_table_ts_t* hashtblP) {
   free_wrapper((void**) &hashtblP->nodes);
   bdestroy_wrapper(&hashtblP->name);
   free_wrapper((void**) &hashtblP->lock_nodes);
+  free_wrapper((void**) &hashtblP->lock_attr);
   if (hashtblP->is_allocated_by_malloc) {
     free_wrapper((void**) &hashtblP);
   }

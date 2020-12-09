@@ -172,7 +172,7 @@ def add_resubmit_next_service_flow(datapath, table, match, actions=None,
                                    instructions=None,
                                    priority=MINIMUM_PRIORITY, retries=3,
                                    cookie=0x0, idle_timeout=0, hard_timeout=0,
-                                   resubmit_table=None):
+                                   copy_table=None, resubmit_table=None):
     """
     Add a flow to a table that resubmits to another service.
     All scratch registers will be reset before resubmitting.
@@ -207,7 +207,7 @@ def add_resubmit_next_service_flow(datapath, table, match, actions=None,
         datapath, table, match, actions=actions,
         instructions=instructions, priority=priority,
         cookie=cookie, idle_timeout=idle_timeout, hard_timeout=hard_timeout,
-        resubmit_table=resubmit_table)
+        copy_table=copy_table, resubmit_table=resubmit_table)
     logger.debug('flowmod: %s (table %s)', mod, table)
     messages.send_msg(datapath, mod, retries)
 

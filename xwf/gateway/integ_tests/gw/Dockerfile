@@ -1,7 +1,7 @@
 FROM centos:7
 
 RUN yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm
-RUN yum update
+RUN yum update -y
 RUN yum install -y \
   git \
   sudo \

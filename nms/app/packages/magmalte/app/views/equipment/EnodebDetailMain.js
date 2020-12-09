@@ -165,7 +165,7 @@ function Overview() {
   const {match} = useRouter();
   const enodebSerial: string = nullthrows(match.params.enodebSerial);
   const enbInfo = ctx.state.enbInfo[enodebSerial];
-  const enbIpAddress = enbInfo?.enb_state?.ip_address;
+  const enbIpAddress = enbInfo?.enb_state?.ip_address ?? '';
   return (
     <div className={classes.dashboardRoot}>
       <Grid container spacing={4}>

@@ -34,9 +34,9 @@ func TestK8sListAllServices(t *testing.T) {
 	req := &protos.Void{}
 	response, err := servicer.ListAllServices(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"service1", "service-2"}, response.GetServices())
+	assert.Equal(t, []string{"service1", "service_2"}, response.GetServices())
 
-	err = mockClient.Services(servicer.namespace).Delete("foo-service-2", &metav1.DeleteOptions{})
+	err = mockClient.Services(servicer.namespace).Delete("orc8r-service-2", &metav1.DeleteOptions{})
 	assert.NoError(t, err)
 	response, err = servicer.ListAllServices(context.Background(), req)
 	assert.NoError(t, err)
@@ -55,12 +55,12 @@ func TestK8sFindServices(t *testing.T) {
 	req.Label = "label2"
 	response, err = servicer.FindServices(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"service1", "service-2"}, response.GetServices())
+	assert.Equal(t, []string{"service1", "service_2"}, response.GetServices())
 
 	err = mockClient.Services(servicer.namespace).Delete("orc8r-service1", &metav1.DeleteOptions{})
 	response, err = servicer.FindServices(context.Background(), req)
 	assert.NoError(t, err)
-	assert.Equal(t, []string{"service-2"}, response.GetServices())
+	assert.Equal(t, []string{"service_2"}, response.GetServices())
 }
 
 func TestK8sGetServiceAddress(t *testing.T) {
@@ -139,7 +139,7 @@ func createK8sServices(t *testing.T, mockClient corev1Interface.CoreV1Interface,
 	svc2 := &corev1.Service{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: namespace,
-			Name:      "foo-service-2",
+			Name:      "orc8r-service-2",
 			Labels: map[string]string{
 				partOfLabel: partOfOrc8rApp,
 				"label2":    "true",

@@ -91,10 +91,11 @@ enum ReAuthState {
 enum ServiceState {
   SERVICE_ENABLED            = 0,
   SERVICE_NEEDS_DEACTIVATION = 1,
-  SERVICE_DISABLED           = 2,
-  SERVICE_NEEDS_ACTIVATION   = 3,
-  SERVICE_REDIRECTED         = 4,
-  SERVICE_RESTRICTED         = 5,
+  SERVICE_NEEDS_SUSPENSION   = 2,
+  SERVICE_DISABLED           = 3,
+  SERVICE_NEEDS_ACTIVATION   = 4,
+  SERVICE_REDIRECTED         = 5,
+  SERVICE_RESTRICTED         = 6,
 };
 
 enum GrantTrackingType {
@@ -121,14 +122,15 @@ enum GrantTrackingType {
  * SESSION_TERMINATED
  */
 enum SessionFsmState {
-  SESSION_ACTIVE     = 0,
-  SESSION_TERMINATED = 4,
-  SESSION_RELEASED   = 6,
-  CREATING           = 7,
-  CREATED            = 8,
-  ACTIVE             = 9,
-  INACTIVE           = 10,
-  RELEASE            = 11,
+  SESSION_ACTIVE                = 0,
+  SESSION_TERMINATED            = 4,
+  SESSION_TERMINATION_SCHEDULED = 5,
+  SESSION_RELEASED              = 6,
+  CREATING                      = 7,
+  CREATED                       = 8,
+  ACTIVE                        = 9,
+  INACTIVE                      = 10,
+  RELEASE                       = 11,
 };
 
 struct StoredSessionCredit {
@@ -154,6 +156,7 @@ struct StoredChargingGrant {
   ReAuthState reauth_state;
   ServiceState service_state;
   std::time_t expiry_time;
+  bool suspended;
 };
 
 struct RuleLifetime {
@@ -204,6 +207,7 @@ struct StoredSessionState {
   std::string session_level_key;  // "" maps to nullptr
   std::string imsi;
   std::string session_id;
+  uint32_t local_teid;
   uint64_t pdp_start_time;
   uint64_t pdp_end_time;
   // 5G session version handling
@@ -220,6 +224,7 @@ struct StoredSessionState {
   EventTriggerStatus pending_event_triggers;
   google::protobuf::Timestamp revalidation_time;
   BearerIDByPolicyID bearer_id_by_policy;
+  std::vector<SetGroupPDR> PdrList;
 };
 
 // Update Criteria
@@ -244,6 +249,8 @@ struct SessionCreditUpdateCriteria {
 
   uint64_t time_of_first_usage;
   uint64_t time_of_last_usage;
+
+  bool suspended;
 };
 
 struct SessionStateUpdateCriteria {
@@ -251,7 +258,12 @@ struct SessionStateUpdateCriteria {
   bool is_config_updated;
   SessionConfig updated_config;
   bool is_fsm_updated;
+  bool is_local_teid_updated;
   SessionFsmState updated_fsm_state;
+  // TODO keeping this structure updated for future use.
+  bool is_current_version_updated;
+  uint32_t updated_current_version;
+  uint32_t local_teid_updated;
   // true if any of the event trigger state is updated
   bool is_pending_event_triggers_updated;
   EventTriggerStatus pending_event_triggers;

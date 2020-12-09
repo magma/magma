@@ -20,6 +20,7 @@ import NetworkContext from '../../../components/context/NetworkContext';
 import React from 'react';
 import TrafficDashboard from '../TrafficOverview';
 import defaultTheme from '@fbcnms/ui/theme/default';
+import {LTE} from '@fbcnms/types/network';
 
 import {
   ApnProvider,
@@ -99,8 +100,8 @@ describe('<TrafficDashboard />', () => {
             value={{
               networkId: 'test',
             }}>
-            <LteNetworkContextProvider networkId={'test'}>
-              <ApnProvider networkId={'test'}>
+            <LteNetworkContextProvider networkId={'test'} networkType={LTE}>
+              <ApnProvider networkId={'test'} networkType={LTE}>
                 <Route
                   path="/nms/:networkId/traffic"
                   component={TrafficDashboard}

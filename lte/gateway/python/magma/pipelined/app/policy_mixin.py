@@ -30,7 +30,7 @@ from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.policy_converters import FlowMatchError, \
     flow_match_to_magma_match, convert_ipv4_str_to_ip_proto, \
-    get_flow_ip_dst, ipv4_address_to_str
+    get_flow_ip_dst, ipv4_address_to_str, get_direction_for_match
 from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.qos.types import QosInfo
@@ -237,9 +237,11 @@ class PolicyMixin(metaclass=ABCMeta):
             dynamic_rule_results=dyn_results,
         )
 
-    def _remove_he_flows(self, ip_addr: IPAddress, rule_id:int = -1):
+    def _remove_he_flows(self, ip_addr: IPAddress, rule_id: str = "",
+                         rule_num: int = -1):
         if self.proxy_controller:
-            self.proxy_controller.remove_subscriber_he_flows(ip_addr, rule_id)
+            self.proxy_controller.remove_subscriber_he_flows(ip_addr, rule_id,
+                                                             rule_num)
 
     def _install_flow_for_static_rule(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule_id):
         """
@@ -358,11 +360,11 @@ class PolicyMixin(metaclass=ABCMeta):
         if self.proxy_controller:
             ue_ip = ipv4_address_to_str(ip_addr)
             ip_dst = get_flow_ip_dst(flow.match)
+            direction = get_direction_for_match(flow.match)
 
-            proxy_msgs = self.proxy_controller.get_subscriber_he_flows(ue_ip, uplink_tunnel,
-                                                                       ip_dst,
-                                                                       rule_num,
-                                                                       urls, imsi, msisdn)
+            proxy_msgs = self.proxy_controller.get_subscriber_he_flows(
+                rule_id, direction, ue_ip, uplink_tunnel, ip_dst, rule_num,
+                urls, imsi, msisdn)
             msgs.extend(proxy_msgs)
         return msgs
 

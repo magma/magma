@@ -53,6 +53,7 @@ def main():
         'controller_hostname': os.environ['CONTROLLER_HOSTNAME'],
         'backend': os.environ['PROXY_BACKENDS'],
         'resolver': os.environ['RESOLVER'],
+        'service_registry_mode': os.environ.get('SERVICE_REGISTRY_MODE', 'yaml'),
     }
     _generate_config(context)
 

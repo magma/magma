@@ -3,7 +3,7 @@
 package mocks
 
 import (
-	protos "magma/feg/cloud/go/protos"
+	control_plane "magma/feg/gateway/services/envoy_controller/control_plane"
 
 	mock "github.com/stretchr/testify/mock"
 )
@@ -14,6 +14,6 @@ type EnvoyController struct {
 }
 
 // UpdateSnapshot provides a mock function with given fields: _a0
-func (_m *EnvoyController) UpdateSnapshot(_a0 []*protos.AddUEHeaderEnrichmentRequest) {
+func (_m *EnvoyController) UpdateSnapshot(_a0 control_plane.UEInfoMap) {
 	_m.Called(_a0)
 }

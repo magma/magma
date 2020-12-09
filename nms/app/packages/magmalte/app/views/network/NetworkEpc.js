@@ -260,10 +260,17 @@ export function NetworkEpcEdit(props: EditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
+        <Button
+          data-testid="epcCancelButton"
+          onClick={props.onClose}
+          skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          data-testid="epcSaveButton"
+          onClick={onSave}
+          variant="contained"
+          color="primary">
           {props.saveButtonTitle}
         </Button>
       </DialogActions>
