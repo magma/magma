@@ -65,7 +65,8 @@ void SpgwStateManager::create_state() {
       state_cache_p->sgw_ip_address_S1u_S12_S4_up;
 
   state_cache_p->imsi_ue_context_htbl = hashtable_ts_create(
-      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr, free_wrapper, nullptr);
+      SGW_STATE_CONTEXT_HT_MAX_SIZE, nullptr,
+      (void (*)(void**)) spgw_free_ue_context, nullptr);
 
   // Creating PGW related state structs
   state_cache_p->deactivated_predefined_pcc_rules = hashtable_ts_create(
@@ -119,10 +120,15 @@ int SpgwStateManager::read_ue_state_from_db() {
     if (redis_client->read_proto(key.c_str(), ue_proto) != RETURNok) {
       return RETURNerror;
     }
-    OAILOG_DEBUG(log_task, "Reading UE state from db for %s", key.c_str());
+    OAILOG_DEBUG(log_task, "Reading UE state from db for key %s", key.c_str());
     spgw_ue_context_t* ue_context_p =
         spgw_create_or_get_ue_context(state_cache_p, get_imsi_from_key(key));
-    SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
+    if (ue_context_p) {
+      SpgwStateConverter::proto_to_ue(ue_proto, ue_context_p);
+    } else {
+      OAILOG_ERROR(
+          log_task, "Failed to get UE state from db for key %s", key.c_str());
+    }
   }
   return RETURNok;
 }

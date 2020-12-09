@@ -366,7 +366,7 @@ int spgw_update_teid_in_ue_context(
   if (!ue_context_p) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
-        "Failed to get UE context for teid " TEID_FMT "\n", teid);
+        "Failed to get UE context for sgw_s11_teid " TEID_FMT "\n", teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
   sgw_s11_teid_t* sgw_s11_teid_p =

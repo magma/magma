@@ -273,7 +273,8 @@ int mme_app_send_s11_create_session_req(
    * and will generate unique id only for 32 bits platforms.
    */
   OAI_GCC_DIAG_OFF("-Wpointer-to-int-cast");
-  session_request_p->sender_fteid_for_cp.teid = (teid_t) rand();
+  session_request_p->sender_fteid_for_cp.teid =
+      (teid_t) ue_mm_context->mme_ue_s1ap_id;
   OAI_GCC_DIAG_ON("-Wpointer-to-int-cast");
   session_request_p->sender_fteid_for_cp.interface_type = S11_MME_GTP_C;
   mme_config_read_lock(&mme_config);

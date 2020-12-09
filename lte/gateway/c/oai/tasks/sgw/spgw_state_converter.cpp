@@ -956,10 +956,12 @@ void SpgwStateConverter::ue_to_proto(
   if (ue_state && (!(LIST_EMPTY(&ue_state->sgw_s11_teid_list)))) {
     sgw_s11_teid_t* s11_teid_p = NULL;
     LIST_FOREACH(s11_teid_p, &ue_state->sgw_s11_teid_list, entries) {
-      auto spgw_ctxt = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
-      if (spgw_ctxt) {
-        spgw_bearer_context_to_proto(
-            spgw_ctxt, ue_proto->add_s11_bearer_context());
+      if (s11_teid_p) {
+        auto spgw_ctxt = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
+        if (spgw_ctxt) {
+          spgw_bearer_context_to_proto(
+              spgw_ctxt, ue_proto->add_s11_bearer_context());
+        }
       }
     }
   }
@@ -972,17 +974,26 @@ void SpgwStateConverter::proto_to_ue(
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
         (s_plus_p_gw_eps_bearer_context_information_t*) (calloc(
             1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
+    if (!spgw_context_p) {
+      OAILOG_DEBUG(
+          LOG_SPGW_APP, "Failed to allocate memory for SPGW context \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
 
     proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
     spgw_state_t* spgw_state       = get_spgw_state(false);
     hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
-    hashtable_ts_insert(
-        state_imsi_ht,
-        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
-        (void*) spgw_context_p);
-    spgw_update_teid_in_ue_context(
-        spgw_state, spgw_context_p->sgw_eps_bearer_context_information.imsi64,
-        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+    if (state_imsi_ht) {
+      hashtable_ts_insert(
+          state_imsi_ht,
+          spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
+          (void*) spgw_context_p);
+    }
+    if (spgw_state) {
+      spgw_update_teid_in_ue_context(
+          spgw_state, spgw_context_p->sgw_eps_bearer_context_information.imsi64,
+          spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+    }
   }
 }
 
