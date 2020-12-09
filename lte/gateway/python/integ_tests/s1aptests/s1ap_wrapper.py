@@ -14,6 +14,11 @@ limitations under the License.
 import os
 import time
 import ctypes
+import redis
+import json
+import jsonpickle
+from typing import Union
+from magma.common.redis.serializers import get_proto_deserializer
 
 import s1ap_types
 from integ_tests.common.magmad_client import MagmadServiceGrpc
@@ -33,6 +38,74 @@ from integ_tests.s1aptests.s1ap_utils import (
 )
 from integ_tests.s1aptests.util.traffic_util import TrafficUtil
 
+from lte.protos.keyval_pb2 import IPDesc
+from lte.protos.policydb_pb2 import PolicyRule, InstalledPolicies
+from lte.protos.oai.mme_nas_state_pb2 import MmeNasState, UeContext
+from lte.protos.oai.spgw_state_pb2 import SpgwState, S11BearerContext
+from lte.protos.oai.s1ap_state_pb2 import S1apState, UeDescription
+from magma.common.redis.serializers import get_json_deserializer, \
+    get_proto_deserializer
+from magma.mobilityd.serialize_utils import deserialize_ip_block, \
+    deserialize_ip_desc
+
+def _deserialize_generic_json(
+        element: Union[str, dict, list])-> Union[str, dict, list]:
+    """
+    Helper function to deserialize dictionaries or list with nested
+    json strings
+    :param element
+    """
+    if isinstance(element, str):
+        # try to deserialize as json string
+        try:
+            element = ast.literal_eval(element)
+        except:
+            try:
+                element = jsonpickle.decode(element)
+            except:
+                return element
+
+    if isinstance(element, dict):
+        keys = element.keys()
+    elif isinstance(element, list):
+        keys = range(len(element))
+    else:
+        # in case it is neither of the know elements, just return as is
+        return element
+
+    for k in keys:
+        element[k] = _deserialize_generic_json(element[k])
+    return element
+
+def _deserialize_session_json(serialized_json_str: bytes) -> str:
+    """
+    Helper function to deserialize sessiond:sessions hash list values
+    :param serialized_json_str
+    """
+    res = _deserialize_generic_json(str(serialized_json_str, 'utf-8', 'ignore'))
+    dumped = json.dumps(res, indent=2, sort_keys=True)
+    return dumped
+
+STATE_DESERIALIZERS = {
+    'assigned_ip_blocks': deserialize_ip_block,
+    'ip_states': deserialize_ip_desc,
+    'sessions': _deserialize_session_json,
+    'rule_names': get_json_deserializer(),
+    'rule_ids': get_json_deserializer(),
+    'rule_versions': get_json_deserializer(),
+}
+
+STATE_PROTOS = {
+    'mme_nas_state': MmeNasState,
+    'spgw_state': SpgwState,
+    's1ap_state': S1apState,
+    'mme': UeContext,
+    'spgw': S11BearerContext,
+    's1ap': UeDescription,
+    'mobilityd_ipdesc_record': IPDesc,
+    'rules': PolicyRule,
+    'installed': InstalledPolicies,
+}
 
 class TestWrapper(object):
     """
@@ -87,6 +160,10 @@ class TestWrapper(object):
         if not self.wait_gateway_healthy:
             self.init_s1ap_tester()
 
+        self.redis_client = redis.Redis(
+            host=os.environ.get('GATEWAY_IP', '192.168.60.142'),
+            port=6380)
+        self.redis_client.flushall()
         self._configuredUes = []
         self._ue_idx = 0  # Index of UEs already used in test
         self._trf_util = TrafficUtil()
@@ -412,11 +489,21 @@ class TestWrapper(object):
     def cleanup(self):
         time.sleep(0.5)
         print("************************* send SCTP SHUTDOWN")
+
         self._s1_util.issue_cmd(s1ap_types.tfwCmd.SCTP_SHUTDOWN_REQ, None)
         self._s1_util.cleanup()
         self._sub_util.cleanup()
         self._trf_util.cleanup()
         self._mobility_util.cleanup()
+
+        time.sleep(5)
+        print("************************* going to do redis :)")
+        keys = self.redis_client.keys()
+        print(keys)
+
+        for key in keys:
+            print("\n")
+            self.parse(str(key, 'utf-8'), str(self.redis_client.type(key), 'utf-8'))
 
         # Cloud cleanup needs to happen after cleanup for
         # subscriber util and mobility util
@@ -502,3 +589,73 @@ class TestWrapper(object):
         self.s1_util.issue_cmd(s1ap_types.tfwCmd.UE_PDN_CONN_REQ, req)
 
         print("************* Sending Standalone PDN Connectivity Request\n")
+
+    def parse(self, key: str, redis_type: str):
+        """
+        Parse value of redis key on redis for encoded HASH, SET types, or
+        JSON / Protobuf encoded state-wrapped types and prints it
+
+        Args:
+            key: key on redis
+
+        """
+        print(key, redis_type)
+        key_type = key
+        if ":" in key:
+            key_type = key.split(":")[1]
+        key_type.strip('\'')
+        if 'hash' in redis_type:
+            print("in hash!")
+            deserializer = STATE_DESERIALIZERS.get(key_type)
+            if not deserializer:
+                print("no desreializer1 \n")
+                return
+            self._parse_hash_type(deserializer, key)
+        elif 'set' in redis_type:
+            print("in set!")
+            deserializer = STATE_DESERIALIZERS.get(key_type)
+            if not deserializer:
+                print("no desreializer2 \n")
+                return
+            self._parse_set_type(deserializer, key)
+        else:
+            print("in else :(!")
+            value =self.redis_client.get(key)
+            # Try parsing as json first, if there's decoding error, parse proto
+            try:
+                self._parse_state_json(value)
+            except Exception as e:
+                print(e)
+                try:
+                    self._parse_state_proto(key_type, value)
+                except Exception as e:
+                    print(e)
+                    print(value)
+
+    def _parse_state_json(self, value):
+        if value:
+            deserializer = get_json_deserializer()
+            value = json.loads(jsonpickle.encode(deserializer(value)))
+            print(json.dumps(value, indent=2, sort_keys=True))
+        else:
+            raise AttributeError('Key not found on redis')
+
+    def _parse_state_proto(self, key_type, value):
+        proto = STATE_PROTOS.get(key_type.lower())
+        if proto:
+            deserializer = get_proto_deserializer(proto)
+            print(deserializer(value))
+        else:
+            print("no key found \n")
+            return
+
+    def _parse_set_type(self, deserializer, key):
+        set_values = self.redis_client.smembers(key)
+        for value in set_values:
+            print(deserializer(value))
+
+    def _parse_hash_type(self, deserializer, key):
+        value = self.redis_client.hgetall(key)
+        for key, val in value.items():
+            print(key.decode('utf-8'))
+            print(deserializer(val))

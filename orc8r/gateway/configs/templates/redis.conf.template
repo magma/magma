@@ -16,7 +16,7 @@
 
 # TODO: make sensible, production-aware config decisions
 
-bind 127.0.0.1
+protected-mode no
 port {{ port }}
 
 daemonize yes

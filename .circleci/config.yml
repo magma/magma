@@ -14,6 +14,7 @@ aliases:
           - master
           - develop
           - test-stateless-s1ap
+          - test-stateless-s1ap-redis-cleanup
   - &lte_build_verify
     paths: "orc8r lte"
   - &federated_build_verify
