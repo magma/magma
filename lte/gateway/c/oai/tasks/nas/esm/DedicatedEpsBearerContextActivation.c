@@ -420,11 +420,7 @@ void dedicated_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
         "retransmission counter = %d\n",
         esm_ebr_timer_data->ue_id, esm_ebr_timer_data->ebi,
         esm_ebr_timer_data->count);
-    ue_mm_context_t* ue_context_p = PARENT_STRUCT(
-        esm_ebr_timer_data->ctx, struct ue_mm_context_s, emm_context);
-    ue_context_p->bearer_contexts[EBI_TO_INDEX(esm_ebr_timer_data->ebi)]
-        ->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
-    *imsi64                        = esm_ebr_timer_data->ctx->_imsi64;
+    *imsi64 = esm_ebr_timer_data->ctx->_imsi64;
     if (esm_ebr_timer_data->count < DEDICATED_EPS_BEARER_ACTIVATE_COUNTER_MAX) {
       /*
        * Re-send activate dedicated EPS bearer context request message

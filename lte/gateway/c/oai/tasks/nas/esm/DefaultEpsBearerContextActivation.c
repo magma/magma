@@ -466,7 +466,6 @@ int esm_proc_default_eps_bearer_context_failure(
  ***************************************************************************/
 void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
   OAILOG_FUNC_IN(LOG_NAS_ESM);
-  int rc;
 
   /*
    * Get retransmission timer parameters data
@@ -500,10 +499,10 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
        * activate default eps bearer req message in ICS req
        */
       if (((emm_context_t*) esm_ebr_timer_data->ctx)->esm_ctx.is_standalone) {
-        rc = _default_eps_bearer_activate_in_bearer_setup_req(
+        _default_eps_bearer_activate_in_bearer_setup_req(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       } else {
-        rc = _default_eps_bearer_activate(
+        _default_eps_bearer_activate(
             esm_ebr_timer_data->ctx, esm_ebr_timer_data->ebi, &b);
       }
       bdestroy_wrapper(&b);
@@ -518,10 +517,9 @@ void default_eps_bearer_activate_t3485_handler(void* args, imsi64_t* imsi64) {
       /*
        * Release the default EPS bearer context and enter state INACTIVE
        */
-      rc = esm_proc_eps_bearer_context_deactivate(
+      esm_proc_eps_bearer_context_deactivate(
           esm_ebr_timer_data->ctx, true, esm_ebr_timer_data->ebi, &pid, &bidx,
           NULL);
-
     }
   }
 
