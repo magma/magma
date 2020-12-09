@@ -1,5 +1,5 @@
 #!/usr/bin/env python3.7
-#
+
 """
 Copyright 2020 The Magma Authors.
 
@@ -13,7 +13,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
-# This script creates the build context for the orc8r docker builds.
+# build.py creates the build context for the orc8r Docker builds.
 # It first creates a tmp directory, and then copies the cloud directories
 # for all modules into it.
 
@@ -23,278 +23,283 @@ import os
 import shutil
 import subprocess
 from collections import namedtuple
-from subprocess import PIPE
 from typing import Iterable, List
 
-import yaml
-
-BUILD_CONTEXT = '/tmp/magma_orc8r_build'
-SRC_ROOT = 'src'
+HOST_BUILD_CTX = '/tmp/magma_orc8r_build'
 HOST_MAGMA_ROOT = '../../../.'
-DEFAULT_MODULES_FILE = os.path.join(HOST_MAGMA_ROOT, 'modules.yml')
-FB_MODULES_FILE = os.path.join(HOST_MAGMA_ROOT, 'fb/config/modules.yml')
+IMAGE_MAGMA_ROOT = os.path.join('src', 'magma')
 
-COMPOSE_FILES = [
-    'docker-compose.yml',
+MODULES = [
+    'orc8r',
+    'lte',
+    'feg',
+    'cwf',
+    'wifi',
+    'fbinternal',
+]
+
+DEPLOYMENT_TO_MODULES = {
+    'all': MODULES,
+    'orc8r': [],
+    'orc8r-f': ['fbinternal'],
+    'fwa': ['lte'],
+    'fwa-f': ['lte', 'fbinternal'],
+    'ffwa': ['lte', 'feg'],
+    'ffwa-f': ['lte', 'feg', 'fbinternal'],
+    'cwf': ['lte', 'feg', 'cwf'],
+    'cwf-f': ['lte', 'feg', 'cwf', 'fbinternal'],
+    'wifi': ['wifi'],
+    'wifi-f': ['wifi', 'fbinternal'],
+}
+
+DEPLOYMENTS = DEPLOYMENT_TO_MODULES.keys()
+
+EXTRA_COMPOSE_FILES = [
     'docker-compose.metrics.yml',
-
-    # For now, this file is left out of the build because the fluentd daemonset
+    # For now, logging is left out of the build because the fluentd daemonset
     # and forwarder pod shouldn't change very frequently - we can build and
     # push locally when they need to be updated.
     # We can integrate this into the CI pipeline if/when we see the need for it
     # 'docker-compose.logging.yml',
-
-    'docker-compose.override.yml',
 ]
-CORE_COMPOSE_FILES = {'docker-compose.yml', 'docker-compose.override.yml'}
 
-# Root directory where external modules will be mounted
-GUEST_MODULE_ROOT = 'modules'
-GUEST_MAGMA_ROOT = 'magma'
-
-MagmaModule = namedtuple('MagmaModule', ['is_external', 'host_path', 'name'])
+MagmaModule = namedtuple('MagmaModule', ['name', 'host_path'])
 
 
 def main() -> None:
     args = _parse_args()
+    mods = _get_modules(DEPLOYMENT_TO_MODULES[args.deployment])
 
-    # Create build context only if we're not mounting
-    files_args = _get_docker_files_command_args(args)
-    _create_build_context_if_necessary(args)
-    _build_cache_if_necessary(args)
+    if not args.extras:
+        _create_build_context(mods)
 
     if args.mount:
-        _run_docker(['up', '-d', 'postgres_test'])
-        # Mount the source code and run a container with bash shell
-        _run_docker(['run', '--rm'] + _get_mount_volumes() + ['test', 'bash'])
-        _run_docker(['down'])
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'bash'])
+        _down(args)
     elif args.generate:
-        _run_docker(
-            ['run', '--rm'] + _get_mount_volumes() + ['test', 'make gen'],
-        )
+        _run(['run', '--rm'] + _get_mnt_vols(mods) + ['test', 'make gen'])
+        _down(args)
     elif args.tests:
-        # Run unit tests
-        _run_docker(['up', '-d', 'postgres_test'])
-        _run_docker(['build', 'test'])
-        _run_docker(['run', '--rm', 'test', 'make test'])
-        if not args.leave:
-            _run_docker(['down'])
+        _run(['up', '-d', 'postgres_test'])
+        _run(['build', 'test'])
+        _run(['run', '--rm', 'test', 'make test'])
+        _down(args)
     else:
-        _run_docker(files_args + _get_docker_build_args(args))
+        d_args = _get_default_file_args(args) + _get_default_build_args(args)
+        _run(d_args)
 
 
-def _get_docker_files_command_args(args: argparse.Namespace) -> List[str]:
-    def make_file_args(files: Iterable[str]) -> List[str]:
-        ret = []
-        for f in files:
-            ret.append('-f')
-            ret.append(f)
-        return ret
-
-    if args.all:
-        return make_file_args(COMPOSE_FILES)
-
-    if args.noncore:
-        return make_file_args(
-            filter(lambda f: f not in CORE_COMPOSE_FILES, COMPOSE_FILES),
-        )
-
-    # docker-compose uses docker-compose.yml and docker-compose.override.yml
-    # by default
-    return []
-
-
-def _create_build_context_if_necessary(args: argparse.Namespace) -> None:
-    """ Clear out the build context from the previous run """
-    if args.noncore:
-        return
-
-    if os.path.exists(BUILD_CONTEXT):
-        shutil.rmtree(BUILD_CONTEXT)
-    os.mkdir(BUILD_CONTEXT)
-
-    print("Creating build context in '%s'..." % BUILD_CONTEXT)
+def _get_modules(mods: Iterable[str]) -> Iterable[MagmaModule]:
+    """
+    Read the modules config file and return all modules specified.
+    """
     modules = []
-    for module in _get_modules():
-        _copy_module(module)
-        modules.append(module.name)
-    print('Context created for modules: %s' % ', '.join(modules))
+    for m in mods:
+        abspath = os.path.abspath(os.path.join(HOST_MAGMA_ROOT, m))
+        module = MagmaModule(name=m, host_path=abspath)
+        modules.append(module)
+    return modules
 
 
-def _build_cache_if_necessary(args: argparse.Namespace) -> None:
-    if args.nocache or args.mount or args.generate or \
-            args.tests or args.noncore:
-        return
+def _create_build_context(modules: Iterable[MagmaModule]) -> None:
+    """ Clear out the build context from the previous run """
+    shutil.rmtree(HOST_BUILD_CTX, ignore_errors=True)
+    os.mkdir(HOST_BUILD_CTX)
 
-    # Check if orc8r_cache image exists
-    result = subprocess.run(['docker', 'images', '-q', 'orc8r_cache'],
-                            stdout=PIPE, stderr=PIPE)
-    if result.stdout == b'':
-        print("Orc8r_cache image does not exist. Building...")
-        _run_docker(['-f', 'docker-compose.cache.yml', 'build'])
+    print("Creating build context in '%s'..." % HOST_BUILD_CTX)
+    for m in modules:
+        _copy_module(m)
 
 
-def _get_docker_build_args(args: argparse.Namespace) -> List[str]:
-    # Noncore containers don't need the orc8r cache
-    if args.noncore or args.nocache:
-        ret = ['build']
-    else:
-        ret = ['build', '--build-arg', 'baseImage=orc8r_cache']
-        # Build only the controller container
-        if args.controller:
-            ret.append('controller')
-    if args.parallel:
-        ret.append('--parallel')
-    return ret
+def _down(args: argparse.Namespace) -> None:
+    if not args.leave:
+        _run(['down'])
 
 
-def _run_docker(cmd: List[str]) -> None:
+def _run(cmd: List[str]) -> None:
     """ Run the required docker-compose command """
-    print("Running 'docker-compose %s'..." % " ".join(cmd))
+    cmd = ['docker-compose'] + cmd
+    print("Running '%s'..." % ' '.join(cmd))
     try:
-        subprocess.run(['docker-compose'] + cmd, check=True)
+        subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as err:
         exit(err.returncode)
 
 
+def _get_mnt_vols(modules: Iterable[MagmaModule]) -> List[str]:
+    """ Return the volumes argument for docker-compose commands """
+    vols = []
+    for m in modules:
+        vols.extend(['-v', '%s:%s' % (m.host_path, _get_module_image_dst(m))])
+    return vols
+
+
+def _get_default_file_args(args: argparse.Namespace) -> List[str]:
+    def make_file_args(fs: List[str]) -> List[str]:
+        fs = ['docker-compose.yml'] + fs + ['docker-compose.override.yml']
+        ret = []
+        for f in fs:
+            ret.extend(['-f', f])
+        return ret
+
+    def get_files_for_modules(ms: Iterable[str]) -> List[str]:
+        return ['docker-compose.%s.yml' % m for m in ms if m != 'orc8r']
+
+    mods = DEPLOYMENT_TO_MODULES[args.deployment]
+
+    if args.all:
+        all_files = get_files_for_modules(mods) + EXTRA_COMPOSE_FILES
+        return make_file_args(all_files)
+
+    if args.extras:
+        return make_file_args(EXTRA_COMPOSE_FILES)
+
+    # Default to docker-compose.yml + all modules + docker-compose.override.yml
+    return make_file_args(get_files_for_modules(mods))
+
+
+def _get_default_build_args(args: argparse.Namespace) -> List[str]:
+    mods = DEPLOYMENT_TO_MODULES[args.deployment]
+    ret = [
+        'build',
+        '--build-arg', 'MAGMA_MODULES=%s' % ' '.join(mods),
+    ]
+    if args.parallel:
+        ret.append('--parallel')
+    if args.nocache:
+        ret.append('--no-cache')
+    return ret
+
+
 def _copy_module(module: MagmaModule) -> None:
     """ Copy module directory into the build context  """
-    module_dest = _get_module_destination(module)
-    dst = os.path.join(BUILD_CONTEXT, module_dest)
+    build_ctx = _get_module_host_dst(module)
 
-    # Copy cloud/
-    shutil.copytree(
-        os.path.join(module.host_path, 'cloud'),
-        os.path.join(dst, 'cloud'),
-    )
+    def copy_to_ctx(d: str) -> None:
+        shutil.copytree(
+            os.path.join(module.host_path, d),
+            os.path.join(build_ctx, d),
+        )
 
-    # Handle orc8r lib/ and gateway/go/
+    copy_to_ctx('cloud')
+
+    # Orc8r module also has lib/ and gateway/
     if module.name == 'orc8r':
-        shutil.copytree(
-            os.path.join(module.host_path, 'lib'),
-            os.path.join(dst, 'lib'),
-        )
-        shutil.copytree(
-            os.path.join(module.host_path, 'gateway', 'go'),
-            os.path.join(dst, 'gateway', 'go'),
-        )
-
-    # Optionally copy tools/
-    if os.path.isdir(os.path.join(module.host_path, 'tools')):
-        shutil.copytree(
-            os.path.join(module.host_path, 'tools'),
-            os.path.join(dst, 'tools'),
-        )
+        copy_to_ctx('lib')
+        copy_to_ctx('gateway')
 
     # Optionally copy cloud/configs/
+    # Converts e.g. lte/cloud/configs/ to configs/lte/
     if os.path.isdir(os.path.join(module.host_path, 'cloud', 'configs')):
         shutil.copytree(
             os.path.join(module.host_path, 'cloud', 'configs'),
-            os.path.join(BUILD_CONTEXT, 'configs', module.name),
+            os.path.join(HOST_BUILD_CTX, 'configs', module.name),
         )
 
     # Copy the go.mod file for caching the go downloads
-    # Use module_dest to preserve relative paths between go modules
-    for filename in glob.iglob(dst + '/**/go.mod', recursive=True):
-        gomod = filename.replace(
-            dst, os.path.join(BUILD_CONTEXT, 'gomod', module_dest),
+    # Preserves relative paths between modules
+    for f in glob.iglob(build_ctx + '/**/go.mod', recursive=True):
+        gomod = f.replace(
+            HOST_BUILD_CTX, os.path.join(HOST_BUILD_CTX, 'gomod'),
         )
+        print(gomod)
         os.makedirs(os.path.dirname(gomod))
-        shutil.copyfile(filename, gomod)
+        shutil.copyfile(f, gomod)
 
 
-def _get_mount_volumes() -> List[str]:
-    """ Return the volumes argument for docker-compose commands """
-    volumes = []
-    for module in _get_modules():
-        module_mount_path = _get_module_destination(module)
-        dst = os.path.join('/', module_mount_path)
-        volumes.extend(['-v', '%s:%s' % (module.host_path, dst)])
-    return volumes
-
-
-def _get_modules() -> List[MagmaModule]:
+def _get_module_image_dst(module: MagmaModule) -> str:
     """
-    Read the modules config file and return all modules specified.
+    Given a path to a module on the host, return the intended destination
+    in the final image.
     """
-    filename = os.environ.get('MAGMA_MODULES_FILE', DEFAULT_MODULES_FILE)
-    # Use the FB modules file if the file exists
-    if os.path.isfile(FB_MODULES_FILE):
-        filename = FB_MODULES_FILE
-    modules = []
-    with open(filename) as file:
-        conf = yaml.safe_load(file)
-        for module in conf['native_modules']:
-            module_abspath = os.path.abspath(
-                os.path.join(HOST_MAGMA_ROOT, module)
-            )
-            modules.append(
-                MagmaModule(
-                    is_external=False,
-                    host_path=module_abspath,
-                    name=os.path.basename(module_abspath),
-                ),
-            )
-        for ext_module in conf['external_modules']:
-            # Because of the behavior of os.path.join, if host_path is an
-            # absolute path then module_abspath will be equal to that value
-            module_abspath = os.path.abspath(
-                os.path.join(
-                    HOST_MAGMA_ROOT,
-                    os.path.expandvars(ext_module['host_path']),
-                ),
-            )
-            modules.append(
-                MagmaModule(
-                    is_external=True,
-                    host_path=module_abspath,
-                    name=os.path.basename(module_abspath),
-                ),
-            )
-    return modules
+    return os.path.join(os.sep, IMAGE_MAGMA_ROOT, module.name)
 
 
-def _get_module_destination(module: MagmaModule) -> str:
+def _get_module_host_dst(module: MagmaModule) -> str:
     """
-    Given a path to a module on the host, return the destination to copy or
-    mount the module to in the build context or container.
+    Given a path to a module on the host, return the intended destination
+    in the build context.
     """
-    # The parent directory of the module should be the same on the host and
-    # the guest for external modules
-    if module.is_external:
-        module_parent_dir = os.path.basename(
-            os.path.abspath(os.path.join(module.host_path, os.path.pardir))
-        )
-        return os.path.join(SRC_ROOT, GUEST_MODULE_ROOT,
-                            module_parent_dir, module.name)
-    # We mount internal modules straight to MAGMA_ROOT as-is
-    else:
-        return os.path.join(SRC_ROOT, GUEST_MAGMA_ROOT, module.name)
+    return os.path.join(HOST_BUILD_CTX, IMAGE_MAGMA_ROOT, module.name)
 
 
 def _parse_args() -> argparse.Namespace:
     """ Parse the command line args """
+
+    # There are multiple ways to invoke finer-grained control over which
+    # images are built.
+    #
+    # (1) How many images to build
+    #
+    # all: all images
+    # extras: inverse of default
+    # default: images required for minimum functionality
+    #   - excluding metrics images
+    #   - including postgres, proxy, etc
+    # core: only orc8r-specific images, across all modules
+    #   - excluding postgres, proxy, etc
+    #   - including orc8r, lte, cwf, etc
+    #
+    # (2) Of the core orc8r images, which modules to build
+    #
+    # Defaults to all modules, but can be further specified by targeting a
+    # deployment type.
+
     parser = argparse.ArgumentParser(description='Orc8r build tool')
-    parser.add_argument('--tests', '-t', action='store_true',
-                        help='Run unit tests')
-    parser.add_argument('--leave', '-l', action='store_true',
-                        help='Leave containers running after running tests')
-    parser.add_argument('--mount', '-m', action='store_true',
-                        help='Mount the source code and create a bash shell')
-    parser.add_argument('--generate', '-g', action='store_true',
-                        help='Mount the source code and regenerate '
-                             'generated files')
-    parser.add_argument('--nocache', '-n', action='store_true',
-                        help='Build the images without go cache base image')
-    parser.add_argument('--all', '-a', action='store_true',
-                        help='Build all containers')
-    parser.add_argument('--noncore', '-nc', action='store_true',
-                        help='Build only non-core containers '
-                             '(i.e. no proxy, controller images)')
-    parser.add_argument('--parallel', '-p', action='store_true',
-                        help='Build containers in parallel')
-    parser.add_argument('--controller', '-c', action='store_true',
-                        help='Build only the controller supercontainer')
+
+    # Run something
+    parser.add_argument(
+        '--tests', '-t',
+        action='store_true',
+        help='Run unit tests',
+    )
+    parser.add_argument(
+        '--mount', '-m',
+        action='store_true',
+        help='Mount the source code and create a bash shell',
+    )
+    parser.add_argument(
+        '--generate', '-g',
+        action='store_true',
+        help='Mount the source code and regenerate generated files',
+    )
+
+    # Build something
+    parser.add_argument(
+        '--all', '-a',
+        action='store_true',
+        help='Build all containers: core and extras',
+    )
+    parser.add_argument(
+        '--extras', '-e',
+        action='store_true',
+        help='Build extras (non-essential) images (i.e. no proxy or lte)',
+    )
+    parser.add_argument(
+        '--deployment', '-d',
+        action='store',
+        default='all',
+        help='Build deployment type: %s' % ','.join(DEPLOYMENTS),
+    )
+
+    # How to do it
+    parser.add_argument(
+        '--nocache', '-n',
+        action='store_true',
+        help='Build the images with no Docker layer caching',
+    )
+    parser.add_argument(
+        '--parallel', '-p',
+        action='store_true',
+        default=False,
+        help='Build containers in parallel',
+    )
+    parser.add_argument(
+        '--leave', '-l',
+        action='store_true',
+        help='Leave containers running after running tests',
+    )
+
     args = parser.parse_args()
     return args
 

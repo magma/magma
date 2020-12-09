@@ -1,0 +1,41 @@
+# PREREQ section
+ansible_apt_repo: "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main"
+ubuntu_apt_keyserver: "keyserver.ubuntu.com"
+ubuntu_apt_id: "93C4A3FD7BB9C367"
+ansible_community_commands:
+  - "ansible-galaxy collection install community.general"
+apt_prereq_packages:
+  - git
+  - ansible
+
+# SHOW_TECH section
+general_commands:
+  - "uname -a"
+  - "top -b -n 1"
+  - "df -kh"
+debian_commands:
+  - "dpkg -l | grep magma"
+  - "ovs-vsctl show"
+  - "apt show magma"
+  - "service magma@* status"
+  - "show_gateway_info.py"
+  - "checkin_cli.py"
+  - "mobility_cli.py get_subscriber_table"
+  - "pipelined_cli.py debug display_flows"
+  - "enodebd_cli.py get_all_status"
+  - "ip addr"
+  - "ping google.com -I eth0 -c 5"
+  - "journalctl -u magma@*"
+  - "timeout 60 sudo tcpdump -i any sctp -w {{report_dir_output.stdout}}/sctp.pcap"
+
+
+# files to collect from src to relative destination in tar.gz package
+paths_to_collect:
+  - "/var/opt/magma/configs/*"
+  - "/etc/magma/configs/*"
+  - "/etc/systemd/system/*"
+  - "/tmp/*core*"
+  - "/usr/local/bin/mme"
+  - "/var/log/syslog"
+  - "/var/log/MME.*"
+  - "/var/log/enode.*"

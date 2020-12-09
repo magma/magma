@@ -69,6 +69,7 @@ class GYController(PolicyMixin, MagmaController):
                 self._bridge_ip_address,
                 self.logger,
                 self.tbl_num,
+                self._enforcement_stats_tbl,
                 self._service_manager.get_table_num(EGRESS),
                 self._redirect_scratch,
                 self._session_rule_version_mapper
@@ -191,7 +192,7 @@ class GYController(PolicyMixin, MagmaController):
             return RuleModResult.FAILURE
 
         chan = self._msg_hub.send(flow_adds, self._datapath)
-        return self._wait_for_rule_responses(imsi, rule, chan)
+        return self._wait_for_rule_responses(imsi, ip_addr, rule, chan)
 
     def _get_default_flow_msgs_for_subscriber(self, *_):
         return None
@@ -224,12 +225,17 @@ class GYController(PolicyMixin, MagmaController):
         rule_version = self._session_rule_version_mapper.get_version(imsi,
                                                                      ip_addr,
                                                                      rule.id)
+        # CWF generates an internal IP for redirection so ip_addr is not needed
+        if self._setup_type == 'CWF':
+            ip_addr_str = None
+        elif ip_addr and ip_addr.address:
+            ip_addr_str = ip_addr.address.decode('utf-8')
         priority = rule.priority
         # TODO currently if redirection is enabled we ignore other flows
         # from rule.flow_list, confirm that this is the expected behaviour
         redirect_request = RedirectionManager.RedirectRequest(
             imsi=imsi,
-            ip_addr=ip_addr.address.decode('utf-8'),
+            ip_addr=ip_addr_str,
             rule=rule,
             rule_num=rule_num,
             rule_version=rule_version,

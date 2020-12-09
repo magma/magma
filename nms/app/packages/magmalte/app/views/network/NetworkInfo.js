@@ -191,10 +191,17 @@ export function NetworkInfoEdit(props: EditProps) {
         </List>
       </DialogContent>
       <DialogActions>
-        <Button onClick={props.onClose} skin="regular">
+        <Button
+          data-testid="cancelButton"
+          onClick={props.onClose}
+          skin="regular">
           Cancel
         </Button>
-        <Button onClick={onSave} variant="contained" color="primary">
+        <Button
+          data-testid="saveButton"
+          onClick={onSave}
+          variant="contained"
+          color="primary">
           {props.saveButtonTitle}
         </Button>
       </DialogActions>

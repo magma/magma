@@ -35,12 +35,12 @@ container versions:
 
 ```hcl-terraform
 module orc8r {
-  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.2"
+  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-aws?ref=v1.3"
   # ...
 }
 
 module orc8r-app {
-  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.2"
+  source = "github.com/magma/magma//orc8r/cloud/deploy/terraform/orc8r-helm-aws?ref=v1.3"
   # ...
   orc8r_chart_version = "1.4.36"
   orc8r_tag           = "MAGMA_TAG"  # from build step, e.g. v1.3.0
@@ -77,6 +77,8 @@ upgraded and Prometheus should be back up on v2.20.1.
 
 ## Data Migrations
 
+> **_NOTE:_** If you're upgrading to release tag v1.3.0 specifically, `m014_enodeb_config` is not required.
+
 ```
 $ export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
 $ kubectl exec -it ${CNTLR_POD} -- bash
@@ -88,6 +90,10 @@ $ kubectl exec -it ${CNTLR_POD} -- bash
 ...
 
 (pod)$ ./m013_policy_ipv6
+
+...
+
+(pod)$ ./m014_enodeb_config
 
 ...
 ```

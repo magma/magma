@@ -107,4 +107,3 @@ func (m *SubscriptionProfile) ValidateModel() error {
 	}
 	return nil
 }
-

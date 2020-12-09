@@ -48,9 +48,16 @@ static void create_session_response(
   s5_response.failure_cause                = S5_OK;
 
   if (!status.ok()) {
-    // BUFFER_TO_IN_ADDR (sgi_response.paa.ipv4_address, addr);
-    release_ipv4_address(
-        imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv4_address);
+    if ((sgi_response.paa.pdn_type == IPv4) ||
+        (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
+      release_ipv4_address(
+          imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv4_address);
+    }
+    if ((sgi_response.paa.pdn_type == IPv6) ||
+        (sgi_response.paa.pdn_type == IPv4_AND_v6)) {
+      release_ipv6_address(
+          imsi.c_str(), apn.c_str(), &sgi_response.paa.ipv6_address);
+    }
     s5_response.failure_cause = PCEF_FAILURE;
   }
   handle_s5_create_session_response(state, ctx_p, s5_response);
@@ -59,13 +66,18 @@ static void create_session_response(
 // TODO Clean up pcef_create_session_data structure to include
 // imsi/ip/bearer_id etc.
 static void pcef_fill_create_session_req(
-    std::string& imsi, std::string& ip, ebi_t eps_bearer_id,
+    std::string& imsi, std::string& ip4, std::string& ip6, ebi_t eps_bearer_id,
     const struct pcef_create_session_data* session_data,
     magma::LocalCreateSessionRequest* sreq) {
   // Common Context
   auto common_context = sreq->mutable_common_context();
   common_context->mutable_sid()->set_id("IMSI" + imsi);
-  common_context->set_ue_ipv4(ip);
+  if (!ip4.empty()) {
+    common_context->set_ue_ipv4(ip4);
+  }
+  if (!ip6.empty()) {
+    common_context->set_ue_ipv6(ip6);
+  }
   common_context->set_apn(session_data->apn);
   common_context->set_msisdn(session_data->msisdn, session_data->msisdn_len);
   common_context->set_rat_type(magma::RATType::TGPP_LTE);
@@ -103,17 +115,25 @@ static void pcef_fill_create_session_req(
 }
 
 void pcef_create_session(
-    spgw_state_t* state, const char* imsi, const char* ip,
+    spgw_state_t* state, const char* imsi, const char* ip4, const char* ip6,
     const pcef_create_session_data* session_data,
     itti_sgi_create_end_point_response_t sgi_response,
     s5_create_session_request_t session_request,
     s_plus_p_gw_eps_bearer_context_information_t* ctx_p) {
   auto imsi_str = std::string(imsi);
-  auto ip_str   = std::string(ip);
+  std::string ip4_str, ip6_str;
+
+  if (ip4) {
+    ip4_str = ip4;
+  }
+  if (ip6) {
+    ip6_str = ip6;
+  }
   // Change ip to spgw_ip. Get it from sgw_app_t sgw_app;
   magma::LocalCreateSessionRequest sreq;
   pcef_fill_create_session_req(
-      imsi_str, ip_str, session_request.eps_bearer_id, session_data, &sreq);
+      imsi_str, ip4_str, ip6_str, session_request.eps_bearer_id, session_data,
+      &sreq);
 
   auto apn = std::string(session_data->apn);
   // call the `CreateSession` gRPC method and execute the inline function
@@ -151,6 +171,20 @@ void pcef_send_policy2bearer_binding(
       [&](grpc::Status status, magma::PolicyBearerBindingResponse response) {
         return;  // For now, do nothing. TODO: handle errors asynchronously
       });
+}
+
+void pcef_update_teids(
+    const char* imsi, uint8_t default_bearer_id, uint32_t enb_teid,
+    uint32_t agw_teid) {
+  magma::UpdateTunnelIdsRequest request;
+  request.mutable_sid()->set_id("IMSI" + std::string(imsi));
+  request.set_bearer_id(default_bearer_id);
+  request.set_enb_teid(enb_teid);
+  request.set_agw_teid(agw_teid);
+
+  magma::PCEFClient::update_teids(
+      request, [&](grpc::Status status,
+                   magma::UpdateTunnelIdsResponse response) { return; });
 }
 
 /*
@@ -310,6 +344,7 @@ void get_session_req_data(
       sizeof(charging_characteristics_t));
 
   memcpy(data->apn, saved_req->apn, APN_MAX_LENGTH + 1);
+  data->pdn_type = saved_req->pdn_type;
 
   inet_ntop(
       AF_INET, &spgw_state->sgw_ip_address_S1u_S12_S4_up, data->sgw_ip,

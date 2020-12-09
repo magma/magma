@@ -15,40 +15,32 @@
  */
 import type {subscriber} from '@fbcnms/magma-api';
 
-import Accordion from '@material-ui/core/Accordion';
-import AccordionDetails from '@material-ui/core/AccordionDetails';
-import AccordionSummary from '@material-ui/core/AccordionSummary';
 import ActionTable from '../../components/ActionTable';
-import AddIcon from '@material-ui/icons/Add';
+import ApnContext from '../../components/context/ApnContext';
 import Button from '@material-ui/core/Button';
 import Checkbox from '@material-ui/core/Checkbox';
 import CloudUploadIcon from '@material-ui/icons/CloudUpload';
-import DeleteIcon from '@material-ui/icons/Delete';
 import Dialog from '@material-ui/core/Dialog';
 import DialogActions from '@material-ui/core/DialogActions';
 import DialogContent from '@material-ui/core/DialogContent';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import ExpandMoreIcon from '@material-ui/icons/ExpandMore';
+import DialogTitle from '../../theme/design-system/DialogTitle';
+import EditSubscriberApnStaticIps from './SubscriberApnStaticIpsEdit';
+import EditSubscriberTrafficPolicy from './SubscriberTrafficPolicyEdit';
 import FormControl from '@material-ui/core/FormControl';
 import FormLabel from '@material-ui/core/FormLabel';
-import IconButton from '@material-ui/core/IconButton';
 import List from '@material-ui/core/List';
-import ListItem from '@material-ui/core/ListItem';
-import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ListItemText from '@material-ui/core/ListItemText';
-import LoadingFiller from '@fbcnms/ui/components/LoadingFiller';
 import LteNetworkContext from '../../components/context/LteNetworkContext';
-import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 import MenuItem from '@material-ui/core/MenuItem';
 import OutlinedInput from '@material-ui/core/OutlinedInput';
-import Paper from '@material-ui/core/Paper';
+import PolicyContext from '../../components/context/PolicyContext';
 import React from 'react';
 import Select from '@material-ui/core/Select';
 import SubscriberContext from '../../components/context/SubscriberContext';
-import Text from '@fbcnms/ui/components/design-system/Text';
+import Tab from '@material-ui/core/Tab';
+import Tabs from '@material-ui/core/Tabs';
 import TypedSelect from '@fbcnms/ui/components/TypedSelect';
 import nullthrows from '@fbcnms/util/nullthrows';
-import useMagmaAPI from '@fbcnms/ui/magma/useMagmaAPI';
 
 import {AltFormField, PasswordInput} from '../../components/FormField';
 import {SelectEditComponent} from '../../components/ActionTable';
@@ -56,7 +48,7 @@ import {base64ToHex, hexToBase64, isValidHex} from '@fbcnms/util/strings';
 import {colors, typography} from '../../theme/default';
 import {forwardRef} from 'react';
 import {makeStyles} from '@material-ui/styles';
-import {useContext, useRef, useState} from 'react';
+import {useContext, useEffect, useRef, useState} from 'react';
 import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 import {useRouter} from '@fbcnms/ui/hooks';
 
@@ -72,7 +64,7 @@ const useStyles = makeStyles(theme => ({
   },
   tabBar: {
     backgroundColor: colors.primary.brightGray,
-    padding: `0 ${theme.spacing(5)}px`,
+    color: colors.primary.white,
   },
   tabs: {
     color: colors.primary.white,
@@ -102,27 +94,24 @@ const useStyles = makeStyles(theme => ({
       background: colors.primary.mirage,
     },
   },
-  appBarBtnSecondary: {
-    color: colors.primary.white,
-  },
   input: {
     display: 'inline-flex',
     margin: '5px 0',
     width: '50%',
     fullWidth: true,
   },
-  accordionList: {
-    width: '100%',
-  },
   placeholder: {
     opacity: 0.5,
   },
-  apnButton: {
-    margin: '20px 0',
+  dialog: {
+    height: '750px',
   },
 }));
 
 const MAX_UPLOAD_FILE_SZ_BYTES = 10 * 1024 * 1024;
+const SUBSCRIBER_TITLE = 'Subscriber';
+const TRAFFIC_TITLE = 'Traffic Policy';
+const STATIC_IPS_TITLE = 'APNs Static IPs';
 
 type SubscriberInfo = {
   name: string,
@@ -132,6 +121,7 @@ type SubscriberInfo = {
   state: 'INACTIVE' | 'ACTIVE',
   dataPlan: string,
   apns: Array<string>,
+  policies: Array<string>,
 };
 
 function parseSubscriberFile(fileObj: File) {
@@ -204,58 +194,278 @@ export default function AddSubscriberButton() {
   );
 }
 
-export function EditSubscriberButton() {
+export function EditSubscriberButton(props: EditProps) {
   const [open, setOpen] = useState(false);
-
   return (
     <>
-      <EditSubscriberDialog open={open} onClose={() => setOpen(false)} />
-      <Button component="button" variant="text" onClick={() => setOpen(true)}>
+      <SubscriberEditDialog
+        editProps={props}
+        open={open}
+        onClose={() => setOpen(false)}
+      />
+      <Button
+        component="button"
+        data-testid={props.editTable}
+        variant="text"
+        onClick={() => setOpen(true)}>
         {'Edit'}
       </Button>
     </>
   );
 }
 
+const EditTableType = {
+  subscriber: 0,
+  trafficPolicy: 1,
+  staticIps: 2,
+};
+
+type EditProps = {
+  editTable: $Keys<typeof EditTableType>,
+};
+
 type DialogProps = {
   open: boolean,
   onClose: () => void,
+  editProps?: EditProps,
 };
 
 function AddSubscriberDialog(props: DialogProps) {
   const classes = useStyles();
   return (
     <Dialog
-      data-testid="editDialog"
+      data-testid="addSubscriberDialog"
       open={props.open}
       fullWidth={true}
       maxWidth="lg">
-      <DialogTitle className={classes.topBar}>
-        <Text color="light" weight="medium">
-          {'Add Subscribers'}
-        </Text>
-      </DialogTitle>
+      <DialogTitle
+        className={classes.topBar}
+        onClose={props.onClose}
+        label={'Add Subscribers'}
+      />
 
       <AddSubscriberDetails {...props} />
     </Dialog>
   );
 }
 
-function EditSubscriberDialog(props: DialogProps) {
+export type EditSubscriberProps = {
+  subscriberState: subscriber,
+  onSubscriberChange: (key: string, val: string | number | {}) => void,
+  inputClass: string,
+  onTrafficPolicyChange: (
+    key: string,
+    val: string | number | {},
+    index: number,
+  ) => void,
+  onDeleteApn: (apn: {}) => void,
+  onAddApnStaticIP: () => void,
+  subProfiles: {},
+  subscriberStaticIPRows: Array<subscriberStaticIpsRowType>,
+  authKey: string,
+  authOpc: string,
+  setAuthKey: (key: string) => void,
+  setAuthOpc: (key: string) => void,
+};
+
+export function SubscriberEditDialog(props: DialogProps) {
+  const {editProps} = props;
+  const enqueueSnackbar = useEnqueueSnackbar();
+  const [tabPos, setTabPos] = useState(
+    editProps ? EditTableType[editProps.editTable] : 0,
+  );
+  const ctx = useContext(SubscriberContext);
+  const lteCtx = useContext(LteNetworkContext);
   const classes = useStyles();
+  const {match} = useRouter();
+  const subscriberId = nullthrows(match.params.subscriberId);
+  const [subscriberState, setSubscriberState] = useState<subscriber>(
+    ctx.state[subscriberId],
+  );
+  const [authKey, setAuthKey] = useState(
+    subscriberState.lte.auth_key
+      ? base64ToHex(subscriberState.lte.auth_key)
+      : '',
+  );
+  const [authOpc, setAuthOpc] = useState(
+    subscriberState.lte.auth_opc != null
+      ? base64ToHex(subscriberState.lte.auth_opc)
+      : '',
+  );
+
+  const [subscriberStaticIPRows, setSubscriberStaticIPRows] = useState<
+    Array<subscriberStaticIpsRowType>,
+  >(
+    Object.keys(ctx.state[subscriberId].config.static_ips || {}).map(
+      (apn: string) => {
+        return {
+          apnName: apn,
+          staticIp: ctx.state[subscriberId].config.static_ips?.[apn] || '',
+        };
+      },
+    ),
+  );
+  const [error, setError] = useState('');
+  useEffect(() => {
+    setTabPos(props.editProps ? EditTableType[props.editProps.editTable] : 0);
+  }, [props.editProps]);
+
+  const onClose = () => {
+    setTabPos(0);
+    props.onClose();
+  };
+
+  // we are doing this to ensure we can map subprofiles from an array
+  // for e.g. ['foo', 'default'] -> {foo: 'foo', default: 'default}
+  // this is done because TypedSelect expects items in this form to verify
+  // if the passed in input is of expected type
+  const subProfiles = Array.from(
+    new Set(Object.keys(lteCtx.state.cellular?.epc?.sub_profiles || {})).add(
+      'default',
+    ),
+  ).reduce(function (o, v) {
+    o[v] = v;
+    return o;
+  }, {});
+
+  const subscriberProps: EditSubscriberProps = {
+    subscriberState: subscriberState,
+    onSubscriberChange: (key: string, val) => {
+      setSubscriberState({...subscriberState, [key]: val});
+    },
+    onTrafficPolicyChange: (key: string, val, index: number) => {
+      const rows = subscriberStaticIPRows;
+      rows[index][key] = val;
+      setSubscriberStaticIPRows([...rows]);
+    },
+    onDeleteApn: (apn: {}) => {
+      setSubscriberStaticIPRows([
+        ...subscriberStaticIPRows.filter(
+          (deletedApn: subscriberStaticIpsRowType) => apn !== deletedApn,
+        ),
+      ]);
+    },
+    onAddApnStaticIP: () => {
+      setSubscriberStaticIPRows([
+        ...subscriberStaticIPRows,
+        {apnName: '', staticIp: ''},
+      ]);
+    },
+    subProfiles: subProfiles,
+    subscriberStaticIPRows: subscriberStaticIPRows,
+    authKey: authKey,
+    authOpc: authOpc,
+    setAuthKey: (key: string) => setAuthKey(key),
+    setAuthOpc: (key: string) => setAuthOpc(key),
+    inputClass: classes.input,
+  };
+
+  const onSave = async () => {
+    try {
+      if (authOpc !== '') {
+        if (isValidHex(authOpc)) {
+          subscriberState.lte.auth_opc = hexToBase64(authOpc);
+        } else {
+          setError('auth_opc is not a valid hex');
+          return;
+        }
+      }
+
+      if (authKey !== '') {
+        if (isValidHex(authKey)) {
+          subscriberState.lte.auth_key = hexToBase64(authKey);
+        } else {
+          setError('auth_key is not a valid hex');
+          return;
+        }
+      }
+      const {config: _, ...mutableSubscriber} = {...subscriberState};
+      const staticIps = {};
+      subscriberStaticIPRows.forEach(
+        apn => (staticIps[apn.apnName] = apn.staticIp),
+      );
+
+      await ctx.setState?.(subscriberState.id, {
+        ...mutableSubscriber,
+        static_ips: staticIps,
+      });
+      enqueueSnackbar('Subscriber saved successfully', {
+        variant: 'success',
+      });
+    } catch (e) {
+      const errMsg = e.response.data?.message ?? e.message;
+      setError('error saving ' + subscriberState.id + ' : ' + errMsg);
+      return;
+    }
+    props.onClose();
+  };
+
   return (
     <Dialog
+      classes={{paper: classes.dialog}}
       data-testid="editDialog"
       open={props.open}
       fullWidth={true}
-      maxWidth="md">
-      <DialogTitle className={classes.topBar}>
-        <Text color="light" weight="medium">
-          {'Edit Subscriber Settings'}
-        </Text>
-      </DialogTitle>
+      maxWidth="sm">
+      <DialogTitle label={'Edit Subscriber Settings'} onClose={onClose} />
+      <Tabs
+        value={tabPos}
+        onChange={(_, v) => setTabPos(v)}
+        indicatorColor="primary"
+        className={classes.tabBar}>
+        <Tab
+          key="subscriber"
+          data-testid="subscriberTab"
+          label={SUBSCRIBER_TITLE}
+        />
+        ;
+        <Tab
+          key="trafficPolicy"
+          data-testid="trafficPolicyTab"
+          label={TRAFFIC_TITLE}
+        />
+        <Tab
+          key="apnStaticIps"
+          data-testid="staticIpsTab"
+          label={STATIC_IPS_TITLE}
+        />
+        ;
+      </Tabs>
+      <DialogContent>
+        <List>
+          {error !== '' && (
+            <AltFormField disableGutters label={''}>
+              <FormLabel data-testid="configEditError" error>
+                {error}
+              </FormLabel>
+            </AltFormField>
+          )}
 
-      <EditSubscriberDetails {...props} />
+          {tabPos === 0 && (
+            <div>
+              <EditSubscriberDetails {...subscriberProps} />
+            </div>
+          )}
+          {tabPos === 1 && <EditSubscriberTrafficPolicy {...subscriberProps} />}
+          {tabPos === 2 && (
+            <div>
+              <EditSubscriberApnStaticIps {...subscriberProps} />
+            </div>
+          )}
+        </List>
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={props.onClose} skin="regular">
+          {'Close'}
+        </Button>
+        <Button
+          data-testid={`${props.editProps?.editTable || ''}-saveButton`}
+          variant="contained"
+          color="primary"
+          onClick={onSave}>
+          {'Save'}
+        </Button>
+      </DialogActions>
     </Dialog>
   );
 }
@@ -263,36 +473,24 @@ function EditSubscriberDialog(props: DialogProps) {
 function AddSubscriberDetails(props: DialogProps) {
   const classes = useStyles();
   const ctx = useContext(SubscriberContext);
-  const {match} = useRouter();
-
+  const apnCtx = useContext(ApnContext);
+  const lteCtx = useContext(LteNetworkContext);
+  const policyCtx = useContext(PolicyContext);
   const [error, setError] = useState('');
   const [subscribers, setSubscribers] = useState<Array<SubscriberInfo>>([]);
   const fileInput = useRef(null);
   const enqueueSnackbar = useEnqueueSnackbar();
 
-  const {isLoading: subProfilesLoading, response: epcConfigs} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularEpc,
-    {
-      networkId: nullthrows(match.params.networkId),
-    },
-  );
-
-  const {isLoading: apnsLoading, response: networkAPNs} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdApns,
-    {
-      networkId: nullthrows(match.params.networkId),
-    },
-  );
-
-  if (subProfilesLoading || apnsLoading) {
-    return <LoadingFiller />;
-  }
+  const apns = Array.from(new Set(Object.keys(apnCtx.state || {})));
 
   const subProfiles = Array.from(
-    new Set(Object.keys(epcConfigs?.sub_profiles || {})).add('default'),
+    new Set(Object.keys(lteCtx.state.cellular?.epc?.sub_profiles || {})).add(
+      'default',
+    ),
   );
-  const apns = Array.from(new Set(Object.keys(networkAPNs || {})));
-
+  const policies = Array.from(
+    new Set(Object.keys(policyCtx.state || {})).add('default'),
+  );
   const saveSubscribers = async () => {
     for (const subscriber of subscribers) {
       try {
@@ -311,6 +509,7 @@ function AddSubscriberDetails(props: DialogProps) {
             : '';
         await ctx.setState?.(subscriber.imsi, {
           active_apns: subscriber.apns,
+          active_policies: subscriber.policies,
           id: subscriber.imsi,
           name: subscriber.name,
           lte: {
@@ -320,6 +519,9 @@ function AddSubscriberDetails(props: DialogProps) {
             state: subscriber.state,
             sub_profile: subscriber.dataPlan,
           },
+        });
+        enqueueSnackbar('Subscriber(s) saved successfully', {
+          variant: 'success',
         });
       } catch (e) {
         const errMsg = e.response?.data?.message ?? e.message ?? e;
@@ -362,11 +564,14 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'name',
               editComponent: props => (
                 <OutlinedInput
+                  data-testid="name"
                   variant="outlined"
                   placeholder="Enter Name"
                   type="text"
                   value={props.value}
-                  onChange={e => props.onChange(e.target.value)}
+                  onChange={e => {
+                    props.onChange(e.target.value);
+                  }}
                 />
               ),
             },
@@ -375,6 +580,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'imsi',
               editComponent: props => (
                 <OutlinedInput
+                  data-testid="IMSI"
                   type="text"
                   placeholder="Enter IMSI"
                   variant="outlined"
@@ -388,6 +594,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'authKey',
               editComponent: props => (
                 <PasswordInput
+                  data-testid="authKey"
                   placeholder="Key"
                   value={props.value}
                   onChange={v => props.onChange(v)}
@@ -399,6 +606,7 @@ function AddSubscriberDetails(props: DialogProps) {
               field: 'authOpc',
               editComponent: props => (
                 <PasswordInput
+                  data-testid="authOpc"
                   placeholder="OPC"
                   value={props.value}
                   onChange={v => props.onChange(v)}
@@ -412,6 +620,7 @@ function AddSubscriberDetails(props: DialogProps) {
                 return (
                   <SelectEditComponent
                     {...props}
+                    testId="service"
                     defaultValue={'ACTIVE'}
                     content={['ACTIVE', 'INACTIVE']}
                     onChange={value => props.onChange(value)}
@@ -425,6 +634,7 @@ function AddSubscriberDetails(props: DialogProps) {
               editComponent: props => (
                 <SelectEditComponent
                   {...props}
+                  testId="dataPlan"
                   defaultValue={'default'}
                   content={subProfiles}
                   onChange={value => props.onChange(value)}
@@ -437,6 +647,7 @@ function AddSubscriberDetails(props: DialogProps) {
               editComponent: props => (
                 <FormControl>
                   <Select
+                    data-testid="activeApns"
                     multiple
                     value={props.value ?? []}
                     onChange={({target}) => props.onChange(target.value)}
@@ -453,6 +664,42 @@ function AddSubscriberDetails(props: DialogProps) {
                       />
                     }>
                     {apns.map((k: string, idx: number) => (
+                      <MenuItem key={idx} value={k}>
+                        <Checkbox
+                          checked={
+                            props.value ? props.value.indexOf(k) > -1 : false
+                          }
+                        />
+                        <ListItemText primary={k} />
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              ),
+            },
+            {
+              title: 'Active Policies',
+              field: 'policies',
+              editComponent: props => (
+                <FormControl>
+                  <Select
+                    data-testid="activePolicies"
+                    multiple
+                    value={props.value ?? []}
+                    onChange={({target}) => props.onChange(target.value)}
+                    displayEmpty={true}
+                    renderValue={selected => {
+                      if (!selected.length) {
+                        return 'Select Policies';
+                      }
+                      return selected.join(', ');
+                    }}
+                    input={
+                      <OutlinedInput
+                        className={props.value ? '' : classes.placeholder}
+                      />
+                    }>
+                    {policies.map((k: string, idx: number) => (
                       <MenuItem key={idx} value={k}>
                         <Checkbox
                           checked={
@@ -522,7 +769,9 @@ function AddSubscriberDetails(props: DialogProps) {
       </DialogContent>
       <DialogActions>
         <Button onClick={props.onClose}> Cancel </Button>
-        <Button onClick={saveSubscribers}> Save and Add Subscribers </Button>
+        <Button data-testid="saveSubscriber" onClick={saveSubscribers}>
+          {'Save and Add Subscribers'}
+        </Button>
       </DialogActions>
     </>
   );
@@ -550,305 +799,76 @@ type subscriberStaticIpsRowType = {
   apnName: string,
   staticIp: string,
 };
-function EditSubscriberDetails(props: DialogProps) {
-  const enqueueSnackbar = useEnqueueSnackbar();
-  const ctx = useContext(SubscriberContext);
-  const lteCtx = useContext(LteNetworkContext);
-  const staticIpAssignments =
-    lteCtx.state.cellular?.epc?.mobility?.enable_static_ip_assignments;
+
+function EditSubscriberDetails(props: EditSubscriberProps) {
   const classes = useStyles();
-  const {match} = useRouter();
-  const subscriberId = nullthrows(match.params.subscriberId);
-  const [subscriberState, setSubscriberState] = useState(
-    ctx.state[subscriberId],
-  );
-  const [authKey, setAuthKey] = useState(
-    subscriberState.lte.auth_key
-      ? base64ToHex(subscriberState.lte.auth_key)
-      : '',
-  );
-  const [authOpc, setAuthOpc] = useState(
-    subscriberState.lte.auth_opc != null
-      ? base64ToHex(subscriberState.lte.auth_opc)
-      : '',
-  );
-
-  const [subscriberStaticIPRows, setSubscriberStaticIPRows] = useState<
-    Array<subscriberStaticIpsRowType>,
-  >(
-    Object.keys(ctx.state[subscriberId].config?.static_ips || {}).map(
-      (apn: string) => {
-        return {
-          apnName: apn,
-          staticIp: ctx.state[subscriberId].config?.static_ips?.[apn] || '',
-        };
-      },
-    ),
-  );
-  const [error, setError] = useState('');
-  const {isLoading: subProfilesLoading, response: epcConfigs} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdCellularEpc,
-    {
-      networkId: nullthrows(match.params.networkId),
-    },
-  );
-
-  const {isLoading: apnsLoading, response: networkAPNs} = useMagmaAPI(
-    MagmaV1API.getLteByNetworkIdApns,
-    {
-      networkId: nullthrows(match.params.networkId),
-    },
-  );
-
-  const saveSubscriber = async () => {
-    try {
-      if (authOpc !== '') {
-        if (isValidHex(authOpc)) {
-          subscriberState.lte.auth_opc = hexToBase64(authOpc);
-        } else {
-          setError('auth_opc is not a valid hex ');
-          return;
-        }
-      }
-
-      if (authKey !== '') {
-        if (isValidHex(authKey)) {
-          subscriberState.lte.auth_key = hexToBase64(authKey);
-        } else {
-          setError('auth_key is not a valid hex ');
-          return;
-        }
-      }
-      const {config: _, ...mutableSubscriber} = {...subscriberState};
-      const staticIps = {};
-      subscriberStaticIPRows.forEach(
-        apn => (staticIps[apn.apnName] = apn.staticIp),
-      );
-
-      await ctx.setState?.(subscriberState.id, {
-        ...mutableSubscriber,
-        static_ips: staticIps,
-      });
-      enqueueSnackbar('Subscriber saved successfully', {
-        variant: 'success',
-      });
-    } catch (e) {
-      const errMsg = e.response.data?.message ?? e.message;
-      setError('error saving ' + subscriberState.id + ' : ' + errMsg);
-      return;
-    }
-    props.onClose();
-  };
-
-  if (subProfilesLoading || apnsLoading) {
-    return <LoadingFiller />;
-  }
-
-  // we are doing this to ensure we can map subprofiles from an array
-  // for e.g. ['foo', 'default'] -> {foo: 'foo', default: 'default}
-  // this is done because TypedSelect expects items in this form to verify
-  // if the passed in input is of expected type
-  const subProfiles = Array.from(
-    new Set(Object.keys(epcConfigs?.sub_profiles || {})).add('default'),
-  ).reduce(function (o, v) {
-    o[v] = v;
-    return o;
-  }, {});
-  const apns = Array.from(new Set(Object.keys(networkAPNs || {})));
-  const handleSubscriberChange = (key: string, val) =>
-    setSubscriberState({...subscriberState, [key]: val});
-
-  const handleSubscriberStaticIpsChange = (key: string, val, index: number) => {
-    const rows = subscriberStaticIPRows;
-    rows[index][key] = val;
-    setSubscriberStaticIPRows([...rows]);
-  };
-  const deleteApn = apn => {
-    setSubscriberStaticIPRows([
-      ...subscriberStaticIPRows.filter(
-        (deletedApn: subscriberStaticIpsRowType) => apn !== deletedApn,
-      ),
-    ]);
-  };
-  const addApnStaticIP = () => {
-    setSubscriberStaticIPRows([
-      ...subscriberStaticIPRows,
-      {apnName: '', staticIp: ''},
-    ]);
-  };
   return (
-    <>
-      <DialogContent>
-        {error !== '' && <FormLabel error>{error}</FormLabel>}
-        <List component={Paper}>
-          <AltFormField label={'Subscriber Name'}>
-            <OutlinedInput
-              className={classes.input}
-              placeholder="Enter Name"
-              fullWidth={true}
-              value={subscriberState.name}
-              onChange={({target}) =>
-                handleSubscriberChange('name', target.value)
-              }
-            />
-          </AltFormField>
-          <AltFormField label={'Service State'}>
-            <TypedSelect
-              className={classes.input}
-              input={<OutlinedInput />}
-              value={subscriberState.lte.state}
-              items={{
-                ACTIVE: 'Active',
-                INACTIVE: 'Inactive',
-              }}
-              onChange={value => {
-                handleSubscriberChange('lte', {
-                  ...subscriberState.lte,
-                  state: value,
-                });
-              }}
-            />
-          </AltFormField>
-          <AltFormField label={'Data Plan'}>
-            <TypedSelect
-              className={classes.input}
-              input={<OutlinedInput />}
-              value={subscriberState.lte.sub_profile}
-              items={subProfiles}
-              onChange={value => {
-                handleSubscriberChange('lte', {
-                  ...subscriberState.lte,
-                  sub_profile: value,
-                });
-              }}
-            />
-          </AltFormField>
-          <AltFormField label={'Auth Key'}>
-            <PasswordInput
-              className={classes.input}
-              placeholder="Enter Auth Key"
-              value={authKey}
-              error={authKey && !isValidHex(authKey)}
-              onChange={v => setAuthKey(v)}
-            />
-          </AltFormField>
-          <AltFormField label={'Auth OPC'}>
-            <PasswordInput
-              value={authOpc}
-              placeholder="Enter Auth OPC"
-              className={classes.input}
-              error={authOpc && !isValidHex(authOpc)}
-              onChange={v => setAuthOpc(v)}
-            />
-          </AltFormField>
-          <AltFormField label={'Active APNs'}>
-            <FormControl className={classes.input}>
-              <Select
-                multiple
-                value={subscriberState.active_apns ?? []}
-                onChange={({target}) => {
-                  handleSubscriberChange('active_apns', target.value);
-                }}
-                renderValue={selected => selected.join(', ')}
-                input={<OutlinedInput />}>
-                {apns.map((k: string, idx: number) => (
-                  <MenuItem key={idx} value={k}>
-                    <Checkbox
-                      checked={
-                        subscriberState.active_apns != null
-                          ? subscriberState.active_apns.indexOf(k) > -1
-                          : false
-                      }
-                    />
-                    <ListItemText primary={k} />
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </AltFormField>
-        </List>
-        <Button
-          onClick={addApnStaticIP}
-          disabled={!staticIpAssignments ?? false}
-          className={classes.apnButton}>
-          Add New APN Static IP
-          <AddIcon />
-        </Button>
-        {subscriberStaticIPRows.map((apn, index) => (
-          <Accordion>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <List className={classes.accordionList}>
-                <ListItem>
-                  <ListItemText
-                    primary={
-                      apn.apnName || (
-                        <Text className={classes.placeholder}>{'APN'}</Text>
-                      )
-                    }
-                  />
-                  <ListItemSecondaryAction>
-                    <IconButton
-                      edge="end"
-                      aria-label="delete"
-                      onClick={event => {
-                        event.stopPropagation();
-                        deleteApn(apn);
-                      }}>
-                      <DeleteIcon />
-                    </IconButton>
-                  </ListItemSecondaryAction>
-                </ListItem>
-              </List>
-            </AccordionSummary>
-            <AccordionDetails>
-              <AltFormField label={'APN name'}>
-                <FormControl className={classes.input}>
-                  <Select
-                    value={apn.apnName}
-                    onChange={({target}) => {
-                      const staticIpApn = subscriberStaticIPRows.map(
-                        apn => apn.apnName,
-                      );
-                      if (!staticIpApn.includes(target.value)) {
-                        handleSubscriberStaticIpsChange(
-                          'apnName',
-                          target.value,
-                          index,
-                        );
-                      }
-                    }}
-                    input={<OutlinedInput />}>
-                    {(subscriberState.active_apns || []).map(apn => (
-                      <MenuItem value={apn}>
-                        <ListItemText primary={apn} />
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </AltFormField>
-              <AltFormField label={'APN Static IP'}>
-                <OutlinedInput
-                  className={classes.input}
-                  placeholder="Enter IP"
-                  fullWidth={true}
-                  value={apn.staticIp}
-                  onChange={({target}) => {
-                    handleSubscriberStaticIpsChange(
-                      'staticIp',
-                      target.value,
-                      index,
-                    );
-                  }}
-                />
-              </AltFormField>
-            </AccordionDetails>
-          </Accordion>
-        ))}
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={props.onClose}> Cancel </Button>
-        <Button onClick={saveSubscriber}> Save </Button>
-      </DialogActions>
-    </>
+    <div>
+      <List>
+        <AltFormField label={'Subscriber Name'}>
+          <OutlinedInput
+            data-testid="name"
+            className={classes.input}
+            placeholder="Enter Name"
+            fullWidth={true}
+            value={props.subscriberState.name}
+            onChange={({target}) =>
+              props.onSubscriberChange('name', target.value)
+            }
+          />
+        </AltFormField>
+        <AltFormField label={'Service State'}>
+          <TypedSelect
+            className={classes.input}
+            input={<OutlinedInput />}
+            value={props.subscriberState.lte.state}
+            items={{
+              ACTIVE: 'Active',
+              INACTIVE: 'Inactive',
+            }}
+            onChange={value => {
+              props.onSubscriberChange('lte', {
+                ...props.subscriberState.lte,
+                state: value,
+              });
+            }}
+          />
+        </AltFormField>
+        <AltFormField label={'Data Plan'}>
+          <TypedSelect
+            className={classes.input}
+            input={<OutlinedInput />}
+            value={props.subscriberState.lte.sub_profile}
+            items={props.subProfiles}
+            onChange={value => {
+              props.onSubscriberChange('lte', {
+                ...props.subscriberState.lte,
+                sub_profile: value,
+              });
+            }}
+          />
+        </AltFormField>
+        <AltFormField label={'Auth Key'}>
+          <PasswordInput
+            data-testid="authKey"
+            className={classes.input}
+            placeholder="Eg. 8baf473f2f8fd09487cccbd7097c6862"
+            value={props.authKey}
+            error={props.authKey && !isValidHex(props.authKey) ? true : false}
+            onChange={v => props.setAuthKey(v)}
+          />
+        </AltFormField>
+        <AltFormField label={'Auth OPC'}>
+          <PasswordInput
+            data-testid="authOPC"
+            value={props.authOpc}
+            placeholder="Eg. 8e27b6af0e692e750f32667a3b14605d"
+            className={classes.input}
+            error={props.authOpc && !isValidHex(props.authOpc) ? true : false}
+            onChange={v => props.setAuthOpc(v)}
+          />
+        </AltFormField>
+      </List>
+    </div>
   );
 }

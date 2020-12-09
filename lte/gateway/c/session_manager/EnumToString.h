@@ -14,6 +14,7 @@
 
 #include "StoredState.h"
 #include "ServiceAction.h"
+#include "ChargingGrant.h"
 #include <lte/protos/abort_session.pb.h>
 
 namespace magma {
@@ -36,4 +37,6 @@ std::string asr_result_to_str(AbortSessionResult_Code res);
 std::string wallet_state_to_str(SubscriberQuotaUpdate_Type state);
 
 std::string service_action_type_to_str(ServiceActionType action);
+
+std::string event_trigger_to_str(EventTrigger event_trigger);
 }  // namespace magma

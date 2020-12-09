@@ -14,7 +14,7 @@ limitations under the License.
 import unittest
 
 from magma.common import metrics_export
-from magma.monitord.metrics import SUBSCRIBER_ICMP_LATENCY_MS
+from magma.monitord.cpe_monitoring import SUBSCRIBER_ICMP_LATENCY_MS
 
 
 class MetricTests(unittest.TestCase):

@@ -14,6 +14,8 @@ import fire
 import json
 import jsonpickle
 import random
+import ast
+from typing import Any, Union
 
 from magma.common.redis.client import get_default_client
 from magma.common.redis.serializers import get_json_deserializer, \
@@ -33,15 +35,38 @@ def _deserialize_session_json(serialized_json_str: bytes) -> str:
     Helper function to deserialize sessiond:sessions hash list values
     :param serialized_json_str
     """
-    session_json_values = []
-    serialized_json_str = str(serialized_json_str, 'utf-8', 'ignore')
-    session_values = jsonpickle.decode(serialized_json_str)
-    for value in session_values:
-        session_json = json.loads(value)
-        session_json_values.append(
-            json.dumps(session_json, indent=2, sort_keys=True))
-    return "\n".join(v for v in session_json_values)
+    res = _deserialize_generic_json(str(serialized_json_str, 'utf-8', 'ignore'))
+    dumped = json.dumps(res, indent=2, sort_keys=True)
+    return dumped
 
+def _deserialize_generic_json(
+        element: Union[str, dict, list])-> Union[str, dict, list]:
+    """
+    Helper function to deserialize dictionaries or list with nested
+    json strings
+    :param element
+    """
+    if isinstance(element, str):
+        # try to deserialize as json string
+        try:
+            element = ast.literal_eval(element)
+        except:
+            try:
+                element = jsonpickle.decode(element)
+            except:
+                return element
+
+    if isinstance(element, dict):
+        keys = element.keys()
+    elif isinstance(element, list):
+        keys = range(len(element))
+    else:
+        # in case it is neither of the know elements, just return as is
+        return element
+
+    for k in keys:
+        element[k] = _deserialize_generic_json(element[k])
+    return element
 
 class StateCLI(object):
     """

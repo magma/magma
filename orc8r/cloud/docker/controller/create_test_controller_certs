@@ -75,6 +75,7 @@ if [[ -f admin_operator.pfx ]]; then
   echo "########################"
   grep -q admin_operator <(${ACCESSC} list) && exit_already_exists
   ${ACCESSC} add-existing -admin -cert admin_operator.pem admin_operator
+  echo "[success] test certs added"
 else
   echo ""
   echo "##################"
@@ -82,6 +83,5 @@ else
   echo "##################"
   ${ACCESSC} add-admin -cert admin_operator admin_operator
   openssl pkcs12 -passout pass:magma -export -out admin_operator.pfx -inkey admin_operator.key.pem -in admin_operator.pem
+  echo "[success] test certs generated and added"
 fi
-
-echo "[success] test certs generated and added"

@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "configurator.service") -}}
 {{- define "configurator.service" -}}
 metadata:
-  name: {{ .Release.Name }}-configurator
+  name: orc8r-configurator
   labels:
     {{- with .Values.configurator.service.labels }}
 {{ toYaml . | indent 4}}

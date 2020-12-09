@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "cwf.service") -}}
 {{- define "cwf.service" -}}
 metadata:
-  name: {{ .Release.Name }}-cwf
+  name: orc8r-cwf
   labels:
     {{- with .Values.cwf.service.labels }}
 {{ toYaml . | indent 4}}
