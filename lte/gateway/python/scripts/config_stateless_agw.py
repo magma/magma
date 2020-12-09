@@ -36,6 +36,7 @@ STATELESS_SERVICE_CONFIGS = [
     ("mme", "use_stateless", True),
     ("mobilityd", "persist_to_redis", True),
     ("pipelined", "clean_restart", False),
+    ("pipelined", "redis_enabled", True),
     ("sessiond", "support_stateless", True),
 ]
 
@@ -43,9 +44,10 @@ STATELESS_SERVICE_CONFIGS = [
 def _check_stateless_service_config(service, config_name, config_value):
     service_config = load_service_config(service)
     if service_config.get(config_name) == config_value:
+        print("STATELESS\t%s -> %s" % (service, config_name))
         return return_codes.STATELESS
 
-    print(service, "is stateful")
+    print("STATEFUL\t%s -> %s" % (service, config_name))
     return return_codes.STATEFUL
 
 
@@ -59,14 +61,14 @@ def _check_stateless_services():
             num_stateful += 1
 
     if num_stateful == 0:
-        print("Check returning", return_codes.STATELESS)
-        return return_codes.STATELESS
+        res = return_codes.STATELESS
     elif num_stateful == len(STATELESS_SERVICE_CONFIGS):
-        print("Check returning", return_codes.STATEFUL)
-        return return_codes.STATEFUL
+        res = return_codes.STATEFUL
+    else:
+        res = return_codes.CORRUPT
 
-    print("Check returning", return_codes.CORRUPT)
-    return return_codes.CORRUPT
+    print("Check returning", res)
+    return res
 
 
 def check_stateless_agw():
@@ -102,6 +104,17 @@ def _clear_redis_state():
     subprocess.call("service magma@redis stop".split())
 
 
+def _flushall_redis():
+    if os.getuid() != 0:
+        print("Need to run as root to clear Redis state.")
+        sys.exit(return_codes.INVALID)
+    print("Flushing all content in Redis")
+    subprocess.call("service magma@* stop".split())
+    subprocess.call("service magma@redis start".split())
+    subprocess.call("redis-cli -p 6380 flushall".split())
+    subprocess.call("service magma@redis stop".split())
+
+
 def _start_magmad():
     if os.getuid() != 0:
         print("Need to run as root to start magmad.")
@@ -125,11 +138,7 @@ def enable_stateless_agw():
         sys.exit(return_codes.STATELESS.value)
     for service, config, value in STATELESS_SERVICE_CONFIGS:
         cfg = load_override_config(service) or {}
-        if service == "pipelined":
-            cfg[config] = False
-        else:
-            cfg[config] = True
-
+        cfg[config] = value
         save_override_config(service, cfg)
 
     # restart Sctpd so that eNB connections are reset and local state cleared
@@ -174,6 +183,12 @@ def clear_redis_and_restart():
     sys.exit(0)
 
 
+def flushall_redis_and_restart():
+    _flushall_redis()
+    _start_magmad()
+    sys.exit(0)
+
+
 STATELESS_FUNC_DICT = {
     "check": check_stateless_agw,
     "enable": enable_stateless_agw,
@@ -181,6 +196,7 @@ STATELESS_FUNC_DICT = {
     "sctpd_pre": sctpd_pre_start,
     "sctpd_post": sctpd_post_start,
     "clear_redis": clear_redis_and_restart,
+    "flushall_redis": flushall_redis_and_restart,
 }
 
 
