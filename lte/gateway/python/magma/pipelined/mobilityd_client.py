@@ -66,3 +66,25 @@ def set_mobilityd_gw_info(ip: IPAddress, mac: str, vlan: str):
             "SetGatewayInfo error[%s] %s",
             err.code(),
             err.details())
+
+
+def mobilityd_list_ip_blocks():
+    """
+    Make RPC call to query all ip-blocks.
+    """
+    try:
+        chan = ServiceRegistry.get_rpc_channel(SERVICE_NAME,
+                                               ServiceRegistry.LOCAL)
+    except ValueError:
+        logging.error('Cant get RPC channel to %s', SERVICE_NAME)
+        return
+
+    client = MobilityServiceStub(chan)
+    try:
+        resp = client.ListAddedIPv4Blocks(Void())
+        return resp
+    except grpc.RpcError as err:
+        logging.error(
+            "List IpBlock error[%s] %s",
+            err.code(),
+            err.details())

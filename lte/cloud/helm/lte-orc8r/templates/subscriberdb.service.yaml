@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "subscriberdb.service") -}}
 {{- define "subscriberdb.service" -}}
 metadata:
-  name: {{ .Release.Name }}-subscriberdb
+  name: orc8r-subscriberdb
   labels:
     {{- with .Values.subscriberdb.service.labels }}
 {{ toYaml . | indent 4}}

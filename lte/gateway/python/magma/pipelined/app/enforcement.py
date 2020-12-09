@@ -76,6 +76,7 @@ class EnforcementController(PolicyMixin, MagmaController):
             self.logger,
             self.tbl_num,
             self._enforcement_stats_tbl,
+            self.next_main_table,
             self._redirect_scratch,
             self._session_rule_version_mapper)
 
@@ -278,7 +279,7 @@ class EnforcementController(PolicyMixin, MagmaController):
         self._redirect_manager.deactivate_flow_for_rule(self._datapath, imsi,
                                                         num)
         self._qos_mgr.remove_subscriber_qos(imsi, num)
-        self._remove_he_flows(ip_addr, num)
+        self._remove_he_flows(ip_addr, rule_id, num)
 
     def _deactivate_flows_for_subscriber(self, imsi, ip_addr):
         """ Deactivate all rules for specified subscriber session """

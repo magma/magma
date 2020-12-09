@@ -29,11 +29,13 @@
 #include "SessionStore.h"
 #include "SessiondMocks.h"
 #include "magma_logging.h"
+#include "DiameterCodes.h"
 
 #define SECONDS_A_DAY 86400
 
 using grpc::ServerContext;
 using grpc::Status;
+using ::testing::InSequence;
 using ::testing::Test;
 
 namespace magma {
@@ -63,7 +65,7 @@ class LocalEnforcerTest : public ::testing::Test {
 
   void initialize_lte_test_config() {
     test_cfg_.common_context =
-        build_common_context("", IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
+        build_common_context(IMSI1, IP1, IPv6_1, APN1, MSISDN, TGPP_LTE);
     QosInformationRequest qos_info;
     qos_info.set_apn_ambr_dl(32);
     qos_info.set_apn_ambr_dl(64);
@@ -258,9 +260,10 @@ TEST_F(LocalEnforcerTest, test_init_session_credit) {
       *pipelined_client,
       activate_flows_for_rules(
           testing::_, testing::_, testing::_, test_cfg_.common_context.msisdn(),
-          testing::_, CheckCount(0), CheckCount(0), testing::_))
+          testing::_, testing::_, testing::_, testing::_))
       .Times(1)
       .WillOnce(testing::Return(true));
+  ;
   local_enforcer->init_session_credit(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
@@ -518,7 +521,8 @@ TEST_F(LocalEnforcerTest, test_update_session_credits_and_rules_with_failure) {
       IMSI1, SESSION_ID_1, "1", MonitoringLevel::PCC_RULE_LEVEL, 2048,
       monitor_response);
   monitor_response->set_success(false);
-  monitor_response->set_result_code(5001);  // USER_UNKNOWN permanent failure
+  monitor_response->set_result_code(
+      DIAMETER_USER_UNKNOWN);  // USER_UNKNOWN permanent failure
 
   // expect all rules attached to this session should be removed
   EXPECT_CALL(
@@ -989,6 +993,192 @@ TEST_F(LocalEnforcerTest, test_all) {
 
   RuleRecordTable empty_table;
   local_enforcer->aggregate_records(session_map, empty_table, update);
+}
+
+TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
+  // insert key rule mapping
+  insert_static_rule(1, "", "rule1");
+
+  // insert initial session credit
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response_with_error(
+      IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
+      ChargingCredit_FinalAction_REDIRECT, "12.7.7.4", "", credits->Add());
+
+  EXPECT_CALL(
+      *pipelined_client, deactivate_flows_for_rules(
+                             testing::_, testing::_, testing::_, CheckCount(1),
+                             CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  auto update = SessionStore::get_default_session_update(session_map);
+
+  // receive usages from pipeline and check we still collect them but don't
+  // terminate session (this step helps to check the credit is in the suspended
+  // state
+  RuleRecordTable table;
+  auto record_list = table.mutable_records();
+  create_rule_record(
+      IMSI1, test_cfg_.common_context.ue_ipv4(), "rule1", 10, 20,
+      record_list->Add());
+  local_enforcer->aggregate_records(session_map, table, update);
+
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_RX, {{1, 10}});
+  assert_charging_credit(session_map, IMSI1, SESSION_ID_1, USED_TX, {{1, 20}});
+  EXPECT_EQ(update.size(), 1);
+  EXPECT_EQ(update[IMSI1][SESSION_ID_1].charging_credit_map.size(), 1);
+  EXPECT_TRUE(update[IMSI1][SESSION_ID_1]
+                  .charging_credit_map.find(1)
+                  ->second.suspended);
+  EXPECT_EQ(
+      update[IMSI1][SESSION_ID_1]
+          .charging_credit_map.find(1)
+          ->second.service_state,
+      SERVICE_NEEDS_SUSPENSION);
+
+  // Collect updates for reporting and check Redirect action needs to be done
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto session_update =
+      local_enforcer->collect_updates(session_map, actions, update);
+  EXPECT_EQ(actions.size(), 1);
+
+  // execute actions (from collect_updates)
+  EXPECT_CALL(
+      *pipelined_client,
+      add_gy_final_action_flow(
+          IMSI1, test_cfg_.common_context.ue_ipv4(),
+          test_cfg_.common_context.ue_ipv6(), test_cfg_.common_context.msisdn(),
+          CheckCount(0), CheckCount(1)))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  local_enforcer->execute_actions(session_map, actions, update);
+  EXPECT_EQ(session_update.updates_size(), 0);
+  EXPECT_EQ(
+      update[IMSI1][SESSION_ID_1]
+          .charging_credit_map.find(1)
+          ->second.service_state,
+      SERVICE_REDIRECTED);
+  EXPECT_TRUE(update[IMSI1][SESSION_ID_1]
+                  .charging_credit_map.find(1)
+                  ->second.suspended);
+}
+
+TEST_F(LocalEnforcerTest, test_update_with_transient_error) {
+  // insert key rule mapping
+  insert_static_rule(1, "", "rule1");
+  insert_static_rule(1, "", "rule2");
+  insert_static_rule(2, "", "rule3");
+
+  // insert initial session credit
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  // Add updated credit from cloud
+  auto session_uc = SessionStore::get_default_session_update(session_map);
+  UpdateSessionResponse update_response;
+  auto updates = update_response.mutable_responses();
+  create_credit_update_response_with_error(
+      IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
+      updates->Add());
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 2, 1024, response.mutable_credits()->Add());
+  EXPECT_CALL(
+      *pipelined_client, deactivate_flows_for_rules(
+                             testing::_, testing::_, testing::_, CheckCount(2),
+                             CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, session_uc);
+  EXPECT_FALSE(session_uc[IMSI1][SESSION_ID_1].updated_fsm_state);
+  EXPECT_TRUE(session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
+  EXPECT_EQ(
+      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[1].service_state,
+      SESSION_ACTIVE);
+  EXPECT_FALSE(
+      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].suspended);
+  EXPECT_EQ(
+      session_uc[IMSI1][SESSION_ID_1].charging_credit_map[2].service_state,
+      SESSION_ACTIVE);
+}
+
+// gy_rar
+TEST_F(LocalEnforcerTest, test_reauth_with_redirected_suspended_credit) {
+  // insert key rule mapping
+  insert_static_rule(1, "", "rule1");
+
+  // 1- INITIAL SET UP TO CREATE A REDIRECTED due to SUSPENDED CREDIT
+  // insert initial suspended and redirected credit
+  CreateSessionResponse response;
+  auto credits = response.mutable_credits();
+  create_credit_update_response_with_error(
+      IMSI1, SESSION_ID_1, 1, false, DIAMETER_CREDIT_LIMIT_REACHED,
+      ChargingCredit_FinalAction_REDIRECT, "12.7.7.4", "", credits->Add());
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+
+  // execute redirection
+  auto update = SessionStore::get_default_session_update(session_map);
+  std::vector<std::unique_ptr<ServiceAction>> actions;
+  auto session_update =
+      local_enforcer->collect_updates(session_map, actions, update);
+  local_enforcer->execute_actions(session_map, actions, update);
+  EXPECT_EQ(actions.size(), 1);
+  EXPECT_EQ(session_update.updates_size(), 0);
+  EXPECT_EQ(
+      update[IMSI1][SESSION_ID_1].charging_credit_map[1].service_state,
+      SERVICE_REDIRECTED);
+  EXPECT_TRUE(update[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
+
+  // 2- SETUP REAUTH ON A SUSPENDED CREDIT
+  // reset update and actions
+  update = SessionStore::get_default_session_update(session_map);
+  actions.clear();
+
+  ChargingReAuthRequest reauth;
+  reauth.set_sid(IMSI1);
+  reauth.set_session_id(SESSION_ID_1);
+  reauth.set_type(ChargingReAuthRequest::ENTIRE_SESSION);
+  auto result =
+      local_enforcer->init_charging_reauth(session_map, reauth, update);
+  EXPECT_EQ(result, ReAuthResult::UPDATE_INITIATED);
+
+  // check suspended credit is requested
+  auto update_req =
+      local_enforcer->collect_updates(session_map, actions, update);
+  local_enforcer->execute_actions(session_map, actions, update);
+  EXPECT_EQ(update_req.updates_size(), 1);
+  EXPECT_EQ(update_req.updates(0).sid(), IMSI1);
+  EXPECT_EQ(update_req.updates(0).usage().type(), CreditUsage::REAUTH_REQUIRED);
+
+  // 3- SUSPENSION IS CLEARED
+  // receive credit from OCS as a reauth answer
+  UpdateSessionResponse update_response;
+  auto updates = update_response.mutable_responses();
+  create_credit_update_response(IMSI1, SESSION_ID_1, 1, 4096, updates->Add());
+  std::vector<std::string> static_rules_to_activate;
+  static_rules_to_activate.push_back("rule1");
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          testing::_, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+          testing::_, CheckStaticRulesNames(static_rules_to_activate),
+          CheckCount(0), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+  local_enforcer->update_session_credits_and_rules(
+      session_map, update_response, update);
+  EXPECT_FALSE(update[IMSI1][SESSION_ID_1].charging_credit_map[1].suspended);
 }
 
 TEST_F(LocalEnforcerTest, test_re_auth) {
@@ -2531,6 +2721,72 @@ TEST_F(LocalEnforcerTest, test_final_unit_action_no_update) {
   const CreditKey& credit_key(1);
   assert_session_is_in_final_state(
       session_map, IMSI1, SESSION_ID_1, credit_key, true);
+}
+
+// Test how we handle UpdateSessionResponse with dynamic rule modification
+// 1. Start with a case where dynamic rule X is installed.
+// 2. Receive an UpdateSessionResponse with removal instruction for the
+// rule as well as an install for a dynamic rule with the same name X.
+// 3. Assert we have rule X installed with modified entry
+TEST_F(LocalEnforcerTest, test_rar_dynamic_rule_modification) {
+  CreateSessionResponse response;
+  create_credit_update_response(
+      IMSI1, SESSION_ID_1, 1, 1024, response.mutable_credits()->Add());
+  auto dynamic_rule =
+      response.mutable_dynamic_rules()->Add()->mutable_policy_rule();
+  dynamic_rule->set_id("d-rule1");
+  dynamic_rule->set_rating_group(1);
+  dynamic_rule->set_tracking_type(PolicyRule::ONLY_OCS);
+  // The activation for no static rules and 1 dynamic rule (d-rule1)
+  EXPECT_CALL(
+      *pipelined_client,
+      activate_flows_for_rules(
+          IMSI1, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+          testing::_, CheckCount(0), CheckCount(1), testing::_))
+      .Times(1)
+      .WillOnce(testing::Return(true));
+
+  local_enforcer->init_session_credit(
+      session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
+  session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
+
+  // session store create session
+  session_map      = session_store->read_sessions(SessionRead{IMSI1});
+  auto session_ucs = SessionStore::get_default_session_update(session_map);
+
+  PolicyReAuthRequest rar;
+  PolicyReAuthAnswer raa;
+  rar.set_imsi(IMSI1);
+  rar.set_session_id(SESSION_ID_1);
+  rar.add_rules_to_remove("d-rule1");
+  auto dynamic_install = rar.mutable_dynamic_rules_to_install()->Add();
+  dynamic_install->mutable_policy_rule()->set_id("d-rule1");
+  dynamic_install->mutable_policy_rule()->set_rating_group(2);
+  dynamic_install->mutable_policy_rule()->set_tracking_type(
+      PolicyRule::ONLY_OCS);
+  {
+    InSequence s;
+
+    EXPECT_CALL(
+        *pipelined_client, deactivate_flows_for_rules(
+                               IMSI1, testing::_, testing::_, CheckCount(0),
+                               CheckCount(1), testing::_))
+        .Times(1)
+        .WillOnce(testing::Return(true));
+    EXPECT_CALL(
+        *pipelined_client,
+        activate_flows_for_rules(
+            IMSI1, testing::_, testing::_, test_cfg_.common_context.msisdn(),
+            testing::_, CheckCount(0), CheckCount(1), testing::_))
+        .Times(1)
+        .WillOnce(testing::Return(true));
+  }
+  local_enforcer->init_policy_reauth(session_map, rar, raa, session_ucs);
+  auto& dynamic_rules = session_map[IMSI1][0]->get_dynamic_rules();
+  PolicyRule policy_out;
+  EXPECT_TRUE(dynamic_rules.get_rule("d-rule1", &policy_out));
+  EXPECT_EQ(2, policy_out.rating_group());
+  EXPECT_TRUE(session_store->update_sessions(session_ucs));
 }
 
 int main(int argc, char** argv) {

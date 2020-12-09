@@ -153,7 +153,6 @@ export default function RatingGroupEditDialog(props: Props) {
               // $FlowFixMe redirect_info type needed
               value={ratingGroup.limit_type || 'FINITE'}
               onChange={({target}) => {
-                console.log(target.value);
                 handleRatingGroupChange('limit_type', target.value);
               }}
               input={<OutlinedInput />}>

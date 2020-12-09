@@ -2026,6 +2026,7 @@ void mme_ue_context_update_ue_emm_state(
     OAILOG_INFO_UE(
         LOG_MME_APP, ue_context_p->emm_context._imsi64,
         "UE STATE - UNREGISTERED.\n");
+    ue_context_p->nb_active_pdn_contexts = 0;
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
@@ -2328,6 +2329,12 @@ static bool mme_app_recover_timers_for_ue(
         "Initial Context Setup Response");
   }
 
+  // timer for network initiated detach procedure
+  if (ue_mm_context_pP && ue_mm_context_pP->emm_context.t3422_arg) {
+    detach_t3422_handler(
+        (void*) ue_mm_context_pP->emm_context.t3422_arg,
+        &ue_mm_context_pP->emm_context._imsi64);
+  }
   OAILOG_FUNC_RETURN(LOG_MME_APP, false);
 }
 

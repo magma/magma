@@ -23,6 +23,7 @@ import type {
   mutable_subscriber,
   network_id,
   network_ran_configs,
+  network_type,
   policy_qos_profile,
   policy_rule,
   rating_group,
@@ -43,7 +44,7 @@ import NetworkContext from '../../components/context/NetworkContext';
 import PolicyContext from '../context/PolicyContext';
 import SubscriberContext from '../context/SubscriberContext';
 
-import {FEG_LTE} from '@fbcnms/types/network';
+import {FEG_LTE, LTE} from '@fbcnms/types/network';
 import {
   InitEnodeState,
   InitTierState,
@@ -70,6 +71,7 @@ import {useEnqueueSnackbar} from '@fbcnms/ui/hooks/useSnackbar';
 
 type Props = {
   networkId: network_id,
+  networkType: network_type,
   children: React.Node,
 };
 
@@ -601,15 +603,28 @@ export function LteNetworkContextProvider(props: Props) {
 }
 
 export function LteContextProvider(props: Props) {
-  const {networkId} = props;
+  const {networkId, networkType} = props;
+  const lteNetwork = networkType === LTE || networkType === FEG_LTE;
+  if (!lteNetwork) {
+    return props.children;
+  }
+
   return (
-    <LteNetworkContextProvider networkId={networkId}>
-      <PolicyProvider networkId={networkId}>
-        <ApnProvider networkId={networkId}>
-          <SubscriberContextProvider networkId={networkId}>
-            <GatewayTierContextProvider networkId={networkId}>
-              <EnodebContextProvider networkId={networkId}>
-                <GatewayContextProvider networkId={networkId}>
+    <LteNetworkContextProvider networkId={networkId} networkType={networkType}>
+      <PolicyProvider networkId={networkId} networkType={networkType}>
+        <ApnProvider networkId={networkId} networkType={networkType}>
+          <SubscriberContextProvider
+            networkId={networkId}
+            networkType={networkType}>
+            <GatewayTierContextProvider
+              networkId={networkId}
+              networkType={networkType}>
+              <EnodebContextProvider
+                networkId={networkId}
+                networkType={networkType}>
+                <GatewayContextProvider
+                  networkId={networkId}
+                  networkType={networkType}>
                   {props.children}
                 </GatewayContextProvider>
               </EnodebContextProvider>

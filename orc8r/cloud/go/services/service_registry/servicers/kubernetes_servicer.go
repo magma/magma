@@ -29,10 +29,10 @@ import (
 const (
 	partOfLabel                    = "app.kubernetes.io/part-of"
 	partOfOrc8rApp                 = "orc8r-app"
+	orc8rServiceNamePrefix         = "orc8r-"
 	serviceRegistryNamespaceEnvVar = "SERVICE_REGISTRY_NAMESPACE"
 	grpcPortName                   = "grpc"
 	httpPortName                   = "http"
-	serviceNameDelimiter           = "-"
 )
 
 type KubernetesServiceRegistryServicer struct {
@@ -64,7 +64,8 @@ func (s *KubernetesServiceRegistryServicer) ListAllServices(ctx context.Context,
 		return ret, err
 	}
 	for _, svc := range svcList.Items {
-		ret.Services = append(ret.Services, s.parseServiceName(svc.Name))
+		formattedName := s.convertK8sServiceNameToMagmaServiceName(svc.Name)
+		ret.Services = append(ret.Services, formattedName)
 	}
 	return ret, nil
 }
@@ -80,7 +81,8 @@ func (s *KubernetesServiceRegistryServicer) FindServices(ctx context.Context, re
 		return ret, err
 	}
 	for _, svc := range svcList.Items {
-		ret.Services = append(ret.Services, s.parseServiceName(svc.Name))
+		formattedName := s.convertK8sServiceNameToMagmaServiceName(svc.Name)
+		ret.Services = append(ret.Services, formattedName)
 	}
 	return ret, nil
 }
@@ -146,34 +148,35 @@ func (s *KubernetesServiceRegistryServicer) getAddressForPortName(service string
 }
 
 func (s *KubernetesServiceRegistryServicer) getServiceForServiceName(serviceName string) (*corev1types.Service, error) {
-	// K8s services deployed via Helm have name with format
-	// 'deploymentName-svcName'. Given that the mapping of module deployment
-	// name to service is unknown to the registry, iterate through all
-	// services and check the suffix
 	orc8rListOption := metav1.ListOptions{
 		LabelSelector: fmt.Sprintf("%s=%s", partOfLabel, partOfOrc8rApp),
 	}
 
-	// Helm services don't allow for underscores, so convert to a dash
-	formattedServiceName := strings.ReplaceAll(serviceName, "_", "-")
+	formattedSvcName := s.convertMagmaServiceNameToK8sServiceName(serviceName)
 	svcList, err := s.client.Services(s.namespace).List(orc8rListOption)
 	if err != nil {
 		return nil, err
 	}
 	for _, svc := range svcList.Items {
-		if strings.HasSuffix(svc.Name, formattedServiceName) {
+		if svc.Name == formattedSvcName {
 			return &svc, nil
 		}
 	}
 	return nil, fmt.Errorf("Could not find service '%s'", serviceName)
 }
 
-func (s *KubernetesServiceRegistryServicer) parseServiceName(svcName string) string {
-	// K8s services deployed via Helm have name with format
-	// 'deploymentName-svc-name'. Given that the deployment name for services
-	// is unknown to other services running in the cluster, remove this prefix,
-	// returning only the svc-name portion
-	splitSvcName := strings.SplitAfterN(svcName, serviceNameDelimiter, 2)
-	svcNameIndex := len(splitSvcName) - 1
-	return splitSvcName[svcNameIndex]
+// Orc8r helm services are formatted as orc8r-<svc-name>. Magma convention is
+// to use underscores in service names, so remove prefix and convert any
+// hyphens in the k8s service name.
+func (s *KubernetesServiceRegistryServicer) convertK8sServiceNameToMagmaServiceName(serviceName string) string {
+	trimmedSvcName := strings.TrimPrefix(serviceName, orc8rServiceNamePrefix)
+	return strings.ReplaceAll(trimmedSvcName, "-", "_")
+}
+
+// Orc8r helm services are formatted as orc8r-<svc-name>. Magma convention is
+// to use underscores in service names, so add prefix and convert any
+// underscores to hyphens
+func (s *KubernetesServiceRegistryServicer) convertMagmaServiceNameToK8sServiceName(serviceName string) string {
+	k8sSvcNameSuffix := strings.ReplaceAll(serviceName, "_", "-")
+	return fmt.Sprintf("%s%s", orc8rServiceNamePrefix, k8sSvcNameSuffix)
 }

@@ -232,7 +232,7 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 		fmt.Println(err)
 		return &radius.Packet{}, err
 	}
-	fmt.Println("Finished Discconnecting UE")
+	fmt.Println("Finished Disconnecting UE")
 	return radiusP, nil
 }
 

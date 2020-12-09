@@ -22,6 +22,7 @@ import (
 	"magma/lte/cloud/go/serdes"
 	ltehandlers "magma/lte/cloud/go/services/lte/obsidian/handlers"
 	ltemodels "magma/lte/cloud/go/services/lte/obsidian/models"
+	policydbmodels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/lte/cloud/go/services/subscriberdb"
 	subscribermodels "magma/lte/cloud/go/services/subscriberdb/obsidian/models"
 	"magma/orc8r/cloud/go/obsidian"
@@ -39,12 +40,15 @@ import (
 )
 
 const (
-	Subscribers              = "subscribers"
-	ListSubscribersPath      = ltehandlers.ManageNetworkPath + obsidian.UrlSep + Subscribers
-	ManageSubscriberPath     = ListSubscribersPath + obsidian.UrlSep + ":subscriber_id"
-	ActivateSubscriberPath   = ManageSubscriberPath + obsidian.UrlSep + "activate"
-	DeactivateSubscriberPath = ManageSubscriberPath + obsidian.UrlSep + "deactivate"
-	SubscriberProfilePath    = ManageSubscriberPath + obsidian.UrlSep + "lte" + obsidian.UrlSep + "sub_profile"
+	Subscribers               = "subscribers"
+	SubscriberState           = "subscriber_state"
+	ListSubscribersPath       = ltehandlers.ManageNetworkPath + obsidian.UrlSep + Subscribers
+	ManageSubscriberPath      = ListSubscribersPath + obsidian.UrlSep + ":subscriber_id"
+	ListSubscriberStatePath   = ltehandlers.ManageNetworkPath + obsidian.UrlSep + SubscriberState
+	ManageSubscriberStatePath = ListSubscriberStatePath + obsidian.UrlSep + ":subscriber_id"
+	ActivateSubscriberPath    = ManageSubscriberPath + obsidian.UrlSep + "activate"
+	DeactivateSubscriberPath  = ManageSubscriberPath + obsidian.UrlSep + "deactivate"
+	SubscriberProfilePath     = ManageSubscriberPath + obsidian.UrlSep + "lte" + obsidian.UrlSep + "sub_profile"
 
 	listMSISDNsPath   = ltehandlers.ManageNetworkPath + obsidian.UrlSep + "msisdns"
 	manageMSISDNsPath = listMSISDNsPath + obsidian.UrlSep + ":msisdn"
@@ -60,6 +64,9 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageSubscriberPath, Methods: obsidian.GET, HandlerFunc: getSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.PUT, HandlerFunc: updateSubscriberHandler},
 		{Path: ManageSubscriberPath, Methods: obsidian.DELETE, HandlerFunc: deleteSubscriberHandler},
+
+		{Path: ListSubscriberStatePath, Methods: obsidian.GET, HandlerFunc: listSubscriberStateHandler},
+		{Path: ManageSubscriberStatePath, Methods: obsidian.GET, HandlerFunc: getSubscriberStateHandler},
 
 		{Path: ActivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateACTIVE)},
 		{Path: DeactivateSubscriberPath, Methods: obsidian.POST, HandlerFunc: makeSubscriberStateHandler(subscribermodels.LteSubscriptionStateINACTIVE)},
@@ -88,16 +95,17 @@ var (
 
 var subscriberStateTypes = []string{
 	lte.ICMPStateType,
-	lte.S1APStateType,
 	lte.MMEStateType,
-	lte.SPGWStateType,
 	lte.MobilitydStateType,
+	lte.S1APStateType,
+	lte.SPGWStateType,
+	lte.SubscriberStateType,
 	orc8r.DirectoryRecordType,
 }
 
 type subscriberFilter func(sub *subscribermodels.Subscriber) bool
 
-func acceptAll(sub *subscribermodels.Subscriber) bool { return true }
+func acceptAll(*subscribermodels.Subscriber) bool { return true }
 
 // listSubscribersHandler handles the base subscriber endpoint.
 // The returned subscribers can be filtered using the following query
@@ -231,6 +239,40 @@ func deleteSubscriberHandler(c echo.Context) error {
 		return obsidian.HttpError(err, http.StatusInternalServerError)
 	}
 	return c.NoContent(http.StatusNoContent)
+}
+
+func listSubscriberStateHandler(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	statesBySID, err := loadAllStatesBySID(networkID)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+
+	modelsBySID := map[string]*subscribermodels.SubscriberState{}
+	for sid, states := range statesBySID {
+		modelsBySID[sid] = makeSubscriberState(sid, states)
+	}
+
+	return c.JSON(http.StatusOK, modelsBySID)
+}
+
+func getSubscriberStateHandler(c echo.Context) error {
+	networkID, subscriberID, nerr := getNetworkAndSubIDs(c)
+	if nerr != nil {
+		return nerr
+	}
+
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, &subscriberID, serdes.State)
+	if err != nil {
+		return makeErr(err)
+	}
+
+	subState := makeSubscriberState(subscriberID, states)
+	return c.JSON(http.StatusOK, subState)
 }
 
 func listMSISDNsHandler(c echo.Context) error {
@@ -427,11 +469,7 @@ func loadSubscriber(networkID, key string) (*subscribermodels.Subscriber, error)
 	}
 
 	sub := mutableSub.ToSubscriber()
-	err = sub.FillAugmentedFields(states)
-	if err != nil {
-		return nil, err
-	}
-
+	sub.FillAugmentedFields(states)
 	return sub, nil
 }
 
@@ -455,38 +493,15 @@ func loadAllSubscribers(networkID string) (map[string]*subscribermodels.Subscrib
 		return nil, err
 	}
 
-	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil, serdes.State)
+	states, err := loadAllStatesBySID(networkID)
 	if err != nil {
 		return nil, err
-	}
-	// Each entry in this map contains all the states that the SID cares about.
-	// The DeviceID fields of the state IDs in the nested maps do not have to
-	// match the SID, as in the case of mobilityd state for example.
-	statesBySid := map[string]state_types.StatesByID{}
-	for stateID, st := range states {
-		sidKey := stateID.DeviceID
-		if stateID.Type == lte.MobilitydStateType {
-			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
-			if len(matches) != mobilitydStateExpectedMatchCount {
-				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
-				continue
-			}
-			sidKey = matches[1]
-		}
-
-		if _, exists := statesBySid[sidKey]; !exists {
-			statesBySid[sidKey] = state_types.StatesByID{}
-		}
-		statesBySid[sidKey][stateID] = st
 	}
 
 	subs := map[string]*subscribermodels.Subscriber{}
 	for _, mutableSub := range mutableSubs {
 		sub := mutableSub.ToSubscriber()
-		err = sub.FillAugmentedFields(statesBySid[string(sub.ID)])
-		if err != nil {
-			return nil, err
-		}
+		sub.FillAugmentedFields(states[string(sub.ID)])
 		subs[string(sub.ID)] = sub
 	}
 
@@ -631,6 +646,47 @@ func deleteSubscriber(networkID, key string) error {
 	}
 
 	return nil
+}
+
+func loadAllStatesBySID(networkID string) (map[string]state_types.StatesByID, error) {
+	states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil, serdes.State)
+	if err != nil {
+		return nil, err
+	}
+
+	// Each entry in this map contains all the states that the SID cares about.
+	// The DeviceID fields of the state IDs in the nested maps do not have to
+	// match the SID, as in the case of mobilityd state for example.
+	statesBySid := map[string]state_types.StatesByID{}
+	for stateID, st := range states {
+		sidKey := stateID.DeviceID
+		if stateID.Type == lte.MobilitydStateType {
+			matches := mobilitydStateKeyRe.FindStringSubmatch(stateID.DeviceID)
+			if len(matches) != mobilitydStateExpectedMatchCount {
+				glog.Errorf("mobilityd state composite ID %s did not match regex", sidKey)
+				continue
+			}
+			sidKey = matches[1]
+		}
+
+		if _, exists := statesBySid[sidKey]; !exists {
+			statesBySid[sidKey] = state_types.StatesByID{}
+		}
+		statesBySid[sidKey][stateID] = st
+	}
+
+	return statesBySid, nil
+}
+
+func makeSubscriberState(subscriberID string, states state_types.StatesByID) *subscribermodels.SubscriberState {
+	// Create anonymous subscriber (may or may not have a backing configurator
+	// entity), then extract its formatted state
+	sub := &subscribermodels.Subscriber{ID: policydbmodels.SubscriberID(subscriberID)}
+	sub.FillAugmentedFields(states)
+	if sub.State == nil {
+		return &subscribermodels.SubscriberState{}
+	}
+	return sub.State
 }
 
 func makeErr(err error) *echo.HTTPError {

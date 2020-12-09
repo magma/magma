@@ -15,8 +15,13 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
 	"fmt"
 	"strings"
+
+	"github.com/golang/glog"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/metadata"
 
 	"magma/feg/cloud/go/feg"
 	"magma/feg/cloud/go/serdes"
@@ -26,11 +31,6 @@ import (
 	"magma/orc8r/cloud/go/services/directoryd"
 	"magma/orc8r/cloud/go/services/dispatcher/gateway_registry"
 	"magma/orc8r/lib/go/protos"
-
-	"github.com/golang/glog"
-	"golang.org/x/net/context"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/metadata"
 )
 
 // FegToGwRelayServer is a server serving requests from FeG to Access Gateway
