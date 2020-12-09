@@ -14,17 +14,13 @@
  *
  *  Source      amf_app_messages_def.h
  *
- *  Version     0.1
- *
  *  Date        2020/09/08
- *
  *
  * Subsystem   Access and Mobility Management Function
  *
  * Description Defines Access and Mobility Management Messages
  *
  *******************************************************************************/
-* /
     // WARNING: Do not include this header directly. Use intertask_interface.h
     // instead.
 

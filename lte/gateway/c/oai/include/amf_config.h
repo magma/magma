@@ -14,11 +14,7 @@
 
   Source      amf_message.h
 
-  Version     0.1
-
   Date        2020/07/28
-
-  Product     NAS stack
 
   Subsystem   Access and Mobility Management Function
 
