@@ -18,7 +18,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"magma/cwf/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/protos"
+
 	"net/http"
 	"net/url"
 
@@ -30,7 +31,7 @@ type HttpClient interface {
 }
 
 type Exporter interface {
-	Export(calculations.Result, HttpClient) error
+	Export(*protos.CalculationResult, HttpClient) error
 }
 
 type wwwExporter struct {
@@ -41,6 +42,7 @@ type wwwExporter struct {
 	categoryName    string
 }
 
+//NewWWWExporter exporter instance to export metrics
 func NewWWWExporter(metricsPrefix, appSecret, appID, metricExportURL, categoryName string) Exporter {
 	return &wwwExporter{
 		metricsPrefix:   metricsPrefix,
@@ -51,17 +53,14 @@ func NewWWWExporter(metricsPrefix, appSecret, appID, metricExportURL, categoryNa
 	}
 }
 
-func (e *wwwExporter) Export(res calculations.Result, client HttpClient) error {
+func (e *wwwExporter) Export(res *protos.CalculationResult, client HttpClient) error {
 	exportURL := fmt.Sprintf("%s?access_token=%s|%s", e.metricExportURL, e.appID, e.appSecret)
 
-	nID := res.Labels()[metrics.NetworkLabelName]
-	if nID == "" {
-		return fmt.Errorf("no networkID for exported metric")
-	}
+	nID := res.Labels[metrics.NetworkLabelName]
 	sample := wwwDatapoint{
 		Entity: e.FormatEntity(res, nID),
 		Key:    e.FormatKey(res),
-		Value:  fmt.Sprintf("%f", res.Value()),
+		Value:  fmt.Sprintf("%f", res.Value),
 	}
 
 	sampleJSON, err := json.Marshal([]wwwDatapoint{sample})
@@ -80,10 +79,10 @@ func (e *wwwExporter) Export(res calculations.Result, client HttpClient) error {
 	return nil
 }
 
-func (e *wwwExporter) FormatKey(res calculations.Result) string {
+func (e *wwwExporter) FormatKey(res *protos.CalculationResult) string {
 	var keyBuffer bytes.Buffer
-	keyBuffer.WriteString(res.MetricName())
-	for labelName, labelValue := range res.Labels() {
+	keyBuffer.WriteString(res.MetricName)
+	for labelName, labelValue := range res.Labels {
 		if labelIsForbidden(labelName, forbiddenKeyLabelNames) {
 			continue
 		}
@@ -107,7 +106,7 @@ func labelIsForbidden(labelName string, forbiddenLabels []string) bool {
 	return false
 }
 
-func (e *wwwExporter) FormatEntity(res calculations.Result, nID string) string {
+func (e *wwwExporter) FormatEntity(res *protos.CalculationResult, nID string) string {
 	return fmt.Sprintf("%s.analytics.%s", e.metricsPrefix, nID)
 }
 

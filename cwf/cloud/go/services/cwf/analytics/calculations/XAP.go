@@ -15,21 +15,25 @@ package calculations
 
 import (
 	"fmt"
-	"github.com/golang/glog"
-	"magma/cwf/cloud/go/services/analytics/query_api"
+
+	"magma/orc8r/cloud/go/services/analytics/calculations"
+	"magma/orc8r/cloud/go/services/analytics/protos"
+	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/lib/go/metrics"
+
+	"github.com/golang/glog"
 )
 
 // XAPCalculation holds the parameters needed to run a XAP query and the registered
 // prometheus gauge that the resulting value should be stored in
 type XAPCalculation struct {
-	CalculationParams
+	calculations.CalculationParams
 	ThresholdBytes int
 }
 
 // Calculate returns the number of unique users who have had a session in the
 // past X days and have used over `thresholdBytes` data in that time
-func (x *XAPCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]Result, error) {
+func (x *XAPCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
 	glog.Infof("Calculating XAP. Days: %d", x.Days)
 
 	// List the users who have had an active session over the last X days
@@ -44,8 +48,7 @@ func (x *XAPCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]
 		return nil, fmt.Errorf("user Consumption query error: %s", err)
 	}
 
-	results := makeVectorResults(vec, x.Labels, x.Name)
-	registerResults(x.CalculationParams, results)
-
+	results := calculations.MakeVectorResults(vec, x.Labels, x.Name)
+	calculations.RegisterResults(x.CalculationParams, results)
 	return results, nil
 }
