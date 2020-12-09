@@ -36,6 +36,7 @@
 #include "ngap_types.h"
 #include "sctp_messages_types.h"
 #include "amf_app_messages_types.h"
+#include "amf_default_values.h"
 
 task_zmq_ctx_t ngap_task_zmq_ctx;
 //------------------------------------------------------------------------------
