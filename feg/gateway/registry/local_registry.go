@@ -27,6 +27,7 @@ const (
 
 	CONTROL_PROXY    = "CONTROL_PROXY"
 	S6A_PROXY        = "S6A_PROXY"
+	S8_PROXY         = "S8_PROXY"
 	SESSION_PROXY    = "SESSION_PROXY"
 	SWX_PROXY        = "SWX_PROXY"
 	HLR_PROXY        = "HLR_PROXY"

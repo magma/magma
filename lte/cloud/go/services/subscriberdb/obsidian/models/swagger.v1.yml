@@ -129,7 +129,7 @@ paths:
         default:
           $ref: './orc8r-swagger-common.yml#/responses/UnexpectedError'
 
-  /lte/{network_id}/subscriber_state/:
+  /lte/{network_id}/subscriber_state:
       get:
         summary: List subscriber state in the network
         tags:
