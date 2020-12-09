@@ -118,9 +118,11 @@ void pgw_free_procedure_create_bearer(pgw_ni_cbr_proc_t** ni_cbr_proc) {
     LIST_FOREACH(
         eps_bearer_entry_wrapper, (*ni_cbr_proc)->pending_eps_bearers,
         entries) {
-      LIST_REMOVE(eps_bearer_entry_wrapper, entries);
-      free_wrapper((void**) &eps_bearer_entry_wrapper->sgw_eps_bearer_entry);
-      free_wrapper((void**) &eps_bearer_entry_wrapper);
+      if (eps_bearer_entry_wrapper) {
+        LIST_REMOVE(eps_bearer_entry_wrapper, entries);
+        free_wrapper((void**) &eps_bearer_entry_wrapper->sgw_eps_bearer_entry);
+        free_wrapper((void**) &eps_bearer_entry_wrapper);
+      }
     }
   }
   free_wrapper((void**) ni_cbr_proc);
