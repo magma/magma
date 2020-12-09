@@ -33,6 +33,8 @@ std::string service_state_to_str(ServiceState state) {
       return "SERVICE_ENABLED";
     case SERVICE_NEEDS_DEACTIVATION:
       return "SERVICE_NEEDS_DEACTIVATION";
+    case SERVICE_NEEDS_SUSPENSION:
+      return "SERVICE_NEEDS_SUSPENSION";
     case SERVICE_DISABLED:
       return "SERVICE_DISABLED";
     case SERVICE_NEEDS_ACTIVATION:
@@ -183,4 +185,31 @@ std::string service_action_type_to_str(ServiceActionType action) {
       return "INVALID ACTION TYPE";
   }
 }
+
+std::string credit_validity_to_str(CreditValidity validity) {
+  switch (validity) {
+    case VALID_CREDIT:
+      return "VALID_CREDIT";
+    case INVALID_CREDIT:
+      return "INVALID_CREDIT";
+    case TRANSIENT_ERROR:
+      return "TRANSIENT_ERROR";
+    default:
+      return "INVALID CREDIT TYPE";
+  }
+}
+
+std::string event_trigger_to_str(EventTrigger event_trigger) {
+  switch (event_trigger) {
+    case USAGE_REPORT:
+      return "USAGE_REPORT";
+    case REVALIDATION_TIMEOUT:
+      return "REVALIDATION_TIMEOUT";
+    default:
+      std::ostringstream message;
+      message << "UNIMPLEMENTED EVENT TRIGGER: " << event_trigger;
+      return message.str();
+  }
+}
+
 }  // namespace magma

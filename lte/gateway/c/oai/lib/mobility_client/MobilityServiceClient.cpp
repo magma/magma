@@ -56,7 +56,39 @@ int MobilityServiceClient::AllocateIPv4AddressAsync(
 
   request.set_apn(apn);
 
-  AllocateIPv4AddressRPC(request, callback);
+  AllocateIPAddressRPC(request, callback);
+  return 0;
+}
+
+int MobilityServiceClient::AllocateIPv6AddressAsync(
+    const std::string& imsi, const std::string& apn,
+    const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
+  AllocateIPRequest request = AllocateIPRequest();
+  request.set_version(AllocateIPRequest::IPV6);
+
+  SubscriberID* sid = request.mutable_sid();
+  sid->set_id(imsi);
+  sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
+
+  AllocateIPAddressRPC(request, callback);
+  return 0;
+}
+
+int MobilityServiceClient::AllocateIPv4v6AddressAsync(
+    const std::string& imsi, const std::string& apn,
+    const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
+  AllocateIPRequest request = AllocateIPRequest();
+  request.set_version(AllocateIPRequest::IPV4V6);
+
+  SubscriberID* sid = request.mutable_sid();
+  sid->set_id(imsi);
+  sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
+
+  AllocateIPAddressRPC(request, callback);
   return 0;
 }
 
@@ -74,10 +106,69 @@ int MobilityServiceClient::ReleaseIPv4Address(
   ip->set_version(IPAddress::IPV4);
   ip->set_address(&addr, sizeof(struct in_addr));
 
-  ReleaseIPv4AddressRPC(request, [](const Status& status, Void resp) {
+  ReleaseIPAddressRPC(request, [](const Status& status, Void resp) {
     if (!status.ok()) {
       // TODO: use logging
-      std::cout << "ReleaseIPAddress fails with code " << status.error_code()
+      std::cout << "ReleaseIPv4Address fails with code " << status.error_code()
+                << ", msg: " << status.error_message() << std::endl;
+    }
+  });
+  return 0;
+}
+
+int MobilityServiceClient::ReleaseIPv6Address(
+    const std::string& imsi, const std::string& apn,
+    const struct in6_addr& addr) {
+  ReleaseIPRequest request = ReleaseIPRequest();
+  SubscriberID* sid        = request.mutable_sid();
+  sid->set_id(imsi);
+  sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
+
+  IPAddress* ip = request.mutable_ip();
+  ip->set_version(IPAddress::IPV6);
+  ip->set_address(&addr, sizeof(struct in6_addr));
+
+  ReleaseIPAddressRPC(request, [](const Status& status, Void resp) {
+    if (!status.ok()) {
+      std::cout << "ReleaseIPv6Address fails with code " << status.error_code()
+                << ", msg: " << status.error_message() << std::endl;
+    }
+  });
+  return 0;
+}
+
+int MobilityServiceClient::ReleaseIPv4v6Address(
+    const std::string& imsi, const std::string& apn,
+    const struct in_addr& ipv4_addr, const struct in6_addr& ipv6_addr) {
+  ReleaseIPRequest request = ReleaseIPRequest();
+  SubscriberID* sid        = request.mutable_sid();
+  sid->set_id(imsi);
+  sid->set_type(SubscriberID::IMSI);
+
+  request.set_apn(apn);
+
+  // Release IPv4 address
+  IPAddress* ip = request.mutable_ip();
+  ip->set_version(IPAddress::IPV4);
+  ip->set_address(&ipv4_addr, sizeof(struct in_addr));
+
+  ReleaseIPAddressRPC(request, [](const Status& status, Void resp) {
+    if (!status.ok()) {
+      std::cout << "ReleaseIPv4Address fails with code " << status.error_code()
+                << ", msg: " << status.error_message() << std::endl;
+    }
+  });
+
+  // Release IPv6 address
+  ip = request.mutable_ip();
+  ip->set_version(IPAddress::IPV6);
+  ip->set_address(&ipv6_addr, sizeof(struct in6_addr));
+
+  ReleaseIPAddressRPC(request, [](const Status& status, Void resp) {
+    if (!status.ok()) {
+      std::cout << "ReleaseIPv6Address fails with code " << status.error_code()
                 << ", msg: " << status.error_message() << std::endl;
     }
   });
@@ -156,7 +247,7 @@ int MobilityServiceClient::GetSubscriberIDFromIPv4(
   return 0;
 }
 
-void MobilityServiceClient::AllocateIPv4AddressRPC(
+void MobilityServiceClient::AllocateIPAddressRPC(
     const AllocateIPRequest& request,
     const std::function<void(Status, AllocateIPAddressResponse)>& callback) {
   auto localResp = new AsyncLocalResponse<AllocateIPAddressResponse>(
@@ -165,7 +256,7 @@ void MobilityServiceClient::AllocateIPv4AddressRPC(
       localResp->get_context(), request, &queue_)));
 }
 
-void MobilityServiceClient::ReleaseIPv4AddressRPC(
+void MobilityServiceClient::ReleaseIPAddressRPC(
     const ReleaseIPRequest& request,
     const std::function<void(grpc::Status, magma::orc8r::Void)>& callback) {
   auto localResp = new AsyncLocalResponse<Void>(callback, RESPONSE_TIMEOUT);

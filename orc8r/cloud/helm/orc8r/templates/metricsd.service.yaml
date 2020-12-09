@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "metricsd.service") -}}
 {{- define "metricsd.service" -}}
 metadata:
-  name: {{ .Release.Name }}-metricsd
+  name: orc8r-metricsd
   labels:
     {{- with .Values.metricsd.service.labels }}
 {{ toYaml . | indent 4}}

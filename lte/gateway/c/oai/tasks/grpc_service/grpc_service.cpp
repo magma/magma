@@ -26,6 +26,7 @@
 #include "S6aGatewayImpl.h"
 #include "S6aServiceImpl.h"
 #include "SpgwServiceImpl.h"
+#include "AmfServiceImpl.h"
 
 extern "C" {
 #include "log.h"
@@ -35,6 +36,7 @@ extern "C" {
 using grpc::InsecureServerCredentials;
 using grpc::Server;
 using grpc::ServerBuilder;
+using magma::AmfServiceImpl;
 using magma::CSFBGatewayServiceImpl;
 using magma::S1apServiceImpl;
 using magma::S6aGatewayImpl;
@@ -43,6 +45,7 @@ using magma::SMSOrc8rGatewayServiceImpl;
 using magma::SpgwServiceImpl;
 
 static SpgwServiceImpl spgw_service;
+static AmfServiceImpl amf_service;
 static S6aServiceImpl s6a_service;
 static S6aGatewayImpl s6a_proxy;
 static CSFBGatewayServiceImpl sgs_service;
@@ -62,7 +65,7 @@ void start_grpc_service(bstring server_address) {
 #if SPGW_ENABLE_SESSIOND_AND_MOBILITYD
   builder.RegisterService(&spgw_service);
 #endif
-  builder.RegisterService(&s6a_proxy);
+  builder.RegisterService(&amf_service);
   builder.RegisterService(&s6a_service);
   // Start the SGS service only if non_eps_service_control is not set to OFF
   char* non_eps_service_control = bdata(mme_config.non_eps_service_control);

@@ -666,6 +666,222 @@ func TestGetSubscriber(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+func TestListSubscriberStates(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/subscriber_state"
+	listSubscribers := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(), testURLRoot, obsidian.GET).HandlerFunc
+
+	// Initially no state
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.SubscriberState{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create gateway and report states
+	_, err = configurator.CreateEntity(
+		"n0",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+	frozenClock := int64(1000000)
+	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
+	defer clock.UnfreezeClock(t)
+
+	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
+	ctx := test_utils.GetContextWithCertificate(t, "hw0")
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.State)
+	mmeState := state.ArbitraryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState, serdes.State)
+	spgwState := state.ArbitraryJSON{"spgw": "foo"}
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState, serdes.State)
+	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState, serdes.State)
+	// Report 2 allocated IP addresses for the subscriber
+	mobilitydState1 := state.ArbitraryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiArg==",
+		},
+	}
+	mobilitydState2 := state.ArbitraryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiAhg==",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1, serdes.State)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2, serdes.State)
+	directoryState := directorydTypes.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
+	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState, serdes.State)
+
+	subState0 := state.ArbitraryJSON{
+		"subscriber_state": state.ArbitraryJSON{
+			"imsi":     "IMSI1234567890",
+			"sessions": []string{"p0", "p1"},
+		},
+		"session_state": state.ArbitraryJSON{
+			"apn":  "apn0",
+			"ipv4": "168.212.226.204",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI1234567890", &subState0, serdes.State)
+	subState1 := state.ArbitraryJSON{
+		"subscriber_state": state.ArbitraryJSON{
+			"imsi":     "IMSI0987654321",
+			"sessions": []string{"p2"},
+		},
+		"session_state": state.ArbitraryJSON{
+			"apn":  "apn1",
+			"ipv4": "168.212.226.203",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI0987654321", &subState1, serdes.State)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        listSubscribers,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n0"},
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*subscriberModels.SubscriberState{
+			"IMSI1234567890": {
+				SubscriberState: subState0,
+				Mme:             mmeState,
+				S1ap:            s1apState,
+				Spgw:            spgwState,
+				Mobility: []*subscriberModels.SubscriberIPAllocation{
+					{
+						Apn: "magma.apn",
+						IP:  "192.168.128.134",
+					},
+					{
+						Apn: "oai.ipv4",
+						IP:  "192.168.128.174",
+					},
+				},
+				Directory: &subscriberModels.SubscriberDirectoryRecord{
+					LocationHistory: []string{"foo", "bar"},
+				},
+			},
+			"IMSI0987654321": {
+				SubscriberState: subState1,
+			},
+		}),
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
+func TestGetSubscriberState(t *testing.T) {
+	configuratorTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	err := configurator.CreateNetwork(configurator.Network{ID: "n0"}, serdes.Network)
+	assert.NoError(t, err)
+
+	e := echo.New()
+	testURLRoot := "/magma/v1/lte/:network_id/subscriber_state/:subscriber_id"
+	getSubscriber := tests.GetHandlerByPathAndMethod(t, handlers.GetHandlers(), testURLRoot, obsidian.GET).HandlerFunc
+
+	// Initially no state
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n0", "IMSI1234567890"},
+		ExpectedStatus: 200,
+		ExpectedResult: &subscriberModels.SubscriberState{},
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create gateway and report states
+	_, err = configurator.CreateEntity(
+		"n0",
+		configurator.NetworkEntity{Type: orc8r.MagmadGatewayType, Key: "g0", Config: &models.MagmadGatewayConfigs{}, PhysicalID: "hw0"},
+		serdes.Entity,
+	)
+	assert.NoError(t, err)
+	frozenClock := int64(1000000)
+	clock.SetAndFreezeClock(t, time.Unix(frozenClock, 0))
+	defer clock.UnfreezeClock(t)
+	icmpStatus := &subscriberModels.IcmpStatus{LatencyMs: f32Ptr(12.34)}
+	ctx := test_utils.GetContextWithCertificate(t, "hw0")
+	test_utils.ReportState(t, ctx, lte.ICMPStateType, "IMSI1234567890", icmpStatus, serdes.State)
+	mmeState := state.ArbitraryJSON{"mme": "foo"}
+	test_utils.ReportState(t, ctx, lte.MMEStateType, "IMSI1234567890", &mmeState, serdes.State)
+	spgwState := state.ArbitraryJSON{"spgw": "foo"}
+	test_utils.ReportState(t, ctx, lte.SPGWStateType, "IMSI1234567890", &spgwState, serdes.State)
+	s1apState := state.ArbitraryJSON{"s1ap": "foo"}
+	test_utils.ReportState(t, ctx, lte.S1APStateType, "IMSI1234567890", &s1apState, serdes.State)
+	// Report 2 allocated IP addresses for the subscriber
+	mobilitydState1 := state.ArbitraryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiArg==",
+		},
+	}
+	mobilitydState2 := state.ArbitraryJSON{
+		"ip": map[string]interface{}{
+			"address": "wKiAhg==",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.oai.ipv4", &mobilitydState1, serdes.State)
+	test_utils.ReportState(t, ctx, lte.MobilitydStateType, "IMSI1234567890.magma.apn", &mobilitydState2, serdes.State)
+	directoryState := directorydTypes.DirectoryRecord{LocationHistory: []string{"foo", "bar"}}
+	test_utils.ReportState(t, ctx, orc8r.DirectoryRecordType, "IMSI1234567890", &directoryState, serdes.State)
+	subState := state.ArbitraryJSON{
+		"subscriber_state": state.ArbitraryJSON{
+			"imsi":     "IMSI1234567890",
+			"sessions": []string{"p0", "p1"},
+		},
+		"session_state": state.ArbitraryJSON{
+			"apn":  "apn0",
+			"ipv4": "168.212.226.204",
+		},
+	}
+	test_utils.ReportState(t, ctx, lte.SubscriberStateType, "IMSI1234567890", &subState, serdes.State)
+
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            testURLRoot,
+		Handler:        getSubscriber,
+		ParamNames:     []string{"network_id", "subscriber_id"},
+		ParamValues:    []string{"n0", "IMSI1234567890"},
+		ExpectedStatus: 200,
+		ExpectedResult: &subscriberModels.SubscriberState{
+			SubscriberState: subState,
+			Mme:             mmeState,
+			S1ap:            s1apState,
+			Spgw:            spgwState,
+			Mobility: []*subscriberModels.SubscriberIPAllocation{
+				{
+					Apn: "magma.apn",
+					IP:  "192.168.128.134",
+				},
+				{
+					Apn: "oai.ipv4",
+					IP:  "192.168.128.174",
+				},
+			},
+			Directory: &subscriberModels.SubscriberDirectoryRecord{
+				LocationHistory: []string{"foo", "bar"},
+			},
+		},
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 func TestGetSubscriberByMSISDN(t *testing.T) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{}))
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{}))

@@ -1,6 +1,10 @@
 {
   "docs": {
-    "Basics": ["basics/introduction", "basics/prerequisites", "basics/quick_start_guide"],
+    "Basics": [
+      "basics/introduction",
+      "basics/prerequisites",
+      "basics/quick_start_guide"
+    ],
     "Orchestrator": [
       {
         "type": "subcategory",
@@ -20,6 +24,11 @@
           "orc8r/upgrade_1_2",
           "orc8r/upgrade_1_1"
         ]
+      },
+      {
+        "type": "subcategory",
+        "label": "Development",
+        "ids": ["orc8r/development/minikube_deployment"]
       }
     ],
     "NMS User Guide": [
@@ -50,17 +59,10 @@
       {
         "type": "subcategory",
         "label": "AGW Development",
-        "ids": [
-          "lte/tr069",
-          "lte/s1ap_tests",
-          "lte/dev_notes"
-        ]
+        "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes"]
       }
     ],
-    "Feature Guides": [
-      "howtos/ue_metering",
-      "howtos/config_agw_bridged"
-    ],
+    "Feature Guides": ["howtos/ue_metering", "howtos/config_agw_bridged"],
     "Federation Gateway": [
       {
         "type": "subcategory",
@@ -79,7 +81,8 @@
       "proposals/p002_scaled_prometheus_pipeline",
       "proposals/p003_qos_enforcement",
       "proposals/p004_fua-restrict-feature",
-      "proposals/p005_call_tracing"
+      "proposals/p005_call_tracing",
+      "proposals/p007_header_enrichment"
     ]
   }
 }

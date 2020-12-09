@@ -15,6 +15,8 @@ PartOf=magma@mme.service
 Before=magma@mme.service
 After=magma@subscriberdb.service
 Wants=magma@subscriberdb.service
+After=openvswitch-switch.service
+Wants=openvswitch-switch.service
 
 [Service]
 Type=simple

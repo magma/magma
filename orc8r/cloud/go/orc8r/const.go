@@ -34,11 +34,12 @@ const (
 	// In prod, this will be the relevant pod's IP.
 	ServiceHostnameEnvVar = "SERVICE_HOSTNAME"
 
-	MconfigBuilderLabel   = "orc8r.io/mconfig_builder"
-	MetricsExporterLabel  = "orc8r.io/metrics_exporter"
-	ObsidianHandlersLabel = "orc8r.io/obsidian_handlers"
-	StateIndexerLabel     = "orc8r.io/state_indexer"
-	StreamProviderLabel   = "orc8r.io/stream_provider"
+	AnalyticsCollectorLabel = "orc8r.io/analytics_collector"
+	MconfigBuilderLabel     = "orc8r.io/mconfig_builder"
+	MetricsExporterLabel    = "orc8r.io/metrics_exporter"
+	ObsidianHandlersLabel   = "orc8r.io/obsidian_handlers"
+	StateIndexerLabel       = "orc8r.io/state_indexer"
+	StreamProviderLabel     = "orc8r.io/stream_provider"
 
 	ObsidianHandlersPathPrefixesAnnotation = "orc8r.io/obsidian_handlers_path_prefixes"
 	StateIndexerVersionAnnotation          = "orc8r.io/state_indexer_version"

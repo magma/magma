@@ -109,7 +109,7 @@
       },
       {
         "type": "vagrant-cloud",
-        "box_tag": "fbcmagma/magma_test",
+        "box_tag": "magmacore/magma_test",
         "access_token": "{{user `cloud_token`}}",
         "version": "{{user `version`}}"
       }

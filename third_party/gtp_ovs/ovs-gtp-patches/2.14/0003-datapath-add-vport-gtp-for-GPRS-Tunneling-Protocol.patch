@@ -1,7 +1,7 @@
-From 25741ac307902cee2c8851f38c5e26a79879430d Mon Sep 17 00:00:00 2001
+From 452d289c04c9dac1904a9fe8a10d5242fd09c655 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
-Date: Mon, 24 Feb 2020 04:45:17 +0000
-Subject: [PATCH 03/10] datapath: add vport-gtp for GPRS Tunneling Protocol
+Date: Sat, 28 Nov 2020 00:55:30 -0800
+Subject: [PATCH 03/11] datapath: add vport-gtp for GPRS Tunneling Protocol
 
 Add vport-gtp which uses gtp_create_flow_based_dev exported by the Linux GTP
 module to create a flow based net_device
@@ -34,7 +34,7 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  create mode 100644 datapath/vport-gtp.c
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index 84f344da0..e712cdfd2 100644
+index 857067a88..0a6b66a04 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
 @@ -637,6 +637,8 @@ AC_DEFUN([OVS_CHECK_LINUX_COMPAT], [
@@ -60,8 +60,8 @@ index 84f344da0..e712cdfd2 100644
    OVS_GREP_IFELSE([$KSRC/include/net/sock.h], [sk_no_check_tx])
 +  OVS_GREP_IFELSE([$KSRC/include/net/sock.h], [refcount_read], [OVS_DEFINE([HAVE_SOCK_REFCNT])])
    OVS_GREP_IFELSE([$KSRC/include/linux/udp.h], [no_check6_tx])
-   OVS_GREP_IFELSE([$KSRC/include/linux/utsrelease.h], [el6],
-                   [OVS_DEFINE([HAVE_RHEL6_PER_CPU])])
+   OVS_FIND_PARAM_IFELSE([$KSRC/include/net/protocol.h],
+                         [udp_add_offload], [net],
 diff --git a/datapath/Modules.mk b/datapath/Modules.mk
 index 3c4ae366c..9d930f7a1 100644
 --- a/datapath/Modules.mk
@@ -2009,7 +2009,7 @@ index 6e4063359..2db7e1afb 100644
 +#endif /* USE_UPSTREAM_TUNNEL */
  #endif
 diff --git a/datapath/linux/compat/nf_conntrack_reasm.c b/datapath/linux/compat/nf_conntrack_reasm.c
-index ced9fba98..5d1beb4fd 100644
+index 77b4b2548..debea478c 100644
 --- a/datapath/linux/compat/nf_conntrack_reasm.c
 +++ b/datapath/linux/compat/nf_conntrack_reasm.c
 @@ -36,6 +36,7 @@
@@ -2326,10 +2326,10 @@ index 1232964bb..141a7afb4 100644
  
  ADD_NAMESPACES(at_ns0)
 diff --git a/tests/tunnel.at b/tests/tunnel.at
-index f17d91d77..e5d899ea1 100644
+index e104b5c8c..3dfd9675d 100644
 --- a/tests/tunnel.at
 +++ b/tests/tunnel.at
-@@ -1224,3 +1224,31 @@ AT_CHECK([tail -1 stdout], [0],
+@@ -1253,3 +1253,31 @@ AT_CHECK([tail -1 stdout], [0],
  ])
  OVS_VSWITCHD_STOP
  AT_CLEANUP

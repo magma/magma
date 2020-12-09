@@ -84,6 +84,91 @@ describe('Admin component', () => {
 });
 
 describe('NMS', () => {
+  test('verifying LTE network addition from network selector', async () => {
+    const page = await browser.newPage();
+    try {
+      // test_feg_lte_network is mocked out
+      await page.goto('https://magma-test.localhost/');
+      await page.waitForXPath(`//span[text()='Dashboard']`, {
+        timeout: 15000,
+      });
+
+      const networkSelector = 'div[title="test"]';
+      page.waitForSelector(networkSelector);
+      await page.click(networkSelector);
+
+      await page.waitForXPath(`//span[text()='Create Network']`);
+      const buttonSelector = await page.$x(`//span[text()='Create Network']`);
+      buttonSelector[0].click();
+
+      const networkIDSelector = '[data-testid="networkID"]';
+      const networkNameSelector = '[data-testid="networkName"]';
+      const networkDescriptionSelector = '[data-testid="networkDescription"]';
+
+      // add network information attributes
+      await page.waitForSelector(networkIDSelector);
+      await page.click(networkIDSelector);
+      await page.type(networkIDSelector, 'test_network');
+
+      await page.waitForSelector(networkNameSelector);
+      await page.click(networkNameSelector);
+      await page.type(networkNameSelector, 'test_network');
+
+      await page.waitForSelector(networkDescriptionSelector);
+      await page.click(networkDescriptionSelector);
+      await page.type(networkDescriptionSelector, 'test_network');
+
+      // TODO need to figure out why we need to add this delay
+      await page.waitFor(500);
+
+      const saveButtonSelector = '[data-testid="saveButton"]';
+      await page.waitForSelector(saveButtonSelector);
+      await page.click(saveButtonSelector);
+
+      await page.waitForXPath(
+        `//span[text()='Network test_network successfully created']`,
+      );
+
+      // use epc defaults
+      const tacSelector = '[data-testid="tac"]';
+      await page.waitForSelector(tacSelector);
+      await page.click(tacSelector);
+      await page.evaluate(tacSelector => {
+        document.querySelector(tacSelector).value = '';
+      }, tacSelector);
+      await page.type(tacSelector, '2');
+
+      const epcSaveButtonSelector = '[data-testid="epcSaveButton"]';
+      await page.waitForSelector(epcSaveButtonSelector);
+      await (await page.$(epcSaveButtonSelector)).press('Enter');
+      await page.waitForXPath(
+        `//span[text()='EPC configs saved successfully']`,
+      );
+
+      const earfcndlSelector = '[data-testid="earfcndl"]';
+      await page.waitForSelector(earfcndlSelector);
+      await page.click(earfcndlSelector);
+      await page.evaluate(earfcndlSelector => {
+        document.querySelector(earfcndlSelector).value = '';
+      }, earfcndlSelector);
+
+      await page.type(earfcndlSelector, '44592');
+      const ranSaveButtonSelector = '[data-testid="ranSaveButton"]';
+      await page.waitForSelector(ranSaveButtonSelector);
+      await (await page.$(ranSaveButtonSelector)).press('Enter');
+
+      await page.waitForXPath(
+        `//span[text()='RAN configs saved successfully']`,
+      );
+    } catch (err) {
+      await page.screenshot({
+        path: ARTIFACTS_DIR + 'failed_networkselector_add.png',
+      });
+      await page.close();
+      throw err;
+    }
+  }, 60000);
+
   test('verifying feg_lte dashboard', async () => {
     const page = await browser.newPage();
     try {
@@ -115,7 +200,7 @@ describe('NMS', () => {
 
       await page.type(fegPlaceholder, 'test_feg_network2');
 
-      // TODO need to figure out why we need to add this delay
+      // @karthiksubraveti - TODO need to figure out why we need to add this delay
       await page.waitFor(500);
       const [saveButton] = await page.$x(`//span[text()='Save']`);
       await saveButton.click();

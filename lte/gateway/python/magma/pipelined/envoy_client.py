@@ -17,36 +17,71 @@ import logging
 
 from magma.common.service_registry import ServiceRegistry
 from feg.protos.envoy_controller_pb2_grpc import EnvoyControllerStub
-from feg.protos.envoy_controller_pb2 import AddUEHeaderEnrichmentRequest
+from feg.protos.envoy_controller_pb2 import AddUEHeaderEnrichmentRequest, \
+    DeactivateUEHeaderEnrichmentRequest, Header, AddUEHeaderEnrichmentResult, \
+    DeactivateUEHeaderEnrichmentResult
+from lte.protos.mobilityd_pb2 import IPAddress
 
-SERVICE_NAME = "envoyd"
+SERVICE_NAME = "envoy_controller"
 IMSI_HDR = 'imsi'
 MSISDN_HDR = 'msisdn'
+TIMEOUT_SEC = 30
 
 
-def set_he_urls_for_ue(ip: str, urls: List[str], imsi: str, msisdn: str):
+def activate_he_urls_for_ue(ip: IPAddress, rule_id: str, urls: List[str],
+                            imsi: str, msisdn: str) -> bool:
     """
-    Make RPC call to 'SetGatewayInfo' method of local mobilityD service
+    Make RPC call to 'Envoy Controller' to add target URLs to envoy datapath.
     """
-
     try:
         chan = ServiceRegistry.get_rpc_channel(SERVICE_NAME,
                                                ServiceRegistry.LOCAL)
     except grpc.RpcError:
         logging.error('Cant get RPC channel to %s', SERVICE_NAME)
-        return
+        return False
 
     client = EnvoyControllerStub(chan)
     try:
-        h1 = {IMSI_HDR: imsi}
-        h2 = {MSISDN_HDR: msisdn}
-
+        headers = [Header(name=IMSI_HDR, value=imsi)]
+        if msisdn:
+            headers.append(Header(name=MSISDN_HDR, value=msisdn))
         he_info = AddUEHeaderEnrichmentRequest(ue_ip=ip,
+                                               rule_id=rule_id,
                                                websites=urls,
-                                               headers=[h1, h2])
-        client.AddUEHeaderEnrichment(he_info)
+                                               headers=headers)
+        ret = client.AddUEHeaderEnrichment(he_info, timeout=TIMEOUT_SEC)
+        return ret.result == AddUEHeaderEnrichmentResult.SUCCESS
     except grpc.RpcError as err:
         logging.error(
-            "SetGatewayInfo error[%s] %s",
+            "Activate HE proxy error[%s] %s",
             err.code(),
             err.details())
+
+    return False
+
+
+def deactivate_he_urls_for_ue(ip: IPAddress, rule_id: str) -> bool:
+    """
+    Make RPC call to 'Envoy Controller' to remove the proxy rule for the UE.
+    """
+    try:
+        chan = ServiceRegistry.get_rpc_channel(SERVICE_NAME,
+                                               ServiceRegistry.LOCAL)
+    except grpc.RpcError:
+        logging.error('Cant get RPC channel to %s', SERVICE_NAME)
+        return False
+
+    client = EnvoyControllerStub(chan)
+
+    try:
+        he_info = DeactivateUEHeaderEnrichmentRequest(ue_ip=ip, rule_id=rule_id)
+        ret = client.DeactivateUEHeaderEnrichment(he_info, timeout=TIMEOUT_SEC)
+        return ret.result == DeactivateUEHeaderEnrichmentResult.SUCCESS
+    except grpc.RpcError as err:
+        logging.error(
+            "Deactivate HE proxy error[%s] %s",
+            err.code(),
+            err.details())
+
+    return False
+

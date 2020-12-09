@@ -76,6 +76,10 @@ class TestAttachICSFailure(unittest.TestCase):
             response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         )
 
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail
+        )
+
         # Trigger Security Mode Complete
         sec_mode_complete = s1ap_types.ueSecModeComplete_t()
         sec_mode_complete.ue_Id = req.ue_id
@@ -90,14 +94,6 @@ class TestAttachICSFailure(unittest.TestCase):
 
         print("*** Received Initial Context Setup Failure ***")
 
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value
-        )
-
-        self._s1ap_wrapper._s1_util.issue_cmd(
-            s1ap_types.tfwCmd.UE_SET_INIT_CTXT_SETUP_FAIL, init_ctxt_setup_fail
-        )
         # Send SCTP ABORT to MME
         sctp_abort = s1ap_types.FwSctpAbortReq_t()
         sctp_abort.cause = 0

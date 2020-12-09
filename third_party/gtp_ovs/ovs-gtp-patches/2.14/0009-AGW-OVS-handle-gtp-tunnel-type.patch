@@ -1,7 +1,7 @@
-From 52fc1ed034847c5d5f725f45fe03a67571260a8e Mon Sep 17 00:00:00 2001
+From 9b26c8b68f5ceaddf9d95d34ecafdd408992606a Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Wed, 23 Sep 2020 04:01:59 +0000
-Subject: [PATCH 09/10] AGW: OVS: handle gtp tunnel type
+Subject: [PATCH 09/11] AGW: OVS: handle gtp tunnel type
 
 magma GTP implementation defines gtp as tunnel type for OVS tunnel.
 But upstream ovs it is defined as gtpu. This patch maps older name to
