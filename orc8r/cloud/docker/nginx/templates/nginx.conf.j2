@@ -133,7 +133,7 @@ http {
       }
       grpc_pass grpc://orc8r-$srv:9180;
       {%- else %}
-      grpc_pass grpc://$srv:$open_srvport;
+      grpc_pass grpc://{{ backend }}:$open_srvport;
       {%- endif %}
     }
   }
