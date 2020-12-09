@@ -393,7 +393,7 @@ class IPAddressManager:
                 logging.error(
                     "Releasing unknown <SID, IP> pair: <%s, %s> "
                     "sid_ips_map[%s]: %s",
-                    sid, ip, sid, self.sid_ips_map.get(sid, ""))
+                    sid, ip, sid, self._store.sid_ips_map.get(sid))
                 raise MappingNotFoundError(
                     "(%s, %s) pair is not found", sid, str(ip))
             if not self.ip_state_map.test_ip_state(ip, IPState.ALLOCATED):
@@ -476,4 +476,3 @@ class IPNotInUseError(Exception):
 class MappingNotFoundError(Exception):
     """ Exception thrown when releasing a non-exising SID-IP mapping """
     pass
-
