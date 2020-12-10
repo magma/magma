@@ -165,8 +165,6 @@ int s6a_init(const mme_config_t* mme_config_p) {
   }
 
   return RETURNok;
-  // if (s6a_viface_open(&mme_config_p->s6a_config)) return RETURNok;
-  // else return RETURNerror;
 }
 
 //------------------------------------------------------------------------------
