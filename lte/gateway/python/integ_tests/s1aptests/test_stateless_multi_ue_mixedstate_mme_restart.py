@@ -240,6 +240,31 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
         # Verify paging flow rules for idle sessions
         self._s1ap_wrapper.s1_util.verify_paging_flow_rules(idle_session_ips)
 
+        # try to bring idle mode users into active state
+        for i in range(num_ues_idle):
+            print(
+                "************************* Sending Service Request ",
+                "for UE id ", ue_ids[i])
+            # Send service request to reconnect UE
+            ser_req = s1ap_types.ueserviceReq_t()
+            ser_req.ue_Id = ue_ids[i]
+            ser_req.ueMtmsi = s1ap_types.ueMtmsi_t()
+            ser_req.ueMtmsi.pres = False
+            ser_req.rrcCause = s1ap_types.Rrc_Cause.TFW_MO_DATA.value
+            self._s1ap_wrapper.s1_util.issue_cmd(
+                s1ap_types.tfwCmd.UE_SERVICE_REQUEST, ser_req
+            )
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+            )
+            self.dl_flow_rules[idle_session_ips[i]] = []
+
+        # Verify default bearer rules
+        self._s1ap_wrapper.s1_util.verify_flow_rules(
+            tot_num_ues, self.dl_flow_rules
+        )
+
         # detach everyone
         print("*** Starting Detach Procedure for all UEs ***")
         for ue in ue_ids:
