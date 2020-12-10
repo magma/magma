@@ -220,6 +220,7 @@ describe('<AddSubscriberButton />', () => {
     const subscriberCtx = {
       state: subscribers,
       gwSubscriberMap: {},
+      sessionState: {},
       setState: async (key, value?) =>
         setSubscriberState({
           networkId: 'test',
@@ -319,6 +320,7 @@ describe('<AddSubscriberButton />', () => {
                         IMSI00000000001002: subscribers['IMSI00000000001002'],
                       },
                       gwSubscriberMap: {},
+                      sessionState: {},
                       setState: (key, value?) =>
                         setSubscriberState({
                           networkId: 'test',

@@ -13,10 +13,12 @@ elif [[ $1 == "disable" ]]; then
   echo "Disabling stateless pipelined config"
   # change clean_restart setting in pipelined.yml
   sed -e '/clean_restart/ s/false/true/' -i /etc/magma/pipelined.yml
+  sed -e '/redis_enabled/ s/true/false/' -i /etc/magma/pipelined.yml
 elif [[ $1 == "enable" ]]; then
   echo "Enabling stateless pipelined config"
   # change clean_restart setting in pipelined.yml
   sed -e '/clean_restart/ s/true/false/' -i /etc/magma/pipelined.yml
+  sed -e '/redis_enabled/ s/false/true/' -i /etc/magma/pipelined.yml
 else
   echo "Invalid argument. Use one of the following"
   echo "check: Run a check whether Pipelined is stateless or not"

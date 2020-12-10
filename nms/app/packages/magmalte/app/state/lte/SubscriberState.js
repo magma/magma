@@ -16,7 +16,10 @@
 import MagmaV1API from '@fbcnms/magma-api/client/WebClient';
 
 import {getLabelUnit} from '../../views/subscriber/SubscriberUtils';
-import type {Metrics} from '../../components/context/SubscriberContext';
+import type {
+  ActiveApnSessions,
+  Metrics,
+} from '../../components/context/SubscriberContext';
 import type {
   mutable_subscriber,
   network_id,
@@ -26,6 +29,7 @@ import type {
 type InitSubscriberStateProps = {
   networkId: network_id,
   setSubscriberMap: ({[string]: subscriber}) => void,
+  setSessionState: ({[string]: ActiveApnSessions}) => void,
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
@@ -37,6 +41,7 @@ export default async function InitSubscriberState(
     networkId,
     setSubscriberMap,
     setSubscriberMetrics,
+    setSessionState,
     enqueueSnackbar,
   } = props;
   try {
@@ -48,6 +53,25 @@ export default async function InitSubscriberState(
     }
   } catch (e) {
     enqueueSnackbar?.('failed fetching subscriber information', {
+      variant: 'error',
+    });
+    return;
+  }
+
+  try {
+    const state = await MagmaV1API.getLteByNetworkIdSubscriberState({
+      networkId,
+    });
+    if (state) {
+      const sessionState = {};
+      Object.keys(state).map(
+        subscriber =>
+          (sessionState[subscriber] = state[subscriber].subscriber_state || {}),
+      );
+      setSessionState(sessionState);
+    }
+  } catch (e) {
+    enqueueSnackbar?.('failed fetching subscriber state', {
       variant: 'error',
     });
     return;
