@@ -1029,7 +1029,6 @@ workflows:
             - xwfm-test
             - cwag-deploy
 
-
   cwf_operator:
     jobs:
       - cwf-operator-precommit
@@ -1074,10 +1073,10 @@ workflows:
             - nms-yarn-test
             - nms-e2e-test
 
-#  docusaurus:
-#   jobs:
-#    - docusaurus_build_and_deploy:
-#        <<: *only_master
+  docusaurus:
+   jobs:
+    - docusaurus_build_and_deploy:
+        <<: *only_master
 
   fossa:
     jobs:
