@@ -238,12 +238,17 @@ class DHCPClient:
                 else:
                     ip_subnet = IPv4Network(ip_offered + "/" + "32", strict=False)
 
+                dhcp_server_ip = None
+                if IP in packet:
+                    dhcp_server_ip = packet[IP].src
+
                 dhcp_router_opt = self._get_option(packet, "router")
                 if dhcp_router_opt is not None:
                     router_ip_addr = ip_address(dhcp_router_opt)
-                    self.dhcp_gw_info.update_ip(router_ip_addr, vlan)
                 else:
-                    router_ip_addr = None
+                    # use DHCP as upstream router in case of missing Open 3.
+                    router_ip_addr = dhcp_server_ip
+                self.dhcp_gw_info.update_ip(router_ip_addr, vlan)
 
                 lease_expiration_time = self._get_option(packet, "lease_time")
                 dhcp_state = DHCPDescriptor(mac=mac_addr,
@@ -252,7 +257,7 @@ class DHCPClient:
                                              vlan=vlan,
                                              state_requested=state_requested,
                                              subnet=str(ip_subnet),
-                                             server_ip=packet[IP].src,
+                                             server_ip=dhcp_server_ip,
                                              router_ip=router_ip_addr,
                                              lease_expiration_time=lease_expiration_time,
                                              xid=packet[BOOTP].xid)
