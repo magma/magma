@@ -64,7 +64,8 @@ func (rtr *Router) GetFegServiceConnection(
 	}
 	rtr.RLock() // take read connection cache lock
 	var found bool
-	conn, found = rtr.connCache[addr]
+	serviceAddrKey := connKey{service: service, addr: addr}
+	conn, found = rtr.connCache[serviceAddrKey]
 	rtr.RUnlock() // release read connection cache lock
 
 	if !found || conn == nil || conn.GetState() != connectivity.Ready {
@@ -77,35 +78,27 @@ func (rtr *Router) GetFegServiceConnection(
 		// Lock & update the connections cache
 		rtr.Lock() // take write connection cache lock
 		if len(rtr.connCache) == 0 {
-			rtr.connCache = map[string]*grpc.ClientConn{addr: conn}
+			rtr.connCache = map[connKey]*grpc.ClientConn{serviceAddrKey: conn}
 		} else {
-			connToCleanUp, ok := rtr.connCache[addr]
+			connToCleanUp, ok := rtr.connCache[serviceAddrKey]
 			if ok && connToCleanUp != nil {
 				if connToCleanUp.GetState() == connectivity.Ready {
 					// use the old connection & close the just created connection
 					connToCleanUp, conn = conn, connToCleanUp
 				} else {
 					// use the just created connection & attempt close the old connection (ignore close failures)
-					rtr.connCache[addr] = conn
+					rtr.connCache[serviceAddrKey] = conn
 				}
 				go connToCleanUp.Close()
 			} else {
 				// no cached connection for the address, cache the just created connection for future use
-				rtr.connCache[addr] = conn
+				rtr.connCache[serviceAddrKey] = conn
 			}
 		}
 		rtr.Unlock() // release write connection cache lock
 	}
-	// Copy metadata from incoming context
-	md, ok := metadata.FromIncomingContext(inCtx)
-	if ok && md.Len() > 0 {
-		md = md.Copy()
-		md.Set(gateway_registry.GatewayIdHeaderKey, fegHwId) // add or overwrite if it's already set
-	} else {
-		md = metadata.New(map[string]string{gateway_registry.GatewayIdHeaderKey: fegHwId})
-	}
-	// Use inCtx to propagate caller's timeout if any
-	ctx, cancel = context.WithTimeout(inCtx, registry.GrpcMaxTimeoutSec*time.Second)
+	md := metadata.New(map[string]string{gateway_registry.GatewayIdHeaderKey: fegHwId})
+	ctx, cancel = context.WithTimeout(context.Background(), registry.GrpcMaxTimeoutSec*time.Second)
 	return conn, metadata.NewOutgoingContext(ctx, md), cancel, nil
 }
 
