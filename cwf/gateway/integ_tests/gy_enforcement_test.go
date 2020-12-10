@@ -348,7 +348,7 @@ func TestGyCreditExhaustionWithoutCRRU(t *testing.T) {
 
 // - Set an expectation for a CCR-I to be sent up to OCS, to which it will
 //   NOT respond with any answer.
-// - Asset that authentication fails and that no rules were insalled
+// - Asset that authentication fails and that no rules were installed
 func TestGyLinksFailureOCStoFEG(t *testing.T) {
 	fmt.Println("\nRunning TestGyLinksFailureOCStoFEG...")
 
@@ -392,8 +392,9 @@ func TestGyLinksFailureOCStoFEG(t *testing.T) {
 // - Assert that CCR-U was is generated
 // - Generate 2M traffic and assert that UE flows are NOT deleted and data was passed.
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
-// NOTE : the test is only verifying that session was not terminated. Improvment is needed to validate
-//   that ovs rule is well added and traffic is being redirected.
+// NOTE : the test is only verifying that session was not terminated.
+//        Improvement is needed to validate that ovs rule is well added and
+//        traffic is being redirected.
 func TestGyCreditExhaustionRedirect(t *testing.T) {
 	fmt.Println("\nRunning TestGyCreditExhaustionRedirect...")
 
@@ -453,7 +454,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data was passed
+	// Check that enforcement stats flow was not removed and data was passed
 	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, 5*MegaBytes+Buffer)
 
 	// Wait for service deactivation
@@ -481,7 +482,7 @@ func TestGyCreditExhaustionRedirect(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data was passed
+	// Check that enforcement stats flow was not removed and data was passed
 	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, 7*MegaBytes+Buffer)
 
 	// When we initiate a UE disconnect, we expect a terminate request to go up
@@ -624,7 +625,7 @@ func TestGyAbortSessionRequest(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow is installed and traffic is less than the quota
+	// Check that enforcement stats flow is installed and traffic is less than the quota
 	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, 5*MegaBytes+Buffer)
 
 	asa, err := sendChargingAbortSession(
@@ -643,13 +644,7 @@ func TestGyAbortSessionRequest(t *testing.T) {
 	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
 
 	// check if all session related info is cleaned up
-	checkSessionAborted := func() bool {
-		recordsBySubID, err := tr.GetPolicyUsage()
-		assert.NoError(t, err)
-		return recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"] == nil
-	}
-	assert.Eventually(t, checkSessionAborted, 2*time.Minute, 5*time.Second,
-		"request not terminated as expected")
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"),  2*time.Minute, 5*time.Second)
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
@@ -741,7 +736,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and flow data hit restrict rule
+	// Check that enforcement stats flow was not removed and flow data hit restrict rule
 	tr.AssertPolicyUsage(imsi, "restrict-pass-user", uint64(math.Round(1.8*MegaBytes)), 3*MegaBytes+Buffer)
 
 	// Send ReAuth Request to update quota
@@ -769,7 +764,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and data passed
+	// Check that enforcement stats flow was not removed and data passed
 	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", uint64(math.Round(1.8*MegaBytes)), 3*MegaBytes+Buffer)
 
 	// trigger disconnection
@@ -788,7 +783,7 @@ func TestGyCreditExhaustionRestrict(t *testing.T) {
 // - Generate 2M traffic and assert that UE flows are reinstalled for RG
 //   and traffic goes through them.
 func TestGyCreditTransientErrorRestrict(t *testing.T) {
-	fmt.Println("\nRunning TestGyCreditExhaustionRestrict...")
+	fmt.Println("\nRunning TestGyCreditTransientErrorRestrict...")
 
 	tr, ruleManager, ue := ocsTestSetupSingleRule(t)
 	imsi := ue.GetImsi()
@@ -849,12 +844,7 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 	tr.AuthenticateAndAssertSuccess(imsi)
 
 	// by this point we should be already redirected since credit was suspended
-
-	// Update directoryd record to include client IP
-	err := updateDirectorydRecord("IMSI"+imsi, "ipv4_addr", TrafficCltIP)
-	assert.NoError(t, err)
-
-	tr.WaitForEnforcementStatsToSync()
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "restrict-pass-user"), time.Minute, 2*time.Second)
 
 	// Wait for service deactivation
 	time.Sleep(3 * time.Second)
@@ -865,15 +855,14 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 		Volume:  &wrappers.StringValue{Value: "2M"},
 		Timeout: 20,
 	}
-	_, err = tr.GenULTraffic(req)
+	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow was not removed and flow data hit restrict rule
+	// Check that enforcement stats flow was not removed and flow data hit restrict rule
 	tr.AssertPolicyUsage(imsi, "restrict-pass-user", uint64(math.Round(1.5*MegaBytes)), 3*MegaBytes+Buffer)
 	// check static rule is gone
-	policyUsage, err := tr.GetPolicyUsage()
-	assert.Nil(t, policyUsage["IMSI"+imsi]["static-pass-all-ocs1"], fmt.Sprintf("Policy usage record2 for imsi: %v was NOT removed", imsi))
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs1"), time.Minute, 2*time.Second)
 
 	// Send ReAuth Request to update quota
 	raa, err := sendChargingReAuthRequestEntireSession(imsi)
@@ -898,8 +887,8 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 	assert.NoError(t, err)
 	tr.WaitForEnforcementStatsToSync()
 
-	// TODO: uncoment once we fix passing the ip to pipelined for cwf
-	// Check that UE mac flow was not removed and data passed
+	// TODO: uncomment once we fix passing the ip to pipelined for cwf
+	// Check that enforcement stats flow was not removed and data passed
 	//tr.AssertPolicyUsage(imsi, "static-pass-all-ocs1", uint64(math.Round(1.5*MegaBytes)), 3*MegaBytes+Buffer)
 	//assert.Nil(t, policyUsage["IMSI"+imsi]["restrict-pass-user"], fmt.Sprintf("Policy usage restrict-pass-user for imsi: %v was NOT removed", imsi))
 
@@ -918,7 +907,7 @@ func TestGyCreditTransientErrorRestrict(t *testing.T) {
 // - Assert that UE flows for one rule are delete.
 // - Assert that UE flows for the other rule are still valid
 func TestGyWithTransientErrorCode(t *testing.T) {
-	fmt.Println("\nRunning TestGyWithErrorCode...")
+	fmt.Println("\nRunning TestGyWithTransientErrorCode...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
 	imsi := ue.GetImsi()
@@ -969,20 +958,9 @@ func TestGyWithTransientErrorCode(t *testing.T) {
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
 
-	// Wait for flow deletion due to quota exhaustion
-	tr.WaitForEnforcementStatsToSync()
-
-	// Check that one of the flows is removed but session is not terminated
-	preSuspension_recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	preSuspensionRecord1 := preSuspension_recordsBySubID["IMSI"+imsi]["static-pass-all-ocs1"]
-	assert.NotNil(t, preSuspensionRecord1, fmt.Sprintf("Policy usage record1 for imsi: %v was removed", imsi))
-
-	// TODO: uncoment once we fix passing the ip to pipelined for cwf
-	//preSuspensionRecord2 := preSuspension_recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"]
-	//assert.Nil(t, preSuspensionRecord2, fmt.Sprintf("Policy usage record2 for imsi: %v was NOT removed", imsi))
+	fmt.Println("RG 1 should now be suspended")
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()
@@ -1000,8 +978,8 @@ func TestGyWithTransientErrorCode(t *testing.T) {
 // - Send an CCA-U with a 5xxx code which should trigger termination
 // - Assert that UE flows are deleted.
 // - Expect a CCR-T, trigger a UE disconnect, and assert the CCR-T is received.
-func TestGyWithPermanetErrorCode(t *testing.T) {
-	fmt.Println("\nRunning TestGyWithErrorCode...")
+func TestGyWithPermanentErrorCode(t *testing.T) {
+	fmt.Println("\nRunning TestGyWithPermanentErrorCode...")
 
 	tr, ruleManager, ue := ocsTestSetup(t)
 	imsi := ue.GetImsi()
@@ -1057,16 +1035,9 @@ func TestGyWithPermanetErrorCode(t *testing.T) {
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
 
-	// Wait for flow deletion due to quota exhaustion
-	tr.WaitForEnforcementStatsToSync()
-
-	// Check that UE mac flow is removed
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["static-pass-all-ocs2"]
-	assert.Nil(t, record, fmt.Sprintf("Policy usage record for imsi: %v was not removed", imsi))
+	// Check that enforcement stats flow is removed
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), time.Minute, 2*time.Second)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGyExpectationsMetNoError()
