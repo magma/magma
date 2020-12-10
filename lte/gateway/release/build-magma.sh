@@ -79,6 +79,8 @@ case $BUILD_TYPE in
 esac
 
 
+sudo add-apt-repository 'deb [arch=amd64] https://dl.bintray.com/tetrate/getenvoy-deb stretch stable'
+
 # Default options
 BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
 ARCH=amd64
@@ -142,12 +144,14 @@ OVS_DEPS=(
     "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.9"
     )
 
+# Envoy dependecies
 ENVOY_DEPS=(
     "apt-transport-https"
     "ca-certificates"
     "curl"
     "gnupg2"
     "software-properties-common"
+    "getenvoy-envoy"
 )
 
 # generate string for FPM
