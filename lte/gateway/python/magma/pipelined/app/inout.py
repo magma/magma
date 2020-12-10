@@ -438,9 +438,7 @@ class InOutController(MagmaController):
         if self.config.he_proxy_port <= 0:
             return
 
-        self.logger.info("Header Enrichment : %s", self.config.he_proxy_port)
         parser = dp.ofproto_parser
-
         match = MagmaMatch(proxy_tag=PROXY_TAG_TO_PROXY)
         actions = [parser.NXActionRegLoad2(dst='eth_dst',
                                            value=self.config.he_proxy_eth_mac)]
