@@ -28,15 +28,18 @@ def OAI_GIT_BRANCH = "master"
 // Location of the executor node
 def nodeExecutor = "libvirt"
 
+def GITHUB_USER = "magmabot"
 def slack_channel = "#magma-ci-bot"
-// lock mechanism
-def cn_ci_resource = params.MagmaVmDockerResources
 
 
 pipeline {
   agent {
     label "libvirt"
   }
+  parameters {
+    booleanParam(name: 'REGRESSION_TEST', defaultValue: false, description: 'Test master branch for regressions and submit a Github issue')
+  }
+
   options {
     timestamps()
     ansiColor('xterm')
@@ -57,11 +60,17 @@ pipeline {
     stage ("Retrieve and Prepare Source Code") {
       steps {
         script {
+          def branch
+          if (params.REGRESSION_TEST) {
+            branch = 'master'
+          } else {
+            branch = sha1
+          }
           checkout(
             changelog: false,
             poll: false,
             scm: [$class: 'GitSCM',
-                  branches: [[name: '$sha1']],
+                  branches: [[name: "$branch"]],
                   doGenerateSubmoduleConfigurations: false,
                   extensions: [],
                   submoduleCfg: [],
@@ -107,13 +116,14 @@ pipeline {
             script {
               try {
                 sh('sudo virsh list --all --name')
-                sh('sudo virsh list --all --name | grep _magma | xargs --no-run-if-empty -n1 sudo virsh undefine')
-                sh('cd lte/gateway;virsh undefine gateway_magma || true; vagrant destroy --force magma')
+                sh('sudo virsh list --all --name | grep _magma | xargs --no-run-if-empty -n1 sudo virsh destroy || true')
+                sh('sudo virsh list --all --name | grep _magma | xargs --no-run-if-empty -n1 sudo virsh undefine || true')
+                sh('cd lte/gateway && vagrant destroy --force magma')
               }
               catch (Exception e) {
                   echo "Fine. Let it go..."
               }
-              sh('cd lte/gateway && vagrant up --provider libvirt magma')
+              myShCmdWithLog('cd lte/gateway && vagrant up --provider libvirt magma', 'archives/magma_vagrant_up.log')
               // Check that magma services are all down. Should be the case after wake-up
               try {
                 sh('cd lte/gateway && vagrant ssh magma -c "sudo service magma@* status"')
@@ -146,7 +156,7 @@ pipeline {
                   echo "OK after a git clean..."
                 }
                 try {
-                  sh ('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make clean"')
+                  myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make clean"', 'archives/magma_vagrant_make_clean.log')
                 } catch (Exception e) {
                   echo "OK after a git clean..."
                 }
@@ -158,7 +168,7 @@ pipeline {
                 }
                 timeout (time: 120, unit: 'MINUTES') {
                   // removing the magma/.cache/gateway folder will slow down build from 3 minutes to 27 minutes
-                  sh('''cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make run "''')
+                  myShCmdWithLog('''cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make run "''', 'archives/magma_vagrant_make_run.log')
                 }
                 sh "sleep 30"
                 // check magma status --> non-blocking (even if OK it might fail from a bash script point of view)
@@ -180,7 +190,7 @@ pipeline {
               sh('docker exec -i ci-cn-cppcheck /bin/bash -c "apt-get update && apt-get upgrade --yes" 2>&1 > archives/cppcheck_install.log')
               sh('docker exec -i ci-cn-cppcheck /bin/bash -c "apt-get install --yes git cppcheck bzip2" 2>&1 >> archives/cppcheck_install.log')
 
-              sh('docker exec -i ci-cn-cppcheck /bin/bash -c "cd /code && cppcheck -j8 --enable=warning --force --xml --xml-version=2 -i test ." 2> cppcheck.xml 1> cppcheck_build.log')
+              sh('docker exec -i ci-cn-cppcheck /bin/bash -c "cd /code && cppcheck -j8 --enable=warning --force --xml --xml-version=2 -i test ." 2> cppcheck.xml 1> archives/cppcheck_build.log')
               sh('docker rm -f ci-cn-cppcheck')
             }
           }
@@ -243,9 +253,9 @@ pipeline {
                 catch (Exception e) {
                   echo "Fine. Let it go..."
                 }
-                sh('cd lte/gateway && vagrant up --provider libvirt magma_test')
-                sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/ && make"')
-                sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && make"')
+                myShCmdWithLog('cd lte/gateway && vagrant up --provider libvirt magma_test', 'archives/magma_vagrant_test_up.log')
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/ && make"', 'archives/magma_vagrant_test_make1.log')
+                myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && make"', 'archives/magma_vagrant_test_make2.log')
             }
           }
         }
@@ -254,7 +264,7 @@ pipeline {
             script {
               sh "sleep 60"
                 try {
-                  sh('cd lte/gateway && virsh undefine gateway_magma_trfserver || true; vagrant destroy --force magma_trfserver')
+                  myShCmdWithLog('cd lte/gateway && virsh undefine gateway_magma_trfserver || true; vagrant destroy --force magma_trfserver', 'archives/magma_vagrant_trfserver_up.log')
                 } catch (Exception e) {
                   echo "Ignoring issues cleaning up any lingering magma_trfserver"
                 }
@@ -303,19 +313,19 @@ pipeline {
           // FIXME!!!! set 110 MINUTES instead of 30
 
                 timeout (time: 110, unit: 'MINUTES') {
-                  sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test"')
+                  myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test"', 'archives/magma_run_s1ap_tester.log')
                 }
 
                 timeout (time: 45, unit: 'SECONDS') {
                   try {
-                    sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_udp_data.py"')
+                    myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_udp_data.py"', 'archives/magma_run_s1ap_tester.log')
                   } catch (Exception e) {
                     echo "s1aptests/test_attach_dl_udp_data testcase may fail"
                   }
                 }
                 timeout (time: 45, unit: 'SECONDS') {
                   try {
-                    sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_tcp_data.py"')
+                    myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_dl_tcp_data.py"', 'archives/magma_run_s1ap_tester.log')
                   } catch (Exception e) {
                     echo "s1aptests/test_attach_dl_tcp_data testcase may fail"
                   }
@@ -334,7 +344,7 @@ pipeline {
               script {
                 def retrieveOAIcovFiles = true
                 try {
-                  sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make coverage_oai"')
+                  myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && make coverage_oai"', 'archives/magma_vagrant_make_coverage_oai.log')
                 } catch (Exception e) {
                   echo "Let's keep running to have some logs, but not the OAI coverage files"
                   retrieveOAIcovFiles = false
@@ -380,13 +390,13 @@ stage ("Re-Build MME-S11") {
         sh "echo 'make FEATURES=\"mme\" run' > lte/gateway/make_mme_run.sh"
         timeout (time: 15, unit: 'MINUTES') {
           // removing the magma/.cache/gateway folder with speed down build from 3 minutes to 27 minutes
-          sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_run.sh && sudo chown -R vagrant /home/vagrant/build && ./make_mme_run.sh"')
+          myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_run.sh && sudo chown -R vagrant /home/vagrant/build && ./make_mme_run.sh"', 'archives/magma_vagrant_make_run2.log')
         }
         sh "sleep 60"
         sh "echo 'make FEATURES=\"mme\" status' > lte/gateway/make_mme_status.sh"
         try {
-          // sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_status.sh && ./make_mme_status.sh')
-          sh('cd lte/gateway && vagrant ssh magma -c "sudo service magma@* status"')
+          //sh('cd lte/gateway && vagrant ssh magma -c "cd magma/lte/gateway && chmod 755 make_mme_status.sh && ./make_mme_status.sh')
+          myShCmdWithLog('cd lte/gateway && vagrant ssh magma -c "sudo service magma@* status"', 'archives/magma_status2.log')
         } catch (Exception e) {
           echo "Status may return an error"
         }
@@ -436,14 +446,14 @@ stage ("Test-AGW1-w-S11") {
           sh "sleep 60"
           echo "Starting the integration Tests - S1AP Tester"
           timeout (time: 20, unit: 'MINUTES') {
-            sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach.py" > ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log')
-            sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_multi_ue.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log')
-            sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_looped.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log')
-            sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_emergency.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log')
-            sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_combined_eps_imsi.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log')
-            sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_via_guti.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log')
-            sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_after_ue_context_release.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log')
-            sh('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_no_auth_response.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log')
+            myShCmdWithLog('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach.py" > ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
+            myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_multi_ue.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
+            myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_looped.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
+            myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_emergency.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
+            myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_combined_eps_imsi.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
+            myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_via_guti.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
+            myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_attach_detach_after_ue_context_release.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
+            myShCmdWithLogAppend('cd lte/gateway && vagrant ssh magma_test -c "cd magma/lte/gateway/python/integ_tests/ && source ~/build/python/bin/activate && make integ_test TESTS=s1aptests/test_no_auth_response.py" >> ${WORKSPACE}/archives/magma_run_s1ap_tester_s11.log', 'archives/magma_run_s1ap_tester_s11.log')
           }
 
 
@@ -557,8 +567,85 @@ stage ("Test-AGW1-w-S11") {
           def message = "MAGMA " + JOB_NAME + " build (" + BUILD_ID + "): failed (" + BUILD_URL + ")"
           echo message
           sendSocialMediaMessage(slack_channel,color, message)
+          if (params.REGRESSION_TEST) {
+            createOrUpdateGithubIssue(GIT_URL, GITHUB_USER, message)
+          }
       }
     }
+  }
+}
+
+def myShCmdWithLog(cmd, logFile) {
+  sh """#!/bin/bash
+        set -o pipefail
+        ${cmd} 2>&1 | tee $WORKSPACE/${logFile}
+  """
+}
+
+def myShCmdWithLogAppend(cmd, logFile) {
+  sh """#!/bin/bash
+        set -o pipefail
+        ${cmd} 2>&1 | tee -a $WORKSPACE/${logFile}
+  """
+}
+
+def createOrUpdateGithubIssue(git_url, github_user, message) {
+  issueTitle = "[CI] Regression tests failed"
+  githubProject = git_url.split('/')[1] + "/" + git_url.split('/')[2]
+  issueId = getIssueByTitle(githubProject, github_user, issueTitle)
+  if (issueId != false) {
+    updateGitHubIssue(githubProject, github_user, issueId, message)
+    println("GitHub issue #${issueId} updated")
+  } else {
+    createGitHubIssue(githubProject, github_user, issueTitle, message)
+    println("GitHub issue created")
+  }
+}
+
+def getIssueByTitle(githubProject, github_user, title) {
+  withCredentials([string(credentialsId: 'magma_bot_github_api_token', variable: 'TOKEN')]) {
+    try {
+      id = sh(returnStdout: true, script: """curl -G -u "$github_user:$TOKEN" \
+        "https://api.github.com/search/issues" \
+        -H "Accept: application/vnd.github.v3+json" \
+        --data-urlencode "q=repo:${githubProject} author:$github_user state:open in:title ${title}" \
+        | jq .items[0].number""") .trim()
+    } catch (Exception e) {
+      println("Failed looking up github issue")
+      return false
+    }
+    if (id && id != "null") {
+      println("Found matching github issue $id")
+      return id
+    } else {
+      return false
+    }
+  }
+}
+
+def updateGitHubIssue(githubProject, github_user, issueId, message) {
+  message = message.replace('\n', '\\n')
+  withCredentials([string(credentialsId: 'magma_bot_github_api_token', variable: 'TOKEN')]) {
+    sh(returnStdout: true, script: """curl -X "POST" -u "$github_user:$TOKEN" \
+       "https://api.github.com/repos/${githubProject}/issues/${issueId}/comments" \
+       -H "Accept: application/vnd.github.v3+json" \
+       -d '{"body": "${message}"}' """)
+  }
+}
+
+def createGitHubIssue(githubProject, github_user, title, message) {
+  message = message.replace('\n', '\\n')
+  withCredentials([string(credentialsId: 'magma_bot_github_api_token', variable: 'TOKEN')]) {
+    sh(returnStdout: true, script: """curl -X "POST" -u "$github_user:$TOKEN" \
+       "https://api.github.com/repos/magma/magma/issues" \
+       -H "Accept: application/vnd.github.v3+json" \
+       -d '{
+           "title": "${title}",
+           "body": "${message}",
+           "labels": [
+           "type: bug"
+           ]
+       }' """)
   }
 }
 
@@ -568,4 +655,3 @@ stage ("Test-AGW1-w-S11") {
 def sendSocialMediaMessage(pipeChannel, pipeColor, pipeMessage) {
     slackSend channel: pipeChannel, color: pipeColor, message: pipeMessage
 }
-

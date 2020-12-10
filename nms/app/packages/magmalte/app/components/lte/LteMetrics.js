@@ -266,16 +266,16 @@ export default function () {
   } else {
     tabList = [
       {
-        icon: ExploreIcon,
-        component: {NestedRouteLink},
-        label: 'Explorer',
-        to: '/explorer',
-      },
-      {
         icon: AssessmentIcon,
         component: {NestedRouteLink},
         label: 'Grafana',
         to: '/grafana',
+      },
+      {
+        icon: ExploreIcon,
+        component: {NestedRouteLink},
+        label: 'Explorer',
+        to: '/explorer',
       },
     ];
   }
@@ -304,7 +304,7 @@ export default function () {
               component={GrafanaDashboard}
             />
             <Route path={relativePath('/explorer')} component={Explorer} />
-            <Redirect to={relativeUrl('/explorer')} />
+            <Redirect to={relativeUrl('/grafana')} />
           </>
         )}
       </Switch>

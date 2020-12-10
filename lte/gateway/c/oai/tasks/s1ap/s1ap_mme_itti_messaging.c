@@ -33,7 +33,7 @@
 #include "assertions.h"
 #include "intertask_interface.h"
 #include "s1ap_mme_itti_messaging.h"
-#include "S1ap-CauseRadioNetwork.h"
+#include "S1ap_CauseRadioNetwork.h"
 #include "nas/as_message.h"
 #include "intertask_interface_types.h"
 #include "itti_types.h"
@@ -180,7 +180,8 @@ void s1ap_mme_itti_s1ap_initial_ue_message(
 
   S1AP_INITIAL_UE_MESSAGE(message_p).nas = blk2bstr(nas_msg, nas_msg_length);
 
-  S1AP_INITIAL_UE_MESSAGE(message_p).tai                     = *tai;
+  S1AP_INITIAL_UE_MESSAGE(message_p).tai = *tai;
+
   S1AP_INITIAL_UE_MESSAGE(message_p).ecgi                    = *ecgi;
   S1AP_INITIAL_UE_MESSAGE(message_p).rrc_establishment_cause = rrc_cause + 1;
 

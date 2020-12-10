@@ -11,11 +11,15 @@
  * limitations under the License.
  */
 
+#include <google/protobuf/timestamp.pb.h>
+#include <google/protobuf/util/time_util.h>
+
 #include "StoredState.h"
 #include "CreditKey.h"
 #include "magma_logging.h"
 
 namespace magma {
+using google::protobuf::util::TimeUtil;
 
 SessionConfig::SessionConfig(const LocalCreateSessionRequest& request) {
   common_context       = request.common_context();
@@ -499,6 +503,35 @@ StoredSessionState deserialize_stored_session(std::string& serialized) {
       static_cast<uint64_t>(std::stoul(marshaled["pdp_end_time"].getString()));
 
   return stored;
+}
+
+RuleLifetime::RuleLifetime(const StaticRuleInstall& rule_install) {
+  activation_time =
+      std::time_t(TimeUtil::TimestampToSeconds(rule_install.activation_time()));
+  deactivation_time = std::time_t(
+      TimeUtil::TimestampToSeconds(rule_install.deactivation_time()));
+}
+
+RuleLifetime::RuleLifetime(const DynamicRuleInstall& rule_install) {
+  activation_time =
+      std::time_t(TimeUtil::TimestampToSeconds(rule_install.activation_time()));
+  deactivation_time = std::time_t(
+      TimeUtil::TimestampToSeconds(rule_install.deactivation_time()));
+}
+
+bool RuleLifetime::is_within_lifetime(std::time_t time) {
+  auto past_activation_time = activation_time <= time;
+  auto before_deactivation_time =
+      (deactivation_time == 0) || (time < deactivation_time);
+  return past_activation_time && before_deactivation_time;
+}
+
+bool RuleLifetime::exceeded_lifetime(std::time_t time) {
+  return deactivation_time != 0 && deactivation_time < time;
+}
+
+bool RuleLifetime::before_lifetime(std::time_t time) {
+  return time < activation_time;
 }
 
 };  // namespace magma
