@@ -17,14 +17,14 @@ limitations under the License.
 #include <stdint.h>
 
 #include "3gpp_23.003.h"
-// #include "common_types.h"
-// #include "security_types.h"
 
 #define AGW_OFFLOAD_REQ(mSGpTR) (mSGpTR)->ittiMsg.ha_agw_offload_req
 
+// The imsi and eNB_id fields are used as filters.
+// A UE that satisfy any of these filters will be offloaded.
 typedef struct ha_agw_offload_req_s {
-  char imsi[IMSI_BCD_DIGITS_MAX + 1];  // username
-  uint8_t imsi_length;                 // username
+  char imsi[IMSI_BCD_DIGITS_MAX + 1];
+  uint8_t imsi_length;
 
   uint32_t eNB_id;
 } ha_agw_offload_req_t;

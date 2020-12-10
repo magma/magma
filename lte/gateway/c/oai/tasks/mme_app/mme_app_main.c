@@ -152,6 +152,8 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
           ue_context_p->path_switch_req = false;
         }
 
+        // Check if an offloading request is pending for this UE as part
+        // of HA implementation
         if (ue_context_p->ue_context_rel_cause ==
             S1AP_NAS_MME_PENDING_OFFLOADING) {
           OAILOG_INFO(

@@ -69,6 +69,9 @@ bool process_ue_context(
     return false;
   }
 
+  // When a UE is in ECM_CONNECTED state, we can direcly start offloading.
+  // For a UE in ECM_IDLE mode however, we need to first page the user and
+  // then we can offload it.
   if (ue_context_p->ecm_state == ECM_CONNECTED) {
     MessageDef* message_p =
         itti_alloc_new_message(TASK_HA, S1AP_UE_CONTEXT_RELEASE_REQ);
