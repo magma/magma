@@ -341,13 +341,14 @@ message ProtocolConfigurationOptions {
   repeated PcoProtocolOrContainerId proto_or_container_id = 5;
 }
 
-// 3485 and 3494 Timer argument
+// 3485 and 3495 Timer argument
 message EsmEbrTimerData {
   uint32 ue_id = 1;
   uint32 ebi = 2;
   uint32 count = 3;
   bytes esm_msg = 4;
 }
+
 // esm_proc_data_t
 message EsmProcData {
   uint32 pti= 1;

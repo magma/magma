@@ -276,7 +276,8 @@ int esm_ebr_start_timer(
         nas_timer_start(sec, 0 /* usec */, cb, esm_ebr_timer_data);
   } else {
     /*
-     * Setup the retransmission timer parameters
+     * If timer-id is set to NAS_TIMER_INACTIVE_ID and has non-null
+     * timer argument, indicates that timer details are read from Redis DB
      */
     if (ebr_ctx->args) {
       ebr_ctx->timer.id = nas_timer_start(sec, 0 /* usec */, cb, ebr_ctx->args);
