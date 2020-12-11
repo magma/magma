@@ -644,7 +644,7 @@ func TestGyAbortSessionRequest(t *testing.T) {
 	assert.Equal(t, uint32(diam.LimitedSuccess), asa.ResultCode)
 
 	// check if all session related info is cleaned up
-	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"),  2*time.Minute, 5*time.Second)
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), 2*time.Minute, 5*time.Second)
 
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
