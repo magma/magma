@@ -976,32 +976,50 @@ void SpgwStateConverter::ue_to_proto(
 
 void SpgwStateConverter::proto_to_ue(
     const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  spgw_state_t* spgw_state     = NULL;
+  hash_table_ts_t* state_ue_ht = NULL;
+  if (ue_proto.s11_bearer_context_size()) {
+    spgw_state = get_spgw_state(false);
+    if (!spgw_state) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP, "Failed to get spgw_state from get_spgw_state() \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+
+    state_ue_ht = get_spgw_ue_state();
+    if (!state_ue_ht) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Failed to get state_ue_ht from get_spgw_ue_state() \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+  } else {
+    OAILOG_ERROR(
+        LOG_SPGW_APP, "There are no spgw_context stored to Redis DB \n");
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  }
   for (int idx = 0; idx < ue_proto.s11_bearer_context_size(); idx++) {
     oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
     s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
         (s_plus_p_gw_eps_bearer_context_information_t*) (calloc(
             1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
     if (!spgw_context_p) {
-      OAILOG_DEBUG(
+      OAILOG_ERROR(
           LOG_SPGW_APP, "Failed to allocate memory for SPGW context \n");
       OAILOG_FUNC_OUT(LOG_SPGW_APP);
     }
 
     proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
-    spgw_state_t* spgw_state       = get_spgw_state(false);
-    hash_table_ts_t* state_imsi_ht = get_spgw_ue_state();
-    if (state_imsi_ht) {
-      hashtable_ts_insert(
-          state_imsi_ht,
-          spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
-          (void*) spgw_context_p);
-    }
-    if (spgw_state) {
-      spgw_update_teid_in_ue_context(
-          spgw_state, spgw_context_p->sgw_eps_bearer_context_information.imsi64,
-          spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
-    }
+    hashtable_ts_insert(
+        state_ue_ht,
+        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
+        (void*) spgw_context_p);
+    spgw_update_teid_in_ue_context(
+        spgw_state, spgw_context_p->sgw_eps_bearer_context_information.imsi64,
+        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
   }
+  OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 
 }  // namespace lte
