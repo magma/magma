@@ -27,7 +27,7 @@ import (
 // XAPCalculation holds the parameters needed to run a XAP query and the registered
 // prometheus gauge that the resulting value should be stored in
 type XAPCalculation struct {
-	calculations.CalculationParams
+	calculations.BaseCalculation
 	ThresholdBytes int
 }
 
@@ -49,6 +49,5 @@ func (x *XAPCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]
 	}
 
 	results := calculations.MakeVectorResults(vec, x.Labels, x.Name)
-	calculations.RegisterResults(x.CalculationParams, results)
 	return results, nil
 }

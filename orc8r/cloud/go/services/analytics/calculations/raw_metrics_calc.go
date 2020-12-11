@@ -21,13 +21,13 @@ import (
 	"github.com/golang/glog"
 )
 
-//RawMetricsCalculation params for querying existing metrics
+// RawMetricsCalculation params for querying existing metrics
 type RawMetricsCalculation struct {
-	CalculationParams
+	BaseCalculation
 	MetricExpr string
 }
 
-//Calculate queries for preexisting metric or provided promql expression and returns result
+// Calculate queries for preexisting metric or provided promql expression and returns result
 func (x *RawMetricsCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
 	glog.V(10).Infof("Calculating Raw Metrics for %s", x.Name)
 	vec, err := query_api.QueryPrometheusVector(prometheusClient, x.MetricExpr)
@@ -35,6 +35,22 @@ func (x *RawMetricsCalculation) Calculate(prometheusClient query_api.PrometheusA
 		return nil, fmt.Errorf("query error: %s", err)
 	}
 	results := MakeVectorResults(vec, x.Labels, x.Name)
-	glog.V(10).Infof("Results %v", results)
 	return results, nil
+}
+
+// GetRawMetricsCalculations ...
+func GetRawMetricsCalculations(analyticsConfig *AnalyticsConfig) []Calculation {
+	allCalculations := make([]Calculation, 0)
+	for metricName, metricConfig := range analyticsConfig.Metrics {
+		if metricConfig.Expr == "" {
+			continue
+		}
+		glog.V(10).Infof("Adding RawMetrics Calculation for %s", metricName)
+		params := &CalculationParams{Name: metricName, AnalyticsConfig: analyticsConfig}
+		allCalculations = append(allCalculations, &RawMetricsCalculation{
+			BaseCalculation: BaseCalculation{params},
+			MetricExpr:      metricConfig.Expr,
+		})
+	}
+	return allCalculations
 }

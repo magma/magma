@@ -22,18 +22,21 @@ import (
 )
 
 func TestRawMetricsCalculation(t *testing.T) {
-	metrics := map[string]MetricConfig{
-		"test_metric_1": {
-			Expr: "test_metric_expr",
-		},
-		"test_metric_2": {
-			Register: false,
-		},
-		"test_metric_3": {
-			Expr: "test_metric_3_expr",
+	analytics := &AnalyticsConfig{
+		Metrics: map[string]MetricConfig{
+			"test_metric_1": {
+				Expr: "test_metric_expr",
+			},
+			"test_metric_2": {
+				Register: false,
+			},
+			"test_metric_3": {
+				Expr: "test_metric_3_expr",
+			},
 		},
 	}
-	calcs := GetRawMetricsCalculations(metrics)
+
+	calcs := GetRawMetricsCalculations(analytics)
 	assert.Equal(t, len(calcs), 2)
 	rawMetricNames := []string{"test_metric_1", "test_metric_3"}
 	calcMetricNames := []string{}

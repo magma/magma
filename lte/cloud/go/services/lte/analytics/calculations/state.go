@@ -68,18 +68,18 @@ const (
 	APNLabel = "apnType"
 
 	// GatewayMagmaVersionLabel - label identifying the current running magma version on the gateway
-	GatewayMagmaVersionLabel = "magmaVersion"
+	GatewayMagmaVersionLabel = "version"
 )
 
-//GeneralMetricsCalculation ...
+// GeneralMetricsCalculation ...
 type GeneralMetricsCalculation struct {
-	calculations.CalculationParams
+	calculations.BaseCalculation
 }
 
-//Calculate this mainly computes the number of LTE, FEG_LTE and FEG networks
+// Calculate this mainly computes the number of LTE, FEG_LTE and FEG networks
 // in a particular deployment
 func (x *GeneralMetricsCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
-	glog.V(10).Info("Calculate Generic Metrics")
+	glog.V(1).Info("Calculate Generic Metrics")
 
 	results := []*protos.CalculationResult{}
 	networks, err := configurator.ListNetworkIDs()
@@ -110,18 +110,18 @@ func (x *GeneralMetricsCalculation) Calculate(prometheusClient query_api.Prometh
 		labels[NetworkTypeLabel] = networkTypeStr
 		results = append(results, calculations.NewResult(numNetworks, NetworkCountMetric, labels))
 	}
-	glog.V(10).Info("Generic Metrics Results ", results)
+	glog.V(1).Info("Generic Metrics Results ", results)
 	return results, nil
 }
 
-//UserMetricsCalculation ...
+// UserMetricsCalculation ...
 type UserMetricsCalculation struct {
-	calculations.CalculationParams
+	calculations.BaseCalculation
 }
 
-//Calculate site metrics
+// Calculate site metrics
 func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
-	glog.V(10).Info("Calculate User Metrics")
+	glog.V(1).Info("Calculate User Metrics")
 
 	results := []*protos.CalculationResult{}
 	networks, err := configurator.ListNetworkIDs()
@@ -178,24 +178,26 @@ func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 				}
 			}
 		}
+
+		// verify if the total connected users is greater than min user threshold
 		results = append(results, calculations.NewResult(float64(len(users)), ActualSubscribersMetric, labels))
 		for apnID, numActiveSessionsPerAPN := range activeSessionsPerAPN {
 			labels := prometheus.Labels{metrics.NetworkLabelName: networkID, APNLabel: apnID}
 			results = append(results, calculations.NewResult(float64(numActiveSessionsPerAPN), ActiveSessionAPNMetric, labels))
 		}
 	}
-	glog.V(10).Info("User Metrics Results ", results)
+	glog.V(1).Info("User Metrics Results ", results)
 	return results, nil
 }
 
-//SiteMetricsCalculation ...
+// SiteMetricsCalculation ...
 type SiteMetricsCalculation struct {
-	calculations.CalculationParams
+	calculations.BaseCalculation
 }
 
-//Calculate site metrics
+// Calculate site metrics
 func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
-	glog.V(10).Info("Calculate Site Metrics")
+	glog.V(1).Info("Calculate Site Metrics")
 	results := []*protos.CalculationResult{}
 	networks, err := configurator.ListNetworkIDs()
 	if err != nil || networks == nil {
@@ -213,7 +215,7 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 			continue
 		}
 
-		magmaVersionMap := make(map[string]float64)
+		magmaGatewayVersion := make(map[string]string)
 		for _, ent := range gatewayEnts {
 			status, err := wrappers.GetGatewayStatus(networkID, ent.PhysicalID)
 			if err != nil || status == nil || status.PlatformInfo == nil || len(status.PlatformInfo.Packages) == 0 {
@@ -221,14 +223,8 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 			}
 
 			for _, pkg := range status.PlatformInfo.Packages {
-				if pkg.Name == "magma" {
-					if pkg.Version != "" {
-						if _, ok := magmaVersionMap[pkg.Version]; !ok {
-							magmaVersionMap[pkg.Version] = 1
-						} else {
-							magmaVersionMap[pkg.Version]++
-						}
-					}
+				if pkg.Name == "magma" && pkg.Version != "" {
+					magmaGatewayVersion[ent.PhysicalID] = pkg.Version
 					break
 				}
 			}
@@ -294,13 +290,14 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 		}
 
 		// metrics giving information on magma version across the gateways
-		for version, versionCount := range magmaVersionMap {
+		for gatewayID, version := range magmaGatewayVersion {
 			labels := prometheus.Labels{}
 			labels[metrics.NetworkLabelName] = networkID
+			labels[metrics.GatewayLabelName] = gatewayID
 			labels[GatewayMagmaVersionLabel] = version
-			results = append(results, calculations.NewResult(versionCount, GatewayMagmaVersionMetric, labels))
+			results = append(results, calculations.NewResult(1, GatewayMagmaVersionMetric, labels))
 		}
 	}
-	glog.V(10).Info("Site Metrics Results ", results)
+	glog.V(1).Info("Site Metrics Results ", results)
 	return results, nil
 }

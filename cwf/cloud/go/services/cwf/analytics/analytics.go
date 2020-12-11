@@ -17,7 +17,6 @@ import (
 	"strconv"
 	"time"
 
-	cwf_service "magma/cwf/cloud/go/services/cwf"
 	cwf_calculations "magma/cwf/cloud/go/services/cwf/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/lib/go/metrics"
@@ -52,8 +51,8 @@ var (
 )
 
 // GetAnalyticsCalculations ..
-func GetAnalyticsCalculations(config *cwf_service.Config) []calculations.Calculation {
-	if config == nil {
+func GetAnalyticsCalculations(analyticsConfig *calculations.AnalyticsConfig) []calculations.Calculation {
+	if analyticsConfig == nil {
 		return nil
 	}
 
@@ -67,140 +66,142 @@ func GetAnalyticsCalculations(config *cwf_service.Config) []calculations.Calcula
 	prometheus.MustRegister(xapGauge, userThroughputGauge, userConsumptionGauge,
 		hourlyUserConsumptionGauge, apThroughputGauge, authenticationsGauge)
 
-	allCalculations := make([]calculations.Calculation, 0)
+	calcs := make([]calculations.Calculation, 0)
 
-	metricConfig := config.Analytics.Metrics
 	// MAP, WAP, DAP Calculations
-	allCalculations = append(allCalculations, getXAPCalculations(daysToCalculate, xapGauge, activeUsersMetricName, metricConfig)...)
+	calcs = append(calcs, getXAPCalculations(daysToCalculate, xapGauge, activeUsersMetricName)...)
 
 	// User Throughput Calculations
-	allCalculations = append(allCalculations, getUserThroughputCalculations(daysToCalculate, userThroughputGauge, userThroughputMetricName, metricConfig)...)
+	calcs = append(calcs, getUserThroughputCalculations(daysToCalculate, userThroughputGauge, userThroughputMetricName)...)
 
 	// AP Throughput Calculations
-	allCalculations = append(allCalculations, getAPNThroughputCalculations(daysToCalculate, apThroughputGauge, apThroughputMetricName, metricConfig)...)
+	calcs = append(calcs, getAPNThroughputCalculations(daysToCalculate, apThroughputGauge, apThroughputMetricName)...)
 
 	// User Consumption Calculations
-	allCalculations = append(allCalculations, getUserConsumptionCalculations(daysToCalculate, userConsumptionGauge, userConsumptionMetricName, metricConfig)...)
-	allCalculations = append(allCalculations, get1hourConsumptionCalculation(hourlyUserConsumptionGauge, userConsumptionHourlyMetricName, metricConfig)...)
+	calcs = append(calcs, getUserConsumptionCalculations(daysToCalculate, userConsumptionGauge, userConsumptionMetricName)...)
+	calcs = append(calcs, get1hourConsumptionCalculation(hourlyUserConsumptionGauge, userConsumptionHourlyMetricName)...)
 
 	// Authentication Calculations
-	allCalculations = append(allCalculations, getAuthenticationCalculations(daysToCalculate, authenticationsGauge, authenticationsMetricName, metricConfig)...)
+	calcs = append(calcs, getAuthenticationCalculations(daysToCalculate, authenticationsGauge, authenticationsMetricName)...)
 
 	// Raw Metrics
-	allCalculations = append(allCalculations, calculations.GetRawMetricsCalculations(metricConfig)...)
+	calcs = append(calcs, calculations.GetRawMetricsCalculations(analyticsConfig)...)
 
-	return allCalculations
+	return calcs
 }
 
-func getXAPCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string, metricConfig map[string]calculations.MetricConfig) []calculations.Calculation {
+func getXAPCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []calculations.Calculation {
 	calcs := make([]calculations.Calculation, 0)
 	for _, dayParam := range daysList {
+		calcParams := &calculations.CalculationParams{
+			Days:                dayParam,
+			RegisteredGauge:     gauge,
+			Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+			Name:                metricName,
+			ExpectedGaugeLabels: xapLabels,
+		}
 		calcs = append(calcs, &cwf_calculations.XAPCalculation{
-			CalculationParams: calculations.CalculationParams{
-				Days:                dayParam,
-				RegisteredGauge:     gauge,
-				Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-				Name:                metricName,
-				ExpectedGaugeLabels: xapLabels,
-				MetricConfig:        metricConfig,
-			},
+			BaseCalculation: calculations.BaseCalculation{CalculationParams: calcParams},
 		})
 	}
 	return calcs
 }
 
-func getUserThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string, metricConfig map[string]calculations.MetricConfig) []calculations.Calculation {
+func getUserThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []calculations.Calculation {
 	calcs := make([]calculations.Calculation, 0)
+
 	for _, dayParam := range daysList {
 		for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
+			calcParams := &calculations.CalculationParams{
+				Days:                dayParam,
+				RegisteredGauge:     gauge,
+				Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+				Name:                metricName,
+				ExpectedGaugeLabels: userThroughputLabels,
+			}
+
 			calcs = append(calcs, &cwf_calculations.UserThroughputCalculation{
-				CalculationParams: calculations.CalculationParams{
-					Days:                dayParam,
-					RegisteredGauge:     gauge,
-					Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-					Name:                metricName,
-					ExpectedGaugeLabels: userThroughputLabels,
-					MetricConfig:        metricConfig,
-				},
-				Direction:     dir,
-				QueryStepSize: daysToQueryStepSize[dayParam],
+				BaseCalculation: calculations.BaseCalculation{CalculationParams: calcParams},
+				Direction:       dir,
+				QueryStepSize:   daysToQueryStepSize[dayParam],
 			})
 		}
 	}
 	return calcs
 }
 
-func getAPNThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string, metricConfig map[string]calculations.MetricConfig) []calculations.Calculation {
+func getAPNThroughputCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []calculations.Calculation {
 	calcs := make([]calculations.Calculation, 0)
 	for _, dayParam := range daysList {
 		for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
+			calcParams := &calculations.CalculationParams{
+				Days:                dayParam,
+				RegisteredGauge:     gauge,
+				Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+				Name:                metricName,
+				ExpectedGaugeLabels: apThroughputLabels,
+			}
 			calcs = append(calcs, &cwf_calculations.APNThroughputCalculation{
-				CalculationParams: calculations.CalculationParams{
-					Days:                dayParam,
-					RegisteredGauge:     gauge,
-					Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-					Name:                metricName,
-					ExpectedGaugeLabels: apThroughputLabels,
-					MetricConfig:        metricConfig,
-				},
-				Direction:     dir,
-				QueryStepSize: daysToQueryStepSize[dayParam],
+				BaseCalculation: calculations.BaseCalculation{CalculationParams: calcParams},
+				Direction:       dir,
+				QueryStepSize:   daysToQueryStepSize[dayParam],
 			})
 		}
 	}
 	return calcs
 }
 
-func getUserConsumptionCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string, metricConfig map[string]calculations.MetricConfig) []calculations.Calculation {
+func getUserConsumptionCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []calculations.Calculation {
 	calcs := make([]calculations.Calculation, 0)
 	for _, dayParam := range daysList {
 		for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
+			calcParams := &calculations.CalculationParams{
+				Days:                dayParam,
+				RegisteredGauge:     gauge,
+				Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+				Name:                metricName,
+				ExpectedGaugeLabels: userConsumptionLabels,
+			}
 			calcs = append(calcs, &cwf_calculations.UserConsumptionCalculation{
-				CalculationParams: calculations.CalculationParams{
-					Days:                dayParam,
-					RegisteredGauge:     gauge,
-					Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-					Name:                metricName,
-					ExpectedGaugeLabels: userConsumptionLabels,
-					MetricConfig:        metricConfig,
-				},
-				Direction: dir,
+				BaseCalculation: calculations.BaseCalculation{CalculationParams: calcParams},
+				Direction:       dir,
 			})
 		}
 	}
 	return calcs
 }
 
-func get1hourConsumptionCalculation(gauge *prometheus.GaugeVec, metricName string, metricConfig map[string]calculations.MetricConfig) []calculations.Calculation {
+func get1hourConsumptionCalculation(gauge *prometheus.GaugeVec, metricName string) []calculations.Calculation {
 	calcs := make([]calculations.Calculation, 0)
 	for _, dir := range []calculations.ConsumptionDirection{calculations.ConsumptionIn, calculations.ConsumptionOut} {
+		calcParams := &calculations.CalculationParams{
+			Hours:               1,
+			RegisteredGauge:     gauge,
+			Labels:              prometheus.Labels{"hours": "1"},
+			Name:                metricName,
+			ExpectedGaugeLabels: hourlyUserConsumptionLabels,
+		}
 		calcs = append(calcs, &cwf_calculations.UserConsumptionCalculation{
-			CalculationParams: calculations.CalculationParams{
-				Hours:               1,
-				RegisteredGauge:     gauge,
-				Labels:              prometheus.Labels{"hours": "1"},
-				Name:                metricName,
-				ExpectedGaugeLabels: hourlyUserConsumptionLabels,
-				MetricConfig:        metricConfig,
-			},
-			Direction: dir,
+			BaseCalculation: calculations.BaseCalculation{CalculationParams: calcParams},
+			Direction:       dir,
 		})
 	}
 	return calcs
 }
 
-func getAuthenticationCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string, metricConfig map[string]calculations.MetricConfig) []calculations.Calculation {
+func getAuthenticationCalculations(daysList []int, gauge *prometheus.GaugeVec, metricName string) []calculations.Calculation {
 	calcs := make([]calculations.Calculation, 0)
 	for _, dayParam := range daysList {
+		calcParams := &calculations.CalculationParams{
+			Days:                dayParam,
+			RegisteredGauge:     gauge,
+			Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
+			Name:                metricName,
+			ExpectedGaugeLabels: authenticationsLabels,
+		}
+
 		calcs = append(calcs, &cwf_calculations.AuthenticationsCalculation{
-			CalculationParams: calculations.CalculationParams{
-				Days:                dayParam,
-				RegisteredGauge:     gauge,
-				Labels:              prometheus.Labels{calculations.DaysLabel: strconv.Itoa(dayParam)},
-				Name:                metricName,
-				ExpectedGaugeLabels: authenticationsLabels,
-				MetricConfig:        metricConfig,
-			},
+			BaseCalculation: calculations.BaseCalculation{CalculationParams: calcParams},
 		})
 	}
 	return calcs

@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultAnalysisSchedule = "*/1 * * * *" // Every 1 minute
+	defaultAnalysisSchedule = "*/15 * * * *" // Every 15 minutes
 )
 
 //ServiceMain - entrypoint for analytics service

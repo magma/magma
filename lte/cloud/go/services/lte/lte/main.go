@@ -24,6 +24,7 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/service"
 	"magma/orc8r/cloud/go/services/analytics"
+	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	state_protos "magma/orc8r/cloud/go/services/state/protos"
@@ -63,8 +64,14 @@ func main() {
 		glog.Infof("Failed unmarshalling service config %v", err)
 		return
 	}
-	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer,
-		analytics.NewCollectorService(analytics.GetPrometheusClient(), lte_analytics.GetAnalyticsCalculations(&serviceConfig)))
+
+	// initialize analytics
+	// userStateExpr is a metric which enables us to compute the number of active users using the network
+	promQLClient := analytics.GetPrometheusClient()
+	userStateManager := calculations.NewUserStateManager(promQLClient, "ue_connected")
+	calcs := lte_analytics.GetAnalyticsCalculations(&serviceConfig.Analytics)
+	collectorServicer := analytics.NewCollectorService(&serviceConfig.Analytics, promQLClient, calcs, userStateManager)
+	protos.RegisterAnalyticsCollectorServer(srv.GrpcServer, collectorServicer)
 
 	err = srv.Run()
 	if err != nil {

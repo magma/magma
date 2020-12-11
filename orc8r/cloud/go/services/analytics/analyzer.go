@@ -32,8 +32,7 @@ import (
 	"github.com/robfig/cron/v3"
 )
 
-//Analyzer generic interface to schedule any analysis to be scheduled
-//and run
+// Analyzer generic interface to schedule any analysis to run
 type Analyzer interface {
 	// Schedule the analyzer to run calculations periodically based on the
 	// cron expression format schedule parameter
@@ -71,21 +70,6 @@ func getRemoteCollectors() ([]protos.AnalyticsCollectorClient, error) {
 		collectorClientList = append(collectorClientList, protos.NewAnalyticsCollectorClient(conn))
 	}
 	return collectorClientList, nil
-}
-
-// GetPrometheusClient returns prometheus client
-func GetPrometheusClient() v1.API {
-	metricsConfig, err := config.GetServiceConfig(orc8r.ModuleName, metricsd.ServiceName)
-	if err != nil {
-		glog.Fatalf("Could not retrieve metricsd configuration: %s", err)
-	}
-	promClient, err := promAPI.NewClient(promAPI.Config{Address: metricsConfig.MustGetString(metricsd.PrometheusQueryAddress)})
-	// todo - for testing, will clean it up
-	// promClient, err := promAPI.NewClient(promAPI.Config{Address: "http://192.168.0.124:9090"})
-	if err != nil {
-		glog.Fatalf("Error creating prometheus client: %s", promClient)
-	}
-	return v1.NewAPI(promClient)
 }
 
 // NewPrometheusAnalyzer contructs a new prometheus analyzer instance
@@ -146,4 +130,17 @@ func (a *PrometheusAnalyzer) Analyze() {
 //Run runs the cron job
 func (a *PrometheusAnalyzer) Run() {
 	a.Cron.Run()
+}
+
+// GetPrometheusClient returns prometheus client
+func GetPrometheusClient() v1.API {
+	metricsConfig, err := config.GetServiceConfig(orc8r.ModuleName, metricsd.ServiceName)
+	if err != nil {
+		glog.Fatalf("Could not retrieve metricsd configuration: %s", err)
+	}
+	promClient, err := promAPI.NewClient(promAPI.Config{Address: metricsConfig.MustGetString(metricsd.PrometheusQueryAddress)})
+	if err != nil {
+		glog.Fatalf("Error creating prometheus client: %s", promClient)
+	}
+	return v1.NewAPI(promClient)
 }

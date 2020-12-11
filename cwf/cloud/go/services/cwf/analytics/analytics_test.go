@@ -26,7 +26,7 @@ import (
 
 func TestGetXAPCalculations(t *testing.T) {
 	xapGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: activeUsersMetricName}, xapLabels)
-	calcs := getXAPCalculations([]int{1, 7, 30}, xapGauge, "metricName", nil)
+	calcs := getXAPCalculations([]int{1, 7, 30}, xapGauge, "metricName")
 	assert.Len(t, calcs, 3)
 	for _, calc := range calcs {
 		xapCalc := calc.(*cwf_calculations.XAPCalculation)
@@ -36,7 +36,7 @@ func TestGetXAPCalculations(t *testing.T) {
 
 func TestGetUserThroughputCalculations(t *testing.T) {
 	userThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userThroughputMetricName}, userThroughputLabels)
-	calcs := getUserThroughputCalculations([]int{1, 7, 30}, userThroughputGauge, "metricName", nil)
+	calcs := getUserThroughputCalculations([]int{1, 7, 30}, userThroughputGauge, "metricName")
 	assert.Len(t, calcs, 6)
 	for _, calc := range calcs {
 		c := calc.(*cwf_calculations.UserThroughputCalculation)
@@ -46,7 +46,7 @@ func TestGetUserThroughputCalculations(t *testing.T) {
 
 func TestGetUserConsumptionCalculations(t *testing.T) {
 	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, userConsumptionLabels)
-	calcs := getUserConsumptionCalculations([]int{1, 7, 30}, userConsumptionGauge, "metricName", nil)
+	calcs := getUserConsumptionCalculations([]int{1, 7, 30}, userConsumptionGauge, "metricName")
 	assert.Len(t, calcs, 6)
 	for _, calc := range calcs {
 		c := calc.(*cwf_calculations.UserConsumptionCalculation)
@@ -56,7 +56,7 @@ func TestGetUserConsumptionCalculations(t *testing.T) {
 
 func TestGet1hourUserConsumptionCalculations(t *testing.T) {
 	userConsumptionGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: userConsumptionMetricName}, hourlyUserConsumptionLabels)
-	calcs := get1hourConsumptionCalculation(userConsumptionGauge, "metricName", nil)
+	calcs := get1hourConsumptionCalculation(userConsumptionGauge, "metricName")
 	assert.Len(t, calcs, 2)
 	for _, calc := range calcs {
 		c := calc.(*cwf_calculations.UserConsumptionCalculation)
@@ -66,7 +66,7 @@ func TestGet1hourUserConsumptionCalculations(t *testing.T) {
 
 func TestGetAPThroughputCalculations(t *testing.T) {
 	apThroughputGauge := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: apThroughputMetricName}, apThroughputLabels)
-	calcs := getAPNThroughputCalculations([]int{1, 7, 30}, apThroughputGauge, "metricName", nil)
+	calcs := getAPNThroughputCalculations([]int{1, 7, 30}, apThroughputGauge, "metricName")
 	assert.Len(t, calcs, 6)
 	for _, calc := range calcs {
 		c := calc.(*cwf_calculations.APNThroughputCalculation)
@@ -76,7 +76,7 @@ func TestGetAPThroughputCalculations(t *testing.T) {
 
 func TestGetAuthenticationCalculations(t *testing.T) {
 	authenticationsGague := prometheus.NewGaugeVec(prometheus.GaugeOpts{Name: authenticationsMetricName}, authenticationsLabels)
-	calcs := getAuthenticationCalculations(daysToCalculate, authenticationsGague, "metricName", nil)
+	calcs := getAuthenticationCalculations(daysToCalculate, authenticationsGague, "metricName")
 	assert.Len(t, calcs, 3)
 	for _, calc := range calcs {
 		c := calc.(*cwf_calculations.AuthenticationsCalculation)

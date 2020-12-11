@@ -26,41 +26,38 @@ import (
 	v1 "github.com/prometheus/client_golang/api/prometheus/v1"
 )
 
-//APNThroughputCalculation APN throughput calc params
-//query step size or query resolution determines how many points are evaluated for a given time range
-type APNThroughputCalculation struct {
-	calculations.CalculationParams
+// UserThroughputCalculation params for computing average user throughput
+type UserThroughputCalculation struct {
+	calculations.BaseCalculation
 	QueryStepSize time.Duration
 	Direction     calculations.ConsumptionDirection
 }
 
-//Calculate method computes the throughput per APN/networkID for a required time range
-func (x *APNThroughputCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
-	glog.Infof("Calculating AP Throughput. Days: %d, Direction: %s", x.Days, x.Direction)
-	// Get datapoints for throughput when the value is not 0 segmented by apn
-	avgRateQuery := fmt.Sprintf(`avg(rate(octets_%s[3m]) > 0) by (%s, %s)`, x.Direction, calculations.APNLabel, metrics.NetworkLabelName)
+//Calculate method calculations average user throughput across the specified direction
+func (x *UserThroughputCalculation) Calculate(prometheusClient query_api.PrometheusAPI) ([]*protos.CalculationResult, error) {
+	glog.V(1).Infof("Calculating User Throughput. Days: %d, Direction: %s", x.Days, x.Direction)
+	// Get datapoints for throughput when the value is not 0 segmented
+	avgRateQuery := fmt.Sprintf(`avg(rate(octets_%s[3m]) > 0) by (%s)`, x.Direction, metrics.NetworkLabelName)
 
 	timeRange := v1.Range{End: time.Now(), Start: time.Now().Add(-time.Duration(x.Days * int(time.Hour) * 24)), Step: x.QueryStepSize}
 	avgRateMatrix, err := query_api.QueryPrometheusMatrix(prometheusClient, avgRateQuery, timeRange)
 	if err != nil {
-		return nil, fmt.Errorf("AP Throughput query error: %s", err)
+		return nil, fmt.Errorf("user Throughput query error: %s", err)
 	}
 
 	results := make([]*protos.CalculationResult, 0)
 	for _, apnAverages := range avgRateMatrix {
-		apn := string(apnAverages.Metric[calculations.APNLabel])
 		nID := string(apnAverages.Metric[metrics.NetworkLabelName])
 		avgThroughputOverTime := calculations.AverageDatapoints(apnAverages.Values)
-		if apn == "" || nID == "" {
-			glog.Errorf("Missing tags from AP Throughput Calculation: APN: %s, NetworkID: %s", apn, nID)
+		if nID == "" {
+			glog.Error("Missing NetworkID from Throughput Calculation")
 			continue
 		}
 		results = append(results, &protos.CalculationResult{
 			Value:      avgThroughputOverTime,
 			MetricName: x.Name,
-			Labels:     calculations.CombineLabels(x.Labels, map[string]string{calculations.APNLabel: apn, metrics.NetworkLabelName: nID, calculations.DirectionLabel: string(x.Direction)}),
+			Labels:     calculations.CombineLabels(x.Labels, map[string]string{metrics.NetworkLabelName: nID, calculations.DirectionLabel: string(x.Direction)}),
 		})
 	}
-	calculations.RegisterResults(x.CalculationParams, results)
 	return results, nil
 }

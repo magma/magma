@@ -14,8 +14,10 @@ useGRPCExporter: true
 prometheusGRPCPushAddress: "prometheus-cache:9092"
 
 analytics:
+  # Metrics in this Orchestrator configuration should strictly be generic in nature
+  # independent of the type of deployment. It is to be also free of any user level
+  # metrics
   metrics:
-    # reliability metrics
     cpu_percent:
       expr: avg_over_time(cpu_percent[3h])
       export: false

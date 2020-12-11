@@ -10,11 +10,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 analytics:
-  aggrMetricThreshold: 100
+  minUserThreshold: 100
   metrics:
     subscriber_attach_success_percent:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - reliability
@@ -22,7 +22,7 @@ analytics:
 
     subscriber_attach_reject_percent:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - reliability
@@ -30,7 +30,7 @@ analytics:
 
     subscriber_duplicate_attach_count:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - reliability
@@ -38,7 +38,7 @@ analytics:
 
     service_request_success_percent:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - reliability
@@ -46,7 +46,7 @@ analytics:
 
     session_create_success_percent:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - reliability
@@ -54,21 +54,21 @@ analytics:
 
     backhaul_latency:
       register: false
-      export: false
+      export: true
       class:
         - reliability
       expr: sum(magmad_ping_rtt_ms{service="magmad",host="8.8.8.8",metric="rtt_ms"}) by (gatewayID, networkID)
 
     gateway_throughput:
       register: false
-      export: false
+      export: true
       class:
         - network
       expr: sum(gtp_port_user_plane_dl_bytes) by (gatewayID)
 
     enodeb_throughput:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - network
@@ -76,7 +76,7 @@ analytics:
 
     connected_ues:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - network
@@ -84,7 +84,7 @@ analytics:
 
     unique_subscribers:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - engagement
@@ -92,24 +92,60 @@ analytics:
 
     new_subscribers:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - engagement
       expr: sum(group(ue_reported_usage) by (IMSI)  unless group(ue_reported_usage offset 1d) by (IMSI))
 
-    ue_throughput_ul_avg:
+    subscriber_throughput:
       register: false
-      export: false
+      export: true
       enforceMinThreshold: true
       class:
         - engagement
-      expr: avg(rate(ue_reported_usage{direction="up"}[3h]))
 
-    ue_throughput_dl_avg:
+    network_count:
       register: false
-      export: false
+      export: true
+      class:
+        - network
+
+    enodeb_connected_count:
+      register: false
+      export: true
+      class:
+        - site
+
+    enodeb_configtype_count:
+      register: false
+      export: true
+      class:
+        - site
+
+    gateway_version_count:
+      register: false
+      export: true
+      class:
+        - site
+
+    actual_subscriber_count:
+      register: false
+      export: true
       enforceMinThreshold: true
       class:
         - engagement
-      expr: sum(avg_over_time(ue_reported_usage{direction="up"}[3h])) by (IMSI)
+
+    active_sessions_apn_count:
+      register: false
+      export: true
+      enforceMinThreshold: true
+      class:
+        - engagement
+
+    configured_subscribers_count:
+      register: false
+      export: true
+      enforceMinThreshold: true
+      class:
+        - engagement
