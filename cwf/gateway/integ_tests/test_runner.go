@@ -329,6 +329,7 @@ func (tr *TestRunner) WaitForNoEnforcementStatsForRule(imsi string, ruleIDs ...s
 			return false
 		}
 		if records[prependIMSIPrefix(imsi)] == nil {
+			fmt.Printf("%s are no longer in enforcement stats!\n", imsi)
 			return true
 		}
 		for _, ruleID := range ruleIDs {
