@@ -25,7 +25,7 @@ Magma has three major components:
 ![Magma architecture diagram](docs/readmes/assets/magma_overview.png?raw=true "Magma Architecture")
 
 ## Usage Docs
-The documentation for developing and using Magma is available at: [https://magma.github.io/magma](https://magma.github.io/magma)
+The documentation for developing and using Magma is available at: [https://docs.magmacore.org/docs/basics/introduction.html](https://docs.magmacore.org)
 
 ## Join the Magma Community
 
