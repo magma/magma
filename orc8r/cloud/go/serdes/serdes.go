@@ -17,6 +17,7 @@ import (
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/serde"
 	directoryd_types "magma/orc8r/cloud/go/services/directoryd/types"
+	ctraced_models "magma/orc8r/cloud/go/services/ctraced/obsidian/models"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
 	"magma/orc8r/cloud/go/services/state"
 )
@@ -29,7 +30,8 @@ var (
 	// Network contains the base orc8r serdes for configurator network configs
 	Network = models.NetworkSerdes
 	// Entity contains the base orc8r serdes for configurator network entities
-	Entity = models.EntitySerdes
+	Entity = models.EntitySerdes.
+		MustMerge(ctraced_models.EntitySerdes)
 	// State contains the base orc8r serdes for the state service
 	State = serde.NewRegistry(
 		state.NewStateSerde(orc8r.GatewayStateType, &models.GatewayStatus{}),
