@@ -502,7 +502,9 @@ int s1ap_mme_handle_s1_setup_request(
           &supp_ta_list->supported_tai_items[tai_idx].bplmns[plmn_idx]);
     }
   }
-  OAILOG_DEBUG(LOG_S1AP, "Adding eNB to the list of served eNBs\n");
+  OAILOG_DEBUG(
+      LOG_S1AP, "Adding eNB with enb_id :%d to the list of served eNBs \n",
+      enb_id);
 
   enb_association->enb_id = enb_id;
 
