@@ -72,11 +72,6 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
                               ["--timeout=30"]
       ansible.verbose = 'v'
     end
-
-    magma.vm.provision "shell",
-      run: "always",
-      inline: "sudo apt-get -y remove oai-asn1c && sudo apt-get -y install oai-asn1c-rel15"
-
   end
 
   config.vm.define :magma_trfserver, autostart: false do |magma_trfserver|
@@ -257,4 +252,3 @@ Vagrant.configure(VAGRANTFILE_API_VERSION) do |config|
   end
 
 end
-

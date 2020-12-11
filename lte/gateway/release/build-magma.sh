@@ -121,7 +121,7 @@ MAGMA_DEPS=(
 OAI_DEPS=(
     "libasan3"
     "libconfig9"
-    "oai-asn1c-rel15"
+    "oai-asn1c"
     "oai-freediameter >= 1.2.0-1"
     "oai-gnutls >= 3.1.23"
     "oai-nettle >= 1.0.1"
