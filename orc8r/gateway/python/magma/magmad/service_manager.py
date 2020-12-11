@@ -14,13 +14,17 @@ limitations under the License.
 import asyncio
 import json
 import logging
-import subprocess
 from enum import Enum
 from typing import List, Tuple
 
 from magma.magmad.service_poller import ServicePoller
+from magma.magmad.check import subprocess_workflow
+from magma.configuration.service_configs import (
+    load_override_config,
+    load_service_config,
+    save_override_config,
+)
 import magma.magmad.events as magmad_events
-
 
 class ServiceState(Enum):
     """
@@ -41,6 +45,8 @@ class CommandReturn(object):
         self.status_code = status_code
         self.std_out = std_out
 
+def _get_service_restart_args_list(service_name):
+    return [ "service", service_name, "restart"]
 
 class ServiceManager(object):
     """
@@ -50,6 +56,18 @@ class ServiceManager(object):
     _service_control = {}
     _services = []
     _registered_dynamic_services = []
+
+    _return_codes = Enum(
+        "return_codes", "STATELESS STATEFUL CORRUPT INVALID", start=0
+    )
+
+    STATELESS_SERVICE_CONFIGS = [
+        ("mme", "use_stateless", True),
+        ("mobilityd", "persist_to_redis", True),
+        ("pipelined", "clean_restart", False),
+        ("pipelined", "redis_enabled", True),
+        ("sessiond", "support_stateless", True),
+    ]
 
     def __init__(
             self,
@@ -158,6 +176,72 @@ class ServiceManager(object):
             else:
                 clean_dynamic_services.append(s)
         return clean_dynamic_services
+
+    def _check_stateless_service_config(self, service, config_name, config_value):
+        service_config = load_service_config(service)
+        if service_config.get(config_name) == config_value:
+            logging.info("STATELESS\t%s -> %s" % (service, config_name))
+            return self._return_codes.STATELESS
+
+        logging.info("STATEFUL\t%s -> %s" % (service, config_name))
+        return self._return_codes.STATEFUL
+
+
+    def check_stateless_services(self):
+        num_stateful = 0
+        for service, config, value in self.STATELESS_SERVICE_CONFIGS:
+            if (
+                self._check_stateless_service_config(service, config, value)
+                == self._return_codes.STATEFUL
+            ):
+                num_stateful += 1
+
+        if num_stateful == 0:
+            res = self._return_codes.STATELESS
+        elif num_stateful == len(self.STATELESS_SERVICE_CONFIGS):
+            res = self._return_codes.STATEFUL
+        else:
+            res = self._return_codes.CORRUPT
+
+        logging.info("Check returning %s", res.name)
+        return res
+
+    def _restart_sctpd():
+        if os.getuid() != 0:
+            logging.info("Need to run as root to restart sctpd.")
+            return
+        logging.info("Restarting sctpd")
+        subprocess_workflow.exec_and_parse_subprocesses("sctpd",
+                _get_service_restart_args_list, None)
+        # delay return after restarting so that Magma and OVS services come up
+        #time.sleep(30)
+
+
+    def enable_stateless_agw(self):
+        if self.check_stateless_services() == self._return_codes.STATELESS:
+            logging.info("Nothing to enable, AGW is stateless")
+        for service, config, value in self.STATELESS_SERVICE_CONFIGS:
+            cfg = load_override_config(service) or {}
+            cfg[config] = value
+            save_override_config(service, cfg)
+
+        # restart Sctpd so that eNB connections are reset and local state cleared
+        self._restart_sctpd()
+
+    def disable_stateless_agw(self):
+        if self.check_stateless_services() == self._return_codes.STATEFUL:
+            logging.info("Nothing to disable, AGW is stateful")
+        for service, config, value in self.STATELESS_SERVICE_CONFIGS:
+            cfg = load_override_config(service) or {}
+
+            # remove the stateless override
+            cfg.pop(config, None)
+
+            save_override_config(service, cfg)
+
+        # restart Sctpd so that eNB connections are reset and local state cleared
+        self._restart_sctpd()
+
 
     class ServiceControl(object):
         """

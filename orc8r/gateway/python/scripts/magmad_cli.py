@@ -97,10 +97,10 @@ def tail_logs(client, args):
 
 @grpc_wrapper
 def config_stateless(client, args):
-    check_cmd=magmad_pb2.StatelessConfig.CHECK
+    check_cmd=magmad_pb2.StatelessConfigRequest.CHECK
     print("Check cmd", check_cmd)
-    response = client.ConfigureStateless(
-            magmad_pb2.StatelessConfig(config_cmd=check_cmd))
+    client.ConfigureStateless(
+            magmad_pb2.StatelessConfigRequest(config_cmd=check_cmd))
 
 def create_parser():
     """

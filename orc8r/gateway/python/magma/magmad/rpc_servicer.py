@@ -12,8 +12,6 @@ limitations under the License.
 """
 import queue
 import signal
-import shlex
-import subprocess
 
 import grpc
 
@@ -263,18 +261,16 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         enable: Modify AGW config to be stateless
         disable: Modify AGW config to be stateful
         """
-        config_cmd = \
-        magmad_pb2.StatelessConfig.ConfigCmd.Name(request.config_cmd).lower()
-        logging.info("RPC: config command %s", config_cmd)
-        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
-        sudo_cmd = "sudo -E PATH=$PATH PYTHONPATH=$PYTHONPATH"
-        command = magtivate_cmd + " && " + sudo_cmd + " python3 \
-                /usr/local/bin/config_stateless_agw.py " + config_cmd
-        param_list = (command)
-        logging.info("Subprocess command %s", command)
-        result = subprocess.call(param_list, shell=True)
-        # stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
-        logging.info("Config_stateless_agw.py returned %d", result)
+        if request.config_cmd == magmad_pb2.StatelessConfigRequest.CHECK:
+            logging.info("RPC: config command check")
+            self._service_manager.check_stateless_services()
+        elif request.config_cmd == magmad_pb2.StatelessConfigRequest.ENABLE:
+            logging.info("RPC: config command enable")
+            self._service_manager.enable_stateless_agw()
+        elif request.config_cmd == magmad_pb2.StatelessConfigRequest.DISABLE:
+            logging.info("RPC: config command disable")
+            self._service_manager.disable_stateless_agw()
+
 
     @staticmethod
     def __ping_specified_hosts(ping_param_protos):

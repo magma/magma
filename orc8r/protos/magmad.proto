@@ -93,7 +93,7 @@ message LogLine {
   string line = 1;
 }
 
-message StatelessConfig {
+message StatelessConfigRequest {
   enum ConfigCmd {
     CHECK = 0;
     DISABLE = 1;
@@ -138,5 +138,5 @@ service Magmad {
   rpc TailLogs (TailLogsRequest) returns (stream LogLine) {}
 
   // Configure stateless mode
-  rpc ConfigureStateless (StatelessConfig) returns (Void) {}
+  rpc ConfigureStateless (StatelessConfigRequest) returns (Void) {}
 }
