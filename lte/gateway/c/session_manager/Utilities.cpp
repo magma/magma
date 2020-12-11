@@ -47,4 +47,12 @@ std::chrono::milliseconds time_difference_from_now(
   return std::chrono::duration_cast<std::chrono::milliseconds>(sec);
 }
 
+std::chrono::milliseconds time_difference_from_now(
+    const std::time_t timestamp) {
+  const auto now   = time(nullptr);
+  const auto delta = std::max(timestamp - now, 0L);
+  std::chrono::seconds sec(delta);
+  return std::chrono::duration_cast<std::chrono::milliseconds>(sec);
+}
+
 }  // namespace magma

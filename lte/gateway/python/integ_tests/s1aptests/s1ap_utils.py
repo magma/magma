@@ -776,6 +776,12 @@ class MagmadUtil(object):
         else:
             print("APN Correction failed")
 
+    def restart_mme_and_wait(self):
+        print("Restarting mme service on gateway")
+        self.restart_services(["mme"])
+        print("Waiting for mme to restart. 20 sec")
+        time.sleep(20)
+
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """
 
