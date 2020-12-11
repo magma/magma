@@ -34,6 +34,8 @@ VERSION="${PKGVERSION}"-"${ITERATION}"
 
 PKGNAME=oai-asn1c
 
+if_subcommand_exec
+
 function configureopts() {
     if [ "${ARCH}" = "arm64" ]; then
         echo --build=arm-linux-gnu
