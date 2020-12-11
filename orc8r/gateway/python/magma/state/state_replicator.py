@@ -135,11 +135,17 @@ class StateReplicator(SDWatchdogTask):
                     continue
 
                 redis_state = redis_dict.get(key)
-                if redis_dict.state_format == PROTO_FORMAT:
-                    state_to_serialize = MessageToDict(redis_state)
-                    serialized_json_state = json.dumps(state_to_serialize)
-                else:
-                    serialized_json_state = jsonpickle.encode(redis_state)
+                try:
+                    if redis_dict.state_format == PROTO_FORMAT:
+                        state_to_serialize = MessageToDict(redis_state)
+                        serialized_json_state = json.dumps(state_to_serialize)
+                    else:
+                        serialized_json_state = jsonpickle.encode(redis_state)
+                except Exception as e:  # pylint: disable=broad-except
+                    logging.error("Found bad state for %s for %s, not "
+                                  "replicating this state: %s",
+                                  key, device_id, e)
+                    continue
                 state_proto = State(type=redis_dict.redis_type,
                       deviceID=device_id,
                       value=serialized_json_state.encode("utf-8"),
