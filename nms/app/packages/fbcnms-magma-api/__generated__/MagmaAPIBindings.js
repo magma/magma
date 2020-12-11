@@ -6446,7 +6446,7 @@ export default class MagmaAPIBindings {
             [string]: subscriber_state,
         } >
         {
-            let path = '/lte/{network_id}/subscriber_state/';
+            let path = '/lte/{network_id}/subscriber_state';
             let body;
             let query = {};
             if (parameters['networkId'] === undefined) {

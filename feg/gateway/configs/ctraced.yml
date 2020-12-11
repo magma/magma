@@ -11,3 +11,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 log_level: INFO
+
+# Directory for temporary storage of packet captures
+trace_directory: /var/opt/magma/tmp/trace
+
+# Interface to capture on
+trace_interfaces:
+  - eth0
+
+# Options available:
+#   - tshark
+#   - tcpdump
+# tshark has more capabilities - see command_builder.py
+trace_tool: tshark

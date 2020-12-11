@@ -53,9 +53,6 @@ const (
 	// ActualSubscribersMetric - Number of subscribers have some session state
 	ActualSubscribersMetric = "actual_subscriber_count"
 
-	// ActiveSessionGatewayMetric - Number of active user sessions in a gateway
-	ActiveSessionGatewayMetric = "active_sessions_gateway_count"
-
 	// ActiveSessionAPNMetric - Number of active user sessions in a apn
 	ActiveSessionAPNMetric = "active_sessions_apn_count"
 
@@ -93,11 +90,11 @@ func (x *GeneralMetricsCalculation) Calculate(prometheusClient query_api.Prometh
 	for _, networkID := range networks {
 		network, err := configurator.LoadNetwork(networkID, true, true, serdes.Network)
 		if err == merrors.ErrNotFound {
-			glog.Infof("error network %s not found", networkID)
+			glog.Errorf("network %s not found", networkID)
 			continue
 		}
 		if err != nil {
-			glog.Infof("error %v loading network %s", err, networkID)
+			glog.Errorf("Failed %v loading network %s", err, networkID)
 			continue
 		}
 		ret := (&models.Network{}).FromConfiguratorNetwork(network)
@@ -149,24 +146,39 @@ func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 		}
 		users := make(map[string]struct{})
 		var exists = struct{}{}
-		var activeSessionsPerGateway map[string]float64
-		var activeSessionsPerAPN map[string]float64
+		activeSessionsPerAPN := make(map[string]float64)
 		for stateID, st := range states {
-			reportedSt := st.ReportedState.(*map[string]string)
-			sessionState, _ := (*reportedSt)["lifecycle_state"]
-			deviceID, _ := (*reportedSt)["device_id"]
-			apnID, _ := (*reportedSt)["apn"]
-			users[stateID.DeviceID] = exists
-			if sessionState == "SESSION_ACTIVE" && deviceID != "" && apnID != "" {
-				activeSessionsPerGateway[deviceID]++
-				activeSessionsPerAPN[apnID]++
+			if st.ReportedState != nil {
+				reportedSt, ok := st.ReportedState.(*state.ArbitraryJSON)
+				if !ok {
+					glog.Errorf("reported state for session state having unexpected type %T", st.ReportedState)
+					continue
+				}
+				users[stateID.DeviceID] = exists
+				for apnID, apnSessionStatesIntf := range *reportedSt {
+					apnSessionStates, ok := apnSessionStatesIntf.([]interface{})
+					if !ok {
+						glog.Errorf("apnSession states got unexpected type %T", apnSessionStatesIntf)
+						continue
+					}
+					for _, apnSessionStateIntf := range apnSessionStates {
+						sessionState, ok := apnSessionStateIntf.(map[string]interface{})
+						if !ok {
+							glog.Errorf("apnSession state got unexpected type %T", apnSessionStateIntf)
+							continue
+						}
+						if sessionStateIntf, ok := (sessionState)["lifecycle_state"]; ok {
+							if sessionState, ok := sessionStateIntf.(string); ok {
+								if sessionState == "SESSION_ACTIVE" {
+									activeSessionsPerAPN[apnID]++
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 		results = append(results, calculations.NewResult(float64(len(users)), ActualSubscribersMetric, labels))
-		for deviceID, numActiveSessionsPerDevice := range activeSessionsPerGateway {
-			labels := prometheus.Labels{metrics.NetworkLabelName: networkID, metrics.GatewayLabelName: deviceID}
-			results = append(results, calculations.NewResult(float64(numActiveSessionsPerDevice), ActiveSessionGatewayMetric, labels))
-		}
 		for apnID, numActiveSessionsPerAPN := range activeSessionsPerAPN {
 			labels := prometheus.Labels{metrics.NetworkLabelName: networkID, APNLabel: apnID}
 			results = append(results, calculations.NewResult(float64(numActiveSessionsPerAPN), ActiveSessionAPNMetric, labels))

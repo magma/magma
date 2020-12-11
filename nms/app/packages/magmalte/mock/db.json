@@ -1787,6 +1787,220 @@
       }
     }
   },
+  "subscriber_state":{
+    "IMSI001010002220018": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220018-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_ACTIVE",
+            "session_id": "IMSI001010002220018-871689",
+            "active_duration_sec": 116,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415561",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220019": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220019-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_TERMINATED",
+            "session_id": "IMSI001010002220019-871689",
+            "active_duration_sec": 128,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "11",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220020": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220021-internet",
+                "priority":1,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_TERMINATING",
+            "session_id": "IMSI001010002220021-00000",
+            "active_duration_sec": 1,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415287",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    },
+    "IMSI001010002220021": {
+      "directory": {
+        "location_history": [
+          "string"
+        ]
+      },
+      "mme": {},
+      "mobility": [
+        {
+          "apn": "oai.ipv4",
+          "ip": "192.168.100.2"
+        }
+      ],
+      "s1ap": {},
+      "spgw": {},
+      "subscriber_state": {
+        "internet": [
+          {
+            "active_policy_rules": [
+              {
+                "id":"allowlist_sid-IMSI001010002220021-internet",
+                "priority":2,
+                "flowList":[
+                  {
+                    "action": "PERMIT",
+                    "match":{
+                      "direction":"UPLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  },
+                  {
+                    "action": "PERMIT",
+                    "match": {
+                      "direction":"DOWNLINK",
+                      "ip_proto": "IPPROTO_IP" 
+                    }
+                  }
+                ],
+              "tracking_type":"NO_TRACKING"
+              }
+            ],
+            "lifecycle_state": "SESSION_ACTIVE",
+            "session_id": "IMSI001010002220021-871689",
+            "active_duration_sec": 116528,
+            "msisdn": "",
+            "apn": "internet",
+            "session_start_time": "1607415281",
+            "ipv4": "192.168.128.214"
+          }
+        ]
+
+      }
+    }
+  },
   "tiers": [
     "beta"
   ],
