@@ -13,6 +13,7 @@ limitations under the License.
 
 import codecs
 import hashlib
+import gzip
 from Crypto.Cipher import ARC4
 from Crypto.Cipher import AES
 from Crypto.Hash import HMAC
@@ -30,7 +31,6 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
         cipher = ARC4.new(key)
         ret = cipher.encrypt(s).hex()
     elif encryption_algorithm == PipelineD.HEConfig.AES256_CBC_HMAC_MD5:
-        # Assuming provided key is valid 256 bytes
         iv = get_random_bytes(16)
         key_val = key
         key_mac = mac
@@ -43,7 +43,6 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
 
         ret = hmac.hexdigest() + iv.hex() + enc.hex()
     elif encryption_algorithm == PipelineD.HEConfig.AES256_ECB_HMAC_MD5:
-        # Assuming provided key is valid 256 bytes
         key_val = key
         key_mac = mac
 
@@ -54,10 +53,7 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
         hmac.update(enc)
 
         ret = hmac.hexdigest() + enc.hex()
-        print("This be ecb")
-        print(ret)
     elif encryption_algorithm == PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1:
-        # Assuming provided key is valid 256 bytes
         key_val = key
         key_mac = mac
 
@@ -66,69 +62,73 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
 
         hmac = HMAC.new(key_mac)
         hmac.update(enc)
-
-        ret = hmac.hexdigest() + enc.hex()
+        ret = gzip.compress(hmac.digest() + enc)
     return ret
 
 
-def decrypt_str(data: str, key: bytes, encryption_algorithm, mac):
+def decrypt_str(data: str, key: bytes, encryption_algorithm, mac) -> str:
+    ret = ""
     if encryption_algorithm == PipelineD.HEConfig.RC4:
-        return data
+        cipher = ARC4.new(key)
+        ret = cipher.decrypt(data).hex()
     elif encryption_algorithm == PipelineD.HEConfig.AES256_CBC_HMAC_MD5:
         verify = data[0:32]
-        print(verify)
         hmac = HMAC.new(mac)
         hmac.update(codecs.decode(data[32:], 'hex_codec'))
 
-        print("decrypted ->")
-        print(hmac.hexdigest())
         if hmac.hexdigest() != verify:
             return ""
 
-        # decrypt
         iv = codecs.decode(data[32:64], 'hex_codec')
-        print(data[32:64])
-        print(iv)
         cipher = AES.new(key, AES.MODE_CBC, iv)
         decrypted = cipher.decrypt(codecs.decode(data[64:], 'hex_codec'))
-        print(codecs.decode(data[64:], 'hex_codec'))
-        print(decrypted)
-        return decrypted.decode("utf-8").strip()
+        ret = decrypted.decode("utf-8").strip()
     elif encryption_algorithm == PipelineD.HEConfig.AES256_ECB_HMAC_MD5:
         verify = data[0:32]
-        print(verify)
         hmac = HMAC.new(mac)
         hmac.update(codecs.decode(data[32:], 'hex_codec'))
 
-        print("decrypted ->")
-        print(hmac.hexdigest())
         if hmac.hexdigest() != verify:
             return ""
 
         cipher = AES.new(key, AES.MODE_ECB)
         decrypted = cipher.decrypt(codecs.decode(data[32:], 'hex_codec'))
-        print(codecs.decode(data[32:], 'hex_codec'))
-        print(decrypted)
-        return decrypted.decode("utf-8").strip()
+        ret = decrypted.decode("utf-8").strip()
+    elif encryption_algorithm == PipelineD.HEConfig.GZIPPED_AES256_ECB_SHA1:
+        # Convert to hex str
+        hexlify = codecs.getencoder('hex')
+        data = hexlify(gzip.decompress(data))[0].decode('utf-8')
+
+        verify = data[0:32]
+        hmac = HMAC.new(mac)
+        hmac.update(codecs.decode(data[32:], 'hex_codec'))
+
+        if hmac.hexdigest() != verify:
+            return ""
+
+        cipher = AES.new(key, AES.MODE_ECB)
+        decrypted = cipher.decrypt(codecs.decode(data[32:], 'hex_codec'))
+        ret = decrypted.decode("utf-8").strip()
+    return ret
 
 
 def get_hash(s: str, hash_function) -> bytes:
-    hash_bin = ""
+    hash_bytes = ""
     if hash_function == PipelineD.HEConfig.MD5:
         m = hashlib.md5()
         m.update(s.encode('utf-8'))
-        hash_bin = m.digest()
+        hash_bytes = m.digest()
     elif hash_function == PipelineD.HEConfig.HEX:
         hexlify = codecs.getencoder('hex')
-        hash_bin = hexlify(s.encode('utf-8'))[0]
+        hash_bytes = hexlify(s.encode('utf-8'))[0]
     elif hash_function == PipelineD.HEConfig.SHA256:
         m = hashlib.sha256()
         m.update(s.encode('utf-8'))
-        hash_bin = m.digest()
-    return hash_bin
+        hash_bytes = m.digest()
+    return hash_bytes
 
 
-def encode_str(s: str, encoding_type):
+def encode_str(s: str, encoding_type) -> bytes:
     if encoding_type == PipelineD.HEConfig.BASE64:
         s = codecs.encode(codecs.decode(s, 'hex'), 'base64').decode()
     elif encoding_type == PipelineD.HEConfig.HEX2BIN:
