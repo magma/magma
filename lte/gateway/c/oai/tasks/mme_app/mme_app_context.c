@@ -2397,29 +2397,29 @@ static void mme_app_resume_timers(
 static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
   OAILOG_FUNC_IN(LOG_MME_APP);
   for (int idx = 0; idx < BEARERS_PER_UE; idx++) {
-    if (ue_context_p->bearer_contexts[idx]) {
-      ue_context_p->bearer_contexts[idx]->esm_ebr_context.timer.id =
-          NAS_TIMER_INACTIVE_ID;
-      pdn_cid_t pdn_cid = ue_context_p->bearer_contexts[idx]->pdn_cx_id;
+    bearer_context_t* bearer_context_p = ue_context_p->bearer_contexts[idx];
+    if (bearer_context_p) {
+      bearer_context_p->esm_ebr_context.timer.id = NAS_TIMER_INACTIVE_ID;
+      pdn_cid_t pdn_cid                          = bearer_context_p->pdn_cx_id;
       // Below check is added to identify default and dedicated bearer
       if (ue_context_p->pdn_contexts[pdn_cid] &&
           (ue_context_p->pdn_contexts[pdn_cid]->default_ebi ==
-           ue_context_p->bearer_contexts[idx]->ebi)) {
+           bearer_context_p->ebi)) {
         // Invoke callback registered for default bearer's activation
-        if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
-            (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
+        if ((bearer_context_p->esm_ebr_context.args) &&
+            (bearer_context_p->esm_ebr_context.status ==
              ESM_EBR_ACTIVE_PENDING)) {
           default_eps_bearer_activate_t3485_handler(
-              ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
+              bearer_context_p->esm_ebr_context.args,
               &ue_context_p->emm_context._imsi64);
         }
       } else {
         // Invoke callback registered for dedicated bearer's activation
-        if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
-            (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
+        if ((bearer_context_p->esm_ebr_context.args) &&
+            (bearer_context_p->esm_ebr_context.status ==
              ESM_EBR_ACTIVE_PENDING)) {
           dedicated_eps_bearer_activate_t3485_handler(
-              ue_context_p->bearer_contexts[idx]->esm_ebr_context.args,
+              bearer_context_p->esm_ebr_context.args,
               &ue_context_p->emm_context._imsi64);
         }
       }

@@ -369,20 +369,21 @@ int spgw_update_teid_in_ue_context(
         "Failed to get UE context for sgw_s11_teid " TEID_FMT "\n", teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
+
   sgw_s11_teid_t* sgw_s11_teid_p =
       (sgw_s11_teid_t*) calloc(1, sizeof(sgw_s11_teid_t));
-  if (sgw_s11_teid_p) {
-    sgw_s11_teid_p->sgw_s11_teid = teid;
-    LIST_INSERT_HEAD(&ue_context_p->sgw_s11_teid_list, sgw_s11_teid_p, entries);
-    OAILOG_DEBUG(
-        LOG_SPGW_APP,
-        "Inserted sgw_s11_teid to list of teids of UE context" TEID_FMT "\n",
-        teid);
-    OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
-  } else {
+  if (!sgw_s11_teid_p) {
     OAILOG_ERROR_UE(
         LOG_SPGW_APP, imsi64,
         "Failed to allocate memory for sgw_s11_teid:" TEID_FMT "\n", teid);
     OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNerror);
   }
+
+  sgw_s11_teid_p->sgw_s11_teid = teid;
+  LIST_INSERT_HEAD(&ue_context_p->sgw_s11_teid_list, sgw_s11_teid_p, entries);
+  OAILOG_DEBUG(
+      LOG_SPGW_APP,
+      "Inserted sgw_s11_teid to list of teids of UE context" TEID_FMT "\n",
+      teid);
+  OAILOG_FUNC_RETURN(LOG_SPGW_APP, RETURNok);
 }
