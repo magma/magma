@@ -152,7 +152,7 @@ ENVOY_DEPS=(
     "gnupg2"
     "software-properties-common"
     "getenvoy-envoy"
-)
+    )
 
 # generate string for FPM
 SYSTEM_DEPS=""
