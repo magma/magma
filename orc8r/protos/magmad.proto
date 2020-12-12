@@ -93,6 +93,16 @@ message LogLine {
   string line = 1;
 }
 
+message StatelessAgwMode {
+  enum AgwMode {
+    STATELESS = 0;
+    STATEFUL = 1;
+    CORRUPT = 2;
+    INVALID = 3;
+  }
+  AgwMode agw_mode = 1;
+}
+
 message StatelessConfigRequest {
   enum ConfigCmd {
     CHECK = 0;
@@ -136,6 +146,9 @@ service Magmad {
 
   // Get stream of logs
   rpc TailLogs (TailLogsRequest) returns (stream LogLine) {}
+
+  // Check stateless mode
+  rpc CheckStateless (Void) returns (StatelessAgwMode) {}
 
   // Configure stateless mode
   rpc ConfigureStateless (StatelessConfigRequest) returns (Void) {}

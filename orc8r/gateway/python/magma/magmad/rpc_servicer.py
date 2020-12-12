@@ -57,7 +57,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             services:
                 List of services that magmad manages
 
-            service_manager: ServiceManger instance
+            service_manager: ServiceManager instance
             mconfig_manager: MconfigManager instance
             loop: event loop
         """
@@ -254,17 +254,28 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
             except queue.Empty:
                 pass
 
+    def CheckStateless(self, _, context):
+        """
+        Check the stateless mode on AGW
+        """
+        logging.info("RPC: config command check")
+        status = self._service_manager.check_stateless_services()
+        logging.info("RPC: config response %s", status.name)
+        if status == ServiceManager._return_codes.STATEFUL:
+            return magmad_pb2.StatelessAgwMode(
+                    agw_mode=magmad_pb2.StatelessAgwMode.STATEFUL)
+        elif status == ServiceManager._return_codes.STATELESS:
+            return magmad_pb2.StatelessAgwMode(
+                    agw_mode=magmad_pb2.StatelessAgwMode.STATELESS)
+
+
     def ConfigureStateless(self, request, context):
         """
-        Check or change the stateless mode on AGW, with one of the following:
-        check: Return whether AGW is stateful or stateless
+        Change the stateless mode on AGW, with one of the following:
         enable: Modify AGW config to be stateless
         disable: Modify AGW config to be stateful
         """
-        if request.config_cmd == magmad_pb2.StatelessConfigRequest.CHECK:
-            logging.info("RPC: config command check")
-            self._service_manager.check_stateless_services()
-        elif request.config_cmd == magmad_pb2.StatelessConfigRequest.ENABLE:
+        if request.config_cmd == magmad_pb2.StatelessConfigRequest.ENABLE:
             logging.info("RPC: config command enable")
             self._service_manager.enable_stateless_agw()
         elif request.config_cmd == magmad_pb2.StatelessConfigRequest.DISABLE:

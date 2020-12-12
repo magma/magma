@@ -206,10 +206,7 @@ class ServiceManager(object):
         logging.info("Check returning %s", res.name)
         return res
 
-    def _restart_sctpd():
-        if os.getuid() != 0:
-            logging.info("Need to run as root to restart sctpd.")
-            return
+    def _restart_sctpd(self):
         logging.info("Restarting sctpd")
         subprocess_workflow.exec_and_parse_subprocesses("sctpd",
                 _get_service_restart_args_list, None)
