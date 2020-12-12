@@ -103,23 +103,33 @@ export default function SubscriberDetail() {
     <>
       <TopBar
         header={`Equipment/${subscriberInfo.name ?? subscriberId}`}
-        tabs={[
-          {
-            label: 'Overview',
-            to: '/overview',
-            icon: DashboardIcon,
-          },
-          {
-            label: 'Event',
-            to: '/event',
-            icon: MyLocationIcon,
-          },
-          {
-            label: 'Config',
-            to: '/config',
-            icon: SettingsIcon,
-          },
-        ]}
+        tabs={
+          !Object.keys(subscriberInfo).length
+            ? [
+                {
+                  label: 'Event',
+                  to: '/event',
+                  icon: MyLocationIcon,
+                },
+              ]
+            : [
+                {
+                  label: 'Overview',
+                  to: '/overview',
+                  icon: DashboardIcon,
+                },
+                {
+                  label: 'Event',
+                  to: '/event',
+                  icon: MyLocationIcon,
+                },
+                {
+                  label: 'Config',
+                  to: '/config',
+                  icon: SettingsIcon,
+                },
+              ]
+        }
       />
 
       <Switch>
