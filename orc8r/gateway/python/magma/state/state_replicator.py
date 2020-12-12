@@ -44,7 +44,8 @@ class StateReplicator(SDWatchdogTask):
                  service: MagmaService,
                  garbage_collector: GarbageCollector,
                  grpc_client_manager: GRPCClientManager):
-        super().__init__(DEFAULT_SYNC_INTERVAL, service.loop)
+        sync_interval = service.config.get('sync_interval', DEFAULT_SYNC_INTERVAL)
+        super().__init__(sync_interval, service.loop)
         self._service = service
         # Garbage collector to propagate deletions back to Orchestrator
         self._garbage_collector = garbage_collector
