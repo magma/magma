@@ -186,6 +186,7 @@ def clear_redis_and_restart():
 def flushall_redis_and_restart():
     _flushall_redis()
     _start_magmad()
+    _restart_sctpd()
     sys.exit(0)
 
 
