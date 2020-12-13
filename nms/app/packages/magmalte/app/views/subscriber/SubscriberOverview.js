@@ -309,6 +309,12 @@ function SubscriberTableRaw(props: WithAlert) {
                       ]
                     : [
                         {
+                          name: 'View JSON',
+                          handleFunc: () => {
+                            setJsonDialog(true);
+                          },
+                        },
+                        {
                           name: 'View',
                           handleFunc: () => {
                             history.push(relativeUrl('/' + currRow.imsi));
