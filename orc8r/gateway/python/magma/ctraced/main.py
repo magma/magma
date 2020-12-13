@@ -12,11 +12,18 @@ limitations under the License.
 """
 
 from magma.common.service import MagmaService
+from .rpc_servicer import CtraceDRpcServicer
+from .trace_manager import TraceManager
 from orc8r.protos.mconfig.mconfigs_pb2 import CtraceD
 
 def main():
     """ main() for ctraced """
     service = MagmaService('ctraced', CtraceD())
+
+    trace_manager = TraceManager(service.config)
+
+    ctraced_servicer = CtraceDRpcServicer(trace_manager)
+    ctraced_servicer.add_to_server(service.rpc_server)
 
     # Run the service loop
     service.run()
