@@ -282,6 +282,7 @@ commands:
 
             mkdir -p versions
             cp *_version versions || true
+          no_output_timeout: 20m
       - store_artifacts:
           path: /tmp/logs
       - store_test_results:
