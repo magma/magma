@@ -19,6 +19,7 @@ import argparse
 import os
 import subprocess
 import sys
+import shlex
 import time
 
 from enum import Enum
@@ -97,8 +98,7 @@ def _clear_redis_state():
             + "' | xargs redis-cli -p 6380 DEL"
         )
         subprocess.call(
-            redis_cmd,
-            shell=True,
+            shlex.split(redis_cmd),
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )

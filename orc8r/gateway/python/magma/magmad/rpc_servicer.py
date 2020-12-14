@@ -269,6 +269,7 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
                     agw_mode=magmad_pb2.StatelessAgwMode.STATELESS)
 
 
+    @return_void
     def ConfigureStateless(self, request, context):
         """
         Change the stateless mode on AGW, with one of the following:
