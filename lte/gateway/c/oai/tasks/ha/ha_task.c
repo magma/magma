@@ -21,10 +21,22 @@ limitations under the License.
 #include "common_defs.h"
 #include "intertask_interface_types.h"
 #include "itti_free_defined_msg.h"
+#include "timer.h"
+#include "timer_messages_types.h"
 
 static void ha_exit(void);
 
+static int ha_task_timer_id;
 task_zmq_ctx_t ha_task_zmq_ctx;
+
+#define HA_ORC8R_STATE_SYNC_PERIOD 300  // sync up every 5 minutes
+
+static int handle_timer(zloop_t* loop, int id, void* arg) {
+  OAILOG_INFO(
+      LOG_UTIL, "HA PERIODIC TIMER FIRED; SYNC UP THE eNB connection states");
+  sync_up_with_orc8r();
+  return 0;
+}
 
 static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
   zframe_t* msg_frame = zframe_recv(reader);
@@ -65,6 +77,10 @@ static void* ha_thread(__attribute__((unused)) void* args_p) {
   init_task_context(
       TASK_HA, (task_id_t[]){TASK_MME_APP}, 1, handle_message, task_zmq_ctx_p);
 
+  ha_task_timer_id = start_timer(
+      task_zmq_ctx_p, 1000 * HA_ORC8R_STATE_SYNC_PERIOD, TIMER_REPEAT_FOREVER,
+      handle_timer, NULL);
+
   zloop_start(task_zmq_ctx_p->event_loop);
   ha_exit();
   return NULL;
@@ -84,6 +100,7 @@ int ha_init(const mme_config_t* mme_config_p) {
 
 //------------------------------------------------------------------------------
 static void ha_exit(void) {
+  stop_timer(&ha_task_zmq_ctx, ha_task_timer_id);
   destroy_task_context(&ha_task_zmq_ctx);
   OAI_FPRINTF_INFO("TASK_HA terminated\n");
   pthread_exit(NULL);
