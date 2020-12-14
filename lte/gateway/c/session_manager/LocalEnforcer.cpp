@@ -2196,8 +2196,8 @@ static SubscriberQuotaUpdate make_subscriber_quota_update(
 UpdateRequestsBySession::UpdateRequestsBySession(
     const UpdateSessionRequest& request) {
   for (const auto& charging_request : request.updates()) {
-    const auto id =
-        ImsiAndSessionID(charging_request.sid(), charging_request.session_id());
+    const auto imsi = charging_request.common_context().sid().id();
+    const auto id   = ImsiAndSessionID(imsi, charging_request.session_id());
     requests_by_id[id].charging_requests.push_back(charging_request);
   }
   for (const auto& monitor_request : request.usage_monitors()) {
