@@ -206,18 +206,12 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
                     attach_steps[step](req.ue_id)
 
 
-        print("************************* Restarting MME service on",
-            "gateway")
-        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
+        # Restart mme
+        self._s1ap_wrapper.magmad_util.restart_mme_and_wait()
 
-        for j in range(30):
-            print("Waiting for", j, "seconds")
-            time.sleep(1)
-
-        # complete the attach procedures that were cut in between
+        # Post restart, complete the attach procedures that were cut in between
         for i in range(num_ues_attaching):
-            # bring each newly attaching UE to the desired point during
-            # attach procedure before restarting mme service
+            # resume attach for attaching UEs
             print("************************* Resuming Attach procedure "
                   "UE id ", ue_ids[i+num_attached_ues])
             for step in range(stateof_ues_in_attachproc_before_restart[i],num_of_steps):
@@ -240,7 +234,7 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
         # Verify paging flow rules for idle sessions
         self._s1ap_wrapper.s1_util.verify_paging_flow_rules(idle_session_ips)
 
-        # try to bring idle mode users into active state
+        # Try to bring idle mode users into active state
         for i in range(num_ues_idle):
             print(
                 "************************* Sending Service Request ",
@@ -279,12 +273,11 @@ class TestStatelessMultiUeMixedStateMmeRestart(unittest.TestCase):
             self._s1ap_wrapper._s1_util.issue_cmd(
                 s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req
             )
-            # Wait for UE context release command if not in idle mode
-            if ue > num_ues_idle:
-                response = self._s1ap_wrapper.s1_util.get_response()
-                self.assertEqual(
-                    response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
-                )
+
+            response = self._s1ap_wrapper.s1_util.get_response()
+            self.assertEqual(
+                response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
+            )
 
 
 
