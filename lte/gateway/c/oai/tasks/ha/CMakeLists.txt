@@ -10,12 +10,21 @@ set(LTE_OUT_MME_STATE_DIR "${CMAKE_CURRENT_BINARY_DIR}/lte/protos/oai")
 generate_cpp_protos("${MMEAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_MME_STATE_DIR})
 
+# compile the needed protos
+set(HA_LTE_CPP_PROTOS had_orc8r)
+set(HA_LTE_GRPC_PROTOS had_orc8r)
+set(HA_ORC8R_CPP_PROTOS "")
+set(HA_ORC8R_GRPC_PROTOS "")
+generate_all_protos("${HA_LTE_CPP_PROTOS}" "${HA_ORC8R_CPP_PROTOS}" "${HA_LTE_GRPC_PROTOS}"
+  "${HA_ORC8R_CPP_PROTOS}" "${PROTO_SRCS}" "${PROTO_HDRS}")
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(${LTE_OUT_MME_STATE_DIR})
 
 add_library(TASK_HA
     ha_task.c
     ha_service_handler.cpp
+    HaClient.cpp
     ${PROTO_SRCS}
     ${PROTO_HDRS}
     )

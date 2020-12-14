@@ -10,27 +10,45 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 */
-
+#include <iostream>
 #include <string.h>
 #include <sys/types.h>
 
 extern "C" {
-#include "intertask_interface.h"
 #include "common_types.h"
-#include "intertask_interface_types.h"
-#include "itti_types.h"
 #include "ha_defs.h"
 #include "ha_messages_types.h"
+#include "intertask_interface.h"
+#include "intertask_interface_types.h"
+#include "itti_types.h"
+#include "log.h"
 #include "s1ap_state.h"
-#include "S1ap-CauseRadioNetwork.h"
+#include "S1ap_CauseRadioNetwork.h"
 }
 
+#include "HaClient.h"
 #include "mme_app_state_manager.h"
 #include "s1ap_state_manager.h"
 
 static bool process_ue_context(
     const hash_key_t keyP, void* const elementP, void* parameterP,
     void** resultP);
+
+bool sync_up_with_orc8r(void) {
+  magma::HaClient::get_eNB_offload_state(
+      [](grpc::Status status,
+         magma::lte::GetEnodebOffloadStateResponse response) {
+        if (status.ok()) {
+          OAILOG_INFO(
+              LOG_UTIL, "Received eNodeB connection state with the primary.");
+        } else {
+          OAILOG_ERROR(
+              LOG_UTIL, "GRPC Failure Message: %s Status Error Code: %d",
+              status.error_message().c_str(), status.error_code());
+        }
+      });
+  return true;
+}
 
 typedef struct callback_data_s {
   s1ap_state_t* s1ap_state;

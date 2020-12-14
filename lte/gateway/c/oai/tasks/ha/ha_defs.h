@@ -22,6 +22,18 @@ extern task_zmq_ctx_t ha_task_zmq_ctx;
 int ha_init(const mme_config_t* mme_config);
 
 /*
+ * Syncs up with orc8r and fetches eNB connection state
+ * to its primary AGW. Inside the function:
+ * state-0: No action taken for such eNBs
+ * state-1: eNB has established S1 connection with the primary;
+ *          AGW will try to offload one of the UEs to test waters.
+ * state-2: eNB has established S1 connection with the primary AGW and
+ *          at least one UE served by eNB is camped on the primary.
+ *          Offload remaining UEs from this gateway.
+ */
+bool sync_up_with_orc8r(void);
+
+/*
  * Sends a S1AP_UE_CONTEXT_RELEASE_REQ message to MME.
  */
 bool handle_agw_offload_req(ha_agw_offload_req_t* offload_req);
