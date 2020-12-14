@@ -35,6 +35,7 @@ const (
 
 // GetObsidianHandlers returns all obsidian handlers for metricsd
 func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
+	useSeriesCache, _ := configMap.GetBool(metricsd.UseSeriesCache)
 	var ret []obsidian.Handler
 	client, err := promAPI.NewClient(promAPI.Config{Address: configMap.MustGetString(metricsd.PrometheusQueryAddress)})
 	if err != nil {
@@ -72,7 +73,7 @@ func GetObsidianHandlers(configMap *config.ConfigMap) []obsidian.Handler {
 			// Tenant Prometheus API
 			obsidian.Handler{Path: promH.TenantPromV1QueryURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromQueryHandler(pAPI)},
 			obsidian.Handler{Path: promH.TenantPromV1QueryRangeURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromQueryRangeHandler(pAPI)},
-			obsidian.Handler{Path: promH.TenantPromV1SeriesURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromSeriesHandler(pAPI)},
+			obsidian.Handler{Path: promH.TenantPromV1SeriesURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromSeriesHandler(pAPI, useSeriesCache)},
 			obsidian.Handler{Path: promH.TenantPromV1ValuesURL, Methods: obsidian.GET, HandlerFunc: promH.GetTenantPromValuesHandler(pAPI)},
 
 			// TargetsMetadata
