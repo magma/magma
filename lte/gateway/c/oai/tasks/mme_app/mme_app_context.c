@@ -2412,7 +2412,7 @@ static void mme_app_resume_esm_ebr_timer(ue_mm_context_t* ue_context_p) {
           default_eps_bearer_activate_t3485_handler(
               bearer_context_p->esm_ebr_context.args,
               &ue_context_p->emm_context._imsi64);
-        } else {  // Invoke callback registered for dedicated bearer's
+        } else {  // Invoke callback registered for default bearer's
                   // deactivation procedure
           if ((ue_context_p->bearer_contexts[idx]->esm_ebr_context.args) &&
               (ue_context_p->bearer_contexts[idx]->esm_ebr_context.status ==
