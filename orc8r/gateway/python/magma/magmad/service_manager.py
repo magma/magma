@@ -14,6 +14,7 @@ limitations under the License.
 import asyncio
 import json
 import logging
+import subprocess
 from enum import Enum
 from typing import List, Tuple
 
@@ -208,11 +209,8 @@ class ServiceManager(object):
 
     def _restart_sctpd(self):
         logging.info("Restarting sctpd")
-        subprocess_workflow.exec_and_parse_subprocesses("sctpd",
+        subprocess_workflow.exec_and_parse_subprocesses(["sctpd"],
                 _get_service_restart_args_list, None)
-        # delay return after restarting so that Magma and OVS services come up
-        #time.sleep(30)
-
 
     def enable_stateless_agw(self):
         if self.check_stateless_services() == self._return_codes.STATELESS:
@@ -238,7 +236,6 @@ class ServiceManager(object):
 
         # restart Sctpd so that eNB connections are reset and local state cleared
         self._restart_sctpd()
-
 
     class ServiceControl(object):
         """

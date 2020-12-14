@@ -98,14 +98,18 @@ def tail_logs(client, args):
 @grpc_wrapper
 def check_stateless(client, args):
     response = client.CheckStateless(common_pb2.Void())
-    print(response)
+    print(response.agw_mode)
 
 @grpc_wrapper
 def config_stateless(client, args):
-    check_cmd=magmad_pb2.StatelessConfigRequest.DISABLE
-    print("Check cmd", check_cmd)
+    if args.switch == "enable":
+        print("Enable switch")
+        config_arg = magmad_pb2.StatelessConfigRequest.ENABLE
+    elif args.switch == "disable":
+        print("Disable switch")
+        config_arg = magmad_pb2.StatelessConfigRequest.DISABLE
     client.ConfigureStateless(
-            magmad_pb2.StatelessConfigRequest(config_cmd=check_cmd))
+            magmad_pb2.StatelessConfigRequest(config_cmd=config_arg))
 
 def create_parser():
     """
@@ -163,6 +167,9 @@ def create_parser():
                                         help='Params (string)')
     parser_tail_logs.add_argument('service', type=str, nargs='?',
                                   help='Service')
+    parser_stateless_config.add_argument('switch', type=str,
+            help='Enable/Disable')
+
     # Add function callbacks
     parser_start.set_defaults(func=start_services)
     parser_stop.set_defaults(func=stop_services)
