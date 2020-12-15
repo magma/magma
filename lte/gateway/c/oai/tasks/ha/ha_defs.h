@@ -15,7 +15,6 @@ limitations under the License.
 
 #include "intertask_interface.h"
 #include "mme_config.h"
-// #include "ha_service_handler.h"
 
 extern task_zmq_ctx_t ha_task_zmq_ctx;
 

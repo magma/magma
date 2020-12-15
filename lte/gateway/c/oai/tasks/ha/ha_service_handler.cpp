@@ -81,7 +81,7 @@ bool process_ue_context(
   enb_description_t* enb_ref_p =
       s1ap_state_get_enb(s1ap_state, ue_context_p->sctp_assoc_id_key);
 
-  // Return if this UE does not satisfy any of the filtering criterion
+  // Return if this UE does not satisfy any of the filtering criteria
   if ((imsi64 != ue_context_p->emm_context._imsi64) &&
       (offload_request->eNB_id != enb_ref_p->enb_id)) {
     return false;
