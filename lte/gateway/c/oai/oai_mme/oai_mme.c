@@ -67,12 +67,15 @@ task_zmq_ctx_t main_zmq_ctx;
 static int main_init(void) {
   // Initialize main thread ZMQ context
   // We dont use the PULL socket nor the ZMQ loop
+  // Don't include optional services such as CSFB, SMS, HA
+  // into target task list (i.e., they will not receive any
+  // broadcast messages or timer messages)
   init_task_context(
       TASK_MAIN,
       (task_id_t[]){TASK_MME_APP, TASK_SERVICE303, TASK_SERVICE303_SERVER,
                     TASK_S6A, TASK_S1AP, TASK_SCTP, TASK_SPGW_APP,
-                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG, TASK_HA},
-      11, NULL, &main_zmq_ctx);
+                    TASK_GRPC_SERVICE, TASK_LOG, TASK_SHARED_TS_LOG},
+      10, NULL, &main_zmq_ctx);
 
   return RETURNok;
 }
