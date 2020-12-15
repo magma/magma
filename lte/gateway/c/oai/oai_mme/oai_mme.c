@@ -141,7 +141,9 @@ int main(int argc, char* argv[]) {
     OAILOG_DEBUG(LOG_MME_APP, "SMS_ORC8R Task initialized\n");
   }
   CHECK_INIT_RETURN(grpc_service_init());
-  CHECK_INIT_RETURN(ha_init(&mme_config));
+  if (mme_config.use_ha) {
+    CHECK_INIT_RETURN(ha_init(&mme_config));
+  }
   OAILOG_DEBUG(LOG_MME_APP, "MME app initialization complete\n");
 
 #if EMBEDDED_SGW

@@ -81,7 +81,9 @@ void start_grpc_service(bstring server_address) {
     builder.RegisterService(&sms_orc8r_service);
   }
   builder.RegisterService(&s1ap_service);
-  builder.RegisterService(&ha_service);
+  if (mme_config.use_ha) {
+    builder.RegisterService(&ha_service);
+  }
   server = builder.BuildAndStart();
 }
 

@@ -502,6 +502,11 @@ int mme_config_parse_file(mme_config_t* config_pP) {
     }
 
     if ((config_setting_lookup_string(
+            setting_mme, MME_CONFIG_STRING_USE_HA, (const char**) &astring))) {
+      config_pP->use_ha = parse_bool(astring);
+    }
+
+    if ((config_setting_lookup_string(
             setting_mme,
             EPS_NETWORK_FEATURE_SUPPORT_EMERGENCY_BEARER_SERVICES_IN_S1_MODE,
             (const char**) &astring))) {
