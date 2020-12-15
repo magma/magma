@@ -880,6 +880,9 @@ jobs:
   docusaurus_build_and_deploy:
     docker:
       - image: circleci/node:8.11.1
+    environment:
+      DOCUSAURUS_URL: 'https://magma.github.io'
+      DOCUSAURUS_BASE_URL: '/magma/'
     steps:
       - checkout
       - run:
