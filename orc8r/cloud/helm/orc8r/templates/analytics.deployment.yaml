@@ -10,42 +10,40 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 */}}
-{{- include "orc8rlib.deployment" (list . "lte.deployment") -}}
-{{- define "lte.deployment" -}}
+{{- include "orc8rlib.deployment" (list . "analytics.deployment") -}}
+{{- define "analytics.deployment" -}}
 metadata:
-  name: orc8r-lte
+  name: orc8r-analytics
   labels:
-    app.kubernetes.io/component: lte
+    app.kubernetes.io/component: analytics
 spec:
   selector:
     matchLabels:
-      app.kubernetes.io/component: lte
+      app.kubernetes.io/component: analytics
   template:
     metadata:
       labels:
-        app.kubernetes.io/component: lte
+        app.kubernetes.io/component: analytics
     spec:
       containers:
       -
-{{ include "orc8rlib.container" (list . "lte.container")}}
+{{ include "orc8rlib.container" (list . "analytics.container")}}
 {{- end -}}
-{{- define "lte.container" -}}
-name: lte
+{{- define "analytics.container" -}}
+name: analytics
 command: ["/usr/bin/envdir"]
-args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/lte", "-run_echo_server=true", "-logtostderr=true", "-v=0"]
+args: ["/var/opt/magma/envdir", "/var/opt/magma/bin/analytics", "-logtostderr=true", "-v=0"]
 ports:
   - name: grpc
-    containerPort: 9113
-  - name: http
-    containerPort: 10113
+    containerPort: 9200
 livenessProbe:
   tcpSocket:
-    port: 9113
+    port: 9200
   initialDelaySeconds: 10
   periodSeconds: 30
 readinessProbe:
   tcpSocket:
-    port: 9113
+    port: 9200
   initialDelaySeconds: 5
   periodSeconds: 10
 {{- end -}}
