@@ -42,6 +42,7 @@ struct ChargingGrant {
   // Only valid if is_final_grant is true
   FinalActionInfo final_action_info;
   // The expiry time for the credit's validity
+  // https://tools.ietf.org/html/rfc4006#section-8.33
   std::time_t expiry_time;
   ServiceState service_state;
   ReAuthState reauth_state;
@@ -62,7 +63,7 @@ struct ChargingGrant {
   StoredChargingGrant marshal();
 
   void receive_charging_grant(
-      const magma::lte::ChargingCredit& credit,
+      const CreditUpdateResponse& update,
       SessionCreditUpdateCriteria* uc = NULL);
 
   // Returns true if the credit returned from the Policy component is valid and
@@ -134,8 +135,8 @@ struct ChargingGrant {
   // and assign it to expiry_time
   void set_expiry_time_as_timestamp(uint32_t rel_time_sec);
 
-  // Log final action related information
-  void log_final_action_info() const;
+  // Log information about the grant received
+  void log_received_grant(const CreditUpdateResponse& update);
 };
 
 }  // namespace magma

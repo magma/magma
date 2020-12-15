@@ -168,7 +168,9 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
-	tr.WaitForEnforcementStatsToSync()
+
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-1", "static-pass-all-3"), time.Minute, 2*time.Second)
+
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
@@ -176,16 +178,6 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// At this point both static-pass-all-1 & static-pass-all-3 are installed.
 	// Since static-pass-all-1 has higher precedence, it will get hit.
 	tr.WaitForEnforcementStatsToSync()
-
-	// Assert that enforcement_stats rules are properly installed and the right
-	// amount of data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record1 := recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"]
-	if record1 != nil {
-		assert.True(t, record1.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record1.RuleId))
-	}
-	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-1", imsi))
 
 	// Assert that a CCR-I was sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
@@ -206,7 +198,8 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-2"), time.Minute, 2*time.Second)
 
 	fmt.Println("Generating traffic again to put data through static-pass-all-2")
 	_, err = tr.GenULTraffic(req)
@@ -216,9 +209,7 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// Assert that we sent back a CCA-Update with RuleRemovals
 	tr.AssertAllGxExpectationsMetNoError()
 
-	recordsBySubID, err = tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"], fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-2", 0), time.Minute, 2*time.Second)
 
 	tr.DisconnectAndAssertSuccess(imsi)
 	fmt.Println("wait for flows to get deactivated")

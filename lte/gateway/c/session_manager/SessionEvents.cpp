@@ -13,6 +13,7 @@
 
 #include "SessionEvents.h"
 #include "Utilities.h"
+#include "EnumToString.h"
 
 using magma::orc8r::Event;
 using magma::orc8r::Void;
@@ -52,6 +53,9 @@ const std::string DATA_DOWNLINK            = "data_volume_uplink";
 const std::string TIME_OF_FIRST_USAGE      = "time_of_first_usage";
 const std::string TIME_OF_LAST_USAGE       = "time_of_last_usage";
 const std::string SERVICE_CONDITION_CHANGE = "service_condition_change";
+const std::string SERVICE_UPDATES          = "list_of_updates";
+const std::string UPDATE_REASON            = "update_reason";
+const std::string MONITORING_KEY           = "monitoring_key";
 
 const std::string TOTAL_TX      = "total_tx";
 const std::string TOTAL_RX      = "total_rx";
@@ -113,9 +117,9 @@ void EventsReporterImpl::session_created(
 }
 
 void EventsReporterImpl::session_create_failure(
-    const std::string& imsi, const SessionConfig& session_context,
-    const std::string& failure_reason) {
-  auto event = magma::orc8r::Event();
+    const SessionConfig& session_context, const std::string& failure_reason) {
+  auto event             = magma::orc8r::Event();
+  const std::string imsi = session_context.common_context.sid().id();
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_CREATE_FAILURE_EV);
   event.set_tag(imsi);
@@ -139,21 +143,23 @@ void EventsReporterImpl::session_create_failure(
 }
 
 void EventsReporterImpl::session_updated(
-    const std::string& imsi, const std::string& session_id,
-    const SessionConfig& session_context) {
-  auto event = magma::orc8r::Event();
+    const std::string& session_id, const SessionConfig& session_context,
+    const UpdateRequests& update_request) {
+  auto event             = magma::orc8r::Event();
+  const std::string imsi = session_context.common_context.sid().id();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATED_EV);
   event.set_tag(imsi);
 
-  folly::dynamic event_value = folly::dynamic::object;
-  event_value[IMSI]          = imsi;
-  event_value[SESSION_ID]    = session_id;
-  event_value[IP_ADDR]       = session_context.common_context.ue_ipv4();
-  event_value[IPV6_ADDR]     = session_context.common_context.ue_ipv6();
-  event_value[APN]           = session_context.common_context.apn();
-  event_value[MAC_ADDR]      = get_mac_addr(session_context);
+  folly::dynamic event_value   = folly::dynamic::object;
+  event_value[IMSI]            = imsi;
+  event_value[SESSION_ID]      = session_id;
+  event_value[IP_ADDR]         = session_context.common_context.ue_ipv4();
+  event_value[IPV6_ADDR]       = session_context.common_context.ue_ipv6();
+  event_value[APN]             = session_context.common_context.apn();
+  event_value[MAC_ADDR]        = get_mac_addr(session_context);
+  event_value[SERVICE_UPDATES] = get_update_summary(update_request);
 
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
@@ -168,21 +174,23 @@ void EventsReporterImpl::session_updated(
 }
 
 void EventsReporterImpl::session_update_failure(
-    const std::string& imsi, const std::string& session_id,
-    const SessionConfig& session_context, const std::string& failure_reason) {
-  auto event = magma::orc8r::Event();
+    const std::string& session_id, const SessionConfig& session_context,
+    const UpdateRequests& failed_request, const std::string& failure_reason) {
+  auto event             = magma::orc8r::Event();
+  const std::string imsi = session_context.common_context.sid().id();
 
   event.set_stream_name(SESSIOND_SERVICE_EV);
   event.set_event_type(SESSION_UPDATE_FAILURE_EV);
 
-  folly::dynamic event_value  = folly::dynamic::object;
-  event_value[IMSI]           = imsi;
-  event_value[SESSION_ID]     = session_id;
-  event_value[IP_ADDR]        = session_context.common_context.ue_ipv4();
-  event_value[IPV6_ADDR]      = session_context.common_context.ue_ipv6();
-  event_value[MAC_ADDR]       = get_mac_addr(session_context);
-  event_value[APN]            = session_context.common_context.apn();
-  event_value[FAILURE_REASON] = failure_reason;
+  folly::dynamic event_value   = folly::dynamic::object;
+  event_value[IMSI]            = imsi;
+  event_value[SESSION_ID]      = session_id;
+  event_value[IP_ADDR]         = session_context.common_context.ue_ipv4();
+  event_value[IPV6_ADDR]       = session_context.common_context.ue_ipv6();
+  event_value[MAC_ADDR]        = get_mac_addr(session_context);
+  event_value[APN]             = session_context.common_context.apn();
+  event_value[FAILURE_REASON]  = failure_reason;
+  event_value[SERVICE_UPDATES] = get_update_summary(failed_request);
 
   std::string event_value_string = folly::toJson(event_value);
   event.set_value(event_value_string);
@@ -265,6 +273,29 @@ void EventsReporterImpl::session_terminated(
                    << ", Error Message: " << status.error_message();
     }
   });
+}
+
+folly::dynamic EventsReporterImpl::get_update_summary(
+    const UpdateRequests& updates) {
+  folly::dynamic update_array = folly::dynamic::array;
+  for (const auto& charging : updates.charging_requests) {
+    folly::dynamic data = folly::dynamic::object;
+    data[RATING_GROUP]  = charging.usage().charging_key();
+    if (charging.usage().has_service_identifier()) {
+      data[SERVICE_IDENTIFIER] = charging.usage().service_identifier().value();
+    }
+    data[UPDATE_REASON] = credit_update_type_to_str(charging.usage().type());
+    update_array.push_back(data);
+  }
+  for (const auto& monitor : updates.monitor_requests) {
+    folly::dynamic data = folly::dynamic::object;
+    data[UPDATE_REASON] = event_trigger_to_str(monitor.event_trigger());
+    if (monitor.has_update()) {
+      data[MONITORING_KEY] = monitor.update().monitoring_key();
+    }
+    update_array.push_back(data);
+  }
+  return update_array;
 }
 
 std::string EventsReporterImpl::get_mac_addr(const SessionConfig& config) {

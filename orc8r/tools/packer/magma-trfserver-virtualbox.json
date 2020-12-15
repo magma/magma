@@ -67,7 +67,8 @@
       "playbook_file": "../../../lte/gateway/deploy/magma_trfserver.yml",
       "inventory_groups": "trfserver",
       "role_paths": [
-        "../../../lte/gateway/deploy/roles/trfserver"
+        "../../../lte/gateway/deploy/roles/trfserver",
+        "../../../lte/gateway/deploy/roles/stretch_snapshot"
       ],
       "extra_arguments": [
         "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
@@ -82,7 +83,7 @@
       },
       {
         "type": "vagrant-cloud",
-        "box_tag": "fbcmagma/magma_trfserver",
+        "box_tag": "magmacore/magma_trfserver",
         "access_token": "{{user `cloud_token`}}",
         "version": "{{user `version`}}"
       }

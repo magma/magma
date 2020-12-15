@@ -356,6 +356,10 @@ void MmeNasStateConverter::proto_to_bearer_context_list(
       proto_to_bearer_context(
           ue_context_proto.bearer_contexts(i), eps_bearer_ctxt);
       state_ue_context->bearer_contexts[i] = eps_bearer_ctxt;
+      if (state_ue_context->bearer_contexts[i]->esm_ebr_context.args) {
+        state_ue_context->bearer_contexts[i]->esm_ebr_context.args->ctx =
+            &state_ue_context->emm_context;
+      }
     } else {
       state_ue_context->bearer_contexts[i] = nullptr;
     }
@@ -486,7 +490,6 @@ void MmeNasStateConverter::proto_to_pdn_context(
 void MmeNasStateConverter::pdn_context_list_to_proto(
     const ue_mm_context_t& state_ue_context, oai::UeContext* ue_context_proto,
     int num_active_contexts) {
-  num_active_contexts = 1;  // TODO: fix acounting of nb_active_pdn_contexts
   for (int i = 0; i < num_active_contexts; i++) {
     if (state_ue_context.pdn_contexts[i] != nullptr) {
       OAILOG_DEBUG(LOG_MME_APP, "Writing PDN context at index %d", i);

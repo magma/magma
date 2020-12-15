@@ -228,7 +228,7 @@ static void add_downlink_match_ipv6(
   /* TODO-Made this local fix as it was not yet available in master
    * without this fix ovs rules are not getting created
    */
-  of13::EthType ip6_type(0x086DD);
+  of13::EthType ip6_type(0x86DD);
   downlink_fm.add_oxm_field(ip6_type);
 
   // Match UE IP destination
@@ -265,11 +265,18 @@ static void add_ded_brr_dl_match(
       downlink_fm.add_oxm_field(ipv4_src);
     }
   } else {
-    of13::EthType ip_type(0x086DD);
+    of13::EthType ip_type(0x86DD);
     downlink_fm.add_oxm_field(ip_type);
 
     if (flow.set_params & DST_IPV6) {
-      of13::IPv6Dst ipv6_dst(IPAddress(flow.dst_ip6));
+      // Match on the prefix portion -- this is UE IPv6 address
+      static IPAddress mask("ffff:ffff:ffff:ffff::");
+      struct in6_addr dst_ip6_masked;
+      mask_ipv6_address(
+          (uint8_t*) &dst_ip6_masked, (const uint8_t*) &flow.dst_ip6,
+          mask.getIPv6());
+
+      of13::IPv6Dst ipv6_dst(IPAddress(dst_ip6_masked), mask);
       downlink_fm.add_oxm_field(ipv6_dst);
     }
 

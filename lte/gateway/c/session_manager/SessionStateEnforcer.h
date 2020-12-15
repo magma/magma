@@ -73,8 +73,7 @@ class SessionStateEnforcer {
 
   /*Handle and update respective session upon receiving message from UPF*/
   void m5g_update_session_state_to_amf(
-      const std::string& imsi, uint32_t teid, uint32_t version,
-      SessionFsmState new_state);
+      const std::string& imsi, uint32_t teid, uint32_t version);
 
  private:
   std::vector<std::string> static_rules;

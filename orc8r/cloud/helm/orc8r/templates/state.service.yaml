@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "state.service") -}}
 {{- define "state.service" -}}
 metadata:
-  name: {{ .Release.Name }}-state
+  name: orc8r-state
   labels:
     {{- with .Values.state.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: state
   ports:
     - name: grpc
       port: 9180

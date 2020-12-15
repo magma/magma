@@ -96,6 +96,12 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 	}
 
 	enbConfigsBySerial := getEnodebConfigsBySerial(cellularNwConfig, cellularGwConfig, enodebs)
+	heConfig := getHEConfig(cellularGwConfig.HeConfig)
+
+	mmePoolRecord, mmeGroupID, err := getMMEPoolConfigs(network.ID, cellularGwConfig.Pooling, cellGW, graph)
+	if err != nil {
+		return nil, err
+	}
 
 	vals := map[string]proto.Message{
 		"enodebd": &lte_mconfig.EnodebD{
@@ -125,8 +131,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			Mcc:                      nwEpc.Mcc,
 			Mnc:                      nwEpc.Mnc,
 			Tac:                      int32(nwEpc.Tac),
-			MmeCode:                  1,
-			MmeGid:                   1,
+			MmeCode:                  int32(mmePoolRecord.MmeCode),
+			MmeGid:                   int32(mmeGroupID),
+			MmeRelativeCapacity:      int32(mmePoolRecord.MmeRelativeCapacity),
 			EnableDnsCaching:         shouldEnableDNSCaching(cellularGwConfig.DNS),
 			NonEpsServiceControl:     nonEPSServiceMconfig.nonEpsServiceControl,
 			CsfbMcc:                  nonEPSServiceMconfig.csfbMcc,
@@ -137,6 +144,9 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			AttachedEnodebTacs:       getEnodebTacs(enbConfigsBySerial),
 			DnsPrimary:               gwEpc.DNSPrimary,
 			DnsSecondary:             gwEpc.DNSSecondary,
+			Ipv4PCscfAddress:         string(gwEpc.IPV4pCscfAddr),
+			Ipv6DnsAddress:           string(gwEpc.IPV6DNSAddr),
+			Ipv6PCscfAddress:         string(gwEpc.IPV6pCscfAddr),
 			NatEnabled:               swag.BoolValue(gwEpc.NatEnabled),
 		},
 		"pipelined": &lte_mconfig.PipelineD{
@@ -148,7 +158,7 @@ func (s *builderServicer) Build(ctx context.Context, request *builder_protos.Bui
 			SgiManagementIfaceVlan:   gwEpc.SgiManagementIfaceVlan,
 			SgiManagementIfaceIpAddr: gwEpc.SgiManagementIfaceStaticIP,
 			SgiManagementIfaceGw:     gwEpc.SgiManagementIfaceGw,
-			DisableHeaderEnrichment:  cellularGwConfig.DisableHeaderEnrichment,
+			HeConfig:                 heConfig,
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{
 			LogLevel:        protos.LogLevel_INFO,
@@ -281,6 +291,47 @@ func getTddConfig(tddConfig *lte_models.NetworkRanConfigsTddConfig) *lte_mconfig
 		SubframeAssignment:     int32(tddConfig.SubframeAssignment),
 		SpecialSubframePattern: int32(tddConfig.SpecialSubframePattern),
 	}
+}
+
+func getHEConfig(gwConfig *lte_models.GatewayHeConfig) *lte_mconfig.PipelineD_HEConfig {
+	if gwConfig == nil {
+		return &lte_mconfig.PipelineD_HEConfig{}
+	}
+
+	return &lte_mconfig.PipelineD_HEConfig{
+		EnableHeaderEnrichment: gwConfig.EnableHeaderEnrichment,
+		EnableEncryption:       gwConfig.EnableEncryption,
+		EncryptionAlgorithm:    lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm(lte_mconfig.PipelineD_HEConfig_EncryptionAlgorithm_value[gwConfig.HeEncryptionAlgorithm]),
+		HashFunction:           lte_mconfig.PipelineD_HEConfig_HashFunction(lte_mconfig.PipelineD_HEConfig_HashFunction_value[gwConfig.HeHashFunction]),
+		EncodingType:           lte_mconfig.PipelineD_HEConfig_EncodingType(lte_mconfig.PipelineD_HEConfig_EncodingType_value[gwConfig.HeEncodingType]),
+		EncryptionKey:          gwConfig.EncryptionKey,
+	}
+}
+
+// getMMEPoolConfigs returns the gateway pool record and a uint32 specifying
+// the MME group ID for a given gateway. If a gateway does not exist in a pool,
+// default values are returned.
+func getMMEPoolConfigs(networkID string, poolingConfig lte_models.CellularGatewayPoolRecords, cellGateway configurator.NetworkEntity, graph configurator.EntityGraph) (*lte_models.CellularGatewayPoolRecord, uint32, error) {
+	// Currently, having multiple (mme group ID, mme code, mme relative
+	// capacity) tuples is unsupported. As such, use the first pool record
+	// to set all of these values.
+	if len(poolingConfig) == 0 {
+		return &lte_models.CellularGatewayPoolRecord{
+			MmeCode:             1,
+			MmeRelativeCapacity: 10,
+		}, 1, nil
+	}
+	pool, err := graph.GetFirstAncestorOfType(cellGateway, lte.CellularGatewayPoolEntityType)
+	if err != nil {
+		return nil, 0, err
+	}
+	poolRecord := poolingConfig[0]
+	cfg, ok := pool.Config.(*lte_models.CellularGatewayPoolConfigs)
+	if !ok {
+		err := fmt.Errorf("unable to convert gateway pool config for pool '%s'; pool has invalid config", pool.Key)
+		return nil, 0, err
+	}
+	return poolRecord, cfg.MmeGroupID, nil
 }
 
 func getEnodebConfigsBySerial(nwConfig *lte_models.NetworkCellularConfigs, gwConfig *lte_models.GatewayCellularConfigs, enodebs []configurator.NetworkEntity) map[string]*lte_mconfig.EnodebD_EnodebConfig {

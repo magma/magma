@@ -59,6 +59,9 @@ const (
 	ManageNetworkApnPath              = ManageNetworkPath + obsidian.UrlSep + "apns"
 	ManageNetworkApnConfigurationPath = ManageNetworkApnPath + obsidian.UrlSep + ":apn_name"
 
+	ListGatewayPoolsPath   = ManageNetworkPath + obsidian.UrlSep + "gateway_pools"
+	ManageGatewayPoolsPath = ListGatewayPoolsPath + obsidian.UrlSep + ":gateway_pool_id"
+
 	Gateways                          = "gateways"
 	ListGatewaysPath                  = ManageNetworkPath + obsidian.UrlSep + Gateways
 	ManageGatewayPath                 = ListGatewaysPath + obsidian.UrlSep + ":gateway_id"
@@ -75,6 +78,7 @@ const (
 	ManageGatewayCellularDNSPath      = ManageGatewayCellularPath + obsidian.UrlSep + "dns"
 	ManageGatewayDNSRecordsPath       = ManageGatewayCellularDNSPath + obsidian.UrlSep + "records"
 	ManageGatewayConnectedEnodebsPath = ManageGatewayPath + obsidian.UrlSep + "connected_enodeb_serials"
+	ManageGatewayCellularPoolingPath  = ManageGatewayCellularPath + obsidian.UrlSep + "pooling"
 	ManageGatewayVPNConfigPath        = ManageGatewayPath + obsidian.UrlSep + "vpn"
 
 	Enodebs            = "enodebs"
@@ -106,6 +110,11 @@ func GetHandlers() []obsidian.Handler {
 		{Path: ManageGatewayConnectedEnodebsPath, Methods: obsidian.POST, HandlerFunc: addConnectedEnodeb},
 		{Path: ManageGatewayConnectedEnodebsPath, Methods: obsidian.DELETE, HandlerFunc: deleteConnectedEnodeb},
 		{Path: GetEnodebStatePath, Methods: obsidian.GET, HandlerFunc: getEnodebState},
+
+		{Path: ListGatewayPoolsPath, Methods: obsidian.GET, HandlerFunc: listGatewayPoolsHandler},
+		{Path: ListGatewayPoolsPath, Methods: obsidian.POST, HandlerFunc: createGatewayPoolHandler},
+		{Path: ManageGatewayPoolsPath, Methods: obsidian.GET, HandlerFunc: getGatewayPoolHandler},
+		{Path: ManageGatewayPoolsPath, Methods: obsidian.DELETE, HandlerFunc: deleteGatewayPoolHandler},
 
 		{Path: ManageNetworkApnPath, Methods: obsidian.GET, HandlerFunc: listApns},
 		{Path: ManageNetworkApnPath, Methods: obsidian.POST, HandlerFunc: createApn},
@@ -143,6 +152,7 @@ func GetHandlers() []obsidian.Handler {
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularNonEpsPath, &lte_models.GatewayNonEpsConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularDNSPath, &lte_models.GatewayDNSConfigs{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayDNSRecordsPath, &lte_models.GatewayDNSRecords{}, serdes.Entity)...)
+	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayCellularPoolingPath, &lte_models.CellularGatewayPoolRecords{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayConnectedEnodebsPath, &lte_models.EnodebSerials{}, serdes.Entity)...)
 	ret = append(ret, handlers.GetPartialGatewayHandlers(ManageGatewayVPNConfigPath, &orc8r_models.GatewayVpnConfigs{}, serdes.Entity)...)
 
@@ -732,6 +742,110 @@ func removeFromNetworkSubscriberConfig(networkID, ruleName, baseName string) err
 
 func getNetworkAndApnName(c echo.Context) (string, string, *echo.HTTPError) {
 	vals, err := obsidian.GetParamValues(c, "network_id", "apn_name")
+	if err != nil {
+		return "", "", err
+	}
+	return vals[0], vals[1], nil
+}
+
+func listGatewayPoolsHandler(c echo.Context) error {
+	nid, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	gatewayPoolEnts, err := configurator.LoadAllEntitiesOfType(nid, lte.CellularGatewayPoolEntityType, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	ret := make(map[string]*lte_models.CellularGatewayPool, len(gatewayPoolEnts))
+	for _, poolEnt := range gatewayPoolEnts {
+		gatewayPool := &lte_models.CellularGatewayPool{}
+		err := gatewayPool.FromBackendModels(poolEnt)
+		if err != nil {
+			return obsidian.HttpError(err, http.StatusInternalServerError)
+		}
+		ret[poolEnt.Key] = gatewayPool
+	}
+	return c.JSON(http.StatusOK, ret)
+}
+
+func createGatewayPoolHandler(c echo.Context) error {
+	networkID, nerr := obsidian.GetNetworkId(c)
+	if nerr != nil {
+		return nerr
+	}
+	gatewayPool := new(lte_models.MutableCellularGatewayPool)
+	if err := c.Bind(gatewayPool); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	if err := gatewayPool.ValidateModel(); err != nil {
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	_, err := configurator.CreateEntity(networkID, gatewayPool.ToEntity(), serdes.Entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusCreated, gatewayPool.GatewayPoolID)
+}
+
+func getGatewayPoolHandler(c echo.Context) error {
+	networkID, gatewayPoolID, nerr := getNetworkIDAndGatewayPoolID(c)
+	if nerr != nil {
+		return nerr
+	}
+	ent, err := configurator.LoadEntity(
+		networkID, lte.CellularGatewayPoolEntityType, gatewayPoolID,
+		configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
+		serdes.Entity,
+	)
+	if err == merrors.ErrNotFound {
+		return obsidian.HttpError(err, http.StatusNotFound)
+	}
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	gatewayPool := &lte_models.CellularGatewayPool{}
+	err = gatewayPool.FromBackendModels(ent)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.JSON(http.StatusOK, gatewayPool)
+}
+
+func deleteGatewayPoolHandler(c echo.Context) error {
+	networkID, poolID, nerr := getNetworkIDAndGatewayPoolID(c)
+	if nerr != nil {
+		return nerr
+	}
+	poolEnt, err := configurator.LoadEntity(networkID, lte.CellularGatewayPoolEntityType, poolID, configurator.FullEntityLoadCriteria(), serdes.Entity)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	gatewayPool := &lte_models.CellularGatewayPool{}
+	err = gatewayPool.FromBackendModels(poolEnt)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	// Since deletion of the pool shouldn't necessitate deletion of the
+	// gateway, we force the pool to be empty before allowing deletion, rather
+	// than performing a bulk update of all gateways in the pool to remove this
+	// specific pool record.
+	if len(gatewayPool.GatewayIds) > 0 {
+		err := fmt.Errorf("Gateways %v still exist in pool %s. All gateways must first be removed from the pool before it can be deleted",
+			gatewayPool.GatewayIds,
+			poolID,
+		)
+		return obsidian.HttpError(err, http.StatusBadRequest)
+	}
+	err = configurator.DeleteEntity(networkID, lte.CellularGatewayPoolEntityType, poolID)
+	if err != nil {
+		return obsidian.HttpError(err, http.StatusInternalServerError)
+	}
+	return c.NoContent(http.StatusNoContent)
+}
+
+func getNetworkIDAndGatewayPoolID(c echo.Context) (string, string, *echo.HTTPError) {
+	vals, err := obsidian.GetParamValues(c, "network_id", "gateway_pool_id")
 	if err != nil {
 		return "", "", err
 	}

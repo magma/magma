@@ -299,6 +299,74 @@ func (tr *TestRunner) WaitForPoliciesToSync() {
 	time.Sleep(4 * ruleUpdatePeriod)
 }
 
+func (tr *TestRunner) WaitForEnforcementStatsForRule(imsi string, ruleIDs ...string) func() bool {
+	// Wait until the ruleIDs show up for the IMSI
+	return func() bool {
+		fmt.Printf("Waiting until %s, %v shows up in enforcement stats...\n", imsi, ruleIDs)
+		records, err := tr.GetPolicyUsage()
+		if err != nil {
+			return false
+		}
+		if records[prependIMSIPrefix(imsi)] == nil {
+			return false
+		}
+		for _, ruleID := range ruleIDs {
+			if records[prependIMSIPrefix(imsi)][ruleID] == nil {
+				return false
+			}
+		}
+		fmt.Printf("%s, %v are now in enforcement stats!\n", imsi, ruleIDs)
+		return true
+	}
+}
+
+func (tr *TestRunner) WaitForNoEnforcementStatsForRule(imsi string, ruleIDs ...string) func() bool {
+	// Wait until the ruleIDs disappear for the IMSI
+	return func() bool {
+		fmt.Printf("Waiting until %s, %v disappear from enforcement stats...\n", imsi, ruleIDs)
+		records, err := tr.GetPolicyUsage()
+		if err != nil {
+			return false
+		}
+		if records[prependIMSIPrefix(imsi)] == nil {
+			fmt.Printf("%s are no longer in enforcement stats!\n", imsi)
+			return true
+		}
+		for _, ruleID := range ruleIDs {
+			if records[prependIMSIPrefix(imsi)][ruleID] != nil {
+				return false
+			}
+		}
+		fmt.Printf("%s, %v are no longer in enforcement stats!\n", imsi, ruleIDs)
+		return true
+	}
+}
+
+func (tr *TestRunner) WaitForEnforcementStatsForRuleGreaterThan(imsi, ruleID string, min uint64) func() bool {
+	// Todo figure out the best way to figure out when RAR is processed
+	return func() bool {
+		fmt.Printf("Waiting until %s, %s has more than %d bytes in enforcement stats...\n", imsi, ruleID, min)
+		records, err := tr.GetPolicyUsage()
+		imsi = prependIMSIPrefix(imsi)
+		if err != nil {
+			return false
+		}
+		if records[imsi] == nil {
+			return false
+		}
+		record := records[imsi][ruleID]
+		if record == nil {
+			return false
+		}
+		txBytes := record.BytesTx
+		if record.BytesTx <= min {
+			return false
+		}
+		fmt.Printf("%s, %s now passed %d > %d in enforcement stats!\n", imsi, ruleID, txBytes, min)
+		return true
+	}
+}
+
 //WaitForPolicyReAuthToProcess returns a method which checks for reauth answer and
 // if it has sessionID which contains the IMSI
 func (tr *TestRunner) WaitForPolicyReAuthToProcess(raa *fegprotos.PolicyReAuthAnswer, imsi string) func() bool {

@@ -178,6 +178,10 @@ message SgwBearerQos {
     Ambr mbr = 11;
 }
 
+message SpgwUeContext {
+  repeated S11BearerContext s11_bearer_context = 1;
+}
+
 // s_plus_p_gw_eps_bearer_context_information
 message S11BearerContext {
     SgwEpsBearerContextInfo sgw_eps_bearer_context = 1;

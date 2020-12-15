@@ -33,12 +33,10 @@ import (
 
 const (
 	ServiceRegistryServiceName = "service_registry"
-
-	HelmReleaseNameEnvVar     = "HELM_RELEASE_NAME"
-	ServiceRegistryModeEnvVar = "SERVICE_REGISTRY_MODE"
-	DockerRegistryMode        = "docker"
-	K8sRegistryMode           = "k8s"
-	YamlRegistryMode          = "yaml"
+	ServiceRegistryModeEnvVar  = "SERVICE_REGISTRY_MODE"
+	DockerRegistryMode         = "docker"
+	K8sRegistryMode            = "k8s"
+	YamlRegistryMode           = "yaml"
 
 	HttpServerPort  = 8080
 	GrpcServicePort = 9180
@@ -55,7 +53,6 @@ type ServiceRegistry struct {
 	cloudConnections map[string]cloudConnection
 
 	serviceRegistryMode string
-	releaseName         string
 }
 
 type cloudConnection struct {
@@ -72,13 +69,11 @@ var localKeepaliveParams = keepalive.ClientParameters{
 // New creates and returns a new registry
 func New() *ServiceRegistry {
 	registryMode := os.Getenv(ServiceRegistryModeEnvVar)
-	releaseName := os.Getenv(HelmReleaseNameEnvVar)
 	return &ServiceRegistry{
 		ServiceConnections:  map[string]*grpc.ClientConn{},
 		ServiceLocations:    map[string]ServiceLocation{},
 		cloudConnections:    map[string]cloudConnection{},
 		serviceRegistryMode: registryMode,
-		releaseName:         releaseName,
 	}
 }
 
@@ -88,7 +83,6 @@ func NewWithMode(mode string) *ServiceRegistry {
 		ServiceLocations:    map[string]ServiceLocation{},
 		cloudConnections:    map[string]cloudConnection{},
 		serviceRegistryMode: mode,
-		releaseName:         os.Getenv(HelmReleaseNameEnvVar),
 	}
 }
 
@@ -445,12 +439,7 @@ func (r *ServiceRegistry) getGRPCDialOptions() []grpc.DialOption {
 func (r *ServiceRegistry) getServiceRegistryServiceAddress() string {
 	// Use hardcoded address for service_registry service as we can't
 	// dynamically discover the service registry service itself
-	if r.serviceRegistryMode == DockerRegistryMode {
-		return fmt.Sprintf("service_registry:%d", GrpcServicePort)
-	} else if r.serviceRegistryMode == K8sRegistryMode {
-		return fmt.Sprintf("%s-service-registry:%d", r.releaseName, GrpcServicePort)
-	}
-	return ""
+	return fmt.Sprintf("orc8r-service-registry:%d", GrpcServicePort)
 }
 
 func (r *ServiceRegistry) addUnsafe(location ServiceLocation) {

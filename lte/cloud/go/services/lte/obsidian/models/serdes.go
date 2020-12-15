@@ -30,5 +30,6 @@ var (
 		configurator.NewNetworkEntityConfigSerde(lte.APNResourceEntityType, &ApnResource{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularEnodebEntityType, &EnodebConfig{}),
 		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayEntityType, &GatewayCellularConfigs{}),
+		configurator.NewNetworkEntityConfigSerde(lte.CellularGatewayPoolEntityType, &CellularGatewayPoolConfigs{}),
 	)
 )

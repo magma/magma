@@ -136,6 +136,56 @@ networks.forEach(network => {
     }
   });
 
+  server.get(`/magma/v1/lte/${network}/subscribers`, (req, res) => {
+    if (req.method === 'GET') {
+      res.status(200).jsonp(db['subscribers']);
+    }
+  });
+
+  server.post(`/magma/v1/lte/${network}/subscribers`, (req, res) => {
+    if (req.method === 'POST') {
+      res.status(200).jsonp('Success');
+    }
+  });
+
+  // current set of subscribers
+  const subscribers = [
+    'IMSI001010002220018',
+    'IMSI001010002220019',
+    'IMSI001010002220020',
+    'IMSI001010002220021',
+    'IMSI001010002220022',
+  ];
+  subscribers.forEach(subscriberIMSI => {
+    server.put(
+      `/magma/v1/lte/${network}/subscribers/${subscriberIMSI}`,
+      (req, res) => {
+        if (req.method === 'PUT') {
+          res.status(200).jsonp('Success');
+        }
+      },
+    );
+
+    server.get(
+      `/magma/v1/lte/${network}/subscribers/${subscriberIMSI}`,
+      (req, res) => {
+        if (req.method === 'GET') {
+          res.status(200).jsonp(db['subscribers'][`${subscriberIMSI}`]);
+        }
+      },
+    );
+  });
+
+  // return empty base names
+  server.get(
+    `/magma/v1/lte/${network}/subscriber_config/base_names`,
+    (req, res) => {
+      if (req.method === 'GET') {
+        res.status(200).jsonp([]);
+      }
+    },
+  );
+
   // return empty rating groups
   server.get(`/magma/v1/networks/${network}/rating_groups`, (req, res) => {
     if (req.method === 'GET') {

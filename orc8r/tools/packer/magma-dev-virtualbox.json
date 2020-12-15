@@ -82,16 +82,17 @@
         "../../../orc8r/tools/ansible/roles/python_dev",
         "../../../orc8r/tools/ansible/roles/resolv_conf",
         "../../../orc8r/tools/ansible/roles/test_certs",
+        "../../../lte/gateway/deploy/roles/envoy",
         "../../../lte/gateway/deploy/roles/stretch_snapshot",
         "../../../lte/gateway/deploy/roles/dev_common",
         "../../../lte/gateway/deploy/roles/magma",
         "../../../lte/gateway/deploy/roles/dev_common",
         "../../../lte/gateway/deploy/roles/magma",
-        "../../../lte/gateway/deploy/roles/magma_oai",
         "../../../lte/gateway/deploy/roles/magma_test",
         "../../../lte/gateway/deploy/roles/ovs_build",
         "../../../lte/gateway/deploy/roles/ovs_deploy",
         "../../../lte/gateway/deploy/roles/ovs_prepare",
+        "../../../lte/gateway/deploy/roles/pyvenv",
         "../../../lte/gateway/deploy/roles/stretch_snapshot",
         "../../../lte/gateway/deploy/roles/trfserver",
         "../../../lte/gateway/deploy/roles/uselocalpkgrepo"
@@ -109,7 +110,7 @@
       },
       {
         "type": "vagrant-cloud",
-        "box_tag": "fbcmagma/magma_dev",
+        "box_tag": "magmacore/magma_dev",
         "access_token": "{{user `cloud_token`}}",
         "version": "{{user `version`}}"
       }

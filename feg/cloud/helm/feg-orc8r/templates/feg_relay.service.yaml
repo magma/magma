@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "feg_relay.service") -}}
 {{- define "feg_relay.service" -}}
 metadata:
-  name: {{ .Release.Name }}-feg-relay
+  name: orc8r-feg-relay
   labels:
     {{- with .Values.feg_relay.service.labels }}
 {{ toYaml . | indent 4}}

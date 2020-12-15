@@ -212,7 +212,7 @@ class InOutController(MagmaController):
             flows.add_output_flow(dp, self._egress_tbl_num, downlink_match, [],
                                   output_port=self.config.gtp_port)
 
-        if vlan != "":
+        if vlan.isdigit():
             vid = 0x1000 | int(vlan)
             uplink_match = MagmaMatch(direction=Direction.OUT,
                                       vlan_vid=(vid, vid))
@@ -239,7 +239,7 @@ class InOutController(MagmaController):
 
                 self._current_upstream_mac_map[vlan] = mac_addr
 
-        if vlan != "":
+        if vlan.isdigit():
             priority = flows.UE_FLOW_PRIORITY
         elif mac_addr != "":
             priority = flows.DEFAULT_PRIORITY
@@ -333,7 +333,7 @@ class InOutController(MagmaController):
                 psrc = egress_port_ip
 
             pkt = Ether(dst=ETHER_BROADCAST, src=eth_mac_src)
-            if vlan != "":
+            if vlan.isdigit():
                 pkt /= Dot1Q(vlan=int(vlan))
             pkt /= ARP(op="who-has", pdst=gw_ip, hwsrc=eth_mac_src, psrc=psrc)
             self.logger.debug("ARP Req pkt %s", pkt.show(dump=True))
@@ -349,13 +349,18 @@ class InOutController(MagmaController):
             if res is not None:
                 self.logger.debug("ARP Res pkt %s", res.show(dump=True))
                 if str(res[ARP].psrc) != str(gw_ip):
-                    self.logger.warning("Unexpected ARP response. %s", res.show(dump=True))
+                    self.logger.warning("Unexpected IP in ARP response. expected: %s pkt: %s",
+                                        str(gw_ip),
+                                        res.show(dump=True))
                     return ""
-                if vlan:
+                if vlan.isdigit():
                     if Dot1Q in res and str(res[Dot1Q].vlan) == vlan:
                         mac = res[ARP].hwsrc
                     else:
-                        self.logger.warning("Unexpected ARP response. %s", res.show(dump=True))
+                        self.logger.warning("Unexpected vlan in ARP response. expected: %s pkt: %s",
+                                            vlan,
+                                            res.show(dump=True))
+                        return ""
                 else:
                     mac = res[ARP].hwsrc
                 return mac
@@ -367,7 +372,8 @@ class InOutController(MagmaController):
             self.logger.warning("Error in probing Mac address: err %s", ex)
             return ""
         except ValueError:
-            self.logger.warning("Invalid GW Ip address: [%s]", ip)
+            self.logger.warning("Invalid GW Ip address: [%s] or vlan %s",
+                                str(ip), vlan)
             return ""
 
     def _monitor_and_update(self):
@@ -432,9 +438,7 @@ class InOutController(MagmaController):
         if self.config.he_proxy_port <= 0:
             return
 
-        self.logger.info("Header Enrichment : %s", self.config.he_proxy_port)
         parser = dp.ofproto_parser
-
         match = MagmaMatch(proxy_tag=PROXY_TAG_TO_PROXY)
         actions = [parser.NXActionRegLoad2(dst='eth_dst',
                                            value=self.config.he_proxy_eth_mac)]
