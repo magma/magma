@@ -189,6 +189,8 @@
       - libxml2-dev
       - libxslt-dev
       - protobuf-compiler
+      - cmake
+      - python3-testresources
       # install ethtool for disabling TCP checksumming
       - ethtool
       - libffi-dev

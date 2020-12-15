@@ -16,7 +16,7 @@
 ###############################################################################
 
 # virtualenv bin and build dirs
-PYTHON_VERSION=3.5
+PYTHON_VERSION=3.8
 BIN := $(PYTHON_BUILD)/bin
 SRC := $(MAGMA_ROOT)
 SITE_PACKAGES_DIR := $(PYTHON_BUILD)/lib/python$(PYTHON_VERSION)/site-packages
@@ -88,7 +88,7 @@ prometheus_proto:
 
 # If you update the version here, you probably also want to update it in setup.py
 $(BIN)/grpcio-tools: install_virtualenv
-	$(VIRT_ENV_PIP_INSTALL) "grpcio-tools==1.16.1"
+	$(VIRT_ENV_PIP_INSTALL) "grpcio-tools==1.34.0"
 
 .test: .tests .sudo_tests
 

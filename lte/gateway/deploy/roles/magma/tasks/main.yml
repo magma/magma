@@ -213,7 +213,7 @@
       - libfolly-dev
       - libdouble-conversion-dev
       - libboost-chrono-dev
-      - nlohmann-json-dev
+      - nlohmann-json3-dev
       - redis-server
       - python-redis
       - magma-cpp-redis

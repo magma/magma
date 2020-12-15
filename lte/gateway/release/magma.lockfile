@@ -202,7 +202,7 @@
       "root": true,
       "source": "pypi",
       "sysdep": "python3-pystemd",
-      "version": "0.5.0"
+      "version": "0.8.0"
     },
     "python-dateutil": {
       "root": true,
@@ -280,7 +280,7 @@
       "root": true,
       "source": "pypi",
       "sysdep": "python3-urllib3",
-      "version": "1.25.3"
+      "version": "1.25.8"
     },
     "webob": {
       "root": false,
@@ -321,7 +321,7 @@
       "version": "0.5.1"
     },
     "certifi": {
-      "version": "2019.6.16"
+      "version": "2019.11.28"
     },
     "chardet": {
       "version": "3.0.4"

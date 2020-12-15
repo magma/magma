@@ -89,12 +89,12 @@ SCTPD_PKGNAME=magma-sctpd
 # Magma system dependencies: anything that we depend on at the top level, add
 # here.
 MAGMA_DEPS=(
-    "grpc-dev >= 1.15.0"
+    "grpc-dev >= 1.34.0"
     "libprotobuf10 >= 3.0.0"
     "lighttpd >= 1.4.45"
     "libxslt1.1"
     "nghttp2-proxy >= 1.18.1"
-    "python3-protobuf >= 3.0.0"
+    "python3-protobuf == 3.6.1"
     "redis-server >= 3.2.0"
     "sudo"
     "dnsmasq >= 2.72"
@@ -105,7 +105,7 @@ MAGMA_DEPS=(
     "libsystemd-dev"
     "libyaml-cpp-dev" # install yaml parser
     "libgoogle-glog-dev"
-    "nlohmann-json-dev" # c++ json parser
+    "nlohmann-json3-dev" # c++ json parser
     "python-redis"
     "magma-cpp-redis"
     "libfolly-dev" # required for C++ services
@@ -161,7 +161,7 @@ RELEASE_DIR=${MAGMA_ROOT}/lte/gateway/release
 POSTINST=${RELEASE_DIR}/magma-postinst
 
 # python environment
-PY_VERSION=python3.5
+PY_VERSION=python3.8
 PY_PKG_LOC=dist-packages
 PY_DEST=/usr/local/lib/${PY_VERSION}/${PY_PKG_LOC}
 PY_PROTOS=${PYTHON_BUILD}/gen/

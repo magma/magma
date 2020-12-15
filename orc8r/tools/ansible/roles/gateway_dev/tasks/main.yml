@@ -67,12 +67,12 @@
 - name: Install protobuf compiler
   command: "{{ item }}"
   with_items:
-    - curl -Lfs https://github.com/google/protobuf/releases/download/v3.1.0/protoc-3.1.0-linux-x86_64.zip -o protoc3.zip
+    - curl -Lfs https://github.com/google/protobuf/releases/download/v3.14.0/protoc-3.14.0-linux-x86_64.zip -o protoc3.zip
     - unzip protoc3.zip -d protoc3
-    - mv protoc3/bin/protoc /usr/bin/protoc
-    - chmod a+rx /usr/bin/protoc
-    - cp -r protoc3/include/google /usr/include/
-    - chmod -R a+Xr /usr/include/google
+    - sudo mv protoc3/bin/protoc /usr/bin/protoc
+    - sudo chmod a+rx /usr/bin/protoc
+    - sudo cp -r protoc3/include/google /usr/include/
+    - sudo chmod -R a+Xr /usr/include/google
     - rm -rf protoc3.zip protoc3
   when: preburn and ((pbversion is failed) or not (pbversion.stdout|regex_search("^libprotoc 3.")))
 
