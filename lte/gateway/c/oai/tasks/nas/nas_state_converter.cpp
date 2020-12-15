@@ -42,7 +42,13 @@ void NasStateConverter::proto_to_guti(
 
 void NasStateConverter::proto_to_ecgi(
     const oai::Ecgi& ecgi_proto, ecgi_t* state_ecgi) {
-  strcpy((char*) &state_ecgi->plmn, ecgi_proto.plmn().c_str());
+  state_ecgi->plmn.mcc_digit1 = (int) (ecgi_proto.plmn()[0]) - ASCII_ZERO;
+  state_ecgi->plmn.mcc_digit2 = (int) (ecgi_proto.plmn()[1]) - ASCII_ZERO;
+  state_ecgi->plmn.mcc_digit3 = (int) (ecgi_proto.plmn()[2]) - ASCII_ZERO;
+  state_ecgi->plmn.mnc_digit1 = (int) (ecgi_proto.plmn()[3]) - ASCII_ZERO;
+  state_ecgi->plmn.mnc_digit2 = (int) (ecgi_proto.plmn()[4]) - ASCII_ZERO;
+  state_ecgi->plmn.mnc_digit3 = (int) (ecgi_proto.plmn()[5]) - ASCII_ZERO;
+
   state_ecgi->cell_identity.enb_id  = ecgi_proto.enb_id();
   state_ecgi->cell_identity.cell_id = ecgi_proto.cell_id();
   state_ecgi->cell_identity.empty   = ecgi_proto.empty();
