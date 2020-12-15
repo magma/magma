@@ -98,7 +98,9 @@ def tail_logs(client, args):
 @grpc_wrapper
 def check_stateless(client, args):
     response = client.CheckStateless(common_pb2.Void())
-    print(response.agw_mode)
+    print("AGW Mode:",
+            magmad_pb2.StatelessAgwMode.AgwMode.Name(response.agw_mode))
+
 
 @grpc_wrapper
 def config_stateless(client, args):

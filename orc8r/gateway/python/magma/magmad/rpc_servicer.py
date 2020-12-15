@@ -28,6 +28,8 @@ from orc8r.protos import magmad_pb2, magmad_pb2_grpc
 
 from magma.common.rpc_utils import return_void, set_grpc_err
 from magma.common.service import MagmaService
+from magma.common.stateless_agw_utils import check_stateless_agw, \
+enable_stateless_agw, disable_stateless_agw
 from magma.configuration.mconfig_managers import MconfigManager
 from magma.magmad.generic_command.command_executor import \
     CommandExecutor
@@ -258,15 +260,10 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         Check the stateless mode on AGW
         """
-        logging.info("RPC: config command check")
-        status = self._service_manager.check_stateless_services()
-        logging.info("RPC: config response %s", status.name)
-        if status == ServiceManager._return_codes.STATEFUL:
-            return magmad_pb2.StatelessAgwMode(
-                    agw_mode=magmad_pb2.StatelessAgwMode.STATEFUL)
-        elif status == ServiceManager._return_codes.STATELESS:
-            return magmad_pb2.StatelessAgwMode(
-                    agw_mode=magmad_pb2.StatelessAgwMode.STATELESS)
+        status = check_stateless_agw()
+        logging.debug("AGW mode is %s",
+                magmad_pb2.StatelessAgwMode.AgwMode.Name(status))
+        return magmad_pb2.StatelessAgwMode( agw_mode=status)
 
 
     @return_void
@@ -278,10 +275,10 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         if request.config_cmd == magmad_pb2.StatelessConfigRequest.ENABLE:
             logging.info("RPC: config command enable")
-            self._service_manager.enable_stateless_agw()
+            enable_stateless_agw()
         elif request.config_cmd == magmad_pb2.StatelessConfigRequest.DISABLE:
             logging.info("RPC: config command disable")
-            self._service_manager.disable_stateless_agw()
+            disable_stateless_agw()
 
 
     @staticmethod
