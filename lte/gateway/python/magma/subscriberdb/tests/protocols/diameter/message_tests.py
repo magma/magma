@@ -18,7 +18,6 @@ import unittest
 from magma.subscriberdb.protocols.diameter import message, avp
 from magma.subscriberdb.protocols.diameter.exception import CodecException, TooShortException
 
-
 class MessageHeaderCodecTests(unittest.TestCase):
     """
     Tests for encoding and decoding message headers

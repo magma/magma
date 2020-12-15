@@ -44,6 +44,12 @@ $(PYTHON_BUILD):
 $(SITE_PACKAGES_DIR)/setuptools: install_virtualenv
 	$(VIRT_ENV_PIP_INSTALL) "setuptools==49.6.0"  # newer than 41.0.1
 
+
+py_patches:
+	patch --dry-run -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <patches/aioeventlet.py38.patch 2>/dev/null \
+	&&  (patch -N -s -f $(SITE_PACKAGES_DIR)/aioeventlet.py <patches/aioeventlet.py38.patch && echo "aioeventlet was patched" ) \
+	|| ( true && echo "skipping aioeventlet patch since it was already applied")
+
 swagger:: swagger_prereqs $(SWAGGER_LIST)
 swagger_prereqs:
 	test -f /usr/bin/java # Java exists

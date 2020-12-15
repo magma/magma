@@ -41,4 +41,3 @@
 - name: Create virtualenv
   shell: su - {{ ansible_user }} -c 'bash -l -c "source /usr/share/virtualenvwrapper/virtualenvwrapper.sh; mkvirtualenv -p /usr/bin/python3 --system-site-packages pydep"'
   ignore_errors: yes
-
