@@ -47,7 +47,7 @@ void SessionStore::set_and_save_reporting_flag(
 
   for (const CreditUsageUpdate& credit_update :
        update_session_request.updates()) {
-    const std::string imsi       = credit_update.sid();
+    const std::string imsi       = credit_update.common_context().sid().id();
     const std::string session_id = credit_update.session_id();
     const CreditKey& ckey        = credit_update.usage().charging_key();
     const std::string mkey       = credit_update.usage().monitoring_key();

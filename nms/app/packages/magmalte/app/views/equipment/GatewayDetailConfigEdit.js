@@ -104,7 +104,7 @@ const DEFAULT_GATEWAY_CONFIG = {
     autoupgrade_poll_interval: 60,
     checkin_interval: 60,
     checkin_timeout: 30,
-    dynamic_services: [],
+    dynamic_services: ['eventd', 'td-agent-bit'],
   },
   name: '',
   status: {

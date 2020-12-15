@@ -141,10 +141,7 @@ class SessionStoreTest : public ::testing::Test {
     update_criteria.static_rules_to_install.insert(rule_id_1);
     update_criteria.dynamic_rules_to_install = std::vector<PolicyRule>{};
     update_criteria.dynamic_rules_to_install.push_back(get_dynamic_rule());
-    RuleLifetime lifetime{
-        .activation_time   = std::time_t(0),
-        .deactivation_time = std::time_t(0),
-    };
+    RuleLifetime lifetime;
     update_criteria.new_rule_lifetimes[rule_id_1]         = lifetime;
     update_criteria.new_rule_lifetimes[dynamic_rule_id_1] = lifetime;
 
@@ -232,10 +229,7 @@ TEST_F(SessionStoreTest, test_metering_reporting) {
 
   auto uc = get_default_update_criteria();
   uc.static_rules_to_install.insert("RULE_asdf");
-  RuleLifetime lifetime{
-      .activation_time   = std::time_t(0),
-      .deactivation_time = std::time_t(0),
-  };
+  RuleLifetime lifetime;
   uc.new_rule_lifetimes["RULE_asdf"] = lifetime;
 
   // Record some credit usage
@@ -304,10 +298,7 @@ TEST_F(SessionStoreTest, test_read_and_write) {
   auto session = get_session(IMSI1, SESSION_ID_1, rule_store);
 
   auto uc = get_default_update_criteria();
-  RuleLifetime lifetime{
-      .activation_time   = std::time_t(0),
-      .deactivation_time = std::time_t(0),
-  };
+  RuleLifetime lifetime;
   session->activate_static_rule(rule_id_3, lifetime, uc);
   EXPECT_EQ(session->get_session_id(), SESSION_ID_1);
   EXPECT_EQ(session->get_request_number(), 1);
@@ -522,10 +513,8 @@ TEST_F(SessionStoreTest, test_update_session_rules) {
 
   auto uc = get_default_update_criteria();
   uc.static_rules_to_install.insert("RULE_asdf");
-  RuleLifetime lifetime{
-      .activation_time   = std::time_t(0),
-      .deactivation_time = std::time_t(0),
-  };
+  RuleLifetime lifetime;
+
   uc.new_rule_lifetimes["RULE_asdf"]  = lifetime;
   session_update[IMSI1][SESSION_ID_1] = uc;
 

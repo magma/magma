@@ -33,6 +33,7 @@ setup_type: LTE
 # after these static services.
 static_services: [
   'arpd',
+  'proxy',
   'access_control',
   'startup_flows',
 ]

@@ -85,7 +85,12 @@ resource "helm_release" "orc8r" {
     thanos_bucket          = var.thanos_enabled ? aws_s3_bucket.thanos_object_store_bucket[0].bucket : ""
     thanos_aws_access_key  = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].id : ""
     thanos_aws_secret_key  = var.thanos_enabled ? aws_iam_access_key.thanos_s3_access_key[0].secret : ""
-    region                 = var.region
+
+    thanos_compact_selector = var.thanos_compact_node_selector != "" ? format("compute-type: %s", var.thanos_compact_node_selector) : "{}"
+    thanos_query_selector   = var.thanos_query_node_selector != "" ? format("compute-type: %s", var.thanos_query_node_selector) : "{}"
+    thanos_store_selector   = var.thanos_store_node_selector != "" ? format("compute-type: %s", var.thanos_store_node_selector) : "{}"
+
+    region = var.region
   })]
 
   set_sensitive {

@@ -86,7 +86,8 @@ func (manager *RuleManager) AddStaticPassAllToDBAndPCRFforIMSIs(
 // AddStaticPassAllToDB adds a static rule that passes all traffic to policyDB
 // storage
 func (manager *RuleManager) AddStaticPassAllToDB(ruleID string, monitoringKey string, ratingGroup uint32, trackingType string, priority uint32) error {
-	fmt.Printf("************************* Adding a Pass-All static rule: %s\n", ruleID)
+	fmt.Printf("************************* Adding a Pass-All static rule: %s, mkey: %s, rg: %d, trackingType: %s\n",
+		ruleID, monitoringKey, ratingGroup, trackingType)
 	staticPassAll := getStaticPassAll(ruleID, monitoringKey, ratingGroup, trackingType, priority, nil)
 	return manager.insertStaticRuleIntoRedis(staticPassAll)
 }

@@ -62,7 +62,7 @@
         "ids": ["lte/tr069", "lte/s1ap_tests", "lte/dev_notes"]
       }
     ],
-    "Feature Guides": ["howtos/ue_metering", "howtos/config_agw_bridged"],
+    "Feature Guides": ["howtos/ue_metering", "howtos/config_agw_bridged", "howtos/thanos"],
     "Federation Gateway": [
       {
         "type": "subcategory",
