@@ -80,8 +80,8 @@ def _clear_redis_state():
     if os.getuid() != 0:
         print("Need to run as root to clear Redis state.")
         sys.exit(return_codes.INVALID)
-    subprocess.call("service magma@* stop".split())
-    subprocess.call("service magma@redis start".split())
+    # stop MME, which in turn stops mobilityd, pipelined and sessiond
+    subprocess.call("service magma@mme stop".split())
     # delete all keys from Redis which capture service state
     for key_regex in [
         "*_state",
@@ -102,7 +102,6 @@ def _clear_redis_state():
             stdout=subprocess.DEVNULL,
             stderr=subprocess.DEVNULL,
         )
-    subprocess.call("service magma@redis stop".split())
 
 
 def _flushall_redis():
@@ -174,13 +173,16 @@ def sctpd_pre_start():
 
 
 def sctpd_post_start():
-    _start_magmad()
+    subprocess.Popen("/bin/systemctl start magma@mme".split())
+    subprocess.Popen("/bin/systemctl start magma@pipelined".split())
+    subprocess.Popen("/bin/systemctl start magma@sessiond".split())
+    subprocess.Popen("/bin/systemctl start magma@mobilityd".split())
     sys.exit(0)
 
 
 def clear_redis_and_restart():
     _clear_redis_state()
-    _start_magmad()
+    sctpd_post_start()
     sys.exit(0)
 
 

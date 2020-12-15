@@ -19,8 +19,8 @@ from enum import Enum
 from typing import List, Tuple
 
 from magma.magmad.service_poller import ServicePoller
-
 import magma.magmad.events as magmad_events
+
 
 class ServiceState(Enum):
     """
@@ -41,6 +41,7 @@ class CommandReturn(object):
         self.status_code = status_code
         self.std_out = std_out
 
+
 class ServiceManager(object):
     """
     Manages a set of systemd services, performing bulk operations across all
@@ -49,7 +50,6 @@ class ServiceManager(object):
     _service_control = {}
     _services = []
     _registered_dynamic_services = []
-
 
     def __init__(
             self,
@@ -158,7 +158,6 @@ class ServiceManager(object):
             else:
                 clean_dynamic_services.append(s)
         return clean_dynamic_services
-
 
     class ServiceControl(object):
         """

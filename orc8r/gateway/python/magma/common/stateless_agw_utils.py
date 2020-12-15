@@ -12,13 +12,13 @@ limitations under the License.
 """
 
 import logging
+import subprocess
 
 from magma.configuration.service_configs import (
     load_override_config,
     load_service_config,
     save_override_config,
 )
-from magma.magmad.check import subprocess_workflow
 from orc8r.protos import magmad_pb2
 
 STATELESS_SERVICE_CONFIGS = [
@@ -30,8 +30,12 @@ STATELESS_SERVICE_CONFIGS = [
 ]
 
 
-def _get_service_restart_args_list(service_name):
-    return ["service", service_name, "restart"]
+def _get_service_start_args_list(service_name):
+    return ["service", service_name, "start"]
+
+
+def _get_service_stop_args_list(service_name):
+    return ["service", service_name, "stop"]
 
 
 def _check_stateless_service_config(service, config_name, config_value):
@@ -68,9 +72,7 @@ def check_stateless_agw():
 
 def _restart_sctpd():
     logging.info("Restarting sctpd")
-    subprocess_workflow.exec_and_parse_subprocesses(
-        ["sctpd"], _get_service_restart_args_list, None
-    )
+    subprocess.call("service sctpd restart".split())
 
 
 def enable_stateless_agw():
