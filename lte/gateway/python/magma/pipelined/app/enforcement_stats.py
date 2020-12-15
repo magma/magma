@@ -39,6 +39,7 @@ from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
     IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
+from magma.pipelined.rule_mappers import UsageDeltaDict
 
 
 ETH_FRAME_SIZE_BYTES = 14
@@ -79,11 +80,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._msg_hub = MessageHub(self.logger)
         self.unhandled_stats_msgs = []  # Store multi-part responses from ovs
         self.total_usage = {}  # Store total usage
+        self._clean_restart = kwargs['config']['clean_restart']
+        self._redis_enabled = kwargs['config'].get('redis_enabled', False)
         # Store last usage excluding deleted flows for calculating deltas
-        self.last_usage_for_delta = {}
+        if self._redis_enabled and not self._clean_restart:
+            self.last_usage_for_delta = UsageDeltaDict()
+        else:
+            self.last_usage_for_delta = {}
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
         self._unmatched_bytes = 0  # Store bytes matched by default rule if any
-        self._clean_restart = kwargs['config']['clean_restart']
         self._default_drop_flow_name = \
             kwargs['config']['enforcement']['default_drop_flow_name']
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
@@ -102,9 +107,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         self.unhandled_stats_msgs = []
         self.total_usage = {}
-        self.last_usage_for_delta = {}
         self.failed_usage = {}
         self._unmatched_bytes = 0
+
+        if self._redis_enabled:
+            keys = self.last_usage_for_delta.keys()
+            for key in keys:
+                self.last_usage_for_delta.delete(key)
+        else:
+            self.last_usage_for_delta = {}
 
     def initialize_on_connect(self, datapath):
         """
@@ -512,8 +523,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                     '(version: %s): %s', stat_rule_id,
                     stat_sid, rule_version, e)
 
-        self.last_usage_for_delta = self._delta_usage_maps(self.total_usage,
-                                                           deleted_flow_usage)
+        new_last_usage = self._delta_usage_maps(self.total_usage,
+                                                deleted_flow_usage)
+        # Save new purge old from redis
+        old = self.last_usage_for_delta.keys()
+        new = new_last_usage.keys()
+        for key, value in new_last_usage.items():
+            self.last_usage_for_delta[key] = value
+        for key in [k for k in old if k not in new]:
+            self.last_usage_for_delta.delete(key)
 
     def _old_flow_stats(self, stats_msgs):
         """
@@ -600,6 +618,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             else:
                 new_usage[key] = current
         return new_usage
+
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
