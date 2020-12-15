@@ -40,96 +40,94 @@ class TestAttachNwInitiatedDetachWithMmeRestart(unittest.TestCase):
                 invoked for default bearer, MME initaites detach procedure
         Step 4: MME starts 3422 timer to receive Detach Accept message
         Step 5: Send command to restart MME service to validate the behavior
-                3422 timer, on MME recovery, it sends Detach Request
+                of 3422 timer, on MME recovery, it sends Detach Request
         Step 6: S1ap tester shall wait on Detach Request and send Detach Accept
                 message
         """
-        num_ues = 1
-        self._s1ap_wrapper.configUEDevice(num_ues)
+        self._s1ap_wrapper.configUEDevice(1)
 
-        for i in range(num_ues):
-            req = self._s1ap_wrapper.ue_req
-            print(
-                "********************** Running End to End attach for ",
-                "UE id ",
-                req.ue_id,
-            )
-            # Now actually complete the attach
-            attach = self._s1ap_wrapper._s1_util.attach(
-                req.ue_id,
-                s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
-                s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
-                s1ap_types.ueAttachAccept_t,
-            )
+        req = self._s1ap_wrapper.ue_req
+        print(
+            "********************** Running End to End attach for ",
+            "UE id ",
+            req.ue_id,
+        )
+        # Now actually complete the attach
+        attach = self._s1ap_wrapper._s1_util.attach(
+            req.ue_id,
+            s1ap_types.tfwCmd.UE_END_TO_END_ATTACH_REQUEST,
+            s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND,
+            s1ap_types.ueAttachAccept_t,
+        )
 
-            # Wait on EMM Information from MME
-            self._s1ap_wrapper._s1_util.receive_emm_info()
+        # Wait on EMM Information from MME
+        self._s1ap_wrapper._s1_util.receive_emm_info()
 
+        time.sleep(1)
+        print(
+            "********************** Adding dedicated bearer to IMSI",
+            "".join([str(i) for i in req.imsi]),
+        )
+        self._spgw_util.create_bearer(
+            "IMSI" + "".join([str(i) for i in req.imsi]),
+            attach.esmInfo.epsBearerId,
+        )
+
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
+        )
+        act_ded_ber_ctxt_req = response.cast(
+            s1ap_types.UeActDedBearCtxtReq_t
+        )
+        self._s1ap_wrapper.sendActDedicatedBearerAccept(
+            req.ue_id, act_ded_ber_ctxt_req.bearerId
+        )
+
+        print("Sleeping for 5 seconds")
+        time.sleep(5)
+        print(
+            "********************** Deleting default bearer for IMSI",
+            "".join([str(i) for i in req.imsi]),
+        )
+        # Delete default bearer
+        self._spgw_util.delete_bearer(
+            "IMSI" + "".join([str(i) for i in req.imsi]),
+            attach.esmInfo.epsBearerId,
+            attach.esmInfo.epsBearerId,
+        )
+        # Receive NW initiated detach request
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
+        )
+        print("**************** Received NW initiated Detach Req")
+        print(
+            "************************* Restarting MME service on",
+            "gateway",
+        )
+        self._s1ap_wrapper.magmad_util.restart_services(["mme"])
+
+        for j in range(30):
+            print("Waiting for", j, "seconds")
             time.sleep(1)
-            print(
-                "********************** Adding dedicated bearer to IMSI",
-                "".join([str(i) for i in req.imsi]),
-            )
-            self._spgw_util.create_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]),
-                attach.esmInfo.epsBearerId,
-            )
 
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
-            )
-            act_ded_ber_ctxt_req = response.cast(
-                s1ap_types.UeActDedBearCtxtReq_t
-            )
-            self._s1ap_wrapper.sendActDedicatedBearerAccept(
-                req.ue_id, act_ded_ber_ctxt_req.bearerId
-            )
+        # Receive NW initiated detach request
+        response = self._s1ap_wrapper.s1_util.get_response()
+        self.assertEqual(
+            response.msg_type,
+            s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
+        )
+        print("**************** Received second NW initiated Detach Req")
 
-            print("Sleeping for 5 seconds")
-            time.sleep(5)
-            print(
-                "********************** Deleting default bearer for IMSI",
-                "".join([str(i) for i in req.imsi]),
-            )
-            # Delete default bearer
-            self._spgw_util.delete_bearer(
-                "IMSI" + "".join([str(i) for i in req.imsi]),
-                attach.esmInfo.epsBearerId,
-                attach.esmInfo.epsBearerId,
-            )
-            # Receive NW initiated detach request
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
-            )
-            print("**************** Received NW initiated Detach Req")
-            print(
-                "************************* Restarting MME service on",
-                "gateway",
-            )
-            self._s1ap_wrapper.magmad_util.restart_services(["mme"])
-
-            for j in range(30):
-                print("Waiting for", j, "seconds")
-                time.sleep(1)
-
-            # Receive NW initiated detach request
-            response = self._s1ap_wrapper.s1_util.get_response()
-            self.assertEqual(
-                response.msg_type,
-                s1ap_types.tfwCmd.UE_NW_INIT_DETACH_REQUEST.value,
-            )
-            print("**************** Received second NW initiated Detach Req")
-
-            print("**************** Sending Detach Accept")
-            # Send detach accept
-            detach_accept = s1ap_types.ueTrigDetachAcceptInd_t()
-            detach_accept.ue_Id = req.ue_id
-            self._s1ap_wrapper._s1_util.issue_cmd(
-                s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept
-            )
+        print("**************** Sending Detach Accept")
+        # Send detach accept
+        detach_accept = s1ap_types.ueTrigDetachAcceptInd_t()
+        detach_accept.ue_Id = req.ue_id
+        self._s1ap_wrapper._s1_util.issue_cmd(
+            s1ap_types.tfwCmd.UE_TRIGGERED_DETACH_ACCEPT, detach_accept
+        )
 
 
 if __name__ == "__main__":
