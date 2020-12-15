@@ -146,6 +146,7 @@ message PipelineD {
         HashFunction hashFunction = 4;
         EncodingType encodingType = 5;
         string encryption_key = 6;
+        string hmac_key = 7;
     }
     HEConfig he_config = 17;
 

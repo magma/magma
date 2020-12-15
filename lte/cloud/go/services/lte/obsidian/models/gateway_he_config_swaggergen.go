@@ -44,6 +44,9 @@ type GatewayHeConfig struct {
 	// Required: true
 	// Enum: [MD5 HEX SHA256]
 	HeHashFunction string `json:"he_hash_function"`
+
+	// Hmac key to be used in header encryption
+	HmacKey string `json:"hmac_key,omitempty"`
 }
 
 // Validate validates this gateway he config

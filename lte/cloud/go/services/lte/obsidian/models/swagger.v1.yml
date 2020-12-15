@@ -2109,6 +2109,11 @@ definitions:
         type: string
         x-nullable: false
         example: 'C14r0315v0x'
+      hmac_key:
+        description: Hmac key to be used in header encryption
+        type: string
+        x-nullable: false
+        example: 'Xs21Ncas87'
       he_encryption_algorithm:
         type: string
         x-nullable: false

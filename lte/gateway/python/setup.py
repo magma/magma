@@ -97,7 +97,6 @@ setup(
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
         'wsgiserver>=1.3',
-        'pycrypto>=2.6.1',
         # pin recursive dependencies of ryu and others
         'chardet==3.0.4',
         'docker==4.0.2',
