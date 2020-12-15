@@ -282,6 +282,7 @@ commands:
 
             mkdir -p versions
             cp *_version versions || true
+          no_output_timeout: 20m
       - store_artifacts:
           path: /tmp/logs
       - store_test_results:
@@ -1029,7 +1030,6 @@ workflows:
             - xwfm-test
             - cwag-deploy
 
-
   cwf_operator:
     jobs:
       - cwf-operator-precommit
@@ -1074,10 +1074,10 @@ workflows:
             - nms-yarn-test
             - nms-e2e-test
 
-#  docusaurus:
-#   jobs:
-#    - docusaurus_build_and_deploy:
-#        <<: *only_master
+  docusaurus:
+   jobs:
+    - docusaurus_build_and_deploy:
+        <<: *only_master
 
   fossa:
     jobs:
