@@ -41,6 +41,26 @@ bool sync_up_with_orc8r(void) {
         if (status.ok()) {
           OAILOG_INFO(
               LOG_UTIL, "Received eNodeB connection state with the primary.");
+          // iterate over the eNodeB connection states
+          ha_agw_offload_req_t offload_req = {0};
+          for (auto const& item : response.enodeb_offload_states()) {
+            if (item.second ==
+                magma::lte::GetEnodebOffloadStateResponse::PRIMARY_CONNECTED) {
+              offload_req.eNB_id = item.first;
+              // Offload any UE to check if it can be camped on the primary.
+              // The effect will be observed in the next sync up with the cloud.
+              offload_req.enb_offload_type = ANY;
+              handle_agw_offload_req(&offload_req);
+            } else if (
+                item.second == magma::lte::GetEnodebOffloadStateResponse::
+                                   PRIMARY_CONNECTED_AND_SERVING_UES) {
+              offload_req.eNB_id = item.first;
+              // Primary looks healthy as UEs are camped on it, offload the rest
+              // of UEs.
+              offload_req.enb_offload_type = ALL;
+              handle_agw_offload_req(&offload_req);
+            }
+          }
         } else {
           OAILOG_ERROR(
               LOG_UTIL, "GRPC Failure Message: %s Status Error Code: %d",
@@ -55,7 +75,7 @@ typedef struct callback_data_s {
   ha_agw_offload_req_t* request;
 } callback_data_t;
 
-bool handle_agw_offload_req(ha_agw_offload_req_t* offload_req) {
+void handle_agw_offload_req(ha_agw_offload_req_t* offload_req) {
   hash_table_ts_t* state_imsi_ht =
       magma::lte::MmeNasStateManager::getInstance().get_ue_state_ht();
   callback_data_t callback_data;
@@ -87,10 +107,13 @@ bool process_ue_context(
     return false;
   }
 
+  offload_type_t enb_offtype = offload_request->enb_offload_type;
   // When a UE is in ECM_CONNECTED state, we can direcly start offloading.
   // For a UE in ECM_IDLE mode however, we need to first page the user and
   // then we can offload it.
-  if (ue_context_p->ecm_state == ECM_CONNECTED) {
+  if ((ue_context_p->ecm_state == ECM_CONNECTED) &&
+      ((enb_offtype == ALL) || (enb_offtype == ANY) ||
+       (enb_offtype == ANY_CONNECTED))) {
     MessageDef* message_p =
         itti_alloc_new_message(TASK_HA, S1AP_UE_CONTEXT_RELEASE_REQ);
     S1AP_UE_CONTEXT_RELEASE_REQ(message_p).mme_ue_s1ap_id =
@@ -119,7 +142,9 @@ bool process_ue_context(
     send_msg_to_task(&ha_task_zmq_ctx, TASK_MME_APP, message_p);
   } else if (
       (ue_context_p->ecm_state == ECM_IDLE) &&
-      (ue_context_p->mm_state == UE_REGISTERED)) {
+      (ue_context_p->mm_state == UE_REGISTERED) &&
+      ((enb_offtype == ALL) || (enb_offtype == ANY) ||
+       (enb_offtype == ANY_IDLE))) {
     // Upon connection re-establishment, this release cause value will
     // be checked and cleared by MME APP to send offload request.
     ue_context_p->ue_context_rel_cause = S1AP_NAS_MME_PENDING_OFFLOADING;
@@ -139,6 +164,13 @@ bool process_ue_context(
     paging_request_p->imsi        = strdup(imsi);
     message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
     send_msg_to_task(&ha_task_zmq_ctx, TASK_MME_APP, message_p);
+  }
+
+  // Check if iterations should be stopped as single match was
+  // sufficient.
+  if ((enb_offtype == ANY) || (enb_offtype == ANY_CONNECTED) ||
+      (enb_offtype == ANY_IDLE)) {
+    return true;
   }
   return false;
 }

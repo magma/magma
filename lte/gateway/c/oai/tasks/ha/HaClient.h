@@ -23,7 +23,7 @@
 #include <functional>
 #include <memory>
 
-#include "lte/protos/had_orc8r.grpc.pb.h"
+#include "lte/protos/ha_orc8r.grpc.pb.h"
 #include "GRPCReceiver.h"
 
 extern "C" {}
@@ -49,7 +49,7 @@ class HaClient : public GRPCReceiver {
  private:
   HaClient();
   static HaClient& get_instance();
-  std::unique_ptr<lte::HaD::Stub> stub_;
+  std::unique_ptr<lte::Ha::Stub> stub_;
   static const uint32_t RESPONSE_TIMEOUT = 3;  // seconds
 };
 

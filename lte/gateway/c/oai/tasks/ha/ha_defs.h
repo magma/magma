@@ -35,6 +35,6 @@ bool sync_up_with_orc8r(void);
 /*
  * Sends a S1AP_UE_CONTEXT_RELEASE_REQ message to MME.
  */
-bool handle_agw_offload_req(ha_agw_offload_req_t* offload_req);
+void handle_agw_offload_req(ha_agw_offload_req_t* offload_req);
 
 #endif /* HA_DEFS_H_ */

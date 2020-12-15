@@ -11,8 +11,8 @@ generate_cpp_protos("${MMEAPP_STATE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${STATE_PROTO_DIR} ${LTE_OUT_MME_STATE_DIR})
 
 # compile the needed protos
-set(HA_LTE_CPP_PROTOS had_orc8r)
-set(HA_LTE_GRPC_PROTOS had_orc8r)
+set(HA_LTE_CPP_PROTOS ha_orc8r)
+set(HA_LTE_GRPC_PROTOS ha_orc8r)
 set(HA_ORC8R_CPP_PROTOS "")
 set(HA_ORC8R_GRPC_PROTOS "")
 generate_all_protos("${HA_LTE_CPP_PROTOS}" "${HA_ORC8R_CPP_PROTOS}" "${HA_LTE_GRPC_PROTOS}"

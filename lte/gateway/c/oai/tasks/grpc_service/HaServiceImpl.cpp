@@ -29,7 +29,7 @@ using namespace lte;
 HaServiceImpl::HaServiceImpl() {}
 /*
  * StartAgwOffload is called by North Bound to release UEs
- * based on eNB identification.
+ * based on eNB identification or UE identification.
  */
 grpc::Status HaServiceImpl::StartAgwOffload(
     grpc::ServerContext* context, const StartAgwOffloadRequest* request,
@@ -53,6 +53,8 @@ bool HaServiceImpl::send_agw_offload_req(
   strcpy(AGW_OFFLOAD_REQ(message_p).imsi, imsi.c_str());
 
   AGW_OFFLOAD_REQ(message_p).eNB_id = request->enb_id();
+  AGW_OFFLOAD_REQ(message_p).enb_offload_type =
+      (offload_type_t) request->enb_offload_type();
 
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_HA, message_p);
 

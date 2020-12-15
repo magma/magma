@@ -17,9 +17,17 @@ package magma.lte;
 
 option go_package = "magma/lte/cloud/go/protos";
 
+enum EnbOffloadType {
+    ALL = 0;
+    ANY = 1;
+    ANY_CONNECTED = 2;
+    ANY_IDLE = 3;
+}
+
 message StartAgwOffloadRequest {
     uint32 enb_id = 1;
-    string imsi = 2;
+    EnbOffloadType enb_offload_type = 2;
+    string imsi = 3;
 }
 
 message StartAgwOffloadResponse {}

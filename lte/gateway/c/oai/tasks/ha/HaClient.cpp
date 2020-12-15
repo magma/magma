@@ -21,7 +21,7 @@
 
 #include "HaClient.h"
 #include "ServiceRegistrySingleton.h"
-#include "lte/protos/had_orc8r.pb.h"
+#include "lte/protos/ha_orc8r.pb.h"
 
 namespace magma {
 
@@ -32,9 +32,9 @@ HaClient& HaClient::get_instance() {
 
 HaClient::HaClient() {
   auto channel = ServiceRegistrySingleton::Instance()->GetGrpcChannel(
-      "had", ServiceRegistrySingleton::CLOUD);
+      "ha", ServiceRegistrySingleton::CLOUD);
   // Create stub for HaProxy gRPC service
-  stub_ = lte::HaD::NewStub(channel);
+  stub_ = lte::Ha::NewStub(channel);
 
   std::thread resp_loop_thread([&]() { rpc_response_loop(); });
   resp_loop_thread.detach();

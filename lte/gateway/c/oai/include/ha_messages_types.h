@@ -20,6 +20,12 @@ limitations under the License.
 
 #define AGW_OFFLOAD_REQ(mSGpTR) (mSGpTR)->ittiMsg.ha_agw_offload_req
 
+// ALL: offload all idle and connected UEs
+// ANY: offload any UE
+// ANY_CONNECTED: offload any one of ECM_CONNECTED UEs
+// ANY_IDLE: offload any one of ECM_IDLE UEs
+typedef enum { ALL, ANY, ANY_CONNECTED, ANY_IDLE } offload_type_t;
+
 // The imsi and eNB_id fields are used as filters.
 // A UE that satisfy any of these filters will be offloaded.
 typedef struct ha_agw_offload_req_s {
@@ -27,6 +33,7 @@ typedef struct ha_agw_offload_req_s {
   uint8_t imsi_length;
 
   uint32_t eNB_id;
+  offload_type_t enb_offload_type;
 } ha_agw_offload_req_t;
 
 #endif /* FILE_HA_MESSAGES_TYPES_SEEN */
