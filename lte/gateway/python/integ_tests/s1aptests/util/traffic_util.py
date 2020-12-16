@@ -564,7 +564,10 @@ class TrafficTest(object):
                     raise RuntimeError(
                         'Cached results are not iperf3.TestResult objects')
                 if result.error:
-                    raise RuntimeError(result.error)
+                    # iPerf dumps out-of-order packet information on stderr,
+                    # ignore these while verifying the test results
+                    if "OUT OF ORDER" not in result.error:
+                        raise RuntimeError(result.error)
 
     def wait(self):
         ''' Wait for this test to complete '''
