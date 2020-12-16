@@ -91,7 +91,7 @@ RUN python3.5 -m pip install \
     aiodns \
     pymemoize \
     wsgiserver \
-    pycrypto \
+    pycryptodome \
     six \
     eventlet \
     h2 \
