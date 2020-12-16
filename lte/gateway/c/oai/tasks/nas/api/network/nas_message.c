@@ -125,9 +125,10 @@ int nas_message_encrypt(
 
   if (size < 0) {
     OAILOG_FUNC_RETURN(LOG_NAS, TLV_BUFFER_TOO_SHORT);
-  } else if ((size > 1) && emm_security_context) {
+  } else if (size > 1) {
     /*
-     * Encrypt the plain NAS message
+     * Encrypt the plain NAS message.
+     * bytes is zero if emm_security_context is null.
      */
     bytes = _nas_message_encrypt(
         outbuf + size, inbuf, header->security_header_type,
