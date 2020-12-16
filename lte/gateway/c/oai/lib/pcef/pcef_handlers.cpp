@@ -253,12 +253,12 @@ static int get_uli_from_session_req(
   uli[0] = 130;  // TAI and ECGI - defined in 29.061
 
   // TAI as defined in 29.274 8.21.4
-  uli[1] = ((saved_req->uli.s.tai.mcc_digit2 & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mcc_digit1 & 0xf));
-  uli[2] = ((saved_req->uli.s.tai.mnc_digit3 & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mcc_digit3 & 0xf));
-  uli[3] = ((saved_req->uli.s.tai.mnc_digit2 & 0xf) << 4) |
-           ((saved_req->uli.s.tai.mnc_digit1 & 0xf));
+  uli[1] = ((saved_req->uli.s.tai.plmn.mcc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.plmn.mcc_digit1 & 0xf));
+  uli[2] = ((saved_req->uli.s.tai.plmn.mnc_digit3 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.plmn.mcc_digit3 & 0xf));
+  uli[3] = ((saved_req->uli.s.tai.plmn.mnc_digit2 & 0xf) << 4) |
+           ((saved_req->uli.s.tai.plmn.mnc_digit1 & 0xf));
   uli[4] = (saved_req->uli.s.tai.tac >> 8) & 0xff;
   uli[5] = saved_req->uli.s.tai.tac & 0xff;
 

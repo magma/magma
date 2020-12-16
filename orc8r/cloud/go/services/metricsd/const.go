@@ -20,4 +20,6 @@ const (
 	PrometheusConfigServiceURL   = "prometheusConfigServiceURL"
 	AlertmanagerConfigServiceURL = "alertmanagerConfigServiceURL"
 	AlertmanagerApiURL           = "alertmanagerApiURL"
+
+	UseSeriesCache = "useSeriesCache"
 )

@@ -33,10 +33,10 @@ import (
 
 const (
 	ServiceRegistryServiceName = "service_registry"
-	ServiceRegistryModeEnvVar = "SERVICE_REGISTRY_MODE"
-	DockerRegistryMode        = "docker"
-	K8sRegistryMode           = "k8s"
-	YamlRegistryMode          = "yaml"
+	ServiceRegistryModeEnvVar  = "SERVICE_REGISTRY_MODE"
+	DockerRegistryMode         = "docker"
+	K8sRegistryMode            = "k8s"
+	YamlRegistryMode           = "yaml"
 
 	HttpServerPort  = 8080
 	GrpcServicePort = 9180

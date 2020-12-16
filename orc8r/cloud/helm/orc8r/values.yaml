@@ -44,6 +44,7 @@ metrics:
 # secrets sub-chart configuration.
 secrets:
   create: false
+  fullReleaseName: orc8r
 
 # Define which secrets should be mounted by pods.
 secret:
@@ -220,6 +221,11 @@ certifier:
     annotations: {}
 
 configurator:
+  service:
+    labels: {}
+    annotations: {}
+
+ctraced:
   service:
     labels: {}
     annotations: {}

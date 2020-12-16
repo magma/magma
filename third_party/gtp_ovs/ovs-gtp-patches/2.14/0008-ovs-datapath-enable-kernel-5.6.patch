@@ -1,7 +1,7 @@
-From d0cc60411748b45dce5b3c6edb3cb471ed3a0abc Mon Sep 17 00:00:00 2001
+From 86ef7eb3bc7ef57a79cbbf57de1ff92c8248b068 Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
 Date: Fri, 21 Aug 2020 05:35:16 +0000
-Subject: [PATCH 08/10] ovs: datapath enable kernel 5.6
+Subject: [PATCH 08/11] ovs: datapath enable kernel 5.6
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
@@ -9,7 +9,7 @@ Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
  1 file changed, 2 insertions(+), 2 deletions(-)
 
 diff --git a/acinclude.m4 b/acinclude.m4
-index e712cdfd2..fe0419de2 100644
+index 0a6b66a04..06bbd5e3e 100644
 --- a/acinclude.m4
 +++ b/acinclude.m4
 @@ -167,10 +167,10 @@ AC_DEFUN([OVS_CHECK_LINUX], [

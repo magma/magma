@@ -17,13 +17,17 @@ import (
 	"magma/orc8r/cloud/go/obsidian"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/service"
+	"magma/orc8r/cloud/go/services/analytics"
+	analytics_protos "magma/orc8r/cloud/go/services/analytics/protos"
 	builder_protos "magma/orc8r/cloud/go/services/configurator/mconfig/protos"
 	exporter_protos "magma/orc8r/cloud/go/services/metricsd/protos"
 	"magma/orc8r/cloud/go/services/orchestrator"
+	orc8r_analytics "magma/orc8r/cloud/go/services/orchestrator/analytics"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
 	"magma/orc8r/cloud/go/services/orchestrator/servicers"
 	indexer_protos "magma/orc8r/cloud/go/services/state/protos"
 	streamer_protos "magma/orc8r/cloud/go/services/streamer/protos"
+	"magma/orc8r/lib/go/service/config"
 
 	"github.com/golang/glog"
 )
@@ -38,18 +42,26 @@ func main() {
 
 	var exporterServicer exporter_protos.MetricsExporterServer
 
-	useGRPCExporter, err := srv.Config.GetBool(orchestrator.UseGRPCExporter)
-	if err == nil && useGRPCExporter == true {
-		grpcAddress := srv.Config.MustGetString(orchestrator.PrometheusGRPCPushAddress)
+	var serviceConfig orchestrator.Config
+	_, _, err = config.GetStructuredServiceConfig(orc8r.ModuleName, orchestrator.ServiceName, &serviceConfig)
+	if err != nil {
+		glog.Infof("err %v failed parsing the config file ", err)
+		return
+	}
+
+	if serviceConfig.UseGRPCExporter == true {
+		grpcAddress := serviceConfig.PrometheusGRPCPushAddress
 		exporterServicer = servicers.NewGRPCPushExporterServicer(grpcAddress)
 	} else {
-		exporterServicer = servicers.NewPushExporterServicer(srv.Config.MustGetStrings(orchestrator.PrometheusPushAddresses))
+		exporterServicer = servicers.NewPushExporterServicer(serviceConfig.PrometheusPushAddresses)
 	}
 
 	builder_protos.RegisterMconfigBuilderServer(srv.GrpcServer, servicers.NewBuilderServicer())
 	exporter_protos.RegisterMetricsExporterServer(srv.GrpcServer, exporterServicer)
 	indexer_protos.RegisterIndexerServer(srv.GrpcServer, servicers.NewIndexerServicer())
 	streamer_protos.RegisterStreamProviderServer(srv.GrpcServer, servicers.NewProviderServicer())
+	analytics_protos.RegisterAnalyticsCollectorServer(srv.GrpcServer,
+		analytics.NewCollectorService(analytics.GetPrometheusClient(), orc8r_analytics.GetAnalyticsCalculations(&serviceConfig)))
 
 	err = srv.Run()
 	if err != nil {

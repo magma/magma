@@ -1,7 +1,7 @@
-From 02d660b3cbaeab7ba5375a1a4e7016d2ba68f328 Mon Sep 17 00:00:00 2001
+From 6db1c385e6febf4cca07dc566cf32ab8c820ccfb Mon Sep 17 00:00:00 2001
 From: Pravin B Shelar <pbshelar@fb.com>
-Date: Fri, 21 Aug 2020 04:54:53 +0000
-Subject: [PATCH 04/10] ovs: Add support to set GTP header fields.
+Date: Sat, 28 Nov 2020 00:58:18 -0800
+Subject: [PATCH 04/11] ovs: Add support to set GTP header fields.
 
 This allows OVS to match and set GTP header fields.
 This is useful when controller wants to send GTP
@@ -9,21 +9,21 @@ echo or end marker type msgs ovs GTP-U.
 
 Signed-off-by: Pravin B Shelar <pbshelar@fb.com>
 ---
- datapath/flow_netlink.c                       |  54 +++++-
- datapath/linux/compat/gtp.c                   | 137 ++++++++++-----
- datapath/linux/compat/include/linux/gtp.h     |   9 +
+ datapath/flow_netlink.c                       |  54 ++++++-
+ datapath/linux/compat/gtp.c                   | 137 ++++++++++++------
+ datapath/linux/compat/include/linux/gtp.h     |   9 ++
  .../linux/compat/include/net/ip_tunnels.h     |   8 +-
  datapath/vport.c                              |   1 +
  include/openvswitch/meta-flow.h               |   6 +-
  lib/dpif-netlink.c                            |   3 +-
  lib/meta-flow.xml                             |  11 ++
- lib/netdev-native-tnl.c                       |  18 +-
- lib/odp-util.c                                | 161 +++++++++++-------
+ lib/netdev-native-tnl.c                       |  18 +--
+ lib/odp-util.c                                |  60 ++++++--
  lib/packets.h                                 |  21 ++-
  tests/odp.at                                  |   1 +
  tests/ofproto.at                              |   2 +-
- tests/tunnel.at                               |  26 +++
- 14 files changed, 331 insertions(+), 127 deletions(-)
+ tests/tunnel.at                               |  26 ++++
+ 14 files changed, 275 insertions(+), 82 deletions(-)
 
 diff --git a/datapath/flow_netlink.c b/datapath/flow_netlink.c
 index d3fd77106..f7e54cfc1 100644
@@ -456,10 +456,10 @@ index 1c5a4930a..a59c0f9bf 100644
       * OXM: NXOXM_ET_GTPU_MSGTYPE(16) since v2.13.
       */
 diff --git a/lib/dpif-netlink.c b/lib/dpif-netlink.c
-index 7da4fb54d..78de535a8 100644
+index 2f881e4fa..bb290a626 100644
 --- a/lib/dpif-netlink.c
 +++ b/lib/dpif-netlink.c
-@@ -2565,8 +2565,7 @@ parse_odp_packet(struct ofpbuf *buf, struct dpif_upcall *upcall,
+@@ -2520,8 +2520,7 @@ parse_odp_packet(struct ofpbuf *buf, struct dpif_upcall *upcall,
  {
      static const struct nl_policy ovs_packet_policy[] = {
          /* Always present. */
@@ -545,7 +545,7 @@ index 50f95e637..ea0896456 100644
      }
      ovs_mutex_unlock(&dev->mutex);
 diff --git a/lib/odp-util.c b/lib/odp-util.c
-index 5989381e9..38bca86de 100644
+index 252a91bfa..1de1d07ef 100644
 --- a/lib/odp-util.c
 +++ b/lib/odp-util.c
 @@ -764,7 +764,7 @@ format_odp_tnl_push_header(struct ds *ds, struct ovs_action_push_tnl *data)
@@ -673,128 +673,6 @@ index 5989381e9..38bca86de 100644
  }
  
  #define MASK(PTR, FIELD) PTR ? &PTR->FIELD : NULL
-@@ -3971,7 +4001,7 @@ format_odp_tun_attr(const struct nlattr *attr, const struct nlattr *mask_attr,
-         case OVS_TUNNEL_KEY_ATTR_GTPU_OPTS:
-             ds_put_cstr(ds, "gtpu(");
-             format_odp_tun_gtpu_opt(a, ma, ds, verbose);
--            ds_put_cstr(ds, ")");
-+            ds_put_cstr(ds, "),");
-             break;
-         case __OVS_TUNNEL_KEY_ATTR_MAX:
-         default:
-@@ -5180,50 +5210,6 @@ scan_vxlan_gbp(const char *s, uint32_t *key, uint32_t *mask)
-     return 0;
- }
- 
--static int
--scan_gtpu_metadata(const char *s,
--                   struct gtpu_metadata *key,
--                   struct gtpu_metadata *mask)
--{
--    const char *s_base = s;
--    uint8_t flags, flags_ma;
--    uint8_t msgtype, msgtype_ma;
--    int len;
--
--    if (!strncmp(s, "flags=", 6)) {
--        s += 6;
--        len = scan_u8(s, &flags, mask ? &flags_ma : NULL);
--        if (len == 0) {
--            return 0;
--        }
--        s += len;
--    }
--
--    if (s[0] == ',') {
--        s++;
--    }
--
--    if (!strncmp(s, "msgtype=", 8)) {
--        s += 8;
--        len = scan_u8(s, &msgtype, mask ? &msgtype_ma : NULL);
--        if (len == 0) {
--            return 0;
--        }
--        s += len;
--    }
--
--    if (!strncmp(s, ")", 1)) {
--        s += 1;
--        key->flags = flags;
--        key->msgtype = msgtype;
--        if (mask) {
--            mask->flags = flags_ma;
--            mask->msgtype = msgtype_ma;
--        }
--    }
--    return s - s_base;
--}
--
- static int
- scan_erspan_metadata(const char *s,
-                      struct erspan_metadata *key,
-@@ -5305,6 +5291,61 @@ scan_erspan_metadata(const char *s,
-     return 0;
- }
- 
-+static int
-+scan_gtpu_metadata(const char *s, struct gtpu_metadata *key, struct gtpu_metadata *mask)
-+{
-+    const char *s_base = s;
-+    struct gtpu_metadata k = {0};
-+    struct gtpu_metadata m = {0};
-+    int len;
-+
-+    if (!strncmp(s, "ver=", 4)) {
-+        s += 4;
-+        len = scan_u8(s, &k.ver, mask ? &m.ver : NULL);
-+        if (len == 0) {
-+            return 0;
-+        }
-+        s += len;
-+    }
-+
-+    if (s[0] == ',') {
-+        s++;
-+    }
-+    if (!strncmp(s, "flags=", 6)) {
-+        s += 6;
-+        len = scan_u8(s, &k.flags, mask ? &m.flags : NULL);
-+        if (len == 0) {
-+            return 0;
-+        }
-+        s += len;
-+    }
-+
-+    if (s[0] == ',') {
-+        s++;
-+    }
-+
-+    if (!strncmp(s, "msgtype=", 8)) {
-+        s += 8;
-+        len = scan_u8(s, &k.msgtype, mask ? &m.msgtype : NULL);
-+        if (len == 0) {
-+            return 0;
-+        }
-+        s += len;
-+    }
-+
-+    if (s[0] == ')') {
-+        s += 1;
-+
-+        *key = k;
-+        if (mask) {
-+            *mask = m;;
-+        }
-+
-+        return s - s_base;
-+    }
-+    return 0;
-+}
-+
- static int
- scan_geneve(const char *s, struct geneve_scan *key, struct geneve_scan *mask)
- {
 diff --git a/lib/packets.h b/lib/packets.h
 index 395bc869e..c326bf1bb 100644
 --- a/lib/packets.h
@@ -859,10 +737,10 @@ index 76a3be44d..44559374d 100644
        arbitrary mask: dp_hash tun_{id,src,dst,ipv6_{src,dst},flags,gbp_{id,flags},erspan_{idx,ver,dir,hwid},gtpu_{flags,msgtype},metadata0...metadata63} metadata pkt_mark ct_{state,mark,label,nw_{src,dst},ipv6_{src,dst},tp_{src,dst}} reg0...reg15 xreg0...xreg7 xxreg0...xxreg3 eth_{src,dst} vlan_{tci,vid} ip_{src,dst} ipv6_{src,dst,label} ip_frag arp_{spa,tpa,sha,tha} tcp_{src,dst,flags} udp_{src,dst} sctp_{src,dst} nd_{target,sll,tll} nsh_{flags,c1...c4}
        exact match or wildcard: recirc_id packet_type conj_id in_{port,port_oxm} actset_output ct_{zone,nw_proto} eth_type vlan_pcp mpls_{label,tc,bos,ttl} nw_{proto,tos} ip_dscp nw_{ecn,ttl} arp_op icmp_{type,code} icmpv6_{type,code} nd_{reserved,options_type} nsh_{mdtype,np,spi,si,ttl}
 diff --git a/tests/tunnel.at b/tests/tunnel.at
-index e5d899ea1..8f448949f 100644
+index 3dfd9675d..bf18a5e4c 100644
 --- a/tests/tunnel.at
 +++ b/tests/tunnel.at
-@@ -1252,3 +1252,29 @@ AT_CHECK([tail -1 stdout], [0],
+@@ -1281,3 +1281,29 @@ AT_CHECK([tail -1 stdout], [0],
  ])
  OVS_VSWITCHD_STOP
  AT_CLEANUP

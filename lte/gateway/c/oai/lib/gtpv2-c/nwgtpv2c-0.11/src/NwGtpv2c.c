@@ -1667,7 +1667,6 @@ nw_rc_t nwGtpv2cInitialize(
   } else {
     rc = NW_FAILURE;
   }
-
   *hGtpcStackHandle = (nw_gtpv2c_stack_handle_t) thiz;
   return rc;
 }

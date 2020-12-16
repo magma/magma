@@ -42,6 +42,7 @@ setup(
     ],
     scripts=[
         'scripts/checkin_cli.py',
+        'scripts/ctraced_cli.py',
         'scripts/directoryd_cli.py',
         'scripts/generate_lighttpd_config.py',
         'scripts/generate_nghttpx_config.py',
