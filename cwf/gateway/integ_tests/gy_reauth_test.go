@@ -17,7 +17,6 @@ package integration
 
 import (
 	"fmt"
-	"math"
 	"testing"
 	"time"
 
@@ -80,6 +79,9 @@ func TestGyReAuth(t *testing.T) {
 	assert.NoError(t, err)
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-ocs1", "static-pass-all-ocs2"), time.Minute, 2*time.Second)
 
 	// Generate over 80% of the quota to trigger a CCR Update
 	req := &cwfprotos.GenTrafficRequest{
@@ -88,10 +90,9 @@ func TestGyReAuth(t *testing.T) {
 		Bitrate: &wrappers.StringValue{Value: "1M"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
 
-	// Check that UE mac flow is installed and traffic is less than the quota
-	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 0, 5*MegaBytes+Buffer)
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-ocs2", 300*KiloBytes), time.Minute, 2*time.Second)
 
 	// Top UP extra credits (2.5M total)
 	err = setCreditOnOCS(
@@ -108,23 +109,10 @@ func TestGyReAuth(t *testing.T) {
 	raa, err := sendChargingReAuthRequest(imsi, ratingGroup)
 	assert.NoError(t, err)
 	assert.Eventually(t, tr.WaitForChargingReAuthToProcess(raa, imsi), time.Minute, 2*time.Second)
-
 	// Check ReAuth success
 	assert.Equal(t, diam.LimitedSuccess, int(raa.ResultCode))
 
-	// Generate over 1M of data to check that initial quota was updated
-	req = &cwfprotos.GenTrafficRequest{Imsi: imsi,
-		Volume: &wrappers.StringValue{Value: "1M"},
-	}
-	_, err = tr.GenULTraffic(req)
-	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
-
-	// Check that initial quota was exceeded
-	tr.AssertPolicyUsage(imsi, "static-pass-all-ocs2", 400*KiloBytes, uint64(math.Round(2.4*MegaBytes+Buffer)))
-
 	// trigger disconnection
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), 2*time.Minute, 2*time.Second)
 }

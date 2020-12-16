@@ -22,10 +22,10 @@ set -e
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 source "${SCRIPT_DIR}"/../lib/util.sh
 
-COMMIT_DATE=20170324
+COMMIT_DATE=20190423
 # index of the commit from a particular date, start from 0
 COMMIT_INDEX=0
-COMMIT=224dc1f9
+COMMIT=f12568d6
 # 0~ makes the version compatible with real version numbers
 # 0~20160721+c3~r43c4a295 < 0~20160721+c5~r43c4a295 < 0~20160722+c0~r43c4a295 < 0.1
 ITERATION=0
@@ -49,7 +49,7 @@ WORK_DIR=/tmp/build-${PKGNAME}
 # The resulting package is placed in $OUTPUT_DIR
 # or in the cwd.
 if [ -z "$1" ]; then
-  OUTPUT_DIR=`pwd`
+  OUTPUT_DIR=$(pwd)
 else
   OUTPUT_DIR=$1
   if [ ! -d "$OUTPUT_DIR" ]; then
@@ -68,11 +68,10 @@ git clone https://gitlab.eurecom.fr/oai/asn1c.git
 cd asn1c
 git checkout ${COMMIT} .
 
-# apply magma patches
-# for p in ${OUTPUT_DIR}/*.patch; do patch -p1 < $p; done
+autoreconf -iv
 
-./configure $(configureopts) 
-make -j$(nproc)
+./configure "$(configureopts)"
+make -j"$(nproc)"
 make install DESTDIR=${WORK_DIR}/install/
 
 # packaging
@@ -80,26 +79,24 @@ PKGFILE="$(pkgfilename)"
 BUILD_PATH=${OUTPUT_DIR}/${PKGFILE}
 
 # remove old packages
-if [ -f ${BUILD_PATH} ]; then
-  rm ${BUILD_PATH}
+if [ -f "${BUILD_PATH}" ]; then
+  rm "${BUILD_PATH}"
 fi
 
 fpm \
     -s dir \
-    -t ${PKGFMT} \
-    -a ${ARCH} \
-    -n ${PKGNAME} \
-    -v ${PKGVERSION} \
-    --iteration ${ITERATION} \
-    --provides ${PKGNAME} \
-    --conflicts ${PKGNAME} \
-    --replaces ${PKGNAME} \
-    --package ${BUILD_PATH} \
+    -t "${PKGFMT}" \
+    -a "${ARCH}" \
+    -n "${PKGNAME}" \
+    -v "${PKGVERSION}" \
+    --iteration "${ITERATION}" \
+    --provides "${PKGNAME}" \
+    --conflicts "${PKGNAME}" \
+    --replaces "${PKGNAME}" \
+    --package "${BUILD_PATH}" \
     -C ${WORK_DIR}/install \
-    --description "ASN.1 compiler with OpenAirInterface (OAI) specific changes.
-ASN.1 to C compiler takes the ASN.1 module files (example) and generates the
-C++ compatible C source code. That code can be used to serialize the native C
-structures into compact and unambiguous BER/XER/PER-based data files, and
-deserialize the files back."
-
-
+    --description "ASN.1 (Release 15) compiler with OpenAirInterface (OAI)
+    specific changes. ASN.1 to C compiler takes the ASN.1 module files (example)
+    and generates the C++ compatible C source code. That code can be used to
+    serialize the native C structures into compact and unambiguous
+    BER/XER/PER-based data files, and deserialize the files back."

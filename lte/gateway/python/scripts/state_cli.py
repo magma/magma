@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 """
 Copyright 2020 The Magma Authors.
 
@@ -39,6 +41,7 @@ def _deserialize_session_json(serialized_json_str: bytes) -> str:
     dumped = json.dumps(res, indent=2, sort_keys=True)
     return dumped
 
+
 def _deserialize_generic_json(
         element: Union[str, dict, list])-> Union[str, dict, list]:
     """
@@ -67,6 +70,7 @@ def _deserialize_generic_json(
     for k in keys:
         element[k] = _deserialize_generic_json(element[k])
     return element
+
 
 class StateCLI(object):
     """

@@ -372,7 +372,7 @@ func TestGxReAuthWithMidSessionPolicyInstallAndRemoval(t *testing.T) {
 //   and a rule base "base-raa1"
 // - Generate traffic and assert that there's > 0 data usage for the rule with the
 //   highest priority.
-// - Send a PCRF ReAuth request to refill quoto for a session
+// - Send a PCRF ReAuth request to refill quota for a session
 // - Assert that the response is successful
 // - Generate traffic and assert that there's > 0 data usage for the newly installed
 //   rule.
@@ -399,7 +399,7 @@ func TestGxReAuthQuotaRefill(t *testing.T) {
 	}
 	_, err := tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-raa1"), time.Minute, 2*time.Second)
 
 	// Check that enforcement flow is installed and traffic is less than the quota
 	tr.AssertPolicyUsage(imsi, "static-pass-all-raa1", 0, 500*KiloBytes+Buffer)

@@ -119,6 +119,14 @@ class NasStateConverter : StateConverter {
           protocol_configuration_options_proto,
       protocol_configuration_options_t* state_protocol_configuration_options);
 
+  static void esm_ebr_timer_data_to_proto(
+      const esm_ebr_timer_data_t& state_esm_ebr_timer_data,
+      oai::EsmEbrTimerData* proto_esm_ebr_timer_data);
+
+  static void proto_to_esm_ebr_timer_data(
+      const oai::EsmEbrTimerData& proto_esm_ebr_timer_data,
+      esm_ebr_timer_data_t** state_esm_ebr_timer_data);
+
  private:
   static void partial_tai_list_to_proto(
       const partial_tai_list_t* state_partial_tai_list,

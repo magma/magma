@@ -85,6 +85,10 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "usage-enforcement-static-pass-all"), time.Minute, 2*time.Second)
+	fmt.Println("CCR-I exchanged installed usage-enforcement-static-pass-all")
 
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "900K"}}
 	_, err = tr.GenULTraffic(req)
@@ -97,7 +101,7 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 
 	// Assert that enforcement_stats rules are properly installed and the right
 	// amount of data was passed through
-	tr.AssertPolicyUsage(imsi, "usage-enforcement-static-pass-all", 0, uint64(math.Round(1.2*MegaBytes+Buffer)))
+	tr.AssertPolicyUsage(imsi, "usage-enforcement-static-pass-all", 1, uint64(math.Round(1.2*MegaBytes+Buffer)))
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
@@ -110,11 +114,8 @@ func TestGxUsageReportEnforcement(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, nil))
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	tr.WaitForEnforcementStatsToSync()
-
-	// Wait for CCR-T to propagate up
-	time.Sleep(3 * time.Second)
-
+	// Check that enforcement stats flow is removed
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "usage-enforcement-static-pass-all"), time.Minute, 2*time.Second)
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()
 }
@@ -168,24 +169,16 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, defaultUpdateAnswer))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
-	tr.WaitForEnforcementStatsToSync()
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-1", "static-pass-all-3"), time.Minute, 2*time.Second)
+
 	req := &cwfprotos.GenTrafficRequest{Imsi: imsi, Volume: &wrappers.StringValue{Value: "250K"}}
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
 
 	// At this point both static-pass-all-1 & static-pass-all-3 are installed.
 	// Since static-pass-all-1 has higher precedence, it will get hit.
-	tr.WaitForEnforcementStatsToSync()
-
-	// Assert that enforcement_stats rules are properly installed and the right
-	// amount of data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record1 := recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-1"]
-	if record1 != nil {
-		assert.True(t, record1.BytesTx > uint64(0), fmt.Sprintf("%s did not pass any data", record1.RuleId))
-	}
-	assert.NotNil(t, record1, fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-1", imsi))
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-1", 1), time.Minute, 2*time.Second)
 
 	// Assert that a CCR-I was sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
@@ -206,23 +199,21 @@ func TestGxMidSessionRuleRemovalWithCCA_U(t *testing.T) {
 	// Generate traffic to trigger the CCR-U so that the rule removal/install happens
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-1", "static-pass-all-3"), 1*time.Minute, 2*time.Second)
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, "static-pass-all-2"), 1*time.Minute, 2*time.Second)
 
 	fmt.Println("Generating traffic again to put data through static-pass-all-2")
 	_, err = tr.GenULTraffic(req)
 	assert.NoError(t, err)
-	tr.WaitForEnforcementStatsToSync()
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRuleGreaterThan(imsi, "static-pass-all-2", 1), time.Minute, 2*time.Second)
 
 	// Assert that we sent back a CCA-Update with RuleRemovals
 	tr.AssertAllGxExpectationsMetNoError()
 
-	recordsBySubID, err = tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	assert.NotNil(t, recordsBySubID[prependIMSIPrefix(imsi)]["static-pass-all-2"], fmt.Sprintf("No policy usage record for imsi: %v rule=static-pass-all-2", imsi))
-
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "static-pass-all-ocs2"), 10*time.Second, 2*time.Second)
 }
 
 // - Set an expectation for a  CCR-I to be sent up to PCRF, to which it will
@@ -382,7 +373,7 @@ func TestGxAbortSessionRequest(t *testing.T) {
 		assert.NoError(t, err)
 		return recordsBySubID["IMSI"+imsi][ruleKey] == nil
 	}
-	assert.Eventually(t, checkSessionAborted, 2*time.Minute, 5*time.Second,
+	assert.Eventually(t, checkSessionAborted, 10*time.Second, 5*time.Second,
 		"request not terminated as expected")
 }
 
@@ -438,20 +429,13 @@ func TestGxRevalidationTime(t *testing.T) {
 	assert.NoError(t, setPCRFExpectations(expectations, updateAnswer1))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
-	tr.WaitForEnforcementStatsToSync()
+	// First wait until we see the original static-pass-all-ocs2 show up
+	assert.Eventually(t,
+		tr.WaitForEnforcementStatsForRule(imsi, "revalidation-time-static-pass-all"),
+		10*time.Second, 2*time.Second)
 
 	fmt.Printf("Waiting %v for revalidation timer expiration\n", timeUntilRevalidation)
 	time.Sleep(timeUntilRevalidation)
-
-	// Assert that enforcement_stats rules are properly installed and no data was passed through
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi]["revalidation-time-static-pass-all"]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
-	if record != nil {
-		// We should not be seeing any data here
-		assert.True(t, record.BytesTx == uint64(0), fmt.Sprintf("%s did pass some data", record.RuleId))
-	}
 
 	// Assert that a CCR-I and at least one CCR-U were sent up to the PCRF
 	tr.AssertAllGxExpectationsMetNoError()
@@ -465,8 +449,7 @@ func TestGxRevalidationTime(t *testing.T) {
 
 	tr.DisconnectAndAssertSuccess(imsi)
 	// Wait for termination to go through
-	time.Sleep(3 * time.Second)
-	tr.WaitForEnforcementStatsToSync()
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, "revalidation-time-static-pass-all"), 10*time.Second, 2*time.Second)
 
 	// Assert that we saw a Terminate request
 	tr.AssertAllGxExpectationsMetNoError()

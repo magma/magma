@@ -20,4 +20,5 @@ std::string bytes_to_hex(const std::string& s);
 uint64_t get_time_in_sec_since_epoch();
 std::chrono::milliseconds time_difference_from_now(
     const google::protobuf::Timestamp& timestamp);
+std::chrono::milliseconds time_difference_from_now(const std::time_t timestamp);
 }  // namespace magma

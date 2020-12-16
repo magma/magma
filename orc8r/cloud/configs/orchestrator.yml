@@ -12,3 +12,55 @@
 
 useGRPCExporter: true
 prometheusGRPCPushAddress: "prometheus-cache:9092"
+
+analytics:
+  metrics:
+    # reliability metrics
+    cpu_percent:
+      expr: avg_over_time(cpu_percent[3h])
+      export: false
+      register: false
+
+    process_uptime_seconds:
+      expr: process_uptime_seconds
+      export: false
+      register: false
+
+    free_memory:
+      expr: sum((1-(mem_available/mem_total)) * 100) by (gatewayID, networkID)
+      export: false
+      register: false
+
+    disk_usage_percent:
+      expr: sum(disk_percent) by (gatewayID, networkID)
+      export: false
+      register: false
+
+    virtual_memory_percent:
+      expr: sum(virtual_memory_percent) by (gatewayID, networkID)
+      export: false
+      register: false
+
+    gateway_checkin_status:
+      expr: sum(checkin_status) by (gatewayID, networkID)
+      export: false
+      register: false
+
+    unexpected_service_restarts:
+      expr: sum(unexpected_service_restarts) by (service_name, networkID)
+      export: false
+      register: false
+
+    temperature:
+      expr: avg(avg_over_time(temperature[3h])) by (networkID, gatewayID)
+      export: false
+      register: false
+
+    #orc8r metrics
+    response_status:
+      expr: sum(sum_over_time(response_status[3h])) by (code)
+      register: false
+      export: false
+
+    request_count:
+      expr: sum(request_count) by (service)

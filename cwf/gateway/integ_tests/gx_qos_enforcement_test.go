@@ -196,30 +196,21 @@ func TestGxDownlinkTrafficQosEnforcement(t *testing.T) {
 		protos.NewGxCCAnswer(diam.Success)))
 
 	tr.AuthenticateAndAssertSuccess(imsi)
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), time.Minute, 2*time.Second)
+
 	req := &cwfprotos.GenTrafficRequest{
 		Imsi:        imsi,
 		ReverseMode: true,
 		Volume:      &wrappers.StringValue{Value: *swag.String("5M")},
 		Timeout:     60,
 	}
-
-	// wait for rule to be installed
-	waitForRuleToBeInstalled := func() bool {
-		return checkIfRuleInstalled(tr, ruleKey)
-	}
-	assert.Eventually(t, waitForRuleToBeInstalled, time.Minute, 2*time.Second)
-
 	verifyEgressRate(t, tr, req, float64(downlinkBwMax))
 
 	// Assert that enforcement_stats rules are properly installed and the right
-	recordsBySubID, err := tr.GetPolicyUsage()
-	assert.NoError(t, err)
-	record := recordsBySubID["IMSI"+imsi][ruleKey]
-	assert.NotNil(t, record, fmt.Sprintf("No policy usage record for imsi: %v", imsi))
+	assert.Eventually(t, tr.WaitForEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
 
 	tr.DisconnectAndAssertSuccess(imsi)
-	fmt.Println("wait for flows to get deactivated")
-	time.Sleep(3 * time.Second)
+	assert.Eventually(t, tr.WaitForNoEnforcementStatsForRule(imsi, ruleKey), 2*time.Minute, 2*time.Second)
 }
 
 //TestGxQosDowngradeWithCCAUpdate
