@@ -40,6 +40,7 @@ from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
     IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
 from magma.pipelined.rule_mappers import UsageDeltaDict
+from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 
 
 ETH_FRAME_SIZE_BYTES = 14
@@ -179,7 +180,12 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
         msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
 
-        chan = self._msg_hub.send(msgs, self._datapath)
+        try:
+            chan = self._msg_hub.send(msgs, self._datapath)
+        except MagmaDPDisconnectedError:
+            self.logger.error("Datapath disconnected, failed to install rule %s"
+                              "for imsi %s", rule, imsi)
+            return RuleModResult.FAILURE
         for _ in range(len(msgs)):
             try:
                 result = chan.get()

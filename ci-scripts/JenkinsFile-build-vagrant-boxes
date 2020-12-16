@@ -1,0 +1,152 @@
+#!/usr/local/bin/groovy
+/*
+* Licensed to the OpenAirInterface (OAI) Software Alliance under one or more
+* contributor license agreements.  See the NOTICE file distributed with
+* this work for additional information regarding copyright ownership.
+* The OpenAirInterface Software Alliance licenses this file to You under
+* the terms found in the LICENSE file in the root of this
+* source tree.
+*
+* Unless required by applicable law or agreed to in writing, software
+* distributed under the License is distributed on an "AS IS" BASIS,
+* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+* See the License for the specific language governing permissions and
+* limitations under the License.
+*-------------------------------------------------------------------------------
+* For more information about the OpenAirInterface (OAI) Software Alliance:
+*      contact@openairinterface.org
+*/
+
+
+def GIT_URL = "github.com/magma/magma"
+def GIT_COMMIT
+def BASE_BOXES = ["magma-dev", "magma-test", "magma-trfserver"]
+def PACKER_VER = "1.6.5"
+def PACKER_CACHE = "/var/jenkins/packer_cache"
+
+pipeline {
+  agent {
+    label "libvirt"
+  }
+  parameters {
+    string(name: 'branch', defaultValue: 'master')
+  }
+  options {
+    disableConcurrentBuilds()
+    timestamps()
+    ansiColor('xterm')
+  }
+  stages {
+    stage ("Retrieve and Prepare Source Code") {
+      steps {
+        script {
+          cleanWs()
+          checkout(
+            changelog: false,
+            poll: false,
+            scm: [
+            $class: 'GitSCM',
+            branches: [[name: params.branch]],
+            doGenerateSubmoduleConfigurations: false,
+            extensions: [],
+            submoduleCfg: [],
+            userRemoteConfigs: [[refspec: '+refs/pull/*:refs/remotes/origin/pr/*', url: "https://" + GIT_URL + ".git"]]]
+          )
+          GIT_COMMIT = sh returnStdout: true, script: 'git log -1 --pretty="%H"'
+        }
+      }
+    }
+    stage ("Setup") {
+      steps {
+        script {
+          sh("which unzip || sudo apt-get install -y unzip")
+          sh("which jq || sudo apt-get install -y jq")
+
+          packerVersion = sh(returnStdout: true, script: "~/bin/packer version || echo notfound").trim()
+          println("Found '$packerVersion' wanted '$PACKER_VER'")
+          if (packerVersion.trim() != "Packer v${PACKER_VER}") {
+            sh("curl https://releases.hashicorp.com/packer/${PACKER_VER}/packer_${PACKER_VER}_linux_amd64.zip > packer.zip")
+            sh("mkdir -p ~/bin && unzip -o packer.zip -d ~/bin")
+          }
+          dir ('orc8r/tools/packer') {
+            iso_url = sh(returnStdout: true, script: 'cat magma-dev-libvirt.json  | jq -r ".builders[0].iso_url"').trim()
+            iso_filename = sh(returnStdout: true, script: "basename $iso_url").trim()
+            print("Downloading $iso_url if not present in cache")
+            sh("mkdir -p ${PACKER_CACHE}")
+            sh('test -e "${PACKER_CACHE}/${iso_filename}" || wget --progress=dot -O ${PACKER_CACHE}/${iso_filename} ${iso_url}')
+          }
+        }
+      }
+    }
+    stage ("Build Vagrant boxes - libvirt") {
+      environment {
+        // Use dummy secret for build
+        ATLAS_TOKEN = "123"
+        PACKER_OPTS="-except=vagrant-cloud"
+        VAGRANT_CLOUD_TOKEN = credentials('magma_vagrant_token')
+        PACKER_CACHE_DIR = "${PACKER_CACHE}"
+        provider = "libvirt"
+      }
+      matrix {
+        axes {
+          axis {
+            name 'base_box'
+            values "magma-dev", "magma-test", "magma-trfserver"
+          }
+        }
+        stages {
+          stage ("Build and upload box") {
+            steps {
+              script {
+                println "Building box ${base_box}-${provider}"
+                dir ('orc8r/tools/packer') {
+                  sh "mkdir -p ../packer-${base_box}-${provider}"
+                  sh "cp -R *.json *.seed http scripts ../packer-${base_box}-${provider}"
+                }
+                dir ("orc8r/tools/packer-${base_box}-${provider}") {
+                  sh "PACKER_LOG=1 ~/bin/packer build $PACKER_OPTS ${base_box}-${provider}.json"
+                  sh "./vagrant-box-upload.sh builds/${base_box}-${provider}.box"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    stage ("Build Vagrant boxes - virtualbox") {
+      environment {
+        // Use dummy secret for build
+        ATLAS_TOKEN = "123"
+        PACKER_OPTS="-except=vagrant-cloud"
+        VAGRANT_CLOUD_TOKEN = credentials('magma_vagrant_token')
+        provider = "virtualbox"
+        PACKER_CACHE_DIR = "${PACKER_CACHE}"
+      }
+      matrix {
+        axes {
+          axis {
+            name 'base_box'
+            values "magma-dev", "magma-test", "magma-trfserver"
+          }
+        }
+        stages {
+          stage ("Build and upload box") {
+            steps {
+              script {
+                println "Building box ${base_box}-${provider}"
+                dir ('orc8r/tools/packer') {
+                  sh "mkdir -p ../packer-${base_box}-${provider}"
+                  sh "cp -R *.json *.seed http scripts ../packer-${base_box}-${provider}"
+                }
+                dir ("orc8r/tools/packer-${base_box}-${provider}") {
+                  sh "PACKER_LOG=1 ~/bin/packer build $PACKER_OPTS ${base_box}-${provider}.json"
+                  sh "./vagrant-box-upload.sh builds/${base_box}-${provider}.box"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
