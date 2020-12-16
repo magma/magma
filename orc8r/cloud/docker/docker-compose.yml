@@ -120,6 +120,15 @@ services:
         /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
         /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/configurator -logtostderr=true -v=0
 
+  ctraced:
+    <<: *orc8r_service
+    command:
+      - /bin/sh
+      - -c
+      - >
+        /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
+        /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/ctraced -logtostderr=true -v=0
+
   dev_setup:
     <<: *orc8r_service
     restart: "no"
