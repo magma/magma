@@ -33,10 +33,13 @@ class TestNoAuthResponseWithMmeRestart(unittest.TestCase):
         self._s1ap_wrapper.cleanup()
 
     def test_no_auth_response_with_mme_restart(self):
+        """ This test case is to test EPC behaviour by restarting mme
+            after authentication timer expires """
+
         self._s1ap_wrapper.configUEDevice(1)
         req = self._s1ap_wrapper.ue_req
 
-        print("************************* Running end-end attach ")
+        print("********* Sending Attach Req for ue", req.ue_id)
 
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = req.ue_id
@@ -58,6 +61,7 @@ class TestNoAuthResponseWithMmeRestart(unittest.TestCase):
                 response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
             )
             print("************************* Timeout", i + 1)
+            print("********* Received Auth Req for ue", req.ue_id)
 
         print("************************* Timeouts complete")
         # Attach Reject
@@ -65,13 +69,14 @@ class TestNoAuthResponseWithMmeRestart(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_ATTACH_REJECT_IND.value
         )
+        print("********* Received Attach Reject for ue", req.ue_id)
 
         # Context release
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
-        print("************************* Context released")
+        print("********* Received UE_CTX_REL_IND for ue", req.ue_id)
 
         print("************************* Restarting MME service on", "gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])

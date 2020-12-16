@@ -48,11 +48,13 @@ class TestNoAuthResponseWithMmeRestartReattach(unittest.TestCase):
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
         )
+        print("************ Sent Attach Request for ue", req.ue_id)
 
         response = self._s1ap_wrapper.s1_util.get_response()
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         )
+        print("************ Received Auth Req for ue", req.ue_id)
 
         print("************************* Restarting MME service on", "gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
@@ -66,7 +68,7 @@ class TestNoAuthResponseWithMmeRestartReattach(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_CTX_REL_IND.value
         )
-
+        print("****** Received UE_CTX_REL_IND for ue", req.ue_id)
         print("****** Triggering end-end attach after mme restart *********")
 
         self._s1ap_wrapper.s1_util.attach(

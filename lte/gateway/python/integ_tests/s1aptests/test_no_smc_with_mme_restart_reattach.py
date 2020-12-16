@@ -34,7 +34,7 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
         self._s1ap_wrapper.configUEDevice(1)
 
         req = self._s1ap_wrapper.ue_req
-        print("************************* Running attach")
+        print("************* Running attach")
 
         attach_req = s1ap_types.ueAttachRequest_t()
         attach_req.ue_Id = req.ue_id
@@ -45,6 +45,7 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
         attach_req.epsAttachType = eps_type
         attach_req.useOldSecCtxt = sec_ctxt
 
+        print("************* Send Attach Req for ue", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_ATTACH_REQUEST, attach_req
         )
@@ -52,12 +53,14 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_AUTH_REQ_IND.value
         )
+        print("************* Received Auth Req for ue", req.ue_id)
         auth_res = s1ap_types.ueAuthResp_t()
         auth_res.ue_Id = req.ue_id
         sqnRecvd = s1ap_types.ueSqnRcvd_t()
         sqnRecvd.pres = 0
         auth_res.sqnRcvd = sqnRecvd
 
+        print("************* Send Auth Rsp for ue", req.ue_id)
         self._s1ap_wrapper._s1_util.issue_cmd(
             s1ap_types.tfwCmd.UE_AUTH_RESP, auth_res
         )
@@ -66,6 +69,8 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
         self.assertEqual(
             response.msg_type, s1ap_types.tfwCmd.UE_SEC_MOD_CMD_IND.value
         )
+
+        print("************* Received SMC for ue", req.ue_id)
 
         print("************************* Restarting MME service on", "gateway")
         self._s1ap_wrapper.magmad_util.restart_services(["mme"])
@@ -91,6 +96,7 @@ class TestNoSmcWithMmeRestartReattach(unittest.TestCase):
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
 
+        print("************* Running Detach for ue", req.ue_id)
         # Now detach the UE
         self._s1ap_wrapper.s1_util.detach(
             req.ue_id,
