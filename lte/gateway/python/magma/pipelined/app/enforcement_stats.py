@@ -83,7 +83,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._clean_restart = kwargs['config']['clean_restart']
         self._redis_enabled = kwargs['config'].get('redis_enabled', False)
         # Store last usage excluding deleted flows for calculating deltas
-        if self._redis_enabled and not self._clean_restart:
+        if self._redis_enabled:
             self.last_usage_for_delta = UsageDeltaDict()
         else:
             self.last_usage_for_delta = {}
@@ -113,7 +113,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         if self._redis_enabled:
             keys = self.last_usage_for_delta.keys()
             for key in keys:
-                self.last_usage_for_delta.delete(key)
+                self.last_usage_for_delta[key] = None
         else:
             self.last_usage_for_delta = {}
 
@@ -531,7 +531,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         for key, value in new_last_usage.items():
             self.last_usage_for_delta[key] = value
         for key in [k for k in old if k not in new]:
-            self.last_usage_for_delta.delete(key)
+            self.last_usage_for_delta[key] = None
 
     def _old_flow_stats(self, stats_msgs):
         """
