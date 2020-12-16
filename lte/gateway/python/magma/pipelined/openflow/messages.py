@@ -19,7 +19,8 @@ from ryu.controller.controller import Datapath
 from ryu.lib import hub
 from ryu.ofproto.ofproto_parser import MsgBase
 
-from magma.pipelined.openflow.exceptions import MagmaOFError
+from magma.pipelined.openflow.exceptions import MagmaOFError,\
+    MagmaDPDisconnectedError
 from magma.pipelined.metrics import DP_SEND_MSG_ERROR
 
 logger = logging.getLogger(__name__)
@@ -45,7 +46,9 @@ def send_msg(datapath, msg, retries=3):
     """
     for i in range(0, retries):
         try:
-            datapath.send_msg(msg)
+            ret = datapath.send_msg(msg)
+            if not ret:
+                raise MagmaDPDisconnectedError()
             return
         except Exception as e:  # pylint: disable=broad-except
             logger.warning(
@@ -165,7 +168,9 @@ class MessageHub(object):
         switch.requests_by_barrier[barrier.xid] = req
         for msg in msg_list:
             switch.results_by_msg[msg.xid] = None
-            datapath.send_msg(msg)
+            ret = datapath.send_msg(msg)
+            if not ret:
+                raise MagmaDPDisconnectedError()
         datapath.send_msg(barrier)
         req.set_timeout(timeout, switch, barrier.xid, msg_xids)
         return channel
