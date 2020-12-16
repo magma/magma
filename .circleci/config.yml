@@ -499,7 +499,7 @@ jobs:
             python3 build.py -a --nocache --parallel
       - tag-push-docker:
           project: orc8r
-          images: "nginx|controller"
+          images: "nginx|controller|base"
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
