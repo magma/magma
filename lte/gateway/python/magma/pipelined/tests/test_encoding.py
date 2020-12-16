@@ -23,8 +23,10 @@ class EncodingTest(unittest.TestCase):
         """
         Example encoding:
             MD5(C14r0315v0x)=37ee40eecb484166d68c29930e48313c
-            RC4(key=37ee40eecb484166d68c29930e48313c, msisdn=5521966054601))=>a4cc8cb22393a667611f4939b6
-            base64(a4cc8cb22393a667611f4939b6)=>pMyMsiOTpmdhH0k5tg==
+            RC4(key=37ee40eecb484166d68c29930e48313c, msisdn=5521966054601))=>a82530f1f34cfcdba5569fb60f
+            base64(a4cc8cb22393a667611f4939b6)=>qCUw8fNM/NulVp+2Dw==
+
+        Check https://cryptii.com/pipes/rc4-encryption for encryption correctness
         """
         msisdn = '5521966054601'
         key = 'C14r0315v0x'

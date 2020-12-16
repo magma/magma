@@ -11,6 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 """
 
+import logging
 import codecs
 import hashlib
 import gzip
@@ -63,6 +64,8 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
         hmac = HMAC.new(key_mac)
         hmac.update(enc)
         ret = gzip.compress(hmac.digest() + enc)
+    else:
+        logging.error("Unsupported encryption algorithm")
     return ret
 
 
@@ -109,6 +112,8 @@ def decrypt_str(data: str, key: bytes, encryption_algorithm, mac) -> str:
         cipher = AES.new(key, AES.MODE_ECB)
         decrypted = cipher.decrypt(codecs.decode(data[32:], 'hex_codec'))
         ret = decrypted.decode("utf-8").strip()
+    else:
+        logging.error("Unsupported encryption algorithm")
     return ret
 
 
@@ -125,6 +130,8 @@ def get_hash(s: str, hash_function) -> bytes:
         m = hashlib.sha256()
         m.update(s.encode('utf-8'))
         hash_bytes = m.digest()
+    else:
+        logging.error("Unsupported hash function")
     return hash_bytes
 
 
@@ -134,4 +141,6 @@ def encode_str(s: str, encoding_type) -> bytes:
     elif encoding_type == PipelineD.HEConfig.HEX2BIN:
         bits = len(s) * 4
         s = bin(int(s, 16))[2:].zfill(bits)
+    else:
+        logging.error("Unsupported encoding type")
     return s.strip()
