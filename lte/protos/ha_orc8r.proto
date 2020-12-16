@@ -28,8 +28,8 @@ message GetEnodebOffloadStateResponse {
     map<uint32, EnodebOffloadState> enodeb_offload_states = 1;
 }
 
-// had-cloud service definition
-service HaD {
+// ha-cloud service definition
+service Ha {
     // Fetch all ENB state for ENBs served within the pools of the calling AGW
     rpc GetEnodebOffloadState(GetEnodebOffloadStateRequest) returns (GetEnodebOffloadStateResponse) {}
 }

@@ -28,7 +28,7 @@ install_virtualenv:
 	@echo "Initializing virtualenv with python version $(PYTHON_VERSION)"
 	virtualenv --system-site-packages --python=/usr/bin/python$(PYTHON_VERSION) $(PYTHON_BUILD)
 	. $(PYTHON_BUILD)/bin/activate;
-	$(VIRT_ENV_PIP_INSTALL) "pip>=19.1.1"
+	$(VIRT_ENV_PIP_INSTALL) "pip>=20.3.2"
 
 setupenv: $(PYTHON_BUILD)/sysdeps $(SITE_PACKAGES_DIR)/setuptools
 
