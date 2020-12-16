@@ -28,12 +28,12 @@ StateConverter::~StateConverter() = default;
 /*************************************************/
 
 void StateConverter::plmn_to_chars(const plmn_t& state_plmn, char* plmn_array) {
-  plmn_array[0] = (char) state_plmn.mcc_digit2;
-  plmn_array[1] = (char) state_plmn.mcc_digit1;
-  plmn_array[2] = (char) state_plmn.mnc_digit3;
-  plmn_array[3] = (char) state_plmn.mcc_digit3;
-  plmn_array[4] = (char) state_plmn.mnc_digit2;
-  plmn_array[5] = (char) state_plmn.mnc_digit1;
+  plmn_array[0] = (char) (state_plmn.mcc_digit1 + ASCII_ZERO);
+  plmn_array[1] = (char) (state_plmn.mcc_digit2 + ASCII_ZERO);
+  plmn_array[2] = (char) (state_plmn.mcc_digit3 + ASCII_ZERO);
+  plmn_array[3] = (char) (state_plmn.mnc_digit1 + ASCII_ZERO);
+  plmn_array[4] = (char) (state_plmn.mnc_digit2 + ASCII_ZERO);
+  plmn_array[5] = (char) (state_plmn.mnc_digit3 + ASCII_ZERO);
 }
 
 void StateConverter::guti_to_proto(
