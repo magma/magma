@@ -97,6 +97,9 @@ func (c *Client) Run(ctx context.Context) error {
 		return fmt.Errorf("nil conn object. You may need to Enable the client first")
 	}
 	go func() {
+		if ctx == nil {
+			ctx = context.Background()
+		}
 		if err := c.ListenAndServe(ctx); err != nil {
 			glog.Errorf("error running gtp server: %s", err)
 			return
