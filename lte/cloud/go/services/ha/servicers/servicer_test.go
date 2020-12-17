@@ -24,7 +24,9 @@ import (
 	"magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
 	"magma/lte/cloud/go/services/ha/servicers"
+	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
+	lte_test_init "magma/lte/cloud/go/services/lte/test_init"
 	"magma/orc8r/cloud/go/clock"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/plugin"
@@ -34,7 +36,6 @@ import (
 	"magma/orc8r/cloud/go/services/configurator"
 	configurator_test_init "magma/orc8r/cloud/go/services/configurator/test_init"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/models"
-	"magma/orc8r/cloud/go/services/state"
 	state_test_init "magma/orc8r/cloud/go/services/state/test_init"
 	"magma/orc8r/cloud/go/services/state/test_utils"
 	"magma/orc8r/cloud/go/storage"
@@ -56,6 +57,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	assert.NoError(t, plugin.RegisterPluginForTests(t, &lte_plugin.LteOrchestratorPlugin{}))
 	configurator_test_init.StartTestService(t)
 	state_test_init.StartTestService(t)
+	lte_test_init.StartTestService(t)
 	mockPromClient := &mocks.PrometheusAPI{}
 	servicer := servicers.NewHAServicer(mockPromClient)
 
@@ -144,7 +146,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	test_utils.ReportGatewayStatus(t, ctx2, gwStatus2)
 
 	enbState := getDefaultEnodebState(testGwId1)
-	reportEnodebState(t, ctx1, enbSn, enbState)
+	reportEnodebState(t, testNetworkId, testGwId1, enbSn, enbState)
 
 	metric1 := model.Metric{}
 	metric1["networkID"] = "n1"
@@ -183,7 +185,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 
 	// Simulate too old of ENB state
 	clock.SetAndFreezeClock(t, stateTooOld)
-	reportEnodebState(t, ctx1, enbSn, enbState)
+	reportEnodebState(t, testNetworkId, testGwId1, enbSn, enbState)
 
 	res, err = servicer.GetEnodebOffloadState(ctx, &protos.GetEnodebOffloadStateRequest{})
 	assert.NoError(t, err)
@@ -197,7 +199,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 
 	// ENB not connected
 	enbState.EnodebConnected = swag.Bool(false)
-	reportEnodebState(t, ctx1, enbSn, enbState)
+	reportEnodebState(t, testNetworkId, testGwId1, enbSn, enbState)
 
 	res, err = servicer.GetEnodebOffloadState(ctx, &protos.GetEnodebOffloadStateRequest{})
 	assert.NoError(t, err)
@@ -210,7 +212,7 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 
 	// Connected but could not query metrics
 	enbState.EnodebConnected = swag.Bool(true)
-	reportEnodebState(t, ctx1, enbSn, enbState)
+	reportEnodebState(t, testNetworkId, testGwId1, enbSn, enbState)
 	mockPromClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(nil, nil, fmt.Errorf("error")).Once()
 
 	res, err = servicer.GetEnodebOffloadState(ctx, &protos.GetEnodebOffloadStateRequest{})
@@ -240,6 +242,10 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	assert.Equal(t, expectedRes, res)
 	mockPromClient.AssertExpectations(t)
 
+	// Simulate secondary gateway updating state to ensure primary state
+	// can still be fetched
+	reportEnodebState(t, testNetworkId, testGwId2, enbSn, enbState)
+
 	// Back to connected with users
 	mockPromClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(throughputVec, nil, nil).Once()
 	res, err = servicer.GetEnodebOffloadState(ctx, &protos.GetEnodebOffloadStateRequest{})
@@ -253,23 +259,11 @@ func TestHAServicer_GetEnodebOffloadState(t *testing.T) {
 	mockPromClient.AssertExpectations(t)
 }
 
-func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *lte_models.EnodebState) {
-	client, err := state.GetStateClient()
-	assert.NoError(t, err)
-
+func reportEnodebState(t *testing.T, networkID string, gatewayID string, enodebSerial string, req *lte_models.EnodebState) {
+	req.TimeReported = uint64(clock.Now().UnixNano()) / uint64(time.Millisecond)
 	serializedEnodebState, err := serde.Serialize(req, lte.EnodebStateType, serdes.State)
 	assert.NoError(t, err)
-	states := []*orc8r_protos.State{
-		{
-			Type:     lte.EnodebStateType,
-			DeviceID: enodebSerial,
-			Value:    serializedEnodebState,
-		},
-	}
-	_, err = client.ReportStates(
-		ctx,
-		&orc8r_protos.ReportStatesRequest{States: states},
-	)
+	err = lte_service.SetEnodebState(networkID, gatewayID, enodebSerial, serializedEnodebState)
 	assert.NoError(t, err)
 }
 

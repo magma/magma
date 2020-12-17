@@ -33,6 +33,7 @@ from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 from magma.pipelined.utils import Utils
+from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 
 
 class EnforcementController(PolicyMixin, MagmaController):
@@ -222,7 +223,12 @@ class EnforcementController(PolicyMixin, MagmaController):
         except FlowMatchError:
             return RuleModResult.FAILURE
 
-        chan = self._msg_hub.send(flow_adds, self._datapath)
+        try:
+            chan = self._msg_hub.send(flow_adds, self._datapath)
+        except MagmaDPDisconnectedError:
+            self.logger.error("Datapath disconnected, failed to install rule %s"
+                              "for imsi %s", rule, imsi)
+            return RuleModResult.FAILURE
         return self._wait_for_rule_responses(imsi, ip_addr, rule, chan)
 
     def _install_redirect_flow(self, imsi, ip_addr, rule):

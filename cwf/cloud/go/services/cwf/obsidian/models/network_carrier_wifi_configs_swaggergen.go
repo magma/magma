@@ -36,6 +36,9 @@ type NetworkCarrierWifiConfigs struct {
 	// eap sim
 	EapSim *models2.EapSim `json:"eap_sim,omitempty"`
 
+	// is xwfm variant
+	IsXwfmVariant bool `json:"is_xwfm_variant,omitempty"`
+
 	// li ues
 	LiUes *LiUes `json:"li_ues,omitempty"`
 
