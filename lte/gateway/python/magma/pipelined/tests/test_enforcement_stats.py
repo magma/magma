@@ -105,6 +105,7 @@ class EnforcementStatsTest(unittest.TestCase):
                 'enodeb_iface': 'eth1',
                 'qos': {'enable': False},
                 'clean_restart': True,
+                'redis_enabled': False,
             },
             mconfig=PipelineD(),
             loop=loop_mock,
