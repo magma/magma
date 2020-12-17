@@ -28,7 +28,7 @@ from magma.enodebd.logger import EnodebdLogger as logger
 from magma.enodebd.state_machines.enb_acs import EnodebAcsStateMachine
 from magma.enodebd.state_machines.enb_acs_manager import \
     StateMachineManager
-from magma.enodebd.s1ap_client import get_all_enb_connected
+from magma.enodebd.s1ap_client import get_all_enb_state
 from magma.enodebd.device_config.configuration_util import find_enb_by_cell_id
 from orc8r.protos.service303_pb2 import State
 
@@ -356,8 +356,8 @@ def get_operational_states(
 
 def get_enb_s1_connected_states(configured_serial_ids, mconfig) -> List[State]:
     states = []
-    enb_s1_connected = get_all_enb_connected()
-    for enb_id in enb_s1_connected:
+    enb_s1_state = get_all_enb_state()
+    for enb_id in enb_s1_state:
         enb = find_enb_by_cell_id(mconfig, enb_id)
         if enb and enb.serial_num not in configured_serial_ids:
             status = EnodebStatus(enodeb_configured=False,
