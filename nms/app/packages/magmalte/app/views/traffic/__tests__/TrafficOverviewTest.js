@@ -57,14 +57,14 @@ const apns = {
   apn_1: {
     apn_configuration: {
       ambr: {
-        max_bandwidth_dl: 200000000,
+        max_bandwidth_dl: 100000000,
         max_bandwidth_ul: 100000000,
       },
       qos_profile: {
-        class_id: 9,
-        preemption_capability: true,
+        class_id: 6,
+        preemption_capability: false,
         preemption_vulnerability: false,
-        priority_level: 15,
+        priority_level: 10,
       },
     },
     apn_name: 'apn_1',
@@ -444,15 +444,31 @@ describe('<TrafficDashboard APNs/>', () => {
     const rowItemsApns = await getAllByRole('row');
     // first row is the header
     expect(rowItemsApns[0]).toHaveTextContent('Apn ID');
-    expect(rowItemsApns[0]).toHaveTextContent('Description');
-    expect(rowItemsApns[0]).toHaveTextContent('Qos Profile');
-    expect(rowItemsApns[0]).toHaveTextContent('Added');
+    expect(rowItemsApns[0]).toHaveTextContent('Class ID');
+    expect(rowItemsApns[0]).toHaveTextContent('Priority Level');
+    expect(rowItemsApns[0]).toHaveTextContent('Max Reqd UL Bw');
+    expect(rowItemsApns[0]).toHaveTextContent('Max Reqd DL Bw');
+    expect(rowItemsApns[0]).toHaveTextContent('Pre-emption Capability');
+    expect(rowItemsApns[0]).toHaveTextContent('Pre-emption Vulnerability');
+
+    // check first data row
     expect(rowItemsApns[1]).toHaveTextContent('apn_0');
-    expect(rowItemsApns[1]).toHaveTextContent('Test APN description');
-    expect(rowItemsApns[1]).toHaveTextContent('1');
+    expect(rowItemsApns[1]).toHaveTextContent('9');
+    expect(rowItemsApns[1]).toHaveTextContent('15');
+    expect(rowItemsApns[1]).toHaveTextContent('100000000');
+    expect(rowItemsApns[1]).toHaveTextContent('200000000');
+    expect(rowItemsApns[1]).toHaveTextContent('true');
+    expect(rowItemsApns[1]).toHaveTextContent('false');
+
+    // check second data row
     expect(rowItemsApns[2]).toHaveTextContent('apn_1');
-    expect(rowItemsApns[2]).toHaveTextContent('Test APN description');
-    expect(rowItemsApns[2]).toHaveTextContent('1');
+    expect(rowItemsApns[2]).toHaveTextContent('6');
+    expect(rowItemsApns[2]).toHaveTextContent('10');
+    expect(rowItemsApns[2]).toHaveTextContent('100000000');
+    expect(rowItemsApns[2]).toHaveTextContent('100000000');
+    expect(rowItemsApns[2]).toHaveTextContent('false');
+    expect(rowItemsApns[2]).toHaveTextContent('false');
+
     // click the actions button for apn 0
     const apnActionList = getAllByTitle('Actions');
     expect(getByTestId('actions-menu')).not.toBeVisible();
