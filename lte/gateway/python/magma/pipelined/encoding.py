@@ -30,14 +30,14 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
     ret = ""
     if encryption_algorithm == PipelineD.HEConfig.RC4:
         cipher = ARC4.new(key)
-        ret = cipher.encrypt(s).hex()
+        ret = cipher.encrypt(s.encode('utf-8')).hex()
     elif encryption_algorithm == PipelineD.HEConfig.AES256_CBC_HMAC_MD5:
         iv = get_random_bytes(16)
         key_val = key
         key_mac = mac
 
         cipher = AES.new(key_val, AES.MODE_CBC, iv)
-        enc = cipher.encrypt(pad(s))
+        enc = cipher.encrypt(pad(s).encode('utf-8'))
 
         hmac = HMAC.new(key_mac)
         hmac.update(iv + enc)
@@ -48,7 +48,7 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
         key_mac = mac
 
         cipher = AES.new(key_val, AES.MODE_ECB)
-        enc = cipher.encrypt(pad(s))
+        enc = cipher.encrypt(pad(s).encode('utf-8'))
 
         hmac = HMAC.new(key_mac)
         hmac.update(enc)
@@ -59,7 +59,7 @@ def encrypt_str(s: str, key: bytes, encryption_algorithm, mac: bytes = None):
         key_mac = mac
 
         cipher = AES.new(key_val, AES.MODE_ECB)
-        enc = cipher.encrypt(pad(s))
+        enc = cipher.encrypt(pad(s).encode('utf-8'))
 
         hmac = HMAC.new(key_mac)
         hmac.update(enc)
