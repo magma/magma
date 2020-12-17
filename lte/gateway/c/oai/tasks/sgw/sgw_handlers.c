@@ -266,6 +266,10 @@ int sgw_handle_s11_create_session_request(
         &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
              .saved_message,
         session_req_pP, sizeof(itti_s11_create_session_request_t));
+    copy_protocol_configuration_options(
+        &s_plus_p_gw_eps_bearer_ctxt_info_p->sgw_eps_bearer_context_information
+             .saved_message.pco,
+        &session_req_pP->pco);
 
     /*
      * Send a create bearer request to PGW and handle respond
