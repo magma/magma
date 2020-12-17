@@ -78,6 +78,24 @@ const (
 	GyValidityTime  = 60   // in second
 )
 
+type TrafficOutput struct {
+	End TrafficOutputEnd `json:"end"`
+}
+
+type TrafficOutputEnd struct {
+	SumSent     TrafficSummary `json:"sum_sent"`
+	SumReceived TrafficSummary `json:"sum_received"`
+}
+
+type TrafficSummary struct {
+	Start         float64 `json:"start"`
+	End           float64 `json:"end"`
+	Seconds       float64 `json:"seconds"`
+	Bytes         int     `json:"bytes"`
+	BitsPerSecond float64 `json:"bits_per_second"`
+	Retransmits   int     `json:"retransmits"`
+}
+
 //TestRunner helps setting up all associated services
 type TestRunner struct {
 	t           *testing.T
@@ -241,7 +259,9 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 // Magma traffic server.
 func (tr *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
 	fmt.Printf("************************* Generating Traffic for UE with Req: %v\n", req)
-	return uesim.GenTraffic(req)
+	res, err := uesim.GenTraffic(req)
+	fmt.Printf("************************* Total Sent: %d bytes\n", res.GetEndOutput().GetSumSent().GetBytes())
+	return res, err
 }
 
 // Remove subscribers, rules, flows, and monitors to clean up the state for
