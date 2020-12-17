@@ -436,7 +436,7 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -457,7 +457,7 @@ jobs:
       image: ubuntu-1604:201903-01
       #docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -482,8 +482,8 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MODULE_DIR=/home/circleci/project
-      - MAGMA_ROOT=/home/circleci/project
+      MODULE_DIR: /home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -499,7 +499,7 @@ jobs:
             python3 build.py -a --nocache --parallel
       - tag-push-docker:
           project: orc8r
-          images: "nginx|controller"
+          images: "nginx|controller|base"
       - persist-githash-version:
           file_prefix: orc8r
       - notify-magma:
@@ -513,8 +513,7 @@ jobs:
     docker:
       - image: circleci/golang:1.13-buster-node-browsers-legacy
     environment:
-      - GO111MODULE=on
-      - GOPROXY=https://proxy.golang.org
+      GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
@@ -535,7 +534,7 @@ jobs:
       - image: circleci/golang:1.13-stretch-node-browsers-legacy
     resource_class: medium+
     environment:
-      - GO111MODULE=on
+      GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
@@ -558,7 +557,7 @@ jobs:
       docker_layer_caching: true
     resource_class: large
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -582,8 +581,7 @@ jobs:
     docker:
       - image: circleci/golang:1.13-buster-node-browsers-legacy
     environment:
-      - GO111MODULE=on
-      - GOPROXY=https://proxy.golang.org
+      GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
@@ -627,8 +625,8 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
-      - DOCKER_REGISTRY=cwf_
+      MAGMA_ROOT: /home/circleci/project
+      DOCKER_REGISTRY: cwf_
     steps:
       - checkout
       - build/determinator:
@@ -655,13 +653,13 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - MAGMA_ROOT=/home/circleci/project
-      - PYTHON_BUILD=${MAGMA_ROOT}/build
-      - PIP_CACHE_HOME=${MAGMA_ROOT}/.pipcache
-      - MAGMA_DEV_MODE=1
-      - SKIP_SUDO_TESTS=1
-      - CODEGEN_ROOT=/home/circleci/project/.codegen
-      - SWAGGER_CODEGEN_JAR=/home/circleci/project/.codegen/swagger-codegen-cli.jar
+      MAGMA_ROOT: /home/circleci/project
+      PYTHON_BUILD: ${MAGMA_ROOT}/build
+      PIP_CACHE_HOME: ${MAGMA_ROOT}/.pipcache
+      MAGMA_DEV_MODE: 1
+      SKIP_SUDO_TESTS: 1
+      CODEGEN_ROOT: /home/circleci/project/.codegen
+      SWAGGER_CODEGEN_JAR: /home/circleci/project/.codegen/swagger-codegen-cli.jar
     steps:
       - checkout
       - build/determinator:
@@ -716,8 +714,7 @@ jobs:
     docker:
       - image: circleci/golang:1.13-buster-node-browsers-legacy
     environment:
-      - GO111MODULE=on
-      - GOPROXY=https://proxy.golang.org
+      GO111MODULE: 'on'
     steps:
       - checkout
       - build/determinator:
@@ -738,7 +735,7 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - build/determinator:
@@ -809,9 +806,9 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
-      - PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-      - PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome-stable
+      NMS_ROOT: ${MAGMA_ROOT}/nms/app/packages/magmalte
+      PUPPETEER_SKIP_CHROMIUM_DOWNLOAD: 'true'
+      PUPPETEER_EXECUTABLE_PATH: /usr/bin/google-chrome-stable
     steps:
       - checkout
       - build/determinator:
@@ -836,7 +833,7 @@ jobs:
     machine:
       image: ubuntu-1604:201903-01
     environment:
-      - NMS_ROOT=${MAGMA_ROOT}/nms/app/packages/magmalte
+      NMS_ROOT: ${MAGMA_ROOT}/nms/app/packages/magmalte
     steps:
       - checkout
       - build/determinator:
@@ -864,7 +861,7 @@ jobs:
       - image: circleci/buildpack-deps:xenial
     working_directory: /tmp/magma
     environment:
-      - MAGMA_ROOT=/tmp/magma
+      MAGMA_ROOT: /tmp/magma
     steps:
       - checkout
       - run: wget https://github.com/fossas/fossa-cli/releases/download/v1.0.11/fossa-cli_1.0.11_linux_amd64.tar.gz
@@ -881,8 +878,8 @@ jobs:
     docker:
       - image: circleci/node:8.11.1
     environment:
-      DOCUSAURUS_URL: 'https://magma.github.io'
-      DOCUSAURUS_BASE_URL: '/magma/'
+      DOCUSAURUS_URL: https://magma.github.io
+      DOCUSAURUS_BASE_URL: /magma/
     steps:
       - checkout
       - run:
@@ -955,7 +952,7 @@ jobs:
       image: ubuntu-1604:201903-01
       docker_layer_caching: true
     environment:
-      - MAGMA_ROOT=/home/circleci/project
+      MAGMA_ROOT: /home/circleci/project
     steps:
       - checkout
       - docker/install-dc
@@ -983,7 +980,7 @@ jobs:
       - magma_slack_notify
 
 workflows:
-  version: 2.1
+  version: 2
 
   cloud:
     jobs:
