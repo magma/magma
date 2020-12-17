@@ -78,24 +78,6 @@ const (
 	GyValidityTime  = 60   // in second
 )
 
-type TrafficOutput struct {
-	End TrafficOutputEnd `json:"end"`
-}
-
-type TrafficOutputEnd struct {
-	SumSent     TrafficSummary `json:"sum_sent"`
-	SumReceived TrafficSummary `json:"sum_received"`
-}
-
-type TrafficSummary struct {
-	Start         float64 `json:"start"`
-	End           float64 `json:"end"`
-	Seconds       float64 `json:"seconds"`
-	Bytes         int     `json:"bytes"`
-	BitsPerSecond float64 `json:"bits_per_second"`
-	Retransmits   int     `json:"retransmits"`
-}
-
 //TestRunner helps setting up all associated services
 type TestRunner struct {
 	t           *testing.T
@@ -112,7 +94,7 @@ type RecordByIMSI map[string]map[string]*lteprotos.RuleRecord
 // and setting the next IMSI.
 func NewTestRunner(t *testing.T) *TestRunner {
 	startTime := time.Now()
-	fmt.Println("************************* TestRunner setup")
+	fmt.Println("************* TestRunner setup")
 
 	fmt.Printf("Adding Mock HSS service at %s:%d\n", CwagIP, HSSPort)
 	registry.AddService(MockHSSRemote, CwagIP, HSSPort)
@@ -173,7 +155,7 @@ func (tr *TestRunner) ConfigUEs(numUEs int) ([]*cwfprotos.UEConfig, error) {
 
 // ConfigUEsPerInstance same as ConfigUEs but per specific PCRF and OCS instance
 func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInstance string) ([]*cwfprotos.UEConfig, error) {
-	fmt.Printf("************************* Configuring %d UE(s), PCRF instance: %s\n", len(IMSIs), pcrfInstance)
+	fmt.Printf("************* Configuring %d UE(s), PCRF instance: %s\n", len(IMSIs), pcrfInstance)
 	ues := make([]*cwfprotos.UEConfig, 0)
 	for _, imsi := range IMSIs {
 		// If IMSIs were generated properly they should never give an error here
@@ -218,7 +200,7 @@ func (tr *TestRunner) ConfigUEsPerInstance(IMSIs []string, pcrfInstance, ocsInst
 // Authenticate simulates an authentication between the UE and the HSS with the specified
 // IMSI and CalledStationID, and returns the resulting Radius packet.
 func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet, error) {
-	fmt.Printf("************************* Authenticating UE with IMSI: %s\n", imsi)
+	fmt.Printf("************* Authenticating UE with IMSI: %s\n", imsi)
 	res, err := uesim.Authenticate(&cwfprotos.AuthenticateRequest{Imsi: imsi, CalledStationID: calledStationID})
 	if err != nil {
 		fmt.Println(err)
@@ -238,7 +220,7 @@ func (tr *TestRunner) Authenticate(imsi, calledStationID string) (*radius.Packet
 // Authenticate simulates an authentication between the UE and the HSS with the specified
 // IMSI and CalledStationID, and returns the resulting Radius packet.
 func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, error) {
-	fmt.Printf("************************* Sending a disconnect request UE with IMSI: %s\n", imsi)
+	fmt.Printf("************* Sending a disconnect request UE with IMSI: %s\n", imsi)
 	res, err := uesim.Disconnect(&cwfprotos.DisconnectRequest{Imsi: imsi, CalledStationID: calledStationID})
 	if err != nil {
 		return &radius.Packet{}, err
@@ -258,9 +240,9 @@ func (tr *TestRunner) Disconnect(imsi, calledStationID string) (*radius.Packet, 
 // by running an iperf3 client on the UE simulator and an iperf3 server on the
 // Magma traffic server.
 func (tr *TestRunner) GenULTraffic(req *cwfprotos.GenTrafficRequest) (*cwfprotos.GenTrafficResponse, error) {
-	fmt.Printf("************************* Generating Traffic for UE with Req: %v\n", req)
+	fmt.Printf("************* Generating Traffic for UE with Req: %v\n", req)
 	res, err := uesim.GenTraffic(req)
-	fmt.Printf("************************* Total Sent: %d bytes\n", res.GetEndOutput().GetSumSent().GetBytes())
+	fmt.Printf("============> Total Sent: %d bytes\n", res.GetEndOutput().GetSumSent().GetBytes())
 	return res, err
 }
 
