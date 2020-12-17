@@ -22,10 +22,12 @@ import (
 	lte_api "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/serde"
+	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/state/indexer"
 	"magma/orc8r/cloud/go/services/state/protos"
 	state_types "magma/orc8r/cloud/go/services/state/types"
 
+	"github.com/golang/glog"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -100,10 +102,17 @@ func setEnodebState(networkID string, states state_types.StatesByID) (state_type
 			stateErrors[id] = fmt.Errorf("error serializing EnodebState for deviceID %s", id.DeviceID)
 			continue
 		}
-		err = lte_api.SetEnodebState(networkID, st.ReporterID, id.DeviceID, serializedState)
+		gwEnt, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
+		if err != nil {
+			stateErrors[id] = errors.Wrap(err, "error loading gatewayID")
+			continue
+		}
+		err = lte_api.SetEnodebState(networkID, gwEnt.Key, id.DeviceID, serializedState)
 		if err != nil {
 			stateErrors[id] = errors.Wrap(err, "error setting enodeb state")
+			continue
 		}
+		glog.V(2).Infof("successfully stored ENB state for eNB SN: %s, gatewayID: %s:w", id.DeviceID, gwEnt.Key)
 	}
 	return stateErrors, nil
 }
