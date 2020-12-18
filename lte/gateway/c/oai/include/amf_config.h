@@ -51,16 +51,16 @@ typedef struct m5g_apn_map_config_s {
 typedef struct m5g_nas_config_s {
   uint8_t prefered_integrity_algorithm[8];
   uint8_t prefered_ciphering_algorithm[8];
-  uint32_t t3402_min;
-  uint32_t t3412_min;
-  uint32_t t3422_sec;
-  uint32_t t3450_sec;
-  uint32_t t3460_sec;
-  uint32_t t3470_sec;
-  uint32_t t3485_sec;
-  uint32_t t3486_sec;
-  uint32_t t3489_sec;
-  uint32_t t3495_sec;
+  uint32_t t3502_min;
+  uint32_t t3512_min;
+  uint32_t t3522_sec;
+  uint32_t t3550_sec;
+  uint32_t t3560_sec;
+  uint32_t t3570_sec;
+  uint32_t t3585_sec;
+  uint32_t t3586_sec;
+  uint32_t t3589_sec;
+  uint32_t t3595_sec;
   // non standard features
   bool force_reject_tau;
   bool force_reject_sr;
@@ -83,7 +83,6 @@ typedef struct m5g_served_tai_s {
 
 typedef struct ngap_config_s {
   uint16_t port_number;
-  uint8_t outcome_drop_timer_sec;
 } ngap_config_t;
 
 typedef struct guamfi_config_s {
@@ -101,7 +100,6 @@ typedef struct amf_config_s {
   bstring full_network_name;
   bstring short_network_name;
   uint8_t daylight_saving_time;
-  //  run_mode_t run_mode;
   uint32_t max_gnbs;
   uint32_t max_ues;
   uint8_t relative_capacity;

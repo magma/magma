@@ -30,7 +30,6 @@
 #include <stdbool.h>
 #include <string.h>
 #include <errno.h>
-//#include "amf_config.h"
 #include "bstrlib.h"
 #include "intertask_interface.h"
 #include "intertask_interface_types.h"
@@ -101,18 +100,22 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
 
       if (sctpd_send_dl(ppid, assoc_id, stream, payload) < 0) {
         if (ppid == S1AP) {
+          OAILOG_DEBUG(
+              LOG_SCTP, "ppid match S1AP in sctp_itti_send_lower_layer_conf ");
           sctp_itti_send_lower_layer_conf(
               received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
               stream, SCTP_DATA_REQ(received_message_p).mme_ue_s1ap_id, false);
         } else if (ppid == NGAP) {
-          OAILOG_INFO(
-              LOG_SCTP, "ppid NGAP in sctp_itti_send_lower_layer_conf ");
+          OAILOG_DEBUG(
+              LOG_SCTP, "ppid match NGAP in sctp_itti_send_lower_layer_conf ");
           sctp_itti_send_lower_layer_conf(
               received_message_p->ittiMsgHeader.originTaskId, ppid, assoc_id,
               stream, SCTP_DATA_REQ(received_message_p).amf_ue_ngap_id, false);
         } else {
           OAILOG_ERROR(
-              LOG_SCTP, "ppid not matching in sctp_itti_send_lower_layer_conf ");
+              LOG_SCTP,
+              "ppid: %d not matching in sctp_itti_send_lower_layer_conf ",
+              ppid);
         }
       }
     } break;
@@ -150,23 +153,16 @@ static void* sctp_thread(__attribute__((unused)) void* args_p) {
   return NULL;
 }
 
-int sctp_init(
-    const mme_config_t* mme_config_p /* , const amf_config_t* amf_config_p*/) {
+int sctp_init(const mme_config_t* mme_config_p) {
   if (init_sctpd_downlink_client(!mme_config.use_stateless) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to init sctpd downlink client\n");
   }
-  /*
-    if (init_sctpd_downlink_client(!amf_config.use_stateless) < 0) {
-      OAILOG_ERROR(LOG_SCTP, "failed to init amf_sctp sctpd downlink client\n");
-    }
-  */
+
   if (itti_create_task(TASK_SCTP, &sctp_thread, NULL) < 0) {
     OAILOG_ERROR(LOG_SCTP, "create task failed\n");
-    OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: FAILED\n");
     return -1;
   }
 
-  OAILOG_DEBUG(LOG_SCTP, "Initializing SCTP task interface: DONE\n");
   return 0;
 }
 
