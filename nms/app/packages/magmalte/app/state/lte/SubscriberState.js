@@ -73,8 +73,8 @@ export default async function InitSubscriberState(
   if (setSubscriberMetrics) {
     const subscriberMetrics = {};
     const queries = {
-      dailyAvg: 'avg (avg_over_time(ue_traffic[24h])) by (IMSI)',
-      currentUsage: 'sum (ue_traffic) by (IMSI)',
+      dailyAvg: 'avg (avg_over_time(ue_reported_usage[24h])) by (IMSI)',
+      currentUsage: 'sum (ue_reported_usage) by (IMSI)',
     };
 
     const requests = Object.keys(queries).map(async (queryType: string) => {
