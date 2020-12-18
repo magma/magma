@@ -61,3 +61,4 @@ services:
       - >
         /usr/local/bin/wait-for-it.sh -s -t 30 postgres:5432 &&
         /usr/bin/envdir /var/opt/magma/envdir /var/opt/magma/bin/subscriberdb -run_echo_server=true -logtostderr=true -v=0
+

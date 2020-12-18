@@ -141,6 +141,23 @@ export type carrier_wifi_ha_pair_state = {
 export type carrier_wifi_ha_pair_status = {
     active_gateway: string,
 };
+export type cellular_gateway_pool = {
+    config: cellular_gateway_pool_configs,
+    gateway_ids: Array < gateway_id >
+        ,
+    gateway_pool_id: gateway_pool_id,
+    gateway_pool_name ? : string,
+};
+export type cellular_gateway_pool_configs = {
+    mme_group_id: number,
+};
+export type cellular_gateway_pool_record = {
+    gateway_pool_id: gateway_pool_id,
+    mme_code: number,
+    mme_relative_capacity: number,
+};
+export type cellular_gateway_pool_records = Array < cellular_gateway_pool_record >
+;
 export type challenge_key = {
     key ? : string,
     key_type: "ECHO" | "SOFTWARE_ECDSA_SHA256",
@@ -247,9 +264,11 @@ export type e2e_test_case_state = {
     next_scheduled_time ? : string,
 };
 export type eap_aka = {
+    mnc_len ? : number,
     plmn_ids ? : Array < string >
         ,
     timeout ? : eap_aka_timeouts,
+    use_s6a ? : boolean,
 };
 export type eap_aka_timeouts = {
     challenge_ms ? : number,
@@ -258,9 +277,11 @@ export type eap_aka_timeouts = {
     session_ms ? : number,
 };
 export type eap_sim = {
+    mnc_len ? : number,
     plmn_ids ? : Array < string >
         ,
     timeout ? : eap_sim_timeouts,
+    use_s6a ? : boolean,
 };
 export type eap_sim_timeouts = {
     challenge_ms ? : number,
@@ -331,6 +352,7 @@ export type enodeb_state = {
     gps_connected: boolean,
     gps_latitude: string,
     gps_longitude: string,
+    ip_address ? : string,
     mme_connected: boolean,
     opstate_enabled: boolean,
     ptp_connected: boolean,
@@ -338,7 +360,6 @@ export type enodeb_state = {
     rf_tx_desired: boolean,
     rf_tx_on: boolean,
     time_reported ? : number,
-    ip_address: string,
 };
 export type enodebd_e2e_test = {
     config: enodebd_test_config,
@@ -348,7 +369,7 @@ export type enodebd_e2e_test = {
 export type enodebd_test_config = {
     agw_config: agw_test_config,
     enodeb_SN: string,
-    enodeb_config: enodeb_configuration,
+    enodeb_config: enodeb_config,
     network_id: string,
     run_traffic_tests: boolean,
     ssid ? : string,
@@ -430,7 +451,9 @@ export type flow_qos = {
 export type gateway_cellular_configs = {
     dns ? : gateway_dns_configs,
     epc: gateway_epc_configs,
+    he_config ? : gateway_he_config,
     non_eps_service ? : gateway_non_eps_configs,
+    pooling ? : cellular_gateway_pool_records,
     ran: gateway_ran_configs,
 };
 export type gateway_cwf_configs = {
@@ -455,6 +478,11 @@ export type gateway_epc_configs = {
     dns_primary ? : string,
     dns_secondary ? : string,
     ip_block: string,
+    ipv4_p_cscf_addr ? : string,
+    ipv6_block ? : string,
+    ipv6_dns_addr ? : string,
+    ipv6_p_cscf_addr ? : string,
+    ipv6_prefix_allocation_mode ? : "RANDOM" | "HASH",
     nat_enabled: boolean,
     sgi_management_iface_gw ? : string,
     sgi_management_iface_static_ip ? : string,
@@ -469,9 +497,19 @@ export type gateway_federation_configs = {
     gy: gy,
     health: health,
     hss: hss,
+    nh_routes ? : nh_routes,
     s6a: s6a,
     served_network_ids: served_network_ids,
+    served_nh_ids ? : served_nh_ids,
     swx: swx,
+};
+export type gateway_he_config = {
+    enable_encryption: boolean,
+    enable_header_enrichment: boolean,
+    encryption_key ? : string,
+    he_encoding_type: "BASE64",
+    he_encryption_algorithm: "RC4",
+    he_hash_function: "MD5",
 };
 export type gateway_health_configs = {
     cpu_util_threshold_pct ? : number,
@@ -495,6 +533,7 @@ export type gateway_non_eps_configs = {
     lac ? : number,
     non_eps_service_control: 0 | 1 | 2 | 3,
 };
+export type gateway_pool_id = string;
 export type gateway_ran_configs = {
     pci: number,
     transmit_enabled: boolean,
@@ -742,6 +781,11 @@ export type msisdn_assignment = {
     id: subscriber_id,
     msisdn: msisdn,
 };
+export type mutable_cellular_gateway_pool = {
+    config: cellular_gateway_pool_configs,
+    gateway_pool_id: gateway_pool_id,
+    gateway_pool_name ? : string,
+};
 export type mutable_ci_node = {
     id: string,
     tag ? : string,
@@ -827,6 +871,7 @@ export type network_carrier_wifi_configs = {
     default_rule_id: string,
     eap_aka: eap_aka,
     eap_sim ? : eap_sim,
+    is_xwfm_variant ? : boolean,
     li_ues ? : li_ues,
     network_services: Array < "dpi" | "policy_enforcement" >
         ,
@@ -895,8 +940,10 @@ export type network_federation_configs = {
     gy: gy,
     health: health,
     hss: hss,
+    nh_routes ? : nh_routes,
     s6a: s6a,
     served_network_ids: served_network_ids,
+    served_nh_ids ? : served_nh_ids,
     swx: swx,
 };
 export type network_id = string;
@@ -951,6 +998,9 @@ export type network_wifi_configs = {
     xwf_radius_server ? : string,
     xwf_radius_shared_secret ? : string,
     xwf_uam_secret ? : string,
+};
+export type nh_routes = {
+    [string]: string,
 };
 export type node_lease = {
     id: string,
@@ -1008,6 +1058,8 @@ export type policy_rule = {
         ,
     flow_list: Array < flow_description >
         ,
+    header_enrichment_targets ? : Array < string >
+        ,
     id: policy_id,
     monitoring_key ? : string,
     priority: number,
@@ -1020,6 +1072,8 @@ export type policy_rule_config = {
     app_name ? : "NO_APP_NAME" | "FACEBOOK" | "FACEBOOK_MESSENGER" | "INSTAGRAM" | "YOUTUBE" | "GOOGLE" | "GMAIL" | "GOOGLE_DOCS" | "NETFLIX" | "APPLE" | "MICROSOFT" | "REDDIT" | "WHATSAPP" | "GOOGLE_PLAY" | "APPSTORE" | "AMAZON" | "WECHAT" | "TIKTOK" | "TWITTER" | "WIKIPEDIA" | "GOOGLE_MAPS" | "YAHOO" | "IMO",
     app_service_type ? : "NO_SERVICE_TYPE" | "CHAT" | "AUDIO" | "VIDEO",
     flow_list: Array < flow_description >
+        ,
+    header_enrichment_targets ? : Array < string >
         ,
     monitoring_key ? : string,
     priority: number,
@@ -1146,6 +1200,8 @@ export type sctp_client_configs = {
 };
 export type served_network_ids = Array < string >
 ;
+export type served_nh_ids = Array < string >
+;
 export type slack_action = {
     confirm ? : slack_confirm_field,
     name ? : string,
@@ -1234,6 +1290,7 @@ export type subscriber_state = {
         ,
     s1ap ? : untyped_mme_state,
     spgw ? : untyped_mme_state,
+    subscriber_state ? : untyped_subscriber_state,
 };
 export type subscriber_static_ips = {
     [string]: string,
@@ -1305,6 +1362,7 @@ export type unmanaged_enodeb_configuration = {
     tac: number,
 };
 export type untyped_mme_state = {};
+export type untyped_subscriber_state = {};
 export type virtual_apn_rule = {
     apn_filter ? : string,
     apn_overwrite ? : string,
@@ -4726,6 +4784,97 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'PUT', query, body);
     }
+    static async getLteByNetworkIdGatewayPools(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < {
+            [string]: cellular_gateway_pool,
+        } >
+        {
+            let path = '/lte/{network_id}/gateway_pools';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async postLteByNetworkIdGatewayPools(
+        parameters: {
+            'networkId': string,
+            'haGatewayPool': mutable_cellular_gateway_pool,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/gateway_pools';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['haGatewayPool'] === undefined) {
+            throw new Error('Missing required  parameter: haGatewayPool');
+        }
+
+        if (parameters['haGatewayPool'] !== undefined) {
+            body = parameters['haGatewayPool'];
+        }
+
+        return await this.request(path, 'POST', query, body);
+    }
+    static async deleteLteByNetworkIdGatewayPoolsByGatewayPoolId(
+        parameters: {
+            'networkId': string,
+            'gatewayPoolId': string,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/gateway_pools/{gateway_pool_id}';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayPoolId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayPoolId');
+        }
+
+        path = path.replace('{gateway_pool_id}', `${parameters['gatewayPoolId']}`);
+
+        return await this.request(path, 'DELETE', query, body);
+    }
+    static async getLteByNetworkIdGatewayPoolsByGatewayPoolId(
+            parameters: {
+                'networkId': string,
+                'gatewayPoolId': string,
+            }
+        ): Promise < cellular_gateway_pool >
+        {
+            let path = '/lte/{network_id}/gateway_pools/{gateway_pool_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayPoolId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayPoolId');
+            }
+
+            path = path.replace('{gateway_pool_id}', `${parameters['gatewayPoolId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getLteByNetworkIdGateways(
             parameters: {
                 'networkId': string,
@@ -5127,6 +5276,64 @@ export default class MagmaAPIBindings {
 
         if (parameters['config'] !== undefined) {
             body = parameters['config'];
+        }
+
+        return await this.request(path, 'PUT', query, body);
+    }
+    static async getLteByNetworkIdGatewaysByGatewayIdCellularPooling(
+            parameters: {
+                'networkId': string,
+                'gatewayId': string,
+            }
+        ): Promise < Array < cellular_gateway_pool_record >
+        >
+        {
+            let path = '/lte/{network_id}/gateways/{gateway_id}/cellular/pooling';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['gatewayId'] === undefined) {
+                throw new Error('Missing required  parameter: gatewayId');
+            }
+
+            path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async putLteByNetworkIdGatewaysByGatewayIdCellularPooling(
+        parameters: {
+            'networkId': string,
+            'gatewayId': string,
+            'resource': Array < cellular_gateway_pool_record >
+                ,
+        }
+    ): Promise < "Success" > {
+        let path = '/lte/{network_id}/gateways/{gateway_id}/cellular/pooling';
+        let body;
+        let query = {};
+        if (parameters['networkId'] === undefined) {
+            throw new Error('Missing required  parameter: networkId');
+        }
+
+        path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+        if (parameters['gatewayId'] === undefined) {
+            throw new Error('Missing required  parameter: gatewayId');
+        }
+
+        path = path.replace('{gateway_id}', `${parameters['gatewayId']}`);
+
+        if (parameters['resource'] === undefined) {
+            throw new Error('Missing required  parameter: resource');
+        }
+
+        if (parameters['resource'] !== undefined) {
+            body = parameters['resource'];
         }
 
         return await this.request(path, 'PUT', query, body);
@@ -6232,6 +6439,49 @@ export default class MagmaAPIBindings {
 
         return await this.request(path, 'POST', query, body);
     }
+    static async getLteByNetworkIdSubscriberState(
+            parameters: {
+                'networkId': string,
+            }
+        ): Promise < {
+            [string]: subscriber_state,
+        } >
+        {
+            let path = '/lte/{network_id}/subscriber_state';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
+    static async getLteByNetworkIdSubscriberStateBySubscriberId(
+            parameters: {
+                'networkId': string,
+                'subscriberId': string,
+            }
+        ): Promise < subscriber_state >
+        {
+            let path = '/lte/{network_id}/subscriber_state/{subscriber_id}';
+            let body;
+            let query = {};
+            if (parameters['networkId'] === undefined) {
+                throw new Error('Missing required  parameter: networkId');
+            }
+
+            path = path.replace('{network_id}', `${parameters['networkId']}`);
+
+            if (parameters['subscriberId'] === undefined) {
+                throw new Error('Missing required  parameter: subscriberId');
+            }
+
+            path = path.replace('{subscriber_id}', `${parameters['subscriberId']}`);
+
+            return await this.request(path, 'GET', query, body);
+        }
     static async getLteByNetworkIdSubscribers(
             parameters: {
                 'networkId': string,

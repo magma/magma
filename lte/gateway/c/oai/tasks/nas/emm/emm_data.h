@@ -385,6 +385,13 @@ typedef struct emm_data_s {
   // data is emm ue id (unsigned int)
 } emm_data_t;
 
+typedef struct {
+  unsigned int ue_id;
+#define DETACH_REQ_COUNTER_MAX 5
+  unsigned int retransmission_count;
+  uint8_t detach_type;
+} nw_detach_data_t;
+
 mme_ue_s1ap_id_t emm_ctx_get_new_ue_id(const emm_context_t* const ctxt)
     __attribute__((nonnull));
 
@@ -553,6 +560,10 @@ void emm_context_dump(
     const struct emm_context_s* const elm_pP, const uint8_t indent_spaces,
     bstring bstr_dump) __attribute__((nonnull));
 
+/*
+ *  Detach Proc: Timer handler
+ */
+void detach_t3422_handler(void*, imsi64_t* imsi64);
 /****************************************************************************/
 /********************  G L O B A L    V A R I A B L E S  ********************/
 /****************************************************************************/

@@ -178,7 +178,7 @@ class S1ApUtil(object):
         return self._msg.get(True)
 
     def populate_pco(
-        self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
+            self, protCfgOpts_pr, pcscf_addr_type=None, dns_ipv6_addr=False
     ):
         """
         Populates the PCO values.
@@ -235,17 +235,17 @@ class S1ApUtil(object):
             ].cid = S1ApUtil.PROT_CFG_CID_DNS_SERVER_IPV6_ADDR_REQUEST
 
     def attach(
-        self,
-        ue_id,
-        attach_type,
-        resp_type,
-        resp_msg_type,
-        sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
-        id_type=s1ap_types.TFW_MID_TYPE_IMSI,
-        eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
-        pdn_type=1,
-        pcscf_addr_type=None,
-        dns_ipv6_addr=False,
+            self,
+            ue_id,
+            attach_type,
+            resp_type,
+            resp_msg_type,
+            sec_ctxt=s1ap_types.TFW_CREATE_NEW_SECURITY_CONTEXT,
+            id_type=s1ap_types.TFW_MID_TYPE_IMSI,
+            eps_type=s1ap_types.TFW_EPS_ATTACH_TYPE_EPS_ATTACH,
+            pdn_type=1,
+            pcscf_addr_type=None,
+            dns_ipv6_addr=False,
     ):
         """
         Given a UE issue the attach request of specified type
@@ -291,8 +291,8 @@ class S1ApUtil(object):
         elif s1ap_types.tfwCmd.UE_ATTACH_ACCEPT_IND.value == response.msg_type:
             context_setup = self.get_response()
             assert (
-                context_setup.msg_type
-                == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
+                    context_setup.msg_type
+                    == s1ap_types.tfwCmd.INT_CTX_SETUP_IND.value
             )
 
         logging.debug(
@@ -335,14 +335,14 @@ class S1ApUtil(object):
         detach_req.ue_Id = ue_id
         detach_req.ueDetType = reason_type
         assert (
-            self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
-            == 0
+                self.issue_cmd(s1ap_types.tfwCmd.UE_DETACH_REQUEST, detach_req)
+                == 0
         )
         if reason_type == s1ap_types.ueDetachType_t.UE_NORMAL_DETACH.value:
             response = self.get_response()
             assert (
-                s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
-                == response.msg_type
+                    s1ap_types.tfwCmd.UE_DETACH_ACCEPT_IND.value
+                    == response.msg_type
             )
 
         # Now wait for the context release response
@@ -362,41 +362,50 @@ class S1ApUtil(object):
         for key, value in dl_flow_rules.items():
             tcp_src_port = 0
             ip_proto = 0
+            ue_ip6_str = None
             ue_ip_str = str(key)
+            if key.version == 6:
+                ue_ip6_str = ipaddress.ip_network(
+                    (ue_ip_str + "/64"), strict=False
+                ).with_netmask
+            ue_ip_addr = ue_ip6_str if key.version == 6 else ue_ip_str
             dst_addr = "nw_dst" if key.version == 4 else "ipv6_dst"
+            key_to_be_matched = "ipv4_src" if key.version == 4 else "ipv6_src"
             eth_typ = 2048 if key.version == 4 else 34525
 
             # Set to 1 for the default bearer
             total_num_dl_flows_to_be_verified = 1
             for item in value:
                 for flow in item:
-                    if flow["direction"] == FlowMatch.DOWNLINK:
+                    if (
+                            flow["direction"] == FlowMatch.DOWNLINK
+                            and key_to_be_matched in flow
+                    ):
                         total_num_dl_flows_to_be_verified += 1
             total_dl_ovs_flows_created = get_flows(
                 self.datapath,
                 {
                     "table_id": self.SPGW_TABLE,
                     "match": {
-                        dst_addr: ue_ip_str,
+                        dst_addr: ue_ip_addr,
                         "eth_type": eth_typ,
                         "in_port": self.LOCAL_PORT,
                     },
                 },
             )
             assert (
-                len(total_dl_ovs_flows_created)
-                == total_num_dl_flows_to_be_verified
+                    len(total_dl_ovs_flows_created)
+                    == total_num_dl_flows_to_be_verified
             )
 
             # Now verify the rules for every flow
             for item in value:
                 for flow in item:
-                    if flow["direction"] == FlowMatch.DOWNLINK:
-                        ip_src_addr = (
-                            flow["ipv4_src"]
-                            if key.version == 4
-                            else flow["ipv6_src"]
-                        )
+                    if (
+                            flow["direction"] == FlowMatch.DOWNLINK
+                            and key_to_be_matched in flow
+                    ):
+                        ip_src_addr = flow[key_to_be_matched]
                         ip_src = "ipv4_src" if key.version == 4 else "ipv6_src"
                         ip_dst = "ipv4_dst" if key.version == 4 else "ipv6_dst"
                         tcp_src_port = flow["tcp_src_port"]
@@ -408,7 +417,7 @@ class S1ApUtil(object):
                                 {
                                     "table_id": self.SPGW_TABLE,
                                     "match": {
-                                        dst_addr: ue_ip_str,
+                                        ip_dst: ue_ip_addr,
                                         "eth_type": eth_typ,
                                         "in_port": self.LOCAL_PORT,
                                         ip_src: ip_src_addr,
@@ -423,9 +432,9 @@ class S1ApUtil(object):
                                 5
                             )  # sleep for 5 seconds before retrying
                         assert (
-                            len(downlink_flows) >= num_dl_flows
+                                len(downlink_flows) >= num_dl_flows
                         ), "Downlink flow missing for UE"
-                        assert downlink_flows[0]["match"][ip_dst] == ue_ip_str
+                        assert downlink_flows[0]["match"][ip_dst] == ue_ip_addr
                         actions = downlink_flows[0]["instructions"][0][
                             "actions"
                         ]
@@ -450,10 +459,10 @@ class S1ApUtil(object):
             uplink_flows = get_flows(
                 self.datapath,
                 {
-                   "table_id": self.SPGW_TABLE,
-                   "match": {
-                       "in_port": GTP_PORT,
-                   }
+                    "table_id": self.SPGW_TABLE,
+                    "match": {
+                        "in_port": GTP_PORT,
+                    }
                 },
             )
             if len(uplink_flows) == num_ul_flows:
@@ -490,7 +499,7 @@ class S1ApUtil(object):
                     break
                 time.sleep(5)  # sleep for 5 seconds before retrying
             assert (
-                len(paging_flows) == num_paging_flows_to_be_verified
+                    len(paging_flows) == num_paging_flows_to_be_verified
             ), "Paging flow missing for UE"
 
             # TODO - Verify that the action is to send to controller
@@ -612,7 +621,7 @@ class MagmadUtil(object):
 
     def exec_command(self, command):
         """
-        Run a command remotly on magma_dev VM.
+        Run a command remotely on magma_dev VM.
 
         Args:
             command: command (str) to be executed on remote host
@@ -631,7 +640,7 @@ class MagmadUtil(object):
 
     def exec_command_output(self, command):
         """
-        Run a command remotly on magma_dev VM.
+        Run a command remotely on magma_dev VM.
 
         Args:
             command: command (str) to be executed on remote host
@@ -665,7 +674,7 @@ class MagmadUtil(object):
         ret_code = self.exec_command(
             magtivate_cmd + " && " + venvsudo_cmd + " python3 " +
             config_stateless_script + " " + cmd.name.lower()
-            )
+        )
 
         if ret_code == 0:
             print("AGW is stateless")
@@ -675,6 +684,19 @@ class MagmadUtil(object):
             print("AGW is in a mixed config, check gateway")
         else:
             print("Unknown command")
+
+    def corrupt_agw_state(self, key: str):
+        """
+        Corrupts data on redis of stateless AGW
+        Args:
+            key:
+
+        """
+        magtivate_cmd = "source /home/vagrant/build/python/bin/activate"
+        state_corrupt_cmd = "state_cli.py corrupt %s" % key.lower()
+
+        self.exec_command(magtivate_cmd + " && " + state_corrupt_cmd)
+        print("Corrupted %s on redis" % key)
 
     def restart_all_services(self):
         """
@@ -717,29 +739,29 @@ class MagmadUtil(object):
             print("MME configuration is updated successfully")
         elif ret_code == 1:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: Invalid command"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: Invalid command"
             )
         elif ret_code == 2:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: MME configuration file is "
-                + "missing"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: MME configuration file is "
+                    + "missing"
             )
         elif ret_code == 3:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: MME configuration's backup file "
-                + "is missing"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: MME configuration's backup file "
+                    + "is missing"
             )
         else:
             assert False, (
-                "Failed to "
-                + action
-                + " MME configuration. Error: Unknown error"
+                    "Failed to "
+                    + action
+                    + " MME configuration. Error: Unknown error"
             )
 
     def config_apn_correction(self, cmd):
@@ -766,6 +788,13 @@ class MagmadUtil(object):
             print("APN Correction configured")
         else:
             print("APN Correction failed")
+
+    def restart_mme_and_wait(self):
+        print("Restarting mme service on gateway")
+        self.restart_services(["mme"])
+        print("Waiting for mme to restart. 20 sec")
+        time.sleep(20)
+
 
 class MobilityUtil(object):
     """ Utility wrapper for interacting with mobilityd """
@@ -979,7 +1008,7 @@ class SpgwUtil(object):
         self._stub.CreateBearer(req)
 
     def create_bearer_ipv4v6(
-        self, imsi, lbi, qci_val=1, ipv4=False, ipv6=False
+            self, imsi, lbi, qci_val=1, ipv4=False, ipv6=False
     ):
         """
         Sends a CreateBearer Request with ipv4/ipv6/ipv4v6 packet """
@@ -990,8 +1019,11 @@ class SpgwUtil(object):
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ipv4_dst="192.168.129.42/24",
-                        tcp_src=5001,
+                        ip_dst=IPAddress(
+                            version=IPAddress.IPV4,
+                            address="192.168.129.42/24".encode("utf-8"),
+                        ),
+                        tcp_dst=5001,
                         ip_proto=FlowMatch.IPPROTO_TCP,
                         direction=FlowMatch.UPLINK,
                     ),
@@ -1001,7 +1033,10 @@ class SpgwUtil(object):
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ipv4_src="192.168.129.42",
+                        ip_src=IPAddress(
+                            version=IPAddress.IPV4,
+                            address="192.168.129.42".encode("utf-8"),
+                        ),
                         tcp_src=5001,
                         ip_proto=FlowMatch.IPPROTO_TCP,
                         direction=FlowMatch.DOWNLINK,
@@ -1014,8 +1049,12 @@ class SpgwUtil(object):
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ipv6_dst="5546:222:2259::226",
-                        ip_proto=FlowMatch.IPPROTO_UDP,
+                        ip_dst=IPAddress(
+                            version=IPAddress.IPV6,
+                            address="5546:222:2259::226".encode("utf-8"),
+                        ),
+                        tcp_dst=5001,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
                         direction=FlowMatch.UPLINK,
                     ),
                     action=FlowDescription.PERMIT,
@@ -1024,7 +1063,14 @@ class SpgwUtil(object):
             flow_match_list.append(
                 FlowDescription(
                     match=FlowMatch(
-                        ip_proto=FlowMatch.IPPROTO_UDP,
+                        ip_src=IPAddress(
+                            version=IPAddress.IPV6,
+                            address="fdee:0005:006c:018c::8c99".encode(
+                                "utf-8"
+                            ),
+                        ),
+                        tcp_src=5002,
+                        ip_proto=FlowMatch.IPPROTO_TCP,
                         direction=FlowMatch.DOWNLINK,
                     ),
                     action=FlowDescription.PERMIT,
@@ -1036,6 +1082,7 @@ class SpgwUtil(object):
             link_bearer_id=lbi,
             policy_rules=[
                 PolicyRule(
+                    id="rar_rule_1",
                     qos=FlowQos(
                         qci=qci_val,
                         gbr_ul=10000000,
@@ -1134,7 +1181,6 @@ class SessionManagerUtil(object):
                 dst_addr = IPAddress(
                     version=IPAddress.IPV6,
                     address=flow.get("ipv6_dst").encode('utf-8'))
-
 
             flow_match_list.append(
                 FlowDescription(
@@ -1241,14 +1287,16 @@ class SessionManagerUtil(object):
 class GTPBridgeUtils:
     def __init__(self):
         self.magma_utils = MagmadUtil(None)
-        ret = self.magma_utils.exec_command_output("sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
+        ret = self.magma_utils.exec_command_output(
+            "sudo grep ovs_multi_tunnel  /etc/magma/spgw.yml")
         if "false" in ret:
             self.gtp_port_name = "gtp0"
         else:
             self.gtp_port_name = "g_8d3ca8c0"
 
     def get_gtp_port_no(self) -> Optional[int]:
-        output = self.magma_utils.exec_command_output("sudo ovsdb-client dump Interface name ofport")
+        output = self.magma_utils.exec_command_output(
+            "sudo ovsdb-client dump Interface name ofport")
         for line in output.split('\n'):
             if self.gtp_port_name in line:
                 port_info = line.split()

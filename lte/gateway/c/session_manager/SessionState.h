@@ -162,6 +162,8 @@ class SessionState {
 
   void insert_pdr(SetGroupPDR* rule);
 
+  void set_remove_all_pdrs();
+
   void insert_far(SetGroupFAR* rule);
 
   void remove_all_rules();
@@ -530,6 +532,12 @@ class SessionState {
   void suspend_service_if_needed_for_credit(
       CreditKey ckey, SessionStateUpdateCriteria& update_criteria);
 
+  /**
+   * Returns true if the specified rule should be active at that time
+   */
+  bool should_rule_be_active(const std::string& rule_id, std::time_t time);
+  bool is_dynamic_rule_scheduled(const std::string& rule_id);
+
  private:
   std::string imsi_;
   std::string session_id_;
@@ -652,11 +660,6 @@ class SessionState {
       UsageMonitoringUpdateRequest* req);
 
   /**
-   * Returns true if the specified rule should be active at that time
-   */
-  bool should_rule_be_active(const std::string& rule_id, std::time_t time);
-
-  /**
    * Returns true if the specified rule should be deactivated by that time
    */
   bool should_rule_be_deactivated(const std::string& rule_id, std::time_t time);
@@ -685,8 +688,6 @@ class SessionState {
       SessionStateUpdateCriteria& update_criteria);
 
   bool is_static_rule_scheduled(const std::string& rule_id);
-
-  bool is_dynamic_rule_scheduled(const std::string& rule_id);
 
   /** apply static_rules which is the desired state for the session's rules **/
   void apply_session_static_rule_set(

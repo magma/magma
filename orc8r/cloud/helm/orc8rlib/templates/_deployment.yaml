@@ -1,0 +1,76 @@
+{{/*
+Copyright 2020 The Magma Authors.
+
+This source code is licensed under the BSD-style license found in the
+LICENSE file in the root directory of this source tree.
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/}}
+{{- define "orc8rlib.deployment.tpl" -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orc8r
+  labels:
+    app.kubernetes.io/component: orc8r
+{{ include "default-labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.controller.replicas }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/component: orc8r
+{{ include "default-selector-labels" . | indent 6 }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/component: orc8r
+{{ include "default-selector-labels" . | indent 8 }}
+      annotations:
+        {{- with .Values.controller.podAnnotations }}
+{{ toYaml . | indent 8 }}
+        {{- end }}
+    spec:
+      {{- with .Values.controller.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.controller.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.controller.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+      {{- end }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+{{ toYaml . | trimSuffix "\n" | indent 8 }}
+      {{- end }}
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ required "secret.certs must be provided" .Values.secret.certs }}
+        - name: envdir
+          secret:
+            secretName: {{ required "secret.envdir must be provided" .Values.secret.envdir }}
+        {{- if .Values.secret.configs }}
+        {{- range $module, $secretName := .Values.secret.configs }}
+        - name: {{ $secretName }}-{{ $module }}
+          secret:
+            secretName: {{ $secretName }}
+        {{- end }}
+        {{- else }}
+        - name: "empty-configs"
+          emptyDir: {}
+        {{- end }}
+      containers:
+      -
+{{ include "orc8rlib.container.tpl" . | indent 8 }}
+{{- end -}}
+{{- define "orc8rlib.deployment" -}}
+{{- include "orc8rlib.util.merge" (append . "orc8rlib.deployment.tpl") -}}
+{{- end -}}

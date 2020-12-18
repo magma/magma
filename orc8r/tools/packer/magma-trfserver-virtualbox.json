@@ -8,8 +8,7 @@
     "guest_os_type": "Debian_64",
     "headless": true,
     "iso_url": "https://cdimage.debian.org/mirror/cdimage/archive/9.2.1/amd64/iso-cd/debian-9.2.1-amd64-netinst.iso",
-    "iso_checksum": "5c583fd40360fd039b3ac98387b77dbb",
-    "iso_checksum_type": "md5",
+    "iso_checksum": "md5:5c583fd40360fd039b3ac98387b77dbb",
     "ssh_username": "vagrant",
     "ssh_password": "vagrant",
     "shutdown_command": "echo 'vagrant' | sudo -S shutdown -P now",
@@ -67,7 +66,8 @@
       "playbook_file": "../../../lte/gateway/deploy/magma_trfserver.yml",
       "inventory_groups": "trfserver",
       "role_paths": [
-        "../../../lte/gateway/deploy/roles/trfserver"
+        "../../../lte/gateway/deploy/roles/trfserver",
+        "../../../lte/gateway/deploy/roles/stretch_snapshot"
       ],
       "extra_arguments": [
         "--extra-vars '{\"ansible_user\": \"vagrant\", \"preburn\": true, \"full_provision\": false}'"
@@ -82,7 +82,7 @@
       },
       {
         "type": "vagrant-cloud",
-        "box_tag": "fbcmagma/magma_trfserver",
+        "box_tag": "magmacore/magma_trfserver",
         "access_token": "{{user `cloud_token`}}",
         "version": "{{user `version`}}"
       }

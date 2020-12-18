@@ -20,8 +20,8 @@ SCRIPT_DIR="$(dirname "$(realpath "$0")")"
 
 # Please update the version number accordingly for beta/stable builds
 # Test builds are versioned automatically by fabfile.py
-VERSION=1.3.1 # magma version number
-SCTPD_MIN_VERSION=1.3.1 # earliest version of sctpd with which this version is compatible
+VERSION=1.4.0 # magma version number
+SCTPD_MIN_VERSION=1.4.0 # earliest version of sctpd with which this version is compatible
 
 # RelWithDebInfo or Debug
 BUILD_TYPE=Debug
@@ -113,17 +113,17 @@ MAGMA_DEPS=(
     "libboost-chrono-dev" # required for folly
     "td-agent-bit >= 1.3.2" # fluent-bit
     "ntpdate" # required for eventd time synchronization
+    "python3-scapy >= 2.4.3-4"
+    "tshark" # required for call tracing
     "libtins-dev" # required for Connection tracker
     "libml-dev" # required for Connection tracker
-    "python3-scapy >= 2.4.3-4",
-    "tshark" # required for call tracing
     )
 
 # OAI runtime dependencies
 OAI_DEPS=(
     "libasan3"
     "libconfig9"
-    "oai-asn1c >= 0~20160721+c3~r43c4a295"
+    "oai-asn1c"
     "oai-freediameter >= 1.2.0-1"
     "oai-gnutls >= 3.1.23"
     "oai-nettle >= 1.0.1"

@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "bootstrapper.service") -}}
 {{- define "bootstrapper.service" -}}
 metadata:
-  name: {{ .Release.Name }}-bootstrapper
+  name: orc8r-bootstrapper
   labels:
     {{- with .Values.bootstrapper.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: bootstrapper
   ports:
     - name: grpc
       port: 9180

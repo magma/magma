@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "certifier.service") -}}
 {{- define "certifier.service" -}}
 metadata:
-  name: {{ .Release.Name }}-certifier
+  name: orc8r-certifier
   labels:
     {{- with .Values.certifier.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: certifier
   ports:
     - name: grpc
       port: 9180

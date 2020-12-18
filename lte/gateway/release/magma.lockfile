@@ -186,11 +186,11 @@
       "sysdep": "python3-pbr",
       "version": "5.4.5"
     },
-    "pycrypto": {
+    "pycryptodome": {
       "root": true,
       "source": "pypi",
-      "sysdep": "python3-pycrypto",
-      "version": "2.6.1"
+      "sysdep": "python3-pycryptodome",
+      "version": "3.9.9"
     },
     "pymemoize": {
       "root": true,

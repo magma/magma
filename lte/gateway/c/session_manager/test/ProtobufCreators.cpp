@@ -244,7 +244,7 @@ void create_usage_update(
     uint64_t bytes_tx, CreditUsage::UpdateType type,
     CreditUsageUpdate* update) {
   auto usage = update->mutable_usage();
-  update->set_sid(imsi);
+  update->mutable_common_context()->mutable_sid()->set_id(imsi);
   usage->set_charging_key(charging_key);
   usage->set_bytes_rx(bytes_rx);
   usage->set_bytes_tx(bytes_tx);

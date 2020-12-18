@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "obsidian.service") -}}
 {{- define "obsidian.service" -}}
 metadata:
-  name: {{ .Release.Name }}-obsidian
+  name: orc8r-obsidian
   labels:
     {{- with .Values.obsidian.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: obsidian
   ports:
     - name: grpc
       port: 9180

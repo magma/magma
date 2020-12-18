@@ -124,8 +124,6 @@ if [ "$MAGMA_INSTALLED" != "$SUCCESS_MESSAGE" ]; then
   if [ -f "$AGW_INSTALL_CONFIG" ]; then
     rm -rf $AGW_INSTALL_CONFIG
   fi
-  echo "Removing Ansible from the machine."
-  pip3 uninstall --yes ansible
   rm -rf /home/$MAGMA_USER/build
   echo "AGW installation is done, make sure all services above are running correctly.. rebooting"
   reboot

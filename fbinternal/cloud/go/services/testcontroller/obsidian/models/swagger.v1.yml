@@ -398,7 +398,7 @@ definitions:
         minLength: 1
       enodeb_config:
         description: Config will be used to reconfigure enodeb
-        $ref: './lte-swagger.yml#/definitions/enodeb_configuration'
+        $ref: './lte-swagger.yml#/definitions/enodeb_config'
       ssid:
         description: SSID the enodeb will connect to
         type: string

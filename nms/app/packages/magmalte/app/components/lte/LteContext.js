@@ -173,6 +173,7 @@ export function EnodebContextProvider(props: Props) {
 export function SubscriberContextProvider(props: Props) {
   const {networkId} = props;
   const [subscriberMap, setSubscriberMap] = useState({});
+  const [sessionState, setSessionState] = useState({});
   const [subscriberMetrics, setSubscriberMetrics] = useState({});
   const [isLoading, setIsLoading] = useState(true);
   const enqueueSnackbar = useEnqueueSnackbar();
@@ -186,6 +187,7 @@ export function SubscriberContextProvider(props: Props) {
         networkId,
         setSubscriberMap,
         setSubscriberMetrics,
+        setSessionState,
         enqueueSnackbar,
       }),
         setIsLoading(false);
@@ -202,6 +204,7 @@ export function SubscriberContextProvider(props: Props) {
       value={{
         state: subscriberMap,
         metrics: subscriberMetrics,
+        sessionState: sessionState,
         gwSubscriberMap: getSubscriberGatewayMap(subscriberMap),
         setState: (key: subscriber_id, value?: mutable_subscriber) =>
           setSubscriberState({

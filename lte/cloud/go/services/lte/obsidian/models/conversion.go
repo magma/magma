@@ -21,6 +21,7 @@ import (
 	"magma/lte/cloud/go/protos"
 	policydbModels "magma/lte/cloud/go/services/policydb/obsidian/models"
 	"magma/orc8r/cloud/go/models"
+	commonModels "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/orchestrator/obsidian/handlers"
@@ -625,4 +626,157 @@ func (m *ApnResource) ToProto() *protos.APNConfiguration_APNResource {
 func (m *ApnResource) getAssocs() []storage.TypeAndKey {
 	apnAssoc := []storage.TypeAndKey{{Type: lte.APNEntityType, Key: string(m.ApnName)}}
 	return apnAssoc
+}
+
+func (m *CellularGatewayPool) FromBackendModels(ent configurator.NetworkEntity) error {
+	m.GatewayPoolName = ent.Name
+	m.GatewayPoolID = GatewayPoolID(ent.Key)
+	cfg, ok := ent.Config.(*CellularGatewayPoolConfigs)
+	if !ok {
+		return fmt.Errorf("could not convert entity config type %T to GateawyPool", ent.Config)
+	}
+	m.Config = cfg
+	m.GatewayIds = []models.GatewayID{}
+	for _, gwID := range ent.Associations {
+		m.GatewayIds = append(m.GatewayIds, commonModels.GatewayID(gwID.Key))
+	}
+	return nil
+}
+
+func (m *CellularGatewayPool) ToEntity() configurator.NetworkEntity {
+	assocs := []storage.TypeAndKey{}
+	for _, id := range m.GatewayIds {
+		tk := storage.TypeAndKey{Type: lte.CellularGatewayEntityType, Key: string(id)}
+		assocs = append(assocs, tk)
+	}
+	ent := configurator.NetworkEntity{
+		Key:          string(m.GatewayPoolID),
+		Type:         lte.CellularGatewayPoolEntityType,
+		Config:       m.Config,
+		Name:         m.GatewayPoolName,
+		Associations: assocs,
+	}
+	return ent
+}
+
+func (m *CellularGatewayPool) ToEntityUpdateCriteria() configurator.EntityUpdateCriteria {
+	update := configurator.EntityUpdateCriteria{
+		Type:              lte.CellularGatewayPoolEntityType,
+		Key:               string(m.GatewayPoolID),
+		NewName:           &m.GatewayPoolName,
+		NewConfig:         m.Config,
+		AssociationsToSet: m.getAssocs(),
+	}
+	return update
+}
+
+func (m *CellularGatewayPool) getAssocs() []storage.TypeAndKey {
+	assocs := []storage.TypeAndKey{}
+	for _, gwID := range m.GatewayIds {
+		gateway := storage.TypeAndKey{
+			Type: lte.CellularGatewayEntityType,
+			Key:  string(gwID),
+		}
+		assocs = append(assocs, gateway)
+	}
+	return assocs
+}
+
+func (m *MutableCellularGatewayPool) ToEntity() configurator.NetworkEntity {
+	ent := configurator.NetworkEntity{
+		Key:    string(m.GatewayPoolID),
+		Type:   lte.CellularGatewayPoolEntityType,
+		Config: m.Config,
+		Name:   m.GatewayPoolName,
+	}
+	return ent
+}
+
+func (m *CellularGatewayPoolRecords) FromBackendModels(networkID string, gatewayID string) error {
+	cellularConfig := &GatewayCellularConfigs{}
+	err := cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return err
+	}
+	*m = cellularConfig.Pooling
+	return nil
+}
+
+func (m *CellularGatewayPoolRecords) ToUpdateCriteria(networkID, gatewayID string) ([]configurator.EntityUpdateCriteria, error) {
+	updates := []configurator.EntityUpdateCriteria{}
+	gatewayEnt, err := configurator.LoadEntity(
+		networkID, lte.CellularGatewayEntityType, gatewayID,
+		configurator.EntityLoadCriteria{LoadAssocsToThis: true},
+		EntitySerdes,
+	)
+	if err != nil {
+		return nil, err
+	}
+	var oldPoolIds []GatewayPoolID
+	for _, parentAssoc := range gatewayEnt.ParentAssociations.Filter(lte.CellularGatewayPoolEntityType) {
+		oldPoolIds = append(oldPoolIds, GatewayPoolID(parentAssoc.Key))
+	}
+	var newPoolIds []GatewayPoolID
+	for _, record := range *m {
+		newPoolIds = append(newPoolIds, record.GatewayPoolID)
+	}
+	err = validateNewGatewayPools(networkID, newPoolIds)
+	if err != nil {
+		return nil, err
+	}
+
+	idsToDelete, idsToAdd := funk.Difference(oldPoolIds, newPoolIds)
+	for _, idToDelete := range idsToDelete.([]GatewayPoolID) {
+		deleteCurrentPoolAssoc := configurator.EntityUpdateCriteria{
+			Type:                 lte.CellularGatewayPoolEntityType,
+			Key:                  string(idToDelete),
+			AssociationsToDelete: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: gatewayID}},
+		}
+		updates = append(updates, deleteCurrentPoolAssoc)
+	}
+	for _, idToAdd := range idsToAdd.([]GatewayPoolID) {
+		addNewPoolAssoc := configurator.EntityUpdateCriteria{
+			Type:              lte.CellularGatewayPoolEntityType,
+			Key:               string(idToAdd),
+			AssociationsToAdd: []storage.TypeAndKey{{Type: lte.CellularGatewayEntityType, Key: gatewayID}},
+		}
+		updates = append(updates, addNewPoolAssoc)
+	}
+	cellularConfig := &GatewayCellularConfigs{}
+	err = cellularConfig.FromBackendModels(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	cellularConfig.Pooling = *m
+	configUpdates, err := cellularConfig.ToUpdateCriteria(networkID, gatewayID)
+	if err != nil {
+		return nil, err
+	}
+	updates = append(updates, configUpdates...)
+	return updates, nil
+}
+
+func validateNewGatewayPools(networkID string, ids []GatewayPoolID) error {
+	var mmeGroupID uint32
+	for i, id := range ids {
+		ent, err := configurator.LoadEntity(networkID, lte.CellularGatewayPoolEntityType, string(id),
+			configurator.EntityLoadCriteria{LoadConfig: true}, EntitySerdes)
+		if err == merrors.ErrNotFound {
+			return fmt.Errorf("Gateway pool %s does not exist", id)
+		}
+		if err != nil {
+			return err
+		}
+		cfg, ok := ent.Config.(*CellularGatewayPoolConfigs)
+		if !ok {
+			return fmt.Errorf("Unable to add gateway to pool %s; pool has invalid config", id)
+		}
+		if i == 0 {
+			mmeGroupID = cfg.MmeGroupID
+		}
+		if cfg.MmeGroupID != mmeGroupID {
+			return fmt.Errorf("Adding a gateway to pools with different MME group ID's (%d), (%d) is currently unsupported", cfg.MmeGroupID, mmeGroupID)
+		}
+	}
+	return nil
 }

@@ -21,11 +21,13 @@ import type {
   mutable_subscriber,
   network_id,
   subscriber,
+  subscriber_state,
 } from '@fbcnms/magma-api';
 
 type InitSubscriberStateProps = {
   networkId: network_id,
   setSubscriberMap: ({[string]: subscriber}) => void,
+  setSessionState: ({[string]: subscriber_state}) => void,
   setSubscriberMetrics?: ({[string]: Metrics}) => void,
   enqueueSnackbar?: (msg: string, cfg: {}) => ?(string | number),
 };
@@ -37,6 +39,7 @@ export default async function InitSubscriberState(
     networkId,
     setSubscriberMap,
     setSubscriberMetrics,
+    setSessionState,
     enqueueSnackbar,
   } = props;
   try {
@@ -53,11 +56,25 @@ export default async function InitSubscriberState(
     return;
   }
 
+  try {
+    const state = await MagmaV1API.getLteByNetworkIdSubscriberState({
+      networkId,
+    });
+    if (state) {
+      setSessionState(state);
+    }
+  } catch (e) {
+    enqueueSnackbar?.('failed fetching subscriber state', {
+      variant: 'error',
+    });
+    return;
+  }
+
   if (setSubscriberMetrics) {
     const subscriberMetrics = {};
     const queries = {
-      dailyAvg: 'avg (avg_over_time(ue_traffic[24h])) by (IMSI)',
-      currentUsage: 'sum (ue_traffic) by (IMSI)',
+      dailyAvg: 'avg (avg_over_time(ue_reported_usage[24h])) by (IMSI)',
+      currentUsage: 'sum (ue_reported_usage) by (IMSI)',
     };
 
     const requests = Object.keys(queries).map(async (queryType: string) => {

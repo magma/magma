@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "tenants.service") -}}
 {{- define "tenants.service" -}}
 metadata:
-  name: {{ .Release.Name }}-tenants
+  name: orc8r-tenants
   labels:
     {{- with .Values.tenants.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: tenants
   ports:
     - name: grpc
       port: 9180

@@ -86,6 +86,21 @@ message GenTrafficRequest {
 
 message GenTrafficResponse {
     bytes output = 1;
+    TrafficOutput end_output = 2;
+}
+
+message TrafficOutput {
+    TrafficSummary sum_sent = 1;
+    TrafficSummary sum_received = 2;
+}
+
+message TrafficSummary {
+    double start = 1;
+    double end = 2;
+    double seconds = 3;
+    int32 bytes = 4;
+    double bits_per_second = 5;
+    int32 retransmits = 6;
 }
 
 // --------------------------------------------------------------------------

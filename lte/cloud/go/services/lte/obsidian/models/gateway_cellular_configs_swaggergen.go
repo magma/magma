@@ -30,6 +30,9 @@ type GatewayCellularConfigs struct {
 	// non eps service
 	NonEpsService *GatewayNonEpsConfigs `json:"non_eps_service,omitempty"`
 
+	// pooling
+	Pooling CellularGatewayPoolRecords `json:"pooling,omitempty"`
+
 	// ran
 	// Required: true
 	Ran *GatewayRanConfigs `json:"ran"`
@@ -52,6 +55,10 @@ func (m *GatewayCellularConfigs) Validate(formats strfmt.Registry) error {
 	}
 
 	if err := m.validateNonEpsService(formats); err != nil {
+		res = append(res, err)
+	}
+
+	if err := m.validatePooling(formats); err != nil {
 		res = append(res, err)
 	}
 
@@ -132,6 +139,22 @@ func (m *GatewayCellularConfigs) validateNonEpsService(formats strfmt.Registry) 
 			}
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (m *GatewayCellularConfigs) validatePooling(formats strfmt.Registry) error {
+
+	if swag.IsZero(m.Pooling) { // not required
+		return nil
+	}
+
+	if err := m.Pooling.Validate(formats); err != nil {
+		if ve, ok := err.(*errors.Validation); ok {
+			return ve.ValidateName("pooling")
+		}
+		return err
 	}
 
 	return nil

@@ -44,7 +44,8 @@ class StateReplicator(SDWatchdogTask):
                  service: MagmaService,
                  garbage_collector: GarbageCollector,
                  grpc_client_manager: GRPCClientManager):
-        super().__init__(DEFAULT_SYNC_INTERVAL, service.loop)
+        sync_interval = service.config.get('sync_interval', DEFAULT_SYNC_INTERVAL)
+        super().__init__(sync_interval, service.loop)
         self._service = service
         # Garbage collector to propagate deletions back to Orchestrator
         self._garbage_collector = garbage_collector
@@ -69,6 +70,7 @@ class StateReplicator(SDWatchdogTask):
         self._replication_iteration = 0
 
     async def _run(self):
+        logging.debug("Check state")
         if not self._has_resync_completed:
             try:
                 await self._resync()
@@ -86,6 +88,7 @@ class StateReplicator(SDWatchdogTask):
                 GARBAGE_COLLECTION_ITERATION_INTERVAL:
             await self._garbage_collector.run_garbage_collection()
             self._replication_iteration = 0
+        logging.debug("")
 
     async def _resync(self):
         states_to_sync = []
@@ -126,25 +129,40 @@ class StateReplicator(SDWatchdogTask):
         states_to_report = []
         for redis_dict in self._redis_dicts:
             for key in redis_dict:
+                redis_state = redis_dict.get(key)
                 device_id = make_scoped_device_id(key, redis_dict.state_scope)
+
                 in_mem_key = make_mem_key(device_id, redis_dict.redis_type)
+                if redis_state == None:
+                    logging.debug("Content of key %s is empty, skipping", in_mem_key)
+                    continue
+
                 redis_version = redis_dict.get_version(key)
                 self._state_keys_from_current_iteration.add(in_mem_key)
                 if in_mem_key in self._state_versions and \
                         self._state_versions[in_mem_key] == redis_version:
+                    logging.debug("key %s already read on this iteration, skipping", in_mem_key)
                     continue
 
-                redis_state = redis_dict.get(key)
-                if redis_dict.state_format == PROTO_FORMAT:
-                    state_to_serialize = MessageToDict(redis_state)
-                    serialized_json_state = json.dumps(state_to_serialize)
-                else:
-                    serialized_json_state = jsonpickle.encode(redis_state)
+                try:
+                    if redis_dict.state_format == PROTO_FORMAT:
+                        state_to_serialize = MessageToDict(redis_state)
+                        serialized_json_state = json.dumps(state_to_serialize)
+                    else:
+                        serialized_json_state = jsonpickle.encode(redis_state)
+                except Exception as e:  # pylint: disable=broad-except
+                    logging.error("Found bad state for %s for %s, not "
+                                  "replicating this state: %s",
+                                  key, device_id, e)
+                    continue
+
                 state_proto = State(type=redis_dict.redis_type,
                       deviceID=device_id,
                       value=serialized_json_state.encode("utf-8"),
                       version=redis_version)
 
+                logging.debug("key with version, %s contains: %s", in_mem_key,
+                              serialized_json_state)
                 states_to_report.append(state_proto)
 
         if len(states_to_report) == 0:

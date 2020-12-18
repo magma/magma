@@ -3839,6 +3839,268 @@ func TestAPNResource_Regression_3149(t *testing.T) {
 	tests.RunUnitTest(t, e, tc)
 }
 
+func TestHAGatewayPools(t *testing.T) {
+	_ = plugin.RegisterPluginForTests(t, &pluginimpl.BaseOrchestratorPlugin{})
+	_ = plugin.RegisterPluginForTests(t, &ltePlugin.LteOrchestratorPlugin{})
+	configuratorTestInit.StartTestService(t)
+	stateTestInit.StartTestService(t)
+	deviceTestInit.StartTestService(t)
+
+	e := echo.New()
+	obsidianHandlers := handlers.GetHandlers()
+	listHaPools := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools", obsidian.GET).HandlerFunc
+	createHaPool := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools", obsidian.POST).HandlerFunc
+	getHaPool := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools/:gateway_pool_id", obsidian.GET).HandlerFunc
+	deleteHaPool := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateway_pools/:gateway_pool_id", obsidian.DELETE).HandlerFunc
+
+	getPoolRecord := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateways/:gateway_id/cellular/pooling", obsidian.GET).HandlerFunc
+	updatePoolRecord := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateways/:gateway_id/cellular/pooling", obsidian.PUT).HandlerFunc
+
+	seedNetworks(t)
+
+	// Test List HA Pairs empty
+	tc := tests.Test{
+		Method:         "GET",
+		URL:            "/magma/v1/lte/n1/gateway_pools",
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        listHaPools,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(map[string]*lteModels.CellularGatewayPool{}),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	pool1 := &lteModels.MutableCellularGatewayPool{
+		GatewayPoolID:   lteModels.GatewayPoolID("pool1"),
+		GatewayPoolName: "pool 1",
+		Config: &lteModels.CellularGatewayPoolConfigs{
+			MmeGroupID: 1,
+		},
+	}
+
+	// Create pool1
+	gatewayPoolsURLRoot := "/magma/v1/lte/:network_id/gateway/gateway_pools"
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            gatewayPoolsURLRoot,
+		Payload:        tests.JSONMarshaler(pool1),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createHaPool,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler("pool1"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	seedTier(t, "n1")
+	seedGateway(t, "n1", "g1")
+
+	poolRecords := []lteModels.CellularGatewayPoolRecord{
+		{
+			GatewayPoolID:       "pool4",
+			MmeCode:             1,
+			MmeRelativeCapacity: 10,
+		},
+	}
+
+	// Create fails as pool4 doesn't exist
+	poolingURLRoot := "/magma/v1/lte/:network_id/gateways/:gateway_id/pooling"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            poolingURLRoot,
+		Payload:        tests.JSONMarshaler(poolRecords),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		Handler:        updatePoolRecord,
+		ExpectedStatus: 400,
+		ExpectedError:  "Gateway pool pool4 does not exist",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create succeeds with pool1
+	poolRecords[0].GatewayPoolID = "pool1"
+
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            poolingURLRoot,
+		Payload:        tests.JSONMarshaler(poolRecords),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		Handler:        updatePoolRecord,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get pool records
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            poolingURLRoot,
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		Handler:        getPoolRecord,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(poolRecords),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Get HA Pool
+	expectedPool := &lteModels.CellularGatewayPool{
+		GatewayPoolID:   lteModels.GatewayPoolID("pool1"),
+		GatewayPoolName: "pool 1",
+		Config: &lteModels.CellularGatewayPoolConfigs{
+			MmeGroupID: 1,
+		},
+		GatewayIds: []models2.GatewayID{
+			"g1",
+		},
+	}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/:gateway_pool_id", gatewayPoolsURLRoot),
+		ParamNames:     []string{"network_id", "gateway_pool_id"},
+		ParamValues:    []string{"n1", "pool1"},
+		Handler:        getHaPool,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedPool),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create pool2
+	pool2 := &lteModels.MutableCellularGatewayPool{
+		GatewayPoolID:   lteModels.GatewayPoolID("pool2"),
+		GatewayPoolName: "pool2",
+		Config: &lteModels.CellularGatewayPoolConfigs{
+			MmeGroupID: 1,
+		},
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            gatewayPoolsURLRoot,
+		Payload:        tests.JSONMarshaler(pool2),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createHaPool,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler("pool2"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Update g1 to reside in pool2
+	poolRecords[0].GatewayPoolID = "pool2"
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            poolingURLRoot,
+		Payload:        tests.JSONMarshaler(poolRecords),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		Handler:        updatePoolRecord,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Ensure update moved the gateway properly
+	expectedPool.GatewayIds = []models2.GatewayID{}
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/:gateway_pool_id", gatewayPoolsURLRoot),
+		ParamNames:     []string{"network_id", "gateway_pool_id"},
+		ParamValues:    []string{"n1", "pool1"},
+		Handler:        getHaPool,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedPool),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	expectedPool.GatewayIds = []models2.GatewayID{"g1"}
+	expectedPool.GatewayPoolID = "pool2"
+	expectedPool.GatewayPoolName = "pool2"
+	tc = tests.Test{
+		Method:         "GET",
+		URL:            fmt.Sprintf("%s/:gateway_pool_id", gatewayPoolsURLRoot),
+		ParamNames:     []string{"network_id", "gateway_pool_id"},
+		ParamValues:    []string{"n1", "pool2"},
+		Handler:        getHaPool,
+		ExpectedStatus: 200,
+		ExpectedResult: tests.JSONMarshaler(expectedPool),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Create pool3
+	pool3 := &lteModels.MutableCellularGatewayPool{
+		GatewayPoolID:   lteModels.GatewayPoolID("pool3"),
+		GatewayPoolName: "pool3",
+		Config: &lteModels.CellularGatewayPoolConfigs{
+			MmeGroupID: 2,
+		},
+	}
+	tc = tests.Test{
+		Method:         "POST",
+		URL:            gatewayPoolsURLRoot,
+		Payload:        tests.JSONMarshaler(pool3),
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{"n1"},
+		Handler:        createHaPool,
+		ExpectedStatus: 201,
+		ExpectedResult: tests.JSONMarshaler("pool3"),
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Adding gateway to pool3 should fail as it has a different MME GID
+	pool3Record := lteModels.CellularGatewayPoolRecord{
+		GatewayPoolID:       "pool3",
+		MmeCode:             1,
+		MmeRelativeCapacity: 10,
+	}
+	poolRecords = append(poolRecords, pool3Record)
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            poolingURLRoot,
+		Payload:        tests.JSONMarshaler(poolRecords),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		Handler:        updatePoolRecord,
+		ExpectedStatus: 400,
+		ExpectedError:  "Adding a gateway to pools with different MME group ID's (2), (1) is currently unsupported",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Ensure pool deletion fails if gateway still resides in it
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            fmt.Sprintf("%s/:gateway_pool_id", gatewayPoolsURLRoot),
+		ParamNames:     []string{"network_id", "gateway_pool_id"},
+		ParamValues:    []string{"n1", "pool2"},
+		Handler:        deleteHaPool,
+		ExpectedStatus: 400,
+		ExpectedError:  "Gateways [g1] still exist in pool pool2. All gateways must first be removed from the pool before it can be deleted",
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Remove pool record from gateway
+	poolRecords = []lteModels.CellularGatewayPoolRecord{}
+	tc = tests.Test{
+		Method:         "PUT",
+		URL:            poolingURLRoot,
+		Payload:        tests.JSONMarshaler(poolRecords),
+		ParamNames:     []string{"network_id", "gateway_id"},
+		ParamValues:    []string{"n1", "g1"},
+		Handler:        updatePoolRecord,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+	// Now delete should succeed
+	tc = tests.Test{
+		Method:         "DELETE",
+		URL:            fmt.Sprintf("%s/:gateway_pool_id", gatewayPoolsURLRoot),
+		ParamNames:     []string{"network_id", "gateway_pool_id"},
+		ParamValues:    []string{"n1", "pool2"},
+		Handler:        deleteHaPool,
+		ExpectedStatus: 204,
+	}
+	tests.RunUnitTest(t, e, tc)
+}
+
 func reportEnodebState(t *testing.T, ctx context.Context, enodebSerial string, req *lteModels.EnodebState) {
 	client, err := state.GetStateClient()
 	assert.NoError(t, err)
@@ -3890,6 +4152,37 @@ func seedNetworks(t *testing.T) {
 			},
 		},
 		serdes.Network,
+	)
+	assert.NoError(t, err)
+}
+
+func seedGateway(t *testing.T, networkID string, gatewayID string) {
+	e := echo.New()
+	obsidianHandlers := handlers.GetHandlers()
+	createGateway := tests.GetHandlerByPathAndMethod(t, obsidianHandlers, "/magma/v1/lte/:network_id/gateways", obsidian.POST).HandlerFunc
+
+	gw := newMutableGateway(gatewayID)
+	tc := tests.Test{
+		Method:         "POST",
+		URL:            fmt.Sprintf("/magma/v1/lte/%s/gateways", networkID),
+		Handler:        createGateway,
+		Payload:        gw,
+		ParamNames:     []string{"network_id"},
+		ParamValues:    []string{networkID},
+		ExpectedStatus: 201,
+	}
+	tests.RunUnitTest(t, e, tc)
+
+}
+
+func seedTier(t *testing.T, networkID string) {
+	// setup fixtures in backend
+	_, err := configurator.CreateEntities(
+		networkID,
+		[]configurator.NetworkEntity{
+			{Type: orc8r.UpgradeTierEntityType, Key: "t0"},
+		},
+		serdes.Entity,
 	)
 	assert.NoError(t, err)
 }

@@ -27,6 +27,8 @@ Build and publish the application containers on the head of the release branch
 by following the documentation, and package and upload version `1.4.36` of the
 orc8r Helm chart as well.
 
+If you are using local Terraform state (the default), ensure all Terraform state files (i.e. [`terraform.tfstate`](https://www.terraform.io/docs/state/index.html)) are located in your working directory before proceeding. This means `terraform show` should list existing state (rather than outputting `No state`). 
+
 ## Upgrade Terraform Modules
 
 Set the `source` values for each of the Orchestrator modules in your root
@@ -77,6 +79,8 @@ upgraded and Prometheus should be back up on v2.20.1.
 
 ## Data Migrations
 
+> **_NOTE:_** If you're upgrading to release tag v1.3.0 specifically, `m014_enodeb_config` is not required.
+
 ```
 $ export CNTLR_POD=$(kubectl get pod -l app.kubernetes.io/component=controller -o jsonpath='{.items[0].metadata.name}')
 $ kubectl exec -it ${CNTLR_POD} -- bash
@@ -88,6 +92,10 @@ $ kubectl exec -it ${CNTLR_POD} -- bash
 ...
 
 (pod)$ ./m013_policy_ipv6
+
+...
+
+(pod)$ ./m014_enodeb_config
 
 ...
 ```

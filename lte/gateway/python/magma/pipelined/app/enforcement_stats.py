@@ -10,6 +10,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 """
+import os
 from typing import List
 from collections import defaultdict
 
@@ -38,6 +39,8 @@ from magma.pipelined.openflow.messages import MsgChannel, MessageHub
 from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.registers import Direction, DIRECTION_REG, \
     IMSI_REG, RULE_VERSION_REG, SCRATCH_REGS
+from magma.pipelined.rule_mappers import UsageDeltaDict
+from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 
 
 ETH_FRAME_SIZE_BYTES = 14
@@ -78,14 +81,22 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         self._msg_hub = MessageHub(self.logger)
         self.unhandled_stats_msgs = []  # Store multi-part responses from ovs
         self.total_usage = {}  # Store total usage
+        self._clean_restart = kwargs['config']['clean_restart']
+        self._redis_enabled = kwargs['config'].get('redis_enabled', False)
         # Store last usage excluding deleted flows for calculating deltas
-        self.last_usage_for_delta = {}
+        if self._redis_enabled:
+            self.last_usage_for_delta = UsageDeltaDict()
+        else:
+            self.last_usage_for_delta = {}
         self.failed_usage = {}  # Store failed usage to retry rpc to sessiond
         self._unmatched_bytes = 0  # Store bytes matched by default rule if any
-        self._clean_restart = kwargs['config']['clean_restart']
         self._default_drop_flow_name = \
             kwargs['config']['enforcement']['default_drop_flow_name']
         self.flow_stats_thread = hub.spawn(self._monitor, poll_interval)
+        self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
+        if self._print_grpc_payload is None:
+            self._print_grpc_payload = \
+                kwargs['config'].get('magma_print_grpc_payload', False)
 
     def delete_all_flows(self, datapath):
         flows.delete_all_flows_from_table(datapath, self.tbl_num)
@@ -97,9 +108,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         self.unhandled_stats_msgs = []
         self.total_usage = {}
-        self.last_usage_for_delta = {}
         self.failed_usage = {}
         self._unmatched_bytes = 0
+
+        if self._redis_enabled:
+            keys = self.last_usage_for_delta.keys()
+            for key in keys:
+                self.last_usage_for_delta[key] = None
+        else:
+            self.last_usage_for_delta = {}
 
     def initialize_on_connect(self, datapath):
         """
@@ -163,7 +180,12 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
 
         msgs = self._get_rule_match_flow_msgs(imsi, msisdn, uplink_tunnel, ip_addr, apn_ambr, rule)
 
-        chan = self._msg_hub.send(msgs, self._datapath)
+        try:
+            chan = self._msg_hub.send(msgs, self._datapath)
+        except MagmaDPDisconnectedError:
+            self.logger.error("Datapath disconnected, failed to install rule %s"
+                              "for imsi %s", rule, imsi)
+            return RuleModResult.FAILURE
         for _ in range(len(msgs)):
             try:
                 result = chan.get()
@@ -389,6 +411,10 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
         """
         record_table = RuleRecordTable(records=delta_usage.values(),
                                        epoch=global_epoch)
+        if self._print_grpc_payload:
+            record_msg = 'Sending RPC payload: {0}{{\n{1}}}'.format(
+                record_table.DESCRIPTOR.name, str(record_table))
+            self.logger.info(record_msg)
         future = self.sessiond.ReportRuleStats.future(
             record_table, self.SESSIOND_RPC_TIMEOUT)
         future.add_done_callback(
@@ -503,8 +529,15 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
                     '(version: %s): %s', stat_rule_id,
                     stat_sid, rule_version, e)
 
-        self.last_usage_for_delta = self._delta_usage_maps(self.total_usage,
-                                                           deleted_flow_usage)
+        new_last_usage = self._delta_usage_maps(self.total_usage,
+                                                deleted_flow_usage)
+        # Save new purge old from redis
+        old = self.last_usage_for_delta.keys()
+        new = new_last_usage.keys()
+        for key, value in new_last_usage.items():
+            self.last_usage_for_delta[key] = value
+        for key in [k for k in old if k not in new]:
+            self.last_usage_for_delta[key] = None
 
     def _old_flow_stats(self, stats_msgs):
         """
@@ -591,6 +624,7 @@ class EnforcementStatsController(PolicyMixin, MagmaController):
             else:
                 new_usage[key] = current
         return new_usage
+
 
 def _generate_rule_match(imsi, ip_addr, rule_num, version, direction):
     """
