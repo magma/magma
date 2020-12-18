@@ -95,6 +95,7 @@ bool process_ue_context(
       (ha_agw_offload_req_t*) callback_data->request;
   s1ap_state_t* s1ap_state = (s1ap_state_t*) callback_data->s1ap_state;
   struct ue_mm_context_s* ue_context_p = (struct ue_mm_context_s*) elementP;
+  bool any_flag = false;  // true if we tried offloading any UE
 
   IMSI_STRING_TO_IMSI64(offload_request->imsi, &imsi64);
 
@@ -140,6 +141,7 @@ bool process_ue_context(
     IMSI_STRING_TO_IMSI64(
         offload_request->imsi, &message_p->ittiMsgHeader.imsi);
     send_msg_to_task(&ha_task_zmq_ctx, TASK_MME_APP, message_p);
+    any_flag = true;
   } else if (
       (ue_context_p->ecm_state == ECM_IDLE) &&
       (ue_context_p->mm_state == UE_REGISTERED) &&
@@ -164,12 +166,13 @@ bool process_ue_context(
     paging_request_p->imsi        = strdup(imsi);
     message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
     send_msg_to_task(&ha_task_zmq_ctx, TASK_MME_APP, message_p);
+    any_flag = true;
   }
 
   // Check if iterations should be stopped as single match was
   // sufficient.
-  if ((enb_offtype == ANY) || (enb_offtype == ANY_CONNECTED) ||
-      (enb_offtype == ANY_IDLE)) {
+  if (any_flag && ((enb_offtype == ANY) || (enb_offtype == ANY_CONNECTED) ||
+                   (enb_offtype == ANY_IDLE))) {
     return true;
   }
   return false;

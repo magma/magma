@@ -2319,7 +2319,7 @@ void mme_app_handle_paging_timer_expiry(void* args, imsi64_t* imsi64) {
       // as if the user went out of secondary AGW service area.
       OAILOG_INFO_UE(
           LOG_MME_APP, ue_context_p->emm_context._imsi64,
-          "The UE has been successfully offloaded to Primary AGW."
+          "The UE has been successfully offloaded to Primary AGW. "
           "Perform implicit detach: ue_id " MME_UE_S1AP_ID_FMT,
           mme_ue_s1ap_id);
       ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
