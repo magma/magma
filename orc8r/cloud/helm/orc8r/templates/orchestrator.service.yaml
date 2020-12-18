@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "orchestrator.service") -}}
 {{- define "orchestrator.service" -}}
 metadata:
-  name: {{ .Release.Name }}-orchestrator
+  name: orc8r-orchestrator
   labels:
     {{- with .Values.orchestrator.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: orchestrator
   ports:
     - name: grpc
       port: 9180

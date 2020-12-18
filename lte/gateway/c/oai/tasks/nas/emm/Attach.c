@@ -483,7 +483,13 @@ int emm_proc_attach_request(
               "EMM-PROC - Sending Detach Request message to MME APP"
               "module for ue_id =" MME_UE_S1AP_ID_FMT "\n",
               ue_id);
-          mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
+          /* Release s1 connection only if attach req is received in the
+           * initial ue message
+           */
+          if (ies->is_initial) {
+            mme_app_handle_detach_req(ue_mm_context->mme_ue_s1ap_id);
+          }
+
           OAILOG_WARNING(
               LOG_NAS_EMM, "EMM-PROC  - Received duplicated Attach Request\n");
           increment_counter(

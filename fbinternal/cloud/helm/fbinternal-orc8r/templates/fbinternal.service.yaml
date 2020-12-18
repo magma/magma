@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "fbinternal.service") -}}
 {{- define "fbinternal.service" -}}
 metadata:
-  name: {{ .Release.Name }}-fbinternal
+  name: orc8r-fbinternal
   labels:
     {{- with .Values.fbinternal.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: fbinternal
   ports:
     - name: grpc
       port: 9180

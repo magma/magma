@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 
 """
 Copyright 2020 The Magma Authors.
@@ -21,7 +21,6 @@ import sys
 from typing import List
 
 MODULES = [
-    'orc8r',
     'lte',
     'feg',
     'cwf',
@@ -51,6 +50,7 @@ def main() -> None:
 
     if args.clear:
         _clear_line('.env', 'COMPOSE_FILE=')
+        return
 
     files = DEPLOYMENT_TO_MODULES[args.deployment]
     if args.metrics:

@@ -557,7 +557,6 @@ imsi64_t mme_app_handle_initial_ue_message(
         initial_pP->mme_ue_s1ap_id);
     OAILOG_FUNC_RETURN(LOG_MME_APP, imsi64);
   }
-
   // Check if there is any existing UE context using S-TMSI/GUTI
   if (initial_pP->is_s_tmsi_valid) {
     OAILOG_DEBUG(
@@ -569,12 +568,8 @@ imsi64_t mme_app_handle_initial_ue_message(
                    .gummei.mme_gid  = 0,
                    .gummei.mme_code = 0,
                    .m_tmsi          = INVALID_M_TMSI};
-    plmn_t plmn = {.mcc_digit1 = initial_pP->tai.mcc_digit1,
-                   .mcc_digit2 = initial_pP->tai.mcc_digit2,
-                   .mcc_digit3 = initial_pP->tai.mcc_digit3,
-                   .mnc_digit1 = initial_pP->tai.mnc_digit1,
-                   .mnc_digit2 = initial_pP->tai.mnc_digit2,
-                   .mnc_digit3 = initial_pP->tai.mnc_digit3};
+    plmn_t plmn;
+    COPY_PLMN(plmn, (initial_pP->tai.plmn));
     is_guti_valid =
         mme_app_construct_guti(&plmn, &(initial_pP->opt_s_tmsi), &guti);
     if (is_guti_valid) {
@@ -898,11 +893,13 @@ void mme_app_handle_delete_session_rsp(
   }
 
   /*
-   * If UE is already in idle state, skip asking eNB to release UE context and
-   * just clean up locally. This can happen during implicit detach and UE
-   * initiated detach when UE sends detach req (type = switch off)
+   * If UE is already in idle state or if response received with
+   * CONTEXT_NOT_FOUND, skip asking eNB to release UE context and just clean up
+   * locally. This can happen during implicit detach and UE initiated detach
+   * when UE sends detach req (type = switch off).
    */
-  if (ECM_IDLE == ue_context_p->ecm_state) {
+  if ((ECM_IDLE == ue_context_p->ecm_state) ||
+      (delete_sess_resp_pP->cause.cause_value == CONTEXT_NOT_FOUND)) {
     ue_context_p->ue_context_rel_cause = S1AP_IMPLICIT_CONTEXT_RELEASE;
     // Notify S1AP to release S1AP UE context locally.
     mme_app_itti_ue_context_release(
@@ -1174,7 +1171,7 @@ int mme_app_handle_create_sess_resp(
   nas_pdn_cs_respose_success.pdn_cid                      = pdn_cx_id;
   nas_pdn_cs_respose_success.pti = transaction_identifier;  // NAS internal ref
 
-  /* In Create session response IPv6 prefix + interface idntifier is sent.
+  /* In Create session response IPv6 prefix + interface identifier is sent.
    * Copy only the interface identifier to be sent in NAS ESM message
    */
   if (create_sess_resp_pP->paa.pdn_type == IPv4) {
@@ -1737,6 +1734,7 @@ void mme_app_handle_e_rab_setup_rsp(
 
   for (int i = 0; i < e_rab_setup_rsp->e_rab_setup_list.no_of_items; i++) {
     e_rab_id_t e_rab_id = e_rab_setup_rsp->e_rab_setup_list.item[i].e_rab_id;
+
     bearer_context_t* bc =
         mme_app_get_bearer_context(ue_context_p, (ebi_t) e_rab_id);
     bc->enb_fteid_s1u.teid = e_rab_setup_rsp->e_rab_setup_list.item[i].gtp_teid;
@@ -3640,59 +3638,26 @@ void mme_app_update_paging_tai_list(
   switch (tai_list->typeoflist) {
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_NON_CONSECUTIVE_TACS:
       for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-        p_tai_list->tai_list[idx].mcc_digit1 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit1;
-        p_tai_list->tai_list[idx].mcc_digit2 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit2;
-        p_tai_list->tai_list[idx].mcc_digit3 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mcc_digit3;
-        p_tai_list->tai_list[idx].mnc_digit1 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit1;
-        p_tai_list->tai_list[idx].mnc_digit2 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit2;
-        p_tai_list->tai_list[idx].mnc_digit3 =
-            tai_list->u.tai_one_plmn_non_consecutive_tacs.mnc_digit3;
+        COPY_PLMN(
+            p_tai_list->tai_list[idx].plmn,
+            tai_list->u.tai_one_plmn_non_consecutive_tacs.plmn);
         p_tai_list->tai_list[idx].tac =
             tai_list->u.tai_one_plmn_non_consecutive_tacs.tac[idx];
       }
+
       break;
 
     case TRACKING_AREA_IDENTITY_LIST_ONE_PLMN_CONSECUTIVE_TACS:
       for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-        p_tai_list->tai_list[idx].mcc_digit1 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.mcc_digit1;
-        p_tai_list->tai_list[idx].mcc_digit2 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.mcc_digit2;
-        p_tai_list->tai_list[idx].mcc_digit3 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.mcc_digit3;
-        p_tai_list->tai_list[idx].mnc_digit1 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.mnc_digit1;
-        p_tai_list->tai_list[idx].mnc_digit2 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.mnc_digit2;
-        p_tai_list->tai_list[idx].mnc_digit3 =
-            tai_list->u.tai_one_plmn_consecutive_tacs.mnc_digit3;
-
-        p_tai_list->tai_list[idx].tac =
-            tai_list->u.tai_one_plmn_consecutive_tacs.tac + idx;
+        COPY_TAI(
+            p_tai_list->tai_list[idx],
+            tai_list->u.tai_one_plmn_consecutive_tacs);
       }
       break;
 
     case TRACKING_AREA_IDENTITY_LIST_MANY_PLMNS:
       for (int idx = 0; idx < (num_of_tac + 1); idx++) {
-        p_tai_list->tai_list[idx].mcc_digit1 =
-            tai_list->u.tai_many_plmn[idx].mcc_digit1;
-        p_tai_list->tai_list[idx].mcc_digit2 =
-            tai_list->u.tai_many_plmn[idx].mcc_digit2;
-        p_tai_list->tai_list[idx].mcc_digit3 =
-            tai_list->u.tai_many_plmn[idx].mcc_digit3;
-        p_tai_list->tai_list[idx].mnc_digit1 =
-            tai_list->u.tai_many_plmn[idx].mnc_digit1;
-        p_tai_list->tai_list[idx].mnc_digit2 =
-            tai_list->u.tai_many_plmn[idx].mnc_digit2;
-        p_tai_list->tai_list[idx].mnc_digit3 =
-            tai_list->u.tai_many_plmn[idx].mnc_digit3;
-
-        p_tai_list->tai_list[idx].tac = tai_list->u.tai_many_plmn[idx].tac;
+        COPY_TAI(p_tai_list->tai_list[idx], tai_list->u.tai_many_plmn[idx]);
       }
       break;
 

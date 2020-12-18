@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "lte.service") -}}
 {{- define "lte.service" -}}
 metadata:
-  name: {{ .Release.Name }}-lte
+  name: orc8r-lte
   labels:
     {{- with .Values.lte.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: lte
   ports:
     - name: grpc
       port: 9180

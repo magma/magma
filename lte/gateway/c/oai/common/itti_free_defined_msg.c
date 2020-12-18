@@ -150,13 +150,22 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case S1AP_UE_CONTEXT_RELEASE_LOG:
       // DO nothing
       break;
-
+    case S1AP_ENB_INITIATED_RESET_ACK:
+      free_wrapper((void**) &message_p->ittiMsg.s1ap_enb_initiated_reset_ack
+                       .ue_to_reset_list);
+      break;
     case S1AP_UE_CAPABILITIES_IND:
     case S1AP_ENB_DEREGISTERED_IND:
     case S1AP_UE_CONTEXT_RELEASE_REQ:
     case S1AP_UE_CONTEXT_RELEASE_COMMAND:
     case S1AP_UE_CONTEXT_RELEASE_COMPLETE:
       // DO nothing
+      break;
+
+    case S1AP_ENB_INITIATED_RESET_REQ:
+      // Do Nothing
+      // No need to free ue_to_reset_list in "S1AP_ENB_INITIATED_RESET_REQ"
+      // because it is re-used in another ITTI message
       break;
     case S1AP_E_RAB_REL_CMD:
       bdestroy_wrapper(&message_p->ittiMsg.s1ap_e_rab_rel_cmd.nas_pdu);
@@ -203,7 +212,6 @@ void itti_free_msg_content(MessageDef* const message_p) {
     case SCTP_CLOSE_ASSOCIATION:
       // DO nothing
       break;
-
     default:;
   }
 }

@@ -302,6 +302,7 @@ describe('<NetworkDashboard />', () => {
     const subscriberCtx = {
       state: subscribers,
       gwSubscriberMap: {},
+      sessionState: {},
     };
 
     const networkCtx = {

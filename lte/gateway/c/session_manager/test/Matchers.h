@@ -80,7 +80,8 @@ MATCHER_P(CheckCoreRequest, expected_request, "") {
 
 MATCHER_P3(CheckTerminateRequestCount, imsi, monitorCount, chargingCount, "") {
   auto req = static_cast<const SessionTerminateRequest>(arg);
-  return req.sid() == imsi && req.credit_usages().size() == chargingCount &&
+  return req.common_context().sid().id() == imsi &&
+         req.credit_usages().size() == chargingCount &&
          req.monitor_usages().size() == monitorCount;
 }
 
@@ -167,8 +168,9 @@ MATCHER_P(CheckSubscriberQuotaUpdate, quota, "") {
   return update[0].update_type() == quota;
 }
 
-MATCHER_P(CheckCreateSession, imsi, "") {
+MATCHER_P2(CheckCreateSession, imsi, promise_p, "") {
   auto req = static_cast<const CreateSessionRequest*>(arg);
+  promise_p->set_value(req->session_id());
   return req->common_context().sid().id() == imsi;
 }
 
@@ -183,14 +185,15 @@ MATCHER_P(CheckSingleUpdate, expected_update, "") {
       update.usage().type() == expected_update.usage().type() &&
       update.usage().bytes_tx() == expected_update.usage().bytes_tx() &&
       update.usage().bytes_rx() == expected_update.usage().bytes_rx() &&
-      update.sid() == expected_update.sid() &&
+      update.common_context().sid().id() ==
+          expected_update.common_context().sid().id() &&
       update.usage().charging_key() == expected_update.usage().charging_key();
   return val;
 }
 
 MATCHER_P(CheckTerminate, imsi, "") {
   auto request = static_cast<const SessionTerminateRequest*>(arg);
-  return request->sid() == imsi;
+  return request->common_context().sid().id() == imsi;
 }
 
 MATCHER_P4(CheckActivateFlows, imsi, rule_count, ipv4, ipv6, "") {

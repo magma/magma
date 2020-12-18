@@ -356,6 +356,10 @@ void MmeNasStateConverter::proto_to_bearer_context_list(
       proto_to_bearer_context(
           ue_context_proto.bearer_contexts(i), eps_bearer_ctxt);
       state_ue_context->bearer_contexts[i] = eps_bearer_ctxt;
+      if (state_ue_context->bearer_contexts[i]->esm_ebr_context.args) {
+        state_ue_context->bearer_contexts[i]->esm_ebr_context.args->ctx =
+            &state_ue_context->emm_context;
+      }
     } else {
       state_ue_context->bearer_contexts[i] = nullptr;
     }

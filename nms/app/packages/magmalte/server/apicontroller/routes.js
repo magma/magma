@@ -165,6 +165,14 @@ router.use(
 );
 
 router.use(
+  '/magma/v1/tenants/targets_metadata',
+  proxy(API_HOST, {
+    ...PROXY_OPTIONS,
+    filter: (req, _res) => req.method === 'GET',
+  }),
+);
+
+router.use(
   '/magma/v1/events/:networkID',
   proxy(API_HOST, {
     ...PROXY_OPTIONS,

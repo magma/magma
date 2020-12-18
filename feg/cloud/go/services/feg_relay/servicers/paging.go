@@ -14,10 +14,10 @@ limitations under the License.
 package servicers
 
 import (
+	"context"
+
 	fegprotos "magma/feg/cloud/go/protos"
 	"magma/orc8r/lib/go/protos"
-
-	"golang.org/x/net/context"
 )
 
 // PagingReq relays the PagingRequest sent from VLR->FeG->Access Gateway

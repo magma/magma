@@ -35,13 +35,12 @@ class TestAttachNwInitiatedDetachWithMmeRestart(unittest.TestCase):
         The test case validates retransmission of Detach Request after MME
         restarts
         Step 1: UE attaches to network
-        Step 2: Create dedicated bearer
-        Step 3: Send request to delete default bearer, since deletion is
+        Step 2: Send request to delete default bearer, since deletion is
                 invoked for default bearer, MME initaites detach procedure
-        Step 4: MME starts 3422 timer to receive Detach Accept message
-        Step 5: Send command to restart MME service to validate the behavior
+        Step 3: MME starts 3422 timer to receive Detach Accept message
+        Step 4: Send command to restart MME service to validate the behavior
                 of 3422 timer, on MME recovery, it sends Detach Request
-        Step 6: S1ap tester shall wait on Detach Request and send Detach Accept
+        Step 5: S1ap tester shall wait on Detach Request and send Detach Accept
                 message
         """
         self._s1ap_wrapper.configUEDevice(1)
@@ -62,27 +61,6 @@ class TestAttachNwInitiatedDetachWithMmeRestart(unittest.TestCase):
 
         # Wait on EMM Information from MME
         self._s1ap_wrapper._s1_util.receive_emm_info()
-
-        time.sleep(1)
-        print(
-            "********************** Adding dedicated bearer to IMSI",
-            "".join([str(i) for i in req.imsi]),
-        )
-        self._spgw_util.create_bearer(
-            "IMSI" + "".join([str(i) for i in req.imsi]),
-            attach.esmInfo.epsBearerId,
-        )
-
-        response = self._s1ap_wrapper.s1_util.get_response()
-        self.assertEqual(
-            response.msg_type, s1ap_types.tfwCmd.UE_ACT_DED_BER_REQ.value
-        )
-        act_ded_ber_ctxt_req = response.cast(
-            s1ap_types.UeActDedBearCtxtReq_t
-        )
-        self._s1ap_wrapper.sendActDedicatedBearerAccept(
-            req.ue_id, act_ded_ber_ctxt_req.bearerId
-        )
 
         print("Sleeping for 5 seconds")
         time.sleep(5)

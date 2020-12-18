@@ -347,7 +347,7 @@ export async function UpdateGateway(props: UpdateGatewayProps) {
 export type GatewayCommandProps = {
   networkId: network_id,
   gatewayId: gateway_id,
-  command: 'reboot' | 'ping' | 'generic',
+  command: 'reboot' | 'ping' | 'restartServices' | 'generic',
   pingRequest?: ping_request,
   params?: generic_command_params,
 };
@@ -359,6 +359,11 @@ export async function RunGatewayCommands(props: GatewayCommandProps) {
     case 'reboot':
       return await MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandReboot(
         {networkId, gatewayId},
+      );
+
+    case 'restartServices':
+      return await MagmaV1API.postNetworksByNetworkIdGatewaysByGatewayIdCommandRestartServices(
+        {networkId, gatewayId, services: []},
       );
 
     case 'ping':

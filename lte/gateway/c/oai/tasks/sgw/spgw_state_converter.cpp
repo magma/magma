@@ -17,6 +17,7 @@
 
 extern "C" {
 #include "dynamic_memory_check.h"
+#include "sgw_context_manager.h"
 }
 
 #include "spgw_state_converter.h"
@@ -32,6 +33,7 @@ using magma::lte::oai::SgwEpsBearerContext;
 using magma::lte::oai::SgwEpsBearerContextInfo;
 using magma::lte::oai::SgwPdnConnection;
 using magma::lte::oai::SpgwState;
+using magma::lte::oai::SpgwUeContext;
 using magma::lte::oai::TrafficFlowTemplate;
 
 namespace magma {
@@ -104,14 +106,16 @@ void SpgwStateConverter::spgw_bearer_context_to_proto(
   sgw_eps_bearer_proto->set_mme_teid_s11(sgw_eps_bearer_state->mme_teid_S11);
   bstring ip_addr_bstr =
       ip_address_to_bstring(&sgw_eps_bearer_state->mme_ip_address_S11);
-  sgw_eps_bearer_proto->set_mme_ip_address_s11(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(
+      ip_addr_bstr, sgw_eps_bearer_proto->mutable_mme_ip_address_s11());
   bdestroy_wrapper(&ip_addr_bstr);
 
   sgw_eps_bearer_proto->set_sgw_teid_s11_s4(
       sgw_eps_bearer_state->s_gw_teid_S11_S4);
   ip_addr_bstr =
       ip_address_to_bstring(&sgw_eps_bearer_state->s_gw_ip_address_S11_S4);
-  sgw_eps_bearer_proto->set_sgw_ip_address_s11_s4(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(
+      ip_addr_bstr, sgw_eps_bearer_proto->mutable_sgw_ip_address_s11_s4());
   bdestroy_wrapper(&ip_addr_bstr);
 
   sgw_pdn_connection_to_proto(
@@ -219,11 +223,11 @@ void SpgwStateConverter::sgw_pdn_connection_to_proto(
   }
   bstring ip_addr_bstr =
       ip_address_to_bstring(&state_pdn->p_gw_address_in_use_cp);
-  proto_pdn->set_pgw_address_in_use_cp(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(ip_addr_bstr, proto_pdn->mutable_pgw_address_in_use_cp());
   bdestroy_wrapper(&ip_addr_bstr);
 
   ip_addr_bstr = ip_address_to_bstring(&state_pdn->p_gw_address_in_use_up);
-  proto_pdn->set_pgw_address_in_use_up(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(ip_addr_bstr, proto_pdn->mutable_pgw_address_in_use_up());
   bdestroy_wrapper(&ip_addr_bstr);
 
   proto_pdn->set_default_bearer(state_pdn->default_bearer);
@@ -310,7 +314,7 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
 
   proto->set_apn(session_request->apn, strlen(session_request->apn));
   bstring paa_addr_bstr = paa_to_bstring(&session_request->paa);
-  proto->set_paa(bdata(paa_addr_bstr));
+  BSTRING_TO_STRING(paa_addr_bstr, proto->mutable_paa());
   bdestroy_wrapper(&paa_addr_bstr);
   proto->set_peer_ip(session_request->edns_peer_ip.addr_v4.sin_addr.s_addr);
 
@@ -347,7 +351,8 @@ void SpgwStateConverter::sgw_create_session_message_to_proto(
     if (pco_protocol->contents) {
       pco_protocol_proto->set_id(pco_protocol->id);
       pco_protocol_proto->set_length(pco_protocol->length);
-      pco_protocol_proto->set_contents(bdata(pco_protocol->contents));
+      BSTRING_TO_STRING(
+          pco_protocol->contents, pco_protocol_proto->mutable_contents());
     }
   }
   for (uint32_t i = 0;
@@ -476,29 +481,33 @@ void SpgwStateConverter::sgw_eps_bearer_to_proto(
 
   bstring ip_addr_bstr =
       ip_address_to_bstring(&eps_bearer->p_gw_address_in_use_up);
-  eps_bearer_proto->set_pgw_address_in_use_up(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(
+      ip_addr_bstr, eps_bearer_proto->mutable_pgw_address_in_use_up());
   bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer_proto->set_pgw_teid_s5_s8_up(eps_bearer->p_gw_teid_S5_S8_up);
 
   ip_addr_bstr = ip_address_to_bstring(&eps_bearer->s_gw_ip_address_S5_S8_up);
-  eps_bearer_proto->set_sgw_ip_address_s5_s8_up(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(
+      ip_addr_bstr, eps_bearer_proto->mutable_sgw_ip_address_s5_s8_up());
   bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer_proto->set_sgw_teid_s5_s8_up(eps_bearer->s_gw_teid_S5_S8_up);
 
   ip_addr_bstr =
       ip_address_to_bstring(&eps_bearer->s_gw_ip_address_S1u_S12_S4_up);
-  eps_bearer_proto->set_sgw_ip_address_s1u_s12_s4_up(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(
+      ip_addr_bstr, eps_bearer_proto->mutable_sgw_ip_address_s1u_s12_s4_up());
   bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer_proto->set_sgw_teid_s1u_s12_s4_up(
       eps_bearer->s_gw_teid_S1u_S12_S4_up);
 
   ip_addr_bstr = ip_address_to_bstring(&eps_bearer->enb_ip_address_S1u);
-  eps_bearer_proto->set_enb_ip_address_s1u(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(
+      ip_addr_bstr, eps_bearer_proto->mutable_enb_ip_address_s1u());
   bdestroy_wrapper(&ip_addr_bstr);
   eps_bearer_proto->set_enb_teid_s1u(eps_bearer->enb_teid_S1u);
 
   ip_addr_bstr = paa_to_bstring(&eps_bearer->paa);
-  eps_bearer_proto->set_paa(bdata(ip_addr_bstr));
+  BSTRING_TO_STRING(ip_addr_bstr, eps_bearer_proto->mutable_paa());
   bdestroy_wrapper(&ip_addr_bstr);
 
   eps_bearer_qos_to_proto(
@@ -571,7 +580,7 @@ void SpgwStateConverter::traffic_flow_template_to_proto(
           tft_proto->mutable_parameters_list()->add_parameters();
       param_proto->set_parameter_identifier(parameter->parameteridentifier);
       param_proto->set_length(parameter->length);
-      param_proto->set_contents(bdata(parameter->contents));
+      BSTRING_TO_STRING(parameter->contents, param_proto->mutable_contents());
     }
   }
 
@@ -841,7 +850,7 @@ void SpgwStateConverter::pcc_rule_to_proto(
     const pcc_rule_t* pcc_rule_state, PccRule* proto) {
   proto->Clear();
 
-  proto->set_name(bdata(pcc_rule_state->name));
+  BSTRING_TO_STRING(pcc_rule_state->name, proto->mutable_name());
   proto->set_is_activated(pcc_rule_state->is_activated);
   proto->set_sdf_id((unsigned int) pcc_rule_state->sdf_id);
   proto->set_precedence(pcc_rule_state->precedence);
@@ -891,6 +900,7 @@ void SpgwStateConverter::sgw_pending_procedures_to_proto(
         auto* cbr_procedure_proto = proto->add_pending_procedures();
         cbr_procedure_proto->set_teid(create_proc->teid);
         cbr_procedure_proto->set_sdf_id(create_proc->sdf_id);
+        cbr_procedure_proto->set_type(create_proc->proc.type);
         sgw_eps_bearer_entry_wrapper_t* b1 = nullptr;
         LIST_FOREACH(b1, create_proc->pending_eps_bearers, entries) {
           sgw_eps_bearer_to_proto(
@@ -926,6 +936,7 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
   s11_proc_create_bearer->teid   = proto.teid();
   s11_proc_create_bearer->sdf_id = (sdf_id_t) proto.sdf_id();
   pgw_base_proc_t* base_proc     = (pgw_base_proc_t*) s11_proc_create_bearer;
+  base_proc->type                = (pgw_base_proc_type_t) proto.type();
   LIST_INSERT_HEAD(pending_procedures, base_proc, entries);
 
   s11_proc_create_bearer->pending_eps_bearers =
@@ -948,15 +959,67 @@ void SpgwStateConverter::insert_proc_into_sgw_pending_procedures(
 }
 
 void SpgwStateConverter::ue_to_proto(
-    const s_plus_p_gw_eps_bearer_context_information_t* ue_state,
-    oai::S11BearerContext* ue_proto) {
-  spgw_bearer_context_to_proto(ue_state, ue_proto);
+    const spgw_ue_context_t* ue_state, oai::SpgwUeContext* ue_proto) {
+  if (ue_state && (!(LIST_EMPTY(&ue_state->sgw_s11_teid_list)))) {
+    sgw_s11_teid_t* s11_teid_p = NULL;
+    LIST_FOREACH(s11_teid_p, &ue_state->sgw_s11_teid_list, entries) {
+      if (s11_teid_p) {
+        auto spgw_ctxt = sgw_cm_get_spgw_context(s11_teid_p->sgw_s11_teid);
+        if (spgw_ctxt) {
+          spgw_bearer_context_to_proto(
+              spgw_ctxt, ue_proto->add_s11_bearer_context());
+        }
+      }
+    }
+  }
 }
 
 void SpgwStateConverter::proto_to_ue(
-    const oai::S11BearerContext& spgw_bearer_proto,
-    s_plus_p_gw_eps_bearer_context_information_t* spgw_bearer_state) {
-  proto_to_spgw_bearer_context(spgw_bearer_proto, spgw_bearer_state);
+    const oai::SpgwUeContext& ue_proto, spgw_ue_context_t* ue_context_p) {
+  OAILOG_FUNC_IN(LOG_SPGW_APP);
+  spgw_state_t* spgw_state     = NULL;
+  hash_table_ts_t* state_ue_ht = NULL;
+  if (ue_proto.s11_bearer_context_size()) {
+    spgw_state = get_spgw_state(false);
+    if (!spgw_state) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP, "Failed to get spgw_state from get_spgw_state() \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+
+    state_ue_ht = get_spgw_ue_state();
+    if (!state_ue_ht) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP,
+          "Failed to get state_ue_ht from get_spgw_ue_state() \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+  } else {
+    OAILOG_ERROR(
+        LOG_SPGW_APP, "There are no spgw_context stored to Redis DB \n");
+    OAILOG_FUNC_OUT(LOG_SPGW_APP);
+  }
+  for (int idx = 0; idx < ue_proto.s11_bearer_context_size(); idx++) {
+    oai::S11BearerContext S11BearerContext = ue_proto.s11_bearer_context(idx);
+    s_plus_p_gw_eps_bearer_context_information_t* spgw_context_p =
+        (s_plus_p_gw_eps_bearer_context_information_t*) (calloc(
+            1, sizeof(s_plus_p_gw_eps_bearer_context_information_t)));
+    if (!spgw_context_p) {
+      OAILOG_ERROR(
+          LOG_SPGW_APP, "Failed to allocate memory for SPGW context \n");
+      OAILOG_FUNC_OUT(LOG_SPGW_APP);
+    }
+
+    proto_to_spgw_bearer_context(S11BearerContext, spgw_context_p);
+    hashtable_ts_insert(
+        state_ue_ht,
+        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4,
+        (void*) spgw_context_p);
+    spgw_update_teid_in_ue_context(
+        spgw_state, spgw_context_p->sgw_eps_bearer_context_information.imsi64,
+        spgw_context_p->sgw_eps_bearer_context_information.s_gw_teid_S11_S4);
+  }
+  OAILOG_FUNC_OUT(LOG_SPGW_APP);
 }
 
 }  // namespace lte

@@ -97,7 +97,6 @@ setup(
         'aiodns>=1.1.1',
         'pymemoize>=1.0.2',
         'wsgiserver>=1.3',
-        'pycrypto>=2.6.1',
         # pin recursive dependencies of ryu and others
         'chardet==3.0.4',
         'docker==4.0.2',
@@ -111,7 +110,8 @@ setup(
         'eventlet>=0.24',
         'h2>=3.2.0',
         'hpack>=3.0',
-        'freezegun>=0.3.15'
+        'freezegun>=0.3.15',
+        'pycryptodome>=3.9.9'
     ],
     extras_require={
         'dev': [

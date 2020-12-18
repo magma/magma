@@ -25,4 +25,5 @@
     - role: destdir
     - role: files
     - role: commands
+    - role: cores
     - role: package

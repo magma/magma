@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "testcontroller.service") -}}
 {{- define "testcontroller.service" -}}
 metadata:
-  name: {{ .Release.Name }}-testcontroller
+  name: orc8r-testcontroller
   labels:
     {{- with .Values.testcontroller.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: testcontroller
   ports:
     - name: grpc
       port: 9180

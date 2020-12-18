@@ -108,9 +108,12 @@ const useStyles = makeStyles(theme => ({
 
 type ApnRowType = {
   apnID: string,
-  description: string,
-  qosProfile: number,
-  added: Date,
+  classID: number,
+  arpPriorityLevel: number,
+  maxReqdULBw: number,
+  maxReqDLBw: number,
+  arpPreEmptionCapability: boolean,
+  arpPreEmptionVulnerability: boolean,
 };
 
 const APN_TITLE = 'APNs';
@@ -124,11 +127,17 @@ function ApnOverview(props: WithAlert) {
   const apns = ctx.state;
   const apnRows: Array<ApnRowType> = apns
     ? Object.keys(apns).map((apn: string) => {
+        const cfg = apns[apn].apn_configuration;
         return {
           apnID: apn,
-          description: 'Test APN description',
-          qosProfile: 1,
-          added: new Date(0),
+          classID: cfg?.qos_profile.class_id ?? 0,
+          arpPriorityLevel: cfg?.qos_profile.priority_level ?? 0,
+          maxReqdULBw: cfg?.ambr.max_bandwidth_ul ?? 0,
+          maxReqDLBw: cfg?.ambr.max_bandwidth_dl ?? 0,
+          arpPreEmptionCapability:
+            cfg?.qos_profile.preemption_capability ?? false,
+          arpPreEmptionVulnerability:
+            cfg?.qos_profile.preemption_vulnerability ?? false,
         };
       })
     : [];
@@ -159,9 +168,24 @@ function ApnOverview(props: WithAlert) {
                 </Link>
               ),
             },
-            {title: 'Description', field: 'description'},
-            {title: 'Qos Profile', field: 'qosProfile', type: 'numeric'},
-            {title: 'Added', field: 'added', type: 'datetime'},
+            {title: 'Class ID', field: 'classID', type: 'numeric'},
+            {
+              title: 'Priority Level',
+              field: 'arpPriorityLevel',
+              type: 'numeric',
+            },
+            {title: 'Max Reqd UL Bw', field: 'maxReqdULBw', type: 'numeric'},
+            {title: 'Max Reqd DL Bw', field: 'maxReqDLBw', type: 'numeric'},
+            {
+              title: 'Pre-emption Capability',
+              field: 'arpPreEmptionCapability',
+              type: 'numeric',
+            },
+            {
+              title: 'Pre-emption Vulnerability',
+              field: 'arpPreEmptionVulnerability',
+              type: 'numeric',
+            },
           ]}
           handleCurrRow={(row: ApnRowType) => setCurrRow(row)}
           menuItems={[

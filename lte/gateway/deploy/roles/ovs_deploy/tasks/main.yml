@@ -75,6 +75,11 @@
     - 'echo "Pin: origin packages.magma.etagecom.io" >> /etc/apt/preferences.d/magma-preferences'
     - 'echo "Pin-Priority: 900" >> /etc/apt/preferences.d/magma-preferences'
 
+- name: Preconfigure wireshark (tshark) SUID property
+  become: yes
+  ignore_errors: yes
+  shell: bash -c 'echo "wireshark-common wireshark-common/install-setuid boolean true" | debconf-set-selections'
+
 - name: Installing magma.
   become: yes
   apt:

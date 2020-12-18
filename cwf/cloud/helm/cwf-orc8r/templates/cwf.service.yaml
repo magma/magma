@@ -14,7 +14,7 @@
 {{- include "orc8rlib.service" (list . "cwf.service") -}}
 {{- define "cwf.service" -}}
 metadata:
-  name: {{ .Release.Name }}-cwf
+  name: orc8r-cwf
   labels:
     {{- with .Values.cwf.service.labels }}
 {{ toYaml . | indent 4}}
@@ -24,6 +24,8 @@ metadata:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: cwf
   ports:
     - name: grpc
       port: 9180
