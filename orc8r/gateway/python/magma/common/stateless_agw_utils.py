@@ -30,14 +30,6 @@ STATELESS_SERVICE_CONFIGS = [
 ]
 
 
-def _get_service_start_args_list(service_name):
-    return ["service", service_name, "start"]
-
-
-def _get_service_stop_args_list(service_name):
-    return ["service", service_name, "stop"]
-
-
 def _check_stateless_service_config(service, config_name, config_value):
     service_config = load_service_config(service)
     if service_config.get(config_name) == config_value:
