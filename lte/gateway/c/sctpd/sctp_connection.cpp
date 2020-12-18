@@ -268,7 +268,13 @@ SctpStatus SctpConnection::HandleComUp(int sd, struct sctp_assoc_change *change)
   assoc.outstreams = change->sac_outbound_streams;
 
   _sctp_desc.addAssoc(assoc);
-
+  /*
+  std::string ran_cp_ipaddr;
+  bool ran_cp_use_ipv4 = false;
+  pull_peer_ipaddr(sd, change->sac_assoc_id, ran_cp_ipaddr, ran_cp_use_ipv4);
+  MLOG(MDEBUG) << "[sd:" << std::to_string(sd) << "] "
+               << " peer ip addr: " << ran_cp_ipaddr;
+*/
   _handler.HandleNewAssoc(
     change->sac_assoc_id,
     change->sac_inbound_streams,

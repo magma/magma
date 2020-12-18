@@ -155,5 +155,35 @@ int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs)
   return 0;
 }
 
+int pull_peer_ipaddr(const int sd, const uint32_t assoc_id, std::string& ran_cp_ipaddr, bool& ran_cp_use_ipv4) {
+  int n_remote_addr             = -1;
+  struct sockaddr* remote_addrs = NULL;
+  n_remote_addr = sctp_getpaddrs(sd, assoc_id, &remote_addrs);
+  char fromaddr[INET6_ADDRSTRLEN];  // take the longest possible address
+  ran_cp_use_ipv4 = false;
+  if (n_remote_addr >= 1) {
+    // Socket created as AF_INET6, remote_addrs are IPv6 formatted even
+    // when it is an IPv4 address.
+    if (IN6_IS_ADDR_V4MAPPED(
+            &((struct sockaddr_in6*) &remote_addrs[0])->sin6_addr)) {
+      const uint8_t* ipv6mappedv4_bytes =
+          ((const struct sockaddr_in6*) &remote_addrs[0])->sin6_addr.s6_addr;
+      ipv6mappedv4_bytes +=
+          12;  // First 12 bytes are ::FFFF for IPv4-mapped-IPv6
+      struct in_addr addr = {*(const in_addr_t*) ipv6mappedv4_bytes};
+      inet_ntop(AF_INET, &addr, fromaddr, INET_ADDRSTRLEN);
+      ran_cp_use_ipv4 = true;
+    } else {
+      inet_ntop(
+          AF_INET6, &(((struct sockaddr_in6*) &remote_addrs[0])->sin6_addr),
+          fromaddr, INET6_ADDRSTRLEN);
+    }
+  }
+
+  ran_cp_ipaddr = std::string(&fromaddr[0]);
+  sctp_freepaddrs(remote_addrs);
+  return 0;
+}
+
 } // namespace sctpd
 } // namespace magma
