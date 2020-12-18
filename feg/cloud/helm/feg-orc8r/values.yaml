@@ -93,3 +93,39 @@ health:
   service:
     labels: {}
     annotations: {}
+
+# Feg relay aliased services
+csfb:
+  service:
+    labels: {}
+    annotations: {}
+
+feg_hello:
+  service:
+    labels: {}
+    annotations: {}
+
+ocs:
+  service:
+    labels: {}
+    annotations: {}
+
+pcrf:
+  service:
+    labels: {}
+    annotations: {}
+
+s6a_proxy:
+  service:
+    labels: {}
+    annotations: {}
+
+session_proxy:
+  service:
+    labels: {}
+    annotations: {}
+
+swx_proxy:
+  service:
+    labels: {}
+    annotations: {}
