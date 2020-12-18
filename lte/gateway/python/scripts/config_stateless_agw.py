@@ -85,7 +85,8 @@ def _clear_redis_state():
     for key_regex in [
         "*_state",
         "IMSI*",
-        "mobilityd:ip_states:IPState.RESERVED",
+        "mobilityd:assigned_ip_blocks",
+        "mobilityd:ip_states:*",
         "NO_VLAN:mobilityd_gw_info",
         "QosManager",
         "s1ap_imsi_map",

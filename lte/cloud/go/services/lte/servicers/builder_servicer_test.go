@@ -473,6 +473,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 		HeHashFunction:         "MD5",
 		HeEncodingType:         "BASE64",
 		EncryptionKey:          "melting_the_core",
+		HmacKey:                "magmamagma",
 	}
 	gatewayConfig := newDefaultGatewayConfig()
 	gatewayConfig.HeConfig = heConfig
@@ -542,6 +543,7 @@ func TestBuilder_Build_BaseCase(t *testing.T) {
 				HashFunction:           lte_mconfig.PipelineD_HEConfig_MD5,
 				EncodingType:           lte_mconfig.PipelineD_HEConfig_BASE64,
 				EncryptionKey:          "melting_the_core",
+				HmacKey:                "magmamagma",
 			},
 		},
 		"subscriberdb": &lte_mconfig.SubscriberDB{

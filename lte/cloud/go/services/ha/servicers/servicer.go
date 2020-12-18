@@ -21,12 +21,12 @@ import (
 	"magma/lte/cloud/go/lte"
 	lte_protos "magma/lte/cloud/go/protos"
 	"magma/lte/cloud/go/serdes"
+	lte_service "magma/lte/cloud/go/services/lte"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
 	"magma/orc8r/cloud/go/orc8r"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
 	"magma/orc8r/cloud/go/services/configurator"
 	"magma/orc8r/cloud/go/services/metricsd/prometheus/restrictor"
-	"magma/orc8r/cloud/go/services/state"
 	"magma/orc8r/cloud/go/services/state/wrappers"
 	"magma/orc8r/lib/go/metrics"
 	"magma/orc8r/lib/go/protos"
@@ -180,26 +180,13 @@ func (s *HAServicer) isGatewayCheckinValid(networkID string, gatewayID string) (
 }
 
 func (s *HAServicer) getOffloadStateForEnb(networkID string, primaryGwID string, enbSN string) (lte_protos.GetEnodebOffloadStateResponse_EnodebOffloadState, error) {
-	st, err := state.GetState(networkID, lte.EnodebStateType, enbSN, serdes.State)
+	enodebState, err := lte_service.GetEnodebState(networkID, primaryGwID, enbSN)
 	if err != nil {
 		return lte_protos.GetEnodebOffloadStateResponse_NO_OP, err
-	}
-	enodebState, ok := st.ReportedState.(*lte_models.EnodebState)
-	if !ok || enodebState == nil {
-		return lte_protos.GetEnodebOffloadStateResponse_NO_OP, fmt.Errorf("could not convert enodeb state to valid model for enodeb %s", enbSN)
-	}
-	enodebState.TimeReported = st.TimeMs
-	ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
-	if err == nil {
-		enodebState.ReportingGatewayID = ent.Key
 	}
 	timeSinceReported := time.Now().Unix() - int64(enodebState.TimeReported)/1000
 	if timeSinceReported > validSecsSinceStateReported {
 		glog.V(2).Infof("Returning NO_OP offload state for ENB %s; Time is %d secs too stale", enbSN, timeSinceReported)
-		return lte_protos.GetEnodebOffloadStateResponse_NO_OP, nil
-	}
-	if enodebState.ReportingGatewayID != primaryGwID {
-		glog.V(2).Infof("Returning NO_OP offload state for ENB %s; Enodeb state gateway ID is not primary gateway but %s", enbSN, enodebState.ReportingGatewayID)
 		return lte_protos.GetEnodebOffloadStateResponse_NO_OP, nil
 	}
 	if !*enodebState.EnodebConnected || !*enodebState.MmeConnected {
