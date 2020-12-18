@@ -58,6 +58,7 @@ from integ_tests.s1aptests.ovs.rest_api import get_datapath, get_flows
 from lte.protos.ha_service_pb2_grpc import HaServiceStub
 from lte.protos.ha_service_pb2 import (
     StartAgwOffloadRequest,
+    EnbOffloadType,
 )
 DEFAULT_GRPC_TIMEOUT = 10
 
@@ -1311,9 +1312,10 @@ class HaUtil:
             get_rpc_channel("spgw_service")
         )
 
-    def offload_agw(self, imsi, enbID):
+    def offload_agw(self, imsi, enbID, offloadtype=0):
         req = StartAgwOffloadRequest(
             enb_id = enbID,
+            enb_offload_type = offloadtype,
             imsi = imsi,
             )
         try:
