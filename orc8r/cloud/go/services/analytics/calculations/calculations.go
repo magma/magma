@@ -56,13 +56,27 @@ func (c *BaseCalculation) GetCalculationParams() *CalculationParams {
 	return c.CalculationParams
 }
 
+// LogConfig provides the elastic query parameters. This enables analytics service
+// to build a metric based on the number of matches obtained for a specific query
+type LogConfig struct {
+	// key value pair to perform Term search on elastic
+	Tags map[string]string `yaml:"tags"`
+
+	// Custom fields to match the query on
+	Fields []string `yaml:"fields"`
+
+	// Query specifies the actual query string
+	Query string `yaml:"query"`
+}
+
 // MetricConfig is the expected configuration for a specific metric in the config file
 type MetricConfig struct {
-	Register                bool     `yaml:"register"`
-	Export                  bool     `yaml:"export"`
-	Expr                    string   `yaml:"expr"`
-	Labels                  []string `yaml:"labels"`
-	EnforceMinUserThreshold bool     `yaml:"enforceMinUserThreshold"`
+	Register                bool              `yaml:"register"`
+	Export                  bool              `yaml:"export"`
+	Expr                    string            `yaml:"expr"`
+	Labels                  map[string]string `yaml:"labels"`
+	EnforceMinUserThreshold bool              `yaml:"enforceMinUserThreshold"`
+	LogConfig               *LogConfig        `yaml:"logConfig"`
 }
 
 // AnalyticsConfig represents the configuration provided to analytics components

@@ -17,7 +17,6 @@ import (
 	"magma/lte/cloud/go/lte"
 	"magma/lte/cloud/go/serdes"
 	lte_models "magma/lte/cloud/go/services/lte/obsidian/models"
-	models1 "magma/orc8r/cloud/go/models"
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 	"magma/orc8r/cloud/go/services/analytics/protos"
 	"magma/orc8r/cloud/go/services/analytics/query_api"
@@ -35,17 +34,14 @@ import (
 const (
 	/* newly computed metrics */
 
-	// NetworkCountMetric - provides the count of different network types present in the current instance of orc8r
-	NetworkCountMetric = "network_count"
+	// NetworkTypeMetric - provides information on different network types in a deployment
+	NetworkTypeMetric = "network_type"
 
-	// EnodebConnectedMetric - provides the count of enodebs connected in the network along with their gateway labels
-	EnodebConnectedMetric = "enodeb_connected_count"
+	// EnodebConnectedMetric - number of subscribers connected to the eNodeB
+	EnodebConnectedMetric = "enodeb_connected"
 
-	// EnodeConfigTypeMetric - provides the count of unmanaged and managed enodebs
-	EnodeConfigTypeMetric = "enodeb_configtype_count"
-
-	// GatewayMagmaVersionMetric - provides count of gateways running with specific magma versions
-	GatewayMagmaVersionMetric = "gateway_version_count"
+	// GatewayMagmaVersionMetric - provides information on gateway versions installed in a deployment
+	GatewayMagmaVersionMetric = "gateway_version"
 
 	// ConfiguredSubscribersMetric - provides the count of configured subscribers in the network
 	ConfiguredSubscribersMetric = "configured_subscribers_count"
@@ -69,6 +65,14 @@ const (
 
 	// GatewayMagmaVersionLabel - label identifying the current running magma version on the gateway
 	GatewayMagmaVersionLabel = "version"
+
+	/* misc string literals */
+
+	// SubscriberStateLifeStateKey key exported by sessiond for identifying lifecycle state of a subscriber session
+	SubscriberStateLifeStateKey = "lifecycle_state"
+
+	// SessionActive string literal identifying active subscriber session
+	SessionActive = "SESSION_ACTIVE"
 )
 
 // GeneralMetricsCalculation ...
@@ -86,7 +90,13 @@ func (x *GeneralMetricsCalculation) Calculate(prometheusClient query_api.Prometh
 	if err != nil || networks == nil {
 		return results, err
 	}
-	networkMap := make(map[models1.NetworkType]float64)
+
+	metricConfig, ok := x.AnalyticsConfig.Metrics[NetworkTypeMetric]
+	if !ok {
+		glog.Errorf("%s metric not found in metric config", NetworkTypeMetric)
+		return results, err
+	}
+
 	for _, networkID := range networks {
 		network, err := configurator.LoadNetwork(networkID, true, true, serdes.Network)
 		if err == merrors.ErrNotFound {
@@ -98,18 +108,16 @@ func (x *GeneralMetricsCalculation) Calculate(prometheusClient query_api.Prometh
 			continue
 		}
 		ret := (&models.Network{}).FromConfiguratorNetwork(network)
-		if _, ok := networkMap[ret.Type]; !ok {
-			networkMap[ret.Type] = 1
-		} else {
-			networkMap[ret.Type]++
+		labels := prometheus.Labels{
+			metrics.NetworkLabelName: networkID,
+			NetworkTypeLabel:         string(ret.Type),
 		}
+		results = append(results,
+			calculations.NewResult(1,
+				NetworkTypeMetric,
+				calculations.CombineLabels(labels, metricConfig.Labels)))
 	}
-	for networkType, numNetworks := range networkMap {
-		labels := prometheus.Labels{}
-		networkTypeStr := string(networkType)
-		labels[NetworkTypeLabel] = networkTypeStr
-		results = append(results, calculations.NewResult(numNetworks, NetworkCountMetric, labels))
-	}
+
 	glog.V(1).Info("Generic Metrics Results ", results)
 	return results, nil
 }
@@ -130,60 +138,60 @@ func (x *UserMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 	}
 
 	for _, networkID := range networks {
-		subscriberEnts, err := configurator.LoadAllEntitiesOfType(networkID, lte.SubscriberEntityType,
-			configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true}, serdes.Entity)
+		subscriberEnts, err := configurator.LoadAllEntitiesOfType(
+			networkID,
+			lte.SubscriberEntityType,
+			configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsFromThis: true},
+			serdes.Entity)
 		if err != nil {
-			return nil, err
+			continue
 		}
-		labels := prometheus.Labels{metrics.NetworkLabelName: networkID}
-		results = append(results, calculations.NewResult(float64(len(subscriberEnts)), ConfiguredSubscribersMetric, labels))
 
 		// get all subscribers state across (configured and federated subscribers)
 		subscriberStateTypes := []string{lte.SubscriberStateType}
 		states, err := state.SearchStates(networkID, subscriberStateTypes, nil, nil, serdes.State)
 		if err != nil {
-			return nil, err
+			continue
 		}
 		users := make(map[string]struct{})
 		var exists = struct{}{}
-		activeSessionsPerAPN := make(map[string]float64)
+		activeSessionsPerAPN := make(map[string]int)
 		for stateID, st := range states {
-			if st.ReportedState != nil {
-				reportedSt, ok := st.ReportedState.(*state.ArbitraryJSON)
-				if !ok {
-					glog.Errorf("reported state for session state having unexpected type %T", st.ReportedState)
-					continue
-				}
-				users[stateID.DeviceID] = exists
-				for apnID, apnSessionStatesIntf := range *reportedSt {
-					apnSessionStates, ok := apnSessionStatesIntf.([]interface{})
-					if !ok {
-						glog.Errorf("apnSession states got unexpected type %T", apnSessionStatesIntf)
-						continue
-					}
-					for _, apnSessionStateIntf := range apnSessionStates {
-						sessionState, ok := apnSessionStateIntf.(map[string]interface{})
-						if !ok {
-							glog.Errorf("apnSession state got unexpected type %T", apnSessionStateIntf)
-							continue
-						}
-						if sessionStateIntf, ok := (sessionState)["lifecycle_state"]; ok {
-							if sessionState, ok := sessionStateIntf.(string); ok {
-								if sessionState == "SESSION_ACTIVE" {
-									activeSessionsPerAPN[apnID]++
-								}
-							}
-						}
-					}
-				}
+			users[stateID.DeviceID] = exists
+			for k, v := range getActiveSessionsPerApn(st.ReportedState) {
+				activeSessionsPerAPN[k] += v
 			}
+		}
+		labels := prometheus.Labels{metrics.NetworkLabelName: networkID}
+
+		if cfg, ok := x.AnalyticsConfig.Metrics[ConfiguredSubscribersMetric]; ok {
+			results = append(results, calculations.NewResult(
+				float64(len(subscriberEnts)),
+				ConfiguredSubscribersMetric,
+				calculations.CombineLabels(labels, cfg.Labels)))
+		} else {
+			glog.Errorf("%s metric not found in metric config", ConfiguredSubscribersMetric)
 		}
 
 		// verify if the total connected users is greater than min user threshold
-		results = append(results, calculations.NewResult(float64(len(users)), ActualSubscribersMetric, labels))
-		for apnID, numActiveSessionsPerAPN := range activeSessionsPerAPN {
-			labels := prometheus.Labels{metrics.NetworkLabelName: networkID, APNLabel: apnID}
-			results = append(results, calculations.NewResult(float64(numActiveSessionsPerAPN), ActiveSessionAPNMetric, labels))
+		if cfg, ok := x.AnalyticsConfig.Metrics[ActualSubscribersMetric]; ok {
+			results = append(results, calculations.NewResult(
+				float64(len(users)),
+				ActualSubscribersMetric,
+				calculations.CombineLabels(labels, cfg.Labels)))
+		} else {
+			glog.Errorf("%s metric not found in metric config", ActualSubscribersMetric)
+		}
+
+		if cfg, ok := x.AnalyticsConfig.Metrics[ActiveSessionAPNMetric]; ok {
+			for apnID, numActiveSessionsPerAPN := range activeSessionsPerAPN {
+				labels := prometheus.Labels{metrics.NetworkLabelName: networkID, APNLabel: apnID}
+				labels = calculations.CombineLabels(labels, cfg.Labels)
+				result := calculations.NewResult(float64(numActiveSessionsPerAPN), ActiveSessionAPNMetric, labels)
+				results = append(results, result)
+			}
+		} else {
+			glog.Errorf("%s metric not found in metric config", ActiveSessionAPNMetric)
 		}
 	}
 	glog.V(1).Info("User Metrics Results ", results)
@@ -204,100 +212,131 @@ func (x *SiteMetricsCalculation) Calculate(prometheusClient query_api.Prometheus
 		return results, err
 	}
 
+	gatewayVersionCfg, gatewayVersionCfgOk := x.AnalyticsConfig.Metrics[GatewayMagmaVersionMetric]
+	enbConnectedCfg, enbConnectedOk := x.AnalyticsConfig.Metrics[EnodebConnectedMetric]
+
 	for _, networkID := range networks {
 		// load entities of gateway type
-		gatewayEnts, err := configurator.LoadAllEntitiesOfType(
-			networkID, lte.CellularGatewayEntityType,
-			configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
-			serdes.Entity,
-		)
-		if err != nil {
-			continue
-		}
-
-		magmaGatewayVersion := make(map[string]string)
-		for _, ent := range gatewayEnts {
-			status, err := wrappers.GetGatewayStatus(networkID, ent.PhysicalID)
-			if err != nil || status == nil || status.PlatformInfo == nil || len(status.PlatformInfo.Packages) == 0 {
-				continue
-			}
-
-			for _, pkg := range status.PlatformInfo.Packages {
-				if pkg.Name == "magma" && pkg.Version != "" {
-					magmaGatewayVersion[ent.PhysicalID] = pkg.Version
-					break
-				}
-			}
-		}
-
-		// load entities of enodeb type
-		ents, err := configurator.LoadAllEntitiesOfType(
-			networkID, lte.CellularEnodebEntityType,
-			configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
-			serdes.Entity,
-		)
-		if err != nil {
-			continue
-		}
-
-		enodebConfigTypeMap := make(map[string]float64)
-		gatewayEnodebMap := make(map[string]float64)
-		for _, ent := range ents {
-			enodeb := (&lte_models.Enodeb{}).FromBackendModels(ent)
-			if enodeb.EnodebConfig == nil || enodeb.EnodebConfig.ConfigType == "" {
-				continue
-			}
-			if _, ok := enodebConfigTypeMap[enodeb.EnodebConfig.ConfigType]; !ok {
-				enodebConfigTypeMap[enodeb.EnodebConfig.ConfigType] = 1
-			} else {
-				enodebConfigTypeMap[enodeb.EnodebConfig.ConfigType]++
-			}
-
-			st, err := state.GetState(networkID, lte.EnodebStateType, ent.Key, serdes.State)
+		if gatewayVersionCfgOk {
+			gatewayEnts, err := configurator.LoadAllEntitiesOfType(
+				networkID,
+				lte.CellularGatewayEntityType,
+				configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+				serdes.Entity,
+			)
 			if err != nil {
 				continue
 			}
-			enodebState := st.ReportedState.(*lte_models.EnodebState)
-			ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
-			if err == nil {
-				enodebState.ReportingGatewayID = ent.Key
-			}
-
-			if enodebState.ReportingGatewayID != "" {
-				if _, ok := gatewayEnodebMap[enodebState.ReportingGatewayID]; !ok {
-					gatewayEnodebMap[enodebState.ReportingGatewayID] = 1
-				} else {
-					gatewayEnodebMap[enodebState.ReportingGatewayID]++
+			for _, ent := range gatewayEnts {
+				status, err := wrappers.GetGatewayStatus(networkID, ent.PhysicalID)
+				if err != nil || status == nil || status.PlatformInfo == nil || len(status.PlatformInfo.Packages) == 0 {
+					continue
 				}
+
+				gatewayVersion := ""
+				for _, pkg := range status.PlatformInfo.Packages {
+					if pkg.Name == "magma" {
+						gatewayVersion = pkg.Version
+						break
+					}
+				}
+				if gatewayVersion == "" {
+					continue
+				}
+
+				labels := prometheus.Labels{
+					metrics.NetworkLabelName: networkID,
+					metrics.GatewayLabelName: ent.PhysicalID,
+					GatewayMagmaVersionLabel: gatewayVersion,
+				}
+				labels = calculations.CombineLabels(labels, gatewayVersionCfg.Labels)
+				results = append(results, calculations.NewResult(1, GatewayMagmaVersionMetric, labels))
 			}
 		}
 
-		// metric identifying managed, unmanaged enodebs
-		for configType, numEnode := range enodebConfigTypeMap {
-			labels := prometheus.Labels{}
-			configTypeStr := string(configType)
-			labels[EnodeConfigTypeLabel] = configTypeStr
-			labels[metrics.NetworkLabelName] = networkID
-			results = append(results, calculations.NewResult(numEnode, EnodeConfigTypeMetric, labels))
-		}
+		if enbConnectedOk {
+			ents, err := configurator.LoadAllEntitiesOfType(
+				networkID,
+				lte.CellularEnodebEntityType,
+				configurator.EntityLoadCriteria{LoadMetadata: true, LoadConfig: true, LoadAssocsToThis: true},
+				serdes.Entity,
+			)
+			if err != nil {
+				continue
+			}
 
-		// metric identifying gateways behind enodeBs
-		for gatewayID, numEnode := range gatewayEnodebMap {
-			labels := prometheus.Labels{}
-			labels[metrics.GatewayLabelName] = gatewayID
-			labels[metrics.NetworkLabelName] = networkID
-			results = append(results, calculations.NewResult(numEnode, EnodebConnectedMetric, labels))
-		}
+			for _, ent := range ents {
+				enodeb := (&lte_models.Enodeb{}).FromBackendModels(ent)
+				if enodeb.EnodebConfig == nil || enodeb.EnodebConfig.ConfigType == "" {
+					continue
+				}
 
-		// metrics giving information on magma version across the gateways
-		for gatewayID, version := range magmaGatewayVersion {
-			labels := prometheus.Labels{}
-			labels[metrics.NetworkLabelName] = networkID
-			labels[metrics.GatewayLabelName] = gatewayID
-			labels[GatewayMagmaVersionLabel] = version
-			results = append(results, calculations.NewResult(1, GatewayMagmaVersionMetric, labels))
+				st, err := state.GetState(networkID, lte.EnodebStateType, ent.Key, serdes.State)
+				if err != nil {
+					continue
+				}
+				enodebState := st.ReportedState.(*lte_models.EnodebState)
+				ent, err := configurator.LoadEntityForPhysicalID(st.ReporterID, configurator.EntityLoadCriteria{}, serdes.Entity)
+				if err != nil {
+					continue
+				}
+
+				enodebState.ReportingGatewayID = ent.Key
+				labels := prometheus.Labels{
+					metrics.NetworkLabelName: networkID,
+					metrics.GatewayLabelName: enodebState.ReportingGatewayID,
+					metrics.EnodebLabelName:  enodeb.Serial,
+					EnodeConfigTypeLabel:     enodeb.EnodebConfig.ConfigType,
+				}
+				labels = calculations.CombineLabels(labels, enbConnectedCfg.Labels)
+
+				// TODO replace 1 -> enodebState.UesConnected
+				results = append(results, calculations.NewResult(1, EnodebConnectedMetric, labels))
+			}
 		}
 	}
 	glog.V(1).Info("Site Metrics Results ", results)
 	return results, nil
+}
+
+func getActiveSessionsPerApn(subscriberStateIntf interface{}) map[string]int {
+	activeSessionsPerAPN := make(map[string]int)
+	if subscriberStateIntf == nil {
+		return activeSessionsPerAPN
+	}
+	subscriberState, ok := subscriberStateIntf.(*state.ArbitraryJSON)
+	if !ok {
+		glog.Errorf("reported state for session state having unexpected type %T", subscriberStateIntf)
+		return activeSessionsPerAPN
+	}
+
+	for apnID, apnSessionStatesIntf := range *subscriberState {
+		apnSessionStates, ok := apnSessionStatesIntf.([]interface{})
+		if !ok {
+			glog.Errorf("apnSession states got unexpected type %T", apnSessionStatesIntf)
+			continue
+		}
+		for _, apnSessionStateIntf := range apnSessionStates {
+			apnSessionState, ok := apnSessionStateIntf.(map[string]interface{})
+			if !ok {
+				glog.Errorf("ApnSession state got unexpected type %T", apnSessionStateIntf)
+				continue
+			}
+
+			sessionStateIntf, ok := (apnSessionState)[SubscriberStateLifeStateKey]
+			if !ok {
+				glog.Errorf("Lifecycle_state key not found in session state %v", sessionStateIntf)
+				continue
+			}
+
+			sessionState, ok := sessionStateIntf.(string)
+			if !ok {
+				continue
+			}
+			if sessionState == SessionActive {
+				activeSessionsPerAPN[apnID]++
+			}
+		}
+	}
+	return activeSessionsPerAPN
 }

@@ -24,6 +24,7 @@ import (
 const (
 	NetworkLabelName   = "networkID"
 	GatewayLabelName   = "gatewayID"
+	EnodebLabelName    = "enodebID"
 	CloudHostLabelName = "cloudHost"
 )
 

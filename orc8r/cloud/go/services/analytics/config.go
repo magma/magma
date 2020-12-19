@@ -15,7 +15,7 @@ package analytics
 
 //Config represents the configuration provided to analytics service
 type Config struct {
-	AnalysisSchedule string `yaml:"analysisSchedule"`
+	AnalysisSchedule string
 	ExportMetrics    bool   `yaml:"exportMetrics"`
 	MetricsPrefix    string `yaml:"metricsPrefix"`
 	AppSecret        string `yaml:"appSecret"`

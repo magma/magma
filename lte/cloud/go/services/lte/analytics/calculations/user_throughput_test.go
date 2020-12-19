@@ -39,10 +39,19 @@ func TestUserThroughput(t *testing.T) {
 	}...)
 	successClient := &mocks.PrometheusAPI{}
 	successClient.On("Query", mock.Anything, mock.Anything, mock.Anything).Return(vec, nil, nil)
+	analyticsConfig := &calculations.AnalyticsConfig{
+		Metrics: map[string]calculations.MetricConfig{
+			"user_throughput": {
+				Export:   true,
+				Register: true,
+			},
+		},
+	}
 	calc := lte_calculations.UserThroughputCalculation{
 		BaseCalculation: calculations.BaseCalculation{
 			CalculationParams: &calculations.CalculationParams{
-				Name: "user_throughput",
+				Name:            "user_throughput",
+				AnalyticsConfig: analyticsConfig,
 			},
 		},
 		Direction: "up",

@@ -27,23 +27,23 @@ func GetAnalyticsCalculations(analyticsConfig *calculations.AnalyticsConfig) []c
 	calcs := make([]calculations.Calculation, 0)
 	calcs = append(calcs, &lte_calculations.GeneralMetricsCalculation{
 		BaseCalculation: calculations.BaseCalculation{
-			CalculationParams: &calculations.CalculationParams{},
+			CalculationParams: &calculations.CalculationParams{AnalyticsConfig: analyticsConfig},
 		},
 	})
 	calcs = append(calcs, &lte_calculations.UserMetricsCalculation{
 		BaseCalculation: calculations.BaseCalculation{
-			CalculationParams: &calculations.CalculationParams{},
+			CalculationParams: &calculations.CalculationParams{AnalyticsConfig: analyticsConfig},
 		},
 	})
 	calcs = append(calcs, &lte_calculations.SiteMetricsCalculation{
 		BaseCalculation: calculations.BaseCalculation{
-			CalculationParams: &calculations.CalculationParams{},
+			CalculationParams: &calculations.CalculationParams{AnalyticsConfig: analyticsConfig},
 		},
 	})
 	for _, d := range []calculations.ConsumptionDirection{calculations.ConsumptionDown, calculations.ConsumptionDown} {
 		calcs = append(calcs, &lte_calculations.UserThroughputCalculation{
 			BaseCalculation: calculations.BaseCalculation{
-				CalculationParams: &calculations.CalculationParams{},
+				CalculationParams: &calculations.CalculationParams{AnalyticsConfig: analyticsConfig},
 			},
 			Direction: d,
 		})

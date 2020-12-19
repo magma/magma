@@ -17,11 +17,13 @@ import (
 	"magma/orc8r/cloud/go/services/analytics/calculations"
 )
 
-// GetAnalyticsCalculations - entrypoint for analytics service
+//GetAnalyticsCalculations - entrypoint for analytics service
 func GetAnalyticsCalculations(analyticsConfig *calculations.AnalyticsConfig) []calculations.Calculation {
 	if analyticsConfig == nil {
 		return nil
 	}
 
-	return calculations.GetRawMetricsCalculations(analyticsConfig)
+	calcs := calculations.GetLogMetricsCalculations(calculations.GetElasticClient(), analyticsConfig)
+	calcs = append(calcs, calculations.GetRawMetricsCalculations(analyticsConfig)...)
+	return calcs
 }

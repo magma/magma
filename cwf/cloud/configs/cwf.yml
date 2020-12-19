@@ -17,38 +17,38 @@ analytics:
       register: false
       enforceMinThreshold: true
       labels:
-        - "engagement"
+        class: "engagement"
 
     user_throughput:
       export: true
       register: false
       enforceMinThreshold: true
       labels:
-        - "qos"
+        class: "qos"
 
     user_consumption:
       export: true
       register: false
       enforceMinThreshold: true
       labels:
-        - "qos"
+        class: "qos"
 
     user_consumption_hourly:
       export: true
       register: false
       enforceMinThreshold: true
       labels:
-        - "qos"
+        class: "qos"
 
     throughput_per_ap:
       export: true
       register: false
       labels:
-        - "network"
+        class: "network"
 
     authentications_over_time:
       export: true
       register: false
       enforceMinThreshold: true
       labels:
-        - "network"
+        class: "network"
