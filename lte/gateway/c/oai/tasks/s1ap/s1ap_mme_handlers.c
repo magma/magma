@@ -2259,6 +2259,10 @@ int s1ap_handle_new_association(
   enb_association->instreams  = (sctp_stream_id_t) sctp_new_peer_p->instreams;
   enb_association->outstreams = (sctp_stream_id_t) sctp_new_peer_p->outstreams;
   /*
+   * Fill in control plane IP address of RAN end point for this association
+   */
+
+  /*
    * initialize the next sctp stream to 1 as 0 is reserved for non
    * * * * ue associated signalling.
    */

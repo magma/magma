@@ -41,7 +41,8 @@ int sctp_itti_send_lower_layer_conf(
 
 int sctp_itti_send_new_association(
     sctp_assoc_id_t assoc_id, sctp_stream_id_t instreams,
-    sctp_stream_id_t outstreams);
+    sctp_stream_id_t outstreams, STOLEN_REF bstring* ran_cp_ipaddr,
+    bool ran_cp_use_ipv4);
 
 int sctp_itti_send_new_message_ind(
     STOLEN_REF bstring* payload, sctp_assoc_id_t assoc_id,

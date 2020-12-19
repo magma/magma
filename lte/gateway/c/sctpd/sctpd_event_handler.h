@@ -28,9 +28,8 @@ class SctpdEventHandler : public SctpEventHandler {
 
   // Relay new assocation to MME over GRPC
   void HandleNewAssoc(
-    uint32_t assoc_id,
-    uint32_t instreams,
-    uint32_t outstreams) override;
+      uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
+      std::string& ran_cp_ipaddr, bool ran_cp_use_ipv4) override;
 
   // Relay close assocation to MME over GRPC
   void HandleCloseAssoc(uint32_t assoc_id, bool reset) override;
