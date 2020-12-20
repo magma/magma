@@ -28,7 +28,10 @@
       {
         "type": "subcategory",
         "label": "Development",
-        "ids": ["orc8r/development/minikube_deployment"]
+        "ids": [
+          "orc8r/development/testing_tips",
+          "orc8r/development/minikube_deployment"
+        ]
       }
     ],
     "NMS User Guide": [
