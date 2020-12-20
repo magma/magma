@@ -94,11 +94,9 @@ Status SctpdUplinkImpl::NewAssoc(
   uint16_t outstreams = req->outstreams();
   bstring ran_cp_ipaddr =
       blk2bstr(req->ran_cp_ipaddr().c_str(), req->ran_cp_ipaddr().size());
-  bool ran_cp_use_ipv4 = req->ran_cp_use_ipv4();
 
   if (sctp_itti_send_new_association(
-          assoc_id, instreams, outstreams, &ran_cp_ipaddr, ran_cp_use_ipv4) <
-      0) {
+          assoc_id, instreams, outstreams, &ran_cp_ipaddr) < 0) {
     OAILOG_ERROR(LOG_SCTP, "failed to send new_association for NewAssoc\n");
     return Status::OK;
   }

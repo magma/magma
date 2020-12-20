@@ -155,7 +155,7 @@ int convert_addrs(const InitReq *req, struct sockaddr **addrs, int *num_addrs)
   return 0;
 }
 
-int pull_peer_ipaddr(const int sd, const uint32_t assoc_id, std::string& ran_cp_ipaddr, bool& ran_cp_use_ipv4) {
+int pull_peer_ipaddr(const int sd, const uint32_t assoc_id, std::string& ran_cp_ipaddr) {
   int n_remote_addr             = -1;
   struct sockaddr* remote_addrs = NULL;
   n_remote_addr = sctp_getpaddrs(sd, assoc_id, &remote_addrs);
@@ -165,7 +165,6 @@ int pull_peer_ipaddr(const int sd, const uint32_t assoc_id, std::string& ran_cp_
   const uint8_t *remote_addr_ipv6_bytes =
           ((const struct sockaddr_in6*) &remote_addrs[0])->sin6_addr.s6_addr;
   const char* fromaddr = NULL;
-  ran_cp_use_ipv4 = false;
   if (n_remote_addr >= 1) {
     // Picking the first address only.
     // Check if remote_addrs[0] is IPv6 formatted IPv4 address
@@ -173,7 +172,6 @@ int pull_peer_ipaddr(const int sd, const uint32_t assoc_id, std::string& ran_cp_
             &((struct sockaddr_in6*) &remote_addrs[0])->sin6_addr)) {
       // First 12 bytes are ::FFFF for IPv4-mapped-IPv6
       fromaddr = (const char *) remote_addr_ipv6_bytes + 12;
-      ran_cp_use_ipv4 = true;
       ran_cp_ipaddr = std::string(fromaddr, 4);
     } else {
       fromaddr = (const char *) remote_addr_ipv6_bytes;

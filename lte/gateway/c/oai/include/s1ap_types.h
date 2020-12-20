@@ -156,6 +156,5 @@ typedef struct enb_description_s {
   sctp_stream_id_t instreams;   ///< Number of streams avalaible on eNB -> MME
   sctp_stream_id_t outstreams;  ///< Number of streams avalaible on MME -> eNB
   bstring ran_cp_ipaddr;        ///< IP address of eNB SCTP end point
-  bool ran_cp_use_ipv4;         ///< True if ran_cp_ipaddr is of type IPv4
   /*@}*/
 } enb_description_t;

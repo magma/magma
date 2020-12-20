@@ -73,7 +73,6 @@ message NewAssocReq {
     uint32 instreams = 2; // number of instreams for eNB
     uint32 outstreams = 3; // number of outstreams for eNB
     bytes ran_cp_ipaddr = 4; // sctp ran end point IP address
-    bool   ran_cp_use_ipv4 = 5; // true if sctp peer IP address is IPv4
 }
 
 // NewAssocRes - response for NewAssocReq, present for forwards compat

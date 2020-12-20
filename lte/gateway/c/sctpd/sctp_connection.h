@@ -40,7 +40,7 @@ class SctpEventHandler {
   // Specification for NewAssoc handler function
   virtual void HandleNewAssoc(
       uint32_t assoc_id, uint32_t instreams, uint32_t outstreams,
-      std::string& ran_cp_ipaddr, bool ran_cp_use_ipv4) = 0;
+      std::string& ran_cp_ipaddr) = 0;
 
   // Specification for CloseAssoc handler function
   virtual void HandleCloseAssoc(uint32_t assoc_id, bool reset) = 0;

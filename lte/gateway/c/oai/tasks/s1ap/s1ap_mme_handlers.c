@@ -2281,7 +2281,6 @@ int s1ap_handle_new_association(
    */
   enb_association->ran_cp_ipaddr =
       bstrcpy((const_bstring) sctp_new_peer_p->ran_cp_ipaddr);
-  enb_association->ran_cp_use_ipv4 = sctp_new_peer_p->ran_cp_use_ipv4;
   /*
    * initialize the next sctp stream to 1 as 0 is reserved for non
    * * * * ue associated signalling.

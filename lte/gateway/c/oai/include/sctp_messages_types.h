@@ -102,7 +102,6 @@ typedef struct sctp_new_peer_s {
   uint32_t outstreams;
   sctp_assoc_id_t assoc_id;
   bstring ran_cp_ipaddr;
-  bool ran_cp_use_ipv4;
 } sctp_new_peer_t;
 
 typedef struct sctp_mme_server_initialized_s {
