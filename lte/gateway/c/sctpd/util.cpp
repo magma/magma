@@ -159,28 +159,29 @@ int pull_peer_ipaddr(const int sd, const uint32_t assoc_id, std::string& ran_cp_
   int n_remote_addr             = -1;
   struct sockaddr* remote_addrs = NULL;
   n_remote_addr = sctp_getpaddrs(sd, assoc_id, &remote_addrs);
-  char fromaddr[INET6_ADDRSTRLEN];  // take the longest possible address
+
+  // Since socket is opened as AF_INET6, remote address comes as IPv6 formatted
+  // for both IPv4 and IPv6 end points
+  const uint8_t *remote_addr_ipv6_bytes =
+          ((const struct sockaddr_in6*) &remote_addrs[0])->sin6_addr.s6_addr;
+  const char* fromaddr = NULL;
   ran_cp_use_ipv4 = false;
   if (n_remote_addr >= 1) {
-    // Socket created as AF_INET6, remote_addrs are IPv6 formatted even
-    // when it is an IPv4 address.
+    // Picking the first address only.
+    // Check if remote_addrs[0] is IPv6 formatted IPv4 address
     if (IN6_IS_ADDR_V4MAPPED(
             &((struct sockaddr_in6*) &remote_addrs[0])->sin6_addr)) {
-      const uint8_t* ipv6mappedv4_bytes =
-          ((const struct sockaddr_in6*) &remote_addrs[0])->sin6_addr.s6_addr;
-      ipv6mappedv4_bytes +=
-          12;  // First 12 bytes are ::FFFF for IPv4-mapped-IPv6
-      struct in_addr addr = {*(const in_addr_t*) ipv6mappedv4_bytes};
-      inet_ntop(AF_INET, &addr, fromaddr, INET_ADDRSTRLEN);
+      // First 12 bytes are ::FFFF for IPv4-mapped-IPv6
+      fromaddr = (const char *) remote_addr_ipv6_bytes + 12;
       ran_cp_use_ipv4 = true;
+      ran_cp_ipaddr = std::string(fromaddr, 4);
     } else {
-      inet_ntop(
-          AF_INET6, &(((struct sockaddr_in6*) &remote_addrs[0])->sin6_addr),
-          fromaddr, INET6_ADDRSTRLEN);
+      fromaddr = (const char *) remote_addr_ipv6_bytes;
+      ran_cp_ipaddr = std::string(fromaddr, 16);
     }
   }
 
-  ran_cp_ipaddr = std::string(&fromaddr[0]);
+
   sctp_freepaddrs(remote_addrs);
   return 0;
 }

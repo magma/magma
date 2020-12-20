@@ -22,6 +22,7 @@ hss_hostname: "hss"
 use_stateless: false
 use_ha: false
 enable_apn_correction: false
+enable_gtpu_private_ip_correction: false
 apn_correction_map_list:
         - imsi_prefix: "00101"
           apn_override: "magma.ipv4"

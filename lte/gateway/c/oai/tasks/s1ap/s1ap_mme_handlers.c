@@ -863,13 +863,31 @@ int s1ap_mme_handle_initial_context_setup_response(
         .e_rab_setup_list.item[item]
         .gtp_teid = htonl(*((uint32_t*) eRABSetupItemCtxtSURes_p->value.choice
                                 .E_RABSetupItemCtxtSURes.gTP_TEID.buf));
-    MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
-        .e_rab_setup_list.item[item]
-        .transport_layer_address = blk2bstr(
-        eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
-            .transportLayerAddress.buf,
-        eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
-            .transportLayerAddress.size);
+
+    // When Magma AGW runs in a cloud and RAN at the edge (hence eNB is
+    // behind NAT), eNB signals its private IP address in ICS Responce. By
+    // setting "enable_gtpu_private_ip_correction" true in mme.yml file,
+    // we can correct that private IP address with the public IP address of
+    // the eNB as its public IP address is observed during SCTP link is set up.
+    // We store this "control plane IP address" as part of the eNB context
+    // information. This feature can be safely used only when NAT uses the same
+    // public IP address for both the CP and UP communication to/from the eNB,
+    // which typically is the situation.
+    if (mme_config.enable_gtpu_private_ip_correction) {
+      enb_description_t* enb_association = s1ap_state_get_enb(state, assoc_id);
+      MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+          .e_rab_setup_list.item[item]
+          .transport_layer_address =
+          bstrcpy((const_bstring) enb_association->ran_cp_ipaddr);
+    } else {
+      MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
+          .e_rab_setup_list.item[item]
+          .transport_layer_address = blk2bstr(
+          eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
+              .transportLayerAddress.buf,
+          eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
+              .transportLayerAddress.size);
+    }
   }
 
   // Failed bearers
@@ -2261,7 +2279,9 @@ int s1ap_handle_new_association(
   /*
    * Fill in control plane IP address of RAN end point for this association
    */
-
+  enb_association->ran_cp_ipaddr =
+      bstrcpy((const_bstring) sctp_new_peer_p->ran_cp_ipaddr);
+  enb_association->ran_cp_use_ipv4 = sctp_new_peer_p->ran_cp_use_ipv4;
   /*
    * initialize the next sctp stream to 1 as 0 is reserved for non
    * * * * ue associated signalling.
