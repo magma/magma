@@ -5,11 +5,6 @@ On your GW host make sure you have the following packages:
 $ apt-get install git ansible -y
 ```
 
-On vagrant you will also need to install community collection
-```
-$ sudo ansible-galaxy collection install community.general
-```
-
 and cloned magma repo:
 ```
 $ git clone https://github.com/magma/magma.git
