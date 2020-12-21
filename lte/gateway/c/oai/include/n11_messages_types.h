@@ -119,7 +119,6 @@ typedef struct itti_n11_create_pdu_session_response_s {
   SscMode_response allowed_ssc_mode;
   bool M5gsm_congetion_re_attempt_indicator;
   RedirectServer_response pdu_address;
-  // take data from TS 129 571
 } itti_n11_create_pdu_session_response_t;
 
 #define N11_CREATE_PDU_SESSION_RESPONSE(mSGpTR)                                \
