@@ -1,3 +1,4 @@
+{{/*
 # Copyright 2020 The Magma Authors.
 
 # This source code is licensed under the BSD-style license found in the
@@ -8,24 +9,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+*/}}
 
-dependencies:
-  - name: secrets
-    version: 0.1.9
-    repository: ""
-    condition: secrets.create
-  - name: metrics
-    version: 1.4.19
-    repository: ""
-    condition: metrics.enabled
-  - name: nms
-    version: 0.1.7
-    repository: ""
-    condition: nms.enabled
-  - name: logging
-    version: 0.1.10
-    repository: ""
-    condition: logging.enabled
-  - name: orc8rlib
-    version: 0.1.1
-    repository: file://../orc8rlib
+{{- include "orc8rlib.service" (list . "ha.service") -}}
+{{- define "ha.service" -}}
+metadata:
+  name: orc8r-lte
+  labels:
+    {{- with .Values.ha.service.labels }}
+{{ toYaml . | indent 4}}
+    {{- end}}
+  {{- with .Values.ha.service.annotations }}
+  annotations:
+{{ toYaml . | indent 4}}
+  {{- end }}
+spec:
+  selector:
+    app.kubernetes.io/component: ha
+  ports:
+    - name: grpc
+      port: 9180
+      targetPort: 9119
+{{- end -}}
