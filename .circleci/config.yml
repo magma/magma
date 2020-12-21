@@ -23,6 +23,8 @@ aliases:
     paths: "nms"
   - &orc8r_build_verify
     paths: "orc8r"
+  - &cwf_build_verify
+    paths: "cwf"
 
 executors:
   node:
@@ -630,7 +632,7 @@ jobs:
     steps:
       - checkout
       - build/determinator:
-          <<: *all_gateways_build_verify
+          <<: *cwf_build_verify
       - docker/install-dc
       - run:
           name: Build CWAG containers
