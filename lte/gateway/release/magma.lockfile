@@ -362,8 +362,8 @@
     "lxml": {
       "version": "4.2.1"
     },
-    "pycrypto": {
-      "version": "2.6.1"
+    "pycryptodome": {
+      "version": "3.9.9"
     },
     "pymemoize": {
       "version": "1.0.2"

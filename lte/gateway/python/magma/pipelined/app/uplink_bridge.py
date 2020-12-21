@@ -169,6 +169,8 @@ class UplinkBridgeController(MagmaController):
         self._install_flow(flows.MINIMUM_PRIORITY, match, actions)
 
         # everything else:
+        self._kill_dhclient(self.config.uplink_eth_port_name)
+
         self._set_sgi_ip_addr(self.config.uplink_bridge)
         self._set_sgi_gw(self.config.uplink_bridge)
         self._set_arp_ignore('all', '1')
@@ -278,12 +280,7 @@ class UplinkBridgeController(MagmaController):
             return
 
         try:
-            # Kill dhclient if running.
-            pgrep_out = subprocess.Popen(["pgrep", "-f",
-                                          "dhclient.*" + if_name],
-                                         stdout=subprocess.PIPE)
-            for pid in pgrep_out.stdout.readlines():
-                subprocess.check_call(["kill", pid.strip()])
+            self._kill_dhclient(if_name)
 
             flush_ip = ["ip", "addr", "flush",
                         "dev", if_name]
@@ -298,6 +295,13 @@ class UplinkBridgeController(MagmaController):
             self.logger.debug("SGi ip address config: [%s]", set_ip_cmd)
         except subprocess.SubprocessError as e:
             self.logger.warning("Error while setting SGi IP: %s", e)
+
+    def _kill_dhclient(self, if_name):
+        # Kill dhclient if running.
+        pgrep_out = subprocess.Popen(["pgrep", "-f", "dhclient.*" + if_name],
+                                     stdout=subprocess.PIPE)
+        for pid in pgrep_out.stdout.readlines():
+            subprocess.check_call(["kill", pid.strip()])
 
     def _restart_dhclient(self, if_name):
         # restart DHCP client can take loooong time, process it in separate thread:
