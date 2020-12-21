@@ -33,10 +33,10 @@ STATELESS_SERVICE_CONFIGS = [
 def _check_stateless_service_config(service, config_name, config_value):
     service_config = load_service_config(service)
     if service_config.get(config_name) == config_value:
-        logging.info("STATELESS\t%s -> %s" % (service, config_name))
+        logging.info("STATELESS\t%s -> %s", service, config_name)
         return magmad_pb2.StatelessAgwMode.STATELESS
 
-    logging.info("STATEFUL\t%s -> %s" % (service, config_name))
+    logging.info("STATEFUL\t%s -> %s", service, config_name)
     return magmad_pb2.StatelessAgwMode.STATEFUL
 
 
@@ -82,7 +82,7 @@ def enable_stateless_agw():
 def disable_stateless_agw():
     if check_stateless_agw() == magmad_pb2.StatelessAgwMode.STATEFUL:
         logging.info("Nothing to disable, AGW is stateful")
-    for service, config, value in STATELESS_SERVICE_CONFIGS:
+    for service, config, _ in STATELESS_SERVICE_CONFIGS:
         cfg = load_override_config(service) or {}
 
         # remove the stateless override
