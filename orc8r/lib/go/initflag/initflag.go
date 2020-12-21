@@ -17,7 +17,9 @@ package initflag
 import (
 	"flag"
 	"fmt"
+	"io/ioutil"
 	"os"
+	"strings"
 )
 
 func init() {
@@ -26,20 +28,19 @@ func init() {
 		syslogFlag,
 		"Redirect stderr to syslog, optional syslog destination in network::address format (system default otherwise)")
 
-	// only if not already parsed
-	if !flag.Parsed() {
-		// save original settings
+	if shouldParse() {
+		// Save original settings
 		orgUsage := flag.CommandLine.Usage
 		origOut := flag.CommandLine.Output()
 		origErrorHandling := flag.CommandLine.ErrorHandling()
 
-		// set to 'silent'
+		// Set to 'silent'
 		flag.CommandLine.Init(flag.CommandLine.Name(), flag.ContinueOnError)
 		flag.CommandLine.Usage = func() {}
-		flag.CommandLine.SetOutput(devNull{})
+		flag.CommandLine.SetOutput(ioutil.Discard)
 		flag.Parse()
 
-		// restore original settings
+		// Restore original settings
 		flag.CommandLine.Init(flag.CommandLine.Name(), origErrorHandling)
 		flag.CommandLine.Usage = orgUsage
 		flag.CommandLine.SetOutput(origOut)
@@ -60,8 +61,11 @@ func init() {
 	}
 }
 
-type devNull struct{}
-
-func (devNull) Write(b []byte) (int, error) {
-	return len(b), nil
+// shouldParse returns true if initflag should parse flags.
+// This hack works around the fact that initflags breaks test tool outputs.
+func shouldParse() bool {
+	isTest := strings.HasSuffix(os.Args[0], ".test") ||
+		strings.HasSuffix(os.Args[0], "_test.go") ||
+		strings.HasSuffix(os.Args[0], "_test_go")
+	return !flag.Parsed() && !isTest
 }
