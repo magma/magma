@@ -79,8 +79,6 @@ case $BUILD_TYPE in
 esac
 
 
-sudo add-apt-repository 'deb [arch=amd64] https://dl.bintray.com/tetrate/getenvoy-deb stretch stable'
-
 # Default options
 BUILD_DATE=`date -u +"%Y%m%d%H%M%S"`
 ARCH=amd64
@@ -144,16 +142,6 @@ OVS_DEPS=(
     "openvswitch-datapath-module-4.9.0-9-amd64 >= 2.8.9"
     )
 
-# Envoy dependecies
-ENVOY_DEPS=(
-    "apt-transport-https"
-    "ca-certificates"
-    "curl"
-    "gnupg2"
-    "software-properties-common"
-    "getenvoy-envoy"
-    )
-
 # generate string for FPM
 SYSTEM_DEPS=""
 for dep in "${MAGMA_DEPS[@]}"
@@ -165,10 +153,6 @@ do
     SYSTEM_DEPS=${SYSTEM_DEPS}" -d '"${dep}"'"
 done
 for dep in "${OVS_DEPS[@]}"
-do
-    SYSTEM_DEPS=${SYSTEM_DEPS}" -d '"${dep}"'"
-done
-for dep in "${ENVOY_DEPS[@]}"
 do
     SYSTEM_DEPS=${SYSTEM_DEPS}" -d '"${dep}"'"
 done
@@ -235,9 +219,6 @@ make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
 
-# Build Envoy Controller service
-cd "${MAGMA_ROOT}/feg/gateway"
-make install_envoy_controller
 
 # Next, gather up the python files and put them into a build path.
 #
