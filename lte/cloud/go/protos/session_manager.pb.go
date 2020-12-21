@@ -5857,7 +5857,9 @@ func (m *UPFSessionConfigState) GetUpfSessionState() []*UPFSessionState {
 }
 
 type UPFPagingInfo struct {
-	UeIpAddr             string   `protobuf:"bytes,1,opt,name=ue_ip_addr,json=ueIpAddr,proto3" json:"ue_ip_addr,omitempty"`
+	SubscriberId         string   `protobuf:"bytes,1,opt,name=subscriber_id,json=subscriberId,proto3" json:"subscriber_id,omitempty"`
+	LocalFTeid           uint32   `protobuf:"varint,2,opt,name=local_f_teid,json=localFTeid,proto3" json:"local_f_teid,omitempty"`
+	UeIpAddr             string   `protobuf:"bytes,3,opt,name=ue_ip_addr,json=ueIpAddr,proto3" json:"ue_ip_addr,omitempty"`
 	XXX_NoUnkeyedLiteral struct{} `json:"-"`
 	XXX_unrecognized     []byte   `json:"-"`
 	XXX_sizecache        int32    `json:"-"`
@@ -5887,6 +5889,20 @@ func (m *UPFPagingInfo) XXX_DiscardUnknown() {
 }
 
 var xxx_messageInfo_UPFPagingInfo proto.InternalMessageInfo
+
+func (m *UPFPagingInfo) GetSubscriberId() string {
+	if m != nil {
+		return m.SubscriberId
+	}
+	return ""
+}
+
+func (m *UPFPagingInfo) GetLocalFTeid() uint32 {
+	if m != nil {
+		return m.LocalFTeid
+	}
+	return 0
+}
 
 func (m *UPFPagingInfo) GetUeIpAddr() string {
 	if m != nil {

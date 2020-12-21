@@ -28,6 +28,10 @@ from ryu.ofproto.ofproto_v1_4 import OFPP_LOCAL
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, set_ev_cls
 from lte.protos.session_manager_pb2 import UPFPagingInfo
+from magma.pipelined.app.enforcement_stats import _get_sid, _get_ipv4, _get_tunnel_id
+from ryu.ofproto.ofproto_v1_4 import OFPMPF_REPLY_MORE
+from magma.pipelined.openflow import messages
+from magma.pipelined.openflow.exceptions import MagmaOFError
 
 GTP_PORT_MAC = "02:00:00:00:00:01"
 TUNNEL_OAM_FLAG = 1
@@ -62,6 +66,7 @@ class Classifier(MagmaController):
         #Get SessionD Channel
         self._sessiond_setinterface = kwargs['rpc_stubs']['sessiond_setinterface']
         self.loop = kwargs['loop']
+        self.pagingflag = 0
 
     def _get_config(self, config_dict):
         mtr_ip = None
@@ -191,11 +196,51 @@ class Classifier(MagmaController):
         paging_message=UPFPagingInfo(ue_ip_addr=ue_ip_add)
         #logging.info("_send_messsage_interface:%s", paging_message)
         future = self._sessiond_setinterface.SetPagingInitiated.future(
+
+        ofproto, parser = self._datapath.ofproto, self._datapath.ofproto_parser
+        match = MagmaMatch(eth_type=ether_types.ETH_TYPE_IP, ipv4_src=ue_ip_add)
+        ryu_match = parser.OFPMatch(**match.ryu_match)
+        req = parser.OFPFlowStatsRequest(self._datapath, table_id=14,
+                out_group=ofproto.OFPG_ANY,
+                out_port=ofproto.OFPP_ANY,match=ryu_match)
+        try:
+            messages.send_msg(self._datapath, req)
+            self.pagingflag = 1
+        except MagmaOFError as e:
+            self.logger.warning("Couldn't poll datapath stats: %s", e)
+            self.pagingflag = 0
+
+    @set_ev_cls(ofp_event.EventOFPFlowStatsReply, MAIN_DISPATCHER)
+    def _flow_info_reply_handler(self, ev):
+        if self.pagingflag:
+            flow_info = ev.msg.body
+            self.pagingflag = 0
+            if ev.msg.flags == OFPMPF_REPLY_MORE:
+                # Wait for more multi-part responses thats received for the
+                # single stats request.
+                return
+            if flow_info:
+                self.loop.call_soon_threadsafe(
+                                       self._handle_flow_info, flow_info)
+
+    def _handle_flow_info(self, flow_info):
+        for stat in flow_info:
+            sid = _get_sid(stat)
+            ipv4_addr = _get_ipv4(stat)
+            tunnel_id = _get_tunnel_id(stat)
+
+        if (sid != None and ipv4_addr !=None and tunnel_id):
+            paging_message=UPFPagingInfo(subscriber_id = sid, local_f_teid=tunnel_id,
+                                         ue_ip_addr=ipv4_addr)
+
+            #paging_message=UPFPagingInfo(ue_ip_addr=ue_ip_add)
+            logging.info("_send_messsage_interface:%s", paging_message)
+            future = self._sessiond_setinterface.SendPagingReuest.future(
                             paging_message, self.SESSIOND_RPC_TIMEOUT)
-        future.add_done_callback(
+            future.add_done_callback(
                               lambda future: self.loop.call_soon_threadsafe(
                               self._callback_method, future))
-    
+
     def _callback_method(self, future):
         """
         Callback after sessiond RPC completion
