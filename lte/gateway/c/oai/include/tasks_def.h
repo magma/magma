@@ -65,5 +65,5 @@ TASK_DEF(TASK_SGS)
 TASK_DEF(TASK_SMS_ORC8R)
 /// GRPC service task for SGs, S6a, SPGW
 TASK_DEF(TASK_GRPC_SERVICE)
-/// AMF_APP task
+/// AMF Application task
 TASK_DEF(TASK_AMF_APP)

@@ -23,10 +23,10 @@ extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 int send_n11_create_pdu_session_resp_itti(
     itti_n11_create_pdu_session_response_t* itti_msg) {
-  OAILOG_INFO(
+  OAILOG_DEBUG(
       LOG_UTIL, "Sending itti_n11_create_pdu_session_response to AMF \n");
   MessageDef* message_p = itti_alloc_new_message(
       TASK_GRPC_SERVICE, N11_CREATE_PDU_SESSION_RESPONSE);
-  message_p->ittiMsg.itti_n11_create_pdu_session_response = *itti_msg;
+  message_p->ittiMsg.n11_create_pdu_session_response = *itti_msg;
   return send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_AMF_APP, message_p);
 }
