@@ -1,4 +1,4 @@
-/**
+/*
  * Copyright 2020 The Magma Authors.
  *
  * This source code is licensed under the BSD-style license found in the
@@ -91,8 +91,18 @@ typedef enum RedirectAddressType_response_s {
 
 typedef struct RedirectServer_response_s {
   RedirectAddressType_response redirect_address_type;
-  char redirect_server_address[32];
+  uint8_t redirect_server_address[16];
 } RedirectServer_response;
+
+typedef struct QosRules_response_s {
+  uint32_t qos_rule_identifier;
+  bool dqr;
+  uint32_t number_of_packet_filters;
+  uint32_t packet_filter_identifier[16];
+  uint32_t qos_rule_precedence;
+  bool segregation;
+  uint32_t qos_flow_identifier;
+} QosRules_response;
 
 typedef struct itti_n11_create_pdu_session_response_s {
   // common context
@@ -100,9 +110,10 @@ typedef struct itti_n11_create_pdu_session_response_s {
   SMSessionFSMState_response sm_session_fsm_state;
   uint32_t sm_session_version;
   // M5GSMSessionContextAccess
-  char pdu_session_id[2];
+  uint8_t pdu_session_id[2];
   PduSessionType_response pdu_session_type;
   SscMode_response selected_ssc_mode;
+  QosRules_response authorized_qos_rules[4];
   M5GSMCause_response M5gsm_cause;
   bool always_on_pdu_session_indication;
   SscMode_response allowed_ssc_mode;
