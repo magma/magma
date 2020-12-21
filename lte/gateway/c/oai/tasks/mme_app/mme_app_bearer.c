@@ -1489,7 +1489,6 @@ static int mme_app_send_modify_bearer_request_for_active_pdns(
     itti_s11_modify_bearer_request_t* s11_modify_bearer_request =
         &message_p->ittiMsg.s11_modify_bearer_request;
     s11_modify_bearer_request->local_teid = ue_context_p->mme_teid_s11;
-
     // Delay Value in integer multiples of 50 millisecs, or zero
     s11_modify_bearer_request->delay_dl_packet_notif_req = 0;  // TODO
 
