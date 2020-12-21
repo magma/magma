@@ -7148,7 +7148,7 @@ var _AmfPduSessionSmContext_serviceDesc = grpc.ServiceDesc{
 type SetInterfaceForUserPlaneClient interface {
 	SetUPFNodeState(ctx context.Context, in *UPFNodeState, opts ...grpc.CallOption) (*protos.Void, error)
 	SetUPFSessionsConfig(ctx context.Context, in *UPFSessionConfigState, opts ...grpc.CallOption) (*protos.Void, error)
-	SetPagingInitiated(ctx context.Context, in *UPFPagingInfo, opts ...grpc.CallOption) (*protos.Void, error)
+	SendPagingReuest(ctx context.Context, in *UPFPagingInfo, opts ...grpc.CallOption) (*protos.Void, error)
 }
 
 type setInterfaceForUserPlaneClient struct {
@@ -7177,9 +7177,9 @@ func (c *setInterfaceForUserPlaneClient) SetUPFSessionsConfig(ctx context.Contex
 	return out, nil
 }
 
-func (c *setInterfaceForUserPlaneClient) SetPagingInitiated(ctx context.Context, in *UPFPagingInfo, opts ...grpc.CallOption) (*protos.Void, error) {
+func (c *setInterfaceForUserPlaneClient) SendPagingReuest(ctx context.Context, in *UPFPagingInfo, opts ...grpc.CallOption) (*protos.Void, error) {
 	out := new(protos.Void)
-	err := c.cc.Invoke(ctx, "/magma.lte.SetInterfaceForUserPlane/SetPagingInitiated", in, out, opts...)
+	err := c.cc.Invoke(ctx, "/magma.lte.SetInterfaceForUserPlane/SendPagingReuest", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -7190,7 +7190,7 @@ func (c *setInterfaceForUserPlaneClient) SetPagingInitiated(ctx context.Context,
 type SetInterfaceForUserPlaneServer interface {
 	SetUPFNodeState(context.Context, *UPFNodeState) (*protos.Void, error)
 	SetUPFSessionsConfig(context.Context, *UPFSessionConfigState) (*protos.Void, error)
-	SetPagingInitiated(context.Context, *UPFPagingInfo) (*protos.Void, error)
+	SendPagingReuest(context.Context, *UPFPagingInfo) (*protos.Void, error)
 }
 
 // UnimplementedSetInterfaceForUserPlaneServer can be embedded to have forward compatible implementations.
@@ -7203,8 +7203,8 @@ func (*UnimplementedSetInterfaceForUserPlaneServer) SetUPFNodeState(ctx context.
 func (*UnimplementedSetInterfaceForUserPlaneServer) SetUPFSessionsConfig(ctx context.Context, req *UPFSessionConfigState) (*protos.Void, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetUPFSessionsConfig not implemented")
 }
-func (*UnimplementedSetInterfaceForUserPlaneServer) SetPagingInitiated(ctx context.Context, req *UPFPagingInfo) (*protos.Void, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method SetPagingInitiated not implemented")
+func (*UnimplementedSetInterfaceForUserPlaneServer) SendPagingReuest(ctx context.Context, req *UPFPagingInfo) (*protos.Void, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SendPagingReuest not implemented")
 }
 
 func RegisterSetInterfaceForUserPlaneServer(s *grpc.Server, srv SetInterfaceForUserPlaneServer) {
@@ -7247,20 +7247,20 @@ func _SetInterfaceForUserPlane_SetUPFSessionsConfig_Handler(srv interface{}, ctx
 	return interceptor(ctx, in, info, handler)
 }
 
-func _SetInterfaceForUserPlane_SetPagingInitiated_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+func _SetInterfaceForUserPlane_SendPagingReuest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(UPFPagingInfo)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(SetInterfaceForUserPlaneServer).SetPagingInitiated(ctx, in)
+		return srv.(SetInterfaceForUserPlaneServer).SendPagingReuest(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/magma.lte.SetInterfaceForUserPlane/SetPagingInitiated",
+		FullMethod: "/magma.lte.SetInterfaceForUserPlane/SendPagingReuest",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(SetInterfaceForUserPlaneServer).SetPagingInitiated(ctx, req.(*UPFPagingInfo))
+		return srv.(SetInterfaceForUserPlaneServer).SendPagingReuest(ctx, req.(*UPFPagingInfo))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -7278,8 +7278,8 @@ var _SetInterfaceForUserPlane_serviceDesc = grpc.ServiceDesc{
 			Handler:    _SetInterfaceForUserPlane_SetUPFSessionsConfig_Handler,
 		},
 		{
-			MethodName: "SetPagingInitiated",
-			Handler:    _SetInterfaceForUserPlane_SetPagingInitiated_Handler,
+			MethodName: "SendPagingReuest",
+			Handler:    _SetInterfaceForUserPlane_SendPagingReuest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

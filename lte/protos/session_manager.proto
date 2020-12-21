@@ -964,7 +964,7 @@ message UPFPagingInfo {
 service SetInterfaceForUserPlane {
     rpc SetUPFNodeState(UPFNodeState) returns (magma.orc8r.Void) {}
     rpc SetUPFSessionsConfig(UPFSessionConfigState) returns (magma.orc8r.Void) {}
-    rpc SetPagingInitiated(UPFPagingInfo) returns (magma.orc8r.Void) {}
+    rpc SendPagingReuest(UPFPagingInfo) returns (magma.orc8r.Void) {}
 }
 
 // RPC service and method
