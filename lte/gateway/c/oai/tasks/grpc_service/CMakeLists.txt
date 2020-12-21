@@ -28,8 +28,8 @@ generate_grpc_protos("${AMFSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 
 # SPGW
-set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd)
-set(SPGWSRV_LTE_GRPC_PROTOS spgw_service)
+set(SPGWSRV_LTE_CPP_PROTOS spgw_service subscriberdb policydb mobilityd session_manager)
+set(SPGWSRV_LTE_GRPC_PROTOS spgw_service session_manager)
 generate_cpp_protos("${SPGWSRV_LTE_CPP_PROTOS}" "${PROTO_SRCS}"
   "${PROTO_HDRS}" ${LTE_PROTO_DIR} ${LTE_OUT_DIR})
 generate_grpc_protos("${SPGWSRV_LTE_GRPC_PROTOS}" "${PROTO_SRCS}"

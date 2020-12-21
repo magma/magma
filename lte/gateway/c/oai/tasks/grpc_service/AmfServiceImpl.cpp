@@ -21,6 +21,7 @@
 
 #include <string>
 
+#include "AmfServiceImpl.h"
 #include "lte/protos/session_manager.pb.h"
 #include "lte/protos/subscriberdb.pb.h"
 
@@ -28,7 +29,6 @@ extern "C" {
 #include "amf_service_handler.h"
 #include "log.h"
 }
-#include "AmfServiceImpl.h"
 
 namespace grpc {
 class ServerContext;
