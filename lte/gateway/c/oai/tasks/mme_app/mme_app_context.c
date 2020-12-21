@@ -2478,3 +2478,36 @@ static void mme_app_handle_timer_for_unregistered_ue(
   }
   OAILOG_FUNC_OUT(LOG_MME_APP);
 }
+
+void mme_app_remove_stale_ue_context(
+    mme_app_desc_t* mme_app_desc_p,
+    itti_s1ap_remove_stale_ue_context_t* s1ap_remove_stale_ue_context) {
+  OAILOG_FUNC_IN(LOG_MME_APP);
+  enb_s1ap_id_key_t enb_s1ap_id_key = INVALID_ENB_UE_S1AP_ID_KEY;
+  MME_APP_ENB_S1AP_ID_KEY(
+      enb_s1ap_id_key, s1ap_remove_stale_ue_context->enb_id,
+      s1ap_remove_stale_ue_context->enb_ue_s1ap_id);
+  if (INVALID_ENB_UE_S1AP_ID_KEY != enb_s1ap_id_key) {
+    uint64_t mme_ue_s1ap_id = INVALID_MME_UE_S1AP_ID;
+    if (hashtable_uint64_ts_get(
+            mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+            (const hash_key_t) enb_s1ap_id_key,
+            &mme_ue_s1ap_id) == HASH_TABLE_OK) {
+      ue_mm_context_t* ue_context_p =
+          mme_ue_context_exists_mme_ue_s1ap_id(mme_ue_s1ap_id);
+      if (!ue_context_p) {
+        hashtable_uint64_ts_remove(
+            mme_app_desc_p->mme_ue_contexts.enb_ue_s1ap_id_ue_context_htbl,
+            (const hash_key_t) enb_s1ap_id_key);
+        OAILOG_INFO(
+            LOG_MME_APP,
+            "Removed stale UE context for mme_ue_s1ap_id " MME_UE_S1AP_ID_FMT
+            "enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT " enb_id: %d \n ",
+            (mme_ue_s1ap_id_t) mme_ue_s1ap_id,
+            s1ap_remove_stale_ue_context->enb_ue_s1ap_id,
+            s1ap_remove_stale_ue_context->enb_id);
+      }
+    }
+  }
+  OAILOG_FUNC_OUT(LOG_MME_APP);
+}

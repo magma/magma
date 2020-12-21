@@ -317,6 +317,7 @@ int s1ap_mme_handle_uplink_nas_transport(
       s1ap_mme_generate_ue_context_release_command(
           state, ue_ref, S1AP_INVALID_MME_UE_S1AP_ID, imsi64, assoc_id, stream,
           mme_ue_s1ap_id, enb_ue_s1ap_id);
+      s1ap_mme_remove_stale_ue_context(enb_ue_s1ap_id, enb_ref->enb_id);
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
     }
   }

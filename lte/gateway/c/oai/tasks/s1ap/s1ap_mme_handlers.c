@@ -3439,3 +3439,25 @@ int s1ap_mme_handle_erab_rel_response(
   rc = send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
+
+int s1ap_mme_remove_stale_ue_context(
+    enb_ue_s1ap_id_t enb_ue_s1ap_id, uint32_t enb_id) {
+  OAILOG_FUNC_IN(LOG_S1AP);
+  MessageDef* message_p = NULL;
+  message_p = itti_alloc_new_message(TASK_S1AP, S1AP_REMOVE_STALE_UE_CONTEXT);
+  if (!message_p) {
+    OAILOG_ERROR(
+        LOG_S1AP,
+        "Failed to allocate memory for S1AP_REMOVE_STALE_UE_CONTEXT \n");
+    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
+  }
+  S1AP_REMOVE_STALE_UE_CONTEXT(message_p).enb_ue_s1ap_id = enb_ue_s1ap_id;
+  S1AP_REMOVE_STALE_UE_CONTEXT(message_p).enb_id         = enb_id;
+  OAILOG_INFO(
+      LOG_S1AP,
+      "sent S1AP_REMOVE_STALE_UE_CONTEXT for enb_ue_s1ap_id " ENB_UE_S1AP_ID_FMT
+      "\n",
+      enb_ue_s1ap_id);
+  send_msg_to_task(&s1ap_task_zmq_ctx, TASK_MME_APP, message_p);
+  OAILOG_FUNC_RETURN(LOG_S1AP, RETURNok);
+}
