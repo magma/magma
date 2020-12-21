@@ -50,7 +50,7 @@ func TestTenantsServicer(t *testing.T) {
 	assert.Equal(t, &sampleTenant, getResp)
 
 	// Get "other" tenant
-	getResp, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
+	_, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
 	assert.Equal(t, "Tenant 2 not found", status.Convert(err).Message())
 
@@ -67,7 +67,7 @@ func TestTenantsServicer(t *testing.T) {
 	assert.Equal(t, sampleTenant2, *getResp)
 
 	// Update nonexistent tenant
-	setResp, err = srv.SetTenant(context.Background(), &protos.IDAndTenant{
+	_, err = srv.SetTenant(context.Background(), &protos.IDAndTenant{
 		Id:     3,
 		Tenant: &sampleTenant2,
 	})
@@ -75,7 +75,7 @@ func TestTenantsServicer(t *testing.T) {
 	assert.Equal(t, "Tenant 3 not found", status.Convert(err).Message())
 
 	// Create second tenant
-	createResp, err = srv.CreateTenant(context.Background(), &protos.IDAndTenant{
+	_, err = srv.CreateTenant(context.Background(), &protos.IDAndTenant{
 		Id:     2,
 		Tenant: &sampleTenant,
 	})
@@ -91,7 +91,7 @@ func TestTenantsServicer(t *testing.T) {
 	assert.NoError(t, err)
 	assert.Equal(t, protos.Void{}, *delResp)
 
-	getResp, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
+	_, err = srv.GetTenant(context.Background(), &protos.GetTenantRequest{Id: 2})
 	assert.Equal(t, codes.NotFound, status.Convert(err).Code())
 	assert.Equal(t, "Tenant 2 not found", status.Convert(err).Message())
 }

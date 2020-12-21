@@ -399,6 +399,7 @@ func TestBootstrapperServer(t *testing.T) {
 	err := configurator.CreateNetwork(configurator.Network{ID: testNetworkID, Name: "Test Network Name"}, serdes.Network)
 	assert.NoError(t, err)
 	exists, err := configurator.DoesNetworkExist(testNetworkID)
+	assert.NoError(t, err)
 	assert.True(t, exists)
 
 	ctx := context.Background()
@@ -413,6 +414,7 @@ func TestBootstrapperServer(t *testing.T) {
 	privateKey, err = key.GenerateKey("", 2048)
 	assert.NoError(t, err)
 	srv, err := servicers.NewBootstrapperServer(privateKey.(*rsa.PrivateKey))
+	assert.NoError(t, err)
 
 	// for signing csr
 	certifier_test_init.StartTestService(t)

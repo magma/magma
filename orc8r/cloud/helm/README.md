@@ -19,5 +19,5 @@ CLI (if you've configured it): `jfrog rt upload orc8r-X.tgz orc8r-charts`
 
 If you're making changes to the chart under orc8rlib/, you need to run
 `helm dependency update` from the directory of the helm chart (e.g.
-`/magma/orc8r/cloud/helm/orc8r`) that uses this libary chart in order to
+`/magma/orc8r/cloud/helm/orc8r`) that uses this library chart in order to
 pull in the changes.

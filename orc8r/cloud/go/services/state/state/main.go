@@ -14,6 +14,7 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"time"
 
@@ -90,7 +91,7 @@ func newIndexerManagerServicer(cfg *config.ConfigMap, db *sql.DB, store blobstor
 
 	if autoReindex {
 		glog.Info("Automatic reindexing enabled for state service")
-		go reindexer.Run(nil)
+		go reindexer.Run(context.Background())
 	} else {
 		glog.Info("Automatic reindexing disabled for state service")
 	}

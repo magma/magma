@@ -113,7 +113,7 @@ func (c *certifierBlobstore) GetAllCertInfo() (map[string]*protos.CertificateInf
 	if len(serialNumbers) == 0 {
 		return infos, store.Commit()
 	}
-	
+
 	tks := storage.MakeTKs(CertInfoType, serialNumbers)
 	blobs, err := store.GetMany(placeholderNetworkID, tks)
 	if err != nil {

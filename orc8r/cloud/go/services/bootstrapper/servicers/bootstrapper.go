@@ -176,7 +176,7 @@ func (srv *BootstrapperServer) verifyChallenge(challenge []byte) error {
 	randLen := ChallengeLength - TimeLength - srv.signatureLength()
 	timeBytes := challenge[randLen : randLen+TimeLength]
 	issueTime := time.Unix(int64(binary.BigEndian.Uint64(timeBytes)), 0)
-	expireTime := issueTime.Add(time.Duration(ChallengeExpireTime))
+	expireTime := issueTime.Add(ChallengeExpireTime)
 	now := time.Now().UTC()
 	if issueTime.After(now) {
 		return fmt.Errorf("Challenge is not valid yet")

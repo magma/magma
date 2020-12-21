@@ -125,7 +125,7 @@ func pushHandler(c echo.Context) error {
 		return nerr
 	}
 
-	pushedMetrics := make([]*protos.PushedMetric, 0, 0)
+	var pushedMetrics []*protos.PushedMetric
 	err := json.NewDecoder(c.Request().Body).Decode(&pushedMetrics)
 	if err != nil {
 		return obsidian.HttpError(err, http.StatusBadRequest)

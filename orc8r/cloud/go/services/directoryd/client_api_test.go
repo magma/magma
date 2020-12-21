@@ -174,11 +174,11 @@ func TestDirectorydStateMethods(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0, should be gone
-	hwid, err = directoryd.GetHWIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetHWIDForIMSI(nid0, imsi0)
 	assert.Error(t, err)
 
 	// Get imsi0->sid0, should be gone
-	sid, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
 	assert.Error(t, err)
 }
 
@@ -236,11 +236,11 @@ func TestDirectorydUpdateMethods(t *testing.T) {
 	assert.NoError(t, err)
 
 	// Get imsi0->hwid0, should be gone
-	hwid, err = directoryd.GetHWIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetHWIDForIMSI(nid0, imsi0)
 	assert.Error(t, err)
 
 	// Get imsi0->sid0, should be gone
-	sid, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
+	_, err = directoryd.GetSessionIDForIMSI(nid0, imsi0)
 	assert.Error(t, err)
 }
 

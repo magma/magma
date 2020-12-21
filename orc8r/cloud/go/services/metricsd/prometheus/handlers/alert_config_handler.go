@@ -27,6 +27,7 @@ import (
 
 	"github.com/facebookincubator/prometheus-configmanager/prometheus/alert"
 	"github.com/labstack/echo"
+	"github.com/pkg/errors"
 	"github.com/prometheus/alertmanager/api/v2/models"
 	"github.com/prometheus/prometheus/pkg/rulefmt"
 )
@@ -143,21 +144,24 @@ func configurePrometheusAlert(networkID, url string, c echo.Context) error {
 func sendConfig(payload interface{}, url string, method string) *echo.HTTPError {
 	requestBody, err := json.Marshal(payload)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusBadRequest, err)
+		return obsidian.HttpError(err, http.StatusBadRequest)
 	}
 
 	client := &http.Client{}
 	req, err := http.NewRequest(method, url, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return obsidian.HttpError(errors.Wrap(err, "create http request"))
+	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return echo.NewHTTPError(http.StatusInternalServerError, fmt.Errorf("error making %s request: %v", method, err))
+		return obsidian.HttpError(errors.Wrapf(err, "make %s request", method))
 	}
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
 		var body echo.HTTPError
 		_ = json.NewDecoder(resp.Body).Decode(&body)
-		return echo.NewHTTPError(resp.StatusCode, fmt.Errorf("error writing config: %v", body.Message))
+		return obsidian.HttpError(fmt.Errorf("error writing config: %v", body.Message), resp.StatusCode)
 	}
 	return nil
 }
@@ -250,14 +254,17 @@ func bulkUpdateAlerts(c echo.Context, url string) error {
 func sendBulkConfig(payload interface{}, url string) (string, error) {
 	requestBody, err := json.Marshal(payload)
 	if err != nil {
-		return "", err
+		return "", obsidian.HttpError(err)
 	}
 
 	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodPut, url, bytes.NewBuffer(requestBody))
+	if err != nil {
+		return "", obsidian.HttpError(errors.Wrap(err, "create http request"))
+	}
 	resp, err := client.Do(req)
 	if err != nil {
-		return "", fmt.Errorf("Error making PUT request: %v\n", err)
+		return "", obsidian.HttpError(errors.Wrap(err, "make PUT request"))
 	}
 	defer resp.Body.Close()
 
@@ -268,7 +275,7 @@ func sendBulkConfig(payload interface{}, url string) (string, error) {
 	}
 	contents, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		return "", err
+		return "", obsidian.HttpError(err)
 	}
 	return string(contents), nil
 }

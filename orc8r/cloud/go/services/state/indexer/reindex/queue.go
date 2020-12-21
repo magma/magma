@@ -106,7 +106,9 @@ func GetErrors(queue JobQueue) (map[string]string, error) {
 	}
 	jobErrsByID := map[string]string{}
 	for id, info := range infos {
-		jobErrsByID[id] = info.Error
+		if info.Error != "" {
+			jobErrsByID[id] = info.Error
+		}
 	}
 	return jobErrsByID, nil
 }

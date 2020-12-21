@@ -53,7 +53,6 @@ define add_module
 	TEST_LIST += $(MODULE)_test
 	TIDY_LIST += $(MODULE)_tidy
 	TOOLS_LIST += $(MODULE)_tools
-	VET_LIST += $(MODULE)_vet
 
 	MIGRATION_PLUGIN_LIST += $(MODULE)_migrationplugin
 endef
@@ -63,9 +62,9 @@ _ := $(foreach module, $(MAGMA_MODULES), $(eval $(call add_module,$(module))))
 ## General rules ##
 ###################
 
-precommit: fmt test vet swagger_validate
+precommit: fmt lint test
 
-build: plugin $(BUILD_LIST) migration_plugin swagger
+build: $(BUILD_LIST) migration_plugin swagger
 $(BUILD_LIST): %_build:
 	make -C $*/cloud/go build
 
@@ -90,6 +89,7 @@ $(DOWNLOAD_LIST): %_download:
 fmt: $(FMT_LIST)
 $(FMT_LIST): %_fmt:
 	make -C $*/cloud/go fmt
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go fmt ; fi
 
 gen: tools swagger $(GEN_LIST)
 $(GEN_LIST): %_gen:
@@ -97,29 +97,28 @@ $(GEN_LIST): %_gen:
 
 fullgen: clean_gen gen tidy
 
-lint: $(LINT_LIST)
+lint: lint_tools $(LINT_LIST)
 $(LINT_LIST): %_lint:
 	make -C $*/cloud/go lint
-
-plugin: $(PLUGIN_LIST)
-$(PLUGIN_LIST): %_plugin:
-	make -C $*/cloud/go plugin
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go lint ; fi
 
 test: tools $(TEST_LIST)
 $(TEST_LIST): %_test:
 	make -C $*/cloud/go test
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go test ; fi
 
 tidy: $(TIDY_LIST)
 $(TIDY_LIST): %_tidy:
 	make -C $*/cloud/go tidy
+	if [ -d $*/lib/go ] ; then make -C $*/lib/go tidy ; fi
 
 tools: $(TOOLS_LIST)
 $(TOOLS_LIST): %_tools:
 	make -C $*/cloud/go tools
 
-vet: $(VET_LIST)
-$(VET_LIST): %_vet:
-	make -C $*/cloud/go vet
+lint_tools:
+	curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh \
+		| sh -s -- -b $$(go env GOPATH)/bin v1.35.2
 
 ######################
 ## Swagger/API docs ##
@@ -130,6 +129,7 @@ swagger: tools swagger_directories $(SWAGGER_LIST)
 	combine_swagger --in=$(SWAGGER_V1_TMP_GEN) --common=$(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON) --out=$(SWAGGER_V1_YML)
 	rm -rf $(SWAGGER_V1_TMP_GEN)
 	rm $(SWAGGER_V1_ROOT)/$(SWAGGER_COMMON)
+	swagger validate $(SWAGGER_V1_YML)
 
 swagger_directories:
 	rm -rf $(SWAGGER_V1_TMP_GEN)
@@ -137,9 +137,6 @@ swagger_directories:
 
 $(SWAGGER_LIST): %_swagger:
 	make -C $*/cloud/go copy_swagger_files
-
-swagger_validate: swagger
-	swagger validate $(SWAGGER_V1_YML)
 
 ##########
 ## Misc ##

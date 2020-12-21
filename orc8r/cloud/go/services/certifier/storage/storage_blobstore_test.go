@@ -369,7 +369,7 @@ func TestCertifierBlobstore_DeleteCertInfo(t *testing.T) {
 	someErr := errors.New("generic error")
 
 	serialNumber := "serial_number"
-	tks := []storage.TypeAndKey{storage.TypeAndKey{Type: cstorage.CertInfoType, Key: serialNumber}}
+	tks := []storage.TypeAndKey{{Type: cstorage.CertInfoType, Key: serialNumber}}
 
 	// Fail to start transaction
 	blobFactMock = &mocks.BlobStorageFactory{}

@@ -62,7 +62,7 @@ func TestBlobstoreStore_GetTenant(t *testing.T) {
 
 	txStore, s = setupTestStore()
 	txStore.On("Get", networkWildcard, storage.TypeAndKey{Type: tenants.TenantInfoType, Key: "0"}).Return(blobstore.Blob{}, errors.New("error"))
-	tenant, err = s.GetTenant(0)
+	_, err = s.GetTenant(0)
 	assert.EqualError(t, err, "error")
 }
 
@@ -90,7 +90,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 	// Error in ListKeys
 	txStore, s = setupTestStore()
 	txStore.On("ListKeys", networkWildcard, tenants.TenantInfoType).Return(nil, errors.New("error"))
-	retTenants, err = s.GetAllTenants()
+	_, err = s.GetAllTenants()
 	assert.EqualError(t, err, "error")
 
 	// Error in GetMany
@@ -102,7 +102,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 			Key:  "0",
 		},
 	}).Return(blobstore.Blobs{}, errors.New("error"))
-	retTenants, err = s.GetAllTenants()
+	_, err = s.GetAllTenants()
 	assert.EqualError(t, err, "error")
 
 	// Non-integer key in tenant
@@ -114,7 +114,7 @@ func TestBlobstoreStore_GetAllTenants(t *testing.T) {
 			Key:  "0",
 		},
 	}).Return(blobstore.Blobs{invalidBlob}, nil)
-	retTenants, err = s.GetAllTenants()
+	_, err = s.GetAllTenants()
 	assert.EqualError(t, err, `non-integer key: strconv.ParseInt: parsing "word": invalid syntax`)
 
 }

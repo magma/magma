@@ -557,7 +557,7 @@ definitions:
 
   policy_rule:
     # A traffic match template and a identifier that is
-    # used to labelling usage records
+    # used to labeling usage records
     type: object
     required:
       - id

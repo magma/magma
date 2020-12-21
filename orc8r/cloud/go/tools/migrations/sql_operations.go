@@ -21,6 +21,7 @@ import (
 	"strings"
 
 	"github.com/golang/glog"
+	"github.com/pkg/errors"
 )
 
 func GetTableName(networkId string, baseName string) string {
@@ -58,6 +59,10 @@ func GetAllValuesFromTable(tx *sql.Tx, table string) (map[string][]byte, error) 
 		}
 		ret[key] = val
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
+	}
 	return ret, nil
 }
 
@@ -86,6 +91,11 @@ func GetAllKeysFromTable(tx *sql.Tx, table string) ([]string, error) {
 		}
 		ret = append(ret, key)
 	}
+	err = rows.Err()
+	if err != nil {
+		return nil, errors.Wrap(err, "sql rows err")
+	}
+
 	sort.Strings(ret)
 	return ret, nil
 }
