@@ -877,8 +877,8 @@ int s1ap_mme_handle_initial_context_setup_response(
       enb_description_t* enb_association = s1ap_state_get_enb(state, assoc_id);
       MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
           .e_rab_setup_list.item[item]
-          .transport_layer_address =
-          bstrcpy((const_bstring) enb_association->ran_cp_ipaddr);
+          .transport_layer_address = blk2bstr(
+          enb_association->ran_cp_ipaddr, enb_association->ran_cp_ipaddr_sz);
     } else {
       MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
           .e_rab_setup_list.item[item]
@@ -2279,8 +2279,12 @@ int s1ap_handle_new_association(
   /*
    * Fill in control plane IP address of RAN end point for this association
    */
-  enb_association->ran_cp_ipaddr =
-      bstrcpy((const_bstring) sctp_new_peer_p->ran_cp_ipaddr);
+  if (sctp_new_peer_p->ran_cp_ipaddr) {
+    memcpy(
+        enb_association->ran_cp_ipaddr, sctp_new_peer_p->ran_cp_ipaddr->data,
+        sctp_new_peer_p->ran_cp_ipaddr->slen);
+    enb_association->ran_cp_ipaddr_sz = sctp_new_peer_p->ran_cp_ipaddr->slen;
+  }
   /*
    * initialize the next sctp stream to 1 as 0 is reserved for non
    * * * * ue associated signalling.
