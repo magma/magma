@@ -112,8 +112,10 @@ void S1apStateConverter::proto_to_enb(
   enb->next_sctp_stream   = proto.next_sctp_stream();
   enb->instreams          = proto.instreams();
   enb->outstreams         = proto.outstreams();
-  strncpy(enb->ran_cp_ipaddr, proto.ran_cp_ipaddr().c_str(), sizeof(enb->ran_cp_ipaddr));
-  enb->ran_cp_ipaddr_sz   = proto.ran_cp_ipaddr_sz();
+  strncpy(
+      enb->ran_cp_ipaddr, proto.ran_cp_ipaddr().c_str(),
+      sizeof(enb->ran_cp_ipaddr));
+  enb->ran_cp_ipaddr_sz = proto.ran_cp_ipaddr_sz();
 
   // load ues
   hashtable_rc_t ht_rc;

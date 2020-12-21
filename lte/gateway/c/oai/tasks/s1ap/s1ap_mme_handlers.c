@@ -875,6 +875,9 @@ int s1ap_mme_handle_initial_context_setup_response(
     // which typically is the situation.
     if (mme_config.enable_gtpu_private_ip_correction) {
       enb_description_t* enb_association = s1ap_state_get_enb(state, assoc_id);
+      OAILOG_INFO(
+          LOG_S1AP,
+          "Overwriting eNB GTP-U IP ADDRESS with SCTP eNB IP address");
       MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
           .e_rab_setup_list.item[item]
           .transport_layer_address = blk2bstr(
