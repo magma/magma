@@ -179,14 +179,11 @@
 #define MME_CONFIG_STRING_CSFB_MNC "CSFB_MNC"
 #define MME_CONFIG_STRING_LAC "LAC"
 
-<<<<<<< HEAD
 // HA
 #define MME_CONFIG_STRING_USE_HA "USE_HA"
-=======
 // Cloud Instances may utilize this to reach RAN behind NAT
 #define MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION                    \
   "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
->>>>>>> Add mme configuration to enable the private ip overwrite feature
 
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 

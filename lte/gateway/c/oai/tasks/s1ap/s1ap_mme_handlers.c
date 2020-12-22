@@ -873,8 +873,8 @@ int s1ap_mme_handle_initial_context_setup_response(
     // information. This feature can be safely used only when NAT uses the same
     // public IP address for both the CP and UP communication to/from the eNB,
     // which typically is the situation.
+    enb_description_t* enb_association = s1ap_state_get_enb(state, assoc_id);
     if (mme_config.enable_gtpu_private_ip_correction) {
-      enb_description_t* enb_association = s1ap_state_get_enb(state, assoc_id);
       OAILOG_INFO(
           LOG_S1AP,
           "Overwriting eNB GTP-U IP ADDRESS with SCTP eNB IP address");
@@ -883,6 +883,18 @@ int s1ap_mme_handle_initial_context_setup_response(
           .transport_layer_address = blk2bstr(
           enb_association->ran_cp_ipaddr, enb_association->ran_cp_ipaddr_sz);
     } else {
+      // Print a warning message if CP and UP plane eNB IPs are different
+      if (!memcmp(
+              enb_association->ran_cp_ipaddr,
+              eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
+                  .transportLayerAddress.buf,
+              enb_association->ran_cp_ipaddr_sz)) {
+        OAILOG_WARNING(
+            LOG_S1AP,
+            "GTP-U eNB IP addr is different than SCTP eNB IP addr. "
+            "This can be due to eNB behind a NAT. Consider setting "
+            "enable_gtpu_private_ip_correction as true in mme.yml file.");
+      }
       MME_APP_INITIAL_CONTEXT_SETUP_RSP(message_p)
           .e_rab_setup_list.item[item]
           .transport_layer_address = blk2bstr(
