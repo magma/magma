@@ -33,7 +33,8 @@
  * NGAP Constants
  ******************************************************************************/
 
-#define NGAP_PORT_NUMBER (38412)  ///< NGAP SCTP IANA ASSIGNED Port Number
+#define NGAP_PORT_NUMBER                                                       \
+  (38412)  ///< IANA assigned port number for NGAP payloads on SCTP endpoint
 #define NGAP_SCTP_PPID (60)  ///< NGAP SCTP Payload Protocol Identifier (PPID)
 
 #define NGAP_OUTCOME_TIMER_DEFAULT (5)  ///< NGAP Outcome drop timer (s)
@@ -59,10 +60,5 @@
 #define PLMN_TAC (1)
 
 #define RELATIVE_CAPACITY (15)
-
-/*******************************************************************************
- * GRPC Service Constants
- ******************************************************************************/
-//#define GRPCSERVICES_SERVER_ADDRESS "127.0.0.1:50073"
 
 #endif /* FILE_AMF_DEFAULT_VALUES_SEEN */
