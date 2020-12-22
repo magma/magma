@@ -24,7 +24,7 @@ extern "C" {
 extern task_zmq_ctx_t grpc_service_task_zmq_ctx;
 
 namespace magma {
-using namespace lte;
+namespace lte {
 
 HaServiceImpl::HaServiceImpl() {}
 /*
@@ -61,4 +61,5 @@ bool HaServiceImpl::send_agw_offload_req(
   return true;
 }
 
+}  // namespace lte
 }  // namespace magma

@@ -18,6 +18,7 @@
 extern "C" {
 #include "log.h"
 #include "mme_app_ha.h"
+#include "ha_messages_types.h"
 #include "conversions.h"
 #include "intertask_interface.h"
 #include "common_types.h"
@@ -36,6 +37,7 @@ void mme_app_handle_ue_offload(ue_mm_context_t* ue_context_p) {
       ue_context_p->emm_context._imsi64,
       (char*) AGW_OFFLOAD_REQ(message_p).imsi,
       ue_context_p->emm_context._imsi.length);
+  AGW_OFFLOAD_REQ(message_p).enb_offload_type = ANY;
 
   message_p->ittiMsgHeader.imsi = ue_context_p->emm_context._imsi64;
   send_msg_to_task(&mme_app_task_zmq_ctx, TASK_HA, message_p);

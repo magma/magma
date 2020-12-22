@@ -91,7 +91,7 @@ int ha_init(const mme_config_t* mme_config_p) {
   OAILOG_DEBUG(LOG_UTIL, "Initializing HA task interface\n");
 
   if (itti_create_task(TASK_HA, &ha_thread, NULL) < 0) {
-    OAILOG_ERROR(LOG_UTIL, "ha create task\n");
+    OAILOG_ERROR(LOG_UTIL, "Failed to create HA task\n");
     return RETURNerror;
   }
   OAILOG_DEBUG(LOG_UTIL, "Initializing HA task interface: DONE\n");

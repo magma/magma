@@ -26,8 +26,6 @@
 #include "lte/protos/ha_orc8r.grpc.pb.h"
 #include "GRPCReceiver.h"
 
-extern "C" {}
-
 namespace magma {
 
 /**

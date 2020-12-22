@@ -23,12 +23,8 @@ extern "C" {
 #include "hashtable.h"
 }
 
-bool process_ue_context(
-    const hash_key_t keyP, void* const elementP, void* parameterP,
-    void** resultP);
-
 namespace magma {
-using namespace lte;
+namespace lte {
 
 class HaServiceImpl final : public HaService::Service {
  public:
@@ -51,4 +47,5 @@ class HaServiceImpl final : public HaService::Service {
   bool send_agw_offload_req(const StartAgwOffloadRequest* request);
 };
 
+}  // namespace lte
 }  // namespace magma

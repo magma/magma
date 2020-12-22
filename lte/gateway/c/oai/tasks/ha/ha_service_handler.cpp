@@ -30,7 +30,7 @@ extern "C" {
 #include "mme_app_state_manager.h"
 #include "s1ap_state_manager.h"
 
-static bool process_ue_context(
+static bool trigger_agw_offload_for_ue(
     const hash_key_t keyP, void* const elementP, void* parameterP,
     void** resultP);
 
@@ -83,10 +83,10 @@ void handle_agw_offload_req(ha_agw_offload_req_t* offload_req) {
       magma::lte::S1apStateManager::getInstance().get_state(false);
   callback_data.request = offload_req;
   hashtable_ts_apply_callback_on_elements(
-      state_imsi_ht, process_ue_context, (void*) &callback_data, NULL);
+      state_imsi_ht, trigger_agw_offload_for_ue, (void*) &callback_data, NULL);
 }
 
-bool process_ue_context(
+bool trigger_agw_offload_for_ue(
     const hash_key_t keyP, void* const elementP, void* parameterP,
     void** resultP) {
   imsi64_t imsi64                = INVALID_IMSI64;
