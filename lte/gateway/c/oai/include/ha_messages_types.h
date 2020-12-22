@@ -11,8 +11,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-#ifndef FILE_HA_MESSAGES_TYPES_SEEN
-#define FILE_HA_MESSAGES_TYPES_SEEN
+#pragma once
 
 #include <stdint.h>
 
@@ -35,5 +34,3 @@ typedef struct ha_agw_offload_req_s {
   uint32_t eNB_id;
   offload_type_t enb_offload_type;
 } ha_agw_offload_req_t;
-
-#endif /* FILE_HA_MESSAGES_TYPES_SEEN */

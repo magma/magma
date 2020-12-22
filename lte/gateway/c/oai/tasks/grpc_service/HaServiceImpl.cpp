@@ -35,12 +35,6 @@ grpc::Status HaServiceImpl::StartAgwOffload(
     grpc::ServerContext* context, const StartAgwOffloadRequest* request,
     StartAgwOffloadResponse* response) {
   OAILOG_INFO(LOG_UTIL, "Received StartAgwOffloadRequest GRPC request\n");
-  send_agw_offload_req(request);
-  return grpc::Status::OK;
-}
-
-bool HaServiceImpl::send_agw_offload_req(
-    const StartAgwOffloadRequest* request) {
   MessageDef* message_p =
       itti_alloc_new_message(TASK_GRPC_SERVICE, AGW_OFFLOAD_REQ);
 
@@ -57,8 +51,7 @@ bool HaServiceImpl::send_agw_offload_req(
       (offload_type_t) request->enb_offload_type();
 
   send_msg_to_task(&grpc_service_task_zmq_ctx, TASK_HA, message_p);
-
-  return true;
+  return grpc::Status::OK;
 }
 
 }  // namespace lte

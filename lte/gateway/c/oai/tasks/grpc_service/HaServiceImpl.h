@@ -42,9 +42,6 @@ class HaServiceImpl final : public HaService::Service {
   grpc::Status StartAgwOffload(
       grpc::ServerContext* context, const StartAgwOffloadRequest* request,
       StartAgwOffloadResponse* response) override;
-
- private:
-  bool send_agw_offload_req(const StartAgwOffloadRequest* request);
 };
 
 }  // namespace lte
