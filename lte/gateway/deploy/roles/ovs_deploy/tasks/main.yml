@@ -140,3 +140,6 @@
     state: started
   tags:
     - skipfirstinstall
+
+- name: Install ansible community collection
+  shell: ansible-galaxy collection install community.general
