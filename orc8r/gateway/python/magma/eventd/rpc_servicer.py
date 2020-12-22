@@ -23,6 +23,7 @@ from magma.common.rpc_utils import return_void
 from orc8r.protos import eventd_pb2_grpc, eventd_pb2
 from .event_validator import EventValidator
 
+RETRY_ON_FAILURE = 'retry_on_failure'
 
 class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
     """
@@ -30,8 +31,9 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
     """
 
     def __init__(self, config: Dict[str, Any], validator: EventValidator):
-        self.fluent_bit_port = config['fluent_bit_port']
-        self.tcp_timeout = config['tcp_timeout']
+        self._fluent_bit_port = config['fluent_bit_port']
+        self._tcp_timeout = config['tcp_timeout']
+        self._event_registry = config['event_registry']
         self._validator = validator
 
     def add_to_server(self, server):
@@ -56,18 +58,18 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
                 'Event validation failed, Details: {}'.format(e))
             return
 
+        value = {
+            'stream_name': request.stream_name,
+            'event_type': request.event_type,
+            'event_tag': request.tag,
+            'value': request.value,
+            'retry_on_failure': self._needs_retries(request.event_type),
+        }
         try:
             with closing(socket.create_connection(
-                    ('localhost', self.fluent_bit_port),
-                    timeout=self.tcp_timeout)) as sock:
+                    ('localhost', self._fluent_bit_port),
+                    timeout=self._tcp_timeout)) as sock:
                 logging.debug('Sending log to FluentBit')
-                value = {
-                    'stream_name': request.stream_name,
-                    'event_type': request.event_type,
-                    # We use event_tag as FluentD uses the "tag" field
-                    'event_tag': request.tag,
-                    'value': request.value
-                }
                 sock.sendall(json.dumps(value).encode('utf-8'))
         except socket.error as e:
             logging.error('Connection to FluentBit failed: %s', e)
@@ -80,3 +82,11 @@ class EventDRpcServicer(eventd_pb2_grpc.EventServiceServicer):
             return
 
         logging.debug("Successfully logged event: %s", request)
+
+    def _needs_retries(self, event_type: str) -> str:
+        if event_type not in self._event_registry:
+            # Should not get here
+            return 'False'
+        if RETRY_ON_FAILURE not in self._event_registry[event_type]:
+            return 'False'
+        return str(self._event_registry[event_type][RETRY_ON_FAILURE])
