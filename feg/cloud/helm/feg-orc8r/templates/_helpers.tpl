@@ -1,4 +1,4 @@
-/*
+{{/*
 Copyright 2020 The Magma Authors.
 
 This source code is licensed under the BSD-style license found in the
@@ -9,16 +9,13 @@ distributed under the License is distributed on an "AS IS" BASIS,
 WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
-*/
-
-package servicers
-
-const (
-	S8ProxyServiceName = "s8_proxy"
-)
-
-func GetS8ProxyConfig() *S8ProxyConfig {
-	return &S8ProxyConfig{
-		ServerAddr: "127.0.0.68",
-	}
-}
+*/}}
+{{/* Generate basic labels */}}
+{{- define "feg-proxy-alias-labels" -}}
+app.kubernetes.io/name: {{ .Chart.Name }}
+app.kubernetes.io/component: {{ .Chart.Name }}
+app.kubernetes.io/instance: {{ .Release.Name }}
+app.kubernetes.io/managed-by: helm
+app.kubernetes.io/part-of: proxy-aliases
+helm.sh/chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+{{- end -}}
