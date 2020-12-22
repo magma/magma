@@ -33,6 +33,7 @@ event_registry:
   session_terminated:
     module: lte
     filename: session_manager_events.v1.yml
+    retry_on_failure: true
   deleted_stored_mconfig:
      module: orc8r
      filename: magmad_events.v1.yml

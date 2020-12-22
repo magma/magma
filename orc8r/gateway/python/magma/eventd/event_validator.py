@@ -57,6 +57,7 @@ class EventValidator(object):
             raise KeyError(
                 'Event type {} not registered, '
                 'please add it to the EventD config'.format(event_type))
+
         filename = self.event_registry[event_type][FILENAME]
         bravado_validate(
             self.specs_by_filename[filename][BRAVADO_SPEC],
