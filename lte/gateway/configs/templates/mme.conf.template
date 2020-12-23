@@ -35,6 +35,7 @@ MME :
 
     USE_STATELESS = "{{ use_stateless }}";
     USE_HA = "{{ use_ha }}";
+    ENABLE_GTPU_PRIVATE_IP_CORRECTION = "{{ enable_gtpu_private_ip_correction }}";
 
     INTERTASK_INTERFACE :
     {

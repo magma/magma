@@ -181,6 +181,9 @@
 
 // HA
 #define MME_CONFIG_STRING_USE_HA "USE_HA"
+// Cloud Instances may utilize this to reach RAN behind NAT
+#define MME_CONFIG_STRING_ENABLE_GTPU_PRIVATE_IP_CORRECTION                    \
+  "ENABLE_GTPU_PRIVATE_IP_CORRECTION"
 
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
@@ -335,6 +338,7 @@ typedef struct mme_config_s {
 
   bool use_stateless;
   bool use_ha;
+  bool enable_gtpu_private_ip_correction;
 } mme_config_t;
 
 extern mme_config_t mme_config;
