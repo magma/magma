@@ -56,5 +56,6 @@ func (c *MutableCallTrace) ToEntityUpdateCriteria(callTraceID string, callTrace 
 
 func (c *MutableCallTrace) ToCallTrace(callTrace CallTrace) *CallTrace {
 	callTrace.State.CallTraceEnding = *c.RequestedEnd
+	callTrace.State.CallTraceAvailable = *c.RequestedEnd
 	return &callTrace
 }

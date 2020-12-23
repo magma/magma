@@ -30,6 +30,7 @@ const (
 	// Gateway services
 	GwMobilityd           GwServiceType = "mobilityd"
 	GwMagmad              GwServiceType = "magmad"
+	GwCtraced             GwServiceType = "ctraced"
 	GwEnodebd             GwServiceType = "enodebd"
 	GwPipelined           GwServiceType = "pipelined"
 	GwSubscriberDB        GwServiceType = "subscriberdb"
