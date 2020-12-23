@@ -179,6 +179,9 @@
 #define MME_CONFIG_STRING_CSFB_MNC "CSFB_MNC"
 #define MME_CONFIG_STRING_LAC "LAC"
 
+// HA
+#define MME_CONFIG_STRING_USE_HA "USE_HA"
+
 typedef enum { RUN_MODE_TEST = 0, RUN_MODE_OTHER } run_mode_t;
 
 typedef struct eps_network_feature_config_s {
@@ -331,6 +334,7 @@ typedef struct mme_config_s {
   lai_t lai;
 
   bool use_stateless;
+  bool use_ha;
 } mme_config_t;
 
 extern mme_config_t mme_config;
