@@ -1047,9 +1047,33 @@ void LocalEnforcer::init_session_credit(
     // TODO this uc is not doing anything here, modify interface
     if (!credit.success() &&
         DiameterCodeHandler::is_transient_failure(credit.result_code())) {
-      auto uc = get_default_update_criteria();
-      remove_rules_for_suspended_credit(
-          session_state, credit.charging_key(), uc);
+      auto _    = get_default_update_criteria();
+      auto ckey = credit.charging_key();
+
+      // set state here because during init update criteria is not used.
+      session_state->set_suspend_credit(ckey, true, _);
+      session_state->suspend_service_if_needed_for_credit(ckey, _);
+
+      // schedule the removal of rules to avoid problems with install-unistall
+      // order
+      evb_->runAfterDelay(
+          [this, imsi, session_id, credit] {
+            auto session_map = session_store_.read_sessions({imsi});
+            SessionSearchCriteria criteria(
+                imsi, IMSI_AND_SESSION_ID, session_id);
+            auto session_it =
+                session_store_.find_session(session_map, criteria);
+            if (!session_it) {
+              MLOG(MWARNING) << "Not suspending credit for " << session_id
+                             << " since it no longer exists";
+              return;
+            }
+            auto& session = **session_it;
+            auto _        = get_default_update_criteria();
+            remove_rules_for_suspended_credit(
+                session, credit.charging_key(), _);
+          },
+          500);
     }
   }
 

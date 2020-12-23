@@ -108,10 +108,6 @@ struct S1ap_IE;
 int s1ap_generate_s1_setup_response(
     s1ap_state_t* state, enb_description_t* enb_association);
 
-int s1ap_mme_generate_ue_context_release_command(
-    s1ap_state_t* state, ue_description_t* ue_ref_p, enum s1cause,
-    imsi64_t imsi64);
-
 bool is_all_erabId_same(S1ap_PathSwitchRequest_t* container);
 
 /* Handlers matrix. Only mme related procedures present here.
@@ -1088,7 +1084,9 @@ int s1ap_mme_handle_ue_context_release_request(
 //------------------------------------------------------------------------------
 int s1ap_mme_generate_ue_context_release_command(
     s1ap_state_t* state, ue_description_t* ue_ref_p, enum s1cause cause,
-    imsi64_t imsi64) {
+    imsi64_t imsi64, const sctp_assoc_id_t assoc_id,
+    const sctp_stream_id_t stream, mme_ue_s1ap_id_t mme_ue_s1ap_id,
+    enb_ue_s1ap_id_t enb_ue_s1ap_id) {
   uint8_t* buffer = NULL;
   uint32_t length = 0;
   S1ap_S1AP_PDU_t pdu;
@@ -1099,9 +1097,6 @@ int s1ap_mme_generate_ue_context_release_command(
   long cause_value;
 
   OAILOG_FUNC_IN(LOG_S1AP);
-  if (ue_ref_p == NULL) {
-    OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
-  }
   memset(&pdu, 0, sizeof(pdu));
   pdu.present = S1ap_S1AP_PDU_PR_initiatingMessage;
   pdu.choice.initiatingMessage.procedureCode =
@@ -1120,9 +1115,9 @@ int s1ap_mme_generate_ue_context_release_command(
   ie->value.present = S1ap_UEContextReleaseCommand_IEs__value_PR_UE_S1AP_IDs;
   ie->value.choice.UE_S1AP_IDs.present = S1ap_UE_S1AP_IDs_PR_uE_S1AP_ID_pair;
   ie->value.choice.UE_S1AP_IDs.choice.uE_S1AP_ID_pair.mME_UE_S1AP_ID =
-      ue_ref_p->mme_ue_s1ap_id;
+      mme_ue_s1ap_id;
   ie->value.choice.UE_S1AP_IDs.choice.uE_S1AP_ID_pair.eNB_UE_S1AP_ID =
-      ue_ref_p->enb_ue_s1ap_id;
+      enb_ue_s1ap_id;
   ie->value.choice.UE_S1AP_IDs.choice.uE_S1AP_ID_pair.iE_Extensions = NULL;
   ASN_SEQUENCE_ADD(&out->protocolIEs.list, ie);
 
@@ -1157,6 +1152,13 @@ int s1ap_mme_generate_ue_context_release_command(
       cause_type  = S1ap_Cause_PR_radioNetwork;
       cause_value = S1ap_CauseRadioNetwork_ue_not_available_for_ps_service;
       break;
+    case S1AP_INVALID_MME_UE_S1AP_ID:
+      cause_type  = S1ap_Cause_PR_radioNetwork;
+      cause_value = S1ap_CauseRadioNetwork_unknown_mme_ue_s1ap_id;
+    case S1AP_NAS_MME_OFFLOADING:
+      cause_type  = S1ap_Cause_PR_radioNetwork;
+      cause_value = S1ap_CauseRadioNetwork_load_balancing_tau_required;
+      break;
     default:
       OAILOG_ERROR_UE(LOG_S1AP, imsi64, "Unknown cause for context release");
       OAILOG_FUNC_RETURN(LOG_S1AP, RETURNerror);
@@ -1170,16 +1172,12 @@ int s1ap_mme_generate_ue_context_release_command(
 
   bstring b = blk2bstr(buffer, length);
   free(buffer);
-  rc = s1ap_mme_itti_send_sctp_request(
-      &b, ue_ref_p->sctp_assoc_id, ue_ref_p->sctp_stream_send,
-      ue_ref_p->mme_ue_s1ap_id);
-  ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
-
-  // Start timer to track UE context release complete from eNB
-
-  // We can safely remove UE context now, no need for timer
-  s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
-
+  rc = s1ap_mme_itti_send_sctp_request(&b, assoc_id, stream, mme_ue_s1ap_id);
+  if (ue_ref_p != NULL) {
+    ue_ref_p->s1_ue_state = S1AP_UE_WAITING_CRR;
+    // We can safely remove UE context now, no need for timer
+    s1ap_mme_release_ue_context(state, ue_ref_p, imsi64);
+  }
   OAILOG_FUNC_RETURN(LOG_S1AP, rc);
 }
 
@@ -1305,7 +1303,9 @@ int s1ap_handle_ue_context_release_command(
       s1ap_remove_ue(state, ue_ref_p);
     } else {
       rc = s1ap_mme_generate_ue_context_release_command(
-          state, ue_ref_p, ue_context_release_command_pP->cause, imsi64);
+          state, ue_ref_p, ue_context_release_command_pP->cause, imsi64,
+          ue_ref_p->sctp_assoc_id, ue_ref_p->sctp_stream_send,
+          ue_ref_p->mme_ue_s1ap_id, ue_ref_p->enb_ue_s1ap_id);
     }
   }
 

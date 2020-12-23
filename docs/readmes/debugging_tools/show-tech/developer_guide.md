@@ -28,8 +28,6 @@ instructions: https://github.com/magma/magma/blob/master/show-tech/README.md
 ansible_apt_repo: "deb http://ppa.launchpad.net/ansible/ansible/ubuntu trusty main"
 ubuntu_apt_keyserver: "keyserver.ubuntu.com"
 ubuntu_apt_id: "93C4A3FD7BB9C367"
-ansible_community_commands:
-  - "ansible-galaxy collection install community.general"
 apt_prereq_packages:
   - git
   - ansible
@@ -193,9 +191,6 @@ ok: [localhost] => {
 
 TASK [load_vars : include the vars for deployment from constants.yml] *********************************************************************************************************************************************************************************************************************
 ok: [localhost]
-
-TASK [install_ansible_modules : Install community modules for all distros] ***************************************************************************************************************************************************************************************************************
-changed: [localhost] => (item=ansible-galaxy collection install community.general)
 
 TASK [destdir : Get timestamp] ************************************************************************************************************************************************************************************************************************************************************
 changed: [localhost]

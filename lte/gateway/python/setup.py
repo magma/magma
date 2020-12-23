@@ -61,6 +61,7 @@ setup(
         'scripts/feg_hello_cli.py',
         'scripts/generate_dnsd_config.py',
         'scripts/generate_oai_config.py',
+        'scripts/ha_cli.py',
         'scripts/hello_cli.py',
         'scripts/mobility_cli.py',
         'scripts/mobility_dhcp_cli.py',

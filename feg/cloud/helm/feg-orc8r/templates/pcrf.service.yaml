@@ -11,21 +11,24 @@
 # limitations under the License.
 */}}
 
-{{- include "orc8rlib.service" (list . "analytics.service") -}}
-{{- define "analytics.service" -}}
+{{- include "orc8rlib.service" (list . "pcrf.service") -}}
+{{- define "pcrf.service" -}}
 metadata:
-  name: orc8r-analytics
+  name: orc8r-pcrf
   labels:
-    {{- with .Values.analytics.service.labels }}
+{{ include "feg-proxy-alias-labels" . | indent 4 }}
+    {{- with .Values.pcrf.service.labels }}
 {{ toYaml . | indent 4}}
     {{- end}}
-  {{- with .Values.analytics.service.annotations }}
+  {{- with .Values.pcrf.service.annotations }}
   annotations:
 {{ toYaml . | indent 4}}
   {{- end }}
 spec:
+  selector:
+    app.kubernetes.io/component: feg-relay
   ports:
     - name: grpc
       port: 9180
-      targetPort: 9200
+      targetPort: 9079
 {{- end -}}
