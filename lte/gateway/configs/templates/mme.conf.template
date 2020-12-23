@@ -34,6 +34,7 @@ MME :
     MME_STATISTIC_TIMER                       = 10;
 
     USE_STATELESS = "{{ use_stateless }}";
+    USE_HA = "{{ use_ha }}";
 
     INTERTASK_INTERFACE :
     {
