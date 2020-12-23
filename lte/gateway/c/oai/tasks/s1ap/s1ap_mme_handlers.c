@@ -865,7 +865,7 @@ int s1ap_mme_handle_initial_context_setup_response(
                                 .E_RABSetupItemCtxtSURes.gTP_TEID.buf));
 
     // When Magma AGW runs in a cloud and RAN at the edge (hence eNB is
-    // behind NAT), eNB signals its private IP address in ICS Responce. By
+    // behind NAT), eNB signals its private IP address in ICS Response. By
     // setting "enable_gtpu_private_ip_correction" true in mme.yml file,
     // we can correct that private IP address with the public IP address of
     // the eNB as its public IP address is observed during SCTP link is set up.
