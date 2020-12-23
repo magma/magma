@@ -18,8 +18,11 @@
 # virtualenv bin and build dirs
 PYTHON_VERSION=3.5
 OS_DISTRO := $(shell lsb_release -si)
+OS_VERSION := $(shell lsb_release -rs)
 ifeq ($(OS_DISTRO),Ubuntu)
-    PYTHON_VERSION=3.8
+	ifeq ($(OS_VERSION),20.04)
+    	PYTHON_VERSION=3.8
+	endif
 endif
 
 BIN := $(PYTHON_BUILD)/bin
