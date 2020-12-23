@@ -219,6 +219,9 @@ make build_oai BUILD_TYPE="${BUILD_TYPE}"
 make build_session_manager BUILD_TYPE="${BUILD_TYPE}"
 make build_sctpd BUILD_TYPE="${BUILD_TYPE}"
 
+# Build Magma Envoy Controller service
+cd "${MAGMA_ROOT}/feg/gateway"
+make install_envoy_controller
 
 # Next, gather up the python files and put them into a build path.
 #
