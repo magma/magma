@@ -575,7 +575,7 @@ static void sgw_add_gtp_tunnel(
       for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
            ++itrn) {
         // Prepare DL flow rule
-        struct ip_flow_dl dlflow;
+        struct ip_flow_dl dlflow = {0};
         _generate_dl_flow(
             &(eps_bearer_ctxt_p->tft.packetfilterlist.createnewtft[itrn]
                   .packetfiltercontents),
@@ -1825,7 +1825,7 @@ int sgw_handle_nw_initiated_deactv_bearer_rsp(
         for (int itrn = 0; itrn < eps_bearer_ctxt_p->tft.numberofpacketfilters;
              ++itrn) {
           // Prepare DL flow rule from stored packet filters
-          struct ip_flow_dl dlflow;
+          struct ip_flow_dl dlflow = {0};
           struct in6_addr* ue_ipv6 = NULL;
           if ((eps_bearer_ctxt_p->paa.pdn_type == IPv6) ||
               (eps_bearer_ctxt_p->paa.pdn_type == IPv4_AND_v6)) {
