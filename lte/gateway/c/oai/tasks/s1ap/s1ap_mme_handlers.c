@@ -884,7 +884,7 @@ int s1ap_mme_handle_initial_context_setup_response(
           enb_association->ran_cp_ipaddr, enb_association->ran_cp_ipaddr_sz);
     } else {
       // Print a warning message if CP and UP plane eNB IPs are different
-      if (!memcmp(
+      if (memcmp(
               enb_association->ran_cp_ipaddr,
               eRABSetupItemCtxtSURes_p->value.choice.E_RABSetupItemCtxtSURes
                   .transportLayerAddress.buf,
