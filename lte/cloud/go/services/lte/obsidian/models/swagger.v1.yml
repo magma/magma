@@ -2336,6 +2336,9 @@ definitions:
       ip_address:
         type: string
         format: ipv4
+      ues_connected:
+        type: integer
+        format: int32
 
   aggregated_maximum_bitrate:
     type: object

@@ -39,6 +39,7 @@
 #include "mme_app_extern.h"
 #include "mme_app_ue_context.h"
 #include "mme_app_defs.h"
+#include "mme_app_ha.h"
 #include "mme_app_statistics.h"
 #include "service303_message_utils.h"
 #include "service303.h"
@@ -149,6 +150,21 @@ static int handle_message(zloop_t* loop, zsock_t* reader, void* arg) {
               &received_message_p->ittiMsg.s11_modify_bearer_response,
               ue_context_p);
           ue_context_p->path_switch_req = false;
+        }
+
+        // Check if an offloading request is pending for this UE as part
+        // of HA implementation
+        if (ue_context_p->ue_context_rel_cause ==
+            S1AP_NAS_MME_PENDING_OFFLOADING) {
+          OAILOG_INFO(
+              LOG_MME_APP,
+              "UE CONTEXT REL CAUSE is S1AP_NAS_MME_PENDING_OFFLOADING");
+          // This will be again overwritten when a release request is received.
+          // It is safe to set it any value other than
+          // S1AP_NAS_MME_PENDING_OFFLOADING to allow a UE be able to reattach
+          // to this AGW instance.
+          ue_context_p->ue_context_rel_cause = S1AP_INVALID_CAUSE;
+          mme_app_handle_ue_offload(ue_context_p);
         }
       }
     } break;
@@ -443,8 +459,8 @@ static void* mme_app_thread(__attribute__((unused)) void* args) {
   init_task_context(
       TASK_MME_APP,
       (task_id_t[]){TASK_SPGW_APP, TASK_SGS, TASK_SMS_ORC8R, TASK_S11, TASK_S6A,
-                    TASK_S1AP, TASK_SERVICE303},
-      7, handle_message, &mme_app_task_zmq_ctx);
+                    TASK_S1AP, TASK_SERVICE303, TASK_HA},
+      8, handle_message, &mme_app_task_zmq_ctx);
 
   // Service started, but not healthy yet
   send_app_health_to_service303(&mme_app_task_zmq_ctx, TASK_MME_APP, false);

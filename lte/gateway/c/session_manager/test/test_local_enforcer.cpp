@@ -1019,6 +1019,15 @@ TEST_F(LocalEnforcerTest, test_credit_init_with_transient_error_redirect) {
   local_enforcer->init_session_credit(
       session_map, IMSI1, SESSION_ID_1, test_cfg_, response);
 
+  // Write + Read in/from SessionStore so all paramters during init are saved
+  // to the session
+  bool write_success =
+      session_store->create_sessions(IMSI1, std::move(session_map[IMSI1]));
+  EXPECT_TRUE(write_success);
+
+  evb->loopOnce();
+
+  session_map = session_store->read_sessions({IMSI1});
   auto update = SessionStore::get_default_session_update(session_map);
 
   // receive usages from pipeline and check we still collect them but don't

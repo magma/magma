@@ -118,7 +118,7 @@ func SetIdentityFromContext(ctx context.Context, _ interface{}, info *grpc.Unary
 		if len(snlist) != 1 {
 			// there can be only one CSN, error out if not
 			log.Printf("Multiple CSNs found in metadata: %+v", ctxMetadata)
-			err = status.Error(codes.Unauthenticated, "Invalid SCN List")
+			err = status.Error(codes.Unauthenticated, "Multiple CSNs present")
 		} else {
 			// One CSN is found, find Identity associated with it
 			var gwIdentity *protos.Identity

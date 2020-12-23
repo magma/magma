@@ -431,7 +431,7 @@ func (r *ServiceRegistry) getGRPCDialOptions() []grpc.DialOption {
 		opts = append(opts, grpc.WithKeepaliveParams(localKeepaliveParams))
 	}
 	if r.serviceRegistryMode == K8sRegistryMode || r.serviceRegistryMode == DockerRegistryMode {
-		opts = append(opts, grpc.WithUnaryInterceptor(unary.UnaryCloudClientInterceptor))
+		opts = append(opts, grpc.WithUnaryInterceptor(unary.CloudClientInterceptor))
 	}
 	return opts
 }

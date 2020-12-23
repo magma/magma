@@ -1,11 +1,10 @@
 version: '3.7'
 
-# Standard logging for each service
 x-logging: &logging_anchor
-  driver: "json-file"
+  driver: "fluentd"
   options:
-    max-size: "10mb"
-    max-file: "10"
+    fluentd-address: "localhost:24224"
+    fluentd-async-connect: "true"
 
 services:
   logrouter:
@@ -23,6 +22,7 @@ services:
     environment:
       - SCRIBE_ACCESS_TOKEN=${XWF_SCUBA_ACCESS_TOKEN}
       - SCUBA_TABLE=perfpipe_xwf_openflow_compose_logs
+      - RUN_UID=${RUN_UID:-1}
   ofproxy:
     container_name: ofproxy
     privileged: true
@@ -52,6 +52,7 @@ services:
       - OFPRADIUS=${OFPRADIUS:-0}
       - METERURL=${METERURL:-}
       - AWSENDPOINT=${AWSENDPOINT:-}
+      - LOG_TYPE=production
     logging: *logging_anchor
     depends_on:
       - logrouter
@@ -83,6 +84,7 @@ services:
       - ODS_PREFIX=xwf.openflow
       - ODS_CLUSTER=${XWF_PARTNER_SHORT_NAME}.${ENV}
       - ODS_ENTITY=ofproxy
+      - LOG_TYPE=production
     logging: *logging_anchor
     depends_on:
       - logrouter
