@@ -20,6 +20,9 @@ type VirtualApnRule struct {
 
 	// New APN to overwrite when filter matches
 	ApnOverwrite string `json:"apn_overwrite,omitempty"`
+
+	// Regex to match ChargingCharacteristics values
+	ChargingCharacteristicsFilter string `json:"charging_characteristics_filter,omitempty"`
 }
 
 // Validate validates this virtual apn rule

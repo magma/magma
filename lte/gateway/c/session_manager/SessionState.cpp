@@ -655,6 +655,9 @@ void SessionState::add_common_fields_to_usage_monitor_update(
   if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req->set_hardware_addr(wlan_context.mac_addr_binary());
+  } else {
+    const auto& lte_context = config_.rat_specific_context.lte_context();
+    req->set_charging_characteristics(lte_context.charging_characteristics());
   }
 }
 
@@ -713,6 +716,7 @@ SessionTerminateRequest SessionState::make_termination_request(
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
+    req.set_charging_characteristics(lte_context.charging_characteristics());
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
@@ -1477,6 +1481,7 @@ CreditUsageUpdate SessionState::make_credit_usage_update_req(
     req.set_plmn_id(lte_context.plmn_id());
     req.set_imsi_plmn_id(lte_context.imsi_plmn_id());
     req.set_user_location(lte_context.user_location());
+    req.set_charging_characteristics(lte_context.charging_characteristics());
   } else if (config_.rat_specific_context.has_wlan_context()) {
     const auto& wlan_context = config_.rat_specific_context.wlan_context();
     req.set_hardware_addr(wlan_context.mac_addr_binary());
