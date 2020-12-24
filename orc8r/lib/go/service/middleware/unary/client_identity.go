@@ -35,6 +35,11 @@ func CloudClientInterceptor(
 	ctx context.Context, method string, req, reply interface{},
 	cc *grpc.ClientConn, invoker grpc.UnaryInvoker, opts ...grpc.CallOption) error {
 
+	return invoker(OutgoingCloudClientCtx(ctx), method, req, reply, cc, opts...)
+}
+
+// OutgoingCloudClientCtx amends outgoing cloud client context with magic client CSN metadata
+func OutgoingCloudClientCtx(ctx context.Context) context.Context {
 	md, exists := metadata.FromOutgoingContext(ctx)
 	if exists {
 		md = md.Copy()
@@ -42,7 +47,5 @@ func CloudClientInterceptor(
 	} else {
 		md = metadata.Pairs(CLIENT_CERT_SN_KEY, ORC8R_CLIENT_CERT_VALUE)
 	}
-	outgoingCtx := metadata.NewOutgoingContext(ctx, md)
-	err := invoker(outgoingCtx, method, req, reply, cc, opts...)
-	return err
+	return metadata.NewOutgoingContext(ctx, md)
 }
