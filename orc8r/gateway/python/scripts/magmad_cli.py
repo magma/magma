@@ -95,11 +95,14 @@ def tail_logs(client, args):
     for log_line in stream:
         print(log_line.line, end='')
 
+
 @grpc_wrapper
 def check_stateless(client, args):
     response = client.CheckStateless(common_pb2.Void())
-    print("AGW Mode:",
-            magmad_pb2.StatelessAgwMode.AgwMode.Name(response.agw_mode))
+    print(
+        "AGW Mode:",
+        magmad_pb2.StatelessAgwMode.AgwMode.Name(response.agw_mode)
+    )
 
 
 @grpc_wrapper
@@ -111,7 +114,7 @@ def config_stateless(client, args):
         print("Disable switch")
         config_arg = magmad_pb2.StatelessConfigRequest.DISABLE
     client.ConfigureStateless(
-            magmad_pb2.StatelessConfigRequest(config_cmd=config_arg))
+        magmad_pb2.StatelessConfigRequest(config_cmd=config_arg))
 
 def create_parser():
     """

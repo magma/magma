@@ -30,16 +30,6 @@ STATELESS_SERVICE_CONFIGS = [
 ]
 
 
-def _check_stateless_service_config(service, config_name, config_value):
-    service_config = load_service_config(service)
-    if service_config.get(config_name) == config_value:
-        logging.info("STATELESS\t%s -> %s", service, config_name)
-        return magmad_pb2.StatelessAgwMode.STATELESS
-
-    logging.info("STATEFUL\t%s -> %s", service, config_name)
-    return magmad_pb2.StatelessAgwMode.STATEFUL
-
-
 def check_stateless_agw():
     num_stateful = 0
     for service, config, value in STATELESS_SERVICE_CONFIGS:
@@ -60,11 +50,6 @@ def check_stateless_agw():
         "Check returning %s", magmad_pb2.StatelessAgwMode.AgwMode.Name(res)
     )
     return res
-
-
-def _restart_sctpd():
-    logging.info("Restarting sctpd")
-    subprocess.call("service sctpd restart".split())
 
 
 def enable_stateless_agw():
@@ -92,3 +77,18 @@ def disable_stateless_agw():
 
     # restart Sctpd so that eNB connections are reset and local state cleared
     _restart_sctpd()
+
+
+def _check_stateless_service_config(service, config_name, config_value):
+    service_config = load_service_config(service)
+    if service_config.get(config_name) == config_value:
+        logging.info("STATELESS\t%s -> %s", service, config_name)
+        return magmad_pb2.StatelessAgwMode.STATELESS
+
+    logging.info("STATEFUL\t%s -> %s", service, config_name)
+    return magmad_pb2.StatelessAgwMode.STATEFUL
+
+
+def _restart_sctpd():
+    logging.info("Restarting sctpd")
+    subprocess.call("service sctpd restart".split())
