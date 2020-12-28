@@ -372,7 +372,7 @@ ${PY_PROTOS}=${PY_DEST} \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/${PKGNAME}*" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/${PY_TMP_BUILD_SUFFIX}/*.egg-info" ${PY_DEST}) \
 $(glob_files "${PY_TMP_BUILD}/usr/bin/*" /usr/local/bin/) \
-$(glob_files "${ANSIBLE_FILES}/config_stateless_*.sh" /usr/local/bin/)"
+" # Leave this quote on a new line to mark end of BUILDCMD
 
 eval "$BUILDCMD"
 
