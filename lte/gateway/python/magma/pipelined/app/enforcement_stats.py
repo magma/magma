@@ -289,7 +289,6 @@ class EnforcementStatsController(PolicyMixin, RestartMixin, MagmaController):
             flows.get_add_drop_flow_msg(self._datapath, self.tbl_num, match_out,
                                         priority=Utils.DROP_PRIORITY)]
 
-
     def _install_redirect_flow(self, imsi, ip_addr, rule):
         pass
 

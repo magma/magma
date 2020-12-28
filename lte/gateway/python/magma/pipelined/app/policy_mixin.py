@@ -15,22 +15,19 @@ from abc import ABCMeta, abstractmethod
 
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
-from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult, \
-    ActivateFlowsResult, ActivateFlowsRequest
-from magma.pipelined.app.base import ControllerNotReadyException
+from lte.protos.pipelined_pb2 import RuleModResult, ActivateFlowsResult
 from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
-    DIRECTION_REG, SCRATCH_REGS, RULE_VERSION_REG, RULE_NUM_REG
+from magma.pipelined.openflow.registers import SCRATCH_REGS, RULE_VERSION_REG, \
+    RULE_NUM_REG
 from magma.pipelined.openflow.messages import MsgChannel
 
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match, convert_ipv4_str_to_ip_proto, \
-    get_flow_ip_dst, ipv4_address_to_str, get_direction_for_match
+    flow_match_to_magma_match, get_flow_ip_dst, ipv4_address_to_str, \
+    get_direction_for_match
 from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.qos.types import QosInfo

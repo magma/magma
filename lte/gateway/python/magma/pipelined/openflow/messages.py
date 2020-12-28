@@ -22,11 +22,12 @@ from ryu.ofproto.ofproto_parser import MsgBase
 from magma.pipelined.openflow.exceptions import MagmaOFError,\
     MagmaDPDisconnectedError
 from magma.pipelined.metrics import DP_SEND_MSG_ERROR
+from magma.pipelined.policy_converters import MATCH_ATTRIBUTES
 
 logger = logging.getLogger(__name__)
 
 DEFAULT_TIMEOUT_SEC = 10
-from pprint import pformat
+
 
 def send_msg(datapath, msg, retries=3):
     """
@@ -240,17 +241,8 @@ class MessageHub(object):
 
     def _flow_matches_flowmsg(self, dp, flow, msg):
         """
-        Compare the flow and flow message based on
-         - cookie(Policy number)
-         - metadata(Subscriber IMSI)
-         - reg4(Policy version number)
+        Compare the flow and flow message based on match/instructions
         """
-        print("")
-        print("FLOW_")
-        print(pformat(flow))
-        print("MSG")
-        print(pformat(msg))
-
         reg_loads_match = True
         resubmits_match = True
         outputs_match = True
@@ -273,15 +265,8 @@ class MessageHub(object):
                              if type(i) == dp.ofproto_parser.OFPActionOutput]
             outputs_match = sorted(outputs_flow) == sorted(outputs_msg)
 
-            print(reg_loads_msg)
-            print(resubmits_msg)
-
-        attributes = ['metadata', 'reg1', 'reg2', 'reg3', 'reg4', 'reg5',
-                      'reg6', 'reg8', 'reg9', 'reg10', 'eth_type',
-                      'ipv4_dst', 'ipv4_src', 'ipv6_src', 'ipv6_dst'
-                      'ip_proto', 'tcp_src', 'tcp_dst', 'udp_src', 'udp_dst']
         flow_match = all([flow.match.get(i, None) == msg.match.get(i, None)
-                          for i in attributes])
+                          for i in MATCH_ATTRIBUTES])
         return flow_match and reg_loads_match and resubmits_match and \
                outputs_match
 

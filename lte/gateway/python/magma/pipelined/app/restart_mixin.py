@@ -15,18 +15,13 @@ from abc import ABCMeta, abstractmethod
 
 from ryu.ofproto.ofproto_v1_4_parser import OFPFlowStats
 
-from lte.protos.pipelined_pb2 import RuleModResult, SetupFlowsResult, \
-    ActivateFlowsResult, ActivateFlowsRequest
+from lte.protos.pipelined_pb2 import SetupFlowsResult, ActivateFlowsRequest
 from magma.pipelined.app.base import ControllerNotReadyException
 from magma.pipelined.openflow import flows
 from magma.policydb.rule_store import PolicyRuleDict
-from magma.pipelined.openflow.magma_match import MagmaMatch
-from magma.pipelined.openflow.registers import Direction, IMSI_REG, \
-    DIRECTION_REG, SCRATCH_REGS, RULE_VERSION_REG, RULE_NUM_REG
 
 from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match, convert_ipv4_str_to_ip_proto, \
-    get_flow_ip_dst, ipv4_address_to_str, get_direction_for_match
+    convert_ipv4_str_to_ip_proto, ovs_flow_match_to_magma_match
 
 
 class RestartMixin(metaclass=ABCMeta):
@@ -114,14 +109,9 @@ class RestartMixin(metaclass=ABCMeta):
         msg_list = []
         for tbl in extra_flows:
             for flow in extra_flows[tbl]:
-                if DIRECTION_REG in flow.match:
-                    direction = Direction(flow.match.get(DIRECTION_REG, None))
-                else:
-                    direction = None
-                match = MagmaMatch(imsi=flow.match.get(IMSI_REG, None),
-                                   direction=direction)
+                match = ovs_flow_match_to_magma_match(flow)
                 self.logger.debug('Sending msg for deletion -> %s',
-                                  flow.match.get('reg1', None))
+                                  match.ryu_match)
                 msg_list.append(flows.get_delete_flow_msg(
                     self._datapath, self.tbl_num, match, cookie=flow.cookie,
                     cookie_mask=flows.OVS_COOKIE_MATCH_ALL))
