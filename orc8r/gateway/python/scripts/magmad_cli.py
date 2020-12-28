@@ -101,7 +101,7 @@ def check_stateless(client, args):
     response = client.CheckStateless(common_pb2.Void())
     print(
         "AGW Mode:",
-        magmad_pb2.StatelessAgwMode.AgwMode.Name(response.agw_mode)
+        magmad_pb2.CheckStatelessResponse.AGWMode.Name(response.agw_mode)
     )
 
 
@@ -109,12 +109,12 @@ def check_stateless(client, args):
 def config_stateless(client, args):
     if args.switch == "enable":
         print("Enable switch")
-        config_arg = magmad_pb2.StatelessConfigRequest.ENABLE
+        config_arg = magmad_pb2.ConfigureStatelessRequest.ENABLE
     elif args.switch == "disable":
         print("Disable switch")
-        config_arg = magmad_pb2.StatelessConfigRequest.DISABLE
+        config_arg = magmad_pb2.ConfigureStatelessRequest.DISABLE
     client.ConfigureStateless(
-        magmad_pb2.StatelessConfigRequest(config_cmd=config_arg))
+        magmad_pb2.ConfigureStatelessRequest(config_cmd=config_arg))
 
 def create_parser():
     """

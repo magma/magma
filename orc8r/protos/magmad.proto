@@ -93,23 +93,23 @@ message LogLine {
   string line = 1;
 }
 
-message StatelessAgwMode {
-  enum AgwMode {
-    STATELESS = 0;
-    STATEFUL = 1;
-    CORRUPT = 2;
-    INVALID = 3;
+message CheckStatelessResponse{
+  enum AGWMode {
+    INVALID = 0;
+    STATELESS = 1;
+    STATEFUL = 2;
+    CORRUPT = 3;
   }
-  AgwMode agw_mode = 1;
+  AGWMode agw_mode = 1;
 }
 
-message StatelessConfigRequest {
-  enum ConfigCmd {
+message ConfigureStatelessRequest {
+  enum Cmd {
     CHECK = 0;
     DISABLE = 1;
     ENABLE = 2;
   }
-  ConfigCmd config_cmd = 1;
+  Cmd config_cmd = 1;
 }
 
 // --------------------------------------------------------------------------
@@ -147,9 +147,9 @@ service Magmad {
   // Get stream of logs
   rpc TailLogs (TailLogsRequest) returns (stream LogLine) {}
 
-  // Check stateless mode
-  rpc CheckStateless (Void) returns (StatelessAgwMode) {}
+  // CheckStateless returns whether AGW is stateless or stateful
+  rpc CheckStateless (Void) returns (CheckStatelessResponse) {}
 
-  // Configure stateless mode
-  rpc ConfigureStateless (StatelessConfigRequest) returns (Void) {}
+  // ConfigureStateless configures the stateless mode of AGW
+  rpc ConfigureStateless (ConfigureStatelessRequest) returns (Void) {}
 }

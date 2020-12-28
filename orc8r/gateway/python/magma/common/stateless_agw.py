@@ -35,25 +35,25 @@ def check_stateless_agw():
     for service, config, value in STATELESS_SERVICE_CONFIGS:
         if (
             _check_stateless_service_config(service, config, value)
-            == magmad_pb2.StatelessAgwMode.STATEFUL
+            == magmad_pb2.CheckStatelessResponse.STATEFUL
         ):
             num_stateful += 1
 
     if num_stateful == 0:
-        res = magmad_pb2.StatelessAgwMode.STATELESS
+        res = magmad_pb2.CheckStatelessResponse.STATELESS
     elif num_stateful == len(STATELESS_SERVICE_CONFIGS):
-        res = magmad_pb2.StatelessAgwMode.STATEFUL
+        res = magmad_pb2.CheckStatelessResponse.STATEFUL
     else:
-        res = magmad_pb2.StatelessAgwMode.CORRUPT
+        res = magmad_pb2.CheckStatelessResponse.CORRUPT
 
     logging.debug(
-        "Check returning %s", magmad_pb2.StatelessAgwMode.AgwMode.Name(res)
+        "Check returning %s", magmad_pb2.CheckStatelessResponse.AGWMode.Name(res)
     )
     return res
 
 
 def enable_stateless_agw():
-    if check_stateless_agw() == magmad_pb2.StatelessAgwMode.STATELESS:
+    if check_stateless_agw() == magmad_pb2.CheckStatelessResponse.STATELESS:
         logging.info("Nothing to enable, AGW is stateless")
     for service, config, value in STATELESS_SERVICE_CONFIGS:
         cfg = load_override_config(service) or {}
@@ -65,7 +65,7 @@ def enable_stateless_agw():
 
 
 def disable_stateless_agw():
-    if check_stateless_agw() == magmad_pb2.StatelessAgwMode.STATEFUL:
+    if check_stateless_agw() == magmad_pb2.CheckStatelessResponse.STATEFUL:
         logging.info("Nothing to disable, AGW is stateful")
     for service, config, _ in STATELESS_SERVICE_CONFIGS:
         cfg = load_override_config(service) or {}
@@ -83,10 +83,10 @@ def _check_stateless_service_config(service, config_name, config_value):
     service_config = load_service_config(service)
     if service_config.get(config_name) == config_value:
         logging.info("STATELESS\t%s -> %s", service, config_name)
-        return magmad_pb2.StatelessAgwMode.STATELESS
+        return magmad_pb2.CheckStatelessResponse.STATELESS
 
     logging.info("STATEFUL\t%s -> %s", service, config_name)
-    return magmad_pb2.StatelessAgwMode.STATEFUL
+    return magmad_pb2.CheckStatelessResponse.STATEFUL
 
 
 def _restart_sctpd():

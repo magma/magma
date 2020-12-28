@@ -12,7 +12,7 @@ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 See the License for the specific language governing permissions and
 limitations under the License.
 
-Script to config AGW in stateful and stateless mode
+Script to trigger pre and post start commands for the Sctpd systemd unit
 """
 
 import argparse

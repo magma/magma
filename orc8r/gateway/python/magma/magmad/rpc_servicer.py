@@ -262,8 +262,8 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         """
         status = check_stateless_agw()
         logging.debug("AGW mode is %s",
-                magmad_pb2.StatelessAgwMode.AgwMode.Name(status))
-        return magmad_pb2.StatelessAgwMode( agw_mode=status)
+                magmad_pb2.CheckStatelessResponse.AGWMode.Name(status))
+        return magmad_pb2.CheckStatelessResponse(agw_mode=status)
 
 
     @return_void
@@ -273,10 +273,10 @@ class MagmadRpcServicer(magmad_pb2_grpc.MagmadServicer):
         enable: Modify AGW config to be stateless
         disable: Modify AGW config to be stateful
         """
-        if request.config_cmd == magmad_pb2.StatelessConfigRequest.ENABLE:
+        if request.config_cmd == magmad_pb2.ConfigureStatelessRequest.ENABLE:
             logging.info("RPC: config command enable")
             enable_stateless_agw()
-        elif request.config_cmd == magmad_pb2.StatelessConfigRequest.DISABLE:
+        elif request.config_cmd == magmad_pb2.ConfigureStatelessRequest.DISABLE:
             logging.info("RPC: config command disable")
             disable_stateless_agw()
 
