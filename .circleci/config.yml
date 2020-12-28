@@ -1032,6 +1032,24 @@ workflows:
           requires:
             - xwfm-test
             - cwag-deploy
+      - cwag-deploy:
+          <<: *only_master
+          name: cwag-deploy-latest
+          requires:
+            - xwfm-test
+            - cwag-precommit
+            - cwf-integ-test
+          images: 'gateway_python|gateway_pipelined'
+          tag: 'latest'
+      - xwfm-deploy:
+          <<: *only_master
+          name: xwfm-deploy-latest
+          requires:
+            - xwfm-test
+            - cwag-precommit
+            - cwf-integ-test
+          tag: 'latest'
+
 
   cwf_operator:
     jobs:
@@ -1048,15 +1066,6 @@ workflows:
     jobs:
       - xwfm-test:
           notify_magma_ci: false
-      - xwfm-deploy:
-          requires:
-            - xwfm-test
-          tag: 'hourly'
-      - cwag-deploy:
-          requires:
-            - xwfm-test
-          images: 'gateway_python|gateway_pipelined'
-          tag: 'hourly'
 
   nms:
     jobs:
