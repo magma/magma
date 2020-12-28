@@ -7,16 +7,18 @@ ARG GIT_PROXY
 ARG FEATURES=mme_oai
 ENV MAGMA_ROOT=/magma
 ENV C_BUILD=/build/c
+ENV TZ=Europe/Paris
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN mkdir -p $C_BUILD
 
 RUN ["/bin/bash", "-c", "echo \"Install general purpouse packages\" && \
     apt-get update && \
-    apt-get upgrade -y && \
-    apt-get install -y gnupg wget software-properties-common autoconf automake \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade -y && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y gnupg wget software-properties-common autoconf automake \
     libtool curl make g++ unzip git build-essential autoconf libtool pkg-config \
-    gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim redis-server \
-    libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev && \
+    gcc-6 g++-6 apt-transport-https ca-certificates apt-utils vim redis-server tzdata \
+    libssl-dev ninja-build golang python2.7 automake perl libgmp3-dev clang-format-7 && \
     echo \"Configure C/C++ compiler v6.5 as primary\" && \
     update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-7 10 && \
     update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-7 10 && \
@@ -134,7 +136,7 @@ RUN wget https://ftp.gnu.org/gnu/nettle/nettle-2.5.tar.gz && \
     cd build/ && \
     ../configure  && \
     make -j4 && \
-    make install 
+    make install
 
 ##### liblfds
 # https://www.liblfds.org/mediawiki/index.php?title=r7.1.0:Building_Guide_(liblfds)
@@ -185,7 +187,7 @@ RUN echo "Install fmtlib required by Folly" && \
 COPY ./ $MAGMA_ROOT
 
 ##### FreeDiameter
-RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \ 
+RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git freediameter && \
     cd freediameter && \
     patch -p1 < $MAGMA_ROOT/lte/gateway/c/oai/patches/0001-opencoord.org.freeDiameter.patch && \
     mkdir build && \
@@ -194,9 +196,9 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
     awk '{if (/^DISABLE_SCTP/) gsub(/OFF/, "ON"); print}' CMakeCache.txt > tmp && mv tmp CMakeCache.txt && \
     make -j4 && \
     make install
-    
+
 ### Following  is required to build MME with OVS support
-# WARNING!!! for the moment it'snot working well cause libfluid linked with Ubuntu incorrectly 
+# WARNING!!! for the moment it'snot working well cause libfluid linked with Ubuntu incorrectly
 # ENV FEATURES=agw_of
 # RUN git clone https://github.com/facebookincubator/magma.git /fb_magma
 # Clone repos and checkout latest commit
@@ -216,7 +218,7 @@ RUN git clone https://github.com/OPENAIRINTERFACE/opencord.org.freeDiameter.git 
 # Build MME executables
 RUN ldconfig && \
     cd $MAGMA_ROOT/lte/gateway && \
-    echo $FEATURES && \ 
+    echo $FEATURES && \
     make build_oai && \
     make build_sctpd
 
@@ -283,16 +285,16 @@ ENV C_BUILD=/build/c
 
 # Install a few tools (may not be necessary later on)
 ENV DEBIAN_FRONTEND=noninteractive
+ENV TZ=Europe/Paris
 
-# redis-server installation is temporary
-# once we resolve the issue when running it on a separate container, we will remove it
-
-RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && DEBIAN_FRONTEND=noninteractive apt-get install --yes \
-    psmisc \
-    openssl \
-    net-tools \
-    tshark \
-    redis-server \
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get upgrade --yes && \
+    DEBIAN_FRONTEND=noninteractive apt-get install --yes \
+      psmisc \
+      openssl \
+      net-tools \
+      tshark \
+      tzdata \
   && rm -rf /var/lib/apt/lists/*
 
 # Copy pre-built shared object files
