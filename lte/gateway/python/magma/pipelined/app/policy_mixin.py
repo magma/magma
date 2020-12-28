@@ -25,9 +25,8 @@ from magma.pipelined.openflow.messages import MsgChannel
 from lte.protos.policydb_pb2 import PolicyRule
 from magma.pipelined.app.dpi import UNCLASSIFIED_PROTO_ID, get_app_id
 from magma.pipelined.imsi import encode_imsi
-from magma.pipelined.policy_converters import FlowMatchError, \
-    flow_match_to_magma_match, get_flow_ip_dst, ipv4_address_to_str, \
-    get_direction_for_match
+from magma.pipelined.policy_converters import get_direction_for_match, \
+    flow_match_to_magma_match, get_flow_ip_dst, ipv4_address_to_str
 from lte.protos.mobilityd_pb2 import IPAddress
 
 from magma.pipelined.qos.types import QosInfo
