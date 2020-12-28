@@ -17,6 +17,7 @@ from lte.protos.pipelined_pb2 import RuleModResult
 from magma.pipelined.app.base import MagmaController, ControllerType
 from magma.pipelined.app.enforcement_stats import EnforcementStatsController
 from magma.pipelined.app.policy_mixin import PolicyMixin
+from magma.pipelined.app.restart_mixin import RestartMixin
 
 from magma.pipelined.imsi import encode_imsi
 from magma.pipelined.openflow import flows
@@ -36,7 +37,7 @@ from magma.pipelined.utils import Utils
 from magma.pipelined.openflow.exceptions import MagmaDPDisconnectedError
 
 
-class EnforcementController(PolicyMixin, MagmaController):
+class EnforcementController(PolicyMixin, RestartMixin, MagmaController):
     """
     EnforcementController
 
@@ -157,12 +158,13 @@ class EnforcementController(PolicyMixin, MagmaController):
             cookie=self.DEFAULT_FLOW_COOKIE)
 
         msgs, remaining_flows = self._msg_hub \
-            .filter_msgs_if_not_in_flow_list([msg], existing_flows)
+            .filter_msgs_if_not_in_flow_list(self._datapath, [msg],
+                                             existing_flows[self.tbl_num])
         if msgs:
             chan = self._msg_hub.send(msgs, datapath)
             self._wait_for_responses(chan, len(msgs))
 
-        return remaining_flows
+        return {self.tbl_num: remaining_flows}
 
     def _get_rule_match_flow_msgs(self, imsi, msisdn: bytes, uplink_tunnel: int, ip_addr, apn_ambr, rule):
         """

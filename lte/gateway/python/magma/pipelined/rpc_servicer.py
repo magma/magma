@@ -61,7 +61,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
 
     def __init__(self, loop, gy_app, enforcer_app, enforcement_stats, dpi_app,
                  ue_mac_app, check_quota_app, ipfix_app, vlan_learn_app,
-                 tunnel_learn_app, classifier_app, service_config, service_manager):
+                 tunnel_learn_app, classifier_app, inout_app,
+                 service_config, service_manager):
         self._loop = loop
         self._gy_app = gy_app
         self._enforcer_app = enforcer_app
@@ -74,6 +75,7 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         self._tunnel_learn_app = tunnel_learn_app
         self._service_config = service_config
         self._classifier_app = classifier_app
+        self._inout_app = inout_app
         self._service_manager = service_manager
 
         self._print_grpc_payload = os.environ.get('MAGMA_PRINT_GRPC_PAYLOAD')
@@ -96,6 +98,8 @@ class PipelinedRpcServicer(pipelined_pb2_grpc.PipelinedServicer):
         Setup flows for all subscribers, used on pipelined restarts
         """
         self._log_grpc_payload(request)
+        # Setup inout here as well
+        self._inout_app.handle_restart()
         if not self._service_manager.is_app_enabled(
                 EnforcementController.APP_NAME):
             context.set_code(grpc.StatusCode.UNAVAILABLE)

@@ -131,6 +131,7 @@ def main():
         manager.applications.get('VlanLearnController', None),
         manager.applications.get('TunnelLearnController', None),
         manager.applications.get('Classifier', None),
+        manager.applications.get('InOutController', None),
         service.config,
         service_manager)
     pipelined_srv.add_to_server(service.rpc_server)
