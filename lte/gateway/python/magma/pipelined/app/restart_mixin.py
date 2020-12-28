@@ -83,7 +83,7 @@ class RestartMixin(metaclass=ABCMeta):
             self._datapath, startup_flows)
 
         for tbl in startup_flows:
-            self.logger.debug('Startup flows before filstering -> %s',
+            self.logger.debug('Startup flows before filtering -> %s',
                               [flow.match for flow in startup_flows[tbl]])
         extra_flows = self._add_missing_flows(requests, remaining_flows)
 
@@ -97,11 +97,13 @@ class RestartMixin(metaclass=ABCMeta):
         # currently do this from out synchronous setup request. So just reinsert
         self._process_redirection_rules(requests)
 
+        # TODO I don't think this is relevant here, move to specific controller
         if self.proxy_controller_fut and self.proxy_controller_fut.done():
             if not self.proxy_controller:
                 self.proxy_controller = self.proxy_controller_fut.result()
+        self.logger.info("Initialized proxy_controller %s",
+                         self.proxy_controller)
 
-        self.logger.info("Initialized proxy_controller %s", self.proxy_controller)
         self.init_finished = True
         return SetupFlowsResult(result=SetupFlowsResult.SUCCESS)
 
@@ -113,7 +115,7 @@ class RestartMixin(metaclass=ABCMeta):
                 self.logger.debug('Sending msg for deletion -> %s',
                                   match.ryu_match)
                 msg_list.append(flows.get_delete_flow_msg(
-                    self._datapath, self.tbl_num, match, cookie=flow.cookie,
+                    self._datapath, tbl, match, cookie=flow.cookie,
                     cookie_mask=flows.OVS_COOKIE_MATCH_ALL))
         if msg_list:
             chan = self._msg_hub.send(msg_list, self._datapath)
